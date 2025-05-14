@@ -491,3 +491,46 @@ export const GraphResources = defineMessages({
         id: '/0qSPz',
     },
 });
+
+export const ResourceInfoResources = defineMessages({
+    name: { defaultMessage: 'Name', id: 'HAlOn1' },
+    type: { defaultMessage: 'Type', id: '+U6ozc' },
+    dashboard: { defaultMessage: 'Dashboard', id: 'hzSNj4' },
+    dashboardLinkText: { defaultMessage: 'Go to Azure Managed Grafana', id: 'SAINuE' },
+    grafanaLogo: { defaultMessage: 'Grafana logo', id: 'mzRg+7' },
+    repositoryConnection: { defaultMessage: 'Repository Connection', id: 'aRH5fG' },
+    authorizeRepositoryAccess: { defaultMessage: 'Authorize Repository Access', id: 'Az8/Pe' },
+    connectRepository: { defaultMessage: 'Connect Repository', id: 'rP/nDW' },
+    linkRepositoryToResource: { defaultMessage: 'Link Repository to Resource', id: 'uVeSVH' },
+    repositoryUrl: { defaultMessage: 'Repository URL', id: 'AA/tRJ' },
+    repositoryUrlErrorMessage: { defaultMessage: 'Repository URL must be like: https://github.com/owner/repo-name.git', id: 'HekEs4' },
+    connecting: { defaultMessage: 'Connecting...', id: '5y2qWO' },
+    annotation: { defaultMessage: 'Annotation', id: 'dQtJBl' },
+    editAnnotation: { defaultMessage: 'Edit Annotation', id: '7MvYEX' },
+    addAnnotation: { defaultMessage: 'Add Annotation', id: 'vv2vLv' },
+    addAnnotationToYourResource: { defaultMessage: 'Add annotation to your resource', id: 'YwZ7+5' },
+    appHealthInfoCost: { defaultMessage: 'Costs for last 7 days', id: 'qeUtXk' },
+    appHealthInfoCostCalculationPending: { defaultMessage: 'Cost calculation pending', id: 'wElgyk' },
+    appHealthInfoAvailability: { defaultMessage: 'Availability', id: 'hOxIeP' },
+    appHealthInfoHealthStatus: { defaultMessage: 'Health', id: 'hlmkcL' },
+    appHealthInfoTransactionCount: { defaultMessage: 'Transactions for last 30 minutes', id: 'ED/jWk' },
+    appHealthInfoAverageLatency: { defaultMessage: 'Average latency', id: 'DPnEXy' },
+    appHealthInfoAverageMemoryUsage: { defaultMessage: 'Average memory usage', id: 'levHvg' },
+    appHealthInfoAverageCPUUsage: { defaultMessage: 'Average CPU usage', id: 'JWM0w5' },
+    appHealthInfoLastDataCaptureTime: { defaultMessage: 'Last data capture time', id: 'WIm1Zh' },
+    annotationUpdateTitle: { defaultMessage: 'Update annotation', id: 'IAwPyV' },
+    annotationUpdateInProgressDescription: { defaultMessage: 'We are updating annotation for your resource {name}', id: 'J6XCfl' },
+    annotationUpdateSuccessDescription: { defaultMessage: 'Your annotation is updated successfully', id: 'A2BJnD' },
+    annotationUpdateFailureDescription: {
+        defaultMessage: 'Failed to update the annotation with the error: {errorMessage}',
+        id: 'SL7+hl',
+    },
+});
+
+export const AppHealth = defineMessages({
+    unhealthy: { defaultMessage: 'Unhealthy', id: 'YdXbbC' },
+    healthy: { defaultMessage: 'Healthy', id: 'TIDNOO' },
+    degraded: { defaultMessage: 'Degraded', id: 'VQDmmK' },
+    reportUnhealthyNode: { defaultMessage: 'Report unhealthy node', id: 'YE+vjH' },
+    sendingReport: { defaultMessage: 'Sending a report...', id: '5GUtRJ' },
+});

@@ -1,5 +1,7 @@
 import { Image, Link, makeStyles, Spinner, Text } from '@fluentui/react-components';
 import { memo } from 'react';
+import { FormattedMessage } from 'react-intl';
+import { AppHealth } from '../../Strings/SREAgentResources';
 
 interface HealthStatusProps {
     health?: string;
@@ -22,34 +24,36 @@ const HealthStatus = ({ health, showReportButton, onClickReportButton, isSending
     const { container } = useStyles();
 
     let healthIconSrc = '';
-    let healthText = health;
+    let healthText: { defaultMessage: string; id: string } | undefined = undefined;
     let isNodeUnhealthy = false;
     switch (health?.toLowerCase()) {
         case 'unhealthy':
             healthIconSrc = './failed.svg';
             isNodeUnhealthy = true;
-            healthText = 'Unhealthy';
+            healthText = AppHealth.unhealthy;
             break;
         case 'healthy':
             healthIconSrc = './success.svg';
-            healthText = 'Healthy';
+            healthText = AppHealth.healthy;
             break;
         case 'degraded':
             healthIconSrc = './warning.svg';
-            healthText = 'Degraded';
+            healthText = AppHealth.degraded;
             break;
     }
 
     return health ? (
         <div className={container}>
             {healthIconSrc && <Image src={healthIconSrc} width={16} height={16} />}
-            <Text>{healthText}</Text>
+            <Text>{healthText ? <FormattedMessage {...healthText} /> : health}</Text>
             {showReportButton &&
                 isNodeUnhealthy &&
                 (isSendingReport ? (
                     <div className={container}>
                         <Spinner size={'small'} />
-                        <span>{'Sending a report...'}</span>
+                        <span>
+                            <FormattedMessage {...AppHealth.sendingReport} />
+                        </span>
                     </div>
                 ) : (
                     <Link
@@ -57,7 +61,7 @@ const HealthStatus = ({ health, showReportButton, onClickReportButton, isSending
                             onClickReportButton?.();
                         }}
                     >
-                        {'Report unhealthy node'}
+                        <FormattedMessage {...AppHealth.reportUnhealthyNode} />
                     </Link>
                 ))}
         </div>

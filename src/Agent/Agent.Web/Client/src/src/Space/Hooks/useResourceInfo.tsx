@@ -1,8 +1,10 @@
-import { Link, Toast, ToastBody, ToastIntent, ToastTitle, ToastTrigger, useToastController } from '@fluentui/react-components';
 import axios from 'axios';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useIntl } from 'react-intl';
+import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { Guid } from '../../Common/Helpers/Guid';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
+import { ResourceInfoResources } from '../../Strings/SREAgentResources';
 import { GraphNode, ResourceExtended } from '../Contracts/Graph';
 
 const getResource = async (resourceId: string): Promise<ResourceExtended | undefined> => {
@@ -56,78 +58,35 @@ export const useResourceInfo = (selectedNode?: GraphNode) => {
     const [isUpdating, setIsUpdating] = useState<boolean>(false);
 
     const toasterId = useMemo(() => Guid.newGuid(), []);
-    const { dispatchToast, updateToast } = useToastController(toasterId);
 
-    const notify = (status: ToastIntent, errorMessage?: string) => {
-        const name = selectedNode?.name;
-        const title = 'Annotation update';
-        let description = `We are updating annotation for your resource${name ? ` '${name}'` : ''}`;
-
-        switch (status) {
-            case 'success':
-                description = 'Your annotation is updated successfully';
-                break;
-            case 'error':
-                description = `Failed to update the annotation with the error: ${errorMessage}`;
-                break;
-        }
-
-        if (status === 'info') {
-            dispatchToast(
-                <Toast>
-                    <ToastTitle
-                        action={
-                            <ToastTrigger>
-                                <Link>{'Dismiss'}</Link>
-                            </ToastTrigger>
-                        }
-                    >
-                        {title}
-                    </ToastTitle>
-                    <ToastBody>{description}</ToastBody>
-                </Toast>,
-                {
-                    intent: status,
-                    timeout: 7000,
-                    position: 'top-end',
-                    toastId: toasterId,
-                }
-            );
-        } else {
-            updateToast({
-                content: (
-                    <Toast>
-                        <ToastTitle
-                            action={
-                                <ToastTrigger>
-                                    <Link>{'Dismiss'}</Link>
-                                </ToastTrigger>
-                            }
-                        >
-                            {title}
-                        </ToastTitle>
-                        <ToastBody>{description}</ToastBody>
-                    </Toast>
-                ),
-                intent: status,
-                toastId: toasterId,
-                timeout: 7000,
-                position: 'top-end',
-            });
-        }
-    };
+    const azPortalContext = useContext(AzPortalContext);
+    const intl = useIntl();
 
     const onSubmit = useCallback(
         async (remarks: string) => {
             if (selectedNode) {
                 setIsUpdating(true);
-                notify('info');
+
+                const notificationId = azPortalContext.startNotification(
+                    intl.formatMessage(ResourceInfoResources.annotationUpdateTitle),
+                    intl.formatMessage(ResourceInfoResources.annotationUpdateInProgressDescription, { name: selectedNode.name })
+                );
 
                 try {
                     await patchResource(selectedNode.id, remarks);
-                    notify('success');
+                    azPortalContext.stopNotification(
+                        notificationId,
+                        true,
+                        intl.formatMessage(ResourceInfoResources.annotationUpdateSuccessDescription)
+                    );
                 } catch (e: any) {
-                    notify('error', e);
+                    azPortalContext.stopNotification(
+                        notificationId,
+                        false,
+                        intl.formatMessage(ResourceInfoResources.annotationUpdateFailureDescription, {
+                            errorMessage: e?.message || e?.response?.data,
+                        })
+                    );
                 } finally {
                     setIsUpdating(false);
                     setInitialRemarks(remarks);

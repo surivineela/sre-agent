@@ -11,6 +11,12 @@
       "value": "Submit feedback to Microsoft"
     }
   ],
+  "+U6ozc": [
+    {
+      "type": 0,
+      "value": "Type"
+    }
+  ],
   "+WRusC": [
     {
       "type": 0,
@@ -189,6 +195,12 @@
       "value": "Approved by"
     }
   ],
+  "5GUtRJ": [
+    {
+      "type": 0,
+      "value": "Sending a report..."
+    }
+  ],
   "5QYdPU": [
     {
       "type": 0,
@@ -219,6 +231,12 @@
     {
       "type": 1,
       "value": "results"
+    }
+  ],
+  "5y2qWO": [
+    {
+      "type": 0,
+      "value": "Connecting..."
     }
   ],
   "5yG7b2": [
@@ -281,6 +299,12 @@
       "value": "New Azure Monitor Alert Detected"
     }
   ],
+  "7MvYEX": [
+    {
+      "type": 0,
+      "value": "Edit Annotation"
+    }
+  ],
   "7Nz2Ev": [
     {
       "type": 0,
@@ -297,6 +321,12 @@
     {
       "type": 0,
       "value": "Project details"
+    }
+  ],
+  "7w4v59": [
+    {
+      "type": 0,
+      "value": "Access control (IAM)"
     }
   ],
   "8Wiwkg": [
@@ -359,10 +389,22 @@
       "value": "Role assignments"
     }
   ],
+  "A2BJnD": [
+    {
+      "type": 0,
+      "value": "Your annotation is updated successfully"
+    }
+  ],
   "A3Wps1": [
     {
       "type": 0,
       "value": "If you approve, this operation will be executed on your behalf using your credentials."
+    }
+  ],
+  "AA/tRJ": [
+    {
+      "type": 0,
+      "value": "Repository URL"
     }
   ],
   "ACfSSZ": [
@@ -391,6 +433,12 @@
     {
       "type": 0,
       "value": "REST API access key"
+    }
+  ],
+  "Az8/Pe": [
+    {
+      "type": 0,
+      "value": "Authorize Repository Access"
     }
   ],
   "BKMqtr": [
@@ -431,6 +479,12 @@
       "value": "Settings"
     }
   ],
+  "DPnEXy": [
+    {
+      "type": 0,
+      "value": "Average latency"
+    }
+  ],
   "DpMYPV": [
     {
       "type": 0,
@@ -447,6 +501,12 @@
     {
       "type": 0,
       "value": "Some of the selected resource groups do not have the required roleAssignments/write and Microsoft.ManagedIdentity/userAssignedIdentities/write permissions."
+    }
+  ],
+  "ED/jWk": [
+    {
+      "type": 0,
+      "value": "Transactions for last 30 minutes"
     }
   ],
   "EKfWmx": [
@@ -563,6 +623,12 @@
       "value": "Pending approvals"
     }
   ],
+  "HekEs4": [
+    {
+      "type": 0,
+      "value": "Repository URL must be like: https://github.com/owner/repo-name.git"
+    }
+  ],
   "HsGdXO": [
     {
       "type": 0,
@@ -575,6 +641,12 @@
       "value": "- completed"
     }
   ],
+  "IAwPyV": [
+    {
+      "type": 0,
+      "value": "Update annotation"
+    }
+  ],
   "IF3r+X": [
     {
       "type": 0,
@@ -585,6 +657,16 @@
     {
       "type": 0,
       "value": "New thread"
+    }
+  ],
+  "J6XCfl": [
+    {
+      "type": 0,
+      "value": "We are updating annotation for your resource "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "JCjxSH": [
@@ -601,6 +683,12 @@
     {
       "type": 0,
       "value": "Generate API key"
+    }
+  ],
+  "JWM0w5": [
+    {
+      "type": 0,
+      "value": "Average CPU usage"
     }
   ],
   "JX0502": [
@@ -821,10 +909,26 @@
       "value": "API Key is required"
     }
   ],
+  "SAINuE": [
+    {
+      "type": 0,
+      "value": "Go to Azure Managed Grafana"
+    }
+  ],
   "SDXmEJ": [
     {
       "type": 0,
       "value": "All threads"
+    }
+  ],
+  "SL7+hl": [
+    {
+      "type": 0,
+      "value": "Failed to update the annotation with the error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
     }
   ],
   "SNuQo7": [
@@ -861,6 +965,12 @@
     {
       "type": 0,
       "value": "Get more info"
+    }
+  ],
+  "TIDNOO": [
+    {
+      "type": 0,
+      "value": "Healthy"
     }
   ],
   "TKmub+": [
@@ -935,6 +1045,12 @@
       "value": "App Group"
     }
   ],
+  "VQDmmK": [
+    {
+      "type": 0,
+      "value": "Degraded"
+    }
+  ],
   "VzzYJk": [
     {
       "type": 0,
@@ -951,6 +1067,12 @@
     {
       "type": 0,
       "value": "Approve"
+    }
+  ],
+  "WIm1Zh": [
+    {
+      "type": 0,
+      "value": "Last data capture time"
     }
   ],
   "WTrOy3": [
@@ -995,10 +1117,28 @@
       "value": "This will permanently disconnect to Azure Monitor. The agent will no longer be integrated with Azure Monitor alerts. Are you sure you want to disconnect?"
     }
   ],
+  "YE+vjH": [
+    {
+      "type": 0,
+      "value": "Report unhealthy node"
+    }
+  ],
+  "YdXbbC": [
+    {
+      "type": 0,
+      "value": "Unhealthy"
+    }
+  ],
   "Ys9AIu": [
     {
       "type": 0,
       "value": "Managed identity"
+    }
+  ],
+  "YwZ7+5": [
+    {
+      "type": 0,
+      "value": "Add annotation to your resource"
     }
   ],
   "Z1VHv1": [
@@ -1049,6 +1189,12 @@
     {
       "type": 0,
       "value": "Yes"
+    }
+  ],
+  "aRH5fG": [
+    {
+      "type": 0,
+      "value": "Repository Connection"
     }
   ],
   "anSi7M": [
@@ -1121,6 +1267,12 @@
       "value": "Back"
     }
   ],
+  "dQtJBl": [
+    {
+      "type": 0,
+      "value": "Annotation"
+    }
+  ],
   "dnXgff": [
     {
       "type": 0,
@@ -1187,6 +1339,12 @@
       "value": "Failed to validate API Key"
     }
   ],
+  "hOxIeP": [
+    {
+      "type": 0,
+      "value": "Availability"
+    }
+  ],
   "hX5PAb": [
     {
       "type": 0,
@@ -1199,6 +1357,12 @@
       "value": "Failed to save incident management configuration"
     }
   ],
+  "hlmkcL": [
+    {
+      "type": 0,
+      "value": "Health"
+    }
+  ],
   "hmrm7i": [
     {
       "type": 0,
@@ -1209,6 +1373,12 @@
     {
       "type": 0,
       "value": "Deny"
+    }
+  ],
+  "hzSNj4": [
+    {
+      "type": 0,
+      "value": "Dashboard"
     }
   ],
   "i0mHNo": [
@@ -1271,6 +1441,12 @@
       "value": "User Assigned Managed Identity"
     }
   ],
+  "levHvg": [
+    {
+      "type": 0,
+      "value": "Average memory usage"
+    }
+  ],
   "ljmS5P": [
     {
       "type": 0,
@@ -1287,6 +1463,12 @@
     {
       "type": 0,
       "value": "Incidents"
+    }
+  ],
+  "mzRg+7": [
+    {
+      "type": 0,
+      "value": "Grafana logo"
     }
   ],
   "nmpevl": [
@@ -1349,6 +1531,12 @@
       "value": "In progress"
     }
   ],
+  "qeUtXk": [
+    {
+      "type": 0,
+      "value": "Costs for last 7 days"
+    }
+  ],
   "qj1uhz": [
     {
       "type": 0,
@@ -1365,6 +1553,12 @@
     {
       "type": 0,
       "value": "Active threads"
+    }
+  ],
+  "rP/nDW": [
+    {
+      "type": 0,
+      "value": "Connect Repository"
     }
   ],
   "rpG/Bn": [
@@ -1449,6 +1643,12 @@
       "value": "Showing the first 1000 results. Filter to narrow down the list."
     }
   ],
+  "uVeSVH": [
+    {
+      "type": 0,
+      "value": "Link Repository to Resource"
+    }
+  ],
   "ug01Mk": [
     {
       "type": 0,
@@ -1473,6 +1673,12 @@
       "value": "You do not have the required Microsoft.Authorization/roleAssignments/write permission to set up a Grafana dashboard."
     }
   ],
+  "vv2vLv": [
+    {
+      "type": 0,
+      "value": "Add Annotation"
+    }
+  ],
   "w+XRP2": [
     {
       "type": 0,
@@ -1483,6 +1689,12 @@
     {
       "type": 0,
       "value": "The resources you picked have permissions for these roles. If you add new resources later, the SRE Agent might request any additional permissions if needed."
+    }
+  ],
+  "wElgyk": [
+    {
+      "type": 0,
+      "value": "Cost calculation pending"
     }
   ],
   "wInZgf": [

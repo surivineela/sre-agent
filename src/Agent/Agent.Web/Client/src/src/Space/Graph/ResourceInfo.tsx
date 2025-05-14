@@ -23,9 +23,11 @@ import {
 } from '@fluentui/react-components';
 import { memo, ReactNode, useContext, useEffect, useState } from 'react';
 import { FaGithub } from 'react-icons/fa';
+import { FormattedMessage, useIntl } from 'react-intl';
 import { useLocation, useNavigate } from 'react-router';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
+import { ResourceInfoResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { GraphContext, GraphNode, ResourceExtended } from '../Contracts/Graph';
 import { createThread, getPropertyValue, useResourceInfo } from '../Hooks/useResourceInfo';
 import HealthStatus from './HealthStatus';
@@ -69,12 +71,6 @@ const useStyles = makeStyles({
     },
     textareaInner: {
         width: '100%',
-    },
-    section: {
-        margin: '20px 0px',
-    },
-    sectionTitle: {
-        lineHeight: '50px',
     },
     sectionField: {
         borderBottom: '1px solid rgba(204,204,204,.8)',
@@ -146,6 +142,8 @@ const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode; onGit
     const [isLinking, setIsLinking] = useState(false);
     const [repoUrlError, setRepoUrlError] = useState('');
 
+    const intl = useIntl();
+
     const handleLinkRepository = async () => {
         if (!selectedNode?.id || !repoUrl) return;
 
@@ -192,127 +190,154 @@ const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode; onGit
                     <Spinner size={'large'} className={spinner} />
                 ) : (
                     <div className={content}>
-                        <Section title={'Resource details'}>
-                            <SummaryField label={'Name'} value={getPropertyValue(properties?.resourceName)} />
-                            <SummaryField label={'Type'} value={getPropertyValue(properties?.resourceType)} />
-                            <SummaryField label={'Resource group'} value={getPropertyValue(properties?.resourceGroupName)} />
-                            <SummaryField label={'Subscription ID'} value={getPropertyValue(properties?.subscriptionId)} />
-                            <AppHealthInfo resource={resource} />
-                            <SummaryField label={'Dashboard URL'}>
-                                {resource?.dashboardUrl ? (
-                                    <div className={dashboard}>
-                                        <Image src="./grafana-logo.svg" width={16} height={16} alt="Grafana logo" />
-                                        <Link href={resource.dashboardUrl} target="_blank">
-                                            View here
+                        <SummaryField
+                            label={intl.formatMessage(ResourceInfoResources.name)}
+                            value={getPropertyValue(properties?.resourceName)}
+                        />
+                        <SummaryField
+                            label={intl.formatMessage(ResourceInfoResources.type)}
+                            value={getPropertyValue(properties?.resourceType)}
+                        />
+                        <SummaryField
+                            label={intl.formatMessage(SreAgentResources.resourceGroup)}
+                            value={getPropertyValue(properties?.resourceGroupName)}
+                        />
+                        <SummaryField
+                            label={intl.formatMessage(SreAgentResources.subscriptionId)}
+                            value={getPropertyValue(properties?.subscriptionId)}
+                        />
+                        <AppHealthInfo resource={resource} />
+                        <SummaryField label={intl.formatMessage(ResourceInfoResources.dashboard)}>
+                            {resource?.dashboardUrl ? (
+                                <div className={dashboard}>
+                                    <Image
+                                        src="./grafana-logo.svg"
+                                        width={16}
+                                        height={16}
+                                        alt={intl.formatMessage(ResourceInfoResources.grafanaLogo)}
+                                    />
+                                    <Link href={resource.dashboardUrl} target="_blank" rel="noopener noreferrer">
+                                        <FormattedMessage {...ResourceInfoResources.dashboardLinkText} />
+                                    </Link>
+                                </div>
+                            ) : null}
+                        </SummaryField>
+                        <SummaryField label={intl.formatMessage(ResourceInfoResources.repositoryConnection)}>
+                            {resource?.sourceCodeLinkageStatus ? (
+                                resource.sourceCodeLinkageStatus.status === 'Linked' ? (
+                                    <div className={styles.githubButton}>
+                                        <FaGithub className={styles.githubIcon} />
+                                        <Link href={resource.sourceCodeLinkageStatus.repositoryUrl} target="_blank">
+                                            {resource.sourceCodeLinkageStatus.repositoryUrl}
                                         </Link>
                                     </div>
-                                ) : null}
-                            </SummaryField>
-                            <SummaryField label={'Repository Connection'}>
-                                {resource?.sourceCodeLinkageStatus ? (
-                                    resource.sourceCodeLinkageStatus.status === 'Linked' ? (
-                                        <div className={styles.githubButton}>
-                                            <FaGithub className={styles.githubIcon} />
-                                            <Link href={resource.sourceCodeLinkageStatus.repositoryUrl} target="_blank">
-                                                {resource.sourceCodeLinkageStatus.repositoryUrl}
-                                            </Link>
-                                        </div>
-                                    ) : (
-                                        <div>
-                                            {resource.sourceCodeLinkageStatus.repositoryUrl && (
-                                                <div className={styles.githubButton} style={{ marginBottom: '8px' }}>
-                                                    <FaGithub className={styles.githubIcon} />
-                                                    <Link href={resource.sourceCodeLinkageStatus.repositoryUrl} target="_blank">
-                                                        {resource.sourceCodeLinkageStatus.repositoryUrl}
-                                                    </Link>
-                                                </div>
-                                            )}
-                                            <Button
-                                                appearance="primary"
-                                                size="small"
-                                                icon={<FaGithub className={styles.githubIcon} />}
-                                                onClick={() => {
-                                                    const status = resource?.sourceCodeLinkageStatus;
-                                                    if (status?.loginCallbackUrl) {
-                                                        window.open(status.loginCallbackUrl, 'githubAuth', 'width=600,height=700');
-                                                    }
-                                                }}
-                                            >
-                                                Authorize Repository Access
-                                            </Button>
-                                        </div>
-                                    )
                                 ) : (
-                                    <>
+                                    <div>
+                                        {resource.sourceCodeLinkageStatus.repositoryUrl && (
+                                            <div className={styles.githubButton} style={{ marginBottom: '8px' }}>
+                                                <FaGithub className={styles.githubIcon} />
+                                                <Link href={resource.sourceCodeLinkageStatus.repositoryUrl} target="_blank">
+                                                    {resource.sourceCodeLinkageStatus.repositoryUrl}
+                                                </Link>
+                                            </div>
+                                        )}
                                         <Button
                                             appearance="primary"
                                             size="small"
                                             icon={<FaGithub className={styles.githubIcon} />}
-                                            onClick={() => setIsLinkDialogOpen(true)}
+                                            onClick={() => {
+                                                const status = resource?.sourceCodeLinkageStatus;
+                                                if (status?.loginCallbackUrl) {
+                                                    window.open(status.loginCallbackUrl, 'githubAuth', 'width=600,height=700');
+                                                }
+                                            }}
                                         >
-                                            Connect Repository
+                                            <FormattedMessage {...ResourceInfoResources.authorizeRepositoryAccess} />
                                         </Button>
-                                        <Dialog open={isLinkDialogOpen} onOpenChange={(_, data) => setIsLinkDialogOpen(data.open)}>
-                                            <DialogSurface>
-                                                <DialogBody>
-                                                    <DialogTitle>Link Repository to Resource</DialogTitle>
-                                                    <DialogContent>
-                                                        <Field
-                                                            label="Repository URL"
-                                                            validationState={repoUrlError ? 'error' : undefined}
-                                                            validationMessage={repoUrlError}
-                                                        >
-                                                            <Textarea
-                                                                placeholder="https://github.com/owner/repo-name.git"
-                                                                value={repoUrl}
-                                                                onChange={(_, data) => {
-                                                                    setRepoUrl(data.value);
-                                                                    if (!githubRepoRegex.test(data.value)) {
-                                                                        setRepoUrlError(
-                                                                            'Repository URL must be like: https://github.com/owner/repo-name.git'
-                                                                        );
-                                                                    } else {
-                                                                        setRepoUrlError('');
-                                                                    }
-                                                                }}
-                                                                style={{ direction: 'ltr' }}
-                                                            />
-                                                        </Field>
-                                                    </DialogContent>
-                                                    <DialogActions>
-                                                        <Button
-                                                            appearance="primary"
-                                                            disabled={!repoUrl || !!repoUrlError || isLinking}
-                                                            onClick={handleLinkRepository}
-                                                        >
-                                                            {isLinking ? 'Connecting...' : 'Connect Repository'}
-                                                        </Button>
-                                                        <Button appearance="secondary" onClick={() => setIsLinkDialogOpen(false)}>
-                                                            Cancel
-                                                        </Button>
-                                                    </DialogActions>
-                                                </DialogBody>
-                                            </DialogSurface>
-                                        </Dialog>
-                                    </>
-                                )}
-                            </SummaryField>
-                            <SummaryField label={'Annotation'}>
-                                {initialRemarks ? <div>{initialRemarks}</div> : null}
-                                <Dialog>
-                                    <DialogTrigger disableButtonEnhancement>
-                                        <Link>{initialRemarks ? 'Edit annotation' : 'Add annotation'}</Link>
-                                    </DialogTrigger>
-                                    <AnnotationDialogSurface
-                                        initialRemarks={initialRemarks}
-                                        isUpdating={isUpdating}
-                                        onSubmit={async (remarks: string) => {
-                                            await onSubmit(remarks);
-                                        }}
-                                    />
-                                </Dialog>
-                            </SummaryField>
-                        </Section>
+                                    </div>
+                                )
+                            ) : (
+                                <>
+                                    <Button
+                                        appearance="primary"
+                                        size="small"
+                                        icon={<FaGithub className={styles.githubIcon} />}
+                                        onClick={() => setIsLinkDialogOpen(true)}
+                                    >
+                                        <FormattedMessage {...ResourceInfoResources.connectRepository} />
+                                    </Button>
+                                    <Dialog open={isLinkDialogOpen} onOpenChange={(_, data) => setIsLinkDialogOpen(data.open)}>
+                                        <DialogSurface>
+                                            <DialogBody>
+                                                <DialogTitle>
+                                                    <FormattedMessage {...ResourceInfoResources.linkRepositoryToResource} />
+                                                </DialogTitle>
+                                                <DialogContent>
+                                                    <Field
+                                                        label={intl.formatMessage(ResourceInfoResources.repositoryUrl)}
+                                                        validationState={repoUrlError ? 'error' : undefined}
+                                                        validationMessage={repoUrlError}
+                                                    >
+                                                        <Textarea
+                                                            placeholder="https://github.com/owner/repo-name.git"
+                                                            value={repoUrl}
+                                                            onChange={(_, data) => {
+                                                                setRepoUrl(data.value);
+                                                                if (!githubRepoRegex.test(data.value)) {
+                                                                    setRepoUrlError(
+                                                                        intl.formatMessage(ResourceInfoResources.repositoryUrlErrorMessage)
+                                                                    );
+                                                                } else {
+                                                                    setRepoUrlError('');
+                                                                }
+                                                            }}
+                                                            style={{ direction: 'ltr' }}
+                                                        />
+                                                    </Field>
+                                                </DialogContent>
+                                                <DialogActions>
+                                                    <Button
+                                                        appearance="primary"
+                                                        disabled={!repoUrl || !!repoUrlError || isLinking}
+                                                        onClick={handleLinkRepository}
+                                                    >
+                                                        {isLinking ? (
+                                                            <FormattedMessage {...ResourceInfoResources.connecting} />
+                                                        ) : (
+                                                            <FormattedMessage {...ResourceInfoResources.connectRepository} />
+                                                        )}
+                                                    </Button>
+                                                    <Button appearance="secondary" onClick={() => setIsLinkDialogOpen(false)}>
+                                                        <FormattedMessage {...SreAgentResources.cancel} />
+                                                    </Button>
+                                                </DialogActions>
+                                            </DialogBody>
+                                        </DialogSurface>
+                                    </Dialog>
+                                </>
+                            )}
+                        </SummaryField>
+                        <SummaryField label={intl.formatMessage(ResourceInfoResources.annotation)}>
+                            {initialRemarks ? <div>{initialRemarks}</div> : null}
+                            <Dialog>
+                                <DialogTrigger disableButtonEnhancement>
+                                    <Link>
+                                        {initialRemarks ? (
+                                            <FormattedMessage {...ResourceInfoResources.editAnnotation} />
+                                        ) : (
+                                            <FormattedMessage {...ResourceInfoResources.addAnnotation} />
+                                        )}
+                                    </Link>
+                                </DialogTrigger>
+                                <AnnotationDialogSurface
+                                    initialRemarks={initialRemarks}
+                                    isUpdating={isUpdating}
+                                    onSubmit={async (remarks: string) => {
+                                        await onSubmit(remarks);
+                                    }}
+                                />
+                            </Dialog>
+                        </SummaryField>
                     </div>
                 )}
             </div>
@@ -324,6 +349,7 @@ const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode; onGit
 const AppHealthInfo = memo(({ resource }: { resource?: ResourceExtended }) => {
     const location = useLocation();
     const navigate = useNavigate();
+    const intl = useIntl();
 
     const appHealthInfo = getAppHealthInfo(resource);
 
@@ -333,18 +359,18 @@ const AppHealthInfo = memo(({ resource }: { resource?: ResourceExtended }) => {
         appHealthInfo && (
             <div>
                 <SummaryField
-                    label={'Costs for the past 7 days'}
+                    label={intl.formatMessage(ResourceInfoResources.appHealthInfoCost)}
                     value={
                         isNullOrUndefined(appHealthInfo.Costs) || appHealthInfo.Costs === 0
-                            ? 'Cost calculation pending'
+                            ? intl.formatMessage(ResourceInfoResources.appHealthInfoCostCalculationPending)
                             : `${appHealthInfo.Costs} USD`
                     }
                 />
                 <SummaryField
-                    label={'Availability'}
+                    label={intl.formatMessage(ResourceInfoResources.appHealthInfoAvailability)}
                     value={!isNullOrUndefined(appHealthInfo.Availability) ? `${appHealthInfo.Availability ?? '0'}%` : undefined}
                 />
-                <SummaryField label={'Health'}>
+                <SummaryField label={intl.formatMessage(ResourceInfoResources.appHealthInfoHealthStatus)}>
                     <HealthStatus
                         health={appHealthInfo.Health}
                         showReportButton={true}
@@ -361,11 +387,11 @@ const AppHealthInfo = memo(({ resource }: { resource?: ResourceExtended }) => {
                     />
                 </SummaryField>
                 <SummaryField
-                    label={'Number of transactions for the past 30 minutes'}
+                    label={intl.formatMessage(ResourceInfoResources.appHealthInfoTransactionCount)}
                     value={isNullOrUndefined(appHealthInfo.Transactions) ? '0' : appHealthInfo.Transactions.toString()}
                 />
                 <SummaryField
-                    label={'Average latency'}
+                    label={intl.formatMessage(ResourceInfoResources.appHealthInfoAverageLatency)}
                     value={
                         !isNullOrUndefined(appHealthInfo.AvgLatencyInMs)
                             ? `${(appHealthInfo.AvgLatencyInMs ?? 0) / 1000} seconds`
@@ -373,7 +399,7 @@ const AppHealthInfo = memo(({ resource }: { resource?: ResourceExtended }) => {
                     }
                 />
                 <SummaryField
-                    label={'Average memory usage'}
+                    label={intl.formatMessage(ResourceInfoResources.appHealthInfoAverageMemoryUsage)}
                     value={
                         !isNullOrUndefined(appHealthInfo.AvgMemoryUsage)
                             ? getPropertyValue(resource?.properties?.resourceType) === 'k8s/apps/v1/deployments' ||
@@ -384,14 +410,21 @@ const AppHealthInfo = memo(({ resource }: { resource?: ResourceExtended }) => {
                     }
                 />
                 <SummaryField
-                    label={'Average CPU usage'}
+                    label={intl.formatMessage(ResourceInfoResources.appHealthInfoAverageCPUUsage)}
                     value={!isNullOrUndefined(appHealthInfo.AvgCpuUsage) ? `${appHealthInfo.AvgCpuUsage}%` : undefined}
                 />
                 <SummaryField
-                    label={'Last data capture time'}
+                    label={intl.formatMessage(ResourceInfoResources.appHealthInfoLastDataCaptureTime)}
                     value={
                         !isNullOrUndefined(appHealthInfo.LastDataCaptureTimeStampInUTC) && appHealthInfo.LastDataCaptureTimeStampInUTC
-                            ? getSafeDateTime(appHealthInfo.LastDataCaptureTimeStampInUTC).toLocaleString()
+                            ? getSafeDateTime(appHealthInfo.LastDataCaptureTimeStampInUTC).toLocaleString(undefined, {
+                                  year: '2-digit',
+                                  month: 'numeric',
+                                  day: 'numeric',
+                                  hour: 'numeric',
+                                  minute: 'numeric',
+                                  second: 'numeric',
+                              })
                             : undefined
                     }
                 />
@@ -414,6 +447,8 @@ const AnnotationDialogSurface = memo(
 
         const { textarea, textareaInner } = useStyles();
 
+        const intl = useIntl();
+
         useEffect(() => {
             setRemarks(initialRemarks);
         }, [initialRemarks]);
@@ -421,7 +456,9 @@ const AnnotationDialogSurface = memo(
         return (
             <DialogSurface>
                 <DialogBody>
-                    <DialogTitle>{'Annotation'}</DialogTitle>
+                    <DialogTitle>
+                        <FormattedMessage {...ResourceInfoResources.annotation} />
+                    </DialogTitle>
                     <DialogContent>
                         <Textarea
                             textarea={{
@@ -429,7 +466,7 @@ const AnnotationDialogSurface = memo(
                             }}
                             disabled={isUpdating}
                             className={textarea}
-                            placeholder="Add annotations to your resource"
+                            placeholder={intl.formatMessage(ResourceInfoResources.addAnnotationToYourResource)}
                             value={remarks}
                             onChange={(_, data: TextareaOnChangeData) => {
                                 setRemarks(data.value);
@@ -445,11 +482,13 @@ const AnnotationDialogSurface = memo(
                                     onSubmit(remarks);
                                 }}
                             >
-                                {'Save'}
+                                <FormattedMessage {...SreAgentResources.save} />
                             </Button>
                         </DialogTrigger>
                         <DialogTrigger disableButtonEnhancement>
-                            <Button appearance="secondary">{'Cancel'}</Button>
+                            <Button appearance="secondary">
+                                <FormattedMessage {...SreAgentResources.cancel} />
+                            </Button>
                         </DialogTrigger>
                     </DialogActions>
                 </DialogBody>
@@ -457,19 +496,6 @@ const AnnotationDialogSurface = memo(
         );
     }
 );
-
-const Section = memo(({ title, children }: { title: string; children: JSX.Element | JSX.Element[] }) => {
-    const { section, sectionTitle } = useStyles();
-
-    return (
-        <div className={section}>
-            <Text weight={'semibold'} size={400} className={sectionTitle}>
-                {title}
-            </Text>
-            {children}
-        </div>
-    );
-});
 
 const SummaryField = memo(({ label, value, children }: { label: string; value?: string; children?: ReactNode }) => {
     const { sectionField, sectionFieldText, sectionFieldValueText } = useStyles();
@@ -494,7 +520,6 @@ const SummaryField = memo(({ label, value, children }: { label: string; value?: 
 
 AppHealthInfo.displayName = 'AppHealthInfo';
 AnnotationDialogSurface.displayName = 'AnnotationDialogSurface';
-Section.displayName = 'Section';
 SummaryField.displayName = 'SummaryField';
 
 export default ResourceInfo;
