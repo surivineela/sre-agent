@@ -29,6 +29,7 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCorednsAgent
         ITimePlugin timePlugin,
         IContainerAppCorednsPlugin corednsPlugin,
         IContainerAppIcMPlugin containerAppIcMPlugin,
+        IManagedClusterPlugin  managedClusterPlugin,
         IChartPlugin chartPlugin,
         IToolsRepository toolsRepository,
         IThreadOrchestrationManager mappingManager,
@@ -52,10 +53,15 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCorednsAgent
             toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetDNSConfigUpdateStatus));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.CheckIfDNSServerFailedToResolveDot));
 
+            var managedClusterPluginDefinition = new ManagedClusterPluginDefinition(managedClusterPlugin);
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => managedClusterPluginDefinition.GetManagedClusterInformation));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => managedClusterPluginDefinition.GetASIPageForManagedCluster));
+
             var containerAppIcMPluginDefinition = new ContainerAppIcMPluginDefinition(containerAppIcMPlugin);
             // READ operations
             toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppIcMPluginDefinition.GetInitialInvestigationReportAsync));
             // WRITE operations
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppIcMPluginDefinition.AddDiscussionEntry));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppIcMPluginDefinition.WasAgentHelpfulInDebuggingIssueAsync));
 
 

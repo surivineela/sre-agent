@@ -111,6 +111,7 @@
   <ItemGroup>
     <None Update="FirstPartyAgents\ACA\ACAAgentSystemPrompt.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>
   </ItemGroup>
 
@@ -118,24 +119,31 @@
   <ItemGroup>
     <None Update="FirstPartySubAgents\ACA\HelloWorldAgent\HelloWorldAgentPlan.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>
     <None Update="FirstPartySubAgents\ACA\ContainerAppRevisionAgent\ContainerAppRevisionAgentPlan.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>
     <None Update="FirstPartySubAgents\ACA\ContainerAppQuotaAgent\ContainerAppQuotaAgent.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>
     <None Update="FirstPartySubAgents\ACA\ContainerAppIngressAgent\ContainerAppIngressAgentPlan.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>
     <None Update="FirstPartySubAgents\ACA\ContainerAppCorednsAgent\ContainerAppCorednsAgentPlan.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>
     <None Update="FirstPartySubAgents\ACA\ContainerAppIcmAgent\ContainerAppIcmAgentPlan.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>
     <None Update="FirstPartySubAgents\ACA\ContainerAppIcmAgent\ContainerAppIcmSummarizationPlan.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>
   </ItemGroup>
 

@@ -24,7 +24,7 @@ namespace FirstPartyAgent.Plugins.Definitions
         }
 
         [KernelFunction(KernelFunctionNames.ACA.GetIssueInvestigationTimeRange)]
-        [Description("It calculates the effective issue investigation time range based on information available in context.")]
+        [Description("It calculates the effective issue investigation time range based on information available in context but at least ONE of them must be present.")]
         public (DateTime StartDate, DateTime EndDate) GetIssueInvestigationTimeRange(
             [Description("The timestamp of the first occurrence of the issue. Skip if not available")] DateTime? issueFirstOccurence,
             [Description("The timestamp of the last occurrence of the issue. Skip if not available")] DateTime? issueLastOccurene,
@@ -34,7 +34,13 @@ namespace FirstPartyAgent.Plugins.Definitions
         }
 
         [KernelFunction(KernelFunctionNames.ACA.GetInitialInvestigationSummaryReport)]
-        [Description("Fetches the Initial Investigation Detailed Report for a given incident ID. Returns an empty string or an error message if the incident ID is invalid. **DO NOT SUMMARIZE IT'S OUTPUT**")]
+        [Description(@"
+        **NOTE: DO NOT EVER SUMMARIZE IT'S OUTPUT**
+        Fetches the Initial Investigation Detailed Report for a given incident ID.
+        Returns an empty string or an error message if the incident ID is invalid.
+
+        **> Key detail: Keep returned output as it is. DO NOT ALTER IT.**
+        ")]
         public async Task<string> GetInitialInvestigationReportAsync(
             [Description("Incident ID")] string incidentId)
         {
@@ -74,6 +80,7 @@ namespace FirstPartyAgent.Plugins.Definitions
         [KernelFunction(KernelFunctionNames.ACA.SubmitAgentFeedback)]
         [Description(@"
         Submit feedback regarding the agent's assistance in debugging the issue.
+        clearly give both choices 'was agent helpful?' and 'is resolution accurate or close?'
 
         Input parameters:
         - IncidentId: The unique identifier of the incident.
@@ -89,13 +96,18 @@ namespace FirstPartyAgent.Plugins.Definitions
         }
 
         [KernelFunction(KernelFunctionNames.Icm.IcmAddDiscussionEntry)]
-        [Description(@"**Note: DO NOT CALL IT AUTOMATICALLY. ALWAYS ASK USER BEFORE CALLING IT**
-        Add a discussion entry or summary of final investigate to an ICM incident
+        [Description(@"
+        **Note: DO NOT CALL IT AUTOMATICALLY. ALWAYS ASK USER BEFORE CALLING IT**
+        Add a valid HTML-formatted message discussion entry or summary of final investigate to an ICM incident
         This operation will add a discussion entry to the given IcM Incident. 
 
         input parameters:
         - incidentId: The Id of the IcM incident. It is usually a integer number.
-        - text: The content of the discussion entry.
+        - text: A well HTML-formatted message to add as discussion to IcM.
+
+        NOTE:
+            - text MUST be always valid HTML formatted message
+            - Remove all emojis if any present. 
 
         The operation will add a discussion entry to the given incident.
         The return value is a boolean value for indicating if the operation is successful.

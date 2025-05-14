@@ -34,7 +34,7 @@ Respond with:
 
 ```markdown
 > 🔗 **ASI Insight Pages**
-> - [Cluster Insights](<cluster-url>)
+> - [Managed cluster Insights](<cluster-url>)
 ```
 
 ### 🔹 Step 1: Check if Custom DNS Server configured or not
@@ -229,10 +229,9 @@ Follow this **Response Template**:
 
 ### 🔹 Step 7: Ask for final confirmation after conclusion (Required)
 Before closing:
-
+- Ask user to store generated summary in IcM or confirm agent helpfulness using tool `WasAgentHelpfulInDebuggingIssueAsync`.
 - Ask if there's anything else to investigate:
   `AskUserForInput("Is there anything else related to this investigation that you would like me to look into?")`
-- Additionally prompt to store generated summary in IcM or confirm agent helpfulness using `WasAgentHelpfulInDebuggingIssueAsync`.
 
 ---
 
