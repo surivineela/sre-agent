@@ -210,7 +210,7 @@ export const useThreadMenuStyle = (collapsed?: boolean) => {
         backgroundColor: tokens.colorNeutralBackground1Selected,
         display: 'flex',
         flexDirection: 'row',
-        alignItems: "center",
+        alignItems: 'center',
         gap: '6px',
         borderRadius: '3px',
     };
@@ -327,4 +327,10 @@ export const shimmerStyle: CSSProperties = {
     maxWidth: '100%',
     paddingLeft: '10px',
     paddingRight: '10px',
+};
+
+export const nameAndTimestampContainerStyle: CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
 };

@@ -5,12 +5,6 @@
       "value": "Delete thread?"
     }
   ],
-  "+7umUn": [
-    {
-      "type": 0,
-      "value": "Step 4: Copy the API key and paste it here"
-    }
-  ],
   "+FoBRs": [
     {
       "type": 0,
@@ -41,6 +35,20 @@
       "value": "Container Apps Operator"
     }
   ],
+  "0UwFzs": [
+    {
+      "type": 0,
+      "value": "Adding "
+    },
+    {
+      "type": 1,
+      "value": "number"
+    },
+    {
+      "type": 0,
+      "value": " managed resource groups"
+    }
+  ],
   "0sIUhe": [
     {
       "type": 0,
@@ -53,22 +61,30 @@
       "value": "Task"
     }
   ],
-  "12V/0W": [
-    {
-      "type": 0,
-      "value": "Managed resource group(s) added successfully"
-    }
-  ],
   "14xQ4i": [
     {
       "type": 0,
       "value": "Azure Monitor added"
     }
   ],
-  "19YPdI": [
+  "1O47t6": [
     {
       "type": 0,
-      "value": "Step 1: Open Cloud Shell"
+      "value": "SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " deleted successfully"
+    }
+  ],
+  "1PVhxx": [
+    {
+      "type": 0,
+      "value": "The selected managed resource groups were deleted successfully"
     }
   ],
   "1ZgrhW": [
@@ -95,6 +111,12 @@
       "value": "Add"
     }
   ],
+  "2OQ6yB": [
+    {
+      "type": 0,
+      "value": "The selected resource groups are being set up"
+    }
+  ],
   "2WxP2i": [
     {
       "type": 0,
@@ -111,6 +133,24 @@
     {
       "type": 0,
       "value": "Waiting..."
+    }
+  ],
+  "3BubSI": [
+    {
+      "type": 0,
+      "value": "This will permanently remove a resource group from the agent's managed resource groups. Are you sure you want to remove?"
+    }
+  ],
+  "3PgCIp": [
+    {
+      "type": 0,
+      "value": "Deleting selected managed resource groups in progress"
+    }
+  ],
+  "3Rh7XU": [
+    {
+      "type": 0,
+      "value": "Deleting selected managed resource groups"
     }
   ],
   "3a5wL8": [
@@ -131,12 +171,6 @@
       "value": "Linking Grafana dashboard to SRE Agent in progress"
     }
   ],
-  "41eAX2": [
-    {
-      "type": 0,
-      "value": "- Run: \"az grafana api-key create --key {0} --name {1} --resource-group {2} --role admin --time-to-live 365d\" (Note: If the CLI asks you to install an extension to support Grafana commands, type \"Y\" and hit enter)"
-    }
-  ],
   "47FYwb": [
     {
       "type": 0,
@@ -149,28 +183,10 @@
       "value": "Denied by"
     }
   ],
-  "4dZi3Y": [
-    {
-      "type": 0,
-      "value": "API Key"
-    }
-  ],
-  "4i2wiN": [
-    {
-      "type": 0,
-      "value": "Delete managed resource group(s)"
-    }
-  ],
   "5+bQr/": [
     {
       "type": 0,
       "value": "Approved by"
-    }
-  ],
-  "59YCbl": [
-    {
-      "type": 0,
-      "value": "- Click on the \"Cloud Shell\" button in the top right corner of the Azure portal."
     }
   ],
   "5QYdPU": [
@@ -205,6 +221,12 @@
       "value": "results"
     }
   ],
+  "5yG7b2": [
+    {
+      "type": 0,
+      "value": "Managed resource group added successfully"
+    }
+  ],
   "6ENgmY": [
     {
       "type": 0,
@@ -215,6 +237,12 @@
     {
       "type": 0,
       "value": "Create Grafana dashboard in the same resource group"
+    }
+  ],
+  "6OBtew": [
+    {
+      "type": 0,
+      "value": "Deleting SRE Agent"
     }
   ],
   "6UyZlH": [
@@ -313,34 +341,10 @@
       "value": "Completed"
     }
   ],
-  "9RgE6Y": [
-    {
-      "type": 0,
-      "value": "Failed to add "
-    },
-    {
-      "type": 1,
-      "value": "number"
-    },
-    {
-      "type": 0,
-      "value": " managed resource group(s) with error(s): "
-    },
-    {
-      "type": 1,
-      "value": "error"
-    }
-  ],
   "9ZIBMx": [
     {
       "type": 0,
       "value": "Requested at"
-    }
-  ],
-  "9bulHK": [
-    {
-      "type": 0,
-      "value": "- Run \"az account set --subscription {0}\""
     }
   ],
   "9uOFF3": [
@@ -393,6 +397,20 @@
     {
       "type": 0,
       "value": "AI-generated content might be incorrect, so review carefully before use. Do not include personal or confidential information in the chat."
+    }
+  ],
+  "Bcgdb7": [
+    {
+      "type": 0,
+      "value": "Adding "
+    },
+    {
+      "type": 1,
+      "value": "number"
+    },
+    {
+      "type": 0,
+      "value": " managed resource group"
     }
   ],
   "CQF3U+": [
@@ -449,6 +467,12 @@
       "value": "Incident platform"
     }
   ],
+  "ElI1gd": [
+    {
+      "type": 0,
+      "value": "Search for resource groups"
+    }
+  ],
   "EwRIOm": [
     {
       "type": 0,
@@ -459,12 +483,6 @@
     {
       "type": 0,
       "value": "Open Access control"
-    }
-  ],
-  "F5p93e": [
-    {
-      "type": 0,
-      "value": "Deleting managed resource group(s)"
     }
   ],
   "F9LrJA": [
@@ -479,6 +497,12 @@
       "value": "Grafana dashboard linked successfully"
     }
   ],
+  "FGAk9M": [
+    {
+      "type": 0,
+      "value": "Managed resource groups added successfully"
+    }
+  ],
   "FUQvS0": [
     {
       "type": 0,
@@ -489,12 +513,6 @@
     {
       "type": 0,
       "value": "Disconnected"
-    }
-  ],
-  "Fh8hZp": [
-    {
-      "type": 0,
-      "value": "Provisioning of your Grafana role assignment is in progress."
     }
   ],
   "FnKIAW": [
@@ -563,22 +581,20 @@
       "value": "Azure Managed Grafana"
     }
   ],
-  "IS+F5v": [
-    {
-      "type": 0,
-      "value": "Provisioning Grafana role assignment"
-    }
-  ],
   "ITYqY7": [
     {
       "type": 0,
       "value": "New thread"
     }
   ],
-  "IwfDuC": [
+  "JCjxSH": [
     {
       "type": 0,
-      "value": "Deleting managed resource group(s) in progress"
+      "value": "Failed to delete SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "JVZyFs": [
@@ -591,6 +607,12 @@
     {
       "type": 0,
       "value": "Client"
+    }
+  ],
+  "JjKcCj": [
+    {
+      "type": 0,
+      "value": "Remove managed resource group"
     }
   ],
   "JqiqNj": [
@@ -619,6 +641,20 @@
       "value": " deleted successfully"
     }
   ],
+  "L0KVkI": [
+    {
+      "type": 0,
+      "value": "Deleting SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " in progress"
+    }
+  ],
   "LPprqA": [
     {
       "type": 0,
@@ -629,12 +665,6 @@
     {
       "type": 0,
       "value": "Hide thread actions"
-    }
-  ],
-  "NEY2T1": [
-    {
-      "type": 0,
-      "value": "After the Grafana dashboard is finished provisioning, you'll need to generate an API key for you agent to communicate with it. Follow these steps:"
     }
   ],
   "NV14yw": [
@@ -661,20 +691,16 @@
       "value": "Thank you for your feedback!"
     }
   ],
-  "O0WH/+": [
-    {
-      "type": 0,
-      "value": "Failed to create the Grafana role assignment with the error: "
-    },
-    {
-      "type": 1,
-      "value": "errorMessage"
-    }
-  ],
   "O79Wpv": [
     {
       "type": 0,
       "value": "New messages"
+    }
+  ],
+  "O8zbbB": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete this SRE Agent? This action cannot be undone."
     }
   ],
   "OJ2u8k": [
@@ -849,24 +875,16 @@
       "value": "Grafana Admin"
     }
   ],
-  "TXP5xs": [
-    {
-      "type": 0,
-      "value": "Adding "
-    },
-    {
-      "type": 1,
-      "value": "number"
-    },
-    {
-      "type": 0,
-      "value": " managed resource group(s)"
-    }
-  ],
   "TdeXH0": [
     {
       "type": 0,
       "value": "Resource mapping"
+    }
+  ],
+  "ThSX0k": [
+    {
+      "type": 0,
+      "value": "Delete SRE Agent"
     }
   ],
   "TkWiD5": [
@@ -891,12 +909,6 @@
     {
       "type": 0,
       "value": "Tips on how to chat with the SRE Agent"
-    }
-  ],
-  "UZMdQH": [
-    {
-      "type": 0,
-      "value": "Managed Identity"
     }
   ],
   "UmEsZF": [
@@ -959,12 +971,6 @@
       "value": "Agent details"
     }
   ],
-  "WzYUl+": [
-    {
-      "type": 0,
-      "value": "Adding managed resource group(s) in progress"
-    }
-  ],
   "X192re": [
     {
       "type": 0,
@@ -975,12 +981,6 @@
     {
       "type": 0,
       "value": "Linking Grafana dashboard"
-    }
-  ],
-  "XIjgrI": [
-    {
-      "type": 0,
-      "value": "Step 2: Generate API key"
     }
   ],
   "XvrDTb": [
@@ -995,22 +995,16 @@
       "value": "This will permanently disconnect to Azure Monitor. The agent will no longer be integrated with Azure Monitor alerts. Are you sure you want to disconnect?"
     }
   ],
+  "Ys9AIu": [
+    {
+      "type": 0,
+      "value": "Managed identity"
+    }
+  ],
   "Z1VHv1": [
     {
       "type": 0,
       "value": "Monitoring Data Reader Role"
-    }
-  ],
-  "Z26C+l": [
-    {
-      "type": 0,
-      "value": "Managed resource group(s) deleted successfully"
-    }
-  ],
-  "Z2evcR": [
-    {
-      "type": 0,
-      "value": "Failed to delete managed resource group(s)"
     }
   ],
   "ZUXvHE": [
@@ -1029,6 +1023,20 @@
     {
       "type": 0,
       "value": "Triggered"
+    }
+  ],
+  "ZukeYV": [
+    {
+      "type": 0,
+      "value": "Failed to add "
+    },
+    {
+      "type": 1,
+      "value": "number"
+    },
+    {
+      "type": 0,
+      "value": " managed resource groups to your SRE Agent"
     }
   ],
   "a2+0+5": [
@@ -1167,6 +1175,12 @@
       "value": "Loading..."
     }
   ],
+  "hK4HcH": [
+    {
+      "type": 0,
+      "value": "Failed to delete the selected managed resource groups"
+    }
+  ],
   "hMGoYE": [
     {
       "type": 0,
@@ -1209,6 +1223,12 @@
       "value": "Fired At"
     }
   ],
+  "itC9lG": [
+    {
+      "type": 0,
+      "value": "Basics"
+    }
+  ],
   "iv1ryQ": [
     {
       "type": 0,
@@ -1243,12 +1263,6 @@
     {
       "type": 0,
       "value": "Provisioning of your Grafana dashboard is in progress."
-    }
-  ],
-  "l9oNaQ": [
-    {
-      "type": 0,
-      "value": "Are you sure you would like to unregister the selected resource group(s) from being managed by your agent?"
     }
   ],
   "lGIJSX": [
@@ -1335,30 +1349,10 @@
       "value": "In progress"
     }
   ],
-  "qeVm12": [
-    {
-      "type": 0,
-      "value": "Failed to add "
-    },
-    {
-      "type": 1,
-      "value": "number"
-    },
-    {
-      "type": 0,
-      "value": " managed resource group(s) to your SRE Agent"
-    }
-  ],
   "qj1uhz": [
     {
       "type": 0,
       "value": "Disconnect"
-    }
-  ],
-  "qw8pxr": [
-    {
-      "type": 0,
-      "value": "Grafana role assignment creation succeeded"
     }
   ],
   "rELDbB": [
@@ -1391,6 +1385,24 @@
       "value": "Log Analytics Reader"
     }
   ],
+  "sKQWgY": [
+    {
+      "type": 0,
+      "value": "Failed to add "
+    },
+    {
+      "type": 1,
+      "value": "number"
+    },
+    {
+      "type": 0,
+      "value": " managed resource groups with errors: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
   "slxYbm": [
     {
       "type": 0,
@@ -1405,6 +1417,12 @@
     {
       "type": 0,
       "value": "Monitor Service"
+    }
+  ],
+  "tSKi9q": [
+    {
+      "type": 0,
+      "value": "The selected resource group is being set up"
     }
   ],
   "tshYzs": [
@@ -1483,12 +1501,6 @@
     {
       "type": 0,
       "value": "Submit"
-    }
-  ],
-  "xL9nak": [
-    {
-      "type": 0,
-      "value": "Step 3: Generate an API key"
     }
   ],
   "xQRfI5": [

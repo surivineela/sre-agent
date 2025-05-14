@@ -22,7 +22,7 @@ import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
 import { IChatMessageProps } from '../Contracts/Activities';
 import { useAuthenticatedUserInfo } from '../Hooks/useAuthenticatedUserInfo';
-import { ChatBoxStyles, useChatBoxStyles } from '../Styles/Activities.styles';
+import { ChatBoxStyles, nameAndTimestampContainerStyle, useChatBoxStyles } from '../Styles/Activities.styles';
 import AgentChart from './Charts';
 import { FeedbackDialog } from './FeedbackDialog';
 import MermaidChart from './Mermaid';
@@ -228,12 +228,21 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse, threadOrches
             avatar: <Image src="./SreAgent.svg" width={28} height={28} alt={intl.formatMessage(SreAgentResources.sreAgent)} />,
             loadingState: isTyping ? 'loading' : 'none',
             mode: 'canvas',
-            name: intl.formatMessage(SreAgentResources.sreAgent),
+            name: (
+                <div style={nameAndTimestampContainerStyle}>
+                    <span>{intl.formatMessage(SreAgentResources.sreAgent)}</span>
+                    {!isTyping && (
+                        <Text size={200} color={tokens.colorNeutralForeground3}>
+                            {getSafeDateTime(message.timeStamp).toLocaleString()}
+                        </Text>
+                    )}
+                </div>
+            ),
             disclaimer: null,
         };
 
         return messageProps;
-    }, [intl, isTyping]);
+    }, [intl, isTyping, message.timeStamp]);
 
     const aLinkRenderer = useCallback((props: any) => {
         return (
@@ -668,11 +677,6 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse, threadOrches
                         className={ChatBoxStyles.agentMessage}
                     >
                         {isTyping && threadOrchestrationReasoningState && <Body1Strong>{threadOrchestrationReasoningState}</Body1Strong>}
-                        {!isTyping && (
-                            <Text block={true} size={200} color={tokens.colorNeutralForeground3}>
-                                {getSafeDateTime(message.timeStamp).toLocaleString()}
-                            </Text>
-                        )}
                         {/* For messages with approval - text content may be empty, so we may only need to render approval UI */}
                         {message.approval ? (
                             <>{renderApprovalContent()}</>
@@ -715,15 +719,17 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse, threadOrches
         default:
             return (
                 <div className={ChatBoxStyles.userMessage} key={message.id}>
-                    <Text block={true} weight={'semibold'} className={chatStyles.userName}>
-                        {message.author.displayName}
-                    </Text>
-                    <UserMessage
-                        className={chatStyles.userBubble}
-                        message={{ className: chatStyles.userBubbleMessage }}
-                        key={message.id}
-                        timestamp={getSafeDateTime(message.timeStamp).toLocaleString()}
-                    >
+                    <div style={nameAndTimestampContainerStyle}>
+                        {message.author.userId !== userIdAndDisplayName.userId && (
+                            <Text block={true} weight={'semibold'} className={chatStyles.userName}>
+                                {message.author.displayName}
+                            </Text>
+                        )}
+                        <Text size={200} color={tokens.colorNeutralForeground3} style={{ lineHeight: '26px' }}>
+                            {getSafeDateTime(message.timeStamp).toLocaleString()}
+                        </Text>
+                    </div>
+                    <UserMessage className={chatStyles.userBubble} message={{ className: chatStyles.userBubbleMessage }} key={message.id}>
                         {renderContent()}
                     </UserMessage>
                 </div>
