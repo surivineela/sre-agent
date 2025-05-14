@@ -68,6 +68,21 @@ public static class TestHelpers
         });
 
         builder.Services.AddChatClient(sp => sp.GetRequiredService<AzureOpenAIClient>().AsChatClient(llmDeploymentName));
+
+        builder.Services.AddKeyedSingleton<IChatClient>("function-invocation-enabled", (sp, _) =>
+        {
+            var client = sp.GetRequiredService<AzureOpenAIClient>();
+            var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
+
+            return new ChatClientBuilder(client.AsChatClient(llmDeploymentName))
+                .UseLogging(loggerFactory)
+                .UseFunctionInvocation(loggerFactory, x =>
+                {
+                    x.IncludeDetailedErrors = true;
+                })
+                .Build();
+        });
+
         outLLMDeploymentName = llmDeploymentName;
 
 
@@ -99,6 +114,19 @@ public static class TestHelpers
         };
 
         return response;
+    }
+
+    public static int GetIterationCount(int defaultValue)
+    {
+        string? iterationCountEnv = Environment.GetEnvironmentVariable("IterationCount");
+        if (int.TryParse(iterationCountEnv, out int parsedIterations))
+        {
+            return parsedIterations;
+        }
+        else
+        {
+            return defaultValue;
+        }
     }
 
 }

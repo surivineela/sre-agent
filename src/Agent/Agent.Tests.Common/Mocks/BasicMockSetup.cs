@@ -3,11 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Agent.Core.Interfaces;
-using Agent.Plugins.Definitions;
-using Agent.Plugins;
 using Agent.Plugins.Mocks;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Time.Testing;
 
@@ -47,25 +43,4 @@ public class BasicMockSetup
         ContainerAppPlugin = new MockContainerAppPlugin(NSGRulePlugin);
     }
 
-}
-
-public static class ServiceCollectionExtensionsForMocks
-{
-    public static void AddMockServices(this IServiceCollection services, BasicMockSetup mocks)
-    {
-        services.AddSingleton<TimeProvider>(mocks.TimeProvider);
-        services.AddSingleton<IRecordActionsPlugin>(mocks.RecordActionsPlugin);
-        services.AddSingleton<IArmPlugin>(mocks.ArmPlugin);
-        services.AddSingleton<IMetricsPlugin>(mocks.MetricsPlugin);
-        services.AddSingleton<ITimePlugin>(mocks.TimePlugin);
-        services.AddSingleton<IAgentOutboundCommunicationService>(mocks.CommunicationService)
-                .AddSingleton<IChartPlugin>(new ChartPlugin(null, mocks.CommunicationService));
-
-
-        services.AddSingleton<IGrafanaPlugin>(mocks.GrafanaPlugin);
-        services.AddSingleton<IGraphDBPlugin>(mocks.GraphDBPlugin);
-
-        services.AddSingleton<INSGRulePlugin>(mocks.NSGRulePlugin);
-        services.AddSingleton<IContainerAppPlugin>(mocks.ContainerAppPlugin);
-    }
 }

@@ -22,7 +22,7 @@ namespace Agent.Cmd
     {
         static void Main(string[] args)
         {
-            HostApplicationBuilder builder = Host.CreateApplicationBuilder();
+            HostApplicationBuilder builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { EnvironmentName = Environments.Development });
             builder.LoadAppSettings();
             builder.ValidateAndRegisterAppSettings<AppSettings>();
 
@@ -69,6 +69,13 @@ namespace Agent.Cmd
                 {
                     var cmd = host.Services.GetRequiredService<GraphCommand>();
                     cmd.ExportGraph(command);
+                });
+
+            commandLineApplication.Command("ExportGraphML",
+                (command) =>
+                {
+                    var cmd = host.Services.GetRequiredService<GraphCommand>();
+                    cmd.ExportGraphML(command);
                 });
 
             commandLineApplication.OnExecute(() =>

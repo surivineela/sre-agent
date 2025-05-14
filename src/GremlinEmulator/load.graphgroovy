@@ -1,0 +1,29 @@
+import org.apache.tinkerpop.gremlin.structure.io.graphml.GraphMLIo
+import org.slf4j.LoggerFactory
+
+// grab an SLF4J logger
+def logger = LoggerFactory.getLogger("gremlin-script")
+
+try {
+  logger.info("🔄 Starting GraphML load")
+
+  // load the GraphML file
+  functionsBadFlexApps.io(GraphMLIo.build()).readGraph('/opt/graphs/functions-bad-flex-apps.graphml')
+
+  // verify by counting vertices and edges
+  def vCount = functionsBadFlexApps.traversal().V().count().next()
+  def eCount = functionsBadFlexApps.traversal().E().count().next()
+  logger.info("✅ Functions graph loaded successfully: ${vCount} vertices, ${eCount} edges")
+
+  // bind the traversal source 'g' globally after loading
+  def globals = [:]
+  globals << [gfuncbad : traversal().withEmbedded(functionsBadFlexApps)]
+
+} catch (FileNotFoundException fnf) {
+  logger.error("❌ File not found: ${fnf.message}", fnf)
+  throw fnf
+
+} catch (Exception ex) {
+  logger.error("❌ Error loading GraphML:", ex)
+  throw ex
+}

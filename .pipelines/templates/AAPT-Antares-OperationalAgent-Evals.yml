@@ -53,6 +53,10 @@ steps:
   displayName: 'Start DTS emulator container'
   timeoutInMinutes: 5
 
+- script: src/run-gremlin-emulator.sh
+  displayName: 'Start Gremlin emulator container'
+  timeoutInMinutes: 5
+
 # Execute the test
 - script: dotnet test --no-restore --logger trx --results-directory $(Build.SourcesDirectory)/TestResults/ --settings evals.runsettings
   workingDirectory: $(Build.SourcesDirectory)/src/Agent/Agent.Evals
@@ -111,4 +115,9 @@ steps:
 - script: docker stop dts-emulator
   condition: always()
   displayName: 'Stop DTS emulator container'
+  continueOnError: true
+
+- script: docker stop gremlin
+  condition: always()
+  displayName: 'Stop Gremlin emulator container'
   continueOnError: true

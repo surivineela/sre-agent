@@ -53,8 +53,6 @@ public sealed class MetaAgent : IAgent
         using var _ = await _lock.AcquireWriterAsync();
 
         Guid threadGuid = agentContext.ThreadId;
-        string systemPrompt = _agentsFactory.GetMetaAgentSystemPrompt();
-        var _aiTools = _agentsFactory.GetSubAgentsAITools(threadGuid, agentContext);
 
         var chatHistoryReasoningMessages = await agentChatHistory.GetReasoningMessagesAsync(_threadRepository);
         var chatHistory = chatHistoryReasoningMessages.GetChatMessages();
@@ -64,28 +62,9 @@ public sealed class MetaAgent : IAgent
             chatHistory.Add(new Microsoft.Extensions.AI.ChatMessage(ChatRole.User, lastUserMessage));
         }
 
-        // Always use the latest System Prompt in case we have some urgent fix to patch for the old chat history.
-        if (chatHistory[0].Role == ChatRole.System)
-        {
-            chatHistory[0] = new Microsoft.Extensions.AI.ChatMessage(ChatRole.System, systemPrompt);
-        }
-
         try
         {
-            var response = await ChatClientHelper.ExecuteWithRetryAsync(
-            async () => await _chatClient.GetResponseAsync(
-            chatHistory,
-            new ChatOptions
-            {
-                Tools = _aiTools,
-                ToolMode = ChatToolMode.Auto,
-                AdditionalProperties = new AdditionalPropertiesDictionary
-                {
-                    //["AllowParallelToolCalls"] = false,
-                },
-                Temperature = 0.7f,
-            }),
-            _log, 10);
+            var response = await GetModelResponse(agentContext, threadGuid, chatHistory);
 
             await response.UpdateAgentChatHistoryAsync(agentChatHistory, _threadRepository, agentContext.Id);
             return response.Messages.Last().Text;
@@ -96,5 +75,34 @@ public sealed class MetaAgent : IAgent
             return ex.Message;
 
         }
+    }
+
+    public async Task<ChatResponse> GetModelResponse(AgentContext agentContext, Guid threadGuid, List<ChatMessage> chatHistory)
+    {
+        string systemPrompt = _agentsFactory.GetMetaAgentSystemPrompt();
+        var _aiTools = _agentsFactory.GetSubAgentsAITools(threadGuid, agentContext);
+
+        // Always use the latest System Prompt in case we have some urgent fix to patch for the old chat history.
+        if (chatHistory[0].Role == ChatRole.System)
+        {
+            chatHistory[0] = new Microsoft.Extensions.AI.ChatMessage(ChatRole.System, systemPrompt);
+        }
+
+        var response = await ChatClientHelper.ExecuteWithRetryAsync(
+            async () => await _chatClient.GetResponseAsync(
+                chatHistory,
+                new ChatOptions
+                {
+                    Tools = _aiTools,
+                    ToolMode = ChatToolMode.Auto,
+                    AdditionalProperties = new AdditionalPropertiesDictionary
+                    {
+                        //["AllowParallelToolCalls"] = false,
+                    },
+                    Temperature = 0.7f,
+                }
+            ),
+            _log, 10);
+        return response;
     }
 }

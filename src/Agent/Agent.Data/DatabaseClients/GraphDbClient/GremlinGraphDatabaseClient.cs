@@ -33,13 +33,21 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
     {
         public static GremlinClient? _gremlinClient;
         private static readonly object _lock = new object();
-        private readonly GraphSettings _graphSettings;
         private readonly ILogger<GremlinGraphDatabaseClient> _logger;
         private readonly AsyncPolicy _retryPolicy;
 
+        private const string DefaultGraphName = "g";
+        public string GraphName { get; set; } = DefaultGraphName;
+
+        public GremlinGraphDatabaseClient(GremlinClient client, ILogger<GremlinGraphDatabaseClient> logger)
+        {
+            _logger = logger;
+            _gremlinClient = client;
+            _retryPolicy = BuildRetryPolicy();
+        }
+
         public GremlinGraphDatabaseClient(GraphSettings graphSettings, ILogger<GremlinGraphDatabaseClient> logger)
         {
-            _graphSettings = graphSettings;
             _logger = logger;
 
             // Initialize the Gremlin client if it hasn't been initialized yet
@@ -49,12 +57,17 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
                 {
                     if (_gremlinClient == null)
                     {
-                        _gremlinClient = CreateGremlinClient();
+                        _gremlinClient = CreateGremlinClient(graphSettings);
                     }
                 }
             }
 
-            _retryPolicy = Policy
+            _retryPolicy = BuildRetryPolicy();
+        }
+
+        private AsyncPolicy BuildRetryPolicy()
+        {
+            return Policy
                 .Handle<Gremlin.Net.Driver.Exceptions.ResponseException>(ex => IsRetriableException(ex))
                 .WaitAndRetryAsync(100,
                     sleepDurationProvider: (int retryAttempt, Exception ex, Context context) =>
@@ -91,14 +104,14 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
                     });
         }
 
-        private GremlinClient CreateGremlinClient()
+        private GremlinClient CreateGremlinClient(GraphSettings graphSettings)
         {
             var gremlinServer = new GremlinServer(
-                hostname: $"{_graphSettings.AccountName}.{_graphSettings.DomainSuffix}",
+                hostname: $"{graphSettings.AccountName}.{graphSettings.DomainSuffix}",
                 port: 443,
                 enableSsl: true,
-                username: $"/dbs/{_graphSettings.Database}/colls/{_graphSettings.Collection}",
-                password: _graphSettings.ApiKey
+                username: $"/dbs/{graphSettings.Database}/colls/{graphSettings.Collection}",
+                password: graphSettings.ApiKey
             );
 
             return new GremlinClient(
@@ -253,7 +266,21 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         {
             return await _retryPolicy.ExecuteAsync(async () =>
             {
-                return await _gremlinClient!.SubmitAsync<T>(query);
+                if (this.GraphName == DefaultGraphName)
+                {
+                    return await _gremlinClient!.SubmitAsync<T>(query);
+                }
+                else
+                {
+                    // Lets us override which graph we are querying.
+                    // For example, if we have a graph called "gfuncbad" that we want this client to query, but all the queries are still written using "g".
+                    // Then we can use ArgsAliases to redirect queries on "g" to "gfuncbad".
+                    var msgBuilder = Gremlin.Net.Driver.Messages.RequestMessage.Build(Tokens.OpsEval)
+                        .AddArgument(Tokens.ArgsAliases, new Dictionary<string, string> { { "g", this.GraphName } })
+                        .AddArgument(Tokens.ArgsGremlin, query);
+
+                    return await _gremlinClient.SubmitAsync<T>(msgBuilder.Create());
+                }
             });
         }
 
