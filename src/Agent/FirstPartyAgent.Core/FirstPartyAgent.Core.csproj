@@ -102,9 +102,6 @@
 	  <None Update="Plugins\Definitions\Queries\*.kql">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
-	  <None Update="Plugins\AzureAlertDetails.json">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
 	  <None Update="Plugins\GenevaActionsPlugin\GenevaActions.json">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
