@@ -28,25 +28,12 @@ The only `appsettings.development.json` (gitignored) configuration you need to s
 ```json
 {
     "AppSettings": {
-        "EnvPrefix": "envPrefix", // example: ramithar
-        "Core": {
-            "External": {
-                "ICMWorkflows": {
-                    "Enabled": false,
-                    "UserToken": "<output of AAPT-Antares-OperationalAgent\\src\\Agent\\FirstPartyAgent.Core\\FirstPartySubAgents\\ACA\\ContainerAppICMAgent> .\\GetWorkflowToken.ps1>" // needed only when Enabled is true
-                }
-            }
-        }
+        "EnvPrefix": "envPrefix" // example: ramithar
     }
 }
 ```
-### Update launch.setting
-Go to `Agent.Web/Properties/launchSetting.json` and update/add below environment variables
-```
-"IS_FIRST_PARTY": "1",
-"AGENT_NAME": "RCAAgent"
-```
-> Note: this should be part of gitignored. DO NOT COMMIT AS IT WILL BREAK 3P Agent experience.
+### Use '1PAgentHttps' launch setting
+Use `1PAgentHttps` launch setting instead of `http` or `https` 
 
 ---
 

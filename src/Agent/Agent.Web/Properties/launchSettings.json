@@ -31,8 +31,8 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "AGENT_ENDPOINT": "https://localhost:7023/",
-        "IS_FIRST_PARTY": "1"
-        "AGENT_TYPE_NAME": ""
+        "IS_FIRST_PARTY": "1",
+        "AGENT_TYPE_NAME": "RCAAgent"
       },
       "dotnetRunMessages": true,
       "applicationUrl": "https://localhost:7023;http://localhost:5073"
