@@ -12,12 +12,12 @@ namespace FirstPartyAgent.Core.Clients;
 
 public class KustoRegionalGroupClient
 {
-    private readonly ILogger<KustoClient> _logger;
+    private readonly ILogger<KustoRegionalGroupClient> _logger;
     private readonly KustoClient _kustoClient;
     private readonly KustoRegionalGroupSettings _groupSettings;
     private readonly Dictionary<string, KustoCluster> _regionsToClusters = new();
 
-    public KustoRegionalGroupClient(ILogger<KustoClient> logger, KustoRegionalGroupSettings groupSettings, KustoClient kustoClient)
+    public KustoRegionalGroupClient(ILogger<KustoRegionalGroupClient> logger, KustoRegionalGroupSettings groupSettings, KustoClient kustoClient)
     {
         _logger = logger;
         _kustoClient = kustoClient;

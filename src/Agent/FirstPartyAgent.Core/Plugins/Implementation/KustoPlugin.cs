@@ -56,21 +56,19 @@ namespace FirstPartyAgent.Plugins
     public partial class KustoPlugin : IKustoPlugin
     {
         private readonly ILogger<KustoPlugin> _logger;
-        private readonly KustoRegionalGroupClient _kustoRegionalGroupClient;
         private readonly KustoClient _kustoClient;
         private readonly ITeamsClient _teamsClient;
+        private readonly KustoRegionalGroupClientProvider _kustoRegionalGroupClientProvider;
 
         [GeneratedRegex("[^a-zA-Z\\d]")]
         private static partial Regex RegionNormalizationRegex();
 
-        public KustoPlugin(ILogger<KustoPlugin> logger, KustoRegionalGroupClientProvider kustoClientService, KustoClient kustoClient, ITeamsClient teamsClient)
+        public KustoPlugin(ILogger<KustoPlugin> logger, KustoRegionalGroupClientProvider kustoRegionalGroupClientProvider, KustoClient kustoClient, ITeamsClient teamsClient)
         {
             _teamsClient = teamsClient;
             _logger = logger;
             _kustoClient = kustoClient;
-
-            // TODO: this assumes the plugin is only used for Container Apps
-            _kustoRegionalGroupClient = kustoClientService.GetContainerAppsKustoClient();
+            _kustoRegionalGroupClientProvider = kustoRegionalGroupClientProvider;
         }
 
         [KernelFunction("execute_kusto_query")]
@@ -82,11 +80,14 @@ namespace FirstPartyAgent.Plugins
         {
             try
             {
+                // TODO: update this plugin with a parameter to allow querying regional clusters for other products
+                KustoRegionalGroupClient regionalKustoClient = _kustoRegionalGroupClientProvider.GetRegionalGroupKustoClient("ContainerApps");
+
                 var stopwatch = System.Diagnostics.Stopwatch.StartNew();
                 _logger.LogInformation($"execute_kusto_query called with {region} / {query}");
 
                 var normalizedRegion = RegionNormalizationRegex().Replace(region, string.Empty).ToLowerInvariant();
-                using var reader = await _kustoRegionalGroupClient.PerformQueryAsync(query, region);
+                using var reader = await regionalKustoClient.PerformQueryAsync(query, region);
 
                 stopwatch.Stop();
                 var ret = new KustoQueryResult(reader, query);
@@ -150,7 +151,10 @@ namespace FirstPartyAgent.Plugins
             var query = ".show functions | project Name, Folder, DocString, Parameters";
             var result = new List<KustoFunction>();
 
-            using var reader = await _kustoRegionalGroupClient.PerformQueryAsync(query, region);
+            // TODO: update this plugin with a parameter to allow querying regional clusters for other products
+            KustoRegionalGroupClient regionalKustoClient = _kustoRegionalGroupClientProvider.GetRegionalGroupKustoClient("ContainerApps");
+
+            using var reader = await regionalKustoClient.PerformQueryAsync(query, region);
             while (reader.Read())
             {
                 result.Add(new KustoFunction
@@ -181,8 +185,11 @@ namespace FirstPartyAgent.Plugins
 
             try
             {
+                // TODO: update this plugin with a parameter to allow querying regional clusters for other products
+                KustoRegionalGroupClient regionalKustoClient = _kustoRegionalGroupClientProvider.GetRegionalGroupKustoClient("ContainerApps");
+
                 var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-                using var reader = await _kustoRegionalGroupClient.PerformQueryAsync(query, region);
+                using var reader = await regionalKustoClient.PerformQueryAsync(query, region);
                 var ret = new KustoQueryResult(reader, query);
                 stopwatch.Stop();
                 ret.Message = CreateChatMessage(query, region, ret.RowCount, (int)stopwatch.ElapsedMilliseconds, functionName: functionName);
@@ -221,9 +228,13 @@ namespace FirstPartyAgent.Plugins
             string adxUri = regionOrClusterUri;
             if (regionOrClusterUri.IndexOf(".kusto.", StringComparison.OrdinalIgnoreCase) < 0)
             {
+
                 // Supplied parameter is a region, lookup cluster URI for the region
                 var region = regionOrClusterUri;
-                KustoCluster? cluster = _kustoRegionalGroupClient.GetCluster(region);
+
+                // TODO: update this plugin with a parameter to allow querying regional clusters for other products
+                KustoRegionalGroupClient regionalKustoClient = _kustoRegionalGroupClientProvider.GetRegionalGroupKustoClient("ContainerApps");
+                KustoCluster? cluster = regionalKustoClient.GetCluster(region);
                 if (cluster != null)
                 {
                     adxUri = cluster.ClusterUri;
