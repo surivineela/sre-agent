@@ -53,6 +53,10 @@ We use an internal NuGet source for packages. To set up:
 
    *If this fails due to the error "Couldn't get an authentication token for ... /npm/registry", then delete your user-level .npmrc (%userprofile%\\.npmrc) and rerun the command.*
 
+   ```powershell
+   Remove-Item "$env:USERPROFILE\.npmrc" -Force
+   ```
+
    *If project build still fails with `npm install` error, try below command
    ```powershell
    npx vsts-npm-auth -R -E 131400 -C src\Agent\Agent.Web\Client\.npmrc
