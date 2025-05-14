@@ -30,6 +30,7 @@ namespace FirstPartyAgent.Core.Models
         public List<string> MitigationInstructions { get; set; } = new List<string>();
         public List<string> MonitoringInstructions { get; set; } = new List<string>();
         public List<string> IncidentProcessingGuide { get; set; } = new List<string>();
+        public string? AgentName { get; set; }
     }
 
     public class GenevaActionConfig : GenevaActionConfigBase

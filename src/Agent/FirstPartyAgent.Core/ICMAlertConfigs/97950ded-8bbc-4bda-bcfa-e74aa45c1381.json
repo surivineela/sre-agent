@@ -51,5 +51,6 @@
     "      - Confirmation of Recovery",
     "      - Iteration-by-Iteration results of the ALERT_SIGNAL_MONITORING in a table format."
   ],
-  "Owners": [ "ajsharm", "yifguo", "shgup" ]
+  "Owners": [ "ajsharm", "yifguo", "shgup" ],
+  "AgentName": "Hotsite"
 }

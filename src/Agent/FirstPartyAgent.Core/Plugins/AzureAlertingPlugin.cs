@@ -27,6 +27,7 @@ namespace FirstPartyAgent.Core.Plugins
         private readonly bool ICMBacktestingModeEnabled = false;
 
         private readonly AlertHandlerService _alertHandlerService;
+        private readonly AlertHandlerClient _alertHandlerClient;
 
         public AzureAlertingPlugin(
             ICMWorkflowSettings icmWorkflowSettings,
@@ -36,7 +37,8 @@ namespace FirstPartyAgent.Core.Plugins
             ITeamsClient teamsClient,
             IKustoPlugin kustoPlugin,
             ISessionMessageService sessionMessageService,
-            AlertHandlerService alertHandlerService)
+            AlertHandlerService alertHandlerService,
+            AlertHandlerClient alertHandlerClient)
         {
             ICMBacktestingModeEnabled = icmWorkflowSettings.ICMBacktestingModeEnabled;
             _logger = logger;
@@ -46,6 +48,7 @@ namespace FirstPartyAgent.Core.Plugins
             _kustoPlugin = kustoPlugin;
             _sessionMessageService = sessionMessageService;
             _alertHandlerService = alertHandlerService;
+            _alertHandlerClient = alertHandlerClient;
         }
 
         [KernelFunction("run_alert_kusto_query")]
@@ -98,46 +101,22 @@ namespace FirstPartyAgent.Core.Plugins
             var customAlertConfig = kernel.Data.TryGetValue("customAlertConfig", out object customAlertConfigObj) ? (ICMAlertConfig)customAlertConfigObj : null;
 
             var incidentDetails = await _icmPlugin.GetIncidentInfo(incidentId, _kernel);
-            _logger.LogInformation($"AzureAlertingPlugin: Fetching Alert Details. incidentId: {incidentId}, incidenTtile: {incidentDetails.Title}, owningTeam: {incidentDetails.OwningTeam}, monitoringRole: {incidentDetails.MonitoringRole}, monitoringSlice: {incidentDetails.MonitoringSlice}");
             //match incident details with existing alert configs
-            if (incidentDetails.MonitoringRole == "AzureAlerting" || incidentDetails.CreatedBy == "AzureAlerting")
+            ICMAlertConfig alertConfig = await _alertHandlerClient.GetConfigAsync(incidentDetails, kernel);
+            _logger.LogInformation($"AzureAlertingPlugin: Fetching Alert Details. incidentId: {incidentId}, incidenTtile: {incidentDetails.Title}, owningTeam: {incidentDetails.OwningTeam}, monitoringRole: {incidentDetails.MonitoringRole}, monitoringSlice: {incidentDetails.MonitoringSlice}");
+            
+            if (alertConfig != null && incidentDetails.MonitoringSlice != null)
             {
-                try
-                {
-                    string alertId = incidentDetails.MonitoringSlice;
-                    await kernel.LogInformation($"[get_alert_details_and_custom_instructions][{DateTime.UtcNow}] Fetching alert details for Azure Alerting Id: {alertId}", _logger, _teamsClient, _sessionMessageService);
-                    var alertConfig = alertId == customAlertConfig?.AlertingId ? customAlertConfig : await _alertHandlerService.GetICMAlertConfigAsync(alertId);
-                    if (alertConfig == null) alertConfig = new ICMAlertConfig() { AlertingId = alertId };
-                    // var alertDetails = await _alertHandlerService.GetAzureAlertingDetailsById(alertId);
-
-                    if (alertConfig != null)
-                    {
-                        return $"ALERT_ID: {alertId}" +
+                return $"ALERT_ID: {incidentDetails.MonitoringSlice}" +
                         "\n\n" +
                         "PROVIDED_MITIGATION_INSTRUCTIONS:\n" + JsonConvert.SerializeObject(alertConfig);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError($"Error fetching alert details from Azure Alerting: {ex.Message}");
-                }
             }
-            else
+
+            else if (alertConfig != null)
             {
-                await kernel.LogInformation($"[get_alert_details_and_custom_instructions][{DateTime.UtcNow}] AzureAlertingPlugin: This Incident is not from Azure Alerting, finding configuration based on other fields."
-                    , _logger, _teamsClient, _sessionMessageService);
-                var alertConfigs = await _alertHandlerService.GetICMAlertConfigsAsync();
-                foreach (var alertId in alertConfigs.Keys)
-                {
-                    var alertConfig = alertConfigs[alertId];
-                    if (incidentDetails.Title == alertConfig.IncidentTitle
-                        || (!string.IsNullOrWhiteSpace(alertConfig.IncidentTitleContains) && incidentDetails.Title.Contains(alertConfig.IncidentTitleContains, StringComparison.OrdinalIgnoreCase))
-                        || (alertConfig.OwningTeams != null && alertConfig.OwningTeams.Count > 0 && alertConfig.OwningTeams.Any(x => x.Equals(incidentDetails.OwningTeam, StringComparison.OrdinalIgnoreCase))))
-                    {
-                        return "PROVIDED_MITIGATION_INSTRUCTIONS:\n" + JsonConvert.SerializeObject(alertConfig);
-                    }
-                }
+                return "PROVIDED_MITIGATION_INSTRUCTIONS:\n" + JsonConvert.SerializeObject(alertConfig);
             }
+
             return $"Alert details could not be found for incidentId {incidentId}";
         }
     }

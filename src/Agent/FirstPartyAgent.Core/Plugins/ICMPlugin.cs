@@ -4,6 +4,7 @@
 
 using FirstPartyAgent.Core.Constants;
 using FirstPartyAgent.Core.Extensions;
+using FirstPartyAgent.Core.Helpers;
 using FirstPartyAgent.Core.Models;
 using FirstPartyAgent.Core.Services;
 using FirstPartyAgent.Helpers;
@@ -23,16 +24,18 @@ namespace FirstPartyAgent.Core.Plugins
         private readonly ILogger<ICMPlugin> _logger;
         private readonly ITeamsClient _teamsClient;
         private readonly ISessionMessageService _sessionMessageService;
+        private readonly AlertHandlerClient _alertHandlerClient;
         private const string HumanInterventionTag = "SREAgent_HumanIntervention";
         private const string AgentProcessedTag = "SREAgent_Processed";
 
-        public ICMPlugin(IICMAPIClient icmAPIClient, IICMWorkflowClient icmWorkflowClient, ILogger<ICMPlugin> logger, ITeamsClient teamsClient, ISessionMessageService sessionMessageService)
+        public ICMPlugin(IICMAPIClient icmAPIClient, IICMWorkflowClient icmWorkflowClient, ILogger<ICMPlugin> logger, ITeamsClient teamsClient, ISessionMessageService sessionMessageService, AlertHandlerClient alertHandlerClient)
         {
             _logger = logger;
             _icmApiClient = icmAPIClient;
             _icmWorkflowClient = icmWorkflowClient;
             _teamsClient = teamsClient;
             _sessionMessageService = sessionMessageService;
+            _alertHandlerClient = alertHandlerClient;
         }
 
         /// <summary>
@@ -113,6 +116,7 @@ namespace FirstPartyAgent.Core.Plugins
             var incident = _icmApiClient.IsEnabled()? await _icmApiClient.GetIncidentAsync(incidentId): await _icmWorkflowClient.GetIncidentAsync(incidentId);
             incident.Summary = await ProcessComplexICMContent(incident.Summary, kernel, !_icmWorkflowClient.ProcessImages);
             incident.DiscussionEntry = await ProcessComplexICMContent(incident.DiscussionEntry, kernel, !_icmWorkflowClient.ProcessImages);
+            await SetupIncidentProcessing(incidentId, incident, kernel);
             return incident;
         }
 
@@ -237,6 +241,7 @@ namespace FirstPartyAgent.Core.Plugins
             discussionEntry = IcmPostTemplates.DiscussionEntryTemplate.Replace("POST_CONTENT_HERE", discussionEntry);
             await AddTagToIncident(incidentId, AgentProcessedTag, kernel);
             await AddTagToIncident(incidentId, HumanInterventionTag, kernel);
+            await UpdateAgentStatus(incidentId, AgentStatus.Transferred, kernel);
             return _icmApiClient.IsEnabled() ? await _icmApiClient.TransferIncidentAsync(incidentId, discussionEntry, tenantName, owningTeam) : await _icmWorkflowClient.TransferIncidentAsync(incidentId, discussionEntry, tenantName, owningTeam);
         }
 
@@ -256,6 +261,7 @@ namespace FirstPartyAgent.Core.Plugins
             var addMitigationTagResult = await _icmWorkflowClient.AddTagToIncident(incidentId, "SREAgent_Mitigated");
             // Also add the general processed tag
             await AddTagToIncident(incidentId, AgentProcessedTag, kernel);
+            await UpdateAgentStatus(incidentId, AgentStatus.Mitigated, kernel);
             return mitigationResult;
         }
 
@@ -286,6 +292,7 @@ namespace FirstPartyAgent.Core.Plugins
             discussionEntry = IcmPostTemplates.DiscussionEntryTemplate.Replace("POST_CONTENT_HERE", discussionEntry);
             var result = _icmApiClient.IsEnabled() ? await _icmApiClient.ResolveIncidentAsync(incidentId, discussionEntry) : await _icmWorkflowClient.ResolveIncidentAsync(incidentId, discussionEntry);
             await AddTagToIncident(incidentId, AgentProcessedTag, kernel);
+            await UpdateAgentStatus(incidentId, AgentStatus.Resolved, kernel);
             return result;
         }
 
@@ -331,8 +338,67 @@ namespace FirstPartyAgent.Core.Plugins
                 throw new InvalidOperationException("ICM API client is not enabled.");
             }
             var result = await _icmApiClient.AcknowledgeIncidentAsync(incidentId);
-            await AddTagToIncident(incidentId, "SREAgent_Processing", kernel);
+            await UpdateAgentStatus(incidentId, AgentStatus.Acknowledged, kernel);
             return result;
+        }
+
+        /// <summary>
+        /// Enum representing the possible statuses of the agent.
+        /// </summary>
+        private enum AgentStatus
+        {
+            Acknowledged,
+            Transferred,
+            Mitigated,
+            Resolved
+        }
+
+        /// <summary>
+        /// Updates the status of the agent by removing existing status tags and adding a new one.
+        /// </summary>
+        /// <param name="incidentId">The ID of the incident.</param>
+        /// <param name="status">The new status to update.</param>
+        /// <param name="kernel">The kernel instance.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        private async Task UpdateAgentStatus(string incidentId, AgentStatus status, Kernel kernel)
+        {
+            var logMessage = $"[update_agent_status][{DateTime.UtcNow}] Updating status to '{status}' for incidentId {incidentId}";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
+
+            // Add the new status tag
+            var newStatusTag = $"SREAgent_{status}";
+            await AddTagToIncident(incidentId, newStatusTag, kernel);
+        }
+
+        /// <summary>
+        /// Sets up the necessary steps when the agent starts working on an incident.
+        /// </summary>
+        /// <param name="incidentId">The ID of the incident.</param>
+        /// <param name="incidentDetails">The details of the incident.</param>
+        /// <param name="kernel">The kernel instance.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        private async Task SetupIncidentProcessing(string incidentId, Incident incidentDetails, Kernel kernel)
+        {
+            var logMessage = $"[setup_incident_processing][{DateTime.UtcNow}] Setting up processing for incidentId {incidentId}";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
+
+            // Add a tag to indicate the agent has started processing
+            await AddTagToIncident(incidentId, "SREAgent_Processing", kernel);
+
+            ICMAlertConfig alertConfig = await _alertHandlerClient.GetConfigAsync(incidentDetails, kernel);
+            
+            string agentName = alertConfig?.AgentName;
+
+            if (!string.IsNullOrEmpty(agentName))
+            {
+                await AddTagToIncident(incidentId, $"SREAgent_{agentName}", kernel);
+            }
+            else
+            {
+                var warningMessage = $"[setup_incident_processing][{DateTime.UtcNow}] AgentName could not be determined for incidentId {incidentId}. No matching AlertConfig found based on Title, TitleContains, or OwningTeam.";
+                await kernel.LogInformation(warningMessage, _logger, _teamsClient, _sessionMessageService);
+                await AddTagToIncident(incidentId, $"SREAgent_UnnamedAgent", kernel);
+            }
         }
 
         #region RelatedIncidents operation methods

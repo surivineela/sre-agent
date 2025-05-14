@@ -50,6 +50,7 @@ namespace FirstPartyAgent.Core.Extensions
                 }
                 return new NullableICMWorkflowClient();
             });
+            services.AddSingleton<AlertHandlerClient>();
             services.AddSingleton<ICMPlugin>();
             services.AddSingleton<GenevaActionsPlugin>();
             services.AddSingleton<HttpRequestPlugin>();
