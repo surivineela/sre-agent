@@ -8,9 +8,9 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 
-namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppsQuotaAgent
+namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppQuotaAgent
 {
-    public record ContainerAppsQuotaAgentActivityInput 
+    public record ContainerAppQuotaAgentActivityInput 
     {
         [Required]
         [Description("The Incidentid (IcM ID) associated with the issue. Example: '622811149'")]
@@ -18,19 +18,19 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppsQuotaAgent
     }
 
     [DurableTask]
-    public class ContainerAppsQuotaAgentActivity : TaskActivity<ContainerAppsQuotaAgentActivityInput, List<ChatMessage>>
+    public class ContainerAppQuotaAgentActivity : TaskActivity<ContainerAppQuotaAgentActivityInput, List<ChatMessage>>
     {
         private readonly IChatClient _chatClient;
-        private readonly ILogger<ContainerAppsQuotaAgentActivity> _logger;
+        private readonly ILogger<ContainerAppQuotaAgentActivity> _logger;
 
-        public ContainerAppsQuotaAgentActivity(IChatClient chatClient, ILogger<ContainerAppsQuotaAgentActivity> logger)
+        public ContainerAppQuotaAgentActivity(IChatClient chatClient, ILogger<ContainerAppQuotaAgentActivity> logger)
         {
             _logger = logger;
             _chatClient = chatClient;
         }
-        public override async Task<List<ChatMessage>> RunAsync(TaskActivityContext context, ContainerAppsQuotaAgentActivityInput input)
+        public override async Task<List<ChatMessage>> RunAsync(TaskActivityContext context, ContainerAppQuotaAgentActivityInput input)
         {
-            _logger.LogInformation($"ContainerAppsQuotaAgentActivity started with input: {JsonSerializer.Serialize(input)}");
+            _logger.LogInformation($"ContainerAppQuotaAgentActivity started with input: {JsonSerializer.Serialize(input)}");
 
             var systemPrompt = await GetPromptTextAsync(input);
 
@@ -42,20 +42,20 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppsQuotaAgent
                     ")
                     ];
 
-            _logger.LogInformation("ContainerAppsQuotaAgentActivity sending messages to chat client.");
+            _logger.LogInformation("ContainerAppQuotaAgentActivity sending messages to chat client.");
             var response = await _chatClient.GetResponseAsync(messages);
             messages.Add(response.GetMessage());
 
-            _logger.LogInformation("ContainerAppsQuotaAgentActivity completed with response.");
+            _logger.LogInformation("ContainerAppQuotaAgentActivity completed with response.");
             return messages;
         }
 
 
 
-        public async Task<string> GetPromptTextAsync(ContainerAppsQuotaAgentActivityInput input)
+        public async Task<string> GetPromptTextAsync(ContainerAppQuotaAgentActivityInput input)
         {
             // Read the system prompt from a file
-            var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nameof(FirstPartyAgent.Core.FirstPartySubAgents), "ACA", nameof(ContainerAppsQuotaAgent), "ContainerAppsQuotaAgent.txt");
+            var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nameof(FirstPartyAgent.Core.FirstPartySubAgents), "ACA", nameof(ContainerAppQuotaAgent), "ContainerAppQuotaAgent.txt");
             var systemPrompt = File.ReadAllText(path);
             return systemPrompt;
         }

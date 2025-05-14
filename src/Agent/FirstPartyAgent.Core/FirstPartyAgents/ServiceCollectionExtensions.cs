@@ -6,8 +6,8 @@ using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Core.FirstPartySubAgentPlugins.ACA;
 using FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCorednsAgent;
 using FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppIcmAgent;
-using FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppEnvoyAgent;
-using FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppsQuotaAgent;
+using FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppIngressAgent;
+using FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppQuotaAgent;
 using FirstPartyAgent.Core.FirstPartySubAgents.ACA.HelloWorldAgent;
 using FirstPartyAgent.Core.FirstPartySubAgents.ACA.RevisionAgent;
 using FirstPartyAgent.Core.Plugins.Definitions;
@@ -94,9 +94,9 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<HelloWorldAgentFactory>();
 
         services.AddSingleton<IContainerAppQuotaPlugin, ContainerAppQuotaPlugin>();
-        services.AddSingleton<ContainerAppsQuotaAgentPlugin>();
+        services.AddSingleton<ContainerAppQuotaAgentPlugin>();
         services.AddSingleton<ContainerAppQuotaPluginDefinition>();
-        services.AddSingleton<ContainerAppsQuotaAgentFactory>();
+        services.AddSingleton<ContainerAppQuotaAgentFactory>();
 
         services.AddSingleton<IContainerAppRevisionPlugin, ContainerAppRevisionPlugin>();
         services.AddSingleton<IManagedClusterPlugin, ManagedClusterPlugin>();
@@ -112,9 +112,9 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ContainerAppRevisionAgentFactory>();
 
         services.AddSingleton<IContainerAppEnvoyPlugin, ContainerAppEnvoyPlugin>();
-        services.AddSingleton<ContainerAppEnvoyAgentPlugin>();
+        services.AddSingleton<ContainerAppIngressAgentPlugin>();
         services.AddSingleton<ContainerAppEnvoyPluginDefinition>();
-        services.AddSingleton<ContainerAppEnvoyAgentFactory>();
+        services.AddSingleton<ContainerAppIngressAgentFactory>();
 
         services.AddSingleton<IContainerAppCorednsPlugin, ContainerAppCorednsPlugin>();
         services.AddSingleton<ContainerAppCorednsAgentPlugin>();

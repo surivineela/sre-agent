@@ -4,7 +4,7 @@
 using System.ComponentModel;
 using Agent.Core;
 using Agent.Runtime.MetaAgent;
-using FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppsQuotaAgent;
+using FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppQuotaAgent;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
@@ -12,15 +12,15 @@ using Microsoft.SemanticKernel;
 
 namespace FirstPartyAgent.Core.FirstPartySubAgentPlugins.ACA;
 [WorkflowClass]
-public class ContainerAppsQuotaAgentPlugin
+public class ContainerAppQuotaAgentPlugin
 {
     private readonly DurableTaskClient _durableTaskClient;
     public Guid? ThreadId { get; set; }
-    private readonly ContainerAppsQuotaAgentFactory _containerAppQuotaAgentFactory;
-    public ContainerAppsQuotaAgentPlugin(
+    private readonly ContainerAppQuotaAgentFactory _containerAppQuotaAgentFactory;
+    public ContainerAppQuotaAgentPlugin(
         DurableTaskClient durableTaskClient,
-        ContainerAppsQuotaAgentFactory factory,
-        ILogger<ContainerAppsQuotaAgentFactory> logger)
+        ContainerAppQuotaAgentFactory factory,
+        ILogger<ContainerAppQuotaAgentFactory> logger)
         
     {
         _containerAppQuotaAgentFactory = factory;
@@ -29,16 +29,16 @@ public class ContainerAppsQuotaAgentPlugin
     [WorkflowFunction]
     [KernelFunction("list_containerapps_quota_workflow")]
     [Description("List the information of started workflow for container apps quota request")]
-    public async Task<IReadOnlyList<WorkflowMetadata<ContainerAppsQuotaAgentActivityInput>>> ListQuotaAgentWorkflowsAsync()
+    public async Task<IReadOnlyList<WorkflowMetadata<ContainerAppQuotaAgentActivityInput>>> ListQuotaAgentWorkflowsAsync()
     {
-        var list = new List<WorkflowMetadata<ContainerAppsQuotaAgentActivityInput>>();
+        var list = new List<WorkflowMetadata<ContainerAppQuotaAgentActivityInput>>();
         await foreach (var instance in _durableTaskClient.GetAllInstancesAsync(
             new OrchestrationQuery(
                 Statuses: [OrchestrationRuntimeStatus.Pending, OrchestrationRuntimeStatus.Running],
                 FetchInputsAndOutputs: true)))
         {
             var input = _containerAppQuotaAgentFactory.DeserializeInput(instance.SerializedInput.ThrowIfNull());
-            list.Add(new WorkflowMetadata<ContainerAppsQuotaAgentActivityInput>(
+            list.Add(new WorkflowMetadata<ContainerAppQuotaAgentActivityInput>(
                 WorkflowInstanceId: instance.InstanceId,
                 Input: input));
         }
@@ -49,7 +49,7 @@ public class ContainerAppsQuotaAgentPlugin
 
     [KernelFunction("start_container_apps_quota_workflow")]
     [Description("Start the workflow to process azure container apps quota request.")]
-    public async Task<string> StartQuotaAgentWorkflowAsync(ContainerAppsQuotaAgentActivityInput input)
+    public async Task<string> StartQuotaAgentWorkflowAsync(ContainerAppQuotaAgentActivityInput input)
     {
         if (ThreadId == null)
         {

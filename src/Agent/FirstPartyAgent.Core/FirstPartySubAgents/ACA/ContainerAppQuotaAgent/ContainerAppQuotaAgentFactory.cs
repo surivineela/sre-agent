@@ -11,43 +11,48 @@ using Agent.Runtime;
 using Agent.Runtime.Communication;
 using Agent.Runtime.SubAgents;
 using FirstPartyAgent.Core.FirstPartySubAgents.ACA.RevisionAgent;
-using FirstPartyAgent.Core.Plugins.Definitions;
 using FirstPartyAgent.Core.Plugins.Interfaces;
 using FirstPartyAgent.Plugins;
 using FirstPartyAgent.Plugins.Definitions;
 using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
 
-namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppEnvoyAgent
+namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppQuotaAgent
 {
-    public class ContainerAppEnvoyAgentFactory 
+    public class ContainerAppQuotaAgentFactory 
     {
         private readonly IToolsRepository _toolsRegistry;
         private readonly DurableTaskClient _durableTaskClient;
         private readonly IThreadOrchestrationManager _mappingManager;
         private readonly IReadOnlyList<string> _toolSignatures;
-        public const string OrchestrationInstanceIdPrefix = nameof(ContainerAppEnvoyAgentInput);
+        public const string OrchestrationInstanceIdPrefix = nameof(ContainerAppQuotaAgent);
 
-        public ContainerAppEnvoyAgentFactory(
-            IContainerAppEnvoyPlugin envoyPlugin,
+        public ContainerAppQuotaAgentFactory(
+            IIcmPlugin icmPlugin,
+            IContainerAppsPlugin containerAppsPlugin,
+            IContainerAppQuotaPlugin containerAppQuotaPlugin,
             IToolsRepository toolsRepository,
             IThreadOrchestrationManager mappingManager,
-            DurableTaskClient durableTaskClient)
+            DurableTaskClient durableTaskClient
+            )
+            
         {
             _toolsRegistry = toolsRepository;
             var toolSignatures = new List<string>();
 
-            var envoyPluginDefinition = new ContainerAppEnvoyPluginDefinition(envoyPlugin);
-            toolSignatures.Add(_toolsRegistry.GetSignature(() => envoyPluginDefinition.GetContainerAppManagedCluster));
-            toolSignatures.Add(_toolsRegistry.GetSignature(() => envoyPluginDefinition.GetEnvoyAbnormalLogs));
-            toolSignatures.Add(_toolsRegistry.GetSignature(() => envoyPluginDefinition.GetEnvoyControllerLogs));
-            toolSignatures.Add(_toolsRegistry.GetSignature(() => envoyPluginDefinition.GetEnvoyAccessLogs));
-            toolSignatures.Add(_toolsRegistry.GetSignature(() => envoyPluginDefinition.GetSwiftNetworkingEvents));
-            toolSignatures.Add(_toolsRegistry.GetSignature(() => envoyPluginDefinition.GetContainerAppAdminEvents));
-            toolSignatures.Add(_toolsRegistry.GetSignature(() => envoyPluginDefinition.GetContainerAppStatus));
-            toolSignatures.Add(_toolsRegistry.GetSignature(() => envoyPluginDefinition.GetEnvoyPodStatus));
-            toolSignatures.Add(_toolsRegistry.GetSignature(() => envoyPluginDefinition.GetCustomerAppPodStatus));
+            var icmPluginDefinition = new IcmPluginDefinition(icmPlugin);
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => icmPluginDefinition.GetIncidentInfo));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => icmPluginDefinition.AddDiscussionEntry));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => icmPluginDefinition.ResolveIncident));
 
+            var containerAppsPluginDefinition = new ContainerAppsPluginDefinition(containerAppsPlugin);
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppsPluginDefinition.GetSubscriptionDetail));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppsPluginDefinition.GetSubscriptionUsage));
+
+            var containerAppQuotaPluginDefinition = new ContainerAppQuotaPluginDefinition(containerAppQuotaPlugin);
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppQuotaPluginDefinition.ValidateQuotaRequest));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppQuotaPluginDefinition.SetSubscriptionQuota));
+            
             var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
             toolSignatures.Add(_toolsRegistry.GetSignature(() => controlFlowPluginDefinition.Wait));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
@@ -60,15 +65,15 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppEnvoyAgent
         }
 
         public async Task<string> StartOrchestration(
-           ContainerAppEnvoyAgentActivityInput input,
-           Guid threadId)
+            ContainerAppQuotaAgentActivityInput input,
+            Guid threadId)
         {
             var instanceId = $"{OrchestrationInstanceIdPrefix}-{Guid.NewGuid()}";
 
             await _mappingManager.AddMappingAsync(threadId.ToString(), instanceId);
 
-            await _durableTaskClient.ScheduleNewContainerAppEnvoyAgentInstanceAsync(
-                new ContainerAppEnvoyAgentInput(
+            await _durableTaskClient.ScheduleNewContainerAppQuotaAgentInstanceAsync(
+                new ContainerAppQuotaAgentInput(
                     Input: input,
                     ToolSignatures: _toolSignatures,
                     ThreadId: threadId),
@@ -77,9 +82,9 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppEnvoyAgent
             return instanceId;
         }
 
-        public ContainerAppEnvoyAgentActivityInput DeserializeInput(string serializedOrchestrationInput)
+        public ContainerAppQuotaAgentActivityInput DeserializeInput(string serializedOrchestrationInput)
         {
-            return JsonSerializer.Deserialize<ContainerAppEnvoyAgentInput>(serializedOrchestrationInput).ThrowIfNull().Input;
+            return JsonSerializer.Deserialize<ContainerAppQuotaAgentInput>(serializedOrchestrationInput).ThrowIfNull().Input;
         }
     }
 }

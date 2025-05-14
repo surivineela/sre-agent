@@ -5,10 +5,10 @@ using Agent.Runtime.SubAgents.Core;
 using FirstPartyAgent.Core.FirstPartySubAgents.ACA.RevisionAgent;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
-namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppsQuotaAgent
+namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppQuotaAgent
 {
-    public record ContainerAppsQuotaAgentInput(
-            ContainerAppsQuotaAgentActivityInput Input,
+    public record ContainerAppQuotaAgentInput(
+            ContainerAppQuotaAgentActivityInput Input,
             IReadOnlyList<string> ToolSignatures,
             Guid ThreadId
         )       
@@ -17,13 +17,13 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppsQuotaAgent
     }
 
     [DurableTask]
-    public class ContainerAppsQuotaAgent : GenericAgentOrchestrator<ContainerAppsQuotaAgentInput, string>
+    public class ContainerAppQuotaAgent : GenericAgentOrchestrator<ContainerAppQuotaAgentInput, string>
     {
-        public override async Task<string> RunAsync(TaskOrchestrationContext context, ContainerAppsQuotaAgentInput agentInput)
+        public override async Task<string> RunAsync(TaskOrchestrationContext context, ContainerAppQuotaAgentInput agentInput)
         {
-            var log = context.CreateReplaySafeLogger<ContainerAppsQuotaAgent>();
+            var log = context.CreateReplaySafeLogger<ContainerAppQuotaAgent>();
             // Initial planning phase: generate plan (e.g. list of apps to update)
-            var chatHistory = await context.CallContainerAppsQuotaAgentActivityAsync(agentInput.Input);
+            var chatHistory = await context.CallContainerAppQuotaAgentActivityAsync(agentInput.Input);
 
             // Run the generic reasoning loop to get actions and process function calls until the plan is complete.
             chatHistory = await RunReasoningLoopAsync(

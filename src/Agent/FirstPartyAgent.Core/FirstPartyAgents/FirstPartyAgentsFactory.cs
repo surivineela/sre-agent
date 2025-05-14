@@ -13,7 +13,7 @@ namespace FirstPartyAgent.Core.FirstPartyAgents;
 public enum FirstPartyMetaAgentNames
 {
     Unknown,
-    RCAAgent,
+    ACAAgent,
 }
 
 public class FirstPartyAgentsFactory : IAgentsFactory
@@ -73,9 +73,9 @@ public class FirstPartyAgentsFactory : IAgentsFactory
     {
         var metaAgent = GetMetaAgent();
         string? systemPrompt = null;
-        if (metaAgent == FirstPartyMetaAgentNames.RCAAgent)
+        if (metaAgent == FirstPartyMetaAgentNames.ACAAgent)
         {            
-            var path = Path.Combine(AppContext.BaseDirectory, nameof(FirstPartyAgent.Core.FirstPartyAgents), "ACA", "RCAAgentSystemPrompt.txt");
+            var path = Path.Combine(AppContext.BaseDirectory, nameof(FirstPartyAgent.Core.FirstPartyAgents), "ACA", "ACAAgentSystemPrompt.txt");
             systemPrompt = File.ReadAllText(path);
         }
         if (string.IsNullOrEmpty(systemPrompt))
@@ -88,9 +88,9 @@ public class FirstPartyAgentsFactory : IAgentsFactory
     private FirstPartyMetaAgentNames GetMetaAgent()
     {
         var agentName = Environment.GetEnvironmentVariable("AGENT_TYPE_NAME") ?? string.Empty;
-        if (agentName?.StartsWith(FirstPartyMetaAgentNames.RCAAgent.ToString(), StringComparison.InvariantCultureIgnoreCase) == true)
+        if (agentName?.StartsWith(FirstPartyMetaAgentNames.ACAAgent.ToString(), StringComparison.InvariantCultureIgnoreCase) == true)
         {
-            return FirstPartyMetaAgentNames.RCAAgent;
+            return FirstPartyMetaAgentNames.ACAAgent;
         }
         return FirstPartyMetaAgentNames.Unknown;
     }

@@ -7,9 +7,9 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 
-namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppEnvoyAgent
+namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppIngressAgent
 {
-    public record ContainerAppEnvoyAgentActivityInput : BaseContainerAppIssueActivityInput 
+    public record ContainerAppIngressAgentActivityInput : BaseContainerAppIssueActivityInput 
     {
         [Description("The name of the container app.")]
         public string ContainerAppName { get; init; } = string.Empty;
@@ -20,17 +20,17 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppEnvoyAgent
     }
 
     [DurableTask]
-    public class ContainerAppEnvoyAgentActivity : TaskActivity<ContainerAppEnvoyAgentActivityInput, List<ChatMessage>>
+    public class ContainerAppIngressAgentActivity : TaskActivity<ContainerAppIngressAgentActivityInput, List<ChatMessage>>
     {
         private readonly IChatClient _chatClient;
-        private readonly ILogger<ContainerAppEnvoyAgentActivity> _logger;
-        public ContainerAppEnvoyAgentActivity(IChatClient chatClient, ILogger<ContainerAppEnvoyAgentActivity> logger) 
+        private readonly ILogger<ContainerAppIngressAgentActivity> _logger;
+        public ContainerAppIngressAgentActivity(IChatClient chatClient, ILogger<ContainerAppIngressAgentActivity> logger) 
         {
             _chatClient = chatClient;
             _logger = logger;
         }
 
-        public override async Task<List<ChatMessage>> RunAsync(TaskActivityContext context, ContainerAppEnvoyAgentActivityInput input)
+        public override async Task<List<ChatMessage>> RunAsync(TaskActivityContext context, ContainerAppIngressAgentActivityInput input)
         {
            
             _logger.LogInformation($"ContainerAppRevisionAgentActivity started with input: {JsonSerializer.Serialize(input)}");
@@ -51,17 +51,17 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppEnvoyAgent
                     ")
                     ];
 
-            _logger.LogInformation("ContainerAppEnvoyAgentActivity sending messages to chat client.");
+            _logger.LogInformation("ContainerAppIngressAgentActivity sending messages to chat client.");
             var response = await _chatClient.GetResponseAsync(messages);
             messages.Add(response.GetMessage());
 
-            _logger.LogInformation("ContainerAppEnvoyAgentActivity completed with response.");
+            _logger.LogInformation("ContainerAppIngressAgentActivity completed with response.");
             return messages;
 
         }
-        public  async Task<string> GetPromptTextAsync(ContainerAppEnvoyAgentActivityInput input)
+        public  async Task<string> GetPromptTextAsync(ContainerAppIngressAgentActivityInput input)
         {
-            var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nameof(FirstPartyAgent.Core.FirstPartySubAgents), "ACA", nameof(ContainerAppEnvoyAgent), "ContainerAppEnvoyAgentPlan.txt");
+            var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nameof(FirstPartyAgent.Core.FirstPartySubAgents), "ACA", nameof(ContainerAppIngressAgent), "ContainerAppIngressAgentPlan.txt");
             var systemPrompt = File.ReadAllText(path);
             return systemPrompt;
         }
