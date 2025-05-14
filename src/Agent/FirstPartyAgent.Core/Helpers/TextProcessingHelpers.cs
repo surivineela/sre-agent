@@ -37,10 +37,16 @@ namespace FirstPartyAgent.Helpers
         /// <returns></returns>
         public static string RemoveHtmlAttributes(string html)
         {
-            // Regex pattern to remove attributes but keep tags
-            string pattern = "<([a-zA-Z0-9]+)(\\s+[^>]+)?>";
+            // Pattern to match <a> tags and preserve href attribute
+            string anchorPattern = @"<a\s+[^>]*href\s*=\s*(['""])(?<href>.*?)\1[^>]*>";
+            // Replace <a ... href="..."> with <a href="...">
+            html = Regex.Replace(html, anchorPattern, m => $"<a href=\"{m.Groups["href"].Value}\">", RegexOptions.IgnoreCase);
 
-            return Regex.Replace(html, pattern, "<$1>");
+            // Pattern to match all other tags and remove their attributes
+            string otherTagsPattern = @"<([a-zA-Z0-9]+)(\s+[^>]+)?>";
+            html = Regex.Replace(html, otherTagsPattern, "<$1>", RegexOptions.IgnoreCase);
+
+            return html;
         }
 
         public static string Base64Encode(string plainText)
@@ -106,13 +112,13 @@ namespace FirstPartyAgent.Helpers
                 obj["OwningTeam"] = obj["OwningTeamId"];
             }
 
-            // 10. OwningTeamName: not provided – default to empty  
+            // 10. OwningTeamName: not provided â€“ default to empty  
             if (obj["OwningTeamName"] == null)
             {
                 obj["OwningTeamName"] = string.Empty;
             }
 
-            // 11. Owner: not provided – default to empty  
+            // 11. Owner: not provided â€“ default to empty  
             if (obj["Owner"] == null)
             {
                 obj["Owner"] = string.Empty;
