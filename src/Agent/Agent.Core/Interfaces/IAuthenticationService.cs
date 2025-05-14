@@ -29,6 +29,12 @@ public interface IAuthenticationService
     public TokenCredential GetCrawlerCredential();
 
     /// <summary>
+    /// Get the credential based on ActionConfiguration
+    /// </summary>
+    /// <returns></returns>
+    public TokenCredential GetActionCredential();
+
+    /// <summary>
     /// Get the credential to operate on ARM resources
     /// </summary>
     /// <returns></returns>

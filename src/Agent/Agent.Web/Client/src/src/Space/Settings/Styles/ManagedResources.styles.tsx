@@ -110,18 +110,18 @@ export const useManagedResourcesStyles = makeStyles({
         backgroundColor: tokens.colorStatusDangerBackground3,
         color: tokens.colorNeutralBackground1,
     },
-    header: { 
+    header: {
         fontSize: '18px',
         fontWeight: 600,
     },
-    searchBox: { 
+    searchBox: {
         width: '330px',
         fontSize: '13px',
         zIndex: 1,
     },
     detailsList: {
         paddingTop: '0px',
-        marginTop: '-16px'
+        marginTop: '-16px',
     },
 });
 

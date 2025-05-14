@@ -259,7 +259,7 @@ const ThreadItem = memo(
                 role="treeitem"
                 className={mergeStyles(ThreadMenuStyles.threadItem, isActive ? ThreadMenuStyles.activeThreadItem : undefined)}
             >
-                {isActive && (<div className={ThreadMenuStyles.borderIndicator}/>)}
+                {isActive && <div className={ThreadMenuStyles.borderIndicator} />}
                 <div className={ThreadMenuStyles.content}>
                     <div className={styles.threadTitleWithAction}>
                         <Text as="div" variant="medium" nowrap block>

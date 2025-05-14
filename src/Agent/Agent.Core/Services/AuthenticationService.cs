@@ -15,6 +15,7 @@ public class AuthenticationService : IAuthenticationService
 {
     private readonly ILogger<AuthenticationService> _logger;
     private readonly CrawlerSettings _crawlerSettings;
+    private readonly ActionSettings _actionSettings;
     private readonly FederationSettings _federationSettings;
     private readonly IHostEnvironment _hostEnvironment;
     private readonly DashboardSettings _dashboardSettings;
@@ -23,6 +24,7 @@ public class AuthenticationService : IAuthenticationService
     public AuthenticationService(
         ILogger<AuthenticationService> logger,
         CrawlerSettings crawlerSettings,
+        ActionSettings actionSettings,
         FederationSettings federationSettings,
         DashboardSettings dashboardSettings,
         IHostEnvironment hostEnvironment,
@@ -30,6 +32,7 @@ public class AuthenticationService : IAuthenticationService
     {
         _logger = logger;
         _crawlerSettings = crawlerSettings;
+        _actionSettings = actionSettings;
         _federationSettings = federationSettings;
         _hostEnvironment = hostEnvironment;
         _dashboardSettings = dashboardSettings;
@@ -82,6 +85,17 @@ public class AuthenticationService : IAuthenticationService
 
         // do not use obo for crawler
         return GetManagedIdentityCredential(_crawlerSettings.Identity);
+    }
+
+    public TokenCredential GetActionCredential()
+    {
+        if (_hostEnvironment.IsDevelopment())
+        {
+            return GetDefaultAzureCredential();
+        }
+        // use action settings identity if it is set, otherwise use crawler settings identity
+        var identity = _actionSettings.Identity ?? _crawlerSettings.Identity;
+        return GetManagedIdentityCredential(identity);
     }
 
     public async  Task<TokenCredential> GetArmOperationCredential()

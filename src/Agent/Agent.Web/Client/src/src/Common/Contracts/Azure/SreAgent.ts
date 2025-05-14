@@ -4,6 +4,7 @@ export interface Agent {
     runningState: string;
     vnetConfiguration?: VnetConfiguration;
     knowledgeGraphConfiguration?: KnowledgeGraphConfiguration;
+    actionConfiguration?: ActionConfiguration;
     outboundConnectionConfiguration?: OutboundConnectionConfiguration;
     mcpServers?: string[];
     logConfiguration?: LogConfiguration;
@@ -26,6 +27,11 @@ export interface VnetConfiguration {
 export interface KnowledgeGraphConfiguration {
     identity?: string;
     managedResources?: string[];
+}
+
+export interface ActionConfiguration {
+    identity?: string;
+    mode?: string;
 }
 
 export interface OutboundConnectionConfiguration {

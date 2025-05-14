@@ -125,6 +125,7 @@ Otherwise, there may be required settings which are not auto-populated by the pr
         {
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.Azure);
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.Azure.Crawler);
+            sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.Azure.Action);
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.Azure.CosmosDB);
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.Azure.CosmosDB.Graph);
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.Azure.CosmosDB.Docs);

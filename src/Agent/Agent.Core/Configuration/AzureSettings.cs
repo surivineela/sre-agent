@@ -28,6 +28,9 @@ namespace Agent.Core.Configuration
         [Required]
         public CrawlerSettings Crawler { get; set; } = new();
 
+        [Required]
+        public ActionSettings Action { get; set; } = new();
+
         public FederationSettings Federation { get; set; } = new();
         public KustoFirstPartyAppSettings Kusto { get; set; } = new();
     }

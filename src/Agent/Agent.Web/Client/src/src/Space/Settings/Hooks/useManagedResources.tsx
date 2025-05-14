@@ -155,8 +155,12 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
             setIsUpdating(true);
             setHideResourceGroupPicker(false);
             const notification = portalContext.startNotification(
-                numberOfRgs > 1 ? intl.formatMessage(ManagedResourcesStringResources.addNotificationPluralTitle, { number: numberOfRgs }) : intl.formatMessage(ManagedResourcesStringResources.addNotificationTitle, { number: numberOfRgs }),
-                numberOfRgs > 1 ? intl.formatMessage(ManagedResourcesStringResources.addNotificationPluralDescription) :intl.formatMessage(ManagedResourcesStringResources.addNotificationDescription)
+                numberOfRgs > 1
+                    ? intl.formatMessage(ManagedResourcesStringResources.addNotificationPluralTitle, { number: numberOfRgs })
+                    : intl.formatMessage(ManagedResourcesStringResources.addNotificationTitle, { number: numberOfRgs }),
+                numberOfRgs > 1
+                    ? intl.formatMessage(ManagedResourcesStringResources.addNotificationPluralDescription)
+                    : intl.formatMessage(ManagedResourcesStringResources.addNotificationDescription)
             );
 
             const updatedManagedResourceGroupIds = [
@@ -201,7 +205,11 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
                 });
             });
 
-            const updateManagedRgPromises = await Promise.all([agentPromise, ...resourceGroupContributorPromises, ...resourceGroupMontioringContributorPromises]);
+            const updateManagedRgPromises = await Promise.all([
+                agentPromise,
+                ...resourceGroupContributorPromises,
+                ...resourceGroupMontioringContributorPromises,
+            ]);
 
             const isSuccessful = updateManagedRgPromises.every((promise: any) => !promise.metadata.error);
 
@@ -209,7 +217,9 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
                 portalContext.stopNotification(
                     notification,
                     true,
-                    numberOfRgs > 1 ? intl.formatMessage(ManagedResourcesStringResources.addNotificationPluralSuccess) : intl.formatMessage(ManagedResourcesStringResources.addNotificationSuccess)
+                    numberOfRgs > 1
+                        ? intl.formatMessage(ManagedResourcesStringResources.addNotificationPluralSuccess)
+                        : intl.formatMessage(ManagedResourcesStringResources.addNotificationSuccess)
                 );
                 refresh();
             } else {

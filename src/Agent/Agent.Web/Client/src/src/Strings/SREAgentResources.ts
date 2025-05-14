@@ -314,7 +314,8 @@ export const ManagedResourcesStringResources = defineMessages({
     add: { defaultMessage: 'Add', id: '2/2yg+' },
     deleteTitle: { defaultMessage: 'Remove managed resource group', id: 'JjKcCj' },
     confirmDelete: {
-        defaultMessage: "This will permanently remove a resource group from the agent's managed resource groups. Are you sure you want to remove?",
+        defaultMessage:
+            "This will permanently remove a resource group from the agent's managed resource groups. Are you sure you want to remove?",
         id: '3BubSI',
     },
     deleteNotificationTitle: { defaultMessage: 'Deleting selected managed resource groups', id: '3Rh7XU' },
