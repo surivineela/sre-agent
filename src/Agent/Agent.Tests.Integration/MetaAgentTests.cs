@@ -154,7 +154,7 @@ public class MetaAgentTests : IAsyncLifetime
         var reasoningMessage = new ReasoningMessage(Guid.NewGuid(), agentContext.Id, ReasoningMessageRoleEnum.User, JsonSerializer.Serialize(chatMessage));
         var agentChatHistory = new AgentChatHistory(agentContext.Id, new List<Guid> { reasoningMessage.Id });
 
-        // generate threadId for this background task   
+        // generate threadId for this background task
         var threadId = threadGuid.ToString();
 
         var metaAgent = _host.Services.GetRequiredService<MetaAgent>();

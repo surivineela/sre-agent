@@ -363,9 +363,10 @@ namespace Agent.Plugins.Implementation
                 // Dictionary of valid memory-to-CPU mappings
                 var validCpuMemoryCombinations = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase)
                 {
-                    { "0.25Gi", 0.25 }, { "0.5Gi", 0.5 }, { "0.75Gi", 0.75 }, { "1Gi", 1.0 },
-                    { "1.25Gi", 1.25 }, { "1.5Gi", 1.5 }, { "1.75Gi", 1.75 }, { "2Gi", 1.0 },
-                    { "256Mi", 0.25 }, { "512Mi", 0.5 }, { "1024Mi", 1.0 }, { "2048Mi", 2.0 }
+                    { "0.5Gi", 0.25 }, { "1Gi", 0.50 }, { "1.5Gi", 0.75 }, { "2Gi", 1.0 },
+                    { "2.5Gi", 1.25 }, { "3Gi", 1.50 }, { "3.5Gi", 1.75 }, { "4Gi", 2.0 },
+                    { "4.5Gi", 2.25 }, { "5Gi", 2.50 }, { "5.5Gi", 2.75 }, { "6Gi", 3.0 },
+                    { "6.5Gi", 3.25 }, { "7Gi", 3.50 }, { "7.5Gi", 3.75 }, { "8Gi", 4.0 }
                 };
 
                 if (!validCpuMemoryCombinations.TryGetValue(desiredMemory, out double cpu))
@@ -390,9 +391,9 @@ namespace Agent.Plugins.Implementation
                 // Patch request
                 var containerAppUpdateData = containerApp.Data;
                 var secrets = containerApp.Data.Configuration.Secrets;
-                await foreach(var v in containerAppResource.GetSecretsAsync())
+                await foreach (var v in containerAppResource.GetSecretsAsync())
                 {
-                    var secret = secrets.FirstOrDefault(secrets => secrets.Name == v.Name); 
+                    var secret = secrets.FirstOrDefault(secrets => secrets.Name == v.Name);
                     if (secret != null)
                     {
                         secret.KeyVaultUri = v.KeyVaultUri;
@@ -571,11 +572,19 @@ namespace Agent.Plugins.Implementation
                     return false;
                 }
 
-                // Update the target port
-                containerApp.Value.Data.Configuration.Ingress.TargetPort = targetPort;
+                var containerAppUpdate = new ContainerAppData(containerApp.Value.Data.Location)
+                {
+                    Configuration = new ContainerAppConfiguration
+                    {
+                        Ingress = new ContainerAppIngressConfiguration
+                        {
+                            TargetPort = targetPort,
+                        }
+                    }
+                };
 
                 // Apply the update
-                await containerAppResource.UpdateAsync(WaitUntil.Completed, containerApp.Value.Data);
+                await containerAppResource.UpdateAsync(WaitUntil.Completed, containerAppUpdate);
 
                 _logger.LogInternalInformation($"Successfully updated target port of container app {resourceId} to {targetPort}");
                 return true;
@@ -2355,13 +2364,13 @@ Here are the logs in JSON format:
             var logsAndComponents = await _graphDbPlugin.FetchActivityLogsAndComponents(resourceId);
             var logs = logsAndComponents.ActivityLogs;
             var successfulDeployments =
-                                 logs.Where(l => l.TryGetValue("operationName", out var operationName)      &&
+                                 logs.Where(l => l.TryGetValue("operationName", out var operationName) &&
                                             l.TryGetValue("authorizationScope", out var authorizationScope) &&
-                                            l.TryGetValue("status", out var status)                         &&
+                                            l.TryGetValue("status", out var status) &&
                                             //operationName.ToString().Contains("containerApps/write", StringComparison.OrdinalIgnoreCase) &&
                                             status.ToString().Equals("Succeeded", StringComparison.OrdinalIgnoreCase) &&
                                             authorizationScope.ToString().Contains(containerAppName, StringComparison.OrdinalIgnoreCase));
-            var times = successfulDeployments 
+            var times = successfulDeployments
                       .Select(log => DateTimeOffset.Parse(log["eventTimestamp"].ToString()))
                       .OrderByDescending(t => t)
                       .ToList();
