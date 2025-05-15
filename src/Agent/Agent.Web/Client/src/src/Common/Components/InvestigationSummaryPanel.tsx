@@ -5,7 +5,7 @@ import ReactMarkdown from 'react-markdown';
 // ────────────────────────────────────────────────────────────────────────────────
 // TYPES
 // ────────────────────────────────────────────────────────────────────────────────
-interface SummaryItem {
+export interface SummaryItem {
     title: string;
     summary: string;
     isCollapsed: boolean;
@@ -13,12 +13,12 @@ interface SummaryItem {
     isFinal?: boolean;
 }
 
-interface InvestigationSummaries {
+export interface InvestigationSummaries {
     containerTitle: string;
     summaries: SummaryItem[];
 }
 
-interface Section {
+export interface Section {
     id: number;
     title: string;
     expanded: boolean;
@@ -31,17 +31,32 @@ export interface InvestigationSummaryPanelProps {
     messageText: string;
 }
 
+// ────────────────────────────────────────────────────────────────────────────────
+// HELPER: merge new parse with current UI state (preserve expanded/collapsed)
+// ────────────────────────────────────────────────────────────────────────────────
+const mergeSectionState = (prev: Section[], next: Section[]): Section[] => {
+    const prevById = new Map(prev.map(s => [s.id, s] as const));
+    return next.map(s => {
+        const old = prevById.get(s.id);
+        return old ? { ...s, expanded: old.expanded } : s;
+    });
+};
+
+// ────────────────────────────────────────────────────────────────────────────────
+// COMPONENT
+// ────────────────────────────────────────────────────────────────────────────────
 const InvestigationSummaryPanel: React.FC<InvestigationSummaryPanelProps> = ({ messageText }) => {
     // ────────────────────────────────────────────────────────────────────────────
     // CUSTOM RENDERERS
     // ────────────────────────────────────────────────────────────────────────────
-    const aLinkRenderer = useCallback((props: any) => {
-        return (
+    const aLinkRenderer = useCallback(
+        (props: any) => (
             <a href={props.href} target="_blank" rel="noopener noreferrer">
                 {props.children}
             </a>
-        );
-    }, []);
+        ),
+        []
+    );
 
     // ────────────────────────────────────────────────────────────────────────────
     // STATE
@@ -49,20 +64,22 @@ const InvestigationSummaryPanel: React.FC<InvestigationSummaryPanelProps> = ({ m
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // Animation / layout flags
-    const [mainExpanded, setMainExpanded] = useState(true); // Start expanded
+    const [mainExpanded, setMainExpanded] = useState(true);
     const [thinking, setThinking] = useState(true);
     const [visibleSections, setVisibleSections] = useState<number[]>([]);
+    const visibleSectionsRef = useRef<number[]>([]); //  ← NEW
+    useEffect(() => {
+        visibleSectionsRef.current = visibleSections;
+    }, [visibleSections]);
+
     const [currentShimmerSection, setCurrentShimmerSection] = useState(0);
     const [complete, setComplete] = useState(false);
 
     const userInteractedRef = useRef(false);
 
-    // Final summary
     const [finalSummaryVisible, setFinalSummaryVisible] = useState(false);
     const [finalSummaryText, setFinalSummaryText] = useState('');
 
-    // Parsed sections
     const [sections, setSections] = useState<Section[]>([]);
     const sectionsRef = useRef<Section[]>([]);
     useEffect(() => {
@@ -78,119 +95,33 @@ const InvestigationSummaryPanel: React.FC<InvestigationSummaryPanelProps> = ({ m
         setIsLoading(true);
         setError(null);
 
-        // Helpers -------------------------------------------------------------
         const safeJsonParse = <T,>(raw: string): T | null => {
             try {
-                // Handle cases where the JSON might be a string within a string
                 let jsonStr = raw.trim();
-
-                // First try direct parsing
                 try {
                     return JSON.parse(jsonStr) as T;
-                } catch (e) {
-                    // If that fails, try to see if it's a JSON string inside a string
-                    // This handles cases where the JSON might be escaped or double-encoded
-                    try {
-                        // Look for objects that might be stringified JSON
-                        if (jsonStr.startsWith('{') && jsonStr.endsWith('}')) {
-                            // Already looks like JSON, but the previous parse failed
-                            // Try to clean it up by handling escaped quotes
-                            jsonStr = jsonStr.replace(/\\"/g, '"');
-                            return JSON.parse(jsonStr) as T;
-                        } else {
-                            return null;
-                        }
-                    } catch {
-                        return null;
+                } catch {
+                    if (jsonStr.startsWith('{') && jsonStr.endsWith('}')) {
+                        jsonStr = jsonStr.replace(/\\"/g, '"');
+                        return JSON.parse(jsonStr) as T;
                     }
+                    return null;
                 }
             } catch {
                 return null;
             }
         };
 
-        const parseLooseFormat = (text: string): void => {
-            // Handle <final-summary>…</final-summary>
-            const finalRegex = /<final-summary>([\s\S]*?)<\/final-summary>/i;
-            const fMatch = text.match(finalRegex);
-            if (fMatch?.[1]) {
-                setFinalSummaryText(fMatch[1].trim());
-                setFinalSummaryVisible(true);
-            }
-
-            // Try to extract multiple sections if they exist
-            const sectionRegex = /<section title="([^"]+)">([\s\S]*?)<\/section>/gi;
-            const sections: Section[] = [];
-            let match;
-            let id = 1;
-
-            while ((match = sectionRegex.exec(text)) !== null) {
-                sections.push({
-                    id: id++,
-                    title: match[1],
-                    expanded: false,
-                    thinking: false,
-                    content: match[2].trim(),
-                    status: 'completed',
-                });
-            }
-
-            // If we found sections, use them
-            if (sections.length > 0) {
-                setSections(sections);
-                setComplete(true);
-                setThinking(false);
-                setMainExpanded(false);
-                return;
-            }
-
-            // Try to detect and parse JSON directly in the text
-            const jsonRegex = /\{[\s\S]*"title"[\s\S]*"summary"[\s\S]*\}/i;
-            const jsonMatch = text.match(jsonRegex);
-
-            if (jsonMatch?.[0]) {
-                try {
-                    // Found what looks like a JSON object
-                    const jsonData = JSON.parse(jsonMatch[0]);
-
-                    if (jsonData.title && jsonData.summary) {
-                        // This looks like a single summary item
-                        setSections([
-                            {
-                                id: 1,
-                                title: jsonData.title,
-                                expanded: false,
-                                thinking: false,
-                                content: jsonData.summary,
-                                status: 'completed',
-                            },
-                        ]);
-                        setComplete(true);
-                        setThinking(false);
-                        setMainExpanded(false);
-                        return;
-                    }
-                } catch (e) {
-                    console.error('Failed to parse potential JSON in content', e);
-                }
-            }
-
-            // Default fallback if no JSON detected
-            const rawContent = text.replace(finalRegex, '').trim();
-            setSections([
-                {
-                    id: 1,
-                    title: 'Investigation Results',
-                    expanded: false,
-                    thinking: false,
-                    content: rawContent,
-                    status: 'completed',
-                },
-            ]);
-            setComplete(true);
-            setThinking(false);
-            setMainExpanded(false);
-        };
+        const createPlaceholderSection = (): Section[] => [
+            {
+                id: 1,
+                title: 'Working on investigation…',
+                expanded: false,
+                thinking: true,
+                content: '',
+                status: 'loading',
+            },
+        ];
 
         try {
             if (!messageText) {
@@ -201,132 +132,117 @@ const InvestigationSummaryPanel: React.FC<InvestigationSummaryPanelProps> = ({ m
             const summariesRegex = /<investigation-summaries>([\s\S]*?)<\/investigation-summaries>/i;
             const match = messageText.match(summariesRegex);
 
-            if (match?.[1]) {
-                const rawJson = match[1].trim();
-                const data = safeJsonParse<InvestigationSummaries>(rawJson);
+            if (!match?.[1]) {
+                setSections(createPlaceholderSection());
+                return;
+            }
 
-                if (data) {
-                    if (data.containerTitle) setContainerTitle(data.containerTitle);
+            const data = safeJsonParse<InvestigationSummaries>(match[1].trim());
+            if (!data) {
+                setSections(createPlaceholderSection());
+                return;
+            }
 
-                    const finalItem = data.summaries.find(s => s.isFinal);
-                    if (finalItem) {
-                        setFinalSummaryText(finalItem.summary);
-                    }
+            if (data.containerTitle) setContainerTitle(data.containerTitle);
 
-                    const parsedSections: Section[] = data.summaries.map((s, idx) => ({
-                        id: idx + 1,
-                        title: s.title,
-                        expanded: !(s.isCollapsed ?? true),
-                        thinking: s.status === 'loading',
-                        content: s.summary,
-                        status: s.status ?? 'loading',
-                    }));
-                    const hasLoadingSections = parsedSections.some(s => s.status === 'loading');
+            const parsed = data.summaries.length
+                ? data.summaries.map((s, idx) => ({
+                      id: idx + 1,
+                      title: s.title,
+                      expanded: !(s.isCollapsed ?? true),
+                      thinking: s.status === 'loading',
+                      content: s.summary,
+                      status: s.status ?? 'loading',
+                  }))
+                : createPlaceholderSection();
 
-                    setSections(parsedSections);
+            const merged = mergeSectionState(sectionsRef.current, parsed);
+            const prev = sectionsRef.current;
 
-                    const allCompleted = parsedSections.every(s => s.status === 'completed');
+            // Was *any* new loading section introduced?
+            const hasNewLoading = merged.some(s => s.status === 'loading' && !prev.find(p => p.id === s.id));
 
-                    // Update state based on section statuses
-                    // Only set thinking mode if there are sections in a loading state
-                    setThinking(hasLoadingSections);
-                    setComplete(allCompleted);
+            // Preserve already-visible ids; don't nuke the list on every update
+            setVisibleSections(old => merged.filter(s => old.includes(s.id) || s.status !== 'loading').map(s => s.id));
 
-                    // Make all sections visible immediately for completed sections
-                    if (allCompleted) {
-                        setVisibleSections(parsedSections.map(s => s.id));
-                        setMainExpanded(false);
+            setSections(merged);
 
-                        if (finalItem) {
-                            setFinalSummaryVisible(true);
-                        }
-                    } else if (hasLoadingSections) {
-                        // If still loading, expand the panel and prepare for animations
-                        setMainExpanded(true);
-                    } else {
-                        // If no loading sections but not all complete, just make everything visible
-                        setVisibleSections(parsedSections.map(s => s.id));
-                    }
-                } else {
-                    // Invalid JSON – fall back to loose format so at least something shows up
-                    console.error('Failed to parse investigation data, trying loose format');
-                    parseLooseFormat(messageText);
-                }
-            } else {
-                parseLooseFormat(messageText);
+            const stillThinking = merged.some(s => s.status === 'loading');
+            setThinking(stillThinking);
+            const allDone = merged.every(s => s.status === 'completed');
+            setComplete(allDone);
+
+            const finalItem = data.summaries.find(s => s.isFinal);
+            if (finalItem) {
+                setFinalSummaryText(finalItem.summary);
+                if (allDone) setFinalSummaryVisible(true);
+            }
+
+            if (hasNewLoading) {
+                // Only restart the step-reveal animation if we truly got new work
+                setCurrentShimmerSection(0);
+                setTimeout(showNextSection, 500);
             }
         } catch (err) {
             console.error('Error processing message text', err);
             setError('Failed to process investigation message');
-            parseLooseFormat(messageText);
+            setSections(createPlaceholderSection());
         } finally {
             setIsLoading(false);
         }
     }, [messageText]);
 
     // ────────────────────────────────────────────────────────────────────────────
-    // EFFECT: KICK-OFF animation only when there are loading sections
-    // ────────────────────────────────────────────────────────────────────────────
-    useEffect(() => {
-        if (sections.length && thinking) {
-            startAnimation();
-        } else if (sections.length && !thinking) {
-            // For non-animated state, just make all sections visible
-            setVisibleSections(sections.map(s => s.id));
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sections, thinking]);
-
-    // ────────────────────────────────────────────────────────────────────────────
     // EFFECT: AUTO-COLLAPSE main container when everything is done
     // ────────────────────────────────────────────────────────────────────────────
     useEffect(() => {
-        if (complete) {
-            // When complete, collapse and show the final summary
+        if (complete && finalSummaryText && !userInteractedRef.current) {
             setMainExpanded(false);
-
-            if (finalSummaryText) {
-                setFinalSummaryVisible(true);
-            }
+            setFinalSummaryVisible(true);
         }
     }, [complete, finalSummaryText]);
 
     // ────────────────────────────────────────────────────────────────────────────
     // ANIMATION helpers
     // ────────────────────────────────────────────────────────────────────────────
-    const startAnimation = () => {
-        if (!thinking) return;
-
-        setComplete(false);
-        setVisibleSections([]);
-        setCurrentShimmerSection(0);
-        setTimeout(showNextSection, 500);
-    };
-
     const showNextSection = () => {
+        // NB:  *always* read from refs inside a timer-callback
         const allSections = sectionsRef.current;
+        const seenIds = visibleSectionsRef.current;
 
-        // Finished?
-        if (visibleSections.length >= allSections.length) {
-            setTimeout(() => {
-                setCurrentShimmerSection(0);
-                setThinking(false);
-                setComplete(true);
+        if (seenIds.length >= allSections.length) return; // nothing left to reveal
 
-                if (finalSummaryText) {
-                    setFinalSummaryVisible(true);
-                    setMainExpanded(false);
-                }
-            }, 800);
-            return;
-        }
+        const nextId = allSections[seenIds.length].id;
 
-        const nextIdx = visibleSections.length;
-        const nextId = allSections[nextIdx].id;
+        // Auto-expand the incoming section
+        setSections(prev => prev.map(s => (s.id === nextId ? { ...s, expanded: true } : s)));
 
         setCurrentShimmerSection(nextId);
-        setVisibleSections(prev => [...prev, nextId]);
-        setTimeout(showNextSection, 1200);
+        setVisibleSections(prev => {
+            const updated = [...prev, nextId];
+            visibleSectionsRef.current = updated;
+            return updated;
+        });
+
+        // Schedule the next one, unless every section is already visible
+        if (seenIds.length + 1 < allSections.length) {
+            setTimeout(showNextSection, 1200);
+        } else {
+            // Last one – once its status flips to "completed", thinking → false
+            const checkDone = () => {
+                const nowDone = sectionsRef.current.every(s => s.status === 'completed');
+                if (nowDone) {
+                    setThinking(false);
+                    setComplete(true);
+                    if (finalSummaryText) setFinalSummaryVisible(true);
+                    if (!userInteractedRef.current) setMainExpanded(false);
+                } else {
+                    // keep polling every half-second until done
+                    setTimeout(checkDone, 500);
+                }
+            };
+            setTimeout(checkDone, 800);
+        }
     };
 
     // ────────────────────────────────────────────────────────────────────────────
@@ -334,26 +250,18 @@ const InvestigationSummaryPanel: React.FC<InvestigationSummaryPanelProps> = ({ m
     // ────────────────────────────────────────────────────────────────────────────
     const toggleMainSection = () => {
         userInteractedRef.current = true;
-
-        // Don't allow toggling while thinking/loading
-        if (!thinking) {
-            setMainExpanded(prev => !prev);
-        }
+        setMainExpanded(prev => !prev);
     };
 
     const toggleSubSection = (id: number) => {
         userInteractedRef.current = true;
-
-        // Always allow toggling subsections unless thinking
-        if (!thinking) {
-            setSections(prev => prev.map(s => (s.id === id ? { ...s, expanded: !s.expanded } : s)));
-        }
+        setSections(prev => prev.map(s => (s.id === id ? { ...s, expanded: !s.expanded } : s)));
     };
 
     // ────────────────────────────────────────────────────────────────────────────
-    // RENDER helpers – skeleton & error short-circuits
+    // RENDER helpers – skeleton & error short‑circuits
     // ────────────────────────────────────────────────────────────────────────────
-    if (isLoading) {
+    if (isLoading)
         return (
             <div style={{ width: '100%', marginBottom: 8 }}>
                 <div
@@ -385,9 +293,8 @@ const InvestigationSummaryPanel: React.FC<InvestigationSummaryPanelProps> = ({ m
                 </div>
             </div>
         );
-    }
 
-    if (error) {
+    if (error)
         return (
             <div style={{ width: '100%', marginBottom: 8 }}>
                 <div
@@ -412,7 +319,6 @@ const InvestigationSummaryPanel: React.FC<InvestigationSummaryPanelProps> = ({ m
                 </div>
             </div>
         );
-    }
 
     // ────────────────────────────────────────────────────────────────────────────
     // MAIN RENDER
@@ -476,7 +382,6 @@ const InvestigationSummaryPanel: React.FC<InvestigationSummaryPanelProps> = ({ m
                                     }}
                                 >
                                     <div className="shimmer-effect" />
-                                    <div className="thinking-indicator"></div>
                                 </div>
                             )}
                         </div>
@@ -513,7 +418,7 @@ const InvestigationSummaryPanel: React.FC<InvestigationSummaryPanelProps> = ({ m
                     </div>
                 </div>
 
-                {/* ——————————————————— Sub-sections */}
+                {/* ——————————————————— Sub‑sections */}
                 <div
                     style={{
                         overflow: 'visible',
@@ -535,11 +440,11 @@ const InvestigationSummaryPanel: React.FC<InvestigationSummaryPanelProps> = ({ m
                                 marginTop: 8,
                                 backgroundImage: 'linear-gradient(to bottom, #ffffff, #fafafa)',
                                 boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.03)',
-                                width: '100%', // Ensure 100% width
+                                width: '100%',
                             }}
                         >
                             {sections.map(section => {
-                                // PLACEHOLDER while still animating
+                                // PLACEHOLDER while animating
                                 if (thinking && !visibleSections.includes(section.id) && section.id > visibleSections.length) {
                                     return (
                                         <div key={section.id} style={{ marginBottom: 12 }}>
@@ -597,7 +502,7 @@ const InvestigationSummaryPanel: React.FC<InvestigationSummaryPanelProps> = ({ m
                                     );
                                 }
 
-                                // VISIBLE section ------------------------------------------------
+                                // VISIBLE section
                                 if (visibleSections.includes(section.id)) {
                                     return (
                                         <div
@@ -626,9 +531,15 @@ const InvestigationSummaryPanel: React.FC<InvestigationSummaryPanelProps> = ({ m
                                                     <DocumentSearch24Regular style={{ color: '#888', marginRight: 8 }} />
                                                     <div style={{ position: 'relative' }}>
                                                         <span
-                                                            style={{ color: '#333', fontSize: 13, display: 'flex', alignItems: 'center' }}
+                                                            style={{
+                                                                color: '#333',
+                                                                fontSize: 13,
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                            }}
                                                         >
-                                                            <span className="section-number">{section.id}.</span> {section.title}
+                                                            <span className="section-number">{section.id}. </span>
+                                                            {section.title}
                                                         </span>
                                                         {thinking &&
                                                             currentShimmerSection === section.id &&
@@ -641,7 +552,6 @@ const InvestigationSummaryPanel: React.FC<InvestigationSummaryPanelProps> = ({ m
                                                                     }}
                                                                 >
                                                                     <div className="shimmer-effect" />
-                                                                    <div className="thinking-indicator"></div>
                                                                 </div>
                                                             )}
                                                     </div>
@@ -685,14 +595,9 @@ const InvestigationSummaryPanel: React.FC<InvestigationSummaryPanelProps> = ({ m
                                                             boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.05)',
                                                         }}
                                                     >
-                                                        {/* For all section content, we use ReactMarkdown with specific styling */}
                                                         <div className="investigation-section-content">
-                                                            <ReactMarkdown
-                                                                components={{
-                                                                    a: aLinkRenderer as React.ComponentType<any>,
-                                                                }}
-                                                            >
-                                                                {section.content}
+                                                            <ReactMarkdown components={{ a: aLinkRenderer as any }}>
+                                                                {section.content || '*Working…*'}
                                                             </ReactMarkdown>
                                                         </div>
                                                     </div>
@@ -701,7 +606,6 @@ const InvestigationSummaryPanel: React.FC<InvestigationSummaryPanelProps> = ({ m
                                         </div>
                                     );
                                 }
-
                                 return null;
                             })}
                         </div>
@@ -740,117 +644,91 @@ const InvestigationSummaryPanel: React.FC<InvestigationSummaryPanelProps> = ({ m
                             Final Summary:
                         </span>
                         <div style={{ color: '#555' }}>
-                            <ReactMarkdown components={{ a: aLinkRenderer }}>{finalSummaryText}</ReactMarkdown>
+                            <ReactMarkdown components={{ a: aLinkRenderer as any }}>{finalSummaryText}</ReactMarkdown>
                         </div>
                     </div>
                 </div>
             )}
 
             {/* ——————————————————— Inline CSS for shimmer / animations */}
-            <style>
-                {`
-          @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-          }
-          .shimmer-effect {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.8) 50%, rgba(255,255,255,0) 100%);
-            animation: shimmer 1.8s infinite;
-          }
-          
-          @keyframes pulse {
-            0%, 100% { opacity: 0.4; transform: scale(1); }
-            50%      { opacity: 0.8; transform: scale(1.05); }
-          }
-          
-          .thinking-indicator {
-            position: absolute;
-            right: 5px;
-            top: 5px;
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background-color: #2b88d8;
-            animation: pulse 1.5s infinite;
-          }
-          
-          @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to   { opacity: 1; transform: translateY(0); }
-          }
-          
-          @keyframes pulse-bg {
-            0%, 100% { opacity: 0.6; }
-            50%      { opacity: 0.8; }
-          }
-          
-          .section-number {
-            display: inline-block;
-            min-width: 18px;
-            height: 18px;
-            line-height: 18px;
-            text-align: center;
-            background-color: rgba(0,0,0,0.05);
-            border-radius: 9px;
-            font-size: 10px;
-            margin-right: 8px;
-            color: #777;
-          }
-          
-          /* Add a subtle hover effect to indicate clickability */
-          .complete-collapsed:hover {
-            filter: brightness(1.05);
-            transform: scale(1.01);
-          }
-          
-          /* Make text in sections smaller and light grey */
-          .investigation-section-content {
-            font-size: 11px;
-            color: #666;
-            line-height: 1.4;
-          }
-          
-          .investigation-section-content p {
-            margin-top: 0.5em;
-            margin-bottom: 0.5em;
-          }
-          
-          .investigation-section-content h2, 
-          .investigation-section-content h3 {
-            color: #555;
-            font-size: 13px;
-            margin-top: 0.75em;
-            margin-bottom: 0.5em;
-            font-weight: 500;
-            padding-bottom: 3px;
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-          }
-          
-          .investigation-section-content strong {
-            color: #444;
-            font-weight: 600;
-          }
-          
-          .investigation-section-content h2 {
-            font-size: 13.5px;
-          }
-          
-          .investigation-section-content code {
-            background: #f1f1f1;
-            padding: 1px 4px;
-            border-radius: 3px;
-            font-size: 11px;
-          }
-          
-          .investigation-section-content ul, 
-          .investigation-section-content ol {
-            padding-left: 1.5em;
-            margin: 0.5em 0;
-          }
-        `}
-            </style>
+            <style>{`
+        @keyframes shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+        .shimmer-effect {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.8) 50%, rgba(255,255,255,0) 100%);
+          animation: shimmer 1.8s infinite;
+        }
+
+        @keyframes pulse {
+          0%, 100% { opacity: 0.4; transform: scale(1); }
+          50%      { opacity: 0.8; transform: scale(1.05); }
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-number {
+          display: inline-block;
+          min-width: 18px;
+          height: 18px;
+          line-height: 18px;
+          text-align: center;
+          background-color: rgba(0,0,0,0.05);
+          border-radius: 9px;
+          font-size: 10px;
+          margin-right: 8px;
+          color: #777;
+        }
+
+        .complete-collapsed:hover {
+          filter: brightness(1.05);
+          transform: scale(1.01);
+        }
+
+        .investigation-section-content {
+          font-size: 11px;
+          color: #666;
+          line-height: 1.4;
+        }
+        .investigation-section-content p {
+          margin-top: 0.5em;
+          margin-bottom: 0.5em;
+        }
+        .investigation-section-content h2,
+        .investigation-section-content h3 {
+          color: #555;
+          font-size: 13px;
+          margin-top: 0.75em;
+          margin-bottom: 0.5em;
+          font-weight: 500;
+          padding-bottom: 3px;
+          border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        .investigation-section-content strong {
+          color: #444;
+          font-weight: 600;
+        }
+        .investigation-section-content h2 {
+          font-size: 13.5px;
+        }
+        .investigation-section-content code {
+          background: #f1f1f1;
+          padding: 1px 4px;
+          border-radius: 3px;
+          font-size: 11px;
+        }
+        .investigation-section-content ul,
+        .investigation-section-content ol {
+          padding-left: 1.5em;
+          margin: 0.5em 0;
+        }
+      `}</style>
         </div>
     );
 };
