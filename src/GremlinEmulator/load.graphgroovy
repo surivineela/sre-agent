@@ -15,9 +15,15 @@ try {
   def eCount = functionsBadFlexApps.traversal().E().count().next()
   logger.info("✅ Functions graph loaded successfully: ${vCount} vertices, ${eCount} edges")
 
+  simpleWebApps.io(GraphMLIo.build()).readGraph('/opt/graphs/simple-webapps.graphml')
+  vCount = simpleWebApps.traversal().V().count().next()
+  eCount = simpleWebApps.traversal().E().count().next()
+  logger.info("✅ Simple Web Apps graph loaded successfully: ${vCount} vertices, ${eCount} edges")
+
   // bind the traversal source 'g' globally after loading
   def globals = [:]
   globals << [gfuncbad : traversal().withEmbedded(functionsBadFlexApps)]
+  globals << [gsimpleweb : traversal().withEmbedded(simpleWebApps)]
 
 } catch (FileNotFoundException fnf) {
   logger.error("❌ File not found: ${fnf.message}", fnf)

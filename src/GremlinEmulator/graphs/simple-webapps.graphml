@@ -1,0 +1,317 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<graphml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd" xmlns="http://graphml.graphdrawing.org/xmlns">
+  <key id="labelV" for="node" attr.name="label" attr.type="string" xmlns="" />
+  <key id="prop_resourceType" for="node" attr.name="resourceType" attr.type="string" xmlns="" />
+  <key id="prop_updateTs" for="node" attr.name="updateTs" attr.type="string" xmlns="" />
+  <key id="prop_resourceId" for="node" attr.name="resourceId" attr.type="string" xmlns="" />
+  <key id="prop_subscriptionId" for="node" attr.name="subscriptionId" attr.type="string" xmlns="" />
+  <key id="prop_resourceGroupName" for="node" attr.name="resourceGroupName" attr.type="string" xmlns="" />
+  <key id="prop_location" for="node" attr.name="location" attr.type="string" xmlns="" />
+  <key id="prop_subscriptionName" for="node" attr.name="subscriptionName" attr.type="string" xmlns="" />
+  <key id="prop_resourceName" for="node" attr.name="resourceName" attr.type="string" xmlns="" />
+  <key id="prop_remarks" for="node" attr.name="remarks" attr.type="string" xmlns="" />
+  <key id="prop_numberOfWorkers" for="node" attr.name="numberOfWorkers" attr.type="string" xmlns="" />
+  <key id="prop_status" for="node" attr.name="status" attr.type="string" xmlns="" />
+  <key id="prop_maximumNumberOfWOrkers" for="node" attr.name="maximumNumberOfWOrkers" attr.type="string" xmlns="" />
+  <key id="prop_geoRegion" for="node" attr.name="geoRegion" attr.type="string" xmlns="" />
+  <key id="prop_kind" for="node" attr.name="kind" attr.type="string" xmlns="" />
+  <key id="prop_provisioningState" for="node" attr.name="provisioningState" attr.type="string" xmlns="" />
+  <key id="prop_zoneRedundant" for="node" attr.name="zoneRedundant" attr.type="string" xmlns="" />
+  <key id="prop_appHealthInfo" for="node" attr.name="appHealthInfo" attr.type="string" xmlns="" />
+  <key id="prop_minTlsVersion" for="node" attr.name="minTlsVersion" attr.type="string" xmlns="" />
+  <key id="prop_autoHealEnabled" for="node" attr.name="autoHealEnabled" attr.type="string" xmlns="" />
+  <key id="prop_alwaysOn" for="node" attr.name="alwaysOn" attr.type="string" xmlns="" />
+  <key id="prop_healthCheckEnabled" for="node" attr.name="healthCheckEnabled" attr.type="string" xmlns="" />
+  <key id="prop_ipSecurityRestrictions" for="node" attr.name="ipSecurityRestrictions" attr.type="string" xmlns="" />
+  <key id="prop_webSocketsEnabled" for="node" attr.name="webSocketsEnabled" attr.type="string" xmlns="" />
+  <key id="prop_usesAppInsights" for="node" attr.name="usesAppInsights" attr.type="string" xmlns="" />
+  <key id="prop_planType" for="node" attr.name="planType" attr.type="string" xmlns="" />
+  <key id="prop_skuName" for="node" attr.name="skuName" attr.type="string" xmlns="" />
+  <key id="prop_skuTier" for="node" attr.name="skuTier" attr.type="string" xmlns="" />
+  <key id="prop_skuSize" for="node" attr.name="skuSize" attr.type="string" xmlns="" />
+  <key id="prop_skuCapacity" for="node" attr.name="skuCapacity" attr.type="string" xmlns="" />
+  <key id="prop_hostNames" for="node" attr.name="hostNames" attr.type="string" xmlns="" />
+  <key id="prop_hostname_0" for="node" attr.name="hostname_0" attr.type="string" xmlns="" />
+  <key id="edge_label" for="edge" attr.name="label" attr.type="string" xmlns="" />
+  <graph id="G" edgedefault="directed" xmlns="">
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas">
+      <data key="labelV">resourcegroups</data>
+      <data key="prop_resourceType">resourcegroups</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-web-eas</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre-web-eas</data>
+      <data key="prop_location">eastasia</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4">
+      <data key="labelV">subscriptions</data>
+      <data key="prop_resourceType">subscriptions</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_subscriptionName">Private Test Sub PBATUM</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.alertsmanagement_smartdetectoralertrules_failure_anomalies_-_pbatum-sre-web-eas1">
+      <data key="labelV">microsoft.alertsmanagement/smartdetectoralertrules</data>
+      <data key="prop_resourceType">microsoft.alertsmanagement/smartdetectoralertrules</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-web-eas/providers/microsoft.alertsmanagement/smartdetectoralertrules/failure anomalies - pbatum-sre-web-eas1</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre-web-eas</data>
+      <data key="prop_location">global</data>
+      <data key="prop_resourceName">failure anomalies - pbatum-sre-web-eas1</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.alertsmanagement_smartdetectoralertrules_failure_anomalies_-_pbatum-sre-web-eas2">
+      <data key="labelV">microsoft.alertsmanagement/smartdetectoralertrules</data>
+      <data key="prop_resourceType">microsoft.alertsmanagement/smartdetectoralertrules</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-web-eas/providers/microsoft.alertsmanagement/smartdetectoralertrules/failure anomalies - pbatum-sre-web-eas2</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre-web-eas</data>
+      <data key="prop_location">global</data>
+      <data key="prop_resourceName">failure anomalies - pbatum-sre-web-eas2</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.insights_components_pbatum-sre-web-eas1">
+      <data key="labelV">microsoft.insights/components</data>
+      <data key="prop_resourceType">microsoft.insights/components</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-web-eas/providers/microsoft.insights/components/pbatum-sre-web-eas1</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre-web-eas</data>
+      <data key="prop_location">eastasia</data>
+      <data key="prop_resourceName">pbatum-sre-web-eas1</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.insights_components_pbatum-sre-web-eas2">
+      <data key="labelV">microsoft.insights/components</data>
+      <data key="prop_resourceType">microsoft.insights/components</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-web-eas/providers/microsoft.insights/components/pbatum-sre-web-eas2</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre-web-eas</data>
+      <data key="prop_location">eastasia</data>
+      <data key="prop_resourceName">pbatum-sre-web-eas2</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.web_serverfarms_asp-pbatumsrewebeas-8754">
+      <data key="labelV">microsoft.web/serverfarms</data>
+      <data key="prop_resourceType">microsoft.web/serverfarms</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-web-eas/providers/microsoft.web/serverfarms/asp-pbatumsrewebeas-8754</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre-web-eas</data>
+      <data key="prop_location">eastasia</data>
+      <data key="prop_resourceName">asp-pbatumsrewebeas-8754</data>
+      <data key="prop_remarks">"eastasia"</data>
+      <data key="prop_numberOfWorkers">1</data>
+      <data key="prop_status">Ready</data>
+      <data key="prop_maximumNumberOfWOrkers">10</data>
+      <data key="prop_geoRegion">East Asia</data>
+      <data key="prop_kind">app</data>
+      <data key="prop_provisioningState">Succeeded</data>
+      <data key="prop_zoneRedundant">False</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.web_sites_pbatum-sre-web-eas1">
+      <data key="labelV">microsoft.web/sites</data>
+      <data key="prop_resourceType">microsoft.web/sites</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-web-eas/providers/microsoft.web/sites/pbatum-sre-web-eas1</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre-web-eas</data>
+      <data key="prop_location">eastasia</data>
+      <data key="prop_resourceName">pbatum-sre-web-eas1</data>
+      <data key="prop_numberOfWorkers">1</data>
+      <data key="prop_kind">app</data>
+      <data key="prop_zoneRedundant">False</data>
+      <data key="prop_appHealthInfo">{"LastDataCaptureTimeStampInUTC":"2025-05-14T22:30:45.7831067Z","Health":"Healthy","Availability":100,"Transactions":0,"Costs":0,"AvgLatencyInMs":null,"AvgMemoryUsage":25591793.05,"AvgCpuUsage":0.04,"AdditionalMetrics":{},"TimeSinceLastActivity":null}</data>
+      <data key="prop_minTlsVersion">1.3</data>
+      <data key="prop_autoHealEnabled">False</data>
+      <data key="prop_alwaysOn">True</data>
+      <data key="prop_healthCheckEnabled">False</data>
+      <data key="prop_ipSecurityRestrictions">[{"IPAddressOrCidr":"Any","SubnetMask":null,"VnetSubnetResourceId":null,"VnetTrafficTag":null,"SubnetTrafficTag":null,"Action":"Allow","Tag":null,"Priority":2147483647,"Name":"Allow all","Description":"Allow all access","Headers":{}}]</data>
+      <data key="prop_webSocketsEnabled">False</data>
+      <data key="prop_usesAppInsights">False</data>
+      <data key="prop_planType">Standard</data>
+      <data key="prop_skuName">S1</data>
+      <data key="prop_skuTier">Standard</data>
+      <data key="prop_skuSize">S1</data>
+      <data key="prop_skuCapacity">1</data>
+      <data key="prop_hostNames">pbatum-sre-web-eas1-cuacc0fzb3e2dtb6.eastasia-01.azurewebsites.net</data>
+      <data key="prop_hostname_0">pbatum-sre-web-eas1-cuacc0fzb3e2dtb6.eastasia-01.azurewebsites.net</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.web_sites_pbatum-sre-web-eas2">
+      <data key="labelV">microsoft.web/sites</data>
+      <data key="prop_resourceType">microsoft.web/sites</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-web-eas/providers/microsoft.web/sites/pbatum-sre-web-eas2</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre-web-eas</data>
+      <data key="prop_location">eastasia</data>
+      <data key="prop_resourceName">pbatum-sre-web-eas2</data>
+      <data key="prop_numberOfWorkers">1</data>
+      <data key="prop_kind">app</data>
+      <data key="prop_zoneRedundant">False</data>
+      <data key="prop_appHealthInfo">{"LastDataCaptureTimeStampInUTC":"2025-05-14T22:30:55.4216215Z","Health":"Healthy","Availability":100,"Transactions":0,"Costs":0,"AvgLatencyInMs":null,"AvgMemoryUsage":24668383,"AvgCpuUsage":0.06,"AdditionalMetrics":{},"TimeSinceLastActivity":null}</data>
+      <data key="prop_minTlsVersion">1.3</data>
+      <data key="prop_autoHealEnabled">False</data>
+      <data key="prop_alwaysOn">True</data>
+      <data key="prop_healthCheckEnabled">False</data>
+      <data key="prop_ipSecurityRestrictions">[{"IPAddressOrCidr":"Any","SubnetMask":null,"VnetSubnetResourceId":null,"VnetTrafficTag":null,"SubnetTrafficTag":null,"Action":"Allow","Tag":null,"Priority":2147483647,"Name":"Allow all","Description":"Allow all access","Headers":{}}]</data>
+      <data key="prop_webSocketsEnabled">False</data>
+      <data key="prop_usesAppInsights">False</data>
+      <data key="prop_planType">Standard</data>
+      <data key="prop_skuName">S1</data>
+      <data key="prop_skuTier">Standard</data>
+      <data key="prop_skuSize">S1</data>
+      <data key="prop_skuCapacity">1</data>
+      <data key="prop_hostNames">pbatum-sre-web-eas2-d6evckbqhdbecrg3.eastasia-01.azurewebsites.net</data>
+      <data key="prop_hostname_0">pbatum-sre-web-eas2-d6evckbqhdbecrg3.eastasia-01.azurewebsites.net</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin">
+      <data key="labelV">resourcegroups</data>
+      <data key="prop_resourceType">resourcegroups</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-web-eas-lin</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre-web-eas-lin</data>
+      <data key="prop_location">eastasia</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_providers_microsoft.alertsmanagement_smartdetectoralertrules_failure_anomalies_-_pbatum-sre-web-eas4">
+      <data key="labelV">microsoft.alertsmanagement/smartdetectoralertrules</data>
+      <data key="prop_resourceType">microsoft.alertsmanagement/smartdetectoralertrules</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-web-eas-lin/providers/microsoft.alertsmanagement/smartdetectoralertrules/failure anomalies - pbatum-sre-web-eas4</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre-web-eas-lin</data>
+      <data key="prop_location">global</data>
+      <data key="prop_resourceName">failure anomalies - pbatum-sre-web-eas4</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_providers_microsoft.insights_components_pbatum-sre-web-eas4">
+      <data key="labelV">microsoft.insights/components</data>
+      <data key="prop_resourceType">microsoft.insights/components</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-web-eas-lin/providers/microsoft.insights/components/pbatum-sre-web-eas4</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre-web-eas-lin</data>
+      <data key="prop_location">eastasia</data>
+      <data key="prop_resourceName">pbatum-sre-web-eas4</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_providers_microsoft.web_serverfarms_asp-pbatumsrewebeaslin-91de">
+      <data key="labelV">microsoft.web/serverfarms</data>
+      <data key="prop_resourceType">microsoft.web/serverfarms</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-web-eas-lin/providers/microsoft.web/serverfarms/asp-pbatumsrewebeaslin-91de</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre-web-eas-lin</data>
+      <data key="prop_location">eastasia</data>
+      <data key="prop_resourceName">asp-pbatumsrewebeaslin-91de</data>
+      <data key="prop_remarks">"eastasia"</data>
+      <data key="prop_numberOfWorkers">1</data>
+      <data key="prop_status">Ready</data>
+      <data key="prop_maximumNumberOfWOrkers">30</data>
+      <data key="prop_geoRegion">East Asia</data>
+      <data key="prop_kind">linux</data>
+      <data key="prop_provisioningState">Succeeded</data>
+      <data key="prop_zoneRedundant">False</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_providers_microsoft.web_sites_pbatum-sre-web-eas3">
+      <data key="labelV">microsoft.web/sites</data>
+      <data key="prop_resourceType">microsoft.web/sites</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-web-eas-lin/providers/microsoft.web/sites/pbatum-sre-web-eas3</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre-web-eas-lin</data>
+      <data key="prop_location">eastasia</data>
+      <data key="prop_resourceName">pbatum-sre-web-eas3</data>
+      <data key="prop_numberOfWorkers">1</data>
+      <data key="prop_kind">app,linux</data>
+      <data key="prop_zoneRedundant">False</data>
+      <data key="prop_appHealthInfo">{"LastDataCaptureTimeStampInUTC":"2025-05-14T22:31:03.4988967Z","Health":"Healthy","Availability":100,"Transactions":0.2,"Costs":0,"AvgLatencyInMs":null,"AvgMemoryUsage":127015708.13,"AvgCpuUsage":0.62,"AdditionalMetrics":{},"TimeSinceLastActivity":null}</data>
+      <data key="prop_minTlsVersion">1.0</data>
+      <data key="prop_autoHealEnabled">False</data>
+      <data key="prop_alwaysOn">True</data>
+      <data key="prop_healthCheckEnabled">False</data>
+      <data key="prop_ipSecurityRestrictions">[{"IPAddressOrCidr":"Any","SubnetMask":null,"VnetSubnetResourceId":null,"VnetTrafficTag":null,"SubnetTrafficTag":null,"Action":"Allow","Tag":null,"Priority":2147483647,"Name":"Allow all","Description":"Allow all access","Headers":{}}]</data>
+      <data key="prop_webSocketsEnabled">False</data>
+      <data key="prop_usesAppInsights">False</data>
+      <data key="prop_planType">Premium0V3</data>
+      <data key="prop_skuName">P0v3</data>
+      <data key="prop_skuTier">Premium0V3</data>
+      <data key="prop_skuSize">P0v3</data>
+      <data key="prop_skuCapacity">1</data>
+      <data key="prop_hostNames">pbatum-sre-web-eas3-hme5h8grh8fcgucw.eastasia-01.azurewebsites.net</data>
+      <data key="prop_hostname_0">pbatum-sre-web-eas3-hme5h8grh8fcgucw.eastasia-01.azurewebsites.net</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_providers_microsoft.web_sites_pbatum-sre-web-eas4">
+      <data key="labelV">microsoft.web/sites</data>
+      <data key="prop_resourceType">microsoft.web/sites</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-web-eas-lin/providers/microsoft.web/sites/pbatum-sre-web-eas4</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre-web-eas-lin</data>
+      <data key="prop_location">eastasia</data>
+      <data key="prop_resourceName">pbatum-sre-web-eas4</data>
+      <data key="prop_numberOfWorkers">1</data>
+      <data key="prop_kind">app,linux</data>
+      <data key="prop_zoneRedundant">False</data>
+      <data key="prop_appHealthInfo">{"LastDataCaptureTimeStampInUTC":"2025-05-14T22:31:11.4998761Z","Health":"Healthy","Availability":100,"Transactions":0.2,"Costs":0,"AvgLatencyInMs":null,"AvgMemoryUsage":141010238.3,"AvgCpuUsage":0.14,"AdditionalMetrics":{},"TimeSinceLastActivity":null}</data>
+      <data key="prop_minTlsVersion">1.3</data>
+      <data key="prop_autoHealEnabled">False</data>
+      <data key="prop_alwaysOn">True</data>
+      <data key="prop_healthCheckEnabled">False</data>
+      <data key="prop_ipSecurityRestrictions">[{"IPAddressOrCidr":"Any","SubnetMask":null,"VnetSubnetResourceId":null,"VnetTrafficTag":null,"SubnetTrafficTag":null,"Action":"Allow","Tag":null,"Priority":2147483647,"Name":"Allow all","Description":"Allow all access","Headers":{}}]</data>
+      <data key="prop_webSocketsEnabled">False</data>
+      <data key="prop_usesAppInsights">False</data>
+      <data key="prop_planType">Premium0V3</data>
+      <data key="prop_skuName">P0v3</data>
+      <data key="prop_skuTier">Premium0V3</data>
+      <data key="prop_skuSize">P0v3</data>
+      <data key="prop_skuCapacity">1</data>
+      <data key="prop_hostNames">pbatum-sre-web-eas4-cuhub0hxcafpbpe0.eastasia-01.azurewebsites.net</data>
+      <data key="prop_hostname_0">pbatum-sre-web-eas4-cuhub0hxcafpbpe0.eastasia-01.azurewebsites.net</data>
+    </node>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.alertsmanagement_smartdetectoralertrules_failure_anomalies_-_pbatum-sre-web-eas1" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.alertsmanagement_smartdetectoralertrules_failure_anomalies_-_pbatum-sre-web-eas1">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.alertsmanagement_smartdetectoralertrules_failure_anomalies_-_pbatum-sre-web-eas2" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.alertsmanagement_smartdetectoralertrules_failure_anomalies_-_pbatum-sre-web-eas2">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.insights_components_pbatum-sre-web-eas1" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.insights_components_pbatum-sre-web-eas1">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.insights_components_pbatum-sre-web-eas2" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.insights_components_pbatum-sre-web-eas2">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.web_serverfarms_asp-pbatumsrewebeas-8754" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.web_serverfarms_asp-pbatumsrewebeas-8754">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.web_sites_pbatum-sre-web-eas1" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.web_sites_pbatum-sre-web-eas1">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.web_sites_pbatum-sre-web-eas2" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.web_sites_pbatum-sre-web-eas2">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_providers_microsoft.alertsmanagement_smartdetectoralertrules_failure_anomalies_-_pbatum-sre-web-eas4" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_providers_microsoft.alertsmanagement_smartdetectoralertrules_failure_anomalies_-_pbatum-sre-web-eas4">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_providers_microsoft.insights_components_pbatum-sre-web-eas4" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_providers_microsoft.insights_components_pbatum-sre-web-eas4">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_providers_microsoft.web_serverfarms_asp-pbatumsrewebeaslin-91de" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_providers_microsoft.web_serverfarms_asp-pbatumsrewebeaslin-91de">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_providers_microsoft.web_sites_pbatum-sre-web-eas3" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_providers_microsoft.web_sites_pbatum-sre-web-eas3">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_providers_microsoft.web_sites_pbatum-sre-web-eas4" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_providers_microsoft.web_sites_pbatum-sre-web-eas4">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.web_serverfarms_asp-pbatumsrewebeas-8754_HOSTS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.web_sites_pbatum-sre-web-eas1" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.web_serverfarms_asp-pbatumsrewebeas-8754" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.web_sites_pbatum-sre-web-eas1">
+      <data key="edge_label">HOSTS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.web_serverfarms_asp-pbatumsrewebeas-8754_HOSTS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.web_sites_pbatum-sre-web-eas2" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.web_serverfarms_asp-pbatumsrewebeas-8754" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.web_sites_pbatum-sre-web-eas2">
+      <data key="edge_label">HOSTS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.web_sites_pbatum-sre-web-eas1_HOSTED_ON__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.web_serverfarms_asp-pbatumsrewebeas-8754" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.web_sites_pbatum-sre-web-eas1" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.web_serverfarms_asp-pbatumsrewebeas-8754">
+      <data key="edge_label">HOSTED_ON</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.web_sites_pbatum-sre-web-eas2_HOSTED_ON__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.web_serverfarms_asp-pbatumsrewebeas-8754" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.web_sites_pbatum-sre-web-eas2" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.web_serverfarms_asp-pbatumsrewebeas-8754">
+      <data key="edge_label">HOSTED_ON</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_providers_microsoft.web_serverfarms_asp-pbatumsrewebeaslin-91de_HOSTS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_providers_microsoft.web_sites_pbatum-sre-web-eas3" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_providers_microsoft.web_serverfarms_asp-pbatumsrewebeaslin-91de" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_providers_microsoft.web_sites_pbatum-sre-web-eas3">
+      <data key="edge_label">HOSTS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_providers_microsoft.web_serverfarms_asp-pbatumsrewebeaslin-91de_HOSTS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_providers_microsoft.web_sites_pbatum-sre-web-eas4" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_providers_microsoft.web_serverfarms_asp-pbatumsrewebeaslin-91de" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_providers_microsoft.web_sites_pbatum-sre-web-eas4">
+      <data key="edge_label">HOSTS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_providers_microsoft.web_sites_pbatum-sre-web-eas3_HOSTED_ON__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_providers_microsoft.web_serverfarms_asp-pbatumsrewebeaslin-91de" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_providers_microsoft.web_sites_pbatum-sre-web-eas3" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_providers_microsoft.web_serverfarms_asp-pbatumsrewebeaslin-91de">
+      <data key="edge_label">HOSTED_ON</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_providers_microsoft.web_sites_pbatum-sre-web-eas4_HOSTED_ON__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_providers_microsoft.web_serverfarms_asp-pbatumsrewebeaslin-91de" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_providers_microsoft.web_sites_pbatum-sre-web-eas4" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_providers_microsoft.web_serverfarms_asp-pbatumsrewebeaslin-91de">
+      <data key="edge_label">HOSTED_ON</data>
+    </edge>
+  </graph>
+</graphml>

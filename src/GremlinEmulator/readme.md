@@ -25,6 +25,41 @@ https://dev.azure.com/msazure/One/_git/AAPT-Antares-OperationalAgent 313601e0fa1
 
 Use graphname `gfuncbad` to connect to this graph.
 
+### Simple Web Apps
+
+The graph `simple-webapps.graphml` is based on a crawl of two resource groups with a total of 4 webapps.
+
+1. `pbatum-sre-web-eas1`
+- **Location:** eastasia  
+- **SKU:** Standard (S1)  
+- **Resource Group:** `pbatum-sre-web-eas`  
+- **App Service Plan:** `ASP-pbatumsrewebeas-8754` (shared with `pbatum-sre-web-eas2`)  
+- **Notes:** Runs on 1 instance.
+
+2. `pbatum-sre-web-eas2`
+- **Location:** eastasia  
+- **SKU:** Standard (S1)  
+- **Resource Group:** `pbatum-sre-web-eas`  
+- **App Service Plan:** `ASP-pbatumsrewebeas-8754` (shared with `pbatum-sre-web-eas1`)
+
+3. `pbatum-sre-web-eas3`
+- **Location:** eastasia  
+- **SKU:** Premium0V3 (P0v3)  
+- **Resource Group:** `pbatum-sre-web-eas-lin`  
+- **App Service Plan:** `ASP-pbatumsrewebeaslin-91de` (shared with `pbatum-sre-web-eas4`)  
+- **Notes:** Linux web app.
+
+4. `pbatum-sre-web-eas4`
+- **Location:** eastasia  
+- **SKU:** Premium0V3 (P0v3)  
+- **Resource Group:** `pbatum-sre-web-eas-lin`  
+- **App Service Plan:** `ASP-pbatumsrewebeaslin-91de` (shared with `pbatum-sre-web-eas3`)  
+- **Notes:** Linux web app.
+
+Graph was last updated on 2025-05-14 using:
+https://dev.azure.com/msazure/One/_git/AAPT-Antares-OperationalAgent b19d0afddbe6f59866a1d90c1a5cb352d95d26b4
+
+Use graphname `gsimpleweb` to connect to this graph.
 
 ## Adding a new Graph
 
