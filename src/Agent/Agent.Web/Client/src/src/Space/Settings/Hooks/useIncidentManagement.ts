@@ -114,7 +114,8 @@ export function useIncidentManagement(resourceId: string) {
                         return latestValidationResult.current;
                     }
 
-                    latestValidationResult.current = { connectionKey: getValidationErrorMessage(validationResult) };
+                    latestValidationResult.current =
+                        validationResult === 'validKey' ? {} : { connectionKey: getValidationErrorMessage(validationResult) };
                     return latestValidationResult.current;
                 });
             }

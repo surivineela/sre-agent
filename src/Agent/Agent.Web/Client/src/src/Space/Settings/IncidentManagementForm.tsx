@@ -38,7 +38,8 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
     const intl = useIntl();
     const styles = useSettingsStyles();
     const { dangerButton } = useDialogStyles();
-    const { setFieldValue, setFieldTouched, submitForm, resetForm, values, isValidating, isSubmitting, dirty, initialValues } = formikProps;
+    const { setFieldValue, setFieldTouched, submitForm, resetForm, values, isValid, isValidating, isSubmitting, dirty, initialValues } =
+        formikProps;
     const [editingApiKey, setEditingApiKey] = useState(false);
     const isSetupScenario = useMemo(() => initialValues.platform === IncidentManagementPlatform.Disconnected, [initialValues.platform]);
     const isApiKeyEditable = useMemo(() => isSetupScenario || editingApiKey, [initialValues.platform, editingApiKey]);
@@ -185,7 +186,7 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                                         !isDirty ||
                                         saving ||
                                         isValidating ||
-                                        !!formikProps.errors.connectionKey ||
+                                        !isValid ||
                                         (values.platform === IncidentManagementPlatform.PagerDuty && !values.connectionKey)
                                     }
                                 >
