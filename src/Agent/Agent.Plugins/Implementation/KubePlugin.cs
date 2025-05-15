@@ -687,13 +687,21 @@ namespace Agent.Plugins
         public async Task<string> GetKubeResourceMetricsRangeAsync(string AKSClusterResourceId, string _namespace, string kind, string name, string metricsType, string startTime, string endTime)
         {
 
-            var prometheusQueryEndpoint =  await GetPrometheusEndpoint(AKSClusterResourceId);
+            var prometheusQueryEndpoint = await GetPrometheusEndpoint(AKSClusterResourceId);
             // If we still don't have an endpoint, cannot proceed
             if (string.IsNullOrEmpty(prometheusQueryEndpoint))
             {
-                return  $"No Prometheus query endpoint available for AKS cluster {AKSClusterResourceId}. Metrics cannot be retrieved. Please confirm if AKS has enabled Azure Monitor and agent has access to it.";
+                return $"No Prometheus query endpoint available for AKS cluster {AKSClusterResourceId}. Metrics cannot be retrieved. Please confirm if AKS has enabled Azure Monitor and agent has access to it.";
             }
-            
+
+            if (string.IsNullOrEmpty(startTime) || string.IsNullOrEmpty(endTime))
+            {
+                _logger?.LogInternalInformation(
+                    $"Parameter startTime ('{startTime}') or endTime ('{endTime}') is empty for GetKubeResourceMetricsRangeAsync. Defaulting to the last 30 minutes.");
+                startTime = DateTime.UtcNow.AddMinutes(-30).ToString("o");
+                endTime = DateTime.UtcNow.ToString("o");
+            }
+
             // Build the PromQL queries based on the specified metric type
             string[] queries = BuildPromQueries(metricsType, _namespace, kind, name, "");
             DateTime startDate = ParseDateTime(startTime);
@@ -794,7 +802,7 @@ namespace Agent.Plugins
             // Default to 15 seconds if parsing fails
             return TimeSpan.FromSeconds(15);
         }
-        
+
         /// <summary>
         /// Fetch the Azure Monitor Workspace's Prometheus query endpoint that is connected to the specified AKS cluster
         /// </summary>
@@ -805,7 +813,7 @@ namespace Agent.Plugins
             try
             {
                 _logger?.LogInternalInformation("Looking for Azure Monitor Workspace connected to AKS cluster {ResourceId}", aksClusterResourceId);
-                
+
                 if (_graphDbClient == null)
                 {
                     _logger?.LogInternalWarning("Graph database client is not available");
@@ -818,7 +826,7 @@ namespace Agent.Plugins
                              .hasLabel(""microsoft.monitor/accounts"")
                              .has('prometheusQueryEndpoint')
                              .values('prometheusQueryEndpoint')
-                             .limit(1)";                
+                             .limit(1)";
                 var result = await _graphDbClient.Query<string>(query);
 
                 // Process the result from the Gremlin query
@@ -830,7 +838,7 @@ namespace Agent.Plugins
                         if (item != null)
                         {
                             string prometheusEndpoint = item.ToString();
-                            _logger?.LogInternalInformation("Found Prometheus query endpoint {PrometheusEndpoint} for AKS cluster {ResourceId}", 
+                            _logger?.LogInternalInformation("Found Prometheus query endpoint {PrometheusEndpoint} for AKS cluster {ResourceId}",
                                 prometheusEndpoint, aksClusterResourceId);
                             return prometheusEndpoint;
                         }
@@ -1048,8 +1056,8 @@ namespace Agent.Plugins
         {
             return await GetAzureMonitorPrometheusMetricsAsync(AKSClusterResourceId, _namespace, workloadType, workloadName, "memory", timeRange);
         }        /// <summary>
-        /// Fetches metrics from Azure Monitor Prometheus endpoint from graph database or settings.
-        /// </summary>
+                 /// Fetches metrics from Azure Monitor Prometheus endpoint from graph database or settings.
+                 /// </summary>
         private async Task<string> GetAzureMonitorPrometheusMetricsAsync(
             string resourceId,
             string _namespace,
@@ -1060,11 +1068,11 @@ namespace Agent.Plugins
         {
             // Try to update the Prometheus endpoint from graph database if we don't have one
 
-            var prometheusQueryEndpoint =  await GetPrometheusEndpoint(resourceId);
+            var prometheusQueryEndpoint = await GetPrometheusEndpoint(resourceId);
             // If we still don't have an endpoint, cannot proceed
             if (string.IsNullOrEmpty(prometheusQueryEndpoint))
             {
-                return  $"No Prometheus query endpoint available for AKS cluster {resourceId}. Metrics cannot be retrieved. Please confirm if AKS has enabled Azure Monitor and agent has access to it.";
+                return $"No Prometheus query endpoint available for AKS cluster {resourceId}. Metrics cannot be retrieved. Please confirm if AKS has enabled Azure Monitor and agent has access to it.";
             }
 
             try
@@ -2170,7 +2178,7 @@ $@"100 * (
                 // Get the Prometheus endpoint from the graph database
                 string? prometheusEndpoint = await GetPrometheusQueryEndpointFromGraphDb(aksClusterResourceId);
                 return prometheusEndpoint;
-                
+
             }
             catch (Exception ex)
             {
