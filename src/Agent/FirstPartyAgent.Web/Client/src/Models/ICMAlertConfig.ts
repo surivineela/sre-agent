@@ -1,5 +1,5 @@
 export interface ICMAlertConfig {
-    // id: string;
+    id: string;
     teamId: number;
     alertingId: string;
     incidentTitle?: string;

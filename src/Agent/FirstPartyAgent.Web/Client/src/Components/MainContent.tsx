@@ -1,5 +1,5 @@
 import { mergeStyles, Separator, Stack } from "@fluentui/react";
-import { memo, MutableRefObject, useCallback, useMemo, useReducer, useRef, useState } from "react";
+import { memo, useCallback, useMemo, useReducer, useRef, useState } from "react";
 import Landing from "./Landing";
 import AlertEditor, { AlertEditorProps } from "./AlertEditor";
 import EditOverview from "./EditOverview";
@@ -140,7 +140,6 @@ const MainContent = () => {
                 <Stack.Item grow={1}>
                     <Stack verticalFill tokens={{ childrenGap: 5 }} verticalAlign="start" enableScopedSelectors>
                         {displayStepper && <Stack.Item>
-                            {/* <Breadcrumb items={breadcrumbItems} /> */}
                             <Stepper activeStep={activateStep} alternativeLabel>
                                 {steps.map((step) => (
                                     <Step key={step.label} onClick={step.onClick} completed={step.completed()} >

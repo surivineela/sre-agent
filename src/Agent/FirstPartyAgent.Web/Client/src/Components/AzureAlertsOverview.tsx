@@ -59,7 +59,7 @@ const AzureAlertsOverview = (props: { icmTeamInfo: IcmTeamInfo, onGetAlertConfig
         }
     ]
 
-    const display2Alerts = useMemo(() => {
+    const displayAlerts = useMemo(() => {
         let alerts: AlertInfo[] = [];
         if (showSev3Alerts) {
             alerts = loopAlertInfo.filter(alert => alert?.severity === 2 || alert?.severity === 3)
@@ -92,7 +92,7 @@ const AzureAlertsOverview = (props: { icmTeamInfo: IcmTeamInfo, onGetAlertConfig
                 <Stack tokens={{ childrenGap: 20 }} className={pageStyles}>
                     <Checkbox label="Show Sev3 Alerts" checked={showSev3Alerts} onChange={(e, checked) => setShowSev3Alerts(!!checked)} />
                     <SearchBox placeholder='Filter alerts' onChange={(e, newValue) => onSearchBoxUpdate(newValue)} className={searchBoxStyles} />
-                    <DetailsList columns={columns} items={display2Alerts} selectionMode={SelectionMode.none} />
+                    <DetailsList columns={columns} items={displayAlerts} selectionMode={SelectionMode.none} />
                 </Stack>
             </LoadingErrorWrapper>
         </>
