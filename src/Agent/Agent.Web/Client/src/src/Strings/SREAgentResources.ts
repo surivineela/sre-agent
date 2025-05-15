@@ -148,6 +148,7 @@ export const SreAgentTabResources = defineMessages({
     settings: { defaultMessage: 'Settings', id: 'D3idYv' },
     resourceMapping: { defaultMessage: 'Resource mapping', id: 'TdeXH0' },
     logs: { defaultMessage: 'Logs', id: 'SNuQo7' },
+    feedback: { defaultMessage: 'Give us feedback', id: 'aQPexO' },
 });
 
 export const ResourcePickerTabResources = defineMessages({
