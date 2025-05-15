@@ -137,11 +137,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>
-    <None Update="FirstPartySubAgents\ACA\ContainerAppIcmAgent\ContainerAppIcmAgentPlan.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </None>
-    <None Update="FirstPartySubAgents\ACA\ContainerAppIcmAgent\ContainerAppIcmSummarizationPlan.txt">
+    <None Update="FirstPartySubAgents\ACA\Common\ContainerAppIcmSummarizationPlan.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>

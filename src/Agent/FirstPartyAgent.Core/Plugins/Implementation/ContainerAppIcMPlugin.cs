@@ -9,7 +9,6 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
-using FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppIcmAgent;
 using System.Text.RegularExpressions;
 using FirstPartyAgent.Models;
 using Agent.Core.Interfaces;
@@ -102,7 +101,7 @@ public class ContainerAppIcMPlugin : IcmPlugin, IContainerAppIcMPlugin
         };
         string incidentWithComments = JsonSerializer.Serialize(json, serializationOptions);
 
-        var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nameof(FirstPartySubAgents), "ACA", nameof(ContainerAppIcmAgent), "ContainerAppIcmSummarizationPlan.txt");
+        var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nameof(FirstPartySubAgents), "ACA", "Common", "ContainerAppIcmSummarizationPlan.txt");
         var summarizationPrompt = string.Empty;
         try
         {

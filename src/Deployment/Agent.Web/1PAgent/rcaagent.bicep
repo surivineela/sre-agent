@@ -69,7 +69,7 @@ resource agent 'Microsoft.App/agents@2025-05-01-preview' = {
       }
     }
     firstPartyConfiguration: includeFirstPartyConfiguration ? {
-      agentTypeName: 'RCAAgent'
+      agentTypeName: 'ACAAgent'
       agentImageConfiguration: {
         imageName: agentImage
         registryUserName: registryUserName

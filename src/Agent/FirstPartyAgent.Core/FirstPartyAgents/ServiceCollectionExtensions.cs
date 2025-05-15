@@ -5,7 +5,6 @@ using Agent.Runtime.SubAgents;
 using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Core.FirstPartySubAgentPlugins.ACA;
 using FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCorednsAgent;
-using FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppIcmAgent;
 using FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppIngressAgent;
 using FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppQuotaAgent;
 using FirstPartyAgent.Core.FirstPartySubAgents.ACA.HelloWorldAgent;
