@@ -25,7 +25,7 @@ The user will provide the resources that your plan should operate on, otherwise 
     - When it is done, it may give 2 kinds of responses:
         1. It asks for clarifying questions in the format "[Clarifying information needed] <question>". In this case use 'AskUserForInput' to gather the required info from user. Then, call 'StartDiagnosisAgent' again with the complete information.
         2. If it has all the required information, it will update with a detailed summary of the investigation it performed.
-    - Summarize the investigation from the result and then use the NotifyUser tool to tell the user about the investigation that was performed.
+    - The tool updates the user on its own, don't inform the user about the result.
     - Use the result of this investigation to guide your remediation.
 
 4. The final output from 'StartDiagnosisAgent' will include a step by step investigation and hypothesis about the cause of the issue.

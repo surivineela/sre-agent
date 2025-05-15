@@ -40,7 +40,75 @@ public class DiagnosisAgent(
 
         Tools.Add(AIFunctionFactory.Create(communicationTools.AddNewSummary));
 
-        var startPrompt = $"""
+        var startPrompt = GetInvestigationPrompt(resourceId, issueDescription, input.CustomInstructions);
+
+        List<ChatMessage> chatHistory = [];
+
+        chatHistory.Add(new ChatMessage(ChatRole.System, startPrompt));
+
+        ChatResponse? response = null;
+        const int limit = 5;
+
+        for (int i = 0; i < limit; i++)
+        {
+            response = await ChatClient.GetResponseAsync(
+                chatHistory,
+                new ChatOptions()
+                {
+                    Temperature = 0.3f, // lower temperature to make the model more deterministic
+                    Tools = Tools,
+                    ResponseFormat = ChatResponseFormat.Text,
+                    AdditionalProperties = new AdditionalPropertiesDictionary
+                    {
+                        ["AllowParallelToolCalls"] = true
+                    },
+                });
+
+            chatHistory.AddRange(response.Messages);
+
+            if (response.FinishReason == ChatFinishReason.Stop)
+            {
+                break;
+            }
+        }
+
+        if (response?.Text != null)
+        {
+            // summarize the entire investigation using LLM
+
+            if (response.Text.Contains("[Clarifying information needed]", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return response.Text;
+            }
+
+            var summarizePrompt = GetSummarizeInvestigationPrompt();
+
+            var summary = await ChatClient.GetResponseAsync(
+                [
+                    new ChatMessage(ChatRole.System, summarizePrompt),
+                    new ChatMessage(ChatRole.User, response.Text)
+                ],
+                new ChatOptions()
+                {
+                    Temperature = 0.3f, // lower temperature to make the model more deterministic
+                    ResponseFormat = ChatResponseFormat.Text,
+                });
+
+            if (summary?.FinishReason == ChatFinishReason.Stop)
+            {
+                await communicationTools.AddFinalSummaryAsync(summary.Text);
+                return summary.Text;
+            }
+
+            return response.Text;
+        }
+
+        return string.Empty;
+    }
+
+    private string GetInvestigationPrompt(string resourceId, string issueDescription, string customInstructions)
+    {
+        return $"""
             You are a helpful assistant that diagnoses issues with Azure resources.
 
             You are part of a larger multi-agent system, and are only invoked by other agents.
@@ -135,40 +203,51 @@ public class DiagnosisAgent(
             </issue-description>
 
             <custom-instructions>
-            {input.CustomInstructions}
+            {customInstructions}
             </custom-instructions>
         """;
+    }
 
-        List<ChatMessage> chatHistory = [];
+    private string GetSummarizeInvestigationPrompt()
+    {
+        return """
+        Summarize the results of an investigation into an issue with an Azure resource. Highlight the steps performed during the investigation, with a strong emphasis on the leading hypothesis, and briefly mention ruled-out hypotheses and impacted components.
 
-        chatHistory.Add(new ChatMessage(ChatRole.System, startPrompt));
+        # Steps
 
-        ChatResponse? response = null;
-        const int limit = 5;
+        1. **Summarize Investigation Steps**: Describe the investigative process in chronological order, detailing specific actions taken to diagnose the issue.
+        2. **Mention Ruled-Out Hypotheses**: Briefly include any alternative hypotheses that were considered and ruled out during the process, explaining why.
+        3. **Identify Impacted Components**: List the Azure resources, services, or applications affected by the issue.
+        4. **Present the Leading Hypothesis**: Clearly outline the primary hypothesis that corresponds to the identified root cause or ongoing investigation.
 
-        for (int i = 0; i < limit; i++)
-        {
-            response = await ChatClient.GetResponseAsync(
-                chatHistory,
-                new ChatOptions()
-                {
-                    Temperature = 0.3f, // lower temperature to make the model more deterministic
-                    Tools = Tools,
-                    ResponseFormat = ChatResponseFormat.Text,
-                    AdditionalProperties = new AdditionalPropertiesDictionary
-                    {
-                        ["AllowParallelToolCalls"] = true
-                    },
-                });
+        # Output Format
 
-            chatHistory.AddRange(response.Messages);
+        Provide the summary as a concise paragraph or bulleted list that organizes the content logically. Follow this structure:
 
-            if (response.FinishReason == ChatFinishReason.Stop)
-            {
-                break;
-            }
-        }
+        - **Steps Performed**: [Summary of actions taken during the investigation.]
+        - **Ruled-Out Hypotheses**: [Other hypotheses considered but eliminated.]
+        - **Impacted Components**: [List of affected Azure resources and services.]
+        - **Leading Hypothesis**: [The most plausible hypothesis of what caused the issue.]
 
-        return response?.Text ?? string.Empty;
+        # Examples
+
+        ### Example 1 (Short)
+        - **Steps Performed**: Verified the resource logs, examined alert history, and reviewed related configurations for potential anomalies.
+        - **Ruled-Out Hypotheses**: Network connectivity issues were discarded after confirming stable performance metrics.
+        - **Impacted Components**: Azure Virtual Machines and Azure Storage accounts in the East US region.
+        - **Leading Hypothesis**: A recent deployment may have caused a misconfiguration leading to the issue.
+
+        ### Example 2 (Detailed w/ Placeholder)
+        - **Steps Performed**: Analyzed [Azure Service Logs] for recent changes, performed connectivity tests between resources, and verified compliance with configured policies.
+        - **Ruled-Out Hypotheses**: Initial assessments ruled out application-level faults and service throttling due to normal usage metrics.
+        - **Impacted Components**: [List impacted resources here, e.g., Virtual Network, Azure SQL Database.]
+        - **Leading Hypothesis**: [Root cause related to resource permission changes.] Further confirmation pending.
+
+        # Notes
+
+        - Ensure clarity and brevity by summarizing complex findings into simple, actionable segments.
+        - Ensure all details provided are specific to Azure resources (e.g., Azure SQL Database, Azure App Service) to maintain context.
+        - Assumptions and next steps need not be included unless specifically requested.
+        """;
     }
 }

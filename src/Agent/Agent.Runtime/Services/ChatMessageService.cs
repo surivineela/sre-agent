@@ -8,6 +8,9 @@ using System.Text.Json.Serialization;
 namespace Agent.Runtime.Services;
 public static class ChatMessageService
 {
+    private const string startMarker = "<investigation-summaries>";
+    private const string endMarker = "</investigation-summaries>";
+
     /// <summary>
     /// Helper method  to serialize Investigation Summary message in the front-end format.
     /// format: <investigation-summary>{title: "", content: ""}</investigation-summary>
@@ -60,9 +63,51 @@ public static class ChatMessageService
         string status = "loading",
         bool isFinal = false)
     {
-        const string startMarker = "<investigation-summaries>";
-        const string endMarker = "</investigation-summaries>";
+        var payload = ExtractInvestigationSummariesFromMessage(message)
+                      ?? throw new InvalidOperationException("Could not parse existing summaries");
 
+        // Update status of previous summaries to completed
+        foreach (var summary in payload.Summaries)
+        {
+            summary.Status = "completed";
+        }
+
+        payload.Summaries.Add(new SummaryItem
+        {
+            Title = newTitle,
+            Summary = newSummary,
+            IsCollapsed = newIsCollapsed,
+            Status = status,
+            IsFinal = isFinal
+        });
+
+        // re-serialize and wrap it again with the new format
+        return SerializeInvestigationSummaries(payload);
+    }
+
+    //public static string AppendFinalSummaryToInvestigation(
+    //    string message,
+    //    string finalSummary)
+    //{
+    //    var summaries = ExtractInvestigationSummariesFromMessage(message)
+    //        ?? throw new InvalidOperationException("could not parse existing summaries");
+
+    //    // update last summary to mark it as complete and final
+    //    var lastSummary = summaries.Summaries.Last();
+
+    //    if (lastSummary != null)
+    //    {
+    //        lastSummary.IsFinal = true;
+    //        lastSummary.Status = "completed";
+    //    }
+
+    //    var newMessage = $"{SerializeInvestigationSummaries(summaries)}{Environment.NewLine}{Environment.NewLine}<final-summary>{finalSummary}</final-summary>";
+
+    //    return newMessage;
+    //}
+
+    private static InvestigationSummaries? ExtractInvestigationSummariesFromMessage(string message)
+    {
         if (!message.StartsWith(startMarker))
             throw new ArgumentException("Not an investigation-summaries block", nameof(message));
 
@@ -83,27 +128,15 @@ public static class ChatMessageService
         var payload = JsonSerializer.Deserialize<InvestigationSummaries>(json, options)
                       ?? throw new InvalidOperationException("Could not parse existing summaries");
 
-        // Update status of previous summaries to completed
-        foreach (var summary in payload.Summaries)
-        {
-            summary.Status = "completed";
-        }
+        return payload;
+    }
 
-        payload.Summaries.Add(new SummaryItem
-        {
-            Title = newTitle,
-            Summary = newSummary,
-            IsCollapsed = newIsCollapsed,
-            Status = status,
-            IsFinal = isFinal
-        });
-
-        // re-serialize and wrap it again with the new format
-        string updatedJson = JsonSerializer.Serialize(payload);
+    private static string SerializeInvestigationSummaries(InvestigationSummaries investigationSummaries)
+    {
+        string updatedJson = JsonSerializer.Serialize(investigationSummaries);
         return $"{startMarker}{updatedJson}{endMarker}\n";
     }
 }
-
 
 public class InvestigationSummaries
 {

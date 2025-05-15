@@ -99,6 +99,9 @@ public sealed class KubernetesAgentFactory
 
             When checking workload revision history, pay very close attention to the differences between each revision.
             Container images may be different, environment variables may have been added, removed, or changed.
+
+            When checking workload environment variables, the Deployment object is the source of truth about the current configuration.
+            Replicasets may be running old configurations. The Deployment spec is the current configuration.
             """
         };
 

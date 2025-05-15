@@ -22,7 +22,11 @@ public class DiagnosisAgentCommunicationTools
         Id: Guid.NewGuid(),
         TimeStamp: DateTime.UtcNow,
         Author: new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
-        Text: ChatMessageService.InitializeInvestigationSummariesMessage("Starting investigation and diagnosis", [])
+        Text: ChatMessageService.InitializeInvestigationSummariesMessage(
+            "Starting investigation and diagnosis",
+            [
+                new("Planning", "📝 Gathering information about the issue", true)
+            ])
     );
 
     public DiagnosisAgentCommunicationTools(
@@ -36,6 +40,7 @@ public class DiagnosisAgentCommunicationTools
         _logger = logger;
     }
 
+    // called directly in agent code, not by the LLM
     public Task InitializeSummaryAsync()
     {
         return InitIfNeededAsync();
@@ -63,6 +68,27 @@ public class DiagnosisAgentCommunicationTools
         await _threadRepository.UpdateMessageAsync(_threadId, _investigationMessage);
 
         _logger.LogInternalInformation("Successfully appended investigation summary '{Title}' to message {MessageId}", title, _investigationMessage.Id);
+    }
+
+    // Called directly in agent code, not by LLM
+    public async Task AddFinalSummaryAsync(string finalSummary)
+    {
+        await InitIfNeededAsync();
+
+        _investigationMessage = _investigationMessage with
+        {
+            Text = ChatMessageService.AppendInvestigationSummary(
+                _investigationMessage.Text,
+                "Final Summary",
+                finalSummary,
+                status: "completed",
+                isFinal: true
+            )
+        };
+
+        await _threadRepository.UpdateMessageAsync(_threadId, _investigationMessage);
+
+        _logger.LogInternalInformation("Successfully added finally summary to investigation message {MessageId}", _investigationMessage.Id);
     }
 
     private async Task InitIfNeededAsync()

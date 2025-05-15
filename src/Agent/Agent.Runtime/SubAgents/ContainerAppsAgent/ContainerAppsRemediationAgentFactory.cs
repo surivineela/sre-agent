@@ -30,7 +30,7 @@ public sealed class ContainerAppsRemediationAgentFactory
         registry.RegisterPlugin<TimePluginDefinition>();
         registry.RegisterPlugin<ContainerAppPluginDefinition>();
         registry.RegisterTool<NSGRulePluginDefinition>(x => x.GetNSGRules);
-        registry.RegisterTool<NSGRulePluginDefinition>(x => x.CreateOrUpdateNSGRuleAsync);
+        //registry.RegisterTool<NSGRulePluginDefinition>(x => x.CreateOrUpdateNSGRuleAsync);
         registry.RegisterTool<NSGRulePluginDefinition>(x => x.RemoveNSGRuleAsync);
         registry.RegisterPlugin<ChartPluginDefinition>();
         registry.RegisterTool<GraphDBPluginDefinition>(x => x.FindAllNetworkConnectedResources);
