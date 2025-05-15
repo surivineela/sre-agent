@@ -1,10 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Agent.Core.Extensions;
-using Agent.Plugins;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 
@@ -21,7 +18,9 @@ public class AgentReasoningActivity : TaskActivity<GetNextActionInput, AgentReas
     protected readonly IChatClient _chatClient;
     private readonly IToolsRepository _toolsRepository;
 
-    public AgentReasoningActivity(IChatClient chatClient, IToolsRepository toolsRepository)
+    public AgentReasoningActivity(
+        IChatClient chatClient,
+        IToolsRepository toolsRepository)
     {
         _chatClient = chatClient;
         _toolsRepository = toolsRepository;

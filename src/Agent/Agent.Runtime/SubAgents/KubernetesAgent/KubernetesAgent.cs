@@ -2,11 +2,10 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Runtime.SubAgents.Core;
 using Agent.Logging;
+using Agent.Runtime.SubAgents.Core;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
-using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.SubAgents.KubernetesAgent;
 
@@ -37,7 +36,8 @@ public class KubernetesAgent : GenericAgentOrchestrator<KubernetesAgentInput, st
                 chatHistory,
                 agentInput.ToolSignatures,
                 log,
-                agentInput.ThreadId);
+                agentInput.ThreadId,
+                agentInput.HelperAgentsInputs);
 
             return "success";
         }

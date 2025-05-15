@@ -3,7 +3,6 @@
 // ------------------------------------------------------------
 
 using Agent.Plugins.Models;
-using Azure.ResourceManager.Network;
 
 namespace Agent.Plugins.Definitions
 {
@@ -25,7 +24,7 @@ namespace Agent.Plugins.Definitions
 
         Task<IReadOnlyList<CpuUsageTimeSeriesData>> GetContainerAppCpuMetrics(string resourceId);
 
-        Task<IDictionary<string, IReadOnlyList<SecurityRuleData>>> GetAllNSGRulesForContainerAppAsync(string resourceId);
+        Task<IDictionary<string, string>> GetAllNSGRulesForContainerAppAsync(string resourceId);
 
         Task<bool> ScaleContainerApp(string resourceId, string desiredMemory, int minReplicas, int maxReplicas);
 

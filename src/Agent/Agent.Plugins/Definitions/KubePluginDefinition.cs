@@ -310,5 +310,27 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
         {
             return await _kubePlugin.ListWorkloadRevisions(AKSClusterResourceId, _namespace, kind, name);
         }
+
+        [KernelFunction("runKubectlGetCommand")]
+        [Description("""
+        Safely execute kubectl get commands to retrieve Kubernetes resource information.
+        This tool validates and runs only 'kubectl get' operations with optional parameters for namespace, output format, and filtering.
+        USAGE: Provide the complete kubectl get command as a string.
+        BASIC EXAMPLES:
+        - Specific namespace: 'kubectl get pods -n production -o name'
+        - With output format: 'kubectl get deployments -o wide'
+        ADVANCED EXAMPLES:
+        - Complete security info: 'kubectl get pods -o custom-columns=NAME:.metadata.name,NAMESPACE:.metadata.namespace,PRIVILEGED:.spec.containers[*].securityContext.privileged,HOST_NETWORK:.spec.hostNetwork,HOST_PID:.spec.hostPID,CAPABILITIES:.spec.containers[*].securityContext.capabilities.add'
+        BEST PRACTICES:
+        - Always specify the output format with '-o' option. Only name, wide and custom-columns options are supported
+        - Always specify the namespace you care about: 'kubectl get pods -n default'
+        - Add extra columns you need to collect extra data
+        """)]
+        public async Task<string> RunKubectlGetCommandAsync(
+            [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
+            [Description($"Complete kubectl get command string, e.g.: 'kubectl get deployments -n production -o wide'")] string command)
+        {
+            return await _kubePlugin.RunKubectlGetCommandAsync(AKSClusterResourceId, command);
+        }
     }
 }

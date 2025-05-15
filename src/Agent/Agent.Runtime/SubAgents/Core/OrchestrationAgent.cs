@@ -5,6 +5,7 @@ using Agent.Core.Models.Api.v1;
 using Agent.Logging;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
+using Agent.Runtime.HelperAgents;
 using Agent.Runtime.SubAgents.Core.Steps;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
@@ -27,7 +28,7 @@ public class OrchestrationAgent
     public List<Task<ChatMessage>> Pending202Activities { get; set; } = [];
     public Guid ThreadId { get; set; }
     public Guid CurrentActionId { get; set; }
-
+    public IReadOnlyList<HelperAgentInput> HelperAgentInputs { get; set; }
     ThreadContext? ThreadContext { get; set; }
 
     public Task<ChatMessage> _newMessageTask;
@@ -40,12 +41,14 @@ public class OrchestrationAgent
         TaskOrchestrationContext taskOrchestrationContext,
         List<ChatMessage> initialContext,
         IReadOnlyList<string> toolSignatures,
-        Guid threadId)
+        Guid threadId,
+        IReadOnlyList<HelperAgentInput> helperAgentsInputs)
     {
         _taskOrchestrationContext = taskOrchestrationContext;
         this.ChatHistory = initialContext;
         this.ToolSignatures = toolSignatures;
         this.ThreadId = threadId;
+        this.HelperAgentInputs = helperAgentsInputs;
 
         log = taskOrchestrationContext.CreateReplaySafeLogger<OrchestrationAgent>();
         _newMessageTask = _taskOrchestrationContext.WaitForExternalEvent<ChatMessage>("NewChatMessage");
@@ -84,7 +87,7 @@ public class OrchestrationAgent
         {
             ChatMessages = this.ChatHistory,
             StepCounter = this.StepCount,
-            ToolSignatures = this.ToolSignatures,
+            ToolSignatures = this.ToolSignatures
         },
         // There's potential throttling for OpenAI calls, use retry policy to avoid.
         new TaskOptions(new TaskRetryOptions(new RetryPolicy(10, TimeSpan.FromSeconds(1), backoffCoefficient: 1.5f, maxRetryInterval: TimeSpan.FromSeconds(10)))));
@@ -274,7 +277,7 @@ public class OrchestrationAgent
                     double timeRemaining = (agent.WaitTimeRemaining - timeWaited).TotalSeconds;
 
                     string interruptMessage = @$"Wait was interrupted at {currentTime:O}, this was {timeRemaining} seconds earlier than when the wait was scheduled to finish.
-                        If the reason of interruption was a user message, respond appropriately to the user depending on the scenario:  
+                        If the reason of interruption was a user message, respond appropriately to the user depending on the scenario:
                         Scenario 1: If the user wants to cancel the wait/task entirely, then honor the user's request and cancel the wait without resuming the remainder of the wait that is left. Provide an update to the user saying that their request has been executed.
                         Scenario 2: If the user does not want to cancel the wait/task entirely, but has still entered a user message, AND there still remains a duration of time to wait, then respond appropriately to the user. Add the following to your response: ""I will provide an update after the remaining duration of time being {timeRemaining} seconds"". After you provide this response, resume the wait task with the time of {timeRemaining} seconds
 
@@ -427,6 +430,7 @@ public class OrchestrationAgent
 [JsonDerivedType(typeof(OrchestrationAgentVisualizeAppComponentsStep), "VisualizeAppComponentsStep")]
 [JsonDerivedType(typeof(OrchestrationAgentVisualizeAKSMicroserviceTopologyStep), "VisualizeAKSMicroserviceTopologyStep")]
 [JsonDerivedType(typeof(OrchestrationAgentGenericExecuteStep), "GenericExecuteStep")]
+[JsonDerivedType(typeof(OrchestrationAgentHelperAgentExecuteStep), "HelperAgentExecuteStep")]
 public abstract class OrchestrationAgentStep
 {
     public abstract Task ExecuteAsync(TaskOrchestrationContext context, OrchestrationAgent state);
@@ -464,6 +468,10 @@ public abstract class OrchestrationAgentStep
                  functionCall.Name == nameof(ChartPluginDefinition.PlotAreaChartWithCorrelationAsync))
         {
             return new OrchestrationAgentChartStep { FunctionCall = functionCall };
+        }
+        else if (HelperAgentsPluginDefinition.AllPluginNames.Contains(functionCall.Name))
+        {
+            return new OrchestrationAgentHelperAgentExecuteStep { FunctionCall = functionCall };
         }
         else
         {

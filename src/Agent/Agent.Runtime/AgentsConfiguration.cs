@@ -2,20 +2,14 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.ComponentModel;
 using Agent.Core.Configuration;
-using Agent.Core;
-using Agent.Core.Models;
+using Agent.Core.Interfaces;
 using Azure.AI.OpenAI;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
-using Agent.Plugins.Definitions;
-using Agent.Core.Interfaces;
-using Agent.Data.DataModels;
 
 namespace Agent.Runtime
 {
@@ -101,6 +95,22 @@ namespace Agent.Runtime
                         .UseFunctionInvocation(loggerFactory, x =>
                         {
                             x.IncludeDetailedErrors = true;
+                        })
+                        .Build();
+                })
+                .AddKeyedSingleton<IChatClient>("helper-agent-reasoning", (sp, _) =>
+                {
+                    var client = sp.GetRequiredService<AzureOpenAIClient>();
+                    var openAISettings = sp.GetRequiredService<OpenAISettings>();
+                    var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
+
+                    return new ChatClientBuilder(client.AsChatClient(openAISettings.LLMDeploymentName))
+                        .UseLogging(loggerFactory)
+                        .UseFunctionInvocation(loggerFactory, x =>
+                        {
+                            x.IncludeDetailedErrors = true;
+                            x.MaximumIterationsPerRequest = 20;
+                            //x.AllowConcurrentInvocation = true;
                         })
                         .Build();
                 })

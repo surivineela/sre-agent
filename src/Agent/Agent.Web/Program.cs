@@ -22,6 +22,7 @@ using Agent.Prometheus.Services;
 using Agent.Runtime;
 using Agent.Runtime.Communication;
 using Agent.Runtime.ContextManagement;
+using Agent.Runtime.HelperAgents;
 using Agent.Runtime.MetaAgent;
 using Agent.Runtime.MetaAgent.Interfaces;
 using Agent.Runtime.MetaAgent.SubAgentPlugins;
@@ -63,7 +64,6 @@ using Microsoft.DurableTask.Client.AzureManaged;
 using Microsoft.DurableTask.Worker;
 using Microsoft.DurableTask.Worker.AzureManaged;
 using Microsoft.Extensions.AI;
-using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
@@ -260,7 +260,12 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
         .AddSingleton<IResourceMetricsCollector, FunctionAppMetricsCollector>()
         .AddSingleton<IResourceMetricsCollector, AppServiceMetricsCollector>()
         .AddSingleton<IResourceMetricsCollector, RedisMetricsCollector>()
-        .AddSingleton<IResourceMetricsCollector, AKSMetricsCollector>();
+        .AddSingleton<IResourceMetricsCollector, AKSMetricsCollector>()
+
+        // helper agents
+        .AddTransient<HelperAgentsPluginDefinition>()
+        .AddTransient<DiagnosisAgent>()
+        ;
 
     if (isFirstAgent)
     {

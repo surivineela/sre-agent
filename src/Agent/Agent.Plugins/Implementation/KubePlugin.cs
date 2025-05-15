@@ -2,31 +2,28 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Configuration;
-using System.Globalization;
-using Agent.Core.Helpers;
-using k8s;
-using k8s.Models;
-using System.Text.Json;
 using System.Collections.Concurrent;
-using Azure.ResourceManager;
-using Azure.Core;
+using System.Diagnostics;
+using System.Globalization;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
+using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
-using Microsoft.Extensions.AI;
-using Agent.Prometheus.Services;
-using Agent.Core.Configuration;
-using Agent.Prometheus;
-using Agent.Graph.Crawler.Metrics;
-using Agent.Core.Services;
-using Agent.Logging;
-using Azure.ResourceManager.Network;
-using Azure.ResourceManager.ContainerService;
-
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Graph.Crawler.Metrics;
+using Agent.Logging;
+using Agent.Prometheus;
+using Agent.Prometheus.Services;
+using Azure.Core;
+using Azure.ResourceManager.ContainerService;
+using Azure.ResourceManager.Network;
+using k8s;
+using k8s.Models;
+using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging;
+using YamlDotNet.Serialization;
 
 namespace Agent.Plugins
 {
@@ -39,6 +36,8 @@ namespace Agent.Plugins
         private readonly IAzureMetricsClient _azureMetricsClient;
         private readonly IGraphDatabaseClient? _graphDbClient;
         private readonly IArmClientFactory _armClientFactory;
+
+        private static readonly ISerializer _configJsonSerializer = new SerializerBuilder().ConfigureDefaultValuesHandling(DefaultValuesHandling.OmitNull).Build();
 
         private ThreadContext Context { get; set; }
         private const string AKSNodePoolLabel = "kubernetes.azure.com/agentpool";
@@ -78,12 +77,12 @@ namespace Agent.Plugins
             return client;
         }
 
-        public async Task<string> GetAKSClusterResourceIdAsync(string Subscription, string ResourceGroupName, string AKSClusterName)
+        public Task<string> GetAKSClusterResourceIdAsync(string Subscription, string ResourceGroupName, string AKSClusterName)
         {
-            return $"AKSClusterResourceID is **'/subscriptions/{Subscription}/resourceGroups/{ResourceGroupName}/providers/Microsoft.ContainerService/managedClusters/{AKSClusterName}'**";
+            return Task.FromResult($"AKSClusterResourceID is **'/subscriptions/{Subscription}/resourceGroups/{ResourceGroupName}/providers/Microsoft.ContainerService/managedClusters/{AKSClusterName}'**");
         }
 
-        // get all namespaces in the cluster 
+        // get all namespaces in the cluster
         public async Task<string> GetKubeNamespacesAsync(string resourceId)
         {
             var client = await GetOrCreateClientAsync(resourceId);
@@ -229,13 +228,13 @@ namespace Agent.Plugins
                 _logger.LogInternalInformation("Diagnosing pod: {Pod} for component: {Name}", pod, name);
                 podResults[pod] = new Dictionary<string, string>();
                 podTasks.Add(GetKubePodSpecStatusAsync(resourceId, _namespace, pod)
-                    .ContinueWith(task => podResults[pod]["PodYaml"] = task.Result));
+                    .ContinueWith(task => podResults[pod]["PodYaml"] = task.IsCompletedSuccessfully ? task.Result : task.Exception!.ToString()));
 
                 podTasks.Add(GetKubeResourceEventsAsync(resourceId, _namespace, "", "Pod", pod)
-                    .ContinueWith(task => podResults[pod]["Events"] = task.Result));
+                    .ContinueWith(task => podResults[pod]["Events"] = task.IsCompletedSuccessfully ? task.Result : task.Exception!.ToString()));
 
                 podTasks.Add(GetKubePodLogsAsync(resourceId, _namespace, pod)
-                    .ContinueWith(task => podResults[pod]["Logs"] = task.Result));
+                    .ContinueWith(task => podResults[pod]["Logs"] = task.IsCompletedSuccessfully ? task.Result : task.Exception!.ToString()));
             }
 
             await Task.WhenAll(podTasks);
@@ -1017,7 +1016,6 @@ namespace Agent.Plugins
                             return "Job not found";
                         }
                         return YamlHelper.Serialize(job);
-
                 }
 
                 // Get the plural name and version from CRDs
@@ -1511,12 +1509,12 @@ $@"avg(
         min by (pod) (
             (
                 kube_node_status_allocatable{{resource=""memory""}} * on (node) group_right kube_pod_info{{pod=~""{podFilter}"",namespace=""{_namespace}""}}
-            )   
+            )
             or
             (
                 kube_pod_container_resource_limits{{pod=~""{podFilter}"",namespace=""{_namespace}"", resource=""memory""}}
             )
-        ) 
+        )
     )
 )"
                     };
@@ -1531,12 +1529,12 @@ $@"avg(
         min by (pod) (
             (
                 kube_node_status_allocatable{{resource=""cpu""}} * on (node) group_right kube_pod_info{{pod=~""{podFilter}"",namespace=""{_namespace}""}}
-            )   
+            )
             or
             (
                 kube_pod_container_resource_limits{{pod=~""{podFilter}"",namespace=""{_namespace}"", resource=""cpu""}}
             )
-        ) 
+        )
     )
 )"
                     };
@@ -2185,6 +2183,173 @@ $@"100 * (
                 _logger?.LogInternalError(ex, "Error updating Prometheus query endpoint from graph database: {ErrorMessage}", ex.Message);
                 return "";
             }
+        }
+
+        public async Task<string> RunKubectlGetCommandAsync(
+            string resourceId,
+            string command)
+        {
+            // Trim any leading/trailing whitespace
+            command = command.Trim();
+
+            // Validate command format
+            var validationSummary = ValidateCommand(command);
+            if (validationSummary != null)
+            {
+                return validationSummary; // Return the validation error message
+            }
+
+            // Execute the command
+            try
+            {
+                return await ExecuteCommandSafely(resourceId, command);
+            }
+            catch (Exception ex)
+            {
+                return $"[Exception encountered]: Failed to execute command: {ex.ToString()}";
+            }
+        }
+
+        private string? ValidateCommand(string command)
+        {
+            // 1. Check if command starts with "kubectl get"
+            if (!command.StartsWith("kubectl get ", StringComparison.OrdinalIgnoreCase))
+            {
+                return "[Validation Failed]: Command must start with 'kubectl get'";
+            }
+
+            // 2. Validate that "kubectl" only appears once (at the beginning)
+            var kubectlCount = Regex.Matches(command, @"\bkubectl\b", RegexOptions.IgnoreCase).Count;
+            if (kubectlCount != 1)
+            {
+                return "[Validation Failed]: Command must contain exactly one 'kubectl' keyword";
+            }
+
+            // 3️. Exactly one '-o' option is required
+            var oMatches = Regex.Matches(command, @"(^|\s)-o\s+[^\s]+", RegexOptions.IgnoreCase);
+            if (oMatches.Count == 0)
+                return "[Validation Failed]: Command must include the '-o' output option";
+            if (oMatches.Count > 1)
+                return "[Validation Failed]: Command must contain only one '-o' option";
+
+            var fmt = Regex.Match(command, @"(^|\s)-o\s+(?<fmt>[^\s]+)", RegexOptions.IgnoreCase)
+                   .Groups["fmt"].Value;
+
+            bool allowed =
+                fmt.Equals("name", StringComparison.OrdinalIgnoreCase) ||
+                fmt.Equals("wide", StringComparison.OrdinalIgnoreCase) ||
+                fmt.StartsWith("custom-columns", StringComparison.OrdinalIgnoreCase);
+
+            if (!allowed)
+                return $"[Validation Failed]: Unsupported '-o' value '{fmt}'. Allowed: name, wide, custom-columns[=...]";
+
+            // Check for dangerous characters that could indicate command injection
+            var dangerousPatterns = new string[]
+            {
+                ";",        // Command separator
+                "&&",       // Command chaining
+                "||",       // Command chaining
+                "|",        // Pipe (could be dangerous)
+                ">",        // Output redirection
+                "<",        // Input redirection
+                "`",        // Command substitution
+                "$(",       // Command substitution
+                "\\",       // Escape character
+                "\n",       // Newline
+                "\r"        // Carriage return
+            };
+
+            foreach (var pattern in dangerousPatterns)
+            {
+                if (command.Contains(pattern))
+                {
+                    return $"[Validation Failed]: Command contains potentially dangerous character(s): {pattern}";
+                }
+            }
+
+            return null; // No validation errors
+        }
+
+        private async Task<string> ExecuteCommandSafely(
+            string resourceId,
+            string command)
+        {
+            // get the cluster kubeconfig
+            // todo: change to create a `view` clusterrolebinding with a service account, and use that guy's config
+            var kubeConfig = await _kubernetesClientFactory.GetOrAddCachedK8SConfiguration(resourceId);
+            if (kubeConfig is null)
+            {
+                return $"[Unexpected Error]: Unable to retrieve kubeconfig for cluster.";
+            }
+
+            // write to temp file
+            var kubeConfigPath = Path.GetTempFileName();
+            await File.WriteAllTextAsync(kubeConfigPath, _configJsonSerializer.Serialize(kubeConfig.Configuration));
+
+            var cmd = command.Substring("kubectl ".Length); // Remove "kubectl " prefix
+
+            var processInfo = new ProcessStartInfo
+            {
+                FileName = "kubectl",
+                Arguments = $"{cmd} --kubeconfig=\"{kubeConfigPath}\" --cache-dir=\"{Path.Combine(Path.GetTempPath(), ".kube")}\"",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            using var process = new Process { StartInfo = processInfo };
+            var outputBuilder = new StringBuilder();
+            var errorBuilder = new StringBuilder();
+
+            // Set up data received handlers
+            process.OutputDataReceived += (sender, e) =>
+            {
+                if (e.Data != null)
+                {
+                    outputBuilder.AppendLine(e.Data);
+                }
+            };
+
+            process.ErrorDataReceived += (sender, e) =>
+            {
+                if (e.Data != null)
+                {
+                    errorBuilder.AppendLine(e.Data);
+                }
+            };
+
+            // Start the process
+            process.Start();
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+
+            // Wait for completion with timeout
+            using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(1));
+            try
+            {
+                await process.WaitForExitAsync(cts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                // Kill the process if it times out
+                try
+                {
+                    process.Kill();
+                }
+                catch { }
+
+                return "[Unexpected Exception]: Kubectl command execution timed out after 1 minute.";
+            }
+
+            // Check for errors
+            if (process.ExitCode != 0)
+            {
+                var errorMessage = errorBuilder.ToString();
+                return $"[Unexpected Exception]: Kubectl command failed with exit code {process.ExitCode}: {errorMessage}";
+            }
+
+            return outputBuilder.ToString();
         }
     }
 }

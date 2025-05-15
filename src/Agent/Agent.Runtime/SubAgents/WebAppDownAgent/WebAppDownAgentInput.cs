@@ -1,10 +1,4 @@
-using Agent.Core.Models;
-using Agent.Core.Models.Api.v1;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Agent.Runtime.HelperAgents;
 
 namespace Agent.Runtime.SubAgents.WebAppDownAgent;
 
@@ -12,4 +6,5 @@ namespace Agent.Runtime.SubAgents.WebAppDownAgent;
 public sealed record WebAppDownAgentInput(
    string Input,
     IReadOnlyList<string> ToolSignatures,
-    Guid ThreadId);
+    Guid ThreadId,
+    IReadOnlyList<HelperAgentInput> HelperAgentsInputs);

@@ -1,89 +1,58 @@
-using Agent.Core.Models;
-using Agent.Plugins.Definitions;
-using Agent.Plugins;
-using Microsoft.DurableTask.Client;
-using Microsoft.DurableTask;
 using System.Text.Json;
 using Agent.Core;
-using Agent.Core.Models.Api.v1;
-using Agent.Core.Interfaces;
-using Agent.Runtime.MetaAgent;
-using Agent.Runtime.Communication;
+using Agent.Plugins;
+using Agent.Plugins.Definitions;
+using Agent.Runtime.HelperAgents;
+using Microsoft.DurableTask;
+using Microsoft.DurableTask.Client;
 
 namespace Agent.Runtime.SubAgents.WebAppDownAgent;
 
-
-// [Export]
 public sealed class WebAppDownAgentFactory
 {
-    //private readonly AgentToolsRegistry _toolsRegistry = new AgentToolsRegistry();
     private readonly IReadOnlyList<string> _toolSignatures;
-    private readonly IToolsRepository _toolsRepository;
     private readonly DurableTaskClient _durableTaskClient;
 
     public const string OrchestrationInstanceIdPrefix = nameof(WebAppDownAgent);
 
     public WebAppDownAgentFactory(
-        IGithubIssuePlugin githubPlugin,
-        IAppCodeAnalysisPlugin appCodeAnalysisPlugin,
-        ICpuAnalysisPlugin cpuAnalysisPlugin,
-        IMetricsPlugin metricsPlugin,
-        IChartPlugin chartPlugin,
-        IDotnetAnalysisPlugin dotnetAnalysisPlugin,
-        IToolsRepository toolsRepository,
         DurableTaskClient durableTaskClient)
     {
+        var registry = new AgentToolsRegistry();
 
-        _toolsRepository = toolsRepository;
+        registry.RegisterTool<MetricsPluginDefinition>(x => x.GetFunctionAppRequestAvailability);
+        registry.RegisterTool<MetricsPluginDefinition>(x => x.GetWebAppCpuMetrics);
+        registry.RegisterTool<MetricsPluginDefinition>(x => x.GetMemoryMetrics);
+        registry.RegisterTool<MetricsPluginDefinition>(x => x.GetThreadMetrics);
 
-        var toolSignatures = new List<string>();
-        var metricsPluginDefinition = new MetricsPluginDefinition(metricsPlugin);
-        toolSignatures.Add(_toolsRepository.GetSignature(() => metricsPluginDefinition.GetFunctionAppRequestAvailability));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => metricsPluginDefinition.GetWebAppCpuMetrics));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => metricsPluginDefinition.GetMemoryMetrics));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => metricsPluginDefinition.GetThreadMetrics)); 
+        registry.RegisterTool<GitHubIssuePluginDefinition>(x => x.CreateGithubIssue);
+        registry.RegisterTool<GitHubIssuePluginDefinition>(x => x.FetchGithubIssue);
+        registry.RegisterTool<GitHubIssuePluginDefinition>(x => x.FindConnectedRepo);
 
-        var githubIssuePluginDefinition = new GitHubIssuePluginDefinition(githubPlugin);
-        toolSignatures.Add(_toolsRepository.GetSignature(() => githubIssuePluginDefinition.CreateGithubIssue));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => githubIssuePluginDefinition.FetchGithubIssue));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => githubIssuePluginDefinition.FindConnectedRepo));
+        registry.RegisterPlugin<ControlFlowPluginDefinition>();
 
-        var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
-        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait)); 
+        registry.RegisterTool<ChartPluginDefinition>(x => x.PlotTimeSeriesData);
+        registry.RegisterTool<ChartPluginDefinition>(x => x.PlotBarChartAsync);
+        registry.RegisterTool<ChartPluginDefinition>(x => x.PlotScatterAsync);
 
-        //_toolsRegistry.RegisterTool<ChartPluginDefinition>(x => x.PlotTimeSeriesDataAsync);
-         var chartPluginDefinition = new ChartPluginDefinition(chartPlugin);
-        toolSignatures.Add(_toolsRepository.GetSignature(() => chartPluginDefinition.PlotTimeSeriesData));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => chartPluginDefinition.PlotBarChartAsync));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => chartPluginDefinition.PlotScatterAsync));
+        registry.RegisterTool<AppCodeAnalysisPluginDefinition>(x => x.PerformDeploymentSwapForApp);
+        registry.RegisterTool<AppCodeAnalysisPluginDefinition>(x => x.GetDeploymentActivity);
+        registry.RegisterTool<AppCodeAnalysisPluginDefinition>(x => x.GetCallStackForApp);
+        registry.RegisterTool<AppCodeAnalysisPluginDefinition>(x => x.GetSummaryOfExceptions);
+        registry.RegisterTool<AppCodeAnalysisPluginDefinition>(x => x.GetStackTraceOfLastException);
+        registry.RegisterTool<AppCodeAnalysisPluginDefinition>(x => x.GetStackTraceOfMostCommonException);
+        registry.RegisterTool<AppCodeAnalysisPluginDefinition>(x => x.GetAppConsoleLogs);
 
-        var appCodeAnalysisPluginDefinition = new AppCodeAnalysisPluginDefinition(appCodeAnalysisPlugin);
-        toolSignatures.Add(_toolsRepository.GetSignature(() => appCodeAnalysisPluginDefinition.PerformDeploymentSwapForApp));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => appCodeAnalysisPluginDefinition.GetDeploymentActivity));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => appCodeAnalysisPluginDefinition.GetCallStackForApp));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => appCodeAnalysisPluginDefinition.GetSummaryOfExceptions));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => appCodeAnalysisPluginDefinition.GetStackTraceOfLastException));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => appCodeAnalysisPluginDefinition.GetStackTraceOfMostCommonException));
-        //toolSignatures.Add(_toolsRepository.GetSignature(() => appCodeAnalysisPluginDefinition.WaitInMilliSeconds));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => appCodeAnalysisPluginDefinition.GetAppConsoleLogs));
+        registry.RegisterPlugin<CpuAnalysisPluginDefinition>();
 
-        var cpuAnalysisPluginDefinition = new CpuAnalysisPluginDefinition(cpuAnalysisPlugin);
-        toolSignatures.Add(_toolsRepository.GetSignature(() => cpuAnalysisPluginDefinition.CollectMemoryDumpForApp));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => cpuAnalysisPluginDefinition.CollectProfileForApp));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => cpuAnalysisPluginDefinition.ScaleUpAppServicePlanBySku));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => cpuAnalysisPluginDefinition.AutoScaleApp));
+        registry.RegisterTool<DotnetAnalysisPluginDefinition>(x => x.GetMemoryAnalysis);
+        registry.RegisterTool<DotnetAnalysisPluginDefinition>(x => x.GetCPUAnalysis);
+        registry.RegisterTool<DotnetAnalysisPluginDefinition>(x => x.ShouldTriggerMemoryDump);
 
-        var dotnetAnalysisPluginDefinition = new DotnetAnalysisPluginDefinition(dotnetAnalysisPlugin);
-        toolSignatures.Add(_toolsRepository.GetSignature(() => dotnetAnalysisPluginDefinition.GetMemoryAnalysis));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => dotnetAnalysisPluginDefinition.GetCPUAnalysis));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => dotnetAnalysisPluginDefinition.ShouldTriggerMemoryDump));
+        registry.RegisterTool<HelperAgentsPluginDefinition>(x => x.StartDiagnosisAgent);
 
-        //_mappingManager = mappingManager;
+        _toolSignatures = registry.ToolSignatures;
         _durableTaskClient = durableTaskClient;
-        _toolSignatures = toolSignatures;
     }
 
     public async Task<string> StartOrchestration(
@@ -92,18 +61,66 @@ public sealed class WebAppDownAgentFactory
     {
         var instanceId = $"{OrchestrationInstanceIdPrefix}-{threadId}-{DateTime.Now:yyyyMMdd-HHmmss}";
 
-        //await _mappingManager.AddMappingAsync(threadId.ToString(), instanceId);
-
         return await _durableTaskClient.ScheduleNewWebAppDownAgentInstanceAsync(
             new WebAppDownAgentInput(
                 Input: resourceId,
                 ToolSignatures: _toolSignatures,
-                ThreadId: threadId),
+                ThreadId: threadId,
+                HelperAgentsInputs: GetHelperAgentInputs()),
             new StartOrchestrationOptions(InstanceId: $"{instanceId}"));
     }
 
     public string DeserializeInput(string serializedOrchestrationInput)
     {
         return JsonSerializer.Deserialize<WebAppDownAgentInput>(serializedOrchestrationInput).ThrowIfNull().Input;
+    }
+
+    private static IReadOnlyList<HelperAgentInput> GetHelperAgentInputs()
+    {
+        var diagnosticAgentTools = new DiagnosisAgentToolsRegistry();
+
+        diagnosticAgentTools.RegisterReadOnlyTool<GraphDBPluginDefinition>(x => x.GetResourceDetailedProperties);
+        diagnosticAgentTools.RegisterReadOnlyTool<GraphDBPluginDefinition>(x => x.GetApplicationComponentsSummary);
+        diagnosticAgentTools.RegisterReadOnlyTool<MetricsPluginDefinition>(x => x.GetFunctionAppRequestAvailability);
+        diagnosticAgentTools.RegisterReadOnlyTool<MetricsPluginDefinition>(x => x.GetWebAppCpuMetrics);
+        diagnosticAgentTools.RegisterReadOnlyTool<MetricsPluginDefinition>(x => x.GetMemoryMetrics);
+        diagnosticAgentTools.RegisterReadOnlyTool<MetricsPluginDefinition>(x => x.GetThreadMetrics);
+        diagnosticAgentTools.RegisterReadOnlyTool<AppCodeAnalysisPluginDefinition>(x => x.GetDeploymentActivity);
+        diagnosticAgentTools.RegisterReadOnlyTool<AppCodeAnalysisPluginDefinition>(x => x.GetSummaryOfExceptions);
+        diagnosticAgentTools.RegisterReadOnlyTool<AppCodeAnalysisPluginDefinition>(x => x.GetStackTraceOfLastException);
+        diagnosticAgentTools.RegisterReadOnlyTool<AppCodeAnalysisPluginDefinition>(x => x.GetStackTraceOfMostCommonException);
+        diagnosticAgentTools.RegisterReadOnlyTool<AppCodeAnalysisPluginDefinition>(x => x.GetAppConsoleLogs);
+        diagnosticAgentTools.RegisterReadOnlyPlugin<CpuAnalysisPluginDefinition>();
+        diagnosticAgentTools.RegisterReadOnlyPlugin<DotnetAnalysisPluginDefinition>();
+
+        var diagnosticAgentInput = new DiagnosisAgentInput
+        {
+            ToolSignatures = diagnosticAgentTools.ToolSignatures,
+            CustomInstructions = """
+            You will be asked to investigate a failing web app. The provided tools are specialized for retrieving information about web app resource.
+
+            # Environment Understanding
+            Each web app is hosted in an "app service plan". The app service plan has a SKU which describes the CPU and memory resources available to the app.
+            All apps in the same app service plan share the same resources. So if one app is consuming all the resources, other apps in the same plan may be affected.
+            You can use the GetResourceDetailedProperties tool to get info about them. GetApplicationComponentsSummary returns related resources to any resource.
+
+            Examples of issues that may impact an app are:
+            - Application Code Bug (eg: unhandled exceptions, infinite loops, memory leaks)
+            - Resource constraint (eg: high request volume leads to high CPU or memory)
+            - Network issues (eg: DNS resolution failure, network security group misconfiguration)
+
+            GetFunctionAppRequestAvailability tool can be used to find out if and when app experienced issues.
+            Application Logs are good indicators of application issues (exceptions). Use GetAppConsoleLogs, GetSummaryOfExceptions etc tools to gather this info.
+            Deployment Activity is a good indicator of recent changes to application code. Use GetDeploymentActivity to gather this info.
+            CPU and Memory metrics are good indicators of resource constraints. You should be aware of the CPU and Memory available to app to know what is "high memory usage".
+            Use GetMemoryMetrics, GetWebAppCpuMetrics etc tools to gather this info. And the corresponding analysis tools to find issues with the app.
+            All these signals contain timestamped data, so you can correlate them to find the root cause of the issue.
+
+            Potential mitigation options are to scale up the app, revert the deployment slot etc.
+            Consider real-world impact of these actions to create a safe and comprehensive mitgation plan.
+            """
+        };
+
+        return [diagnosticAgentInput];
     }
 }

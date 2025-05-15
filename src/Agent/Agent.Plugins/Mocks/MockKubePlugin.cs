@@ -1,10 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using YamlDotNet.Serialization;
-
 namespace Agent.Plugins.Mocks;
 
 public class MockKubePlugin : IKubePlugin
@@ -673,6 +666,11 @@ public class MockKubePlugin : IKubePlugin
     }
 
     public Task<string> GetNsgRulesForWorkloadAsync(string aksResourceId, string _namespace, string kind, string workloadName)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<string> RunKubectlGetCommandAsync(string AKSClusterResourceId, string command)
     {
         throw new NotImplementedException();
     }

@@ -4,6 +4,7 @@
 
 using Agent.Core.Interfaces;
 using Agent.Logging;
+using Agent.Core.Models;
 using Azure.Core;
 using Azure.ResourceManager.ContainerService;
 using Azure.ResourceManager.Resources;
@@ -19,7 +20,7 @@ public class KubernetesClientFactory : IKubernetesClientFactory
     private readonly IArmClientFactory _armClientFactory;
     private readonly IAuthenticationService _authService;
 
-    private readonly Dictionary<string, CachedK8SConfiguration> _configurationCache;
+    private readonly Dictionary<string, CachedK8sConfiguration> _configurationCache;
 
     public KubernetesClientFactory(
         ILogger<KubernetesClientFactory> logger,
@@ -30,7 +31,7 @@ public class KubernetesClientFactory : IKubernetesClientFactory
         _armClientFactory = armClientFactory;
         _authService = authService;
 
-        _configurationCache = new Dictionary<string, CachedK8SConfiguration>();
+        _configurationCache = new Dictionary<string, CachedK8sConfiguration>();
     }
 
     public async Task<IKubernetes?> CreateKubernetesClientFromResourceIdForCrawlerAsync(string resourceId)
@@ -45,7 +46,7 @@ public class KubernetesClientFactory : IKubernetesClientFactory
             throw new ArgumentException($"Invalid resource Id: {resourceId}");
         }
 
-        return await GetK8SClient(subscription, resourceGroup, clusterName, true);
+        return await GetK8sClient(subscription, resourceGroup, clusterName, true);
     }
 
     public async Task<IKubernetes?> CreateKubernetesClientFromResourceIdAsync(string resourceId)
@@ -60,53 +61,39 @@ public class KubernetesClientFactory : IKubernetesClientFactory
             throw new ArgumentException($"Invalid resource Id: {resourceId}");
         }
 
-        return await GetK8SClient(subscription, resourceGroup, clusterName, false);
-
+        return await GetK8sClient(subscription, resourceGroup, clusterName, false);
     }
 
-    private async Task<IKubernetes?> GetK8SClient(string subscription, string resourceGroup, string clusterName, bool isCrawler)
+    public async Task<CachedK8sConfiguration?> GetOrAddCachedK8SConfiguration(string resourceId)
     {
-        _logger.LogInternalInformation($"Getting k8s client for {subscription}/{resourceGroup}/{clusterName}. IsCrawler = {isCrawler}");
-        var key = $"{subscription}/{resourceGroup}/{clusterName}{(isCrawler ? "/crawler" : "")}";
-        if (isCrawler)
+        var id = new ResourceIdentifier(resourceId);
+        var subscription = id.SubscriptionId;
+        var resourceGroup = id.ResourceGroupName;
+        var clusterName = id.Name;
+
+        if (string.IsNullOrEmpty(subscription) || string.IsNullOrEmpty(resourceGroup) || string.IsNullOrEmpty(clusterName))
         {
-            if (!_configurationCache.ContainsKey(key) ||
-                _configurationCache[key].IsExpired())
-            {
-                var cred = _authService.GetCrawlerCredential();
-                var (config, expiresOn) = await GetK8SConfigurationFromArm(subscription, resourceGroup, clusterName, cred);
-                _configurationCache[key] = new CachedK8SConfiguration(config, expiresOn);
-            }
-        }
-        else
-        {
-            var cred = await _authService.GetKubernetesOperationCredential();
-            if (!_configurationCache.ContainsKey(key))
-            {
-                var (config, expiresOn) = await GetK8SConfigurationFromArm(subscription, resourceGroup, clusterName, cred);
-                _configurationCache[key] = new CachedK8SConfiguration(config, expiresOn);
-            }
-            else
-            {
-                var cached = _configurationCache[key];
-                // do not override token if admin credential is used (only the case AAD is not enabled on cluster)
-                if (cached.ExpiresOn != null)
-                {
-                    // always the refresh token as the cred might change according to different context
-                    var token = await cred.GetTokenAsync(new TokenRequestContext(["6dae42f8-4368-4678-94ff-3960e28e3630/.default"]), CancellationToken.None);
-                    cached.Configuration.Users.First().UserCredentials.Token = token.Token;
-                    _configurationCache[key] = cached;
-                }
-            }
+            return null;
         }
 
-        var k8sConfig = _configurationCache[key].Configuration;
-        var kubeConfig = KubernetesClientConfiguration.BuildConfigFromConfigObject(k8sConfig);
+        return await GetOrAddCachedK8sConfigurationInternal(subscription, resourceGroup, clusterName, false);
+    }
+
+    private async Task<IKubernetes?> GetK8sClient(string subscription, string resourceGroup, string clusterName, bool isCrawler)
+    {
+        var k8sConfig = await GetOrAddCachedK8sConfigurationInternal(subscription, resourceGroup, clusterName, isCrawler);
+
+        if (k8sConfig == null)
+        {
+            return null;
+        }
+
+        var kubeConfig = KubernetesClientConfiguration.BuildConfigFromConfigObject(k8sConfig.Configuration);
 
         return new Kubernetes(kubeConfig);
     }
 
-    private async Task<(K8SConfiguration?, DateTimeOffset?)> GetK8SConfigurationFromArm(string subscription, string resourceGroup, string clusterName, TokenCredential cred)
+    private async Task<(K8SConfiguration?, DateTimeOffset?)> GetK8sConfigurationFromArm(string subscription, string resourceGroup, string clusterName, TokenCredential cred)
     {
         var armClient = await _armClientFactory.GetArmOperationClient();
         var rg = armClient.GetResourceGroupResource(ResourceGroupResource.CreateResourceIdentifier(subscription, resourceGroup));
@@ -178,17 +165,43 @@ public class KubernetesClientFactory : IKubernetesClientFactory
         }
     }
 
-    public class CachedK8SConfiguration
+    private async Task<CachedK8sConfiguration?> GetOrAddCachedK8sConfigurationInternal(string subscription, string resourceGroup, string clusterName, bool isCrawler)
     {
-        public K8SConfiguration Configuration { get; set; }
-        public DateTimeOffset? ExpiresOn { get; set; }
-        public bool IsExpired() => ExpiresOn != null && DateTimeOffset.UtcNow >= ExpiresOn?.AddMinutes(-5);
-
-        public CachedK8SConfiguration(K8SConfiguration configuration, DateTimeOffset? expiresOn)
+        _logger.LogInternalInformation($"Getting k8s client for {subscription}/{resourceGroup}/{clusterName}. IsCrawler = {isCrawler}");
+        var key = $"{subscription}/{resourceGroup}/{clusterName}{(isCrawler ? "/crawler" : "")}";
+        if (isCrawler)
         {
-            Configuration = configuration;
-            ExpiresOn = expiresOn;
+            if (!_configurationCache.ContainsKey(key) ||
+                _configurationCache[key].IsExpired())
+            {
+                var cred = _authService.GetCrawlerCredential();
+                var (config, expiresOn) = await GetK8sConfigurationFromArm(subscription, resourceGroup, clusterName, cred);
+                _configurationCache[key] = new CachedK8sConfiguration(config, expiresOn);
+            }
         }
+        else
+        {
+            var cred = await _authService.GetKubernetesOperationCredential();
+            if (!_configurationCache.ContainsKey(key))
+            {
+                var (config, expiresOn) = await GetK8sConfigurationFromArm(subscription, resourceGroup, clusterName, cred);
+                _configurationCache[key] = new CachedK8sConfiguration(config, expiresOn);
+            }
+            else
+            {
+                var cached = _configurationCache[key];
+                // do not override token if admin credential is used (only the case AAD is not enabled on cluster)
+                if (cached.ExpiresOn != null)
+                {
+                    // always the refresh token as the cred might change according to different context
+                    var token = await cred.GetTokenAsync(new TokenRequestContext(["6dae42f8-4368-4678-94ff-3960e28e3630/.default"]), CancellationToken.None);
+                    cached.Configuration.Users.First().UserCredentials.Token = token.Token;
+                    _configurationCache[key] = cached;
+                }
+            }
+        }
+
+        return _configurationCache[$"{subscription}/{resourceGroup}/{clusterName}"];
     }
 }
 

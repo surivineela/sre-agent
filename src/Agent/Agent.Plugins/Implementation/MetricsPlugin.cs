@@ -96,7 +96,6 @@ namespace Agent.Plugins
                 resourceId.ToString(),
                 metrics);
 
-
             var requestsTimeSeries = metricsData.Where(m => m.Unit == "count" && m.Name == "Requests").ToList();
             var http5xxTimeSeries = metricsData.Where(m => m.Unit == "count" && m.Name == "Http5xx").ToList();
 

@@ -7,7 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-	  <PackageReference Include="Azure.AI.OpenAI" />
+    <PackageReference Include="antares.kubectl" GeneratePathProperty="true" />
+    <PackageReference Include="Azure.AI.OpenAI" />
 	  <PackageReference Include="Azure.Monitor.Query" />
 	  <PackageReference Include="Azure.ResourceManager.AppContainers" />
     <PackageReference Include="Azure.ResourceManager.Authorization" />
@@ -36,5 +37,11 @@
 	<ItemGroup>
 		<ProjectReference Include="..\Agent.Analyzers\Agent.Analyzers.csproj" OutputItemType="Analyzer" />
 	</ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(PkgAntares_Kubectl)\kubectl.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 
 </Project>

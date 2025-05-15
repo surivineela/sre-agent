@@ -4,105 +4,45 @@
 
 using System.Text.Json;
 using Agent.Core;
-using Agent.Core.Models.Api.v1;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Runtime.Communication;
+using Agent.Runtime.HelperAgents;
 using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
 
 namespace Agent.Runtime.SubAgents.ContainerAppsRemediation;
 
-// [Export]
 public sealed class ContainerAppsRemediationAgentFactory
 {
     private readonly IReadOnlyList<string> _toolSignatures;
     private readonly DurableTaskClient _durableTaskClient;
-    private readonly IToolsRepository _toolsRepository;
     private readonly IThreadOrchestrationManager _mappingManager;
-    private readonly IGithubIssuePlugin _githubIssuePlugin;
 
     public const string OrchestrationInstanceIdPrefix = nameof(ContainerAppsRemediationAgent);
 
     public ContainerAppsRemediationAgentFactory(
-        IContainerAppPlugin containerAppPlugin,
-        IArmPlugin armPlugin,
-        ITimePlugin timePlugin,
-        IRemediationPlugin remediationPlugin,
-        IRecordActionsPlugin recordActionsPlugin,
-        IGraphDBPlugin graphDbPlugin,
-        IChartPlugin chartPlugin,
-        INSGRulePlugin nSGRulePlugin,
-        IGithubIssuePlugin githubIssuePlugin,
-        IAzureMonitorMetricsPlugin metricsPlugin,
         IThreadOrchestrationManager mappingManager,
-        IToolsRepository toolsRepository,
         DurableTaskClient durableTaskClient)
     {
-        _toolsRepository = toolsRepository;
-        var toolSignatures = new List<string>();
-        var timePluginDefinition = new TimePluginDefinition(timePlugin);
-        toolSignatures.Add(_toolsRepository.GetSignature(() => timePluginDefinition.GetCurrentUtcTime));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => timePluginDefinition.GetAppTimeZone));
+        var registry = new AgentToolsRegistry();
 
-        var containerAppPluginDefinition = new ContainerAppPluginDefinition(containerAppPlugin);
-        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.ListRevisionsAsync));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.GetContainerAppRequestMetrics));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.GetContainerAppMemoryMetrics));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.GetContainerMemoryAnalysisForDotnet));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.IsContainerAppDotnet));
-        //toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.GetContainerAppCpuMetrics));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.GetContainerAppInfoAsync));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.GetLatestRevisionAsync));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.ListContainerAppsAsync));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.RestartContainerApp));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.GetAllNSGRulesForContainerAppAsync));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.ScaleContainerApp));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.ModifyContainerAppScaleRule));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.GetRevisionLogsAsync));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.GetContainerAppLogsAsync));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.UpdateTargetPort));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.ListAvailableScalers));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.GetScalerDetails));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.VerifyExternalRegistry));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.GetImageReferenceFromResourceId));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.RollbackToLastKnownWorkingRevision));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.UpdateContainerImage));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.ValidateContainerAppHealth));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.GetDeploymentTimes));
+        registry.RegisterPlugin<TimePluginDefinition>();
+        registry.RegisterPlugin<ContainerAppPluginDefinition>();
+        registry.RegisterTool<NSGRulePluginDefinition>(x => x.GetNSGRules);
+        registry.RegisterTool<NSGRulePluginDefinition>(x => x.CreateOrUpdateNSGRuleAsync);
+        registry.RegisterTool<NSGRulePluginDefinition>(x => x.RemoveNSGRuleAsync);
+        registry.RegisterPlugin<ChartPluginDefinition>();
+        registry.RegisterTool<GraphDBPluginDefinition>(x => x.FindAllNetworkConnectedResources);
+        registry.RegisterPlugin<RecordActionsPluginDefinition>();
+        registry.RegisterPlugin<ControlFlowPluginDefinition>();
+        registry.RegisterTool<GitHubIssuePluginDefinition>(x => x.CreateGithubIssue);
+        registry.RegisterTool<GitHubIssuePluginDefinition>(x => x.FindConnectedRepo);
 
-        var nsgRulePluginDefinition = new NSGRulePluginDefinition(nSGRulePlugin);
-        toolSignatures.Add(_toolsRepository.GetSignature(() => nsgRulePluginDefinition.CreateOrUpdateNSGRuleAsync));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => nsgRulePluginDefinition.RemoveNSGRuleAsync));
+        registry.RegisterTool<HelperAgentsPluginDefinition>(x => x.StartDiagnosisAgent);
 
-        var azureMonitorMetricsPluginDefinition = new AzureMonitorMetricsPluginDefinition(metricsPlugin);
-        toolSignatures.Add(_toolsRepository.GetSignature(() => azureMonitorMetricsPluginDefinition.ListAvailableMetrics));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => azureMonitorMetricsPluginDefinition.GetMetricTimeSeriesElementsForAzureResource));
+        _toolSignatures = registry.ToolSignatures;
 
-        var graphDBPluginDefinition = new GraphDBPluginDefinition(graphDbPlugin);
-        toolSignatures.Add(_toolsRepository.GetSignature(() => graphDBPluginDefinition.FindAllNetworkConnectedResources));
-
-        var chartPluginDefinition = new ChartPluginDefinition(chartPlugin);
-        toolSignatures.Add(_toolsRepository.GetSignature(() => chartPluginDefinition.PlotTimeSeriesData));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => chartPluginDefinition.PlotPieChartAsync));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => chartPluginDefinition.PlotBarChartAsync));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => chartPluginDefinition.PlotScatterAsync));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => chartPluginDefinition.PlotAreaChartWithCorrelationAsync));
-
-        var recordActionsPluginDefinition = new RecordActionsPluginDefinition(recordActionsPlugin);
-        toolSignatures.Add(_toolsRepository.GetSignature(() => recordActionsPluginDefinition.GetActionDetails));
-
-        var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
-        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
-
-        var githubIssuePluginDefinition = new GitHubIssuePluginDefinition(githubIssuePlugin);
-        toolSignatures.Add(_toolsRepository.GetSignature(() => githubIssuePluginDefinition.CreateGithubIssue));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => githubIssuePluginDefinition.FindConnectedRepo));
-
-        _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;
         _mappingManager = mappingManager;
     }
@@ -118,12 +58,45 @@ public sealed class ContainerAppsRemediationAgentFactory
             new ContainerAppsRemediationAgentInput(
                 Input: input,
                 ToolSignatures: _toolSignatures,
-                ThreadId: threadId),
+                ThreadId: threadId,
+                HelperAgentsInputs: GetHelperAgentInputs()),
             new StartOrchestrationOptions(InstanceId: instanceId));
     }
 
     public string DeserializeInput(string serializedOrchestrationInput)
     {
         return JsonSerializer.Deserialize<ContainerAppsRemediationAgentInput>(serializedOrchestrationInput).ThrowIfNull().Input;
+    }
+
+    private static IReadOnlyList<HelperAgentInput> GetHelperAgentInputs()
+    {
+        var diagnosticAgentTools = new DiagnosisAgentToolsRegistry();
+
+        diagnosticAgentTools.RegisterReadOnlyPlugin<ContainerAppPluginDefinition>();
+        diagnosticAgentTools.RegisterReadOnlyTool<NSGRulePluginDefinition>(x => x.GetNSGRules);
+        diagnosticAgentTools.RegisterReadOnlyPlugin<AzureMonitorMetricsPluginDefinition>();
+        diagnosticAgentTools.RegisterReadOnlyTool<GraphDBPluginDefinition>(x => x.FindAllNetworkConnectedResources);
+
+        var diagnosticAgentInput = new DiagnosisAgentInput
+        {
+            ToolSignatures = diagnosticAgentTools.ToolSignatures,
+            CustomInstructions = """
+            Start with application health investigation. For network issues, prioritize NSG (network security group) analysis first instead.
+
+            **Understand the Container App Configuration:**
+            - single revision mode means that we manage a single active revision at a time. When a new revision becomes active, the old one is deactivated
+            - multiple means there are more than 1 active revision, and the user manage them. List revisions using list_containerapp_revisions.
+            - if there are identities in identitySettings, those are Azure IAM identities. lifecycle tells which container they are assigned to.
+            - traffic shows the split of traffic between revisions. If it's single mode, then traffic is always going to the latest ready revision. If it's multiple then traffic goes where set.
+            - the target port is the port your application is listening on. You can omit that port and we will auto-discover it.
+            - external apps are accessible outside the environment.
+
+            Image pull failures may be due to network connectivity problems or authentication issues.
+
+            Low volume of requests on its own does not indicate an issue.
+            """
+        };
+
+        return [diagnosticAgentInput];
     }
 }

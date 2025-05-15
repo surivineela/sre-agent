@@ -7,6 +7,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
+using Agent.Runtime.HelperAgents;
 using Agent.Runtime.Helpers;
 using Agent.Runtime.Models;
 using Microsoft.Extensions.AI;
@@ -51,6 +52,7 @@ public class ToolsRepository : IToolsRepository
         Register200<GraphDBPluginDefinition>(x => x.AddSourceCodeNodeToContainerAppNode);
         Register200<GraphDBPluginDefinition>(x => x.GetContainerAppsWithNodesWithoutSourceCodeNodes);
         Register200<GraphDBPluginDefinition>(x => x.GetResourceBasicProperties);
+        Register200<GraphDBPluginDefinition>(x => x.GetResourceDetailedProperties);
         Register200<GraphDBPluginDefinition>(x => x.GetResourceIdForResourceName);
         Register200<GraphDBPluginDefinition>(x => x.ListSubscriptions);
         Register200<GraphDBPluginDefinition>(x => x.ListResourceGroups);
@@ -98,6 +100,8 @@ public class ToolsRepository : IToolsRepository
         Register200<GitHubIssuePluginDefinition>(x => x.FindConnectedRepo);
 
         RegisterPlugin<AzureSupportCenterPluginDefinition>();
+
+        RegisterPlugin<HelperAgentsPluginDefinition>();
     }
 
     /// <summary>
@@ -172,17 +176,17 @@ public class ToolsRepository : IToolsRepository
 
     public List<AITool> ResolveTools(IReadOnlyList<string> toolSignatures)
     {
-        // Step 1: Retrieve all tools  
+        // Step 1: Retrieve all tools
         var allTools = this.GetAllTools(toolSignatures);
 
-        // Step 2: Map tool signatures to AITool objects  
+        // Step 2: Map tool signatures to AITool objects
         var aiTools = allTools.Select<string, AITool>(sig =>
         {
             var toolFunction = this.FindAiFunction(sig).ToolFunction;
             return toolFunction;
         }).ToList();
 
-        // Step 3: Return the resolved tools  
+        // Step 3: Return the resolved tools
         return aiTools;
     }
 

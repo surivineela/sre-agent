@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Models;
 using k8s;
 
 namespace Agent.Core.Interfaces
@@ -22,6 +23,8 @@ namespace Agent.Core.Interfaces
         /// <param name="resourceId"></param>
         /// <returns></returns>
         public Task<IKubernetes?> CreateKubernetesClientFromResourceIdAsync(string resourceId);
+
+        public Task<CachedK8sConfiguration?> GetOrAddCachedK8SConfiguration(string resourceId);
     }
 }
 

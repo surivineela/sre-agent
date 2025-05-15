@@ -1,13 +1,6 @@
-using Agent.Core.Interfaces;
 using Agent.Runtime.SubAgents.Core;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Azure.ResourceManager.AppService.Models;
 
 namespace Agent.Runtime.SubAgents.WebAppDownAgent
 {
@@ -22,7 +15,6 @@ namespace Agent.Runtime.SubAgents.WebAppDownAgent
 
                 // Initial planning phase: generate plan (e.g. list of apps to update)
                 List<ChatMessage> chatHistory = await context.CallWebAppDownPlanActivityAsync(agentInput.Input);
-
 
                 // Optionally, send a summary and start the execution (this activity could be similar to your SendSummaryAndStartActivity)
                 chatHistory = await context.CallSendSummaryAndStartActivityAsync(
@@ -39,7 +31,8 @@ namespace Agent.Runtime.SubAgents.WebAppDownAgent
                     chatHistory,
                     agentInput.ToolSignatures,
                     log,
-                    agentInput.ThreadId);
+                    agentInput.ThreadId,
+                    agentInput.HelperAgentsInputs);
 
                 return "success";
             }

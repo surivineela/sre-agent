@@ -4,6 +4,7 @@
 
 using System.Linq.Expressions;
 using System.Reflection;
+using Agent.Core.Attributes;
 
 namespace Agent.Runtime.Helpers;
 
@@ -22,6 +23,51 @@ public static class ToolHelper
             var signature = GetSignature(method);
             signatures.Add(signature);
         }
+
+        return signatures;
+    }
+
+    public static IList<string> AddPluginNoApprovalRequired<T>(this IList<string> signatures)
+    {
+        var pluginType = typeof(T);
+
+        // Get all public methods with Description attribute and no RequiresApproval attribute
+        var methodsToRegister = pluginType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+            .Where(m =>
+                m.GetCustomAttribute<System.ComponentModel.DescriptionAttribute>() != null &&
+                m.GetCustomAttribute<RequiresApprovalAttribute>() == null);
+
+        foreach (var method in methodsToRegister)
+        {
+            var signature = GetSignature(method);
+            signatures.Add(signature);
+        }
+
+        return signatures;
+    }
+
+    public static IList<string> AddToolNoApprovalRequired<T>(this IList<string> signatures, Expression<Func<T, Delegate>> executeFunctionSelector)
+    {
+        // Extract the method info from the expression
+        var methodInfo = GetMethodFromExpression(executeFunctionSelector);
+
+        // Verify the method has the Description attribute
+        if (methodInfo.GetCustomAttribute<System.ComponentModel.DescriptionAttribute>() == null)
+        {
+            throw new ArgumentException($"Method {methodInfo.Name} on type {methodInfo.DeclaringType?.FullName} " +
+                $"does not have a Description attribute");
+        }
+
+        // verify the method does not have the RequiresApproval attribute
+        if (methodInfo.GetCustomAttribute<RequiresApprovalAttribute>() != null)
+        {
+            throw new ArgumentException($"Method {methodInfo.Name} on type {methodInfo.DeclaringType?.FullName} " +
+                $"has the RequiresApproval attribute");
+        }
+
+        // Generate the signature and add it to the list
+        var signature = GetSignature(methodInfo);
+        signatures.Add(signature);
 
         return signatures;
     }

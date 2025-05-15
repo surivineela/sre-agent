@@ -5,7 +5,6 @@
 using System.Text.Json;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Models;
-using Azure.ResourceManager.Network;
 
 namespace Agent.Plugins.Mocks
 {
@@ -113,18 +112,18 @@ namespace Agent.Plugins.Mocks
             _requestMetrics[resourceId] = requestCount;
         }
 
-        public async Task<IDictionary<string, IReadOnlyList<SecurityRuleData>>> GetAllNSGRulesForContainerAppAsync(string resourceId)
+        public async Task<IDictionary<string, string>> GetAllNSGRulesForContainerAppAsync(string resourceId)
         {
             if (_containerAppNsgs.TryGetValue(resourceId, out var nsgs))
             {
-                var result = new Dictionary<string, IReadOnlyList<SecurityRuleData>>();
+                var result = new Dictionary<string, string>();
                 foreach (var nsg in nsgs)
                 {
                     var rules = await nsgRulePlugin.GetNSGRulesAsync(nsg);
 
                     if (rules.TryGetValue("SecurityRules", out var securityRules))
                     {
-                        result[nsg] = securityRules;
+                        result[nsg] = securityRules?.ToString() ?? string.Empty;
                     }
                 }
 

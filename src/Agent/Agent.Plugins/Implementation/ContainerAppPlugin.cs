@@ -294,10 +294,10 @@ namespace Agent.Plugins.Implementation
                 .ToArray();
         }
 
-        public async Task<IDictionary<string, IReadOnlyList<SecurityRuleData>>> GetAllNSGRulesForContainerAppAsync(string resourceId)
+        public async Task<IDictionary<string, string>> GetAllNSGRulesForContainerAppAsync(string resourceId)
         {
             _logger.LogInternalInformation($"[get_containerapp_nsg_rules] Invoked with resourceId: {resourceId}");
-            var result = new Dictionary<string, IReadOnlyList<SecurityRuleData>>();
+            var result = new Dictionary<string, string>();
 
             try
             {
@@ -337,7 +337,8 @@ namespace Agent.Plugins.Implementation
                     var nsgData = await nsg.GetAsync();
 
                     // Add this NSG's rules to the result dictionary
-                    result[nsgId] = nsgData.Value.Data.SecurityRules.ToList();
+                    result[nsgId] = nsgData.GetRawResponse().Content.ToString();
+
                     _logger.LogInternalInformation($"Found NSG {nsgId} with {nsgData.Value.Data.SecurityRules.Count} rules for infrastructure subnet");
                 }
                 else

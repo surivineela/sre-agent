@@ -12,4 +12,3 @@ public class GetNextActionInput
     public int StepCounter { get; set; }
     public IReadOnlyList<string> ToolSignatures { get; set; }
 }
-

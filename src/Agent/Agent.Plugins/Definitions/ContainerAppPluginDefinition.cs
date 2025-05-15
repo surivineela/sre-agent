@@ -6,7 +6,6 @@ using System.ComponentModel;
 using System.Text.Json;
 using Agent.Core.Attributes;
 using Agent.Plugins.Models;
-using Azure.ResourceManager.Network;
 using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins.Definitions
@@ -139,7 +138,7 @@ namespace Agent.Plugins.Definitions
             "Retrieves all Network Security Groups (NSGs) associated with a Container App and their security rules. " +
             "Returns a dictionary where keys are NSG resource IDs and values are lists of security rules. " +
             "Use this to identify network access issues or restrictive rules that might be blocking traffic to/from the Container App.")]
-        public async Task<IDictionary<string, IReadOnlyList<SecurityRuleData>>> GetAllNSGRulesForContainerAppAsync(
+        public async Task<IDictionary<string, string>> GetAllNSGRulesForContainerAppAsync(
             [Description("The resource ID of the Container App instance.")]
             string resourceId)
         {
