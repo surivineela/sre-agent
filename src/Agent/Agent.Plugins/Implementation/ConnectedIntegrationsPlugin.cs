@@ -29,8 +29,7 @@ public class ConnectedIntegrationsPlugin : IConnectedIntegrationsPlugin
 
         // Dashboard (e.g. Grafana + Prometheus)
         var dashConfigured =
-            !string.IsNullOrWhiteSpace(_dashboard.GrafanaUrl) &&
-            !string.IsNullOrWhiteSpace(_dashboard.GrafanaApiKey);
+            !string.IsNullOrWhiteSpace(_dashboard.GrafanaUrl);
         // todo: change the integration detail to include UMI instructions
         integrations.Add(new IntegrationInfo
         {
@@ -42,8 +41,8 @@ public class ConnectedIntegrationsPlugin : IConnectedIntegrationsPlugin
         });
 
         // Incident Management (e.g. PagerDuty)
-        var incidentConfigured = _incident.Type is not null &&
-            !string.IsNullOrWhiteSpace(_incident.ConnectionKey);
+        var incidentConfigured = _incident.Type is not null && (_incident.Type == IncidentManagementType.AzMonitor ||
+            (_incident.Type == IncidentManagementType.PagerDuty && !string.IsNullOrWhiteSpace(_incident.ConnectionKey)));
         integrations.Add(new IntegrationInfo
         {
             Name = "IncidentManagement",
