@@ -180,6 +180,7 @@
   "ZukeYV": "Failed to add {number} managed resource groups to your SRE Agent",
   "a2+0+5": "Grafana resource name",
   "a5msuh": "Yes",
+  "aQPexO": "Give us feedback",
   "aRH5fG": "Repository Connection",
   "aSn3tP": "Connect an incident management platform to the SRE Agent so that it can detect and respond to routine incident tasks and notifications. To change to a different platform, delete the connection to the current one.",
   "anSi7M": "Failed to load resource groups.",

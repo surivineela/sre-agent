@@ -11,12 +11,12 @@ import { WorkspaceClient } from '../Common/Clients/WorkspaceClient';
 import { ArmResourceDescriptor } from '../Common/Helpers/ResourceDescriptors';
 import { SreAgentTabResources } from '../Strings/SREAgentResources';
 import Activities from './Activities/Activities.ReactView';
+import { FeedbackDialog } from './Components/FeedbackDialog';
 import { SreAgentContext } from './Contracts/Context';
 import Graph from './Graph/Graph';
 import { useSreAgent } from './Settings/Hooks/useSreAgent';
 import Settings from './Settings/Settings.ReactView';
 import { useSreAgentSpaceStyles } from './Settings/Styles/SreAgentSpaceStyles';
-import { FeedbackDialog } from './Components/FeedbackDialog';
 
 const getTabListStyle = (theme: Theme) => {
     return {
@@ -112,39 +112,39 @@ const TabsListWrapper: FC = () => {
     }, [agent, fetchWorkspaceId]);
 
     return (
-        <div style={{display: "flex", flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
-        <TabList selectedValue={selectedValue} onTabSelect={onTabSelect} style={getTabListStyle(theme as Theme)}>
-            <Tab id="Activities" value={TabValues.Activities}>
-                {intl.formatMessage(SreAgentTabResources.activities)}
-            </Tab>
-            <Tab id="Knowledge" value={TabValues.Graph}>
-                {intl.formatMessage(SreAgentTabResources.resourceMapping)}
-            </Tab>
-            {!inStandaloneMode && (
-                <>
-                    <Tab id="Settings" value={TabValues.Settings}>
-                        {intl.formatMessage(SreAgentTabResources.settings)}
-                    </Tab>{' '}
-                    <LineHorizontal120Regular className={styles.lineIconStyle} />
-                    <Tab id="Logs" value={TabValues.Logs} disabled={!agentLoaded}>
-                        <div className={styles.logsMenuItemContainer}>
-                            <Open16Regular />
-                            {intl.formatMessage(SreAgentTabResources.logs)}
-                        </div>
-                    </Tab>
-                </>
-            )}
-        </TabList>
-        <Button
-            style={{fontWeight: 'normal'}}
-            appearance="transparent"
-            icon={<PersonFeedback20Regular />}
-            onClick={() => setIsFeedbackDialogOpen(true)}
-        >
-            {intl.formatMessage(SreAgentTabResources.feedback)}
-        </Button>
-        <FeedbackDialog isOpen={isFeedbackDialogOpen} setIsOpen={setIsFeedbackDialogOpen} threadId={''} isPositiveFeedback={false}/>
-    </div>
+        <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <TabList selectedValue={selectedValue} onTabSelect={onTabSelect} style={getTabListStyle(theme as Theme)}>
+                <Tab id="Activities" value={TabValues.Activities}>
+                    {intl.formatMessage(SreAgentTabResources.activities)}
+                </Tab>
+                <Tab id="Knowledge" value={TabValues.Graph}>
+                    {intl.formatMessage(SreAgentTabResources.resourceMapping)}
+                </Tab>
+                {!inStandaloneMode && (
+                    <>
+                        <Tab id="Settings" value={TabValues.Settings}>
+                            {intl.formatMessage(SreAgentTabResources.settings)}
+                        </Tab>{' '}
+                        <LineHorizontal120Regular className={styles.lineIconStyle} />
+                        <Tab id="Logs" value={TabValues.Logs} disabled={!agentLoaded}>
+                            <div className={styles.logsMenuItemContainer}>
+                                <Open16Regular />
+                                {intl.formatMessage(SreAgentTabResources.logs)}
+                            </div>
+                        </Tab>
+                    </>
+                )}
+            </TabList>
+            <Button
+                style={{ fontWeight: 'normal' }}
+                appearance="transparent"
+                icon={<PersonFeedback20Regular />}
+                onClick={() => setIsFeedbackDialogOpen(true)}
+            >
+                {intl.formatMessage(SreAgentTabResources.feedback)}
+            </Button>
+            <FeedbackDialog isOpen={isFeedbackDialogOpen} setIsOpen={setIsFeedbackDialogOpen} threadId={''} isPositiveFeedback={false} />
+        </div>
     );
 };
 

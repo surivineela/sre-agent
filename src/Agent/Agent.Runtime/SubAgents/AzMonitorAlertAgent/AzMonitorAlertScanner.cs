@@ -5,6 +5,7 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
@@ -158,21 +159,6 @@ public class AzMonitorAlertScanner
             //    })
             //));
 
-            await _repository.AddMessageAsync(thread.Id, new Message(
-                Guid.NewGuid(),
-                DateTime.UtcNow,
-                new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
-                ChatMessageService.SerializeInvestigationSummaryMessage("Root Cause Analysis and Diagnostic Findings", investigationSummary, isCollapsed: true)
-            ));
-
-            await _repository.AddMessageAsync(thread.Id, new Message(
-               Guid.NewGuid(),
-               DateTime.UtcNow,
-               new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
-               "Finished initial investigation ✅\n\nStarting the remediation workflow for this resource ⚒️"
-           ));
-
-
             var resourceType = alert.Properties?.Essentials?.TargetResourceType;
 
             var alertInfo = GetAlertInfoAsPrompt(alert);
@@ -301,7 +287,10 @@ public class AzMonitorAlertScanner
             // Analyze saved queries from Azure Log Analytics workspace / App Insights
             var logQuerySummary = await _azMonitorInvestigationService.AnalyzeLogQueries(alert, alertThread);
             var logQueriesTitle = "Examining Log Analytics queries and correlating results with alert patterns";
-            await AppendInvestigationSummaryToMessage(alertThread.Id, initMessageGuid, logQueriesTitle, logQuerySummary);
+            await AppendInvestigationSummaryToMessage(alertThread.Id, initMessageGuid, logQueriesTitle, logQuerySummary,
+                isCollapsed: false,
+                status: "completed",
+                isFinal: true);
 
             var alertDetails = GetAlertInfoAsPrompt(alert);
 
@@ -417,8 +406,18 @@ One sentence describing specific cause with exact evidence values supporting it
 Remember: Quality findings with specific values are better than quantity. Exclude any hypothesis without concrete supporting evidence.";
 
             var agentContexts = await _repository.GetAgentContextsForThreadAsync(alertThread.Id);
-
             var finalSummary = await SummarizeWithLLM(summarizePrompt, alertThread.Id, agentContexts.First());
+
+            var currentMessage = await _repository.GetMessageAsync(alertThread.Id, initMessageGuid);
+            if (currentMessage != null)
+            {
+                // Append final summary directly to the message content
+                string messageWithFinalSummary = $"{currentMessage.Text}\n\n<final-summary>{finalSummary}</final-summary>";
+
+                // Update the message with the root cause appended
+                Message updatedMessage = currentMessage with { Text = messageWithFinalSummary };
+                await _repository.UpdateMessageAsync(alertThread.Id, updatedMessage);
+            }
 
             return finalSummary;
         }
@@ -716,7 +715,14 @@ Remember: Quality findings with specific values are better than quantity. Exclud
     }
 
     // Helper method to append an investigation summary to an existing message
-    private async Task AppendInvestigationSummaryToMessage(Guid threadId, Guid messageId, string summaryTitle, string summaryContent)
+    private async Task AppendInvestigationSummaryToMessage(
+        Guid threadId,
+        Guid messageId,
+        string summaryTitle,
+        string summaryContent,
+        bool isCollapsed = true,
+        string status = "completed",
+        bool isFinal = false)
     {
         try
         {
@@ -728,8 +734,69 @@ Remember: Quality findings with specific values are better than quantity. Exclud
                 return;
             }
 
-            // Append the investigation summary to the message text
-            string updatedText = ChatMessageService.AppendInvestigationSummary(existingMessage.Text, summaryTitle, summaryContent);
+            // Parse existing message to extract the current investigation summaries JSON
+            string existingText = existingMessage.Text;
+            string updatedText;
+
+            // Regular expression to extract the JSON inside investigation-summaries tags
+            var summariesRegex = new Regex(@"<investigation-summaries>([\s\S]*?)<\/investigation-summaries>", RegexOptions.IgnoreCase);
+            var match = summariesRegex.Match(existingText);
+
+            if (match.Success)
+            {
+                // Extract the existing JSON
+                string existingJson = match.Groups[1].Value.Trim();
+
+                try
+                {
+                    // Deserialize the existing JSON
+                    var investigationSummaries = JsonSerializer.Deserialize<InvestigationSummaries>(existingJson);
+
+                    // Create the new summary item
+                    var newSummary = new SummaryItem
+                    {
+                        title = summaryTitle,
+                        summary = summaryContent,
+                        isCollapsed = isCollapsed,
+                        status = status,
+                        isFinal = isFinal
+                    };
+
+                    // Add the new summary to the existing list
+                    var updatedSummaries = investigationSummaries.summaries.ToList();
+                    updatedSummaries.Add(newSummary);
+                    investigationSummaries.summaries = updatedSummaries.ToArray();
+
+                    // Serialize back to JSON
+                    string updatedJson = JsonSerializer.Serialize(investigationSummaries);
+
+                    // Replace the old JSON with the new one
+                    updatedText = summariesRegex.Replace(existingText, $"<investigation-summaries>{updatedJson}</investigation-summaries>");
+                }
+                catch (JsonException ex)
+                {
+                    _logger.LogInternalError(ex, "Error parsing existing investigation summaries JSON");
+                    // If JSON parsing fails, use the ChatMessageService as fallback
+                    updatedText = ChatMessageService.AppendInvestigationSummary(
+                        existingMessage.Text,
+                        summaryTitle,
+                        summaryContent,
+                        isCollapsed,
+                        status,
+                        isFinal);
+                }
+            }
+            else
+            {
+                // If no existing investigation-summaries, use the ChatMessageService
+                updatedText = ChatMessageService.AppendInvestigationSummary(
+                    existingMessage.Text,
+                    summaryTitle,
+                    summaryContent,
+                    isCollapsed,
+                    status,
+                    isFinal);
+            }
 
             // Create a new message with the updated text but keeping all other properties the same
             Message updatedMessage = existingMessage with { Text = updatedText };
@@ -742,5 +809,20 @@ Remember: Quality findings with specific values are better than quantity. Exclud
         {
             _logger.LogInternalError(ex, "Error appending investigation summary to message {MessageId}", messageId);
         }
+    }
+
+    private class InvestigationSummaries
+    {
+        public string containerTitle { get; set; }
+        public SummaryItem[] summaries { get; set; }
+    }
+
+    private class SummaryItem
+    {
+        public string title { get; set; }
+        public string summary { get; set; }
+        public bool isCollapsed { get; set; }
+        public string status { get; set; }
+        public bool isFinal { get; set; }
     }
 }

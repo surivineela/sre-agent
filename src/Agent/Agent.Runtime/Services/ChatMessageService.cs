@@ -21,7 +21,8 @@ public static class ChatMessageService
         {
             title,
             summary,
-            isCollapsed
+            isCollapsed,
+            status = "loading"
         };
 
         var serializedSummary = JsonSerializer.Serialize(investigationSummary);
@@ -41,7 +42,8 @@ public static class ChatMessageService
             {
                 i.title,
                 i.summary,
-                i.isCollapsed
+                i.isCollapsed,
+                status = "loading"
             })
         };
 
@@ -54,7 +56,9 @@ public static class ChatMessageService
         string message,
         string newTitle,
         string newSummary,
-        bool newIsCollapsed = true)
+        bool newIsCollapsed = true,
+        string status = "loading",
+        bool isFinal = false)
     {
         const string startMarker = "<investigation-summaries>";
         const string endMarker = "</investigation-summaries>";
@@ -79,11 +83,19 @@ public static class ChatMessageService
         var payload = JsonSerializer.Deserialize<InvestigationSummaries>(json, options)
                       ?? throw new InvalidOperationException("Could not parse existing summaries");
 
+        // Update status of previous summaries to completed
+        foreach (var summary in payload.Summaries)
+        {
+            summary.Status = "completed";
+        }
+
         payload.Summaries.Add(new SummaryItem
         {
             Title = newTitle,
             Summary = newSummary,
-            IsCollapsed = newIsCollapsed
+            IsCollapsed = newIsCollapsed,
+            Status = status,
+            IsFinal = isFinal
         });
 
         // re-serialize and wrap it again with the new format
@@ -112,4 +124,10 @@ public class SummaryItem
 
     [JsonPropertyName("isCollapsed")]
     public bool IsCollapsed { get; set; }
+
+    [JsonPropertyName("status")]
+    public string Status { get; set; } = "loading";
+
+    [JsonPropertyName("isFinal")]
+    public bool IsFinal { get; set; }
 }
