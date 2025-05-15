@@ -189,9 +189,13 @@ public class AuthenticationService : IAuthenticationService
         }
 
         var approvalDoc = await _threadRepository.Value.GetApprovalAsync(approval.ThreadId, approval.ApprovalId.Value);
-        if (approvalDoc == null || string.IsNullOrEmpty(approvalDoc.OboToken))
+        if (approvalDoc == null)
         {
-            throw new InvalidOperationException("Approval document not found or oboToken is empty");
+            throw new InvalidOperationException("Approval document not found");
+        }
+        if (string.IsNullOrEmpty(approvalDoc.OboToken))
+        {
+            throw new InvalidOperationException("OboToken not found in the approval document");
         }
 
         _logger.LogInternalInformation($"[{approval.ThreadId}] Obo credential will be used. Approval id: {approval.ApprovalId}");
