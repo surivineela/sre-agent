@@ -1,3 +1,5 @@
+using System.Text;
+
 namespace Agent.Plugins.Mocks;
 
 public class MockKubePlugin : IKubePlugin
@@ -12,7 +14,8 @@ public class MockKubePlugin : IKubePlugin
     private Dictionary<string, string> _mockLogs = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);          // Key: resourceId:namespace:podName
     private Dictionary<string, string> _mockEvents = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);        // Key: resourceId:namespace:apiGroup:kind:name
     private Dictionary<string, string> _mockPods = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);          // Key: resourceId:namespace:kind:workloadName
-    private Dictionary<string, (double Cpu, double Mem)> _mockMetrics = new Dictionary<string, (double, double)>(StringComparer.OrdinalIgnoreCase); // Key: resourceId:namespace:podName (Simplified key)
+    private Dictionary<string, (double Cpu, double Mem)> _mockPodMetrics = new Dictionary<string, (double, double)>(StringComparer.OrdinalIgnoreCase); // Key: resourceId:namespace:podName (Simplified key)
+    private Dictionary<string, (double Cpu, double Mem, double Avail)> _mockMetrics = new Dictionary<string, (double, double, double)>(StringComparer.OrdinalIgnoreCase); // Key: resourceId:namespace:podName (Simplified key)
     private Dictionary<string, Action<int>> _scalingCallbacks = new Dictionary<string, Action<int>>(StringComparer.OrdinalIgnoreCase); // Key: statefulSetName
     private Dictionary<string, string> _mockRecentlyUpdated = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase); // Key: resourceId:namespace:minutes
     private Dictionary<string, string> _mockDeploymentRevisions = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase); // Key: resourceId:namespace:name
@@ -114,10 +117,18 @@ public class MockKubePlugin : IKubePlugin
         Console.WriteLine($"MockKubePlugin configured Events for {key}");
     }
 
+    public void ConfigureWorkloadMetrics(string resourceId, string ns, string workloadType, string workloadName, double cpuPercent, double memPercent, double availPercent)
+    {
+        var key = $"{resourceId}:{ns}:{workloadType}:{workloadName}";
+        _mockMetrics[key] = (cpuPercent, memPercent, availPercent);
+        Console.WriteLine($"MockKubePlugin configured Metrics for {key}: CPU={cpuPercent}%, Mem={memPercent}%, Avail={availPercent}%");
+    }
+
+
     public void ConfigureMetrics(string resourceId, string ns, string workloadType, string workloadName, string podName, double cpuPercent, double memPercent)
     {
         var key = $"{resourceId}:{ns}:{podName}"; // Key by pod
-        _mockMetrics[key] = (cpuPercent, memPercent);
+        _mockPodMetrics[key] = (cpuPercent, memPercent);
         Console.WriteLine($"MockKubePlugin configured Metrics for {key}: CPU={cpuPercent}%, Mem={memPercent}%");
     }
 
@@ -339,7 +350,7 @@ public class MockKubePlugin : IKubePlugin
         }
     }
 
-    // --- Metrics Methods (Implement using _mockMetrics) ---
+    // --- Metrics Methods (Implement using _mockPodMetrics) ---
     // NOTE: These should ideally be added to the IKubePlugin interface as well.
 
     public Task<string> GetCpuMetricsForWorkloadAsync(string resourceId, string _namespace, string workloadType, string workloadName, string timeRange = "5m")
@@ -363,7 +374,7 @@ public class MockKubePlugin : IKubePlugin
         bool foundMetrics = false;
 
         // Iterate through all configured metrics and filter by expected pods
-        foreach (var kvp in _mockMetrics)
+        foreach (var kvp in _mockPodMetrics)
         {
             // Key format: resourceId:namespace:podName
             var keyParts = kvp.Key.Split(':');
@@ -414,7 +425,7 @@ public class MockKubePlugin : IKubePlugin
         bool foundMetrics = false;
 
         // Iterate through all configured metrics and filter by expected pods
-        foreach (var kvp in _mockMetrics)
+        foreach (var kvp in _mockPodMetrics)
         {
             var keyParts = kvp.Key.Split(':');
             if (keyParts.Length == 3 && keyParts[0].Equals(resourceId, StringComparison.OrdinalIgnoreCase) && keyParts[1].Equals(_namespace, StringComparison.OrdinalIgnoreCase))
@@ -475,12 +486,52 @@ public class MockKubePlugin : IKubePlugin
 
     public Task<string> GetKubeResourceMetricsRangeAsync(string resourceId, string _namespace, string kind, string name, string metricsType, string startTime, string endTime) // Parameter names match interface
     {
-        Console.WriteLine($"WARN: MockKubePlugin: GetKubeResourceMetricsRangeAsync NOT IMPLEMENTED");
         // Simple random implementation if needed for other tests, but prefer explicit configuration
-        var random = new Random();
-        double metricValue = random.Next(10, 90);
-        return Task.FromResult($"## Mock Range {metricsType} Usage for {kind}/{name}\n**Value**: {metricValue:F2}%");
-        // throw new NotImplementedException();
+        Console.WriteLine($"WARN: MockKubePlugin: GetKubeResourceMetricsRangeAsync started ");
+        string key = $"{resourceId}:{_namespace}:{kind}:{name}";
+        if (!_mockMetrics.TryGetValue(key, out var metrics))
+        {
+            Console.WriteLine($"WARN: MockKubePlugin: No metrics found for {key}");
+            return Task.FromResult($"No metrics data available for {kind}/{name}");
+        }
+
+        // Parse start and end times
+        if (!DateTime.TryParse(startTime, out DateTime start))
+            start = DateTime.UtcNow.AddHours(-1);
+        if (!DateTime.TryParse(endTime, out DateTime end))
+            end = DateTime.UtcNow;
+
+        // Determine which metric to use from the tuple
+        double baseMetricValue;
+        string capitalizedMetricType = metricsType.ToUpperInvariant();
+        switch (metricsType.ToLowerInvariant())
+        {
+            case "cpu":
+            baseMetricValue = metrics.Cpu;
+            break;
+            case "memory":
+            baseMetricValue = metrics.Mem;
+            break;
+            case "availability":
+            baseMetricValue = metrics.Avail;
+            break;
+            default:
+            baseMetricValue = 50.0; // Default fallback
+            break;
+        }
+
+        // Generate 10 timestamps between start and end
+        TimeSpan interval = (end - start) / 9; // 9 intervals for 10 points
+        var sb = new StringBuilder();
+
+        for (int i = 0; i < 10; i++)
+        {
+            DateTime pointTime = start.Add(interval * i);
+            double metricValue = baseMetricValue;
+            sb.AppendLine($"{pointTime:yyyy-MM-ddTHH:mm:ss}|{metricValue:F2}|{capitalizedMetricType} Usage");
+        }
+
+        return Task.FromResult(sb.ToString());
     }
 
     public Task<string> GetAPIServerStatusAsync(string resourceId, string timeRange) // Parameter names match interface

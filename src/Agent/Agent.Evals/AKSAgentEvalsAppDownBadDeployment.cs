@@ -24,7 +24,7 @@ public partial class AKSAgentEvals
     {
         var tokenSource = new CancellationTokenSource();
         // Increase timeout for the longer scenario
-        tokenSource.CancelAfter(TimeSpan.FromMinutes(7));
+        tokenSource.CancelAfter(TimeSpan.FromMinutes(3));
         EvalInput evalInput = new EvalInput(_chatConfiguration, this.TestContext, _llmDeploymentName);
 
         evalInput.GroundedContext = """
@@ -81,14 +81,8 @@ public partial class AKSAgentEvals
         _mockKubePlugin.ConfigureDeployments(
             FormatAKSResourceId(_subscriptionId, _resourceGroupName, _aksClusterName),
             _deploymentNamespace,
-            "product-catalog, demo-app");
-        _mockKubePlugin.ConfigureStatefulSets(
-            FormatAKSResourceId(_subscriptionId, _resourceGroupName, _aksClusterName),
-            _deploymentNamespace,
-            "redis");
+            "product-catalog");
 
-        // Configure Dependency Graph
-        _mocks.GraphDBPlugin.ConfigureAKSMicroservices(aksResourceId, _deploymentNamespace, "product-catalog", "product-catalog depends on demo-app");
 
         // Mock Individual Component Diagnostics
         string healthySpecStatusYaml = """
@@ -136,18 +130,6 @@ public partial class AKSAgentEvals
             """;
         string normalEvent = "[2025-05-12T08:00:00Z] Normal: Operation successful";
         string crashLoopEvent = "[2025-05-12T08:10:15Z] Warning: BackOff: Back-off restarting failed container product-catalog in pod product-catalog-7d94d59b76-xfw2p";
-
-        // Helper to configure mocks for a standard healthy deployment
-        Action<string, string> configureHealthyDeployment = (name, podName) =>
-        {
-            _mockKubePlugin.ConfigureSpecStatus(aksResourceId, _deploymentNamespace, "apps/v1", "Deployment", name, healthySpecStatusYaml.Replace("{name}", name));
-            _mockKubePlugin.ConfigurePodsForWorkload(aksResourceId, _deploymentNamespace, "Deployment", name, podName);
-            _mockKubePlugin.ConfigureSpecStatus(aksResourceId, _deploymentNamespace, "v1", "Pod", podName, healthyPodStatusYaml.Replace("{podName}", podName));
-            _mockKubePlugin.ConfigureEvents(aksResourceId, _deploymentNamespace, "apps/v1", "Deployment", name, normalEvent);
-            _mockKubePlugin.ConfigureEvents(aksResourceId, _deploymentNamespace, "", "Pod", podName, normalEvent); // Pod events
-            _mockKubePlugin.ConfigureLogs(aksResourceId, _deploymentNamespace, podName, "Normal operations, no errors.");
-            _mockKubePlugin.ConfigureMetrics(aksResourceId, _deploymentNamespace, "Deployment", name, podName, cpuPercent: 5.0, memPercent: 15.0); // Generic low metrics
-        };
 
         // Configure CrashLoopBackOff for product-catalog deployment
         string productCatalogFailingSpecStatus = """
@@ -214,7 +196,6 @@ public partial class AKSAgentEvals
                     finishedAt: "2025-05-12T08:14:55Z"
             """;
 
-        configureHealthyDeployment("demo-app", "demo-app-dfb6ff45d-c69ds");
 
         // Configure the product-catalog deployment as failing
         _mockKubePlugin.ConfigureSpecStatus(aksResourceId, _deploymentNamespace, "apps/v1", "Deployment", "product-catalog", productCatalogFailingSpecStatus);
@@ -225,7 +206,7 @@ public partial class AKSAgentEvals
         _mockKubePlugin.ConfigureLogs(aksResourceId, _deploymentNamespace, "product-catalog-7d94d59b76-xfw2p", "panic: productcatalog service internal error\n\ngoroutine 47 [running]:\nmain.(*productCatalog).ListProducts(0x18a1840?, {0x11510d8?, 0xc000193ef0?}, 0x49ea65?)\n        /src/app/main.go:332 +0x166");
 
         // Configure metrics for product-catalog service (0% availability)
-        _mockKubePlugin.ConfigureMetrics(aksResourceId, _deploymentNamespace, "Deployment", "product-catalog", "product-catalog-7d94d59b76-xfw2p", cpuPercent: 0.0, memPercent: 0.0);
+        _mockKubePlugin.ConfigureWorkloadMetrics(aksResourceId, _deploymentNamespace, "Deployment", "product-catalog", cpuPercent: 0.0, memPercent: 0.0, availPercent: 0.0);
 
         // Configure deployment revisions
         string previousRevision = """
@@ -348,7 +329,7 @@ public partial class AKSAgentEvals
                     _mockKubePlugin.ConfigureEvents(aksResourceId, _deploymentNamespace, "apps/v1", "Deployment", "product-catalog", normalEvent);
                     _mockKubePlugin.ConfigureEvents(aksResourceId, _deploymentNamespace, "", "Pod", "product-catalog-8e95f7c84-ab12c", normalEvent);
                     _mockKubePlugin.ConfigureLogs(aksResourceId, _deploymentNamespace, "product-catalog-8e95f7c84-ab12c", "Product catalog service started successfully.");
-                    _mockKubePlugin.ConfigureMetrics(aksResourceId, _deploymentNamespace, "Deployment", "product-catalog", "product-catalog-8e95f7c84-ab12c", cpuPercent: 5.0, memPercent: 15.0);
+                    _mockKubePlugin.ConfigureWorkloadMetrics(aksResourceId, _deploymentNamespace, "Deployment", "product-catalog", cpuPercent: 5.0, memPercent: 15.0, availPercent: 100.0);
 
                     return "Deployment 'product-catalog' patched successfully. Rollout in progress.";
                 }

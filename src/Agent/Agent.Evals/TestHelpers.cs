@@ -83,6 +83,20 @@ public static class TestHelpers
                 .Build();
         });
 
+        builder.Services.AddKeyedSingleton<IChatClient>("helper-agent-reasoning", (sp, _) =>
+        {
+            var client = sp.GetRequiredService<AzureOpenAIClient>();
+            var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
+
+            return new ChatClientBuilder(client.AsChatClient(llmDeploymentName))
+                .UseLogging(loggerFactory)
+                .UseFunctionInvocation(loggerFactory, x =>
+                {
+                    x.IncludeDetailedErrors = true;
+                })
+                .Build();
+        });
+
         outLLMDeploymentName = llmDeploymentName;
 
 

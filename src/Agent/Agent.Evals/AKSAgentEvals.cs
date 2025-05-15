@@ -16,6 +16,7 @@ using Agent.Core.Interfaces;
 namespace Agent.Evals;
 
 [TestClass]
+[DoNotParallelize]
 public partial class AKSAgentEvals
 {
     public TestContext TestContext { get; set; }
@@ -108,6 +109,11 @@ public partial class AKSAgentEvals
             {
                 // Call the implementation AND potentially update its state
                 return _mockKubePlugin.ScaleStatefulSetAsync(id, ns, name, replicas);
+            });
+        _mockKubePluginWrapper.Setup(x => x.GetKubeResourceMetricsRangeAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .Returns((string id, string ns,  string resourceKind, string resourceName, string metricName, string startTime, string endTime) =>
+            {
+                return _mockKubePlugin.GetKubeResourceMetricsRangeAsync(id, ns, resourceKind, resourceName, metricName, startTime, endTime);
             });
 
         // Register the Mock<IKubePlugin>.Object, so the DI container provides the wrapper
@@ -266,7 +272,7 @@ public partial class AKSAgentEvals
     {
         var tokenSource = new CancellationTokenSource();
         // Increase timeout for the longer scenario
-        tokenSource.CancelAfter(TimeSpan.FromMinutes(7));
+        tokenSource.CancelAfter(TimeSpan.FromMinutes(3));
         EvalInput evalInput = new EvalInput(_chatConfiguration, this.TestContext, _llmDeploymentName);
 
         evalInput.GroundedContext = """

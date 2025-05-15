@@ -24,7 +24,7 @@ public partial class AKSAgentEvals
     {
         var tokenSource = new CancellationTokenSource();
         // Increase timeout for the longer scenario
-        tokenSource.CancelAfter(TimeSpan.FromMinutes(7));
+        tokenSource.CancelAfter(TimeSpan.FromMinutes(3));
         EvalInput evalInput = new EvalInput(_chatConfiguration, this.TestContext, _llmDeploymentName);
 
         evalInput.GroundedContext = """
@@ -146,7 +146,7 @@ public partial class AKSAgentEvals
             _mockKubePlugin.ConfigureEvents(aksResourceId, _deploymentNamespace, "apps/v1", "Deployment", name, normalEvent);
             _mockKubePlugin.ConfigureEvents(aksResourceId, _deploymentNamespace, "", "Pod", podName, normalEvent); // Pod events
             _mockKubePlugin.ConfigureLogs(aksResourceId, _deploymentNamespace, podName, "Normal operations, no errors.");
-            _mockKubePlugin.ConfigureMetrics(aksResourceId, _deploymentNamespace, "Deployment", name, podName, cpuPercent: 5.0, memPercent: 15.0); // Generic low metrics
+            _mockKubePlugin.ConfigureWorkloadMetrics(aksResourceId, _deploymentNamespace, "Deployment", name, cpuPercent: 5.0, memPercent: 15.0, availPercent: 100.0); // Generic low metrics
         };
 
         // Configure ImagePullBackOff for Checkout deployment
@@ -223,9 +223,7 @@ public partial class AKSAgentEvals
         _mockKubePlugin.ConfigureEvents(aksResourceId, _deploymentNamespace, "apps/v1", "Deployment", "checkout", "[2025-05-12T08:10:05Z] Warning: FailedCreate: Error creating pod checkout-7d94d59b76-xfw2p");
         _mockKubePlugin.ConfigureEvents(aksResourceId, _deploymentNamespace, "", "Pod", "checkout-7d94d59b76-xfw2p", imagePullBackoffEvent);
         _mockKubePlugin.ConfigureLogs(aksResourceId, _deploymentNamespace, "checkout-7d94d59b76-xfw2p", "Container is in ImagePullBackOff state. Unable to pull image.");
-
-        // Configure metrics for checkout service (0% availability)
-        _mockKubePlugin.ConfigureMetrics(aksResourceId, _deploymentNamespace, "Deployment", "checkout", "checkout-7d94d59b76-xfw2p", cpuPercent: 0.0, memPercent: 0.0);
+        _mockKubePlugin.ConfigureWorkloadMetrics(aksResourceId, _deploymentNamespace, "Deployment", "checkout", cpuPercent: 0.0, memPercent: 0.0, availPercent: 0.0); // Generic low metrics
 
         // Configure deployment revisions
         string previousRevision = """
@@ -348,7 +346,7 @@ public partial class AKSAgentEvals
                     _mockKubePlugin.ConfigureEvents(aksResourceId, _deploymentNamespace, "apps/v1", "Deployment", "checkout", normalEvent);
                     _mockKubePlugin.ConfigureEvents(aksResourceId, _deploymentNamespace, "", "Pod", "checkout-8e95f7c84-ab12c", normalEvent);
                     _mockKubePlugin.ConfigureLogs(aksResourceId, _deploymentNamespace, "checkout-8e95f7c84-ab12c", "Checkout service started successfully.");
-                    _mockKubePlugin.ConfigureMetrics(aksResourceId, _deploymentNamespace, "Deployment", "checkout", "checkout-8e95f7c84-ab12c", cpuPercent: 5.0, memPercent: 15.0);
+                    _mockKubePlugin.ConfigureWorkloadMetrics(aksResourceId, _deploymentNamespace, "Deployment", "checkout", cpuPercent: 10.0, memPercent: 10.0, availPercent: 100.0); // Generic low metrics
 
                     return "Deployment 'checkout' patched successfully. Rollout in progress.";
                 }
