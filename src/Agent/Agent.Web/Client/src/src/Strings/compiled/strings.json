@@ -29,12 +29,6 @@
       "value": "Resource group"
     }
   ],
-  "/0qSPz": [
-    {
-      "type": 0,
-      "value": "This logical map shows how your application's resources are connected. The agent analyzes those resources and organizes them into app group based on the primary resources."
-    }
-  ],
   "/2OpVO": [
     {
       "type": 0,
@@ -133,6 +127,12 @@
     {
       "type": 0,
       "value": "Delete thread"
+    }
+  ],
+  "2tOWr2": [
+    {
+      "type": 0,
+      "value": "Contains"
     }
   ],
   "35UE1s": [
@@ -467,6 +467,12 @@
       "value": "Settings"
     }
   ],
+  "DMd1Ql": [
+    {
+      "type": 0,
+      "value": "Is part of"
+    }
+  ],
   "DPnEXy": [
     {
       "type": 0,
@@ -615,6 +621,12 @@
     {
       "type": 0,
       "value": "- completed"
+    }
+  ],
+  "I4UmwN": [
+    {
+      "type": 0,
+      "value": "This logical map shows how your applications resources are connected across multiple resource groups, regions, and subscriptions. The agent analyzes these resources and organizes them into an app group based on the primary resource."
     }
   ],
   "IAwPyV": [
@@ -1063,10 +1075,22 @@
       "value": "Monitored Resource"
     }
   ],
+  "X4Y2nv": [
+    {
+      "type": 0,
+      "value": "Revision of"
+    }
+  ],
   "XEso9C": [
     {
       "type": 0,
       "value": "Linking Grafana dashboard"
+    }
+  ],
+  "Xa3AHo": [
+    {
+      "type": 0,
+      "value": "Linked to"
     }
   ],
   "XgXHWP": [
@@ -1225,6 +1249,12 @@
       "value": "Disconnect Azure Monitor?"
     }
   ],
+  "boWXYt": [
+    {
+      "type": 0,
+      "value": "Owned by"
+    }
+  ],
   "bxnWhY": [
     {
       "type": 0,
@@ -1307,6 +1337,12 @@
     {
       "type": 0,
       "value": "All statuses"
+    }
+  ],
+  "gO/IxZ": [
+    {
+      "type": 0,
+      "value": "Connects to"
     }
   ],
   "gj6Qc6": [
@@ -1447,6 +1483,12 @@
       "value": "Region"
     }
   ],
+  "mq/sud": [
+    {
+      "type": 0,
+      "value": "Local auth"
+    }
+  ],
   "mtr3R4": [
     {
       "type": 0,
@@ -1561,10 +1603,22 @@
       "value": "Connect Repository"
     }
   ],
+  "rk4tYE": [
+    {
+      "type": 0,
+      "value": "Monitored by"
+    }
+  ],
   "rpG/Bn": [
     {
       "type": 0,
       "value": "Access control"
+    }
+  ],
+  "rpx6XY": [
+    {
+      "type": 0,
+      "value": "Hosted on"
     }
   ],
   "rvirM2": [
@@ -1611,6 +1665,12 @@
     {
       "type": 0,
       "value": "Monitor Service"
+    }
+  ],
+  "swRudj": [
+    {
+      "type": 0,
+      "value": "Hosts"
     }
   ],
   "tSKi9q": [

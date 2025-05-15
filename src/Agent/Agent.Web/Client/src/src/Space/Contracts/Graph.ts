@@ -87,6 +87,27 @@ export class NodeSize {
     static readonly height = 100;
 }
 
+export enum NodeRelations {
+    Contains = 'CONTAINS',
+    Linked = 'LINKED',
+    SqlConnected = 'SQL_CONNECTED',
+    RedisConnected = 'REDIS_CONNECTED',
+    UsesRedis = 'USES_REDIS',
+    HasRole = 'HAS_ROLE',
+    HasIdentity = 'HAS_IDENTITY',
+    Connected = 'CONNECTED',
+    Hosts = 'HOSTS',
+    HostedOn = 'HOSTED_ON',
+    ServesCode = 'SERVES_CODE',
+    References = 'REFERENCES',
+    BackedBy = 'BACKED_BY',
+    RevisionOf = 'REVISION_OF',
+    OwnedBy = 'OWNED_BY',
+    RelatedToIncident = 'RELATED_TO_INCIDENT',
+    MonitoredBy = 'MONITORED_BY',
+    IsPartOF = 'IS_PART_OF',
+}
+
 export type HandlePosition = 'T' | 'B' | 'L' | 'R';
 
 export const GRAPH_CARD_TYPE = 'GraphCard';

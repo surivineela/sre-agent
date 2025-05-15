@@ -493,9 +493,23 @@ export const FeedbackResources = defineMessages({
 export const GraphResources = defineMessages({
     resourceSelectorDescription: {
         defaultMessage:
-            "This logical map shows how your application's resources are connected. The agent analyzes those resources and organizes them into app group based on the primary resources.",
-        id: '/0qSPz',
+            'This logical map shows how your applications resources are connected across multiple resource groups, regions, and subscriptions. The agent analyzes these resources and organizes them into an app group based on the primary resource.',
+        id: 'QkOLyp',
     },
+});
+
+export const GraphEdgeLabel = defineMessages({
+    contains: { defaultMessage: 'Contains', id: '2tOWr2' },
+    linkedTo: { defaultMessage: 'Linked to', id: 'Xa3AHo' },
+    connectsTo: { defaultMessage: 'Connects to', id: 'gO/IxZ' },
+    localAuth: { defaultMessage: 'Local auth', id: 'mq/sud' },
+    managedIdentity: { defaultMessage: 'Managed identity', id: 'Ys9AIu' },
+    hosts: { defaultMessage: 'Hosts', id: 'swRudj' },
+    hostedOn: { defaultMessage: 'Hosted on', id: 'rpx6XY' },
+    revisionOf: { defaultMessage: 'Revision of', id: 'X4Y2nv' },
+    ownedBy: { defaultMessage: 'Owned by', id: 'boWXYt' },
+    monitoredBy: { defaultMessage: 'Monitored by', id: 'rk4tYE' },
+    isPartOf: { defaultMessage: 'Is part of', id: 'DMd1Ql' },
 });
 
 export const ResourceInfoResources = defineMessages({

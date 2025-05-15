@@ -1,12 +1,14 @@
 import { tokens } from '@fluentui/react-components';
 import { BaseEdge, Edge, EdgeProps, getBezierPath } from '@xyflow/react';
-import { useContext } from 'react';
+import { useContext, useMemo } from 'react';
+import { FormattedMessage } from 'react-intl';
 import { GraphContext, GraphEdge } from '../Contracts/Graph';
 import { useGraphEdgeStyles } from '../Styles/Graph.styles';
 import CustomEdgeMarker from './CustomEdgeMarker';
+import { getFriendlyEdgeLabel } from './Utility';
 
 export const CustomEdge = (props: EdgeProps<Edge<GraphEdge>>) => {
-    const { id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, ...rest } = props;
+    const { id, label, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, ...rest } = props;
 
     const { edgesToHightlight } = useContext(GraphContext);
 
@@ -21,10 +23,15 @@ export const CustomEdge = (props: EdgeProps<Edge<GraphEdge>>) => {
         targetPosition,
     });
 
+    const displayLabel = useMemo(() => {
+        return label && typeof label === 'string' ? getFriendlyEdgeLabel(label) : undefined;
+    }, [label]);
+
     return (
         <>
             <CustomEdgeMarker id={id} color={edgesToHightlight.includes(id) ? tokens.colorBrandForegroundLinkHover : undefined} />
             <BaseEdge
+                label={displayLabel ? <FormattedMessage {...displayLabel} /> : undefined}
                 {...rest}
                 labelX={labelX}
                 labelY={labelY}

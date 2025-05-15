@@ -1,10 +1,12 @@
 import { Edge, Node } from '@xyflow/react';
+import { GraphEdgeLabel } from '../../Strings/SREAgentResources';
 import {
     CUSTOM_EDGE_TYPE,
     GRAPH_CARD_TYPE,
     GraphEdge,
     GraphNode,
     HandlePosition,
+    NodeRelations,
     NodeSize,
     Resource,
     ResourceExtended,
@@ -194,4 +196,38 @@ export const getSourceAndTargetHandleId = (
         sourceHandle,
         targetHandle,
     };
+};
+
+export const getFriendlyEdgeLabel = (nodeRelations: string) => {
+    switch (nodeRelations.toLowerCase()) {
+        case NodeRelations.Contains.toLowerCase():
+            return GraphEdgeLabel.contains;
+        case NodeRelations.Linked.toLowerCase():
+        case NodeRelations.ServesCode.toLowerCase():
+            return GraphEdgeLabel.linkedTo;
+        case NodeRelations.SqlConnected.toLowerCase():
+        case NodeRelations.RedisConnected.toLowerCase():
+        case NodeRelations.Connected.toLowerCase():
+        case NodeRelations.UsesRedis.toLowerCase():
+        case NodeRelations.References.toLowerCase():
+            return GraphEdgeLabel.connectsTo;
+        case NodeRelations.HasRole.toLowerCase():
+            return GraphEdgeLabel.localAuth;
+        case NodeRelations.HasIdentity.toLowerCase():
+            return GraphEdgeLabel.managedIdentity;
+        case NodeRelations.Hosts.toLowerCase():
+            return GraphEdgeLabel.hosts;
+        case NodeRelations.HostedOn.toLowerCase():
+            return GraphEdgeLabel.hostedOn;
+        case NodeRelations.RevisionOf.toLowerCase():
+            return GraphEdgeLabel.revisionOf;
+        case NodeRelations.OwnedBy.toLowerCase():
+            return GraphEdgeLabel.ownedBy;
+        case NodeRelations.MonitoredBy.toLowerCase():
+            return GraphEdgeLabel.monitoredBy;
+        case NodeRelations.IsPartOF.toLowerCase():
+            return GraphEdgeLabel.isPartOf;
+        default:
+            return undefined;
+    }
 };
