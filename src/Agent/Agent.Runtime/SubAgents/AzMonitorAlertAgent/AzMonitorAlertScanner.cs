@@ -18,6 +18,7 @@ using Agent.Plugins;
 using Agent.Runtime.MetaAgent.Interfaces;
 using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents.ContainerAppsRemediation;
+using Agent.Runtime.SubAgents.WebAppDownAgent;
 using Azure.Core;
 using Microsoft.Azure.Cosmos;
 using Microsoft.DurableTask.Client;
@@ -41,6 +42,7 @@ public class AzMonitorAlertScanner
     private readonly ILogQueryService _logQueryService;
     private readonly IAzMonitorAlertInvestigationService _azMonitorInvestigationService;
     private readonly ContainerAppsRemediationAgentFactory _containerAppsRemediationAgentFactory;
+    private readonly WebAppDownAgentFactory _webAppDownAgentFactory;
     private readonly DurableTaskClient _durableTaskClient;
     private readonly IAgentsFactory _agentsFactory;
 
@@ -58,6 +60,7 @@ public class AzMonitorAlertScanner
         ContainerAppsRemediationAgentFactory containerAppsRemediationAgentFactory,
         DurableTaskClient durableTaskClient,
         IAgentsFactory agentsFactory,
+        WebAppDownAgentFactory webAppDownAgentFactory,
         IChatClient chatClient, ILogger<AzMonitorAlertScanner> logger)
     {
         _graphDBPlugin = graphDbPlugin;
@@ -76,6 +79,7 @@ public class AzMonitorAlertScanner
         _containerAppsRemediationAgentFactory = containerAppsRemediationAgentFactory;
         _durableTaskClient = durableTaskClient;
         _agentsFactory = agentsFactory;
+        _webAppDownAgentFactory = webAppDownAgentFactory;
     }
 
     /// <summary>
@@ -158,19 +162,29 @@ public class AzMonitorAlertScanner
                 Guid.NewGuid(),
                 DateTime.UtcNow,
                 new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
-                ChatMessageService.SerializeInvestigationSummaryMessage("Root Cause Analysis and Diagnostic Findings", investigationSummary, isCollapsed: false)
+                ChatMessageService.SerializeInvestigationSummaryMessage("Root Cause Analysis and Diagnostic Findings", investigationSummary, isCollapsed: true)
             ));
+
+            await _repository.AddMessageAsync(thread.Id, new Message(
+               Guid.NewGuid(),
+               DateTime.UtcNow,
+               new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
+               "Finished initial investigation ✅\n\nStarting the remediation workflow for this resource ⚒️"
+           ));
+
 
             var resourceType = alert.Properties?.Essentials?.TargetResourceType;
 
             var alertInfo = GetAlertInfoAsPrompt(alert);
+
+            string subAgentPrompt = $"An Azure Monitor Alert was fired with the following details: {alertInfo}.\n Based on the alert details start the remediation flow with the appropriate subagent. Be as autonomous as possible without asking for permission to take actions.";
 
             // Trigger Container app orchestration. Temp workaround to force container app orchestration
             // TODO: Refactor to handle different resource types
             if (resourceType != null && resourceType.Contains("containerapps"))
             {
                 // Start the container app orchestration
-                var instanceId = await _containerAppsRemediationAgentFactory.StartOrchestration(alertInfo, agentContext.ThreadId);
+                var instanceId = await _containerAppsRemediationAgentFactory.StartOrchestration(subAgentPrompt, agentContext.ThreadId);
 
                 _logger.LogInternalInformation("Started container app remediation agent with instance ID: {InstanceId}", instanceId);
 
@@ -200,6 +214,38 @@ public class AzMonitorAlertScanner
                     _logger.LogInternalError(ex, "Error waiting for Container App remediation agent: {Message}", ex.Message);
                 }
             }
+            else if (resourceType != null && (resourceType.ToLower().Contains("sites") || resourceType.ToLower().Contains("slot")))
+            {
+                // Start the container app orchestration
+                var instanceId = await _webAppDownAgentFactory.StartOrchestration(subAgentPrompt, agentContext.ThreadId);
+
+                _logger.LogInternalInformation("Started web app remediation agent with instance ID: {InstanceId}", instanceId);
+
+                try
+                {
+                    using (var timeoutCts = new CancellationTokenSource(TimeSpan.FromHours(1))) // 1 hour timeout
+                    using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken))
+                    {
+                        await _durableTaskClient.WaitForInstanceCompletionAsync(instanceId, linkedCts.Token);
+                        _logger.LogInternalInformation("Web App Remediation Flow finished executing.");
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        _logger.LogInternalWarning("Web App remediation agent was cancelled.");
+                    }
+                    else
+                    {
+                        _logger.LogInternalWarning("Web App remediation agent timed out.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalError(ex, "Error waiting for Web App remediation agent: {Message}", ex.Message);
+                }
+            }
             else // all other resource types
             {
                 // Signal the agent to start investigating with all the context summaries
@@ -207,7 +253,7 @@ public class AzMonitorAlertScanner
                    ThreadId: thread.Id,
                    AgentContextId: agentContext.Id,
                    MessageId: thread.StartMessage.Id,
-                   Message: $"I've completed an initial investigation of this alert with the following hypotheses and findings: {investigationSummary}\n\nPlease validate these hypotheses by checking the supporting evidence. If the hypotheses seem incomplete or insufficient, conduct additional targeted investigation focusing on metrics, logs, and recent changes. Your goal is to either confirm one of these hypotheses with high confidence or discover the actual root cause if it differs from what I've identified.",
+                   Message: $"I've completed an initial investigation of this alert with the following hypotheses and findings: {investigationSummary}\n\nPlease validate these hypotheses by checking the supporting evidence. If the hypotheses seem incomplete or insufficient, conduct additional targeted investigation focusing on metrics, logs, and recent changes. Your goal is to either confirm one of these hypotheses with high confidence or discover the actual root cause if it differs from what I've identified. Based on the initial findings, find an appropriate subagent to handle the remediation. Be as autonomous as possible without asking for permission to take actions.",
                    UserId: "incident-system",
                    DisplayName: "Azure Monitor Investigation Summary",
                    Timestamp: DateTime.UtcNow
