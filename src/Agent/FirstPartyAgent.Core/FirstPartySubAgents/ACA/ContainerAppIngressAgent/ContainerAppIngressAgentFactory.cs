@@ -39,7 +39,7 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppIngressAgent
 
             var envoyPluginDefinition = new ContainerAppEnvoyPluginDefinition(envoyPlugin);
             toolSignatures.Add(_toolsRegistry.GetSignature(() => envoyPluginDefinition.GetContainerAppManagedCluster));
-            toolSignatures.Add(_toolsRegistry.GetSignature(() => envoyPluginDefinition.GetEnvoyAbnormalLogs));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => envoyPluginDefinition.GetEnvoyPodLogs));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => envoyPluginDefinition.GetEnvoyControllerLogs));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => envoyPluginDefinition.GetEnvoyAccessLogs));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => envoyPluginDefinition.GetSwiftNetworkingEvents));

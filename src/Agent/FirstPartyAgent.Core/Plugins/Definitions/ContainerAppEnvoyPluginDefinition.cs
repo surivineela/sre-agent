@@ -23,20 +23,20 @@ Projects:
             return _plugin.GetContainerAppManagedCluster(region, fromDate, toDate, containerAppName, resourceGroupName, subscriptionId);
         }
 
-        [KernelFunction(KernelFunctionNames.ACA.GetEnvoyAbnormalLogs)]
-        [Description(@"Retrieve Container Apps Envoy Abnormal Logs. 
+        [KernelFunction(KernelFunctionNames.ACA.GetEnvoyPodLogs)]
+        [Description(@"Retrieve Container Apps Envoy Pod Logs. 
 Projects:
   - EnvironmentName: Environment name, also called Managed Cluster Name.
-  - Log: Envoy container abnormal log.
+  - Log: Envoy pod log.
   - Role: Cluster Node Id.
   - _ContainerGroupId: Envoy container group Id.
   - _ContainerGroupName: Envoy container group Name.
   - _ContainerId: Envoy container Id.
   - _ContainerImage: The docker image used by the Envoy container.
 ")]
-        public Task<string> GetEnvoyAbnormalLogs([Description("Azure region.")] string region, [Description("Start time of the query.")] DateTime fromDate, [Description("End time of the query.")] DateTime toDate, [Description("Managed Cluster Name of the container app.")] string managedClusterName)
+        public Task<string> GetEnvoyPodLogs([Description("Azure region.")] string region, [Description("Start time of the query.")] DateTime fromDate, [Description("End time of the query.")] DateTime toDate, [Description("Managed Cluster Name of the container app.")] string managedClusterName)
         {
-            return _plugin.GetEnvoyAbnormalLogs(region, fromDate, toDate, managedClusterName);
+            return _plugin.GetEnvoyPodLogs(region, fromDate, toDate, managedClusterName);
         }
 
         [KernelFunction(KernelFunctionNames.ACA.GetEnvoyControllerLogs)]

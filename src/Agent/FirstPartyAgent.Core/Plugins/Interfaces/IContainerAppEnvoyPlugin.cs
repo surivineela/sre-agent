@@ -5,7 +5,7 @@ namespace FirstPartyAgent.Core.Plugins.Interfaces;
 public interface IContainerAppEnvoyPlugin
 {
     Task<string> GetContainerAppManagedCluster(string region, DateTime fromDate, DateTime toDate, string containerAppName, string resourceGroupName, string subscriptionId);
-    Task<string> GetEnvoyAbnormalLogs(string region, DateTime fromDate, DateTime toDate, string managedClusterName);
+    Task<string> GetEnvoyPodLogs(string region, DateTime fromDate, DateTime toDate, string managedClusterName);
     Task<string> GetEnvoyControllerLogs(string region, DateTime fromDate, DateTime toDate, string managedClusterName);
     Task<string> GetEnvoyAccessLogs(string region, DateTime fromDate, DateTime toDate, string managedClusterName);
     Task<string> GetSwiftNetworkingEvents(string region, DateTime fromDate, DateTime toDate, string managedClusterName);

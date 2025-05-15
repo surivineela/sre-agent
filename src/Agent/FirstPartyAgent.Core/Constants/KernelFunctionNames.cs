@@ -44,7 +44,7 @@ namespace FirstPartyAgent.Constants
             public const string CheckIfDNSServerFailedToResolveDot = "CheckIfDNSServerFailedToResolveDot";
             public const string GetContainerAppManagedClusterName = "get_container_app_managed_cluster_name";
             public const string GetSwiftNetworkingEvents = "get_swift_networking_events";
-            public const string GetEnvoyAbnormalLogs = "get_envoy_abnormal_logs";
+            public const string GetEnvoyPodLogs = "get_envoy_pod_logs";
             public const string GetEnvoyControllerLogs = "get_envoy_controller_logs";
             public const string GetEnvoyAccessLogs = "get_envoy_access_logs";
             public const string GetEnvoyPodStatus = "get_envoy_pod_status";

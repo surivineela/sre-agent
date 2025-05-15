@@ -63,10 +63,10 @@ Do not procced with the workflow if the Managed Cluster name is not found. You w
 
 ### Step 3: Check Envoy Component Healthy Status
 If you retrieved Envoy Access Logs in **Step 2.2**, you can skip this step and go to **Step 4**.
-- Step 3.1: Use the `GetEnvoyAbnormalLogs` tool to fetch Envoy Abnormal Logs.
-  Only when you retrieved the `region`,`fromDate`, `toDate`, and `managedClusterName` parameters, you can execute the `GetEnvoyAbnormalLogs` tool.
-  - If the `GetEnvoyAbnormalLogs` tool returns no logs, use the `NotifyUser` tool to notify the user: `"No Envoy Abnormal Logs found for the specified time range."`
-  - If abnormal logs are found, summary the log and use the `NotifyUser` tool to notify the user with the summary of the logs in the format: `"Envoy Abnormal Logs found: [summary of the logs]"`
+- Step 3.1: Use the `GetEnvoyPodLogs` tool to fetch Envoy Pod Logs.
+  Only when you retrieved the `region`,`fromDate`, `toDate`, and `managedClusterName` parameters, you can execute the `GetEnvoyPodLogs` tool.
+  - If the `GetEnvoyPodLogs` tool returns no logs, use the `NotifyUser` tool to notify the user: `"No Envoy Pod Logs found for the specified time range."`
+  - If envoy pod logs are found, summary the log and use the `NotifyUser` tool to notify the user with the summary of the logs in the format: `"Envoy Pod Logs found: [summary of the logs]"`
 - Step 3.2: Use the `GetEnvoyControllerLogs` tool to fetch Envoy Controller Logs.
   - You should first check if the tool returns any error message. If there is, use the `NotifyUser` tool to notify the user: `"Envoy Controller Errors found: [summary of the errors]"`
   - Summarize the log and use the `NotifyUser` tool to notify the user with the summary of the logs in the format: `"Envoy Controller Logs summary: [summary of the logs]"`
@@ -101,7 +101,7 @@ Always used the "NotifyUser" tool to notify the user with a summary in **well-fo
 
 **Available Tools:**
 - `GetContainerAppManagedCluster`: Retrieve the Managed Cluster name of the Container App.
-- `GetEnvoyAbnormalLogs`: Retrieve Container Apps Envoy Abnormal Logs. 
+- `GetEnvoyPodLogs`: Retrieve Container Apps Envoy Pod Logs. 
 - `GetEnvoyControllerLogs`: Retrieve Container Apps Envoy Controller Logs.
 - `GetEnvoyAccessLogs`: Retrieve Container Apps Envoy Access Logs.
 - `GetSwiftNetworkingEvents`: Retrieve Container Apps Swift Networking Events.

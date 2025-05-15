@@ -27,9 +27,9 @@ public class ContainerAppEnvoyPlugin : IContainerAppEnvoyPlugin
         });
     }
 
-    public Task<string> GetEnvoyAbnormalLogs(string region, DateTime fromDate, DateTime toDate, string managedClusterName)
+    public Task<string> GetEnvoyPodLogs(string region, DateTime fromDate, DateTime toDate, string managedClusterName)
     {
-        return _kustoPlugin.ExecuteLocalFunctionAsync("GetEnvoyAbnormalLogs", region,
+        return _kustoPlugin.ExecuteLocalFunctionAsync("GetEnvoyPodLogs", region,
         new Dictionary<string, string> {
             { "fromDate", fromDate.ToString() },
             { "toDate", toDate.ToString() },
