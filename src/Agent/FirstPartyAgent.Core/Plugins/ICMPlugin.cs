@@ -399,6 +399,12 @@ namespace FirstPartyAgent.Core.Plugins
                 await kernel.LogInformation(warningMessage, _logger, _teamsClient, _sessionMessageService);
                 await AddTagToIncident(incidentId, $"SREAgent_UnnamedAgent", kernel);
             }
+
+            // Add human intervention tag if CloudInstance is not Public
+            if (incidentDetails.CloudInstance != "Public")
+            {
+                await AddTagToIncident(incidentId, HumanInterventionTag, kernel);
+            }
         }
 
         #region RelatedIncidents operation methods
