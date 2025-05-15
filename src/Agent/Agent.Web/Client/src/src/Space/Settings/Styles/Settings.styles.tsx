@@ -79,11 +79,11 @@ const navPivotContainer: CSSProperties = {
 const incidentManagementDescriptionStyle: CSSProperties = { marginTop: 20, marginBottom: 20 };
 
 const pagerDutyWrapperStyle: CSSProperties = { display: 'flex', alignItems: 'center', marginTop: 20, marginBottom: 20 };
-const pagerDutyLogoStyle: CSSProperties = { display: 'block', height: 20, marginTop: 10, marginBottom: 10 };
+const pagerDutyLogoStyle: CSSProperties = { display: 'block', height: 20, marginTop: 5, marginBottom: 5 };
 
 const azMonitorWrapperStyle: CSSProperties = { display: 'flex', alignItems: 'center', marginTop: 20, marginBottom: 20 };
 const azMonitorLogoStyle: CSSProperties = { display: 'block', height: 30, marginRight: 10 };
-const azMonitorNameStyle: CSSProperties = { fontWeight: 'bold' };
+const azMonitorNameStyle: CSSProperties = { fontWeight: tokens.fontWeightSemibold };
 
 const connectedWrapperStyle: CSSProperties = { display: 'flex', alignItems: 'center', marginTop: 20, marginBottom: 20 };
 const connectedImageStyle: CSSProperties = { display: 'block', height: 15, marginRight: 10 };
@@ -91,6 +91,22 @@ const connectedImageStyle: CSSProperties = { display: 'block', height: 15, margi
 const buttonsWrapperStyle: CSSProperties = { marginTop: 30 };
 
 const deleteButtonStyle: CSSProperties = { marginTop: '20px' };
+
+const controlStyles = {
+    width: 460,
+    bordeRadius: tokens.borderRadiusLarge,
+};
+
+const dropdownStyles = {
+    ...controlStyles,
+};
+
+const textFieldStyles = {
+    ...controlStyles,
+    fontFamily: 'monospace',
+    WebkitTextSecurity: 'disc', // Safari-specific obfuscation
+    textSecurity: 'disc', // Obfuscates text in supported browsers
+};
 
 export const useSettingsStyles = () => {
     return {
@@ -120,6 +136,9 @@ export const useSettingsStyles = () => {
         connectedImageStyle,
         buttonsWrapperStyle,
         deleteButtonStyle,
+        controlStyles,
+        dropdownStyles,
+        textFieldStyles,
     };
 };
 
@@ -175,58 +194,5 @@ export const navStyles = {
             },
         },
         height: 32,
-    },
-};
-
-export const incidentManagementTextFieldStyles = {
-    root: {
-        marginTop: 20,
-        marginBottom: 20,
-    },
-    wrapper: {
-        width: 700,
-        display: 'flex',
-    },
-    subComponentStyles: {
-        label: {
-            root: {
-                width: 240,
-            },
-        },
-    },
-    fieldGroup: {
-        width: 460,
-        borderRadius: tokens.borderRadiusLarge,
-    },
-    field: {
-        borderRadius: tokens.borderRadiusLarge,
-    },
-};
-
-export const incidentManagementMaskedTextFieldStyles = {
-    ...incidentManagementTextFieldStyles,
-    field: {
-        fontFamily: 'monospace',
-        WebkitTextSecurity: 'disc', // Safari-specific obfuscation
-        textSecurity: 'disc', // Obfuscates text in supported browsers
-        borderRadius: tokens.borderRadiusLarge,
-    },
-};
-
-export const incidentManagementDropdownStyles = {
-    root: {
-        width: 700,
-        display: 'flex',
-        marginTop: 20,
-        marginBottom: 20,
-    },
-    label: {
-        width: 240,
-    },
-    title: {
-        borderRadius: tokens.borderRadiusLarge,
-    },
-    dropdown: {
-        width: 460,
     },
 };

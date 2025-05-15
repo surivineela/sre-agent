@@ -269,14 +269,14 @@ export const IncidentManagementResources = defineMessages({
     incidentManagement: { defaultMessage: 'Incident management', id: 'T7WpWs' },
     incidentManagementDescription: {
         defaultMessage:
-            'Integrate an incident management platform with the SRE Agent to automate routine incident tasks, manage alerts, and get data-driven insights.',
-        id: 'HafgWq',
+            'Connect an incident management platform to the SRE Agent so that it can detect and respond to routine incident tasks and notifications. To change to a different platform, delete the connection to the current one.',
+        id: 'aSn3tP',
     },
     incidentPlatform: { defaultMessage: 'Incident platform', id: 'EZBG/A' },
 });
 
 export const IncidentManagementPlatformResources = defineMessages({
-    disconnected: { defaultMessage: 'Disconnected', id: 'FZeQlc' },
+    disconnected: { defaultMessage: 'Choose a platform', id: '/2OpVO' },
     pagerDuty: { defaultMessage: 'PagerDuty', id: '6UyZlH' },
     azMonitor: { defaultMessage: 'Azure Monitor', id: '7Nz2Ev' },
 });
@@ -369,34 +369,39 @@ export const ComponentResources = defineMessages({
 });
 
 export const IncidentManagementValidationResources = defineMessages({
-    apiKeyInvalid: { defaultMessage: 'API key is not valid', id: 'AXAtAX' },
-    apiKeyRequired: { defaultMessage: 'API Key is required', id: 'S7xtEr' },
-    apiKeyFailedToValidate: { defaultMessage: 'Failed to validate API Key', id: 'hMGoYE' },
+    apiKeyInvalid: { defaultMessage: 'The access key is not valid. Please try again.', id: 'u4hSyh' },
+    apiKeyRequired: { defaultMessage: 'Access key is required.', id: 'QEhO+z' },
+    apiKeyFailedToValidate: { defaultMessage: 'Failed to validate the access key. Please try again.', id: 'Y7Lbpf' },
 });
 
 export const PagerDutyResources = defineMessages({
     pagerDutyApiKey: { defaultMessage: 'REST API access key', id: 'AuFOi8' },
-    pagerDutyApiKeyDescription: {
+    description: {
         defaultMessage:
-            "You'll need to connect through an access key. Go to pagerduty.com and the information will be within the API Access Keys section.",
-        id: 'UvQLwV',
+            'Connect to PagerDuty with an access key. To get more information, go to pagerduty.com and then to the API Access Keys section.',
+        id: 'G6vaGg',
     },
-    editKey: { defaultMessage: 'Edit key', id: 'CQF3U+' },
-    disconnectConfirmationTitle: { defaultMessage: 'Disconnect from PagerDuty?', id: '8kVGbB' },
+    changeKey: { defaultMessage: 'Change key', id: 'pT3qMe' },
+    disconnectConfirmationTitle: { defaultMessage: 'Disconnect PagerDuty?', id: 'cTY8WU' },
     disconnectConfirmationMessage: {
         defaultMessage:
-            'This will permanently disconnect from PagerDuty. The agent will no longer be able to manage tickets. Are you sure you want to disconnect?',
-        id: 'Sw/LL9',
+            'This will permanently delete the connection to PagerDuty. The agent will no longer be able to manage tickets. Are you sure you want to delete this connection?',
+        id: 'rGl1yu',
     },
     connectedMessage: { defaultMessage: 'PagerDuty added', id: 'i0mHNo' },
 });
 
 export const AzMonitorResources = defineMessages({
-    disconnectConfirmationTitle: { defaultMessage: 'Disconnect from Azure Monitor?', id: 'HsGdXO' },
+    description: {
+        defaultMessage:
+            'Connect to Azure Monitor so that the SRE Agent can automatically monitor notifications from resources in the resource groups it manages, without additional provisioning.',
+        id: 'XgXHWP',
+    },
+    disconnectConfirmationTitle: { defaultMessage: 'Disconnect Azure Monitor?', id: 'blSyDZ' },
     disconnectConfirmationMessage: {
         defaultMessage:
-            'This will permanently disconnect to Azure Monitor. The agent will no longer be integrated with Azure Monitor alerts. Are you sure you want to disconnect?',
-        id: 'Y1qw19',
+            'This will permanently delete the connection to Azure Monitor. The agent will no longer be integrated with Azure Monitor notifications. Are you sure you want to delete this connection?',
+        id: 'w/UZrq',
     },
     connectedMessage: { defaultMessage: 'Azure Monitor added', id: '14xQ4i' },
 });

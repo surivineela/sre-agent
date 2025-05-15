@@ -1,4 +1,3 @@
-import { Dropdown, TextField } from '@fluentui/react';
 import {
     Button,
     Dialog,
@@ -8,6 +7,10 @@ import {
     DialogSurface,
     DialogTitle,
     DialogTrigger,
+    Dropdown,
+    Field,
+    Input,
+    Option,
     Spinner,
 } from '@fluentui/react-components';
 import { FC, useMemo, useState } from 'react';
@@ -21,12 +24,7 @@ import {
     SreAgentResources,
 } from '../../Strings/SREAgentResources';
 import { IncidentManagementFormProps, IncidentManagementPlatform } from '../Contracts/IncidentManagement';
-import {
-    incidentManagementDropdownStyles,
-    incidentManagementMaskedTextFieldStyles,
-    useDialogStyles,
-    useSettingsStyles,
-} from './Styles/Settings.styles';
+import { useDialogStyles, useSettingsStyles } from './Styles/Settings.styles';
 
 const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
     formikProps,
@@ -46,12 +44,16 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
 
     const incidentPlatformDropdownOptions = useMemo(
         () => [
-            { key: IncidentManagementPlatform.Disconnected, text: intl.formatMessage(IncidentManagementPlatformResources.disconnected) },
             { key: IncidentManagementPlatform.PagerDuty, text: intl.formatMessage(IncidentManagementPlatformResources.pagerDuty) },
             { key: IncidentManagementPlatform.AzMonitor, text: intl.formatMessage(IncidentManagementPlatformResources.azMonitor) },
         ],
         [intl]
     );
+
+    const selectedPlatformDisplayName = useMemo(() => {
+        const selectedPlatform = incidentPlatformDropdownOptions.find(option => option.key === values.platform);
+        return selectedPlatform?.text || '';
+    }, [incidentPlatformDropdownOptions, values.platform]);
 
     const isDirty = useMemo(() => {
         if (values.platform !== IncidentManagementPlatform.PagerDuty && initialValues.platform === values.platform) {
@@ -92,23 +94,34 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                     <Spinner />
                 ) : (
                     <>
-                        <Dropdown
-                            id="platform"
-                            options={incidentPlatformDropdownOptions}
+                        <Field
+                            id="platformField"
                             label={intl.formatMessage(IncidentManagementResources.incidentPlatform)}
+                            orientation="horizontal"
                             required={true}
-                            styles={incidentManagementDropdownStyles}
-                            selectedKey={values.platform}
-                            onChange={(_event, option, _index) => {
-                                setFieldTouched('platform', true, false);
-                                setFieldValue('platform', option?.key);
-                                if (option?.key !== IncidentManagementPlatform.PagerDuty) {
-                                    setFieldValue('connectionKey', undefined, false);
-                                    setFieldTouched('connectionKey', false, false);
-                                }
-                            }}
-                            disabled={loading || !!loadFailure || saving || !isSetupScenario}
-                        />
+                        >
+                            <Dropdown
+                                id="platform"
+                                style={styles.dropdownStyles}
+                                value={selectedPlatformDisplayName}
+                                placeholder={intl.formatMessage(IncidentManagementPlatformResources.disconnected)}
+                                onOptionSelect={(_event, data) => {
+                                    setFieldTouched('platform', true, false);
+                                    setFieldValue('platform', data?.optionValue);
+                                    if (data?.optionValue !== IncidentManagementPlatform.PagerDuty) {
+                                        setFieldValue('connectionKey', undefined, false);
+                                        setFieldTouched('connectionKey', false, false);
+                                    }
+                                }}
+                                disabled={loading || !!loadFailure || saving || !isSetupScenario}
+                            >
+                                {incidentPlatformDropdownOptions.map(option => (
+                                    <Option value={option.key} checkIcon={null}>
+                                        {option.text}
+                                    </Option>
+                                ))}
+                            </Dropdown>
+                        </Field>
 
                         {values.platform === IncidentManagementPlatform.PagerDuty && (
                             <>
@@ -116,7 +129,7 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                                     <img src="./PagerDuty.svg" alt="PagerDuty" style={styles.pagerDutyLogoStyle} />
                                 </div>
                                 <div style={styles.incidentManagementDescriptionStyle}>
-                                    {intl.formatMessage(PagerDutyResources.pagerDutyApiKeyDescription)}
+                                    {intl.formatMessage(PagerDutyResources.description)}
                                 </div>
                                 {!isSetupScenario && (
                                     <div style={styles.connectedWrapperStyle}>
@@ -124,23 +137,28 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                                         <span>{intl.formatMessage(PagerDutyResources.connectedMessage)}</span>
                                     </div>
                                 )}
-                                <TextField
-                                    id="connectionKey"
+                                <Field
+                                    id="connectionKeyField"
                                     label={intl.formatMessage(PagerDutyResources.pagerDutyApiKey)}
+                                    orientation="horizontal"
                                     required={true}
-                                    styles={incidentManagementMaskedTextFieldStyles}
-                                    value={isApiKeyEditable ? values.connectionKey : undefined}
-                                    placeholder={isApiKeyEditable ? undefined : '********************'}
-                                    onChange={(_, value) => {
-                                        setFieldTouched('connectionKey', true, false);
-                                        setFieldValue('connectionKey', value);
-                                    }}
-                                    disabled={saving || !isApiKeyEditable}
-                                    errorMessage={
+                                    validationMessage={
                                         formikProps.touched.connectionKey && !isValidating ? formikProps.errors.connectionKey : undefined
                                     }
-                                    onRenderSuffix={isValidating && !isSubmitting ? () => <Spinner size={'tiny'} /> : undefined}
-                                />
+                                >
+                                    <Input
+                                        style={styles.textFieldStyles}
+                                        id="connectionKey"
+                                        value={isApiKeyEditable ? values.connectionKey : undefined}
+                                        placeholder={isApiKeyEditable ? undefined : '********************'}
+                                        onChange={(_event, newValue) => {
+                                            setFieldTouched('connectionKey', true, false);
+                                            setFieldValue('connectionKey', newValue?.value);
+                                        }}
+                                        disabled={saving || !isApiKeyEditable}
+                                        contentAfter={isValidating && !isSubmitting ? <Spinner size={'tiny'} /> : null}
+                                    />
+                                </Field>
                             </>
                         )}
 
@@ -151,6 +169,9 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                                     <span style={styles.azMonitorNameStyle}>
                                         {intl.formatMessage(IncidentManagementPlatformResources.azMonitor)}
                                     </span>
+                                </div>
+                                <div style={styles.incidentManagementDescriptionStyle}>
+                                    {intl.formatMessage(AzMonitorResources.description)}
                                 </div>
                                 {!isSetupScenario && (
                                     <div style={styles.connectedWrapperStyle}>
@@ -170,7 +191,7 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                                         setEditingApiKey(true);
                                     }}
                                 >
-                                    {intl.formatMessage(PagerDutyResources.editKey)}
+                                    {intl.formatMessage(PagerDutyResources.changeKey)}
                                 </Button>
                             )}
 
@@ -204,7 +225,7 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                                     }}
                                     disabled={(!isDirty && !editingApiKey) || saving}
                                 >
-                                    {intl.formatMessage(editingApiKey ? SreAgentResources.cancel : SreAgentResources.discard)}
+                                    {intl.formatMessage(SreAgentResources.cancel)}
                                 </Button>
                             )}
 
