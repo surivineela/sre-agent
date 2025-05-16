@@ -201,7 +201,7 @@ public class KubernetesClientFactory : IKubernetesClientFactory
             }
         }
 
-        return _configurationCache[$"{subscription}/{resourceGroup}/{clusterName}"];
+        return _configurationCache[key];
     }
 }
 
