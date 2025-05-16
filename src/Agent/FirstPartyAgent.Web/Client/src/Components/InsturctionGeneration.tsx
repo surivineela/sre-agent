@@ -4,6 +4,7 @@ import { GenerateInstructionsRequest, IcmIncident } from "../Models/Response";
 import { DetailsList, DetailsListLayoutMode, Dropdown, IColumn, MessageBar, MessageBarType, PrimaryButton, SelectionMode, Stack, TextField, Selection, IDropdownOption } from "@fluentui/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import LoadingErrorWrapper from "./LoadingErrorWrapper";
+import ErrorUtilities from "../Helpers/Error";
 
 export interface InstructionGenerationProps {
     teamId: number;
@@ -86,7 +87,7 @@ const InstructionGeneration = (props: InstructionGenerationProps) => {
                 </Stack>
 
                 <div style={{ height: "50vh" }}>
-                    <LoadingErrorWrapper error={getIncidentsError} status={getIncidentsStatus} renderLoading="Loading ICM incidents...">
+                    <LoadingErrorWrapper error={getIncidentsError} status={getIncidentsStatus} renderLoading="Loading ICM incidents..." renderError={ErrorUtilities.extractErrorMessage}>
                         <InstructionGenerationIcmList data={getIncidentsData} selectedICMsRef={selectedICMsRef} />
                     </LoadingErrorWrapper>
                 </div>

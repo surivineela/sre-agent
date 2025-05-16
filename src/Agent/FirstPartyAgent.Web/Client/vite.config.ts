@@ -7,6 +7,7 @@ export default defineConfig({
     build: {
         outDir: '../wwwroot/static',
         emptyOutDir: true,
+        sourcemap: "hidden"
     },
     publicDir: './src/assets',
     server: {

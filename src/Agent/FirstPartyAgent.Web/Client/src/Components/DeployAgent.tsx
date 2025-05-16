@@ -1,10 +1,10 @@
 import { Checkbox, DefaultButton, Dialog, DialogContent, DialogFooter, DialogType, Dropdown, IDialogContentProps, IDropdownOption, IModalProps, PrimaryButton, Stack, TextField } from "@fluentui/react";
 import { useBoolean } from "@fluentui/react-hooks";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useSearchParams } from "react-router-dom";
 import { createAgent, getAgentDeployments, getLocations, getResourceGroups, getSubscriptions } from "../Services/Request";
 import { AgentDeployment, DeployAgentPostBody, Location, ResourceGroup, Subscription } from "../Models/Response";
 import { useEffect, useMemo, useState } from "react";
+import FeatureUtils from "../Helpers/Feature";
 
 
 const defaultFirstPartySubOptions: IDropdownOption<Subscription>[] =
@@ -76,7 +76,6 @@ const defaultFirstPartyLocationOptions: IDropdownOption<Location>[] = [
 
 // Todo: fill in with actual options
 const DeployAgent = (props: { teamId: number }) => {
-    const [searchParams] = useSearchParams();
     const [isDialogVisible, { setTrue: displayDialog, setFalse: hideDialog }] = useBoolean(false);
 
     const [inputsReadOnly, { setTrue: enableInputReadOnly, setFalse: disableInputsReadOnly }] = useBoolean(true);
@@ -85,7 +84,7 @@ const DeployAgent = (props: { teamId: number }) => {
     const [selectedLocation, setSelectedLocation] = useState<IDropdownOption<Location> | null>(null);
     const [agentName, setAgentName] = useState<string>("");
 
-    const isDeployAgentDisabled = searchParams.get("deployAgentEnabled") !== "true";
+    const isDeployAgentEnabled = FeatureUtils.isFeatureEnabled();
     const dialogContentProps: IDialogContentProps = {
         type: DialogType.largeHeader,
         title: 'Deploy Agent',
@@ -268,7 +267,7 @@ const DeployAgent = (props: { teamId: number }) => {
 
     return (
         <>
-            <PrimaryButton text="Deploy to agent" disabled={isDeployAgentDisabled} onClick={displayDialog} />
+            <PrimaryButton text="Deploy to agent" disabled={!isDeployAgentEnabled} onClick={displayDialog} />
             <Dialog hidden={!isDialogVisible} onDismiss={hideDialog} dialogContentProps={dialogContentProps} modalProps={modalProps}>
                 <DialogContent>
                     <Stack tokens={{ childrenGap: 5 }}>

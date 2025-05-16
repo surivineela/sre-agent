@@ -17,6 +17,7 @@ export interface ICMAlertConfig {
     mitigationInstructions: string[];
     monitoringInstructions: string[];
     incidentProcessingGuide: string[];
+    agentName?: string;
 }
 
 interface GenevaActionConfigBase {
@@ -128,6 +129,10 @@ export const monacoJsonSchema =
             "items": {
                 "type": "string"
             }
+        },
+        "agentName": {
+            "type": ["string","null"],
+            "description": "The name of the agent to be used for the alert"
         }
     },
     "required": [
@@ -135,11 +140,9 @@ export const monacoJsonSchema =
         "owningTeams",
         "kustoQueries",
         "owners",
-        "actionTimeoutIntervalInMinutes",
-        "defaultHumanInterventionLoop",
         "incidentProcessingGuide"
     ],
-    "additionalProperties": false,
+    "additionalProperties": true,
     "definitions": {
         "GenevaActionConfigBase": {
             "type": "object",

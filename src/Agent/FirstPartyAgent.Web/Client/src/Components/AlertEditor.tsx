@@ -3,12 +3,12 @@ import { getAlertConfig, updateAlertConfig } from "../Services/Request";
 import MonacoEditor, { Monaco } from '@monaco-editor/react';
 import { CommandBar, Panel, PanelType, PrimaryButton, ICommandBarItemProps, Stack, Text, mergeStyles, IPanel, MessageBar, MessageBarType, Spinner, SpinnerSize } from "@fluentui/react";
 import { useBoolean } from '@fluentui/react-hooks';
-import { useSearchParams } from "react-router-dom";
 import AlertEditorChat from "./AlertEditorChat";
 import InstructionGeneration from "./InsturctionGeneration";
 import DeployAgent from "./DeployAgent";
 import { ICMAlertConfig, monacoJsonSchema } from "../Models/ICMAlertConfig";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import FeatureUtils from "../Helpers/Feature";
 
 
 export interface AlertEditorProps {
@@ -30,7 +30,6 @@ enum SelectContent {
 
 //Edit existing alert, create a new custom alert, create a new alert from existing alert
 const AlertEditor = (props: AlertEditorProps) => {
-    const [searchParams] = useSearchParams();
     const [isOpen, { setTrue: openPanel, setFalse: dismissPanel }] = useBoolean(false);
     const [alertConfig, setAlertConfig] = useState<ICMAlertConfig>(props.alertConfig ? { ...props.alertConfig } : {});
     const [defaultAlertConfig, setDefaultAlertConfig] = useState<ICMAlertConfig>(props.alertConfig ? { ...props.alertConfig } : {});
@@ -119,8 +118,7 @@ const AlertEditor = (props: AlertEditorProps) => {
             onClick: () => {
                 if (!alertConfig.alertingId) return;
                 dispatch({ type: 'SET_INSTRUCTION_GENERATION' });
-            },
-            disabled: searchParams.get("generateInstructionsEnabled") !== "true",
+            }
         }
     ];
 

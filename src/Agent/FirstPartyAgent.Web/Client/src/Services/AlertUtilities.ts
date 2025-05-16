@@ -2,9 +2,9 @@ import { Guid } from "../Helpers/Guid";
 import { AlertInfo, IcmTeamInfo } from "../Models/Response";
 
 
-const getAlertTemplate = (teamId: number) => {
+const getAlertTemplate = (teamId: number, alertingId?: string) => {
     return {
-        alertingId: Guid.newGuid(),
+        alertingId: alertingId ?? Guid.newGuid(),
         incidentTitle: '',
         owningTeams: [],
         allowedGenevaActions: [],
@@ -30,10 +30,9 @@ export const generateCustomAlertConfig = (props: IcmTeamInfo) => {
 }
 
 export const generateAzureAlertConfig = (props: AlertInfo) => {
-    let defaultTemplate = getAlertTemplate(Number.parseInt(props.id));
+    let defaultTemplate = getAlertTemplate(props.teamId, props.id);
     defaultTemplate.incidentTitle = props.title;
     defaultTemplate.defaultHumanInterventionLoop = `${props.serviceName}/${props.teamAssignedTo}`;
-    defaultTemplate.teamId = props.teamId;
     if (props.severity) {
         defaultTemplate["severity"] = props.severity;
     }

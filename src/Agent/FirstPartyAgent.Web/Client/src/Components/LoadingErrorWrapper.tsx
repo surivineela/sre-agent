@@ -1,6 +1,7 @@
 import { mergeStyles, MessageBar, MessageBarType, ProgressIndicator } from "@fluentui/react";
 import { QueryStatus } from "@tanstack/react-query";
 import React from "react";
+import ErrorUtilities from "../Helpers/Error";
 
 interface LoadingErrorWrapperProps extends React.PropsWithChildren {
     error: Error;
@@ -10,8 +11,7 @@ interface LoadingErrorWrapperProps extends React.PropsWithChildren {
 }
 
 const contentStyles = mergeStyles({
-    fontSize: "15px",
-    marginTop: "10px",
+    fontSize: "15px"
 });
 
 const LoadingErrorWrapper = (props: LoadingErrorWrapperProps) => {
@@ -19,8 +19,8 @@ const LoadingErrorWrapper = (props: LoadingErrorWrapperProps) => {
     const getErrorComponent = (content: React.ReactNode | string, defaultContent: string) => {
         content = validateContent(content) ? content : defaultContent;
         return (
-            <MessageBar messageBarType={MessageBarType.error} isMultiline className={contentStyles}>
-                {content}
+            <MessageBar messageBarType={MessageBarType.error} isMultiline>
+                <div className={contentStyles}>{content}</div>
             </MessageBar>
         );
     }
@@ -55,7 +55,7 @@ const LoadingErrorWrapper = (props: LoadingErrorWrapperProps) => {
             return getLoadingComponent(loadingContent, defaultLoadingContent);
         case "error":
             let errorContent = null;
-            const defaultErrorContent = "An error occurred while loading the data.";
+            const defaultErrorContent = ErrorUtilities.defaultErrorMessage;
             if (!props.renderError) {
                 errorContent = defaultErrorContent;
             } else if (typeof props.renderError === "function") {
