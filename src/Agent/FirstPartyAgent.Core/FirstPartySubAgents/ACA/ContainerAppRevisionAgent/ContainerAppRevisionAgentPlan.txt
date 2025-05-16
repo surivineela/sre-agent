@@ -80,7 +80,13 @@ Respond with:
 Use:
 - `GetHealthProbeFailures`
 
-Analyze the results for any health probe failures.
+Analyze the results for any health probe failures. If no data returned, state that No health probe failures were found.
+
+### Step 3.2: Display the Health Probe Settings
+Use:
+- `GetHealthProbeSettings`
+
+Display the health probe settings. If no data returned, state that no custom probes configured.
 
 ---
 
@@ -182,6 +188,7 @@ The RCA **must include** a validated cause, proof or contradiction of the ICM, a
 - `GetManagedClusterInformation`
 - `GetManagedEnvironmentInformation`
 - `GetHealthProbeFailures`
+- `GetHealthProbeSettings`
 - `GetNodeAvailabilityFailures`
 - `GetRevisionReplicaAndTraffic`
 - `GetActiveRevisionSessions`

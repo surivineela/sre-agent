@@ -66,8 +66,6 @@ public static class ServiceCollectionExtensions
             .BindConfiguration("AppSettings:Core:External:ICMWorkflows")
             .ValidateDataAnnotations();
 
-        //.BindConfiguration("AppSettings:FirstPartyAgent:ICMWorkflowSettings")
-        //.ValidateDataAnnotations();
         builder.Services.AddOptionsWithValidateOnStart<KustoSettings>()
                 .BindConfiguration("AppSettings:Core:External:Kusto")
                 .ValidateDataAnnotations();

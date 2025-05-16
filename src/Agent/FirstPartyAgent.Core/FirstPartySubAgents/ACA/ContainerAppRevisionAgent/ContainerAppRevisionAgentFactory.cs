@@ -50,6 +50,7 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.RevisionAgent
 
             var healthProbePluginDefinition = new HealthProbePluginDefinition(healthProbePlugin);
             toolSignatures.Add(_toolsRegistry.GetSignature(() => healthProbePluginDefinition.GetHealthProbeFailures));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => healthProbePluginDefinition.GetHealthProbeSettings));
 
             var nodeAvailabilityPluginDefinition = new NodeAvailabilityPluginDefinition(nodeAvailabilityPlugin);
             toolSignatures.Add(_toolsRegistry.GetSignature(() => nodeAvailabilityPluginDefinition.GetNodeAvailabilityFailures));
@@ -65,9 +66,6 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.RevisionAgent
             toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetHttpScalerEventsForContainerApp));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetInternalEventProcessorEventsForPod));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetRevisionSpecChanges));
-
-            //var recordActionsPluginDefinition = new RecordActionsPluginDefinition(recordActionsPlugin);
-            //toolSignatures.Add(_toolsRegistry.GetSignature(() => recordActionsPluginDefinition.GetActionDetails));
 
             var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
             toolSignatures.Add(_toolsRegistry.GetSignature(() => controlFlowPluginDefinition.Wait));

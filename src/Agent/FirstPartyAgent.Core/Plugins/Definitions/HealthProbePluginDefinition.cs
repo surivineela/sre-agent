@@ -23,27 +23,45 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
         }
 
 
-
         [KernelFunction(KernelFunctionNames.ACA.GetHealthProbeFailures)]
         [Description(
-@"Retrieve readiness/liveness/startup probe failures for a specific Azure container app revision.
+        @"Retrieve readiness/liveness/startup probe failures for a specific Azure container app revision.
 
-Projects:
-- msg: Log message of the probe failure.
-- count: Number of times the probe failed with the same message consecutively.
-- replicaName: Name of the replica where the failure occurred.
-- revisionName: Name of the container app revision.
-- level: Severity level of the failure (e.g., error, warning)."
-)]
+        Projects:
+        - msg: Log message of the probe failure.
+        - count: Number of times the probe failed with the same message consecutively.
+        - replicaName: Name of the replica where the failure occurred.
+        - revisionName: Name of the container app revision.
+        - level: Severity level of the failure (e.g., error, warning)."
+        )]
         public Task<string> GetHealthProbeFailures(
-    [Description("Azure region.")] string region,
-    [Description("Start time of the query.")] DateTime fromDate,
-    [Description("End time of the query.")] DateTime toDate,
-    [Description("Name of the container app.")] string containerAppName,
-    [Description("Name of the revision.")] string revisionName,
-    [Description("provide sampling inputs")] SamplingOptions sampling)
+            [Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the container app.")] string containerAppName,
+            [Description("Name of the revision.")] string revisionName,
+            [Description("provide sampling inputs")] SamplingOptions sampling)
         {
             return _plugin.GetHealthProbeFailures(region.NormalizeLocation(), fromDate, toDate, containerAppName, revisionName);
+        }
+
+        [KernelFunction(KernelFunctionNames.ACA.GetHealthProbeSettings)]
+        [Description(
+        @"Retrieve the latest health probe settings for the Azure container app within the specified period.
+
+        Projects:
+        - containers: List of containers in the container app with the each probe setting if set by the customer."
+        )]
+        public Task<string> GetHealthProbeSettings(
+            [Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Subscription ID.")] string subscriptionId,
+            [Description("Resource group name.")] string resourcesGroupName,
+            [Description("Name of the container app.")] string containerAppName)
+        {
+            return _plugin.GetHealthProbeSettings(region.NormalizeLocation(), fromDate, toDate, subscriptionId, resourcesGroupName, containerAppName);
+
         }
     }
 }
