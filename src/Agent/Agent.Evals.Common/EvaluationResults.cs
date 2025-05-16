@@ -13,4 +13,6 @@ public class EvaluationResults
     public EvaluationResult? Groundedness { get; set; }
 
     public string? LLMDeploymentName { get; set; }
+    public string? UserInput { get; set; }
+    public string? ModelResponse { get; set; }
 }

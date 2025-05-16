@@ -165,9 +165,9 @@ public class Program
 
                     // Parse AdditionalInfo in kusto with parse-kv:
                     // | parse-kv AdditionalInfo as (TestRunId:string, Branch:string) with (pair_delimiter=",", kv_delimiter=":")
-                    var additionInfoBuilder = new StringBuilder();
-                    additionInfoBuilder.Append($"TestRunId:{testRunId},");
-                    additionInfoBuilder.Append($"Branch:{buildBranch},");
+                    var runInfoBuilder = new StringBuilder();
+                    runInfoBuilder.Append($"TestRunId:{testRunId},");
+                    runInfoBuilder.Append($"Branch:{buildBranch},");
 
                     // If the test fails before any eval data was emitted, we still need a test result with HasPassed = false
                     var topLevelResult = new TestResult
@@ -180,7 +180,7 @@ public class Program
                         StartTime = testResult.Attributes?.GetNamedItem("startTime")?.Value,
                         EndTime = testResult.Attributes?.GetNamedItem("endTime")?.Value,
                         HasPassed = hasPassed,
-                        AdditionalInfo = additionInfoBuilder.ToString(),
+                        AdditionalInfo = runInfoBuilder.ToString(),
                     };
 
                     var modelNamePattern = "\"LLMDeploymentName\":\"(.*?)\"";
@@ -229,10 +229,20 @@ public class Program
                         result.GroundednessReasoning = evaluationResults.Groundedness?.Reason;
                         result.HasPassed = hasPassed;
                         result.LLMDeploymentName = evaluationResults.LLMDeploymentName;
-                        result.AdditionalInfo = additionInfoBuilder.ToString();
+
+                        var additionalInfoBuilder = new StringBuilder(runInfoBuilder.ToString());
+                        if(!string.IsNullOrEmpty(evaluationResults.UserInput))
+                        {
+                            additionalInfoBuilder.Append($"UserInput:{evaluationResults.UserInput.Replace(",", Uri.EscapeDataString(","))},");
+                        }
+                        if(!string.IsNullOrEmpty(evaluationResults.ModelResponse))
+                        {
+                            additionalInfoBuilder.Append($"ModelResponse:{evaluationResults.ModelResponse.Replace(",", Uri.EscapeDataString(","))},");
+                        }
+                        result.AdditionalInfo = additionalInfoBuilder.ToString();
 
                         testResults[result.TestId] = result;
-                    }                    
+                    }
                 }
             }
         }

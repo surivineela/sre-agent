@@ -59,7 +59,7 @@ public class MetaAgentSimpleWebAppGraphEvals
         }
     }
 
-    private async Task<ChatResponse> PromptModel(string testRunGuid, string userMsg)
+    private async Task<(ChatResponse,IEnumerable<ChatMessage>)> PromptModel(string testRunGuid, string userMsg)
     {
         var threadId = Guid.Parse(testRunGuid);
         var messages = new List<ChatMessage>
@@ -70,7 +70,7 @@ public class MetaAgentSimpleWebAppGraphEvals
 
         var agentContext = _mocks.GetDefaultMetaAgentContext(testRunGuid);
         var response = await _mocks.Agent.GetModelResponse(agentContext, threadId, messages);
-        return response;
+        return (response, messages.Concat(response.Messages));
     }
 
     [TestMethod]
@@ -117,8 +117,8 @@ public class MetaAgentSimpleWebAppGraphEvals
             Let me know if you'd like further information or assistance with any of these apps!
             """;
 
-        var response = await PromptModel(testRunGuid, userMsg);
-        var evalResult = await response.EvaluateAsync(TestContext, _chatConfiguration, response.Messages, groundedContext, exampleResponse, _llmDeploymentName);
+        var (response, fullConversation) = await PromptModel(testRunGuid, userMsg);
+        var evalResult = await response.EvaluateAsync(TestContext, _chatConfiguration, fullConversation, groundedContext, exampleResponse, _llmDeploymentName);
         TestContext.WriteLine($"Agent responds: {response.Text}");
 
         Assert.IsTrue(evalResult.Equivalence.Value >= 4, $"Low equivalence score: {evalResult.Equivalence.Value}, {evalResult.Equivalence.Reason}");
@@ -148,8 +148,8 @@ public class MetaAgentSimpleWebAppGraphEvals
             Let me know if you need further details or assistance with any of these web apps!
             """;
 
-        var response = await PromptModel(testRunGuid, userMsg);
-        var evalResult = await response.EvaluateAsync(TestContext, _chatConfiguration, response.Messages, groundedContext, exampleResponse, _llmDeploymentName);
+        var (response, fullConversation) = await PromptModel(testRunGuid, userMsg);
+        var evalResult = await response.EvaluateAsync(TestContext, _chatConfiguration, fullConversation, groundedContext, exampleResponse, _llmDeploymentName);
         TestContext.WriteLine($"Agent responds: {response.Text}");
 
         Assert.IsTrue(evalResult.Equivalence.Value >= 4, $"Low equivalence score: {evalResult.Equivalence.Value}, {evalResult.Equivalence.Reason}");
@@ -174,8 +174,8 @@ public class MetaAgentSimpleWebAppGraphEvals
             There is one other app that shares an App Service plan with pbatum-sre-web-eas1, that app is **pbatum-sre-web-eas2** and the plan is **ASP-pbatumsrewebeas-8754**.
             """;
 
-        var response = await PromptModel(testRunGuid, userMsg);
-        var evalResult = await response.EvaluateAsync(TestContext, _chatConfiguration, response.Messages, groundedContext, exampleResponse, _llmDeploymentName);
+        var (response, fullConversation) = await PromptModel(testRunGuid, userMsg);
+        var evalResult = await response.EvaluateAsync(TestContext, _chatConfiguration, fullConversation, groundedContext, exampleResponse, _llmDeploymentName);
         TestContext.WriteLine($"Agent responds: {response.Text}");
 
         Assert.IsTrue(evalResult.Equivalence.Value >= 4, $"Low equivalence score: {evalResult.Equivalence.Value}, {evalResult.Equivalence.Reason}");
@@ -208,8 +208,8 @@ public class MetaAgentSimpleWebAppGraphEvals
             The app pbatum-sre-web-eas1 is on App Service plan ASP-pbatumsrewebeas-8754 which has **1** instance.
             """;
 
-        var response = await PromptModel(testRunGuid, userMsg);
-        var evalResult = await response.EvaluateAsync(TestContext, _chatConfiguration, response.Messages, groundedContext, exampleResponse, _llmDeploymentName);
+        var (response, fullConversation) = await PromptModel(testRunGuid, userMsg);
+        var evalResult = await response.EvaluateAsync(TestContext, _chatConfiguration, fullConversation, groundedContext, exampleResponse, _llmDeploymentName);
         TestContext.WriteLine($"Agent responds: {response.Text}");
 
         Assert.IsTrue(evalResult.Equivalence.Value >= 4, $"Low equivalence score: {evalResult.Equivalence.Value}, {evalResult.Equivalence.Reason}");

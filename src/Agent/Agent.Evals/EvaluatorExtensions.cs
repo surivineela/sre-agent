@@ -53,6 +53,8 @@ public static class EvaluatorExtensions
                 Equivalence = equivalence.GetEvaluationResult(),
                 Groundedness = groundedness.GetEvaluationResult(),
                 LLMDeploymentName = llmDeploymentName,
+                UserInput = messages.Where(x => x.Role == ChatRole.User).Select(x => x.Text).FirstOrDefault(),
+                ModelResponse = chatResponse.Text,
             };
 
             testContext.WriteLine(JsonConvert.SerializeObject(evaluationResults));

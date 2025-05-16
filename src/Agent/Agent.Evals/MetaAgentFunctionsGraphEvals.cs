@@ -59,7 +59,7 @@ public class MetaAgentFunctionsGraphEvals
         }
     }
 
-    private async Task<ChatResponse> PromptModel(string testRunGuid, string userMsg)
+    private async Task<(ChatResponse, IEnumerable<ChatMessage>)> PromptModel(string testRunGuid, string userMsg)
     {
         var threadId = Guid.Parse(testRunGuid);
         var messages = new List<ChatMessage>
@@ -70,7 +70,7 @@ public class MetaAgentFunctionsGraphEvals
 
         var agentContext = _mocks.GetDefaultMetaAgentContext(testRunGuid);
         var response = await _mocks.Agent.GetModelResponse(agentContext, threadId, messages);
-        return response;
+        return (response, messages.Concat(response.Messages));
     }
 
     [TestMethod]
@@ -101,8 +101,8 @@ public class MetaAgentFunctionsGraphEvals
             Let me know if you were looking for something else or if you need assistance with this app!
             """;
 
-        var response = await PromptModel(testRunGuid, userMsg);
-        var evalResult = await response.EvaluateAsync(TestContext, _chatConfiguration, response.Messages, groundedContext, exampleResponse, _llmDeploymentName);
+        var (response, fullConversation) = await PromptModel(testRunGuid, userMsg);
+        var evalResult = await response.EvaluateAsync(TestContext, _chatConfiguration, fullConversation, groundedContext, exampleResponse, _llmDeploymentName);
         TestContext.WriteLine($"Agent responds: {response.Text}");
 
         Assert.IsTrue(evalResult.Equivalence.Value >= 4, $"Low equivalence score: {evalResult.Equivalence.Value}, {evalResult.Equivalence.Reason}");
@@ -137,10 +137,10 @@ public class MetaAgentFunctionsGraphEvals
             Let me know if you were looking for something else or if you need assistance with this app!
             """;
 
-        var response = await PromptModel(testRunGuid, userMsg);
-        var evalResult = await response.EvaluateAsync(TestContext, _chatConfiguration, response.Messages, groundedContext, exampleResponse, _llmDeploymentName);
+        var (response, fullConversation) = await PromptModel(testRunGuid, userMsg);
+        var evalResult = await response.EvaluateAsync(TestContext, _chatConfiguration, fullConversation, groundedContext, exampleResponse, _llmDeploymentName);
         TestContext.WriteLine($"{Environment.NewLine}Agent responds: {response.Text}");
-        
+
         Assert.IsTrue(evalResult.Equivalence.Value >= 4, $"Low equivalence score: {evalResult.Equivalence.Value}, {evalResult.Equivalence.Reason}");
         Assert.IsTrue(evalResult.Groundedness.Value >= 4, $"Low groundedness score: {evalResult.Groundedness.Value}, {evalResult.Groundedness.Reason}");
     }
@@ -235,8 +235,8 @@ public class MetaAgentFunctionsGraphEvals
             Let me know if you'd like further information or assistance with any of these apps!
             """;
 
-        var response = await PromptModel(testRunGuid, userMsg);
-        var evalResult = await response.EvaluateAsync(TestContext, _chatConfiguration, response.Messages, groundedContext, exampleResponse, _llmDeploymentName);
+        var (response, fullConversation) = await PromptModel(testRunGuid, userMsg);
+        var evalResult = await response.EvaluateAsync(TestContext, _chatConfiguration, fullConversation, groundedContext, exampleResponse, _llmDeploymentName);
         TestContext.WriteLine($"{Environment.NewLine}Agent responds: {response.Text}");
         Assert.IsTrue(evalResult.Equivalence.Value >= 4, $"Low equivalence score: {evalResult.Equivalence.Value}, {evalResult.Equivalence.Reason}");
         Assert.IsTrue(evalResult.Groundedness.Value >= 4, $"Low groundedness score: {evalResult.Groundedness.Value}, {evalResult.Groundedness.Reason}");
@@ -296,8 +296,8 @@ public class MetaAgentFunctionsGraphEvals
             Let me know if you'd like further information or assistance with any of these apps!
             """;
 
-        var response = await PromptModel(testRunGuid, userMsg);
-        var evalResult = await response.EvaluateAsync(TestContext, _chatConfiguration, response.Messages, groundedContext, exampleResponse, _llmDeploymentName);
+        var (response, fullConversation) = await PromptModel(testRunGuid, userMsg);
+        var evalResult = await response.EvaluateAsync(TestContext, _chatConfiguration, fullConversation, groundedContext, exampleResponse, _llmDeploymentName);
         TestContext.WriteLine($"{Environment.NewLine}Agent responds: {response.Text}");
         Assert.IsTrue(evalResult.Equivalence.Value >= 4, $"Low equivalence score: {evalResult.Equivalence.Value}, {evalResult.Equivalence.Reason}");
         Assert.IsTrue(evalResult.Groundedness.Value >= 4, $"Low groundedness score: {evalResult.Groundedness.Value}, {evalResult.Groundedness.Reason}");
@@ -330,8 +330,8 @@ public class MetaAgentFunctionsGraphEvals
             Let me know if you need further assistance!
             """;
 
-        var response = await PromptModel(testRunGuid, userMsg);
-        var evalResult = await response.EvaluateAsync(TestContext, _chatConfiguration, response.Messages, groundedContext, exampleResponse, _llmDeploymentName);
+        var (response, fullConversation) = await PromptModel(testRunGuid, userMsg);
+        var evalResult = await response.EvaluateAsync(TestContext, _chatConfiguration, fullConversation, groundedContext, exampleResponse, _llmDeploymentName);
         TestContext.WriteLine($"{Environment.NewLine}Agent responds: {response.Text}");
         Assert.IsTrue(evalResult.Equivalence.Value >= 4, $"Low equivalence score: {evalResult.Equivalence.Value}, {evalResult.Equivalence.Reason}");
         Assert.IsTrue(evalResult.Groundedness.Value >= 4, $"Low groundedness score: {evalResult.Groundedness.Value}, {evalResult.Groundedness.Reason}");
@@ -364,8 +364,8 @@ public class MetaAgentFunctionsGraphEvals
             Let me know if you need further assistance!
             """;
 
-        var response = await PromptModel(testRunGuid, userMsg);
-        var evalResult = await response.EvaluateAsync(TestContext, _chatConfiguration, response.Messages, groundedContext, exampleResponse, _llmDeploymentName);
+        var (response, fullConversation) = await PromptModel(testRunGuid, userMsg);
+        var evalResult = await response.EvaluateAsync(TestContext, _chatConfiguration, fullConversation, groundedContext, exampleResponse, _llmDeploymentName);
         TestContext.WriteLine($"{Environment.NewLine}Agent responds: {response.Text}");
         Assert.IsTrue(evalResult.Equivalence.Value >= 4, $"Low equivalence score: {evalResult.Equivalence.Value}, {evalResult.Equivalence.Reason}");
         Assert.IsTrue(evalResult.Groundedness.Value >= 4, $"Low groundedness score: {evalResult.Groundedness.Value}, {evalResult.Groundedness.Reason}");
@@ -395,12 +395,10 @@ public class MetaAgentFunctionsGraphEvals
             Let me know if you need further assistance!
             """;
 
-        var response = await PromptModel(testRunGuid, userMsg);
-        var evalResult = await response.EvaluateAsync(TestContext, _chatConfiguration, response.Messages, groundedContext, exampleResponse, _llmDeploymentName);
+        var (response, fullConversation) = await PromptModel(testRunGuid, userMsg);
+        var evalResult = await response.EvaluateAsync(TestContext, _chatConfiguration, fullConversation, groundedContext, exampleResponse, _llmDeploymentName);
         TestContext.WriteLine($"{Environment.NewLine}Agent responds: {response.Text}");
         Assert.IsTrue(evalResult.Equivalence.Value >= 4, $"Low equivalence score: {evalResult.Equivalence.Value}, {evalResult.Equivalence.Reason}");
         Assert.IsTrue(evalResult.Groundedness.Value >= 4, $"Low groundedness score: {evalResult.Groundedness.Value}, {evalResult.Groundedness.Reason}");
     }
-
-
 }
