@@ -9,4 +9,4 @@ EventProcessorEvents
 | where RevisionName == local_revisionName
 | where msg has "nodes are available"
 | order by PreciseTimeStamp desc
-| project PreciseTimeStamp, ReplicaName, RevisionName, msg
+| project PreciseTimeStamp, ReplicaName, msg
