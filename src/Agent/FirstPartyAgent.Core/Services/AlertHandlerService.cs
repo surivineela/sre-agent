@@ -26,6 +26,8 @@ public class AlertHandlerService
     private readonly string icmAgentConfigCosmosDbContainer = "IcmAlertConfigs";
     private const string icmAgentAlertDetailsCosmosDbContainer = "IcmAlertDetails";
     private readonly ILogger<AlertHandlerService> _logger;
+    private Task _initializationTask;
+
 
     public AlertHandlerService(StorageAccountSettings storageAccountSettings, IHostEnvironment hostEnvironment, IStorageService storageService, ICosmosDBService cosmosDBService, AzureAlertingClient azureAlertingClient, ILogger<AlertHandlerService> logger)
     {
@@ -39,18 +41,18 @@ public class AlertHandlerService
 
         _logger = logger;
 
-        Initialize(hostEnvironment);
+        _initializationTask = InitializeAsync(hostEnvironment);
     }
 
-    private void Initialize(IHostEnvironment hostEnvironment)
+    private async Task InitializeAsync(IHostEnvironment hostEnvironment)
     {
         if (!hostEnvironment.IsDevelopment() && _cosmosDbService != null && _cosmosDbService.IsEnabled)
         {
-            LoadICMAlertConfigsFromCosmosDbAsync().GetAwaiter().GetResult();
+            await LoadICMAlertConfigsFromCosmosDbAsync();
         }
         else if (!hostEnvironment.IsDevelopment() && _storageService != null && _storageService.IsEnabled)
         {
-            LoadICMAlertConfigsFromStorageAsync().GetAwaiter().GetResult();
+            await LoadICMAlertConfigsFromStorageAsync();
         }
         else
         {
@@ -60,6 +62,7 @@ public class AlertHandlerService
 
     public async Task<Dictionary<string, ICMAlertConfig>> GetICMAlertConfigsAsync(bool reload = false)
     {
+        await IsReady();
         if (reload)
         {
             await ReloadAsync();
@@ -72,6 +75,7 @@ public class AlertHandlerService
             string azureAlertingId)
     {
         _logger.LogInformation($"AzureAlertingPlugin: Fetching Alert Details. azureAlertingId: {azureAlertingId}");
+        await IsReady();
 
         // First check in local folder
         if (!_storageService.IsEnabled && !_cosmosDbService.IsEnabled)
@@ -152,6 +156,7 @@ public class AlertHandlerService
 
     public async Task<ICMAlertConfig> GetICMAlertConfigAsync(string alertingId)
     {
+        await IsReady();
         ICMAlertConfig config;
         if (_cosmosDbService != null && _cosmosDbService.IsEnabled)
         {
@@ -177,6 +182,7 @@ public class AlertHandlerService
 
     public async Task<string> SaveICMAlertConfig(string alertingId, string customConfig)
     {
+        await IsReady();
         if (!_storageService.IsEnabled)
         {
             var folderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ICMAlertConfigs");
@@ -200,6 +206,7 @@ public class AlertHandlerService
 
     public async Task ReloadAsync()
     {
+        await IsReady();
         if (_cosmosDbService != null && _cosmosDbService.IsEnabled)
         {
             await LoadICMAlertConfigsFromCosmosDbAsync();
@@ -255,6 +262,15 @@ public class AlertHandlerService
             var jsonContent = File.ReadAllText(jsonFile);
             var config = JsonConvert.DeserializeObject<ICMAlertConfig>(jsonContent);
             _icmAlertConfigs[config.AlertingId] = config;
+        }
+    }
+    private async Task IsReady()
+    {
+
+        if (_initializationTask != null && !_initializationTask.IsCompleted)
+        {
+            await _initializationTask;
+            _initializationTask = null;
         }
     }
 

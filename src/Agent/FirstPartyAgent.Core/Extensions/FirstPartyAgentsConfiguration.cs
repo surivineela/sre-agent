@@ -111,8 +111,10 @@ namespace FirstPartyAgent.Core.Extensions
             });
 
 
-            var config = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
-            if (!string.IsNullOrWhiteSpace(config["AppSettings:Core:External:CosmosDB:AccountUrl"]))
+            var azureSettings = services.BuildServiceProvider().GetRequiredService<IOptions<AzureSettings>>();
+            var cosmosDbSettings = azureSettings.Value.CosmosDB;
+
+            if (!string.IsNullOrWhiteSpace(cosmosDbSettings.Docs.AccountName))
             {
                 services.AddSingleton<ICosmosDBService, CosmosDBService>();
                 services.AddSingleton<IIcmAgentConfigService, IcmAgentConfigService>();

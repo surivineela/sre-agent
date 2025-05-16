@@ -2,7 +2,10 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json;
+using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
+using Agent.Data;
 using Agent.Data.Repositories;
 using Agent.Runtime;
 using Agent.Runtime.Communication;
@@ -12,6 +15,7 @@ using FirstPartyAgent.Core.Services;
 using FirstPartyAgent.Plugins;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -64,6 +68,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 // Serve static files from wwwroot
 app.UseDefaultFiles();
@@ -78,3 +83,24 @@ app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 
 app.Run();
+
+
+public class ExceptionHandlingMiddleware
+{
+    private readonly RequestDelegate _next;
+    public ExceptionHandlingMiddleware(RequestDelegate next) => _next = next;
+
+    public async Task Invoke(HttpContext context)
+    {
+        try
+        {
+            await _next(context);
+        }
+        catch (Exception ex)
+        {
+            context.Response.ContentType = "application/json";
+            context.Response.StatusCode = 500;
+            await context.Response.WriteAsync(JsonSerializer.Serialize(new { ex.Message, ex.StackTrace }));
+        }
+    }
+}

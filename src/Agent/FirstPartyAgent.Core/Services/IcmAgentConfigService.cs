@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.Cosmos;
 using Kusto.Cloud.Platform.Data;
 using FirstPartyAgent.Core.Clients;
+using System.Net;
 
 namespace FirstPartyAgent.Core.Services;
 public class IcmAgentConfigService : IIcmAgentConfigService
@@ -12,8 +13,7 @@ public class IcmAgentConfigService : IIcmAgentConfigService
     private readonly IWebHostEnvironment _env;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly KustoClient _kustoClient;
-
-    private const string _databaseName = "HotsiteAgent";
+    private Task _initializationTask;
     private const string _alertConfigContainerName = "IcmAlertConfigs";
     private const string _teamContainerName = "Teams";
     private const string _alertDetailsContainerName = "IcmAlertDetails";
@@ -21,22 +21,75 @@ public class IcmAgentConfigService : IIcmAgentConfigService
     private const string _agentDeploymentsContainerName = "AgentDeployments";
     private const string _agentFactoryConfigsContainerName = "AgentFactoryConfigs";
 
-    public IcmAgentConfigService(IWebHostEnvironment env, IHttpClientFactory httpClientFactory, ICosmosDBService cosmosDbService, KustoClient kustoClientService)
+    public IcmAgentConfigService(
+        IWebHostEnvironment env,
+        IHttpClientFactory httpClientFactory,
+        ICosmosDBService cosmosDbService,
+        KustoClient kustoClientService)
     {
         _env = env;
         _httpClientFactory = httpClientFactory;
         _cosmosDbService = cosmosDbService;
         _kustoClient = kustoClientService;
+
+        if (_cosmosDbService.IsEnabled)
+        {
+            _initializationTask = InitializeCosmosDbTables();
+        }
+    }
+
+    private async Task InitializeCosmosDbTables()
+    {
+        var client = _cosmosDbService.CosmosClient;
+        // create database if not exists
+        var resp = await client.CreateDatabaseIfNotExistsAsync(_cosmosDbService.IcmAgentDatabaseName);
+        var db = resp.Database;
+
+        // create containers if not exists
+        var containersToCreate = new ContainerProperties[]
+        {
+            new() { Id = _agentDeploymentsContainerName, PartitionKeyPath = "/id" },
+            new() { Id = _agentFactoryConfigsContainerName, PartitionKeyPath = "/id" },
+            new() { Id = _genevaActionsContainerName, PartitionKeyPath = "/TeamId" },
+            new() { Id = _alertConfigContainerName, PartitionKeyPath = "/TeamId" },
+            new() { Id = _alertDetailsContainerName, PartitionKeyPath = "/TeamId" },
+        };
+
+
+        var tasks = containersToCreate.ToDictionary(
+            c => c.Id,
+            c => db.CreateContainerIfNotExistsAsync(c));
+
+        await Task.WhenAll(tasks.Values);
+
+        if(tasks[_agentFactoryConfigsContainerName].Result.StatusCode == HttpStatusCode.Created)
+        {
+            await _cosmosDbService.UpsertItemAsync(_cosmosDbService.IcmAgentDatabaseName, _agentFactoryConfigsContainerName, new AgentFactoryConfigCosmos<IcmTeam[]> { Id = "icmTeams", Content = new IcmTeam[0] });
+            await _cosmosDbService.UpsertItemAsync(_cosmosDbService.IcmAgentDatabaseName, _agentFactoryConfigsContainerName, new AgentFactoryConfigCosmos<Dictionary<int, string[]>> { Id = "teamFilters", Content = new Dictionary<int, string[]>() });
+        }
+
+
     }
 
     public bool IsEnabled() => _cosmosDbService.IsEnabled;
 
-    public async Task<List<TeamConfig>> GetOnboardedLoops()
+    private async Task IsReady()
     {
-        if (!IsEnabled())
+        if(!IsEnabled())
         {
             throw new InvalidOperationException("Icm service disabled");
         }
+
+        if (_initializationTask != null && !_initializationTask.IsCompleted)
+        {
+            await _initializationTask;
+            _initializationTask = null;
+        }
+    }
+
+    public async Task<List<TeamConfig>> GetOnboardedLoops()
+    {
+        await IsReady();
 
         try
         {
@@ -51,10 +104,7 @@ public class IcmAgentConfigService : IIcmAgentConfigService
 
     public async Task<List<ICMAlertConfig>> GetLoopAlertConfigs(int? loopId)
     {
-        if (!IsEnabled())
-        {
-            throw new InvalidOperationException("Icm service disabled");
-        }
+        await IsReady();
 
         try
         {
@@ -80,10 +130,7 @@ public class IcmAgentConfigService : IIcmAgentConfigService
 
     public async Task<List<AlertDetails>> GetLoopAlerts(int loopId)
     {
-        if (!IsEnabled())
-        {
-            throw new InvalidOperationException("Icm service disabled");
-        }
+        await IsReady();
 
         try
         {
@@ -101,10 +148,7 @@ public class IcmAgentConfigService : IIcmAgentConfigService
 
     public async Task<List<IcmTeam>> GetIcmTeams()
     {
-        if (!IsEnabled())
-        {
-            throw new InvalidOperationException("Icm service disabled");
-        }
+        await IsReady();
 
         try
         {
@@ -126,15 +170,12 @@ public class IcmAgentConfigService : IIcmAgentConfigService
 
     public async Task<AgentFactoryConfigCosmos<T>> GetAgentFactoryConfig<T>(string id)
     {
-        if (!IsEnabled())
-        {
-            throw new InvalidOperationException("Icm service disabled");
-        }
+        await IsReady();
 
         try
         {
-            var list = _cosmosDbService.GetQueryableContainer<AgentFactoryConfigCosmos<T>>(_cosmosDbService.IcmAgentDatabaseName, _agentFactoryConfigsContainerName)
-            .Where(c => c.Id == id).ToList();
+            var list = await _cosmosDbService.GetQueryableContainer<AgentFactoryConfigCosmos<T>>(_cosmosDbService.IcmAgentDatabaseName, _agentFactoryConfigsContainerName)
+            .Where(c => c.Id == id).ToListAsync();
 
             if (list != null && !list.Any())
             {
@@ -151,10 +192,8 @@ public class IcmAgentConfigService : IIcmAgentConfigService
 
     public async Task<List<string>> GetAgentFactoryConfigNames()
     {
-        if (!IsEnabled())
-        {
-            throw new InvalidOperationException("Icm service disabled");
-        }
+        await IsReady();
+
         try
         {
             var list = _cosmosDbService.GetQueryableContainer<AgentFactoryConfigCosmos<string>>(_cosmosDbService.IcmAgentDatabaseName, _agentFactoryConfigsContainerName)
@@ -171,13 +210,11 @@ public class IcmAgentConfigService : IIcmAgentConfigService
 
     public async Task UpsertAgentFactoryConfig<T>(AgentFactoryConfigCosmos<T> config)
     {
-        if(!IsEnabled())
-        {
-            throw new InvalidOperationException("Icm service disabled");
-        }
+        await IsReady();
+
         try
         {
-            await _cosmosDbService.UpsertItemAsync(_cosmosDbService.IcmAgentDatabaseName, _agentFactoryConfigsContainerName, config, new PartitionKey(config.Id));
+            await _cosmosDbService.UpsertItemAsync(_cosmosDbService.IcmAgentDatabaseName, _agentFactoryConfigsContainerName, config);
         }
         catch(Exception ex)
         {
@@ -185,12 +222,10 @@ public class IcmAgentConfigService : IIcmAgentConfigService
         }
     }
 
+
     public async Task<List<AlertDetails>> GetAlerts()
     {
-        if(!IsEnabled())
-        {
-            throw new InvalidOperationException("Icm service disabled");
-        }
+        await IsReady();
 
         try
         {
@@ -206,10 +241,7 @@ public class IcmAgentConfigService : IIcmAgentConfigService
 
     public async Task<ICMAlertConfig> GetAlertConfig(int loopId, string alertId)
     {
-        if(!IsEnabled())
-        {
-            throw new InvalidOperationException("Icm service disabled");
-        }
+        await IsReady();
 
         if (string.IsNullOrWhiteSpace(alertId))
         {
@@ -237,10 +269,7 @@ public class IcmAgentConfigService : IIcmAgentConfigService
 
     public async Task<string> CreateAlertConfig(ICMAlertConfig alertConfig)
     {
-        if (!IsEnabled())
-        {
-            throw new InvalidOperationException("Icm service disabled");
-        }
+        await IsReady();
 
         if (alertConfig == null)
         {
@@ -268,19 +297,16 @@ public class IcmAgentConfigService : IIcmAgentConfigService
         });
 
         alertConfig.Id = Guid.NewGuid().ToString();
-        await _cosmosDbService.UpsertItemAsync<ICMAlertConfig>(_cosmosDbService.IcmAgentDatabaseName, _alertConfigContainerName, alertConfig, new PartitionKey(alertConfig.TeamId));
+        await _cosmosDbService.UpsertItemAsync<ICMAlertConfig>(_cosmosDbService.IcmAgentDatabaseName, _alertConfigContainerName, alertConfig);
 
         return alertConfig.AlertingId;
     }
 
     public async Task UpdateAlertConfig(ICMAlertConfig alertConfig, int loopId, string alertId)
     {
-        if(!IsEnabled())
-        {
-            throw new InvalidOperationException("Icm service disabled");
-        }
+        await IsReady();
 
-        if(string.IsNullOrWhiteSpace(alertId))
+        if (string.IsNullOrWhiteSpace(alertId))
         {
             throw new ArgumentException("Alert id cannot be empty", nameof(alertId));
         }
@@ -299,7 +325,7 @@ public class IcmAgentConfigService : IIcmAgentConfigService
             }
 
             alertConfig.Id = existingConfig.Id;
-            await _cosmosDbService.UpsertItemAsync<ICMAlertConfig>(_cosmosDbService.IcmAgentDatabaseName, _alertConfigContainerName, alertConfig, new PartitionKey(alertConfig.TeamId));
+            await _cosmosDbService.UpsertItemAsync<ICMAlertConfig>(_cosmosDbService.IcmAgentDatabaseName, _alertConfigContainerName, alertConfig);
         }
         catch (Exception ex)
         {
@@ -309,10 +335,7 @@ public class IcmAgentConfigService : IIcmAgentConfigService
 
     public async Task<List<IcmIncidentBasicInfo>> GetIncidentsByTeamAlert(int teamId, int numOfDays, string title)
     {
-        if(!IsEnabled())
-        {
-            throw new InvalidOperationException("Icm service disabled");
-        }
+        await IsReady();
 
         try
         {
@@ -368,10 +391,7 @@ Incidents
 
     public async Task<List<AgentDeployment>> GetAgentDeployments(int loopId)
     {
-        if(!IsEnabled())
-        {
-            throw new InvalidOperationException("Icm service disabled");
-        }
+        await IsReady();
 
         try
         {
@@ -392,10 +412,7 @@ Incidents
 
     public async Task<GenevaActionsConfigCosmos> GetGenevaActionConfig(int teamId)
     {
-        if (!IsEnabled())
-        {
-            throw new InvalidOperationException("Icm service disabled");
-        }
+        await IsReady();
 
         try
         {
@@ -416,10 +433,7 @@ Incidents
 
     public async Task<GenevaActionsConfigCosmos> SaveGenevaActionsConfig(GenevaActionsConfigCosmos genevaActionsConfig)
     {
-        if(!IsEnabled())
-        {
-            throw new InvalidOperationException("Icm service disabled");
-        }
+        await IsReady();
 
         if (genevaActionsConfig.TeamId == null)
         {
@@ -432,12 +446,12 @@ Incidents
 
             existingConfig.GenevaActions = genevaActionsConfig.GenevaActions;
 
-            var result = await _cosmosDbService.UpsertItemAsync<GenevaActionsConfigCosmos>(_cosmosDbService.IcmAgentDatabaseName, _genevaActionsContainerName, existingConfig, new PartitionKey(existingConfig.TeamId));
+            var result = await _cosmosDbService.UpsertItemAsync<GenevaActionsConfigCosmos>(_cosmosDbService.IcmAgentDatabaseName, _genevaActionsContainerName, existingConfig);
             return result;
         }
         catch (KeyNotFoundException ex)
         {
-            var result = await _cosmosDbService.UpsertItemAsync<GenevaActionsConfigCosmos>(_cosmosDbService.IcmAgentDatabaseName, _genevaActionsContainerName, genevaActionsConfig, new PartitionKey(genevaActionsConfig.TeamId));
+            var result = await _cosmosDbService.UpsertItemAsync<GenevaActionsConfigCosmos>(_cosmosDbService.IcmAgentDatabaseName, _genevaActionsContainerName, genevaActionsConfig);
             return result;
         }
         catch (Exception ex)
@@ -468,7 +482,7 @@ Incidents
         catch (KeyNotFoundException)
         {
             teamConfig.Id = Guid.NewGuid().ToString();
-            await _cosmosDbService.UpsertItemAsync<TeamConfig>(_cosmosDbService.IcmAgentDatabaseName, _teamContainerName, teamConfig, new PartitionKey(teamConfig.TeamId));
+            await _cosmosDbService.UpsertItemAsync<TeamConfig>(_cosmosDbService.IcmAgentDatabaseName, _teamContainerName, teamConfig);
         }
     }
 

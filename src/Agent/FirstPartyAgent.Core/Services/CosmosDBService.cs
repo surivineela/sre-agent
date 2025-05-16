@@ -13,6 +13,8 @@ using Gremlin.Net.Process.Traversal;
 using Microsoft.Azure.Cosmos.Linq;
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Hosting;
+using Agent.Core.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 
 namespace FirstPartyAgent.Core.Services
@@ -28,7 +30,7 @@ namespace FirstPartyAgent.Core.Services
 
         Task BulkWriteAsync<T>(string databaseName, string containerName, IEnumerable<T> items, PartitionKey partitionKey);
 
-        Task<ItemResponse<T>> UpsertItemAsync<T>(string databaseName, string containerName, T item, PartitionKey key);
+        Task<ItemResponse<T>> UpsertItemAsync<T>(string databaseName, string containerName, T item);
 
         bool IsEnabled { get; }
 
@@ -48,7 +50,7 @@ namespace FirstPartyAgent.Core.Services
             return Task.CompletedTask;
         }
 
-        public Task<ItemResponse<T>> UpsertItemAsync<T>(string databaseName, string containerName, T item, PartitionKey key)
+        public Task<ItemResponse<T>> UpsertItemAsync<T>(string databaseName, string containerName, T item)
         {
             return Task.FromResult(default(ItemResponse<T>));
         }
@@ -56,6 +58,8 @@ namespace FirstPartyAgent.Core.Services
         public string IcmAgentDatabaseName => "HotsiteAgent";
 
         public bool IsEnabled => false;
+
+        public Exception Ex { get; set; }
     }
 
     public class CosmosDBService : ICosmosDBService
@@ -63,6 +67,7 @@ namespace FirstPartyAgent.Core.Services
         private readonly ILogger<CosmosDBService> _logger;
         private readonly CosmosClient _cosmosClient;
         private string _accountUrl;
+        private FederationSettings _federationSettings;
         private string _managedIdentityClient;
         public string _icmAgentDatabaseName;
         private bool Enabled = true;
@@ -77,36 +82,42 @@ namespace FirstPartyAgent.Core.Services
         /// </summary>
         /// <param name="configuration">The application configuration</param>
         /// <param name="logger">The logger</param>
-        public CosmosDBService(IHostEnvironment hostEnvironment, IConfiguration configuration, ILogger<CosmosDBService> logger)
+        public CosmosDBService(
+            ILogger<CosmosDBService> logger,
+            IConfiguration configuration,
+            IHostEnvironment hostEnvironment,
+            IOptions<AzureSettings> azureSettings)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             var config = configuration ?? throw new ArgumentNullException(nameof(configuration));
 
-            _accountUrl = configuration.GetValue<string>("AppSettings:Core:External:CosmosDB:AccountUrl", string.Empty);
-            _managedIdentityClient = configuration.GetValue<string>("AppSettings:Core:External:CosmosDB:MsiClientId", string.Empty); //"051f9d76-ce6d-4428-b55c-048b6ded238a"; //configuration.GetValue<string>("CosmosDb:ManagedIdentityClient", string.Empty);
-            _icmAgentDatabaseName = configuration.GetValue<string>("AppSettings:Core:External:CosmosDB:IcmAgentDatabaseName", string.Empty); // "IcmConfigs"; //configuration.GetValue<string>("CosmosDb:IcmConfigsDatabaseName", string.Empty);
+            var cosmosDbSettings = azureSettings.Value.CosmosDB;
+            var cosmosAccountName = cosmosDbSettings.Docs.AccountName;
+            var domainSuffix = cosmosDbSettings.Docs.DomainSuffix;
+            var endpoint = $"https://{cosmosAccountName}.{domainSuffix}";
+            var cosmosDatabaseName = cosmosDbSettings.Docs.Database;
 
-            if (!hostEnvironment.IsDevelopment() && string.IsNullOrWhiteSpace(_accountUrl))
+            // use cosmosDatabaseName if not set in configuration
+            _icmAgentDatabaseName = configuration.GetValue<string>("AppSettings:Core:External:CosmosDB:IcmAgentDatabaseName", cosmosDatabaseName);
+
+            if (!hostEnvironment.IsDevelopment() && string.IsNullOrWhiteSpace(cosmosAccountName))
             {
-                throw new InvalidOperationException("CosmosDb:AccountUrl is not configured");
+                throw new InvalidOperationException("cosmosAccountName is not configured");
             }
 
+            _federationSettings = azureSettings.Value.Federation;
+            _managedIdentityClient = configuration.GetValue<string>("AppSettings:Core:External:CosmosDB:MsiClientId", string.Empty);
 
-            if (!hostEnvironment.IsDevelopment() && string.IsNullOrWhiteSpace(_managedIdentityClient))
-            {
-                throw new InvalidOperationException("CosmosDb:ManagedIdentityClient is not configured");
-            }
+            _logger.LogInformation("Initializing CosmosDB service with endpoint {Endpoint}", endpoint);
 
-            _logger.LogInformation("Initializing CosmosDB service with endpoint {Endpoint}", _accountUrl);
-
-            if (string.IsNullOrWhiteSpace(_accountUrl))
+            if (string.IsNullOrWhiteSpace(endpoint))
             {
                 Enabled = false;
                 return;
             }
-            
+
             // Create the CosmosClient based on environment
-            _cosmosClient = CreateCosmosClient(_accountUrl);
+            _cosmosClient = CreateCosmosClient(endpoint);
         }
 
         /// <summary>
@@ -126,6 +137,19 @@ namespace FirstPartyAgent.Core.Services
             {
                 _logger.LogInformation("Using DefaultAzureCredential for CosmosDB authentication (Debug Mode)");
                 return new CosmosClient(endpoint, new DefaultAzureCredential(), options);
+            }
+            else if (!string.IsNullOrWhiteSpace(_federationSettings?.ClientId))
+            {
+                var credOptions = new WorkloadIdentityCredentialOptions()
+                {
+                    ClientId = _federationSettings.ClientId,
+                    TenantId = _federationSettings.TenantId,
+                    AuthorityHost = new Uri(_federationSettings.AuthorityHost),
+                };
+
+                var cred = new WorkloadIdentityCredential(credOptions);
+                _logger.LogInformation("Using WorkloadIdentityCredential for CosmosDB authentication (Production Mode)");
+                return new CosmosClient(endpoint, cred, options);
             }
             else
             {
@@ -174,10 +198,10 @@ namespace FirstPartyAgent.Core.Services
             }
         }
 
-        public async Task<ItemResponse<T>> UpsertItemAsync<T>(string databaseName, string containerName, T item, PartitionKey key)
+        public async Task<ItemResponse<T>> UpsertItemAsync<T>(string databaseName, string containerName, T item)
         {
             var container = _cosmosClient.GetContainer(databaseName, containerName);
-            return await container.UpsertItemAsync(item, key);
+            return await container.UpsertItemAsync(item);
         }
     }
 
