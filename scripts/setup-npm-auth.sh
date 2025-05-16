@@ -15,7 +15,7 @@ PAT=$1
 NPMRC_PATH=~/.npmrc
 
 # Encode PAT to base64
-ENCODED_PAT=$(echo -n "$PAT" | base64)
+ENCODED_PAT=$(echo -n "$PAT" | base64 -w 0)
 
 # Create or update .npmrc file
 cat >"$NPMRC_PATH" <<EOL

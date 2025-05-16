@@ -90,7 +90,7 @@ You can set up npm authentication using our script:
 1. Generate a [Personal Access Token](https://dev.azure.com/msazure/_details/security/tokens) with scopes: Packaging read, write & manage; Drop read & write. (Select Access Scope to be "All accessible organizations")
 1. Encode the PAT in base64:
    ```bash
-   echo -n "<your PAT>" | base64
+   echo -n "<your PAT>" | base64 -w 0 | more
    ```
 1. Replace `<base64encoded token>` in `~/.npmrc` with the output in above step.
 1. Refresh the token manually (step 2 to step 4) since it gets expired in 7 days.
