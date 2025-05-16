@@ -45,6 +45,7 @@ namespace Agent.Plugins
         private readonly HttpClient _httpClient;
         private readonly DashboardSettings _dashboardSettings;
         private readonly IAuthenticationService _authService;
+        private readonly List<string> _crawlRoots;
 
         private const string MermaidServiceAPI = "https://mermaid-renderer.salmonhill-ad96bd78.eastus2.azurecontainerapps.io/render";
 
@@ -64,7 +65,8 @@ namespace Agent.Plugins
             DashboardSettings dashboardSettings,
             IAgentOutboundCommunicationService agentOutboundCommunicationService,
             ILogger<GraphDBPlugin> logger,
-            IAuthenticationService authService)
+            IAuthenticationService authService,
+            CrawlerSettings crawlerSettings)
         {
             GraphDbClient = graphDbClient;
             ChatClient = chatClient;
@@ -76,6 +78,9 @@ namespace Agent.Plugins
             _puppeteerScreenshotApiUrl = "https://test-capp.ambitiouspond-10f27fe1.canadaeast.azurecontainerapps.io";
             _httpClient = new HttpClient();
             _authService = authService;
+            _crawlRoots = crawlerSettings.CrawlRoots.Split([ ',' ], StringSplitOptions.RemoveEmptyEntries)
+                .Select(root => root.Trim())
+                .ToList();
         }
 
         /// <summary>
@@ -1128,8 +1133,45 @@ g.V().has('id', '{deploymentResourceId}')
             }
         }
 
+        private async Task<dynamic> GetAllResourceCountAsync()
+        {
+            try
+            {
+                string resourceIdFilter = string.Join(",", _crawlRoots.Select(r => $@"has('resourceId', startingWith('{r.ToLower()}'))"));
+                string query = !string.IsNullOrEmpty(resourceIdFilter) ? $@"g.V().or({resourceIdFilter}).groupCount().by(label())" : $@"g.V().groupCount().by(label())";
+                var result = await GraphDbClient.Query<Dictionary<string, object>>(query);
+
+                if (result is null || result.Count == 0)
+                {
+                    _logger.LogInternalWarning("No resources found in the graph");
+                    return new { Status = "failed", Message = "No resources found in the graph" };
+                }
+                var excludedResourceTypes = new HashSet<string>
+                {
+                    "microsoft.source/repository",
+                    "microsoft.authorization/roleassignments",
+                    "microsoft.authorization/roledefinitions",
+                    "microsoft.alertsmanagement/smartdetectoralertrules",
+                    "microsoft.insights/metricalerts"
+                };
+                // todo: do we need to show k8s resources in the count?
+                var counts = result.First().Where(kvp => kvp.Key.StartsWith("microsoft") && !excludedResourceTypes.Contains(kvp.Key) && kvp.Key.Count(c => c == '/') == 1).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+                return counts;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Error getting all resource count");
+                throw;
+            }
+        }
+
         public async Task<dynamic> GetResourceCountAsync(string resourceType, string groupBy = "")
         {
+            if (string.Equals(resourceType, "all", StringComparison.OrdinalIgnoreCase))
+            {
+                return await GetAllResourceCountAsync();
+            }
+
             try
             {
                 string query;
@@ -1156,6 +1198,7 @@ g.V().has('id', '{deploymentResourceId}')
                 }
                 else
                 {
+                    // todo: this query linearly lists all resources of the type and manually groups them by the property, which could be slow
                     query = $@"
     g.V().hasLabel('{resourceType.ToLower()}')
     .project('id', 'propertyValue')

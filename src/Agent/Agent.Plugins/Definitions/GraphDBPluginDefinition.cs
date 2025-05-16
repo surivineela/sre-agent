@@ -156,7 +156,6 @@ namespace Agent.Plugins
             return await _plugin.SearchResourceByNameAsync(resourceName);
         }
 
-        [KernelFunction("GetResourceCount")]
         [Description("Gets the count of Azure resources of a specified type in the knowledge graph. " +
             "This function is useful when you need to: 1) Get an inventory of resources by type, " +
             "2) Validate quantity of deployed resources against expected counts, " +
@@ -164,8 +163,8 @@ namespace Agent.Plugins
             "4) Get statistics about your Azure environment composition. " +
             "Returns a count of matching resources and can group by specific properties.")]
         public async Task<dynamic> GetResourceCount(
-            [Description("Type of the Azure resource to count (e.g., 'microsoft.app/containerapps' for container apps, 'microsoft.web/sites' for webapps, function apps, 'microsoft.containerservice/managedclusters' for AKS)")] string resourceType,
-            [Description("Optional. Property to group by for getting counts by specific attribute (currently only allowed 'location', 'resourceGroupName'). Leave empty for total count.")] string groupBy = "")
+            [Description("Not empty. Pass 'all' to query all resource types or pass a valid type of the Azure resource to count (e.g., 'microsoft.app/containerapps' for container apps, 'microsoft.web/sites' for webapps, function apps, 'microsoft.containerservice/managedclusters' for AKS)")] string resourceType,
+            [Description("Optional. Property to group by for getting counts by specific attribute (currently only allowed 'location', 'resourceGroupName'). Leave empty for total count. It is ignored if 'resourceType' is 'all'.")] string groupBy = "")
         {
             return await _plugin.GetResourceCountAsync(resourceType, groupBy);
         }
