@@ -53,7 +53,7 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
     const [progress, setProgress] = useState(false);
     const [existingGrafanaResourceNames, setExistingGrafanaResourceNames] = useState<string[]>([]);
     const [isDirty, setIsDirty] = useState(false);
-    const [newGrafanaResourceName, setNewGrafanaResourceName] = useState<string>();
+    const [newGrafanaResourceName, setNewGrafanaResourceName] = useState<string>('');
     const [permissionsLoaded, setPermissionsLoaded] = useState(false);
     const [hasRbacWritePermission, setHasRbacWritePermission] = useState<boolean>(false);
 
@@ -90,7 +90,7 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
                 assignedTo: intl.formatMessage(GrafanaDashboardResources.azureManagedGrafana),
             },
         ],
-        []
+        [intl]
     );
 
     const grafanaEndpoint = useMemo(

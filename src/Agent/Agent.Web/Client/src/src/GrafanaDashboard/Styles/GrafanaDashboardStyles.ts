@@ -1,15 +1,18 @@
-import { mergeStyleSets } from '@fluentui/react';
+import { FontWeights, mergeStyleSets } from '@fluentui/react';
 import { CSSProperties } from 'react';
 
 const container: CSSProperties = {
     display: 'flex',
     flexDirection: 'column',
-    gap: '20px',
+    gap: '15px',
+    width: '80%',
+    overflowY: 'auto',
+    height: '70%',
 };
 
 const titleText: CSSProperties = {
     fontSize: '16px',
-    fontWeight: '500',
+    fontWeight: FontWeights.semibold,
     marginLeft: '-5px',
 };
 
@@ -23,7 +26,7 @@ const rowCenterAlign: CSSProperties = {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    width: '75%',
+    width: '100%',
 };
 
 const rbacContainer: CSSProperties = {
@@ -111,6 +114,10 @@ const messageBar: CSSProperties = {
     width: '75%',
 };
 
+const titleGrafanaDashboardHeader: CSSProperties = { marginBottom: '20px', fontSize: '18px', fontWeight: 600 };
+
+const roleGridStyle: CSSProperties = { marginBottom: 30 };
+
 export const useGrafanaDashboardStyles = () =>
     mergeStyleSets({
         container,
@@ -133,4 +140,6 @@ export const useGrafanaDashboardStyles = () =>
         grafanaUrlLabelContainer,
         messageBar,
         grafanaUrlLinkContainer,
+        titleGrafanaDashboardHeader,
+        roleGridStyle,
     });

@@ -17,7 +17,7 @@ import { Info16Regular } from '@fluentui/react-icons';
 import { FC, useContext } from 'react';
 import { useIntl } from 'react-intl';
 import { EnvironmentContext } from '../Common/AzPortalProxy/Providers/StartupInfoContext';
-import { GrafanaDashboardResources, SreAgentResources } from '../Strings/SREAgentResources';
+import { GrafanaDashboardResources, SettingsTabResources, SreAgentResources } from '../Strings/SREAgentResources';
 import { useGrafanaDashboard } from './Hooks/useGrafanaDashboard';
 import { useGrafanaDashboardStyles } from './Styles/GrafanaDashboardStyles';
 
@@ -45,6 +45,7 @@ const GrafanaDashboard: FC = () => {
 
     return (
         <div className={styles.container}>
+            <div className={styles.titleGrafanaDashboardHeader}>{intl.formatMessage(SettingsTabResources.grafanaDashboard)}</div>
             {!hasRbacWritePermission && permissionsLoaded && agentLoaded && !grafanaEndpoint && (
                 <MessageBar intent="warning" className={styles.messageBar}>
                     <MessageBarBody>{intl.formatMessage(GrafanaDashboardResources.insufficientPermissions)}</MessageBarBody>
@@ -80,7 +81,7 @@ const GrafanaDashboard: FC = () => {
                         <Spinner />
                     ) : (
                         <>
-                            <Accordion collapsible>
+                            <Accordion collapsible className={styles.roleGridStyle}>
                                 <AccordionItem value="1">
                                     <AccordionHeader>{intl.formatMessage(GrafanaDashboardResources.roleAssignments)}</AccordionHeader>
                                     <AccordionPanel>
@@ -94,7 +95,7 @@ const GrafanaDashboard: FC = () => {
                                 </AccordionItem>
                             </Accordion>
                             <Field
-                                label={intl.formatMessage(SreAgentResources.name)}
+                                label={intl.formatMessage(GrafanaDashboardResources.resourceName)}
                                 orientation="horizontal"
                                 validationState={newGrafanaResourceNameErrorMessage ? 'error' : 'success'}
                                 validationMessage={newGrafanaResourceNameErrorMessage}
@@ -107,7 +108,7 @@ const GrafanaDashboard: FC = () => {
                                         setNewGrafanaResourceName(input.value);
                                     }}
                                     value={newGrafanaResourceName}
-                                    placeholder={intl.formatMessage(GrafanaDashboardResources.grafanaResourceName)}
+                                    placeholder={intl.formatMessage(GrafanaDashboardResources.enterResourceName)}
                                     disabled={isUpdating || !hasRbacWritePermission || isGrafanaUpdating}
                                     className={styles.inputTextField}
                                 />
@@ -127,7 +128,10 @@ const GrafanaDashboard: FC = () => {
                                     {intl.formatMessage(SreAgentResources.add)}
                                 </Button>
                                 <Button
-                                    onClick={() => setNewGrafanaResourceName('')}
+                                    onClick={() => {
+                                        setIsDirty(false);
+                                        setNewGrafanaResourceName('');
+                                    }}
                                     disabled={isUpdating || !newGrafanaResourceName || !hasRbacWritePermission}
                                 >
                                     {intl.formatMessage(SreAgentResources.cancel)}

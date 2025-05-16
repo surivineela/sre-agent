@@ -14,7 +14,7 @@ enum SettingsKeys {
     IncidentManagement = 'incidentManagement',
     AccessControl = 'accessControl',
     Basics = 'basics',
-    GrafanaInsights = 'grafanaInsights',
+    GrafanaDashboard = 'grafanaDashboard',
     managedResources = 'managedResourcesGroups',
 }
 
@@ -53,9 +53,9 @@ const Settings: FC = () => {
                         key: SettingsKeys.IncidentManagement,
                     },
                     {
-                        name: intl.formatMessage(SettingsTabResources.grafanaInsights),
+                        name: intl.formatMessage(SettingsTabResources.grafanaDashboard),
                         url: '',
-                        key: SettingsKeys.GrafanaInsights,
+                        key: SettingsKeys.GrafanaDashboard,
                     },
                     {
                         name: intl.formatMessage(SettingsTabResources.accessControl),
@@ -90,7 +90,7 @@ const Settings: FC = () => {
                     {selectedKey === SettingsKeys.Basics && <Basics />}
                     {selectedKey === SettingsKeys.managedResources && <ManagedResources />}
                     {selectedKey === SettingsKeys.IncidentManagement && <IncidentManagement />}
-                    {selectedKey === SettingsKeys.GrafanaInsights && <GrafanaDashboard />}
+                    {selectedKey === SettingsKeys.GrafanaDashboard && <GrafanaDashboard />}
                     {selectedKey === SettingsKeys.AccessControl && <AccessControl />}
                 </div>
             </div>

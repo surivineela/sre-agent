@@ -410,11 +410,12 @@ export const SettingsTabResources = defineMessages({
     incidentManagement: { defaultMessage: 'Incident management', id: 'T7WpWs' },
     accessControl: { defaultMessage: 'Access control (IAM)', id: '7w4v59' },
     basics: { defaultMessage: 'Basics', id: 'itC9lG' },
-    grafanaInsights: { defaultMessage: 'Grafana insights', id: 'Nf40QB' },
+    grafanaDashboard: { defaultMessage: 'Grafana dashboard', id: '2zi2Yj' },
     managedResources: { defaultMessage: 'Managed resource groups', id: 'yilQrD' },
 });
 
 export const GrafanaDashboardResources = defineMessages({
+    resourceName: { defaultMessage: 'Resource name', id: 'eqYdSS' },
     assignedTo: { defaultMessage: 'Assigned to', id: 'ONVN5F' },
     scope: { defaultMessage: 'Scope', id: 'nso3Mj' },
     monitoringMetricsPublisher: { defaultMessage: 'Monitoring metrics publisher', id: 'XvrDTb' },
@@ -433,9 +434,8 @@ export const GrafanaDashboardResources = defineMessages({
         id: 'A/xTHO',
     },
     insufficientPermissions: {
-        defaultMessage:
-            'You do not have the required Microsoft.Authorization/roleAssignments/write permission to set up a Grafana dashboard.',
-        id: 'vkNGfn',
+        defaultMessage: 'You need permissions to set up a Grafana dashboard.',
+        id: 'gnC7c5',
     },
     tooltipContent: {
         defaultMessage:
@@ -443,8 +443,8 @@ export const GrafanaDashboardResources = defineMessages({
         id: 'piCpTn',
     },
     description: {
-        defaultMessage: `Azure Managed Grafana is a fully managed service for analytics and monitoring. To add the service and a Grafana dashboard, you need to create an Azure Managed Grafana resource. The necessary permissions will be automatically assigned so that the dashboard can display monitoring data.`,
-        id: 'R1YfDi',
+        defaultMessage: `Azure Managed Grafana is a fully managed service for analytics and monitoring. To add the service and a Grafana dashboard, you need to create an Azure Managed Grafana resource. The necessary permissions will be automatically assigned so that the dashboard can display monitoring data. Azure Managed Grafana will incur costs in your subscription.`,
+        id: '7qt3qA',
     },
     grafanaCreationTitle: { defaultMessage: 'Provisioning Grafana dashboard', id: 'PzGaVI' },
     grafanaCreationInProgress: { defaultMessage: 'Provisioning of your Grafana dashboard is in progress.', id: 'kWs94j' },
@@ -474,10 +474,10 @@ export const GrafanaDashboardResources = defineMessages({
     },
     invalidGrafanaResourceNameError: {
         defaultMessage:
-            'Grafana resource name must be between 2 to 23 characters long. They must begin with a letter and end with a letter or digit.',
-        id: 'ca43CS',
+            'The name must begin with a letter, end with a letter or number, and contain only letters, numbers, and hyphens. It must be 2 to 23 characters long.',
+        id: 'WuZcUT',
     },
-    grafanaResourceName: { defaultMessage: 'Grafana resource name', id: 'a2+0+5' },
+    enterResourceName: { defaultMessage: 'Enter resource name', id: '3DzXFS' },
 });
 
 export const FeedbackResources = defineMessages({
