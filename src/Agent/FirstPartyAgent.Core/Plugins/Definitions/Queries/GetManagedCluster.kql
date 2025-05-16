@@ -9,7 +9,7 @@ let globalFrom = startTime;
 let globalTo = endTime;
 
 // Resolve managedClusterName from container app inputs
-let managedClusterName = toscalar(ContainerAppDBState
+let getManagedClusterName = toscalar(ContainerAppDBState
     | where PreciseTimeStamp between (globalFrom .. globalTo)
     | where containerAppName == containerAppName and resourceGroup == resourceGroupName and subscription == subscriptionId
     | top 1 by PreciseTimeStamp desc
@@ -19,7 +19,7 @@ let managedClusterName = toscalar(ContainerAppDBState
 
 ManagedEnvironmentDBState
 | where PreciseTimeStamp between (globalFrom .. globalTo)
-| where managedClusterName == managedClusterName
+| where managedClusterName == getManagedClusterName
 | join kind=leftouter (GetRegions) on $left.Tenant == $right.Name
 | extend jitEndpoint = iif(Cloud contains "china", "jitaccess.security.core.chinacloudapi.cn", "jitaccess.security.core.windows.net")
 | extend JITLink = strcat("https://", jitEndpoint, "/WorkFlowTempAccess.aspx?WorkItemSource=Other&WorkItemId=None&Justification=Incident+mitigation+-+link+from+ACA+ASI+Dashboard&ResourceType=Subscription&SubscriptionId=", managedSubscription, "&AccessLevel=Azure+Kubernetes+Service+RBAC+Cluster+Admin")
