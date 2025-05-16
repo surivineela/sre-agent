@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Core;
+using Agent.Core.Models;
 using FirstPartyAgent.Core.Extensions;
 using FirstPartyAgent.Core.Helpers;
 using FirstPartyAgent.Core.Models;
@@ -385,7 +386,14 @@ public class ChatProcessingService : IChatService
                 if (_teamsClient.IsEnabled())
                 {
                     _logger.LogInformation($"Posting message to Teams: {htmlContent}");
-                    await _teamsClient.PostMessageOnTeams(htmlContent, message.AgentMode);
+
+                    var teamsMessage = new TeamsMessage(htmlContent, null)
+                    {
+                        User = message.Sender,
+                        Title = message.Title ?? string.Empty,
+                        MessageId = message.SessionId ?? string.Empty,
+                    };
+                    await _teamsClient.PostMessageOnTeams(message.AgentMode, teamsMessage);
                 }
 
                 await _sessionMessageService.GetPublisher(sessionInfo.SessionId).Invoke(content);

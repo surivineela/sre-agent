@@ -1,0 +1,4 @@
+requests
+openai
+azure.identity
+python-dotenv

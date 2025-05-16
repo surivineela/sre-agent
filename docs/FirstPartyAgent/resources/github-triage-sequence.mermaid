@@ -1,0 +1,31 @@
+sequenceDiagram
+    participant GitHub as GitHub
+    participant FunctionApp as Function App
+    participant SREAgent as SRE Agent Core
+    participant OpenAI as Azure OpenAI
+    participant Search as Azure Cognitive Search
+    participant GitHubAPI as GitHub API
+    participant LogicAppPost as Logic App: Post to Teams
+    participant Teams as Microsoft Teams
+    participant User as Teams User
+    participant LogicAppListen as Logic App: Listen to Teams
+
+    %% Initial Issue Triage Flow
+    GitHub->>FunctionApp: POST /api/TriageGithubIssue
+    FunctionApp->>SREAgent: Invoke SRE Agent
+    SREAgent->>OpenAI: Query agent model
+    SREAgent->>Search: Query indexed knowledge
+    SREAgent->>GitHubAPI: Fetch issue details
+    SREAgent-->>LogicAppPost: Compose response
+    LogicAppPost->>Teams: Post message to thread
+
+    %% User Interaction Flow
+    User->>Teams: Reply in Teams thread
+    Teams->>LogicAppListen: Auto-trigger on reply
+    LogicAppListen->>FunctionApp: POST /api/TriageGithubIssueReply
+    FunctionApp->>SREAgent: Invoke SRE Agent
+    SREAgent->>OpenAI: Query agent model
+    SREAgent->>Search: Query indexed knowledge
+    SREAgent->>GitHubAPI: Optional context retrieval
+    SREAgent-->>LogicAppPost: Compose follow-up response
+    LogicAppPost->>Teams: Post reply in thread

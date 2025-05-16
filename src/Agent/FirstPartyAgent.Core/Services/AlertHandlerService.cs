@@ -34,7 +34,7 @@ public class AlertHandlerService
         _storageService = storageService;
         _cosmosDbService = cosmosDBService;
         _azureAlertingClient = azureAlertingClient;
-        if (!string.IsNullOrWhiteSpace(storageAccountSettings.IcmAlertConfigsContainerName))
+        if (!string.IsNullOrWhiteSpace(storageAccountSettings?.IcmAlertConfigsContainerName))
         {
             icmAlertConfigsContainerName = storageAccountSettings.IcmAlertConfigsContainerName;
         }

@@ -103,11 +103,18 @@ namespace FirstPartyAgent.Core.Extensions
             services.AddSingleton<AzureAlertingPlugin>();
             services.AddSingleton<IStorageService>(sp =>
             {
-                var storageAccountSettings = sp.GetRequiredService<StorageAccountSettings>();
-                if (string.IsNullOrWhiteSpace(storageAccountSettings.AccountUrl)) {
+                try
+                {
+                    var storageAccountSettings = sp.GetRequiredService<StorageAccountSettings>();
+                    if (string.IsNullOrWhiteSpace(storageAccountSettings.AccountUrl)) {
+                        return new StorageServiceDisabled();
+                    }
+                    return new StorageService(storageAccountSettings);
+                }
+                catch (Exception)
+                {
                     return new StorageServiceDisabled();
                 }
-                return new StorageService(storageAccountSettings);
             });
 
 
@@ -168,7 +175,7 @@ namespace FirstPartyAgent.Core.Extensions
                         endpoint: openAISettings.Endpoint,
                         new DefaultAzureCredential());
                 }
-                
+
                 kernelBuilder.Services.AddLogging(builder =>
                 {
                     // Use configuration for logging levels

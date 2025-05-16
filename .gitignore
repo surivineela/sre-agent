@@ -414,7 +414,9 @@ secrets.json
 
 # Environment files
 .env
+.venv
 **/.env
+**/.venv
 
 appPackage.zip
 

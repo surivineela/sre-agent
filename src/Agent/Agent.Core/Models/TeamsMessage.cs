@@ -10,8 +10,9 @@ public class TeamsMessage
     public string Title { get; set; }
     public string Content { get; set; }
     public string? Image { get; set; }
+    public string? MessageId { get; set; }
 
-    public TeamsMessage(string content, string image = null)
+    public TeamsMessage(string content, string? image = null)
     {
         this.Content = content;
         this.Image = image ?? string.Empty;

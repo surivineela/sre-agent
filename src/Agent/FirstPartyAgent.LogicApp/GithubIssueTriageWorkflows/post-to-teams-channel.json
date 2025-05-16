@@ -1,0 +1,178 @@
+{
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "actions": {
+            "Check_if_message_is_from_listen-to-teams-channel": {
+                "type": "If",
+                "expression": {
+                    "and": [
+                        {
+                            "equals": [
+                                "@triggerBody()?['message']?['user']",
+                                "ListenLogicAppWorkflow"
+                            ]
+                        }
+                    ]
+                },
+                "actions": {
+                    "Reply_with_a_message_in_a_channel-copy": {
+                        "type": "ApiConnection",
+                        "inputs": {
+                            "host": {
+                                "connection": {
+                                    "referenceName": "teams"
+                                }
+                            },
+                            "method": "post",
+                            "body": {
+                                "parentMessageId": "@triggerBody()?['message']?['messageId']",
+                                "recipient": {
+                                    "groupId": "74991640-75c1-48b2-aba8-feb54b4b71aa",
+                                    "channelId": "19:bcb43a4c1b774ed298ff6ceb1ef2d327@thread.tacv2"
+                                },
+                                "messageBody": "<p class=\"editor-paragraph\">****AI generated content****</p><p class=\"editor-paragraph\"><br>@{triggerBody()?['message']?['content']}</p>"
+                            },
+                            "path": "/v1.0/teams/conversation/replyWithMessage/poster/@{encodeURIComponent('User')}/location/@{encodeURIComponent('Channel')}"
+                        }
+                    }
+                },
+                "else": {
+                    "actions": {
+                        "Get_messages": {
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "host": {
+                                    "connection": {
+                                        "referenceName": "teams"
+                                    }
+                                },
+                                "method": "get",
+                                "path": "/beta/teams/@{encodeURIComponent('74991640-75c1-48b2-aba8-feb54b4b71aa')}/channels/@{encodeURIComponent('19:bcb43a4c1b774ed298ff6ceb1ef2d327@thread.tacv2')}/messages"
+                            }
+                        },
+                        "Find_post_for_given_issue_number": {
+                            "type": "Query",
+                            "inputs": {
+                                "from": "@body('Get_messages')?['value']",
+                                "where": "@contains(trim(last(split(coalesce(item()?['subject'], 'Issue #'), '#'))),trim(coalesce(triggerBody()?['message']?['title'], '')))"
+                            },
+                            "runAfter": {
+                                "Get_messages": [
+                                    "SUCCEEDED"
+                                ]
+                            }
+                        },
+                        "Condition": {
+                            "type": "If",
+                            "expression": {
+                                "and": [
+                                    {
+                                        "greater": [
+                                            "@length(body('Find_post_for_given_issue_number'))",
+                                            0
+                                        ]
+                                    }
+                                ]
+                            },
+                            "actions": {
+                                "For_each": {
+                                    "type": "Foreach",
+                                    "foreach": "@body('Find_post_for_given_issue_number')",
+                                    "actions": {
+                                        "Reply_with_a_message_in_a_channel": {
+                                            "type": "ApiConnection",
+                                            "inputs": {
+                                                "host": {
+                                                    "connection": {
+                                                        "referenceName": "teams"
+                                                    }
+                                                },
+                                                "method": "post",
+                                                "body": {
+                                                    "parentMessageId": "@item()?['id']",
+                                                    "recipient": {
+                                                        "groupId": "74991640-75c1-48b2-aba8-feb54b4b71aa",
+                                                        "channelId": "19:bcb43a4c1b774ed298ff6ceb1ef2d327@thread.tacv2"
+                                                    },
+                                                    "messageBody": "<p class=\"editor-paragraph\">****AI generated content****</p><p class=\"editor-paragraph\"><br>@{triggerBody()?['message']?['content']}</p>"
+                                                },
+                                                "path": "/v1.0/teams/conversation/replyWithMessage/poster/@{encodeURIComponent('User')}/location/@{encodeURIComponent('Channel')}"
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "else": {
+                                "actions": {
+                                    "Post_message_with_subject_if_no_matching_post_found": {
+                                        "type": "ApiConnection",
+                                        "inputs": {
+                                            "host": {
+                                                "connection": {
+                                                    "referenceName": "teams"
+                                                }
+                                            },
+                                            "method": "post",
+                                            "body": {
+                                                "recipient": {
+                                                    "groupId": "74991640-75c1-48b2-aba8-feb54b4b71aa",
+                                                    "channelId": "19:bcb43a4c1b774ed298ff6ceb1ef2d327@thread.tacv2"
+                                                },
+                                                "messageBody": "<p class=\"editor-paragraph\">****AI generated content****</p><br><p class=\"editor-paragraph\">@{triggerBody()?['message']?['content']}</p>",
+                                                "subject": "@triggerBody()?['message']?['title']"
+                                            },
+                                            "path": "/beta/teams/conversation/message/poster/@{encodeURIComponent('User')}/location/@{encodeURIComponent('Channel')}"
+                                        }
+                                    }
+                                }
+                            },
+                            "runAfter": {
+                                "Find_post_for_given_issue_number": [
+                                    "SUCCEEDED"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "runAfter": {}
+            }
+        },
+        "contentVersion": "1.0.0.0",
+        "outputs": {},
+        "triggers": {
+            "When_a_HTTP_request_is_received": {
+                "type": "Request",
+                "kind": "Http",
+                "inputs": {
+                    "method": "POST",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "message": {
+                                "type": "object",
+                                "properties": {
+                                    "user": {
+                                        "type": "string"
+                                    },
+                                    "title": {
+                                        "type": "string"
+                                    },
+                                    "content": {
+                                        "type": "string"
+                                    },
+                                    "image": {
+                                        "type": "string"
+                                    },
+                                    "messageId": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "kind": "Stateful"
+}

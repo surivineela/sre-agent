@@ -14,6 +14,7 @@ namespace FirstPartyAgent.Core.Services
         bool IsEnabled();
         bool SendLogsToTeams();
         Task<bool> PostMessageOnTeams(string textContent, string agentMode, string base64Image = null);
+        Task<bool> PostMessageOnTeams(string agentMode, TeamsMessage message);
     }
 
     public class TeamsClient: ITeamsClient
@@ -36,20 +37,21 @@ namespace FirstPartyAgent.Core.Services
             return !string.IsNullOrWhiteSpace(_teamsClientSettings.TeamsEndpoint);
         }
 
-        public async Task<bool> PostMessageOnTeams(string textContent, string agentMode, string base64Image=null)
+        public async Task<bool> PostMessageOnTeams(string agentMode, TeamsMessage message)
         {
             var httpClient = new HttpClient();
-            var teamsMessage = new TeamsMessage(textContent, base64Image);
+            var jsonOptions = new JsonSerializerOptions { WriteIndented = true };
             var conversationId = _teamsClientSettings.AgentConversationIds.ContainsKey(agentMode) ? _teamsClientSettings.AgentConversationIds[agentMode] : _teamsClientSettings.TeamsGroupConversationId;
+
             var payload = new
             {
-                conversationId = conversationId,
-                message = teamsMessage
+                conversationId,
+                message
             };
 
-            var options1 = new JsonSerializerOptions { WriteIndented = true };
-            var requestBody = JsonSerializer.Serialize(payload, options1);
+            var requestBody = JsonSerializer.Serialize(payload, jsonOptions);
             var response = await httpClient.PostAsync(_teamsClientSettings.TeamsEndpoint, new StringContent(requestBody, Encoding.UTF8, "application/json"));
+
             if (response.IsSuccessStatusCode)
             {
                 return true;
@@ -58,6 +60,12 @@ namespace FirstPartyAgent.Core.Services
             {
                 return false;
             }
+        }
+
+        public async Task<bool> PostMessageOnTeams(string textContent, string agentMode, string? base64Image = null)
+        {
+            var teamsMessage = new TeamsMessage(textContent, base64Image);
+            return await PostMessageOnTeams(agentMode, teamsMessage);
         }
     }
 }

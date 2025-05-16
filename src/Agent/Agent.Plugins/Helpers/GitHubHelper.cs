@@ -17,7 +17,7 @@ namespace Agent.Plugins.Helpers
                 throw new ArgumentException("Repository URL cannot be empty.");
             }
 
-            string regexPattern = @"github\.com[/:](?<owner>[\w.-]+)/(?<repo>[\w.-]+)\.(?:git)?";
+            string regexPattern = @"github\.com[/:](?<owner>[\w.-]+)/(?<repo>[\w.-]+)(?:\.git)?";
             string errorMessage = $"Repository URL must be of the form https://github.com/owner/repo-name.git whereas the supplied repoUrl is {repoUrl}";
             if (repoUrl.Contains("/repos/", StringComparison.OrdinalIgnoreCase))
             {

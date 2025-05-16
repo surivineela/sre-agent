@@ -1,0 +1,181 @@
+{
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "actions": {
+            "For_each": {
+                "type": "foreach",
+                "foreach": "@triggerBody()?['value']",
+                "actions": {
+                    "Get_posted_message_details": {
+                        "type": "ApiConnection",
+                        "inputs": {
+                            "host": {
+                                "connection": {
+                                    "referenceName": "teams"
+                                }
+                            },
+                            "method": "post",
+                            "body": {
+                                "recipient": {
+                                    "groupId": "74991640-75c1-48b2-aba8-feb54b4b71aa",
+                                    "channelId": "19:bcb43a4c1b774ed298ff6ceb1ef2d327@thread.tacv2",
+                                    "parentMessageId": "@item()?['replyToMessageId']"
+                                }
+                            },
+                            "path": "/beta/teams/messages/@{encodeURIComponent(items('For_each')?['messageId'])}/messageType/@{encodeURIComponent('channel')}"
+                        }
+                    },
+                    "Is_reply_to_existing_post_by_human": {
+                        "type": "If",
+                        "description": "Act only when user responds to an existing post. New posts must be created only by AI in a specific format when it gets triggered from GitHub via a webhook.\nChecks:\n  Confirm current message is a reply\nAND\n  Confirm message was not created by AI",
+                        "expression": {
+                            "and": [
+                                {
+                                    "not": {
+                                        "equals": [
+                                            "@empty(item()?['replyToMessageId'])",
+                                            "@true"
+                                        ]
+                                    }
+                                },
+                                {
+                                    "equals": [
+                                        "@indexof(body('Get_posted_message_details')?['body']?['content'], '****AI generated content****')",
+                                        -1
+                                    ]
+                                }
+                            ]
+                        },
+                        "actions": {
+                            "Get_parent_message_details": {
+                                "type": "ApiConnection",
+                                "inputs": {
+                                    "host": {
+                                        "connection": {
+                                            "referenceName": "teams"
+                                        }
+                                    },
+                                    "method": "post",
+                                    "body": {
+                                        "recipient": {
+                                            "groupId": "74991640-75c1-48b2-aba8-feb54b4b71aa",
+                                            "channelId": "19:bcb43a4c1b774ed298ff6ceb1ef2d327@thread.tacv2"
+                                        }
+                                    },
+                                    "path": "/beta/teams/messages/@{encodeURIComponent(body('Get_posted_message_details')?['replyToId'])}/messageType/@{encodeURIComponent('channel')}"
+                                }
+                            },
+                            "Get_all_replies_to_message_via_Microsoft_Graph_HTTP_request": {
+                                "type": "ApiConnection",
+                                "inputs": {
+                                    "host": {
+                                        "connection": {
+                                            "referenceName": "teams"
+                                        }
+                                    },
+                                    "method": "post",
+                                    "headers": {
+                                        "Uri": "https://graph.microsoft.com/beta/teams/@{body('Get_parent_message_details')?['teamId']}/channels/@{body('Get_posted_message_details')?['channelId']}/messages/@{body('Get_parent_message_details')?['id']}/replies",
+                                        "Method": "GET",
+                                        "ContentType": "application/json"
+                                    },
+                                    "path": "/httprequest"
+                                },
+                                "runAfter": {
+                                    "Get_parent_message_details": [
+                                        "SUCCEEDED"
+                                    ]
+                                }
+                            },
+                            "Merge_Parent_message_and_replies": {
+                                "type": "Compose",
+                                "inputs": "@union(createArray(body('Get_parent_message_details')),reverse(body('Get_all_replies_to_message_via_Microsoft_Graph_HTTP_request')['value']))",
+                                "runAfter": {
+                                    "Get_all_replies_to_message_via_Microsoft_Graph_HTTP_request": [
+                                        "SUCCEEDED"
+                                    ]
+                                }
+                            },
+                            "Transform_teams_messages_to_agent_messages": {
+                                "type": "Select",
+                                "inputs": {
+                                    "from": "@outputs('Merge_Parent_message_and_replies')",
+                                    "select": {
+                                        "user": "@if(less(indexOf(coalesce(item()?['body']?['content'], ''), '****AI generated content****'), 0), coalesce(item()?['from']?['user']?['displayName'], ''), 'Assistant')",
+                                        "title": "@coalesce(item()?['subject'], '')",
+                                        "content": "@coalesce(item()?['body']?['content'], '')"
+                                    }
+                                },
+                                "runAfter": {
+                                    "Merge_Parent_message_and_replies": [
+                                        "SUCCEEDED"
+                                    ]
+                                }
+                            },
+                            "HTTP": {
+                                "type": "Http",
+                                "inputs": {
+                                    "uri": "https://func-triage-sre-agent.azurewebsites.net/api/TriageGithubIssueReply",
+                                    "method": "POST",
+                                    "headers": {
+                                        "Content-Type": "application/json",
+                                        "x-functions-key": "@{appsetting('TriageGithubIssueReplyFunctionKey')}"
+                                    },
+                                    "body": {
+                                        "Sender": "ListenLogicAppWorkflow",
+                                        "Message": "@{body('Transform_teams_messages_to_agent_messages')}",
+                                        "AgentMode": "GithubIssueTagger",
+                                        "SessionId": "@{body('Get_parent_message_details')?['replyToId']}",
+                                        "Title": "@{body('Get_parent_message_details')?['subject']}"
+                                    }
+                                },
+                                "runAfter": {
+                                    "Transform_teams_messages_to_agent_messages": [
+                                        "SUCCEEDED"
+                                    ]
+                                },
+                                "runtimeConfiguration": {
+                                    "contentTransfer": {
+                                        "transferMode": "Chunked"
+                                    }
+                                }
+                            }
+                        },
+                        "else": {
+                            "actions": {}
+                        },
+                        "runAfter": {
+                            "Get_posted_message_details": [
+                                "SUCCEEDED"
+                            ]
+                        }
+                    }
+                },
+                "runAfter": {}
+            }
+        },
+        "contentVersion": "1.0.0.0",
+        "outputs": {},
+        "triggers": {
+            "When_a_new_message_is_added_to_a_chat_or_channel": {
+                "type": "ApiConnectionWebhook",
+                "inputs": {
+                    "host": {
+                        "connection": {
+                            "referenceName": "teams"
+                        }
+                    },
+                    "body": {
+                        "notificationUrl": "@listCallbackUrl()",
+                        "channels": [
+                            "19:bcb43a4c1b774ed298ff6ceb1ef2d327@thread.tacv2"
+                        ],
+                        "groupId": "74991640-75c1-48b2-aba8-feb54b4b71aa"
+                    },
+                    "path": "/beta/subscriptions/newmessagetrigger/threadType/@{encodeURIComponent('channel')}"
+                }
+            }
+        }
+    },
+    "kind": "Stateful"
+}

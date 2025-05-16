@@ -1,0 +1,15 @@
+# Azure Open AI
+OPENAI_ENDPOINT=
+OPENAI_API_KEY=
+# openai model "deployment" name (typically the same as the model name unless specified otherwise)
+OPENAI_EMBEDDING_MODEL=text-embedding-ada-002
+OPENAI_VISION_MODEL=gpt-4o
+
+# Azure Search
+AZURE_SEARCH_ENDPOINT=
+AZURE_SEARCH_API_KEY=
+
+# GitHub
+GITHUB_ORG=Azure
+GITHUB_REPO_NAME=azure-functions-host
+GITHUB_PAT_TOKEN=

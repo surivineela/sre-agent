@@ -46,7 +46,7 @@ namespace FirstPartyAgent.Core.Plugins
             _teamsClient = teamsClient;
             _storageService = storageService;
             _cosmosDbService = cosmosDBService;
-            if (!string.IsNullOrWhiteSpace(storageAccountSettings.GenevaActionsContainerName))
+            if (!string.IsNullOrWhiteSpace(storageAccountSettings?.GenevaActionsContainerName))
             {
                 storageGenevaActionsContainerName = storageAccountSettings.GenevaActionsContainerName;
             }
@@ -64,7 +64,7 @@ namespace FirstPartyAgent.Core.Plugins
             var allGenevaActions = new List<GenevaActionConfig>();
             var logMessage = $"Initializing Geneva Actions Config";
             _logger.LogInformation(logMessage);
-            
+
             if (_cosmosDbService != null && _cosmosDbService.IsEnabled)
             {
                 try
@@ -83,7 +83,7 @@ namespace FirstPartyAgent.Core.Plugins
                     _logger.LogError($"Error reading alert details from CosmosDB: {ex.Message}");
                 }
             }
-            
+
 
             if (_storageService.IsEnabled)
             {

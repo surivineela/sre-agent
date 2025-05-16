@@ -10,6 +10,7 @@ namespace FirstPartyAgent.Core.Models
         public string Message { get; set; }
         public string AgentMode { get; set; }
         public string SessionId { get; set; }
+        public string? Title { get; set; }
         public Dictionary<string, string> PromptReplacements { get; set; } = new Dictionary<string, string>();
         public Dictionary<string, object> Data { get; set; } = new Dictionary<string, object>();
     }
