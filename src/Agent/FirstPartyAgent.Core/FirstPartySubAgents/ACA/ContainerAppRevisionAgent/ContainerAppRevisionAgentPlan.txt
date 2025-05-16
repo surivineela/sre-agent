@@ -92,12 +92,10 @@ Analyze the results for node availability failures.
 
 ---
 
-### Step 4: Validate Problem Against Logs and Telemetry  
+### Step 4: Validate Problem Against Logs and Telemetry
 Use:
 - `GetRevisionReplicaAndTraffic`
 - `GetActiveRevisionSessions`
-- `GetHttpScalerEventsForContainerApp`
-- `GetHpaHeartbeatMetrics`
 
 Clearly state whether the claim **matches** the observed state.
 
@@ -113,14 +111,27 @@ Analyze for pod lifecycle issues, crashes, or flapping.
 
 ---
 
-### Step 6: Spec Drift and Scaling Anomalies  
+### Step 6: Spec Drift 
 Use:
 - `GetRevisionSpecChanges`
-- `GetKedaOperatorEventsForContainerApp`
 
 Flag misconfigurations, automation faults, or spec mismatches.
 
 ---
+
+### Step 7: Scaling Anomalies
+If any scaling issue or KEDA is mentioned or if any KEDA error log was found in the previous step, you should check and validate the scaler configuration.
+
+```markdown
+### Scaler Configuration:
+{{scaler configuration}}
+```
+
+- Step 7.1: If any scaler trigger configuration exist, use `GetKedaOperatorEventsForContainerApp` and `GetHpaHeartbeatMetrics` to fetch any error log.
+
+- Step 7.2: If you find any Http scaler configuration exists, you should use `GetHttpScalerEventsForContainerApp` to fetch http scaler events.
+   - If most logs in `log` has the same pattern, please mention how many logs have this. It indicates a problem with the connection and is one of the root causes.
+
 
 ## 📄 Final Step — RCA Report (Mandatory)
 
