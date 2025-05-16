@@ -1,5 +1,5 @@
 export interface Agent {
-    provisioningState: string;
+    provisioningState: ProvisioningState;
     agentEndpoint: string;
     runningState: string;
     vnetConfiguration?: VnetConfiguration;
@@ -10,6 +10,14 @@ export interface Agent {
     logConfiguration?: LogConfiguration;
     incidentManagementConfiguration?: IncidentManagementConfiguration | null;
     dashboardConfiguration: DashboardConfiguration;
+}
+
+export enum ProvisioningState {
+    InProgress = 'InProgress',
+    Succeeded = 'Succeeded',
+    Failed = 'Failed',
+    Canceled = 'Canceled',
+    Deleting = 'Deleting',
 }
 
 export interface DashboardConfiguration {
