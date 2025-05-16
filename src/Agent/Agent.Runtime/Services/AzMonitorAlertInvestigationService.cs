@@ -52,9 +52,11 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
             // Fetch and summarize activity logs using the existing GraphDBPlugin method
             var activityLogSummary = await _graphDBPlugin.FetchAndSummarizeActivityLogs(
                 resourceId,
-                daysBack: 1,
+                hoursBack: 1,
                 threadId: alertThread.Id
             );
+
+            _logger.LogInternalInformation($"The summarized activity log for the alert is: {activityLogSummary}");
 
             var agentContexts = await _repository.GetAgentContextsForThreadAsync(alertThread.Id);
             if (agentContexts == null || !agentContexts.Any())
@@ -69,10 +71,12 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
 
             // Custom prompt for analyzing activity logs
             string activityLogInstructions = @"Review these activity logs and identify:
-                                            - Configuration changes directly preceding the alert
+                                            - Configuration changes closely preceding the alert
                                             - Administrative actions with timestamps that correlate with the issue
-                                            - Deployments or updates that could have introduced issues
+                                            - Deployments or updates that could have introduced issues and happened closely preceding the alert
+                                            - Evaluate the correlation of each activity based on timeline. The closer to the alert trigger time, the more likely it's correlated
                                             - ONLY mention activities that likely caused the alert
+                                            - Focus on WRITE actions, e.g., Create, Update.
                                             - Ignore routine operations unrelated to the issue";
 
             string promptWithPlaceholders = ChainPrompt
@@ -223,6 +227,19 @@ Important:
                     - Direct correlation between health patterns and the alert condition
                     - Resource constraints with numerical thresholds exceeded
 
+                    Refer to following examples when you do the analysis, you do not need to follow the examples exactly but they should help you understand how to think:
+                    Example analysis - 1:
+                    - App health info: The request metrics have a large value while with CPU percentage is over 60%, memory percentage is normal
+                    - Your analysis: The app is experiencing high request volume, causing the CPU percentage to increase, indicating a potential resource constraint.
+
+                    Example analysis - 2:
+                    - App health info: The CPU percentage is extremely high (over 90%) while the request metrics are normal, memory percentage is normal
+                    - Your analysis: The app is not having high traffic but is still experiencing high CPU usage, indicating a potential performance issue, like deadlocks, infinite loops or inefficient queries.
+
+                    Example analysis - 3:
+                    - App health info: The availability is low (less than 50%) while the memory percentage is high (over 70%), the request metrics are normal 
+                    - Your analysis: The high memory consumption is likely causing the app to be unavailable, indicating potential memory leaks or resource constraint.
+                     
                     Avoid general observations. Include specific times, durations, and metric values.";
 
                 string appHealthPromptWithPlaceholders = ChainPrompt

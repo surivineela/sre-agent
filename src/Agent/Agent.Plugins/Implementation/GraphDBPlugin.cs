@@ -1364,7 +1364,7 @@ g.V().has('id', '{deploymentResourceId}')
             }
         }
 
-        public async Task<(List<Dictionary<string, object>> ActivityLogs, List<Node> Components)> FetchActivityLogsAndComponents(string resourceId, int daysBack = 1, Guid? threadId = null)
+        public async Task<(List<Dictionary<string, object>> ActivityLogs, List<Node> Components)> FetchActivityLogsAndComponents(string resourceId, int hoursBack = 24, Guid? threadId = null)
         {
             _logger.LogInternalInformation($"[FetchActivityLogs] Invoked with resourceId: {resourceId}");
 
@@ -1415,7 +1415,7 @@ g.V().has('id', '{deploymentResourceId}')
 
                     foreach (var id in rgs)
                     {
-                        var logs = await FetchActivityLogsForResource(id.Replace("_", "/"), daysBack);
+                        var logs = await FetchActivityLogsForResource(id.Replace("_", "/"), hoursBack);
                         var distinctLogs = logs.Where(l => l["operationName"].ToString().Contains("deployments/write")).ToList();
                         var distinct = logs.Select(l => l["operationName"].ToString()).Distinct().ToList();
 
@@ -1428,7 +1428,7 @@ g.V().has('id', '{deploymentResourceId}')
 
                     if (allActivityLogs.Count == 0)
                     {
-                        throw new ArgumentException("No activity logs found for the specified resource and its dependencies in the last " + daysBack + " days.");
+                        throw new ArgumentException("No activity logs found for the specified resource and its dependencies in the last " + hoursBack + " hours.");
                     }
 
                     allActivityLogs = allActivityLogs
@@ -1466,11 +1466,11 @@ g.V().has('id', '{deploymentResourceId}')
         [Description("Retrieves and summarizes activity logs for an azure resource and its dependent resources")]
         public async Task<string> FetchAndSummarizeActivityLogs(
             string resourceId,
-            int daysBack = 1,
+            int hoursBack = 24,
             Guid? threadId = null)
         {
             _logger.LogInternalInformation($"[FetchAndSummarizeActivityLogs] Invoked with resourceId: {resourceId}");
-            (List<Dictionary<string, object>> allActivityLogs, List<Node> components) = await FetchActivityLogsAndComponents(resourceId, daysBack, threadId);
+            (List<Dictionary<string, object>> allActivityLogs, List<Node> components) = await FetchActivityLogsAndComponents(resourceId, hoursBack, threadId);
             var logsJson = JsonSerializer.Serialize(allActivityLogs, new JsonSerializerOptions { WriteIndented = true });
             var summary = await SummarizeLogsWithLLM(logsJson, components?.ToString());
             return summary;
@@ -1561,7 +1561,7 @@ g.V().has('id', '{deploymentResourceId}')
             }
         }
 
-        private async Task<List<Dictionary<string, object>>> FetchActivityLogsForResource(string resourceId, int daysBack)
+        private async Task<List<Dictionary<string, object>>> FetchActivityLogsForResource(string resourceId, int hoursBack)
         {
             _logger.LogInternalInformation($"[FetchActivityLogsForResource] Fetching activity logs for: {resourceId}");
 
@@ -1586,7 +1586,7 @@ g.V().has('id', '{deploymentResourceId}')
                     SubscriptionId = subscriptionId
                 };
 
-                var startTime = DateTime.UtcNow.AddDays(-daysBack);
+                var startTime = DateTime.UtcNow.AddHours(-hoursBack);
                 var endTime = DateTime.UtcNow;
 
                 var filter = new ODataQuery<EventData>(eventData =>

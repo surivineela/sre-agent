@@ -159,7 +159,7 @@ namespace Agent.Plugins.Mocks
             throw new NotImplementedException();
         }
 
-        public Task<string> FetchAndSummarizeActivityLogs(string resourceId, int daysBack = 30, Guid? threadId = null)
+        public Task<string> FetchAndSummarizeActivityLogs(string resourceId, int hoursBack = 30, Guid? threadId = null)
         {
             throw new NotImplementedException();
         }

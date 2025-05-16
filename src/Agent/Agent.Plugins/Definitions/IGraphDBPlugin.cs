@@ -136,7 +136,7 @@ namespace Agent.Plugins
         /// <param name="daysBack">Number of days of logs to retrieve and analyze. Default is 30.</param>
         /// <param name="threadId">Optional threadId for the current conversation.</param>
         /// <returns>A summary of the activity logs with key insights and potential issues.</returns>
-        Task<string> FetchAndSummarizeActivityLogs(string resourceId, int daysBack = 1, Guid? threadId = null);
+        Task<string> FetchAndSummarizeActivityLogs(string resourceId, int hoursBack = 24, Guid? threadId = null);
 
         /// <summary>
         /// Fetches activity logs and components for a specific resource. 

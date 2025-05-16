@@ -204,10 +204,10 @@ namespace Agent.Plugins
             "The output is a natural language summary highlighting key activities, patterns, and potential concerns.")]
         public async Task<string> GetActivityLogsSummary(
             [Description("Azure Resource Id of the resource to analyze. Should begin with /subscriptions/... Example: /subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebapp")] string resourceId,
-            [Description("Number of days of activity logs to retrieve and analyze. Default is 1 days.")] int daysBack = 1,
+            [Description("Number of hours of activity logs to retrieve and analyze. Default is 24 hours.")] int hoursBack = 24,
             Guid? threadId = null)
         {
-            return await _plugin.FetchAndSummarizeActivityLogs(resourceId, daysBack, threadId);
+            return await _plugin.FetchAndSummarizeActivityLogs(resourceId, hoursBack, threadId);
         }
 
         [KernelFunction("ListResourcesByType")]

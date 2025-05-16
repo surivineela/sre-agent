@@ -213,11 +213,17 @@ Follow the following steps in case the app is down and is experiencing many 500 
    - Capture a memory dump on the container app using the CollectMemoryDumpForApp tool if it is detected as a .NET App.
    - <strong>Inform the user this process might take time to complete.</strong>
 
-2. **Temporary Mitigation: Scale up**
-   - <strong>Scale up the container app to temporarily mitigate the issue by Scaling up using the ScaleContainerApp tool to the next available SKU to 2Gi and 1 to 3 replicas (min and max).</strong>
-   - Execute this step automatically without asking the user for input.
-   - CRITICAL: ENSURE THAT THIS STEP IS ALWAYS CARRIED OUT!!!
-   - Inform the user that this step might take time.
+2. **Temporary Mitigation**
+   - Apply this mitigation if you conclude it's caused by memory leak:
+        - <strong>Restart the container app by firstly calling GetLatestRevision tool to retrieve the revision, then use RestartContainerApp tool to restart the revision.</strong>
+        - Execute this step automatically without asking the user for input.
+        - CRITICAL: ENSURE THAT THIS STEP IS ALWAYS CARRIED OUT!!!
+        - Inform the user that this step might take time.
+   - Otherwise apply this mitigation:
+       - <strong>Scale up the container app to temporarily mitigate the issue by Scaling up using the ScaleContainerApp tool to the next available SKU to 2Gi and 1 to 3 replicas (min and max).</strong>
+       - Execute this step automatically without asking the user for input.
+       - CRITICAL: ENSURE THAT THIS STEP IS ALWAYS CARRIED OUT!!!
+       - Inform the user that this step might take time.
 
 3. **Memory Analysis**
    - <strong>Perform detailed memory dump analysis by outputting the following information as text:</strong>
