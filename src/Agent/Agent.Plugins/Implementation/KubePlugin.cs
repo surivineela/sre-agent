@@ -1684,12 +1684,13 @@ $@"100 * (
             }
         }
 
-        public async Task<string> GetNsgRulesForWorkloadAsync(
+        public async Task<IDictionary<string, string>> GetNsgRulesForWorkloadAsync(
             string aksResourceId,
             string _namespace,
             string kind,
             string workloadName)
         {
+            var result = new Dictionary<string, string>();
             _logger?.LogInformation("[GetNsgRulesForWorkloadAsync] Invoked for Kind: '{Kind}', Name: '{WorkloadName}', Namespace: '{Namespace}', Cluster: '{ResourceId}'",
                 kind, workloadName, _namespace, aksResourceId);
 
@@ -1698,12 +1699,10 @@ $@"100 * (
             {
                 string errorMsg = $"Error: Unsupported workload kind '{kind}' for GetNsgRulesForWorkloadAsync. Supported: Deployment, StatefulSet.";
                 _logger?.LogError(errorMsg);
-                return errorMsg;
+                return result;
             }
 
-            string noRulesFoundMsg = $"No relevant NSG rules found associated with the node pools for workload '{kind}' '{workloadName}' in namespace '{_namespace}'.";
             string workloadNotFoundMsg = $"Could not determine node pools for workload '{kind}' '{workloadName}' in namespace '{_namespace}', or no relevant pods are running. Cannot fetch NSG rules.";
-
 
             try
             {
@@ -1716,51 +1715,24 @@ $@"100 * (
                 if (nodePools == null || !nodePools.Any())
                 {
                     _logger?.LogWarning(workloadNotFoundMsg);
-                    return workloadNotFoundMsg; // Return informative string
+                    return result;
                 }
 
                 _logger?.LogInformation("Step 2: Found workload '{WorkloadName}' running on node pool(s): {NodePools}. Fetching associated NSG rules...",
                     workloadName, string.Join(", ", nodePools));
 
                 // 4. Get NSG rules specifically for those node pools
-                // Assuming GetNsgRulesForNodePoolsAsync returns IDictionary<string, IReadOnlyList<SecurityRuleData>>
+                // Assuming GetNsgRulesForNodePoolsAsync returns IDictionary<string, string>
                 var nsgRulesDict = await GetNsgRulesForNodePoolsAsync(aksResourceId, nodePools);
 
-                // 5. Check if NSG rules were found
-                if (nsgRulesDict == null || !nsgRulesDict.Any())
-                {
-                    _logger?.LogInformation("Successfully retrieved NSG information, but no specific rules were found for the relevant node pools of workload '{WorkloadName}'.", workloadName);
-                    return noRulesFoundMsg; // Return informative string
-                }
-
-                _logger?.LogInformation("Successfully retrieved NSG rules associated with the node pools for workload '{WorkloadName}'. Found {NsgCount} relevant NSG(s). Serializing to JSON...", workloadName, nsgRulesDict.Count);
-
-                // 6. Serialize the result to JSON
-                try
-                {
-                    string jsonResult = System.Text.Json.JsonSerializer.Serialize(nsgRulesDict, new JsonSerializerOptions
-                    {
-                        WriteIndented = true // Makes the output readable
-                    });
-                    return jsonResult; // Return the JSON string
-                }
-                catch (System.Text.Json.JsonException jsonEx)
-                {
-                    _logger?.LogError(jsonEx, "Failed to serialize NSG rules dictionary to JSON for workload '{WorkloadName}'.", workloadName);
-                    return $"Error: Failed to format NSG rule data. {jsonEx.Message}";
-                }
-                catch (NotSupportedException nse) // Can happen with complex unserializable types
-                {
-                    _logger?.LogError(nse, "Failed to serialize NSG rules dictionary to JSON due to unsupported type for workload '{WorkloadName}'.", workloadName);
-                    return $"Error: Failed to format NSG rule data due to an unsupported type. {nse.Message}";
-                }
+                return nsgRulesDict;
             }
             catch (Exception ex)
             {
                 // Log the exception with specific details
                 _logger?.LogError(ex, "An unexpected error occurred in GetNsgRulesForWorkloadAsync for Kind: '{Kind}', Name: '{WorkloadName}', Namespace: '{Namespace}'.",
                     kind, workloadName, _namespace);
-                return $"Error: An unexpected error occurred while fetching NSG rules for '{kind}' '{workloadName}'. {ex.Message}"; // Return error string
+                return result;
             }
         }
 
@@ -1923,14 +1895,14 @@ $@"100 * (
             }
         }
 
-        public async Task<IDictionary<string, IReadOnlyList<SecurityRuleData>>> GetNsgRulesForNodePoolsAsync(
+        public async Task<IDictionary<string, string>> GetNsgRulesForNodePoolsAsync(
         string aksResourceId,
         IReadOnlyList<string> targetNodePoolNames)
         {
             _logger?.LogInformation("[GetNsgRulesForNodePoolsAsync] Invoked for cluster '{ResourceId}' and Node Pools: {NodePoolNames}",
                 aksResourceId, string.Join(", ", targetNodePoolNames ?? new List<string>()));
 
-            var result = new Dictionary<string, IReadOnlyList<SecurityRuleData>>();
+            var result = new Dictionary<string, string>();
 
             // Basic input validation
             if (targetNodePoolNames == null || !targetNodePoolNames.Any())
@@ -2014,28 +1986,10 @@ $@"100 * (
 
                                 // 8. Get the NSG Resource and its rules
                                 var nsgResource = armClient.GetNetworkSecurityGroupResource(new ResourceIdentifier(nsgId));
-                                var nsgResponse = await nsgResource.GetAsync();
+                                var nsgData = await nsgResource.GetAsync();
 
-                                if (!nsgResponse.HasValue || nsgResponse.Value.Data == null)
-                                {
-                                    _logger?.LogWarning($"Could not retrieve data for NSG '{nsgId}'. Skipping NSG rule fetch for this subnet.");
-                                    // Optionally, add the NSG ID with an empty list or some error indicator
-                                    // result.Add(nsgId, new List<SecurityRuleData>().AsReadOnly());
-                                    continue;
-                                }
-                                var nsgData = nsgResponse.Value.Data;
-
-                                if (nsgData.SecurityRules != null)
-                                {
-                                    // Store the rules as a read-only list
-                                    result[nsgId] = nsgData.SecurityRules.ToList().AsReadOnly();
-                                    _logger?.LogInformation($"Added {nsgData.SecurityRules.Count} rules from NSG '{nsgId}'");
-                                }
-                                else
-                                {
-                                    _logger?.LogInformation($"NSG '{nsgId}' found but has no security rules defined.");
-                                    result[nsgId] = new List<SecurityRuleData>().AsReadOnly(); // Add empty list
-                                }
+                                // Add this NSG's rules to the result dictionary
+                                result[nsgId] = nsgData.GetRawResponse().Content.ToString();
                             }
                             else
                             {

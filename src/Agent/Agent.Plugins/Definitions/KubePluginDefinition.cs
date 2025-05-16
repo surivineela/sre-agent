@@ -286,7 +286,7 @@ eg: please give me the availability rate for statefulset for last 2 hour.")]
     eg: 'What NSG rules apply to the 'api-gateway' deployment in the 'production' namespace?'
     eg: 'Show me the network security rules affecting my 'user-database' statefulset in the 'data-services' namespace.'"
     )]
-        public async Task<string> GetNsgRulesForWorkloadAsync(
+        public async Task<IDictionary<string, string>> GetNsgRulesForWorkloadAsync(
         [Description("The resource ID of the Azure Kubernetes Service (AKS) cluster.")] string AKSClusterResourceId,
         [Description("Kubernetes namespace where the workload (Deployment or StatefulSet) is located, e.g., 'default', 'production'.")] string _namespace,
         [Description("The kind of the Kubernetes workload. Supported values are 'deployment' or 'statefulset'.")] string kind,
