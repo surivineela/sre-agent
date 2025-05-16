@@ -83,7 +83,9 @@ namespace Agent.Runtime.SubAgents
                 var resourceProviderName = group.Key; // eg; "microsoft.storage/storageaccounts"
                 if (group.Count() > 0)
                 {
-                    var instancePrefixPerProvider = _agentFactory.OrchestrationInstanceIdPrefix + resourceProviderName;
+                    var orchestrationSuffix = resourceProviderName.Replace("/", "-");
+                    var instancePrefixPerProvider = _agentFactory.OrchestrationInstanceIdPrefix + orchestrationSuffix;
+
                     // Before running a new scan, ensure we're not currently mid-scan
                     var agentName = typeof(TAgentType).Name;
                     var runningAgents = await _durableTaskClient.GetAllInstancesAsync(new OrchestrationQuery
@@ -112,7 +114,7 @@ namespace Agent.Runtime.SubAgents
                     // When starting an orchestration, we're doing so just for this provider (eg; storage, eventhub, etc.).
                     // Therefore we pass the provider name as the instanceIdSuffix, so that on the next scanner run, it will
                     // avoid starting a new orchestration if one is already running for that provider.
-                    var instanceId = await _agentFactory.StartOrchestration(input, agentContext.ThreadId, instanceIdSuffix: resourceProviderName);
+                    var instanceId = await _agentFactory.StartOrchestration(input, agentContext.ThreadId, instanceIdSuffix: orchestrationSuffix);
 
                     /*
                     // work around "bad grpc response 504" error

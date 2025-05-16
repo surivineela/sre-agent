@@ -40,8 +40,7 @@ namespace Agent.Runtime.SubAgents
         {
             var log = context.CreateReplaySafeLogger(this.GetType().Name);
 
-            // Initial planning phase: generate plan
-            var chatHistory = await context.CallActivityAsync<List<ChatMessage>>(typeof(TActivity).Name, agentInput.ActivityInput);
+            var chatHistory = new List<ChatMessage>();
 
             // Before processing the plan, send the intro message to the user, which will give them
             // a rundown of what's proposed.
@@ -49,6 +48,11 @@ namespace Agent.Runtime.SubAgents
                 new TaskName(nameof(SimpleResourceSubAgentIntroActivity)),
                 new SimpleResourceSubAgentIntroActivityInput(agentInput.ThreadId, agentInput.ActivityInput.GetPlanText())
             );
+
+            chatHistory.Add(introMessage);
+
+            // Initial planning phase: generate plan
+            chatHistory.AddRange(await context.CallActivityAsync<List<ChatMessage>>(typeof(TActivity).Name, agentInput.ActivityInput));
 
             // Send a summary and start the execution
             chatHistory = await context.CallSendSummaryAndStartActivityAsync(

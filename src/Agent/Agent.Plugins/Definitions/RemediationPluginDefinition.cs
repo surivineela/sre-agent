@@ -84,9 +84,9 @@ namespace Agent.Plugins.Definitions
         [RequiresApproval]
         [KernelFunction("cosmosdb_set_key_based_authentication_support")]
         [Description($"Sets the key based local auth setting on cosmosdb accounts {ArmConstants.CosmosDbType}. This forces callers to use non key based authentication methods such as managed identities or service principals.")]
-        public async Task<RemediationResult> CosmosDbSetKeyBasedAuthenticationSupport(string resourceId, FeatureState featureState)
+        public async Task<RemediationResult> CosmosDbSetKeyBasedAuthSupport(string resourceId, FeatureState featureState)
         {
-            return await _remediationPlugin.CosmosDbSetKeyBasedAuthenticationSupport(resourceId, featureState);
+            return await _remediationPlugin.CosmosDbSetKeyBasedAuthSupport(resourceId, featureState);
         }
 
         [KernelFunction("eventhub_set_key_based_access_support")]

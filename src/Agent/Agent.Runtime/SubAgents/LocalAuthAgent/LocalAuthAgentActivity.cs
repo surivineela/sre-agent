@@ -31,14 +31,8 @@ public record LocalAuthAgentActivityInput(
 
     public override string GetPlanText()
     {
-        var resourceBullets = Resources.Select(r => $"\t- {r.ResourceId}");
         return $"""
-                I can update the resources below to set their key-based auth to {LocalAuthSetLocalAuthSupport}
-                I will update them one at a time, waiting 30 seconds between each one.
-
-                  {string.Join(Environment.NewLine, resourceBullets)}
-
-                Would you like me to proceed as planned above? I can trigger an approval flow.
+                I can turn off key-based authentication on the resources listed:
                 """;
     }
 }
@@ -48,6 +42,17 @@ public class LocalAuthAgentActivity : SimpleResourceSubAgentActivityBase<LocalAu
 {
     public LocalAuthAgentActivity(IChatClient chatClient) : base(chatClient)
     {
+    }
+
+    public override string GetPromptText(LocalAuthAgentActivityInput input)
+    {
+        var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nameof(SubAgents), nameof(LocalAuthAgent), "LocalAuthAgentPlan.txt");
+        var systemPrompt = File.ReadAllText(path)
+            .Replace("{{ResourceType}}", ResourceTypeName)
+            .Replace("{{ActionToTake}}", ActionToTake(input))
+            .Replace("{{ToolsList}}", string.Join("\n- ", ToolNames));
+
+        return systemPrompt;
     }
 
     /// <summary>
@@ -60,8 +65,8 @@ public class LocalAuthAgentActivity : SimpleResourceSubAgentActivityBase<LocalAu
     {
         var result = new StringBuilder();
         result.Append(input.LocalAuthSetLocalAuthSupport == FeatureState.Enabled
-            ? "enable key based access"
-            : "disable key based access"
+            ? "enable local-auth access"
+            : "disable local-auth access"
             );
         return result.ToString();
     }
@@ -72,7 +77,7 @@ public class LocalAuthAgentActivity : SimpleResourceSubAgentActivityBase<LocalAu
         nameof(IRemediationPlugin.StorageAccountSetContainerPublicAccess),
         nameof(IRemediationPlugin.StorageAccountSetSharedKeySupport),
         nameof(IRemediationPlugin.EventHubSetLocalAuthSupport),
-        nameof(IRemediationPlugin.CosmosDbSetKeyBasedAuthenticationSupport),
+        nameof(IRemediationPlugin.CosmosDbSetKeyBasedAuthSupport),
         nameof(IRemediationPlugin.AzureAppServiceSetFtpAuthenticationSupport),
         nameof(IRemediationPlugin.AzureAppServiceSetScmAuthenticationSupport),
         nameof(ControlFlowPluginDefinition.Wait)];

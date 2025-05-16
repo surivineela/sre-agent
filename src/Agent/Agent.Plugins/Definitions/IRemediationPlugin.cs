@@ -21,7 +21,7 @@ namespace Agent.Plugins.Definitions
 
         Task<RemediationResult> StorageAccountSetContainerPublicAccess(string resourceId, FeatureState featureState);
 
-        Task<RemediationResult> CosmosDbSetKeyBasedAuthenticationSupport(string resourceId, FeatureState featureState);
+        Task<RemediationResult> CosmosDbSetKeyBasedAuthSupport(string resourceId, FeatureState featureState);
 
         Task<RemediationResult> EventHubSetLocalAuthSupport(string resourceId, FeatureState featureState);
 

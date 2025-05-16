@@ -55,6 +55,9 @@
     <None Update="SubAgents\FunctionAppConnectivityAgent\FunctionAppConnectivityAgentPlan.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="SubAgents\LocalAuthAgent\LocalAuthAgentPlan.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="SubAgents\SqlDbQueryPerfAgent\SqlDbQueryPerfAgentPlan.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

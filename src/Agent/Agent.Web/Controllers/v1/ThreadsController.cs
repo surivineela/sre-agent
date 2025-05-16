@@ -198,8 +198,8 @@ namespace Agent.Web.Controllers.v1
 
             var agentContexts = await repository.GetAgentContextsForThreadAsync(threadId);
 
-            // pick out the meta agent context from all the agent contexts
-            var agentContext = agentContexts.FirstOrDefault(c => c.AgentType == AgentTypeEnum.Meta && c.HandoffFromAgentContextId == null);
+            // Pick out original agent context (not handed from another agent)
+            var agentContext = agentContexts.FirstOrDefault(c => c.HandoffFromAgentContextId == null);
             if (agentContext == null)
             {
                 return NotFound();

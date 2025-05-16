@@ -26,7 +26,7 @@ public class LocalAuthScanner : SimpleResourceSubAgentScannerBase<LocalAuthAgent
 
     }
 
-    protected override TimeSpan RunInterval => TimeSpan.FromMinutes(3);
+    protected override TimeSpan RunInterval => TimeSpan.FromDays(1);
 
     protected override string MessageWhenFoundResourcesInViolation => """
                     Hi there! I found some resources that have key-based access enabled;

@@ -14,18 +14,21 @@ public class LocalAuthAgentFactory : SimpleResourceSubAgentFactoryBase<LocalAuth
 {
     private readonly IRemediationPlugin remediationPlugin;
     private readonly IRecordActionsPlugin recordActionsPlugin;
+    private readonly IGithubIssuePlugin githubPlugin;
 
     public LocalAuthAgentFactory(
         IRemediationPlugin remediationPlugin,
         IRecordActionsPlugin recordActionsPlugin,
         IThreadOrchestrationManager mappingManager,
         IToolsRepository toolsRepository,
+        IGithubIssuePlugin githubPlugin,
         DurableTaskClient durableTaskClient
         )
         : base(toolsRepository, mappingManager, durableTaskClient)
     {
         this.remediationPlugin = remediationPlugin;
         this.recordActionsPlugin = recordActionsPlugin;
+        this.githubPlugin = githubPlugin;
     }
 
     protected override IEnumerable<Expression<Func<Delegate>>> GetToolList()
@@ -33,12 +36,15 @@ public class LocalAuthAgentFactory : SimpleResourceSubAgentFactoryBase<LocalAuth
         var remediationPluginDefinition = new RemediationPluginDefinition(remediationPlugin);
         yield return () => remediationPluginDefinition.ServiceBusSetLocalAuthSupport;
         yield return () => remediationPluginDefinition.AzureSqlServerSetLocalAuthSupport;
-        yield return () => remediationPluginDefinition.CosmosDbSetKeyBasedAuthenticationSupport;
+        yield return () => remediationPluginDefinition.CosmosDbSetKeyBasedAuthSupport;
         yield return () => remediationPluginDefinition.EventHubSetLocalAuthSupport;
         yield return () => remediationPluginDefinition.StorageAccountSetSharedKeySupport;
         yield return () => remediationPluginDefinition.StorageAccountSetContainerPublicAccess;
         yield return () => remediationPluginDefinition.AzureAppServiceSetFtpAuthenticationSupport;
         yield return () => remediationPluginDefinition.AzureAppServiceSetScmAuthenticationSupport;
+
+        var githubPluginDefinition = new GitHubIssuePluginDefinition(githubPlugin);
+        yield return () => githubPluginDefinition.CreateGithubIssue;
 
         var recordActionsPluginDefinition = new RecordActionsPluginDefinition(recordActionsPlugin);
         yield return () => recordActionsPluginDefinition.GetActionDetails;

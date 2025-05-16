@@ -115,7 +115,7 @@ namespace Agent.Runtime.SubAgents
         public override async Task<List<ChatMessage>> RunAsync(TaskActivityContext context, TPlanInput input)
         {
             var resourcesStr = string.Join(Environment.NewLine,
-                input.Resources.Select(x => $"{x.ResourceId} should have all changes made."));
+                input.Resources.Select(x => $"{x.ResourceId}"));
 
             var userMessage = $"Here are the resources that need updating: {resourcesStr}";
 
