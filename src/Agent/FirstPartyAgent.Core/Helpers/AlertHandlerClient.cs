@@ -30,6 +30,11 @@ public class AlertHandlerClient
 
     public async Task<ICMAlertConfig> GetConfigAsync(Incident incidentDetails, Kernel kernel)
     {
+        if (kernel.Data.ContainsKey("alertConfig"))
+        {
+            return (ICMAlertConfig)kernel.Data["alertConfig"];
+        }
+
         ICMAlertConfig alertConfig = null;
         var customAlertConfig = kernel.Data.TryGetValue("customAlertConfig", out object customAlertConfigObj) ? (ICMAlertConfig)customAlertConfigObj : null;
 
@@ -63,6 +68,10 @@ public class AlertHandlerClient
                     return testAlertConfig;
                 }
             }
+        }
+        if (alertConfig != null)
+        {
+            kernel.Data["alertConfig"] = alertConfig;
         }
         return alertConfig;
     }

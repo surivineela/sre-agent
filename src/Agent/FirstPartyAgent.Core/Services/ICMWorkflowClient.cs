@@ -726,6 +726,11 @@ Incidents
             }
         }
 
+        public bool IsEnabled()
+        {
+            return _icmWorkflowSettings.Enabled;
+        }
+
         public void Dispose()
         {
             _httpClient?.Dispose();
@@ -802,6 +807,7 @@ Incidents
 
         public Task<string> GetAppLensDiagnosticsAsync(string incidentId) => Task.FromResult<string>(null);
         public bool ProcessImages => false;
+        public bool IsEnabled() { return false; }
     }
     public interface IICMWorkflowClient : IDisposable
     {
@@ -834,6 +840,7 @@ Incidents
         Task<List<CustomField>> GetCustomFieldsAsync(string incidentId);
         Task<string> GetAppLensDiagnosticsAsync(string incidentId);
         bool ProcessImages { get; }
+        bool IsEnabled();
     }
 }
 

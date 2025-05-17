@@ -20,7 +20,6 @@ namespace FirstPartyAgent.Core.Plugins
     {
         private readonly ICMPlugin _icmPlugin;
         private readonly ILogger<AzureAlertingPlugin> _logger;
-        private readonly Kernel _kernel;
         private ITeamsClient _teamsClient;
         private IKustoPlugin _kustoPlugin;
         private ISessionMessageService _sessionMessageService;
@@ -33,7 +32,6 @@ namespace FirstPartyAgent.Core.Plugins
             ICMWorkflowSettings icmWorkflowSettings,
             ILogger<AzureAlertingPlugin> logger,
             ICMPlugin icmPlugin,
-            Kernel kernel,
             ITeamsClient teamsClient,
             IKustoPlugin kustoPlugin,
             ISessionMessageService sessionMessageService,
@@ -43,7 +41,6 @@ namespace FirstPartyAgent.Core.Plugins
             ICMBacktestingModeEnabled = icmWorkflowSettings.ICMBacktestingModeEnabled;
             _logger = logger;
             _icmPlugin = icmPlugin;
-            _kernel = kernel;
             _teamsClient = teamsClient;
             _kustoPlugin = kustoPlugin;
             _sessionMessageService = sessionMessageService;
@@ -100,7 +97,7 @@ namespace FirstPartyAgent.Core.Plugins
             string sessionId = kernel.Data.TryGetValue("sessionId", out object id) ? (string)id : null;
             var customAlertConfig = kernel.Data.TryGetValue("customAlertConfig", out object customAlertConfigObj) ? (ICMAlertConfig)customAlertConfigObj : null;
 
-            var incidentDetails = await _icmPlugin.GetIncidentInfo(incidentId, _kernel);
+            var incidentDetails = await _icmPlugin.GetIncidentInfo(incidentId, kernel);
             //match incident details with existing alert configs
             ICMAlertConfig alertConfig = await _alertHandlerClient.GetConfigAsync(incidentDetails, kernel);
             _logger.LogInformation($"AzureAlertingPlugin: Fetching Alert Details. incidentId: {incidentId}, incidenTtile: {incidentDetails.Title}, owningTeam: {incidentDetails.OwningTeam}, monitoringRole: {incidentDetails.MonitoringRole}, monitoringSlice: {incidentDetails.MonitoringSlice}");
