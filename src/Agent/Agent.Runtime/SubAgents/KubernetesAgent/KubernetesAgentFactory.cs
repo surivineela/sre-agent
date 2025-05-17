@@ -84,6 +84,11 @@ public sealed class KubernetesAgentFactory
         diagnosticAgentTools.RegisterReadOnlyTool<GraphDBPluginDefinition>(x => x.SearchResourceByName);
         diagnosticAgentTools.RegisterReadOnlyTool<GraphDBPluginDefinition>(x => x.GetActivityLogsSummary);
         diagnosticAgentTools.RegisterReadOnlyTool<GraphDBPluginDefinition>(x => x.GetResourceBasicProperties);
+        diagnosticAgentTools.RegisterReadOnlyTool<GraphDBPluginDefinition>(x => x.ListSubscriptions);
+        diagnosticAgentTools.RegisterReadOnlyTool<GraphDBPluginDefinition>(x => x.ListResourceGroups);
+        diagnosticAgentTools.RegisterReadOnlyTool<GraphDBPluginDefinition>(x => x.ListResourcesByType);
+        diagnosticAgentTools.RegisterReadOnlyTool<GraphDBPluginDefinition>(x => x.VisualizeAKSMicroserviceTopology);
+        diagnosticAgentTools.RegisterReadOnlyTool<GraphDBPluginDefinition>(x => x.GetResourceIdForResourceName);
 
         diagnosticAgentTools.RegisterReadOnlyPlugin<KubePluginDefinition>();
 
@@ -92,16 +97,22 @@ public sealed class KubernetesAgentFactory
             ToolSignatures = diagnosticAgentTools.ToolSignatures,
             CustomInstructions = """
             The provided tools are specialized for retrieving information about an AKS cluster. Use them to investigate the issue.
-            Be deeply aware of the following concepts in kubernetes:
-            1. All resources live in some namespace. Usually they only interact with resources in the same namespace.
-            2. If no namespace was mentioned, check ALL namespaces to find the workloads which are most likely to be relevant.
-            3. Workloads in kubernetes are deployed in a hierarchy: Pod → ReplicaSet → Deployment / StatefulSet / DaemonSet.
+            Be deeply aware that all concepts and terminologies mentioned in the issue description are all AKS or Kubernetes related.
 
-            When checking workload revision history, pay very close attention to the differences between each revision.
-            Container images may be different, environment variables may have been added, removed, or changed.
+            SRE common pattern:
+            * Confirm the issue by checking metrics and logs.
+            * Check the changes happened at the time of the issue or before. Always suggest to revert the changes if the time of the issue is very close to the time of the change.
+              - Changes include but not limited to:
+                - Resource it self has a configuration changes (including image, env, args, scaling, etc)
+                - Related object has a change (including but not limited to: service, ingress, configmap, secret, etc)
+                - Dependant resource has a change
+                - Environment changes:
+                  * Network security group (NSG) rules
+            * Think about other possible causes step by step.
 
-            When checking workload environment variables, the Deployment object is the source of truth about the current configuration.
-            Replicasets may be running old configurations. The Deployment spec is the current configuration.
+            Common AKS issues include:
+            - Bad deployment: Check deployment history of the target workload, pay very close attention to the differences between each revision.
+
             """
         };
 
