@@ -13,7 +13,8 @@ namespace FirstPartyAgent.Models
         ICMAgent,
         Sev2,
         ICMSummarizer,
-        ColdStart
+        ColdStart,
+        ICMCorrelationAgent
     }
 }
 

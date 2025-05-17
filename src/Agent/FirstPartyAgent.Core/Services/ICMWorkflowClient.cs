@@ -383,14 +383,52 @@ namespace FirstPartyAgent.Core.Services
                 _logger.LogInformation("Result limit capped at 10 to prevent overloading ICM Kusto cluster");
             }
 
+            // Check to see if the filters have any DateTime column. If there are, then both >= and <= operators must be present.. if Only one is present, throw an exception
+            if (filters != null)
+            {
+                var dateTimeProperties = IncidentAdvancedSearchFilter.GetDateTimeProperties();
+                var invalidDateTimeFilters = dateTimeProperties
+                    .SelectMany(column =>
+                        filters.Where(f => string.Equals(f.ColumnName, column, StringComparison.OrdinalIgnoreCase))
+                            .GroupBy(f => f.ColumnName, StringComparer.OrdinalIgnoreCase)
+                            .Where(g => (g.Count()%2 > 0) || g.Any(f => f.Operator == ">=" || f.Operator == "<=") &&
+                                      !(g.Any(f => f.Operator == ">=") && g.Any(f => f.Operator == "<=")))
+                            )
+                    .FirstOrDefault();
+
+                if (invalidDateTimeFilters != null)
+                {
+                    throw new ArgumentException(
+                        $"DateTime column '{invalidDateTimeFilters.Key}' must have both '>=' and '<=' operators for proper date range filtering. " +
+                        $"Please provide both a lower and upper bound for the date range.");
+                }
+            }
+
+            // Check if any date-time column appears with both >= and <= operators (date range filter)
+            bool hasDateRangeFilter = filters != null &&
+                IncidentAdvancedSearchFilter.GetDateTimeProperties()
+                .Any(column =>
+                    filters.Where(f => string.Equals(f.ColumnName, column, StringComparison.OrdinalIgnoreCase))
+                    .GroupBy(f => f.ColumnName, StringComparer.OrdinalIgnoreCase)
+                    .Any(g => g.Count() == 2 &&
+                        g.Any(f => f.Operator == ">=") && g.Any(f => f.Operator == "<="))
+                    );
+
             // Build the basic Kusto query structure
             var queryBuilder = new StringBuilder();
-            queryBuilder.AppendLine($"let lookbackPeriod = ago({lookbackPeriodInDays}d);");
+            if(!hasDateRangeFilter && !(filters?.Any(f => f.ColumnName.Equals("IncidentId", StringComparison.OrdinalIgnoreCase)) == true))
+            {
+                queryBuilder.AppendLine($"let lookbackPeriod = ago({lookbackPeriodInDays}d);");
+            }
+            
             queryBuilder.AppendLine($"let resultLimit = {resultLimit};");
             queryBuilder.AppendLine("Incidents");
-            
+
             // Add the lookback period filter
-            queryBuilder.AppendLine("| where CreateDate > lookbackPeriod");
+            if (!hasDateRangeFilter && !(filters?.Any(f => f.ColumnName.Equals("IncidentId", StringComparison.OrdinalIgnoreCase)) == true))
+            {
+                queryBuilder.AppendLine("| where CreateDate > lookbackPeriod");
+            }
             
             // Add each custom filter with AND logic
             if (filters != null && filters.Count > 0)
@@ -433,40 +471,40 @@ namespace FirstPartyAgent.Core.Services
         /// <summary>
         /// Convenience overload that creates IncidentFilter objects from the provided parameters
         /// </summary>
-        /// <param name="columnNames">Names of the columns to filter on</param>
-        /// <param name="operators">Operators to use for filtering (e.g., "==", "contains", ">", etc.)</param>
-        /// <param name="values">Values to filter for</param>
         /// <param name="lookbackPeriodInDays">Number of days to look back</param>
+        /// <param name="filter3Tuple">List of filters as tuples (ColumnName, Operator, Value)</param>
         /// <param name="resultLimit">Maximum number of results to return</param>
         /// <returns>List of search results matching the criteria</returns>
         public async Task<List<IncidentAdvancedSearchResultItem>> SearchIncidentsWithParametersAsync(
             int lookbackPeriodInDays,
             int resultLimit,
-            List<string> columnNames,
-            List<string> operators,
-            List<string> values)
+            List<Tuple<string, string, string>> filter3Tuple)
         {
-            if (columnNames == null || operators == null || values == null)
+            if (filter3Tuple == null)
             {
-                throw new ArgumentNullException("columnNames, operators, and values cannot be null");
+                throw new ArgumentNullException(nameof(filter3Tuple), "Filters cannot be null");
             }
 
-            if (columnNames.Count != operators.Count || columnNames.Count != values.Count)
+            if (filter3Tuple.Count == 0)
             {
-                throw new ArgumentException("columnNames, operators, and values must have the same number of items");
+                throw new ArgumentException(nameof(filter3Tuple), "Must specify at least one filter expression");
+            }
+
+            if (filter3Tuple.Any(f => string.IsNullOrWhiteSpace(f.Item1)) || filter3Tuple.Any(f => string.IsNullOrWhiteSpace(f.Item2)))
+            {
+                throw new ArgumentException(nameof(filter3Tuple), "Column name and operator cannot be null or empty");
             }
 
             List<IncidentAdvancedSearchResultItem> result = new List<IncidentAdvancedSearchResultItem>();
             try
             {
                 var filters = new List<IncidentAdvancedSearchFilter>();
-                for (int i = 0; i < columnNames.Count; i++)
+
+                foreach (var tupleFilterItem in filter3Tuple)
                 {
-                    if (!string.IsNullOrWhiteSpace(columnNames[i]) && !string.IsNullOrWhiteSpace(operators[i]))
-                    {
-                        filters.Add(new IncidentAdvancedSearchFilter(columnNames[i], operators[i], values[i]));
-                    }
+                    filters.Add(new IncidentAdvancedSearchFilter(tupleFilterItem.Item1, tupleFilterItem.Item2, tupleFilterItem.Item3));
                 }
+
                 result = await SearchIncidentsWithParametersAsync(lookbackPeriodInDays, resultLimit, filters);
             }
             catch (Exception ex)
@@ -767,9 +805,7 @@ Incidents
         public Task<List<IncidentAdvancedSearchResultItem>> SearchIncidentsWithParametersAsync(
             int lookbackPeriodInDays,
             int resultLimit,
-            List<string> columnNames,
-            List<string> operators,
-            List<string> values) =>
+            List<Tuple<string, string, string>> filter3Tuple) =>
             Task.FromResult(new List<IncidentAdvancedSearchResultItem>());
 
         public Task<List<SearchItem>> SearchIncidentsAsync(string searchString, int lookbackPeriodInDays, int resultLimit) =>
@@ -823,9 +859,7 @@ Incidents
         Task<List<IncidentAdvancedSearchResultItem>> SearchIncidentsWithParametersAsync(
             int lookbackPeriodInDays,
             int resultLimit,
-            List<string> columnNames,
-            List<string> operators,
-            List<string> values);
+            List<Tuple<string, string, string>> filter3Tuple);
         Task<List<SearchItem>> SearchIncidentsAsync(string searchString, int lookbackPeriodInDays, int resultLimit);
         Task<string> DowngradeSeverityAsync(string incidentId, string discussionEntry);
         Task<string> TransferIncidentToHumanInterventionAsync(string incidentId, string discussionEntry, string humanInterventionServiceName = null, string humanInterventionTeamName = null);

@@ -182,15 +182,57 @@ namespace FirstPartyAgent.Core.Plugins
         public async Task<List<IncidentAdvancedSearchResultItem>> AdvancedSearchIncidents(
             [Description("Lookback Period in Days")] int lookbackPeriodInDays,
             [Description("Limit on result count. Maximum 10 search results returned.")] int resultLimit,
-            [Description("List of column names to search")] List<string> columnNames,
-            [Description("Operator to apply on each column")] List<string> operators,
-            [Description("Filter to apply on each column")] List<string> filterValues,
+            [Description("List of filters as tuples (ColumnName, Operator, Value) e.g.. (CreateDate, >=, 2025-02-01 04:15:00), (CreateDate, <=,  2025-02-01 06:15:00), (IncidentId, ==,  123456)")]
+            List<Tuple<string, string, string>> filter3Tuple,
             Kernel kernel)
         {
             var logMessage = $"[advanced_search_for_incidents][{DateTime.UtcNow}] Invoked with lookbackPeriodInDays {lookbackPeriodInDays}";
             await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
-            var incidents = await _icmWorkflowClient.SearchIncidentsWithParametersAsync(lookbackPeriodInDays, resultLimit, columnNames, operators, filterValues);
+            var incidents = await _icmWorkflowClient.SearchIncidentsWithParametersAsync(lookbackPeriodInDays, resultLimit, filter3Tuple);
             return incidents;
+        }
+
+        [KernelFunction("get_current_utc_datetime")]
+        [Description("Get current UTC date and time")]
+        public async Task<string> GetCurrentUtcDateTime(Kernel kernel)
+        {
+            string returnValue = $"Current timestamp: {DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")} UTC";
+            var logMessage = $"[get_current_utc_datetime][{DateTime.UtcNow}] Invoked. Returned {returnValue}";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
+            return returnValue;
+        }
+
+        [KernelFunction("get_icm_correlation_and_linking_rules")]
+        [Description("This tool identifies potential relationships between incidents. Invoke this tool whenever the user requests assistance with finding related, parent, or child incidents; especially when conditions such as time windows, title matching, or shared patterns are specified. The rules are applied internally to guide the agent's actions without being returned to the user.")]
+        public async Task<string> GetIcmCorrelationAndLinkingRules(
+            [Description("Incident ID")] string incidentId,
+            Kernel kernel)
+        {
+            await kernel.LogInformation($"[get_icm_correlation_and_linking_guidelines][{DateTime.UtcNow}] Invoked with IncidentId {incidentId}.", _logger, _teamsClient, _sessionMessageService);
+            const string guidelines = "Follow the below workflow carefully, this guide is to be used for identifying potential matches only and does not apply to incidents already linked as related/parent/child, as those are considered high-confidence correlations.\n" +
+                "1. Initial Setup\n" +
+                "     - Always use advanced search (advanced_search_for_incidents) for all incident search or lookup operations for lookups as part of this guide.\n" +
+                "     - Start by calling get_queryable_columns_for_incidents to identify all columns on which filters can be applied. Also call get_current_utc_datetime to get the latest UTC dateTime. This will help you adjust the various date time values and apply correct filter values.\n" +
+                "     - If you are not given an IncidentId, ask the user to specify an incident Id that needs to be worked upon. If you have the incident Id, quietly continue with the flow.\n" +
+                "2. Force Fetch Current Incident Details\n" +
+                "     - After identifying queryable columns, force fetch the details for the incident you are correlating via advanced search applying the IncidentId filter, even if the details are already available.\n" +
+                "     - Force fetching the details via advanced search ensures you have accurate and up-to-date information about the incident along with values of various fields as they relate to queryable columns before proceeding.\n" +
+                "3. Prepare Filters Based on User Instruction\n" +
+                "     - Carefully parse the instructions to extract filter criteria (e.g., column names and conditions).\n" +
+                "     - Use advanced search filters to apply the specified conditions. If the user provides a time-based condition:\n" +
+                "         - Use the appropriate date column (based on the instructions) with the '>=' operator for the start time and the '<=' operator for the end time.\n" +
+                "     - For other column conditions (e.g., title, severity, status, slice etc.), apply filters as specified in the instructions.\n" +
+                "     - Adjust the lookbackPeriod by calculating the difference between the current UTC date and the date you are querying for, ensuring it is applied correctly.\n" +
+                "4. Validate Filters Before Execution\n" +
+                "     - Once the filters are prepared, evaluate and validate them to ensure they match the criteria given in the instructions and do not contain errors. \n" +
+                "     - If necessary, refine the filters before calling the advanced search operation.\n" +
+                "5. Perform Advanced Search\n" +
+                "     - Execute the advanced search with the validated filters to look up potential correlated incidents.\n" +
+                "     - If the instructions require multiple conditions that cannot be combined in a single query (due to AND logic limitations), run multiple queries as needed and consolidate the results.\n" +
+                "6. Important Notes\n" +
+                "     - Advanced search applies all conditions within a single query using AND logic; it does not support OR logic.\n" +
+                "     - **Do NOT skip** the step of force fetching the incident being looked at via advanced_search_for_incidents as specified in step 2, it is critical for ensuring accuracy.\n\n";
+            return guidelines;
         }
 
 

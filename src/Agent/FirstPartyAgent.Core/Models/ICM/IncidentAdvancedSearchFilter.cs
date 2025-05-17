@@ -4,8 +4,8 @@ public class IncidentAdvancedSearchFilter
     private static readonly Dictionary<string, List<string>> ValidPropertyOperators = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase)
         {
             { "CorrelationId", new List<string> { "==" } },
-            { "CreateDate", new List<string> { "==", ">", ">=", "<", "<=" } },
-            { "IncidentId", new List<string> { "==", ">", ">=", "<", "<=" } },
+            { "CreateDate", new List<string> { "==", ">=", "<=" } },
+            { "IncidentId", new List<string> { "==" } },
             { "OccurringDatacenter", new List<string> { "==" } },
             { "OccurringDeviceGroup", new List<string> { "==" } },
             { "OccurringDeviceName", new List<string> { "==" } },
@@ -13,7 +13,7 @@ public class IncidentAdvancedSearchFilter
             { "OccurringServiceInstanceId", new List<string> { "==" } },
             { "IncidentType", new List<string> { "==" } },
             { "Keywords", new List<string> { "==", "contains", "has" } },
-            { "ModifiedDate", new List<string> { "==", ">", ">=", "<", "<=" } },
+            { "ModifiedDate", new List<string> { "==", ">=", "<=" } },
             { "OwningTeamId", new List<string> { "==" } },
             { "OwningTenantId", new List<string> { "==" } },
             { "ParentIncidentId", new List<string> { "==", "!=" } },
@@ -37,7 +37,7 @@ public class IncidentAdvancedSearchFilter
         };
 
     public static Dictionary<string, List<string>> GetQueryableIncidentProperties() => IncidentAdvancedSearchFilter.ValidPropertyOperators;
-
+    public static List<string> GetDateTimeProperties() => IncidentAdvancedSearchFilter.DateTimeProperties;
     public string ColumnName { get; }
     public string Operator { get; }
     public string Value { get; }
@@ -78,13 +78,15 @@ public class IncidentAdvancedSearchFilter
                 throw new ArgumentException($"Value for '{ColumnName}' must be a valid datetime in format 'yyyy-MM-ddTHH:mm:ss'", nameof(value));
             }
         }
-
-        // Validate GUID format if required
-        if (GuidProperties.Contains(ColumnName) && !IsNullComparison)
+        else
         {
-            if (!Guid.TryParseExact(value, "D", out _) && !Guid.TryParseExact(value, "N", out _))
+            // Validate GUID format if required
+            if (GuidProperties.Contains(ColumnName) && !IsNullComparison)
             {
-                throw new ArgumentException($"Value for '{ColumnName}' must be a valid GUID", nameof(value));
+                if (!Guid.TryParseExact(value, "D", out _) && !Guid.TryParseExact(value, "N", out _))
+                {
+                    throw new ArgumentException($"Value for '{ColumnName}' must be a valid GUID", nameof(value));
+                }
             }
         }
     }
@@ -108,7 +110,7 @@ public class IncidentAdvancedSearchFilter
         if (DateTimeProperties.Contains(ColumnName))
         {
             // Format as datetime('yyyy-MM-ddTHH:mm:ss')
-            DateTime dateTime = DateTime.Parse(Value);
+            DateTime dateTime = DateTime.Parse(Value.Replace("Z", "").Replace("T", " "));
             formattedValue = $"datetime({dateTime:yyyy-MM-ddTHH:mm:ss})";
         }
         else if (GuidProperties.Contains(ColumnName))
