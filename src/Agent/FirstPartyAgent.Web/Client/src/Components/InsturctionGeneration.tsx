@@ -1,17 +1,15 @@
-import React, { useEffect, useState, useRef, memo } from "react";
+import React, { useEffect, useState, useRef, memo, MutableRefObject } from "react";
 import { generateInstructions, getIncidents } from "../Services/Request";
 import { GenerateInstructionsRequest, IcmIncident } from "../Models/Response";
 import { DetailsList, DetailsListLayoutMode, Dropdown, IColumn, MessageBar, MessageBarType, PrimaryButton, SelectionMode, Stack, TextField, Selection, IDropdownOption } from "@fluentui/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import LoadingErrorWrapper from "./LoadingErrorWrapper";
 import ErrorUtilities from "../Helpers/Error";
+import { ICMAlertConfig } from "../Models/ICMAlertConfig";
 
 export interface InstructionGenerationProps {
-    teamId: number;
-    incidentTitle: string;
-    incidentTitleContains: string;
-    alertId: string;
-    onGeneratedInstruction: (instruction: string) => void;
+    onGeneratedInstruction: (instructions: string[]) => void;
+    alertConfigRef: MutableRefObject<ICMAlertConfig>;
 }
 
 const InstructionGeneration = (props: InstructionGenerationProps) => {
@@ -29,11 +27,11 @@ const InstructionGeneration = (props: InstructionGenerationProps) => {
     const selectedICMsRef = useRef<IcmIncident[]>([]);
 
     const { refetch: getIncidentsRefresh, data: getIncidentsData = [], status: getIncidentsStatus, error: getIncidentsError } = useQuery({
-        queryKey: ["getIncidents", props.teamId, props.incidentTitle, selectedOption?.data.numberOfDays],
-        queryFn: () => getIncidents(props.teamId, props.incidentTitle, selectedOption?.data.numberOfDays),
+        queryKey: ["getIncidents", props.alertConfigRef.current.teamId, props.alertConfigRef.current.incidentTitle, selectedOption?.data.numberOfDays],
+        queryFn: () => getIncidents(props.alertConfigRef.current.teamId, props.alertConfigRef.current.incidentTitle, selectedOption?.data.numberOfDays),
     });
 
-    const { status: generateInstructionStatus, mutateAsync: generateInstructionAsync } = useMutation({
+    const { status: generateInstructionStatus, mutateAsync: generateInstructionAsync,reset: resetGenerateInstruction } = useMutation({
         mutationFn: (request: GenerateInstructionsRequest) => generateInstructions(request),
         mutationKey: ["generateInstructions"],
     });
@@ -58,8 +56,9 @@ const InstructionGeneration = (props: InstructionGenerationProps) => {
         }
         const res = await generateInstructionAsync(request);
         if (res) {
-            props.onGeneratedInstruction(res);
+            props.onGeneratedInstruction(res.instructions);
         }
+        resetGenerateInstruction();
     }
 
     const renderGenerateInstructionError = () => {
@@ -197,4 +196,4 @@ const InstructionGenerationIcmList = (props: { data: IcmIncident[], selectedICMs
     );
 }
 
-export default memo(InstructionGeneration);
+export default InstructionGeneration;

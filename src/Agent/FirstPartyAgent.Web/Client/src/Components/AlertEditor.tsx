@@ -8,7 +8,6 @@ import InstructionGeneration from "./InsturctionGeneration";
 import DeployAgent from "./DeployAgent";
 import { ICMAlertConfig, monacoJsonSchema } from "../Models/ICMAlertConfig";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import FeatureUtils from "../Helpers/Feature";
 
 
 export interface AlertEditorProps {
@@ -31,11 +30,10 @@ enum SelectContent {
 //Edit existing alert, create a new custom alert, create a new alert from existing alert
 const AlertEditor = (props: AlertEditorProps) => {
     const [isOpen, { setTrue: openPanel, setFalse: dismissPanel }] = useBoolean(false);
-    const [alertConfig, setAlertConfig] = useState<ICMAlertConfig>(props.alertConfig ? { ...props.alertConfig } : {});
     const [defaultAlertConfig, setDefaultAlertConfig] = useState<ICMAlertConfig>(props.alertConfig ? { ...props.alertConfig } : {});
     const scrollRef = useRef<HTMLDivElement>(null);
     const panelRef = useRef<IPanel>(null);
-    const alertConfigRef = useRef<ICMAlertConfig>(alertConfig);
+    const alertConfigRef = useRef<ICMAlertConfig>(props.alertConfig ? { ...props.alertConfig } : {});
 
     const reducer = (state: { selectedContent: SelectContent, panelHeader: string }, action: Action) => {
         switch (action.type) {
@@ -73,7 +71,6 @@ const AlertEditor = (props: AlertEditorProps) => {
         queryFn: async () => {
             const data = await getAlertConfig(props.icmTeamId, props.alertId);
             setDefaultAlertConfig(data);
-            setAlertConfig(data);
             return data;
         },
         enabled: !!props.icmTeamId && !!props.alertId,
@@ -94,13 +91,17 @@ const AlertEditor = (props: AlertEditorProps) => {
 
 
 
+
     useEffect(() => {
-        alertConfigRef.current = { ...alertConfig };
         return () => {
             alertConfigRef.current = null;
             dismissPanel();
         }
-    }, [alertConfig]);
+    }, [props]);
+
+    useEffect(() => {
+        alertConfigRef.current = { ...defaultAlertConfig };
+    }, [defaultAlertConfig]);
 
     let commandBarItems: ICommandBarItemProps[] = [
         {
@@ -116,7 +117,7 @@ const AlertEditor = (props: AlertEditorProps) => {
             text: 'Generate Instructions',
             iconProps: { iconName: 'Robot' },
             onClick: () => {
-                if (!alertConfig.alertingId) return;
+                // if (!alertConfig.alertingId) return;
                 dispatch({ type: 'SET_INSTRUCTION_GENERATION' });
             }
         }
@@ -128,13 +129,13 @@ const AlertEditor = (props: AlertEditorProps) => {
     const onAlertConfigChange = useCallback((newValue: ICMAlertConfig | null) => {
         if (!newValue) return;
         props.isChangeUnsaved.current = true;
-        setAlertConfig(newValue);
-    }, [setAlertConfig]);
+        alertConfigRef.current = { ...newValue };
+    }, []);
 
     const downloadAsJson = () => {
-        var fileName = `${alertConfig.alertingId}.json`;
+        var fileName = `${alertConfigRef.current.alertingId}.json`;
 
-        const jsonString = JSON.stringify(alertConfig, null, 2); // Pretty print with 2-space indent
+        const jsonString = JSON.stringify(alertConfigRef.current, null, 4); // Pretty print with 2-space indent
         const blob = new Blob([jsonString], { type: 'application/json' });
         const url = window.URL.createObjectURL(blob);
 
@@ -151,11 +152,10 @@ const AlertEditor = (props: AlertEditorProps) => {
         dispatch({ type: 'SET_ALERT_EDITOR_CHAT' })
     }
 
-    const updateAlertConfigWithInstruction = useCallback((instruction: string) => {
-        setAlertConfig((prevConfig: any) => {
-            return { ...prevConfig, incidentProcessingGuide: instruction };
-        });
-    }, [setAlertConfig]);
+    const updateAlertConfigWithInstruction = useCallback((instructions: string[]) => {
+        const newAlertConfig = { ...alertConfigRef.current, incidentProcessingGuide: instructions };
+        setDefaultAlertConfig(newAlertConfig);
+    }, []);
 
     const buttonStyles = mergeStyles({
         maxWidth: "300px",
@@ -171,7 +171,7 @@ const AlertEditor = (props: AlertEditorProps) => {
             currentAlertConfig = { ...props.alertConfig };
         } else {
             title = `Editing alert `;
-            currentAlertConfig = { ...alertConfig };
+            currentAlertConfig = { ...defaultAlertConfig };
         }
         if (currentAlertConfig?.incidentTitle) {
             title = title + `for : ${currentAlertConfig.incidentTitle}`;
@@ -181,11 +181,11 @@ const AlertEditor = (props: AlertEditorProps) => {
         }
         return { title, subtitle };
 
-    }, [alertConfig, props.alertConfig]);
+    }, [defaultAlertConfig, props.alertConfig]);
 
     const onSaveAlertConfig = async () => {
-        if (!alertConfig.teamId || !alertConfig.alertingId) return;
-        await updateAlertConfigAsync(alertConfig);
+        if (!alertConfigRef.current.teamId || !alertConfigRef.current.alertingId) return;
+        await updateAlertConfigAsync(alertConfigRef.current);
         props.isChangeUnsaved.current = false;
     }
 
@@ -219,17 +219,14 @@ const AlertEditor = (props: AlertEditorProps) => {
                 componentRef={panelRef}>
                 {contextState.selectedContent === SelectContent.AlertEditorChat &&
                     <AlertEditorChat
-                        alertConfig={alertConfigRef.current}
+                        alertConfigRef={alertConfigRef}
                         panelRef={panelRef}
                         scrollRef={scrollRef}
                     />
                 }
                 {contextState.selectedContent === SelectContent.InstructionGeneration &&
                     <InstructionGeneration
-                        alertId={alertConfig.alertingId}
-                        teamId={alertConfig.teamId}
-                        incidentTitleContains={alertConfig.incidentTitle}
-                        incidentTitle={alertConfig.incidentTitle}
+                        alertConfigRef={alertConfigRef}
                         onGeneratedInstruction={updateAlertConfigWithInstruction} />
                 }
             </Panel>

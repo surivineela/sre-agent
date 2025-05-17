@@ -5,9 +5,10 @@ import rehypeRaw from "rehype-raw";
 import { getRequestForAlertStream } from "../Services/Request";
 import { AlertStreamPostBody } from "../Models/Response";
 import { useStream } from "../Hooks/UseStream";
+import { ICMAlertConfig } from "../Models/ICMAlertConfig";
 
 export interface AlertEditorChatProps {
-    alertConfig: any;
+    alertConfigRef: MutableRefObject<ICMAlertConfig>;
     panelRef: MutableRefObject<IPanel>;
     scrollRef: MutableRefObject<HTMLDivElement>;
 }
@@ -34,12 +35,12 @@ const AlertEditorChat = (props: AlertEditorChatProps) => {
 
     const streamAlert = async () => {
         if (!validateInput()) return;
-
+        const alertConfig = props.alertConfigRef.current;
         const postBody: AlertStreamPostBody = {
             source: "editor",
             IncidentId: incidentId,
-            customAlertConfig: props.alertConfig,
-            agentMode: props.alertConfig["agentMode"] ?? null,
+            customAlertConfig: alertConfig,
+            agentMode: alertConfig?.agentMode ?? null,
         };
         const req = getRequestForAlertStream(postBody);
         await startStreamAsync(req);

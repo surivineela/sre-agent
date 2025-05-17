@@ -5,6 +5,7 @@ using Microsoft.Azure.Cosmos;
 using Kusto.Cloud.Platform.Data;
 using FirstPartyAgent.Core.Clients;
 using System.Net;
+using FirstPartyAgent.Core.Configuration;
 
 namespace FirstPartyAgent.Core.Services;
 public class IcmAgentConfigService : IIcmAgentConfigService
@@ -20,17 +21,20 @@ public class IcmAgentConfigService : IIcmAgentConfigService
     private const string _genevaActionsContainerName = "GenevaActionsConfigs";
     private const string _agentDeploymentsContainerName = "AgentDeployments";
     private const string _agentFactoryConfigsContainerName = "AgentFactoryConfigs";
+    private readonly IcmAgentSettings _icmAgentSettings;
 
     public IcmAgentConfigService(
         IWebHostEnvironment env,
         IHttpClientFactory httpClientFactory,
         ICosmosDBService cosmosDbService,
-        KustoClient kustoClientService)
+        KustoClient kustoClientService,
+        IcmAgentSettings icmAgentSettings)
     {
         _env = env;
         _httpClientFactory = httpClientFactory;
         _cosmosDbService = cosmosDbService;
         _kustoClient = kustoClientService;
+        _icmAgentSettings = icmAgentSettings;
 
         if (_cosmosDbService.IsEnabled)
         {
@@ -360,7 +364,7 @@ Incidents
                 { "titleParam", title }
             };
 
-            using var reader = await _kustoClient.PerformQueryWithParametersAsync("https://IcMDataWarehouse.kusto.windows.net", "IcMDataWarehouse", query, parameters);
+            using var reader = await _kustoClient.PerformQueryWithParametersAsync(_icmAgentSettings.IcmKustoClusterUri, _icmAgentSettings.IcmKustoDataBase, query, parameters);
 
             // Process the results
             var incidents = new List<IcmIncidentBasicInfo>();

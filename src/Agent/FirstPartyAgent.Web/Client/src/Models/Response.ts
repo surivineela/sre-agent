@@ -67,6 +67,12 @@ export interface GenerateInstructionsRequest {
     customInstructions: string;
 }
 
+export interface GenerateInstructionsResponse {
+    instructions: string[]; 
+    // For debugging purposes
+    troubleshootingGuide: string;
+}
+
 export interface AlertStreamPostBody {
     source: string;
     IncidentId: string;

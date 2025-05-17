@@ -1,5 +1,5 @@
 import axios, { AxiosRequestConfig, Method } from "axios";
-import { AgentDeployment, AlertInfo, AlertStreamPostBody, DeployAgentPostBody, GenerateInstructionsRequest, IcmIncident, IcmTeamInfo, Location, ResourceGroup, Subscription, TeamConfig } from "../Models/Response";
+import { AgentDeployment, AlertInfo, AlertStreamPostBody, DeployAgentPostBody, GenerateInstructionsRequest, GenerateInstructionsResponse, IcmIncident, IcmTeamInfo, Location, ResourceGroup, Subscription, TeamConfig } from "../Models/Response";
 import { ICMAlertConfig } from "../Models/ICMAlertConfig";
 import { getAgentHeaders } from "../Helpers/Headers";
 
@@ -124,7 +124,7 @@ export const getIncidents = async (teamId: number, title: string, numOfDays: num
 }
 
 export const generateInstructions = async (request: GenerateInstructionsRequest) => {
-    return await post<string>('api/icm/generateInstructions', request);
+    return await post<GenerateInstructionsResponse>('api/icm/generateInstructions', request);
     // return await generateInstructionsMock(request);
 }
 

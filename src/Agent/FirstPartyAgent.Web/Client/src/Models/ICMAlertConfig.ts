@@ -67,7 +67,7 @@ export const monacoJsonSchema =
             }
         },
         "agentMode": {
-            "type": ["string", "null"]
+            "type": ["string"]
         },
         "useCorrelationIdForKustoQuery": {
             "type": "boolean"
@@ -140,7 +140,8 @@ export const monacoJsonSchema =
         "owningTeams",
         "kustoQueries",
         "owners",
-        "incidentProcessingGuide"
+        "incidentProcessingGuide",
+        "agentMode",
     ],
     "additionalProperties": true,
     "definitions": {
