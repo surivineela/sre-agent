@@ -122,6 +122,9 @@ export const ChatBoxStyles = mergeStyleSets({
         whiteSpace: 'normal',
         fontSize: '16px',
         lineHeight: '24px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-end',
     },
     agentMessage: {
         fontSize: '16px',

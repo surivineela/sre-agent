@@ -4,7 +4,8 @@ import {
     CopilotMessageV2Props as CopilotMessageProps,
     UserMessageV2 as UserMessage,
 } from '@fluentui-copilot/react-copilot-chat';
-import { Body1Strong, Button, Image, Text, tokens } from '@fluentui/react-components';
+import { mergeStyleSets } from '@fluentui/react';
+import { Body1Strong, Button, Image, mergeClasses, Text, tokens } from '@fluentui/react-components';
 import { SquareDismissRegular } from '@fluentui/react-icons';
 import axios from 'axios';
 import mermaid from 'mermaid';
@@ -26,6 +27,14 @@ import { ChatBoxStyles, nameAndTimestampContainerStyle, useChatBoxStyles } from 
 import AgentChart from './Charts';
 import { FeedbackDialog } from './FeedbackDialog';
 import MermaidChart from './Mermaid';
+
+const chatMessageStyles = mergeStyleSets({
+    regularMessageContent: {
+        backgroundColor: tokens.colorNeutralBackground3,
+        padding: '0px 16px',
+        borderRadius: tokens.borderRadiusXLarge,
+    },
+});
 
 // Initialize mermaid with default configuration
 // This should be called once when the app loads
@@ -284,7 +293,7 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse, threadOrches
         // Plain text markdown
         if (typeof part === 'string') {
             return (
-                <div key={index} className="markdown-content">
+                <div key={index} className={mergeClasses('markdown-content', chatMessageStyles.regularMessageContent)}>
                     <ReactMarkdown components={{ a: aLinkRenderer }} remarkPlugins={[remarkGfm]}>
                         {part}
                     </ReactMarkdown>
@@ -314,7 +323,7 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse, threadOrches
     };
 
     // Main content rendering function
-    const renderContent = (): React.ReactNode => {
+    const renderContent = (isUserMessage?: boolean): React.ReactNode => {
         // Check if the entire message is just a incident-alert block
         const incidentAlertRegex = /```incident-alert\s+([\s\S]*?)```/;
 
@@ -366,7 +375,7 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse, threadOrches
         // Normal markdown content
         if (!Array.isArray(messageContent)) {
             return (
-                <div className="markdown-content">
+                <div className={mergeClasses('markdown-content', isUserMessage ? undefined : chatMessageStyles.regularMessageContent)}>
                     <ReactMarkdown components={{ a: aLinkRenderer }} remarkPlugins={[remarkGfm]}>
                         {messageContent}
                     </ReactMarkdown>
@@ -702,10 +711,16 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse, threadOrches
                             icon={<SquareDismissRegular />}
                             onClick={() => cancelResponse?.()}
                             appearance="transparent"
-                            style={{ width: '90%', marginTop: '12px' }}
-                        >
-                            <FormattedMessage {...SreAgentResources.cancel} />
-                        </Button>
+                            style={{
+                                width: '90%',
+                                marginTop: '12px',
+                                maxWidth: 'none',
+                                display: 'flex',
+                                flexDirection: 'row',
+                                justifyContent: 'flex-end',
+                                padding: '0px',
+                            }}
+                        />
                     )}
 
                     <FeedbackDialog
@@ -730,7 +745,7 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse, threadOrches
                         </Text>
                     </div>
                     <UserMessage className={chatStyles.userBubble} message={{ className: chatStyles.userBubbleMessage }} key={message.id}>
-                        {renderContent()}
+                        {renderContent(true)}
                     </UserMessage>
                 </div>
             );
