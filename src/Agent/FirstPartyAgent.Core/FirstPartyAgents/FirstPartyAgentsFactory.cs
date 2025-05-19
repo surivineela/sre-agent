@@ -112,6 +112,7 @@ public class FirstPartyAgentsFactory : IAgentsFactory
             typeof(KustoPluginDefinition),
             typeof(ContainerAppEnvoyPluginDefinition),
             typeof(ContainerAppCorednsPluginDefinition),
+            typeof(ContainerAppCustomerMetricsPluginDefinition),
         };
         return types;
     }

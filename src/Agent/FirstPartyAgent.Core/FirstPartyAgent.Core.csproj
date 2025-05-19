@@ -112,7 +112,7 @@
   
   <!-- Add system prompt files -->
   <ItemGroup>
-    <None Update="FirstPartyAgents\ACA\ACAAgentSystemPrompt.txt">
+    <None Update="FirstPartyAgents\ACA\**\*.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>
@@ -120,27 +120,7 @@
 
   <!-- Add sub-agents plan files -->
   <ItemGroup>
-    <None Update="FirstPartySubAgents\ACA\HelloWorldAgent\HelloWorldAgentPlan.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </None>
-    <None Update="FirstPartySubAgents\ACA\ContainerAppRevisionAgent\ContainerAppRevisionAgentPlan.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </None>
-    <None Update="FirstPartySubAgents\ACA\ContainerAppQuotaAgent\ContainerAppQuotaAgent.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </None>
-    <None Update="FirstPartySubAgents\ACA\ContainerAppIngressAgent\ContainerAppIngressAgentPlan.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </None>
-    <None Update="FirstPartySubAgents\ACA\ContainerAppCorednsAgent\ContainerAppCorednsAgentPlan.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </None>
-    <None Update="FirstPartySubAgents\ACA\Common\ContainerAppIcmSummarizationPlan.txt">
+    <None Update="FirstPartySubAgents\ACA\**\*.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>

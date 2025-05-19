@@ -21,6 +21,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
 using FirstPartyAgent.Core.Clients;
+using FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCustomerMetricsAgent;
 
 namespace FirstPartyAgent.Core.FirstPartyAgents;
 
@@ -128,6 +129,11 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<KustoPluginDefinition>();
         services.AddSingleton<ContainerAppsPluginDefinition>();
         services.AddSingleton<IContainerAppsPlugin, ContainerAppsPlugin>();
+
+        services.AddSingleton<IContainerAppCustomerMetricsPlugin, ContainerAppCustomerMetricsPlugin>();
+        services.AddSingleton<ContainerAppCustomerMetricsAgentPlugin>();
+        services.AddSingleton<ContainerAppCustomerMetricsPluginDefinition>();
+        services.AddSingleton<ContainerAppCustomerMetricsAgentFactory>();
     }
 
     private static void RegisterFirstPartySubAgentPluginImplementationDependencies(this IServiceCollection services)

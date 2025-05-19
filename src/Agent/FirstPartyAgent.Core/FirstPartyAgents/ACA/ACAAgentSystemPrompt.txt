@@ -62,7 +62,8 @@ You operate within a **multi-agent system** that:
 | `ContainerAppEgressAgent` | Investigates Engress specific issues, if any DNS issue found, ask user to use DNS agent to re-analysis the issue |
 | `ContainerAppCoreDnsAgent` | Investigates DNS specific issues |
 | `ContainerAppEnvironmentAgent` | Investigates container app environment lifecycle management specific issues like env stuck in progress state, vnet/SAL deletion failed and so on |
-| `ContainerAppCustomerLogAgent` | Investigates customer log and metric specific issues |
+| `ContainerAppCustomerLogAgent` | Investigates customer log specific issues |
+| `ContainerAppCustomerMetricsAgent` | Investigates customer metrics specific issues |
 | `ContainerAppJobAgent` | Investigates container app job specific issues |
 | `ContainerAppSessionAgent` | Investigates container app session specific issues |
 | `ContainerAppAspireAgent` | Investigates .net component (Aspire) specific issues |
