@@ -35,10 +35,56 @@ namespace FirstPartyAgent.Plugins.Definitions
             return await _plugin.SetSubscriptionQuota(subscriptionId, region, quotaType, quotaLimit);
         }
 
+        [KernelFunction(KernelFunctionNames.ACA.SetContainerAppEnvironmentQuota)]
+        [Description(@"Set Managed Environment Quota limit.
+Input parameters:
+- incidentId: The incident id.
+- environmentResourceURL: The resource url of the container app environment.
+- region: The region of the quota need to be set.
+- quotaType: The quota type.
+
+Output:
+- id: The trace id of te operation, which can be used to track the operation in the kusto table ContainerAppsAdminEvents.
+- message: Describes the set Managed Environment Quota limit operation result.
+")]
+        public async Task<string> SetEnvironmentQuota(
+    [Description("The incident id")] string incidentId,
+    [Description("The resource URL of the container app environment")] string environmentResourceURL,
+    [Description("The region")] string region,
+    [Description("The quota type")] string quotaType,
+    [Description("The target quota limit")] string quotaLimit)
+        {
+            return await _plugin.SetEnvironmentQuota(incidentId, environmentResourceURL, region, quotaType, quotaLimit);
+        }
+
+        [KernelFunction(KernelFunctionNames.ACA.GetContainerAppEnvironmentQuotaOperationResult)]
+        [Description(@"Get the operation result of setting Managed Environment Quota limit.
+Input parameters:
+- operationId: The trace id of the operation, which can be used to track the operation in the kusto table ContainerAppsAdminEvents.
+- region: The region of the quota need to be set.
+
+Output:
+- PreciseTimeStamp: the time when the operation is completed.
+- operationStatus: the status of the operation result.
+")]
+        public async Task<string> GetEnvironmentQuotaOperationResult(
+            [Description("The operation id")] string operationId,
+            [Description("The region")] string region)
+        {
+            return await _plugin.GetEnvironmentQuotaOperationResult(operationId, region);
+        }
+
         [KernelFunction(KernelFunctionNames.ACA.ValidateQuotaRequest)]
         [Description(@"validate quota request
 This function evaluates a quota request based on specified parameters, including quota type, region, target limit, and subscription id.
 This operation determines whether the quota request adheres to approval rules and returns a validation result.
+
+Input parameters:
+- quotaType: (Required) The type of quota being requested.
+- subscriptionId: (Required) The subscription ID associated with the quota request.
+- region: (Required) The Azure region where the quota is requested.
+- targetQuotaLimit: (Required) The target quota limit being requested.
+- environmentResourceURL: (Optional) The resource url of the container app environment. It is optional for ManagedEnvironmentCount, SubscriptionNCA100Gpus, SubscriptionConsumptionNCA100Gpus, SubscriptionConsumptionT4Gpus quota types. But Required for  ManagedEnvironmentConsumptionCores, ManagedEnvironmentGeneralPurposeCores, ManagedEnvironmentMemoryOptimizedCores quota types.
 
 Output:
 The function returns a string containing two key pieces of information:
@@ -57,9 +103,10 @@ This function helps ensure quota requests comply with predefined rules and provi
             [Description("The quota type of the quota request")] string quotaType,
             [Description("The subscription id of the quota request")] string subscriptionId,
             [Description("The Azure region of the quota request")] string region,
-            [Description("The target quota limit of the quota request")] string targetQuotaLimit)
+            [Description("The target quota limit of the quota request")] string targetQuotaLimit,
+            [Description("The managed environment resource uri")] string environmentResourceURL = "")
         {
-            return await _plugin.ValidateQuotaRequest(quotaType, subscriptionId, region, targetQuotaLimit);
+            return await _plugin.ValidateQuotaRequest(quotaType, subscriptionId, region, targetQuotaLimit, environmentResourceURL);
         }
     }
 }

@@ -1,0 +1,6 @@
+let operationTraceId = "##operationId##";
+ContainerAppsAdminEvents
+| where PreciseTimeStamp > ago(10d)
+| where EventId == 123 or EventId == 125
+| where instanceId == operationTraceId
+| summarize arg_max(PreciseTimeStamp,operationStatus) 

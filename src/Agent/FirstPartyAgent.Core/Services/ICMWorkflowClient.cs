@@ -270,6 +270,35 @@ namespace FirstPartyAgent.Core.Services
             return "Failed to set subscription quota";
         }
 
+        public async Task<string> SetEnvironmentQuota(string incidentId, string environmentUrl, string region, string quotaType, string quotaLimit)
+        {
+            const string workflowName = "Workflow-GenevaAction-SetEnvironmentQuota";
+            Dictionary<string, string> body = new()
+            {
+                { "IncidentId", incidentId },
+                { "EnvironmentURL", environmentUrl},
+                { "Region", region },
+                { "QuotaType", quotaType },
+                { "QuotaLimit", quotaLimit },
+            };
+            var response = await SendICMWorkflowRequest(workflowName, JsonConvert.SerializeObject(body));
+            var responseContent = await response.Content.ReadAsStringAsync();
+            if (response.IsSuccessStatusCode)
+            {
+                return responseContent;
+            }
+            else {
+                if (!string.IsNullOrEmpty(responseContent))
+                {
+                    return $"Failed to set environment quota with {response.StatusCode} error: {responseContent}";
+                }
+                else
+                {
+                    return $"Failed to set environment quota with unknow error. Please check Workflow-GenevaAction-SetEnvironmentQuota run history in https://portal.microsofticm.com/imp/v5/automation/workflows/Workflow-GenevaAction-SetEnvironmentQuota.";
+                }
+            } 
+        }
+
         public async Task<List<DiscussionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId, DateTimeOffset? queryFrom = null)
         {
             if (_icmWorkflowSettings.UseFunctionApp)

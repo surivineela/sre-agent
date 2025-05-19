@@ -18,11 +18,13 @@ public class ContainerAppQuotaPlugin : IContainerAppQuotaPlugin
 {
     private readonly ILogger<ContainerAppQuotaPlugin> _logger;
     private readonly ICMWorkflowClient _icmWorkflowClient;
+    private readonly IKustoPluginChat _kustoPlugin;
 
-    public ContainerAppQuotaPlugin(ILogger<ContainerAppQuotaPlugin> logger, ICMWorkflowClient icmWorkflowClient)
+    public ContainerAppQuotaPlugin(ILogger<ContainerAppQuotaPlugin> logger, ICMWorkflowClient icmWorkflowClient, IKustoPluginChat kustoPlugin)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _icmWorkflowClient = icmWorkflowClient ?? throw new ArgumentNullException(nameof(icmWorkflowClient));
+        _kustoPlugin = kustoPlugin ?? throw new ArgumentNullException(nameof(kustoPlugin));
     }
 
     public async Task<string> SetSubscriptionQuota(string subscriptionId, string region, string quotaType, string quotaLimit)
@@ -30,12 +32,25 @@ public class ContainerAppQuotaPlugin : IContainerAppQuotaPlugin
         return await _icmWorkflowClient.SetSubscriptionQuota(subscriptionId, region, quotaType, quotaLimit);
     }
 
+    public async Task<string> SetEnvironmentQuota(string incidentId, string managedEnvironmentResourceUri, string region, string quotaType, string quotaLimit)
+    {
+        return await _icmWorkflowClient.SetEnvironmentQuota(incidentId, managedEnvironmentResourceUri, region, quotaType, quotaLimit);
+    }
+
+    public Task<string> GetEnvironmentQuotaOperationResult(string operationId, string region)
+    {
+        return _kustoPlugin.ExecuteLocalFunctionAsync("GetEnvironmentQuotaOperationResult", region,
+        new Dictionary<string, string> {
+            { "operationId", operationId }
+        });
+    }
+
     public async Task<string> ValidateQuotaRequest(
             [Description("The quota type of the quota request")] string quotaType,
             [Description("The subscription id of the quota request")] string subscriptionId,
             [Description("The region of the quota request")] string region,
-            [Description("The target quota limit of the quota request")] string targetQuotaLimit
-            )
+            [Description("The target quota limit of the quota request")] string targetQuotaLimit,
+            [Description("The managed environment resource uri")] string environmentResourceURL = "")
     {
         _logger.LogInformation($"ValidateQuotaRequest Started: quotaType={quotaType}, subscriptionId={subscriptionId}, region={region}, targetQuotaLimit={targetQuotaLimit}");
         var subscriptionDetails = await _icmWorkflowClient.GetSubscriptionDetail(subscriptionId);
@@ -50,6 +65,22 @@ public class ContainerAppQuotaPlugin : IContainerAppQuotaPlugin
                 OfferType = "Unknown",
                 Reason = string.Format(MessageTemplates.SubscriptionInformationMissing, "offer type")
             });
+        }
+
+        if (string.Equals(quotaType, "ManagedEnvironmentConsumptionCores", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(quotaType, "ManagedEnvironmentGeneralPurposeCores", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(quotaType, "ManagedEnvironmentMemoryOptimizedCores", StringComparison.OrdinalIgnoreCase)
+            )
+        {
+            if (string.IsNullOrEmpty(environmentResourceURL))
+            {
+                return JsonSerializer.Serialize(new
+                {
+                    ApproveResult = ApprovalState.NotStarted.ToString(),
+                    OfferType = offerType,
+                    Reason = string.Format(MessageTemplates.ManagedEnvResourceUriMissing, quotaType)
+                });
+            }
         }
 
         var validationResult = ValidateQuotaRule(targetQuotaLimit, quotaType, region.ToLowerInvariant(), offerType);
@@ -87,7 +118,14 @@ public class ContainerAppQuotaPlugin : IContainerAppQuotaPlugin
         {
             return (ApprovalState.NotStarted, string.Format(MessageTemplates.InvalidQuotaType));
         }
-        else if (!quotaType.Contains("GPU", StringComparison.OrdinalIgnoreCase))
+        else if (!quotaType.Equals("SubscriptionNCA100Gpus", StringComparison.OrdinalIgnoreCase)
+                 && !quotaType.Equals("SubscriptionConsumptionNCA100Gpus", StringComparison.OrdinalIgnoreCase)
+                 && !quotaType.Equals("SubscriptionConsumptionT4Gpus", StringComparison.OrdinalIgnoreCase)
+                 && !quotaType.Equals("ManagedEnvironmentCount", StringComparison.OrdinalIgnoreCase)
+                 && !quotaType.Equals("ManagedEnvironmentConsumptionCores", StringComparison.OrdinalIgnoreCase)
+                 && !quotaType.Equals("ManagedEnvironmentGeneralPurposeCores", StringComparison.OrdinalIgnoreCase)
+                 && !quotaType.Equals("ManagedEnvironmentMemoryOptimizedCores", StringComparison.OrdinalIgnoreCase)
+                 )
         {
             return (ApprovalState.NotSupported, string.Format(MessageTemplates.QuotaTypeNotSupported, quotaType));
         }
@@ -189,6 +227,14 @@ public class ContainerAppQuotaPlugin : IContainerAppQuotaPlugin
                 return (ApprovalState.NotStarted, string.Format(MessageTemplates.RegionNotSupported, "SubscriptionConsumptionT4Gpus", region, "westus3, australiaeast, or swedensentral"));
             }
         }
+        else if (quotaTypeEnum.Equals(QuotaType.ManagedEnvironmentCount)
+            || quotaTypeEnum.Equals(QuotaType.ManagedEnvironmentConsumptionCores)
+            || quotaTypeEnum.Equals(QuotaType.ManagedEnvironmentGeneralPurposeCores)
+            || quotaTypeEnum.Equals(QuotaType.ManagedEnvironmentMemoryOptimizedCores)
+            )
+        {
+            return (ApprovalState.Pending, string.Format(MessageTemplates.RequireManualApproveForEnvCoreQuota, quotaType));
+        }
         else
         {
 
@@ -200,7 +246,7 @@ public class ContainerAppQuotaPlugin : IContainerAppQuotaPlugin
     {
         public const string RegionNotSupported = @"Quota type {0} is not supported in this region {1}. For QuotaType {0}, the valid region should be {2}. Ask the user to provide the correct region.";
 
-        public const string QuotaTypeNotSupported = @"Quota type {0} is not supported. The valid quota types are SubscriptionNCA100Gpus, SubscriptionConsumptionNCA100Gpus, SubscriptionConsumptionT4Gpus. Ask the user to provide the correct quota type.";
+        public const string QuotaTypeNotSupported = @"Quota type {0} is not supported. The valid quota types are SubscriptionNCA100Gpus, SubscriptionConsumptionNCA100Gpus, SubscriptionConsumptionT4Gpus, ManagedEnvironmentCount, ManagedEnvironmentConsumptionCores, ManagedEnvironmentGeneralPurposeCores, ManagedEnvironmentMemoryOptimizedCores. Ask the user to provide the correct quota type.";
 
         public const string NorthEuropeNotSupported = "There is no SubscriptionNCA100Gpus quota available in NorthEurope. Please ask the user if the customer can use SubscriptionConsumptionNCA100Gpus/SubscriptionConsumptionT4Gpus in WestUS3/SwedenCentral/AustraliaEast or SubscriptionNCA100Gpus in WestUS3.";
 
@@ -208,13 +254,17 @@ public class ContainerAppQuotaPlugin : IContainerAppQuotaPlugin
 
         public const string RequireManualApprove = @"Manual approval is required for {1} offer type to set {0} quota with a limit great than {2}.";
 
+        public const string RequireManualApproveForEnvCoreQuota = @"Manual approval is always required for quota request of quota type: {0}.";
+
         public const string RequestInformationMissing = @"The request {0} is missing. Ask the user to provide the {0}.";
 
         public const string SubscriptionInformationMissing = @"Failed to fetch {0} for the given subscription id. Aks the user to provide the correct subscriptionId.";
 
+        public const string ManagedEnvResourceUriMissing = @"The managed environment resource uri is required for {0} quota request. Ask the user to provide the missing managed environment resource uri.";
+
         public const string InvalidQuotaLimit = @"Invalid target limit number. Ask the user to provide a valid target limit.";
 
-        public const string InvalidQuotaType = @"Invalid quota type. Ask the customer to provide one of the following quota type: SubscriptionNCA100Gpus, SubscriptionConsumptionNCA100Gpus, SubscriptionConsumptionT4Gpus.";
+        public const string InvalidQuotaType = @"Invalid quota type. Ask the customer to provide one of the following quota type: SubscriptionNCA100Gpus, SubscriptionConsumptionNCA100Gpus, SubscriptionConsumptionT4Gpus, ManagedEnvironmentCount, ManagedEnvironmentConsumptionCores, ManagedEnvironmentGeneralPurposeCores, ManagedEnvironmentMemoryOptimizedCores";
 
         public const string RequireManualApproveDueToShortage = @"Manual approval is required for {0} offer type in {1} region due to a capacity shortage.";
     }

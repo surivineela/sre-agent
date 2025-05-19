@@ -28,7 +28,7 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppQuotaAgent
         public const string OrchestrationInstanceIdPrefix = nameof(ContainerAppQuotaAgent);
 
         public ContainerAppQuotaAgentFactory(
-            IIcmPlugin icmPlugin,
+            IContainerAppIcMPlugin containerAppIcMPlugin,
             IContainerAppsPlugin containerAppsPlugin,
             IContainerAppQuotaPlugin containerAppQuotaPlugin,
             IToolsRepository toolsRepository,
@@ -40,10 +40,10 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppQuotaAgent
             _toolsRegistry = toolsRepository;
             var toolSignatures = new List<string>();
 
-            var icmPluginDefinition = new IcmPluginDefinition(icmPlugin);
-            toolSignatures.Add(_toolsRegistry.GetSignature(() => icmPluginDefinition.GetIncidentInfo));
-            toolSignatures.Add(_toolsRegistry.GetSignature(() => icmPluginDefinition.AddDiscussionEntry));
-            toolSignatures.Add(_toolsRegistry.GetSignature(() => icmPluginDefinition.ResolveIncident));
+            var containerAppIcMPluginDefinition = new ContainerAppIcMPluginDefinition(containerAppIcMPlugin);
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppIcMPluginDefinition.GetIncidentInfo));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppIcMPluginDefinition.AddDiscussionEntry));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppIcMPluginDefinition.ResolveIncident));
 
             var containerAppsPluginDefinition = new ContainerAppsPluginDefinition(containerAppsPlugin);
             toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppsPluginDefinition.GetSubscriptionDetail));
@@ -52,7 +52,9 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppQuotaAgent
             var containerAppQuotaPluginDefinition = new ContainerAppQuotaPluginDefinition(containerAppQuotaPlugin);
             toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppQuotaPluginDefinition.ValidateQuotaRequest));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppQuotaPluginDefinition.SetSubscriptionQuota));
-            
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppQuotaPluginDefinition.SetEnvironmentQuota));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppQuotaPluginDefinition.GetEnvironmentQuotaOperationResult));
+
             var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
             toolSignatures.Add(_toolsRegistry.GetSignature(() => controlFlowPluginDefinition.Wait));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));

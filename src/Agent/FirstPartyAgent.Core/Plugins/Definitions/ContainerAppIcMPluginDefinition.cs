@@ -118,5 +118,21 @@ namespace FirstPartyAgent.Plugins.Definitions
         {
             return await _plugin.AddDiscussionEntry(incidentId, text);
         }
+
+        [KernelFunction(KernelFunctionNames.Icm.IcmResolveIncident)]
+        [Description(@"Resolve an ICM incident. This operation will set the given IcM Incident to Resolved state. And you must give a reason of this resolve action.
+
+        Input parameters:
+        - incidentId: The Id of the IcM incident.It is usually a integer number.
+        - reason: Usually it is a reason why you can resolve this incident.
+
+        The operation will mark the given incident as resolved. The return value is a boolean value for indicating if the operation is successful.
+        ")]
+        public async Task<bool> ResolveIncident(
+        [Description("Incident ID")] string incidentId,
+        [Description("comment/reason for resolution action")] string reason)
+        {
+            return await _plugin.ResolveIncident(incidentId, reason);
+        }
     }
 }

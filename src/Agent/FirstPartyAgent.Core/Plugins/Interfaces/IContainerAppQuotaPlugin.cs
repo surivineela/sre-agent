@@ -8,7 +8,12 @@ namespace FirstPartyAgent.Plugins
     {
         public Task<string> SetSubscriptionQuota(string subscriptionId, string region, string quotaType, string quotaLimit);
 
-        public Task<string> ValidateQuotaRequest(string quotaType, string subscriptionId, string region, string targetQuotaLimit);
+        public Task<string> SetEnvironmentQuota(string incidentId, string managedEnvironmentResourceUri, string region, string quotaType, string quotaLimit);
+
+        public Task<string> ValidateQuotaRequest(string quotaType, string subscriptionId, string region, string targetQuotaLimit, string environmentResourceURL);
+
+        public Task<string> GetEnvironmentQuotaOperationResult(string operationId, string region);
+
     }
 }
 
