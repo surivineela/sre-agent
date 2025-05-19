@@ -55,7 +55,7 @@ public class TlsBestPracticesEvals
 
         var services = builder.Services;
         services.AddMockServices(_mocks);
-        TlsTestHelpers.AddPluginDefinitions(services);
+        TlsTestHelpers.AddPluginDefinitionsForTlsSubAgent(services);
         services.AddSingleton<IToolsRepository, ToolsRepository>();
         services.AddSingleton<TlsBestPracticeAgentFactory>();
 

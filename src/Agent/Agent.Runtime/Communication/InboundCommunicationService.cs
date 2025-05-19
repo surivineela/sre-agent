@@ -16,6 +16,7 @@ using Agent.Runtime.SubAgents.CVEAgent;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph.Models.Security;
 
@@ -23,43 +24,33 @@ namespace Agent.Runtime.Communication;
 
 public class InboundCommunicationService : IAgentInboundCommunicationService
 {
+    private readonly IServiceProvider _serviceProvider;
     private readonly IAgent _metaAgent;
     private readonly DurableTaskClient _durableTaskClient;
-    private readonly IThreadOrchestrationManager _mappingManager;
     private readonly IThreadRepository _repository;
     private readonly ILogger<InboundCommunicationService> _logger;
     private readonly SinkService _sinkService;
     private readonly ThreadService _threadService;
-    private readonly IChatClient _chatClient;
-    private readonly IGraphDBPlugin _graphDbPlugin;
-    private readonly IGithubIssuePlugin _githubIssuePlugin;
-
     private readonly IPostToTeamsPlugin _teamsPlugin;
 
     public InboundCommunicationService(
         IAgent metaAgent,
         DurableTaskClient durableTaskClient,
-        IThreadOrchestrationManager mappingManager,
         IThreadRepository repository,
         SinkService sinkService,
         ThreadService threadService,
         IPostToTeamsPlugin teamsPlugin,
         ILogger<InboundCommunicationService> logger,
-        IChatClient chatClient,
-        IGraphDBPlugin graphDBPlugin,
-        IGithubIssuePlugin githubIssuePlugin)
+        IServiceProvider serviceProvider)
     {
         _metaAgent = metaAgent;
         _durableTaskClient = durableTaskClient;
-        _mappingManager = mappingManager;
         _repository = repository;
         _sinkService = sinkService;
         _threadService = threadService;
         _teamsPlugin = teamsPlugin;
         _logger = logger;
-        _chatClient = chatClient;
-        _graphDbPlugin = graphDBPlugin;
-        _githubIssuePlugin = githubIssuePlugin;
+        _serviceProvider = serviceProvider;
     }
 
     public async Task<(Core.Models.Api.v1.Thread, AgentContext)> CreateAgentThread(
@@ -165,10 +156,10 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                     switch (agentContext.AgentType)
                     {
                         case AgentTypeEnum.CVE:
-                            scannerSubAgent = new CVEAgent(_chatClient, _graphDbPlugin, _githubIssuePlugin, _sinkService, _repository);
+                            scannerSubAgent = _serviceProvider.GetRequiredService<CVEAgent>();
                             break;
                         case AgentTypeEnum.SourceCode:
-                            scannerSubAgent = new SourceCodeAgent(_chatClient, _graphDbPlugin, _sinkService, _repository);
+                            scannerSubAgent = _serviceProvider.GetRequiredService<SourceCodeAgent>();
                             break;
                         default:
                             throw new NotSupportedException($"Scanner agent type {agentContext.AgentType} is not supported.");

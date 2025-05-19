@@ -227,6 +227,7 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
         .AddSingleton<IThreadOrchestrationManager, CosmosThreadOrchestrationManager>()
         .AddSingleton<SinkService>()
         .AddSingleton<ThreadService>()
+        .AddSingleton<ThreadManagementService>()
         .AddSingleton<IAgentInboundCommunicationService, InboundCommunicationService>()
         .AddSingleton<IAgentOutboundCommunicationService, OutboundCommunicationService>()
         .AddSingleton<IApprovalService, ApprovalService>()
@@ -265,6 +266,10 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
         // helper agents
         .AddTransient<HelperAgentsPluginDefinition>()
         .AddTransient<DiagnosisAgent>()
+
+        // scanner agents
+        .AddTransient<CVEAgent>()
+        .AddTransient<SourceCodeAgent>()
         ;
 
     if (isFirstAgent)

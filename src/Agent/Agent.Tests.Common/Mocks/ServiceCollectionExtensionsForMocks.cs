@@ -12,6 +12,9 @@ using Moq;
 using Agent.Core.Helpers;
 using System.Net.Sockets;
 using System.Net.WebSockets;
+using Agent.Runtime.Communication;
+using Agent.Runtime.MetaAgent;
+using Agent.Runtime.Services;
 
 namespace Agent.Tests.Common.Mocks;
 
@@ -49,6 +52,20 @@ public static class ServiceCollectionExtensionsForMocks
         services.AddSingleton<IFunctionAppsPlugin, FunctionAppsPlugin>();
         services.AddSingleton<IAppServicePlugin, AppServicePlugin>();
 
+    }
+
+    public static void AddServices(this IServiceCollection services, E2EMockSetup mocks)
+    {
+        services.AddMockServices(mocks.BasicMocks);
+        services.AddLocalGremlin("gsimpleweb");
+
+        services.AddSingleton<GraphDBPlugin>();
+        services.AddSingleton<ThreadManagementService>();
+        services.AddSingleton<IAgentInboundCommunicationService, InboundCommunicationService>();
+        services.AddSingleton<IAgentOutboundCommunicationService, OutboundCommunicationService>();
+        services.AddTransient<IAgent, MetaAgent>();
+        services.AddSingleton<IAuthenticationService>(mocks.AuthenticationService);
+        services.AddSingleton<IToolsRepository, ToolsRepository>();
     }
 
     public static void AddLocalGremlin(this IServiceCollection services, string graphName)

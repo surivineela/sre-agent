@@ -43,7 +43,8 @@ namespace Agent.Web.Controllers.v1
         ILogger<ThreadsController> logger,
         IGraphService graphService,
         IConnectedIntegrationsPlugin connectedIntegrationsPlugin,
-        IGithubIssuePlugin githubIssuePlugin) : ControllerBase
+        IGithubIssuePlugin githubIssuePlugin,
+        ThreadManagementService threadManagementService) : ControllerBase
     {
         // By default, returns threads ordered by timestamp in ascending order.
         // Pagination can be achieve by using `top` and `skip` query options. https://learn.microsoft.com/en-us/odata/client/pagination#client-driven-paging
@@ -83,79 +84,7 @@ namespace Agent.Web.Controllers.v1
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var threadId = Guid.NewGuid();
-            var messageId = Guid.NewGuid();
-
-            string temporaryTitle = request.StartMessage.Text.Length <= 50 ? request.StartMessage.Text : request.StartMessage.Text.Substring(0, 47) + "...";
-
-            var message = new Message(
-                    Id: messageId,
-                    TimeStamp: DateTime.UtcNow,
-                    Author: new Author(Role.User, request.StartMessage.UserId, request.StartMessage.DisplayName),
-                    Text: request.StartMessage.Text
-                );
-            var thread = new Thread(
-                Id: threadId,
-                Title: temporaryTitle,
-                StartMessage: message,
-                LastMessage: message,
-                CreatedTimestamp: DateTime.UtcNow,
-                ModifiedTimestamp: DateTime.UtcNow,
-                Source: request.Source ?? ThreadSource.Conversation
-            );
-
-            var agentContext = new AgentContext(
-                Id: Guid.NewGuid(),
-                ThreadId: thread.Id,
-                AgentType: AgentTypeEnum.Meta,
-                ContextState: ContextStateEnum.Idle,
-                WaitInformation: null,
-                ApprovalInformation: null
-            );
-
-            var systemPromptReasoningMessage = new ReasoningMessage(
-                Id: Guid.NewGuid(),
-                AgentContextId: agentContext.Id,
-                Role: ReasoningMessageRoleEnum.System,
-                SerializedChatMessage: JsonSerializer.Serialize(new ChatMessage(ChatRole.System, agentsFactory.GetMetaAgentSystemPrompt()))
-            );
-
-            var startReasoningMessage = new ReasoningMessage(
-                Id: Guid.NewGuid(),
-                AgentContextId: agentContext.Id,
-                Role: ReasoningMessageRoleEnum.User,
-                SerializedChatMessage: JsonSerializer.Serialize(new ChatMessage(ChatRole.User, message.Text))
-            );
-
-            var agentChatHistory = new AgentChatHistory(
-                AgentContextId: agentContext.Id,
-                ReasoningMessageIds: new List<Guid> { systemPromptReasoningMessage.Id, startReasoningMessage.Id });
-
-            thread = await repository.CreateThreadAsync(thread);
-            message = await repository.AddMessageAsync(thread.Id, message);
-            agentContext = await repository.CreateAgentContextAsync(agentContext);
-            systemPromptReasoningMessage = await repository.CreateReasoningMessageAsync(systemPromptReasoningMessage);
-            startReasoningMessage = await repository.CreateReasoningMessageAsync(startReasoningMessage);
-            agentChatHistory = await repository.CreateAgentChatHistoryAsync(agentChatHistory);
-
-            var threadContext = new ThreadContext(thread.Id, AgentTypeEnum.Meta);
-            threadContext.AddMessage(thread.StartMessage);
-            await repository.AddThreadContextAsync(threadContext);
-
-            // Start the background title generation task (fire and forget)
-            _ = TitleHelper.GenerateTitleAndUpdateAsync(chatClient, repository, thread.Id, request.StartMessage.Text);
-
-            var response = await agentInboundCommunicationService.ProcessUserMessageAsync(new ThreadMessage
-            (
-                ThreadId: thread.Id,
-                AgentContextId: agentContext.Id,
-                MessageId: thread.StartMessage.Id,
-                Message: request.StartMessage.Text,
-                UserId: request.StartMessage.UserId,
-                DisplayName: request.StartMessage.DisplayName,
-                Timestamp: DateTime.UtcNow
-            ));
-
+            var thread = await threadManagementService.CreateUserInitiatedThread(request);
             return CreatedAtAction(nameof(GetThread), new { id = thread.Id }, thread);
         }
 
@@ -190,31 +119,10 @@ namespace Agent.Web.Controllers.v1
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            // First check if thread exists
-            var thread = await repository.GetThreadAsync(threadId);
+            var response = await threadManagementService.CreateMessage(threadId, request);
 
-            if (thread == null)
+            if(response == null)
                 return NotFound();
-
-            var agentContexts = await repository.GetAgentContextsForThreadAsync(threadId);
-
-            // Pick out original agent context (not handed from another agent)
-            var agentContext = agentContexts.FirstOrDefault(c => c.HandoffFromAgentContextId == null);
-            if (agentContext == null)
-            {
-                return NotFound();
-            }
-
-            var response = await agentInboundCommunicationService.ProcessUserMessageAsync(new ThreadMessage
-            (
-                ThreadId: threadId,
-                AgentContextId: agentContext.Id,
-                MessageId: Guid.NewGuid(),
-                Message: request.Text,
-                UserId: request.UserId,
-                DisplayName: request.DisplayName,
-                Timestamp: DateTime.UtcNow
-            ));
 
             return CreatedAtAction(
                 nameof(GetMessage),

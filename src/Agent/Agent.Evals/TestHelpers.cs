@@ -130,6 +130,14 @@ public static class TestHelpers
         return response;
     }
 
+    public static void WriteMessages(this TestContext testContext, IEnumerable<ChatMessage> chatMessages)
+    {
+        foreach (var message in chatMessages)
+        {
+            testContext.WriteLine($"[{message.Role}] {message.Text}");
+        }
+    }
+
     public static int GetIterationCount(int defaultValue)
     {
         string? iterationCountEnv = Environment.GetEnvironmentVariable("IterationCount");
