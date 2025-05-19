@@ -79,7 +79,7 @@ namespace FirstPartyAgent.Core.Plugins
                     kustoQuery = kustoQuery + "\n" +
                         $"| where CorrelationId == '{correlationId}'";
                 }
-                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, NowOverride: nowOverride, kernel);
+                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, NowOverride: nowOverride);
                 return kustoResult.Result;
             }
             return $"Alert details not found for alertId {alertId}";

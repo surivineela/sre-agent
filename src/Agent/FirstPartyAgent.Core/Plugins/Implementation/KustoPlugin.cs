@@ -113,15 +113,13 @@ namespace FirstPartyAgent.Plugins
             [Description("The short name of the target Kusto cluster (without URL schema or suffix).")] string cluster,
             [Description("The name of the target Kusto database.")] string database,
             [Description("The full Kusto query to execute.")] string fullQuery,
-            DateTime? NowOverride,
-            Kernel kernel
+            DateTime? NowOverride
             )
         {
             cluster = cluster.Replace(".kusto.windows.net", "");
             cluster = cluster.Replace("https://", "");
 
             var logMessage = $"[execute_kusto_query_on_cluster][{DateTime.UtcNow}] Invoked with cluster: {cluster}, database: {database}\nquery:\n{fullQuery.Substring(0, Math.Min(100, fullQuery.Length))}...";
-            await kernel.LogInformation(logMessage, _logger, _teamsClient);
             try
             {
                 var stopwatch = System.Diagnostics.Stopwatch.StartNew();
@@ -233,8 +231,17 @@ namespace FirstPartyAgent.Plugins
                 var region = regionOrClusterUri;
 
                 // TODO: update this plugin with a parameter to allow querying regional clusters for other products
-                KustoRegionalGroupClient regionalKustoClient = _kustoRegionalGroupClientProvider.GetRegionalGroupKustoClient("ContainerApps");
-                KustoCluster? cluster = regionalKustoClient.GetCluster(region);
+
+                KustoCluster? cluster = null;
+                try
+                {
+                    KustoRegionalGroupClient regionalKustoClient = _kustoRegionalGroupClientProvider.GetRegionalGroupKustoClient("ContainerApps");
+                    cluster = regionalKustoClient.GetCluster(region);
+                } catch (Exception ex)
+                {
+                    _logger.LogError($"An error occurred while getting Kusto cluster for region {region}: {ex.Message}");
+                }
+
                 if (cluster != null)
                 {
                     adxUri = cluster.ClusterUri;

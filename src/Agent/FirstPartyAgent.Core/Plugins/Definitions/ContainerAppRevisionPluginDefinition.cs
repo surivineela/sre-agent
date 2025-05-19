@@ -49,7 +49,8 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
     - RevisionProvisioningState: Provisioning status.
     - RevisionRunningState: Running status.
     - AppReadyForTrafficState: Traffic readiness status."
-)]public Task<string> ListRevisions([Description("Azure region.")] string region, [Description("Start time of the query.")] DateTime fromDate, [Description("End time of the query.")] DateTime toDate, [Description("Name of the container app.")] string containerAppName, [Description("Name of the resource group.")] string resourceGroupName, [Description("Azure subscription ID.")] string subscriptionId)
+)]
+        public Task<string> ListRevisions([Description("Azure region.")] string region, [Description("Start time of the query.")] DateTime fromDate, [Description("End time of the query.")] DateTime toDate, [Description("Name of the container app.")] string containerAppName, [Description("Name of the resource group.")] string resourceGroupName, [Description("Azure subscription ID.")] string subscriptionId)
         {
             return _plugin.ListRevisions(region.NormalizeLocation(), fromDate, toDate, containerAppName, resourceGroupName, subscriptionId);
         }
@@ -77,7 +78,7 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
             [Description("Azure subscription ID.")] string subscriptionId,
             [Description("provide sampling inputs")] SamplingOptions sampling)
         {
-            return _plugin.GetHttpScalerEventsForContainerApp(region.NormalizeLocation(), fromDate, toDate, containerAppName, resourceGroupName, subscriptionId,sampling);
+            return _plugin.GetHttpScalerEventsForContainerApp(region.NormalizeLocation(), fromDate, toDate, containerAppName, resourceGroupName, subscriptionId, sampling);
         }
 
         [KernelFunction(KernelFunctionNames.ACA.GetKedaOperatorEventsForContainerApp)]
@@ -87,7 +88,8 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
     - LogTime: Log timestamp.
     - Level: Event severity(Info / Error).
     - Msg: Operator event message."
-)] public Task<string> GetKedaOperatorEventsForContainerApp([Description("Azure region.")] string region,
+)]
+        public Task<string> GetKedaOperatorEventsForContainerApp([Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the container app.")] string containerAppName,
@@ -109,9 +111,9 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
             [Description("Name of the resource group.")] string resourceGroupName,
             [Description("Azure subscription ID.")] string subscriptionId)
         {
-            return _plugin.GetASIPageForRevision( region,  fromDate,  toDate,  containerAppName,  revisionName,  resourceGroupName,  subscriptionId);
+            return _plugin.GetASIPageForRevision(region, fromDate, toDate, containerAppName, revisionName, resourceGroupName, subscriptionId);
         }
-        
+
 
         [KernelFunction(KernelFunctionNames.ACA.GetRevisionTrafficWithReplicaCount)]
         [Description(
@@ -213,13 +215,14 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
     - RevisionName: Revision associated.
     - Reason: Why the event occurred.
     - Msg: Additional event message details."
-)]public Task<string> GetEventProcessorEventsWithoutReplica([Description("Azure region.")] string region,
+)]
+        public Task<string> GetEventProcessorEventsWithoutReplica([Description("Azure region.")] string region,
             [Description("Start time.")] DateTime fromDate,
             [Description("End time.")] DateTime toDate,
             [Description("Revision name.")] string revisionName,
             [Description("App name.")] string containerAppName,
             [Description("Resource group.")] string resourceGroupName,
-            [Description("Subscription ID.")] string subscriptionId)        
+            [Description("Subscription ID.")] string subscriptionId)
         {
             return _plugin.GetEventProcessorEventsWithoutReplica(region.NormalizeLocation(), fromDate, toDate, revisionName, containerAppName, resourceGroupName, subscriptionId);
         }
@@ -258,7 +261,8 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
     - ReplicaName: The pod's replica name.
     - RevisionName: Associated revision.
     - Level: Mapped to Info or Error."
-)]public Task<string> GetInternalEventProcessorEventsForPod([Description("Azure region.")] string region,
+)]
+        public Task<string> GetInternalEventProcessorEventsForPod([Description("Azure region.")] string region,
             [Description("Start timestamp.")] DateTime fromDate,
             [Description("End timestamp.")] DateTime toDate,
             [Description("Name of the revision.")] string revisionName,
@@ -266,11 +270,19 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
             [Description("Name of the container app.")] string containerAppName,
             [Description("Name of the resource group.")] string resourceGroupName,
             [Description("Azure subscription ID.")] string subscriptionId)
-        { 
+        {
             return _plugin.GetInternalEventProcessorEventsForPod(region.NormalizeLocation(), fromDate, toDate, revisionName, podName, containerAppName, resourceGroupName, subscriptionId);
         }
 
-
-
+        [KernelFunction(KernelFunctionNames.ACA.GetLegionErrors)]
+        [Description("Get Legion errors for a given revision")]
+        public Task<string> GetLegionErrors(
+            [Description("Azure region.")] string region,
+            [Description("Start time.")] DateTime fromDate,
+            [Description("End time.")] DateTime toDate,
+            [Description("Revision name.")] string revisionName)
+        {
+            return _plugin.GetLegionErrors(region, fromDate, toDate, revisionName);
+        }
     }
 }

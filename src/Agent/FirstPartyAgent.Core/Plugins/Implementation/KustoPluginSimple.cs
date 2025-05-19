@@ -25,7 +25,7 @@ public class KustoPluginSimple
             Kernel kernel
             )
     {
-        var result = await _kustoPlugin.ExecuteClusterKustoQuery(cluster, database, fullQuery, NowOverride, kernel);
+        var result = await _kustoPlugin.ExecuteClusterKustoQuery(cluster, database, fullQuery, NowOverride);
         if (result != null && result.Result != null)
         {
             if (result.RowCount == 0 && !result.Result.StartsWith("An error occurred while executing Kusto Query"))

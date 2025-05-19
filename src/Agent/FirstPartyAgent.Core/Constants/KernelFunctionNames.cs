@@ -32,6 +32,7 @@ namespace FirstPartyAgent.Constants
             public const string GetEventProcessorEventsWithoutReplica = "get_event_processor_events_without_replica";
             public const string GetPodHeartbeatStatus = "get_pod_heartbeat_status";
             public const string GetInternalEventProcessorEventsForPod = "get_internal_event_processor_events_for_pod";
+            public const string GetLegionErrors = "get_legion_errors";
             public const string GetReplicaCount = "get_replica_count";
             public const string ContainerAppRevisionStatus = "get_container_app_revision_status";
             public const string ListKustoFunctions = "list_kusto_functions";

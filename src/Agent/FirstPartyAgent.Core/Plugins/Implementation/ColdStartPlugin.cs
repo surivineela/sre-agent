@@ -55,7 +55,7 @@ namespace FirstPartyAgent.Plugins
                 DateTime? nowOverride = null;
 
                 var kustoQuery = GetRequestGeneralInfoQuery(siteName, url, activityId, utcDateTime);
-                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, nowOverride, _kernel);
+                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, nowOverride);
 
                 responses.Add(new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result });
             }
@@ -100,7 +100,7 @@ namespace FirstPartyAgent.Plugins
                     return new KustoQueryResponse { KustoQuery = string.Empty, KustoResult = "Unsupported consumption type." };
                 }
 
-                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, nowOverride, _kernel);
+                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, nowOverride);
                 return new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result };
             }
             catch (Exception ex)
@@ -125,7 +125,7 @@ namespace FirstPartyAgent.Plugins
 
                 var kustoQuery = GetColdStartRequestDetailsForFlexConsumptionFromLegion(podName, utcDateTime);
 
-                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(legionClusterName, databaseName, kustoQuery, nowOverride, _kernel);
+                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(legionClusterName, databaseName, kustoQuery, nowOverride);
                 return new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result };
             }
             catch (Exception ex)
@@ -151,7 +151,7 @@ namespace FirstPartyAgent.Plugins
 
                 var kustoQuery = GetColdStartQueryForSlaSites(days, platform, stack);
 
-                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, nowOverride, _kernel);
+                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, nowOverride);
                 return new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result };
             }
             catch (Exception ex)
@@ -174,7 +174,7 @@ namespace FirstPartyAgent.Plugins
 
                 var kustoQuery = GetColdStartProfileDataQuery();
 
-                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, nowOverride, _kernel);
+                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, nowOverride);
                 return new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result };
             }
             catch (Exception ex)
@@ -197,7 +197,7 @@ namespace FirstPartyAgent.Plugins
 
                 var kustoQuery = GetColdStartProfileDataQueryDetails();
 
-                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, nowOverride, _kernel);
+                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, nowOverride);
                 return new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result };
             }
             catch (Exception ex)
@@ -229,7 +229,7 @@ namespace FirstPartyAgent.Plugins
                 var databaseName = "wawsprod";
                 DateTime? nowOverride = null;
 
-                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, NowOverride: nowOverride, _kernel);
+                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, NowOverride: nowOverride);
                 responses.Add(new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result });
 
                 foreach(var secondaryKustoQuery in alertDetails.SecondaryKustoQueries)
@@ -238,7 +238,7 @@ namespace FirstPartyAgent.Plugins
                         secondaryKustoQuery.Title.Contains("Consumption P99 and P99.9 per OS", StringComparison.OrdinalIgnoreCase) ||
                         secondaryKustoQuery.Title.Contains("Flex P99 breakdown", StringComparison.OrdinalIgnoreCase))
                     {
-                        var secondaryKustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, secondaryKustoQuery.KustoQuery, NowOverride: nowOverride, _kernel);
+                        var secondaryKustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, secondaryKustoQuery.KustoQuery, NowOverride: nowOverride);
                         responses.Add(new KustoQueryResponse { KustoQuery = secondaryKustoQuery.KustoQuery, KustoResult = secondaryKustoResult.Result });
                     }
                 }
@@ -286,7 +286,7 @@ namespace FirstPartyAgent.Plugins
                 var databaseName = primaryCluster.Database;
                 DateTime? nowOverride = null;
 
-                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, NowOverride: nowOverride, _kernel);
+                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, NowOverride: nowOverride);
                 return new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result };
             }
             catch (Exception ex)

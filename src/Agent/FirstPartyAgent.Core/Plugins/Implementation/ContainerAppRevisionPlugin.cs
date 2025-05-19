@@ -173,6 +173,22 @@ public class ContainerAppRevisionPlugin : IContainerAppRevisionPlugin
 
     }
 
+    public async Task<string> GetLegionErrors(string region, DateTime fromDate, DateTime toDate, string revisionName)
+    {
+        if (toDate - fromDate > TimeSpan.FromDays(1))
+        {
+            throw new ArgumentException("Legion queries are expensive and should be limited to a 1 day.");
+        }
+
+        return await _kustoPlugin.ExecuteLocalFunctionOnClusterAsync("GetLegionErrors",
+            "legioneus.eastus", "legion",
+            new Dictionary<string, string> {
+            { "fromDate", fromDate.ToString() },
+            { "toDate", toDate.ToString() },
+            { "revisionName", revisionName },
+            { "region", region }
+            });
+    }
 
     public async Task<string> GetKedaOperatorEventsForContainerApp(string region, DateTime fromDate, DateTime toDate, string containerAppName, string resourceGroupName, string subscriptionId, SamplingOptions samplingOptions)
     {
