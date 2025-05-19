@@ -2,11 +2,12 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Microsoft.Extensions.Logging;
-using FirstPartyAgent.Core.Services;
-using Microsoft.SemanticKernel;
 using System.ComponentModel;
+using Agent.Core.Models;
+using FirstPartyAgent.Core.Services;
 using FirstPartyAgent.Models;
+using Microsoft.Extensions.Logging;
+using Microsoft.SemanticKernel;
 
 namespace FirstPartyAgent.Core.Plugins
 {
@@ -31,7 +32,8 @@ namespace FirstPartyAgent.Core.Plugins
             if (_teamsClient.IsEnabled())
             {
                 string agentMode = kernel.Data.TryGetValue("agentMode", out var val) ? val.ToString() : AgentMode.None.ToString();
-                await _teamsClient.PostMessageOnTeams(statusMessage, agentMode);
+                var teamsMessage = new TeamsMessage(statusMessage, null);
+                await _teamsClient.PostMessageOnTeams(agentMode, teamsMessage);
                 return "Sent status message on Teams";
             }
             return "Success";

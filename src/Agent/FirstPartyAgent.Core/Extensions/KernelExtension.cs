@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Models;
 using FirstPartyAgent.Core.Services;
 using FirstPartyAgent.Models;
 using Microsoft.Extensions.Logging;
@@ -17,7 +18,8 @@ namespace FirstPartyAgent.Core.Extensions
             if (teamsClient != null && teamsClient.IsEnabled() && teamsClient.SendLogsToTeams())
             {
                 string agentMode = kernel.Data.TryGetValue("agentMode", out var val) ? val.ToString() : AgentMode.None.ToString();
-                await teamsClient.PostMessageOnTeams(info, agentMode, null).ConfigureAwait(false);
+                var teamsMessage = new TeamsMessage(info, null);
+                await teamsClient.PostMessageOnTeams(agentMode, teamsMessage).ConfigureAwait(false);
             }
 
             if (sessionMessageService != null)

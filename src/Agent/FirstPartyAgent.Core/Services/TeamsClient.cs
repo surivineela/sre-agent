@@ -13,7 +13,6 @@ namespace FirstPartyAgent.Core.Services
     {
         bool IsEnabled();
         bool SendLogsToTeams();
-        Task<bool> PostMessageOnTeams(string textContent, string agentMode, string base64Image = null);
         Task<bool> PostMessageOnTeams(string agentMode, TeamsMessage message);
     }
 
@@ -60,12 +59,6 @@ namespace FirstPartyAgent.Core.Services
             {
                 return false;
             }
-        }
-
-        public async Task<bool> PostMessageOnTeams(string textContent, string agentMode, string? base64Image = null)
-        {
-            var teamsMessage = new TeamsMessage(textContent, base64Image);
-            return await PostMessageOnTeams(agentMode, teamsMessage);
         }
     }
 }

@@ -18,29 +18,6 @@ using Newtonsoft.Json;
 
 namespace FirstPartyAgent.Core.Services;
 
-public class SessionInformation
-{
-    public string SessionId { get; set; }
-    public AgentMode AgentMode { get; set; }
-    public DateTime Timestamp { get; set; }
-    public ChatHistory ChatHistory { get; set; }
-    public bool AgentLoopRunning { get; set; }
-    public Kernel Kernel { get; set; }
-    public Dictionary<string, object> Data { get; set; }
-
-    public SessionInformation(string sessionId, string agentMode)
-    {
-        AgentMode _agentMode = Enum.Parse<AgentMode>(agentMode);
-        SessionId = sessionId;
-        AgentMode = _agentMode;
-        Timestamp = DateTime.UtcNow;
-        ChatHistory = new ChatHistory();
-
-        var agentInfo = AgentFinder.GetAgentPrompts(_agentMode).FirstOrDefault();
-        ChatHistory.AddSystemMessage(agentInfo?.SystemMessage??"You are a helpful AI Assistant.");
-    }
-}
-
 public class ChatProcessingService : IChatService
 {
     private readonly IConfiguration _config;
@@ -421,7 +398,8 @@ public class ChatProcessingService : IChatService
             if (_teamsClient.IsEnabled())
             {
                 _logger.LogInformation($"Posting message to Teams: {errorMessage}");
-                await _teamsClient.PostMessageOnTeams(errorMessage, message.AgentMode);
+                var teamsMessage = new TeamsMessage(errorMessage, null);
+                await _teamsClient.PostMessageOnTeams(message.AgentMode, teamsMessage);
             }
             return new ChatMessage()
             {

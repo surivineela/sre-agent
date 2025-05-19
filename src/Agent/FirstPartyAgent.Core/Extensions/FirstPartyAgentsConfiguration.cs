@@ -168,6 +168,13 @@ namespace FirstPartyAgent.Core.Extensions
                         endpoint: openAISettings.Endpoint,
                         apiKey: openAISettings.ApiKey);
                 }
+                else if (!string.IsNullOrWhiteSpace(openAISettings.ManagedIdentityClientId))
+                {
+                    kernelBuilder.AddAzureOpenAIChatCompletion(
+                        deploymentName: openAISettings.LLMDeploymentName,
+                        endpoint: openAISettings.Endpoint,
+                        new ManagedIdentityCredential(openAISettings.ManagedIdentityClientId));
+                }
                 else
                 {
                     kernelBuilder.AddAzureOpenAIChatCompletion(

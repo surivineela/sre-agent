@@ -2,15 +2,16 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.ComponentModel;
+using System.Globalization;
 using Agent.Core.Helpers;
+using Agent.Core.Models;
 using Agent.Core.Models.Charts;
 using FirstPartyAgent.Core.Constants;
 using FirstPartyAgent.Core.Extensions;
 using FirstPartyAgent.Core.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
-using System.ComponentModel;
-using System.Globalization;
 
 namespace FirstPartyAgent.Core.Plugins
 {
@@ -135,7 +136,8 @@ Kernel kernel)
                 if (_teamsClient.IsEnabled())
                 {
                     var agentMode = kernel.Data["agentMode"]?.ToString();
-                    await _teamsClient.PostMessageOnTeams(description, agentMode, base64Image);
+                    var teamsMessage = new TeamsMessage(description, base64Image);
+                    await _teamsClient.PostMessageOnTeams(agentMode, teamsMessage);
                 }
                 return "Successfully generated the chart and posted to the Teams Chat.";
             }
