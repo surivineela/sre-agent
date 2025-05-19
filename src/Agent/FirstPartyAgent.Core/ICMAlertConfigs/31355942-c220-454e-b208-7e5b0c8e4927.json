@@ -1,0 +1,43 @@
+{
+  "alertingId": "31355942-c220-454e-b208-7e5b0c8e4927",
+  "AgentMode": "ICMAgent",
+  "incidentTitle": "SOX CP-2408823 [Billing]: Usages latency (99.9 percent tile) for public stamp exceeds 6 hours",
+  "owningTeams": [],
+  "allowedGenevaActions": [],
+  "kustoQueries": [
+    {
+      "title": "Billing usage latency snapshot",
+      "kustoQuery": "let Name = EventStampName;let Start = StartTimeOfPeriod;let End = EndTimeOfPeriod;All('AntaresBillingControllerEvents') | where PreciseTimeStamp between (Start ..End) | where EventStampType == 'Stamp' and EventStampName == Name and EventId == 60004 | summarize percentile((PreciseTimeStamp - todatetime(To)), 99.9) by TIMESTAMP, Stamp, todatetime(From) | project Stamp, From, ProcessedTime = TIMESTAMP, percentile__99_9, Level = iff((percentile__99_9>30m), iff((percentile__99_9)>6h, 2, 3 ), 4 ) | order by ProcessedTime asc"
+    },
+    {
+      "title": "Billing errors snapshot",
+      "kustoQuery": "let Name = EventStampName;let Start = StartErrorSnapshot;let End = EndErrorSnapshot;All('AntaresBillingControllerEvents') | where PreciseTimeStamp between (Start ..End) | where EventStampType == 'Stamp' and EventStampName == Name and Level == 2 | project TIMESTAMP, Exception, Level | take 100"
+    }
+  ],
+  "owners": [
+    "andreyse",
+    "vlkuznet"
+  ],
+  "actionTimeoutIntervalInMinutes": 30,
+  "defaultHumanInterventionLoop": "App Service (Web Apps)/Antares Billing Loop",
+  "incidentProcessingGuide": [
+    "### START OF INSTRUCTIONS ###",
+    "",
+    "    Create an EXECUTION_PLAN using the below guidelines:",
+    "    - Retrieve the Azure Alerting discussion entry for the incident to collect alert context and correlation details.,",
+    "    - Find out all the Kusto queries ONLY in the 'Primary Query and Result section' in the incident, do not use the queries in the 'Secondary Queries and Results' section",
+    "    - For each row in the above Kusto query result extract the EventStampName value as Name, from ICM discussion find this line 'Primary Query and Result (executed at' and capture timestamp there as EndTimeOfPeriod, for StartTimeOfPeriod go 1 day back from EndTimeOfPeriod",
+    "    - Run the 'Billing usage latency snapshot' Kusto query and set following variables Name equals EventStampName, Start and End variables equal to StartTimeOfPeriod and EndTimeOfPeriod respectively",
+    "    - Analyze query results of the query in the following way :  provide period of bad Latency - first event with Level 2 and last event with Level 2. How many reports affected - count of reports with Level 2. If we recover from latency degradation you will see that results from query will have Level 4. If we are still in degradation you will see Level 3 and 2 and we are not recovered - raise severity of ICM to 25",
+    "    - From 'Billing usage latency snapshot' query result capture the first event with Level 2 and assign value from 'From' column to StartErrorSnapshot variable, for EndErrorSnapshot take the first event with Level 4 when we recovered and assign value from 'From' column to it",
+    "    - Execute 'Billing errors snapshot', for Name use EventStampName and use other variables you captured in previous step. Run query and report what exception are logged. Provide summary of exceptions",
+    "    - Post the results for execution plan in ICM",
+    "    - If the incident is now recovered meaning current Data shows no further elevated latency or errors for the stamp - mitigate ICM with final obervation statement from Execution plan",
+    "    Execute the EXECUTION_PLAN in a fully autonomous manner leveraging the tools available to you.",
+    "",
+    "### END OF INSTRUCTIONS ###"
+  ],
+  "teamId": 73996,
+  "severity": 3,
+  "agentName": "AppService_Billing"
+}
