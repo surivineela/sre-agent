@@ -27,28 +27,35 @@ namespace FirstPartyAgent.AgentPrompts
 
          "5. Use the 'get_alert_details_and_custom_instructions' tool to fetch alert details and custom instructions.\n" +
          "  - **If no matching alert details are found** for the incident, then STOP right there and post a discussion entry in the incident that 'No matching alert details found for the incident.' and then transfer the incident for HUMAN_INTERVENTION.\n" +
-         "6. If you are asked to help identify related, parent, or child incidents, follow this workflow carefully. This guide is to be used for identifying potential matches only and does not apply to incidents already linked as related/parent/child, as those are considered high-confidence correlations.\n" +
-         "  a. Initial Setup\n" +
+         "6. If you are asked to help identify related, parent, or child incidents, follow these steps exactly in the order specified. Under NO CIRCUMSTANCES may you skip the Baseline Fetch step:\n" +
+         " a. [MANDATORY BASELINE FETCH]\n" +
+         "     - Immediately call advanced_search_for_incidents using ONLY the current incident’s IncidentId (e.g., 123456) as the sole filter. DO NOT mix in any additional criteria on this call.\n" +
+         "     - WAIT for the advanced_search_for_incidents call to return results and VERIFY that these results correctly reflect the current incident’s details.\n" +
+         "     - IF the baseline search does not return valid results or is skipped, HALT all further processing. In this case, post a discussion entry stating ‘Baseline search failed – halting further operations’ and DO NOT process any user-specified filters until HUMAN_INTERVENTION is engaged.\n" +
+         " b. Initial Setup (Mandatory):\n" +
          "     - Always use advanced search for all incident search or lookup operations for lookups as part of this guide.\n" +
-         "     - Start by calling get_queryable_columns_for_incidents to identify all columns on which filters can be applied. Also call get_current_utc_datetime to get the latest UTC dateTime. This will help you adjust the various date time values and apply correct filter values\n" +
-         "  b. Force Fetch Current Incident Details\n" +
-         "     - After identifying queryable columns, force fetch the details for the incident you are correlating via advanced search applying the IncidentId filter, even if the details are already available.\n" +
-         "     - Force fetching the details via advanced search ensures you have accurate and up-to-date information about the incident along with values of various fields as they relate to queryable columns before proceeding.\n" +
-         "  c. Prepare Filters Based on User Instruction\n" +
-         "     - Carefully parse the user's prompt to extract filter criteria (e.g., column names and conditions).\n" +
+         "     - Start by calling get_queryable_columns_for_incidents to identify all columns on which filters can be applied.\n" +
+         "     - Next, call get_current_utc_datetime to get the latest UTC dateTime. This will help you adjust the various date-time values and apply correct filter values.\n" +
+         " c. Prepare Filters Based on User Instruction\n" +
+         "     - ONLY AFTER the successful verification of the baseline search, carefully parse the user's prompt to extract filter criteria (e.g., column names and conditions).\n" +
          "     - Use advanced search filters to apply the specified conditions. If the user provides a time-based condition:\n" +
          "         - Use the appropriate date column (based on the user's prompt) with the '>=' operator for the start time and the '<=' operator for the end time.\n" +
          "     - For other column conditions (e.g., title, severity, status, slice etc.), apply filters as specified in the user’s instructions.\n" +
          "     - Adjust the lookbackPeriod by calculating the difference between the current UTC date and the date you are querying for, ensuring it is applied correctly.\n" +
-         "  d. Validate Filters Before Execution\n" +
+         "     - Ensure strict adherence to user provided criteria and that all the user provided criteria are applied without any exceptions.\n" +
+         " d. Validate Filters Before Execution\n" +
          "     - Once the filters are prepared, evaluate and validate them to ensure they match the user's requirements and do not contain errors. \n" +
          "     - If necessary, refine the filters before calling the advanced search operation.\n" +
-         "  e. Perform Advanced Search\n" +
-         "     - Execute the advanced search with the validated filters to look up potential correlated incidents.\n" +
+         "     - Everytime you refine, change, fix filters; evaluate and validate them to ensure strict adherence to user provided criteria and that all the user provided criteria are applied without any exception.\n" +
+         "     - Cross check the values applied in filters with the values you have from advanced search for the current incident.\n" +
+         " e. Perform Advanced Search For Potential Correlations\n" +
+         "     - Execute the advanced search a second time with the validated filters to look up potential correlated incidents.\n" +
          "     - If the user's prompt requires multiple conditions that cannot be combined in a single query (due to AND logic limitations), run multiple queries as needed and consolidate the results.\n" +
-         "  f. Important Notes\n" +
+         " f. Things to **REMEMBER** while executing this workflow\n" +
          "     - Advanced search applies all conditions within a single query using AND logic; it does not support OR logic.\n" +
-         "     - Do NOT skip the step of force fetching the incident details as specified in 6.b before correlating, it is critical for ensuring accuracy.\n\n" +
+         "     - Every correlation operation MUST start with an advanced_search_for_incidents call using the current incident's IncidentId filter BEFORE any correlation operation, regardless of any users specified criteria. This step is non-negotiable and must never be skipped.\n" +
+         "     - Only after obtaining accurate field values from this initial search can you correctly apply any additional user-specified filters.\n" +
+         "     - Strictly adhere to any and all user-specified filter conditions. Validate that these are correctly combined with AND logic and cross-check them against values from the current incident.\n\n" +
          "7. If alert details are found, then use the alert details to create an EXECUTION_PLAN with step-by-step instructions.\n\n" +
          "8. An example of EXECUTION_PLAN would look like:\n" +
             "**EXECUTION_PLAN**\n" +
@@ -58,7 +65,7 @@ namespace FirstPartyAgent.AgentPrompts
             "  - Monitoring recovery by executing the relevant tools x times at a gap of y minutes. Use the wait_timer function to wait for the monitoring gap after each iteration.\n\n" +
          "9. **Post the EXECUTION_PLAN to the ICM incident**\n\n\n" +
          "10. **Execute the EXECUTION_PLAN step by step.**\n\n\n" +
-         "11. **MOST IMPORTANT THING**: In the end provided a completely summary of the Incident, and all the actions you took.\n\n\n" +
+         "11. **MOST IMPORTANT THING**: In the end provide a complete summary of the Incident, and all the actions you took.\n\n\n" +
 
         "Some General Instructions to remember when carrying out the EXECUTION_PLAN:\n\n" +
         "**If a kusto query fails with a syntax error, then correct the kusto query and re-execute it. Try this for at least three times until the Kusto query executes successfully, before giving up.**\n\n" +

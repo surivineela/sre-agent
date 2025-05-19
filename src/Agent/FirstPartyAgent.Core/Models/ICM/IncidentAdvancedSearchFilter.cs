@@ -36,6 +36,15 @@ public class IncidentAdvancedSearchFilter
             "SourceIncidentId"
         };
 
+    private static readonly List<string> IntProperties = new List<string>
+        {
+            "IncidentId",
+            "ParentIncidentId",
+            "OwningTeamId",
+            "OwningTenantId",
+            "Severity"
+        };
+
     public static Dictionary<string, List<string>> GetQueryableIncidentProperties() => IncidentAdvancedSearchFilter.ValidPropertyOperators;
     public static List<string> GetDateTimeProperties() => IncidentAdvancedSearchFilter.DateTimeProperties;
     public string ColumnName { get; }
@@ -88,6 +97,14 @@ public class IncidentAdvancedSearchFilter
                     throw new ArgumentException($"Value for '{ColumnName}' must be a valid GUID", nameof(value));
                 }
             }
+            // Validate integer format if required
+            else if (IntProperties.Contains(ColumnName) && !IsNullComparison)
+            {
+                if (!uint.TryParse(value, out _))
+                {
+                    throw new ArgumentException($"Value for '{ColumnName}' must be a valid unsigned integer", nameof(value));
+                }
+            }
         }
     }
 
@@ -127,6 +144,12 @@ public class IncidentAdvancedSearchFilter
         {
             // For string values, escape single quotes and add surrounding quotes
             formattedValue = $"'{Value.Replace("'", "''")}'";
+
+            // Escape single back slashes in the string value. Ignore if they are already escaped.
+            if (formattedValue.Contains("\\") && !formattedValue.Contains("\\\\") && !formattedValue.Contains("\\'"))
+            {
+                formattedValue = formattedValue.Replace("\\", "\\\\");
+            }
         }
 
         // Return the formatted filter expression

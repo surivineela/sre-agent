@@ -204,34 +204,37 @@ namespace FirstPartyAgent.Core.Plugins
 
         [KernelFunction("get_icm_correlation_and_linking_rules")]
         [Description("This tool identifies potential relationships between incidents. Invoke this tool whenever the user requests assistance with finding related, parent, or child incidents; especially when conditions such as time windows, title matching, or shared patterns are specified. The rules are applied internally to guide the agent's actions without being returned to the user.")]
-        public async Task<string> GetIcmCorrelationAndLinkingRules(
-            [Description("Incident ID")] string incidentId,
-            Kernel kernel)
+        public async Task<string> GetIcmCorrelationAndLinkingRules(Kernel kernel)
         {
-            await kernel.LogInformation($"[get_icm_correlation_and_linking_guidelines][{DateTime.UtcNow}] Invoked with IncidentId {incidentId}.", _logger, _teamsClient, _sessionMessageService);
+            await kernel.LogInformation($"[get_icm_correlation_and_linking_guidelines][{DateTime.UtcNow}] invoked.", _logger, _teamsClient, _sessionMessageService);
             const string guidelines = "Follow the below workflow carefully, this guide is to be used for identifying potential matches only and does not apply to incidents already linked as related/parent/child, as those are considered high-confidence correlations.\n" +
-                "1. Initial Setup\n" +
+                "1. Initial Setup (Mandatory)\n" +
                 "     - Always use advanced search (advanced_search_for_incidents) for all incident search or lookup operations for lookups as part of this guide.\n" +
-                "     - Start by calling get_queryable_columns_for_incidents to identify all columns on which filters can be applied. Also call get_current_utc_datetime to get the latest UTC dateTime. This will help you adjust the various date time values and apply correct filter values.\n" +
                 "     - If you are not given an IncidentId, ask the user to specify an incident Id that needs to be worked upon. If you have the incident Id, quietly continue with the flow.\n" +
-                "2. Force Fetch Current Incident Details\n" +
-                "     - After identifying queryable columns, force fetch the details for the incident you are correlating via advanced search applying the IncidentId filter, even if the details are already available.\n" +
-                "     - Force fetching the details via advanced search ensures you have accurate and up-to-date information about the incident along with values of various fields as they relate to queryable columns before proceeding.\n" +
+                "     - Start by calling get_queryable_columns_for_incidents to identify all columns on which filters can be applied.\n" +
+                "     - Next, call get_current_utc_datetime to get the latest UTC dateTime. This will help you adjust the various date-time values and apply correct filter values.\n" +
+                "     - CRITICALLY: Before proceeding with any correlation operations, you MUST call advanced_search_for_incidents for the current incident and apply the IncidentId filter.This ensures you retrieve accurate values to apply as filters before proceeding further. This step is non-negotiable and must never be skipped.\n" +
+                "2. Perform Advanced Search On Current Incident For Filter Values (Non-Negotiable)\n" +
+                "     - After identifying queryable columns, **MANDATORILY invoke advanced_search_for_incidents for the incident you are correlating, applying the IncidentId filter.**\n" +
+                "     - This forced advanced search ensures you have accurate values to apply as filters before proceeding.\n" +
                 "3. Prepare Filters Based on User Instruction\n" +
                 "     - Carefully parse the instructions to extract filter criteria (e.g., column names and conditions).\n" +
                 "     - Use advanced search filters to apply the specified conditions. If the user provides a time-based condition:\n" +
                 "         - Use the appropriate date column (based on the instructions) with the '>=' operator for the start time and the '<=' operator for the end time.\n" +
                 "     - For other column conditions (e.g., title, severity, status, slice etc.), apply filters as specified in the instructions.\n" +
                 "     - Adjust the lookbackPeriod by calculating the difference between the current UTC date and the date you are querying for, ensuring it is applied correctly.\n" +
+                "     - Ensure strict adherence to user provided criteria.\n" +
                 "4. Validate Filters Before Execution\n" +
                 "     - Once the filters are prepared, evaluate and validate them to ensure they match the criteria given in the instructions and do not contain errors. \n" +
                 "     - If necessary, refine the filters before calling the advanced search operation.\n" +
-                "5. Perform Advanced Search\n" +
+                "     - Everytime you refine, change, fix filters; evaluate and validate them to ensure strict adherence to user provided criteria.\n" +
+                "     - Cross check the values applied in filters with the values you have from **Perform Advanced Search On Current Incident For Filter Values**.\n" +
+                "5. Perform Advanced Search For Potential Correlations\n" +
                 "     - Execute the advanced search with the validated filters to look up potential correlated incidents.\n" +
                 "     - If the instructions require multiple conditions that cannot be combined in a single query (due to AND logic limitations), run multiple queries as needed and consolidate the results.\n" +
                 "6. Important Notes\n" +
                 "     - Advanced search applies all conditions within a single query using AND logic; it does not support OR logic.\n" +
-                "     - **Do NOT skip** the step of force fetching the incident being looked at via advanced_search_for_incidents as specified in step 2, it is critical for ensuring accuracy.\n\n";
+                "     - **DO NOT SKIP the step of Perform Advanced Search On Current Incident For Filter Values as specified in step 2** before correlating, it is critical for ensuring accuracy.\n\n";
             return guidelines;
         }
 
