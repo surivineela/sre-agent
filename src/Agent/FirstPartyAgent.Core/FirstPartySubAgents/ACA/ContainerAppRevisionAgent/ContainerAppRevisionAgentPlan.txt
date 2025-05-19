@@ -125,17 +125,20 @@ Flag misconfigurations, automation faults, or spec mismatches.
 ---
 
 ### Step 7: Scaling Anomalies
-If any scaling issue or KEDA is mentioned or if any KEDA error log was found in the previous step, you should check and validate the scaler configuration.
+you should check and validate the scaler configuration and show the result in this format:
 
 ```markdown
 ### Scaler Configuration:
 {{scaler configuration}}
 ```
 
-- Step 7.1: If any scaler trigger configuration exist, use `GetKedaOperatorEventsForContainerApp` and `GetHpaHeartbeatMetrics` to fetch any error log.
+If no scaler configuration exists, no scaling issues or KEDA references are mentioned, or if no KEDA error logs were found in the previous step, you can skip Step 7 and proceed to the next step.
 
-- Step 7.2: If you find any Http scaler configuration exists, you should use `GetHttpScalerEventsForContainerApp` to fetch http scaler events.
-   - If most logs in `log` has the same pattern, please mention how many logs have this. It indicates a problem with the connection and is one of the root causes.
+- Step 7.1: Use `GetKedaOperatorEventsForContainerApp` and `GetHpaHeartbeatMetrics` to fetch any error log and analysis.
+
+- Step 7.2: If you find any Http scaler configuration exists, you should use `GetHttpScalerEventsForContainerApp` to fetch and check http scaler events log.
+   - **DO NOT focus solely on the logs pertaining to the specfic revision. You must consider all logs, as some deep HTTP or networking errors may not contain any revision information.**
+   - If most logs from `log` column indicate the request is waiting or connecting or has the key words like "waited", "timeout" or "throttling", regardless of whether they are related to the checking revision or not, please mention how many logs have this. It indicates a problem with the connection and is one of the root causes.
 
 
 ## 📄 Final Step — RCA Report (Mandatory)
