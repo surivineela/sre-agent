@@ -19,19 +19,6 @@ public class ManagedClusterPlugin : IManagedClusterPlugin
         _agentOutboundCommunicationService = agentOutboundCommunicationService;
     }
 
-    public async Task<string> GetManagedClusterInformation(string region, DateTime fromDate, DateTime toDate, string containerAppName, string resourceGroupName, string subscriptionId, SamplingOptions? samplingOptions)
-    {
- 
-        return await _kustoPlugin.ExecuteLocalFunctionAsync("GetManagedCluster", region,
-      new Dictionary<string, string> {
-            { "fromDate", fromDate.ToString() },
-            { "toDate", toDate.ToString() },
-            { "containerAppName", containerAppName },
-            { "resourceGroupName", resourceGroupName },
-            { "subscriptionId", subscriptionId }
-      });
-    }
-
     public async Task<string> GetASIPageForManagedCLuster(string region, DateTime fromDate, DateTime toDate, string containerAppName, string resourceGroupName, string subscriptionId)
     {
         var clusterName = await _kustoPlugin.ExecuteFunctionAsync("GetManagedClusterName", region,

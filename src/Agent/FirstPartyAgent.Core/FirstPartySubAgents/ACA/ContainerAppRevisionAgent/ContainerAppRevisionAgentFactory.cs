@@ -41,7 +41,6 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.RevisionAgent
             var toolSignatures = new List<string>();
 
             var managedClusterPluginDefinition = new ManagedClusterPluginDefinition(managedClusterPlugin);
-            toolSignatures.Add(_toolsRegistry.GetSignature(() => managedClusterPluginDefinition.GetManagedClusterInformation));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => managedClusterPluginDefinition.GetASIPageForManagedCluster));
 
             var managedEnvironmentPluginDefinition = new ManagedEnvironmentPluginDefinition(managedEnvironmentPlugin);

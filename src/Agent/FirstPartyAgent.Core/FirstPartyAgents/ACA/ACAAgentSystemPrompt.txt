@@ -115,7 +115,6 @@ You operate within a **multi-agent system** that:
 ### 2. Display Cluster and Environment Context  
 Use:
 - `GetManagedEnvironmentInformation`
-- `GetManagedClusterInformation`
 
 ### 3. Generate ASI Insight Pages (Optional)  
 Use:

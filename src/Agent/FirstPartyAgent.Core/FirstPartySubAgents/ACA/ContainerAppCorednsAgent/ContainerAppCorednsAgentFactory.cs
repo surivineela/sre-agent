@@ -54,7 +54,6 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCorednsAgent
             toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.CheckIfDNSServerFailedToResolveDot));
 
             var managedClusterPluginDefinition = new ManagedClusterPluginDefinition(managedClusterPlugin);
-            toolSignatures.Add(_toolsRegistry.GetSignature(() => managedClusterPluginDefinition.GetManagedClusterInformation));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => managedClusterPluginDefinition.GetASIPageForManagedCluster));
 
             var containerAppIcMPluginDefinition = new ContainerAppIcMPluginDefinition(containerAppIcMPlugin);

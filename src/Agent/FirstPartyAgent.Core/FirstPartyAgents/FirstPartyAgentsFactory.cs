@@ -56,7 +56,6 @@ public class FirstPartyAgentsFactory : IAgentsFactory
         _aiTools.AddRange(
             new List<AITool>
             {
-                AIFunctionFactory.Create(managedClusterPluginDefinition.GetManagedClusterInformation),
                 AIFunctionFactory.Create(managedClusterPluginDefinition.GetASIPageForManagedCluster),
                 AIFunctionFactory.Create(managedEnvironmentPluginDefinition.GetManagedEnvironmentInfo),
                 AIFunctionFactory.Create(managedEnvironmentPluginDefinition.GetASIPageForManagedEnvironment),

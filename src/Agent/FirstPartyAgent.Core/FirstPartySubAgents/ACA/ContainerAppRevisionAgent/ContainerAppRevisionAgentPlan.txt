@@ -56,7 +56,6 @@ Respond with:
 ### Step 3: Display Cluster and Environment Context  
 Use:
 - `GetManagedEnvironmentInformation`
-- `GetManagedClusterInformation`
 
 Respond with:
 
@@ -69,7 +68,7 @@ Respond with:
 > 🧬 **Provisioning State**: `{{provisioningState}}`  
 > 📦 **Workload Profiles**: `{{profiles}}`  
 >
-> 🖥️ **Cluster**: `{{clusterName}}`  
+> 🖥️ **Managed Cluster**: `{{managedClusterName}}`  
 > 🧩 **Cluster Version**: `V1` or `V2`  
 > 🗓️ **Created On**: `{{creationDate}}`
 ```
@@ -185,7 +184,6 @@ The RCA **must include** a validated cause, proof or contradiction of the ICM, a
 - `GetASIPageForRevision`
 - `GetASIPageForManagedEnvironment`
 - `GetASIPageForManagedCluster`
-- `GetManagedClusterInformation`
 - `GetManagedEnvironmentInformation`
 - `GetHealthProbeFailures`
 - `GetHealthProbeSettings`
