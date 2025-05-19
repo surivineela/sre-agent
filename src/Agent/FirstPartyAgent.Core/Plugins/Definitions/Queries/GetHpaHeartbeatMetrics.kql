@@ -5,11 +5,11 @@ let capp_rg = "##resourceGroupName##";
 let capp_sub = "##subscriptionId##";
 let capp_revision = "##revisionName##";
 let managedCluster = toscalar(GetManagedClusterName(capp_name, capp_rg, capp_sub));
-All("ContainerAppControllerEvents")
+ContainerAppControllerEvents
 | where TIMESTAMP between (queryFrom .. queryTo)
 | where Tenant == managedCluster
 | where msg == "HPA Heartbeat"
-| where RevisionName == cappName
+| where RevisionName == capp_revision
 | extend metrics = parse_json(Details).metrics
 | mv-expand metric = metrics
 | extend metricName = tostring(metric.name)
@@ -20,6 +20,5 @@ All("ContainerAppControllerEvents")
 | summarize current = avg(current),
            target  = avg(target)
         by metricName, TIMESTAMP = bin(TIMESTAMP, 1m)
-| where current > target
 | project TIMESTAMP, metricName, current, target
 | order by metricName, TIMESTAMP asc
