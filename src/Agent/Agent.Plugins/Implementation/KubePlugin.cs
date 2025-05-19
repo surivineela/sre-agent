@@ -2305,5 +2305,334 @@ $@"100 * (
 
             return outputBuilder.ToString();
         }
+
+        private string LoadProfilingScript(string scriptFileName = "profile_script.sh")
+        {
+            // Assumes script is in "Scripts" subdirectory next to the executing assembly
+            var scriptPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SubAgents", "KubernetesAgent", scriptFileName);
+
+            if (!File.Exists(scriptPath))
+            {
+                _logger?.LogError("Profiling script file not found at: {ScriptPath}", scriptPath);
+                throw new FileNotFoundException($"Profiling script '{scriptFileName}' not found at '{scriptPath}'. Ensure it's in a 'Scripts' subdirectory and copied to output.", scriptPath);
+            }
+            _logger?.LogDebug("Loading profiling script from: {ScriptPath}", scriptPath);
+            return File.ReadAllText(scriptPath);
+        }
+
+        public async Task<string> ProfileDotnetAppCpuInAKSContainerAsync(
+            string aksResourceId,
+            string _namespace,
+            string podName,
+            string? targetContainerName,
+            int durationSeconds = 30)
+        {
+            var client = await GetOrCreateClientAsync(aksResourceId);
+            if (client == null) // Should not happen if GetOrCreateClientAsync is correct
+            {
+                return "Error: Kubernetes client could not be initialized.";
+            }
+
+            V1Pod pod;
+            try
+            {
+                pod = await client.CoreV1.ReadNamespacedPodAsync(podName, _namespace);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error reading pod '{PodName}' in namespace '{Namespace}' for AKS resource '{AksResourceId}'.", podName, _namespace, aksResourceId);
+                return $"Error reading pod '{podName}': {ex.Message}";
+            }
+
+            if (pod == null) // Should be caught by HttpOperationException, but as a safeguard
+            {
+                _logger?.LogWarning("Pod object was null after read for '{PodName}' in namespace '{Namespace}'.", podName, _namespace);
+                return $"Pod '{podName}' not found in namespace '{_namespace}' (object was null after read).";
+            }
+
+
+            // Determine target container
+            if (string.IsNullOrEmpty(targetContainerName))
+            {
+                if (pod.Spec.Containers.Any()) // Check if there are any containers
+                {
+                    targetContainerName = pod.Spec.Containers[0].Name; // Always pick the first container
+                }
+                else
+                {
+                    _logger?.LogError("Pod '{PodName}' in namespace '{Namespace}' has no containers defined.", podName, _namespace);
+                    return $"Pod '{podName}' has no containers.";
+                }
+                _logger?.LogInformation("Auto-selected container '{SelectedContainer}' for profiling in pod '{PodName}'.", targetContainerName, podName);
+            }
+            else if (!pod.Spec.Containers.Any(c => c.Name.Equals(targetContainerName, StringComparison.OrdinalIgnoreCase)))
+            {
+                _logger?.LogWarning("Specified target container '{TargetContainerName}' not found in pod '{PodName}'. Available: {AvailableContainers}",
+                                    targetContainerName, podName, string.Join(", ", pod.Spec.Containers.Select(c => c.Name)));
+                return $"Container '{targetContainerName}' not found in pod '{podName}'. Available: {string.Join(", ", pod.Spec.Containers.Select(c => c.Name))}";
+            }
+
+            _logger?.LogInformation("Targeting pod '{PodName}', container '{ContainerName}' for in-container .NET CPU profiling for {Duration} seconds.", podName, targetContainerName, durationSeconds);
+
+            string scriptContent;
+            try
+            {
+                scriptContent = LoadProfilingScript(); // Assumes "profile_script.sh"
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Failed to load profiling script for pod '{PodName}'.", podName);
+                return $"Error: Could not load profiling script. {ex.Message}";
+            }
+
+            var (stdout, stderr, exitCode) = await ExecInPodAsync(
+                client, // Pass the initialized client
+                _namespace,
+                podName,
+                targetContainerName,
+                "sh", // Command to run the script
+                "-c", // Argument to sh: execute the following string
+                scriptContent, // The actual script content
+                "profiling_script.sh", // $0 argument for the script (its "name")
+                durationSeconds.ToString() // $1 argument for the script (duration)
+                );
+
+            const string noDotNetProcessMarker = "[PROF_SCRIPT_INFO] No debuggable .NET process found."; // Partial match is fine
+            if (stdout != null && stdout.Contains(noDotNetProcessMarker))
+            {
+                _logger?.LogInformation("In-container script indicated no debuggable .NET process found for pod '{PodName}', container '{ContainerName}', ns '{Namespace}', AKS '{AksResourceId}'. Script stdout contains relevant info.",
+                                        podName, targetContainerName, _namespace, aksResourceId);
+                // Find the marker and return a concise message including the script's own explanation.
+                int markerIndex = stdout.IndexOf(noDotNetProcessMarker);
+                string scriptInfoMessage = stdout.Substring(markerIndex).Split('\n')[0].Trim(); // Get the marker line
+
+                return $"CPU profiling was not performed for pod '{podName}', container '{targetContainerName}'. The script reported: \"{scriptInfoMessage}\". This suggests the application may not be a .NET application, or no running .NET process suitable for profiling was found.";
+            }
+
+            var resultBuilder = new StringBuilder();
+            resultBuilder.AppendLine($"In-Container CPU Profiling Result for Pod: {podName}, Container: {targetContainerName}");
+            resultBuilder.AppendLine($"Script Execution Exit Code: {exitCode}");
+
+            bool analysisHeaderFound = false;
+            if (!string.IsNullOrEmpty(stdout))
+            {
+                resultBuilder.AppendLine("--- Script Standard Output ---");
+                string[] lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (var line in lines)
+                {
+                    if (line.Contains("ANALYSIS START", StringComparison.Ordinal)) analysisHeaderFound = true;
+                    resultBuilder.AppendLine(line);
+                }
+            }
+
+            if (!string.IsNullOrEmpty(stderr))
+            {
+                // Filter known benign warnings from apt-get to reduce noise for the user, but log them.
+                string filteredStderr = stderr;
+                string[] benignWarnings = {
+                    "dpkg-preconfigure: unable to re-open stdin: No such file or directory",
+                    "debconf: delaying package configuration, since apt-utils is not installed",
+                    "Non-interactive DEBIAN_FRONTEND"
+                };
+                foreach (var warning in benignWarnings)
+                {
+                    if (stderr.Contains(warning, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Log the full stderr if it contained a benign warning, then filter for user output
+                        _logger?.LogDebug("Benign warning pattern '{WarningPattern}' found in stderr for pod '{PodName}'. Full stderr:\n{FullStderr}", warning, podName, stderr);
+                        // This replacement can be tricky if warnings are multi-line or have variations.
+                        // For simplicity, just a basic replace. More robust filtering might be needed.
+                        filteredStderr = Regex.Replace(filteredStderr, Regex.Escape(warning) + @"\s*\n?", "", RegexOptions.IgnoreCase);
+                    }
+                }
+                filteredStderr = filteredStderr.Trim(); // Trim whitespace after potential replacements
+                if (!string.IsNullOrWhiteSpace(filteredStderr))
+                {
+                    resultBuilder.AppendLine("--- Script Standard Error ---");
+                    resultBuilder.AppendLine(filteredStderr);
+                }
+            }
+
+            if (exitCode != 0)
+            {
+                _logger?.LogError("In-container profiling script failed for pod '{PodName}'. ExitCode: {ExitCode}. Full Stdout:\n{FullStdout}\nFull Stderr:\n{FullStderr}",
+                                 podName, exitCode, stdout, stderr);
+                if (!analysisHeaderFound && !resultBuilder.ToString().Contains("ERROR: Profiling script encountered an error"))
+                {
+                    // Add a generic error message if not already present from script's stdout/stderr processing
+                    resultBuilder.AppendLine("ERROR: Profiling script failed. Review script output and error streams for details.");
+                }
+            }
+            else if (!analysisHeaderFound)
+            {
+                _logger?.LogWarning("In-container profiling script completed with exit code 0 for pod '{PodName}', but analysis header was not found in stdout. Full Stdout:\n{FullStdout}", podName, stdout);
+                resultBuilder.AppendLine("WARNING: Script completed but analysis output marker was not found. Check script standard output.");
+            }
+            else
+            {
+                _logger?.LogInformation("In-container profiling script completed successfully for pod '{PodName}'. Analysis should be in the output.", podName);
+            }
+
+            return resultBuilder.ToString();
+        }
+
+        private async Task<(string stdout, string stderr, int exitCode)> ExecInPodAsync(
+            IKubernetes client,
+            string ns,
+            string podName,
+            string containerName,
+            string command, // This will be "sh"
+            params string[] args) // This will be ["-c", "actual_script_content_here", "script_name_for_0_arg", "duration_arg"]
+        {
+            var commandList = new List<string> { command };
+            commandList.AddRange(args);
+
+            _logger?.LogInformation("ExecInPodAsync: Pod: '{PodName}', Container: '{ContainerName}', Namespace: '{Namespace}', Command: '{FullCommand}'",
+                                    podName, containerName, ns, string.Join(" ", commandList));
+
+            System.Net.WebSockets.WebSocket? webSocket = null;
+            StreamDemuxer? demux = null;
+            MemoryStream? stdoutMemoryStream = null;
+            MemoryStream? stderrMemoryStream = null;
+
+            using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+
+            try
+            {
+                webSocket = await client.WebSocketNamespacedPodExecAsync(
+                    podName,
+                    ns,
+                    commandList,
+                    containerName,
+                    stdin: false,
+                    stdout: true,
+                    stderr: true,
+                    tty: false,
+                    cancellationToken: cts.Token).ConfigureAwait(false);
+
+                demux = new StreamDemuxer(webSocket); // Uses default buffer size
+                demux.Start();
+
+                stdoutMemoryStream = new MemoryStream();
+                stderrMemoryStream = new MemoryStream();
+
+                // ChannelIndex.StdOutByte is 1, ChannelIndex.StdErrByte is 2. Stream ID 0 for main stream.
+                Stream stdoutStreamFromDemux = demux.GetStream((byte)ChannelIndex.StdOut, 0);
+                Stream stderrStreamFromDemux = demux.GetStream((byte)ChannelIndex.StdErr, 0);
+
+                var copyStdOutTask = Task.CompletedTask;
+                if (stdoutStreamFromDemux != null) // StreamDemuxer GetStream can return null
+                {
+                    copyStdOutTask = stdoutStreamFromDemux.CopyToAsync(stdoutMemoryStream, 81920, cts.Token);
+                }
+                else
+                {
+                    _logger?.LogWarning("ExecInPodAsync: Stdout stream from demuxer was null for pod '{PodName}'.", podName);
+                }
+
+                var copyStdErrTask = Task.CompletedTask;
+                if (stderrStreamFromDemux != null)
+                {
+                    copyStdErrTask = stderrStreamFromDemux.CopyToAsync(stderrMemoryStream, 81920, cts.Token);
+                }
+                else
+                {
+                    _logger?.LogWarning("ExecInPodAsync: Stderr stream from demuxer was null for pod '{PodName}'.", podName);
+                }
+
+                await Task.WhenAll(copyStdOutTask, copyStdErrTask).ConfigureAwait(false);
+
+                string stdoutResult = stdoutMemoryStream != null ? Encoding.UTF8.GetString(stdoutMemoryStream.ToArray()) : string.Empty;
+                string stderrResult = stderrMemoryStream != null ? Encoding.UTF8.GetString(stderrMemoryStream.ToArray()) : string.Empty;
+
+                int exitCode = 0;
+                if (!string.IsNullOrEmpty(stderrResult))
+                {
+                    exitCode = 1;
+                    try
+                    {
+                        var status = KubernetesJson.Deserialize<V1Status>(stderrResult);
+                        if (status != null && status.Reason == "NonZeroExitCode" && status.Details?.Causes != null)
+                        {
+                            var cause = status.Details.Causes.FirstOrDefault(c => c.Reason == "ExitCode");
+                            if (cause != null && int.TryParse(cause.Message, out int ec))
+                            {
+                                exitCode = ec;
+                                _logger?.LogInformation("ExecInPodAsync: Parsed exit code {ExitCode} from V1Status in stderr for pod '{PodName}'.", exitCode, podName);
+                            }
+                        }
+                        else if (status != null && (status.Status == "Failure" || !string.IsNullOrEmpty(status.Reason)))
+                        {
+                            _logger?.LogWarning("ExecInPodAsync: V1Status in stderr indicates failure for pod '{PodName}': {StatusMessage}", podName, status.Message);
+                        }
+                    }
+                    catch (JsonException) { /* Not a V1Status, just regular stderr. */ }
+                }
+                if (exitCode == 0 && stdoutResult.Contains("[PROF_SCRIPT] ERROR:"))
+                {
+                    exitCode = 1;
+                }
+
+                _logger?.LogDebug("ExecInPodAsync: Stdout for pod '{PodName}':\n{Stdout}", podName, stdoutResult);
+                if (!string.IsNullOrEmpty(stderrResult))
+                {
+                    if (exitCode != 0) _logger?.LogWarning("ExecInPodAsync: Stderr for pod '{PodName}':\n{Stderr}", podName, stderrResult);
+                    else _logger?.LogDebug("ExecInPodAsync: Stderr (exit code 0) for pod '{PodName}':\n{Stderr}", podName, stderrResult);
+                }
+
+                return (stdoutResult, stderrResult, exitCode);
+            }
+            catch (OperationCanceledException) when (cts.IsCancellationRequested)
+            {
+                _logger?.LogError("ExecInPodAsync: Operation timed out for pod '{PodName}'.", podName);
+                return (stdoutMemoryStream != null ? Encoding.UTF8.GetString(stdoutMemoryStream.ToArray()) : string.Empty,
+                        (stderrMemoryStream != null ? Encoding.UTF8.GetString(stderrMemoryStream.ToArray()) : string.Empty) + "\n[EXEC_ERROR] Operation timed out.",
+                        -1);
+            }
+            catch (KubernetesException ex)
+            {
+                _logger?.LogError(ex, "ExecInPodAsync: KubernetesException for pod '{PodName}'.", podName);
+                return (string.Empty, $"[EXEC_K8S_ERROR] {ex.Message}", -1);
+            }
+            catch (System.Net.WebSockets.WebSocketException ex)
+            {
+                _logger?.LogError(ex, "ExecInPodAsync: WebSocketException for pod '{PodName}'. Error Code: {ErrorCode}.", podName, ex.WebSocketErrorCode);
+                return (string.Empty, $"[EXEC_WEBSOCKET_ERROR] {ex.Message}", ex.NativeErrorCode != 0 ? ex.NativeErrorCode : -1);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "ExecInPodAsync: Unexpected exception for pod '{PodName}'.", podName);
+                return (stdoutMemoryStream != null ? Encoding.UTF8.GetString(stdoutMemoryStream.ToArray()) : string.Empty,
+                        (stderrMemoryStream != null ? Encoding.UTF8.GetString(stderrMemoryStream.ToArray()) : string.Empty) + $"\n[EXEC_UNEXPECTED_ERROR] {ex.Message}",
+                        -1);
+            }
+            finally
+            {
+                stdoutMemoryStream?.Dispose();
+                stderrMemoryStream?.Dispose();
+                if (demux != null)
+                {
+                    demux.Dispose(); // This should close the WebSocket
+                }
+                else if (webSocket != null)
+                {
+                    if (webSocket.State == System.Net.WebSockets.WebSocketState.Open ||
+                        webSocket.State == System.Net.WebSockets.WebSocketState.CloseReceived ||
+                        webSocket.State == System.Net.WebSockets.WebSocketState.CloseSent)
+                    {
+                        try
+                        {
+                            using var closeWebSocketCts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+                            await webSocket.CloseAsync(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure, "Client closing", closeWebSocketCts.Token).ConfigureAwait(false);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger?.LogWarning(ex, "ExecInPodAsync: Exception during WebSocket explicit close for pod '{PodName}'. State: {WebSocketState}", podName, webSocket.State);
+                        }
+                    }
+                    webSocket.Dispose();
+                }
+            }
+        }
     }
 }

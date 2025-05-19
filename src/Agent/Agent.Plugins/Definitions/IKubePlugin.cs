@@ -30,5 +30,6 @@ namespace Agent.Plugins
         Task<IDictionary<string, string>> GetNsgRulesForWorkloadAsync(string aksResourceId, string _namespace, string kind, string workloadName);
         Task<string> ListWorkloadRevisions(string AKSClusterResourceId, string _namespace, string kind, string name);
         Task<string> RunKubectlGetCommandAsync(string AKSClusterResourceId, string command);
+        Task<string> ProfileDotnetAppCpuInAKSContainerAsync(string aksResourceId, string _namespace, string podName, string? targetContainerName, int durationSeconds = 30);
     }
 }

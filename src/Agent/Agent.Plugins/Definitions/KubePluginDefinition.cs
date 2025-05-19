@@ -332,5 +332,23 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
         {
             return await _kubePlugin.RunKubectlGetCommandAsync(AKSClusterResourceId, command);
         }
+
+        [KernelFunction("profile_dotnet_app_cpu_in_aks_container")]
+        [Description(
+    @"Performs CPU profiling for a .NET application running in a specific pod and container.
+    The analysis ('topN' report) is also performed inside the container, and its result is returned.
+    Failures during tool installation or profiling will be reported in the output.
+    eg: 'Profile CPU of 'my-app-pod' in 'default' for 60s.'"
+    )]
+        [RequiresApproval("Requires approval to execute CPU profiling tools within the specified pod and container.", useOboToken: false)]
+        public async Task<string> ProfileDotnetAppCpuInAKSContainerAsync(
+            [Description("The resource ID of the Azure Kubernetes Service (AKS) cluster.")] string AKSClusterResourceId,
+            [Description("Kubernetes namespace where the pod is located.")] string _namespace,
+            [Description("The name of the Kubernetes pod running the .NET application.")] string podName,
+            [Description("Optional: The name of the specific container within the pod. Auto-selected if single container or based on heuristics for multiple.")] string? targetContainerName = null,
+            [Description("Duration in seconds for which to collect the CPU trace. Default is 30 seconds.")] int durationSeconds = 30)
+        {
+            return await _kubePlugin.ProfileDotnetAppCpuInAKSContainerAsync(AKSClusterResourceId, _namespace, podName, targetContainerName, durationSeconds);
+        }
     }
 }
