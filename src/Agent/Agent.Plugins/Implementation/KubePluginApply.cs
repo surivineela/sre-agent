@@ -40,96 +40,83 @@ namespace Agent.Plugins
                 }
 
                 // Get the Kubernetes client
-                var client = await GetOrCreateClientAsync(resourceId);
-
-                // Parse YAML with a single deserializer that preserves numeric types
+                var client = await GetOrCreateClientAsync(resourceId);                // Parse YAML with a single deserializer that preserves numeric types
                 var yamlDeserializer = new DeserializerBuilder()
                     .WithNamingConvention(YamlDotNet.Serialization.NamingConventions.CamelCaseNamingConvention.Instance)
                     .Build();
-
-                // Parse the provided YAML into a dynamic object (only once)
+                // Parse the provided YAML into k8sObject to extract metadata
                 var yaml = new StringReader(yamlContent);
-                var yamlObject = yamlDeserializer.Deserialize(yaml);
-
-                // Convert to dictionary for metadata extraction
-                var jsonSettings = new JsonSerializerSettings
-                {
-                    Converters = new List<JsonConverter> { new StringPreservingConverter() }
-                };
-                var jsonString = JsonConvert.SerializeObject(yamlObject, jsonSettings);
-                var tempObj = JsonConvert.DeserializeObject<Dictionary<string, object>>(jsonString, jsonSettings);
-
-                if (tempObj == null || !tempObj.ContainsKey("kind") || !tempObj.ContainsKey("apiVersion"))
+                var k8sObj = yamlDeserializer.Deserialize<k8sObject>(yaml);
+                if (k8sObj == null || string.IsNullOrEmpty(k8sObj.Kind) || string.IsNullOrEmpty(k8sObj.ApiVersion))
                 {
                     return "Error: Invalid YAML document: Missing 'kind' or 'apiVersion'";
                 }
 
-                var kind = tempObj["kind"].ToString();
-                var apiVersion = tempObj["apiVersion"].ToString();
-                string namespaceName = "default";
-                string resourceName = "";
+                // Extract metadata for resource name and namespace
+                string? resourceName = k8sObj.Metadata?.Name;
+                string? namespaceName = k8sObj.Metadata?.Namespace; // Default to "default" namespace if not specified
+
+                // Also parse into dictionary for backward compatibility
+                yaml = new StringReader(yamlContent);
+                var yamlObject = yamlDeserializer.Deserialize<Dictionary<string, object?>>(yaml);
+
+                string? kind = null;
+                string? apiVersion = null;
+                if (yamlObject["kind"] != null)
+                {
+                    kind = yamlObject["kind"]?.ToString();
+                }
+
+                if (yamlObject["apiVersion"] != null)
+                {
+                    apiVersion = yamlObject["apiVersion"]?.ToString();
+                }
+
+                if (string.IsNullOrEmpty(kind) || string.IsNullOrEmpty(apiVersion))
+                {
+                    return "Error: Invalid YAML document: 'kind' or 'apiVersion' has null or empty value";
+                }
 
                 _logger?.LogInternalInformation("Parsing YAML object with kind: {Kind}, apiVersion: {ApiVersion}", kind, apiVersion);
 
-                // Extract namespace and name from metadata if present
-                if (tempObj.TryGetValue("metadata", out var metadataObj))
+                // Use strongly-typed KubernetesYaml deserialization based on resource kind
+                object? k8sObject = null;
+                // Switch based on resource kind to use the appropriate typed deserializer
+                switch (kind?.ToLowerInvariant())
                 {
-                    _logger?.LogDebug("Found metadata object of type: {MetadataType}", metadataObj?.GetType().FullName ?? "null");
-
-                    // Handle different possible types for metadata
-                    IDictionary<string, object> metadata;
-                    if (metadataObj is IDictionary<string, object> metadataDict)
-                    {
-                        metadata = metadataDict;
-                    }
-                    else if (metadataObj is JObject jObj)
-                    {
-                        // Handle JObject type specifically
-                        metadata = jObj.ToObject<Dictionary<string, object>>();
-                        _logger?.LogDebug("Converted JObject metadata to Dictionary");
-                    }
-                    else
-                    {
-                        _logger?.LogInternalWarning("Metadata is not in expected format: {MetadataType}", metadataObj?.GetType().FullName ?? "null");
-                        metadata = new Dictionary<string, object>();
-                    }
-
-                    // Extract namespace
-                    if (metadata.TryGetValue("namespace", out var namespaceObj) && namespaceObj != null)
-                    {
-                        namespaceName = namespaceObj.ToString();
-                        _logger?.LogDebug("Found namespace: {Namespace}", namespaceName);
-                    }
-
-                    // Extract name
-                    if (metadata.TryGetValue("name", out var nameObj) && nameObj != null)
-                    {
-                        resourceName = nameObj.ToString();
-                        _logger?.LogDebug("Found resource name: {ResourceName}", resourceName);
-                    }
-                }
-                else
-                {
-                    _logger?.LogInternalWarning("No 'metadata' field found in YAML");
+                    case "deployment":
+                        k8sObject = KubernetesYaml.Deserialize<V1Deployment>(yamlContent);
+                        break;
+                    case "service":
+                        k8sObject = KubernetesYaml.Deserialize<V1Service>(yamlContent);
+                        break;
+                    case "ingress":
+                        k8sObject = KubernetesYaml.Deserialize<V1Ingress>(yamlContent);
+                        break;
+                    case "configmap":
+                        k8sObject = KubernetesYaml.Deserialize<V1ConfigMap>(yamlContent);
+                        break;
+                    case "statefulset":
+                        k8sObject = KubernetesYaml.Deserialize<V1StatefulSet>(yamlContent);
+                        break;
+                    case "job":
+                        k8sObject = KubernetesYaml.Deserialize<V1Job>(yamlContent);
+                        break;
+                    case "cronjob":
+                        k8sObject = KubernetesYaml.Deserialize<V1CronJob>(yamlContent);
+                        break;
+                    case "daemonset":
+                        k8sObject = KubernetesYaml.Deserialize<V1DaemonSet>(yamlContent);
+                        break;
+                    default:
+                        break;
                 }
 
-                _logger?.LogInternalInformation($"Applying new resource {kind}/{resourceName} in namespace {namespaceName}");
-
-
-                // Convert the already parsed YAML object to JSON with proper numeric handling
-                var jsonSerializer = new Newtonsoft.Json.JsonSerializer();
-                jsonSerializer.Converters.Add(new StringEnumConverter());
-                jsonSerializer.Converters.Add(new StringPreservingConverter());
-                jsonSerializer.NullValueHandling = NullValueHandling.Ignore;
-
-                var stringWriter = new StringWriter();
-                using (var jsonWriter = new JsonTextWriter(stringWriter))
-                {
-                    jsonSerializer.Serialize(jsonWriter, yamlObject);
-                }
-
-                var jsonBody = stringWriter.ToString();
-                _logger?.LogDebug("Converted YAML to JSON: {JsonBody}", jsonBody);
+                _logger?.LogInternalInformation($"Applying resource {kind}/{resourceName} in namespace {namespaceName}");
+                var jsonBody = k8sObject != null
+                    ? KubernetesJson.Serialize(k8sObject)  // Use the strongly-typed object if available
+                    : KubernetesJson.Serialize(yamlObject); // Fallback to the generic object
+                _logger?.LogDebug("Converted YAML to JSON using k8s.KubernetesJson: {JsonBody}", jsonBody);
 
                 // Create patch and apply it - CHANGE THIS PART
                 bool resourceExists = false;
@@ -138,10 +125,10 @@ namespace Agent.Plugins
                 {
                     // Check if resource exists
                     var existingResource = await client.CustomObjects.GetNamespacedCustomObjectAsync(
-                        group: GetApiGroup(apiVersion),
-                        version: GetApiVersion(apiVersion),
+                        group: GetApiGroup(apiVersion ?? string.Empty),
+                        version: GetApiVersion(apiVersion ?? string.Empty),
                         namespaceParameter: namespaceName,
-                        plural: GetPluralFormForKind(kind),
+                        plural: GetPluralFormForKind(kind ?? string.Empty),
                         name: resourceName);
 
                     resourceExists = (existingResource != null);
@@ -156,7 +143,7 @@ namespace Agent.Plugins
                 if (resourceExists)
                 {
                     // Update existing resource using appropriate method based on kind
-                    switch (kind.ToLowerInvariant())
+                    switch (kind?.ToLowerInvariant() ?? string.Empty)
                     {
                         case "deployment":
                             var deploymentPatch = new V1Patch(jsonBody, V1Patch.PatchType.StrategicMergePatch);
@@ -197,16 +184,15 @@ namespace Agent.Plugins
                                 name: resourceName,
                                 namespaceParameter: namespaceName);
                             break;
-
                         default:
                             // Use generic method for other resource types
-                            var patch = new V1Patch(jsonBody, V1Patch.PatchType.StrategicMergePatch);
+                            var genericPatch = new V1Patch(jsonBody, V1Patch.PatchType.StrategicMergePatch);
                             await client.CustomObjects.PatchNamespacedCustomObjectAsync(
-                                body: patch,
-                                group: GetApiGroup(apiVersion),
-                                version: GetApiVersion(apiVersion),
+                                body: genericPatch,
+                                group: GetApiGroup(apiVersion ?? string.Empty),
+                                version: GetApiVersion(apiVersion ?? string.Empty),
                                 namespaceParameter: namespaceName,
-                                plural: GetPluralFormForKind(kind),
+                                plural: GetPluralFormForKind(kind ?? string.Empty),
                                 name: resourceName);
                             break;
                     }
@@ -215,8 +201,7 @@ namespace Agent.Plugins
                 }
                 else
                 {
-                    // Create new resource using appropriate method based on kind
-                    switch (kind.ToLowerInvariant())
+                    switch (kind?.ToLowerInvariant() ?? string.Empty)
                     {
                         case "deployment":
                             _logger?.LogInternalInformation($"Creating new resource {kind}/{resourceName} in namespace {namespaceName}");
@@ -263,15 +248,13 @@ namespace Agent.Plugins
                             break;
 
                         default:
-                            _logger?.LogInternalInformation($"Creating new resource {kind}/{resourceName} in namespace {namespaceName}");
-
-                            // Use generic method for other resource types
+                            _logger?.LogInternalInformation($"Creating new resource {kind}/{resourceName} in namespace {namespaceName}");                            // Use generic method for other resource types
                             await client.CustomObjects.CreateNamespacedCustomObjectAsync(
                                 body: yamlObject,
-                                group: GetApiGroup(apiVersion),
-                                version: GetApiVersion(apiVersion),
+                                group: GetApiGroup(apiVersion ?? string.Empty),
+                                version: GetApiVersion(apiVersion ?? string.Empty),
                                 namespaceParameter: namespaceName,
-                                plural: GetPluralFormForKind(kind));
+                                plural: GetPluralFormForKind(kind ?? string.Empty));
                             break;
                     }
 
@@ -281,7 +264,7 @@ namespace Agent.Plugins
             catch (Exception ex)
             {
                 _logger?.LogInternalError(ex, "Error applying Kubernetes YAML to cluster {ResourceId}", resourceId);
-                return $"Error applying YAML: {ex.Message}";
+                return $"Error applying YAML: {ex}";
             }
         }
 
@@ -344,9 +327,7 @@ namespace Agent.Plugins
                 "namespace" => "namespaces",
                 _ => kind.ToLowerInvariant() + "s" // Simple pluralization for unknown kinds
             };
-        }
-
-        /// <summary>
+        }        /// <summary>
         /// Custom JSON converter to preserve string values that might be interpreted as numbers
         /// </summary>
         private class StringPreservingConverter : JsonConverter
@@ -357,17 +338,38 @@ namespace Agent.Plugins
                 return objectType == typeof(string);
             }
 
-            public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+            public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
             {
                 // Return the raw value as a string
                 return reader.Value?.ToString();
             }
 
-            public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+            public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
             {
                 // Always write strings as strings, even if they look like numbers
-                writer.WriteValue(value.ToString());
+                writer.WriteValue(value?.ToString() ?? string.Empty);
             }
+        }
+
+        /// <summary>
+        /// Represents Kubernetes metadata including name and namespace
+        /// </summary>
+        private class k8sMetadata
+        {
+            public string? Name { get; set; }
+            public string? Namespace { get; set; }
+        }
+
+        /// <summary>
+        /// Represents a Kubernetes object with apiVersion, kind and metadata
+        /// </summary>
+        private class k8sObject
+        {
+            public string? ApiVersion { get; set; }
+            public string? Kind { get; set; }
+            public k8sMetadata? Metadata { get; set; }
+            public Dictionary<string, object?>? Spec { get; set; }
+            public Dictionary<string, object?>? Status { get; set; }
         }
     }
 }
