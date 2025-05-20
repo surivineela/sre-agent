@@ -12,6 +12,7 @@ import mermaid from 'mermaid';
 import { memo, useCallback, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import ReactMarkdown from 'react-markdown';
+import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
 import DailyReport from '../../Common/Components/DailyReport';
 import IncidentAlert from '../../Common/Components/IncidentAlert';
@@ -253,14 +254,6 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse, threadOrches
         return messageProps;
     }, [intl, isTyping, message.timeStamp]);
 
-    const aLinkRenderer = useCallback((props: any) => {
-        return (
-            <a href={props.href} target="_blank" rel="noopener noreferrer">
-                {props.children}
-            </a>
-        );
-    }, []);
-
     const handleFeedbackClick = (isPositive: boolean) => {
         setSelectedFeedback(isPositive ? 'positive' : 'negative');
         setShowFeedbackDialog(true);
@@ -292,13 +285,7 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse, threadOrches
     const renderContentPart = (part: any, index: number): React.ReactNode => {
         // Plain text markdown
         if (typeof part === 'string') {
-            return (
-                <div key={index} className={mergeClasses('markdown-content', chatMessageStyles.regularMessageContent)}>
-                    <ReactMarkdown components={{ a: aLinkRenderer }} remarkPlugins={[remarkGfm]}>
-                        {part}
-                    </ReactMarkdown>
-                </div>
-            );
+            return <ReactMarkdownComponent key={index} content={part} />;
         }
 
         // Handle different content types
@@ -374,13 +361,7 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse, threadOrches
 
         // Normal markdown content
         if (!Array.isArray(messageContent)) {
-            return (
-                <div className={mergeClasses('markdown-content', isUserMessage ? undefined : chatMessageStyles.regularMessageContent)}>
-                    <ReactMarkdown components={{ a: aLinkRenderer }} remarkPlugins={[remarkGfm]}>
-                        {messageContent}
-                    </ReactMarkdown>
-                </div>
-            );
+            return <ReactMarkdownComponent content={messageContent} isUserMessage={isUserMessage} />;
         }
 
         // Mixed content with special blocks
@@ -750,6 +731,32 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse, threadOrches
                 </div>
             );
     }
+};
+
+const ReactMarkdownComponent = ({
+    key,
+    content,
+    isUserMessage,
+}: {
+    key?: string | number;
+    content?: string | null;
+    isUserMessage?: boolean;
+}) => {
+    const aLinkRenderer = useCallback((props: any) => {
+        return (
+            <a href={props.href} target="_blank" rel="noopener noreferrer">
+                {props.children}
+            </a>
+        );
+    }, []);
+
+    return (
+        <div key={key} className={mergeClasses('markdown-content', isUserMessage ? undefined : chatMessageStyles.regularMessageContent)}>
+            <ReactMarkdown components={{ a: aLinkRenderer }} remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+                {content}
+            </ReactMarkdown>
+        </div>
+    );
 };
 
 export default memo(ChatMessage);
