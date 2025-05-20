@@ -6,3 +6,4 @@ EnvoyControllerEvents
 | where EnvironmentName == managedClusterName
 | where isnotempty(Log) or isnotempty( error )
 | project PreciseTimeStamp, Log, msg, error, Role, _ContainerGroupId, _ContainerGroupName, _ContainerId, _ContainerImage, caller
+| limit 1000

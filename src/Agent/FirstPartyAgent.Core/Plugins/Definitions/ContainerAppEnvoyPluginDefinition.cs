@@ -73,9 +73,14 @@ Projects:
   - ResponseCodeDetails: Response code details. (e.g. via_upstream, downstream_remote_disconnect)
   - UpstreamHost: The upstream host's IP address and port in the format <ip-address>:<port> (e.g., 100.100.202.85:8080)..
 ")]
-        public Task<string> GetEnvoyAccessLogs([Description("Azure region.")] string region, [Description("Start time of the query.")] DateTime fromDate, [Description("End time of the query.")] DateTime toDate, [Description("Managed Cluster Name of the container app.")] string managedClusterName)
+        public Task<string> GetEnvoyAccessLogs(
+            [Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Managed Cluster Name of the container app.")] string managedClusterName,
+            [Description("The container app name.")] string containerAppName)
         {
-            return _plugin.GetEnvoyAccessLogs(region, fromDate, toDate, managedClusterName);
+            return _plugin.GetEnvoyAccessLogs(region, fromDate, toDate, managedClusterName, containerAppName);
         }
 
         [KernelFunction(KernelFunctionNames.ACA.GetSwiftNetworkingEvents)]
@@ -111,17 +116,17 @@ Projects:
             return _plugin.GetEnvoyPodStatus(region, fromDate, toDate, managedClusterName);
         }
 
-        [KernelFunction(KernelFunctionNames.ACA.GetCustomerAppPodStatus)]
-        [Description(@"Retrieve Customer Application Pod Status
+        [KernelFunction(KernelFunctionNames.ACA.GetContainerAppPodStatus)]
+        [Description(@"Retrieve Container App Pod Status
 Projects:
-- StartTime: Start time of the customer application pod status.
-- EndTime: End time of the customer application pod status.
-- PodName: Name of the customer application pod.
-- PodStatus: Status of the customer application pod.
+- StartTime: Start time of the Container App pod status.
+- EndTime: End time of the Container App pod status.
+- PodName: Name of the Container App pod.
+- PodStatus: Status of the Container App pod.
 ")]
-        public Task<string> GetCustomerAppPodStatus([Description("Azure region.")] string region, [Description("Start time of the query.")] DateTime fromDate, [Description("End time of the query.")] DateTime toDate, [Description("Managed Cluster Name of the container app.")] string managedClusterName, [Description("Name of the container app.")] string containerAppName)
+        public Task<string> GetContainerAppPodStatus([Description("Azure region.")] string region, [Description("Start time of the query.")] DateTime fromDate, [Description("End time of the query.")] DateTime toDate, [Description("Managed Cluster Name of the container app.")] string managedClusterName, [Description("Name of the container app.")] string containerAppName)
         {
-            return _plugin.GetCustomerAppPodStatus(region, fromDate, toDate, managedClusterName, containerAppName);
+            return _plugin.GetContainerAppPodStatus(region, fromDate, toDate, managedClusterName, containerAppName);
         }
 
         [KernelFunction(KernelFunctionNames.ACA.GetContainerAppStatus)]
