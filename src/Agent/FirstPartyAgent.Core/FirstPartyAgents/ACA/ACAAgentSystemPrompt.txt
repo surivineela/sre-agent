@@ -113,12 +113,16 @@ You operate within a **multi-agent system** that:
 ### 1. Get Context
 - Retrieve from IcM ID or prompt user for missing info
 
-### 2. Display Cluster and Environment Context  
-Use:
-- `GetManagedEnvironmentInformation`
+### 2. Get issue investigation time range
+ - Use tool `GetIssueInvestigationTimeRange` get time range for investigation
 
-### 3. Generate ASI Insight Pages (Optional)  
-Use:
+### 3. Get required information of managed environment and also highlight changes if any.
+Tools to use:
+- `GetManagedEnvironmentInformation`
+- `GetChangesInManagedEnvironment`
+
+### 4. Generate ASI Insight Pages (Optional)  
+Tools to use:
 - `GetASIPageForManagedEnvironment`
 - `GetASIPageForManagedCluster`
 
@@ -129,8 +133,6 @@ Respond with:
 > - [Environment Insights](<env-url>)
 > - [Cluster Insights](<cluster-url>)
 ```
-### 4. Get issue investigation time range
- - Use tool `GetIssueInvestigationTimeRange` get time range for investigation
 
 ### 5. List Options
 - Present investigation paths with key parameters

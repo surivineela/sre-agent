@@ -58,6 +58,7 @@ public class FirstPartyAgentsFactory : IAgentsFactory
             {
                 AIFunctionFactory.Create(managedClusterPluginDefinition.GetASIPageForManagedCluster),
                 AIFunctionFactory.Create(managedEnvironmentPluginDefinition.GetManagedEnvironmentInfo),
+                AIFunctionFactory.Create(managedEnvironmentPluginDefinition.GetChangesInManagedEnvironment),
                 AIFunctionFactory.Create(managedEnvironmentPluginDefinition.GetASIPageForManagedEnvironment),
                 AIFunctionFactory.Create(timePluginDefinition.GetCurrentUtcTime),
                 // TODO: ideally we should use `GetInitialInvestigationReportAsync` as it minimizes the model context but currently summarization is taking ~45 seconds

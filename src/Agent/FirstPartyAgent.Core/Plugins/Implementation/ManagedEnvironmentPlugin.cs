@@ -34,6 +34,20 @@ public class ManagedEnvironmentPlugin : IManagedEnvironmentPlugin
       );
     }
 
+    public async Task<string> GetChangesInManagedEnvironment(string region, DateTime fromDate, DateTime toDate, Guid customerSubscriptionId, string managedEnvironmentName)
+    {
+        return await _kustoPlugin.ExecuteLocalFunctionAsync(
+            "GetChangesinManagedEnvironment",
+            region,
+            new Dictionary<string, string>
+            {
+                { "fromDate", fromDate.ToString() },
+                { "toDate", toDate.ToString() },
+                { "customerSubscriptionId", customerSubscriptionId.ToString() },
+                { "managedEnvironmentName", managedEnvironmentName }
+            });
+    }
+
     public async Task<string> GetASIPageForManagedEnvironment(string region, DateTime fromDate, DateTime toDate, string environmentName, string resourceGroupName, string subscriptionId)
     {
         var basePath = "/services/ACA Azure Container Apps/pages/Container App Environment";

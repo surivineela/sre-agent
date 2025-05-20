@@ -57,6 +57,26 @@ Projects:
             return _plugin.GetManagedEnvironmentInformation(region.NormalizeLocation(), fromDate, toDate, environmentName, resourceGroupName, subscriptionId);
         }
 
+        [KernelFunction("GetChangesInManagedEnvironment")]
+        [Description(
+        @"Retrieve configuration state changes for a specific Azure Container Apps managed environment within a given time range.
+
+        This function helps identify if incidents are correlated with configuration changes by highlighting changes that align with the reported issue timeline.
+
+        **Returns a list of component types that are changed**, including their previous and current values during the specified period.
+        Note: Unchanged components are NOT returned.
+        "
+        )]
+        public Task<string> GetChangesInManagedEnvironment(
+            [Description("Azure region in lower case. example: 'westeurope'")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Customer subscription ID of the managed environment.")] Guid customerSubscriptionId,
+            [Description("Name of the customer managed environment.")] string managedEnvironmentName)
+        {
+            return _plugin.GetChangesInManagedEnvironment(region, fromDate, toDate, customerSubscriptionId, managedEnvironmentName);
+        }
+
         [KernelFunction(KernelFunctionNames.ACA.GetASIPageForManagedEnvironment)]
         [Description(
 @"Retrieve a direct ASI (App Service Insights) page URL for a given Azure Container Apps managed environment.
