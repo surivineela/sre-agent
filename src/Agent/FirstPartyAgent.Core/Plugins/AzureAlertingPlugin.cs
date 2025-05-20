@@ -6,6 +6,7 @@ using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Core.Extensions;
 using FirstPartyAgent.Core.Helpers;
 using FirstPartyAgent.Core.Models;
+using FirstPartyAgent.Core.Plugins.Interfaces;
 using FirstPartyAgent.Core.Services;
 using FirstPartyAgent.Plugins;
 using Microsoft.Extensions.Logging;
@@ -21,7 +22,7 @@ namespace FirstPartyAgent.Core.Plugins
         private readonly ICMPlugin _icmPlugin;
         private readonly ILogger<AzureAlertingPlugin> _logger;
         private ITeamsClient _teamsClient;
-        private IKustoPlugin _kustoPlugin;
+        private IKustoPluginClient _kustoPlugin;
         private ISessionMessageService _sessionMessageService;
         private readonly bool ICMBacktestingModeEnabled = false;
 
@@ -33,7 +34,7 @@ namespace FirstPartyAgent.Core.Plugins
             ILogger<AzureAlertingPlugin> logger,
             ICMPlugin icmPlugin,
             ITeamsClient teamsClient,
-            IKustoPlugin kustoPlugin,
+            IKustoPluginClient kustoPlugin,
             ISessionMessageService sessionMessageService,
             AlertHandlerService alertHandlerService,
             AlertHandlerClient alertHandlerClient)

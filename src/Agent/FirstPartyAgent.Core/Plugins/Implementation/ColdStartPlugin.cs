@@ -4,6 +4,7 @@
 
 using Azure.ResourceManager.Compute.Models;
 using FirstPartyAgent.Core.Models;
+using FirstPartyAgent.Core.Plugins.Interfaces;
 using FirstPartyAgent.Core.Services;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
@@ -21,10 +22,10 @@ namespace FirstPartyAgent.Plugins
     {
         private readonly ILogger<ColdStartPlugin> _logger;
         private readonly Kernel _kernel;
-        private readonly IKustoPlugin _kustoPlugin;
+        private readonly IKustoPluginClient _kustoPlugin;
         private readonly AlertHandlerService _alertHandlerService;
 
-        public ColdStartPlugin(ILogger<ColdStartPlugin> logger, Kernel kernel, IKustoPlugin kustoPlugin, AlertHandlerService alertHandlerService)
+        public ColdStartPlugin(ILogger<ColdStartPlugin> logger, Kernel kernel, IKustoPluginClient kustoPlugin, AlertHandlerService alertHandlerService)
         {
             _logger = logger;
             _kernel = kernel;

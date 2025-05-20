@@ -14,11 +14,11 @@ namespace FirstPartyAgent.Plugins
 {
     public class KustoPluginChat : IKustoPluginChat
     {
-        private readonly IKustoPlugin _kustoPlugin;
+        private readonly IACAKustoPlugin _kustoPlugin;
         private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
         private const int TokenLimit = 2000;
 
-        public KustoPluginChat(IKustoPlugin kustoPlugin, IAgentOutboundCommunicationService agentOutboundCommunicationService)
+        public KustoPluginChat(IACAKustoPlugin kustoPlugin, IAgentOutboundCommunicationService agentOutboundCommunicationService)
         {
             _kustoPlugin = kustoPlugin;
             _agentOutboundCommunicationService = agentOutboundCommunicationService;
@@ -92,30 +92,30 @@ namespace FirstPartyAgent.Plugins
             return formatted;
         }
 
-        Task<KustoQueryResult> IKustoPlugin.ExecuteKustoQuery(string region, string query)
+        Task<KustoQueryResult> IACAKustoPlugin.ExecuteKustoQuery(string region, string query)
         {
             region = region.NormalizeLocation();
             return _kustoPlugin.ExecuteKustoQuery(region, query);
         }
 
-        Task<KustoQueryResult> IKustoPlugin.ExecuteClusterKustoQuery(string cluster, string database, string fullQuery, DateTime? NowOverride)
+        Task<KustoQueryResult> IACAKustoPlugin.ExecuteClusterKustoQuery(string cluster, string database, string fullQuery, DateTime? NowOverride)
         {
             return _kustoPlugin.ExecuteClusterKustoQuery(cluster, database, fullQuery, NowOverride);
         }
 
-        Task<KustoQueryResult> IKustoPlugin.ExecuteFunctionAsync(string functionName, string region, Dictionary<string, string>? args)
+        Task<KustoQueryResult> IACAKustoPlugin.ExecuteFunctionAsync(string functionName, string region, Dictionary<string, string>? args)
         {
             region = region.NormalizeLocation();
             return _kustoPlugin.ExecuteFunctionAsync(functionName, region, args);
         }
 
-        Task<List<KustoFunction>> IKustoPlugin.ListFunctionsAsync(string region)
+        Task<List<KustoFunction>> IACAKustoPlugin.ListFunctionsAsync(string region)
         {
             region = region.NormalizeLocation();
             return _kustoPlugin.ListFunctionsAsync(region);
         }
 
-        ChatMessage IKustoPlugin.CreateChatMessage(string query, string regionOrClusterUri, int count, int queryExecutionTimeInMilliSeconds, string? database, string? functionName)
+        ChatMessage IACAKustoPlugin.CreateChatMessage(string query, string regionOrClusterUri, int count, int queryExecutionTimeInMilliSeconds, string? database, string? functionName)
         {
             return _kustoPlugin.CreateChatMessage(query, regionOrClusterUri, count, queryExecutionTimeInMilliSeconds, database, functionName);
         }

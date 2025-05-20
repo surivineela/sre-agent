@@ -16,6 +16,7 @@ using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Core.Helpers;
 using FirstPartyAgent.Core.Plugins;
 using FirstPartyAgent.Core.Plugins.Definitions;
+using FirstPartyAgent.Core.Plugins.Interfaces;
 using FirstPartyAgent.Core.Services;
 using FirstPartyAgent.Core.Services.TokenService;
 using FirstPartyAgent.Plugins;
@@ -55,12 +56,10 @@ namespace FirstPartyAgent.Core.Extensions
             services.AddSingleton<GenevaActionsPlugin>();
             services.AddSingleton<HttpRequestPlugin>();
 
-            services.AddSingleton<KustoServiceClientFactory>();
-            services.AddSingleton<IKustoPlugin, KustoPlugin>();
-            services.AddSingleton<KustoPluginSimple>();
             services.AddSingleton<KustoClient>();
-            services.AddSingleton<KustoRegionalGroupClientProvider>();
-
+            services.AddSingleton<IKustoPluginClient, KustoPluginClient>();
+            services.AddSingleton<KustoPlugin>();
+            
             services.AddSingleton<ITeamsClient, TeamsClient>();
             services.AddSingleton<TeamsPlugin>();
             services.AddSingleton<TeamsChartPlugin>();

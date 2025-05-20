@@ -22,7 +22,7 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.HelloWorldAgent
     {
         
         private readonly IHelloWorldPlugin _helloWorldPlugin;
-        private readonly IKustoPlugin _kustoPlugin;
+        private readonly IACAKustoPlugin _kustoPlugin;
         private readonly AgentToolsRegistry _toolsRegistry;
         private readonly DurableTaskClient _durableTaskClient;
         private readonly IThreadOrchestrationManager _mappingManager;

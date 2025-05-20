@@ -56,7 +56,7 @@ public static class ServiceCollectionExtensions
         builder.Services.AddSingleton(new HelloWorldSettings());
         builder.Services.AddSingleton(new RevisionSettings());
 
-        builder.Services.AddSingleton<IKustoPlugin, KustoPlugin>();
+        builder.Services.AddSingleton<IACAKustoPlugin, ACAKustoPlugin>();
         builder.Services.AddSingleton<IKustoPluginChat, KustoPluginChat>();
         builder.Services.AddSingleton<ITeamsClient, TeamsClient>();
         builder.Services.AddSingleton<KustoClient>();
@@ -126,7 +126,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IcmPluginDefinition>();
         services.AddSingleton<ContainerAppIcMPluginDefinition>();
 
-        services.AddSingleton<KustoPluginDefinition>();
+        services.AddSingleton<ACAKustoPluginDefinition>();
         services.AddSingleton<ContainerAppsPluginDefinition>();
         services.AddSingleton<IContainerAppsPlugin, ContainerAppsPlugin>();
 

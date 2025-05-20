@@ -12,9 +12,9 @@ namespace FirstPartyAgent.Plugins.Definitions
     /// Using this approach because SK does not allow interfaces to be used as kernel functions
     /// https://github.com/microsoft/semantic-kernel/issues/10323
     /// </summary>
-    public class KustoPluginDefinition(IKustoPlugin plugin)
+    public class ACAKustoPluginDefinition(IACAKustoPlugin plugin)
     {
-        private readonly IKustoPlugin _plugin = plugin;
+        private readonly IACAKustoPlugin _plugin = plugin;
 
         [KernelFunction(KernelFunctionNames.Kusto.ExecuteKustoQuery)]
         [Description("Executes a Kusto query on a regional cluster and returns the result in JSON format.")]

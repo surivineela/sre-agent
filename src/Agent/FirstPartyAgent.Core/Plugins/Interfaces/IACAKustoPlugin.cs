@@ -7,7 +7,7 @@ using Microsoft.SemanticKernel;
 
 namespace FirstPartyAgent.Plugins
 {
-    public interface IKustoPlugin
+    public interface IACAKustoPlugin
     {
         public Task<KustoQueryResult> ExecuteKustoQuery(string region, string query);
         public Task<KustoQueryResult> ExecuteClusterKustoQuery(string cluster, string database, string fullQuery, DateTime? NowOverride);

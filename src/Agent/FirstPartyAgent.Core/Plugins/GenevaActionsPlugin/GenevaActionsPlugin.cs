@@ -6,6 +6,7 @@ using System.ComponentModel;
 using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Core.Extensions;
 using FirstPartyAgent.Core.Models;
+using FirstPartyAgent.Core.Plugins.Interfaces;
 using FirstPartyAgent.Core.Services;
 using FirstPartyAgent.Plugins;
 using Microsoft.Extensions.Logging;
@@ -17,7 +18,7 @@ namespace FirstPartyAgent.Core.Plugins
     public class GenevaActionsPlugin
     {
         private readonly BaseIcmWorkflowClient _icmWorkflowClient;
-        private readonly IKustoPlugin _kustoPlugin;
+        private readonly IKustoPluginClient _kustoPlugin;
         private readonly ILogger<GenevaActionsPlugin> _logger;
         private readonly ITeamsClient _teamsClient;
         private readonly IStorageService _storageService;
@@ -31,7 +32,7 @@ namespace FirstPartyAgent.Core.Plugins
 
         public GenevaActionsPlugin(
             BaseIcmWorkflowClient icmWorkflowClient,
-            IKustoPlugin kustoPlugin,
+            IKustoPluginClient kustoPlugin,
             ILogger<GenevaActionsPlugin> logger,
             ITeamsClient teamsClient,
             StorageAccountSettings storageAccountSettings,

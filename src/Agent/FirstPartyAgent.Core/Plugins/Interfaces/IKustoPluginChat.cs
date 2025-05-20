@@ -9,7 +9,7 @@ namespace FirstPartyAgent.Plugins
     /// <summary>
     /// Print Kusto queries in chat messages
     /// </summary>
-    public interface IKustoPluginChat : IKustoPlugin
+    public interface IKustoPluginChat : IACAKustoPlugin
     {
         public Task<string> ExecuteLocalFunctionAsync(string functionName, string region, Dictionary<string, string> args, SamplingOptions samplingOptions = null);
         public Task<string> ExecuteLocalFunctionOnClusterAsync(string functionName, string clusterName, string databaseName, Dictionary<string, string> args);

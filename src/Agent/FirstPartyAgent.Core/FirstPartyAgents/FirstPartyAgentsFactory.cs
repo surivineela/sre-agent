@@ -110,7 +110,7 @@ public class FirstPartyAgentsFactory : IAgentsFactory
             typeof(ManagedEnvironmentPluginDefinition),
             typeof(HealthProbePluginDefinition),
             typeof(NodeAvailabilityPluginDefinition),
-            typeof(KustoPluginDefinition),
+            typeof(ACAKustoPluginDefinition),
             typeof(ContainerAppEnvoyPluginDefinition),
             typeof(ContainerAppCorednsPluginDefinition),
             typeof(ContainerAppCustomerMetricsPluginDefinition),
