@@ -1,0 +1,41 @@
+{
+  "alertingId": "09a16b38-e5d3-4c99-a1a3-769f9e99d536",
+  "AgentMode": "ICMAgent",  
+  "incidentTitle": "VMSS Automorphism Is Not Running",
+  "owningTeams": [],
+  "allowedGenevaActions": [],
+  "kustoQueries": [
+    {
+      "title": "VMSS Automorphism is not running query",
+      "kustoQuery": "let qt = now(); let monitoredStamps = cluster('<<KUSTO_CLUSTER>>').database('wawsprod').SubscriptionHostNameMapping | where TIMESTAMP > qt - timespan(1d) and SiteName startswith \"sla-ws-prod-\" | summarize by EventStampName; cluster('<<KUSTO_CLUSTER>>').database('wawsprod').AntaresAdminControllerEvents | where EventStampName == Tenant and EventStampName !contains \"msftint\" | where TIMESTAMP > ago(1h) | where EventStampType =~ \"stamp\" and EventStampName !endswith \"dr\" | distinct EventStampName | join kind=leftouter (cluster('<<KUSTO_CLUSTER>>').database('wawsprod').AntaresAdminControllerEvents | where EventStampName == Tenant | where EventStampType =~ \"stamp\" | where EventId == 56100 | where TIMESTAMP > ago(1h) | summarize count() by EventStampName) on $left.EventStampName == $right.EventStampName | project EventStampName, count_ | where isnull(count_) | join kind=inner ( monitoredStamps ) on EventStampName | where EventStampName == \"<<STAMP_NAME>>\""
+    }
+  ],
+  "owners": [
+    "hawfor",
+    "philuo"
+  ],
+  "actionTimeoutIntervalInMinutes": 30,
+  "defaultHumanInterventionLoop": "App Service (Web Apps)/Splinter Twin Business Hours Only",
+  "incidentProcessingGuide": [
+    "### START OF INSTRUCTIONS ###",
+    "    Create an EXECUTION_PLAN using the below guidelines:,",
+    "    - Run the following steps in a loop until it terminates",
+    "       1. Extract the full Kusto Cluster from get_alerting_discussion_entry. eg., wawscus.kusto.windows.net, gcwsbn1ff.kusto.usgovcloudapi.net, wawscusdiagleader.centralus.kusto.windows.net",
+    "       2. Run the \"VMSS Automorphism is not running query\" Kusto query for each stamp in the primary kusto query results detailed in the ICM incident. Replace the <<KUSTO_CLUSTER>> placeholder with the extracted Kusto Cluster and replace \"<<STAMP_NAME>>\" with the extracted stamp name from the ICM incident when running the Kusto query",
+    "       3. Depending of if the kusto results are empty or not execute the following steps: ",
+    "           CASE_EMPTY: ",
+    "               1. Post a discussion entry in the ICM incident with a table of the following: StampName, KustoQuery, Transient Reason",
+    "               2. Provide a summary of the mitigation reason",
+    "               2. Mitigate the incident with mitigate_icm_incident",
+    "           CASE_NOT_EMPTY: ",
+    "               1. Post a discussion entry in the ICM incident detailing that we will wait for a few more minutes and run the primary kusto query again to see if this issue is transient. Also post a discussion entry in the ICM incident how many times you have waiting for 10 minutes. Do this each time you have to wait 10 minutes",
+    "               2. WAIT for 10 minutes",
+    "               3. IF we waited for 10 minutes more than 5 times then TERMINATE and post a discussion entry detailing that we need the current on call engineer to do manual investgation",
+    "               4. IF we waited for 10 minutes less than 5 times then LOOP back to LOOP_INSTRUCTIONS",
+    "    Execute the EXECUTION_PLAN in a fully autonomous manner leveraging the tools available to you.",
+    "### END OF INSTRUCTIONS ###"
+  ],
+  "teamId": 105572,
+  "severity": 2,
+  "AgentName": "AppService_VMSS_SplinterTwin"  
+}
