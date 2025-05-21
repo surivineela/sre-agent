@@ -1,4 +1,4 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -34,7 +34,7 @@ public class CosmosDbThreadRepository : IThreadRepository
     // For example, to get oldest 10 threads, a client can call `/api/v1/threads/{threadid}/messages?top=10` to get the oldest 10 threads, because the default order is `order by timeStamp asc`.
     // For example, to get latest 10 threads, a client can call `/api/v1/threads/{threadid}/messages?top=10&orderby=timeStamp+desc` to get the latest 10 threads.
     // For pagination, we can use `top` and `skip` to get the next page of threads.
-    private static readonly ODataQuerySettings oDataQuerySettings = new() { EnsureStableOrdering = false };
+    private static readonly ODataQuerySettings oDataQuerySettings = new() { EnsureStableOrdering = false, TimeZone = TimeZoneInfo.Utc };
 
     public CosmosDbThreadRepository(CosmosClient cosmosClient, string databaseName, ILogger<CosmosDbThreadRepository> logger)
     {
