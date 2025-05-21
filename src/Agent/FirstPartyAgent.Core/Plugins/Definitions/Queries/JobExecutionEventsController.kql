@@ -1,0 +1,12 @@
+let queryFrom = datetime("##queryFrom##");
+let queryTo = datetime("##queryTo##");
+let jobExecutionName = "##jobExecutionName##";
+let cappClusterName = "##cappClusterName##";
+ContainerAppControllerEvents
+| where PreciseTimeStamp between(queryFrom .. queryTo)
+| union testControllerEvents
+| where EnvironmentName =~ cappClusterName
+| where * contains jobExecutionName
+| where msg !contains "api server measured: "
+| project PreciseTimeStamp, Tenant, msg, error, ExecutionName, PodName, ContainerAppJobName, stacktrace, PodContainerStatus
+| order by PreciseTimeStamp asc

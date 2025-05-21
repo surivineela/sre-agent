@@ -1,21 +1,11 @@
-using System.ComponentModel;
 using System.Text.Json;
 using Agent.Core.Extensions;
-using FirstPartyAgent.Core.FirstPartySubAgents.ACA.Common;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.RevisionAgent
 {
-    public record ContainerAppRevisionAgentActivityInput : BaseContainerAppIssueActivityInput
-    {
-        [Description("The name of the container app.")]
-        public string ContainerAppName { get; init; } = string.Empty;
-
-        [Description("The revision name of the container app.")]
-        public string RevisionName { get; init; } = string.Empty;
-    }
 
     [DurableTask]
     public class ContainerAppRevisionAgentActivity : TaskActivity<ContainerAppRevisionAgentActivityInput, List<ChatMessage>>

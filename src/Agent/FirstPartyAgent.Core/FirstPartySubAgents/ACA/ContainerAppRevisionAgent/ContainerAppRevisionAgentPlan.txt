@@ -139,7 +139,7 @@ If no scaler configuration exists, no scaling issues or KEDA references are ment
 - Step 7.2: If you find any Http scaler configuration exists, you should use `GetHttpScalerEventsForContainerApp` to fetch and check http scaler events log.
    - **DO NOT focus solely on the logs pertaining to the specfic revision. You must consider all logs, as some deep HTTP or networking errors may not contain any revision information.**
    - If most logs from `log` column indicate the request is waiting or connecting or has the key words like "waited", "timeout" or "throttling", regardless of whether they are related to the checking revision or not, please mention how many logs have this. It indicates a problem with the connection and is one of the root causes.
-
+   
 ---
 
 ### Step 8: Legion Errors

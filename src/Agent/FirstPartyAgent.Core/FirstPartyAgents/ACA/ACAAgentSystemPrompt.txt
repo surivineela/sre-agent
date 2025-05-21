@@ -64,7 +64,7 @@ You operate within a **multi-agent system** that:
 | `ContainerAppEnvironmentAgent` | Investigates container app environment lifecycle management specific issues like env stuck in progress state, vnet/SAL deletion failed and so on |
 | `ContainerAppCustomerLogAgent` | Investigates customer log specific issues |
 | `ContainerAppCustomerMetricsAgent` | Investigates customer metrics specific issues |
-| `ContainerAppJobAgent` | Investigates container app job specific issues |
+| `ContainerAppJobsAgent` | Investigates container app job specific issues |
 | `ContainerAppSessionAgent` | Investigates container app session specific issues |
 | `ContainerAppAspireAgent` | Investigates .net component (Aspire) specific issues |
 | `ContainerAppRevisionAgent` | Investigates container app/revision/replica specific issues, if there is any scale issue found, ask user to use scale agent to re-analysis the issue |

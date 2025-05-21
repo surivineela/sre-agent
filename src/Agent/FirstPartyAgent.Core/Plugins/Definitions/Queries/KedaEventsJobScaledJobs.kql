@@ -1,0 +1,15 @@
+let queryFrom = datetime("##queryFrom##");
+let queryTo = datetime("##queryTo##");
+let cappName = "##cappName##"; // Represents the job name
+let cappClusterName = "##cappClusterName##";
+KedaOperatorEvents
+| where PreciseTimeStamp between (queryFrom .. queryTo)
+| union testKedaEvents
+| where Tenant =~ cappClusterName
+| extend LogInfo = split(Log, " ")
+| extend LogLevel = tostring(LogInfo[1])
+| extend LogCategory = tostring(LogInfo[2])
+| where LogCategory != ''
+| where * contains cappName
+| project PreciseTimeStamp, LogInfo, LogLevel, LogCategory, EnvironmentName, _ContainerGroupName
+| order by PreciseTimeStamp asc

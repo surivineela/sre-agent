@@ -21,6 +21,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
 using FirstPartyAgent.Core.Clients;
+using FirstPartyAgent.Plugins.Interfaces;
+using FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppJobsAgent;
 using FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCustomerMetricsAgent;
 
 namespace FirstPartyAgent.Core.FirstPartyAgents;
@@ -98,17 +100,21 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ContainerAppQuotaPluginDefinition>();
         services.AddSingleton<ContainerAppQuotaAgentFactory>();
 
+        services.AddSingleton<IContainerAppJobsPlugin, ContainerAppJobsPlugin>();
         services.AddSingleton<IContainerAppRevisionPlugin, ContainerAppRevisionPlugin>();
         services.AddSingleton<IManagedClusterPlugin, ManagedClusterPlugin>();
         services.AddSingleton<IManagedEnvironmentPlugin, ManagedEnvironmentPlugin>();
         services.AddSingleton<IHealthProbePlugin, HealthProbePlugin>();
         services.AddSingleton<INodeAvailabilityPlugin, NodeAvailabilityPlugin>();
+        services.AddSingleton<ContainerAppJobsAgentPlugin>();
         services.AddSingleton<ContainerAppRevisionAgentPlugin>();
         services.AddSingleton<ContainerAppRevisionPluginDefinition>();
+        services.AddSingleton<ContainerAppJobsPluginDefinition>();
         services.AddSingleton<ManagedEnvironmentPluginDefinition>();
         services.AddSingleton<ManagedClusterPluginDefinition>();
         services.AddSingleton<HealthProbePluginDefinition>();
         services.AddSingleton<NodeAvailabilityPluginDefinition>();
+        services.AddSingleton<ContainerAppJobsAgentFactory>();
         services.AddSingleton<ContainerAppRevisionAgentFactory>();
 
         services.AddSingleton<IContainerAppEnvoyPlugin, ContainerAppEnvoyPlugin>();

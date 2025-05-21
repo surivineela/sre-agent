@@ -1,0 +1,10 @@
+let queryFrom = datetime("##queryFrom##");
+let queryTo = datetime("##queryTo##");
+let jobExecutionName = "##jobExecutionName##";
+let cappClusterName = "##cappClusterName##";
+LegionVKVirtualKubeletEvents
+| where PreciseTimeStamp between(queryFrom .. queryTo)
+| where EnvironmentName =~ cappClusterName
+| where pod startswith jobExecutionName or msg contains jobExecutionName or error contains jobExecutionName
+| project PreciseTimeStamp, EnvironmentName, level, pod, phase, msg, RequestMethod, ResponseHttpStatusCode, error, queue, TraceId
+| order by PreciseTimeStamp asc

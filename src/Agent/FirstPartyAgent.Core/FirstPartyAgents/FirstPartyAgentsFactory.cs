@@ -106,6 +106,7 @@ public class FirstPartyAgentsFactory : IAgentsFactory
             typeof(ContainerAppsPluginDefinition),
             typeof(ContainerAppQuotaPluginDefinition),
             typeof(ContainerAppRevisionPluginDefinition),
+            typeof(ContainerAppJobsPluginDefinition),
             typeof(ManagedClusterPluginDefinition),
             typeof(ManagedEnvironmentPluginDefinition),
             typeof(HealthProbePluginDefinition),

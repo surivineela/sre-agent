@@ -1,0 +1,10 @@
+let queryFrom = datetime("##queryFrom##");
+let queryTo = datetime("##queryTo##");
+let jobExecutionName = "##jobExecutionName##";
+let cappClusterName = "##cappClusterName##";
+EventProcessorEvents
+| where PreciseTimeStamp between(queryFrom .. queryTo)
+| union testEventProcessorEvents
+| where EnvironmentName =~ cappClusterName
+| where * contains jobExecutionName
+| project PreciseTimeStamp, _Region, EnvironmentName, msg, Reason, Event, ExecutionName, ReplicaName, error, resourceId, logger
