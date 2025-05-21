@@ -68,6 +68,8 @@ namespace FirstPartyAgent.Constants
             public const string GetContainerAppAdminEvents = "get_container_app_admin_events";
             public const string GetASIPageForRevision = "get_asi_page_for_revision";
             public const string GetMetricsMdmCount = "get_metrics_mdm_count";
+            public const string GetLogConfiguration = "GetLogConfiguration";
+            public const string GetEventProcessorErrors = "GetEventProcessorErrors";
         }
 
         public static class Kusto

@@ -114,6 +114,7 @@ public class FirstPartyAgentsFactory : IAgentsFactory
             typeof(ACAKustoPluginDefinition),
             typeof(ContainerAppEnvoyPluginDefinition),
             typeof(ContainerAppCorednsPluginDefinition),
+            typeof(ContainerAppCustomerLogsPluginDefinition),
             typeof(ContainerAppCustomerMetricsPluginDefinition),
         };
         return types;

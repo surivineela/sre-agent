@@ -1,0 +1,21 @@
+let queryFrom = datetime("##fromDate##");
+let queryTo = datetime("##toDate##");
+let customerSubscriptionId = "##customerSubscriptionId##";
+let customerEnvironmentName = "##managedEnvironmentName##";
+let clusterName = "##managedClusterName##";
+ManagedEnvironmentDBState
+| where TIMESTAMP between (queryFrom .. queryTo)
+| where isempty(customerEnvironmentName) or environmentName =~ customerEnvironmentName
+| where isempty(customerSubscriptionId) or subscription =~ customerSubscriptionId
+| where isempty(clusterName) or managedClusterName =~ clusterName
+| order by PreciseTimeStamp asc
+| where isnotempty(logsDestination) and logsDestination != ""
+| extend PreviousLogDestination = prev(logsDestination)
+| extend SessionIndex = row_cumsum(iff(logsDestination != PreviousLogDestination, 1, 0))
+| summarize StartTime = min(PreciseTimeStamp), EndTime = max(PreciseTimeStamp) by logsDestination, SessionIndex
+| serialize 
+| extend PreviousLogDestination = prev(logsDestination)
+| extend ChangeStatus = iff(SessionIndex == 1, "No change", "Change")
+| project StartTime, EndTime, Value=logsDestination, ChangeStatus, PreviousValue=PreviousLogDestination
+| order by StartTime asc
+| take 1000

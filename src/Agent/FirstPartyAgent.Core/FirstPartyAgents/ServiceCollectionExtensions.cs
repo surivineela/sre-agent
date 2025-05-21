@@ -24,6 +24,7 @@ using FirstPartyAgent.Core.Clients;
 using FirstPartyAgent.Plugins.Interfaces;
 using FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppJobsAgent;
 using FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCustomerMetricsAgent;
+using FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCustomerLogsAgent;
 
 namespace FirstPartyAgent.Core.FirstPartyAgents;
 
@@ -140,6 +141,11 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ContainerAppCustomerMetricsAgentPlugin>();
         services.AddSingleton<ContainerAppCustomerMetricsPluginDefinition>();
         services.AddSingleton<ContainerAppCustomerMetricsAgentFactory>();
+
+        services.AddSingleton<IContainerAppCustomerLogsPlugin, ContainerAppCustomerLogsPlugin>();
+        services.AddSingleton<ContainerAppCustomerLogsAgentPlugin>();
+        services.AddSingleton<ContainerAppCustomerLogsPluginDefinition>();
+        services.AddSingleton<ContainerAppCustomerLogsAgentFactory>();
     }
 
     private static void RegisterFirstPartySubAgentPluginImplementationDependencies(this IServiceCollection services)

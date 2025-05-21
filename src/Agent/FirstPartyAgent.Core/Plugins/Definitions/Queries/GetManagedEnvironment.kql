@@ -8,10 +8,10 @@ let local_environmentSubscription = "##subscriptionId##";
 
 ManagedEnvironmentDBState
 | where PreciseTimeStamp between (globalFrom .. globalTo)
-| where environmentName == local_environmentName
-  and resourceGroup == local_environmentResourceGroup
-  and subscription == local_environmentSubscription
-  and Tenant == local_environmentLocation
+| where environmentName =~ local_environmentName
+| where isempty(local_environmentResourceGroup) or resourceGroup =~ local_environmentResourceGroup
+| where isempty(local_environmentSubscription) or subscription =~ local_environmentSubscription
+| where isempty(local_environmentLocation) or Tenant =~ local_environmentLocation
 | join kind=inner (GetRegions) on $left.Tenant == $right.Name
 | extend envType = case(hasWorkloadProfiles == true or isLegionEnabled == true, "V2", "V1")
 | extend customVnet = case(hasCustomerVnet == true and envType == "v1", true, subnetResourceId != "", true, false)
