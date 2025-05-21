@@ -5,7 +5,7 @@ let fromDate = datetime("##fromDate##");
 let toDate = datetime("##toDate##");
 let revisionName = "##revisionName##";
 let managedClusterName =toscalar (GetManagedClusterName(containerAppNameParam=containerAppName,resourceGroupParam=resourceGroupName,subscriptionParam=subscriptionId));
-All("EnvoyFrontEndLogsTable")
+EnvoyFrontEndLogsTable
 | where PreciseTimeStamp between (fromDate .. toDate)
 | where RevisionName == RevisionName
 | where EnvironmentName == managedClusterName

@@ -130,7 +130,6 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton<IIcmPlugin, IcmPlugin>();
         services.AddSingleton<IContainerAppIcMPlugin, ContainerAppIcMPlugin>();
-        services.AddSingleton<IcmPluginDefinition>();
         services.AddSingleton<ContainerAppIcMPluginDefinition>();
 
         services.AddSingleton<ACAKustoPluginDefinition>();

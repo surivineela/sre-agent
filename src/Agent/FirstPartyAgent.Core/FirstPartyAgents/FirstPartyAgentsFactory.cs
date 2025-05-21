@@ -7,6 +7,7 @@ using Microsoft.Extensions.AI;
 using FirstPartyAgent.Core.Plugins.Interfaces;
 using Agent.Plugins;
 using FirstPartyAgent.Core.Plugins.Implementation;
+using FirstPartyAgent.Plugins;
 
 namespace FirstPartyAgent.Core.FirstPartyAgents;
 
@@ -23,20 +24,23 @@ public class FirstPartyAgentsFactory : IAgentsFactory
     private readonly ITimePlugin _timePlugin;
     private readonly IManagedClusterPlugin _managedClusterPlugin;
     private readonly IManagedEnvironmentPlugin _managedEnvironmentPlugin;
+    private readonly IContainerAppsPlugin _containerAppsPlugin;
 
     public FirstPartyAgentsFactory(
         IServiceProvider serviceProvider,
         IContainerAppIcMPlugin containerAppIcMPlugin,
         ITimePlugin timePlugin,
         IManagedClusterPlugin managedClusterPlugin,
-        IManagedEnvironmentPlugin managedEnvironmentPlugin)
+        IManagedEnvironmentPlugin managedEnvironmentPlugin,
+        IContainerAppsPlugin containerAppsPlugin
+        )
     {
         _serviceProvider = serviceProvider;
         _containerAppIcMPlugin = containerAppIcMPlugin;
         _timePlugin = timePlugin;
         _managedClusterPlugin = managedClusterPlugin;
         _managedEnvironmentPlugin = managedEnvironmentPlugin;
-
+        _containerAppsPlugin = containerAppsPlugin;
     }
 
     public List<AITool> GetSubAgentsAITools(Guid threadGuid, AgentContext context)
@@ -52,6 +56,7 @@ public class FirstPartyAgentsFactory : IAgentsFactory
         var timePluginDefinition = new TimePluginDefinition(_timePlugin);
         var managedClusterPluginDefinition = new ManagedClusterPluginDefinition(_managedClusterPlugin);
         var managedEnvironmentPluginDefinition = new ManagedEnvironmentPluginDefinition(_managedEnvironmentPlugin);
+        var containerAppsPluginDefinition = new ContainerAppsPluginDefinition(_containerAppsPlugin);
 
         _aiTools.AddRange(
             new List<AITool>
@@ -61,10 +66,9 @@ public class FirstPartyAgentsFactory : IAgentsFactory
                 AIFunctionFactory.Create(managedEnvironmentPluginDefinition.GetChangesInManagedEnvironment),
                 AIFunctionFactory.Create(managedEnvironmentPluginDefinition.GetASIPageForManagedEnvironment),
                 AIFunctionFactory.Create(timePluginDefinition.GetCurrentUtcTime),
-                // TODO: ideally we should use `GetInitialInvestigationReportAsync` as it minimizes the model context but currently summarization is taking ~45 seconds
                 AIFunctionFactory.Create(containerAppIcMPluginDefinition.GetInitialInvestigationReportAsync),
-                // AIFunctionFactory.Create(containerAppIcMPluginDefinition.GetIncidentInfo),
                 AIFunctionFactory.Create(containerAppIcMPluginDefinition.GetIssueInvestigationTimeRange),
+                AIFunctionFactory.Create(containerAppsPluginDefinition.GetSubscriptionDetail),
             });
         return _aiTools;
     }

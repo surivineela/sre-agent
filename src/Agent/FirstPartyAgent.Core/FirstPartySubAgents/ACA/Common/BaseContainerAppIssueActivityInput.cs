@@ -3,9 +3,9 @@ using System.ComponentModel;
 namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.Common;
 public record BaseContainerAppIssueActivityInput
 {
-    [Description("Subscription id")]
+    [Description("Azure subscription id")]
     public string SubscriptionId { get; init; } = string.Empty;
-    [Description("Resource Group name")]
+    [Description("Azure Resource Group name")]
     public string ResourceGroupName { get; init; } = string.Empty;
 
     [Description("Managed Environment Name")]
@@ -14,7 +14,7 @@ public record BaseContainerAppIssueActivityInput
     [Description("The start of the time range to analyze.")]
     public DateTime FromDate { get; init; }
 
-    [Description("The end of the time range to analyze.")]
+    [Description("The end of the time range to analyze. Always ensure that it should be greater than 'FromDate'")]
     public DateTime ToDate { get; init; }
 
     [Description("The Azure region where the container app is deployed. Example: 'francecentral'")]

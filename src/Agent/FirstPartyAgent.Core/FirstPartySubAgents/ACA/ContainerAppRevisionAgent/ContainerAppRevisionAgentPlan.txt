@@ -145,8 +145,6 @@ If no scaler configuration exists, no scaling issues or KEDA references are ment
 ### Step 8: Legion Errors
 Use `GetLegionErrors` to find Legion errors related to the revision.
 
----
-
 ### Step 9: Get CcpNamespace
 You must use `GetAksClusterCcpNamespace` to get CcpNamespace
 
@@ -156,6 +154,8 @@ Respond with:
 > 🔗 **aks CcpNamespace**
 > - {{CcpNamespace}}
 ```
+
+---
 
 ## 📄 Final Step — RCA Report (Mandatory)
 

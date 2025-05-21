@@ -7,6 +7,7 @@ using System.ComponentModel;
 using FirstPartyAgent.Core.Plugins.Interfaces;
 using Microsoft.SemanticKernel;
 using FirstPartyAgent.Models;
+using Kusto.Cloud.Platform.Utils;
 
 namespace FirstPartyAgent.Plugins.Definitions
 {
@@ -24,13 +25,23 @@ namespace FirstPartyAgent.Plugins.Definitions
         }
 
         [KernelFunction(KernelFunctionNames.ACA.GetIssueInvestigationTimeRange)]
-        [Description("It calculates the effective issue investigation time range based on information available in context but at least ONE of them must be present.")]
+        [Description(@"
+        Calculates the effective time range for issue investigation based on the available input parameters. 
+        At least one of the following must be provided: issueFirstOccurrence, issueLastOccurrence, or reportedIssueObservedOnTime.
+
+        **Important:**
+        - Do NOT use this function if none of the input parameters are available.
+        ")]
         public (DateTime StartDate, DateTime EndDate) GetIssueInvestigationTimeRange(
-            [Description("The timestamp of the first occurrence of the issue. Skip if not available")] DateTime? issueFirstOccurence,
-            [Description("The timestamp of the last occurrence of the issue. Skip if not available")] DateTime? issueLastOccurene,
-            [Description("The timestamp when the issue was observed and reported. Skip if not available")] DateTime? reportedIssueObservedOnTime)
+            [Description("ISO 8601 date format string of first occurrence of the issue. Skip if not available")] string? issueFirstOccurrence,
+            [Description("ISO 8601 date format string of the last occurrence of the issue. Skip if not available")] string? issueLastOccurrence,
+            [Description("ISO 8601 date format string  when the issue was observed and reported. Skip if not available")] string? reportedIssueObservedOnTime)
         {
-            return _plugin.GetIssueInvestigationTimeRange(issueFirstOccurence, issueLastOccurene, reportedIssueObservedOnTime);
+            var issueFirstOccurrenceDate = issueFirstOccurrence.IsNotNullOrEmpty() ? DateTime.Parse(issueFirstOccurrence!) : (DateTime?)null;
+            var issueLastOccurrenceDate = issueLastOccurrence.IsNotNullOrEmpty() ? DateTime.Parse(issueLastOccurrence!) : (DateTime?)null;
+            var reportedIssueObservedOnTimeDate = reportedIssueObservedOnTime.IsNotNullOrEmpty() ? DateTime.Parse(reportedIssueObservedOnTime!) : (DateTime?)null;
+
+            return _plugin.GetIssueInvestigationTimeRange(issueFirstOccurrenceDate, issueLastOccurrenceDate, reportedIssueObservedOnTimeDate);
         }
 
         [KernelFunction(KernelFunctionNames.ACA.GetInitialInvestigationSummaryReport)]

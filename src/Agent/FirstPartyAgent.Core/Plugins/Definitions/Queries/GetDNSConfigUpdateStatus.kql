@@ -2,11 +2,11 @@ let queryFrom = datetime("##fromDate##");
 let queryTo = datetime("##toDate##");
 let managedClusterName = "##managedClusterName##";
 SwiftNetworkingEvents
-| where EnvironmentName == managedClusterName
 | where PreciseTimeStamp between (queryFrom .. queryTo)
+| where EnvironmentName == managedClusterName
 | extend DNSConfigStatus = case(
     msg startswith "DNS Servers are fine, no need to update...", "Healthy",
-    msg startswith "Detected Customer DNS Servers Missing in resolv.conf." or msg startswith "Succesfully applied netplan and removed the netplan file", "Degraded",
+    msg startswith "Detected Customer DNS Servers Missing in resolv.conf." or msg startswith "Succesfully applied netplan and removed the netplan file" or msg startswith "failed to resolve . for dns server", "Degraded",
     ""
 )
 | where DNSConfigStatus != ""
@@ -14,4 +14,4 @@ SwiftNetworkingEvents
 | order by PreciseTimeStamp asc
 | extend SessionIndex = row_cumsum(iff(DNSConfigStatus != prev(DNSConfigStatus), 1, 0))
 | summarize StartTime = min(PreciseTimeStamp), EndTime = max(PreciseTimeStamp) by DNSConfigStatus,SessionIndex,Role
-| project StartTime, EndTime, DNSConfigStatus, Role
+| project StartTime, EndTime, DNSConfigStatus, VMNode=Role

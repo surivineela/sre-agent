@@ -22,50 +22,61 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
             _plugin = Plugin;
         }
 
-        [KernelFunction(KernelFunctionNames.ACA.GetASIPageForManagedCluster)]
+        [KernelFunction(KernelFunctionNames.ACA.GetASIPageForManagedClusterForApp)]
         [Description(
- @"Retrieve a direct ASI (App Service Insights) page URL for a specific **Managed Cluster** associated with an Azure Container Apps environment.
-This link provides diagnostic insights into the cluster hosting the ACA environment.
-
-Inputs:
-- region: Azure region where the cluster is deployed.
-- containerAppName: Name of any container app associated with the managed environment.
-- fromDate / toDate: Time range for diagnostic analysis.
-- resourceGroupName: Resource group of the ACA environment.
-- subscriptionId: Azure subscription ID."
- )]
-        public Task<string> GetASIPageForManagedCluster(
-     [Description("Azure region.")] string region,
-     [Description("Start time of the query.")] DateTime fromDate,
-     [Description("End time of the query.")] DateTime toDate,
-     [Description("Name of the container app. Used to resolve the environment context.")] string containerAppName,
-     [Description("Name of the resource group hosting the ACA environment.")] string resourceGroupName,
-     [Description("Azure subscription ID.")] string subscriptionId)
+         @"Retrieve a direct ASI (App Service Insights) page URL for a specific **Managed Cluster** associated with an Azure Container Apps environment.
+        This link provides diagnostic insights into the cluster hosting the ACA environment.
+        **Note: Use this when specific container app name is known**
+        "
+         )]
+        public Task<string> GetASIPageForManagedClusterForApp(
+         [Description("Azure region.")] string region,
+         [Description("Start time of the query.")] DateTime fromDate,
+         [Description("End time of the query.")] DateTime toDate,
+         [Description("Name of the container app. Used to resolve the environment context.")] string containerAppName,
+         [Description("Name of the resource group hosting the ACA environment.")] string resourceGroupName,
+         [Description("Azure subscription ID.")] string subscriptionId)
         {
-            return _plugin.GetASIPageForManagedCLuster(region, fromDate, toDate, containerAppName, resourceGroupName, subscriptionId);
+            return _plugin.GetASIPageForManagedCLuster(region.Normalize(), fromDate, toDate, containerAppName, resourceGroupName, subscriptionId);
         }
 
-      
+        [KernelFunction(KernelFunctionNames.ACA.GetASIPageForManagedCluster)]
+        [Description(
+        @"Retrieve a direct ASI (App Service Insights) page URL for a specific **Managed Cluster** associated with an Azure Container Apps environment.
+        This link provides diagnostic insights into the cluster hosting the ACA environment.
+        **Note: Use this when managed cluster name  like 'calmisland-41ad83b9' is already known**
+        "
+        )]
+        public Task<string> GetASIPageForManagedCluster(
+        [Description("Azure region in lower case")] string region,
+        [Description("Start time of the query.")] DateTime fromDate,
+        [Description("End time of the query.")] DateTime toDate,
+        [Description("Managed cluster name")] string managedClusterName)
+        {
+            return _plugin.GetASIPageForManagedCluster(region.Normalize(), fromDate, toDate, managedClusterName);
+        }
+
         [KernelFunction(KernelFunctionNames.ACA.GetAksClusterCcpNamespace)]
         [Description(
- @"Retrieve the ccpNamespace of ACA's cluster, which is a needed parameter for other aks query 
+        @"Retrieve the ccpNamespace of ACA's cluster, which is a needed parameter for other aks query 
 
-Inputs:
-- region: Azure region where the cluster is deployed.
-- fromDate / toDate: Time range for diagnostic analysis.
-- resourceGroupName: Resource group of the ACA environment.
-- subscriptionId: Azure subscription ID.
-- managedClusterName: Name of the managed cluster."
- )]
-        public Task<string> GetAksClusterCcpNamespace(
-     [Description("Azure region.")] string region,
-     [Description("Start time of the query.")] DateTime fromDate,
-     [Description("End time of the query.")] DateTime toDate,
-     [Description("Name of the resource group hosting the ACA environment.")] string resourceGroupName,
-     [Description("Azure subscription ID.")] string subscriptionId,
-     [Description("Name of the managed cluster.")] string managedClusterName)
+        Inputs:
+        - region: Azure region where the cluster is deployed.
+        - fromDate / toDate: Time range for diagnostic analysis.
+        - resourceGroupName: Resource group of the ACA environment.
+        - subscriptionId: Azure subscription ID.
+        - managedClusterName: Name of the managed cluster."
+        )]
+                public Task<string> GetAksClusterCcpNamespace(
+        [Description("Azure region.")] string region,
+        [Description("Start time of the query.")] DateTime fromDate,
+        [Description("End time of the query.")] DateTime toDate,
+        [Description("Name of the resource group hosting the ACA environment.")] string resourceGroupName,
+        [Description("Azure subscription ID.")] string subscriptionId,
+        [Description("Name of the managed cluster.")] string managedClusterName)
         {
             return _plugin.GetAksClusterCcpNamespace(region, fromDate, toDate, resourceGroupName, subscriptionId, managedClusterName);
         }
+
     }
 }

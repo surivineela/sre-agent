@@ -25,6 +25,7 @@ namespace FirstPartyAgent.Constants
             public const string SubmitAgentFeedback = "submit_agent_feedback";
             public const string GetManagedEnvironmentInformation = "get_managed_environment_info";
             public const string GetASIPageForManagedCluster = "get_managed_cluster_asi_page";
+            public const string GetASIPageForManagedClusterForApp = "get_managed_cluster_asi_page_for_app";
             public const string GetASIPageForManagedEnvironment = "get_managed_environment_asi_page";
             public const string GetHealthProbeFailures = "get_health_probe_failures";
             public const string GetHealthProbeSettings = "get_health_probe_settings";

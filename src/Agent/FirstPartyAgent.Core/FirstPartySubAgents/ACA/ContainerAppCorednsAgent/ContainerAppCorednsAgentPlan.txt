@@ -37,14 +37,25 @@ Respond with:
 > - [Managed cluster Insights](<cluster-url>)
 ```
 
-### 🔹 Step 1: Check if Custom DNS Server configured or not
+### 🔹 Step 1: Get DNS configuration update status
+  Tool to use: `GetDNSConfigUpdateStatus`
+- **Purpose:**  
+  Retrieve the status of DNS configuration updates to ensure they are applied correctly.
+- **Before use:**
+    `NotifyUser("🔍 I'm about to check the DNS configuration update status for this managed cluster.")`
+- **After use:**
+    - `NotifyUser("📊 Found DNS configuration update status during the specified time range.")`  
+    - Generate summarized report for each DNS configuration update with the time interval for which it was applied.
+    - `NotifyUser("📊 Here is timeline of DNS configuration updates. <Insert the generated report here>")`
+
+### 🔹 Step 2: Check if Custom DNS Server configured or not
 - Use tool `GetCustomDNSServers` to check if there are any custom DNS servers configured for the container app environment or not
 - If custom DNS servers are configured, then get the list of custom DNS servers configured for the container app environment at start and end of time window.
     - Notify user about change in custom DNS servers if any.
 - Else, proceed to next step highlighting no custom DNS server configured.
 ---
 
-### 🔹 Step 2: Diagnostic Actions
+### 🔹 Step 3: Diagnostic Actions
 
 #### ✅ `GetUpstreamCustomDNSServerHealthStatus`
 - **Before use:**  
@@ -84,17 +95,6 @@ Respond with:
     - Generate summarized report for the health status of pods during the specified time range. 
     - `NotifyUser("📊 Here is timeline of Swift Bootstrap Agent pod health statuses. <Insert the generated report here>")`
 
-
-#### ✅ `GetDNSConfigUpdateStatus`
-- **Purpose:**  
-  Retrieve the status of DNS configuration updates to ensure they are applied correctly.
-- **Before use:**
-    `NotifyUser("🔍 I'm about to check the DNS configuration update status for this managed cluster.")`
-- **After use:**
-    - `NotifyUser("📊 Found DNS configuration update status during the specified time range.")`  
-    - Generate summarized report for each DNS configuration update with the time interval for which it was applied.
-    - `NotifyUser("📊 Here is timeline of DNS configuration updates. <Insert the generated report here>")`
-
 #### ✅ `CheckIfDNSServerFailedToResolveDot`
 - **Purpose:**  
   Check if any DNS server failed to resolve the root domain (".") during the specified time range.
@@ -131,7 +131,7 @@ Respond with:
 
 ---
 
-### 🔹 Step 3: Remediation Guidance
+### 🔹 Step 4: Remediation Guidance
 
 > Note: ** Only suggest remediation steps that are applicable based on observed findings. Do not suggest general advice when no issues are found in the relevant diagnostics.**
 
@@ -179,7 +179,7 @@ If relevant issues are observed, suggest the corresponding bullet points below:
 
 ---
 
-### 🔹 Step 4: Extended Diagnostics (Optional)
+### 🔹 Step 5: Extended Diagnostics (Optional)
 
 If needed, proceed with deeper investigation tools.  
 - Always reuse `region`, `fromDate`, and `toDate`.  
@@ -188,7 +188,7 @@ If needed, proceed with deeper investigation tools.
 
 ---
 
-### 🔹 Step 5: Context Confirmation (Optional)
+### 🔹 Step 6: Context Confirmation (Optional)
 If something is unclear, confirm via:
 `AskUserForInput("To proceed accurately, could you clarify: [specific question]?")`
 
@@ -196,7 +196,7 @@ Otherwise, proceed confidently.
 
 ---
 
-### 🔹 Step 6: Insight Conclusion (Required)
+### 🔹 Step 7: Insight Conclusion (Required)
 
 You MUST always respond back with detailed findings via:
 
@@ -220,6 +220,10 @@ Follow this **Response Template**:
 > 🧠 Only provide remediation guidance for areas where issues were observed during diagnostics. Do not suggest generic recommendations.
 
 ## ASI pages
+```markdown
+> 🔗 **ASI Insight Pages**
+> - [Cluster Insights](<cluster-url>)
+```
 
 ## 📌 Parameters Used
 - **ManagedClusterName**: `<name>`

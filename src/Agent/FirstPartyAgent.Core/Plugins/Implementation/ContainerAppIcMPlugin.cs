@@ -14,20 +14,40 @@ using FirstPartyAgent.Models;
 using Agent.Core.Interfaces;
 using Agent.Core;
 using Agent.Core.Models.Api.v1;
+using Agent.Plugins;
+using FirstPartyAgent.Core.Plugins.Definitions;
+using FirstPartyAgent.Plugins.Definitions;
+using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
 
 namespace FirstPartyAgent.Core.Plugins.Implementation;
 public class ContainerAppIcMPlugin : IcmPlugin, IContainerAppIcMPlugin
 {
     private readonly ILogger<ContainerAppIcMPlugin> _logger;
+    private readonly IChatClient _chatClient;
+    private readonly ITimePlugin _timePlugin;
+    private readonly IManagedClusterPlugin _managedClusterPlugin;
+    private readonly IManagedEnvironmentPlugin _managedEnvironmentPlugin;
+    private readonly IContainerAppsPlugin _containerAppsPlugin;
 
     public ContainerAppIcMPlugin(
             IConfiguration config,
             ICMWorkflowClient icmAutomationClient,
             IChatClient chatClient,
+            ITimePlugin timePlugin,
+            IManagedClusterPlugin managedClusterPlugin,
+            IManagedEnvironmentPlugin managedEnvironmentPlugin,
+            IContainerAppsPlugin containerAppsPlugin,
             ILogger<ContainerAppIcMPlugin> logger)
-        : base(config, icmAutomationClient, chatClient, logger)
+        : base(config, icmAutomationClient, logger)
     {
         _logger = logger;
+        _chatClient = chatClient;
+        _timePlugin = timePlugin;
+        _managedClusterPlugin = managedClusterPlugin;
+        _managedEnvironmentPlugin = managedEnvironmentPlugin;
+        _containerAppsPlugin = containerAppsPlugin;
     }
 
     public (DateTime StartDate, DateTime EndDate) GetIssueInvestigationTimeRange(DateTime? issueFirstOccurence, DateTime? issueLastOccurene, DateTime? reportedIssueObservedOnTime)
@@ -113,25 +133,37 @@ public class ContainerAppIcMPlugin : IcmPlugin, IContainerAppIcMPlugin
             throw;
         }
 
+        var timePluginDefinition = new TimePluginDefinition(_timePlugin);
+        var managedClusterPluginDefinition = new ManagedClusterPluginDefinition(_managedClusterPlugin);
+        var managedEnvironmentPluginDefinition = new ManagedEnvironmentPluginDefinition(_managedEnvironmentPlugin);
+        var containerAppsPluginDefinition = new ContainerAppsPluginDefinition(_containerAppsPlugin);
+
+        var tools = new List<AITool>
+        {
+            AIFunctionFactory.Create(managedClusterPluginDefinition.GetASIPageForManagedCluster),
+            AIFunctionFactory.Create(managedEnvironmentPluginDefinition.GetASIPageForManagedEnvironment),
+            AIFunctionFactory.Create(managedEnvironmentPluginDefinition.GetManagedEnvironmentInfo),
+            AIFunctionFactory.Create(timePluginDefinition.GetCurrentUtcTime),
+            AIFunctionFactory.Create(containerAppsPluginDefinition.GetSubscriptionUsage),
+            AIFunctionFactory.Create(containerAppsPluginDefinition.GetSubscriptionDetail),
+        };
+        var options = new ChatOptions
+        {
+            Temperature = (float)0.2,
+            Tools = tools,
+            ToolMode = ChatToolMode.Auto
+        };
+
         var messages = new List<Microsoft.Extensions.AI.ChatMessage>
         {
             new Microsoft.Extensions.AI.ChatMessage(ChatRole.System, summarizationPrompt),
             new Microsoft.Extensions.AI.ChatMessage(ChatRole.User, incidentWithComments)
         };
 
-        var options = new ChatOptions
-        {
-            Temperature = (float)0.2,
-            AdditionalProperties = new AdditionalPropertiesDictionary
-            {
-                ["response_format"] = "text"
-            }
-        };
-
-
         var stopwatch2 = System.Diagnostics.Stopwatch.StartNew();
-        var response = await ChatClient.GetResponseAsync(messages, options);
-        string summary = response.Text;
+        var response = await _chatClient.GetResponseAsync(messages, options);
+
+        string summary = response.ToString();
         stopwatch2.Stop();
 
         _logger.LogInformation($"Created ICM summary for ICM ID {incidentId} total time took in summarization: {(int)stopwatch2.ElapsedMilliseconds}");

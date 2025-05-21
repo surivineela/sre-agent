@@ -18,17 +18,14 @@ namespace FirstPartyAgent.Plugins
         private readonly IConfiguration _config;
         internal readonly ICMWorkflowClient _icmAutomationClient;
         private readonly ILogger<IcmPlugin> _logger;
-        public IChatClient ChatClient;
 
         public IcmPlugin(
             IConfiguration config,
             ICMWorkflowClient icmAutomationClient,
-            IChatClient chatClient,
             ILogger<IcmPlugin> logger)
         {
             _config = config;
             _icmAutomationClient = icmAutomationClient;
-            ChatClient = chatClient;
             _logger = logger;
         }
 
@@ -89,15 +86,15 @@ The return value is a list of discussion entries of the given IcM Incident. Each
 
         [KernelFunction("icm_add_discussion_entry")]
         [Description(@"Add a discussion entry to an ICM incident
-This operation will add a discussion entry to the given IcM Incident.
+        This operation will add a discussion entry to the given IcM Incident.
 
-input parameters:
-- incidentId: The Id of the IcM incident. It is usually a integer number.
-- text: The content of the discussion entry.
+        input parameters:
+        - incidentId: The Id of the IcM incident. It is usually a integer number.
+        - text: The content of the discussion entry.
 
-The operation will add a discussion entry to the given incident.
-The return value is a boolean value for indicating if the operation is successful.
-")]
+        The operation will add a discussion entry to the given incident.
+        The return value is a boolean value for indicating if the operation is successful.
+        ")]
         public async Task<bool> AddDiscussionEntry(
             [Description("Incident ID")] string incidentId,
             [Description("Discussion entry text")] string text)
