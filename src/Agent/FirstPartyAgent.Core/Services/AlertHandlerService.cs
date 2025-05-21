@@ -84,12 +84,12 @@ public class AlertHandlerService
             {
                 _logger.LogInformation($"AzureAlertingPlugin: Fetching Alert Details from local folder. azureAlertingId: {azureAlertingId}");
                 //Read from local folder called AlertDetails
-                var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins", "AzureAlertDetails.json");
+                var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "AlertDetails", $"{azureAlertingId}.json");
                 if (File.Exists(filePath))
                 {
                     var fileContent = File.ReadAllText(filePath);
-                    var alertDetails = JsonConvert.DeserializeObject<List<AlertDetailsBase>>(fileContent);
-                    return alertDetails.Where(a => a.Id.ToString() == azureAlertingId).FirstOrDefault();
+                    var alertDetails = JsonConvert.DeserializeObject<AlertDetailsBase>(fileContent);
+                    return alertDetails;
                 }
                 else
                 {

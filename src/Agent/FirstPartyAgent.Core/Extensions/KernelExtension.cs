@@ -15,18 +15,20 @@ namespace FirstPartyAgent.Core.Extensions
         public static async Task LogInformation(this Kernel kernel, string info, ILogger logger, ITeamsClient teamsClient = null, ISessionMessageService sessionMessageService = null)
         {
             logger.LogInformation(info);
+            var sessionId = kernel.Data.ContainsKey("sessionId") ? (string)kernel.Data["sessionId"] : string.Empty;
+
             if (teamsClient != null && teamsClient.IsEnabled() && teamsClient.SendLogsToTeams())
             {
                 string agentMode = kernel.Data.TryGetValue("agentMode", out var val) ? val.ToString() : AgentMode.None.ToString();
                 var teamsMessage = new TeamsMessage(info, null);
+                teamsMessage.MessageId = sessionId;
                 await teamsClient.PostMessageOnTeams(agentMode, teamsMessage).ConfigureAwait(false);
             }
 
             if (sessionMessageService != null)
             {
-                if(kernel.Data.ContainsKey("sessionId"))
+                if(!string.IsNullOrWhiteSpace(sessionId))
                 {
-                    string sessionId = (string)kernel.Data["sessionId"];
                     var publisher = sessionMessageService.GetPublisher(sessionId);
                     if(publisher != null)
                     {

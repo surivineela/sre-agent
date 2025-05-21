@@ -22,7 +22,7 @@ namespace FirstPartyAgent.Core.Plugins
         private readonly ICMPlugin _icmPlugin;
         private readonly ILogger<AzureAlertingPlugin> _logger;
         private ITeamsClient _teamsClient;
-        private IKustoPluginClient _kustoPlugin;
+        private KustoPlugin _kustoPlugin;
         private ISessionMessageService _sessionMessageService;
         private readonly bool ICMBacktestingModeEnabled = false;
 
@@ -34,7 +34,7 @@ namespace FirstPartyAgent.Core.Plugins
             ILogger<AzureAlertingPlugin> logger,
             ICMPlugin icmPlugin,
             ITeamsClient teamsClient,
-            IKustoPluginClient kustoPlugin,
+            KustoPlugin kustoPlugin,
             ISessionMessageService sessionMessageService,
             AlertHandlerService alertHandlerService,
             AlertHandlerClient alertHandlerClient)
@@ -80,8 +80,8 @@ namespace FirstPartyAgent.Core.Plugins
                     kustoQuery = kustoQuery + "\n" +
                         $"| where CorrelationId == '{correlationId}'";
                 }
-                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, NowOverride: nowOverride);
-                return kustoResult.Result;
+                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, NowOverride: nowOverride, kernel);
+                return kustoResult;
             }
             return $"Alert details not found for alertId {alertId}";
         }
