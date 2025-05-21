@@ -265,6 +265,10 @@ public class IcmAgentConfigService : IIcmAgentConfigService
 
             return queryableResult.First();
         }
+        catch (KeyNotFoundException ex)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             throw new Exception($"Error getting alert config: {ex.Message}", ex);

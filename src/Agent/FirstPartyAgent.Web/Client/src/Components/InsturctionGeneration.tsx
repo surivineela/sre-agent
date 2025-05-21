@@ -86,7 +86,7 @@ const InstructionGeneration = (props: InstructionGenerationProps) => {
                 </Stack>
 
                 <div style={{ height: "50vh" }}>
-                    <LoadingErrorWrapper error={getIncidentsError} status={getIncidentsStatus} renderLoading="Loading ICM incidents..." renderError={ErrorUtilities.extractErrorMessage}>
+                    <LoadingErrorWrapper error={getIncidentsError} status={getIncidentsStatus} renderLoading="Loading ICM incidents..." renderError="An error occurred while loading ICM incidents">
                         <InstructionGenerationIcmList data={getIncidentsData} selectedICMsRef={selectedICMsRef} />
                     </LoadingErrorWrapper>
                 </div>

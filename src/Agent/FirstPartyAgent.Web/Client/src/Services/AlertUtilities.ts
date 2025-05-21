@@ -19,6 +19,7 @@ const getAlertTemplate = (teamId: number, alertingId?: string) => {
             "Fetch the incident details and generate the ask",
             "Extract the key information from the incident and create an EXECUTION_PLAN"
         ],
+        agentMode: "",
         teamId: teamId
     }
 }

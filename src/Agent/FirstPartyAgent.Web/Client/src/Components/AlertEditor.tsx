@@ -1,5 +1,5 @@
 import { MutableRefObject, useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
-import { getAlertConfig, updateAlertConfig } from "../Services/Request";
+import { createAlertConfig, getAlertConfig, updateAlertConfig } from "../Services/Request";
 import MonacoEditor, { Monaco } from '@monaco-editor/react';
 import { CommandBar, Panel, PanelType, PrimaryButton, ICommandBarItemProps, Stack, Text, mergeStyles, IPanel, MessageBar, MessageBarType, Spinner, SpinnerSize } from "@fluentui/react";
 import { useBoolean } from '@fluentui/react-hooks';
@@ -26,11 +26,17 @@ enum SelectContent {
     InstructionGeneration = "InstructionGeneration",
 }
 
+enum AlertEditorMode {
+    Edit = "Edit",
+    Create = "Create",
+}
+
 
 //Edit existing alert, create a new custom alert, create a new alert from existing alert
 const AlertEditor = (props: AlertEditorProps) => {
     const [isOpen, { setTrue: openPanel, setFalse: dismissPanel }] = useBoolean(false);
     const [defaultAlertConfig, setDefaultAlertConfig] = useState<ICMAlertConfig>(props.alertConfig ? { ...props.alertConfig } : {});
+    const [editorMode] = useState<AlertEditorMode>(props.alertConfig ? AlertEditorMode.Create : AlertEditorMode.Edit);
     const scrollRef = useRef<HTMLDivElement>(null);
     const panelRef = useRef<IPanel>(null);
     const alertConfigRef = useRef<ICMAlertConfig>(props.alertConfig ? { ...props.alertConfig } : {});
@@ -56,8 +62,12 @@ const AlertEditor = (props: AlertEditorProps) => {
         isSuccess: isSavingAlertConfigSuccess,
         reset: resetSavingAlertConfigStatus,
     } = useMutation({
-        mutationFn: async (alertConfig: ICMAlertConfig) => {
-            return await updateAlertConfig(alertConfig.teamId, alertConfig.alertingId, alertConfig);
+        mutationFn: async (props: { alertConfig: ICMAlertConfig, editorMode: AlertEditorMode }) => {
+            if (props.editorMode === AlertEditorMode.Create) {
+                return await createAlertConfig(props.alertConfig);
+            } else {
+                return await updateAlertConfig(props.alertConfig.teamId, props.alertConfig.alertingId, props.alertConfig);
+            }
         },
         mutationKey: ["updateAlertConfig"],
         gcTime: 0,
@@ -185,7 +195,10 @@ const AlertEditor = (props: AlertEditorProps) => {
 
     const onSaveAlertConfig = async () => {
         if (!alertConfigRef.current.teamId || !alertConfigRef.current.alertingId) return;
-        await updateAlertConfigAsync(alertConfigRef.current);
+        await updateAlertConfigAsync({
+            alertConfig: alertConfigRef.current,
+            editorMode: editorMode
+        });
         props.isChangeUnsaved.current = false;
     }
 
@@ -202,7 +215,7 @@ const AlertEditor = (props: AlertEditorProps) => {
                         <Stack horizontal tokens={{ childrenGap: 20 }} horizontalAlign="start">
                             {/* <DeployAgent /> */}
                             <PrimaryButton text="Test with your incident" onClick={(e) => openPanelForChat()} className={buttonStyles} />
-                            <PrimaryButton text={isSavingAlertConfigLoading ? "Saving" : "Save Alert Config"} disabled={isSavingAlertConfigLoading || isAlertConfigLoading || isAlertConfigLoadingError} onClick={onSaveAlertConfig} className={buttonStyles} />
+                            <PrimaryButton text={editorMode === AlertEditorMode.Create ? "Create Alert Config" : "Update Alert Config"} disabled={isSavingAlertConfigLoading || isAlertConfigLoading || isAlertConfigLoadingError} onClick={onSaveAlertConfig} className={buttonStyles} />
                         </Stack>
                     </> : <Spinner label="Loading alert config..." size={SpinnerSize.large} />
                 }
