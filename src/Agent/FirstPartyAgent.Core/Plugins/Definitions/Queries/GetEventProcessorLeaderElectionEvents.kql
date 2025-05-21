@@ -1,0 +1,8 @@
+let queryFrom = datetime("##fromDate##");
+let queryTo = datetime("##toDate##");
+let clusterName = "##managedClusterName##";
+EventProcessorEvents
+| where PreciseTimeStamp >= queryFrom and PreciseTimeStamp <= queryTo
+| where EnvironmentName == clusterName 
+| where Reason == "LeaderElection"
+| take 1000

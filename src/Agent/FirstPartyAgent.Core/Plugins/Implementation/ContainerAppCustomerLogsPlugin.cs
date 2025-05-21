@@ -37,4 +37,14 @@ public class ContainerAppCustomerLogsPlugin : IContainerAppCustomerLogsPlugin
             { "containerAppOrJobName", containerAppOrJobName }
         });
     }
+
+    public Task<string> GetEventProcessorLeaderElectionEvents(string region, DateTime fromDate, DateTime toDate, string managedClusterName)
+    {
+        return _kustoPlugin.ExecuteLocalFunctionAsync("GetEventProcessorLeaderElectionEvents", region,
+        new Dictionary<string, string> {
+            { "fromDate", fromDate.ToString() },
+            { "toDate", toDate.ToString() },
+            { "managedClusterName", managedClusterName }
+        });
+    }
 }

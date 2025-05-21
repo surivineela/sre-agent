@@ -9,5 +9,7 @@ namespace FirstPartyAgent.Plugins
         Task<string> GetLogConfiguration(string region, DateTime fromDate, DateTime toDate, Guid customerSubscriptionId, string managedEnvironmentName, string managedClusterName);
 
         Task<string> GetEventProcessorErrors(string region, DateTime fromDate, DateTime toDate, string managedClusterName, string containerAppOrJobName);
+
+        Task<string> GetEventProcessorLeaderElectionEvents(string region, DateTime fromDate, DateTime toDate, string managedClusterName);
     }
 }

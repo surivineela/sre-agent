@@ -7,6 +7,6 @@ ContainerAppDBState
 | where TIMESTAMP between (startTime .. endTime)
 | where subscription == cappSubscription
 | where resourceGroup == cappResourceGroup
-| where containerAppName == cappName
+| where containerAppName == cappName or containerAppsJobName == cappName
 | summarize  max(TIMESTAMP) by managedClusterName
 | distinct managedClusterName

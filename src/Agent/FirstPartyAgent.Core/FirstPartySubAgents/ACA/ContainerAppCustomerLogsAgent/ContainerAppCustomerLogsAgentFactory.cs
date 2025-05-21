@@ -8,6 +8,7 @@ using Agent.Plugins;
 using Agent.Runtime.Communication;
 using Agent.Runtime.SubAgents;
 using FirstPartyAgent.Core.Plugins.Definitions;
+using FirstPartyAgent.Core.Plugins.Implementation;
 using FirstPartyAgent.Core.Plugins.Interfaces;
 using FirstPartyAgent.Plugins;
 using FirstPartyAgent.Plugins.Definitions;
@@ -25,14 +26,16 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCustomerLogsA
         public const string OrchestrationInstanceIdPrefix = nameof(ContainerAppCustomerLogsAgent);
 
         public ContainerAppCustomerLogsAgentFactory(
-        IMetricsPlugin metricsPlugin,
-        ITimePlugin timePlugin,
-        IContainerAppIcMPlugin containerAppIcMPlugin,
-        IManagedClusterPlugin managedClusterPlugin,
-        IToolsRepository toolsRepository,
-        IThreadOrchestrationManager mappingManager,
-        DurableTaskClient durableTaskClient,
-        IContainerAppCustomerLogsPlugin containerAppCustomerLogsPlugin)
+            IMetricsPlugin metricsPlugin,
+            ITimePlugin timePlugin,
+            IContainerAppIcMPlugin containerAppIcMPlugin,
+            IManagedClusterPlugin managedClusterPlugin,
+            IManagedEnvironmentPlugin managedEnvironmentPlugin,
+            IToolsRepository toolsRepository,
+            IThreadOrchestrationManager mappingManager,
+            DurableTaskClient durableTaskClient,
+            IContainerAppCustomerLogsPlugin containerAppCustomerLogsPlugin,
+            IContainerAppEnvoyPlugin envoyPlugin)
         {
             _toolsRegistry = toolsRepository;
             var toolSignatures = new List<string>();
@@ -41,6 +44,15 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCustomerLogsA
 
             var logsMetricsPluginDefinition = new ContainerAppCustomerLogsPluginDefinition(containerAppCustomerLogsPlugin);
             toolSignatures.Add(_toolsRegistry.GetSignature(() => logsMetricsPluginDefinition.GetLogConfiguration));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => logsMetricsPluginDefinition.GetEventProcessorLeaderElectionEvents));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => logsMetricsPluginDefinition.GetEventProcessorErrors));
+
+            var envoyPluginDefinition = new ContainerAppEnvoyPluginDefinition(envoyPlugin);
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => envoyPluginDefinition.GetContainerAppManagedCluster));
+
+            var managedEnvironmentPluginDefinition = new ManagedEnvironmentPluginDefinition(managedEnvironmentPlugin);
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => managedEnvironmentPluginDefinition.GetManagedEnvironmentInfo));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => managedEnvironmentPluginDefinition.GetASIPageForManagedEnvironment));
 
             var managedClusterPluginDefinition = new ManagedClusterPluginDefinition(managedClusterPlugin);
             toolSignatures.Add(_toolsRegistry.GetSignature(() => managedClusterPluginDefinition.GetASIPageForManagedCluster));
@@ -48,6 +60,7 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCustomerLogsA
             var containerAppIcMPluginDefinition = new ContainerAppIcMPluginDefinition(containerAppIcMPlugin);
             // READ operations
             toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppIcMPluginDefinition.GetInitialInvestigationReportAsync));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppIcMPluginDefinition.GetIssueInvestigationTimeRange));
             // WRITE operations
             toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppIcMPluginDefinition.AddDiscussionEntry));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppIcMPluginDefinition.WasAgentHelpfulInDebuggingIssueAsync));

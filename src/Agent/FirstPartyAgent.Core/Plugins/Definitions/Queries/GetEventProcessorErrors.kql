@@ -3,11 +3,17 @@ let queryFrom = datetime("##fromDate##");
 let queryTo = datetime("##toDate##"); 
 let clusterName = "##managedClusterName##"; 
 let containerAppOrJobName = "##containerAppOrJobName##"; 
-EventProcessorEvents
+let issues = (EventProcessorEvents
 | where PreciseTimeStamp >= queryFrom and PreciseTimeStamp <= queryTo
 | where EnvironmentName == clusterName 
 | where ContainerAppName == containerAppOrJobName or JobName == containerAppOrJobName
-| where Internal == bool(False) 
 | where Type != "Normal"
-| project Type, Message = msg, Reason
-| take 1000
+| take 1000);
+let normal = (EventProcessorEvents
+| where PreciseTimeStamp >= queryFrom and PreciseTimeStamp <= queryTo
+| where EnvironmentName == clusterName 
+| where ContainerAppName == containerAppOrJobName or JobName == containerAppOrJobName
+| where Type == "Normal"
+| take 1);
+issues
+| union normal
