@@ -70,6 +70,7 @@ namespace FirstPartyAgent.Constants
             public const string GetMetricsMdmCount = "get_metrics_mdm_count";
             public const string GetLogConfiguration = "GetLogConfiguration";
             public const string GetEventProcessorErrors = "GetEventProcessorErrors";
+            public const string GetAksClusterCcpNamespace = "get_aks_cluster_ccpNamespace";
         }
 
         public static class Kusto

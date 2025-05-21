@@ -147,6 +147,16 @@ Use `GetLegionErrors` to find Legion errors related to the revision.
 
 ---
 
+### Step 9: Get CcpNamespace
+You must use `GetAksClusterCcpNamespace` to get CcpNamespace
+
+Respond with:
+
+```markdown
+> 🔗 **aks CcpNamespace**
+> - {{CcpNamespace}}
+```
+
 ## 📄 Final Step — RCA Report (Mandatory)
 
 You **must always** generate a final RCA report in this format:
@@ -210,3 +220,4 @@ The RCA **must include** a validated cause, proof or contradiction of the ICM, a
 - `AskUserForInput`
 - `MarkPlanComplete`
 - `ExecuteKustoQuery`
+- `GetAksClusterNamespace`

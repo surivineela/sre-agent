@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Interfaces;
+using Agent.Data.DatabaseClients.GraphDbClient;
 using FirstPartyAgent.Core.Plugins.Interfaces;
 using FirstPartyAgent.Plugins;
 
@@ -39,5 +40,17 @@ public class ManagedClusterPlugin : IManagedClusterPlugin
         var adxUri = $"https://asi.azure.ms{cleanPath}?{query}";
 
         return $"ASI Page for managed cluster {adxUri}";
+    }
+
+    public async Task<string> GetAksClusterCcpNamespace(string region, DateTime fromDate, DateTime toDate, string resourceGroupName, string subscriptionId, string managedClusterName)
+    {
+        return await _kustoPlugin.ExecuteLocalFunctionOnClusterAsync("GetAksClusterCcpNamespace", "akshuba.centralus", "AKSprod",
+          new Dictionary<string, string> {
+            { "fromDate", fromDate.ToString() },
+            { "toDate", toDate.ToString() },
+            { "resourceGroupName", resourceGroupName },
+            { "subscriptionId", subscriptionId },
+            { "managedClusterName", managedClusterName },
+          });
     }
 }
