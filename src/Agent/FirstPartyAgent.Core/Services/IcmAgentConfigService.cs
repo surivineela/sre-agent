@@ -15,6 +15,7 @@ public class IcmAgentConfigService : IIcmAgentConfigService
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly KustoClient _kustoClient;
     private Task _initializationTask;
+    private IICMWorkflowClient _icmworkflowClient;
     private const string _alertConfigContainerName = "IcmAlertConfigs";
     private const string _teamContainerName = "Teams";
     private const string _alertDetailsContainerName = "IcmAlertDetails";
@@ -28,7 +29,8 @@ public class IcmAgentConfigService : IIcmAgentConfigService
         IHttpClientFactory httpClientFactory,
         ICosmosDBService cosmosDbService,
         KustoClient kustoClientService,
-        IcmAgentSettings icmAgentSettings)
+        IcmAgentSettings icmAgentSettings,
+        IICMWorkflowClient icmworkflowClient)
     {
         _env = env;
         _httpClientFactory = httpClientFactory;
@@ -40,6 +42,8 @@ public class IcmAgentConfigService : IIcmAgentConfigService
         {
             _initializationTask = InitializeCosmosDbTables();
         }
+
+        _icmworkflowClient = icmworkflowClient;
     }
 
     private async Task InitializeCosmosDbTables()
@@ -349,6 +353,50 @@ public class IcmAgentConfigService : IIcmAgentConfigService
         {
             string query =
 @$"
+let et = now();
+let st = et - {numOfDays}d;
+Incidents
+| where CreateDate  between (st .. et)
+| where OwningTeamId == {teamId} and Title has '{title}'
+| where Status in ('RESOLVED', 'MITIGATED')
+| summarize arg_max(ModifiedDate, *) by IncidentId
+| project Id = toint(IncidentId), Severity, Title, State = Status, CreatedDate = CreateDate
+| order by CreatedDate desc";
+
+
+            var result = await _icmworkflowClient.RunKustoQuery(query);
+
+            // parse json
+            var incidents = Newtonsoft.Json.JsonConvert.DeserializeObject<List<IcmIncidentBasicInfo>>(result);
+
+            if (incidents == null)
+            {
+                throw new Exception("Failed to parse incidents from Kusto query result.");
+            }
+
+            foreach (var incident in incidents)
+            {
+                DateTime.SpecifyKind(incident.CreatedDate, DateTimeKind.Utc);
+            }
+
+            return incidents;
+
+
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Error getting incidents by team alert: {ex.Message}", ex);
+        }
+    }
+
+    private async Task<List<IcmIncidentBasicInfo>> GetIncidentsByTeamAlertFromKusto(int teamId, int numOfDays, string title)
+    {
+        await IsReady();
+
+        try
+        {
+            string query =
+@$"
 declare query_parameters (teamIdParam:int, numOfDaysParam:int, titleParam:string);
 let et = now();
 let st = et - (numOfDaysParam*1d);
@@ -358,8 +406,7 @@ Incidents
 | where Status in ('RESOLVED', 'MITIGATED')
 | summarize arg_max(ModifiedDate, *) by IncidentId
 | project Id = toint(IncidentId), Severity, Title, State = Status, CreatedDate = CreateDate
-| order by CreatedDate desc
-| take 20";
+| order by CreatedDate desc";
             // Create parameters dictionary
             var parameters = new Dictionary<string, object>
             {

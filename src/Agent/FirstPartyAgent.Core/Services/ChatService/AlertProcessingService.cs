@@ -9,6 +9,7 @@ using FirstPartyAgent.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
+using ModelContextProtocol.Protocol.Types;
 
 namespace FirstPartyAgent.Core.Services;
 
@@ -16,7 +17,7 @@ public interface IAlertProcessingService
 {
     Task<ChatMessage> ProcessAlertAsync(AlertRequestBody alertRequest);
 
-    (Func<Task<ChatMessage>> processor, string sessionId) GetAlertProcessorAndSessionId(AlertRequestBody alertRequest);
+    (Func<Task<ChatMessage>> processor, string sessionId) GetAlertProcessorAndSessionId(AlertRequestBody alertRequest, bool test = false, string sessionId = null);
 }
 
 public class AlertProcessingService : IAlertProcessingService
@@ -28,8 +29,17 @@ public class AlertProcessingService : IAlertProcessingService
     private readonly ICMPlugin _icmPlugin;
     private readonly AzureAlertingPlugin _azureAlertingPlugin;
     private readonly IChatService _chatService;
+    private readonly ISessionMessageService _sessionMessageService;
 
-    public AlertProcessingService(IConfiguration config, ILogger<AlertProcessingService> logger, Kernel kernel, ITeamsClient teamsClient, ICMPlugin icmPlugin, AzureAlertingPlugin azureAlertingPlugin, IChatService chatService)
+    public AlertProcessingService(
+        IConfiguration config,
+        ILogger<AlertProcessingService> logger,
+        Kernel kernel,
+        ITeamsClient teamsClient,
+        ICMPlugin icmPlugin,
+        AzureAlertingPlugin azureAlertingPlugin,
+        IChatService chatService,
+        ISessionMessageService sessionMessageService)
     {
         _icmPlugin = icmPlugin;
         _azureAlertingPlugin = azureAlertingPlugin;
@@ -38,6 +48,7 @@ public class AlertProcessingService : IAlertProcessingService
         _kernel = kernel;
         _azureAlertingPlugin = azureAlertingPlugin;
         _chatService = chatService;
+        _sessionMessageService = sessionMessageService;
     }
 
     private bool AgentModeExists(string agentMode)
@@ -87,7 +98,7 @@ public class AlertProcessingService : IAlertProcessingService
         return null;
     }
 
-    private async Task<ChatMessage> ProcessAlertAsync(AlertRequestBody alertRequest, string sessionId)
+    private async Task<ChatMessage> ProcessAlertAsync(AlertRequestBody alertRequest, string sessionId, bool test = false)
     {
         if (alertRequest == null) {
             throw new ArgumentNullException(nameof(alertRequest), "AlertRequestBody cannot be null");
@@ -117,10 +128,14 @@ public class AlertProcessingService : IAlertProcessingService
             kernel.Data["sessionId"] = sessionId;
             var incidentDetails = await _icmPlugin.GetIncidentInfo(alertRequest.IncidentId, kernel);
 
-            var guardrailMessage = await ApplyGuardrails(incidentDetails);
-            if (guardrailMessage != null)
-            {
-                return guardrailMessage;
+            if (!test) {
+                var guardrailMessage = await ApplyGuardrails(incidentDetails);
+                if (guardrailMessage != null)
+                {
+                    await _sessionMessageService.GetPublisher(sessionId).Invoke(guardrailMessage.Message);
+                    _sessionMessageService.DeleteSession(sessionId);
+                    return guardrailMessage;
+                }
             }
 
             var messageRequestBody = new MessageRequestBody()
@@ -137,58 +152,6 @@ public class AlertProcessingService : IAlertProcessingService
             }
 
             return await _chatService.ProcessMessageAsync(messageRequestBody);
-
-            /*//match incident details with existing alert configs
-            if (incidentDetails.MonitoringRole == "AzureAlerting")
-            {
-                var alertId = incidentDetails.MonitoringSlice;
-                var alertConfig = AgentFinder.GetICMAlertConfig(alertId);
-                var alertDetails = await _azureAlertingPlugin.GetAlertDetailsById(alertId);
-
-                var messageRequestBody = new MessageRequestBody()
-                {
-                    Message = !string.IsNullOrWhiteSpace(alertRequest.CustomMessage)? alertRequest.CustomMessage :  $"A new Severity {incidentDetails.Severity} incident has been created. IncidentId - {alertRequest.IncidentId}",
-                    Sender = !string.IsNullOrWhiteSpace(alertRequest.Source) ? alertRequest.Source :  "icm_automation",
-                    SessionId = $"ICMProcessing-{alertRequest.IncidentId}",
-                    AgentMode = alertConfig.AgentMode ?? alertRequest.AgentMode,
-                    PromptReplacements = new Dictionary<string, string>()
-                    {
-                        { "ALERT_DETAILS_HERE", JsonConvert.SerializeObject(alertDetails)},
-                        { "CUSTOM_INSTRUCTIONS_HERE", string.Join("\n", alertConfig.MitigationInstructions) }
-                    }
-                };
-                return await _chatService.ProcessMessageAsync(messageRequestBody);
-            }
-            else
-            {
-                var alertConfigs = AgentFinder.GetICMAlertConfigs();
-                foreach (var alertId in alertConfigs.Keys) {
-                    var alertConfig = alertConfigs[alertId];
-                    if (incidentDetails.Title == alertConfig.IncidentTitle || (!string.IsNullOrWhiteSpace(alertConfig.IncidentTitleContains) && incidentDetails.Title.Contains(alertConfig.IncidentTitleContains, StringComparison.OrdinalIgnoreCase)))
-                    {
-                        var messageRequestBody = new MessageRequestBody()
-                        {
-                            Message = $"A new Severity {incidentDetails.Severity} incident has been created. IncidentId - {alertRequest.IncidentId}",
-                            Sender = "icm_automation",
-                            SessionId = $"ICMProcessing-{alertRequest.IncidentId}",
-                            AgentMode = alertConfig.AgentMode ?? alertRequest.AgentMode,
-                            PromptReplacements = new Dictionary<string, string>()
-                            {
-                                { "CUSTOM_INSTRUCTIONS_HERE", string.Join("\n", alertConfig.MitigationInstructions) }
-                            }
-                        };
-                        return await _chatService.ProcessMessageAsync(messageRequestBody);
-                    }
-                }
-            }
-
-            var chatMessage = new ChatMessage()
-            {
-                Message = $"No matching alert configuration found for incidentId: {alertRequest.IncidentId}",
-                Timestamp = DateTime.Now
-            };
-
-            return chatMessage;*/
         }
         catch (Exception ex)
         {
@@ -203,10 +166,10 @@ public class AlertProcessingService : IAlertProcessingService
         }
     }
 
-    public (Func<Task<ChatMessage>> processor, string sessionId) GetAlertProcessorAndSessionId(AlertRequestBody alertRequest)
+    public (Func<Task<ChatMessage>> processor, string sessionId) GetAlertProcessorAndSessionId(AlertRequestBody alertRequest, bool test = false, string sessionId = null)
     {
-        string sessionId = GetSessionId(alertRequest) + "-" + Guid.NewGuid().ToString();
-        return (() => ProcessAlertAsync(alertRequest, sessionId), sessionId);
+        sessionId = sessionId ?? GetSessionId(alertRequest, test);
+        return (() => ProcessAlertAsync(alertRequest, sessionId, test), sessionId);
     }
 
     public Task<ChatMessage> ProcessAlertAsync(AlertRequestBody alertRequest)
@@ -215,8 +178,12 @@ public class AlertProcessingService : IAlertProcessingService
         return ProcessAlertAsync(alertRequest, sessionId);
     }
 
-    private string GetSessionId(AlertRequestBody alertRequest)
+    private string GetSessionId(AlertRequestBody alertRequest, bool test = false)
     {
+        if (test)
+        {
+            return Guid.NewGuid().ToString();
+        }
         return $"ICMProcessing-{alertRequest.IncidentId}";
     }
 

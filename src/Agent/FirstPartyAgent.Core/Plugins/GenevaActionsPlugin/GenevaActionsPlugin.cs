@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
+using System.Threading.Tasks;
 using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Core.Extensions;
 using FirstPartyAgent.Core.Models;
@@ -133,6 +134,12 @@ namespace FirstPartyAgent.Core.Plugins
                 return allGenevaActions;
             }
             return allGenevaActions;
+        }
+
+        public async Task<List<string>> GetAvailableGenevaActions()
+        {
+            var actions = await GetGenevaActions();
+            return actions.Select(x => x.ActionName).ToList();
         }
 
         private async Task<bool> IsSubscriptionInternal(string subscriptionId, Kernel kernel)

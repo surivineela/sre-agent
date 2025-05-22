@@ -2,11 +2,15 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Configuration;
 using Agent.Core.Models;
+using Azure.Identity;
 using FirstPartyAgent.Core.Services;
 using FirstPartyAgent.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
 
 namespace FirstPartyAgent.Core.Extensions
 {
@@ -36,6 +40,28 @@ namespace FirstPartyAgent.Core.Extensions
                     }
                 }
             }
+        }
+
+        public static async Task<string> RunAsync(this Kernel kernel, string systemPrompt)
+        {
+            var chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
+
+            var history = new ChatHistory();
+            history.AddSystemMessage(systemPrompt);
+
+
+            var result = await chatCompletionService.GetChatMessageContentAsync(
+                history,
+                executionSettings: new AzureOpenAIPromptExecutionSettings()
+                {
+                    FunctionChoiceBehavior = FunctionChoiceBehavior.None(),
+                    MaxTokens = 4096,
+                    Temperature = 0.5
+                },
+                kernel: kernel);
+
+            return result.Content;
+
         }
     }
 }

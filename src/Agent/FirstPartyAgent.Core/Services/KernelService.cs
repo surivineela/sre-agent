@@ -18,6 +18,21 @@ namespace FirstPartyAgent.Core.Services
     {
         Kernel GetKernelForAgentMode(string agentMode, bool createNew = false);
         List<string> ListAgentModes();
+        List<PluginToolInfo> GetAvailablePluginToolInfo(string agentMode);
+    }
+
+    public class PluginToolInfo
+    {
+        public string PluginName { get; set; }
+        public string ToolName { get; set; }
+        public string Description { get; set; }
+        public List<ToolParameter> ToolParameters { get; set; }
+    }
+
+    public class ToolParameter
+    {
+        public string ParameterName { get; set; }
+        public string Description { get; set; }
     }
 
     public class KernelService: IKernelService
@@ -62,6 +77,32 @@ namespace FirstPartyAgent.Core.Services
         public List<string> ListAgentModes()
         {
             return _kernels.Keys.ToList();
+        }
+
+        public List<PluginToolInfo> GetAvailablePluginToolInfo(string agentMode)
+        {
+            var result = new List<PluginToolInfo>();
+            var _kernel = GetKernelForAgentMode(agentMode);
+            foreach (var plugin in _kernel.Plugins)
+            {
+                var pluginName = plugin.Name;
+                foreach (var tool in plugin.GetFunctionsMetadata())
+                {
+                    var pluginToolInfo = new PluginToolInfo()
+                    {
+                        PluginName = pluginName,
+                        Description = tool.Description,
+                        ToolName = tool.Name,
+                        ToolParameters = tool.Parameters.Select(x => new ToolParameter()
+                        {
+                            ParameterName = x.Name,
+                            Description = x.Description
+                        }).ToList()
+                    };
+                    result.Add(pluginToolInfo);
+                }
+            }
+            return result;
         }
 
         private static Kernel CreateAndConfigureKernel(AgentMode agentMode, IServiceProvider sp)

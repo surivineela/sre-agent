@@ -2,6 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Reflection;
+using FirstPartyAgent.AgentPrompts;
 using FirstPartyAgent.Core.Models;
 using FirstPartyAgent.Core.Models.Attributes;
 using FirstPartyAgent.Core.Services;
@@ -9,7 +11,6 @@ using FirstPartyAgent.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
-using System.Reflection;
 
 namespace FirstPartyAgent.Core.Helpers
 {
@@ -19,6 +20,7 @@ namespace FirstPartyAgent.Core.Helpers
         {
             { "None", new List<string>(){ "KustoPlugin", "TimePlugin", "HttpRequestPlugin", "AzureDevOpsPlugin" } },
             { "Sev2", new List<string>(){ "KustoPlugin", "IcmPlugin", "GenevaActionsPlugin", "ICMChartPlugin", "WebAppPlugin", "AzureAlertingPlugin", "TimePlugin", "HttpRequestPlugin" } },
+            { "TestModeAgent", new List<string>(){ "KustoPlugin", "IcmPlugin", "GenevaActionsPlugin", "ICMChartPlugin", "WebAppPlugin", "AzureAlertingPlugin", "TimePlugin", "HttpRequestPlugin" } },
             { "ICMAgent", new List<string>(){ "KustoPlugin", "IcmPlugin", "GenevaActionsPlugin", "ICMChartPlugin", "AzureAlertingPlugin" } },
             { "MFP", new List<string>(){ "IcmPlugin", "GenevaActionsPlugin", "KustoPlugin", "TeamsPlugin" } },
             { "GithubIssueTagger", new List<string>() { "GitHubIssuePlugin", "AzureSearchPlugin" } },

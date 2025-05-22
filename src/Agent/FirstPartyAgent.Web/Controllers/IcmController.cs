@@ -4,6 +4,7 @@ using FirstPartyAgent.Core.Models;
 using FirstPartyAgent.Core.Services;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using static FirstPartyAgent.Core.Services.ICMAgentInstructionGenerationService;
 
 namespace Agent.Web.Controllers;
 
@@ -18,10 +19,17 @@ public class IcmController : Controller
     private readonly IICMWorkflowClient _icmWorkflowClient;
     private readonly IAlertProcessingService _alertProcessingService;
     private readonly ISessionMessageService _sessionMessageService;
+    private readonly ICMAgentInstructionGenerationService _instructionGenerationService;
     private readonly TsgFetcherService _tsgFetcherService;
-    public IcmController(ILogger<ApiController> logger, IConfiguration configuration, IIcmAgentConfigService icmConfigService,
-        IHttpClientFactory httpClientFactory, IICMWorkflowClient icmWorkflowClient
-        , IAlertProcessingService alertProcessingService, ISessionMessageService sessionMessageService
+    public IcmController(
+        ILogger<ApiController> logger,
+        IConfiguration configuration,
+        IIcmAgentConfigService icmConfigService,
+        IHttpClientFactory httpClientFactory,
+        IICMWorkflowClient icmWorkflowClient,
+        IAlertProcessingService alertProcessingService,
+        ISessionMessageService sessionMessageService,
+        ICMAgentInstructionGenerationService instructionGenerationService
         )
     {
         _logger = logger;
@@ -31,6 +39,7 @@ public class IcmController : Controller
         _icmWorkflowClient = icmWorkflowClient;
         _alertProcessingService = alertProcessingService;
         _sessionMessageService = sessionMessageService;
+        _instructionGenerationService = instructionGenerationService;
     }
 
     [HttpGet("isFeatureEnabled")]
@@ -497,62 +506,14 @@ public class IcmController : Controller
         }
     }
 
-    public class GenerateInstructionsRequest
-    {
-        public int[] IncidentIds { get; set; }
-        public string? CustomInstructions { get; set; }
-    }
-
     [HttpPost("generateInstructions")]
     [HttpOptions("generateInstructions")]
     public async Task<IActionResult> GenerateInstructions([FromBody] GenerateInstructionsRequest request)
     {
         try
         {
-            string agentFunctionEndpoint = _configuration.GetValue<string>("HotsiteAgentConfig:AgentFunctionEndpoint") ?? throw new InvalidOperationException("AgentFunctionEndpoint is not configured.");
-            string agentFunctionKey = _configuration.GetValue<string>("HotsiteAgentConfig:AgentFunctionKey") ?? throw new InvalidOperationException("AgentFunctionKey is not configured.");
-            if (agentFunctionEndpoint.EndsWith("/"))
-            {
-                agentFunctionEndpoint = agentFunctionEndpoint.TrimEnd('/');
-            }
-
-            string apiUrl = $"{agentFunctionEndpoint}/api/GenerateInstructions";
-
-            if (request.CustomInstructions.StartsWith("https://"))
-            {
-                var tsg = await _tsgFetcherService.Fetch(request.CustomInstructions);
-                request.CustomInstructions = tsg;
-            }
-
-
-            var content = new StringContent(
-                JsonConvert.SerializeObject(request),
-                Encoding.UTF8,
-                "application/json");
-
-            // Send request to external API and receive streaming response
-            using (var req = new HttpRequestMessage(HttpMethod.Post, apiUrl) { Content = content })
-            {
-                req.Headers.Add("Accept", "text/plain");
-                req.Headers.Add("x-functions-key", agentFunctionKey);
-
-                using (var externalResponse = await _httpClientFactory.CreateClient().SendAsync(req, HttpCompletionOption.ResponseHeadersRead))
-                {
-                    Response.StatusCode = (int)externalResponse.StatusCode;
-
-                    var body = await externalResponse.Content.ReadAsStringAsync();
-                    if (externalResponse.IsSuccessStatusCode)
-                    {
-                        // Return the response body as JSON
-                        return Content(body, "application/json");
-                    }
-                    else
-                    {
-                        // If the request failed, return the error message
-                        return StatusCode((int)externalResponse.StatusCode, body);
-                    }
-                }
-            }
+            var result = await _instructionGenerationService.GenerateInstructions(request);
+            return Ok(result);
         }
         catch (ArgumentException ex)
         {

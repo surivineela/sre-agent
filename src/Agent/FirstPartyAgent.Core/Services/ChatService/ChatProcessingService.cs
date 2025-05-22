@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json.Serialization;
 using Agent.Core;
 using Agent.Core.Models;
 using FirstPartyAgent.Core.Extensions;
@@ -9,6 +10,7 @@ using FirstPartyAgent.Core.Helpers;
 using FirstPartyAgent.Core.Models;
 using FirstPartyAgent.Models;
 using Markdig;
+using Microsoft.Bot.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
@@ -17,6 +19,29 @@ using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
 using Newtonsoft.Json;
 
 namespace FirstPartyAgent.Core.Services;
+
+
+public class DeserializableChatMessageContent
+{
+    public string AuthorName { get; set; }
+    public AuthorRole Role { get; set; }
+    public string Content { get; set; }
+    public string Source { get; set; }
+
+    public DeserializableChatMessageContent(ChatMessageContent chatMessage)
+    {
+#pragma warning disable SKEXP0001,SKEXP0101
+        AuthorName = chatMessage.AuthorName;
+        Role = chatMessage.Role;
+        Content = chatMessage.Content;
+        Source = chatMessage.Source?.ToString();
+#pragma warning restore SKEXP0001,SKEXP0101
+
+    }
+
+    // Parameterless constructor for deserialization, if needed
+    public DeserializableChatMessageContent() { }
+}
 
 public class ChatProcessingService : IChatService
 {
@@ -31,7 +56,13 @@ public class ChatProcessingService : IChatService
     private Dictionary<string, SessionInformation> _sessionCollection;
     private readonly int backoffPeriodInSeconds = 60;
 
-    public ChatProcessingService(IConfiguration config, ILogger<ChatProcessingService> logger, IKernelService kernelService, ITeamsClient teamsClient, Kernel kernel, ISessionMessageService sessionMessageService)
+    public ChatProcessingService(
+        IConfiguration config,
+        ILogger<ChatProcessingService> logger,
+        IKernelService kernelService,
+        ITeamsClient teamsClient,
+        Kernel kernel,
+        ISessionMessageService sessionMessageService)
     {
         _teamsClient = teamsClient;
         _config = config;
@@ -135,7 +166,7 @@ public class ChatProcessingService : IChatService
             - Remember the Agent does not run background tasks. So an answer like 'I will now proceed with doing XYZ' is not acceptable. It should actually carry out the tasks planned and only send response once everything is done (unless it's seeking user confirmation)."
         };
         sessionInfo.ChatHistory.Add(userMessage);
-        var _kernel = _kernelService.GetKernelForAgentMode(sessionInfo.AgentMode.ToString());
+        var _kernel = _kernelService.GetKernelForAgentMode(sessionInfo.AgentMode.ToString()).Clone();
         var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
         var promptExecutionSettings = new AzureOpenAIPromptExecutionSettings()
         {
@@ -181,7 +212,7 @@ public class ChatProcessingService : IChatService
         {
             isAgentDone = true;
         }
-        //Remove the user message that was inserted.
+        // Remove the user message that was inserted.
         sessionInfo.ChatHistory.Remove(userMessage);
         return isAgentDone;
     }
@@ -272,7 +303,7 @@ public class ChatProcessingService : IChatService
         return chatCompletionResult;
     }
 
-    public async Task<ChatMessage> ProcessMessageAsync(MessageRequestBody message)
+    public async Task<ChatMessage> ProcessMessageAsync(MessageRequestBody message, SessionInformation sessionInfo = null)
     {
         try
         {
@@ -299,7 +330,8 @@ public class ChatProcessingService : IChatService
                 throw new ArgumentException("SessionId cannot be empty", nameof(message));
             }
 
-            if (!_sessionCollection.ContainsKey(message.SessionId))
+
+            if (sessionInfo == null && !_sessionCollection.ContainsKey(message.SessionId))
             {
                 var foundAgent = AgentModeExists(message.AgentMode);
                 if (!foundAgent)
@@ -309,8 +341,11 @@ public class ChatProcessingService : IChatService
                 _sessionCollection[message.SessionId] = new SessionInformation(message.SessionId, message.AgentMode);
             }
 
-            var sessionInfo = _sessionCollection[message.SessionId];
-            sessionInfo.Data = message.Data;
+            sessionInfo = sessionInfo ?? _sessionCollection[message.SessionId];
+            if (message.Data?.Any() == true)
+            {
+                sessionInfo.Data = message.Data;
+            }
 
             if ((message.Message == "clear state" || message.Message == "<p>clear state</p>"))
             {

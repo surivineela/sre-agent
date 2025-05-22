@@ -115,6 +115,7 @@ namespace FirstPartyAgent.Core.Extensions
                     return new StorageServiceDisabled();
                 }
             });
+            services.AddSingleton<ICMAgentInstructionGenerationService>();
 
 
             var azureSettings = services.BuildServiceProvider().GetRequiredService<IOptions<AzureSettings>>();

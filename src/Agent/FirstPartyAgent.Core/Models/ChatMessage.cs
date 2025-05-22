@@ -2,6 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using FirstPartyAgent.Core.Services;
+
 namespace FirstPartyAgent.Core.Models;
 
 public record ChatMessage()

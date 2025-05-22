@@ -301,43 +301,25 @@ namespace FirstPartyAgent.Core.Services
 
         public async Task<List<DiscussionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId, DateTimeOffset? queryFrom = null)
         {
-            if (_icmWorkflowSettings.UseFunctionApp)
+            var payload = queryFrom.HasValue
+                     ? JsonConvert.SerializeObject(new
+                     {
+                         incidentId,
+                         QueryFrom = queryFrom.Value.ToString("s", System.Globalization.CultureInfo.InvariantCulture)
+                     })
+                     : JsonConvert.SerializeObject(new { incidentId });
+
+            var response = await SendICMWorkflowRequest(_icmWorkflowSettings.GetIncidentDiscussionEntriesWorkflowName, payload);
+            if (response.IsSuccessStatusCode)
             {
-                var response = await ExecuteGetCallsInICMWorkflowsFunctionApp($"/api/GetIncidentDiscussionEntries?incidentId={incidentId}");
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var resObj = JsonConvert.DeserializeObject<ODataResponse<DiscussionEntry>>(content);
-                    return resObj.Value;
-                }
-                else
-                {
-                    Console.WriteLine($"Failed to fetch discussion entries for incidentId: {incidentId}");
-                    return null;
-                }
+                var content = await response.Content.ReadAsStringAsync();
+                var discussionEntries = JsonConvert.DeserializeObject<List<DiscussionEntry>>(content);
+                return discussionEntries;
             }
             else
             {
-                var payload = queryFrom.HasValue
-                    ? JsonConvert.SerializeObject(new
-                    {
-                        incidentId,
-                        QueryFrom = queryFrom.Value.ToString("s", System.Globalization.CultureInfo.InvariantCulture)
-                    })
-                    : JsonConvert.SerializeObject(new { incidentId });
-                                
-                var response = await SendICMWorkflowRequest(_icmWorkflowSettings.GetIncidentDiscussionEntriesWorkflowName, payload);
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var discussionEntries = JsonConvert.DeserializeObject<List<DiscussionEntry>>(content);
-                    return discussionEntries;
-                }
-                else
-                {
-                    Console.WriteLine($"Failed to fetch discussion entries for incidentId: {incidentId}");
-                    return null;
-                }
+                Console.WriteLine($"Failed to fetch discussion entries for incidentId: {incidentId}");
+                return null;
             }
         }
 
@@ -578,6 +560,23 @@ Incidents
             {
                 string errorMessage = $"Failed to search incidents with searchString: {searchString}";
                 return new List<SearchItem> { new SearchItem { Id = errorMessage } };
+            }
+        }
+
+        // run query on icm kusto cluster
+        public async Task<string> RunKustoQuery(string query)
+        {
+            var payload = JsonConvert.SerializeObject(new { query });
+            var response = await SendICMWorkflowRequest(_icmWorkflowSettings.IncidentLookupWorkflowName, payload);
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                return content;
+            }
+            else
+            {
+                string errorMessage = $"Failed to run kusto query: {query}";
+                return errorMessage;
             }
         }
 
@@ -873,6 +872,7 @@ Incidents
         public Task<string> GetAppLensDiagnosticsAsync(string incidentId) => Task.FromResult<string>(null);
         public bool ProcessImages => false;
         public bool IsEnabled() { return false; }
+        public Task<string> RunKustoQuery(string query) => Task.FromResult<string>("ICM Plugin is disabled");
     }
     public interface IICMWorkflowClient : IDisposable
     {
@@ -904,6 +904,7 @@ Incidents
         Task<string> GetAppLensDiagnosticsAsync(string incidentId);
         bool ProcessImages { get; }
         bool IsEnabled();
+        Task<string> RunKustoQuery(string query);
     }
 }
 
