@@ -120,6 +120,45 @@ public class ResourceGroupCrawler : IResourceCrawler
                     yield return aksNode;
                 }
             }
+            else if (Constants.StorageType.Equals(type, StringComparison.OrdinalIgnoreCase))
+            {
+                var storageNode = CreateNodeFromJson(resource);
+                if (storageNode != null)
+                {
+                    storageNode.Location = resource.GetProperty("location").GetString();
+                    await _graphDbClient.AddOrUpdateNodeAsync(storageNode);
+                    var edge = new ArmResourceEdge(rgNode.GetNodeId(), storageNode.GetNodeId(), Constants.Relationships.Contains);
+                    edge.AddRbacInheritedEdgeProperties();
+                    await _graphDbClient.AddOrUpdateEdgeAsync(edge);
+                    yield return storageNode;
+                }
+            }
+            else if (Constants.KeyVaultType.Equals(type, StringComparison.OrdinalIgnoreCase))
+            {
+                var kvNode = CreateNodeFromJson(resource);
+                if (kvNode != null)
+                {
+                    kvNode.Location = resource.GetProperty("location").GetString();
+                    await _graphDbClient.AddOrUpdateNodeAsync(kvNode);
+                    var edge = new ArmResourceEdge(rgNode.GetNodeId(), kvNode.GetNodeId(), Constants.Relationships.Contains);
+                    edge.AddRbacInheritedEdgeProperties();
+                    await _graphDbClient.AddOrUpdateEdgeAsync(edge);
+                    yield return kvNode;
+                }
+            }
+            else if (Constants.ManagedDiskType.Equals(type, StringComparison.OrdinalIgnoreCase))
+            {
+                var diskNode = CreateNodeFromJson(resource);
+                if (diskNode != null)
+                {
+                    diskNode.Location = resource.GetProperty("location").GetString();
+                    await _graphDbClient.AddOrUpdateNodeAsync(diskNode);
+                    var edge = new ArmResourceEdge(rgNode.GetNodeId(), diskNode.GetNodeId(), Constants.Relationships.Contains);
+                    edge.AddRbacInheritedEdgeProperties();
+                    await _graphDbClient.AddOrUpdateEdgeAsync(edge);
+                    yield return diskNode;
+                }
+            }
             else
             {
                 var genericNode = CreateNodeFromJson(resource);

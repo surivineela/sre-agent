@@ -4,6 +4,7 @@
 
 using System.Text.Json;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Graph.Helpers;
 using Agent.Logging;
 using Azure.Core;
 using Azure.ResourceManager;
@@ -19,14 +20,16 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
     private readonly ILogger<ContainerAppCrawler> _logger;
     private readonly IGraphDatabaseClient _graphDbClient;
     private readonly SqlConnectionStringHelper _sqlHelper;
+    private readonly AzureResourceGraphClient _graphClient;
 
 
-    public ContainerAppCrawler(ILogger<ContainerAppCrawler> logger, IGraphDatabaseClient graphDbClient, ArmClient armClient)
+    public ContainerAppCrawler(ILogger<ContainerAppCrawler> logger, IGraphDatabaseClient graphDbClient, ArmClient armClient, AzureResourceGraphClient graphClient)
         : base(logger, graphDbClient, armClient)
     {
         _logger = logger;
         _graphDbClient = graphDbClient;
         _sqlHelper = new SqlConnectionStringHelper(logger, armClient, graphDbClient);
+        _graphClient = graphClient;
     }
 
     public override async IAsyncEnumerable<GraphNode> Crawl(GraphNode node)
@@ -111,6 +114,42 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
 
     private async IAsyncEnumerable<GraphNode> ProcessSecrets(ContainerAppData capp, ArmResourceNode cappNode, IAsyncEnumerable<ContainerAppSecret> appSecrets)
     {
+        var kvSecrets = appSecrets.Where(s => s.KeyVaultUri != null);
+        HashSet<string> kvNames = new();
+        await foreach (var secret in kvSecrets)
+        {
+            var kvName = KeyVaultHelper.ExtractKeyVaultName(secret.KeyVaultUri);
+            if (string.IsNullOrEmpty(kvName))
+            {
+                continue;
+            }
+
+            kvNames.Add(kvName);
+        }
+
+        var queryResults = await _graphClient.Query([], $"resources | where name in~ ('{string.Join("','", kvNames)}') and type =~ '{Constants.KeyVaultType}' | project id, subscriptionId, resourceGroup, name, location");
+        if (queryResults != null && queryResults.Count > 0)
+        {
+            var jsonResults = JsonSerializer.Deserialize<JsonElement>(queryResults.Data);
+            foreach (var result in jsonResults.EnumerateArray())
+            {
+                var kvNode = new ArmResourceNode(
+                    resourceId: result.GetProperty("id").GetString(),
+                    subscriptionId : result.GetProperty("subscriptionId").GetString(),
+                    resourceGroupName: result.GetProperty("resourceGroup").GetString(),
+                    resourceName: result.GetProperty("name").GetString(),
+                    resourceType: Constants.KeyVaultType,
+                    location: result.GetProperty("location").GetString()
+                );
+                await _graphDbClient.AddOrUpdateNodeAsync(kvNode);
+
+                var edge = new ArmResourceEdge(cappNode.GetNodeId(), kvNode.GetNodeId(), Constants.Relationships.References);
+                await _graphDbClient.AddOrUpdateEdgeAsync(edge);
+
+                yield return kvNode;
+            }
+        }
+
         var secrets = await appSecrets.ToDictionaryAsync(secret => secret.Name, secret => secret.Value);
 
         if (capp.Template == null || capp.Template.Containers.Count == 0)

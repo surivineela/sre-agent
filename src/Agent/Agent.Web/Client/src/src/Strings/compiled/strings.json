@@ -135,6 +135,12 @@
       "value": "Contains"
     }
   ],
+  "2zi2Yj": [
+    {
+      "type": 0,
+      "value": "Grafana dashboard"
+    }
+  ],
   "35UE1s": [
     {
       "type": 0,
@@ -151,6 +157,12 @@
     {
       "type": 0,
       "value": "This will permanently remove a resource group from the agent's managed resource groups. Are you sure you want to remove?"
+    }
+  ],
+  "3DzXFS": [
+    {
+      "type": 0,
+      "value": "Enter resource name"
     }
   ],
   "3PgCIp": [
@@ -329,10 +341,22 @@
       "value": "Project details"
     }
   ],
+  "7qt3qA": [
+    {
+      "type": 0,
+      "value": "Azure Managed Grafana is a fully managed service for analytics and monitoring. To add the service and a Grafana dashboard, you need to create an Azure Managed Grafana resource. The necessary permissions will be automatically assigned so that the dashboard can display monitoring data. Azure Managed Grafana will incur costs in your subscription."
+    }
+  ],
   "7w4v59": [
     {
       "type": 0,
       "value": "Access control (IAM)"
+    }
+  ],
+  "7wHL/l": [
+    {
+      "type": 0,
+      "value": "Backed by"
     }
   ],
   "8Wiwkg": [
@@ -623,12 +647,6 @@
       "value": "- completed"
     }
   ],
-  "I4UmwN": [
-    {
-      "type": 0,
-      "value": "This logical map shows how your applications resources are connected across multiple resource groups, regions, and subscriptions. The agent analyzes these resources and organizes them into an app group based on the primary resource."
-    }
-  ],
   "IAwPyV": [
     {
       "type": 0,
@@ -749,12 +767,6 @@
       "value": "Alert Rule"
     }
   ],
-  "Nf40QB": [
-    {
-      "type": 0,
-      "value": "Grafana insights"
-    }
-  ],
   "NrGEOo": [
     {
       "type": 0,
@@ -845,6 +857,12 @@
       "value": "Agent"
     }
   ],
+  "QkOLyp": [
+    {
+      "type": 0,
+      "value": "This logical map shows how your applications resources are connected across multiple resource groups, regions, and subscriptions. The agent analyzes these resources and organizes them into an app group based on the primary resource."
+    }
+  ],
   "QlsDcr": [
     {
       "type": 0,
@@ -855,12 +873,6 @@
     {
       "type": 0,
       "value": "Subscription"
-    }
-  ],
-  "R1YfDi": [
-    {
-      "type": 0,
-      "value": "Azure Managed Grafana is a fully managed service for analytics and monitoring. To add the service and a Grafana dashboard, you need to create an Azure Managed Grafana resource. The necessary permissions will be automatically assigned so that the dashboard can display monitoring data."
     }
   ],
   "RI4Umu": [
@@ -1069,6 +1081,12 @@
       "value": "Agent details"
     }
   ],
+  "WuZcUT": [
+    {
+      "type": 0,
+      "value": "The name must begin with a letter, end with a letter or number, and contain only letters, numbers, and hyphens. It must be 2 to 23 characters long."
+    }
+  ],
   "X192re": [
     {
       "type": 0,
@@ -1173,12 +1191,6 @@
       "value": " managed resource groups to your SRE Agent"
     }
   ],
-  "a2+0+5": [
-    {
-      "type": 0,
-      "value": "Grafana resource name"
-    }
-  ],
   "a5msuh": [
     {
       "type": 0,
@@ -1267,12 +1279,6 @@
       "value": "Disconnect PagerDuty?"
     }
   ],
-  "ca43CS": [
-    {
-      "type": 0,
-      "value": "Grafana resource name must be between 2 to 23 characters long. They must begin with a letter and end with a letter or digit."
-    }
-  ],
   "ciMXhP": [
     {
       "type": 0,
@@ -1315,6 +1321,12 @@
       "value": "Pending"
     }
   ],
+  "eqYdSS": [
+    {
+      "type": 0,
+      "value": "Resource name"
+    }
+  ],
   "f0Y4Zr": [
     {
       "type": 0,
@@ -1355,6 +1367,12 @@
     {
       "type": 0,
       "value": "Loading..."
+    }
+  ],
+  "gnC7c5": [
+    {
+      "type": 0,
+      "value": "You need permissions to set up a Grafana dashboard."
     }
   ],
   "hK4HcH": [
@@ -1731,12 +1749,6 @@
     {
       "type": 0,
       "value": "Determining next steps..."
-    }
-  ],
-  "vkNGfn": [
-    {
-      "type": 0,
-      "value": "You do not have the required Microsoft.Authorization/roleAssignments/write permission to set up a Grafana dashboard."
     }
   ],
   "vv2vLv": [

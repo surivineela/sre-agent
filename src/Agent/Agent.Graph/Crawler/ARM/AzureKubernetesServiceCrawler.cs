@@ -95,6 +95,20 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
             await _graphDbClient.AddOrUpdateEdgeAsync(edge);
             yield return nodeNode;
         }
+
+        // pvcs
+        // list all pvs
+        var persistentVolumes = await _k8sService.GetPersistentVolumesAsync(aksNode.ResourceId);
+        _logger.LogDebug($"Found {persistentVolumes.Items?.Count} persistent volumes in cluster: {aksNode.GetNodeId()}");
+        foreach (var pv in persistentVolumes.Items)
+        {
+            _logger.LogDebug($"PersistentVolume: {pv.Name()} in cluster: {aksNode.GetNodeId()}");
+            var pvNode = new KubernetesResourceNode(pv, aksNode.ResourceId, aksNode.SubscriptionId, aksNode.ResourceGroupName, aksNode.Location, pv.Name(), Constants.KubernetesCoreGroup, Constants.KubernetesV1Version, Constants.KubernetesPersistentVolumeType, pv.Annotations(), pv.Labels());
+            await _graphDbClient.AddOrUpdateNodeAsync(pvNode);
+            var edge = new ArmResourceEdge(clusterNode.GetNodeId(), pvNode.GetNodeId(), Constants.Relationships.Contains);
+            await _graphDbClient.AddOrUpdateEdgeAsync(edge);
+            yield return pvNode;
+        }
     }    
     
     /// <summary>

@@ -510,6 +510,7 @@ export const GraphEdgeLabel = defineMessages({
     ownedBy: { defaultMessage: 'Owned by', id: 'boWXYt' },
     monitoredBy: { defaultMessage: 'Monitored by', id: 'rk4tYE' },
     isPartOf: { defaultMessage: 'Is part of', id: 'DMd1Ql' },
+    backedBy: { defaultMessage: 'Backed by', id: '7wHL/l' },
 });
 
 export const ResourceInfoResources = defineMessages({

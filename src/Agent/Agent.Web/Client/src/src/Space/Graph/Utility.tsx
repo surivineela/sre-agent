@@ -227,6 +227,8 @@ export const getFriendlyEdgeLabel = (nodeRelations: string) => {
             return GraphEdgeLabel.monitoredBy;
         case NodeRelations.IsPartOF.toLowerCase():
             return GraphEdgeLabel.isPartOf;
+        case NodeRelations.BackedBy.toLowerCase():
+            return GraphEdgeLabel.backedBy;
         default:
             return undefined;
     }

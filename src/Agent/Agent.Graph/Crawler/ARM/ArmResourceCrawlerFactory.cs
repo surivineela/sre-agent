@@ -65,7 +65,7 @@ public class ArmResourceCrawlerFactory
 
             if (Constants.ContainerAppType.Equals(armNode.ResourceType, StringComparison.OrdinalIgnoreCase))
             {
-                return new ContainerAppCrawler(_loggerFactory.CreateLogger<ContainerAppCrawler>(), _graphDbClient, armClient);
+                return new ContainerAppCrawler(_loggerFactory.CreateLogger<ContainerAppCrawler>(), _graphDbClient, armClient, _graphClient);
             }
 
             if (Constants.VirtualNetworkType.Equals(armNode.ResourceType, StringComparison.OrdinalIgnoreCase))
@@ -125,6 +125,16 @@ public class ArmResourceCrawlerFactory
             if (Constants.KubernetesNodeType.Equals(k8sNode.Kind, StringComparison.OrdinalIgnoreCase))
             {
                 return new KubernetesNodeCrawler(_loggerFactory.CreateLogger<KubernetesNodeCrawler>(), _graphDbClient, _k8sService);
+            }
+
+            if (Constants.KubernetesPersistentVolumeType.Equals(k8sNode.Kind, StringComparison.OrdinalIgnoreCase))
+            {
+                return new KubernetesPersistentVolumeCrawler(_loggerFactory.CreateLogger<KubernetesPersistentVolumeCrawler>(), _graphDbClient, _k8sService, _graphClient);
+            }
+
+            if (Constants.KubernetesPersistentVolumeClaimType.Equals(k8sNode.Kind, StringComparison.OrdinalIgnoreCase))
+            {
+                return new KubernetesPersistentVolumeClaimCrawler(_loggerFactory.CreateLogger<KubernetesPersistentVolumeClaimCrawler>(), _graphDbClient, _k8sService);
             }
 
             return new KubernetesDummyCrawler();

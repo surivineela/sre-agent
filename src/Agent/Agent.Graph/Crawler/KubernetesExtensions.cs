@@ -228,7 +228,28 @@ public static partial class KubernetesExtensions
 
             return configMapNode;
         }
-        // TODO: pvc
+        else if (volume.PersistentVolumeClaim != null)
+        {
+            logger.LogDebug($"Persistent volume {volume.Name}.");
+            var pvcNode = new KubernetesNamespacedResourceNode(
+                null,
+                node.ClusterResourceId,
+                node.Namespace,
+                node.SubscriptionId,
+                node.ResourceGroupName,
+                node.Location,
+                volume.PersistentVolumeClaim.ClaimName,
+                Constants.KubernetesCoreGroup,
+                Constants.KubernetesV1Version,
+                Constants.KubernetesPersistentVolumeClaimType);
+
+            await graphDbClient.AddOrUpdateNodeAsync(pvcNode);
+            var edge = new ArmResourceEdge(node.GetNodeId(), pvcNode.GetNodeId(), Constants.Relationships.References);
+            edge.AddReferenceVolumeMountProperties();
+            await graphDbClient.AddOrUpdateEdgeAsync(edge);
+
+            return pvcNode;
+        }
 
         return null;
     }

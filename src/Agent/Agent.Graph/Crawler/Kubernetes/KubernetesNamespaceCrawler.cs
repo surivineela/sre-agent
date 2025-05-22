@@ -110,26 +110,13 @@ namespace Agent.Graph.Crawler.Kubernetes
                 yield return secretNode;
             }
 
-            // list all pvs
-            var persistentVolumes = await _k8sService.GetPersistentVolumesAsync(nsNode.ClusterResourceId, nsNode.ResourceName);
-            _logger.LogDebug($"Found {persistentVolumes.Items?.Count} persistent volumes in namespace: {nsNode.GetNodeId()}");
-            foreach (var pv in persistentVolumes.Items)
-            {
-                _logger.LogDebug($"PersistentVolume: {pv.Name()} in namespace: {nsNode.GetNodeId()}");
-                var pvNode = new KubernetesNamespacedResourceNode(pv, nsNode.ClusterResourceId, nsNode.ResourceName, nsNode.SubscriptionId, nsNode.ResourceGroupName, nsNode.Location, pv.Name(), Constants.KubernetesCoreGroup, Constants.KubernetesV1Version, Constants.KubernetesPersistVolumeType, pv.Annotations(), pv.Labels());
-                await _graphDbClient.AddOrUpdateNodeAsync(pvNode);
-                var edge = new ArmResourceEdge(nsNode.GetNodeId(), pvNode.GetNodeId(), Constants.Relationships.Contains);
-                await _graphDbClient.AddOrUpdateEdgeAsync(edge);
-                yield return pvNode;
-            }
-
             // list all pvcs
             var persistentVolumeClaims = await _k8sService.GetPersistentVolumeClaimsAsync(nsNode.ClusterResourceId, nsNode.ResourceName);
             _logger.LogDebug($"Found {persistentVolumeClaims.Items?.Count} persistent volume claims in namespace: {nsNode.GetNodeId()}");
             foreach (var pvc in persistentVolumeClaims.Items)
             {
                 _logger.LogDebug($"PersistentVolumeClaim: {pvc.Name()} in namespace: {nsNode.GetNodeId()}");
-                var pvcNode = new KubernetesNamespacedResourceNode(pvc, nsNode.ClusterResourceId, nsNode.ResourceName, nsNode.SubscriptionId, nsNode.ResourceGroupName, nsNode.Location, pvc.Name(), Constants.KubernetesCoreGroup, Constants.KubernetesV1Version, Constants.KubernetesPersistVolumeClaimType, pvc.Annotations(), pvc.Labels());
+                var pvcNode = new KubernetesNamespacedResourceNode(pvc, nsNode.ClusterResourceId, nsNode.ResourceName, nsNode.SubscriptionId, nsNode.ResourceGroupName, nsNode.Location, pvc.Name(), Constants.KubernetesCoreGroup, Constants.KubernetesV1Version, Constants.KubernetesPersistentVolumeClaimType, pvc.Annotations(), pvc.Labels());
                 await _graphDbClient.AddOrUpdateNodeAsync(pvcNode);
                 var edge = new ArmResourceEdge(nsNode.GetNodeId(), pvcNode.GetNodeId(), Constants.Relationships.Contains);
                 await _graphDbClient.AddOrUpdateEdgeAsync(edge);

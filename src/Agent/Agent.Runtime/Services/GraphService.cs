@@ -261,7 +261,7 @@ public class GraphService : IGraphService
         if (resourceId.Contains("microsoft.containerservice_managedclusters"))
         {
             query = $@"g.V().has('id', '{resourceId.ToLower().Replace("/", "_")}')
-                    .outE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS', 'SERVES_CODE', 'REFERENCES').project('edge', 'direction', 'node')
+                    .outE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS', 'SERVES_CODE', 'REFERENCES', 'BACKED_BY').project('edge', 'direction', 'node')
                         .by(label())
                         .by(constant('outgoing'))
                         .by(inV().not(has('resourceType', within('resourcegroups', 'subscription'))).project('id', 'name', 'type', 'properties')

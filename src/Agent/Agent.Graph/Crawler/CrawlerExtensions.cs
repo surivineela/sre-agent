@@ -45,6 +45,12 @@ public static class CrawlerExtensions
         return edge;
     }
 
+    public static ArmResourceEdge AddReferencePersistentVolumeClaimProperties(this ArmResourceEdge edge)
+    {
+        edge.AdditionalProperties.AddOrUpdateEdgeProperty(Constants.ReferenceTypeKey, Constants.ReferenceTypePersistentVolumeClaim);
+        return edge;
+    }
+
     public static ArmResourceEdge AddReferenceEnvProperties(this ArmResourceEdge edge)
     {
         edge.AdditionalProperties.AddOrUpdateEdgeProperty(Constants.ReferenceTypeKey, Constants.ReferenceTypeEnv);

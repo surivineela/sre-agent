@@ -28,6 +28,8 @@ public class Constants
     public const string EventHubType = "microsoft.eventhub/namespaces";
     public const string ServiceBusType = "microsoft.servicebus/namespaces";
     public const string AzureMonitorWorkspaceType = "Microsoft.Monitor/accounts";
+    public const string KeyVaultType = "Microsoft.KeyVault/vaults";
+    public const string ManagedDiskType = "Microsoft.Compute/disks";
 
     // New constants for App Service Web/Function Apps and App Service Plans.
     public const string AppServiceType = "Microsoft.Web/sites";
@@ -52,8 +54,8 @@ public class Constants
     public const string KubernetesConfigMapType = "configmaps";
     public const string KubernetesSecretType = "secrets";
     public const string KubernetesNodeType = "nodes";
-    public const string KubernetesPersistVolumeType = "persistentvolumes";
-    public const string KubernetesPersistVolumeClaimType = "persistentvolumeclaims";
+    public const string KubernetesPersistentVolumeType = "persistentvolumes";
+    public const string KubernetesPersistentVolumeClaimType = "persistentvolumeclaims";
 
     // Node properties
 
@@ -95,6 +97,7 @@ public class Constants
     public const string ReferenceTypeKey = "ReferenceType";
     public const string ReferenceTypeVolumeMount = "VolumeMount";
     public const string ReferenceTypeEnv = "Env";
+    public const string ReferenceTypePersistentVolumeClaim = "PersistentVolumeClaim";
 
     // BackedBy properties
     public const string BackendStatusKey = "BackendStatus";

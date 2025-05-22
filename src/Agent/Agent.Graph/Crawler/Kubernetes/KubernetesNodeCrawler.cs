@@ -33,7 +33,7 @@ public class KubernetesNodeCrawler : IResourceCrawler
     public async IAsyncEnumerable<GraphNode> Crawl(GraphNode node)
     {
         var nodeNode = (KubernetesResourceNode)node;
-        _logger.LogDebug($"Crawling Kubernetes service: {nodeNode.GetNodeId()}");
+        _logger.LogDebug($"Crawling Kubernetes node: {nodeNode.GetNodeId()}");
 
         var aksNode = (V1Node)nodeNode.ResourceObject;
         if (aksNode == null)

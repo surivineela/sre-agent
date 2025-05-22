@@ -150,7 +150,7 @@ public abstract class KubernetesService : IKubernetesService
         return persistentVolumes;
     }
 
-    public async Task<V1PersistentVolume> GetPersistentVolumeAsync(string resourceId, string ns, string name)
+    public async Task<V1PersistentVolume> GetPersistentVolumeAsync(string resourceId, string name)
     {
         var client = await GetKubernetesClient(resourceId);
 
