@@ -164,12 +164,12 @@ public class DiagnosisAgent(
             The issue may be about X or Y part of the resource. I need to confirm with user. X seems more likely candidate.
             End response immediately with: [Clarifying information needed] The issue may be about X or Y part of the resource. It is likely related to X. Do you want me to investigate X?
             Example 2:
-            The issue clealy states it impacts X part of the resource. I will continue with my planning.
+            The issue clearly states it impacts X part of the resource. I will continue with my planning.
             Example 3:
             The issue description does not specify a specific workload. I have identified several potentially related workloads. I need to ask the user which one to check first.
             End response immediately with: [Clarifying information needed] These are the potentially related workloads [...], which should I investigate?
             Example 4:
-            The issue states there is a problem with workload X. I will continue planning an investgation on workload X.
+            The issue states there is a problem with workload X. I will continue planning an investigation on workload X.
 
             Step 2 - Planning
             - Thought: I list 2-3 primary hypotheses that could explain <symptom>.

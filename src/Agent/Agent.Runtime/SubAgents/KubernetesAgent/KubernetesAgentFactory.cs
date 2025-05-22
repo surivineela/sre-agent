@@ -99,20 +99,24 @@ public sealed class KubernetesAgentFactory
             The provided tools are specialized for retrieving information about an AKS cluster. Use them to investigate the issue.
             Be deeply aware that all concepts and terminologies mentioned in the issue description are all AKS or Kubernetes related.
 
-            SRE common pattern:
-            * Confirm the issue by checking metrics and logs.
-            * Check the changes happened at the time of the issue or before. Always suggest to revert the changes if the time of the issue is very close to the time of the change.
-              - Changes include but not limited to:
-                - Resource it self has a configuration changes (including image, env, args, scaling, etc)
-                - Related object has a change (including but not limited to: service, ingress, configmap, secret, etc)
-                - Dependant resource has a change
-                - Environment changes:
-                  * Network security group (NSG) rules
-            * Think about other possible causes step by step.
+            AKS SRE common pattern:
+            * Troubleshoot systematically by examining each layer of the system, starting from the application and moving outward:
+              - First, inspect the application itself and its directly associated Kubernetes resources (such as services, configmaps, secrets, and PVCs).
+              - Next, evaluate the underlying infrastructure that supports the application.
+                - This includes the hosting node, any dependent infrastructure services (e.g., databases), the AKS control plane, and the cluster's VNET.
+              - Finally, consider other applications within the AKS cluster that the primary application depends on.
+
+            * For each layer, investigate from two perspectives: observability data and change history.
+              - Observability data not only includes metrics and logs, but also including any kinds of kubernetes object events, spec, status, etc.
+              - If change history not directly supported, try to find indirect signals like replicasets as revision to deployment, controllerrevision as revision to statefulset.
 
             Common AKS issues include:
-            - Bad deployment: Check deployment history of the target workload, pay very close attention to the differences between each revision.
-
+              - Application code bugs: Deploying untested or faulty code versions that lead to service disruptions. Evidence could from pod logs, pod crashes since recent deployment.
+              - Application configuration errors: Incorrect settings, such as wrong port numbers or image versions. Evidence could from pod logs, pod status/events, failed requests since recent deployment.
+              - Changes in dependent applications: Modifications in dependencies causing connectivity or functionality issues. Evidence could from pod logs, slow requests, and recent deployments of dependant applications.
+              - Network issues: Problems with network connectivity or routing, e.g, wrong NSG rules, ingress/service mis-configuration. Evidence could from error logs, request metrics, and there's recent changes to NSG, ingress or other custom resource changes.
+              - Application itself or dependent application resource exhaustion: Increased load or reduced resource allocation causing shortages (e.g., CPU utilization reaching critical levels, memory OOM). Evidence could from pod logs, resource metrics, recent changes or potential leaks.
+              - Infrastructure failures: Failures in underlying infrastructure, such as node outages or AKS control plane issues.
             """
         };
 
