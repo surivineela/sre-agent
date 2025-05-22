@@ -151,7 +151,11 @@ public class ContainerAppIcMPlugin : IcmPlugin, IContainerAppIcMPlugin
         {
             Temperature = (float)0.2,
             Tools = tools,
-            ToolMode = ChatToolMode.Auto
+            ToolMode = ChatToolMode.Auto,
+            AdditionalProperties = new AdditionalPropertiesDictionary
+            {
+                ["response_format"] = "text"
+            }
         };
 
         var messages = new List<Microsoft.Extensions.AI.ChatMessage>
