@@ -18,20 +18,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";+7umUn" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Step 4: Copy the API key and paste it here]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[手順 4: API キーをコピーしてここに貼り付ける]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";+FoBRs" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Submit feedback to Microsoft]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Microsoft にフィードバックを送信する]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";+U6ozc" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Type]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[種類]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -54,11 +54,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";/2OpVO" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Choose a platform]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[プラットフォームの選択]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";/WrP/v" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Container Apps Operator]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Container Apps オペレーター]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";0UwFzs" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Adding {number} managed resource groups]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{number} 個の管理対象リソース グループを追加しています]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -81,15 +99,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";12V/0W" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Managed resource group(s) added successfully]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[管理対象リソース グループが正常に追加されました]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";14xQ4i" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Azure Monitor added]]></Val>
@@ -99,11 +108,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";19YPdI" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";1O47t6" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Step 1: Open Cloud Shell]]></Val>
+          <Val><![CDATA[SRE Agent {name} deleted successfully]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[手順 1: Cloud Shell を開く]]></Val>
+            <Val><![CDATA[SRE エージェント {name} は正常に削除されました]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";1PVhxx" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The selected managed resource groups were deleted successfully]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[選択した管理対象リソース グループが正常に削除されました]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -144,6 +162,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";2OQ6yB" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The selected resource groups are being set up]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[選択したリソース グループを設定しています]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";2WxP2i" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Delete thread]]></Val>
@@ -153,11 +180,56 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";2tOWr2" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Contains]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[含む]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";35UE1s" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Save incident management configuration]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[インシデント管理の構成を保存]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";35vd1u" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Waiting...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[待機中...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";3BubSI" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This will permanently remove a resource group from the agent's managed resource groups. Are you sure you want to remove?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[これにより、リソース グループはエージェントの管理対象リソース グループから完全に削除されます。削除しますか?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";3PgCIp" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deleting selected managed resource groups in progress]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[選択した管理対象リソース グループの削除中です]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";3Rh7XU" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deleting selected managed resource groups]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[選択した管理対象リソース グループを削除しています]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -189,15 +261,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";41eAX2" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[- Run: "az grafana api-key create --key '{0}' --name '{1}' --resource-group '{2}' --role admin --time-to-live 365d" (Note: If the CLI asks you to install an extension to support Grafana commands, type "Y" and hit enter)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[- 次を実行します: "az grafana api-key create --key '{0}' --name '{1}' --resource-group '{2}' --role admin --time-to-live 365d" (注: CLI から Grafana コマンドをサポートするための拡張機能のインストールを求められた場合は、「Y」と入力し、Enter キーを押します)]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";47FYwb" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Cancel]]></Val>
@@ -216,24 +279,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";4dZi3Y" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[API Key]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[API キー]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";4i2wiN" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Delete managed resource group(s)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[管理対象リソース グループの削除]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";5+bQr/" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Approved by]]></Val>
@@ -243,11 +288,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";59YCbl" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";5GUtRJ" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[- Click on the "Cloud Shell" button in the top right corner of the Azure portal.]]></Val>
+          <Val><![CDATA[Sending a report...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[- Azure portal の右上隅にある [Cloud Shell]5D; ボタンをクリックします。]]></Val>
+            <Val><![CDATA[レポートを送信しています...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -288,6 +333,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";5y2qWO" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connecting...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[接続中...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";5yG7b2" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Managed resource group added successfully]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[管理対象リソース グループは正常に追加されました]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";6ENgmY" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to create managed connection]]></Val>
@@ -302,6 +365,15 @@
           <Val><![CDATA[Create Grafana dashboard in the same resource group]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[同じリソース グループに Grafana ダッシュボードを作成する]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";6OBtew" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deleting SRE Agent]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[SRE エージェントを削除しています]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -360,6 +432,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";7MvYEX" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Edit Annotation]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[注釈の編集]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";7Nz2Ev" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Azure Monitor]]></Val>
@@ -387,20 +468,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";7w4v59" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Access control (IAM)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[アクセスの制御 (IAM)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";8Wiwkg" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Building knowledge graph]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[ナレッジ グラフを構築しています]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";8kVGbB" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Disconnect from PagerDuty?]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[PagerDuty から切断しますか?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -450,29 +531,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";9RgE6Y" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Failed to add {number} managed resource group(s) with error(s): {error}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[{number} 個の管理対象リソース グループを追加できませんでした。エラー: {error}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";9ZIBMx" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Requested at]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[要求日時]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";9bulHK" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[- Run "az account set --subscription '{0}'"]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[- "az account set --subscription '{0}'" を実行します]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -495,6 +558,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";A2BJnD" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Your annotation is updated successfully]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[注釈が正常に更新されました]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";A3Wps1" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[If you approve, this operation will be executed on your behalf using your credentials.]]></Val>
@@ -504,20 +576,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";AA/tRJ" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Repository URL]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[リポジトリ URL]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";ACfSSZ" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to create the Grafana dashboard with the error: {errorMessage}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Grafana ダッシュボードを作成できませんでした。エラー: {errorMessage}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";AXAtAX" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[API key is not valid]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[API キーが無効です]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -540,6 +612,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";Az8/Pe" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Authorize Repository Access]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[リポジトリ アクセスの承認]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";BKMqtr" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[AI-generated content might be incorrect, so review carefully before use. Do not include personal or confidential information in the chat.]]></Val>
@@ -549,11 +630,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";CQF3U+" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";Bcgdb7" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Edit key]]></Val>
+          <Val><![CDATA[Adding {number} managed resource group]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[キーの編集]]></Val>
+            <Val><![CDATA[{number} 個の管理対象リソース グループを追加しています]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -572,6 +653,24 @@
           <Val><![CDATA[Settings]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[設定]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";DMd1Ql" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Is part of]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[次に含まれる]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";DPnEXy" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Average latency]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[平均待機時間]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -603,6 +702,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";ED/jWk" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Transactions for last 30 minutes]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[過去 30 分間のトランザクション]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";EKfWmx" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to load subscriptions.]]></Val>
@@ -630,6 +738,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";ElI1gd" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Search for resource groups]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[リソース グループを検索してください]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";EwRIOm" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[User]]></Val>
@@ -644,15 +761,6 @@
           <Val><![CDATA[Open Access control]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[アクセスの制御を開く]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";F5p93e" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Deleting managed resource group(s)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[管理対象リソース グループを削除しています]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -675,29 +783,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";FGAk9M" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Managed resource groups added successfully]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[管理対象リソース グループが正常に追加されました]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";FUQvS0" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Subscription ID]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[サブスクリプション ID]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";FZeQlc" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Disconnected]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[切断]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";Fh8hZp" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Provisioning of your Grafana role assignment is in progress.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Grafana ロールの割り当てのプロビジョニングが進行中です。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -716,6 +815,15 @@
           <Val><![CDATA[Closed]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[クローズ済み]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";G6vaGg" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connect to PagerDuty with an access key. To get more information, go to pagerduty.com and then to the API Access Keys section.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[アクセス キーを使用して PagerDuty に接続します。詳細については、pagerduty.com に移動して、「API アクセス キー」のセクションを参照してください。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -756,15 +864,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";HafgWq" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Integrate an incident management platform with the SRE Agent to automate routine incident tasks, manage alerts, and get data-driven insights.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[インシデント管理プラットフォームを SRE エージェントと統合して、日常的なインシデント タスクの自動化、アラートの管理、データドリブンの分析情報の取得を行うことができます。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";HbTFJf" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Pending approvals]]></Val>
@@ -774,11 +873,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";HsGdXO" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";HekEs4" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Disconnect from Azure Monitor?]]></Val>
+          <Val><![CDATA[Repository URL must be like: https://github.com/owner/repo-name.git]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Azure Monitor から切断しますか?]]></Val>
+            <Val><![CDATA[リポジトリ URL は、https://github.com/owner/repo-name.git のようになります]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -792,20 +891,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";I4UmwN" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This logical map shows how your applications resources are connected across multiple resource groups, regions, and subscriptions. The agent analyzes these resources and organizes them into an app group based on the primary resource.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[この論理マップは、複数のリソース グループ、リージョン、サブスクリプション間で、どのようにアプリケーション リソースが接続されているかを示します。エージェントは、これらのリソースを分析して、プライマリ リソースに基づいてアプリ グループに整理します。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";IAwPyV" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Update annotation]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[注釈の更新]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";IF3r+X" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Azure Managed Grafana]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Azure Managed Grafana]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";IS+F5v" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Provisioning Grafana role assignment]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Grafana ロールの割り当てをプロビジョニングしています]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -819,11 +927,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";IwfDuC" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";J6XCfl" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Deleting managed resource group(s) in progress]]></Val>
+          <Val><![CDATA[We are updating annotation for your resource {name}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[管理対象リソース グループの削除が進行中です]]></Val>
+            <Val><![CDATA[リソース {name} の注釈を更新しています]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";JCjxSH" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to delete SRE Agent {name}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[SRE エージェント {name} を削除できませんでした]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -837,11 +954,38 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";JWM0w5" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Average CPU usage]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[平均 CPU 使用率]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";JX0502" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Client]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[クライアント]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";JjKcCj" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Remove managed resource group]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[管理対象リソース グループの削除]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";JqiqNj" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Something went wrong]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[問題が発生しました]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -864,6 +1008,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";L0KVkI" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deleting SRE Agent {name} in progress]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[SRE エージェント {name} の削除中です]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";LPprqA" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Review resource groups]]></Val>
@@ -878,15 +1031,6 @@
           <Val><![CDATA[Hide thread actions]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[スレッド アクションを非表示にする]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";NEY2T1" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[After the Grafana dashboard is finished provisioning, you'll need to generate an API key for you agent to communicate with it. Follow these steps:]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Grafana ダッシュボードのプロビジョニングが完了したら、エージェントが通信するための API キーを生成する必要があります。次の手順に従ってください。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -927,20 +1071,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";O0WH/+" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Failed to create the Grafana role assignment with the error: {errorMessage}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Grafana ロールの割り当てを作成できませんでした。エラー: {errorMessage}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";O79Wpv" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[New messages]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[新しいメッセージ]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";O8zbbB" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Are you sure you want to delete this SRE Agent? This action cannot be undone.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[この SRE エージェントを削除しますか?この操作は元に戻すことができません。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1026,6 +1170,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";QEhO+z" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Access key is required.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[アクセス キーが必要です。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";QGVI63" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Agent]]></Val>
@@ -1107,11 +1260,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";S7xtEr" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";SAINuE" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[API Key is required]]></Val>
+          <Val><![CDATA[Go to Azure Managed Grafana]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[API キーが必要です]]></Val>
+            <Val><![CDATA[Azure Managed Grafana に移動]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1121,6 +1274,15 @@
           <Val><![CDATA[All threads]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[すべてのスレッド]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";SL7+hl" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to update the annotation with the error: {errorMessage}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[注釈を更新できませんでした。エラー: {errorMessage}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1152,15 +1314,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";Sw/LL9" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[This will permanently disconnect from PagerDuty. The agent will no longer be able to manage tickets. Are you sure you want to disconnect?]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[これにより、PagerDuty から完全に切断されます。エージェントはチケットを管理できなくなります。切断しますか?]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";T7WpWs" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Incident management]]></Val>
@@ -1175,6 +1328,15 @@
           <Val><![CDATA[Get more info]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[詳細情報の表示]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";TIDNOO" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Healthy]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[正常]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1197,11 +1359,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";TXP5xs" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";TdeXH0" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Adding {number} managed resource group(s)]]></Val>
+          <Val><![CDATA[Resource mapping]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[{number} 個の管理対象リソース グループを追加しています]]></Val>
+            <Val><![CDATA[リソース マッピング]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";ThSX0k" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Delete SRE Agent]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[SRE エージェントの削除]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1242,15 +1413,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";UZMdQH" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Managed Identity]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[マネージド ID]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";UmEsZF" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Activities]]></Val>
@@ -1269,11 +1431,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";UvQLwV" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";V6juiN" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[You'll need to connect through an access key. Go to pagerduty.com and the information will be within the API Access Keys section.]]></Val>
+          <Val><![CDATA[App Group]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[アクセス キーを使用して接続する必要があります。pagerduty.com に移動すると、[API アクセス キー]5D; セクションに情報が表示されます。]]></Val>
+            <Val><![CDATA[アプリ グループ]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VQDmmK" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Degraded]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[低下]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1305,6 +1476,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";WIm1Zh" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Last data capture time]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[前回のデータ キャプチャ時間]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";WTrOy3" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Chat]]></Val>
@@ -1332,20 +1512,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";WzYUl+" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Adding managed resource group(s) in progress]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[マ管理対象リソース グループの追加が進行中です]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";X192re" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Monitored Resource]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[監視対象のリソース]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";X4Y2nv" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Revision of]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[リビジョン]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1359,11 +1539,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";XIjgrI" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";Xa3AHo" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Step 2: Generate API key]]></Val>
+          <Val><![CDATA[Linked to]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[手順 2: API キーを生成する]]></Val>
+            <Val><![CDATA[リンク先]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";XgXHWP" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connect to Azure Monitor so that the SRE Agent can automatically monitor notifications from resources in the resource groups it manages, without additional provisioning.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Azure Monitor に接続すると、SRE エージェントは、それが管理するリソース グループ内のリソースからの通知を追加のプロビジョニングなしで自動的に監視できるようになります。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1377,11 +1566,47 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";Y1qw19" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";Y7Lbpf" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[This will permanently disconnect to Azure Monitor. The agent will no longer be integrated with Azure Monitor alerts. Are you sure you want to disconnect?]]></Val>
+          <Val><![CDATA[Failed to validate the access key. Please try again.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[これにより、Azure Monitor への接続が完全に切断されます。エージェントは、Azure Monitor アラートと統合されなくなります。切断しますか?]]></Val>
+            <Val><![CDATA[アクセス キーの検証に失敗しました。もう一度お試しください。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";YE+vjH" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Report unhealthy node]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[異常なノードの報告]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";YdXbbC" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Unhealthy]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[異常]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Ys9AIu" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Managed identity]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[マネージド ID]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";YwZ7+5" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Add annotation to your resource]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[リソースへの注釈の追加]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1391,24 +1616,6 @@
           <Val><![CDATA[Monitoring Data Reader Role]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[データ閲覧者ロールを監視しています]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";Z26C+l" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Managed resource group(s) deleted successfully]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[管理対象リソース グループが正常に削除されました]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";Z2evcR" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Failed to delete managed resource group(s)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[管理対象リソース グループを削除できませんでした]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1440,6 +1647,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";ZukeYV" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to add {number} managed resource groups to your SRE Agent]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[SRE エージェントに {number} 個の管理対象リソース グループを追加できませんでした]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";a2+0+5" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Grafana resource name]]></Val>
@@ -1454,6 +1670,33 @@
           <Val><![CDATA[Yes]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[はい]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";aQPexO" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Give us feedback]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[フィードバック]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";aRH5fG" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Repository Connection]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[リポジトリ接続]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";aSn3tP" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connect an incident management platform to the SRE Agent so that it can detect and respond to routine incident tasks and notifications. To change to a different platform, delete the connection to the current one.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[インシデント管理プラットフォームを SRE エージェントに接続し、定期的なインシデントのタスクと通知を検出して応答できるようにします。別のプラットフォームに変更する場合は、現在のプラットフォームへの接続を削除してください。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1494,11 +1737,38 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";blSyDZ" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Disconnect Azure Monitor?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Azure Monitor の接続を解除しますか?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";boWXYt" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Owned by]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[所有者]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bxnWhY" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[result]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[結果]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";cTY8WU" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Disconnect PagerDuty?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[PagerDuty の接続を解除しますか?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1535,6 +1805,15 @@
           <Val><![CDATA[Back]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[戻る]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";dQtJBl" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Annotation]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[注釈]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1602,6 +1881,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";gO/IxZ" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connects to]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[接続先]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";gj6Qc6" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Azure Monitor Workspace]]></Val>
@@ -1620,11 +1908,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";hMGoYE" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";hK4HcH" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Failed to validate API Key]]></Val>
+          <Val><![CDATA[Failed to delete the selected managed resource groups]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[API キーを検証できませんでした]]></Val>
+            <Val><![CDATA[選択した管理対象リソース グループを削除できませんでした]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";hOxIeP" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Availability]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[可用性]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1647,6 +1944,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";hlmkcL" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Health]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[正常性]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";hmrm7i" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Grafana resource]]></Val>
@@ -1665,6 +1971,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";hzSNj4" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Dashboard]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[ダッシュボード]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";i0mHNo" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[PagerDuty added]]></Val>
@@ -1679,6 +1994,15 @@
           <Val><![CDATA[Fired At]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[発生場所]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";itC9lG" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Basics]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[基本情報]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1737,20 +2061,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";l9oNaQ" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Are you sure you would like to unregister the selected resource group(s) from being managed by your agent?]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[選択したリソース グループの登録を解除して、エージェントによって管理されないようにしますか?]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";lGIJSX" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[User Assigned Managed Identity]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[ユーザー割り当てマネージド ID]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";levHvg" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Average memory usage]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[平均メモリ使用量]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1773,11 +2097,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";mq/sud" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Local auth]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[ローカル認証]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";mtr3R4" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Incidents]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[インシデント]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";mzRg+7" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Grafana logo]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Grafana ロゴ]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1845,6 +2187,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";pT3qMe" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Change key]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[キーの変更]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";piCpTn" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Once a Grafana dashboard is provisioned and linked, it may take some time for resources to fully populate the dashboard.]]></Val>
@@ -1872,11 +2223,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";qeVm12" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";qeUtXk" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Failed to add {number} managed resource group(s) to your SRE Agent]]></Val>
+          <Val><![CDATA[Costs for last 7 days]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[{number} 個の管理対象リソース グループを SRE エージェントに追加できませんでした]]></Val>
+            <Val><![CDATA[過去 7 日間のコスト]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1886,15 +2237,6 @@
           <Val><![CDATA[Disconnect]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[切断]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";qw8pxr" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Grafana role assignment creation succeeded]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Grafana ロールの割り当ての作成に成功しました]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1917,11 +2259,47 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";rGl1yu" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This will permanently delete the connection to PagerDuty. The agent will no longer be able to manage tickets. Are you sure you want to delete this connection?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[これにより、PagerDuty への接続が完全に削除されます。エージェントはチケットを管理できなくなります。この接続を削除しますか?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";rP/nDW" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connect Repository]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[リポジトリの接続]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";rk4tYE" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Monitored by]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[監視元]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";rpG/Bn" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Access control]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[アクセスの制御]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";rpx6XY" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Hosted on]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[ホスト先]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1944,6 +2322,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";sKQWgY" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to add {number} managed resource groups with errors: {error}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{number} 個の管理対象リソース グループを追加できませんでした。エラー: {error}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";slxYbm" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to save incident management configuration. Error: {errorMessage}]]></Val>
@@ -1958,6 +2345,24 @@
           <Val><![CDATA[Monitor Service]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[サービスの監視]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";swRudj" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Hosts]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[ホスト]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";tSKi9q" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The selected resource group is being set up]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[選択したリソース グループを設定しています]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1980,11 +2385,38 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";u0RCrx" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Response completed]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[応答が完了しました]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";u4hSyh" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The access key is not valid. Please try again.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[アクセス キーが無効です。もう一度お試しください。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";u64mw7" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Showing the first 1000 results. Filter to narrow down the list.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[最初の 1,000 件の結果を表示しています。一覧を絞り込むにはフィルターを適用します。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";uVeSVH" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Link Repository to Resource]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[リポジトリからリソースへのリンク]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2007,11 +2439,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";vjy7Cr" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Determining next steps...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[次の手順を決定しています...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";vkNGfn" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[You do not have the required Microsoft.Authorization/roleAssignments/write permission to set up a Grafana dashboard.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Grafana ダッシュボードを設定するために必要な Microsoft.Authorization/roleAssignments/write アクセス許可がありません。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";vv2vLv" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Add Annotation]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[注釈の追加]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2025,11 +2475,38 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";w/UZrq" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This will permanently delete the connection to Azure Monitor. The agent will no longer be integrated with Azure Monitor notifications. Are you sure you want to delete this connection?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[これにより、Azure Monitor への接続が完全に削除されます。エージェントは、Azure Monitor の通知と統合されなくなります。この接続を削除しますか?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";w3tjx3" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The resources you picked have permissions for these roles. If you add new resources later, the SRE Agent might request any additional permissions if needed.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[選択したリソースには、これらのロールに対するアクセス許可があります。後で新しいリソースを追加する場合、必要に応じて SRE エージェントが追加のアクセス許可を要求する可能性があります。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";wElgyk" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Cost calculation pending]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[コスト計算は保留中です]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";wInZgf" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Generating a response...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[応答を生成しています...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2052,11 +2529,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";xL9nak" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";xQRfI5" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Step 3: Generate an API key]]></Val>
+          <Val><![CDATA[Initializing...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[手順 3: API キーを生成する]]></Val>
+            <Val><![CDATA[初期化しています...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
