@@ -264,6 +264,7 @@ $@"## Facts
     private readonly IMetaAgentFunctionAppExecutionFailuresAgentPlugin _functionAppExecutionFailuresAgentPlugin;
     private readonly IAzureMonitorMetricsPlugin _azureMonitorMetricsPlugin;
     private readonly IMetaAgentFunctionAppDiagnosticsPlugin _functionAppDiagnosticsPlugin;
+    private readonly IArmPlugin _armPlugin;
 
 
     private readonly InstanceManagementSettings _instanceManagementSettings;
@@ -301,7 +302,8 @@ $@"## Facts
         IIncidentPlugin incidentPlugin,
         IMetaAgentFunctionAppExecutionFailuresAgentPlugin functionAppExecutionFailuresAgentPlugin,
         IAzureMonitorMetricsPlugin azureMonitorMetricsPlugin,
-        IMetaAgentFunctionAppDiagnosticsPlugin functionAppDiagnosticsPlugin
+        IMetaAgentFunctionAppDiagnosticsPlugin functionAppDiagnosticsPlugin,
+        IArmPlugin armPlugin
         )
     {
         _mcpToolsRepository = mcpToolsRepository;
@@ -340,6 +342,7 @@ $@"## Facts
 
         _instanceManagementSettings = instanceManagementSettings;
         _functionAppDiagnosticsPlugin = functionAppDiagnosticsPlugin;
+        _armPlugin = armPlugin;
     }
 
     public List<AITool> GetSubAgentsAITools(Guid threadGuid, AgentContext context)
@@ -403,6 +406,7 @@ $@"## Facts
             AIFunctionFactory.Create(aksPluginDefinition.GetKubeResourceEventsAsync),
             AIFunctionFactory.Create(aksPluginDefinition.GetKubeResourceSpecStatusAsync),
             AIFunctionFactory.Create(aksPluginDefinition.GetKubeResourceMetricsRangeAsync),
+            AIFunctionFactory.Create(_armPlugin.RunAzCliReadCommandsAsync),
             //AIFunctionFactory.Create(_containerAppPlugin.ListContainerAppsAsync),
             //AIFunctionFactory.Create(appServicePluginDefinition.ListAppServicesAsync),
             //AIFunctionFactory.Create(appServicePluginDefinition.GetAppServiceInfoAsync),

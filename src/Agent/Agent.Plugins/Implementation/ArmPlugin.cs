@@ -149,6 +149,11 @@ namespace Agent.Plugins.Implementation
         {
             return await _armHelper.UpdateAppSettingsAsync(resourceId, appSettings);
         }
+
+        public async Task<string> RunAzCliReadCommandsAsync(string command)
+        {
+            return await _armHelper.RunAzCliReadCommandsAsync(command);
+        }
     }
 }
 

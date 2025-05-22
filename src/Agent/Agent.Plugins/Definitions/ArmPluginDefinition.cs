@@ -123,6 +123,24 @@ namespace Agent.Plugins
         {
             return await _armPlugin.UpdateAppSettingsAsync(resourceId, appSettings);
         }
+
+        [Description("""
+        Safely execute az commands to perform read operations on Azure resources.
+        USAGE: Provide the complete az cli command as a string. Do not assume the default subscription the command will run against. ALWAYS specify the subscription id with --subscription parameter if needed. You should only provide one az command at a time.
+        BASIC EXAMPLES:
+        - List container apps: 'az containerapp list -g MyResourceGroup --subscription <subId>'
+        ADVANCED EXAMPLES:
+        - Get container app ingress property with query: 'az containerapp show -g MyResourceGroup -n MyContainerApp --query properties.configuration.ingress.external --subscription <subId>'
+        BEST PRACTICES:
+        - ONLY consider using this tool if you cannot find tools that more specific for your task.
+        - ALWAYS specify the subscription with --subscription parameter if needed.
+        - DO NOT use this tool for commands that modify the azure resource, e.g., commands contain 'create', 'update', 'delete', etc.
+        """)]
+        public async Task<string> RunAzCliReadCommandsAsync(
+            [Description("Complete az command string")] string command)
+        {
+            return await _armPlugin.RunAzCliReadCommandsAsync(command);
+        }
     }
 }
 

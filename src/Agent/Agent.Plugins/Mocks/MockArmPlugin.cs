@@ -138,6 +138,11 @@ namespace Agent.Plugins.Mocks
         {
             return Task.FromResult(true);
         }
+
+        public Task<string> RunAzCliReadCommandsAsync(string command)
+        {
+            return Task.FromResult("Command executed");
+        }
     }
 }
 

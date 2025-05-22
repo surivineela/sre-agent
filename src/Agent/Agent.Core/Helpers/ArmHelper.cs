@@ -13,12 +13,10 @@ using Agent.Core.Configuration;
 using Agent.Core.Helpers.ArmModels;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
-using Agent.Core.Models.Api.v1;
 using Agent.Core.Models.Charts;
+using Agent.Logging;
 using Azure;
 using Azure.Core;
-using Azure.Identity;
-using Azure.ResourceManager;
 using Azure.ResourceManager.AppService;
 using Azure.ResourceManager.AppService.Models;
 using Azure.ResourceManager.Compute;
@@ -32,6 +30,7 @@ using Azure.ResourceManager.Sql;
 using Azure.ResourceManager.Sql.Models;
 using Azure.ResourceManager.Storage;
 using Azure.ResourceManager.Storage.Models;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
@@ -51,16 +50,25 @@ public class OperationDetail
 
 public class ArmHelper
 {
+    private readonly ILogger<ArmHelper> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IArmClientFactory _armClientFactory;
     private readonly IAuthenticationService _authService;
+    private readonly AzureSettings _azureSettings;
 
     // Crawler MI is used for production environment as current solution
-    public ArmHelper(IHttpClientFactory httpClientFactory, IArmClientFactory armClientFactory, IAuthenticationService authService, AzureSettings azureSettings)
+    public ArmHelper(
+        ILogger<ArmHelper> logger,
+        IHttpClientFactory httpClientFactory,
+        IArmClientFactory armClientFactory,
+        IAuthenticationService authService,
+        AzureSettings azureSettings)
     {
+        _logger = logger;
         _httpClientFactory = httpClientFactory;
         _armClientFactory = armClientFactory;
         _authService = authService;
+        _azureSettings = azureSettings;
     }
 
     public async Task<List<AzureSubscription>> GetSubscriptionsAsync()
@@ -594,7 +602,7 @@ public class ArmHelper
     {
         return await GetResourceSettings(resourceIds, FetchAppServiceStatusAsync);
     }
-    
+
     /// <summary>
     /// Checks if a given string is a valid resource identifier.
     /// </summary>
@@ -687,7 +695,8 @@ public class ArmHelper
         return await serviceBusNamespaceResource.GetAsync();
     }
 
-    public async Task<SqlServerResource> GetSqlServerAsync(string resourceId) { 
+    public async Task<SqlServerResource> GetSqlServerAsync(string resourceId)
+    {
         var armClient = await _armClientFactory.GetArmOperationClient();
         var sqlServerResource = armClient.GetSqlServerResource(new ResourceIdentifier(resourceId));
         return await sqlServerResource.GetAsync();
@@ -827,21 +836,21 @@ public class ArmHelper
 
         // First get the analysis response
         string analysisResponse = await GetDetectorResponseWithTime(resourceId, detectorId, startTime, endTime);
-        
+
         try
         {
             // Parse the JSON response to extract detector IDs
             using JsonDocument document = JsonDocument.Parse(analysisResponse);
             var root = document.RootElement;
-            
+
             // Create a list to store all detector responses
             List<string> allDetectorResponses = new List<string> { analysisResponse };
-            
+
             // Check if properties exists in the response
             if (root.TryGetProperty("properties", out JsonElement properties))
             {
                 // Check if dataset exists in properties
-                if (properties.TryGetProperty("dataset", out JsonElement dataset) && 
+                if (properties.TryGetProperty("dataset", out JsonElement dataset) &&
                     dataset.ValueKind == JsonValueKind.Array)
                 {
                     // Iterate through each item in the dataset array
@@ -917,7 +926,7 @@ public class ArmHelper
         if (string.IsNullOrWhiteSpace(resourceId))
             throw new ArgumentException("Resource ID is required");
 
-        var requestUrl = new Uri(new Uri("https://management.azure.com"), 
+        var requestUrl = new Uri(new Uri("https://management.azure.com"),
             $"{resourceId}/host/default/sync?api-version=2022-03-01");
 
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
@@ -1105,7 +1114,7 @@ public class ArmHelper
     public async Task<AppServiceLocalAuthStatus> FetchAppServiceStatusAsync(string resourceId)
     {
         var webSiteResource = await GetAppServiceAsync(resourceId);
-        var scmPublishingCredentialsPolicy =  await webSiteResource.GetScmSiteBasicPublishingCredentialsPolicy().GetAsync();
+        var scmPublishingCredentialsPolicy = await webSiteResource.GetScmSiteBasicPublishingCredentialsPolicy().GetAsync();
         var ftpPublishingCredentialsPolicy = await webSiteResource.GetWebSiteFtpPublishingCredentialsPolicy().GetAsync();
 
         return new AppServiceLocalAuthStatus(
@@ -2095,6 +2104,38 @@ public class ArmHelper
         }
     }
 
+    public async Task<string> RunAzCliReadCommandsAsync(string command)
+    {
+        _logger.LogInternalInformation($"[RunAzCliReadCommandsAsync] command: {command}");
+        // Trim any leading/trailing whitespace
+        command = command.Trim();
+
+        // Validate command format
+        var validationSummary = ValidateCommand(command);
+        if (validationSummary != null)
+        {
+            _logger.LogInternalError($"[RunAzCliReadCommandsAsync] Validation failed: {validationSummary}");
+            return validationSummary;
+        }
+
+        // Execute the command
+        try
+        {
+            var login = await AzLoginIfNecessary();
+            if (!login)
+            {
+                return "[Exception encountered]: Failed to login to Azure CLI";
+            }
+
+            var cmd = command.Substring("az ".Length);
+            return await ExecuteCommandHelper.ExecuteCommand("az", cmd);
+        }
+        catch (Exception ex)
+        {
+            return $"[Exception encountered]: Failed to execute command: {ex.ToString()}";
+        }
+    }
+
     #region Private Methods
 
     private async Task<List<T>> GetResourceSettings<T>(
@@ -2251,6 +2292,119 @@ public class ArmHelper
             // Delay for 10 seconds before checking again
             await Task.Delay(TimeSpan.FromSeconds(10));
         }
+    }
+
+    private string? ValidateCommand(string command)
+    {
+        // Check if the command starts with "az" and contains "read"
+        if (!command.StartsWith("az ", StringComparison.OrdinalIgnoreCase))
+        {
+            return "[Validation Failed]: Command must start with 'az'.";
+        }
+
+        // try determine the verb by finding the last command before the parameters
+        var commandParts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var verb = string.Empty;
+        foreach (var cmd in commandParts)
+        {
+            if (cmd.StartsWith("-") || cmd.StartsWith("--"))
+            {
+                break;
+            }
+            verb = cmd;
+        }
+
+        if (!verb.StartsWith("list") &&
+            !verb.StartsWith("show") &&
+            (!verb.StartsWith("get") || string.Equals(verb, "get-access-token")))
+        {
+            return "[Validation Failed]: Command must be a read operation (e.g., 'list', 'show', 'get').";
+        }
+
+        // Check for dangerous characters that could indicate command injection
+        var dangerousPatterns = new string[]
+        {
+                ";",        // Command separator
+                "&&",       // Command chaining
+                "||",       // Command chaining
+                "|",        // Pipe (could be dangerous)
+                ">",        // Output redirection
+                "<",        // Input redirection
+                "`",        // Command substitution
+                "$(",       // Command substitution
+                "\\",       // Escape character
+                "\n",       // Newline
+                "\r"        // Carriage return
+        };
+
+        foreach (var pattern in dangerousPatterns)
+        {
+            if (command.Contains(pattern))
+            {
+                return $"[Validation Failed]: Command contains potentially dangerous character(s): {pattern}";
+            }
+        }
+
+        return null; // No validation errors
+    }
+
+    private async Task<bool> AzLoginIfNecessary()
+    {
+        var cmd = "account show --query 'user.type' -o tsv";
+
+        try
+        {
+            var result = await ExecuteCommandHelper.ExecuteCommand("az", cmd);
+            if (string.Equals(result, "servicePrincipal", StringComparison.OrdinalIgnoreCase)
+                // local test
+                || string.Equals(result, "user", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError($"Az login check failed: {ex}");
+            // continue with login
+        }
+
+        var identity = string.Empty;
+        if (!string.IsNullOrEmpty(_azureSettings.Action.Identity))
+        {
+            identity = _azureSettings.Action.Identity;
+        }
+        else if(!string.IsNullOrEmpty(_azureSettings.Crawler.Identity))
+        {
+            identity = _azureSettings.Crawler.Identity;
+        }
+
+        string[] loginCommands;
+        if (string.IsNullOrEmpty(identity))
+        {
+            // local env
+            loginCommands = new[] { "login", "--allow-no-subscriptions" };
+        }
+        else if (string.Equals(Constants.SystemManagedIdentityName, identity))
+        {
+            loginCommands = new[] { "login", "--identity", "--allow-no-subscriptions" };
+        }
+        else
+        {
+            loginCommands = new[] { "login", "--identity", "--allow-no-subscriptions", "--resource-id", identity };
+        }
+
+        _logger.LogInternalInformation($"Az login with managed identity {identity}");
+        try
+        {
+            await ExecuteCommandHelper.ExecuteCommand("az", loginCommands);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError($"Az login failed: {ex}");
+            return false;
+        }
+
+        return true;
     }
 
     #endregion

@@ -2242,68 +2242,11 @@ $@"100 * (
 
             var cmd = command.Substring("kubectl ".Length); // Remove "kubectl " prefix
 
-            var processInfo = new ProcessStartInfo
-            {
-                FileName = "kubectl",
-                Arguments = $"{cmd} --kubeconfig=\"{kubeConfigPath}\" --cache-dir=\"{Path.Combine(Path.GetTempPath(), ".kube")}\"",
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-
-            using var process = new Process { StartInfo = processInfo };
-            var outputBuilder = new StringBuilder();
-            var errorBuilder = new StringBuilder();
-
-            // Set up data received handlers
-            process.OutputDataReceived += (sender, e) =>
-            {
-                if (e.Data != null)
-                {
-                    outputBuilder.AppendLine(e.Data);
-                }
-            };
-
-            process.ErrorDataReceived += (sender, e) =>
-            {
-                if (e.Data != null)
-                {
-                    errorBuilder.AppendLine(e.Data);
-                }
-            };
-
-            // Start the process
-            process.Start();
-            process.BeginOutputReadLine();
-            process.BeginErrorReadLine();
-
-            // Wait for completion with timeout
-            using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(1));
-            try
-            {
-                await process.WaitForExitAsync(cts.Token);
-            }
-            catch (OperationCanceledException)
-            {
-                // Kill the process if it times out
-                try
-                {
-                    process.Kill();
-                }
-                catch { }
-
-                return "[Unexpected Exception]: Kubectl command execution timed out after 1 minute.";
-            }
-
-            // Check for errors
-            if (process.ExitCode != 0)
-            {
-                var errorMessage = errorBuilder.ToString();
-                return $"[Unexpected Exception]: Kubectl command failed with exit code {process.ExitCode}: {errorMessage}";
-            }
-
-            return outputBuilder.ToString();
+            return await ExecuteCommandHelper.ExecuteCommand(
+                "kubectl",
+                cmd,
+                "--kubeconfig=\"{kubeConfigPath}\"",
+                $"--cache-dir=\"{Path.Combine(Path.GetTempPath(), ".kube")}\"");
         }
 
         private string LoadScriptContent(string scriptFileName)
