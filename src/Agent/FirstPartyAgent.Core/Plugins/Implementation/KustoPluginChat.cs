@@ -16,7 +16,7 @@ namespace FirstPartyAgent.Plugins
     {
         private readonly IACAKustoPlugin _kustoPlugin;
         private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
-        private const int TokenLimit = 2000;
+        private const int TokenLimit = 200000;
 
         public KustoPluginChat(IACAKustoPlugin kustoPlugin, IAgentOutboundCommunicationService agentOutboundCommunicationService)
         {
