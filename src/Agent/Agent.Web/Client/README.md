@@ -7,17 +7,18 @@
 **Pre:** Follow steps to deploy3p resources with your alias as prefix -> duplicate appsettings.json to `appsettings.Development.json` and set "EnvPrefix" to said prefix
 
 1. Make sure `docker` running -> run `./src/run-durable-emulator.ps1`
-1. Build and run `Agent.Web.sln` in Visual Studio
-    1. A browser window will automatically open to the ASP.NET site that contains our static React app
-1. Run `npm run dev` or `watch` in `./src/Agent/Agent.Web/Client`
-    1. Add `/static` to the URL
+1. Go to ./src/Agent/Agent.Web/Client
+    1. Run `npm run watch` to run a vite server to host the Agent site and start incremental builds.  (NOTE: HTTP requests won't work yet until you run the ASP.Net backend)
+1. Open `./src/Agent/Agent.Web.sln` to open up Visual Studio
+1. On the debug button on the top of VS (it looks like a "play" button), choose the `react` profile.  Then click on it to build and run.
+    1. A browser window will automatically open pointing to the vite server and you should be good to go.
 
 ### Portal (PaasServerless extension) entrypoint
 
 1. Register your subscription (probably not needed post-BUILD?): `az feature register -n SREAgentPreview --namespace Microsoft.App`
 1. Links:
     - [Local Paas SRE Agent Home/Browse](https://portal.azure.com/?Microsoft_Azure_PaasServerless_clientoptimizations=false&feature.customportal=false&feature.canmodifyextensions=true#view/Microsoft_Azure_PaasServerless/SreAgentHome.ReactView?testExtensions=%7B%22Microsoft_Azure_PaasServerless%22:%22https://localhost:1338/paasserverless%22%7D)
-    - https://aka.ms/sreagent
+    - https://aka.ms/sreagent-portal
     - https://aka.ms/sreagent-local (local agent site in canary(?) Paas)
 
 ## Localization

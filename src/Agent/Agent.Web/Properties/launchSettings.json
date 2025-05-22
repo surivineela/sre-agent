@@ -23,6 +23,18 @@
       "dotnetRunMessages": true,
       "applicationUrl": "https://localhost:7023;http://localhost:5073"
     },
+    "react": {
+      "commandName": "Project",
+      "commandLineArgs": "--session --legacy",
+      "launchBrowser": true,
+      "launchUrl": "https://localhost:5173/static/",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "AGENT_ENDPOINT": "https://localhost:7023/"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "https://localhost:7023;http://localhost:5073"
+    },
     "1PAgentHttps": {
       "commandName": "Project",
       "commandLineArgs": "--session --legacy",
