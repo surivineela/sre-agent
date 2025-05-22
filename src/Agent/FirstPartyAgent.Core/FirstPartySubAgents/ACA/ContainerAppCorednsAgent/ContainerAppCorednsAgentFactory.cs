@@ -7,6 +7,7 @@ using Agent.Core;
 using Agent.Plugins;
 using Agent.Runtime.Communication;
 using Agent.Runtime.SubAgents;
+using FirstPartyAgent.Core.Plugins;
 using FirstPartyAgent.Core.Plugins.Definitions;
 using FirstPartyAgent.Core.Plugins.Implementation;
 using FirstPartyAgent.Core.Plugins.Interfaces;
@@ -30,6 +31,7 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCorednsAgent
         IContainerAppCorednsPlugin corednsPlugin,
         IContainerAppIcMPlugin containerAppIcMPlugin,
         IManagedClusterPlugin  managedClusterPlugin,
+        IAzureDocSearchPlugin azureDocSearchPlugin,
         IChartPlugin chartPlugin,
         IToolsRepository toolsRepository,
         IThreadOrchestrationManager mappingManager,
@@ -70,6 +72,9 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCorednsAgent
             toolSignatures.Add(_toolsRegistry.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
+
+            var searchPluginDefintion = new ContainerAppDocumentSearchPluginDefinition(azureDocSearchPlugin);
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => searchPluginDefintion.SearchAzureContainerAppsDocumentation));
 
             _toolSignatures = toolSignatures;
             _durableTaskClient = durableTaskClient;

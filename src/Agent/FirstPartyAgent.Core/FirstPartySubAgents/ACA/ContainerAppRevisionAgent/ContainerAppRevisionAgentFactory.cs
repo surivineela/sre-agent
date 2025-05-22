@@ -8,6 +8,7 @@ using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Runtime.Communication;
 using Agent.Runtime.SubAgents;
+using FirstPartyAgent.Core.Plugins;
 using FirstPartyAgent.Core.Plugins.Definitions;
 using FirstPartyAgent.Core.Plugins.Interfaces;
 using Microsoft.DurableTask;
@@ -27,6 +28,7 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.RevisionAgent
         IMetricsPlugin metricsPlugin,
         ITimePlugin timePlugin,
         IContainerAppRevisionPlugin revisionPlugin,
+        IAzureDocSearchPlugin azureDocSearchPlugin,
         IRecordActionsPlugin recordActionsPlugin,
         IManagedEnvironmentPlugin managedEnvironmentPlugin,
         IManagedClusterPlugin managedClusterPlugin,
@@ -66,6 +68,10 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.RevisionAgent
             toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetInternalEventProcessorEventsForPod));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetRevisionSpecChanges));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetLegionErrors));
+
+
+            var searchPluginDefintion = new ContainerAppDocumentSearchPluginDefinition(azureDocSearchPlugin);
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => searchPluginDefintion.SearchAzureContainerAppsDocumentation));
 
             var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
             toolSignatures.Add(_toolsRegistry.GetSignature(() => controlFlowPluginDefinition.Wait));

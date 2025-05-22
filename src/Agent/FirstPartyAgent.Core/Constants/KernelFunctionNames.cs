@@ -39,6 +39,7 @@ namespace FirstPartyAgent.Constants
             public const string GetContainerAppEnvironmentQuotaOperationResult = "get_container_app_environment_quota_operation_result";
             public const string CallKustoQuery = "call_kusto_function";
             public const string ListRevisions = "list_revisions";
+            public const string SearchAzureContainerAppsDocumentation = "search_design_docs";
             public const string GetRevisionTrafficWithReplicaCount = "get_revision_traffic_with_replica_count";
             public const string GetActiveRevisionSessions = "get_active_revision_sessions";
             public const string GetHpaHeartbeatMetrics = "get_hpa_heartbeat_metrics";

@@ -15,7 +15,8 @@ namespace FirstPartyAgent.Core.Plugins
     {
         private readonly IAzureSearchClient _searchClient;
         private readonly ILogger<AzureSearchPlugin> _logger;
-        public AzureSearchPlugin(ILogger<AzureSearchPlugin> logger, IAzureSearchClient azureSearchClient) 
+
+        public AzureSearchPlugin(ILogger<AzureSearchPlugin> logger, IAzureSearchClient azureSearchClient)
         {
             _logger = logger;
             _searchClient = azureSearchClient;
@@ -39,9 +40,11 @@ namespace FirstPartyAgent.Core.Plugins
                     case "nmallick1/azure-functions-host":
                         owner = "azure";
                         break;
+
                     case "nmallick1/azure-sdk-for-net":
                         owner = "azure";
                         break;
+
                     default:
                         break;
                 }
@@ -55,7 +58,7 @@ namespace FirstPartyAgent.Core.Plugins
 
                 var tasks = issueSummaries.Select(issueDescription =>
                 {
-                    return _searchClient.SearchAsync<IndexedGitHubIssueModel>(searchIndex, issueDescription, cancellationToken);
+                    return _searchClient.SearchAsync<IndexedGitHubIssueModel>(searchIndex, issueDescription, null, cancellationToken);
                 });
 
                 var searchResults = await Task.WhenAll(tasks);
@@ -99,4 +102,3 @@ namespace FirstPartyAgent.Core.Plugins
         }
     }
 }
-

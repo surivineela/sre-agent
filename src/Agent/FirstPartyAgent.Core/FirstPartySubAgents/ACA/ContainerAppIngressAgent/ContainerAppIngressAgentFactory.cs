@@ -11,6 +11,7 @@ using Agent.Runtime;
 using Agent.Runtime.Communication;
 using Agent.Runtime.SubAgents;
 using FirstPartyAgent.Core.FirstPartySubAgents.ACA.RevisionAgent;
+using FirstPartyAgent.Core.Plugins;
 using FirstPartyAgent.Core.Plugins.Definitions;
 using FirstPartyAgent.Core.Plugins.Interfaces;
 using FirstPartyAgent.Plugins;
@@ -32,6 +33,7 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppIngressAgent
             IContainerAppEnvoyPlugin envoyPlugin,
             IToolsRepository toolsRepository,
             IThreadOrchestrationManager mappingManager,
+            IAzureDocSearchPlugin azureDocSearchPlugin,
             DurableTaskClient durableTaskClient)
         {
             _toolsRegistry = toolsRepository;
@@ -53,6 +55,9 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppIngressAgent
             toolSignatures.Add(_toolsRegistry.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
+
+            var searchPluginDefintion = new ContainerAppDocumentSearchPluginDefinition(azureDocSearchPlugin);
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => searchPluginDefintion.SearchAzureContainerAppsDocumentation));
 
             _toolSignatures = toolSignatures;
             _durableTaskClient = durableTaskClient;

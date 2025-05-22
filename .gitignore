@@ -421,3 +421,4 @@ secrets.json
 appPackage.zip
 
 src/Agent/Agent.Web/wwwroot/react/
+/src/Agent/FirstPartyAgent.Core/aca-appsettings.development.json

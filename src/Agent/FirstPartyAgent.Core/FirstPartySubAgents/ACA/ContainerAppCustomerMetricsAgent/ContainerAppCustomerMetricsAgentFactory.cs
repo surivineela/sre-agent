@@ -1,12 +1,13 @@
 using System.Text.Json;
 using Agent.Core;
+using Agent.Plugins;
 using Agent.Runtime.Communication;
 using Agent.Runtime.SubAgents;
-using FirstPartyAgent.Core.Plugins.Interfaces;
+using FirstPartyAgent.Core.Plugins;
 using FirstPartyAgent.Core.Plugins.Definitions;
+using FirstPartyAgent.Core.Plugins.Interfaces;
 using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
-using Agent.Plugins;
 
 namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCustomerMetricsAgent
 {
@@ -21,6 +22,7 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCustomerMetri
 
         public ContainerAppCustomerMetricsAgentFactory(
         IContainerAppCustomerMetricsPlugin metricsAgentPlugin,
+        IAzureDocSearchPlugin azureDocSearchPlugin,
         IToolsRepository toolsRepository,
         IThreadOrchestrationManager mappingManager,
         DurableTaskClient durableTaskClient)
@@ -39,6 +41,9 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCustomerMetri
             toolSignatures.Add(_toolsRegistry.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
+
+            var searchPluginDefintion = new ContainerAppDocumentSearchPluginDefinition(azureDocSearchPlugin);
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => searchPluginDefintion.SearchAzureContainerAppsDocumentation));
 
             _toolSignatures = toolSignatures;
             _durableTaskClient = durableTaskClient;

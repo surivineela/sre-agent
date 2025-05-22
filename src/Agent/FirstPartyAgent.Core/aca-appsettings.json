@@ -30,6 +30,20 @@
           "ProcessImages": true,
           "ICMBacktestingModeEnabled": false
         },
+        "AzureSearch": {
+          "SearchServiceUri": "https://aca-docs-search.search.windows.net",
+          "SearchApiKeyOverride": "",
+          "UserAssignedMIClientId": "5cc4f734-a234-443c-9092-04e06a2b80c2",
+          "SearchIndexes": [
+            {
+              "IndexName": "rag-1747704319758",
+              "FieldsToSelectCsv": "chunk_id,chunk,title,header_1,header_2,header_3",
+              "SemanticSearchEnabled": true,
+              "VectorSearchEnabled": true,
+              "VectorFieldNamesCsv": "text_vector"
+            }
+          ]
+        },
         "Kusto": {
           "RegionalClusterGroups": [
             {

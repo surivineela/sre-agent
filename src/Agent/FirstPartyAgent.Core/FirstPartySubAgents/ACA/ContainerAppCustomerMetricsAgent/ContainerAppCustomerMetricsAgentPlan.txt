@@ -31,6 +31,10 @@ Collect all of the following:
 Use `AskUserForInput` for anything missing.
 
 ---
+If needed, you should:
+- Use 🧠 `SearchDesignDocsAsync` to retrieve **internal design documents** that can aid understanding of architectural choices, component behaviors, or known mitigations.
+- Reference the retrieved content directly in your diagnostic insights and RCA.
+## Customer Metrics Agent Workflow
 
 ### Step 2: Check for missing metrics
 ---

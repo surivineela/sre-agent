@@ -1,15 +1,19 @@
+using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Runtime.MetaAgent;
 using Agent.Runtime.SubAgents;
+using FirstPartyAgent.Core.Clients;
 using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Core.FirstPartySubAgentPlugins.ACA;
 using FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCorednsAgent;
 using FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppSessionsAgent;
+using FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCustomerMetricsAgent;
 using FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppIngressAgent;
 using FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppQuotaAgent;
 using FirstPartyAgent.Core.FirstPartySubAgents.ACA.HelloWorldAgent;
 using FirstPartyAgent.Core.FirstPartySubAgents.ACA.RevisionAgent;
+using FirstPartyAgent.Core.Plugins;
 using FirstPartyAgent.Core.Plugins.Definitions;
 using FirstPartyAgent.Core.Plugins.Implementation;
 using FirstPartyAgent.Core.Plugins.Interfaces;
@@ -70,6 +74,9 @@ public static class ServiceCollectionExtensions
         builder.Services.AddOptionsWithValidateOnStart<ICMWorkflowSettings>()
             .BindConfiguration("AppSettings:Core:External:ICMWorkflows")
             .ValidateDataAnnotations();
+        builder.Services.AddOptionsWithValidateOnStart<AzureSearchSettings>()
+    .BindConfiguration("AppSettings:Core:External:AzureSearch")
+    .ValidateDataAnnotations();
 
         builder.Services.AddOptionsWithValidateOnStart<KustoSettings>()
                 .BindConfiguration("AppSettings:Core:External:Kusto")
@@ -81,7 +88,11 @@ public static class ServiceCollectionExtensions
             var icmWorkflowSettings = sp.GetRequiredService<IOptions<ICMWorkflowSettings>>();
             return icmWorkflowSettings.Value;
         });
-
+        builder.Services.AddSingleton(sp =>
+        {
+            var icmWorkflowSettings = sp.GetRequiredService<IOptions<AzureSearchSettings>>();
+            return icmWorkflowSettings.Value;
+        });
         builder.Services.AddSingleton(sp =>
         {
             var kustoSettings = sp.GetRequiredService<IOptions<KustoSettings>>();
@@ -103,6 +114,8 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ContainerAppQuotaAgentFactory>();
 
         services.AddSingleton<IContainerAppJobsPlugin, ContainerAppJobsPlugin>();
+        services.AddSingleton<IAzureDocSearchPlugin, AzureDocSearchPlugin>();
+        services.AddSingleton<IAzureSearchClient, AzureSearchClient>();
         services.AddSingleton<IContainerAppRevisionPlugin, ContainerAppRevisionPlugin>();
         services.AddSingleton<IManagedClusterPlugin, ManagedClusterPlugin>();
         services.AddSingleton<IManagedEnvironmentPlugin, ManagedEnvironmentPlugin>();
@@ -110,6 +123,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<INodeAvailabilityPlugin, NodeAvailabilityPlugin>();
         services.AddSingleton<ContainerAppJobsAgentPlugin>();
         services.AddSingleton<ContainerAppRevisionAgentPlugin>();
+        services.AddSingleton<ContainerAppDocumentSearchPluginDefinition>();
         services.AddSingleton<ContainerAppRevisionPluginDefinition>();
         services.AddSingleton<ContainerAppJobsPluginDefinition>();
         services.AddSingleton<ManagedEnvironmentPluginDefinition>();

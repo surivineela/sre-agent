@@ -2,22 +2,29 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Azure;
+using System.Collections.Concurrent;
+using System.Diagnostics;
 using Agent.Core.Configuration;
+using Azure;
 using Azure.Identity;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Models;
+using FirstPartyAgent.Core.Plugins.Implementation;
 using Microsoft.Extensions.Configuration;
-using System.Collections.Concurrent;
+using Microsoft.Extensions.Logging;
 
 namespace FirstPartyAgent.Core.Services
 {
     public interface IAzureSearchClient
     {
-        Task<SearchResults<T>> SearchAsync<T>(string searchIndex, string searchText, CancellationToken cancellationToken = default);
+        Task<SearchResults<T>> SearchAsync<T>(
+            string searchIndex,
+            string searchText,
+            Action<SearchOptions>? configureOptions = null,
+            CancellationToken cancellationToken = default);
     }
 
-    public class AzureSearchClient: IAzureSearchClient
+    public class AzureSearchClient : IAzureSearchClient
     {
         private const int MAX_RESULTS_TO_FETCH = 20;
         private readonly AzureSearchSettings _azureSearchSettings;
@@ -59,7 +66,11 @@ namespace FirstPartyAgent.Core.Services
             return client;
         }
 
-        public async Task<SearchResults<T>> SearchAsync<T>(string searchIndex, string searchText, CancellationToken cancellationToken = default)
+        public async Task<SearchResults<T>> SearchAsync<T>(
+    string searchIndex,
+    string searchText,
+    Action<SearchOptions>? configureOptions = null,
+    CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(searchText))
             {
@@ -78,57 +89,50 @@ namespace FirstPartyAgent.Core.Services
                 IncludeTotalCount = true
             };
 
-            var searchIndexSettings = _azureSearchSettings.SearchIndexes.FirstOrDefault(index => index.IndexName.Equals(searchIndex, StringComparison.OrdinalIgnoreCase));
+            var searchIndexSettings = _azureSearchSettings.SearchIndexes
+                .FirstOrDefault(index => index.IndexName.Equals(searchIndex, StringComparison.OrdinalIgnoreCase));
 
-            if (string.IsNullOrWhiteSpace(searchIndexSettings?.IndexName))
-            {
-                searchOptions.QueryType = SearchQueryType.Full;
-                searchOptions.Size = MAX_RESULTS_TO_FETCH;
-
-                var searchResults = await searchClient.SearchAsync<T>(searchText, searchOptions, cancellationToken);
-                return searchResults.Value;
-            }
-            else
+            // Default behavior from config
+            if (!string.IsNullOrWhiteSpace(searchIndexSettings?.IndexName))
             {
                 if (searchIndexSettings.SemanticSearchEnabled)
                 {
+                    searchOptions.SemanticSearch = new SemanticSearchOptions
+                    {
+                        SemanticConfigurationName = "default"
+                    };
                     if (!searchIndexSettings.VectorSearchEnabled)
                     {
                         searchOptions.QueryType = SearchQueryType.Semantic;
                     }
-
-                    searchOptions.SemanticSearch = new SemanticSearchOptions
-                    {
-                        SemanticConfigurationName = "default",
-                    };
                 }
 
                 if (searchIndexSettings.VectorSearchEnabled)
                 {
-                    searchOptions.VectorSearch = new VectorSearchOptions();
-
-                    var vectorSearchQuery = new VectorizableTextQuery(searchText)
+                    var vectorSearch = new VectorSearchOptions();
+                    var vectorQuery = new VectorizableTextQuery(searchText)
                     {
                         Exhaustive = true,
                         KNearestNeighborsCount = MAX_RESULTS_TO_FETCH
                     };
 
-                    foreach (string vectorFieldName in searchIndexSettings.VectorFieldNames)
+                    foreach (var field in searchIndexSettings.VectorFieldNames ?? Enumerable.Empty<string>())
                     {
-                        if (!string.IsNullOrWhiteSpace(vectorFieldName))
+                        if (!string.IsNullOrWhiteSpace(field))
                         {
-                            vectorSearchQuery.Fields.Add(vectorFieldName);
+                            vectorQuery.Fields.Add(field);
                         }
                     }
 
-                    searchOptions.VectorSearch.Queries.Add(vectorSearchQuery);
+                    vectorSearch.Queries.Add(vectorQuery);
+                    searchOptions.VectorSearch = vectorSearch;
                 }
 
-                foreach (string fieldName in searchIndexSettings.FieldsToSelect)
+                foreach (var field in searchIndexSettings.FieldsToSelect ?? Enumerable.Empty<string>())
                 {
-                    if (!string.IsNullOrWhiteSpace(fieldName))
+                    if (!string.IsNullOrWhiteSpace(field))
                     {
-                        searchOptions.Select.Add(fieldName);
+                        searchOptions.Select.Add(field);
                     }
                 }
 
@@ -136,20 +140,28 @@ namespace FirstPartyAgent.Core.Services
                 {
                     searchOptions.QueryType = SearchQueryType.Full;
                 }
+            }
+            else
+            {
+                // fallback defaults
+                searchOptions.QueryType = SearchQueryType.Full;
+                searchOptions.Size = MAX_RESULTS_TO_FETCH;
+            }
 
-                if (searchIndexSettings.VectorSearchEnabled)
+            // 🔧 Allow caller to override anything
+            configureOptions?.Invoke(searchOptions);
+           
+                // 📤 Execute query
+                if (searchOptions.VectorSearch?.Queries?.Any() == true)
                 {
-                    var searchResults = await searchClient.SearchAsync<T>(searchOptions, cancellationToken);
-                    return searchResults.Value;
+                    return (await searchClient.SearchAsync<T>(searchOptions, cancellationToken)).Value;
                 }
                 else
                 {
-                    searchOptions.Size = MAX_RESULTS_TO_FETCH;
-                    var searchResults = await searchClient.SearchAsync<T>(searchText, searchOptions, cancellationToken);
-                    return searchResults.Value;
+                    searchOptions.Size = searchOptions.Size ?? MAX_RESULTS_TO_FETCH;
+                    return (await searchClient.SearchAsync<T>(searchText, searchOptions, cancellationToken)).Value;
                 }
-            }
+           
         }
     }
 }
-

@@ -147,6 +147,12 @@ public class ContainerAppIcMPlugin : IcmPlugin, IContainerAppIcMPlugin
             AIFunctionFactory.Create(containerAppsPluginDefinition.GetSubscriptionUsage),
             AIFunctionFactory.Create(containerAppsPluginDefinition.GetSubscriptionDetail),
         };
+        var messages = new List<Microsoft.Extensions.AI.ChatMessage>
+        {
+            new Microsoft.Extensions.AI.ChatMessage(ChatRole.System, summarizationPrompt),
+            new Microsoft.Extensions.AI.ChatMessage(ChatRole.User, incidentWithComments)
+        };
+
         var options = new ChatOptions
         {
             Temperature = (float)0.2,
@@ -160,11 +166,6 @@ public class ContainerAppIcMPlugin : IcmPlugin, IContainerAppIcMPlugin
             }
         };
 
-        var messages = new List<Microsoft.Extensions.AI.ChatMessage>
-        {
-            new Microsoft.Extensions.AI.ChatMessage(ChatRole.System, summarizationPrompt),
-            new Microsoft.Extensions.AI.ChatMessage(ChatRole.User, incidentWithComments)
-        };
 
         var stopwatch2 = System.Diagnostics.Stopwatch.StartNew();
         var response = await _chatClient.GetResponseAsync(messages, options);

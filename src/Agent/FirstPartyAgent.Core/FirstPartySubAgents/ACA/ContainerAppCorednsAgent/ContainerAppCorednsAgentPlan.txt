@@ -21,7 +21,9 @@ When greeted, respond with a short introduction like:
 - Reuse previously provided parameters (`region`, `fromDate`, `toDate`, `managedClusterName`) **across all tool calls**.  
   - **Do not re-ask** unless the parameter is missing or unclear.
 - ** If a query's result exceeds the threshold **, notify the user and apply one of the following sampling strategies: TopN, interval-based sampling, or narrow the datetime range.
-
+If needed, you should:
+- Use 🧠 `SearchDesignDocsAsync` to retrieve **internal design documents** that can aid understanding of architectural choices, component behaviors, or known mitigations.
+- Reference the retrieved content directly in your diagnostic insights and RCA.
 ---
 
 ## 🧭 DNS Diagnostic Workflow
