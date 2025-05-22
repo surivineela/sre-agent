@@ -350,5 +350,24 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
         {
             return await _kubePlugin.ProfileDotnetAppCpuInAKSContainerAsync(AKSClusterResourceId, _namespace, podName, targetContainerName, durationSeconds);
         }
+
+        [KernelFunction("analyze_dotnet_app_memory_in_aks_container")]
+        [Description(
+    @"Performs memory analysis for a .NET application running in a specific pod and container within an AKS cluster.
+    This involves collecting a memory dump, running an analyzer tool inside the container, and returning the analysis results.
+    This tool can help identify memory leaks, high memory usage patterns, and other memory-related issues in .NET applications.
+    Use this when investigating memory problems for a .NET app in AKS.
+    eg: 'Analyze the memory of the .NET app in pod 'cart-service-pod-abc789' in the 'e-commerce' namespace.'
+    eg: 'My .NET app 'order-processor' in pod 'proc-pod-123' seems to be using too much memory, can you analyze it?'"
+    )]
+        [RequiresApproval("Requires approval to execute memory dump collection and analysis tools within the specified pod and container. This involves running scripts and potentially installing diagnostic tools inside the container.", useOboToken: false)]
+        public async Task<string> AnalyzeDotnetAppMemoryInAKSContainerAsync(
+            [Description("The resource ID of the Azure Kubernetes Service (AKS) cluster.")] string AKSClusterResourceId,
+            [Description("Kubernetes namespace where the pod is located.")] string _namespace,
+            [Description("The name of the Kubernetes pod running the .NET application.")] string podName,
+            [Description("Optional: The name of the specific container within the pod. If not provided, the plugin will attempt to select an appropriate container (e.g., the first one).")] string? targetContainerName = null)
+        {
+            return await _kubePlugin.AnalyzeDotnetAppMemoryInAKSContainerAsync(AKSClusterResourceId, _namespace, podName, targetContainerName);
+        }
     }
 }

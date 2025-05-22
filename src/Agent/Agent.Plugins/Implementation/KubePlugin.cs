@@ -2306,17 +2306,16 @@ $@"100 * (
             return outputBuilder.ToString();
         }
 
-        private string LoadProfilingScript(string scriptFileName = "profile_script.sh")
+        private string LoadScriptContent(string scriptFileName)
         {
-            // Assumes script is in "Scripts" subdirectory next to the executing assembly
             var scriptPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SubAgents", "KubernetesAgent", scriptFileName);
 
             if (!File.Exists(scriptPath))
             {
-                _logger?.LogError("Profiling script file not found at: {ScriptPath}", scriptPath);
-                throw new FileNotFoundException($"Profiling script '{scriptFileName}' not found at '{scriptPath}'. Ensure it's in a 'Scripts' subdirectory and copied to output.", scriptPath);
+                _logger?.LogError("Script file not found at: {ScriptPath}", scriptPath);
+                throw new FileNotFoundException($"Script '{scriptFileName}' not found at '{scriptPath}'. Ensure it's copied to output.", scriptPath);
             }
-            _logger?.LogDebug("Loading profiling script from: {ScriptPath}", scriptPath);
+            _logger?.LogDebug("Loading script from: {ScriptPath}", scriptPath);
             return File.ReadAllText(scriptPath);
         }
 
@@ -2377,7 +2376,7 @@ $@"100 * (
             string scriptContent;
             try
             {
-                scriptContent = LoadProfilingScript(); // Assumes "profile_script.sh"
+                scriptContent = LoadScriptContent("profile_script.sh");
             }
             catch (Exception ex)
             {
@@ -2633,6 +2632,147 @@ $@"100 * (
                     webSocket.Dispose();
                 }
             }
+        }
+
+        public async Task<string> AnalyzeDotnetAppMemoryInAKSContainerAsync(
+        string aksResourceId,
+        string _namespace,
+        string podName,
+        string? targetContainerName)
+        {
+            var client = await GetOrCreateClientAsync(aksResourceId);
+            if (client == null)
+            {
+                return "Error: Kubernetes client could not be initialized.";
+            }
+
+            V1Pod pod;
+            try
+            {
+                pod = await client.CoreV1.ReadNamespacedPodAsync(podName, _namespace);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error reading pod '{PodName}' in namespace '{Namespace}' for memory analysis.", podName, _namespace);
+                return $"Error reading pod '{podName}': {ex.Message}";
+            }
+
+            // Determine target container (same logic as ProfileDotnetAppCpuInAKSContainerAsync)
+            if (string.IsNullOrEmpty(targetContainerName))
+            {
+                targetContainerName = pod.Spec.Containers.FirstOrDefault()?.Name;
+                if (string.IsNullOrEmpty(targetContainerName))
+                {
+                    _logger?.LogError("Pod '{PodName}' in namespace '{Namespace}' has no containers defined for memory analysis.", podName, _namespace);
+                    return $"Error: Pod '{podName}' has no containers.";
+                }
+                _logger?.LogInformation("Auto-selected container '{SelectedContainer}' for memory analysis in pod '{PodName}'.", targetContainerName, podName);
+            }
+            else if (!pod.Spec.Containers.Any(c => c.Name.Equals(targetContainerName, StringComparison.OrdinalIgnoreCase)))
+            {
+                _logger?.LogWarning("Specified target container '{TargetContainerName}' not found in pod '{PodName}' for memory analysis. Available: {AvailableContainers}",
+                                    targetContainerName, podName, string.Join(", ", pod.Spec.Containers.Select(c => c.Name)));
+                return $"Error: Container '{targetContainerName}' not found in pod '{podName}'. Available: {string.Join(", ", pod.Spec.Containers.Select(c => c.Name))}";
+            }
+
+            _logger?.LogInformation("Starting in-container .NET memory analysis for pod '{PodName}', container '{ContainerName}'.", podName, targetContainerName);
+
+            string scriptContent;
+            try
+            {
+                scriptContent = LoadScriptContent("analyze_memory_aks.sh");
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Failed to load memory analysis script for pod '{PodName}'.", podName);
+                return $"Error: Could not load memory analysis script. {ex.Message}";
+            }
+
+            var (stdout, stderr, exitCode) = await ExecInPodAsync(
+                client,
+                _namespace,
+                podName,
+                targetContainerName,
+                "sh",
+                "-c",
+                scriptContent
+            );
+
+            var resultBuilder = new StringBuilder();
+            resultBuilder.AppendLine($"In-Container .NET Memory Analysis Result for Pod: {podName}, Container: {targetContainerName}");
+            resultBuilder.AppendLine($"Script Execution Exit Code: {exitCode}");
+
+            const string noDotNetProcessMarker = "[MEM_ANALYSIS_SCRIPT_INFO] No debuggable .NET process found.";
+            if (stdout != null && stdout.Contains(noDotNetProcessMarker))
+            {
+                _logger?.LogInformation("Memory analysis script indicated no debuggable .NET process found for pod '{PodName}'.", podName);
+                resultBuilder.AppendLine("--- Script Standard Output ---");
+                resultBuilder.AppendLine(stdout);
+                if (!string.IsNullOrEmpty(stderr))
+                {
+                    resultBuilder.AppendLine("--- Script Standard Error ---");
+                    resultBuilder.AppendLine(stderr);
+                }
+                // Extract the specific marker line for a concise message
+                int markerIndex = stdout.IndexOf(noDotNetProcessMarker);
+                string scriptInfoMessage = stdout.Substring(markerIndex).Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? noDotNetProcessMarker;
+                return $"Memory analysis not performed: \"{scriptInfoMessage.Trim()}\". This suggests the application may not be a .NET application, or no running .NET process suitable for analysis was found. Full script output:\n{resultBuilder.ToString()}";
+            }
+
+            const string analysisStartMarker = "-------------------- ANALYSIS START --------------------";
+            const string analysisEndMarker = "-------------------- ANALYSIS END ----------------------";
+
+            if (!string.IsNullOrEmpty(stdout))
+            {
+                int startIndex = stdout.IndexOf(analysisStartMarker);
+                int endIndex = stdout.IndexOf(analysisEndMarker, startIndex + analysisStartMarker.Length);
+
+                if (startIndex != -1 && endIndex != -1)
+                {
+                    startIndex += analysisStartMarker.Length;
+                    string analysisResult = stdout.Substring(startIndex, endIndex - startIndex).Trim();
+                    resultBuilder.AppendLine("--- Memory Analysis ---");
+                    resultBuilder.AppendLine(analysisResult);
+                    _logger?.LogInformation("Memory analysis script completed with analysis data for pod '{PodName}'.", podName);
+                }
+                else
+                {
+                    resultBuilder.AppendLine("--- Script Standard Output (Analysis markers not found or incomplete) ---");
+                    resultBuilder.AppendLine(stdout);
+                    _logger?.LogWarning("Memory analysis script completed for pod '{PodName}', but analysis markers were not found in stdout. Full stdout logged.", podName);
+                }
+            }
+            else
+            {
+                resultBuilder.AppendLine("--- Script Standard Output (Empty) ---");
+            }
+
+
+            if (!string.IsNullOrEmpty(stderr))
+            {
+                // Filter known benign warnings (similar to CPU script)
+                string filteredStderr = stderr;
+                // Add any memory-analysis specific benign warnings if they appear
+                // ...
+                filteredStderr = filteredStderr.Trim();
+                if (!string.IsNullOrWhiteSpace(filteredStderr))
+                {
+                    resultBuilder.AppendLine("--- Script Standard Error ---");
+                    resultBuilder.AppendLine(filteredStderr);
+                }
+            }
+
+            if (exitCode != 0 && !stdout.Contains(analysisStartMarker)) // If failed and no analysis was even started by script
+            {
+                _logger?.LogError("Memory analysis script failed for pod '{PodName}'. ExitCode: {ExitCode}. Full Stdout:\n{FullStdout}\nFull Stderr:\n{FullStderr}",
+                                    podName, exitCode, stdout, stderr);
+                if (!resultBuilder.ToString().Contains("ERROR: Memory analysis script encountered an error"))
+                {
+                    resultBuilder.AppendLine("ERROR: Memory analysis script failed before producing analysis. Review script output and error streams for details.");
+                }
+            }
+
+            return resultBuilder.ToString();
         }
     }
 }

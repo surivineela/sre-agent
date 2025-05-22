@@ -91,6 +91,9 @@
     <None Update="SubAgents\KubernetesAgent\profile_script.sh">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="SubAgents\KubernetesAgent\analyze_memory_aks.sh">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
 	<None Update="SubAgents\DailySummaryAgent\Dashboards\Main-Dashboard.json">
 	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	</None>

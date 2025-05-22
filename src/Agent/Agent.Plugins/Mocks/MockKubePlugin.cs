@@ -730,4 +730,9 @@ public class MockKubePlugin : IKubePlugin
     {
         throw new NotImplementedException();
     }
+
+    public Task<string> AnalyzeDotnetAppMemoryInAKSContainerAsync(string aksResourceId, string _namespace, string podName, string? targetContainerName)
+    {
+        throw new NotImplementedException();
+    }
 }
