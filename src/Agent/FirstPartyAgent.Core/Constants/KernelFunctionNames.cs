@@ -68,6 +68,12 @@ namespace FirstPartyAgent.Constants
             public const string GetContainerAppPodStatus = "get_container_app_pod_status";
             public const string GetContainerAppAdminEvents = "get_container_app_admin_events";
             public const string GetASIPageForRevision = "get_asi_page_for_revision";
+            public const string GetSessionPoolInfo = "get_session_pool_info";
+            public const string GetChangesInSessionPool = "get_changes_in_session_pool";
+            public const string GetSessionPodLogs = "get_session_pod_logs";
+            public const string GetSessionPoolCreateOrUpdateLogs = "get_session_pool_create_or_update_logs";
+            public const string GetCodeInterpreterSessionExecutionEventLogs = "get_code_interpreter_session_execution_event_logs";
+            public const string GetCustomContainerSessionActivatorLogs = "get_custom_container_session_activator_logs";
             public const string GetMetricsMdmCount = "get_metrics_mdm_count";
             public const string GetMdmPodHeartbeatMissedTimes = "get_mdm_pod_heartbeat_missed_times";
             public const string GetBillingPodLeaderElection = "get_billing_pod_leader_election";

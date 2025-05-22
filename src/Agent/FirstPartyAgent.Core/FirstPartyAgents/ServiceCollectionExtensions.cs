@@ -5,6 +5,7 @@ using Agent.Runtime.SubAgents;
 using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Core.FirstPartySubAgentPlugins.ACA;
 using FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCorednsAgent;
+using FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppSessionsAgent;
 using FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppIngressAgent;
 using FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppQuotaAgent;
 using FirstPartyAgent.Core.FirstPartySubAgents.ACA.HelloWorldAgent;
@@ -127,6 +128,11 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ContainerAppCorednsAgentPlugin>();
         services.AddSingleton<ContainerAppCorednsPluginDefinition>();
         services.AddSingleton<ContainerAppCorednsAgentFactory>();
+
+        services.AddSingleton<IContainerAppSessionsPlugin, ContainerAppSessionsPlugin>();
+        services.AddSingleton<ContainerAppSessionsAgentPlugin>();
+        services.AddSingleton<ContainerAppSessionsPluginDefinition>();
+        services.AddSingleton<ContainerAppSessionsAgentFactory>();
 
         services.AddSingleton<IIcmPlugin, IcmPlugin>();
         services.AddSingleton<IContainerAppIcMPlugin, ContainerAppIcMPlugin>();
