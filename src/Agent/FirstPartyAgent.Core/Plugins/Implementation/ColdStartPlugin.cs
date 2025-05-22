@@ -2,19 +2,12 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Azure.ResourceManager.Compute.Models;
+using System.ComponentModel;
 using FirstPartyAgent.Core.Models;
 using FirstPartyAgent.Core.Plugins.Interfaces;
 using FirstPartyAgent.Core.Services;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
-using Octokit;
-using ScottPlot.PlotStyles;
-using StackExchange.Redis;
-using System.ComponentModel;
-using System.Reactive;
-using static Kusto.Cloud.Platform.Instrumentation.DatabasesNamesMapping;
 
 namespace FirstPartyAgent.Plugins
 {
@@ -253,10 +246,32 @@ namespace FirstPartyAgent.Plugins
             return responses;
         }
 
+        [KernelFunction("run_coldstart_regression_analysis")]
+        [Description("Runs the cold start regression analysis.")]
+        public async Task<KustoQueryResponse> RunColdStartRegressionAnalysis()
+        {
+            try
+            {
+                _logger.LogInformation($"Initializing ColdStartRegressionAnalysis.");
+                var clusterName = "wawscus";
+                var databaseName = "wawsprod";
+                DateTime? nowOverride = null;
+
+                var kustoQuery = GetColdStartStatusByStage();
+
+                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, nowOverride);
+                return new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"An error occurred while initializing ColdStartRegressionAnalysis.");
+                return new KustoQueryResponse { KustoQuery = string.Empty, KustoResult = $"An error occurred: {ex.Message}" };
+            }
+        }
+
         [KernelFunction("run_coldstart_alert_kusto_query")]
         [Description("Runs the kusto query for the cold start alert and returns the result.")]
-        public async Task<KustoQueryResponse> RunAlertKustoQuery(
-    string alertId)
+        public async Task<KustoQueryResponse> RunAlertKustoQuery(string alertId)
         {
             try
             {
@@ -481,6 +496,30 @@ namespace FirstPartyAgent.Plugins
                 take_any(LanguageWorkerDetailedAssemblyLoader),
                 take_any(LanguageWorkerMemoryHardFaults)
                 by Stack
+            ";
+            return query;
+        }
+
+        private static string GetColdStartStatusByStage()
+        {
+            var query = $@"
+            let Regions = GetRegions
+            | where Cloud == ""Azure""
+            | distinct Stage, AntaresAbbreviation;
+            cluster(""wawsaneus.eastus"").database(""wawsanprod"").WawsAn_dailyfunctionscoldstart
+            | where pdate > ago(15d)
+            | where OperatingSystem != ""Linux""
+            | where SiteName has_all (""sla-ws-func-prod"", ""v4-cold"")
+            | where SiteName !contains ""histogram"" and SiteName !contains ""msftint""
+            | where Sc_status == int(200)
+            | extend S_sitename = SiteName
+            | invoke GetFunctionsSlaSiteProperties()
+            | parse Stamp with ""waws-prod-"" AntaresAbbreviation ""-"" *
+            | join kind=leftouter  Regions on AntaresAbbreviation
+            | summarize percentiles(FETimeTakenMs, 50, 99) by bin(pdate, 1d), OperatingSystem, Scenario, Stage
+            | order by pdate asc
+            | summarize P50List = make_list(percentile_FETimeTakenMs_50), P99List = make_list(percentile_FETimeTakenMs_99) by OperatingSystem, Scenario, Stage
+            | order by OperatingSystem, Scenario, Stage asc
             ";
             return query;
         }
