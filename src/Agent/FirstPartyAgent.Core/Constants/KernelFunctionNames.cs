@@ -69,6 +69,9 @@ namespace FirstPartyAgent.Constants
             public const string GetContainerAppAdminEvents = "get_container_app_admin_events";
             public const string GetASIPageForRevision = "get_asi_page_for_revision";
             public const string GetMetricsMdmCount = "get_metrics_mdm_count";
+            public const string GetMdmPodHeartbeatMissedTimes = "get_mdm_pod_heartbeat_missed_times";
+            public const string GetBillingPodLeaderElection = "get_billing_pod_leader_election";
+            public const string GetMissedMdmMetricTimes = "get_missed_mdm_metric_times";
             public const string GetAksClusterCcpNamespace = "get_aks_cluster_ccpNamespace";
             public const string GetLogConfiguration = "get_log_configuration";
             public const string GetEventProcessorErrors = "get_event_processor_errors";

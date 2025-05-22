@@ -1,0 +1,11 @@
+let queryFrom = datetime("##fromDate##");
+let queryTo = datetime("##toDate##");
+let clusterName = "##managedClusterName##";
+K8SEMdmPodEvents
+| where PreciseTimeStamp between(queryFrom..queryTo)
+| where Log contains "Heartbeat"
+| where EnvironmentName == clusterName
+| summarize count() by _ContainerGroupName, bin(PreciseTimeStamp, 1m)
+| where count_ < 2
+| project PreciseTimeStamp
+| take 1000

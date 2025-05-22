@@ -30,6 +30,9 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCustomerMetri
 
             var remediationPluginDefinition = new ContainerAppCustomerMetricsPluginDefinition(metricsAgentPlugin);
             toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetMetricsMdmCount));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetMdmPodHeartbeatMissedTimes));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetMissedMdmMetricTimes));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetBillingPodLeaderElection));
 
             var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
             toolSignatures.Add(_toolsRegistry.GetSignature(() => controlFlowPluginDefinition.Wait));
