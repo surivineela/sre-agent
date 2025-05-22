@@ -19,6 +19,64 @@ public class ManagedClusterPlugin : IManagedClusterPlugin
         _agentOutboundCommunicationService = agentOutboundCommunicationService;
     }
 
+    private static string GetDuration(DateTime fromDate, DateTime toDate)
+    {
+        var totalHours = (toDate - fromDate).TotalHours;
+        var totalDays = (toDate - fromDate).TotalDays;
+        // Use the lowest frequency possible for the given range
+        if (totalDays > 5)
+        {
+            return "1d";
+        }
+        if (totalHours > 24)
+        {
+            return "1h";
+        }
+        return "1m";
+    }
+
+    public Task<string> GetGenericMetricCountData(string region, DateTime fromDate, DateTime toDate, string managedClusterName, string metricName, int? thresold)
+    {
+
+        return _kustoPlugin.ExecuteLocalFunctionAsync("GetGenericMetricCountData", region,
+        new Dictionary<string, string> {
+            { "fromDate", fromDate.ToString() },
+            { "toDate", toDate.ToString() },
+            { "managedClusterName", managedClusterName },
+            { "metricName", metricName },
+            { "duration", GetDuration(fromDate, toDate) },
+            { "threshold", thresold.ToString() ?? "0" }
+        });
+    }
+
+    public Task<string> GetGenericMetricAverageValueData(string region, DateTime fromDate, DateTime toDate, string managedClusterName, string metricName, double? thresold)
+    {
+        return _kustoPlugin.ExecuteLocalFunctionAsync("GetGenericMetricAverageValueData", region,
+        new Dictionary<string, string> {
+            { "fromDate", fromDate.ToString() },
+            { "toDate", toDate.ToString() },
+            { "managedClusterName", managedClusterName },
+            { "metricName", metricName },
+            { "duration", GetDuration(fromDate, toDate) },
+            { "threshold", thresold.ToString() ?? "0" }
+        });
+    }
+
+    public Task<string> GetGenericMetricHistogramPercentilesValueData(string region, DateTime fromDate, DateTime toDate, string managedClusterName, string metricName, double? p50thresold, double? p90thresold, double? p95thresold)
+    {
+        return _kustoPlugin.ExecuteLocalFunctionAsync("GetGenericMetricHistogramPercentilesValueData", region,
+        new Dictionary<string, string> {
+            { "fromDate", fromDate.ToString() },
+            { "toDate", toDate.ToString() },
+            { "managedClusterName", managedClusterName },
+            { "metricName", metricName },
+            { "duration", GetDuration(fromDate, toDate) },
+            { "p50Threshold", p50thresold.ToString() ?? "0" },
+            { "p90Threshold", p90thresold.ToString() ?? "0" },
+            { "p95Threshold", p95thresold.ToString() ?? "0" }
+        });
+    }
+
     public async Task<string> GetAksClusterCcpNamespace(string region, DateTime fromDate, DateTime toDate, string resourceGroupName, string subscriptionId, string managedClusterName)
     {
         return await _kustoPlugin.ExecuteLocalFunctionOnClusterAsync("GetAksClusterCcpNamespace", "akshuba.centralus", "AKSprod",
@@ -46,7 +104,7 @@ public class ManagedClusterPlugin : IManagedClusterPlugin
     public async Task<string> GetASIPageForManagedCluster(string region, DateTime fromDate, DateTime toDate, string managedClusterName)
     {
         var basePath = "/services/ACA Azure Container Apps/pages/Managed Cluster";
-        var cleanPath = Uri.EscapeDataString(basePath); // Updated to use Uri.EscapeDataString
+        var cleanPath = Uri.EscapeUriString(basePath); // DO NOT CHANGE TO EscapeDataString
 
         var query = $"managedClusterName={Uri.EscapeDataString(managedClusterName.Trim())}" +
                     $"&globalFrom={Uri.EscapeDataString(fromDate.ToString("M/d/yyyy hh:mm:ss tt"))}" +

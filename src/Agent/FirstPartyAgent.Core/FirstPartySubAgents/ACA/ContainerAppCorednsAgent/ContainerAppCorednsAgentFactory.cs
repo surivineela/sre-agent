@@ -38,20 +38,20 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCorednsAgent
             _toolsRegistry = toolsRepository;
             var toolSignatures = new List<string>();
 
-            var remediationPluginDefinition = new ContainerAppCorednsPluginDefinition(corednsPlugin);
-            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetCustomDNSServers));
-            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetUpstreamCustomDNSServerHealthStatus));
-            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetCoreDNSConfigReloadFailuresCount));
-            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetCoreDNSTotalDNSRequestCount));
-            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetCoreDNSForwardConcurrentRejectsCount));
-            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetAverageLatencyOfDNSResolutionRequests));
-            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetAverageLatencyOfCoreDNSKubernetesDNSProgramming));
-            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetAverageLatencyOfUpstreamDNSResolutionForwardRequests));
-            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetCorednsPodFailureEvents));
-            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetSwiftBootstrapAgentPodFailureEvents));
-            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetSwiftBootstrapAgentPodHealthStatus));
-            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetDNSConfigUpdateStatus));
-            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.CheckIfDNSServerFailedToResolveDot));
+            var dnsPluginDefinition = new ContainerAppCorednsPluginDefinition(corednsPlugin, managedClusterPlugin);
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => dnsPluginDefinition.GetCustomDNSServers));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => dnsPluginDefinition.GetUpstreamCustomDNSServerHealthStatus));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => dnsPluginDefinition.GetCoreDNSConfigReloadFailuresCount));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => dnsPluginDefinition.GetCoreDNSTotalDNSRequestCount));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => dnsPluginDefinition.GetCoreDNSForwardConcurrentRejectsCount));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => dnsPluginDefinition.GetAverageLatencyOfDNSResolutionRequests));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => dnsPluginDefinition.GetAverageLatencyOfCoreDNSKubernetesDNSProgramming));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => dnsPluginDefinition.GetAverageLatencyOfUpstreamDNSResolutionForwardRequests));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => dnsPluginDefinition.GetCorednsPodFailureEvents));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => dnsPluginDefinition.GetSwiftBootstrapAgentPodFailureEvents));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => dnsPluginDefinition.GetSwiftBootstrapAgentPodHealthStatus));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => dnsPluginDefinition.GetDNSConfigUpdateStatus));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => dnsPluginDefinition.CheckIfDNSServerFailedToResolveDot));
 
             var managedClusterPluginDefinition = new ManagedClusterPluginDefinition(managedClusterPlugin);
             toolSignatures.Add(_toolsRegistry.GetSignature(() => managedClusterPluginDefinition.GetASIPageForManagedCluster));

@@ -27,15 +27,8 @@ When greeted, respond with a short introduction like:
 ## 🧭 DNS Diagnostic Workflow
 
 ### Step 0: Generate ASI Insight Pages  
-Use:
-- `GetASIPageForManagedCluster`
-
-Respond with:
-
-```markdown
-> 🔗 **ASI Insight Pages**
-> - [Managed cluster Insights](<cluster-url>)
-```
+Calculating use tool `GetASIPageForManagedCluster` and Respond with:
+[Managed cluster Insights](<url starting with 'https://asi.azure.ms'>)
 
 ### 🔹 Step 1: Get DNS configuration update status
   Tool to use: `GetDNSConfigUpdateStatus`
@@ -220,10 +213,7 @@ Follow this **Response Template**:
 > 🧠 Only provide remediation guidance for areas where issues were observed during diagnostics. Do not suggest generic recommendations.
 
 ## ASI pages
-```markdown
-> 🔗 **ASI Insight Pages**
-> - [Cluster Insights](<cluster-url>)
-```
+- [Managed cluster Insights](<url starting with 'https://asi.azure.ms'>)
 
 ## 📌 Parameters Used
 - **ManagedClusterName**: `<name>`

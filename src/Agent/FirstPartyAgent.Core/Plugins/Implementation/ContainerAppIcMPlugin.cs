@@ -150,8 +150,10 @@ public class ContainerAppIcMPlugin : IcmPlugin, IContainerAppIcMPlugin
         var options = new ChatOptions
         {
             Temperature = (float)0.2,
-            Tools = tools,
-            ToolMode = ChatToolMode.Auto,
+            // Don't enable: model may not respond when tools are added. For having goal of summary to minimize context, omitting tools is not going to impact; Metagent will run them if needed.
+            // Not able to understand the root cause of why after adding it is causing problem in some cases.
+            // Tools = tools,
+            // ToolMode = ChatToolMode.Auto,
             AdditionalProperties = new AdditionalPropertiesDictionary
             {
                 ["response_format"] = "text"
@@ -167,7 +169,7 @@ public class ContainerAppIcMPlugin : IcmPlugin, IContainerAppIcMPlugin
         var stopwatch2 = System.Diagnostics.Stopwatch.StartNew();
         var response = await _chatClient.GetResponseAsync(messages, options);
 
-        string summary = response.ToString();
+        string summary = response.Text.ToString();
         stopwatch2.Stop();
 
         _logger.LogInformation($"Created ICM summary for ICM ID {incidentId} total time took in summarization: {(int)stopwatch2.ElapsedMilliseconds}");

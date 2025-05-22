@@ -26,47 +26,6 @@ public class ContainerAppCorednsPlugin : IContainerAppCorednsPlugin
          });
     }
 
-    public Task<string> GetCoreDNSCountMetricData(string region, DateTime fromDate, DateTime toDate, string managedClusterName, string metricName, int thresold)
-    {
-        return _kustoPlugin.ExecuteLocalFunctionAsync("GetCoreDNSCountMetricData", region,
-        new Dictionary<string, string> {
-            { "fromDate", fromDate.ToString() },
-            { "toDate", toDate.ToString() },
-            { "managedClusterName", managedClusterName },
-            { "metricName", metricName },
-            { "duration", "1d" },
-            { "threshold", thresold.ToString() }
-        });
-    }
-
-    public Task<string> GetCoreDNSAvgLatencyMetricData(string region, DateTime fromDate, DateTime toDate, string managedClusterName, string metricName, int thresold)
-    {
-        return _kustoPlugin.ExecuteLocalFunctionAsync("GetCoreDNSAverageLatencyMetricData", region,
-        new Dictionary<string, string> {
-            { "fromDate", fromDate.ToString() },
-            { "toDate", toDate.ToString() },
-            { "managedClusterName", managedClusterName },
-            { "metricName", metricName },
-            { "duration", "1d" },
-            { "threshold", thresold.ToString() }
-        });
-    }
-
-    public async Task<string> GetMyCoreDNSAvgLatencyMetricDataAsync(string region, DateTime fromDate, DateTime toDate, string managedClusterName, string metricName, int thresold)
-    {
-        var rawData = await _kustoPlugin.ExecuteLocalFunctionAsync("GetCoreDNSAverageLatencyMetricData", region,
-            new Dictionary<string, string>
-            {
-                { "fromDate", fromDate.ToString() },
-                { "toDate", toDate.ToString() },
-                { "managedClusterName", managedClusterName },
-                { "duration", "1d" },
-                { "metricName", metricName },
-                { "threshold", thresold.ToString() }
-            });
-        return rawData;
-    }
-
     public Task<string> GetPodFailureEvents(string region, DateTime fromDate, DateTime toDate, string managedClusterName, string podNamePrefix, string podNamespace, int threshold)
     {
         return _kustoPlugin.ExecuteLocalFunctionAsync("GetPodFailureEvents", region,
