@@ -35,6 +35,19 @@ const chatMessageStyles = mergeStyleSets({
         padding: '0px 16px',
         borderRadius: tokens.borderRadiusXLarge,
     },
+    codeBlock: {
+        backgroundColor: tokens.colorTransparentBackground,
+        fontFamily: tokens.fontFamilyMonospace,
+        fontSize: tokens.fontSizeBase200,
+        display: 'block',
+    },
+    preBlock: {
+        overflowX: 'auto',
+        overflowY: 'hidden',
+        backgroundColor: tokens.colorNeutralBackground6,
+        borderRadius: tokens.borderRadiusSmall,
+        padding: '15px',
+    },
 });
 
 // Initialize mermaid with default configuration
@@ -750,9 +763,25 @@ const ReactMarkdownComponent = ({
         );
     }, []);
 
+    const codeRenderer = useCallback((props: any) => {
+        return <code className={chatMessageStyles.codeBlock}>{props.children}</code>;
+    }, []);
+
+    const preRenderer = useCallback((props: any) => {
+        return <pre className={chatMessageStyles.preBlock}>{props.children}</pre>;
+    }, []);
+
     return (
         <div key={key} className={mergeClasses('markdown-content', isUserMessage ? undefined : chatMessageStyles.regularMessageContent)}>
-            <ReactMarkdown components={{ a: aLinkRenderer }} remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+            <ReactMarkdown
+                components={{
+                    a: aLinkRenderer,
+                    code: codeRenderer,
+                    pre: preRenderer,
+                }}
+                remarkPlugins={[remarkGfm]}
+                rehypePlugins={[rehypeRaw]}
+            >
                 {content}
             </ReactMarkdown>
         </div>
