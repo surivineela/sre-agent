@@ -11,8 +11,9 @@ namespace FirstPartyAgent.Constants
         {
             public const string GetJobDefinition = "get_job_definition";
             public const string GetJobExecutionJson = "get_job_execution_json";
-            public const string GetEventsForJobExecution = "get_events_for_job_execution";
-            public const string GetJobExecutionEventsController = "get_job_execution_events_controller";
+            public const string GetJobExecutionEvents = "get_job_execution_events";
+            public const string GetAllJobExecutionsErrorEvents = "get_all_job_executions_error_events";
+            public const string GetAllJobExecutionsFinalStatus = "get_all_job_executions_final_status";
             public const string GetJobExecutionEventsContainer = "get_job_execution_events_container";
             public const string GetKedaEventsForJobScaledJobs = "get_keda_events_for_job_scaled_jobs";
             public const string GetLegionVKEventsForJobsRunningConsumptionV2 = "get_legion_vk_events_for_jobs_running_consumption_v2";
@@ -82,6 +83,7 @@ namespace FirstPartyAgent.Constants
             public const string GetLogConfiguration = "get_log_configuration";
             public const string GetEventProcessorErrors = "get_event_processor_errors";
             public const string GetEventProcessorLeaderElectionEvents = "get_event_processor_leader_election_events";
+            public const string GetSystemComponentErrorEvents = "get_system_component_error_events";
         }
 
         public static class Kusto

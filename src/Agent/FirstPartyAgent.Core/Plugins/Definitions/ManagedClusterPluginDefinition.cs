@@ -78,5 +78,24 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
             return _plugin.GetAksClusterCcpNamespace(region, fromDate, toDate, resourceGroupName, subscriptionId, managedClusterName);
         }
 
+        // ToDo: Add more possible errors like PodNotschedulable, NodeNotReady, etc errors.
+        [KernelFunction(KernelFunctionNames.ACA.GetSystemComponentErrorEvents)]
+        [Description(@"
+@Retrieve system component error events for the given managed cluster. The system component error events might provide diagnostic
+information to investigate the root cause of the issue.
+
+Inputs:
+- region: Azure region where the cluster is deployed.
+- fromDate / toDate: Time range for diagnostic analysis.
+- managedClusterName: Name of the managed cluster.
+")]
+        public Task<string> GetSystemComponentErrorEvents(
+            [Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed cluster.")] string managedClusterName)
+        {
+            return _plugin.GetSystemComponentErrorEvents(region, fromDate, toDate, managedClusterName);
+        }
     }
 }

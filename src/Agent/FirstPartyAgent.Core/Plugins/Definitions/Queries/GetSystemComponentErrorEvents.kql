@@ -1,0 +1,21 @@
+let fromDate = datetime("##fromDate##");
+let endDate = datetime("##toDate##");
+let managedClusterName = "##managedClusterName##";
+ContainerAppControllerEvents
+| where PreciseTimeStamp  between (fromDate .. endDate)
+| where EnvironmentName == managedClusterName
+| where msg contains "Pod Heartbeat"
+| where PodNamespace != "k8se-apps"
+| extend containerStatuses = parse_json(PodContainerStatus)
+| mv-expand containerStatus = containerStatuses
+| extend 
+    ContainerName = tostring(containerStatus.name),
+    RestartCount = toint(containerStatus.restartCount),
+    ExitCode = iif(isnotempty(containerStatus.state.terminated.exitCode), toint(containerStatus.state.terminated.exitCode), int(null)),
+    StateWaitingReason = tostring(containerStatus.state.waiting.reason),
+    StateWaitingMessage = tostring(containerStatus.state.waiting.message),
+    LastStateExitCode = iif(isnotempty(containerStatus.lastState.terminated.exitCode), toint(containerStatus.lastState.terminated.exitCode), int(null)),
+    LastStateReason = tostring(containerStatus.lastState.terminated.reason)
+| where RestartCount > 0 or isnotempty(LastStateReason) or isnotempty( LastStateExitCode) or isnotempty(StateWaitingMessage) or isnotempty(StateWaitingReason)
+| project PreciseTimeStamp, PodName, ContainerName, RestartCount, LastStateReason, LastStateExitCode, StateWaitingMessage, StateWaitingReason//, containerStatus
+| order by RestartCount desc

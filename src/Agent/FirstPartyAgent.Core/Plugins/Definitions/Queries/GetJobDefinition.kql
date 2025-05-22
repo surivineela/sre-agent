@@ -13,7 +13,7 @@ ContainerAppControllerEvents
 | extend itemName = ContainerAppJobName
 | where itemName == cappName
 | where json contains cappSubscription and json contains cappResourceGroup and json contains cappName
-| summarize TimeStampForJobJsonFirstSeen=min(PreciseTimeStamp) by json
+| summarize Timestamp=min(PreciseTimeStamp) by json
 | extend d=parse_json(json)
-| project TIMESTAMP, Configuration=d.spec.configuration, Template=d.spec.template
-| order by TIMESTAMP asc
+| project Timestamp, Configuration=d.spec.configuration, Template=d.spec.template, Labels=d.metadata.labels, Status=d.status
+| order by Timestamp asc

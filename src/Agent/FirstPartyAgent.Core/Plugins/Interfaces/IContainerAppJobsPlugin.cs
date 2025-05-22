@@ -18,38 +18,45 @@ namespace FirstPartyAgent.Plugins.Interfaces // Assuming a common interfaces nam
             DateTime queryFrom,
             DateTime queryTo);
 
-        Task<string> GetJobExecutionJson(
+        Task<string> GetJobExecutionFinalStatus(
             string region,
-            string jobName,
-            string cappClusterName,
+            string managedClusterName,
+            string jobExecutionName,
             DateTime queryFrom,
             DateTime queryTo);
 
-        Task<string> GetEventsForJobExecution(
+        Task<string> GetJobExecutionEvents(
             string region,
             string jobExecutionName,
-            string cappClusterName,
+            string managedClusterName,
             DateTime queryFrom,
             DateTime queryTo);
 
-        Task<string> GetJobExecutionEventsController(
+        Task<string> GetAllJobExecutionsErrorEvents(
             string region,
-            string jobExecutionName,
-            string cappClusterName,
+            string managedClusterName,
+            string containerAppJobName,
+            DateTime queryFrom,
+            DateTime queryTo);
+
+        Task<string> GetAllJobExecutionsFinalStatus(
+            string region,
+            string managedClusterName,
+            string containerAppJobName,
             DateTime queryFrom,
             DateTime queryTo);
 
         Task<string> GetKedaEventsForJobScaledJobs(
             string region,
-            string cappName,
-            string cappClusterName,
+            string managedClusterName,
+            string containerAppJobName,
             DateTime queryFrom,
             DateTime queryTo);
 
         Task<string> GetLegionVKEventsForJobsRunningConsumptionV2(
             string region,
+            string managedClusterName,
             string jobExecutionName,
-            string cappClusterName,
             DateTime queryFrom,
             DateTime queryTo);
     }

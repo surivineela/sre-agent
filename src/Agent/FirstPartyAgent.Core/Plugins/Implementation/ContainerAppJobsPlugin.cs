@@ -34,71 +34,88 @@ namespace FirstPartyAgent.Core.Plugins.Implementation
                 { "queryFrom", queryFrom.ToString() },
                 { "queryTo", queryTo.ToString() }
             };
-            return _kustoPluginChat.ExecuteLocalFunctionAsync("JobJson", region, args);
+            return _kustoPluginChat.ExecuteLocalFunctionAsync("GetJobDefinition", region, args);
         }
 
-        public Task<string> GetJobExecutionJson(
+        public Task<string> GetJobExecutionFinalStatus(
             string region,
-            string cappClusterName,
-            string jobName,
+            string managedClusterName,
+            string jobExecutionName,
             DateTime queryFrom,
             DateTime queryTo)
         {
             var args = new Dictionary<string, string>
             {
-                { "cappClusterName", cappClusterName },
-                { "jobName", jobName },
+                { "managedClusterName", managedClusterName },
+                { "jobExecutionName", jobExecutionName },
                 { "queryFrom", queryFrom.ToString() },
                 { "queryTo", queryTo.ToString() }
             };
-            return _kustoPluginChat.ExecuteLocalFunctionAsync("JobExecutionJson", region, args);
+            return _kustoPluginChat.ExecuteLocalFunctionAsync("GetJobExecutionFinalStatus", region, args);
         }
 
-        public Task<string> GetEventsForJobExecution(
+        public Task<string> GetJobExecutionEvents(
             string region,
             string jobExecutionName,
-            string cappClusterName,
+            string managedClusterName,
             DateTime queryFrom,
             DateTime queryTo)
         {
             var args = new Dictionary<string, string>
             {
                 { "jobExecutionName", jobExecutionName },
-                { "cappClusterName", cappClusterName },
+                { "managedClusterName", managedClusterName },
                 { "queryFrom", queryFrom.ToString() },
                 { "queryTo", queryTo.ToString() }
             };
-            return _kustoPluginChat.ExecuteLocalFunctionAsync("EventForAJobExecution", region, args);
+            return _kustoPluginChat.ExecuteLocalFunctionAsync("GetJobExecutionEvents", region, args);
         }
 
-        public Task<string> GetJobExecutionEventsController(
+        public Task<string> GetAllJobExecutionsErrorEvents(
             string region,
-            string jobExecutionName,
-            string cappClusterName,
+            string managedClusterName,
+            string containerAppJobName,
             DateTime queryFrom,
             DateTime queryTo)
         {
             var args = new Dictionary<string, string>
             {
-                { "jobExecutionName", jobExecutionName },
-                { "cappClusterName", cappClusterName },
+                { "managedClusterName", managedClusterName },
+                { "containerAppJobName", containerAppJobName },
                 { "queryFrom", queryFrom.ToString() },
                 { "queryTo", queryTo.ToString() }
             };
-            return _kustoPluginChat.ExecuteLocalFunctionAsync("JobExecutionEventsController", region, args);
+            return _kustoPluginChat.ExecuteLocalFunctionAsync("GetAllJobExecutionsErrorEvents", region, args);
+        }
+
+        public Task<string> GetAllJobExecutionsFinalStatus(
+            string region,
+            string managedClusterName,
+            string containerAppJobName,
+            DateTime queryFrom,
+            DateTime queryTo)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "managedClusterName", managedClusterName },
+                { "containerAppJobName", containerAppJobName },
+                { "queryFrom", queryFrom.ToString() },
+                { "queryTo", queryTo.ToString() }
+            };
+            return _kustoPluginChat.ExecuteLocalFunctionAsync("GetAllJobExecutionsFinalStatus", region, args);
         }
 
         public Task<string> GetKedaEventsForJobScaledJobs(
             string region,
-            string cappName,
-            string cappClusterName,
+            string managedClusterName,
+            string containerAppJobName,
             DateTime queryFrom,
             DateTime queryTo)
         {
             var args = new Dictionary<string, string>
             {
-                { "cappName", cappName },
-                { "cappClusterName", cappClusterName },
+                { "managedClusterName", managedClusterName },
+                { "containerAppJobName", containerAppJobName },
                 { "queryFrom", queryFrom.ToString() },
                 { "queryTo", queryTo.ToString() }
             };
@@ -107,19 +124,19 @@ namespace FirstPartyAgent.Core.Plugins.Implementation
 
         public Task<string> GetLegionVKEventsForJobsRunningConsumptionV2(
             string region,
+            string managedClusterName,
             string jobExecutionName,
-            string cappClusterName,
             DateTime queryFrom,
             DateTime queryTo)
         {
             var args = new Dictionary<string, string>
             {
                 { "jobExecutionName", jobExecutionName },
-                { "cappClusterName", cappClusterName },
+                { "managedClusterName", managedClusterName },
                 { "queryFrom", queryFrom.ToString() },
                 { "queryTo", queryTo.ToString() }
             };
-            return _kustoPluginChat.ExecuteLocalFunctionOnClusterAsync("LegionVKEventsForJobsRunningConsumptionV2", "legioneus.eastus", "legion", args);
+            return _kustoPluginChat.ExecuteLocalFunctionAsync("LegionVKEventsForJobsRunningConsumptionV2", region, args);
         }
     }
 }

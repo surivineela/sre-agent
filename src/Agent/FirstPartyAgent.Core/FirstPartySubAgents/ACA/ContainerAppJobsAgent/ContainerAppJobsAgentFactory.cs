@@ -11,6 +11,7 @@ using Microsoft.DurableTask.Client;
 using Agent.Runtime.SubAgents;
 using Microsoft.DurableTask;
 using FirstPartyAgent.Plugins.Interfaces;
+using FirstPartyAgent.Core.Plugins.Interfaces;
 
 namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppJobsAgent
 {
@@ -26,6 +27,7 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppJobsAgent
             IContainerAppJobsPlugin jobsAgentPlugin,
             IToolsRepository toolsRepository,
             IThreadOrchestrationManager mappingManager,
+            IManagedClusterPlugin managedClusterPlugin,
             DurableTaskClient durableTaskClient,
             IRecordActionsPlugin recordActionsPlugin,
             ITimePlugin timePlugin)
@@ -38,11 +40,15 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppJobsAgent
 
             // Register KernelFunctions from JobsAgentPluginDefinition
             toolSignatures.Add(_toolsRegistry.GetSignature(() => jobsAgentPluginDefinition.GetJobDefinition));
-            toolSignatures.Add(_toolsRegistry.GetSignature(() => jobsAgentPluginDefinition.GetJobExecutionJson));
-            toolSignatures.Add(_toolsRegistry.GetSignature(() => jobsAgentPluginDefinition.GetEventsForJobExecution));
-            toolSignatures.Add(_toolsRegistry.GetSignature(() => jobsAgentPluginDefinition.GetJobExecutionEventsController));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => jobsAgentPluginDefinition.GetJobExecutionFinalStatus));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => jobsAgentPluginDefinition.GetJobExecutionEvents));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => jobsAgentPluginDefinition.GetAllJobExecutionsErrorEvents));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => jobsAgentPluginDefinition.GetAllJobExecutionsFinalStatus));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => jobsAgentPluginDefinition.GetKedaEventsForJobScaledJobs));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => jobsAgentPluginDefinition.GetLegionVKEventsForJobsRunningConsumptionV2));
+
+            var managedClusterPluginDefinition = new ManagedClusterPluginDefinition(managedClusterPlugin);
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => managedClusterPluginDefinition.GetSystemComponentErrorEvents));
 
             // Register ControlFlow tools - assuming parameterless constructor for now
             // If ControlFlowPluginDefinition is enhanced to take these, the call can be updated.
