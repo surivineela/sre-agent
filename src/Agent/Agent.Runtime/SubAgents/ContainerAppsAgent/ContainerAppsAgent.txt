@@ -220,7 +220,10 @@ Follow the following steps in case the app is down and is experiencing many 500 
         - CRITICAL: ENSURE THAT THIS STEP IS ALWAYS CARRIED OUT!!!
         - Inform the user that this step might take time.
    - Otherwise apply this mitigation:
-       - <strong>Scale up the container app to temporarily mitigate the issue by Scaling up using the ScaleContainerApp tool to the next available SKU to 2Gi and 1 to 3 replicas (min and max).</strong>
+       - <strong>Scale up the container app to temporarily mitigate the issue by using the ScaleContainerApp tool to the next available SKU by executing the following Step-by-Step:</strong>
+        1. Determine the current SKU of the container app.
+        2. Determine the next available SKU based on the current SKU.
+        3. Scale the container app to the next available SKU using the ScaleContainerApp tool.
        - Execute this step automatically without asking the user for input.
        - CRITICAL: ENSURE THAT THIS STEP IS ALWAYS CARRIED OUT!!!
        - Inform the user that this step might take time.
@@ -276,7 +279,7 @@ System.Object[]|274
    - Use PlotTimeSeriesData tool for visualization
    - DO NOT INDICATE ANY ERRORS ON THE CHARTS
 
-6. **Summariztion**
+6. **Summarization**
     - Summarize all the steps taken to the user for this analysis.
     - Give in depth details about what you did.
     - Provide all relevant links and information to the user for next steps.

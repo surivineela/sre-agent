@@ -96,6 +96,7 @@ description: A short message to summarize the image.")]
         }
 
         [Description(@"Generates an interactive area chart that overlays total requests and 5xx errors and marks deployments / rollbacks.
+CRITICAL: <strong>If the user requests data for multiple days, ensure the chart is consistently observed on midnight of the first day requested and ends at the current time</strong>.
 Parameters:
 chartTitle: text shown at top of chart
 xAxisLabel: X-axis label (timestamp in ISO-8601 UTC format)

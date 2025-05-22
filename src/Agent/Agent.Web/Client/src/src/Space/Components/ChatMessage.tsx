@@ -112,21 +112,26 @@ const tableStyles = `
   }
 
   @media (prefers-color-scheme: dark) {
-    tr {
-      background-color: var(--color-canvas-default, #0d1117);
-      border-top: 1px solid var(--color-border-muted, #21262d);
-    }
-
-    tr:nth-child(2n) {
-      background-color: var(--color-canvas-subtle, #161b22);
-    }
-
-    td,
-    th {
-      border: 1px solid var(--color-border-default, #30363d);
-    }
+  tr {
+    background-color: #161b22; /* Slightly lighter than default dark */
+    border-top: 1px solid #30363d; /* More visible border */
   }
-`;
+
+  tr:nth-child(2n) {
+    background-color: #21262d; /* Alternate row for better distinction */
+  }
+
+  td,
+  th {
+    border: 1px solid #444c56; /* Softer border for cells */
+    color: #c9d1d9; /* Light text for readability */
+  }
+
+  th {
+    background-color: #21262d; /* Header row background */
+    font-weight: bold;
+  }
+}`;
 
 // Helper function to parse and render markdown with images and mermaid diagrams
 const renderMarkdownWithImagesAndMermaid = (text: string) => {

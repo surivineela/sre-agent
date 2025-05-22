@@ -461,11 +461,7 @@ public abstract class OrchestrationAgentStep
         {
             return new OrchestrationAgentVisualizeAKSMicroserviceTopologyStep { FunctionCall = functionCall };
         }
-        else if ((functionCall.Name == nameof(ChartPluginDefinition.PlotBarChartAsync) || functionCall.Name.Contains("BarChart")) ||
-                 functionCall.Name == nameof(ChartPluginDefinition.PlotPieChartAsync) ||
-                 functionCall.Name == nameof(ChartPluginDefinition.PlotScatterAsync) ||
-                 functionCall.Name == nameof(ChartPluginDefinition.PlotTimeSeriesData) ||
-                 functionCall.Name == nameof(ChartPluginDefinition.PlotAreaChartWithCorrelationAsync))
+        else if (IsChartFunction(functionCall.Name))
         {
             return new OrchestrationAgentChartStep { FunctionCall = functionCall };
         }
@@ -477,5 +473,14 @@ public abstract class OrchestrationAgentStep
         {
             return new OrchestrationAgentGenericExecuteStep { FunctionCall = functionCall, ApprovalId = approvalId };
         }
+    }
+
+    private static bool IsChartFunction(string functionName)
+    {
+        return ((functionName == nameof(ChartPluginDefinition.PlotBarChartAsync) || functionName.Contains("BarChart", StringComparison.OrdinalIgnoreCase)) ||
+                (functionName == nameof(ChartPluginDefinition.PlotPieChartAsync) || functionName.Contains("PlotPieChart", StringComparison.OrdinalIgnoreCase)) ||
+                (functionName == nameof(ChartPluginDefinition.PlotScatterAsync) || functionName.Contains("PlotScatter", StringComparison.OrdinalIgnoreCase)) ||
+                functionName == nameof(ChartPluginDefinition.PlotTimeSeriesData) ||
+                (functionName == nameof(ChartPluginDefinition.PlotAreaChartWithCorrelationAsync) || functionName.Contains("PlotAreaChartWithCorrelation", StringComparison.OrdinalIgnoreCase)));
     }
 }

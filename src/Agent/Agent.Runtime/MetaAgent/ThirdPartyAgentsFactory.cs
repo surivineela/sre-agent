@@ -220,6 +220,7 @@ For every Azure SRE request, follow this pattern:
 - Enclose code or configuration examples in triple backticks.
 - Organize complex responses with headings (###).
 - Avoid tables, HTML tags, and unsupported formats.
+- IMPORTANT: Don't enclose markdown tables in ```markdown <Table> ``` - this *ruins* the formatting. 
 - You must show a markdown link parser and renderer that correctly handles both inline text and reference-style links with proper URL validation and escaping
 
 ## Azure knowledge

@@ -350,10 +350,31 @@ namespace Agent.Plugins
             {
                 var earliestDate = groupedByTimestamp.First().Key.Date;
                 var latestDate = groupedByTimestamp.Last().Key.Date;
+
+                var timeDelta = latestDate - earliestDate;
                 
-                if (earliestDate == latestDate)
+                // Within a day.
+                if (timeDelta.TotalDays <= 0)
                 {
                     timeFormat = "HH:mm:ss"; // Use shorter time-only format if all points are on the same day
+                }
+
+                // Within a week.
+                else if (timeDelta.TotalDays > 0 && timeDelta.TotalDays <= 7)
+                {
+                    timeFormat = "MM-dd HH:mm"; // Use shorter time-only format if all points are on the same day
+                }
+
+                // Between 7 and 30 days.
+                else if (timeDelta.TotalDays > 7 && timeDelta.TotalDays <= 30)
+                {
+                    timeFormat = "MM-dd HH"; // Use shorter time-only format if all points are on the same day
+                }
+
+                // Above 30 days.
+                else
+                {
+                    timeFormat = "yyyy-MM-dd HH"; // Use shorter time-only format if all points are on the same day
                 }
             }
 
@@ -392,6 +413,44 @@ namespace Agent.Plugins
             if (!areaChartData.Any())
             {
                 return "ERROR: Could not parse any valid area chart data from 'dataPoints'.";
+            }
+
+            // Determine the appropriate time format for the X axis based on the date range
+            string timeFormat = "yyyy-MM-dd HH:mm:ss";
+            if (areaChartData.Count > 0)
+            {
+                DateTime? firstDate = null;
+                DateTime? lastDate = null;
+                foreach (var d in areaChartData)
+                {
+                    if (DateTime.TryParse(d.Category, out var dt))
+                    {
+                        if (firstDate == null || dt < firstDate) firstDate = dt;
+                        if (lastDate == null || dt > lastDate) lastDate = dt;
+                    }
+                }
+
+                if (firstDate != null && lastDate != null)
+                {
+                    var delta = lastDate.Value - firstDate.Value;
+                    if (delta.TotalDays < 1)
+                        timeFormat = "HH:mm:ss";
+                    else if (delta.TotalDays < 7)
+                        timeFormat = "MM-dd HH:mm";
+                    else if (delta.TotalDays < 30)
+                        timeFormat = "MM-dd HH";
+                    else
+                        timeFormat = "yyyy-MM-dd HH";
+                }
+
+                // Apply the time format to all areaChartData Category fields that are valid DateTimes
+                foreach (var d in areaChartData)
+                {
+                    if (DateTime.TryParse(d.Category, out var dt))
+                    {
+                        d.Category = dt.ToString(timeFormat);
+                    }
+                }
             }
 
             var chartData = new

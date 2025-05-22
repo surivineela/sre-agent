@@ -60,7 +60,9 @@ namespace Agent.Plugins
     "4) Present a complete picture of the application's infrastructure. " +
     "The output includes nodes (resources) and edges (relationships). " +
     "Use instead of GetApplicationComponentsSummary when users ask to 'show', 'visualize', 'draw', or 'diagram' the connections. " +
-    "Returns the graph as a base64-encoded string. Input: Azure Resource Id of the application resource to visualize.")]
+    "Returns the graph as a base64-encoded string. Input: Azure Resource Id of the application resource to visualize." +
+    "Examples of usage: 'Visualize <WebAppName> in my subscription.'" +
+    "**Keywords: Visualize, Azure Resource, Topology.**")]
         public async Task<string> VisualizeApplicationComponents(
             [Description("Azure Resource Id of the application resource to visualize. Should begin with /subscriptions/... Example: /subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebapp")] string resourceId,
             [Description("Maximum number of relationship hops to include in the visualization. Higher values (1-5) show more distant connections but may make the diagram more complex. Default is 3.")] int hops = 3,
