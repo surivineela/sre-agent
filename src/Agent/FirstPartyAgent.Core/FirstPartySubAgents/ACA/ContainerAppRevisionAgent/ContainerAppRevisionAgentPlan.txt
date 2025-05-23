@@ -168,8 +168,8 @@ You must use `GetAksClusterCcpNamespace` to get CcpNamespace
 Respond with:
 
 ```markdown
-> 🔗 **aks CcpNamespace**
-> - {{CcpNamespace}}
+> 🔗 **aks query result**
+> -ccpNamespace {{ccpNamespace}}
 ```
 
 ---
@@ -253,4 +253,4 @@ The RCA **must include** a validated cause, proof or contradiction of the ICM, a
 - `AskUserForInput`
 - `MarkPlanComplete`
 - `ExecuteKustoQuery`
-- `GetAksClusterNamespace`
+- `GetAksClusterCcpNamespace`
