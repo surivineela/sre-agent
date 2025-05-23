@@ -502,6 +502,7 @@ $@"## Facts
         return _aiTools;
     }
 
+    // TODO: with search endpoint, get prompt from search endpoint
     public string GetMetaAgentSystemPrompt()
     {
         return SystemPrompt;

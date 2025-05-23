@@ -2,8 +2,6 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Microsoft.Extensions.AI;
-using AIChatMessage = Microsoft.Extensions.AI.ChatMessage;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Logging;

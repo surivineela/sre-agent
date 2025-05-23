@@ -1,20 +1,12 @@
 using Azure.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using StackExchange.Redis;
-using System;
-using System.ComponentModel;
-using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;
 using System.Diagnostics;
-using FirstPartyAgent.Core.Services;
-using Gremlin.Net.Process.Traversal;
 using Microsoft.Azure.Cosmos.Linq;
-using System.Collections.Concurrent;
 using Microsoft.Extensions.Hosting;
 using Agent.Core.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 
 
 namespace FirstPartyAgent.Core.Services
@@ -166,9 +158,9 @@ namespace FirstPartyAgent.Core.Services
 
         public IOrderedQueryable<T> GetQueryableContainer<T>(string databaseName, string containerName)
         {
-            _logger.LogInformation("Getting or creating container {ContainerName} in database {DatabaseName}", 
+            _logger.LogInformation("Getting or creating container {ContainerName} in database {DatabaseName}",
                 containerName, databaseName);
-            
+
             var container = _cosmosClient.GetContainer(databaseName, containerName);
 
             return container.GetItemLinqQueryable<T>(true);
@@ -183,7 +175,7 @@ namespace FirstPartyAgent.Core.Services
 
             foreach (var item in items)
             {
-                batch.UpsertItem(item); 
+                batch.UpsertItem(item);
             }
 
             using TransactionalBatchResponse response = await batch.ExecuteAsync();

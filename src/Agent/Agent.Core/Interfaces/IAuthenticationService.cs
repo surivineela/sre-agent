@@ -21,6 +21,12 @@ public interface IAuthenticationService
     /// <returns></returns>
     public TokenCredential GetDtsCredential();
 
+    /// <summary>
+    /// Get the credential to access the search endpoint through workload identity
+    /// </summary>
+    /// <returns></returns>
+    public TokenCredential GetSearchEndpointCredential();
+
 
     /// <summary>
     /// Get the credential to crawl resources of user tenant

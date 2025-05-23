@@ -32,7 +32,10 @@ namespace Agent.Core.Configuration
         public ActionSettings Action { get; set; } = new();
 
         public FederationSettings Federation { get; set; } = new();
+
         public KustoFirstPartyAppSettings Kusto { get; set; } = new();
+
+        public SearchEndpointSettings SearchEndpoint { get; set; } = new();
     }
 }
 
