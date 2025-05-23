@@ -29,7 +29,9 @@ public interface IContainerAppRevisionPlugin
 
     Task<string> GetHttpScalerEventsForContainerApp(string region, DateTime fromDate, DateTime toDate, string containerAppName, string resourceGroupName, string subscriptionId, SamplingOptions? samplingOptions = null);
 
-    Task<string> GetKedaOperatorEventsForContainerApp(string region, DateTime fromDate, DateTime toDate, string containerAppName, string resourceGroupName, string subscriptionId, SamplingOptions? samplingOptions = null);
+    Task<string> GetKedaOperatorEventsForContainerApp(string region, DateTime fromDate, DateTime toDate, string managedClusterName, string containerAppName, SamplingOptions? samplingOptions = null);
+
     Task<string> GetASIPageForRevision(string region, DateTime fromDate, DateTime toDate, string containerAppName, string revisionName, string resourceGroupName, string subscriptionId);
+
     Task<string> GetLegionErrors(string region, DateTime fromDate, DateTime toDate, string revisionName);
 }

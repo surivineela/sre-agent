@@ -190,21 +190,15 @@ public class ContainerAppRevisionPlugin : IContainerAppRevisionPlugin
             });
     }
 
-    public async Task<string> GetKedaOperatorEventsForContainerApp(string region, DateTime fromDate, DateTime toDate, string containerAppName, string resourceGroupName, string subscriptionId, SamplingOptions samplingOptions)
+    public async Task<string> GetKedaOperatorEventsForContainerApp(string region, DateTime fromDate, DateTime toDate, string managedClusterName, string containerAppName, SamplingOptions samplingOptions)
     {
-       
-        // await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(ToolStatic.AsyncLocalThreadId.Value, string.Empty, new ChatMessage(ChatRole.Tool, $"Performing Kusto Query `{functionName}`"));
-        return await _kustoPlugin.ExecuteLocalFunctionAsync("GetKedaOperatorEventsForContainerApp", region,
+          return await _kustoPlugin.ExecuteLocalFunctionAsync("GetKedaOperatorEventsForContainerApp", region,
             new Dictionary<string, string> {
             { "fromDate", fromDate.ToString() },
             { "toDate", toDate.ToString() },
+            { "managedClusterName", managedClusterName },
             { "containerAppName", containerAppName },
-            { "resourceGroupName", resourceGroupName },
-            { "subscriptionId", subscriptionId }
             });
-
-       
-
     }
 
     public async Task<string> GetReplicaCount(string region, DateTime fromDate, DateTime toDate, string revisionName, string containerAppName, string resourceGroupName, string subscriptionId, SamplingOptions samplingOptions)

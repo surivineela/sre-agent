@@ -87,16 +87,16 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
     Projects:
     - LogTime: Log timestamp.
     - Level: Event severity(Info / Error).
-    - Msg: Operator event message."
+    - Msg: Operator event message.
+    - KedaVersion: Current KEDA version"  
 )]
         public Task<string> GetKedaOperatorEventsForContainerApp([Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
-            [Description("Name of the container app.")] string containerAppName,
-            [Description("Name of the resource group.")] string resourceGroupName,
-            [Description("Azure subscription ID.")] string subscriptionId)
+            [Description("Name of the managed cluster name.")] string managedClusterName,
+            [Description("Name of the containerapp name.")] string containerAppName)
         {
-            return _plugin.GetKedaOperatorEventsForContainerApp(region.NormalizeLocation(), fromDate, toDate, containerAppName, resourceGroupName, subscriptionId);
+            return _plugin.GetKedaOperatorEventsForContainerApp(region.NormalizeLocation(), fromDate, toDate, managedClusterName, containerAppName);
         }
 
 
