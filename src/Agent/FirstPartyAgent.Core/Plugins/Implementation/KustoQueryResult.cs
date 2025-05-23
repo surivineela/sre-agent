@@ -13,6 +13,7 @@ namespace FirstPartyAgent.Plugins
         public int RowCount;
         public string Query = string.Empty;
         public string Result { get; set; } = string.Empty;
+        public bool Success = true;
 
         public ChatMessage? Message;
 

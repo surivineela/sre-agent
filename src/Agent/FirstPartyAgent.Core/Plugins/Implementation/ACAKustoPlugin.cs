@@ -100,8 +100,10 @@ namespace FirstPartyAgent.Plugins
                 _logger.LogError($"An error occurred while executing Kusto Query: {ex.Message}");
                 return new KustoQueryResult()
                 {
+                    Success = false,
                     Query = query,
                     Result = $"An error occurred while executing Kusto Query: {ex.Message}",
+                    Message = new ChatMessage(ChatRole.Tool, $"An error occurred while executing Kusto Query: {ex.Message}"),
                     RowCount = 0,
                 };
             }
@@ -134,8 +136,10 @@ namespace FirstPartyAgent.Plugins
                 _logger.LogError($"An error occurred while executing Kusto Query: {ex.Message}");
                 return new KustoQueryResult()
                 {
+                    Success = false,
                     Query = fullQuery,
                     Result = $"An error occurred while executing Kusto Query: {ex.Message}",
+                    Message = new ChatMessage(ChatRole.Tool, $"An error occurred while executing Kusto Query: {ex.Message}"),
                     RowCount = 0,
                 };
             }
@@ -198,8 +202,10 @@ namespace FirstPartyAgent.Plugins
                 _logger.LogError($"An error occurred while executing Kusto Function {functionName}: {ex.Message}");
                 return new KustoQueryResult()
                 {
+                    Success = false,
                     Query = query,
                     Result = $"An error occurred while executing Kusto Function {functionName}: {ex.Message}",
+                    Message = new ChatMessage(ChatRole.Tool, $"An error occurred while executing Kusto Query: {ex.Message}"),
                     RowCount = 0,
                 };
             }
