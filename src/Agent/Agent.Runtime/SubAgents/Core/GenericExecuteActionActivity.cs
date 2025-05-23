@@ -13,6 +13,8 @@ using Microsoft.Extensions.Logging;
 using Agent.Core;
 using Agent.Core.Models;
 using Microsoft.Diagnostics.Tracing.Parsers.MicrosoftWindowsTCPIP;
+using Agent.Core.Configuration;
+using Agent.Core.Models.Api.v1;
 
 namespace Agent.Runtime.SubAgents.Core;
 
@@ -21,14 +23,16 @@ public class GenericExecuteActionActivity : TaskActivity<ExecuteActionInput, Exe
 {
     private readonly IToolsRepository _toolsRepository;
     private readonly ILogger<GenericExecuteActionActivity> _logger;
+    private readonly ActionSettings _actionSettings;
 
     public GenericExecuteActionActivity(
         IToolsRepository toolsRepository,
-        ILogger<GenericExecuteActionActivity> logger
-        )
+        ILogger<GenericExecuteActionActivity> logger,
+        ActionSettings actionSettings)
     {
         _toolsRepository = toolsRepository;
         _logger = logger;
+        _actionSettings = actionSettings;
     }
 
     public async override Task<ExecuteActionOutput> RunAsync(
@@ -84,10 +88,12 @@ public class GenericExecuteActionActivity : TaskActivity<ExecuteActionInput, Exe
     {
         var attribute = toolFunction.ToolFunction.UnderlyingMethod?.GetCustomAttribute<RequiresApprovalAttribute>();
 
+        var useOboToken = (attribute?.UseOboToken ?? false) && (_actionSettings.Mode == ActionMode.Manual);
+
         return new ApprovalContext(
             ThreadId: input.ThreadId,
             ApprovalId: input.ApprovalId,
-            UseOboToken: attribute?.UseOboToken ?? false);
+            UseOboToken: useOboToken);
     }
 }
 

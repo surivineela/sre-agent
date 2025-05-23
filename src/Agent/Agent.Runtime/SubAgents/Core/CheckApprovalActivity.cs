@@ -4,6 +4,7 @@
 
 using System.Reflection;
 using Agent.Core.Attributes;
+using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
@@ -24,18 +25,21 @@ public class CheckApprovalActivity : TaskActivity<CheckApprovalActivityInput, Ch
     private readonly IThreadRepository _threadRepository;
     private readonly IAgentOutboundCommunicationService _outboundCommunicationService;
     private readonly IHostEnvironment _hostEnvironment;
+    private readonly ActionSettings _actionSettings;
 
     public CheckApprovalActivity(ILogger<CheckApprovalActivity> logger,
         IToolsRepository toolsRepository,
         IThreadRepository threadRepository,
         IAgentOutboundCommunicationService outboundCommunicationService,
-        IHostEnvironment hostEnvironment)
+        IHostEnvironment hostEnvironment,
+        ActionSettings actionSettings)
     {
         _logger = logger;
         _toolsRepository = toolsRepository;
         _threadRepository = threadRepository;
         _outboundCommunicationService = outboundCommunicationService;
         _hostEnvironment = hostEnvironment;
+        _actionSettings = actionSettings;
     }
 
     public override async Task<CheckApprovalActivityOutput> RunAsync(TaskActivityContext context, CheckApprovalActivityInput input)
@@ -59,9 +63,20 @@ public class CheckApprovalActivity : TaskActivity<CheckApprovalActivityInput, Ch
             // Check if requiers approval
             if (!ApprovalHelper.ToolRequiresApproval(matchingTool))
             {
+                _logger.LogInternalInformation("[{ThreadId}] approval is not required for tool {FunctionName}", input.ThreadId, targetFunction);
                 return new CheckApprovalActivityOutput()
                 {
                     ApprovalStatus = ToolApprovalStatus.NotRequired,
+                };
+            }
+
+            if (_actionSettings.Mode == ActionMode.Agent)
+            {
+                _logger.LogInternalInformation("[{ThreadId}] approval is auto approved for tool {FunctionName}", input.ThreadId, targetFunction);
+
+                return new CheckApprovalActivityOutput()
+                {
+                    ApprovalStatus = ToolApprovalStatus.AutoApproved,
                 };
             }
 
@@ -76,12 +91,10 @@ public class CheckApprovalActivity : TaskActivity<CheckApprovalActivityInput, Ch
             _logger.LogInternalInformation("Checking approval for threadId: {ThreadId}, function: {FunctionName}, title: {Title}, instanceId {instanceId}, arguments {arguments}", input.ThreadId, targetFunction, approvalTitle, context.InstanceId, input.FunctionCall.Arguments);
 
             var approval = await _threadRepository.GetApprovalAsync(Guid.Parse(input.ThreadId), approvalTitle);
-            var attribute = matchingTool.ToolFunction.UnderlyingMethod?.GetCustomAttribute<RequiresApprovalAttribute>();
 
             if (approval == null ||
                 // oboToken expires
-                // TODO: get rid of hostEnvironment check. Make it something like actionMode: OBO/Agent check
-                (!_hostEnvironment.IsDevelopment() && approval.Status == ApprovalDecision.Approved && string.IsNullOrEmpty(approval.OboToken) && attribute != null && attribute.UseOboToken))
+                (!_hostEnvironment.IsDevelopment() && ApprovalHelper.ApprovalExpired(approval, matchingTool)))
             {
                 var description = ApprovalHelper.GetToolDefaultApprovalMessage(matchingTool);
                 // Try get latest action with the function call name

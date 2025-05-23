@@ -87,17 +87,6 @@ public class AuthenticationService : IAuthenticationService
         return GetManagedIdentityCredential(_crawlerSettings.Identity);
     }
 
-    public TokenCredential GetActionCredential()
-    {
-        if (_hostEnvironment.IsDevelopment())
-        {
-            return GetDefaultAzureCredential();
-        }
-        // use action settings identity if it is set, otherwise use crawler settings identity
-        var identity = _actionSettings.Identity ?? _crawlerSettings.Identity;
-        return GetManagedIdentityCredential(identity);
-    }
-
     public async  Task<TokenCredential> GetArmOperationCredential()
     {
         if (_hostEnvironment.IsDevelopment())
@@ -105,8 +94,7 @@ public class AuthenticationService : IAuthenticationService
             return GetDefaultAzureCredential();
         }
 
-        // TODO: change to Action identity
-        return await ApprovalAwareCredentialHelper(() => GetManagedIdentityCredential(_crawlerSettings.Identity));
+        return await ApprovalAwareCredentialHelper(() => GetManagedIdentityCredential(GetActionIdentity()));
     }
 
     public async Task<TokenCredential> GetKubernetesOperationCredential()
@@ -116,8 +104,7 @@ public class AuthenticationService : IAuthenticationService
             return GetDefaultAzureCredential();
         }
 
-        // TODO: change to Action identity
-        return await ApprovalAwareCredentialHelper(() => GetManagedIdentityCredential(_crawlerSettings.Identity));
+        return await ApprovalAwareCredentialHelper(() => GetManagedIdentityCredential(GetActionIdentity()));
     }
 
     public TokenCredential GetAzureMonitorWorkspaceCredential()
@@ -132,8 +119,7 @@ public class AuthenticationService : IAuthenticationService
             return GetDefaultAzureCredential();
         }
 
-        // TODO: change to Action identity
-        return GetManagedIdentityCredential(_crawlerSettings.Identity);
+        return GetManagedIdentityCredential(GetActionIdentity());
     }
 
     public TokenCredential GetLogAnalyticsCredential()
@@ -143,8 +129,7 @@ public class AuthenticationService : IAuthenticationService
             return GetDefaultAzureCredential();
         }
 
-        // TODO: change to Action identity
-        return GetManagedIdentityCredential(_crawlerSettings.Identity);
+        return GetManagedIdentityCredential(GetActionIdentity());
     }
 
     public async Task<string> GetGrafanaAccessToken()
@@ -256,5 +241,16 @@ public class AuthenticationService : IAuthenticationService
         }
 
         return DelegatedTokenCredential.Create((_, _) => accessToken);
+    }
+
+    private string? GetActionIdentity()
+    {
+        if(string.IsNullOrEmpty(_actionSettings.Identity))
+        {
+            // This should only for legacy agents
+            return _crawlerSettings.Identity;
+        }
+
+        return _actionSettings.Identity;
     }
 }

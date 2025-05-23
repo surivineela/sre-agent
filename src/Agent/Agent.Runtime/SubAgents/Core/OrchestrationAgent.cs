@@ -114,22 +114,23 @@ public class OrchestrationAgent
         await RecordStateChange(ReasoningState.RunningFunctionCall, $"Checking approval for function call: {functionCall.Name}");
 
         var approvalResult = await _taskOrchestrationContext.CallCheckApprovalActivityAsync(checkApprovalActivityInput);
+        log.LogInternalInformation("[{ThreadId}] Approval status is: {ApprovalStatus}", threadId, approvalResult.ApprovalStatus);
 
-        if (approvalResult.ApprovalStatus == ToolApprovalStatus.NotRequired)
+        if (approvalResult.ApprovalStatus == ToolApprovalStatus.NotRequired
+            || approvalResult.ApprovalStatus == ToolApprovalStatus.AutoApproved)
         {
             ChatHistory.AddRange(reasoningResult.ChatMessages);
         }
         else
         {
             // tool call chat history will be added once the approval request is approved or denied
-
-            log.LogInternalInformation("[{ThreadId}] Approval status is: {ApprovalStatus}", threadId, approvalResult.ApprovalStatus);
             if (approvalResult.ApprovalStatus == ToolApprovalStatus.Pending && approvalResult.ApprovalId != null)
             {
                 // add pending approval for tracking
                 PendingApprovals.Add(approvalResult.ApprovalId.Value, new(approvalResult.ApprovalId.Value, reasoningResult.ChatMessages, functionCall));
             }
 
+            // defer execution to ProcessNewApproval
             functionCall = null;
         }
 

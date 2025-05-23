@@ -15,6 +15,14 @@ public enum ActionStatus
     Failed
 }
 
+public enum ActionMode
+{
+    // Write actions will be taken after user approval
+    Manual,
+    // Write actions will be taken without user approval
+    Agent,
+}
+
 public enum ActionSeverity
 {
     Critical,

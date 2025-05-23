@@ -40,4 +40,5 @@ public enum ToolApprovalStatus
     Approved,
     Rejected,
     NotRequired,
+    AutoApproved,
 }

@@ -2,11 +2,13 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.IdentityModel.Tokens.Jwt;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Agent.Core.Attributes;
+using Agent.Core.Models.Api.v1;
 using Agent.Runtime.SubAgents;
 
 namespace Agent.Runtime.Helpers;
@@ -51,5 +53,44 @@ public static class ApprovalHelper
         var attribute = tool.ToolFunction.UnderlyingMethod?.GetCustomAttribute<RequiresApprovalAttribute>();
 
         return attribute?.DisplayMessage ?? string.Empty;
+    }
+
+    public static bool ApprovalExpired(this Approval approval, IToolFunction tool)
+    {
+        var attribute = tool.ToolFunction.UnderlyingMethod?.GetCustomAttribute<RequiresApprovalAttribute>();
+
+        // should never happen
+        if (attribute == null)
+        {
+            throw new InvalidOperationException($"Approval is not required for this tool {tool.ToolFunction.Name}");
+        }
+
+        if (approval.Status == ApprovalDecision.Approved &&
+            attribute.UseOboToken &&
+            (string.IsNullOrEmpty(approval.OboToken) || OboTokenExpired(approval.OboToken)))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool OboTokenExpired(string token)
+    {
+        var handler = new JwtSecurityTokenHandler();
+        var jsonToken = handler.ReadToken(token) as JwtSecurityToken;
+
+        if (jsonToken == null)
+        {
+            return true;
+        }
+
+        var expiration = jsonToken.ValidTo;
+        if (DateTime.UtcNow.AddMinutes(5) > expiration)
+        {
+            return true;
+        }
+
+        return false;
     }
 }
