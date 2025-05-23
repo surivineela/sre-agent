@@ -59,7 +59,7 @@
     "ActionName": "GetQuota",
     "TenantId": "5fb60258-f245-48c7-8809-feed665c100d",
     "WorkflowName": "SreAgent-QuotaGet",
-    "WorkflowInputParameters": [ "region", "subscriptionId", "quotaId" ]
+    "WorkflowInputParameters": [ "region", "subscriptionId" ]
   },
   {
     "IsWriteAction": true,

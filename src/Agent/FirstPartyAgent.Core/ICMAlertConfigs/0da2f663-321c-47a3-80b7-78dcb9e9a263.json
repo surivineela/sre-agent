@@ -2,10 +2,10 @@
   "AlertingId": "0da2f663-321c-47a3-80b7-78dcb9e9a263",
   "AgentMode": "ICMAgent",
   "IncidentTitleContains": "Quota Increase",
-  "OwningTeams": [ "AZURELABSERVCICESDEVTESTCENTER\\Triage", "28274", "118572", "DEVCENTER\\DevBoxQuota(NoSev-2)" ],
+  "OwningTeams": [ "DEVCENTER\\DevBoxQuota(NoSev-2)" ],
   "AllowedGenevaActions": [ "GetQuota", "IncreaseQuota" ],
   "ActionTimeoutIntervalInMinutes": 15,
-  "DefaultHumanInterventionLoop": "",
+  "DefaultHumanInterventionLoop": "DEVCENTER/CorePlatform",
   "KustoQueries": [
     {
       "Title": "DoesRegionHasCapacityForNewLimit",
@@ -16,20 +16,23 @@
     "Customer is asking for a quota increase. You need to evaluate if Microsoft should approve it.",
     "Create an EXECUTION_PLAN using the below guidelines:",
     "Step 1: Tag the Incident with 'SREAgent_Devbox_QuotaRequest'",
-    "Step 2: Identify quota increase requested, either from the summary, or from the CustomFields: Identify the region, the subscription, and the quotaId.",
-    "     - QuotaId is one of these: devCenters,networkConnections,projects,pools,devBoxDefinitions,general_i_v2.",
-    "     - Note that a quotaId that relates to cores always map to 'general_i_v2'. QuotaId can also be found from 'Quota Type' or 'Requested Quota Type'",
+    "Step 2: From the incident, find the subscriptionId and region, then fetch the subscription current quota limits by executing the Geneva Action 'GetQuota' (inputParameters are key/value pair of: region (lowercase, no spaces, e.g. West US 2 becomes westus2), subscriptionId). Also note the subscriptionType from the response.",
+    "Step 3: Identify quotaId increase requested in the incident, either from the summary, or from the CustomFields. It can be depicted as QuotaId, Quota Type, or Requested Quota Type",
+    "     - Map the requested quota to one of these values: devCenters,networkConnections,devBoxDefinitions,general_i_v2.",
+    "     - A quotaId that relates to cores always map to 'general_i_v2'.",
+    "     - Sometimes, quotaId is mistakenly selected as devCenters. If devCenters is requested, but the quota increase makes more sense for general_i_v2, proceed the next step with general_i_v2. Usually, requests for DevCenter is low (under 10). Be sure to post your reasoning in the discussion.",
+    "Step 4: For general_i_v2 quota requests: If current current limit low (less than 100) and increase is high (1000 or more), escalate the issue.",
+    "Step 5: Determine Increase Needed:",
+    "     - Calculate the required increase by comparing the requested limit against the current quota limit obtained.",
     "     - Post the results in the incident.",
-    "Step 3: Some current limits may be provided in the IcM (or not), confirm the current subscription quota limit by executing the Geneva Action 'GetQuota' (inputParameters is key/value pair of: region (lowercase, no spaces, e.g. West US 2 becomes westus2), subscriptionId, quotaId). Note that a quotaId related to cores always map to 'general_i_v2'. From the result, also get the Subscription Type, which is depicted by quotaId in the response. Post the findings in the IcM discussion.",
-    "   - Determine Increase Needed: Calculate the required increase by comparing the requested limit against the current quota limit obtained.",
-    "     - Post the results in the incident.",
-    "Step 4: If quotaId is general_i_v2 or general_a_v2, execute the following:",
+    "Step 6: If quotaId is general_i_v2, execute the following:",
     "      - Run the Kusto query 'DoesRegionHasCapacityForNewLimit' to know if it is ok to grant quota.",
-    "      - Interpret Kusto Results: There are three possible. 1) Limit increase is granted. In that case proceed with step 6.  2) The region is at capacity (but not fully constrained). In that case, post that info in the IcM discussion. 3) The region is fully constrained. If so, post this exact message in the IcM: ",
+    "      - Interpret Kusto Results: There are three possible. 1) Limit increase is granted. In that case proceed with step 6.  2) The region is at capacity (but not fully constrained). In that case, post that info in the IcM discussion. 3) The region is fully constrained. If so, post this exact message in the IcM, then escalate the incident: ",
     "         `Due to heightened customer demand in the <REGION> datacenter region, currently, there are restrictions on newly created subscriptions and/or additional quota requests. Ensuring capacity availability for our customers is a top priority for Microsoft and we are working to expedite additional capacity to the region.  In the meantime, we recommend that you use one of these  alternate regions for Microsoft Dev Box: \r\n<ALTERNATE_REGIONS>\r\nWith all of this in mind, we are expediting expansion and are improving our resource deployment process to respond to this strong customer demand. We have identified several improvements on how we load-balance under a high resource usage situation, and how to trigger the timely deployment of needed resources. At this time, unfortunately, we are not able to provide a specific timeline, as to when this capacity will be increased for West EU. \r\nWe sincerely apologize for any inconvenience this situation may cause and appreciate your understanding and patience.`",
-    "Step 5: If it makes sense, increase the limit by executing the Geneva Action 'IncreaseQuota' with following inputParameters (key/value pair): region,limit,subscriptionId,quotaId.",
-    "Step 6: Post the results in the IcM discussion",
-    "Step 7: Mitigate the incident with a step-by-step summary of all actions."
+    "Step 7: If it makes sense, increase the limit by executing the Geneva Action 'IncreaseQuota' with following inputParameters (key/value pair, all in strings): region,limit,subscriptionId,quotaId.",
+    "Step 8: If the quota was successfuly increased, mitigate the incident. If quota increase was not performed, escalate the incident."
   ],
   "Owners": [ "jraj" ]
 }
+    
+
