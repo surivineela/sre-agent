@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text;
 using Azure.Identity;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
@@ -101,7 +102,7 @@ namespace FirstPartyAgent.Core.Services
                 stream.Position = 0;
                 await blobClient.UploadAsync(stream, true);
                 BlobProperties properties = await blobClient.GetPropertiesAsync();
-                if (content.Length != properties.ContentLength)
+                if (Encoding.UTF8.GetBytes(content).Length != properties.ContentLength)
                 {
                     throw new Exception($"Failed to validate file content after writing.");
                 }
@@ -111,7 +112,6 @@ namespace FirstPartyAgent.Core.Services
                 throw new Exception($"Failed to write string to blob: {ex.Message}");
             }
         }
-
     }
 }
 

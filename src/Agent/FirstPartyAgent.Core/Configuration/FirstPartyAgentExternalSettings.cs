@@ -20,6 +20,7 @@ namespace FirstPartyAgent.Core.Configuration
         public StorageAccountSettings Storage { get; set; }
         public AzureAlertingSettings AzureAlerting { get; set; }
         public AzureDevOpsSettings AzureDevOps { get; set; } = new();
+        public TsgCrawlerSettings TsgCrawler { get; set; } = new();
         public DevOpsSetting DevOps { get; set; }
 
         public IcmAgentSettings IcmAgent { get; set; }

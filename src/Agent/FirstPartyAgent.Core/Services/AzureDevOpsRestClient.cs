@@ -13,7 +13,7 @@ namespace FirstPartyAgent.Core.Services
 {
     public interface IAzureDevOpsClient
     {
-        Task<string> ListFilesAsync(string path, int topN);
+        Task<string> ListFilesAsync(string path, int topN, string recursionLevel = "OneLevel");
         Task<string> ReadFileAsync(string path, string branch="master");
         Task<string> GetCommitHistoryAsync(int top = 10);
         Task<string> CreateBranchAsync(string sourceBranchName, string newBranchName);
@@ -26,7 +26,7 @@ namespace FirstPartyAgent.Core.Services
 
     public class NullableAzureDevOpsRestClient: IAzureDevOpsClient
     {
-        public Task<string> ListFilesAsync(string path, int topN) => Task.FromResult<string>("Azure DevOps Client is Disabled.");
+        public Task<string> ListFilesAsync(string path, int topN, string recursionLevel = "OneLevel") => Task.FromResult<string>("Azure DevOps Client is Disabled.");
         public Task<string> ReadFileAsync(string path, string branch = "master") => Task.FromResult<string>("Azure DevOps Client is Disabled.");
         public Task<string> GetCommitHistoryAsync(int top = 10) => Task.FromResult<string>("Azure DevOps Client is Disabled.");
         public Task<string> CreateBranchAsync(string sourceBranchName, string newBranchName) => Task.FromResult<string>("Azure DevOps Client is Disabled.");
@@ -89,9 +89,9 @@ namespace FirstPartyAgent.Core.Services
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
-        public async Task<string> ListFilesAsync(string path, int topN)
+        public async Task<string> ListFilesAsync(string path, int topN, string recursionLevel = "OneLevel")
         {
-            var url = $"{_endpoint}{_organization}/{_project}/_apis/git/repositories/{_repositoryId}/items?scopePath={path}&recursionLevel=OneLevel&api-version=7.0";
+            var url = $"{_endpoint}{_organization}/{_project}/_apis/git/repositories/{_repositoryId}/items?scopePath={path}&recursionLevel={recursionLevel}&api-version=7.0";
             var response = await _httpClient.GetAsync(url);
             response.EnsureSuccessStatusCode();
             var result = await response.Content.ReadAsStringAsync();

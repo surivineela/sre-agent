@@ -86,6 +86,8 @@ namespace FirstPartyAgent.Core.Extensions
 
             services.AddSingleton<AzureDevOpsPlugin>();
 
+            services.AddSingleton<TsgCrawlerClient>();
+
             services.AddSingleton<RedisGenevaActionsPlugin>();
             services.AddSingleton<ColdStartPlugin>();
 
@@ -234,6 +236,7 @@ namespace FirstPartyAgent.Core.Extensions
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.DevOps);
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.AzureDevOps);
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.IcmAgent);
+            services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.TsgCrawler);
 
             return services;
         }
