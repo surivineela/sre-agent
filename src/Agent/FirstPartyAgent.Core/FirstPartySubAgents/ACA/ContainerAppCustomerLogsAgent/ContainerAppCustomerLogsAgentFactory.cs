@@ -9,6 +9,7 @@ using Agent.Runtime.Communication;
 using Agent.Runtime.SubAgents;
 using FirstPartyAgent.Core.Plugins.Definitions;
 using FirstPartyAgent.Core.Plugins.Implementation;
+using FirstPartyAgent.Core.Plugins.Implementation;
 using FirstPartyAgent.Core.Plugins.Interfaces;
 using FirstPartyAgent.Plugins;
 using FirstPartyAgent.Plugins.Definitions;
@@ -35,6 +36,7 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCustomerLogsA
             IThreadOrchestrationManager mappingManager,
             DurableTaskClient durableTaskClient,
             IContainerAppCustomerLogsPlugin containerAppCustomerLogsPlugin,
+            IContainerAppRevisionPlugin revisionPlugin,
             IContainerAppEnvoyPlugin envoyPlugin)
         {
             _toolsRegistry = toolsRepository;
@@ -46,6 +48,11 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCustomerLogsA
             toolSignatures.Add(_toolsRegistry.GetSignature(() => logsMetricsPluginDefinition.GetLogConfiguration));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => logsMetricsPluginDefinition.GetEventProcessorLeaderElectionEvents));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => logsMetricsPluginDefinition.GetEventProcessorErrors));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => logsMetricsPluginDefinition.GetAppsAndjobsVolumeForEnv));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => logsMetricsPluginDefinition.GetEventProcessorPods));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => logsMetricsPluginDefinition.GetLogProcessorPods));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => logsMetricsPluginDefinition.GetEventProcessorPodStatus));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => logsMetricsPluginDefinition.GetLogProcessorPodStatus));
 
             var envoyPluginDefinition = new ContainerAppEnvoyPluginDefinition(envoyPlugin);
             toolSignatures.Add(_toolsRegistry.GetSignature(() => envoyPluginDefinition.GetContainerAppManagedCluster));
@@ -56,6 +63,9 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCustomerLogsA
 
             var managedClusterPluginDefinition = new ManagedClusterPluginDefinition(managedClusterPlugin);
             toolSignatures.Add(_toolsRegistry.GetSignature(() => managedClusterPluginDefinition.GetASIPageForManagedCluster));
+
+             var containerAppRevisionPluginDefinition = new ContainerAppRevisionPluginDefinition(revisionPlugin);
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppRevisionPluginDefinition.GetPodHeartbeatStatus));
 
             var containerAppIcMPluginDefinition = new ContainerAppIcMPluginDefinition(containerAppIcMPlugin);
             // READ operations

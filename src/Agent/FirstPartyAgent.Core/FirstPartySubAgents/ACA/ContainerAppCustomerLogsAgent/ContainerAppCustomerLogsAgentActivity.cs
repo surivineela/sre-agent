@@ -12,11 +12,21 @@ using Microsoft.Extensions.Logging;
 
 namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCustomerLogsAgent
 {
+    public enum MissingLogsType
+    {
+        ContainerAppSystemLogs = 1,
+        ContainerAppConsoleLogs = 2,
+        Both = 3
+    }
+
     public record ContainerAppCustomerLogsAgentActivityInput : BaseContainerAppIssueActivityInput
     {
 
-        [Description("The name of the container app.")]
+        [Description("The name of the container app. Skip if not provided.")]
         public string ContainerAppName { get; init; } = string.Empty;
+
+        [Description("The type of missing logs. It can be ContainerAppSystemLogs, ContainerAppConsoleLogs or Both.")]
+        public MissingLogsType MissingLogsType { get; init; } = MissingLogsType.Both;
     }
 
     [DurableTask]
@@ -50,6 +60,7 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCustomerLogsA
                     - Region: {input.Region}
                     - From: {input.FromDate:O}
                     - To: {input.ToDate:O}
+                    - Missing Logs Type: {input.MissingLogsType}    
                     ")
                     ];
 

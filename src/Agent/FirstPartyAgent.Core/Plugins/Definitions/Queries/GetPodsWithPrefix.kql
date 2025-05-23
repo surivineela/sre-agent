@@ -1,0 +1,11 @@
+let queryFrom = datetime("##fromDate##"); 
+let queryTo = datetime("##toDate##"); 
+let clusterName = "##managedClusterName##"; 
+let podNamePrefix = "##podNamePrefix##";
+ContainerAppControllerEvents
+| where PreciseTimeStamp >= queryFrom and PreciseTimeStamp <= queryTo
+| where EnvironmentName =~ clusterName
+| where PodName != ""
+| where PodName startswith podNamePrefix
+| summarize StartTime = min(TIMESTAMP), EndTime = max(TIMESTAMP) by  Node = Role, PodName
+| take 1000 

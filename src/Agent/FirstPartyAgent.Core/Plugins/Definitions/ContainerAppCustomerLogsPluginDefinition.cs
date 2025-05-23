@@ -25,9 +25,6 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
             - ChageStatus for logDestination (whether log destination has changed or not)
             - logDestination (value of log destination after change)
             - PreviousLogDestination (value of log destination before change)
-            - hasWorkloadProfiles (whether managed environment has workload profiles)
-            - isLegionEnabled (whether legion is enabled or not)
-            - chartVersion (chart version changes of the managed environment)
             - hasDynamicJsonColumns (whether dynamic json columns are present or not)
             If no data is returned then ask to validate inputs again as it should never be the case.")]
         public Task<string> GetLogConfiguration(
@@ -51,13 +48,13 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
         [KernelFunction(KernelFunctionNames.ACA.GetEventProcessorErrors)]
         [Description(
             @"Get list of Event Processor Errors for the container app environment at start and end of time window. At least 1 output present means logs are present. No Warnings/Errors means no issues found.
-            If no data is returned then it may mean no warnings are present or there is an issue with the query.")]
+            If no data is returned then it may mean no warnings are present or there is an issue with the provided inputs. Please ensure those are correct otherwise re-run the tool.")]
         public Task<string> GetEventProcessorErrors(
             [Description("Azure region in lower case. example: 'westeurope'")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName,
-            [Description("Name of the container app or job.")] string containerAppOrJobName)
+            [Description("Name of the container app or job. Use empty string if container app or job name is not available")] string containerAppOrJobName)
         {
             return _plugin.GetEventProcessorErrors(
                 region.NormalizeLocation(),
@@ -70,7 +67,7 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
         [KernelFunction(KernelFunctionNames.ACA.GetEventProcessorLeaderElectionEvents)]
         [Description(
             @"Get list of Event Processor Leader Election Events for the container app environment at start and end of time window.
-            If no data is returned then it may mean no leader election event happened during the interval or there is an issue with the query.")]
+            If no data is returned then it may mean no leader election event happened during the interval or there is an issue with the provided inputs. Please ensure those are correct otherwise re-run the tool.")]
         public Task<string> GetEventProcessorLeaderElectionEvents(
             [Description("Azure region in lower case. example: 'westeurope'")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
@@ -78,6 +75,91 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
             [Description("Name of the managed cluster.")] string managedClusterName)
         {
             return _plugin.GetEventProcessorLeaderElectionEvents(
+                region.NormalizeLocation(),
+                fromDate,
+                toDate,
+                managedClusterName);
+        }
+
+        [KernelFunction(KernelFunctionNames.ACA.GetAppsAndjobsVolumeForEnv)]
+        [Description(
+            @"Get list of Apps and Jobs Volume for the container app environment at start and end of time window.
+            If no data is returned then it may mean no apps and jobs volume data is present or there is an issue with the provided inputs. Please ensure those are correct otherwise re-run the tool.")]
+        public Task<string> GetAppsAndjobsVolumeForEnv(
+            [Description("Azure region in lower case. example: 'westeurope'")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed cluster.")] string managedClusterName)
+        {
+            return _plugin.GetAppsAndjobsVolumeForEnv(
+                region.NormalizeLocation(),
+                fromDate,
+                toDate,
+                managedClusterName);
+        }
+
+        [KernelFunction(KernelFunctionNames.ACA.GetEventProcessorPods)]
+        [Description(
+            @"Get list of Event Processor Pods for the container app environment at start and end of time window.
+            If no data is returned then it may mean no event processor pods are present or there is an issue with the provided inputs. Please ensure those are correct otherwise re-run the tool.")]
+        public Task<string> GetEventProcessorPods(
+            [Description("Azure region in lower case. example: 'westeurope'")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed cluster.")] string managedClusterName)
+        {
+            return _plugin.GetEventProcessorPods(
+                region.NormalizeLocation(),
+                fromDate,
+                toDate,
+                managedClusterName);
+        }
+
+        [KernelFunction(KernelFunctionNames.ACA.GetLogProcessorPods)]
+        [Description(
+            @"Get list of Log Processor Pods for the container app environment at start and end of time window.
+            If no data is returned then it may mean no log processor pods are present or there is an issue with the provided inputs. Please ensure those are correct otherwise re-run the tool.")]
+        public Task<string> GetLogProcessorPods(
+            [Description("Azure region in lower case. example: 'westeurope'")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed cluster.")] string managedClusterName)
+        {
+            return _plugin.GetLogProcessorPods(
+                region.NormalizeLocation(),
+                fromDate,
+                toDate,
+                managedClusterName);
+        }
+
+        [KernelFunction(KernelFunctionNames.ACA.GetEventProcessorPodStatus)]
+        [Description(
+            @"Get list of Event Processor Pod Status for the container app environment at start and end of time window.
+            If no data is returned then it may mean no event processor pod status data is present or there is an issue with the provided inputs. Please ensure those are correct otherwise re-run the tool.")]
+        public Task<string> GetEventProcessorPodStatus(
+            [Description("Azure region in lower case. example: 'westeurope'")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed cluster.")] string managedClusterName)
+        {
+            return _plugin.GetEventProcessorPodStatus(
+                region.NormalizeLocation(),
+                fromDate,
+                toDate,
+                managedClusterName);
+        }
+
+        [KernelFunction(KernelFunctionNames.ACA.GetLogProcessorPodStatus)]
+        [Description(
+            @"Get list of Log Processor Pod Status for the container app environment at start and end of time window.
+            If no data is returned then it may mean no log processor pod status data is present or there is an issue with the provided inputs. Please ensure those are correct otherwise re-run the tool.")]
+        public Task<string> GetLogProcessorPodStatus(
+            [Description("Azure region in lower case. example: 'westeurope'")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed cluster.")] string managedClusterName)
+        {
+            return _plugin.GetLogProcessorPodStatus(
                 region.NormalizeLocation(),
                 fromDate,
                 toDate,

@@ -11,5 +11,15 @@ namespace FirstPartyAgent.Plugins
         Task<string> GetEventProcessorErrors(string region, DateTime fromDate, DateTime toDate, string managedClusterName, string containerAppOrJobName);
 
         Task<string> GetEventProcessorLeaderElectionEvents(string region, DateTime fromDate, DateTime toDate, string managedClusterName);
+
+        Task<string> GetAppsAndjobsVolumeForEnv(string region, DateTime fromDate, DateTime toDate, string managedClusterName);
+
+        Task<string> GetEventProcessorPods(string region, DateTime fromDate, DateTime toDate, string managedClusterName);
+
+        Task<string> GetLogProcessorPods(string region, DateTime fromDate, DateTime toDate, string managedClusterName);
+
+        Task<string> GetEventProcessorPodStatus(string region, DateTime fromDate, DateTime toDate, string managedClusterName);
+
+        Task<string> GetLogProcessorPodStatus(string region, DateTime fromDate, DateTime toDate, string managedClusterName);
     }
 }

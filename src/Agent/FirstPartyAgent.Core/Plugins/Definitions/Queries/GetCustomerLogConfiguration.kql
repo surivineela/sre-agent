@@ -12,10 +12,10 @@ ManagedEnvironmentDBState
 | where isnotempty(logsDestination) and logsDestination != ""
 | extend PreviousLogDestination = prev(logsDestination)
 | extend SessionIndex = row_cumsum(iff(logsDestination != PreviousLogDestination, 1, 0))
-| summarize StartTime = min(PreciseTimeStamp), EndTime = max(PreciseTimeStamp) by logsDestination, SessionIndex, hasWorkloadProfiles, isLegionEnabled, chartVersion, hasDynamicJsonColumns
+| summarize StartTime = min(PreciseTimeStamp), EndTime = max(PreciseTimeStamp) by logsDestination, SessionIndex, hasDynamicJsonColumns
 | serialize 
 | extend PreviousLogDestination = prev(logsDestination)
 | extend ChangeStatus = iff(SessionIndex == 1, "No change", "Change")
-| project StartTime, EndTime, Value=logsDestination, ChangeStatus, PreviousValue=PreviousLogDestination, hasWorkloadProfiles, isLegionEnabled, chartVersion, hasDynamicJsonColumns
+| project StartTime, EndTime, Value=logsDestination, ChangeStatus, PreviousValue=PreviousLogDestination, hasDynamicJsonColumns
 | order by StartTime asc
 | take 1000

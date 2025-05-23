@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using FirstPartyAgent.Plugins;
+using Microsoft.Diagnostics.Runtime.AbstractDac;
 
 namespace FirstPartyAgent.Core.Plugins.Implementation;
 
@@ -45,6 +46,62 @@ public class ContainerAppCustomerLogsPlugin : IContainerAppCustomerLogsPlugin
             { "fromDate", fromDate.ToString() },
             { "toDate", toDate.ToString() },
             { "managedClusterName", managedClusterName }
+        });
+    }
+
+    public Task<string> GetAppsAndjobsVolumeForEnv(string region, DateTime fromDate, DateTime toDate, string managedClusterName)
+    {
+        return _kustoPlugin.ExecuteLocalFunctionAsync("GetAppsAndjobsVolumeForEnv", region,
+        new Dictionary<string, string> {
+            { "fromDate", fromDate.ToString() },
+            { "toDate", toDate.ToString() },
+            { "managedClusterName", managedClusterName }
+        });
+    }
+
+    public Task<string> GetEventProcessorPods(string region, DateTime fromDate, DateTime toDate, string managedClusterName)
+    {
+        return _kustoPlugin.ExecuteLocalFunctionAsync("GetPodsWithPrefix", region,
+        new Dictionary<string, string> {
+            { "fromDate", fromDate.ToString() },
+            { "toDate", toDate.ToString() },
+            { "managedClusterName", managedClusterName },
+            { "podNamePrefix", "k8se-event-processor" }
+        });
+    }
+
+    public Task<string> GetLogProcessorPods(string region, DateTime fromDate, DateTime toDate, string managedClusterName)
+    {
+        return _kustoPlugin.ExecuteLocalFunctionAsync("GetPodsWithPrefix", region,
+        new Dictionary<string, string> {
+            { "fromDate", fromDate.ToString() },
+            { "toDate", toDate.ToString() },
+            { "managedClusterName", managedClusterName },
+            { "podNamePrefix", "k8se-log-processor" }
+        });
+    }
+
+    public Task<string> GetEventProcessorPodStatus(string region, DateTime fromDate, DateTime toDate, string managedClusterName)
+    {
+        return _kustoPlugin.ExecuteLocalFunctionAsync("GetPodHealthStatus", region,
+        new Dictionary<string, string> {
+            { "fromDate", fromDate.ToString() },
+            { "toDate", toDate.ToString() },
+            { "managedClusterName", managedClusterName },
+            { "podNamePrefix", "k8se-event-processor" },
+            { "podNamespace", "k8se-system" }
+        });
+    }
+
+    public Task<string> GetLogProcessorPodStatus(string region, DateTime fromDate, DateTime toDate, string managedClusterName)
+    {
+        return _kustoPlugin.ExecuteLocalFunctionAsync("GetPodHealthStatus", region,
+        new Dictionary<string, string> {
+            { "fromDate", fromDate.ToString() },
+            { "toDate", toDate.ToString() },
+            { "managedClusterName", managedClusterName },
+            { "podNamePrefix", "k8se-log-processor" },
+            { "podNamespace", "k8se-system" }
         });
     }
 }

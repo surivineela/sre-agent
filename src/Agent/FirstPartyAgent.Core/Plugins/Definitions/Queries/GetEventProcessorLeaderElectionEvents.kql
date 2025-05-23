@@ -3,6 +3,8 @@ let queryTo = datetime("##toDate##");
 let clusterName = "##managedClusterName##";
 EventProcessorEvents
 | where PreciseTimeStamp >= queryFrom and PreciseTimeStamp <= queryTo
-| where EnvironmentName == clusterName 
-| where Reason == "LeaderElection"
+| where EnvironmentName =~ clusterName 
+| where Internal != bool(False)
+| where msg startswith "Leader elected"
+| project PreciseTimeStamp, msg
 | take 1000

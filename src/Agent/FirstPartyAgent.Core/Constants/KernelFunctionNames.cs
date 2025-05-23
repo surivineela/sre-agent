@@ -85,6 +85,11 @@ namespace FirstPartyAgent.Constants
             public const string GetEventProcessorErrors = "get_event_processor_errors";
             public const string GetEventProcessorLeaderElectionEvents = "get_event_processor_leader_election_events";
             public const string GetSystemComponentErrorEvents = "get_system_component_error_events";
+            public const string GetAppsAndjobsVolumeForEnv = "get_apps_and_jobs_volume_for_env";
+            public const string GetEventProcessorPods = "get_event_processor_pods";
+            public const string GetLogProcessorPods = "get_log_processor_pods";
+            public const string GetEventProcessorPodStatus = "get_event_processor_pod_status";
+            public const string GetLogProcessorPodStatus = "get_log_processor_pod_status";
         }
 
         public static class Kusto
