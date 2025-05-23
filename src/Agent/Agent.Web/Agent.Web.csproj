@@ -27,12 +27,49 @@
     <ProjectReference Include="..\Agent.Prometheus\Agent.Prometheus.csproj" />
     <ProjectReference Include="..\FirstPartyAgent.Core\FirstPartyAgent.Core.csproj" />
   </ItemGroup>
-  <Target Name="BuildReactApp" BeforeTargets="Build" Condition="'$(SkipReactAppBuild)' != 'true'">
-    <Exec Command="mkdir wwwroot" Condition="!Exists('wwwroot')" />
-    <Exec Command="npm install" WorkingDirectory="Client" />
-    <Exec Command="npm run build" WorkingDirectory="Client" />
-  </Target>
   <ItemGroup>
     <ProjectReference Include="..\Agent.Analyzers\Agent.Analyzers.csproj" OutputItemType="Analyzer" />
   </ItemGroup>
+
+  <PropertyGroup>
+    <BuildOutputPath Condition=" '$(BuildSolutionOutputPath)' != '' ">$(BuildSolutionOutputPath)</BuildOutputPath>
+    <BuildOutputPath Condition=" '$(BuildSolutionOutputPath)' == '' and '$(OutputPath)' != '' ">$(OutputPath)</BuildOutputPath>
+    <BuildOutputPath Condition=" '$(BuildSolutionOutputPath)' == '' and '$(OutputPath)' == '' and '$(OutputDir)' != '' ">$(OutputDir)</BuildOutputPath>
+    <BuildOutputPath Condition=" '$(BuildSolutionOutputPath)' == '' and '$(OutputPath)' == '' and '$(OutputDir)' == '' ">bin\$(Configuration)\$(TargetFramework)\</BuildOutputPath>
+    <ClientBuildStampFile>$(BuildOutputPath)ClientBuild.stamp</ClientBuildStampFile>
+    <ClientBuildHashFile>$(BUildOutputPath)ClientBuild.hash</ClientBuildHashFile>
+  </PropertyGroup>
+
+  <!-- React Build Targets -->
+  <Target Name="CheckClientHash" BeforeTargets="BuildReactApp">
+    <!-- using git to compute the state of the Agent.Web/Client directory -->
+    <Exec Command="git log -n 1 --pretty=format:%%H -- Client > $(ClientBuildHashFile)" />
+    <Exec Command="git status --porcelain --short -- Client >> $(ClientBuildHashFile)" />
+  </Target>
+
+  <Target Name="BuildReactApp" AfterTargets="Build" DependsOnTargets="CheckClientHash">
+    <PropertyGroup>
+      <!-- _RunBuild IF (Release build || stampFile missing || wwwroot missing) -->
+      <_RunBuild Condition="'$(Configuration)' == 'Release' or !Exists('$(ClientBuildStampFile)') or !Exists('wwwroot')">true</_RunBuild>
+      <!-- Otherwise, compare the git state to the stamp -->
+      <_RunBuild Condition="'$(Configuration)' != 'Release' and Exists('$(ClientBuildStampFile)') and Exists('wwwroot')">
+        $([System.String]::Join("", $(ReadLinesFromFile($(ClientBuildHashFile)))) != $([System.String]::Join("", $(ReadLinesFromFile($(ClientBuildStampFile)))))
+      </_RunBuild>
+    </PropertyGroup>
+
+    <Exec Command="mkdir wwwroot" Condition="!Exists('wwwroot')" />
+    <Exec Command="npm install" WorkingDirectory="Client" Condition="$(_RunBuild) == 'true'" />
+    <Exec Command="npm run build" WorkingDirectory="Client" Condition="$(_RunBuild) == 'true'" />
+    <Copy SourceFiles="$(ClientBuildHashFile)" DestinationFiles="$(ClientBuildStampFile)" Condition="$(_RunBuild) == 'true'" />
+  </Target>
+
+  <Target Name="ReactClean" AfterTargets="CoreClean">
+    <Message Text="Removing react artifacts..." />
+    <RemoveDir Directories="wwwroot" Condition="Exists('wwwroot')" />
+    <RemoveDir Directories="node_modules" Condition="Exists('node_modules')" />
+    <Delete Files="$(ClientBuildStampFile)" Condition="Exists('$(ClientBuildStampFile)')" />
+    <Delete Files="$(ClientBuildHashFile)" Condition="Exists('$(ClientBuildHashFile)')" />
+  </Target>
+  <!-- React Build Targets -->
+
 </Project>
