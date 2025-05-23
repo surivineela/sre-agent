@@ -5,6 +5,7 @@ import { IcmTeamInfo } from "../Models/Response";
 import { useQuery } from "@tanstack/react-query";
 import LoadingErrorWrapper from "./LoadingErrorWrapper";
 import { Autocomplete, TextField } from "@mui/material";
+import { ContentStyleSets, ItemPaddingStyles } from "../Styles/Content.Styles";
 
 const processServiceTeamMap = async (): Promise<Promise<{ [key: string]: IcmTeamInfo[] }>> => {
     const teams = await getIcmTeams();
@@ -62,11 +63,12 @@ const Landing = (props: { defaultSelectedIcmInfo: IcmTeamInfo | undefined, onSel
     }
 
     const contentStyles = mergeStyles({
-        width: "40%"
+        width: "32%"
     });
 
     const titleStyles = mergeStyles({
-        margin: "0px auto"
+        margin: "0px auto",
+        fontSize: "22px",
     });
 
     const onUpdateSelectedService = (event: any, newValue: IAutoCompleteOption<string> | null) => {
@@ -83,21 +85,24 @@ const Landing = (props: { defaultSelectedIcmInfo: IcmTeamInfo | undefined, onSel
     return (
         <>
             <LoadingErrorWrapper status={status} error={error} renderLoading="Loading ICM teams..." renderError="Error loading ICM teams. Please try again.">
-                <Stack verticalFill horizontalAlign="center" verticalAlign="center" >
+                <Stack verticalFill horizontalAlign="center" verticalAlign="start" className={ContentStyleSets.container}>
                     <Stack tokens={{ childrenGap: 20 }} className={contentStyles}>
-                        <Text block variant="xxLarge" className={titleStyles}>Select an ICM team to create a new alert handler</Text>
+                        <Text block variant="xxLarge" className={`${titleStyles} ${ItemPaddingStyles}`}>Select an ICM team to create a new alert handler</Text>
                         <Autocomplete
                             options={serviceTeamOptions}
                             onChange={onUpdateSelectedService}
                             onInputChange={(event, newInputValue) => { setSelectedTeam(null) }}
                             value={selectedService}
                             renderInput={(parmas) => <TextField {...parmas} label="Owning Service" />}
+                            size = "medium"
+                            className={ItemPaddingStyles}
                         />
                         <Autocomplete
                             options={teamOptions}
                             onChange={onUpdateSelectedTeam}
                             value={selectedTeam}
                             renderInput={(parmas) => <TextField {...parmas} label="Owning Team" />}
+                            className={ItemPaddingStyles}
                         />
                         <PrimaryButton text="Continue" disabled={!selectedTeam} onClick={navigateToContent} />
                     </Stack>

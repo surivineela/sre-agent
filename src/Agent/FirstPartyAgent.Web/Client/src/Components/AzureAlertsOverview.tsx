@@ -1,11 +1,11 @@
-import { useEffect, useState, memo, useMemo, Suspense } from "react";
+import { useState, memo, useMemo } from "react";
 import { getLoopAlertInfo } from "../Services/Request";
 import { AlertInfo, IcmTeamInfo } from "../Models/Response";
 import { Checkbox, DetailsList, IColumn, Link, mergeStyles, SearchBox, SelectionMode, Stack } from "@fluentui/react";
-import { AlertEditorProps } from "./AlertEditor";
 import { generateAzureAlertConfig } from "../Services/AlertUtilities";
 import { useQuery } from "@tanstack/react-query";
 import LoadingErrorWrapper from "./LoadingErrorWrapper";
+import { AlertEditorProps } from "./AlertEditor";
 
 const AzureAlertsOverview = (props: { icmTeamInfo: IcmTeamInfo, onGetAlertConfig: (params: AlertEditorProps) => void }) => {
     const icmTeamId = `${props.icmTeamInfo.icmTeamId}`;
@@ -14,11 +14,23 @@ const AzureAlertsOverview = (props: { icmTeamInfo: IcmTeamInfo, onGetAlertConfig
 
     const { data: loopAlertInfo = [], status, error } = useQuery({
         queryKey: ["getLoopAlertInfo", icmTeamId],
-        queryFn: () => getLoopAlertInfo(icmTeamId),
+        // order by title
+        queryFn: async () => {
+            const res = await getLoopAlertInfo(icmTeamId);
+            res.sort((a, b) => {
+                if (a.title && b.title) {
+                    return b.title.localeCompare(a.title);
+                } else {
+                    return 0;
+                }
+            });
+            return res;
+        }
     });
 
     const searchBoxStyles = mergeStyles({
         maxWidth: "400px",
+        width: "60%",
     });
 
     const onItemClick = (item: AlertInfo) => {
@@ -84,15 +96,32 @@ const AzureAlertsOverview = (props: { icmTeamInfo: IcmTeamInfo, onGetAlertConfig
 
     const pageStyles = mergeStyles({
         marginTop: "20px",
+        height:"100%" 
+    });
+
+    const detailsListStyles = mergeStyles({
+        marginTop: "-20px",
+        width: "60vw",
+        minWidth: "600px",
+        overflowY: "auto",
+        overflowX: "hidden",
+        height: "100%",
+        minHeight: "150px",
+    });
+
+    const controllerStyles = mergeStyles({ 
+        width: "60vw", minWidth: "600px"
     });
 
     return (
         <>
             <LoadingErrorWrapper status={status} error={error}>
-                <Stack tokens={{ childrenGap: 20 }} className={pageStyles}>
-                    <Checkbox label="Show Sev3 Alerts" checked={showSev3Alerts} onChange={(e, checked) => setShowSev3Alerts(!!checked)} />
-                    <SearchBox placeholder='Filter alerts' onChange={(e, newValue) => onSearchBoxUpdate(newValue)} className={searchBoxStyles} />
-                    <DetailsList columns={columns} items={displayAlerts} selectionMode={SelectionMode.none} />
+                <Stack tokens={{ childrenGap: 20 }} className={pageStyles} horizontalAlign="center">
+                    <Stack horizontal tokens={{ childrenGap: 20 }} verticalAlign="center" className={controllerStyles}>
+                        <SearchBox placeholder='Filter alerts' onChange={(_, newValue) => onSearchBoxUpdate(newValue)} className={searchBoxStyles} />
+                        <Checkbox label="Show Sev3 Alerts" checked={showSev3Alerts} onChange={(_, checked) => setShowSev3Alerts(!!checked)} />
+                    </Stack>
+                    <DetailsList columns={columns} items={displayAlerts} selectionMode={SelectionMode.none} className={detailsListStyles} />
                 </Stack>
             </LoadingErrorWrapper>
         </>

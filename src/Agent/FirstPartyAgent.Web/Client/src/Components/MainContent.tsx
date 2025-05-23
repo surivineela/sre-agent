@@ -126,6 +126,10 @@ const MainContent = () => {
         backgroundColor: "rgb(223, 240, 255)",
     });
 
+    const stepperStyles = mergeStyles({
+        paddingTop: "20px",
+    });
+
 
 
     return (
@@ -139,7 +143,7 @@ const MainContent = () => {
                 </Stack.Item>
                 <Stack.Item grow={1}>
                     <Stack verticalFill tokens={{ childrenGap: 5 }} verticalAlign="start" enableScopedSelectors>
-                        {displayStepper && <Stack.Item>
+                        {displayStepper && <Stack.Item className={stepperStyles}>
                             <Stepper activeStep={activateStep} alternativeLabel>
                                 {steps.map((step) => (
                                     <Step key={step.label} onClick={step.onClick} completed={step.completed()} >

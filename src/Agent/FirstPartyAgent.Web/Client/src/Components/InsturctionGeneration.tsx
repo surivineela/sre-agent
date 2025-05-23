@@ -1,10 +1,9 @@
-import React, { useEffect, useState, useRef, memo, MutableRefObject } from "react";
+import React, { useEffect, useState, useRef, MutableRefObject } from "react";
 import { generateInstructions, getIncidents } from "../Services/Request";
 import { GenerateInstructionsRequest, IcmIncident } from "../Models/Response";
-import { DetailsList, DetailsListLayoutMode, Dropdown, IColumn, MessageBar, MessageBarType, PrimaryButton, SelectionMode, Stack, TextField, Selection, IDropdownOption } from "@fluentui/react";
+import { DetailsList, DetailsListLayoutMode, Dropdown, IColumn, MessageBar, MessageBarType, PrimaryButton, SelectionMode, Stack, TextField, Selection, IDropdownOption, Link, ProgressIndicator } from "@fluentui/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import LoadingErrorWrapper from "./LoadingErrorWrapper";
-import ErrorUtilities from "../Helpers/Error";
 import { ICMAlertConfig } from "../Models/ICMAlertConfig";
 
 export interface InstructionGenerationProps {
@@ -31,7 +30,7 @@ const InstructionGeneration = (props: InstructionGenerationProps) => {
         queryFn: () => getIncidents(props.alertConfigRef.current.teamId, props.alertConfigRef.current.incidentTitle, selectedOption?.data.numberOfDays),
     });
 
-    const { status: generateInstructionStatus, mutateAsync: generateInstructionAsync,reset: resetGenerateInstruction } = useMutation({
+    const { status: generateInstructionStatus, mutateAsync: generateInstructionAsync,reset: resetGenerateInstruction} = useMutation({
         mutationFn: (request: GenerateInstructionsRequest) => generateInstructions(request),
         mutationKey: ["generateInstructions"],
     });
@@ -85,16 +84,17 @@ const InstructionGeneration = (props: InstructionGenerationProps) => {
                     <Dropdown options={dropdownOptions} selectedKey={selectedOption.key} onChange={(e, o) => setSelectedOption(o)} disabled={getIncidentsStatus === "pending"} />
                 </Stack>
 
-                <div style={{ height: "50vh" }}>
+                <Stack.Item style={{ maxHeight: "50vh" }}>
                     <LoadingErrorWrapper error={getIncidentsError} status={getIncidentsStatus} renderLoading="Loading ICM incidents..." renderError="An error occurred while loading ICM incidents">
                         <InstructionGenerationIcmList data={getIncidentsData} selectedICMsRef={selectedICMsRef} />
                     </LoadingErrorWrapper>
-                </div>
+                </Stack.Item>
 
                 <TextField label="Custom Instruction" multiline rows={10} value={customInstruction} onChange={(e, newValue) => setCustomInstruction(newValue)} />
                 <Stack horizontal horizontalAlign="center">
                     <PrimaryButton text="Generate Instruction" onClick={(e) => runGenerateInstruction()} disabled={getIncidentsStatus === "pending" || generateInstructionStatus === "pending"} />
                 </Stack>
+                {generateInstructionStatus === "pending" && <ProgressIndicator label="Generating instruction..."/>}
                 {renderGenerateInstructionError()}
             </Stack>
         </div>
@@ -110,6 +110,13 @@ const InstructionGenerationIcmList = (props: { data: IcmIncident[], selectedICMs
             fieldName: "id",
             minWidth: 50,
             maxWidth: 60,
+            onRender: (item: IcmIncident) => {
+                const incidentId = item.id;
+                const url = `https://portal.microsofticm.com/imp/v5/incidents/details/${incidentId}/summary`;
+                return(
+                    <Link underline href={url} target="_blank">{incidentId}</Link>
+                );
+            }
         },
         {
             key: "title",

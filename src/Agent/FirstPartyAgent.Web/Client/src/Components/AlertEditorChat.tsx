@@ -1,4 +1,4 @@
-import { Checkbox, DefaultButton, DocumentCard, DocumentCardDetails, DocumentCardType, IPanel, MessageBar, MessageBarType, PrimaryButton, ProgressIndicator, Stack, TextField, mergeStyles } from "@fluentui/react";
+import { Checkbox, DocumentCard, DocumentCardDetails, DocumentCardType, MessageBar, MessageBarType, PrimaryButton, ProgressIndicator, Stack, TextField, mergeStyles,Text, SearchBox } from "@fluentui/react";
 import { MutableRefObject, useEffect, useMemo, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
@@ -9,7 +9,6 @@ import { ICMAlertConfig } from "../Models/ICMAlertConfig";
 
 export interface AlertEditorChatProps {
     alertConfigRef: MutableRefObject<ICMAlertConfig>;
-    panelRef: MutableRefObject<IPanel>;
     scrollRef: MutableRefObject<HTMLDivElement>;
 }
 
@@ -17,11 +16,6 @@ const AlertEditorChat = (props: AlertEditorChatProps) => {
     const [incidentId, setIncidentId] = useState<string>("");
     const [showIncidentDiscussionOnly, setShowIncidentDiscussionOnly] = useState<boolean>(false);
     const [validationError, setValidationError] = useState<string>("");
-
-    const updateIncidentId = (e: any, newValue?: string) => {
-        if (newValue === undefined || newValue === null) return;
-        setIncidentId(newValue);
-    }
     const { streamResponses, isPending: isStreamLoading, mutateAsync: startStreamAsync, error: streamError } = useStream<string>();
 
     //Always scroll to the bottom when there is a new response
@@ -117,16 +111,15 @@ const AlertEditorChat = (props: AlertEditorChatProps) => {
         height: "auto",
     });
 
-
-
+    const inputStyles = mergeStyles({
+        width: "80%",
+        minWidth: "12rem",
+    });
+    
     return (
         <Stack tokens={{ childrenGap: 10 }}>
-            <TextField label="Incident Id" onChange={updateIncidentId} disabled={isStreamLoading}/>
-            <p>Clicking the 'Send' button initiates a test run only, without impacting the incident or executing any actions.</p>
-            <Stack horizontal tokens={{ childrenGap: 20 }} horizontalAlign="start">
-                <PrimaryButton text="Send" onClick={(e) => { streamAlert() }} disabled={isStreamLoading}/>
-                <DefaultButton text="Cancel" onClick={(e) => props.panelRef.current.dismiss()} />
-            </Stack>
+            <SearchBox placeholder="Incident Id for testing" onChange={(e, newValue) => setIncidentId(newValue ?? "")} disabled={isStreamLoading} className={inputStyles} autoComplete="false" onSearch={(newValue) => streamAlert()}/>
+            <Text variant="small">Clicking the 'Send' button initiates a test run only, without impacting the incident or executing any actions.</Text>
             <Stack styles={{ root: { overflowY: "auto" } }} tokens={{ childrenGap: 10 }}>
                 {streamResponses?.length > 0 ? <Checkbox label="Show incident discussion only" checked={showIncidentDiscussionOnly} onChange={(e, checked) => setShowIncidentDiscussionOnly(!!checked)} /> : null}
                 {displayErrorMessage ? <MessageBar messageBarType={MessageBarType.error} isMultiline>{displayErrorMessage}</MessageBar> :
@@ -141,7 +134,7 @@ const AlertEditorChat = (props: AlertEditorChatProps) => {
                     })
                 }
             </Stack>
-            {isStreamLoading ? <ProgressIndicator label="Loading chat" /> : null}
+            {isStreamLoading ? <ProgressIndicator /> : null}
         </Stack>
     );
 }

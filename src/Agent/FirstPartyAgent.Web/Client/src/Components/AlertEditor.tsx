@@ -8,6 +8,7 @@ import InstructionGeneration from "./InsturctionGeneration";
 import DeployAgent from "./DeployAgent";
 import { ICMAlertConfig, monacoJsonSchema } from "../Models/ICMAlertConfig";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { PanelStyles } from "../Styles/Content.Styles";
 
 
 export interface AlertEditorProps {
@@ -38,7 +39,6 @@ const AlertEditor = (props: AlertEditorProps) => {
     const [defaultAlertConfig, setDefaultAlertConfig] = useState<ICMAlertConfig>(props.alertConfig ? { ...props.alertConfig } : {});
     const [editorMode] = useState<AlertEditorMode>(props.alertConfig ? AlertEditorMode.Create : AlertEditorMode.Edit);
     const scrollRef = useRef<HTMLDivElement>(null);
-    const panelRef = useRef<IPanel>(null);
     const alertConfigRef = useRef<ICMAlertConfig>(props.alertConfig ? { ...props.alertConfig } : {});
 
     const reducer = (state: { selectedContent: SelectContent, panelHeader: string }, action: Action) => {
@@ -130,6 +130,23 @@ const AlertEditor = (props: AlertEditorProps) => {
                 // if (!alertConfig.alertingId) return;
                 dispatch({ type: 'SET_INSTRUCTION_GENERATION' });
             }
+        },
+        {
+            key: 'Test with Incident',
+            text: 'Test with Incident',
+            iconProps: { iconName: 'TestBeaker' },
+            onClick: () => {
+                openPanelForChat();
+            }
+        },
+        {
+            key: 'Deploy to Agent',
+            text: 'Deploy to Agent',
+            iconProps: { iconName: 'CloudUpload' },
+            onClick: () => {
+                onSaveAlertConfig();
+            },
+            disabled: isSavingAlertConfigLoading || isAlertConfigLoading || isAlertConfigLoadingError
         }
     ];
 
@@ -167,18 +184,12 @@ const AlertEditor = (props: AlertEditorProps) => {
         setDefaultAlertConfig(newAlertConfig);
     }, []);
 
-    const buttonStyles = mergeStyles({
-        maxWidth: "300px",
-    });
-
-    const titleAndSubtitle = useMemo(() => {
-        // If props.alertEditorProps.alertConfig is not null, then we are creating a new alert, otherwise is editing existing alertConfig from API,
+    const title = useMemo(() => {
         let title = "";
-        let subtitle = "";
         let currentAlertConfig: any = {};
         if (props.alertConfig) {
-            title = `Creating alert `;
-            currentAlertConfig = { ...props.alertConfig };
+            // For crating alert no need to have title
+            return "";
         } else {
             title = `Editing alert `;
             currentAlertConfig = { ...defaultAlertConfig };
@@ -186,10 +197,7 @@ const AlertEditor = (props: AlertEditorProps) => {
         if (currentAlertConfig?.incidentTitle) {
             title = title + `for : ${currentAlertConfig.incidentTitle}`;
         }
-        if (currentAlertConfig?.alertingId) {
-            subtitle = `Alert Id: ${currentAlertConfig.alertingId}`;
-        }
-        return { title, subtitle };
+        return title
 
     }, [defaultAlertConfig, props.alertConfig]);
 
@@ -202,24 +210,28 @@ const AlertEditor = (props: AlertEditorProps) => {
         props.isChangeUnsaved.current = false;
     }
 
+    const alertEditorStyles = mergeStyles({
+        marginTop: "20px", 
+        height: "100%", 
+        width: "80%", 
+        minWidth: "600px"
+    })
+
     return (
         <>
-            <Stack tokens={{ childrenGap: 10 }} styles={{ root: { marginTop: "20px" } }}>
+        <Stack horizontalAlign="center"  verticalFill>
+            <Stack tokens={{ childrenGap: 10 }} className={alertEditorStyles} >
                 {defaultAlertConfig?.alertingId && !isAlertConfigLoading ?
                     <>
-                        <Text variant="large">{titleAndSubtitle.title}</Text>
+                        <Text variant="large">{title}</Text>
                         <CommandBar items={commandBarItems} styles={{ root: { paddingLeft: "0px" } }} />
                         {isSavingAlertConfigError && <MessageBar messageBarType={MessageBarType.error}>Sorry, an error occurred while saving alert config, please retry</MessageBar>}
                         {isSavingAlertConfigSuccess && <MessageBar messageBarType={MessageBarType.success}>Alert config saved successfully</MessageBar>}
                         <MonacoAlertEditor defaultConfig={defaultAlertConfig} onChange={onAlertConfigChange} />
-                        <Stack horizontal tokens={{ childrenGap: 20 }} horizontalAlign="start">
-                            {/* <DeployAgent /> */}
-                            <PrimaryButton text="Test with your incident" onClick={(e) => openPanelForChat()} className={buttonStyles} />
-                            <PrimaryButton text={editorMode === AlertEditorMode.Create ? "Create Alert Config" : "Update Alert Config"} disabled={isSavingAlertConfigLoading || isAlertConfigLoading || isAlertConfigLoadingError} onClick={onSaveAlertConfig} className={buttonStyles} />
-                        </Stack>
                     </> : <Spinner label="Loading alert config..." size={SpinnerSize.large} />
                 }
 
+                </Stack>
             </Stack>
             <Panel isOpen={isOpen}
                 onDismiss={dismissPanel}
@@ -228,20 +240,20 @@ const AlertEditor = (props: AlertEditorProps) => {
                 isBlocking={false}
                 type={PanelType.medium}
                 isFooterAtBottom={true}
-                onRenderFooter={() => <div ref={scrollRef}></div>}
-                componentRef={panelRef}>
-                {contextState.selectedContent === SelectContent.AlertEditorChat &&
-                    <AlertEditorChat
-                        alertConfigRef={alertConfigRef}
-                        panelRef={panelRef}
-                        scrollRef={scrollRef}
-                    />
-                }
-                {contextState.selectedContent === SelectContent.InstructionGeneration &&
-                    <InstructionGeneration
-                        alertConfigRef={alertConfigRef}
-                        onGeneratedInstruction={updateAlertConfigWithInstruction} />
-                }
+                onRenderFooter={() => <div ref={scrollRef}></div>}>
+                <div className={PanelStyles.container}>
+                    {contextState.selectedContent === SelectContent.AlertEditorChat &&
+                        <AlertEditorChat
+                            alertConfigRef={alertConfigRef}
+                            scrollRef={scrollRef}
+                        />
+                    }
+                    {contextState.selectedContent === SelectContent.InstructionGeneration &&
+                        <InstructionGeneration
+                            alertConfigRef={alertConfigRef}
+                            onGeneratedInstruction={updateAlertConfigWithInstruction} />
+                    }
+                </div>
             </Panel>
         </>
     );
@@ -286,7 +298,7 @@ const MonacoAlertEditor = (props: { defaultConfig: any, onChange: (object: any |
 
 
     return (
-        <MonacoEditor language="json" height="75vh" theme="vs-dark" options={{
+        <MonacoEditor language="json" height="100%" theme="vs-dark" options={{
             automaticLayout: true,
             formatOnType: true,
             formatOnPaste: true,

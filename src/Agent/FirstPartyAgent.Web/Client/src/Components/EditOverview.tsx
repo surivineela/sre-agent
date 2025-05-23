@@ -4,6 +4,7 @@ import AzureAlertsOverview from "./AzureAlertsOverview";
 import { AlertEditorProps } from "./AlertEditor";
 import { IcmTeamInfo } from "../Models/Response";
 import { generateCustomAlertConfig } from "../Services/AlertUtilities";
+import { ContentStyleSets } from "../Styles/Content.Styles";
 
 
 enum EditViewType {
@@ -28,12 +29,16 @@ const EditOverview = (props: { icmTeamInfo: IcmTeamInfo, onGetAlertConfig: (para
         height: "200px"
     });
 
+    const buttonStyle = mergeStyles({
+        border: "0px",
+    });
+
     const overview = (
-        <Stack verticalFill horizontalAlign="center" verticalAlign="center">
-            <Stack tokens={{ childrenGap: 20 }} horizontalAlign="center">
-                <Text variant="xxLarge">Select Alert Type</Text>
+        <Stack verticalFill horizontalAlign="center" verticalAlign="start">
+            <Stack tokens={{ childrenGap: 20 }} horizontalAlign="center" className={ContentStyleSets.container}>
+                <Text variant="xxLarge" className={mergeStyles({ paddingBottom: "50px" })}>Select Alert Type</Text>
                 <Stack horizontal tokens={{ childrenGap: 20 }} enableScopedSelectors horizontalAlign="space-evenly">
-                    <DefaultButton onClick={(e) => setCurrentViewType(EditViewType.AzureAlerting)}>
+                    <DefaultButton className={buttonStyle} onClick={(e) => setCurrentViewType(EditViewType.AzureAlerting)}>
                         <Stack tokens={{ childrenGap: 10 }} >
                             <Text block variant="xLarge">Azure Alerting</Text>
                             <Text block variant="mediumPlus">Use an existing Azure alert to create a handler configuration</Text>
@@ -42,7 +47,7 @@ const EditOverview = (props: { icmTeamInfo: IcmTeamInfo, onGetAlertConfig: (para
                     <Stack.Item className={verticalLineStyle}>
                         <Separator vertical alignContent="center">OR</Separator>
                     </Stack.Item>
-                    <DefaultButton onClick={(e) => { navigateToCustomAlerting() }}>
+                    <DefaultButton className={buttonStyle} onClick={(e) => { navigateToCustomAlerting() }}>
                         <Stack tokens={{ childrenGap: 10 }} >
                             <Text block variant="xLarge">Custom Alerting</Text>
                             <Text block variant="mediumPlus">Create a custom alert handler configuration from scratch</Text>

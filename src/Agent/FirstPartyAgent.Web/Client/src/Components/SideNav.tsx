@@ -14,16 +14,30 @@ const SideNav = (props: { onGetAlertConfig: (params: AlertEditorProps) => void, 
     });
 
     const navStyles: Partial<INavStyles> = {
+        groupContent: {
+            marginBottom: "10px"
+        },
         link: {
             whiteSpace: "normal",
             lineHeight: "normal",
             height: "auto",
-            minHeight: "44px"
+            minHeight: "44px",
+            padding: "0 0 0 5px",
         },
         chevronButton: {
             whiteSpace: "normal",
             lineHeight: "normal",
             height: "auto",
+            margin: "0px",
+            fontSize: "15px",
+            fontWeight: 600,
+            paddingBottom: "8px",
+            display: "flex",
+            alignItems: "center",
+        },
+        chevronIcon: {
+            fontSize: "10px",
+            fontWeight: 600,
         },
         compositeLink: {
             marginTop: "3px",
