@@ -133,6 +133,17 @@ export const ChatBoxStyles = mergeStyleSets({
             width: '90%',
         },
     },
+    hideAgentMessageHeader: {
+        '.fai-CopilotMessage__accessibleHeading': {
+            display: 'none',
+        },
+        '.fai-CopilotMessage__avatar': {
+            display: 'none',
+        },
+        '.fai-CopilotMessage__name': {
+            display: 'none',
+        },
+    },
 });
 
 const textFieldMaxWidth = '1000px';

@@ -89,3 +89,18 @@ export const noGapBetweenNewMessagesAndExistingMessages = (messages: Message[], 
         messages.some((message: Message) => message.id === currentLatestMessage.id)
     );
 };
+
+/**
+ * Group messages if current message and the previous messages are from the same author and within 5 minutes of each other
+ * @param currentMessage
+ * @param previousMessage
+ * @returns
+ */
+export const shouldGroupWithPreviousMessage = (currentMessage?: Message, previousMessage?: Message) => {
+    return (
+        !!previousMessage &&
+        !!currentMessage &&
+        currentMessage.author.userId === previousMessage.author.userId &&
+        getSafeDateTime(currentMessage.timeStamp).getTime() - getSafeDateTime(previousMessage.timeStamp).getTime() <= 5 * 60 * 1000
+    );
+};

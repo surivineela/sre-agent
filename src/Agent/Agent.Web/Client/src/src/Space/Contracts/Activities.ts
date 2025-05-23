@@ -38,6 +38,8 @@ export interface IChatBoxProps {
 
 export interface IChatMessageProps {
     message: Message;
+    previousMessage?: Message;
+    nextMessage?: Message;
     isTyping?: boolean;
     cancelResponse?: () => void;
     threadId: string;

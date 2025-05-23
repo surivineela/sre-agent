@@ -51,10 +51,22 @@ export const ChatBox = ({ addThread, threadId, threadSource }: IChatBoxProps & {
 
                         {/* Render the remaining chat history */}
                         {messages.map((message, index) => (
-                            <ChatMessage key={index} message={message} threadId={currentThreadId || ''} />
+                            <ChatMessage
+                                key={index}
+                                message={message}
+                                previousMessage={messages[index - 1]}
+                                nextMessage={messages[index + 1]}
+                                threadId={currentThreadId || ''}
+                            />
                         ))}
 
-                        {temporaryUserMessage && <ChatMessage message={temporaryUserMessage} threadId={currentThreadId || ''} />}
+                        {temporaryUserMessage && (
+                            <ChatMessage
+                                message={temporaryUserMessage}
+                                previousMessage={messages[messages.length - 1]}
+                                threadId={currentThreadId || ''}
+                            />
+                        )}
 
                         {agentTypingMessage && (
                             <ChatMessage

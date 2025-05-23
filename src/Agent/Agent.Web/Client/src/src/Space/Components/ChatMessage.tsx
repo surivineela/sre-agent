@@ -22,6 +22,7 @@ import { ApprovalDecision } from '../../Common/Contracts/Azure/SreAgent';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
+import { shouldGroupWithPreviousMessage } from '../Activities/Utility';
 import { IChatMessageProps } from '../Contracts/Activities';
 import { useAuthenticatedUserInfo } from '../Hooks/useAuthenticatedUserInfo';
 import { ChatBoxStyles, nameAndTimestampContainerStyle, useChatBoxStyles } from '../Styles/Activities.styles';
@@ -230,7 +231,15 @@ const renderMarkdownWithImagesAndMermaid = (text: string) => {
     return parts;
 };
 
-const ChatMessage = ({ message, isTyping, threadId, cancelResponse, threadOrchestrationReasoningState }: IChatMessageProps) => {
+const ChatMessage = ({
+    message,
+    previousMessage,
+    nextMessage,
+    isTyping,
+    threadId,
+    cancelResponse,
+    threadOrchestrationReasoningState,
+}: IChatMessageProps) => {
     const chatStyles = useChatBoxStyles();
     const intl = useIntl();
 
@@ -271,6 +280,14 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse, threadOrches
 
         return messageProps;
     }, [intl, isTyping, message.timeStamp]);
+
+    // Hide message's icon, name and timestamp if the message is grouped with the previous one
+    const hideMessageHeader = useMemo(() => shouldGroupWithPreviousMessage(message, previousMessage), [message, previousMessage]);
+    // Show feedback buttons if the message is from SREAgent, not typing and it is the last message in the group
+    const showFeedbackButtons = useMemo(
+        () => message.author.role === 'SREAgent' && !isTyping && !shouldGroupWithPreviousMessage(nextMessage, message),
+        [message, nextMessage, isTyping]
+    );
 
     const handleFeedbackClick = (isPositive: boolean) => {
         setSelectedFeedback(isPositive ? 'positive' : 'negative');
@@ -682,7 +699,10 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse, threadOrches
                         {...agentMessageProps}
                         key={message.id}
                         style={{ font: 'Segoe UI', lineHeight: '20px', wordBreak: 'unset', maxWidth: '90%' }}
-                        className={ChatBoxStyles.agentMessage}
+                        className={mergeClasses(
+                            ChatBoxStyles.agentMessage,
+                            hideMessageHeader ? ChatBoxStyles.hideAgentMessageHeader : undefined
+                        )}
                     >
                         {isTyping && threadOrchestrationReasoningState && <Body1Strong>{threadOrchestrationReasoningState}</Body1Strong>}
                         {/* For messages with approval - text content may be empty, so we may only need to render approval UI */}
@@ -696,7 +716,7 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse, threadOrches
                             renderContent()
                         )}
 
-                        {!isTyping && ( // Only show buttons when the agent is not typing
+                        {showFeedbackButtons && (
                             <FeedbackButtons
                                 positiveFeedbackButton={{ onClick: () => handleFeedbackClick(true) }}
                                 negativeFeedbackButton={{ onClick: () => handleFeedbackClick(false) }}
@@ -733,16 +753,18 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse, threadOrches
         default:
             return (
                 <div className={ChatBoxStyles.userMessage} key={message.id}>
-                    <div style={nameAndTimestampContainerStyle}>
-                        {message.author.userId !== userIdAndDisplayName.userId && (
-                            <Text block={true} weight={'semibold'} className={chatStyles.userName}>
-                                {message.author.displayName}
+                    {hideMessageHeader ? null : (
+                        <div style={nameAndTimestampContainerStyle}>
+                            {message.author.userId !== userIdAndDisplayName.userId && (
+                                <Text block={true} weight={'semibold'} className={chatStyles.userName}>
+                                    {message.author.displayName}
+                                </Text>
+                            )}
+                            <Text size={200} color={tokens.colorNeutralForeground3} style={{ lineHeight: '26px' }}>
+                                {getSafeDateTime(message.timeStamp).toLocaleString()}
                             </Text>
-                        )}
-                        <Text size={200} color={tokens.colorNeutralForeground3} style={{ lineHeight: '26px' }}>
-                            {getSafeDateTime(message.timeStamp).toLocaleString()}
-                        </Text>
-                    </div>
+                        </div>
+                    )}
                     <UserMessage className={chatStyles.userBubble} message={{ className: chatStyles.userBubbleMessage }} key={message.id}>
                         {renderContent(true)}
                     </UserMessage>

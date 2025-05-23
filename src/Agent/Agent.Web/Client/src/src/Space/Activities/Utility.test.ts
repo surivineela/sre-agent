@@ -8,6 +8,7 @@ import {
     noGapBetweenNewThreadsAndExistingThreads,
     processMessages,
     processThreads,
+    shouldGroupWithPreviousMessage,
 } from './Utility';
 
 const getDefaultThread = (createdTimestamp: string, id?: string): Thread => {
@@ -421,5 +422,47 @@ describe('noGapBetweenNewMessagesAndExistingMessages', () => {
         const latestMessage = getDefaultMessage('2023-10-01T09:00:00Z', '01');
 
         expect(noGapBetweenNewMessagesAndExistingMessages(messages, latestMessage)).toBe(true);
+    });
+});
+
+describe('shouldGroupWithPreviousMessage', () => {
+    const getUserMessage = (timeStamp: string, userId?: string): Message => {
+        return {
+            id: Guid.newGuid(),
+            timeStamp: timeStamp,
+            author: {
+                role: 'User',
+                userId: userId || 'Web-Client-User',
+                displayName: 'Web Client User',
+            },
+            text: 'start message',
+        };
+    };
+    it('No previous message', () => {
+        const currentMessage = getUserMessage('2023-10-03T00:00:00Z');
+        expect(shouldGroupWithPreviousMessage(currentMessage)).toBe(false);
+    });
+
+    it('No current message', () => {
+        const previousMessage = getUserMessage('2023-10-03T00:00:00Z');
+        expect(shouldGroupWithPreviousMessage(undefined, previousMessage)).toBe(false);
+    });
+
+    it('Within 5 minutes but with different authors', () => {
+        const currentMessage = getUserMessage('2023-10-03T00:05:00Z', 'user1');
+        const previousMessage = getUserMessage('2023-10-03T00:00:00Z', 'user2');
+        expect(shouldGroupWithPreviousMessage(currentMessage, previousMessage)).toBe(false);
+    });
+
+    it('Same author but outside 5 minutes', () => {
+        const currentMessage = getUserMessage('2023-10-03T00:05:01Z', 'user1');
+        const previousMessage = getUserMessage('2023-10-03T00:00:00Z', 'user1');
+        expect(shouldGroupWithPreviousMessage(currentMessage, previousMessage)).toBe(false);
+    });
+
+    it('Same author and within 5 minutes', () => {
+        const currentMessage = getUserMessage('2023-10-03T00:05:00Z', 'user1');
+        const previousMessage = getUserMessage('2023-10-03T00:00:00Z', 'user1');
+        expect(shouldGroupWithPreviousMessage(currentMessage, previousMessage)).toBe(true);
     });
 });
