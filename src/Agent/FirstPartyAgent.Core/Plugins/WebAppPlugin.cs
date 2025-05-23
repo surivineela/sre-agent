@@ -32,7 +32,7 @@ namespace FirstPartyAgent.Core.Plugins
             var history = new ChatHistory();
             var message = new ChatMessageContentItemCollection
                         {
-                            new TextContent("Please extract the worker reboot link from the following JSON payload"),
+                            new TextContent("Please extract the worker reboot link from the following JSON payload. Focus on web_workers section in JSON for web worker details."),
                             new TextContent(observerPayload)
                         };
             history.AddUserMessage(message);
@@ -69,7 +69,7 @@ namespace FirstPartyAgent.Core.Plugins
         [Description("Takes a web app name and a stamp name and fetches the details to reboot the worker like location, role, roleinstance, etc.")]
         public async Task<string> GetWebAppRebootWorkerDetails([Description("Name of the web app")] string webappName, [Description("Name of the stamp")] string stampName, Kernel kernel)
         {
-            var logMessage = $"[get_webapp_reboot_worker_details] Invoked with webappName {webappName} and stampName {stampName}";
+            var logMessage = $"[get_webapp_reboot_worker_details][{DateTime.UtcNow}] Invoked with webappName {webappName} and stampName {stampName}";
             await kernel.LogInformation(logMessage, _logger, _teamsClient);
             if (!_observerClient.IsEnabled)
             {
@@ -114,7 +114,7 @@ namespace FirstPartyAgent.Core.Plugins
         [Description("Takes a web app name and fetches the details like subscription id, webspace name, hostnames etc.")]
         public async Task<string> GetWebAppDetailsByName([Description("Name of the web app")] string webappName, Kernel kernel)
         {
-            var logMessage = $"[get_webapp_details_by_name] Invoked with webappName {webappName}";
+            var logMessage = $"[get_webapp_details_by_name][{DateTime.UtcNow}] Invoked with webappName {webappName}";
             await kernel.LogInformation(logMessage, _logger, _teamsClient);
             if (!_observerClient.IsEnabled)
             {
@@ -140,7 +140,7 @@ namespace FirstPartyAgent.Core.Plugins
         [Description("Takes a web app name and a stamp name and fetches the hostnames for the web app.")]
         public async Task<string> GetWebAppHostnames([Description("Name of the web app")] string webappName, [Description("Name of the stamp")] string stampName, Kernel kernel)
         {
-            var logMessage = $"[get_webapp_hostnames] Invoked with webappName {webappName}";
+            var logMessage = $"[get_webapp_hostnames][{DateTime.UtcNow}] Invoked with webappName {webappName}";
             await kernel.LogInformation(logMessage, _logger, _teamsClient);
             if (!_observerClient.IsEnabled)
             {

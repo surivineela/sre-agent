@@ -14,6 +14,7 @@
   "AllowedGenevaActions": [ "RestartWebApp" ],
   "IncidentProcessingGuide": [
     "Create an EXECUTION_PLAN using the below guidelines:",
+    "- First acknowledge the incident using the acknowledge incident tool.",
     "- Identify the list of Impacted Endpoints from azure alerting discussion entry.",
     "- For each impacted endpoint - get web app details, then get web app hostnames.",
     "- Create full https URL for each endpoint.",

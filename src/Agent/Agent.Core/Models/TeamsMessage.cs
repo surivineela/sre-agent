@@ -11,6 +11,8 @@ public class TeamsMessage
     public string Content { get; set; }
     public string? Image { get; set; }
     public string? MessageId { get; set; }
+    public string? GroupId { get; set; }
+    public string? ChannelId { get; set; }
 
     public TeamsMessage(string content, string? image = null)
     {

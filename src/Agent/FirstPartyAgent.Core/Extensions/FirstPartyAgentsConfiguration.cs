@@ -39,7 +39,16 @@ namespace FirstPartyAgent.Core.Extensions
             services.AddSingleton<FirstPartyAgent.Core.Plugins.TimePlugin>();
             services.AddSingleton<IICMAPIClient, ICMAPIClient>();
             services.AddSingleton<ObserverClientService>();
-            services.AddSingleton<BaseIcmWorkflowClient>();
+            services.AddSingleton<IBaseIcmWorkflowClient>(sp =>
+            {
+                var icmWorkflowSettings = sp.GetRequiredService<ICMWorkflowSettings>();
+                if (icmWorkflowSettings.Enabled)
+                {
+                    var logger = sp.GetRequiredService<ILogger<BaseIcmWorkflowClient>>();
+                    return new BaseIcmWorkflowClient(environment, logger, icmWorkflowSettings);
+                }
+                return new NullableBaseIcmWorkflowClient();
+            });
             services.AddSingleton<AlertHandlerService>();
             services.AddSingleton<IICMWorkflowClient>(sp =>
             {

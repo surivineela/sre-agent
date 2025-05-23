@@ -194,7 +194,7 @@ public class ChatProcessingService : IChatService
             _logger.LogError(ex, $"Error running IsAgentDone: {ex.Message}. sessionId: {sessionInfo.SessionId}");
             if ((ex.Message?.Contains("HTTP 429") == true) || (ex.InnerException?.Message?.Contains("HTTP 429") == true))
             {
-                string statusMessage = "OpenAI quota was hit. Backing off for a few seconds to try again.";
+                string statusMessage = $"[is_agent_done][{DateTime.UtcNow}] OpenAI quota was hit. Backing off for a few seconds to try again.";
                 await _kernel.LogInformation(statusMessage, _logger, _teamsClient, _sessionMessageService);
                 await Task.Delay(backoffPeriodInSeconds * 1000);
                 chatCompletionResult = await chatCompletionService.GetChatMessageContentAsync(
@@ -270,9 +270,19 @@ public class ChatProcessingService : IChatService
             }
             else if ((ex.Message?.Contains("HTTP 429") == true) || (ex.InnerException?.Message?.Contains("HTTP 429") == true))
             {
-                string statusMessage = "OpenAI quota was hit. Backing off for a few seconds to try again.";
+                string statusMessage = $"[run_agent_loop][{DateTime.UtcNow}] OpenAI quota was hit. Backing off for a few seconds to try again.";
                 await _kernel.LogInformation(statusMessage, _logger, _teamsClient, _sessionMessageService);
                 await Task.Delay(backoffPeriodInSeconds * 1000);
+                chatCompletionResult = await chatCompletionService.GetChatMessageContentAsync(
+                    sessionInfo.ChatHistory,
+                    executionSettings: promptExecutionSettings,
+                    kernel: _kernel);
+            }
+            else if ((ex.Message?.Contains("500 (Internal Server Error)") == true) || (ex.InnerException?.Message?.Contains("500 (Internal Server Error)") == true))
+            {
+                string statusMessage = $"[run_agent_loop][{DateTime.UtcNow}] OpenAI internal server error occurred. Backing off for a few seconds to try again.";
+                await _kernel.LogInformation(statusMessage, _logger, _teamsClient, _sessionMessageService);
+                await Task.Delay(5 * 1000);
                 chatCompletionResult = await chatCompletionService.GetChatMessageContentAsync(
                     sessionInfo.ChatHistory,
                     executionSettings: promptExecutionSettings,

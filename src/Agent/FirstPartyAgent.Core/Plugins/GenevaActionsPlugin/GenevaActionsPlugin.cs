@@ -18,7 +18,7 @@ namespace FirstPartyAgent.Core.Plugins
 {
     public class GenevaActionsPlugin
     {
-        private readonly BaseIcmWorkflowClient _icmWorkflowClient;
+        private readonly IBaseIcmWorkflowClient _icmWorkflowClient;
         private readonly IKustoPluginClient _kustoPlugin;
         private readonly ILogger<GenevaActionsPlugin> _logger;
         private readonly ITeamsClient _teamsClient;
@@ -32,7 +32,7 @@ namespace FirstPartyAgent.Core.Plugins
         private Lazy<Task<List<GenevaActionConfig>>> _lazyGenevaActions;
 
         public GenevaActionsPlugin(
-            BaseIcmWorkflowClient icmWorkflowClient,
+            IBaseIcmWorkflowClient icmWorkflowClient,
             IKustoPluginClient kustoPlugin,
             ILogger<GenevaActionsPlugin> logger,
             ITeamsClient teamsClient,
@@ -144,7 +144,7 @@ namespace FirstPartyAgent.Core.Plugins
 
         private async Task<bool> IsSubscriptionInternal(string subscriptionId, Kernel kernel)
         {
-            var logMessage = $"Checking if subscription {subscriptionId} is internal.";
+            var logMessage = $"[is_subscription_internal][{DateTime.UtcNow}] Checking if subscription {subscriptionId} is internal.";
             await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
             var kustoQuery = $@"DataStudio_ServiceTree_AzureSubscription_Snapshot
                 | where SubscriptionId == '{subscriptionId}'
@@ -172,7 +172,7 @@ namespace FirstPartyAgent.Core.Plugins
             var payload = JsonConvert.SerializeObject(inputParameters);
             var response = await _icmWorkflowClient.SendICMWorkflowRequest(genevaActionConfig.WorkflowName, payload, genevaActionConfig.TenantId);
 
-            var logMessage = $"ExecuteGenevaActionWorkflowStatus - workflowName: {genevaActionConfig.WorkflowName}, statusCode: {response.StatusCode}";
+            var logMessage = $"ExecuteGenevaActionWorkflowStatus[{DateTime.UtcNow}] - workflowName: {genevaActionConfig.WorkflowName}, statusCode: {response.StatusCode}";
             await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
 
             if (response.IsSuccessStatusCode)
@@ -187,8 +187,25 @@ namespace FirstPartyAgent.Core.Plugins
             }
         }
 
+        [KernelFunction("list_input_parameters_for_geneva_action")]
+        [Description("Fetch the list of input parameters needed to execute a geneva action. Always use this tool before executing a geneva action.")]
+        public async Task<string> ListInputParametersForGenevaAction(
+            [Description("Action Name")] string actionName,
+            Kernel kernel)
+        {
+            var logMessage = $"[list_input_parameters_for_geneva_action][{DateTime.UtcNow}] Invoked with actionName {actionName}.";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
+            var genevaAction = (await GetGenevaActions()).Where(x => x.ActionName == actionName).FirstOrDefault();
+            if (genevaAction == null)
+            {
+                return $"No Geneva Action found for actionName: {actionName}";
+            }
+            return $"For actionName: {actionName}. Required parameters are: {string.Join(", ", genevaAction.WorkflowInputParameters)}";
+        }
+
+
         [KernelFunction("execute_geneva_action")]
-        [Description("Execute a geneva action with action name, and input parameters")]
+        [Description("Execute a geneva action with action name, and input parameters.\nIf Geneva Action execution fails due to incorrect parameters, then correct the parameters and try again.")]
         public async Task<string> ExecuteGenevaAction(
            [Description("Action Name")] string actionName,
            [Description("Input Parameters")] Dictionary<string, string> inputParameters,
@@ -217,7 +234,7 @@ namespace FirstPartyAgent.Core.Plugins
             {
                 if (!genevaAction.IsAllowedOnExternalSubs && !(await IsSubscriptionInternal(subscriptionId, kernel)))
                 {
-                    logMessage = $"The subscription {subscriptionId} is external. This action is not allowed.";
+                    logMessage = $"[is_subscription_internal][{DateTime.UtcNow}] The subscription {subscriptionId} is external. This action is not allowed.";
                     await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
                     return logMessage;
                 }

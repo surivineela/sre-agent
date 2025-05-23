@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Core.Helpers;
 using FirstPartyAgent.Core.Models;
 using FirstPartyAgent.Core.Services;
@@ -26,6 +27,8 @@ namespace FirstPartyAgent.FunctionApp
         private readonly IStorageService _storageService;
         private readonly ICosmosDBService _cosmosDBService;
         private readonly IICMWorkflowClient _icmWorkflowClient;
+        private readonly ITeamsClient _teamsClient;
+        private readonly TeamsClientSettings _teamsClientSettings;
         private const string hotsiteAgentAlertDetailsCosmosDbContainer = "IcmAlertDetails";
         private readonly AlertHandlerService _alertHandlerService;
 
@@ -37,6 +40,8 @@ namespace FirstPartyAgent.FunctionApp
             ISessionMessageService sessionMessageService,
             ICosmosDBService cosmosDBService,
             IICMWorkflowClient icmWorkflowClient,
+            ITeamsClient teamsClient,
+            TeamsClientSettings teamsClientSettings,
             AlertHandlerService alertHandlerService)
         {
             _logger = logger;
@@ -46,6 +51,8 @@ namespace FirstPartyAgent.FunctionApp
             _sessionMessageService = sessionMessageService;
             _cosmosDBService = cosmosDBService;
             _icmWorkflowClient = icmWorkflowClient;
+            _teamsClient = teamsClient;
+            _teamsClientSettings = teamsClientSettings;
             _alertHandlerService = alertHandlerService;
         }
 
@@ -200,6 +207,22 @@ namespace FirstPartyAgent.FunctionApp
                 var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
                 await badResponse.WriteAsJsonAsync(new { error = "Invalid request body" });
                 return badResponse;
+            }
+
+            if (requestBody.SendLogsToTeams && string.IsNullOrWhiteSpace(requestBody.SessionId))
+            {
+                if (_teamsClient.IsEnabled() && _teamsClientSettings.UseTeamsChannel)
+                {
+                    try
+                    {
+                        var sessionId = await _teamsClient.CreateTeamsChannelPost(new Agent.Core.Models.TeamsMessage($"Starting Processing for: {requestBody.Message}"));
+                        requestBody.SessionId = sessionId.ToString();
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError($"Failed to create post on TeamsChannel: {ex.Message}");
+                    }
+                }
             }
 
             // Process the message using the injected chat service.

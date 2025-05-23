@@ -16,6 +16,7 @@ namespace FirstPartyAgent.Core.Models
         public string SessionId { get; set; }
         public AgentMode AgentMode { get; set; }
         public DateTime Timestamp { get; set; }
+        public bool SendLogsToTeams { get; set; } = false;
         public ChatHistory ChatHistory { get; set; }
         public bool AgentLoopRunning { get; set; }
 

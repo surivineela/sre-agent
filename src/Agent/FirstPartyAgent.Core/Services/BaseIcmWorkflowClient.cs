@@ -13,7 +13,7 @@ using FirstPartyAgent.Core.Configuration;
 
 namespace FirstPartyAgent.Core.Services
 {
-    public class BaseIcmWorkflowClient
+    public class BaseIcmWorkflowClient: IBaseIcmWorkflowClient
     {
         private readonly bool IsDevelopment;
         private static HttpClient _httpClient;
@@ -21,7 +21,8 @@ namespace FirstPartyAgent.Core.Services
         private readonly BaseIcmWorkflowSettings _icmWorkflowSettings;
         private const string ActionPath = "triggers/manual/execute";
         private readonly int TimeoutInSeconds = 600;
-        public readonly bool ReadOnly = false;
+        private readonly bool _readOnly = false;
+        public bool ReadOnly => _readOnly;
 
         public BaseIcmWorkflowClient(IHostEnvironment environment, ILogger<BaseIcmWorkflowClient> logger, ICMWorkflowSettings icmWorkflowSettings)
         {
@@ -30,7 +31,7 @@ namespace FirstPartyAgent.Core.Services
                 return;
             }
             _icmWorkflowSettings = JsonConvert.DeserializeObject<BaseIcmWorkflowSettings>(JsonConvert.SerializeObject(icmWorkflowSettings));
-            ReadOnly = _icmWorkflowSettings.ReadOnly;
+            _readOnly = _icmWorkflowSettings.ReadOnly;
             IsDevelopment = environment.IsDevelopment();
             _logger = logger;
 
@@ -172,6 +173,36 @@ namespace FirstPartyAgent.Core.Services
         public void Dispose()
         {
             _httpClient?.Dispose();
+        }
+    }
+
+    public interface IBaseIcmWorkflowClient : IDisposable
+    {
+        bool ReadOnly { get; }
+        Task<HttpResponseMessage> SendICMWorkflowRequest(string workflowName, string body, string tenantId = null);
+        Task<HttpResponseMessage> ExecuteGetCallsInICMWorkflowsFunctionApp(string apiPath);
+    }
+
+    /// <summary>
+    /// Nullable implementation of IBaseIcmWorkflowClient that performs no-ops and returns null/defaults.
+    /// </summary>
+    public class NullableBaseIcmWorkflowClient : IBaseIcmWorkflowClient
+    {
+        public bool ReadOnly => true;
+
+        public Task<HttpResponseMessage> SendICMWorkflowRequest(string workflowName, string body, string tenantId = null)
+        {
+            return Task.FromResult<HttpResponseMessage>(null);
+        }
+
+        public Task<HttpResponseMessage> ExecuteGetCallsInICMWorkflowsFunctionApp(string apiPath)
+        {
+            return Task.FromResult<HttpResponseMessage>(null);
+        }
+
+        public void Dispose()
+        {
+            // No resources to dispose.
         }
     }
 }
