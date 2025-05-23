@@ -132,29 +132,30 @@ eg: list all VirtualServices in the 'istio-system' namespace.")]
 
         [KernelFunction("GetKubeResourceEvents")]
         [Description(
-        @"Get the events of of a Kubernetes Deployment, StatefulSet, DaemonSet, Pod, Service or Custom Resource Object (CRD) in the specified namespace.
+@"Get the events of a Kubernetes resource (Deployment, StatefulSet, DaemonSet, Pod, Service, Node, PV, or Custom Resource Object) by name.
 Used whenever user wants to check the events or history of a specific resource object.
 eg: show me the events of the pod 'nginx-pod-xyz' in the 'default' namespace.")]
         public async Task<string> GetKubeResourceEventsAsync(
-                    [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
-            [Description($"Kubernetes namespace, e.g. 'default', 'istio-system'")] string _namespace,
+            [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
             [Description($"API Group of the Kubernetes resource, e.g. 'apps/v1'")] string apiGroup,
             [Description($"Kind of the Kubernetes resource, e.g. 'Deployment'")] string kind,
-            [Description($"Name of the Kubernetes resource")] string name)
+            [Description($"Name of the Kubernetes resource")] string name,
+            [Description($"Kubernetes namespace, e.g. 'default', 'istio-system'. Optional for cluster-scoped kinds (Node, PersistentVolume); required for namespaced kinds.")] string? _namespace = "")
         {
             return await _kubePlugin.GetKubeResourceEventsAsync(AKSClusterResourceId, _namespace, apiGroup, kind, name);
         }
 
         [KernelFunction("GetKubeResourceSpecStatus")]
         [Description(
-@"Get the YAML spec and status of a Kubernetes Deployment, StatefulSet, DaemonSet, Pod, Service or Custom Resource Object (CRD) in the specified namespace.
-eg: show me the YAML spec and status of 'my-service' deployment in the 'default' namespace.")]
+@"Get the YAML spec and status of a Kubernetes resource (Deployment, StatefulSet, DaemonSet, Pod, Service, Node, PV, PVC, or Custom Resource Object) by name.
+e.g. show me the YAML spec and status of 'my-service' deployment in the 'default' namespace.
+e.g. get spec for node aks-nodepool1-12345678-vmss000000.")]
         public async Task<string> GetKubeResourceSpecStatusAsync(
             [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
-            [Description($"Kubernetes namespace, e.g. 'default', 'istio-system'")] string _namespace,
             [Description($"API Group of the Kubernetes resource, e.g. 'apps/v1'")] string apiGroup,
             [Description($"Kind of the Kubernetes resource, e.g. 'Deployment'")] string kind,
-            [Description($"Name of the Kubernetes resource")] string name)
+            [Description($"Name of the Kubernetes resource")] string name,
+            [Description($"Kubernetes namespace, e.g. 'default', 'istio-system'. Optional for cluster-scoped kinds (Node, PersistentVolume); required for namespaced kinds.")] string? _namespace = "")
         {
             return await _kubePlugin.GetKubeResourceSpecStatusAsync(AKSClusterResourceId, _namespace, apiGroup, kind, name);
         }
@@ -175,13 +176,14 @@ eg: show me all workloads updated in the last 15 minutes.")]
         [KernelFunction("ListKubeResources")]
         [Description(
 @"Get all Kubernetes resources in the specified namespace with specified kind.
-Used whenever user wants to list Deployment, Service, Statefulset, Pod, Job, Configmap, Secret, Ingress, ReplicaSet or Daemonset objects in a specific namespace. eg: list all deployments in the 'default' namespace.
+Supported kinds include Deployment, Service, Statefulset, Pod, Job, Configmap, Secret, Ingress, ReplicaSet, Daemonset, and Node.
+e.g., 'list all deployments in the default namespace', 'list all nodes'.
 It can also be invoked multiple times to list deployments in different namespaces. eg: list all deployments in the 'default' and 'kube-system' namespaces.
 If user didn't specify namespace in the context, try to use 'default' namespace")]
         public async Task<string> ListKubeResourcesAsync(
             [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
-              [Description($"Kubernetes namespace, e.g. 'default', 'kube-system'")] string _namespace,
-              [Description($"Kubernetes resource kind, e.g. 'deployment', 'statefulset', 'service'")] string kind)
+            [Description($"Kubernetes resource kind, e.g. 'deployment', 'statefulset', 'service'")] string kind,
+            [Description($"Kubernetes namespace, e.g. 'default', 'istio-system'. Optional for cluster-scoped kinds (Node); required for namespaced kinds.")] string? _namespace = "")
         {
             return await _kubePlugin.ListKubeResourcesAsync(AKSClusterResourceId, _namespace, kind);
         }
@@ -262,20 +264,20 @@ eg: update my service with this YAML manifest.")]
 
         [KernelFunction("GetKubeResourceMetricsRangeAsync")]
         [Description(
-        @"Get the value of specific metric for Kubernetes Workload during a time range.
-The supported metrics include cpu, memory, availability.
-The supported workload include deployment, statefulset, pod.
+@"Get the value of specific metric for Kubernetes Workload during a time range.
+The supported metrics include cpu, memory, availability percentage.
+The supported workload include deployment, statefulset, pod, and node.
 eg: please give me the cpu usage rate for deployment flask from 2023-03-01T20:10:30.781Z to 2023-03-20T20:10:30.781Z.
 eg: please give me the memory usage rate for deployment checkout for last 1 hour.
 eg: please give me the availability rate for statefulset for last 2 hour.")]
         public async Task<string> GetKubeResourceMetricsRangeAsync(
             [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
-            [Description($"Kubernetes namespace, e.g. 'default', 'kube-system'")] string _namespace,
             [Description($"Kubernetes resource kind, e.g. 'deployment', 'statefulset'")] string kind,
             [Description($"Name of the Kubernetes resource, e.g. 'nginx', 'backend', 'redis'")] string name,
             [Description($"Metric type, e.g. 'cpu', 'memory'")] string metricsType,
             [Description($"Start time of time range, e.g. '2023-03-01T20:10:30.781Z'")] string startTime,
-            [Description($"End time of time range, e.g. '2023-03-20T20:10:30.781Z'")] string endTime)
+            [Description($"End time of time range, e.g. '2023-03-20T20:10:30.781Z'")] string endTime,
+            [Description($"Kubernetes namespace, e.g. 'default', 'istio-system'. Optional for cluster-scoped kinds (Node); required for namespaced kinds.")] string? _namespace)
         {
             return await _kubePlugin.GetKubeResourceMetricsRangeAsync(AKSClusterResourceId, _namespace, kind, name, metricsType, startTime, endTime);
         }

@@ -103,7 +103,7 @@ namespace Agent.Plugins
         }
 
         // get all resource objects in a namespace with specific kind
-        public async Task<string> ListKubeResourcesAsync(string resourceId, string _namespace, string kind)
+        public async Task<string> ListKubeResourcesAsync(string resourceId, string? _namespace, string kind)
         {
             var client = await GetOrCreateClientAsync(resourceId);
             if (string.IsNullOrEmpty(kind))
@@ -160,6 +160,11 @@ namespace Agent.Plugins
                 case "replicasets":
                     var replicaSets = await client.AppsV1.ListNamespacedReplicaSetAsync(_namespace);
                     nameList = replicaSets.Items.Select(rs => rs.Metadata.Name);
+                    break;
+                case "node":
+                case "nodes":
+                    var nodes = await client.CoreV1.ListNodeAsync();
+                    nameList = nodes.Items.Select(node => node.Metadata.Name);
                     break;
                 default:
                     return $"Unsupported kind: {kind}.";
@@ -288,6 +293,21 @@ namespace Agent.Plugins
             var pods = await client.CoreV1.ListNamespacedPodAsync(_namespace, labelSelector: $"{string.Join(",", labels.Select(label => $"{label.Key}={label.Value}"))}");
             var podNames = pods.Items.Select(pod => pod.Metadata.Name);
             return string.Join(", ", podNames);
+        }
+
+        // get spec and status of a node
+        public async Task<string> GetKubeNodeSpecStatusAsync(string resourceId, string nodeName)
+        {
+            var client = await GetOrCreateClientAsync(resourceId);
+            // get node in namespace
+            var node = await client.CoreV1.ReadNodeAsync(nodeName);
+            if (node == null)
+            {
+                return "Node not found";
+            }
+
+            // Serialize to YAML
+            return YamlHelper.Serialize(node);
         }
 
         // get spec and status of a deployment in a namespace
@@ -683,6 +703,7 @@ namespace Agent.Plugins
             // If no bucket is large enough, use the largest bucket (1 day)
             return matchingBucket != default ? matchingBucket : SupportedBuckets.Last();
         }
+
         public async Task<string> GetKubeResourceMetricsRangeAsync(string AKSClusterResourceId, string _namespace, string kind, string name, string metricsType, string startTime, string endTime)
         {
 
@@ -751,7 +772,7 @@ namespace Agent.Plugins
             // If it's a relative time like "1h ago", "30m ago", etc.
             if (timeDate.Contains("ago", StringComparison.OrdinalIgnoreCase))
             {
-                var match = Regex.Match(timeDate, @"(\d+)\s*([smhdwy]|min|hour|day|week|month|year)s?\s*ago",
+                var match = Regex.Match(timeDate, @"(\d+)\s*([smhdwy]|min|minute|hour|day|week|month|year)s?\s*ago",
                     RegexOptions.IgnoreCase);
 
                 if (match.Success)
@@ -863,6 +884,10 @@ namespace Agent.Plugins
 
                 switch (kind.ToLowerInvariant())
                 {
+                    case "node":
+                        var nodeObj = await client.CoreV1.ReadNodeAsync(name);
+                        uid = nodeObj.Metadata.Uid;
+                        break;
                     case "deployment":
                         var deployment = await client.AppsV1.ReadNamespacedDeploymentAsync(name, _namespace);
                         uid = deployment.Metadata.Uid;
@@ -926,9 +951,24 @@ namespace Agent.Plugins
                         break;
                 }
 
-                // Get events for this resource
-                var events = await client.CoreV1.ListNamespacedEventAsync(_namespace,
-                    fieldSelector: $"involvedObject.name={name},involvedObject.uid={uid}");
+                Corev1EventList events;
+
+                string fieldSelector = !string.IsNullOrEmpty(uid)
+                    ? $"involvedObject.uid={uid}"
+                    : $"involvedObject.kind={kind},involvedObject.name={name}";
+
+                if (!string.IsNullOrEmpty(_namespace))
+                {
+                    if (!string.IsNullOrEmpty(uid)) fieldSelector += $",involvedObject.namespace={_namespace}"; // UID is primary, namespace refines
+                    else fieldSelector += $",involvedObject.namespace={_namespace}";
+
+                    events = await client.CoreV1.ListNamespacedEventAsync(_namespace, fieldSelector: fieldSelector);
+                }
+                else // No namespace provided, or for cluster-scoped resources like Node/PV
+                {
+                    // For cluster-scoped resources, or if _namespace is explicitly null, list events across all namespaces.
+                    events = await client.CoreV1.ListEventForAllNamespacesAsync(fieldSelector: fieldSelector);
+                }
 
                 if (events.Items.Count == 0)
                 {
@@ -948,13 +988,15 @@ namespace Agent.Plugins
             }
         }
 
-        public async Task<string> GetKubeResourceSpecStatusAsync(string resourceId, string _namespace, string apiGroup, string kind, string name)
+        public async Task<string> GetKubeResourceSpecStatusAsync(string resourceId, string? _namespace, string apiGroup, string kind, string name)
         {
             try
             {
                 var client = await GetOrCreateClientAsync(resourceId);
                 switch (kind.ToLowerInvariant())
                 {
+                    case "node":
+                        return await GetKubeNodeSpecStatusAsync(resourceId, name);
                     case "deployment":
                         return await GetKubeDeploymentSpecStatusAsync(resourceId, _namespace, name);
                     case "replicaset":
@@ -1016,6 +1058,7 @@ namespace Agent.Plugins
                             return "Job not found";
                         }
                         return YamlHelper.Serialize(job);
+
                 }
 
                 // Get the plural name and version from CRDs
@@ -1287,7 +1330,7 @@ namespace Agent.Plugins
                             if (double.TryParse(rawValue, NumberStyles.Float | NumberStyles.AllowExponent, CultureInfo.InvariantCulture, out double numericValue))
                             {
                                 // Format: timestamp|value|metricType
-                                var dataPoint = $"{dateTime:yyyy-MM-ddTHH:mm:ss}|{numericValue:F2}|{capitalizedMetricType} Usage";
+                                var dataPoint = $"{dateTime:yyyy-MM-ddTHH:mm:ss}|{numericValue:F2}|{capitalizedMetricType} Usage %";
                                 dataPoints.Add(dataPoint);
                             }
                         }
@@ -1295,8 +1338,6 @@ namespace Agent.Plugins
 
                     // Join all data points with semicolons
                     return string.Join(";", dataPoints);
-
-                    break;
                 default:
                     // Handle unknown response types if necessary, although your models cover the main Prometheus ones.
                     sb.AppendLine($"## Unknown Prometheus Response Type for {metricType} Metrics for workloadType {workloadType} and workloadName {workloadName}.");
@@ -1474,89 +1515,116 @@ namespace Agent.Plugins
         }
 
         // Requires Azure Monitor for Prometheus addon to be enabled on AKS.
-        private string[] BuildPromQueries(string metricType, string _namespace, string workloadType, string workloadName, string duration)
+        private string[] BuildPromQueries(string metricType, string _namespace, string resourceType, string resourceName, string duration)
         {
-            var podFilter = "";
-            switch (workloadType.ToLowerInvariant())
+            if (resourceType.ToLowerInvariant() == "node")
             {
-                case "deployment":
-                    podFilter = $"^{workloadName}-(?:[a-z0-9]+)(?:-[a-z0-9]+)?$";
-                    break;
-                case "replicaset":
-                    podFilter = $"^{workloadName}-(?:[a-z0-9]+)$";
-                    break;
-                case "daemonset":
-                    podFilter = $"^{workloadName}-(?:[a-z0-9]+)$";
-                    break;
-                case "statefulset":
-                    podFilter = $"^{workloadName}-(?:[a-z0-9]+)$";
-                    break;
-                default:
-                    podFilter = $"^{workloadName}$";
-                    break;
+                switch (metricType.ToLowerInvariant())
+                {
+                    case "cpu":
+                        return new[] {
+                $"(1 - avg(rate(node_cpu_seconds_total{{mode=\"idle\", instance=\"{resourceName}\"}}[2m])) by (instance)) * 100",
+            };
+                    case "memory":
+                        return new[] {
+                $"(1 - node_memory_MemAvailable_bytes{{instance=\"{resourceName}\"}} / node_memory_MemTotal_bytes{{instance=\"{resourceName}\"}}) * 100",
+            };
+                    case "availability":
+                        return new[] {
+                $"(up{{instance=\"{resourceName}\"}}) * 100"
+            };
+                    default:
+                        _logger?.LogInternalWarning(
+                            "Unsupported metric type '{MetricType}' for Node '{NodeName}'.",
+                            metricType, resourceName);
+                        return new[] { $"Unsupported metric type '{metricType}' for Node." };
+                }
             }
-
-            switch (metricType.ToLowerInvariant())
+            else
             {
-                case "memory":
-                    return new[] {
-$@"avg(
-    100 *  (
-        sum by (pod) (
-            container_memory_working_set_bytes{{pod=~""{podFilter}"",namespace=""{_namespace}"",container!=""""}}
-        )
-        / on (pod)
-        min by (pod) (
-            (
-                kube_node_status_allocatable{{resource=""memory""}} * on (node) group_right kube_pod_info{{pod=~""{podFilter}"",namespace=""{_namespace}""}}
-            )
-            or
-            (
-                kube_pod_container_resource_limits{{pod=~""{podFilter}"",namespace=""{_namespace}"", resource=""memory""}}
-            )
-        )
-    )
-)"
+                var podFilter = "";
+
+                switch (resourceType.ToLowerInvariant())
+                {
+                    case "deployment":
+                        podFilter = $"^{resourceName}-(?:[a-z0-9]+)(?:-[a-z0-9]+)?$";
+                        break;
+                    case "replicaset":
+                        podFilter = $"^{resourceName}-(?:[a-z0-9]+)$";
+                        break;
+                    case "daemonset":
+                        podFilter = $"^{resourceName}-(?:[a-z0-9]+)$";
+                        break;
+                    case "statefulset":
+                        podFilter = $"^{resourceName}-(?:[a-z0-9]+)$";
+                        break;
+                    default:
+                        podFilter = $"^{resourceName}$";
+                        break;
+                }
+
+                switch (metricType.ToLowerInvariant())
+                {
+                    case "memory":
+                        return new[] {
+                        $@"avg(
+                            100 *  (
+                                sum by (pod) (
+                                    container_memory_working_set_bytes{{pod=~""{podFilter}"",namespace=""{_namespace}"",container!=""""}}
+                                )
+                                / on (pod)
+                                min by (pod) (
+                                    (
+                                        kube_node_status_allocatable{{resource=""memory""}} * on (node) group_right kube_pod_info{{pod=~""{podFilter}"",namespace=""{_namespace}""}}
+                                    )   
+                                    or
+                                    (
+                                        kube_pod_container_resource_limits{{pod=~""{podFilter}"",namespace=""{_namespace}"", resource=""memory""}}
+                                    )
+                                ) 
+                            )
+                        )"
                     };
-                case "cpu":
-                    return new[] {
-$@"avg(
-    100 *  (
-        sum by (pod) (
-            rate(container_cpu_usage_seconds_total{{pod=~""{podFilter}"",namespace=""{_namespace}"",container!=""""}}[2m])
-        )
-        / on (pod)
-        min by (pod) (
-            (
-                kube_node_status_allocatable{{resource=""cpu""}} * on (node) group_right kube_pod_info{{pod=~""{podFilter}"",namespace=""{_namespace}""}}
-            )
-            or
-            (
-                kube_pod_container_resource_limits{{pod=~""{podFilter}"",namespace=""{_namespace}"", resource=""cpu""}}
-            )
-        )
-    )
-)"
+                    case "cpu":
+                        return new[] {
+                        $@"avg(
+                            100 *  (
+                                sum by (pod) (
+                                    rate(container_cpu_usage_seconds_total{{pod=~""{podFilter}"",namespace=""{_namespace}"",container!=""""}}[2m])
+                                )
+                                / on (pod)
+                                min by (pod) (
+                                    (
+                                        kube_node_status_allocatable{{resource=""cpu""}} * on (node) group_right kube_pod_info{{pod=~""{podFilter}"",namespace=""{_namespace}""}}
+                                    )   
+                                    or
+                                    (
+                                        kube_pod_container_resource_limits{{pod=~""{podFilter}"",namespace=""{_namespace}"", resource=""cpu""}}
+                                    )
+                                ) 
+                            )
+                        )"
                     };
-                case "availability":
-                    return new[] {
-$@"100 * (
-    sum (
-        min by (pod) (kube_pod_container_status_ready{{pod=~""{podFilter}"",namespace=""{_namespace}""}})
-    ) /
-    sum (
-        kube_pod_info{{pod=~""{podFilter}"",namespace=""{_namespace}""}}
-    )
-)"
+                    case "availability":
+                        return new[] {
+                        $@"100 * (
+                            sum (
+                                min by (pod) (kube_pod_container_status_ready{{pod=~""{podFilter}"",namespace=""{_namespace}""}})
+                            ) /
+                            sum (
+                                kube_pod_info{{pod=~""{podFilter}"",namespace=""{_namespace}""}}
+                            )
+                        )"
                   };
-                // Default case for custom queries or other unhandled metric types
-                default:
-                    _logger?.LogInternalWarning(
-                        "No query configured for metric type '{MetricType}' in namespace '{Namespace}', workload type '{WorkloadType}', and workload name '{WorkloadName}'.",
-                        metricType, _namespace, workloadType, workloadName);
+                    // Default case for custom queries or other unhandled metric types
+                    default:
+                        _logger?.LogInternalWarning(
+                            "No query configured for metric type '{MetricType}' in namespace '{Namespace}', workload type '{resourceType}', and workload name '{resourceName}'.",
+                            metricType, _namespace, resourceType, resourceName);
 
-                    return new[] { $"No query configured for metric type '{metricType}' in namespace '{_namespace}', workload type '{workloadType}', and workload name '{workloadName}'." };
+                        return new[] { $"No query configured for metric type '{metricType}' in namespace '{_namespace}', workload type '{resourceType}', and workload name '{resourceName}'." };
 
+                }
             }
         }
 
