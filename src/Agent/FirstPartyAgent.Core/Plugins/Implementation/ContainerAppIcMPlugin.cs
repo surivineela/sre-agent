@@ -91,22 +91,16 @@ public class ContainerAppIcMPlugin : IcmPlugin, IContainerAppIcMPlugin
 
     public async Task<string> GetInitialInvestigationReportAsync(string incidentId)
     {
-        var stopwatch1 = System.Diagnostics.Stopwatch.StartNew();
         var incident = await GetIncidentInfo(incidentId);
         if (incident == null)
         {
             return "Incident not found.";
         }
-        // TODO: fetcing discussion entries taking significant time.
-        // var discussions = await GetDiscussionEntries(incidentId, queryFrom: DateTimeOffset.MinValue);
-        var discussions = new List<DiscussionEntry>();
+        var discussions = await GetDiscussionEntries(incidentId, queryFrom: incident.CreatedDate);
         if (discussions?.Count > 0)
         {
             discussions = [.. discussions.OrderByDescending(d => d.Date)]; // latest first
         }
-        stopwatch1.Stop();
-        _logger.LogInformation($"Fetched ICM incident details for ICM ID {incidentId} total time took in fetching: {(int)stopwatch1.ElapsedMilliseconds}");
-
         // Create a JSON string from the incident and discussions
         var json = new
         {
@@ -187,7 +181,7 @@ public class ContainerAppIcMPlugin : IcmPlugin, IContainerAppIcMPlugin
             incident.Summary = RemoveImageTags(incident.Summary);
         }
         stopwatch.Stop();
-        _logger.LogInformation($"Fetched raw ICM incident details for ICM ID {incidentId} total time took in fetching: {(int)stopwatch.ElapsedMilliseconds}");
+        _logger.LogInformation($"Fetched raw ICM incident details for ICM ID {incidentId} total time took in fetching: {(int)stopwatch.ElapsedMilliseconds} msecs");
         return incident;
     }
 
@@ -195,11 +189,17 @@ public class ContainerAppIcMPlugin : IcmPlugin, IContainerAppIcMPlugin
         string incidentId,
         DateTimeOffset queryFrom)
     {
-        List<DiscussionEntry> discussionEntries = await _icmAutomationClient.GetIncidentDiscussionEntriesAsync(incidentId, queryFrom);
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+        List<DiscussionEntry> discussionEntries = await _icmAutomationClient.GetIncidentDiscussionEntriesAsync(incidentId, queryFrom) ?? new List<DiscussionEntry>();
         foreach (var discussionEntry in discussionEntries)
         {
-            discussionEntry.Text = RemoveImageTags(discussionEntry.Text);
+            if(discussionEntry.Text != null && discussionEntry.IsHtml)
+            {
+                discussionEntry.Text = RemoveImageTags(discussionEntry.Text);
+            }
         }
+        stopwatch.Stop();
+        _logger.LogInformation($"Fetched raw ICM discussion enteries for ICM ID {incidentId} total time took in fetching: {(int)stopwatch.ElapsedMilliseconds} msecs");
         return discussionEntries;
     }
 

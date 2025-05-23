@@ -51,7 +51,7 @@ public static class ServiceCollectionExtensions
         // load development setting if env is local
         if (builder.Environment.IsDevelopment())
         {
-            builder.Configuration.AddJsonFile("aca-appsettings.development.json", optional: false, reloadOnChange: true);
+            builder.Configuration.AddJsonFile("aca-appsettings.development.json", optional: true, reloadOnChange: true);
         }
 
         // TODO: Load config dynamically
