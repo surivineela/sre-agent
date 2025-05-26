@@ -215,7 +215,7 @@ eg: show me the status of apiserver")]
 
         [KernelFunction("GetEtcdStatus")]
         [Description(
-@"Get the status of the etcd for the AKS cluster. 
+@"Get the status of the etcd for the AKS cluster.
 Used whenever user wants to check the etcd status of the AKS cluster. Etcd is the key-value store used by Kubernetes to store all cluster data which is the main component of Kubernetes control plane.
 eg: show me the status of etcd")]
         public async Task<string> GetEtcdStatusAsync(
@@ -227,7 +227,7 @@ eg: show me the status of etcd")]
 
         [KernelFunction("DiagnoseAKSApp")]
         [Description(
-@"Used to diagnose an AKS application (deployment or statefulset resource) in the specified AKS namespace to get all detailed information belong to the resource. 
+@"Used to diagnose an AKS application (deployment or statefulset resource) in the specified AKS namespace to get all detailed information belong to the resource.
 It will first get all spec, status, and events of the resource, then get all pods belong to the resource.
 For each pod, it will pod spec, status, events, logs, CPU/Memory metrics to this pod.
 e.g.: diagnose the 'nginx' deployment in the 'default' namespace.
@@ -311,26 +311,47 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
             return await _kubePlugin.ListWorkloadRevisions(AKSClusterResourceId, _namespace, kind, name);
         }
 
-        [KernelFunction("runKubectlGetCommand")]
+        [KernelFunction("runKubectlReadCommand")]
         [Description("""
-        Safely execute kubectl get commands to retrieve Kubernetes resource information.
-        This tool validates and runs only 'kubectl get' operations with optional parameters for namespace, output format, and filtering.
-        USAGE: Provide the complete kubectl get command as a string.
+        Safely execute kubectl commands to retrieve Kubernetes resource information. Several subcommands are supported, including 'get', 'describe', 'logs', 'top', 'api-resources', and 'api-versions'.
+        USAGE: Provide the complete kubectl command as a string.
         BASIC EXAMPLES:
         - Specific namespace: 'kubectl get pods -n production -o name'
-        - With output format: 'kubectl get deployments -o wide'
+        - Describe a resource: 'kubectl describe pod my-pod -n default'
+        - Get logs from a pod: 'kubectl logs my-pod -n default --container my-container --tail 100'
         ADVANCED EXAMPLES:
         - Complete security info: 'kubectl get pods -o custom-columns=NAME:.metadata.name,NAMESPACE:.metadata.namespace,PRIVILEGED:.spec.containers[*].securityContext.privileged,HOST_NETWORK:.spec.hostNetwork,HOST_PID:.spec.hostPID,CAPABILITIES:.spec.containers[*].securityContext.capabilities.add'
         BEST PRACTICES:
-        - Always specify the output format with '-o' option. Only name, wide and custom-columns options are supported
         - Always specify the namespace you care about: 'kubectl get pods -n default'
-        - Add extra columns you need to collect extra data
         """)]
-        public async Task<string> RunKubectlGetCommandAsync(
+        public async Task<string> RunKubectlReadCommandAsync(
             [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
             [Description($"Complete kubectl get command string, e.g.: 'kubectl get deployments -n production -o wide'")] string command)
         {
-            return await _kubePlugin.RunKubectlGetCommandAsync(AKSClusterResourceId, command);
+            return await _kubePlugin.RunKubectlReadCommandAsync(AKSClusterResourceId, command);
+        }
+
+        [KernelFunction("runKubectlWriteCommand")]
+        [Description("""
+        Safely execute kubectl commands to update/create/delete Kubernetes resource. Several subcommands are supported, including 'create', 'apply', 'delete', 'patch', 'replace', 'scale', 'rollout', 'label' and 'annotate'.
+        USAGE: Provide the complete kubectl command as a string.
+        BASIC EXAMPLES:
+        - Create a deployment: 'kubectl create deployment my-deployment --image=my-image -n production'
+        - Apply a configuration: 'kubectl apply -f my-config.yaml -n default'
+        - Delete a pod: 'kubectl delete pod my-pod -n default'
+        - Scale a deployment: 'kubectl scale deployment my-deployment --replicas=3 -n production'
+        - Rollout restart a deployment: 'kubectl rollout restart deployment my-deployment -n default'
+        - Patch a resource: 'kubectl patch deployment my-deployment -p \"{\"spec\":{\"replicas\":3}}\" -n default'
+        - Label a resource: 'kubectl label pod my-pod my-label=my-value -n default'
+        BEST PRACTICES:
+        - Always specify the namespace you care about: 'kubectl get pods -n default'
+        """)]
+        [RequiresApproval("Requires approval to execute write command.", useOboToken: false)]
+        public async Task<string> RunKubectlWriteCommandAsync(
+             [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
+             [Description($"Complete kubectl get command string, e.g.: 'kubectl get deployments -n production -o wide'")] string command)
+        {
+            return await _kubePlugin.RunKubectlWriteCommandAsync(AKSClusterResourceId, command);
         }
 
         [KernelFunction("profile_dotnet_app_cpu_in_aks_container")]

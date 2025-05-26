@@ -721,7 +721,12 @@ public class MockKubePlugin : IKubePlugin
         throw new NotImplementedException();
     }
 
-    public Task<string> RunKubectlGetCommandAsync(string AKSClusterResourceId, string command)
+    public Task<string> RunKubectlReadCommandAsync(string AKSClusterResourceId, string command)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<string> RunKubectlWriteCommandAsync(string AKSClusterResourceId, string command)
     {
         throw new NotImplementedException();
     }
