@@ -214,7 +214,7 @@ namespace Agent.Plugins
         }
 
         [KernelFunction("ListResourcesByType")]
-        [Description("Returns a list of Azure resources of a specified type (including AKS resources) with their property details as recorded in the knowledge graph. You can optionally specify one additional filter condition " +
+        [Description("Returns a list of Azure resources OR Kubernetes-native resources of a specified type/kind, with their property details as recorded in the knowledge graph. Supports filtering by properties like AKS cluster ID (for Kubernetes), or resource group (for ARM). " +
             "This function is useful when you need to: " +
             "1) Get an inventory of resources of a specific type and any additional filter on property, " +
             "2) Examine tracked configuration properties of resources, " +
@@ -225,9 +225,19 @@ namespace Agent.Plugins
             "If the total number of matching resources is large, only the first 50 will be returned." +
             "The agent should inform the user that the list is partial if more resources exist, and offer to retrieve more if needed.")]
         public async Task<List<Dictionary<string, object>>> ListResourcesByType(
-            [Description("The Azure resource type to query (e.g., 'microsoft.compute/virtualmachines')")] string resourceType,
-            [Description("Property name to filter on (e.g., 'resourceGroupName'). Optional.")] string propertyName = "",
-            [Description("Value of the property to filter on. Optional.")] string propertyValue = "",
+            [Description(
+                "The type or kind of resource to list. " +
+                "For Azure ARM resources, use the full ARM type (e.g., 'microsoft.compute/virtualmachines', 'microsoft.containerservice/managedclusters'). " +
+                "For Kubernetes resources, use the common K8s kind (e.g., 'Deployment', 'Service', 'Node', 'Namespace', 'StatefulSet', 'ConfigMap', 'Secret', 'PersistentVolumeClaim'). The system will map K8s kinds to their graph representation."
+            )] string resourceType,
+             [Description(
+                "Optional. For Kubernetes resources, this is the property name to filter on (e.g., 'clusterResourceId'). " +
+                "For Azure ARM resources, this can be a property name to filter on (e.g., 'resourceGroupName'). "
+            )] string propertyName = "",
+            [Description(
+                "Optional. For Kubernetes resources, this should be Azure Resource Id of the AKS cluster, should begin with /subscriptions/..., Example: /subscriptions/a058f7c6-592d-4490-887a-803e748787c0/resourcegroups/aca-sre-agent-demo/providers/microsoft.containerservice/managedclusters/iot-dashboard" +
+                "For Azure ARM resources, this is the value of the property to filter on."
+            )] string propertyValue = "",
             [Description("Number of results to skip for pagination. Default is 0.")] int skip = 0,
             [Description("Number of results to return. Use 0 or negative to return all. Default is 50.")] int take = 50)
         {

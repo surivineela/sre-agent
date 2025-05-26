@@ -78,7 +78,7 @@ namespace Agent.Plugins
             _puppeteerScreenshotApiUrl = "https://test-capp.ambitiouspond-10f27fe1.canadaeast.azurecontainerapps.io";
             _httpClient = new HttpClient();
             _authService = authService;
-            _crawlRoots = crawlerSettings.CrawlRoots.Split([ ',' ], StringSplitOptions.RemoveEmptyEntries)
+            _crawlRoots = crawlerSettings.CrawlRoots.Split([','], StringSplitOptions.RemoveEmptyEntries)
                 .Select(root => root.Trim())
                 .ToList();
         }
@@ -918,26 +918,48 @@ g.V().has('id', '{deploymentResourceId}')
         public async Task<List<Dictionary<string, object>>> ListResourcesByTypeAsync(
             string resourceType, string propertyName, string propertyValue, int skip = 0, int take = 50)
         {
+            string actualGraphResourceType = resourceType.ToLower();
+
+            var kindToGraphTypeMapping = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "deployment", "k8s/apps/v1/deployments" }, { "deployments", "k8s/apps/v1/deployments" },
+                { "statefulset", "k8s/apps/v1/statefulsets" }, { "statefulsets", "k8s/apps/v1/statefulsets" },
+                { "node", "k8s/core/v1/nodes" }, { "nodes", "k8s/core/v1/nodes" },
+                { "service", "k8s/core/v1/services" }, { "services", "k8s/core/v1/services" },
+                { "namespace", "k8s/core/v1/namespaces" }, { "namespaces", "k8s/core/v1/namespaces" },
+                { "configmap", "k8s/core/v1/configmaps" }, { "configmaps", "k8s/core/v1/configmaps" },
+                { "secret", "k8s/core/v1/secrets" }, { "secrets", "k8s/core/v1/secrets" },
+                { "persistentvolumeclaim", "k8s/core/v1/persistentvolumeclaims" }, { "persistentvolumeclaims", "k8s/core/v1/persistentvolumeclaims" },
+                { "pvc", "k8s/core/v1/persistentvolumeclaims" }
+            };
+
+            if (kindToGraphTypeMapping.ContainsKey(resourceType))
+            {
+                actualGraphResourceType = kindToGraphTypeMapping[resourceType];
+            }
+
             try
             {
-                string query = $@"g.V().hasLabel('{resourceType.ToLower()}')";
+                string query = $@"g.V().hasLabel('{actualGraphResourceType}')";
 
                 if (!string.IsNullOrEmpty(propertyName) && !string.IsNullOrEmpty(propertyValue))
                 {
                     query += $".has('{propertyName}', '{propertyValue}')";
                 }
 
-                query += @".project('subscriptionId', 'resourceGroupName', 'resourceName', 'resourceType')
+                query += @".project('subscriptionId', 'resourceGroupName', 'resourceName', 'resourceType', 'clusterResourceId', 'namespace')
                     .by(coalesce(values('subscriptionId'), constant('')))
                     .by(coalesce(values('resourceGroupName'), constant('')))
                     .by(coalesce(values('resourceName'), constant('')))
-                    .by(coalesce(values('resourceType'), constant('')))";
+                    .by(coalesce(values('resourceType'), constant('')))
+                    .by(coalesce(values('clusterResourceId'), constant('')))
+                    .by(coalesce(values('namespace'), constant('')))";
 
                 // Add skip and take only if take > 0
                 if (take > 0)
                 {
                     query += $".limit({take})";
-                    _logger.LogInternalInformation("Will take {take} resources of type '{ResourceType}'", take, resourceType);
+                    _logger.LogInternalInformation("Will take {take} resources of type '{ResourceType}'", take, actualGraphResourceType);
                 }
 
                 var result = await GraphDbClient.Query(query);
@@ -952,15 +974,25 @@ g.V().has('id', '{deploymentResourceId}')
                     propertyBag["resourceGroupName"] = item["resourceGroupName"]?.ToString();
                     propertyBag["resourceName"] = item["resourceName"]?.ToString();
                     propertyBag["resourceType"] = item["resourceType"]?.ToString();
+
+                    if (!string.IsNullOrEmpty(item["clusterResourceId"]?.ToString()))
+                    {
+                        propertyBag["clusterResourceId"] = item["clusterResourceId"].ToString();
+                    }
+                    if (!string.IsNullOrEmpty(item["namespace"]?.ToString()))
+                    {
+                        propertyBag["namespace"] = item["namespace"].ToString();
+                    }
+
                     resources.Add(propertyBag);
                 }
 
-                _logger.LogInternalInformation("Found {Count} resources of type '{ResourceType}'", resources.Count, resourceType);
+                _logger.LogInternalInformation("Found {Count} resources of type '{ActualResourceType}' matching filters.", resources.Count, actualGraphResourceType);
                 return resources;
             }
             catch (Exception ex)
             {
-                _logger.LogInternalError(ex, "Error listing resources of type '{Type}'", resourceType);
+                _logger.LogInternalError(ex, "Error listing resources of type '{Type}'", actualGraphResourceType);
                 throw;
             }
         }
