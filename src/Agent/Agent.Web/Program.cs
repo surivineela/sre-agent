@@ -182,6 +182,7 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
         .AddTransient<IMetaAgentManagedIdentityMigrationPlugin, ManagedIdentityMigrationPlugin>()
         .AddTransient<IMetaAgentTlsBestPracticesPlugin, TlsBestPracticesPlugin>()
         .AddTransient<IMetaAgentKubernetesAgentPlugin, KubernetesAgentPlugin>()
+        .AddTransient<IMetaAgentAksQaAgentPlugin, AksQaAgentPlugin>()
         .AddTransient<IMetaAgentWebAppDownPlugin, WebAppDownPlugin>()
         .AddTransient<IMetaAgentCPUAnalysisPlugin, CPUAnalysisAgentPlugin>()
         .AddTransient<IMetaAgentAppCodeAnalysisPlugin, AppCodeAnalysisAgentPlugin>()
@@ -196,6 +197,7 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
 
         //.AddSingleton<AppServiceRemediationAgentFactory>()
         .AddSingleton<KubernetesAgentFactory>()
+        .AddSingleton<AksQaAgentFactory>()
         .AddSingleton<ManagedIdentityMigrationAgentFactory>()
         .AddSingleton<TlsBestPracticeAgentFactory>()
         .AddSingleton<TlsBestPracticesScanner>()

@@ -42,7 +42,7 @@ You are part of a multi-agent system for Azure SRE Agent, designed to make agent
 
 ## **Provide only factual, evidence-based information**.
 - Base all responses exclusively on concrete data from user inputs and function call results.
-- Ask for clarification if the user input is not clear or if you need more specific information to execute tools accurately. 
+- Ask for clarification if the user input is not clear or if you need more specific information to execute tools accurately.
 - Never make assumptions about the user's intent or the context of their request when data is missing, try to use tools to get the information and ask for confirmation.
 - ALWAYS invoke tools EVEN though there are SAME invocations in the context if user asks similar questions. This is to ensure you are using the most recent and accurate data.
 - ALWAYS use precise context information from user input or function call results as parameters for new function calls, especially for `subscription ID`, `resource group`, `resource name` and `resource id`.
@@ -124,10 +124,9 @@ User Provided Resource Validation:
 
 ## Primary Capabilities
 - **Container Apps Remediation**: If there is any issue with Azure ContainerApps, you delegate to this plugin which supports monitoring application health metrics, analyzing application issues like high cpu, network miss configuration, memory leaks, container image pull failures and carrying out operations to remediate these apps
-- **Kubernetes Agent**: If there is any questions or issues related with AKS (Azure Kubernetes Service), you delegate to this plugin which supports:
-  * Answering questions about the overall system and workload status.
-  * Monitoring application health metrics and usage.
-  * Analyzing application issues like high cpu, network miss configuration, memory leaks and carrying out operations to remediate these apps.
+- ** AKS QA Agent**: Use for simpler questions about AKS clusters like listing pods, checking API server status, creating deployments, and basic AKS management tasks.
+- ** Kubernetes Agent**: Use for complex issues in AKS (Azure Kubernetes Service) that require diagnosis and remediation. This agent supports:
+    * Analyzing application issues like high cpu, network miss configuration, memory leaks and carrying out operations to remediate these apps.
 - **Managed Identity Migration**: Help users migrate from certificate-based authentication to managed identities
 - **TLS Best Practices**: Guide users in implementing TLS best practices for Azure resources
 - **Source Code Scanning**: Help users link repo urls to their Azure Container Apps
@@ -151,10 +150,10 @@ Example 1: ""Analyze our VM usage patterns over the last 3 months""
 1. ListResourcesByType(resourceType: ""Microsoft.Compute/virtualMachines"")
 2. ListAvailableMetrics(resourceId: ""{vmResourceId}"")
 3. GetMetricTimeSeriesElementsForAzureResource(
-   resourceId: ""{vmResourceId}"", 
+   resourceId: ""{vmResourceId}"",
    metricNamespace: ""Microsoft.Compute/virtualMachines"",
-   metricName: ""Percentage CPU"", 
-   startTime: DateTime.UtcNow.AddMonths(-3), 
+   metricName: ""Percentage CPU"",
+   startTime: DateTime.UtcNow.AddMonths(-3),
    endTime: DateTime.UtcNow)
 4. PlotTimeSeriesData(title: ""VM CPU Utilization Trend"", data: {cpuData})
 5. Recommend optimal VM sizes based on observed usage patterns
@@ -164,8 +163,8 @@ Example 2: ""How is my resource foo doing for last 2 weeks?""
 2. ListAvailableMetrics(resourceId: ""{fooResourceId}"") - Choose most critical metrics for the question
 3. GetMetricTimeSeriesElementsForAzureResource(
    resourceId: ""{fooResourceId}"",
-   metricNamespace: ""{resourceTypeNamespace}"", 
-   metricName: ""{primaryMetric}"", 
+   metricNamespace: ""{resourceTypeNamespace}"",
+   metricName: ""{primaryMetric}"",
    startTime: DateTime.UtcNow.AddDays(-14),
    endTime: DateTime.UtcNow)
 4. PlotTimeSeriesData(title: ""Resource Performance"", data: {metricData})
@@ -178,7 +177,8 @@ Example 2: ""How is my resource foo doing for last 2 weeks?""
    - `startManagedIdentityMigrationAgent` for managed identity migrations.
    - `startContainerAppsRemediationAgent` for Azure Container Apps questions like logs, metrics, configuration, scale and any container app issues. Prefer this agent over generic agents when dealing with tasks specific to Container Apps.
    - `startSourceCodeAgent` for linking repository URLs to Container Apps.
-   - `startKubernetesAgentWorkflow` for starting AKS agent to resolve any AKS (Azure Kubernetes Service) related requests including basic Q&A, issue diagnostics and remediation, monitoring for metrics and logs, acting on workload or doing operation.
+   - `startKubernetesAgentWorkflow` for starting AKS agent to resolve complex issues in AKS (Azure Kubernetes Service) that require diagnosis and remediation. Use for analyzing application issues like high cpu, network misconfiguration, memory leaks and carrying out remediation operations.
+   - `startAksQaAgent` for answering simpler questions about AKS clusters like listing pods, checking API server status, creating deployments, and basic AKS management tasks.
    - `startVMRdpInvestigatorAgent` for investigating RDP related issues with Azure Virtual machines. Do not summarize your plan or ask for list of tools when delegating to this agent.
    - `startWebAppDownAgent' for investigating Azure Web App Services' downtime and mitigating and resolving the issue
    - `startFunctionAppDiagnosticsAgent` for investigating Azure Function App issues like Function App down, connectivity, errors or configuration issues in their Function apps
@@ -206,7 +206,8 @@ For every Azure SRE request, follow this pattern:
 ## Special Notes
 <strong>** FOR ANY WEB APP SERVICE RELATED REQUESTS (E.G. SLA, DOWNTIME, SLOWNESS, UNHEALTHY APP), PRIORITIZE DELEGATING TO WEB APP DOWN AGENT BY USING `StartWebAppDownAgent` RATHER THAN APP SERVICE REMEDIATION AGENT **</strong>
 <strong>** FOR ANY FUNCTION APP RELATED REQUESTS (E.G. SLA, DOWNTIME, SLOWNESS, UNHEALTHY APP, FUNCTION APP DOWN), PRIORITIZE DELEGATING TO FUNCTION APP DIAGNOSTICS AGENT BY USING `StartFunctionAppDiagnosticsAgent` RATHER THAN WEB APP DOWN AGENT **</strong>
-<strong>** FOR AKS RELATED REQUESTS, PRIORITIZE DELEGATING TO AKS AGENT BY USING `StartKubernetesAgentWorkflow`.**</strong>
+<strong>** FOR SIMPLE AKS RELATED QUESTIONS (LISTING PODS, CHECKING API SERVER STATUS, BASIC MANAGEMENT TASKS), PRIORITIZE DELEGATING TO AKS QA AGENT BY USING `StartAksQaAgent`.**</strong>
+<strong>** FOR COMPLEX AKS RELATED ISSUES REQUIRING DIAGNOSIS AND REMEDIATION, PRIORITIZE DELEGATING TO KUBERNETES AGENT BY USING `StartKubernetesAgentWorkflow`.**</strong>
 <strong>**FOR ANY CONTAINER APPS RELATED REQUESTS (E.G. SLA, DOWNTIME, SLOWNESS, UNHEALTHY APP), PRIORITIZE DELEGATING TO CONTAINER APPS REMEDIATION AGENT BY USING `startContainerAppsRemediationAgent`**</strong>
 <strong> ALWAYS show the APP NAME in your responses. Always show the app name in BOLD formatting. Do not always refer to the app by its RESOURCE ID. Most of the time refer to the app by its app name. </strong>
 <strong>** For GetMetricTimeSeriesElementsForAzureResource use today's date as the default date. If the user specifies a different date, use that date instead.**</strong>
@@ -242,6 +243,7 @@ $@"## Facts
     private readonly IAppServicePlugin _appServicePlugin;
     private readonly IMetaAgentContainerAppsRemediationPlugin _containerAppsRemediationPlugin;
     private readonly IMetaAgentKubernetesAgentPlugin _kubernetesAgentPlugin;
+    private readonly IMetaAgentAksQaAgentPlugin _aksQaAgentPlugin;
     private readonly IContainerAppPlugin _containerAppPlugin;
     private readonly IKubePlugin _kubePlugin;
     private readonly IChartPlugin _chartPlugin;
@@ -281,6 +283,7 @@ $@"## Facts
         //IMetaAgentAppServiceRemediationPlugin appServiceRemediationPlugin,
         IMetaAgentContainerAppsRemediationPlugin containerAppsRemediationPlugin,
         IMetaAgentKubernetesAgentPlugin kubernetesAgentPlugin,
+        IMetaAgentAksQaAgentPlugin aksQaAgentPlugin,
         IAppServicePlugin appServicePlugin,
         IContainerAppPlugin containerAppPlugin,
         IFunctionAppsPlugin functionAppsPlugin,
@@ -316,6 +319,7 @@ $@"## Facts
         _appServicePlugin = appServicePlugin;
         _containerAppsRemediationPlugin = containerAppsRemediationPlugin;
         _kubernetesAgentPlugin = kubernetesAgentPlugin;
+        _aksQaAgentPlugin = aksQaAgentPlugin;
         _kubePlugin = kubePlugin;
         _containerAppPlugin = containerAppPlugin;
         _chartPlugin = chartPlugin;
@@ -352,6 +356,7 @@ $@"## Facts
         //_appServiceRemediationPlugin.ThreadId = threadGuid;
         _containerAppsRemediationPlugin.ThreadId = threadGuid;
         _kubernetesAgentPlugin.ThreadId = threadGuid;
+        _aksQaAgentPlugin.ThreadId = threadGuid;
         _graphDbPlugin.ThreadId = threadGuid;
         //_appReliabilityPlugin.ThreadId = threadGuid;
         _webAppDownPlugin.ThreadId = threadGuid;
@@ -362,6 +367,7 @@ $@"## Facts
         _functionAppExecutionFailuresAgentPlugin.ThreadId = threadGuid;
         _functionAppDiagnosticsPlugin.ThreadId = threadGuid;
         _githubIssuePlugin.ThreadId = threadGuid;
+
 
 
         var chartPluginDefinition = new ChartPluginDefinition(_chartPlugin);
@@ -398,6 +404,8 @@ $@"## Facts
             //AIFunctionFactory.Create(_containerAppsRemediationPlugin.StartContainerAppsRemediationAgent),
             AIFunctionFactory.Create(_kubernetesAgentPlugin.StartKubernetesAgent),
             AIFunctionFactory.Create(_kubernetesAgentPlugin.ListKubernetesAgentWorkflow),
+            AIFunctionFactory.Create(_aksQaAgentPlugin.StartAksQaAgent),
+            AIFunctionFactory.Create(_aksQaAgentPlugin.ListAksQaAgentWorkflow),
             AIFunctionFactory.Create(aksPluginDefinition.GetAKSClusterResourceIdAsync),
             AIFunctionFactory.Create(aksPluginDefinition.GetKubeNamespacesAsync),
             AIFunctionFactory.Create(aksPluginDefinition.ListKubeResourcesAsync),
