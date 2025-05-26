@@ -58,7 +58,7 @@ handoffs:
   - aks_qa_agent
 
 tools:
-  - get_resource_count
-  - list_subscriptions
-  - list_resource_groups
-  - get_managed_resources_info
+  - GetResourceCount
+  - ListSubscriptions
+  - ListResourceGroups
+  - GetManagedResourcesInfo

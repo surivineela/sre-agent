@@ -19,5 +19,5 @@ handoff_description: Handoff to this agent when dealing with non AKS related que
 handoffs:
   - meta_agent
 tools:
-  - kubectl_read_command
-  - kubectl_write_command
+  - RunKubectlReadCommand
+  - RunKubectlWriteCommand

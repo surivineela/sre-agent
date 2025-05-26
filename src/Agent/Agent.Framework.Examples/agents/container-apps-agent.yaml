@@ -12,6 +12,6 @@ handoffs:
   - meta_agent
 
 tools:
-  - get_container_app_info
-  - list_revisions
-  - list_container_apps
+  - GetContainerAppInfo
+  - ListRevisions
+  - ListContainerApps

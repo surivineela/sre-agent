@@ -5,11 +5,13 @@
 using System.ComponentModel;
 using System.Text.Json;
 using Agent.Core.Attributes;
+using Agent.Framework;
 using Agent.Plugins.Models;
 using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins.Definitions
 {
+    [AgentToolPlugin]
     public class ContainerAppPluginDefinition
     {
         private readonly IContainerAppPlugin _containerAppPlugin;

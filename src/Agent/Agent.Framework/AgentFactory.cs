@@ -1,9 +1,8 @@
-using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
-namespace Agent.Framework.Examples;
+namespace Agent.Framework;
 
 public interface IAgentDescriptor
 {
@@ -16,23 +15,17 @@ public interface IAgentDescriptor
     public List<string> Tools { get; set; }
 }
 
-public interface IToolsRepository
-{
-    public AIFunction FindAiFunction(string name);
-}
-
 public class AgentFactory<TContext> where TContext : class
 {
-
     // A map from Agent name -> Agent descriptor
     private readonly IDictionary<string, Agent<TContext>> _agents;
     private readonly IDictionary<string, IAgentDescriptor> _agentDescriptors;
     private readonly ILogger<AgentFactory<TContext>> _logger;
-    private readonly IToolsRepository _toolsRepository;
+    private readonly IToolFactory _toolFactory;
 
-    public AgentFactory(ILogger<AgentFactory<TContext>> logger, IToolsRepository toolsRepository)
+    public AgentFactory(ILogger<AgentFactory<TContext>> logger, IToolFactory toolsRepository)
     {
-        _toolsRepository = toolsRepository;
+        _toolFactory = toolsRepository;
         _logger = logger;
         _agents = new Dictionary<string, Agent<TContext>>();
         _agentDescriptors = new Dictionary<string, IAgentDescriptor>();
@@ -66,6 +59,12 @@ public class AgentFactory<TContext> where TContext : class
             return false;
         }
 
+        if (agentDescriptor.Tools.Any(toolName => !_toolFactory.HasAIFunction(toolName)))
+        {
+            _logger.LogError($"Agent descriptor {agentDescriptor.Name} has tools that do not exist in the tool factory.");
+            return false;
+        }
+
         return true;
     }
 
@@ -82,7 +81,7 @@ public class AgentFactory<TContext> where TContext : class
             Instructions = agentDescriptor.Instructions,
             HandoffDescription = agentDescriptor.HandoffDescription,
             Handoffs = [], // Will be populated later to avoid circular references
-            AutoTools = agentDescriptor.Tools.Select(t => _toolsRepository.FindAiFunction(t)).ToList()
+            AutoTools = [], // Will be created later when GetAgent is called
         };
 
         _agents[agentDescriptor.Name] = agent;
@@ -113,7 +112,7 @@ public class AgentFactory<TContext> where TContext : class
     {
         var agentDescriptorType = typeof(IAgentDescriptor);
         var agentDescriptorTypes = AppDomain.CurrentDomain.GetAssemblies()
-            .Where(a => a.GetName()?.Name?.StartsWith("Agent.Framework") == true) // Added null checks
+            .Where(a => a.GetName()?.Name?.StartsWith("Agent.") == true) // Added null checks
             .SelectMany(a => a.GetTypes())
             .Where(t => agentDescriptorType.IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
 
@@ -176,7 +175,24 @@ public class AgentFactory<TContext> where TContext : class
 
     public Agent<TContext> GetAgent(string name)
     {
-        return _agents.TryGetValue(name, out var agent) ? agent : throw new KeyNotFoundException($"Agent {name} not found.");
+        var agentFound = _agents.TryGetValue(name, out var agent);
+        if (!agentFound || agent is null)
+        {
+            _logger.LogError($"Agent {name} not found.");
+            throw new KeyNotFoundException($"Agent {name} not found.");
+        }
+
+        return new Agent<TContext>(name)
+        {
+            Instructions = agent.Instructions,
+            HandoffDescription = agent.HandoffDescription,
+            AutoTools = _agentDescriptors[name].Tools
+                .Select(_toolFactory.FindAIFunction)
+                .ToList(),
+            ManualTools = agent.ManualTools,
+            Handoffs = agent.Handoffs,
+            Hooks = agent.Hooks
+        };
     }
 
     public void FinalizeAgents()

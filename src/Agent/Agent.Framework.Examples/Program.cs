@@ -40,76 +40,6 @@ class TestService
     public string GetData() => "Test Data";
 }
 
-class ToolsRepository : IToolsRepository
-{
-    private readonly GraphDBPluginDefinition _graphDBPluginDefinition;
-    private readonly ContainerAppPluginDefinition _containerAppPluginDefinition;
-
-    private readonly KubePluginDefinition _kubePluginDefinition;
-
-    public ToolsRepository(GraphDBPluginDefinition graphDBPluginDefinition, ContainerAppPluginDefinition containerAppPluginDefinition, KubePluginDefinition kubePluginDefinition)
-    {
-        _graphDBPluginDefinition = graphDBPluginDefinition;
-        _containerAppPluginDefinition = containerAppPluginDefinition;
-        _kubePluginDefinition = kubePluginDefinition;
-    }
-
-
-    public AIFunction FindAiFunction(string name)
-    {
-        if (name == "get_resource_count")
-        {
-            return AIFunctionFactory.Create(_graphDBPluginDefinition.GetResourceCount);
-        }
-        if (name == "list_subscriptions")
-        {
-            return AIFunctionFactory.Create(_graphDBPluginDefinition.ListSubscriptions);
-        }
-        if (name == "get_managed_resources_info")
-        {
-            return AIFunctionFactory.Create(_graphDBPluginDefinition.GetManagedResourcesInfoAsync);
-        }
-        if (name == "discover_applications")
-        {
-            return AIFunctionFactory.Create(_graphDBPluginDefinition.DiscoverApplications);
-        }
-        if (name == "list_resources_by_type")
-        {
-            return AIFunctionFactory.Create(_graphDBPluginDefinition.ListResourcesByType);
-        }
-        if (name == "list_resource_groups")
-        {
-            return AIFunctionFactory.Create(_graphDBPluginDefinition.ListResourceGroups);
-        }
-        if (name == "get_container_app_info")
-        {
-            return AIFunctionFactory.Create(_containerAppPluginDefinition.GetContainerAppInfoAsync);
-        }
-        if (name == "list_revisions")
-        {
-            return AIFunctionFactory.Create(_containerAppPluginDefinition.ListRevisionsAsync);
-        }
-        if (name == "list_container_apps")
-        {
-            return AIFunctionFactory.Create(_containerAppPluginDefinition.ListContainerAppsAsync);
-        }
-        if (name == "kubectl_read_command")
-        {
-            return AIFunctionFactory.Create(_kubePluginDefinition.RunKubectlReadCommandAsync);
-        }
-        if (name == "kubectl_write_command")
-        {
-            return AIFunctionFactory.Create(_kubePluginDefinition.RunKubectlWriteCommandAsync);
-        }
-        if (name == "check_apiserver_status")
-        {
-            return AIFunctionFactory.Create(_kubePluginDefinition.GetAPIServerStatusAsync);
-        }
-
-        throw new NotImplementedException($"Tool {name} not found");
-    }
-}
-
 class Agent1 : Agent<CustomContext>
 {
     public Agent1(
@@ -169,6 +99,8 @@ class Program
             .AddSingleton<IAzureMetricsClient, AzureMetricsClient>()
             .AddSingleton<IKubernetesClientFactory, KubernetesClientFactory>()
             .AddSingleton<IKubePlugin, KubePlugin>()
+            .AddTransient<GraphDBPluginDefinition>()
+            .AddTransient<ContainerAppPluginDefinition>()
             .AddSingleton<ArmHelper>();
 
         builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
@@ -185,6 +117,7 @@ class Program
         builder.Services.AddSingleton<ILogAnalyticsService, LogAnalyticsService>();
         builder.Services.AddSingleton<IBotFrameworkHttpAdapter, AdapterWithErrorHandler>();
         builder.Services.AddSingleton<IArmClientFactory, ArmClientFactory>();
+        builder.Services.AddSingleton<IToolFactory, ToolFactory>();
 
         builder.Services.AddSingleton<BotFrameworkAuthentication, ConfigurationBotFrameworkAuthentication>();
         // builder.Services.AddSingleton<IBotFrameworkHttpAdapter, AdapterWithErrorHandler>();
@@ -253,7 +186,7 @@ class Program
 
         var chatClient = host.Services.GetRequiredService<IChatClient>();
 
-        var toolsRepository = new ToolsRepository(graphDBDefinition, containerAppDefinition, kubePluginDefinition);
+        var toolsRepository = host.Services.GetRequiredService<IToolFactory>();
 
         var agentFactory = new AgentFactory<CustomContext>(
             logger: host.Services.GetRequiredService<ILogger<AgentFactory<CustomContext>>>(),

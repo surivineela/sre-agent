@@ -4,10 +4,12 @@
 
 using System.ComponentModel;
 using Agent.Core.Attributes;
+using Agent.Framework;
 using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins
 {
+    [AgentToolPlugin]
     public class KubePluginDefinition
     {
         private readonly IKubePlugin _kubePlugin;
