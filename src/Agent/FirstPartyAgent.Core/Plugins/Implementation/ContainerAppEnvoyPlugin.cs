@@ -114,7 +114,7 @@ public class ContainerAppEnvoyPlugin : IContainerAppEnvoyPlugin
             { "toDate", toDate.ToString() },
             { "subscriptionId", subscriptionId },
             { "resourceGroupName", resourceGroupName },
-            { "containerAppName", containerAppName }
+            { "resourceName", containerAppName }
         });
     }
 }

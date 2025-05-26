@@ -151,6 +151,8 @@ Projects:
 - requestPath: HTTP request path.
 - statusCode: HTTP response status code.
 - requestBody: HTTP request body.
+- durationInMilliseconds: The duration of the request in milliseconds.
+- env_dt_traceId: The trace ID associated with the event.
 ")]
         public Task<string> GetContainerAppAdminEvents([Description("Azure region.")] string region, [Description("Start time of the query.")] DateTime fromDate, [Description("End time of the query.")] DateTime toDate, [Description("Name of the container app.")] string containerAppName, [Description("Name of the resource group.")] string resourceGroupName, [Description("Azure subscription ID.")] string subscriptionId)
         {

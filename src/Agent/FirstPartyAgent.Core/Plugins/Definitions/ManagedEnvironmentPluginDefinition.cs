@@ -22,7 +22,7 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
             _plugin = Plugin;
         }
 
-    
+
 
         [KernelFunction(KernelFunctionNames.ACA.GetManagedEnvironmentInformation)]
         [Description(
@@ -98,6 +98,70 @@ Projects:
     [Description("Azure subscription ID.")] string subscriptionId)
         {
             return _plugin.GetASIPageForManagedEnvironment(region, fromDate, toDate, environmentName, resourceGroupName, subscriptionId);
+        }
+
+        [KernelFunction(KernelFunctionNames.ACA.GetManagedClusterEnvironmentResourceId)]
+        [Description(
+        @"Retrieve the Azure Container Apps environment resource identity based on the managed cluster name.
+        Projects:
+        - managedClusterName: Name of the managed cluster.
+        - subscription: Azure subscription ID of the Azure Container Apps environment.
+        - resourceGroup: Resource group of the Azure Container Apps environment.
+        - environmentName: Name of the Azure Container Apps environment."
+        )]
+        public Task<string> GetManagedClusterEnvironmentResourceId(
+            [Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed cluster.")] string managedClusterName)
+        {
+            return _plugin.GetManagedClusterEnvironmentResourceId(region, fromDate, toDate, managedClusterName);
+        }
+
+        [KernelFunction(KernelFunctionNames.ACA.GetManagedEnvironmentProvisioningStatus)]
+        [Description(
+        @"Retrieve the provisioning status of a specific Azure Container Apps managed environment.
+        Projects:
+        - StartTime: Start time of the reported environment provisioning status.
+        - EndTime: End time of the reported environment provisioning status.
+        - environmentProvisioningState
+        - powerState
+        - managedClusterName
+        - environmentDeploymentErrors
+        - managedClusterProvisioningError."
+        )]
+        public Task<string> GetManagedEnvironmentProvisioningStatus(
+            [Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed environment.")] string environmentName,
+            [Description("Name of the resource group.")] string resourceGroupName,
+            [Description("Azure subscription ID.")] string subscriptionId)
+        {
+            return _plugin.GetManagedEnvironmentProvisioningStatus(region, fromDate, toDate, environmentName, resourceGroupName, subscriptionId);
+        }
+
+        [KernelFunction(KernelFunctionNames.ACA.GetManagedEnvironmentAdminEvents)]
+        [Description(
+        @"Retrieve the Azure Container Apps environment Admin operation events.
+        Projects:
+        - PreciseTimeStamp: Timestamp of the event.
+        - requestPath: The path of the request.
+        - requestMethod: The HTTP method used for the request.
+        - statusCode: The status code returned by the request.
+        - requestBody: The body of the request.
+        - durationInMilliseconds: The duration of the request in milliseconds.
+        - env_dt_traceId: The trace ID associated with the event."
+        )]
+        public Task<string> GetManagedEnvironmentAdminEvents(
+            [Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed environment.")] string environmentName,
+            [Description("Name of the resource group.")] string resourceGroupName,
+            [Description("Azure subscription ID.")] string subscriptionId)
+        {
+            return _plugin.GetManagedEnvironmentAdminEvents(region, fromDate, toDate, environmentName, resourceGroupName, subscriptionId);
         }
     }
 }

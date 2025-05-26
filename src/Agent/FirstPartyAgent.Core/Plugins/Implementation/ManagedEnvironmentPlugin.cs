@@ -65,5 +65,42 @@ public class ManagedEnvironmentPlugin : IManagedEnvironmentPlugin
 
         return $"ASI Page for managed environment {adxUri}";
     }
+
+    public async Task<string> GetManagedClusterEnvironmentResourceId(string region, DateTime fromDate, DateTime toDate, string managedClusterName)
+    {
+        return await _kustoPlugin.ExecuteLocalFunctionAsync("GetManagedClusterEnvironmentResourceId", region,
+            new Dictionary<string, string>
+            {
+                { "fromDate", fromDate.ToString() },
+                { "toDate", toDate.ToString() },
+                { "managedClusterName", managedClusterName }
+            });
+    }
+
+    public async Task<string> GetManagedEnvironmentProvisioningStatus(string region, DateTime fromDate, DateTime toDate, string environmentName, string resourceGroupName, string subscriptionId)
+    {
+        return await _kustoPlugin.ExecuteLocalFunctionAsync("GetManagedEnvironmentProvisioningStatus", region,
+            new Dictionary<string, string>
+            {
+                { "fromDate", fromDate.ToString() },
+                { "toDate", toDate.ToString() },
+                { "environmentName", environmentName },
+                { "resourceGroupName", resourceGroupName },
+                { "subscriptionId", subscriptionId }
+            });
+    }
+
+    public async Task<string> GetManagedEnvironmentAdminEvents(string region, DateTime fromDate, DateTime toDate, string environmentName, string resourceGroupName, string subscriptionId)
+    {
+        return await _kustoPlugin.ExecuteLocalFunctionAsync("GetContainerAppAdminEvents", region,
+            new Dictionary<string, string>
+            {
+                { "fromDate", fromDate.ToString() },
+                { "toDate", toDate.ToString() },
+                { "resourceName", environmentName },
+                { "resourceGroupName", resourceGroupName },
+                { "subscriptionId", subscriptionId }
+            });
+    }
 }
 

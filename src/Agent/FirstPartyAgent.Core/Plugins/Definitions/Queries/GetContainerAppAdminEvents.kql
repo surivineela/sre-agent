@@ -2,7 +2,7 @@ let fromTime = datetime("##fromDate##");
 let endTime = datetime("##toDate##");
 let cappSubscription = "##subscriptionId##";
 let cappResourceGroup = "##resourceGroupName##";
-let cappName = "##containerAppName##";
+let queryResourceName = "##resourceName##";
 ContainerAppsAdminEvents
 | where PreciseTimeStamp between (fromTime .. endTime)
 | where EventId == 2
@@ -10,5 +10,5 @@ ContainerAppsAdminEvents
 | where requestMethod != "GET"
 | where subscription =~ cappSubscription
 | where resourceGroup =~ cappResourceGroup
-| where resourceName =~ cappName 
-| project PreciseTimeStamp,requestMethod,requestPath,statusCode,requestBody
+| where resourceName =~ queryResourceName 
+| project PreciseTimeStamp,requestPath,requestMethod,statusCode,requestBody,durationInMilliseconds,env_dt_traceId
