@@ -17,6 +17,8 @@ using Agent.Runtime;
 using Agent.Runtime.Communication;
 using Agent.Runtime.Services;
 using Agent.Runtime.TeamsChatServices;
+using Agent.Prometheus.Services;
+using Agent.Graph.Crawler.Metrics;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Connector.Authentication;
 using Microsoft.Extensions.AI;
@@ -43,10 +45,13 @@ class ToolsRepository : IToolsRepository
     private readonly GraphDBPluginDefinition _graphDBPluginDefinition;
     private readonly ContainerAppPluginDefinition _containerAppPluginDefinition;
 
-    public ToolsRepository(GraphDBPluginDefinition graphDBPluginDefinition, ContainerAppPluginDefinition containerAppPluginDefinition)
+    private readonly KubePluginDefinition _kubePluginDefinition;
+
+    public ToolsRepository(GraphDBPluginDefinition graphDBPluginDefinition, ContainerAppPluginDefinition containerAppPluginDefinition, KubePluginDefinition kubePluginDefinition)
     {
         _graphDBPluginDefinition = graphDBPluginDefinition;
         _containerAppPluginDefinition = containerAppPluginDefinition;
+        _kubePluginDefinition = kubePluginDefinition;
     }
 
 
@@ -88,6 +93,19 @@ class ToolsRepository : IToolsRepository
         {
             return AIFunctionFactory.Create(_containerAppPluginDefinition.ListContainerAppsAsync);
         }
+        if (name == "kubectl_read_command")
+        {
+            return AIFunctionFactory.Create(_kubePluginDefinition.RunKubectlReadCommandAsync);
+        }
+        if (name == "kubectl_write_command")
+        {
+            return AIFunctionFactory.Create(_kubePluginDefinition.RunKubectlWriteCommandAsync);
+        }
+        if (name == "check_apiserver_status")
+        {
+            return AIFunctionFactory.Create(_kubePluginDefinition.GetAPIServerStatusAsync);
+        }
+
         throw new NotImplementedException($"Tool {name} not found");
     }
 }
@@ -147,6 +165,10 @@ class Program
             .AddSingleton<IPostToTeamsPlugin, PostToTeamsPlugin>()
             .AddSingleton<IArmPlugin, ArmPlugin>()
             .AddSingleton<IContainerAppPlugin, ContainerAppPlugin>()
+            .AddSingleton<IPrometheusQueryService, PrometheusQueryService>()
+            .AddSingleton<IAzureMetricsClient, AzureMetricsClient>()
+            .AddSingleton<IKubernetesClientFactory, KubernetesClientFactory>()
+            .AddSingleton<IKubePlugin, KubePlugin>()
             .AddSingleton<ArmHelper>();
 
         builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
@@ -226,10 +248,12 @@ class Program
         var graphDBDefinition = new GraphDBPluginDefinition(graphDBPlugin);
         var containerAppPlugin = host.Services.GetRequiredService<IContainerAppPlugin>();
         var containerAppDefinition = new ContainerAppPluginDefinition(containerAppPlugin);
+        var kubePlugin = host.Services.GetRequiredService<IKubePlugin>();
+        var kubePluginDefinition = new KubePluginDefinition(kubePlugin);
 
         var chatClient = host.Services.GetRequiredService<IChatClient>();
 
-        var toolsRepository = new ToolsRepository(graphDBDefinition, containerAppDefinition);
+        var toolsRepository = new ToolsRepository(graphDBDefinition, containerAppDefinition, kubePluginDefinition);
 
         var agentFactory = new AgentFactory<CustomContext>(
             logger: host.Services.GetRequiredService<ILogger<AgentFactory<CustomContext>>>(),

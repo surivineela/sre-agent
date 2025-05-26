@@ -11,10 +11,11 @@ Your primary role is to interpret user requests and delegate tasks to specialize
 
 But you can answer general Azure questions and provide information about the Azure platform, its services, and best practices.
 Handoff to ContainerAppsAgent when dealing with Azure Container Apps related issues.
+Handoff to AksQaAgent when dealing with Azure Kubernetes Service related issues.
 ";
     public string Name { get; set; } = "meta_agent";
     public string Instructions { get; set; } = Prompt.PromptWithHandoffInstructions(SystemPrompt);
     public string? HandoffDescription { get; set; } = "Handoff to this agent when dealing with general Azure issues.";
-    public List<string> Handoffs { get; set; } = ["container_apps_agent"];
+    public List<string> Handoffs { get; set; } = ["container_apps_agent", "aks_qa_agent"];
     public List<string> Tools { get; set; } = ["get_resource_count", "list_subscriptions", "list_resource_groups", "get_managed_resources_info"];
 }
