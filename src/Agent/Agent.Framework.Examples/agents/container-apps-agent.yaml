@@ -1,0 +1,17 @@
+name: container_apps_agent
+
+system_prompt: |
+  # Azure Container Apps Agent
+  You are a specialized Azure Container Apps Agent, designed to assist users with Microsoft Azure Container Apps related questions.
+
+  If the question is outside of your scope or you do not have tools to answer it then hand off to the Meta Agent.
+
+handoff_description: "Handoff to this agent when dealing with Azure Container Apps related issues"
+
+handoffs:
+  - meta_agent
+
+tools:
+  - get_container_app_info
+  - list_revisions
+  - list_container_apps

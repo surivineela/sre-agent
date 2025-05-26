@@ -1,5 +1,7 @@
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace Agent.Framework.Examples;
 
@@ -67,6 +69,46 @@ public class AgentFactory<TContext> where TContext : class
         return true;
     }
 
+    private bool AddAgentDescriptor(IAgentDescriptor agentDescriptor)
+    {
+        if (!ValidateAgentDescriptor(agentDescriptor))
+        {
+            _logger.LogError($"Agent descriptor {agentDescriptor?.GetType().Name ?? "null"} is not valid.");
+            return false;
+        }
+
+        var agent = new Agent<TContext>(agentDescriptor.Name)
+        {
+            Instructions = agentDescriptor.Instructions,
+            HandoffDescription = agentDescriptor.HandoffDescription,
+            Handoffs = [], // Will be populated later to avoid circular references
+            AutoTools = agentDescriptor.Tools.Select(t => _toolsRepository.FindAiFunction(t)).ToList()
+        };
+
+        _agents[agentDescriptor.Name] = agent;
+        _agentDescriptors[agentDescriptor.Name] = agentDescriptor;
+        return true;
+    }
+
+    private void UpdateHandoffs()
+    {
+        foreach (var agent in _agents.Values)
+        {
+            var agentDescriptor = _agentDescriptors[agent.Name];
+            foreach (var handoff in agentDescriptor.Handoffs)
+            {
+                if (!_agents.ContainsKey(handoff))
+                {
+                    var error = $"Agent descriptor {agentDescriptor.Name} has a handoff to {handoff} but it does not exist.";
+                    _logger.LogError(error);
+                    throw new Exception(error);
+                }
+            }
+
+            agent.Handoffs = agentDescriptor.Handoffs.Select(h => Handoff<TContext>.Create(_agents[h])).ToList();
+        }
+    }
+
     private void InitializeAgents()
     {
         var agentDescriptorType = typeof(IAgentDescriptor);
@@ -88,44 +130,114 @@ public class AgentFactory<TContext> where TContext : class
                 _logger.LogError($"Failed to create an instance of {agentType.FullName}.");
                 continue;
             }
-
-            if (!ValidateAgentDescriptor(agentDescriptor))
+            if (agentDescriptor.GetType()?.Name == "YamlAgentDescriptor")
             {
-                _logger.LogError($"Agent descriptor {agentDescriptor.GetType().Name} is not valid.");
+                _logger.LogDebug("Skipping YamlAgentDescriptor type as it's just for parser.");
                 continue;
             }
 
-            var agent = new Agent<TContext>(agentDescriptor.Name)
-            {
-                Instructions = agentDescriptor.Instructions,
-                HandoffDescription = agentDescriptor.HandoffDescription,
-                Handoffs = [], // On first pass, we will not specify handoffs because there will be circular references and the target agent may not be initialized yet
-                AutoTools = agentDescriptor.Tools.Select(t => _toolsRepository.FindAiFunction(t)).ToList()
-            };
-
-            _agents[agentDescriptor.Name] = agent;
-            _agentDescriptors[agentDescriptor.Name] = agentDescriptor;
+            AddAgentDescriptor(agentDescriptor);
         }
+    }
 
-        foreach (var agent in _agents.Values)
+    public void LoadAgentFromYaml(string yamlContent)
+    {
+        try
         {
-            var agentDescriptor = _agentDescriptors[agent.Name];
-            foreach (var handoff in agentDescriptor.Handoffs)
+            var agentDescriptor = AgentDescriptorParser.ParseFromYaml(yamlContent);
+            if (AddAgentDescriptor(agentDescriptor))
             {
-                if (!_agents.ContainsKey(handoff))
-                {
-                    var error = $"Agent descriptor {agentDescriptor.Name} has a handoff to {handoff} but it does not exist.";
-                    _logger.LogError(error);
-                    throw new Exception(error);
-                }
+                _logger.LogInformation($"Successfully loaded agent {agentDescriptor.Name} from YAML.");
             }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to load agent from YAML content.");
+            throw;
+        }
+    }
 
-            agent.Handoffs = agentDescriptor.Handoffs.Select(h => Handoff<TContext>.Create(_agents[h])).ToList();
+    public void LoadAgentFromFile(string filePath)
+    {
+        try
+        {
+            var agentDescriptor = AgentDescriptorParser.ParseFromFile(filePath);
+            if (AddAgentDescriptor(agentDescriptor))
+            {
+                _logger.LogInformation($"Successfully loaded agent {agentDescriptor.Name} from file {filePath}.");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to load agent from file {FilePath}.", filePath);
+            throw;
         }
     }
 
     public Agent<TContext> GetAgent(string name)
     {
         return _agents.TryGetValue(name, out var agent) ? agent : throw new KeyNotFoundException($"Agent {name} not found.");
+    }
+
+    public void FinalizeAgents()
+    {
+        UpdateHandoffs();
+    }
+}
+
+public class AgentDescriptorParser
+{
+    public static IAgentDescriptor ParseFromYaml(string yamlContent)
+    {
+        try
+        {
+            var deserializer = new DeserializerBuilder()
+                .WithNamingConvention(UnderscoredNamingConvention.Instance)
+                .Build();
+
+            var agentDescriptor = deserializer.Deserialize<YamlAgentDescriptor>(yamlContent);
+
+            // Validate required fields
+            if (string.IsNullOrEmpty(agentDescriptor.Name))
+                throw new ArgumentException("Name field is required in YAML");
+            if (string.IsNullOrEmpty(agentDescriptor.SystemPrompt))
+                throw new ArgumentException("SystemPrompt field is required in YAML");
+
+            agentDescriptor.Instructions = Prompt.PromptWithHandoffInstructions(agentDescriptor.SystemPrompt);
+            return agentDescriptor;
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("Failed to parse YAML into IAgentDescriptor", ex);
+        }
+    }
+
+    public static IAgentDescriptor ParseFromFile(string filePath)
+    {
+        if (!File.Exists(filePath))
+            throw new FileNotFoundException("YAML file not found", filePath);
+
+        string yamlContent = File.ReadAllText(filePath);
+        return ParseFromYaml(yamlContent);
+    }
+
+    private class YamlAgentDescriptor : IAgentDescriptor
+    {
+        [YamlMember(Alias = "name")]
+        public string Name { get; set; } = string.Empty;
+
+        [YamlMember(Alias = "system_prompt")]
+        public string SystemPrompt { get; set; } = string.Empty;
+
+        public string Instructions { get; set; } = string.Empty;
+
+        [YamlMember(Alias = "handoff_description")]
+        public string? HandoffDescription { get; set; }
+
+        [YamlMember(Alias = "handoffs")]
+        public List<string> Handoffs { get; set; } = ["meta_agent"];
+
+        [YamlMember(Alias = "tools")]
+        public List<string> Tools { get; set; } = [];
     }
 }

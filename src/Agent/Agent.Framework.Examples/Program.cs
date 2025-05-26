@@ -260,6 +260,31 @@ class Program
             toolsRepository: toolsRepository
         );
 
+        // Load agents from YAML files in the agents folder
+        var agentsFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "agents");
+        if (Directory.Exists(agentsFolder))
+        {
+            var yamlFiles = Directory.GetFiles(agentsFolder, "*.yaml", SearchOption.AllDirectories)
+                           .Concat(Directory.GetFiles(agentsFolder, "*.yml", SearchOption.AllDirectories));
+
+            foreach (var yamlFile in yamlFiles)
+            {
+                try
+                {
+                    agentFactory.LoadAgentFromFile(yamlFile);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to load agent from {yamlFile}: {ex.Message}");
+                }
+            }
+        }
+        else
+        {
+            Console.WriteLine($"Agents folder not found at: {agentsFolder}");
+        }
+        agentFactory.FinalizeAgents();
+
         var chatHistory = new List<ChatMessage>();
         var lastAgent = agentFactory.GetAgent("meta_agent");
         while (true)
