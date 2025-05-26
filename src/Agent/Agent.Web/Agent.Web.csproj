@@ -27,7 +27,7 @@
     <ProjectReference Include="..\Agent.Prometheus\Agent.Prometheus.csproj" />
     <ProjectReference Include="..\FirstPartyAgent.Core\FirstPartyAgent.Core.csproj" />
   </ItemGroup>
-  <Target Name="BuildReactApp" BeforeTargets="Build">
+  <Target Name="BuildReactApp" BeforeTargets="Build" Condition="'$(SkipReactAppBuild)' != 'true'">
     <Exec Command="mkdir wwwroot" Condition="!Exists('wwwroot')" />
     <Exec Command="npm install" WorkingDirectory="Client" />
     <Exec Command="npm run build" WorkingDirectory="Client" />

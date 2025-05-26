@@ -15,7 +15,14 @@ public interface IAgentDescriptor
     public List<string> Tools { get; set; }
 }
 
-public class AgentFactory<TContext> where TContext : class
+public interface IAgentFactory<TContext>
+    where TContext : class
+{
+    public Agent<TContext> GetAgent(string name);
+}
+
+public class AgentFactory<TContext> : IAgentFactory<TContext>
+    where TContext : class
 {
     // A map from Agent name -> Agent descriptor
     private readonly IDictionary<string, Agent<TContext>> _agents;
@@ -110,6 +117,13 @@ public class AgentFactory<TContext> where TContext : class
 
     private void InitializeAgents()
     {
+        LoadAgentFromAssembly();
+        LoadAgentFromYaml();
+        UpdateHandoffs();
+    }
+
+    private void LoadAgentFromAssembly()
+    {
         var agentDescriptorType = typeof(IAgentDescriptor);
         var agentDescriptorTypes = AppDomain.CurrentDomain.GetAssemblies()
             .Where(a => a.GetName()?.Name?.StartsWith("Agent.") == true) // Added null checks
@@ -136,6 +150,25 @@ public class AgentFactory<TContext> where TContext : class
             }
 
             AddAgentDescriptor(agentDescriptor);
+        }
+    }
+
+    private void LoadAgentFromYaml()
+    {
+        var agentsFolder = Path.Combine(AppContext.BaseDirectory, "AgentsV2");
+        var yamlFiles = Directory.GetFiles(agentsFolder, "*.yaml", SearchOption.AllDirectories)
+                       .Concat(Directory.GetFiles(agentsFolder, "*.yml", SearchOption.AllDirectories));
+
+        foreach (var yamlFile in yamlFiles)
+        {
+            try
+            {
+                LoadAgentFromFile(yamlFile);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Failed to load agent from {yamlFile}");
+            }
         }
     }
 
@@ -193,11 +226,6 @@ public class AgentFactory<TContext> where TContext : class
             Handoffs = agent.Handoffs,
             Hooks = agent.Hooks
         };
-    }
-
-    public void FinalizeAgents()
-    {
-        UpdateHandoffs();
     }
 }
 

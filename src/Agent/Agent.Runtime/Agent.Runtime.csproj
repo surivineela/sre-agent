@@ -26,11 +26,15 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Agent.Core\Agent.Core.csproj" />
+    <ProjectReference Include="..\Agent.Framework\Agent.Framework.csproj" />
     <ProjectReference Include="..\Agent.Logging\Agent.Logging.csproj" />
     <ProjectReference Include="..\Agent.Plugins\Agent.Plugins.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="AgentsV2\*.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="SubAgents\AppCodeAnalysisAgent\AppCodeAnalysisPlan.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

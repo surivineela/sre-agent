@@ -6,9 +6,11 @@ using Agent.Core.Configuration;
 using Agent.Core.Extensions;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
+using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
 using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Framework;
 using Agent.Graph.Crawler;
 using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Crawler.Metrics;
@@ -26,6 +28,7 @@ using Agent.Runtime.HelperAgents;
 using Agent.Runtime.MetaAgent;
 using Agent.Runtime.MetaAgent.Interfaces;
 using Agent.Runtime.MetaAgent.SubAgentPlugins;
+using Agent.Runtime.Reasoning;
 using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents;
 using Agent.Runtime.SubAgents.AppCodeAnalysisAgent;
@@ -69,6 +72,7 @@ using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+
 
 var isFirstAgent = (Environment.GetEnvironmentVariable("IS_FIRST_PARTY") ?? String.Empty).Trim().ToLower() switch
 {
@@ -241,6 +245,10 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
         .AddSingleton<IAppCodeAnalysisPlugin, AppCodeAnalysisPlugin>()
         .AddSingleton<IDotnetAnalysisPlugin, DotnetAnalysisPlugin>()
         .AddSingleton<IMetaAgentFunctionAppDiagnosticsPlugin, FunctionAppDiagnosticsPlugin>()
+        .AddSingleton<IReasoningLoopFactory, ReasoningLoopFactory>()
+        .AddSingleton<IReasoningLoopManager, ReasoningLoopManager>()
+        .AddSingleton<IAgentFactory<AgentContext>, AgentFactory<AgentContext>>()
+        .AddSingleton<IToolFactory, ToolFactory>()
 
         // Register the communication activities
         .AddSingleton<UpdateThreadWithAgentMessageActivity>()

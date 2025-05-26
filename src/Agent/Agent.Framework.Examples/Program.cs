@@ -216,7 +216,6 @@ class Program
         {
             Console.WriteLine($"Agents folder not found at: {agentsFolder}");
         }
-        agentFactory.FinalizeAgents();
 
         var chatHistory = new List<ChatMessage>();
         var lastAgent = agentFactory.GetAgent("meta_agent");

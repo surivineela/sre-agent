@@ -22,5 +22,8 @@ namespace Agent.Core.Configuration
 
         [Required]
         public KustoClusterConfiguration KustoClusterConfiguration { get; set; } = new();
+
+        [Required]
+        public bool UseAgentFramework { get; set; } = false;
     }
 }

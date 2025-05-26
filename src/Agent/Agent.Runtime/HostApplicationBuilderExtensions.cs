@@ -123,6 +123,7 @@ Otherwise, there may be required settings which are not auto-populated by the pr
         public static void RegisterInnerAppSettings<TAppSettings>(this IServiceCollection sc, IConfiguration configuration)
             where TAppSettings : AppSettings
         {
+            sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core);
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.Azure);
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.Azure.Crawler);
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.Azure.Action);

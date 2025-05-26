@@ -3,13 +3,16 @@
 // ------------------------------------------------------------
 
 using System.Text.Json;
+using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Framework;
 using Agent.Logging;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Runtime.MetaAgent;
+using Agent.Runtime.Reasoning;
 using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents;
 using Agent.Runtime.SubAgents.CVEAgent;
@@ -32,6 +35,8 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
     private readonly SinkService _sinkService;
     private readonly ThreadService _threadService;
     private readonly IPostToTeamsPlugin _teamsPlugin;
+    private readonly IReasoningLoopManager _reasoningLoopManager;
+    private readonly bool _useAgentFramwork;
 
     public InboundCommunicationService(
         IAgent metaAgent,
@@ -41,7 +46,9 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         ThreadService threadService,
         IPostToTeamsPlugin teamsPlugin,
         ILogger<InboundCommunicationService> logger,
-        IServiceProvider serviceProvider)
+        IServiceProvider serviceProvider,
+        IReasoningLoopManager reasoningLoopManager,
+        CoreSettings coreSettings)
     {
         _metaAgent = metaAgent;
         _durableTaskClient = durableTaskClient;
@@ -51,6 +58,8 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         _teamsPlugin = teamsPlugin;
         _logger = logger;
         _serviceProvider = serviceProvider;
+        _reasoningLoopManager = reasoningLoopManager;
+        _useAgentFramwork = coreSettings.UseAgentFramework;
     }
 
     public async Task<(Core.Models.Api.v1.Thread, AgentContext)> CreateAgentThread(
@@ -97,6 +106,35 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
 
     public async Task<InboundServiceResponse> ProcessUserMessageAsync(ThreadMessage threadMessage)
     {
+        if (_useAgentFramwork)
+        {
+            AgentContext agentContext = await _repository.GetAgentContextAsync(agentContextId: threadMessage.AgentContextId, threadId: threadMessage.ThreadId);
+            AgentChatHistory agentChatHistory = await _repository.GetAgentChatHistoryAsync(threadMessage.AgentContextId);
+            
+            // we don't need to sink user message if the message is the start message
+            var thread = await _repository.GetThreadAsync(threadMessage.ThreadId);
+            ReasoningMessage? reasoningMessage = null;
+            if (threadMessage?.MessageId != thread?.StartMessage?.Id)
+            {
+                await _sinkService.SinkUserMessageAsync(threadMessage);
+                reasoningMessage = new ReasoningMessage(
+                    Id: Guid.NewGuid(),
+                    AgentContextId: threadMessage.AgentContextId,
+                    Role: ReasoningMessageRoleEnum.User,
+                    SerializedChatMessage: JsonSerializer.Serialize(new ChatMessage(ChatRole.User, threadMessage.Message)));
+                await _repository.CreateReasoningMessageAsync(reasoningMessage);
+
+                await _repository.AddReasoningMessagesToChatHistoryAsync(agentChatHistory, reasoningMessage);
+            }
+
+            await _reasoningLoopManager.AppendNewMessageAsync(
+                context: agentContext!,
+                msg: new ChatMessage(ChatRole.User, threadMessage.Message),
+                cancellationToken: default);
+
+            return new InboundServiceResponse(threadMessage.ThreadId, Guid.Empty, string.Empty);
+        }
+
         try
         {
             string orchestrationInstanceId = "";
@@ -267,7 +305,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             message,
             false,
             new Posted(false),
-            IsDailyReport : isDailyReport
+            IsDailyReport: isDailyReport
         );
 
         var thread = new Core.Models.Api.v1.Thread(
