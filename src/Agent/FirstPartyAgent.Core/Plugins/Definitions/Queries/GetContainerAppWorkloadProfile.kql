@@ -1,0 +1,7 @@
+let queryFrom = datetime("##fromDate##");
+let queryTo = datetime("##toDate##");
+let containerAppOrJobName = "##containerAppOrJobName##"; 
+ContainerAppDBState
+| where TIMESTAMP between (queryFrom .. queryTo)
+| where containerAppName =~ containerAppOrJobName or containerAppsJobName =~ containerAppOrJobName
+| summarize by containerAppName = iff(isempty(containerAppName), containerAppsJobName, containerAppName), workloadProfileType

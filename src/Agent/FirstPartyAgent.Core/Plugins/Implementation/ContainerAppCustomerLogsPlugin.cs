@@ -104,4 +104,14 @@ public class ContainerAppCustomerLogsPlugin : IContainerAppCustomerLogsPlugin
             { "podNamespace", "k8se-system" }
         });
     }
+
+    public Task<string> GetContainerAppWorkloadProfile(string region, DateTime fromDate, DateTime toDate, string containerAppOrJobName)
+    {
+        return _kustoPlugin.ExecuteLocalFunctionAsync("GetContainerAppWorkloadProfile", region,
+        new Dictionary<string, string> {
+            { "fromDate", fromDate.ToString() },
+            { "toDate", toDate.ToString() },
+            { "containerAppOrJobName", containerAppOrJobName }
+        });
+    }
 }

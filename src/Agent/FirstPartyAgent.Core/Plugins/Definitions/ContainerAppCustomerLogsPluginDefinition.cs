@@ -165,5 +165,22 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
                 toDate,
                 managedClusterName);
         }
+
+        [KernelFunction(KernelFunctionNames.ACA.GetContainerAppWorkloadProfile)]
+        [Description(
+            @"Get list of Container App Workload Profile for the container app environment at start and end of time window.
+            If no data is returned then it may mean no container app workload profile data is present or there is an issue with the provided inputs. Please ensure those are correct otherwise re-run the tool.")]
+        public Task<string> GetContainerAppWorkloadProfile(
+            [Description("Azure region in lower case. example: 'westeurope'")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the container app or job name.")] string containerAppOrJobName)
+        {
+            return _plugin.GetContainerAppWorkloadProfile(
+                region.NormalizeLocation(),
+                fromDate,
+                toDate,
+                containerAppOrJobName);
+        }
     }
 }

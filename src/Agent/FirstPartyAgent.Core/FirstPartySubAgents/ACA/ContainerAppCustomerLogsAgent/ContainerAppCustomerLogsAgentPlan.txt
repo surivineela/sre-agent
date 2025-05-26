@@ -41,18 +41,23 @@ Validate the inputs provided and ensure you have the required inputs. Ask user f
 Do not procced with the workflow if the Managed Cluster is not found. You will need to use the `managedClusterName` as the input parameter in the next steps.
 
 ### Step 4: Check if the issue is seen for particular Container App or Job, or the entire Environment
-- If the issue is seen for the entire Environment
+- Step 4.1: If the issue is seen for the entire Environment
     - Use tool `GetAppsAndjobsVolumeForEnv` to get the volume of all Container Apps and Jobs in the managed environment.
     - Run the query from 7 days before the provided input `fromDate`
     - If volume has increased to more than 1.5 times of previous volume recently, this can indicate resource pressure in the environment
-- If the issue is seen for a particular Container App or Job.
-    - Validate you have the Container App or Job name
+- Step 4.2: If the issue is seen for a particular Container App or Job.
+    - Step 4.2.1: Validate you have the Container App or Job name
+    - Step 4.2.2: Use tool `GetContainerAppStatus` to verify that the given container app or job was running at least 1 pod suring the impact duration.
+    - Step 4.2.3: Use tool `GetContainerAppWorkloadProfile` to get the workload profile type of the container app or job.
+        - Note whether the container app or job has `workloadProfileType` as "Consummption" or not. Not having "Consumption" indicates the app or job to be "Dedicated".
+- No active container app or job during the impact duration indicates that logs were not generated. Use `NotifyUser` tool to inform the user about the same and conclude the investigation.
+
 
 ### Step 5: Use tool `GetLogConfiguration` to find the log configuration setting for the managed cluster.
 - Run the query from 7 days before the provided input `fromDate`
 - The tool returns log configuration details for the managed environment
 - Make note of obtained state of logDestination, hasDynamicJsonColumns
-    - hasDynamicJsonColumns: If this is true and logDestination during the impact is 'LogAnalytics', this can cause issue of table column limit reached (limit is 500)
+    - If logDestination is LogAnlysis and hasDynamicJsonColumns is true, it could be the case that azure monitor drop data silently because of table column limit reached (limit is 500). Suggest the user to confirm the dynamic columns count.
 - Use `NotifyUser` tool to notify the user about the obtained log configuration information. Highlight if any changes have been made to logDestination.
 
 ### Step 6: Identify the workflow to be followed based on the type of logs missing. It can be either of the below three
@@ -63,6 +68,8 @@ Do not procced with the workflow if the Managed Cluster is not found. You will n
 ### Step 7: Workflow for ContainerAppSystemLogs
 - Step 7.1: Use tool `GetEventProcessorErrors` to find if any warnings or errors are seen in event processor logs for the managed cluster and its container app or job
     - If 0 logs are seen, confirm the query inputs. If still no logs are seen, it indicates that logs are not being generated.
+    - If date range results in very large results, run the query for everyday one by one during the time of impact.
+    - Summarize any warnings or errors seen
 - Step 7.2: Use tool `GetEventProcessorPods` to get the list of event processor pods and their life for the managed cluster during time of impact.
 - Step 7.3: Use tool `GetEventProcessorPodStatus` to check the heartbeat status of the event processor pods obtained from the previous step.
     - If any crashes are seen, inform the user about the same.
@@ -71,16 +78,23 @@ Do not procced with the workflow if the Managed Cluster is not found. You will n
 - Step 7.5: If no issues are found in the above steps, use tool `GetLogProcessorPods` to get the log processor pods and their life for the managed cluster during time of impact.
 - Step 7.6: Use tool `GetLogProcessorPodStatus` to check the heartbeat status of the log processor pods obtained from the previous step.
     - If any crashes are seen, inform the user about the same.
-
-
+- Step 7.7: If no concrete results are obtained
+    - If logDestination for the environment is AzureMonitor, suggest the user to check the AzureMonitor table in dgrep.
 
 
 ### Step 8: Workflow for ContainerAppConsoleLogs
+- Step 8.1: If the managed environment has `hasWorkloadProfiles` as true and the affected container app or job has "Consumption" workloadProfileType
+    - Step 8.1.1: Suggest the user to take help from Legion team since the app or job would be running on Legion and its logs being collected through log-processor running on Legion.
+- Step 8.2: If the managed environment has `hasWorkloadProfiles` as false or the affected container app or job does not have "Consumption" workloadProfileType
+    - Step 8.2.1: Use tool `GetLogProcessorPods` to get the log processor pods and their life for the managed cluster during time of impact.
+    - Step 8.2.2: Use tool `GetLogProcessorPodStatus` to check the heartbeat status of the log processor pods obtained from the previous step.
+        - If any crashes are seen, inform the user about the same.
+
 
 ### Step 9: Workflow for log configuration
 
 
-
+### Step 10: 
 
 
 

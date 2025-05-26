@@ -93,6 +93,7 @@ namespace FirstPartyAgent.Constants
             public const string GetLogProcessorPods = "get_log_processor_pods";
             public const string GetEventProcessorPodStatus = "get_event_processor_pod_status";
             public const string GetLogProcessorPodStatus = "get_log_processor_pod_status";
+            public const string GetContainerAppWorkloadProfile = "get_container_app_workload_profile";
         }
 
         public static class Kusto
