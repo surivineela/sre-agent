@@ -59,6 +59,8 @@ export interface IChatBoxFooterProps {
     disableInput: boolean;
     isNewMessageButtonVisible: boolean;
     onClickNewMessageButton: () => void;
+    prompts: string[];
+    messagePromptsUsed: string[];
 }
 
 export class MessagePollingInterval {

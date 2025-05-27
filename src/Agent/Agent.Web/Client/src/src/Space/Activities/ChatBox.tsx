@@ -25,7 +25,8 @@ export const ChatBox = ({ addThread, threadId, threadSource }: IChatBoxProps & {
         intersectionObserverRef,
         currentThreadId,
         cancelResponse,
-
+        prompts, 
+        messagePromptsUsed,
         handleScroll,
         showNewMessageButton,
         onClickNewMessageButton,
@@ -85,6 +86,8 @@ export const ChatBox = ({ addThread, threadId, threadSource }: IChatBoxProps & {
                     disableInput={disableInput}
                     isNewMessageButtonVisible={showNewMessageButton}
                     onClickNewMessageButton={onClickNewMessageButton}
+                    prompts={prompts}
+                    messagePromptsUsed={messagePromptsUsed}
                 />
             </CopilotProvider>
         </div>

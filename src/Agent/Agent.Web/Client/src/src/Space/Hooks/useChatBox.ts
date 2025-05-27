@@ -5,7 +5,7 @@ import { useIntl } from 'react-intl';
 import { Message, Thread, ThreadContext, ThreadOrchestrationReasoningState } from '../../Common/Contracts/Azure/SreAgent';
 import { Guid } from '../../Common/Helpers/Guid';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
-import { SreAgentResources, ThreadContextStateResources } from '../../Strings/SREAgentResources';
+import { PromptResources, SreAgentResources, ThreadContextStateResources } from '../../Strings/SREAgentResources';
 import { AgentContext } from '../Activities/Activities.ReactView';
 import { noGapBetweenNewMessagesAndExistingMessages, processMessages } from '../Activities/Utility';
 import { MessageLoadingCounts, MessagePollingCounts, MessagePollingInterval } from '../Contracts/Activities';
@@ -434,6 +434,28 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
         };
     }, [currentThreadId, noChatHistoryLeftToLoad, isIntersecting]);
 
+    const prompts = useMemo(() => [
+        intl.formatMessage(PromptResources.bestPracticesPrompt),
+        intl.formatMessage(PromptResources.notWorkingPrompt),
+        intl.formatMessage(PromptResources.availabilityPrompt),
+    ], [intl]);
+
+    const messagePromptsUsed = useMemo(() => {
+        const result: Message[] = [];
+        const seenTexts = new Set<string>();
+
+        for (let i = messages.length - 1; i >= 0 && result.length < 3; i--) {
+            const msg = messages[i];
+            if (msg.author.role !== 'SREAgent' &&  !seenTexts.has(msg.text)) {
+                result.unshift(msg); 
+                seenTexts.add(msg.text);
+            }
+        }
+        return result.map(message => {
+                return message.text;
+            }); 
+    }, [messages]);
+
     useEffect(() => {
         // auto scroll to the bottom when the initial history loading is completed
         if (!isLoadingInitialChatHistory) {
@@ -474,7 +496,8 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
         intersectionObserverRef,
         currentThreadId,
         cancelResponse,
-
+        prompts, 
+        messagePromptsUsed,
         handleScroll,
         showNewMessageButton,
         onClickNewMessageButton,
