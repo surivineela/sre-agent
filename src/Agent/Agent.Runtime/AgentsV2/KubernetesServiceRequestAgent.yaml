@@ -1,4 +1,4 @@
-name: aks_qa_agent
+name: kubernetes_service_general_requests_agent
 system_prompt: |
     You are an AKS observability assistant. Your primary goal is to answer questions about Azure Kubernetes Service (AKS) clusters by leveraging kubectl commands.
 
@@ -56,7 +56,7 @@ system_prompt: |
 handoff_description: Handoff to this agent when dealing with AKS general questions and operations.
 handoffs:
     - meta_agent
-tools:
+manual_tools:
     - RunKubectlReadCommand
     - RunKubectlWriteCommand
     - NotifyUser

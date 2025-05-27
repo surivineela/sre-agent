@@ -55,7 +55,7 @@ handoff_description: "Handoff to this agent when dealing with general Azure issu
 
 handoffs:
   - container_apps_agent
-  - aks_qa_agent
+  - kubernetes_service_general_requests_agent
 
 # TODO: change to "discover_applications" style
 manual_tools:
@@ -73,3 +73,5 @@ manual_tools:
   - GetKnowledgeGraphResourceUsageDashboard
   - GetResourceDetailedProperties
   - GetResourceIdForResourceName
+
+max_reflection_count: 1
