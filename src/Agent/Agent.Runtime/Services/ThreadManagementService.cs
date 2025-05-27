@@ -91,7 +91,7 @@ public class ThreadManagementService(
         thread = await repository.CreateThreadAsync(thread);
         message = await repository.AddMessageAsync(thread.Id, message);
         agentContext = await repository.CreateAgentContextAsync(agentContext);
-        
+
         foreach (var reasoningMessage in reasoningMessages)
         {
             await repository.CreateReasoningMessageAsync(reasoningMessage);
@@ -137,6 +137,12 @@ public class ThreadManagementService(
         if (agentContext == null)
         {
             logger.LogInternalWarning($"No meta agent context found for thread {threadId}");
+            return null;
+        }
+
+        if (agentContext.ApprovalInformation != null && agentContext.ApprovalInformation.PendingApprovals.Count > 0)
+        {
+            // TODO: block messages for pending approval in a better way
             return null;
         }
 

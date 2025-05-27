@@ -2,10 +2,12 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Logging;
+using Agent.Runtime.Reasoning;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -18,17 +20,22 @@ namespace Agent.Runtime.Services
         private readonly ILogger<ApprovalService> _logger;
         private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
         private readonly IThreadRepository _threadRepository;
-
+        private readonly CoreSettings _coreSettings;
+        private readonly IReasoningLoopManager _reasoningLoopManager;
 
         public ApprovalService(DurableTaskClient durableTaskClient,
             IAgentOutboundCommunicationService agentOutboundCommunicationService,
             ILogger<ApprovalService> logger,
-            IThreadRepository threadRepository)
+            IThreadRepository threadRepository,
+            CoreSettings coreSettings,
+            IReasoningLoopManager reasoningLoopManager)
         {
             _durableTaskClient = durableTaskClient;
             _logger = logger;
             _agentOutboundCommunicationService = agentOutboundCommunicationService;
             _threadRepository = threadRepository;
+            _coreSettings = coreSettings;
+            _reasoningLoopManager = reasoningLoopManager;
         }
 
         public async Task<Approval> GetApproval(Guid threadId, string approvalId)
@@ -68,19 +75,19 @@ namespace Agent.Runtime.Services
                 throw new InvalidOperationException(errorMessage);
             }
 
-            AgentContext? subAgentV2Context = null;
+            AgentContext? agentContext = null;
             string? orchestrationId = approval.OrchestrationId;
 
             if (approval.AgentContextId != null)
             {
-                subAgentV2Context = await _threadRepository.GetAgentContextAsync(approval.AgentContextId.Value, threadId);
+                agentContext = await _threadRepository.GetAgentContextAsync(approval.AgentContextId.Value, threadId);
             }
             else
             {
                 orchestrationId = approval.OrchestrationId;
             }
 
-            if (subAgentV2Context == null && orchestrationId == null)
+            if (agentContext == null && orchestrationId == null)
             {
                 throw new InvalidOperationException("Orchestration ID or Agent Context ID is required for approval message.");
             }
@@ -93,9 +100,9 @@ namespace Agent.Runtime.Services
                                          $"- **User:** {user}\n" +
                                          $"- **Timestamp:** {DateTime.UtcNow}";
 
-                if (subAgentV2Context != null)
+                if (agentContext != null)
                 {
-                    await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(subAgentV2Context, new ChatMessage(ChatRole.Assistant, approvalMessage));
+                    await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(agentContext, new ChatMessage(ChatRole.Assistant, approvalMessage));
                 }
                 else if (orchestrationId != null)
                 {
@@ -109,9 +116,9 @@ namespace Agent.Runtime.Services
                        $"- **User:** {user}\n" +
                        $"- **Timestamp:** {DateTime.UtcNow}";
 
-                if (subAgentV2Context != null)
+                if (agentContext != null)
                 {
-                    await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(subAgentV2Context, new ChatMessage(ChatRole.Assistant, rejectionMessage));
+                    await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(agentContext, new ChatMessage(ChatRole.Assistant, rejectionMessage));
                 }
                 else if (orchestrationId != null)
                 {
@@ -149,6 +156,11 @@ namespace Agent.Runtime.Services
             };
 
             await _threadRepository.UpdateApprovalAsync(newApproval);
+
+            if (_coreSettings.UseAgentFramework && agentContext != null)
+            {
+                await _reasoningLoopManager.NotifyApprovalDecisionAsync(agentContext, newApproval, CancellationToken.None);
+            }
         }
     }
 }

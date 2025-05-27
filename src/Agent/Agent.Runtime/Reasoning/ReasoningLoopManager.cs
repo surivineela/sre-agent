@@ -11,6 +11,7 @@ namespace Agent.Runtime.Reasoning;
 public interface IReasoningLoopManager
 {
     Task AppendNewMessageAsync(AgentContext context, ChatMessage msg, CancellationToken cancellationToken = default);
+    Task NotifyApprovalDecisionAsync(AgentContext context, Approval approval, CancellationToken cancellationToken = default);
 }
 
 public class ReasoningLoopManager : IReasoningLoopManager
@@ -25,14 +26,24 @@ public class ReasoningLoopManager : IReasoningLoopManager
 
     public async Task AppendNewMessageAsync(AgentContext context, ChatMessage msg, CancellationToken cancellationToken = default)
     {
-        var threadId = context.ThreadId;
+        var loop = await GetOrCreateReasoningLoopAsync(context);
+        await loop.AppendNewMessageAsync(msg, cancellationToken);
+    }
 
-        if (!_reasoningLoops.TryGetValue(threadId, out var loop))
+    public async Task NotifyApprovalDecisionAsync(AgentContext context, Approval approval, CancellationToken cancellationToken = default)
+    {
+        var loop = await GetOrCreateReasoningLoopAsync(context);
+        await loop.NotifyApprovalDecisionAsync(approval, cancellationToken);
+    }
+
+    private async Task<ReasoningLoop> GetOrCreateReasoningLoopAsync(AgentContext context)
+    {
+        if (!_reasoningLoops.TryGetValue(context.ThreadId, out var loop))
         {
             loop = await _reasoningLoopFactory.Create(context);
-            _reasoningLoops[threadId] = loop;
+            _reasoningLoops[context.ThreadId] = loop;
         }
 
-        await loop.AppendNewMessage(msg, cancellationToken);
+        return loop;
     }
 }
