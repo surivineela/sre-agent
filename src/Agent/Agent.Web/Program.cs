@@ -20,6 +20,7 @@ using Agent.Logging;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Implementation;
+using Agent.Plugins.Implementation.DiagnosticsPlugin;
 using Agent.Prometheus.Services;
 using Agent.Runtime;
 using Agent.Runtime.Communication;
@@ -181,6 +182,7 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
         .AddTransient<CpuAnalysisPluginDefinition>()
         .AddTransient<AppCodeAnalysisPluginDefinition>()
         .AddTransient<DotnetAnalysisPluginDefinition>()
+        .AddTransient<DiagnosticsPluginDefinition>()
         .AddTransient<RoleAssignmentPluginDefinition>()
         .AddTransient<IncidentPluginDefinition>()
         .AddTransient<FunctionAppExecutionFailuresPluginDefinition>()
@@ -279,6 +281,8 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
                 commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonPrompts")
             );
         })
+        .AddSingleton<IDiagnosticsPlugin, DiagnosticsPlugin>()
+        .AddSingleton<IMetaAgentFunctionAppDiagnosticsPlugin, FunctionAppDiagnosticsPlugin>()
 
         // Register the communication activities
         .AddSingleton<UpdateThreadWithAgentMessageActivity>()

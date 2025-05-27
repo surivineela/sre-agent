@@ -55,6 +55,7 @@ public static class MetaAgentMock
     IMetaAgentFunctionAppExecutionFailuresAgentPlugin? functionAppExecutionFailuresAgentPlugin = null,
     InstanceManagementSettings instanceManagementSettings = null,
     IAzureMonitorMetricsPlugin? azureMonitorMetricsPlugin = null,
+    IDiagnosticsPlugin? diagnosticsPlugin = null,
     IMetaAgentFunctionAppDiagnosticsPlugin? functionAppDiagnosticsPlugin = null,
     IArmPlugin? armPlugin = null, // Added parameter
     ISearchPlugin searchPlugin = null)
@@ -89,6 +90,7 @@ public static class MetaAgentMock
             cpuAnalysisPlugin ?? Mock.Of<IMetaAgentCPUAnalysisPlugin>(),
             appCodePlugin ?? Mock.Of<IAppCodeAnalysisPlugin>(),
             cpuPlugin ?? Mock.Of<ICpuAnalysisPlugin>(),
+            diagnosticsPlugin ?? Mock.Of<IDiagnosticsPlugin>(),
             metricsPlugin ?? Mock.Of<IMetricsPlugin>(),
             instanceManagementSettings ?? Mock.Of<InstanceManagementSettings>(),
             incidentPlugin ?? Mock.Of<IIncidentPlugin>(),

@@ -258,6 +258,7 @@ $@"## Facts
     private readonly IMetaAgentSqlDbQueryPerfPlugin _sqlDbQueryPerfPlugin;
     private readonly IConnectedIntegrationsPlugin _connectedIntegrationsPlugin;
     private readonly IThreadRepository _threadRepository;
+    private readonly IDiagnosticsPlugin _diagnosticPlugin;
     private readonly IMetaAgentAppCodeAnalysisPlugin _appCodeAgentPlugin;
     private readonly IMetaAgentCPUAnalysisPlugin _cpuAnalysisAgentPlugin;
     private readonly IAppCodeAnalysisPlugin _appCodeAnalysisPlugin;
@@ -302,6 +303,7 @@ $@"## Facts
         IMetaAgentCPUAnalysisPlugin cpuAnalysisAgentPlugin,
         IAppCodeAnalysisPlugin appCodeAnalysisPlugin,
         ICpuAnalysisPlugin cpuAnalysisPlugin,
+        IDiagnosticsPlugin diagnosticsPlugin,
         IMetricsPlugin metricsPlugin,
         InstanceManagementSettings instanceManagementSettings,
         IIncidentPlugin incidentPlugin,
@@ -343,6 +345,7 @@ $@"## Facts
         _metricsPlugin = metricsPlugin;
         _functionAppExecutionFailuresAgentPlugin = functionAppExecutionFailuresAgentPlugin;
         _azureMonitorMetricsPlugin = azureMonitorMetricsPlugin;
+        _diagnosticPlugin = diagnosticsPlugin;
 
         _sqlDbQueryPerfPlugin = sqlDbQueryPerfPlugin;
         _incidentPlugin = incidentPlugin;
@@ -380,6 +383,7 @@ $@"## Facts
         var graphDbPluginDefinition = new GraphDBPluginDefinition(_graphDbPlugin);
 
         var containerAppPluginDefinition = new ContainerAppPluginDefinition(_containerAppPlugin);
+        var diagnosticPluginDefinition = new DiagnosticsPluginDefinition(_diagnosticPlugin);
 
         var appServicePluginDefinition = new AppServicePluginDefinition(_appServicePlugin);
 
@@ -487,6 +491,7 @@ $@"## Facts
             AIFunctionFactory.Create(_githubIssuePlugin.CreateGithubIssueComment),
             AIFunctionFactory.Create(_githubIssuePlugin.FindConnectedRepo),
             //AIFunctionFactory.Create(searchPluginDefinition.SearchAsync)
+            AIFunctionFactory.Create(_diagnosticPlugin.GetAnalysisAsync)
         ];
 
         if (!_instanceManagementSettings.ProcessingEnabled)
