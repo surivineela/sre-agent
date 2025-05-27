@@ -102,6 +102,13 @@ public class ReasoningLoop
             try
             {
                 _logger.LogInternalInformation("Received new message. Running reasoning loop...");
+
+                var shouldStop = await ProcessNewApproval(agentChatHistory, cancellationToken);
+                if (shouldStop)
+                {
+                    return;
+                }
+
                 await PersistReasoningMessage(agentChatHistory, msg);
 
                 // The reasoning loop starts here
@@ -125,35 +132,31 @@ public class ReasoningLoop
                     _context = _context with { CurrentAgent = _currentAgent.Name };
                     _context = await _threadRepository.UpdateAgentContextAsync(_context);
 
-                    // Check if there are any manual tool calls (Approval)
+                    // Check if there are any manual tool calls
                     if (output.ManualToolCalls != null && output.ManualToolCalls.Count > 0)
                     {
-                        foreach (var toolCall in output.ManualToolCalls)
+                        var toolCall = output.ManualToolCalls.Single(); // Should only be one tool call at a time
+                        var checkResult = await CheckApproval(toolCall);
+                        if (checkResult.ApprovalStatus == ToolApprovalStatus.NotRequired)
                         {
-                            var checkResult = await CheckApproval(toolCall);
-                            if (checkResult.ApprovalStatus == ToolApprovalStatus.Pending)
+                            try
                             {
-                                // if approval is pending, stop the loop and wait for approval
-                                break;
-                            }
-                            else if (checkResult.ApprovalStatus == ToolApprovalStatus.NotRequired || checkResult.ApprovalStatus == ToolApprovalStatus.Approved)
-                            {
-                                var functionResult = await GetAIFunctionWithThreadId(toolCall.Tool!.Name, _context.ThreadId).InvokeAsync(toolCall.FunctionCall.Arguments);
+                                var functionResult = await toolCall.Tool.InvokeAsync(toolCall.FunctionCall.Arguments);
                                 var result = new FunctionResultContent(toolCall.FunctionCall.CallId, functionResult);
                                 var functionCallMessage = new ChatMessage(ChatRole.Tool, [result]);
                                 await PersistReasoningMessage(agentChatHistory, functionCallMessage);
                             }
-                            else  // ToolApprovalStatus.Denied
+                            catch (Exception ex)
                             {
-                                var result = new FunctionResultContent(toolCall.FunctionCall.CallId, "denied");
-                                var functionCallMessage = new ChatMessage(ChatRole.Tool, [result]);
-                                await PersistReasoningMessage(agentChatHistory, functionCallMessage);
-
-                                var denyMsg = new ChatMessage(ChatRole.Assistant, "The approval request of this action got denied.");
-                                await PersistReasoningMessage(agentChatHistory, denyMsg);
-                                await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context.ThreadId, string.Empty, denyMsg);
-                                break;
+                                _logger.LogInternalError(ex, "Error while invoking tool: {ToolName}", toolCall.Tool.Name);
+                                var errorMessage = new ChatMessage(ChatRole.Tool, [new FunctionResultContent(toolCall.FunctionCall.CallId, $"Internal error")]);
+                                await PersistReasoningMessage(agentChatHistory, errorMessage);
                             }
+                        }
+                        else
+                        {
+                            // if approval is required, stop the loop and wait for approval
+                            break;
                         }
                     }
                     else
@@ -173,6 +176,53 @@ public class ReasoningLoop
         }
 
         _semaphore.Release();
+    }
+
+    private async Task<bool> ProcessNewApproval(AgentChatHistory agentChatHistory, CancellationToken cancellationToken)
+    {
+        var lastMessage = _chatHistory?.LastOrDefault()?.Contents?.First();
+        // if lastMessage is a tool call, we need to invoke the tool first
+        if (lastMessage != null && lastMessage is FunctionCallContent functionCall)
+        {
+            var approvalTitle = ApprovalHelper.GenerateUniqueApprovalTitle(
+                _context.ThreadId.ToString(),
+                _context.AssignedInstanceId ?? string.Empty,
+                functionCall.Name,
+                functionCall.Arguments ?? new Dictionary<string, object?>());
+
+            var approval = await _threadRepository.GetApprovalAsync(_context.ThreadId, approvalTitle);
+            if (approval == null || approval.Status == ApprovalDecision.Approved)
+            {
+                try
+                {
+                    var aiTool = _currentAgent.ManualTools.Find(aiTool => aiTool.Name == functionCall!.Name);
+                    var functionResult = await aiTool!.InvokeAsync(functionCall.Arguments, cancellationToken);
+                    var result = new FunctionResultContent(functionCall.CallId, functionResult);
+                    var functionCallMessage = new ChatMessage(ChatRole.Tool, [result]);
+                    await PersistReasoningMessage(agentChatHistory, functionCallMessage);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalError(ex, "Error while invoking tool: {ToolName}", functionCall.Name);
+                    var errorMessage = new ChatMessage(ChatRole.Tool, [new FunctionResultContent(functionCall.CallId, $"Internal error")]);
+                    await PersistReasoningMessage(agentChatHistory, errorMessage);
+                }
+            }
+            else if (approval.Status == ApprovalDecision.Rejected)
+            {
+                var result = new FunctionResultContent(functionCall.CallId, "rejected");
+                var functionCallMessage = new ChatMessage(ChatRole.Tool, [result]);
+                await PersistReasoningMessage(agentChatHistory, functionCallMessage);
+            }
+            else  // Pending
+            {
+                // If there is any pending approvals, we should wait for them to be resolved before continuing
+                _logger.LogInternalInformation("There are pending approvals. Waiting for them to be resolved before continuing.");
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private async Task<CheckApprovalActivityOutput> CheckApproval(ManualToolCall toolCall)
@@ -220,7 +270,7 @@ public class ReasoningLoop
                     CreatedTimestamp: DateTime.UtcNow,
                     DecisionTimestamp: null,
                     OrchestrationId: null,
-                    AgentContextId: null,
+                    AgentContextId: _context.Id,
                     DecisionUser: null,
                     OboToken: null);
 
