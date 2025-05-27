@@ -16,7 +16,7 @@ handoffs:
   - container_apps_agent
 
 # TODO: change to "discover_applications" style
-tools:
+manual_tools:
   - DiscoverApplications
   - GetApplicationComponentsSummary
   - ListSubscriptions

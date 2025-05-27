@@ -18,6 +18,6 @@ system_prompt: |
 handoff_description: Handoff to this agent when dealing with non AKS related questions
 handoffs:
   - meta_agent
-tools:
+manual_tools:
   - RunKubectlReadCommand
   - RunKubectlWriteCommand

@@ -1,3 +1,8 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.Reflection;
 using Microsoft.Extensions.Logging;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -7,12 +12,11 @@ namespace Agent.Framework;
 public interface IAgentDescriptor
 {
     public string Name { get; set; }
-
     public string Instructions { get; set; }
-
     public string? HandoffDescription { get; set; }
     public List<string> Handoffs { get; set; }
-    public List<string> Tools { get; set; }
+    public List<string> AutoTools { get; set; }
+    public List<string> ManualTools { get; set; }
 }
 
 public interface IAgentFactory<TContext>
@@ -25,20 +29,26 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
     where TContext : class
 {
     // A map from Agent name -> Agent descriptor
-    private readonly IDictionary<string, Agent<TContext>> _agents;
-    private readonly IDictionary<string, IAgentDescriptor> _agentDescriptors;
+    private readonly Dictionary<string, Agent<TContext>> _agents = [];
+    private readonly Dictionary<string, IAgentDescriptor> _agentDescriptors = [];
     private readonly ILogger<AgentFactory<TContext>> _logger;
     private readonly IToolFactory _toolFactory;
+    private readonly IEnumerable<Assembly> _assembliesToScan;
+    private readonly string _agentsYamlDirectory;
 
-    public AgentFactory(ILogger<AgentFactory<TContext>> logger, IToolFactory toolFactory)
+    public AgentFactory(
+        ILogger<AgentFactory<TContext>> logger,
+        IToolFactory toolFactory,
+        IEnumerable<Assembly> assembliesToScan,
+        string agentsYamlDirectory
+    )
     {
         _toolFactory = toolFactory;
         _logger = logger;
-        _agents = new Dictionary<string, Agent<TContext>>();
-        _agentDescriptors = new Dictionary<string, IAgentDescriptor>();
+        _assembliesToScan = assembliesToScan;
+        _agentsYamlDirectory = agentsYamlDirectory;
         InitializeAgents();
     }
-
 
     private bool ValidateAgentDescriptor(IAgentDescriptor? agentDescriptor)
     {
@@ -50,25 +60,31 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
 
         if (string.IsNullOrEmpty(agentDescriptor.Name))
         {
-            _logger.LogError($"Agent descriptor {agentDescriptor.GetType().Name} does not have a name.");
+            _logger.LogError("Agent descriptor {descriptorType} does not have a name.", agentDescriptor.GetType().Name);
             return false;
         }
 
         if (string.IsNullOrEmpty(agentDescriptor.Instructions))
         {
-            _logger.LogError($"Agent descriptor {agentDescriptor.Name} does not have instructions.");
+            _logger.LogError("Agent descriptor {descriptorName} does not have instructions.", agentDescriptor.Name);
             return false;
         }
 
         if (_agents.ContainsKey(agentDescriptor.Name))
         {
-            _logger.LogError($"Agent descriptor {agentDescriptor.Name} already exists.");
+            _logger.LogError("Agent descriptor {descriptorName} already exists.", agentDescriptor.Name);
             return false;
         }
 
-        if (agentDescriptor.Tools.Any(toolName => !_toolFactory.HasAIFunction(toolName)))
+        if (agentDescriptor.AutoTools.Any(toolName => !_toolFactory.HasAIFunction(toolName)))
         {
-            _logger.LogError($"Agent descriptor {agentDescriptor.Name} has tools that do not exist in the tool factory.");
+            _logger.LogError("Agent descriptor {descriptorName} has auto tools that do not exist in the tool factory.", agentDescriptor.Name);
+            return false;
+        }
+
+        if (agentDescriptor.ManualTools.Any(toolName => !_toolFactory.HasAIFunction(toolName)))
+        {
+            _logger.LogError("Agent descriptor {descriptorName} has manual tools that do not exist in the tool factory.", agentDescriptor.Name);
             return false;
         }
 
@@ -79,7 +95,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
     {
         if (!ValidateAgentDescriptor(agentDescriptor))
         {
-            _logger.LogError($"Agent descriptor {agentDescriptor?.GetType().Name ?? "null"} is not valid.");
+            _logger.LogError("Agent descriptor {descriptorType} is not valid.", agentDescriptor?.GetType().Name ?? "null");
             return false;
         }
 
@@ -88,8 +104,8 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
             Instructions = agentDescriptor.Instructions,
             HandoffDescription = agentDescriptor.HandoffDescription,
             Handoffs = [], // Will be populated later to avoid circular references
-            AutoTools = [],
-            ManualTools = agentDescriptor.Tools.Select(h => _toolFactory.FindAIFunction(h)).ToList(), // Note the tools will be created again with ThreadId in the reasoning loop
+            AutoTools = agentDescriptor.AutoTools.Select(_toolFactory.FindAIFunction).ToList(),
+            ManualTools = agentDescriptor.ManualTools.Select(_toolFactory.FindAIFunction).ToList(), // Note the tools will be created again with ThreadId in the reasoning loop
         };
 
         _agents[agentDescriptor.Name] = agent;
@@ -126,8 +142,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
     private void LoadAgentFromAssembly()
     {
         var agentDescriptorType = typeof(IAgentDescriptor);
-        var agentDescriptorTypes = AppDomain.CurrentDomain.GetAssemblies()
-            .Where(a => a.GetName()?.Name?.StartsWith("Agent.") == true) // Added null checks
+        var agentDescriptorTypes = _assembliesToScan
             .SelectMany(a => a.GetTypes())
             .Where(t => agentDescriptorType.IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
 
@@ -141,7 +156,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         {
             if (Activator.CreateInstance(agentType) is not IAgentDescriptor agentDescriptor)
             {
-                _logger.LogError($"Failed to create an instance of {agentType.FullName}.");
+                _logger.LogError("Failed to create an instance of {agentType}.", agentType.FullName);
                 continue;
             }
             if (agentDescriptor.GetType()?.Name == "YamlAgentDescriptor")
@@ -156,9 +171,8 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
 
     private void LoadAgentFromYaml()
     {
-        var agentsFolder = Path.Combine(AppContext.BaseDirectory, "AgentsV2");
-        var yamlFiles = Directory.GetFiles(agentsFolder, "*.yaml", SearchOption.AllDirectories)
-                       .Concat(Directory.GetFiles(agentsFolder, "*.yml", SearchOption.AllDirectories));
+        var yamlFiles = Directory.GetFiles(_agentsYamlDirectory, "*.yaml", SearchOption.AllDirectories)
+                       .Concat(Directory.GetFiles(_agentsYamlDirectory, "*.yml", SearchOption.AllDirectories));
 
         foreach (var yamlFile in yamlFiles)
         {
@@ -168,19 +182,19 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Failed to load agent from {yamlFile}");
+                _logger.LogError(ex, "Failed to load agent from {filePath}.", yamlFile);
             }
         }
     }
 
-    public void LoadAgentFromYaml(string yamlContent)
+    private void LoadAgentFromYaml(string yamlContent)
     {
         try
         {
             var agentDescriptor = AgentDescriptorParser.ParseFromYaml(yamlContent);
             if (AddAgentDescriptor(agentDescriptor))
             {
-                _logger.LogInformation($"Successfully loaded agent {agentDescriptor.Name} from YAML.");
+                _logger.LogInformation("Successfully loaded agent descriptor {descriptorName} from YAML.", agentDescriptor.Name);
             }
         }
         catch (Exception ex)
@@ -190,14 +204,14 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         }
     }
 
-    public void LoadAgentFromFile(string filePath)
+    private void LoadAgentFromFile(string filePath)
     {
         try
         {
             var agentDescriptor = AgentDescriptorParser.ParseFromFile(filePath);
             if (AddAgentDescriptor(agentDescriptor))
             {
-                _logger.LogInformation($"Successfully loaded agent {agentDescriptor.Name} from file {filePath}.");
+                _logger.LogInformation("Successfully loaded agent descriptor {descriptorName} from file {filePath}.", agentDescriptor.Name, filePath);
             }
         }
         catch (Exception ex)
@@ -212,7 +226,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         var agentFound = _agents.TryGetValue(name, out var agent);
         if (!agentFound || agent is null)
         {
-            _logger.LogError($"Agent {name} not found.");
+            _logger.LogError("Agent {agentName} not found.", name);
             throw new KeyNotFoundException($"Agent {name} not found.");
         }
 
@@ -270,9 +284,12 @@ public class AgentDescriptorParser
         public string? HandoffDescription { get; set; }
 
         [YamlMember(Alias = "handoffs")]
-        public List<string> Handoffs { get; set; } = ["meta_agent"];
+        public List<string> Handoffs { get; set; } = [];
 
-        [YamlMember(Alias = "tools")]
-        public List<string> Tools { get; set; } = [];
+        [YamlMember(Alias = "auto_tools")]
+        public List<string> AutoTools { get; set; } = [];
+
+        [YamlMember(Alias = "manual_tools")]
+        public List<string> ManualTools { get; set; } = [];
     }
 }

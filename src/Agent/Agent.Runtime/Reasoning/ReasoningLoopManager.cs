@@ -1,4 +1,7 @@
-using System;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Collections.Concurrent;
 using Agent.Core.Models.Api.v1;
 using Microsoft.Extensions.AI;
@@ -24,12 +27,12 @@ public class ReasoningLoopManager : IReasoningLoopManager
     public async Task AppendNewMessageAsync(AgentContext context, ChatMessage msg, CancellationToken cancellationToken = default)
     {
         var threadId = context.ThreadId;
-        if (!_reasoningLoops.ContainsKey(threadId))
-        {
-            _reasoningLoops[threadId] = await _reasoningLoopFactory.Create(context);
-        }
 
-        var loop = _reasoningLoops[threadId];
+        if (!_reasoningLoops.TryGetValue(threadId, out var loop))
+        {
+            loop = await _reasoningLoopFactory.Create(context);
+            _reasoningLoops[threadId] = loop;
+        }
 
         await loop.AppendNewMessage(msg, cancellationToken);
     }

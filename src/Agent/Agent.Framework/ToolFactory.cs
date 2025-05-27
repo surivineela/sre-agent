@@ -1,8 +1,13 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Reflection;
-using Agent.Framework;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+
+namespace Agent.Framework;
 
 // Most tools are injected as transient, so we can defer the creation of the tool function until it's actually needed.
 public sealed class DeferredToolFunction
@@ -39,7 +44,7 @@ public sealed class DeferredToolFunction
 }
 
 /// <summary>
-/// A default implementation of IToolFactory that automatically scans for tools in Assemblies whose name starts with "Agent.".
+/// A default implementation of IToolFactory that automatically scans for tools in the provided assemblies.
 /// Only classes with the AgentToolPluginAttribute are considered as tools.
 /// </summary>
 public class ToolFactory : IToolFactory
@@ -47,19 +52,23 @@ public class ToolFactory : IToolFactory
     private readonly ILogger<ToolFactory> _logger;
     private readonly IDictionary<string, DeferredToolFunction> _tools = new Dictionary<string, DeferredToolFunction>();
     private readonly IServiceProvider _serviceProvider;
+    private readonly IEnumerable<Assembly> _assemblies;
 
-    public ToolFactory(ILogger<ToolFactory> logger, IServiceProvider serviceProvider)
+    public ToolFactory(
+        ILogger<ToolFactory> logger,
+        IServiceProvider serviceProvider,
+        IEnumerable<Assembly> assembliesToScan
+    )
     {
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+        _logger = logger;
+        _serviceProvider = serviceProvider;
+        _assemblies = assembliesToScan;
         FindAndRegisterAllTools(BehaviorOnNameConflict.ThrowException);
     }
 
     private void FindAndRegisterAllTools(BehaviorOnNameConflict onNameConflict)
     {
-        var plugins = AppDomain.CurrentDomain.GetAssemblies()
-            .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
-            .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true)
+        var plugins = _assemblies
             .SelectMany(assembly => assembly.GetTypes())
             .Where(type => type.IsDefined(typeof(AgentToolPluginAttribute)));
 

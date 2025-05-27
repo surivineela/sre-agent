@@ -2,7 +2,6 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Diagnostics.Contracts;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Framework;

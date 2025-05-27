@@ -248,8 +248,28 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
         .AddSingleton<IMetaAgentFunctionAppDiagnosticsPlugin, FunctionAppDiagnosticsPlugin>()
         .AddSingleton<IReasoningLoopFactory, ReasoningLoopFactory>()
         .AddSingleton<IReasoningLoopManager, ReasoningLoopManager>()
-        .AddSingleton<IAgentFactory<AgentContext>, AgentFactory<AgentContext>>()
-        .AddSingleton<IToolFactory, ToolFactory>()
+
+        .AddSingleton<IToolFactory, ToolFactory>(sp =>
+        {
+            return new ToolFactory(
+                logger: sp.GetRequiredService<ILogger<ToolFactory>>(),
+                serviceProvider: sp,
+                assembliesToScan: AppDomain.CurrentDomain.GetAssemblies()
+                    .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
+                    .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true));
+        })
+
+        .AddSingleton<IAgentFactory<AgentContext>, AgentFactory<AgentContext>>(sp =>
+        {
+            return new AgentFactory<AgentContext>(
+                logger: sp.GetRequiredService<ILogger<AgentFactory<AgentContext>>>(),
+                toolFactory: sp.GetRequiredService<IToolFactory>(),
+                assembliesToScan: AppDomain.CurrentDomain.GetAssemblies()
+                    .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
+                    .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true),
+                agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "AgentsV2")
+            );
+        })
 
         // Register the communication activities
         .AddSingleton<UpdateThreadWithAgentMessageActivity>()

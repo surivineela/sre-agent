@@ -298,7 +298,7 @@ handoff_description: "Handoff to this agent when dealing with Azure Container Ap
 handoffs:
   - meta_agent
 
-tools:
+manual_tools:
   - GetContainerAppInfo
   - ListRevisions
   - GetLatestRevision

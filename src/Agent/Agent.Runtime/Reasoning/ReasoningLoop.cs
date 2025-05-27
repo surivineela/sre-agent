@@ -1,5 +1,8 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Reflection;
-using System.Text.Json;
 using System.Threading.Channels;
 using Agent.Core.Attributes;
 using Agent.Core.Extensions;
@@ -320,7 +323,7 @@ public class ReasoningLoop
 
         await _threadRepository.AddReasoningMessagesToChatHistoryAsync(agentChatHistory, reasoningMessage);
     }
-    
+
     private async Task PersistReasoningMessage(AgentChatHistory agentChatHistory, IEnumerable<ChatMessage> chatMessage)
     {
         _chatHistory!.AddRange(chatMessage);
@@ -329,8 +332,8 @@ public class ReasoningLoop
         foreach (var reasoningMessage in reasoningMessages)
         {
             await _threadRepository.CreateReasoningMessageAsync(reasoningMessage);
-        }   
-        
+        }
+
         await _threadRepository.AddReasoningMessagesToChatHistoryAsync(agentChatHistory, reasoningMessages);
     }
 }
