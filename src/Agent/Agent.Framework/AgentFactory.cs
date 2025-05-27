@@ -219,10 +219,10 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         {
             Instructions = agent.Instructions,
             HandoffDescription = agent.HandoffDescription,
-            AutoTools = _agentDescriptors[name].Tools
+            ManualTools = _agentDescriptors[name].Tools
                 .Select(_toolFactory.FindAIFunction)
                 .ToList(),
-            ManualTools = agent.ManualTools,
+            AutoTools = agent.AutoTools,
             Handoffs = agent.Handoffs,
             Hooks = agent.Hooks
         };

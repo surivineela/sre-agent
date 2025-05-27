@@ -2,23 +2,30 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Reflection;
 using System.Text.Json;
+using Agent.Core.Attributes;
 using Agent.Core.Configuration;
 using Agent.Core.Extensions;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
+using Agent.Core.Models;
+using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
 using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DataModels;
+using Agent.Graph.Crawler.Metrics;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Implementation;
+using Agent.Prometheus.Services;
 using Agent.Runtime;
 using Agent.Runtime.Communication;
+using Agent.Runtime.Helpers;
 using Agent.Runtime.Services;
+using Agent.Runtime.SubAgents.Core;
 using Agent.Runtime.TeamsChatServices;
-using Agent.Prometheus.Services;
-using Agent.Graph.Crawler.Metrics;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Connector.Authentication;
 using Microsoft.Extensions.AI;
@@ -37,6 +44,7 @@ class CustomContext
 
 class TestService
 {
+    [RequiresApproval]
     public string GetData() => "Test Data";
 }
 
@@ -67,6 +75,22 @@ class Agent2 : Agent<CustomContext>
         HandoffDescription = "Handoff to get data";
 
         Instructions = Prompt.PromptWithHandoffInstructions($"You are {Name}, use the tool to get data");
+    }
+}
+
+class MockApprovalRepository
+{
+    private Dictionary<string, Approval> _approvals = new Dictionary<string, Approval>();
+
+    public Task<Approval?> GetApprovalAsync(Guid threadId, string title)
+    {
+        return Task.FromResult<Approval?>(_approvals[threadId.ToString() + title]);
+    }
+
+    public Task CreateApprovalAsync(Approval approval)
+    {
+        _approvals[approval.ThreadId + approval.Title] = approval;
+        return Task.CompletedTask;
     }
 }
 
@@ -349,5 +373,164 @@ class Program
         }
 
         logger.LogInformation($"Final Output: {output.Output}");
+    }
+
+    public static async Task ReasoningLoop(HostApplicationBuilder builder)
+    {
+        // Initialize the Agents
+        using var host = builder.Build();
+        var config = host.Services.GetRequiredService<IConfiguration>();
+
+        var loggerFactory = host.Services.GetRequiredService<ILoggerFactory>();
+
+        // construct agents manually from framework types
+        var agent1 = new Agent<CustomContext>("Agent1");
+        agent1.Instructions = Prompt.PromptWithHandoffInstructions($"You are {agent1.Name}, you can delegate to agent2 to get data");
+
+        var agent2 = new Agent<CustomContext>("Agent2");
+        agent2.Instructions = Prompt.PromptWithHandoffInstructions($"You are {agent2.Name}, use the tool to get data");
+        agent2.HandoffDescription = "Handoff to get data";
+
+        var testService = new TestService();
+
+        agent2.ManualTools = [
+            AIFunctionFactory.Create(testService.GetData)
+        ];
+
+        agent1.Handoffs = [
+            Handoff<CustomContext>.Create(agent: agent2)
+        ];
+
+        var chatClient = host.Services.GetRequiredService<IChatClient>();
+
+        var context = new CustomContext();
+        string userInput = "Get me some data";
+        var chatHistory = new List<ChatMessage> { new(ChatRole.User, userInput) };
+
+        // The reasoning loop starts here
+        while (true)
+        {
+            var output = await Runner.RunAsync(
+                startingAgent: agent1,
+                input: chatHistory,
+                config: new RunConfig
+                {
+                    ChatClient = chatClient,
+                    LoggerFactory = loggerFactory
+                },
+                context: context
+            );
+            chatHistory.AddRange(output.NewItems);
+
+            // Check if there are any manual tool calls (Approval)
+            if (output.ManualToolCalls != null && output.ManualToolCalls.Count > 0)
+            {
+                foreach (var toolCall in output.ManualToolCalls)
+                {
+                    var checkResult = await CheckApproval(context, toolCall, new MockApprovalRepository(), loggerFactory.CreateLogger("CheckApprovalActivity"));
+                    if (checkResult.ApprovalStatus == ToolApprovalStatus.NotRequired || checkResult.ApprovalStatus == ToolApprovalStatus.Approved)
+                    {
+                        var functionResult = await toolCall.Tool!.InvokeAsync(toolCall.FunctionCall.Arguments);
+                        var result = new FunctionResultContent(toolCall.FunctionCall.CallId, functionResult);
+                        chatHistory.Add(new ChatMessage(ChatRole.Tool, [result]));
+                    }
+                    else if (checkResult.ApprovalStatus == ToolApprovalStatus.Pending)
+                    {
+                        // Generate approval link
+                        var link = $"https://approval-system.example.com/approve?approvalId={checkResult.ApprovalId}";
+                        chatHistory.RemoveAt(chatHistory.Count - 1); // Remove the function call message
+                        chatHistory.Add(new ChatMessage(ChatRole.Assistant, "Approval required: " + link));
+                    }
+                    else
+                    {
+                        chatHistory.RemoveAt(chatHistory.Count - 1); // Remove the function call message
+                        chatHistory.Add(new ChatMessage(ChatRole.Assistant, "The approval request of this action got denied."));
+                    }
+                }
+            }
+            else
+            {
+                break; // Exit the loop if there are no manual tool calls
+            }
+        }
+    }
+
+    public static async Task<CheckApprovalActivityOutput> CheckApproval(CustomContext context, ManualToolCall toolCall, MockApprovalRepository approvalRepo, ILogger logger)
+    {
+        try
+        {
+            if (toolCall.Tool == null)
+            {
+                return new CheckApprovalActivityOutput()
+                {
+                    ApprovalStatus = ToolApprovalStatus.NotRequired,
+                };
+            }
+
+            // Check if requiers approval
+            var attribute = toolCall.Tool.UnderlyingMethod?.GetCustomAttribute<RequiresApprovalAttribute>();
+            if (attribute == null)
+            {
+                return new CheckApprovalActivityOutput()
+                {
+                    ApprovalStatus = ToolApprovalStatus.NotRequired,
+                };
+            }
+
+            var approvalTitle = ApprovalHelper.GenerateUniqueApprovalTitle(
+                context.ThreadId.ToString(),
+                "instance-id",
+                toolCall.FunctionCall.Name,
+                toolCall.FunctionCall.Arguments ?? new Dictionary<string, object?>());
+
+            var approval = await approvalRepo.GetApprovalAsync(context.ThreadId, approvalTitle);
+
+            if (approval == null ||
+                (approval.Status == ApprovalDecision.Approved && string.IsNullOrEmpty(approval.OboToken) && attribute != null && attribute.UseOboToken))
+            {
+                var description = attribute.DisplayMessage ?? string.Empty;
+
+                // Create a new approval document
+                var newApproval = new Approval(
+                    Id: Guid.NewGuid(),
+                    ThreadId: context.ThreadId.ToString(),
+                    Title: approvalTitle,
+                    Description: description,
+                    Status: ApprovalDecision.Pending,
+                    CreatedTimestamp: DateTime.UtcNow,
+                    DecisionTimestamp: null,
+                    OrchestrationId: null,
+                    AgentContextId: null,
+                    DecisionUser: null,
+                    OboToken: null);
+
+                await approvalRepo.CreateApprovalAsync(newApproval);
+
+                logger.LogInformation("Created new approval document: {ApprovalId}, threadId: {ThreadId}, title: {Title}, status ToolApprovalStatus.Pending", newApproval.Id, context.ThreadId, newApproval.Title);
+
+                return new CheckApprovalActivityOutput()
+                {
+                    ApprovalId = newApproval.Id,
+                    ApprovalStatus = ToolApprovalStatus.Pending,
+                };
+            }
+            else
+            {
+                logger.LogInformation("Found existing approval document: {ApprovalId}, threadId: {ThreadId}, title: {Title}, status {Status}", approval.Id, context.ThreadId, approval.Title, approval.Status);
+                return new CheckApprovalActivityOutput()
+                {
+                    ApprovalId = approval.Id,
+                    ApprovalStatus = ApprovalDocument.ToToolApprovalStatus(approval.Status),
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError("Error while checking approval: {Message}", ex.Message);
+            return new CheckApprovalActivityOutput()
+            {
+                ApprovalStatus = ToolApprovalStatus.Pending,
+            };
+        }
     }
 }
