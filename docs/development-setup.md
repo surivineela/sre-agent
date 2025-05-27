@@ -57,7 +57,7 @@ We use an internal NuGet source for packages. To set up:
    Remove-Item "$env:USERPROFILE\.npmrc" -Force
    ```
 
-   *If project build still fails with `npm install` error, try below command
+   *If project build still fails with `npm install` error or `vsts-npm-auth is not recognized` error, try below command
    ```powershell
    npx vsts-npm-auth -R -E 131400 -C src\Agent\Agent.Web\Client\.npmrc
    ```
@@ -99,9 +99,13 @@ You can set up npm authentication using our script:
 
 1. Project should automatically start with no additional configuration. Required settings should be pulled from the Azure App Config instance that was set up as part of the private environment deployment. For optional settings, copy appsettings.json to appsettings.development.json and add any settings you need. These settings will override any other settings.
 
+> **Disclaimer: Advanced Configurations Ahead**  
+> The following sections describe advanced configuration steps for setting up the Durable Task Scheduler (DTS) and Dashboard Settings.  
+> These are not required for running the agent. Only complete them if they are necessary for your use case, otherwise, proceed to:
+> [Next: Running the Application](running-the-app.md) or [Continue Setup for 1p Agent](1p-agent-development.md)
+
+
 ### Durable Task Scheduler
-
-
 The deployment script deploys the DTS service. You can grab the connection string from the portal and update your `appsettings.Development.json`.
 
 Note: 
@@ -122,8 +126,10 @@ Note:
 
 Another option is to leave the connection string blank so it uses the emulator. Its convenient because every time you restart it, you start from a blank slate.
 Run the emulator using: `./src/run-durable-emulator.ps1`
+* If you do choose to use the emulator, you will need to install Docker beforehand.
 
 ### Dashboard Settings
+* Note: Configuring dashboard settings is not mandatory, and will not affect your execution of the application. This is an optional section and should be done if you require the analytics here. 
 
 An Azure managed grafana and azure managed prometheus(Azure Monitor Worksapce) will be deployed using the deployment scirpt,
 which are used by DailyReportAgent.
