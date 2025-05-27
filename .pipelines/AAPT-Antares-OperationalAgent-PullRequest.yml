@@ -8,7 +8,10 @@
 
 name: $(Date:yyyyMMdd)$(Rev:.r)
 
-trigger: none  # https://aka.ms/obpipelines/triggers
+trigger:
+  branches:
+    include:
+    - main
 
 pr:
   autoCancel: true
