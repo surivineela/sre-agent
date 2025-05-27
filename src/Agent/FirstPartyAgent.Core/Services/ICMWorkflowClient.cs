@@ -91,7 +91,7 @@ namespace FirstPartyAgent.Core.Services
                 else if (!string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateKeyVaultUri) && !string.IsNullOrEmpty(_icmWorkflowSettings.CertificateKeyVaultSecretName))
                 {
                     var handler = new HttpClientHandler();
-                    var certificate = CertLoader.LoadCertFromKeyVault(_icmWorkflowSettings.CertificateKeyVaultUri, _icmWorkflowSettings.CertificateKeyVaultSecretName, null, _logger);
+                    var certificate = CertLoader.LoadCertFromKeyVault(_icmWorkflowSettings.CertificateKeyVaultUri, _icmWorkflowSettings.CertificateKeyVaultSecretName, _icmWorkflowSettings.ManagedIdentityClientId, null, _logger);
                     handler.ClientCertificates.Add(certificate);
                     _logger.LogInformation("Successfully loaded Cert from keyvault for ICMWorkflowClient.");
                     _httpClient = new HttpClient(handler)

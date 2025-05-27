@@ -27,6 +27,7 @@ namespace FirstPartyAgent.Core.Configuration
         public string CertificateSubjectName { get; set; } = string.Empty;
         public string CertificateFilePath { get; set; } = string.Empty;
         public string CertificateKeyVaultUri { get; set; } = string.Empty;
+        public string ManagedIdentityClientId { get; set; } = string.Empty;
         public string CertificateKeyVaultSecretName { get; set; } = string.Empty;
         public string UserToken { get; set; } = string.Empty;
         public bool UseFunctionApp { get; set; } = false;

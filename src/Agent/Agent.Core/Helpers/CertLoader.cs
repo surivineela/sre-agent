@@ -89,14 +89,21 @@ namespace Agent.Core.Helpers
             }
         }
 
-        public static X509Certificate2 LoadCertFromKeyVault(string keyVaultUrl, string certificateName, string? certPassword = null, ILogger? log = null)
+        public static X509Certificate2 LoadCertFromKeyVault(string keyVaultUrl, string certificateName, string? managedIdentityClientId = null,  string? certPassword = null, ILogger? log = null)
         {
             try
             {
-                var client = new CertificateClient(new Uri(keyVaultUrl), new DefaultAzureCredential());
+                var credOptions = new DefaultAzureCredentialOptions();
+                if (!string.IsNullOrEmpty(managedIdentityClientId))
+                {
+                    credOptions.ManagedIdentityClientId = managedIdentityClientId;
+                }
+                log?.LogInternalInformation($"Loading cert from Key Vault: {keyVaultUrl}, Certificate Name: {certificateName}, Managed Identity Client Id: {managedIdentityClientId}");
+                DefaultAzureCredential cred = new DefaultAzureCredential(credOptions);
+                var client = new CertificateClient(new Uri(keyVaultUrl), cred);
                 KeyVaultCertificateWithPolicy certificateWithPolicy = client.GetCertificate(certificateName);
 
-                KeyVaultSecret secret = new SecretClient(new Uri(keyVaultUrl), new DefaultAzureCredential()).GetSecret(certificateWithPolicy.Name);
+                KeyVaultSecret secret = new SecretClient(new Uri(keyVaultUrl), cred).GetSecret(certificateWithPolicy.Name);
 
                 byte[] privateKeyBytes = Convert.FromBase64String(secret.Value);
 

@@ -15,6 +15,7 @@
           "WorkflowsEndpoint": "https://resource-provider.genevaautomation.ms/icm/services",
           "CertificateKeyVaultUri": "https://capps-int-test-keyvault.vault.azure.net/",
           "CertificateKeyVaultSecretName": "IcmWorkflowCert",
+          "ManagedIdentityClientId": "5cc4f734-a234-443c-9092-04e06a2b80c2",
           "UseFunctionApp": false,
           "FunctionAppEndpoint": "",
           "FunctionAppKey": null,
