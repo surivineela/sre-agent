@@ -16,3 +16,6 @@ configuration:
     role: Maintain
   - team: k4appscore
     role: Write
+  - team: srea-devs
+    role: Write
+  
