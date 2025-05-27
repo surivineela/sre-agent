@@ -1,4 +1,7 @@
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+
 namespace Agent.Core.Models.Api.v1;
+
 public enum ReasoningMessageRoleEnum
 {
     User = 0,

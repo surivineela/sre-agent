@@ -109,22 +109,12 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         if (_useAgentFramwork)
         {
             AgentContext agentContext = await _repository.GetAgentContextAsync(agentContextId: threadMessage.AgentContextId, threadId: threadMessage.ThreadId);
-            AgentChatHistory agentChatHistory = await _repository.GetAgentChatHistoryAsync(threadMessage.AgentContextId);
-            
+                        
             // we don't need to sink user message if the message is the start message
             var thread = await _repository.GetThreadAsync(threadMessage.ThreadId);
-            ReasoningMessage? reasoningMessage = null;
             if (threadMessage?.MessageId != thread?.StartMessage?.Id)
             {
                 await _sinkService.SinkUserMessageAsync(threadMessage);
-                reasoningMessage = new ReasoningMessage(
-                    Id: Guid.NewGuid(),
-                    AgentContextId: threadMessage.AgentContextId,
-                    Role: ReasoningMessageRoleEnum.User,
-                    SerializedChatMessage: JsonSerializer.Serialize(new ChatMessage(ChatRole.User, threadMessage.Message)));
-                await _repository.CreateReasoningMessageAsync(reasoningMessage);
-
-                await _repository.AddReasoningMessagesToChatHistoryAsync(agentChatHistory, reasoningMessage);
             }
 
             await _reasoningLoopManager.AppendNewMessageAsync(

@@ -26,7 +26,7 @@ public class ReasoningLoopManager : IReasoningLoopManager
         var threadId = context.ThreadId;
         if (!_reasoningLoops.ContainsKey(threadId))
         {
-            _reasoningLoops[threadId] = _reasoningLoopFactory.Create(context);
+            _reasoningLoops[threadId] = await _reasoningLoopFactory.Create(context);
         }
 
         var loop = _reasoningLoops[threadId];

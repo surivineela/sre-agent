@@ -19,6 +19,7 @@ using Agent.Plugins;
 using Agent.Runtime.Services;
 using Microsoft.Extensions.Logging;
 using System.Threading;
+using Agent.Core.Configuration;
 
 namespace Agent.Runtime.Services;
 public class ThreadManagementService(
@@ -26,7 +27,8 @@ public class ThreadManagementService(
     IAgentsFactory agentsFactory,
     IThreadRepository repository,
     IChatClient chatClient,
-    ILogger<ThreadManagementService> logger)
+    ILogger<ThreadManagementService> logger,
+    CoreSettings coreSettings)
 {
     public async Task<Thread> CreateUserInitiatedThread(CreateThreadRequest request)
     {
@@ -59,29 +61,42 @@ public class ThreadManagementService(
             WaitInformation: null,
             ApprovalInformation: null
         );
-        var systemPromptReasoningMessage = new ReasoningMessage(
-        Id: Guid.NewGuid(),
-            AgentContextId: agentContext.Id,
-            Role: ReasoningMessageRoleEnum.System,
-            SerializedChatMessage: JsonSerializer.Serialize(new ChatMessage(ChatRole.System, agentsFactory.GetMetaAgentSystemPrompt()))
-        );
 
-        var startReasoningMessage = new ReasoningMessage(
+        var reasoningMessages = new List<ReasoningMessage>();
+
+        // when using new agent framework, the chat history is fully handled by reasoning loop
+        if (!coreSettings.UseAgentFramework)
+        {
+            var systemPromptReasoningMessage = new ReasoningMessage(
             Id: Guid.NewGuid(),
-            AgentContextId: agentContext.Id,
-            Role: ReasoningMessageRoleEnum.User,
-            SerializedChatMessage: JsonSerializer.Serialize(new ChatMessage(ChatRole.User, message.Text))
-        );
+                AgentContextId: agentContext.Id,
+                Role: ReasoningMessageRoleEnum.System,
+                SerializedChatMessage: JsonSerializer.Serialize(new ChatMessage(ChatRole.System, agentsFactory.GetMetaAgentSystemPrompt()))
+            );
+
+            var startReasoningMessage = new ReasoningMessage(
+                Id: Guid.NewGuid(),
+                AgentContextId: agentContext.Id,
+                Role: ReasoningMessageRoleEnum.User,
+                SerializedChatMessage: JsonSerializer.Serialize(new ChatMessage(ChatRole.User, message.Text))
+            );
+            reasoningMessages.Add(systemPromptReasoningMessage);
+            reasoningMessages.Add(startReasoningMessage);
+        }
 
         var agentChatHistory = new AgentChatHistory(
             AgentContextId: agentContext.Id,
-            ReasoningMessageIds: new List<Guid> { systemPromptReasoningMessage.Id, startReasoningMessage.Id });
+            ReasoningMessageIds: reasoningMessages.Select(r => r.Id).ToList());
 
         thread = await repository.CreateThreadAsync(thread);
         message = await repository.AddMessageAsync(thread.Id, message);
         agentContext = await repository.CreateAgentContextAsync(agentContext);
-        systemPromptReasoningMessage = await repository.CreateReasoningMessageAsync(systemPromptReasoningMessage);
-        startReasoningMessage = await repository.CreateReasoningMessageAsync(startReasoningMessage);
+        
+        foreach (var reasoningMessage in reasoningMessages)
+        {
+            await repository.CreateReasoningMessageAsync(reasoningMessage);
+        }
+
         agentChatHistory = await repository.CreateAgentChatHistoryAsync(agentChatHistory);
 
         var threadContext = new ThreadContext(thread.Id, AgentTypeEnum.Meta);

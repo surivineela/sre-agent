@@ -181,6 +181,7 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
         .AddTransient<IncidentPluginDefinition>()
         .AddTransient<FunctionAppExecutionFailuresPluginDefinition>()
         .AddTransient<FunctionAppConfigurationChecksPluginDefinition>()
+        .AddTransient<UserInteractionPluginDefinition>()
 
         .AddTransient<IMetaAgentContainerAppsRemediationPlugin, ContainerAppsRemediationPlugin>()
         .AddTransient<IMetaAgentManagedIdentityMigrationPlugin, ManagedIdentityMigrationPlugin>()

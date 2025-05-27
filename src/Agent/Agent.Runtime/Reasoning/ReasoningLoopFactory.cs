@@ -9,7 +9,7 @@ namespace Agent.Runtime.Reasoning;
 
 public interface IReasoningLoopFactory
 {
-    ReasoningLoop Create(AgentContext context);
+    Task<ReasoningLoop> Create(AgentContext context);
 }
 
 public class ReasoningLoopFactory : IReasoningLoopFactory
@@ -40,17 +40,21 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         _toolFactory = toolFactory;
     }
 
-    public ReasoningLoop Create(AgentContext context)
+    public async Task<ReasoningLoop> Create(AgentContext context)
     {
+        var agent = _agentFactory.GetAgent(context.CurrentAgent ?? "meta_agent");
         // Create and return a new instance of ReasoningLoop
-        return new ReasoningLoop(
+        var loop = new ReasoningLoop(
             _loggerFactory.CreateLogger<ReasoningLoop>(),
             _loggerFactory,
             _chatClient,
             _outboundCommunicationService,
-            _agentFactory.GetAgent("meta_agent"),
+            agent,
             _threadRepository,
             context,
             _toolFactory);
+
+        await loop.LoadChatHistoryAsync();
+        return loop;
     }
 }

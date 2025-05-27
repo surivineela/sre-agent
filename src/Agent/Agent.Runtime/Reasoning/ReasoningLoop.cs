@@ -1,6 +1,8 @@
 using System.Reflection;
+using System.Text.Json;
 using System.Threading.Channels;
 using Agent.Core.Attributes;
+using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
@@ -18,14 +20,14 @@ public class ReasoningLoop
     private readonly ILoggerFactory _loggerFactory;
     private readonly IChatClient _chatClient;
     private readonly IAgentOutboundCommunicationService _outboundCommunicationService;
-    private Agent<AgentContext> _currentAgent;
     private AgentContext _context;
     private readonly IThreadRepository _threadRepository;
-
-    private readonly List<ChatMessage> _chatHistory;
     private readonly Channel<ChatMessage> _msgCh;
     private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
     private readonly IToolFactory _toolFactory;
+
+    private List<ChatMessage>? _chatHistory;
+    private Agent<AgentContext> _currentAgent;
 
     public ReasoningLoop(ILogger<ReasoningLoop> logger,
         ILoggerFactory loggerFactory,
@@ -40,8 +42,6 @@ public class ReasoningLoop
         _loggerFactory = loggerFactory;
         _chatClient = chatClient;
         _outboundCommunicationService = outboundCommunicationService;
-        _currentAgent = startingAgent;
-        _chatHistory = new List<ChatMessage>();
         _msgCh = Channel.CreateUnbounded<ChatMessage>(new UnboundedChannelOptions
         {
             SingleReader = true,
@@ -50,6 +50,7 @@ public class ReasoningLoop
         _threadRepository = threadRepository;
         _context = context;
         _toolFactory = toolFactory;
+        _currentAgent = startingAgent;
     }
 
     public async Task AppendNewMessage(ChatMessage msg, CancellationToken cancellationToken = default)
@@ -67,9 +68,22 @@ public class ReasoningLoop
         }
     }
 
-    private AIFunction GetAIFunctionWithThreadId(string functionName, Guid threadId)
+    public async Task LoadChatHistoryAsync()
     {
-        return _toolFactory.FindAIFunction(functionName, threadId);
+        if (_chatHistory != null)
+        {
+            return;
+        }
+
+        var agentChatHistory = await _threadRepository.GetAgentChatHistoryAsync(_context.Id);
+        if (agentChatHistory == null)
+        {
+            // should never happen
+            _chatHistory = new List<ChatMessage>();
+        }
+
+        var reasoningMessages = await agentChatHistory!.GetReasoningMessagesAsync(_threadRepository);
+        _chatHistory = reasoningMessages.GetChatMessages();
     }
 
     private async Task RunAsync(CancellationToken cancellationToken)
@@ -79,19 +93,23 @@ public class ReasoningLoop
             return;
         }
 
+        AgentChatHistory agentChatHistory = await _threadRepository.GetAgentChatHistoryAsync(_context.Id);
+
+        // TODO: handle imcompleted function calls before starting new reasoning loop
+        // This may happen if the agent restart/crash in the middle
         while (_msgCh.Reader.TryRead(out var msg))
         {
             try
             {
                 _logger.LogInternalInformation("Received new message. Running reasoning loop...");
-                _chatHistory.Add(msg);
+                await PersistReasoningMessage(agentChatHistory, msg);
 
                 // The reasoning loop starts here
                 while (true)
                 {
                     var output = await Runner.RunAsync(
                         startingAgent: _currentAgent,
-                        input: _chatHistory,
+                        input: _chatHistory!,
                         config: new RunConfig
                         {
                             ChatClient = _chatClient,
@@ -100,8 +118,12 @@ public class ReasoningLoop
                         context: _context,
                         cancellationToken: cancellationToken
                     );
-                    _chatHistory.AddRange(output.NewItems);
+
+                    await PersistReasoningMessage(agentChatHistory, output.NewItems);
                     _currentAgent = output.LastAgent;
+
+                    _context = _context with { CurrentAgent = _currentAgent.Name };
+                    _context = await _threadRepository.UpdateAgentContextAsync(_context);
 
                     // Check if there are any manual tool calls (Approval)
                     if (output.ManualToolCalls != null && output.ManualToolCalls.Count > 0)
@@ -118,14 +140,17 @@ public class ReasoningLoop
                             {
                                 var functionResult = await GetAIFunctionWithThreadId(toolCall.Tool!.Name, _context.ThreadId).InvokeAsync(toolCall.FunctionCall.Arguments);
                                 var result = new FunctionResultContent(toolCall.FunctionCall.CallId, functionResult);
-                                _chatHistory.Add(new ChatMessage(ChatRole.Tool, [result]));
+                                var functionCallMessage = new ChatMessage(ChatRole.Tool, [result]);
+                                await PersistReasoningMessage(agentChatHistory, functionCallMessage);
                             }
                             else  // ToolApprovalStatus.Denied
                             {
                                 var result = new FunctionResultContent(toolCall.FunctionCall.CallId, "denied");
-                                _chatHistory.Add(new ChatMessage(ChatRole.Tool, [result]));
+                                var functionCallMessage = new ChatMessage(ChatRole.Tool, [result]);
+                                await PersistReasoningMessage(agentChatHistory, functionCallMessage);
+
                                 var denyMsg = new ChatMessage(ChatRole.Assistant, "The approval request of this action got denied.");
-                                _chatHistory.Add(denyMsg);
+                                await PersistReasoningMessage(agentChatHistory, denyMsg);
                                 await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context.ThreadId, string.Empty, denyMsg);
                                 break;
                             }
@@ -139,7 +164,7 @@ public class ReasoningLoop
                     }
                 }
 
-                _logger.LogInternalInformation("Responded to user");
+                _logger.LogInternalInformation("Reasoning loop completed successfully.");
             }
             catch (Exception ex)
             {
@@ -230,5 +255,32 @@ public class ReasoningLoop
                 ApprovalStatus = ToolApprovalStatus.Pending,
             };
         }
+    }
+
+    private AIFunction GetAIFunctionWithThreadId(string functionName, Guid threadId)
+    {
+        return _toolFactory.FindAIFunction(functionName, threadId);
+    }
+
+    private async Task PersistReasoningMessage(AgentChatHistory agentChatHistory, ChatMessage chatMessage)
+    {
+        _chatHistory!.Add(chatMessage);
+        var reasoningMessage = chatMessage.GetReasoningMessage(_context.Id);
+        await _threadRepository.CreateReasoningMessageAsync(reasoningMessage);
+
+        await _threadRepository.AddReasoningMessagesToChatHistoryAsync(agentChatHistory, reasoningMessage);
+    }
+    
+    private async Task PersistReasoningMessage(AgentChatHistory agentChatHistory, IEnumerable<ChatMessage> chatMessage)
+    {
+        _chatHistory!.AddRange(chatMessage);
+
+        var reasoningMessages = chatMessage.Select(msg => msg.GetReasoningMessage(_context.Id));
+        foreach (var reasoningMessage in reasoningMessages)
+        {
+            await _threadRepository.CreateReasoningMessageAsync(reasoningMessage);
+        }   
+        
+        await _threadRepository.AddReasoningMessagesToChatHistoryAsync(agentChatHistory, reasoningMessages);
     }
 }
