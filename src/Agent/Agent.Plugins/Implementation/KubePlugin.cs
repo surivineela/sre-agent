@@ -438,10 +438,16 @@ namespace Agent.Plugins
         }
 
         // Scale a deployment in a namespace to the specified replica count
-        public async Task<string> ScaleDeploymentAsync(string resourceId, string _namespace, string deployment, int replicaCount)
+        public async Task<string> ScaleDeploymentAsync(string resourceId, string _namespace, string deployment, int replicaCount, string agentmode)
         {
             try
             {
+                if (agentmode == ActionMode.ReadOnly.ToString())
+                {
+                    return $"kubectl -n <>{_namespace}> scale deployment {deployment} --replicas={replicaCount}";
+                }
+
+
                 if (replicaCount < 0)
                 {
                     return "Replica count must be a non-negative integer";
@@ -1576,12 +1582,12 @@ namespace Agent.Plugins
                                 min by (pod) (
                                     (
                                         kube_node_status_allocatable{{resource=""memory""}} * on (node) group_right kube_pod_info{{pod=~""{podFilter}"",namespace=""{_namespace}""}}
-                                    )   
+                                    )
                                     or
                                     (
                                         kube_pod_container_resource_limits{{pod=~""{podFilter}"",namespace=""{_namespace}"", resource=""memory""}}
                                     )
-                                ) 
+                                )
                             )
                         )"
                     };
@@ -1596,12 +1602,12 @@ namespace Agent.Plugins
                                 min by (pod) (
                                     (
                                         kube_node_status_allocatable{{resource=""cpu""}} * on (node) group_right kube_pod_info{{pod=~""{podFilter}"",namespace=""{_namespace}""}}
-                                    )   
+                                    )
                                     or
                                     (
                                         kube_pod_container_resource_limits{{pod=~""{podFilter}"",namespace=""{_namespace}"", resource=""cpu""}}
                                     )
-                                ) 
+                                )
                             )
                         )"
                     };

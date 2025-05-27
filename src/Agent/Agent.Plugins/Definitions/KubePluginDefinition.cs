@@ -5,6 +5,7 @@
 using System.ComponentModel;
 using Agent.Core.Attributes;
 using Agent.Framework;
+using Microsoft.OData.UriParser;
 using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins
@@ -79,13 +80,15 @@ Used whenever user wants to scale a deployment, it can also be used by scale pod
 eg: scale the 'nginx-deployment' in the 'default' namespace to 3 replicas.
 If user didn't specify namespace in the context, try to use 'default' namespace")]
         [RequiresApproval("Requires approval to scale a deployment.", useOboToken: false)]
+        [WriteAction(runInReadOnlyMode: true)]
         public async Task<string> ScaleDeploymentAsync(
             [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
               [Description($"Kubernetes namespace, e.g. 'default', 'kube-system'")] string _namespace,
              [Description($"Name of the Kubernetes deployment, e.g. 'nginx', 'backend'")] string deploymentName,
-             [Description($"Number of replicas to scale to, e.g. 3")] int replicas)
+             [Description($"Number of replicas to scale to, e.g. 3")] int replicas,
+             String agentmode)
         {
-            return await _kubePlugin.ScaleDeploymentAsync(AKSClusterResourceId, _namespace, deploymentName, replicas);
+            return await _kubePlugin.ScaleDeploymentAsync(AKSClusterResourceId, _namespace, deploymentName, replicas, agentmode);
         }
 
         [KernelFunction("get_kube_pod_logs")]
@@ -351,6 +354,7 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
         - Always specify the namespace you care about: 'kubectl get pods -n default'
         """)]
         [RequiresApproval("Requires approval to execute write command.", useOboToken: false)]
+        [WriteAction]
         public async Task<string> RunKubectlWriteCommandAsync(
              [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
              [Description($"Complete kubectl get command string, e.g.: 'kubectl get deployments -n production -o wide'")] string command)

@@ -102,6 +102,36 @@ public class OrchestrationAgent
 
         await RecordActionIfNeeded(functionCall, ActionStatus.Pending);
 
+        // Check for write operations and add dryrun=true parameter
+        var WriteActionActivityInput = new WriteActionActivityInput()
+        {
+            ToolSignatures = ToolSignatures,
+            FunctionCall = functionCall,
+            ThreadId = threadId,
+            OrchestrationId = _taskOrchestrationContext.InstanceId,
+            ActionId = CurrentActionId,
+        };
+
+        await RecordStateChange(ReasoningState.RunningFunctionCall, $"Checking if function is a write operation: {functionCall.Name}");
+
+        var Result = await _taskOrchestrationContext.CallActivityAsync<WriteActionActivityOutput>(
+            new TaskName(nameof(WriteActionActivity)),
+            WriteActionActivityInput);
+
+        if (Result.NeedSkip)
+        {
+            log.LogInternalInformation("[{ThreadId}] Function {FunctionName} is write action and need to skip.", threadId, functionCall.Name);
+            ChatHistory.Add(new ChatMessage(ChatRole.System, Result.Prompt));
+            return;
+        }
+
+        if (Result.ModifiedFunctionCall != null && Result.IsWriteAction)
+        {
+            log.LogInternalInformation("[{ThreadId}] Function {FunctionName} is write action and need run in read-only mode.", threadId, functionCall.Name);
+            ChatHistory.Add(new ChatMessage(ChatRole.System, Result.Prompt));
+            functionCall = Result.ModifiedFunctionCall;
+        }
+
         var checkApprovalActivityInput = new CheckApprovalActivityInput()
         {
             ToolSignatures = ToolSignatures,

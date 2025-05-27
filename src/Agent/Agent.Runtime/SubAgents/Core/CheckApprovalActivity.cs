@@ -70,6 +70,16 @@ public class CheckApprovalActivity : TaskActivity<CheckApprovalActivityInput, Ch
                 };
             }
 
+            if (_actionSettings.Mode == ActionMode.ReadOnly)
+            {
+                _logger.LogInternalInformation("[{ThreadId}] approval is not required for tool {FunctionName} in read-only mode", input.ThreadId, targetFunction);
+
+                return new CheckApprovalActivityOutput()
+                {
+                    ApprovalStatus = ToolApprovalStatus.NotRequired,
+                };
+            }
+
             if (_actionSettings.Mode == ActionMode.Agent)
             {
                 _logger.LogInternalInformation("[{ThreadId}] approval is auto approved for tool {FunctionName}", input.ThreadId, targetFunction);

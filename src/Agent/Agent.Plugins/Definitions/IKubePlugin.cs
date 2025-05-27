@@ -18,7 +18,7 @@ namespace Agent.Plugins
         Task<string> GetCpuMetricsForWorkloadAsync(string AKSClusterResourceId, string _namespace, string workloadType, string workloadName, string timeRange = "5m");
         Task<string> GetMemoryMetricsForWorkloadAsync(string AKSClusterResourceId, string _namespace, string workloadType, string workloadName, string timeRange = "5m");
         Task<string> RolloutRestartDeploymentAsync(string AKSClusterResourceId, string _namespace, string name);
-        Task<string> ScaleDeploymentAsync(string AKSClusterResourceId, string _namespace, string name, int replicas);
+        Task<string> ScaleDeploymentAsync(string AKSClusterResourceId, string _namespace, string name, int replicas, string agentmode);
         Task<string> ScaleStatefulSetAsync(string AKSClusterResourceId, string _namespace, string name, int replicas);
         Task<string> GetRecentlyUpdatedWorkloadsAsync(string AKSClusterResourceId, string _namespace, int minutesAgo);
         Task<string> ListCRDsAsync(string AKSClusterResourceId);

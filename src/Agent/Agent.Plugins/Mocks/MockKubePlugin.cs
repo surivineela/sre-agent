@@ -478,7 +478,7 @@ public class MockKubePlugin : IKubePlugin
         throw new NotImplementedException();
     }
 
-    public Task<string> ScaleDeploymentAsync(string resourceId, string _namespace, string name, int replicas) // Parameter name matches interface
+    public Task<string> ScaleDeploymentAsync(string resourceId, string _namespace, string name, int replicas, string agentMode) // Parameter name matches interface
     {
         Console.WriteLine($"WARN: MockKubePlugin: ScaleDeploymentAsync NOT IMPLEMENTED");
         throw new NotImplementedException();

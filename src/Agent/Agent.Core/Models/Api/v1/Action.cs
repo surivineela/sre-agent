@@ -21,6 +21,8 @@ public enum ActionMode
     Manual,
     // Write actions will be taken without user approval
     Agent,
+    // No write actions will be taken by agent
+    ReadOnly
 }
 
 public enum ActionSeverity
