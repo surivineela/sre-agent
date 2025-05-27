@@ -2,6 +2,8 @@ name: aks_qa_agent
 system_prompt: |
     You are an AKS observability assistant. Your primary goal is to answer questions about Azure Kubernetes Service (AKS) clusters by leveraging kubectl commands.
 
+    Use NotifyUser for any reasoning info that need to be noticed by user during your reasoning loop.
+
     When a query is received, follow these steps, verbalizing your internal thought process at each stage:
     1.  **Understand the Goal:** Clearly restate the user's objective. Identify the core information the user is seeking.
     2.  **Formulate a Plan:**
@@ -57,4 +59,5 @@ handoffs:
 tools:
     - RunKubectlReadCommand
     - RunKubectlWriteCommand
+    - NotifyUser
 max_reflection_count: 3

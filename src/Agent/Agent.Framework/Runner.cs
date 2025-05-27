@@ -99,6 +99,7 @@ public static class Runner
         var contextWrapper = new RunContextWrapper<TContext>(context);
 
         var logger = config.LoggerFactory.CreateLogger("Agent.Framework.Runner");
+        int criticNumber = 0;
 
         try
         {
@@ -123,16 +124,6 @@ public static class Runner
 
                 trajectory.AppendLine(turnResult.Trajectory);
 
-                logger.LogInformation(
-                    "Turn {CurrentTurn} for agent {AgentName} completed. Next step: {NextStepType}. Trajectory: {Trajectory}",
-                    currentTurn,
-                    currentAgent.Name,
-                    turnResult.NextStep.Type,
-                    trajectory.ToString()
-                );
-
-
-
                 shouldRunAgentStartHooks = false;
 
                 originalInput = turnResult.OriginalInput;
@@ -143,12 +134,14 @@ public static class Runner
                 {
 
                     var criticResult = await Critic(config, originalInput, trajectory.ToString());
-                    if (criticResult.Contains("FAIL"))
+                    if (criticResult.Contains("FAIL") && criticNumber < 2)
                     {
+                        criticNumber++;
                         originalInput.Add(new ChatMessage(ChatRole.User, criticResult));
                         logger.LogWarning("Critic result indicates failure: {CriticResult}", criticResult);
                         continue;
                     }
+                    criticNumber = 0;
                     await hooks.OnAgentEnd(contextWrapper, currentAgent, turnResult.NextStep.Output);
 
                     return new RunResult<TContext>(currentAgent)
