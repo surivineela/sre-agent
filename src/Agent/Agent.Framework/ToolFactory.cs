@@ -20,13 +20,21 @@ public sealed class DeferredToolFunction
         _name = name;
     }
 
-    public AIFunction ToolFunction
+    public AIFunction GetToolFunction(Guid? threadId = null)
     {
-        get
+        var instance = _sp.GetRequiredService(_pluginType);
+
+        if (threadId is not null)
         {
-            var instance = _sp.GetRequiredService(_pluginType);
-            return AIFunctionFactory.Create(_methodInfo, instance, name: _name);
+            // If the plugin type has a ThreadId field, set it to the provided threadId.
+            var threadIdProperty = _pluginType.GetProperty("ThreadId", BindingFlags.Instance | BindingFlags.Public);
+            if (threadIdProperty is not null && threadIdProperty.PropertyType == typeof(Guid?))
+            {
+                threadIdProperty.SetValue(instance, threadId);
+            }
         }
+
+        return AIFunctionFactory.Create(_methodInfo, instance, name: _name);
     }
 }
 
@@ -99,13 +107,7 @@ public class ToolFactory : IToolFactory
 
     public AIFunction FindAIFunction(string name)
     {
-        if (_tools.TryGetValue(name, out var function))
-        {
-            return function.ToolFunction;
-        }
-
-        _logger.LogError($"Function '{name}' not found.");
-        throw new KeyNotFoundException($"Function '{name}' not found.");
+        return DoFindAIFunction(name, null);
     }
 
     private bool RegisterAIFunction(string name, DeferredToolFunction function, BehaviorOnNameConflict onNameConflict)
@@ -141,7 +143,7 @@ public class ToolFactory : IToolFactory
         DeferredToolFunction? deferredToolFunction;
         if (_tools.TryGetValue(name, out deferredToolFunction))
         {
-            function = deferredToolFunction.ToolFunction;
+            function = deferredToolFunction.GetToolFunction();
             return true;
         }
 
@@ -153,5 +155,21 @@ public class ToolFactory : IToolFactory
     public bool HasAIFunction(string name)
     {
         return _tools.ContainsKey(name);
+    }
+
+    public AIFunction FindAIFunction(string name, Guid threadId)
+    {
+        return DoFindAIFunction(name, threadId);
+    }
+
+    private AIFunction DoFindAIFunction(string name, Guid? threadId = null)
+    {
+        if (_tools.TryGetValue(name, out var function))
+        {
+            return function.GetToolFunction(threadId);
+        }
+
+        _logger.LogError($"Function '{name}' not found.");
+        throw new KeyNotFoundException($"Function '{name}' not found.");
     }
 }

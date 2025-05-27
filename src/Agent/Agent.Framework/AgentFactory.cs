@@ -30,9 +30,9 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
     private readonly ILogger<AgentFactory<TContext>> _logger;
     private readonly IToolFactory _toolFactory;
 
-    public AgentFactory(ILogger<AgentFactory<TContext>> logger, IToolFactory toolsRepository)
+    public AgentFactory(ILogger<AgentFactory<TContext>> logger, IToolFactory toolFactory)
     {
-        _toolFactory = toolsRepository;
+        _toolFactory = toolFactory;
         _logger = logger;
         _agents = new Dictionary<string, Agent<TContext>>();
         _agentDescriptors = new Dictionary<string, IAgentDescriptor>();
@@ -88,7 +88,8 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
             Instructions = agentDescriptor.Instructions,
             HandoffDescription = agentDescriptor.HandoffDescription,
             Handoffs = [], // Will be populated later to avoid circular references
-            AutoTools = [], // Will be created later when GetAgent is called
+            AutoTools = [],
+            ManualTools = agentDescriptor.Tools.Select(h => _toolFactory.FindAIFunction(h)).ToList(), // Note the tools will be created again with ThreadId in the reasoning loop
         };
 
         _agents[agentDescriptor.Name] = agent;
@@ -215,17 +216,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
             throw new KeyNotFoundException($"Agent {name} not found.");
         }
 
-        return new Agent<TContext>(name)
-        {
-            Instructions = agent.Instructions,
-            HandoffDescription = agent.HandoffDescription,
-            ManualTools = _agentDescriptors[name].Tools
-                .Select(_toolFactory.FindAIFunction)
-                .ToList(),
-            AutoTools = agent.AutoTools,
-            Handoffs = agent.Handoffs,
-            Hooks = agent.Hooks
-        };
+        return agent;
     }
 }
 

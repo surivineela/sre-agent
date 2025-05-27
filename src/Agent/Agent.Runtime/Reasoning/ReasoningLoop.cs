@@ -25,6 +25,7 @@ public class ReasoningLoop
     private readonly List<ChatMessage> _chatHistory;
     private readonly Channel<ChatMessage> _msgCh;
     private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
+    private readonly IToolFactory _toolFactory;
 
     public ReasoningLoop(ILogger<ReasoningLoop> logger,
         ILoggerFactory loggerFactory,
@@ -32,7 +33,8 @@ public class ReasoningLoop
         IAgentOutboundCommunicationService outboundCommunicationService,
         Agent<AgentContext> startingAgent,
         IThreadRepository threadRepository,
-        AgentContext context)
+        AgentContext context,
+        IToolFactory toolFactory)
     {
         _logger = logger;
         _loggerFactory = loggerFactory;
@@ -47,6 +49,7 @@ public class ReasoningLoop
         });
         _threadRepository = threadRepository;
         _context = context;
+        _toolFactory = toolFactory;
     }
 
     public async Task AppendNewMessage(ChatMessage msg, CancellationToken cancellationToken = default)
@@ -62,6 +65,11 @@ public class ReasoningLoop
         {
             throw new InvalidOperationException("Channel is closed.");
         }
+    }
+
+    private AIFunction GetAIFunctionWithThreadId(string functionName, Guid threadId)
+    {
+        return _toolFactory.FindAIFunction(functionName, threadId);
     }
 
     private async Task RunAsync(CancellationToken cancellationToken)
@@ -108,7 +116,7 @@ public class ReasoningLoop
                             }
                             else if (checkResult.ApprovalStatus == ToolApprovalStatus.NotRequired || checkResult.ApprovalStatus == ToolApprovalStatus.Approved)
                             {
-                                var functionResult = await toolCall.Tool!.InvokeAsync(toolCall.FunctionCall.Arguments);
+                                var functionResult = await GetAIFunctionWithThreadId(toolCall.Tool!.Name, _context.ThreadId).InvokeAsync(toolCall.FunctionCall.Arguments);
                                 var result = new FunctionResultContent(toolCall.FunctionCall.CallId, functionResult);
                                 _chatHistory.Add(new ChatMessage(ChatRole.Tool, [result]));
                             }

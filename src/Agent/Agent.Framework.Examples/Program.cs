@@ -125,6 +125,7 @@ class Program
             .AddSingleton<IKubePlugin, KubePlugin>()
             .AddTransient<GraphDBPluginDefinition>()
             .AddTransient<ContainerAppPluginDefinition>()
+            .AddTransient<KubePluginDefinition>()
             .AddSingleton<ArmHelper>();
 
         builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
@@ -202,11 +203,11 @@ class Program
     {
         var host = builder.Build();
         var graphDBPlugin = host.Services.GetRequiredService<IGraphDBPlugin>();
-        var graphDBDefinition = new GraphDBPluginDefinition(graphDBPlugin);
+        // var graphDBDefinition = new GraphDBPluginDefinition(graphDBPlugin);
         var containerAppPlugin = host.Services.GetRequiredService<IContainerAppPlugin>();
-        var containerAppDefinition = new ContainerAppPluginDefinition(containerAppPlugin);
+        // var containerAppDefinition = new ContainerAppPluginDefinition(containerAppPlugin);
         var kubePlugin = host.Services.GetRequiredService<IKubePlugin>();
-        var kubePluginDefinition = new KubePluginDefinition(kubePlugin);
+        // var kubePluginDefinition = new KubePluginDefinition(kubePlugin);
 
         var chatClient = host.Services.GetRequiredService<IChatClient>();
 
@@ -214,7 +215,7 @@ class Program
 
         var agentFactory = new AgentFactory<CustomContext>(
             logger: host.Services.GetRequiredService<ILogger<AgentFactory<CustomContext>>>(),
-            toolsRepository: toolsRepository
+            toolFactory: toolsRepository
         );
 
         // Load agents from YAML files in the agents folder

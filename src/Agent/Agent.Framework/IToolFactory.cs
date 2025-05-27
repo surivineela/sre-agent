@@ -30,6 +30,14 @@ public interface IToolFactory
     /// <exception cref="KeyNotFoundException">Thrown when the function with the specified name is not found.</exception>
     public AIFunction FindAIFunction(string name);
 
+    /// <summary>
+    /// Find an AI function by its name and set threadId if the ToolPlugin type has a public ThreadId property of type Guid?
+    /// </summary>
+    /// <param name="name"></param>
+    /// <returns></returns>
+    /// <exception cref="KeyNotFoundException">Thrown when the function with the specified name is not found.</exception>
+    public AIFunction FindAIFunction(string name, Guid threadId);
+
     public bool TryFindAIFunction(string name, out AIFunction? function);
 
     public bool HasAIFunction(string name);

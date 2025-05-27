@@ -19,6 +19,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
     private readonly IChatClient _chatClient;
     private readonly IAgentOutboundCommunicationService _outboundCommunicationService;
     private readonly IAgentFactory<AgentContext> _agentFactory;
+    private readonly IToolFactory _toolFactory;
     private readonly IThreadRepository _threadRepository;
 
     public ReasoningLoopFactory(
@@ -27,7 +28,8 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         IChatClient chatClient,
         IAgentOutboundCommunicationService outboundCommunicationService,
         IThreadRepository threadRepository,
-        IAgentFactory<AgentContext> agentFactory)
+        IAgentFactory<AgentContext> agentFactory,
+        IToolFactory toolFactory)
     {
         _logger = logger;
         _loggerFactory = loggerFactory;
@@ -35,6 +37,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         _outboundCommunicationService = outboundCommunicationService;
         _agentFactory = agentFactory;
         _threadRepository = threadRepository;
+        _toolFactory = toolFactory;
     }
 
     public ReasoningLoop Create(AgentContext context)
@@ -47,6 +50,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
             _outboundCommunicationService,
             _agentFactory.GetAgent("meta_agent"),
             _threadRepository,
-            context);
+            context,
+            _toolFactory);
     }
 }
