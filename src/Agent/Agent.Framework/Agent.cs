@@ -35,6 +35,8 @@ public class Agent<TContext> where TContext : class
 
     public IAgentHooks? Hooks { get; set; }
 
+    public int MaxReflectionCount { get; set; } = 0;
+
     public Agent(string name)
     {
         Name = name;

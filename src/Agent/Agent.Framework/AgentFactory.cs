@@ -17,6 +17,7 @@ public interface IAgentDescriptor
     public List<string> Handoffs { get; set; }
     public List<string> AutoTools { get; set; }
     public List<string> ManualTools { get; set; }
+    public int MaxReflectionCount { get; set; }
 }
 
 public interface IAgentFactory<TContext>
@@ -103,6 +104,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         {
             Instructions = agentDescriptor.Instructions,
             HandoffDescription = agentDescriptor.HandoffDescription,
+            MaxReflectionCount = agentDescriptor.MaxReflectionCount,
             Handoffs = [], // Will be populated later to avoid circular references
             AutoTools = agentDescriptor.AutoTools.Select(_toolFactory.FindAIFunction).ToList(),
             ManualTools = agentDescriptor.ManualTools.Select(_toolFactory.FindAIFunction).ToList(), // Note the tools will be created again with ThreadId in the reasoning loop
@@ -291,5 +293,7 @@ public class AgentDescriptorParser
 
         [YamlMember(Alias = "manual_tools")]
         public List<string> ManualTools { get; set; } = [];
+        [YamlMember(Alias = "max_reflection_count")]
+        public int MaxReflectionCount { get; set; } = 0;
     }
 }
