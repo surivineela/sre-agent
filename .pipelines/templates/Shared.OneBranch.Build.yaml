@@ -285,13 +285,6 @@ extends:
             includeNuGetOrg: false
             zipAfterPublish: false
 
-        - task: AzureKeyVault@2
-          inputs:
-            azureSubscription: 'SRE_AGENT_TESTING_SERVICE_CONNECTION'
-            KeyVaultName: 'sre-agent-keyvault'
-            SecretsFilter: '*'
-            RunAsPreJob: false
-
         # Add runtime test for Agent.Web
         # Commenting this out for now, since running this project depends on settings being present
         # (We want to know if something is broken before runtime)
