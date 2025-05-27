@@ -14,7 +14,11 @@ trigger:
     - main
 
 pr:
-  - main
+  autoCancel: true
+  drafts: false
+  branches:
+    include:
+      - "*"
 
 # global parameters are configured here and show up in AzDO UI in build queue time. Required for MSBuild and .NET.
 # learn more at https://aka.ms/obpipelines/parameters
