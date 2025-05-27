@@ -101,7 +101,7 @@ handoff_description: "Handoff to this agent when dealing with issues related to 
 handoffs:
   - container_apps_agent
 
-tools:
+manual_tools:
   - GetContainerAppInfo
   - ListRevisions
   - GetLatestRevision
