@@ -10,6 +10,12 @@ name: $(Date:yyyyMMdd)$(Rev:.r)
 
 trigger: none  # https://aka.ms/obpipelines/triggers
 
+pr:
+  autoCancel: true
+  branches:
+    include:
+    - main
+
 # global parameters are configured here and show up in AzDO UI in build queue time. Required for MSBuild and .NET.
 # learn more at https://aka.ms/obpipelines/parameters
 parameters:
