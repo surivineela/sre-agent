@@ -6,9 +6,13 @@ using System.ComponentModel;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using Agent.Core.Helpers;
+using Azure.Core;
+using Azure.Identity;
 using FirstPartyAgent.Core.Configuration;
+using FirstPartyAgent.Core.Extensions;
 using FirstPartyAgent.Core.Models;
 using FirstPartyAgent.Models;
+using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -87,6 +91,35 @@ namespace FirstPartyAgent.Core.Services
                         Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
                     };
                     _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_icmWorkflowSettings.UserToken}");
+                }
+                else if ((!string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateSubjectName) || !string.IsNullOrEmpty(_icmWorkflowSettings.CertificateKeyVaultSecretName))
+                        && (!string.IsNullOrWhiteSpace(KeyVaultConfigurationExtension.GetPlatformKeyVaultSettingFromEnvironment("KeyVaultUri"))
+                            || !string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateKeyVaultUri)))
+                {
+                    string certKvSecretName = !string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateSubjectName)
+                                             ? _icmWorkflowSettings.CertificateSubjectName
+                                             : _icmWorkflowSettings.CertificateKeyVaultSecretName;
+
+                    string keyVaultUri = !string.IsNullOrWhiteSpace(KeyVaultConfigurationExtension.GetPlatformKeyVaultSettingFromEnvironment("KeyVaultUri"))
+                                            ? KeyVaultConfigurationExtension.GetPlatformKeyVaultSettingFromEnvironment("KeyVaultUri")
+                                            : _icmWorkflowSettings.CertificateKeyVaultUri;
+
+                    string certMsi = KeyVaultConfigurationExtension.GetPlatformKeyVaultSettingFromEnvironment("Identity");
+                    if (string.IsNullOrWhiteSpace(KeyVaultConfigurationExtension.GetPlatformKeyVaultSettingFromEnvironment("KeyVaultUri")))
+                    {
+                        certMsi = _icmWorkflowSettings.ManagedIdentityClientId ?? string.Empty;
+                    }
+
+                    var certificate = CertLoader.LoadCertFromKeyVault(keyVaultUri, certKvSecretName, certMsi, null, _logger);
+
+                    var handler = new HttpClientHandler();
+                    handler.ClientCertificates.Add(certificate);
+                    _logger.LogInformation("Successfully loaded Cert from keyvault for ICMWorkflowClient.");
+                    _httpClient = new HttpClient(handler)
+                    {
+                        Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
+                    };
+
                 }
                 else if (!string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateKeyVaultUri) && !string.IsNullOrEmpty(_icmWorkflowSettings.CertificateKeyVaultSecretName))
                 {
