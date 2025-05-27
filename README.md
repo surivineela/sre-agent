@@ -1,5 +1,7 @@
 # SRE Agent
 
+[![Build Status](https://msazure.visualstudio.com/One/_apis/build/status%2FOneBranch%2FAAPT-Antares-OperationalAgent%2FSREAgent-Runtime%2FSREAgent-Runtime-PullRequest?repoName=serverless-paas-balam%2Fsreagent-runtime&branchName=main)](https://msazure.visualstudio.com/One/_build/latest?definitionId=420740&repoName=serverless-paas-balam%2Fsreagent-runtime&branchName=main)
+
 Azure SRE Agent is a unified agentic platform for monitoring and troubleshooting Azure applications and services.
 
 ![Component Diagram](docs/images/sre-components.svg)
