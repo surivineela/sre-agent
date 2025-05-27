@@ -8,6 +8,7 @@ namespace FirstPartyAgent.Models
     {
         None,
         ACA,
+        ControlPlane,
         MFP,
         GithubIssueTagger,
         ICMAgent,
