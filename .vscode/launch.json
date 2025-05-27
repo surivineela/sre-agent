@@ -5,31 +5,27 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Debug Agent.Web",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "publish Agent.Web",
-      "program": "${workspaceFolder}/out/publish/Agent.Web.dll",
-      "args": [],
-      "cwd": "${workspaceFolder}",
-      "stopAtEntry": false,
-      "serverReadyAction": {
-        "action": "openExternally",
-        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
-      },
-      "env": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
-        "ASPNETCORE_URLS": "https://localhost:7023;http://localhost:5000"
-      },
-      "sourceFileMap": {
-        "/Views": "${workspaceFolder}/Views"
-      }
+        "name": "Launch Agent.Web (HTTPS)",
+        "type": "coreclr",
+        "request": "launch",
+        "preLaunchTask": "build Agent.Web",
+        "program": "${workspaceFolder}/src/Agent/Agent.Web/bin/Debug/net9.0/Agent.Web.dll",
+        "args": [],
+        "cwd": "${workspaceFolder}/src/Agent/Agent.Web",
+        "stopAtEntry": false,
+        "env": {
+            "ASPNETCORE_ENVIRONMENT": "Development",
+            "ASPNETCORE_URLS": "https://localhost:7023"
+        },
+        "serverReadyAction": {
+            "action": "openExternally",
+            "pattern": "\\bNow listening on:\\s+(https?://\\S+)",
+            "uriFormat": "%s/static"
+        },
+        "sourceFileMap": {
+            "/Views": "${workspaceFolder}/Views"
+        },
+        "requireExactSource": true
     },
-    {
-      "name": "C#: Agent.Web Debug",
-      "type": "dotnet",
-      "request": "launch",
-      "projectPath": "${workspaceFolder}/src/Agent/Agent.Web/Agent.Web.csproj",
-    }
   ]
 }
