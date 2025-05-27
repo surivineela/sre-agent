@@ -3,47 +3,12 @@ import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { useLocation, useNavigate, useParams } from 'react-router';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
+import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { Thread } from '../../Common/Contracts/Azure/SreAgent';
 import { Guid } from '../../Common/Helpers/Guid';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { ActivitiesThreadHeaderResources } from '../../Strings/SREAgentResources';
 import { getLatestThread, noGapBetweenNewThreadsAndExistingThreads, processThreads } from '../Activities/Utility';
-
-const getThreads = async (skip: number, top = 20): Promise<Thread[]> => {
-    try {
-        const { data } = await axios.get(`../api/v1/threads?skip=${skip}&top=${top}&orderby=createdTimestamp+desc`, {
-            headers: getAgentHeaders(),
-        });
-        return data.value ?? [];
-    } catch {
-        return [];
-    }
-};
-
-const deleteThreadRequest = async (threadId: string) => {
-    return await axios.delete(`../api/v1/threads/${threadId}`, {
-        headers: getAgentHeaders(),
-    });
-};
-
-const pollLatestThreads = async (currentLatestThread?: Thread) => {
-    const latestThreads: Thread[] = [];
-
-    while (true) {
-        const threads = await getThreads(latestThreads.length, 10);
-        latestThreads.push(...threads);
-
-        if (threads.length === 0) {
-            break;
-        }
-
-        if (noGapBetweenNewThreadsAndExistingThreads(latestThreads, currentLatestThread)) {
-            break;
-        }
-    }
-
-    return latestThreads;
-};
 
 export const useActivities = () => {
     const intl = useIntl();
@@ -61,6 +26,7 @@ export const useActivities = () => {
     const canPollThread = useRef<boolean>(true);
     const latestThread = useRef<Thread>();
 
+    const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const proxy = useContext(AzPortalContext);
 
     const addThread = useCallback(
@@ -86,6 +52,42 @@ export const useActivities = () => {
         },
         [navigate, location]
     );
+
+    const getThreads = async (skip: number, top = 20): Promise<Thread[]> => {
+        try {
+            const { data } = await axios.get(`${sreAgentEndpoint}/api/v1/threads?skip=${skip}&top=${top}&orderby=createdTimestamp+desc`, {
+                headers: getAgentHeaders(),
+            });
+            return data.value ?? [];
+        } catch {
+            return [];
+        }
+    };
+
+    const deleteThreadRequest = async (threadId: string) => {
+        return await axios.delete(`${sreAgentEndpoint}/api/v1/threads/${threadId}`, {
+            headers: getAgentHeaders(),
+        });
+    };
+
+    const pollLatestThreads = async (currentLatestThread?: Thread) => {
+        const latestThreads: Thread[] = [];
+
+        while (true) {
+            const threads = await getThreads(latestThreads.length, 10);
+            latestThreads.push(...threads);
+
+            if (threads.length === 0) {
+                break;
+            }
+
+            if (noGapBetweenNewThreadsAndExistingThreads(latestThreads, currentLatestThread)) {
+                break;
+            }
+        }
+
+        return latestThreads;
+    };
 
     const deleteThread = useCallback(
         async (thread: Thread) => {

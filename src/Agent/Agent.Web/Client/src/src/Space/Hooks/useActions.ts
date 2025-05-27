@@ -1,15 +1,9 @@
 import axios from 'axios';
 import { useContext, useEffect, useMemo, useState } from 'react';
+import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { Action } from '../../Common/Contracts/Azure/SreAgent';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { AgentContext } from '../Activities/Activities.ReactView';
-
-const getActions = async (threadId: string): Promise<Action[]> => {
-    const { data } = await axios.get(`../api/v1/threads/${threadId}/actions`, {
-        headers: getAgentHeaders(),
-    });
-    return data.value ?? [];
-};
 
 export const useActions = (threadId?: string | null) => {
     const [actions, setActions] = useState<Action[]>([]);
@@ -17,8 +11,16 @@ export const useActions = (threadId?: string | null) => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isInitialized, setIsInitialized] = useState<boolean>(false);
     const { activeThreadId } = useContext(AgentContext);
+    const { sreAgentEndpoint } = useContext(EnvironmentContext);
 
     const currentThreadId = useMemo(() => threadId || activeThreadId, [threadId, activeThreadId]);
+
+    const getActions = async (threadId: string): Promise<Action[]> => {
+        const { data } = await axios.get(`${sreAgentEndpoint}/api/v1/threads/${threadId}/actions`, {
+            headers: getAgentHeaders(),
+        });
+        return data.value ?? [];
+    };
 
     useEffect(() => {
         let isSubscribed = true;

@@ -2,6 +2,7 @@ import axios from 'axios';
 import debounce from 'lodash/debounce';
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { Message, Thread, ThreadContext, ThreadOrchestrationReasoningState } from '../../Common/Contracts/Azure/SreAgent';
 import { Guid } from '../../Common/Helpers/Guid';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
@@ -10,74 +11,6 @@ import { AgentContext } from '../Activities/Activities.ReactView';
 import { noGapBetweenNewMessagesAndExistingMessages, processMessages } from '../Activities/Utility';
 import { MessageLoadingCounts, MessagePollingCounts, MessagePollingInterval } from '../Contracts/Activities';
 import { useAuthenticatedUserInfo } from './useAuthenticatedUserInfo';
-
-const getMessages = async (threadId: string, skip: number, top: number, signal?: AbortSignal): Promise<Message[]> => {
-    try {
-        const url = `../api/v1/threads/${threadId}/messages?skip=${skip}&top=${top}&orderby=timestamp+desc`;
-        const { data } = await axios.get(url, {
-            headers: getAgentHeaders(),
-            signal,
-        });
-        return data.value ?? [];
-    } catch {
-        // ToDo: handle error
-        return [];
-    }
-};
-
-const getThreadContext = async (threadId: string, signal: AbortSignal): Promise<ThreadContext | undefined> => {
-    const url = `../api/v1/threads/${threadId}/context`;
-    const { data } = await axios.get(url, {
-        headers: getAgentHeaders(),
-        signal,
-    });
-    return data ?? undefined;
-};
-
-const sendMessage = async (
-    userId: string,
-    userDisplayName: string,
-    threadId: string,
-    message: string,
-    signal?: AbortSignal
-): Promise<Message | undefined> => {
-    const url = `../api/v1/threads/${threadId}/messages`;
-    const response = await axios.post(
-        url,
-        {
-            text: message,
-            role: 'User',
-            displayName: userDisplayName,
-            userId: userId,
-        },
-        {
-            headers: getAgentHeaders(),
-            signal,
-        }
-    );
-
-    return response?.data;
-};
-
-const createThread = async (userId: string, userDisplayName: string, message: string, signal?: AbortSignal) => {
-    const url = `../api/v1/threads`;
-
-    const response = await axios.post(
-        url,
-        {
-            startMessage: {
-                text: message,
-                userId: userId,
-                displayName: userDisplayName,
-            },
-        },
-        {
-            headers: getAgentHeaders(),
-            signal,
-        }
-    );
-    return response?.data;
-};
 
 const composeTemporaryUserMessage = (userId: string, userDisplayName: string, message: string): Message => {
     return {
@@ -90,33 +23,6 @@ const composeTemporaryUserMessage = (userId: string, userDisplayName: string, me
         },
         text: message,
     };
-};
-
-/**
- * Polling 2 messages each time until polled messages includes the latest message in the current messages, which
- * indicates there is no message left out between the latest message sand polled messages.
- * @param latestMessage
- * @param threadId
- * @param interval
- * @returns
- */
-const pollResponses = async (messageCount: number, threadId: string, latestMessage?: Message, signal?: AbortSignal) => {
-    // lateste response sorted in descending order by timestamp
-    const responses: Message[] = [];
-
-    while (true) {
-        const messages: Message[] = await getMessages(threadId, responses.length, messageCount, signal);
-        if (messages.length < 0) {
-            break;
-        } else {
-            responses.push(...messages);
-            if (noGapBetweenNewMessagesAndExistingMessages(messages, latestMessage)) {
-                break;
-            }
-        }
-    }
-
-    return [...responses];
 };
 
 export const useChatBox = (addThread: (thread: Thread) => void, threadId?: string | null, _?: string | null) => {
@@ -138,6 +44,7 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
 
     const [enableIntersectObserver, setEnableIntersectObserver] = useState<boolean>(false);
 
+    const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const { threadsInitialized } = useContext(AgentContext);
 
     const {
@@ -240,6 +147,101 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
         });
 
         latestMessageRef.current = newMessages[0];
+    };
+
+    const getMessages = async (threadId: string, skip: number, top: number, signal?: AbortSignal): Promise<Message[]> => {
+        try {
+            const url = `${sreAgentEndpoint}/api/v1/threads/${threadId}/messages?skip=${skip}&top=${top}&orderby=timestamp+desc`;
+            const { data } = await axios.get(url, {
+                headers: getAgentHeaders(),
+                signal,
+            });
+            return data.value ?? [];
+        } catch {
+            // ToDo: handle error
+            return [];
+        }
+    };
+
+    const getThreadContext = async (threadId: string, signal: AbortSignal): Promise<ThreadContext | undefined> => {
+        const url = `${sreAgentEndpoint}/api/v1/threads/${threadId}/context`;
+        const { data } = await axios.get(url, {
+            headers: getAgentHeaders(),
+            signal,
+        });
+        return data ?? undefined;
+    };
+
+    const sendMessage = async (
+        userId: string,
+        userDisplayName: string,
+        threadId: string,
+        message: string,
+        signal?: AbortSignal
+    ): Promise<Message | undefined> => {
+        const url = `${sreAgentEndpoint}/api/v1/threads/${threadId}/messages`;
+        const response = await axios.post(
+            url,
+            {
+                text: message,
+                role: 'User',
+                displayName: userDisplayName,
+                userId: userId,
+            },
+            {
+                headers: getAgentHeaders(),
+                signal,
+            }
+        );
+
+        return response?.data;
+    };
+
+    const createThread = async (userId: string, userDisplayName: string, message: string, signal?: AbortSignal) => {
+        const url = `${sreAgentEndpoint}/api/v1/threads`;
+
+        const response = await axios.post(
+            url,
+            {
+                startMessage: {
+                    text: message,
+                    userId: userId,
+                    displayName: userDisplayName,
+                },
+            },
+            {
+                headers: getAgentHeaders(),
+                signal,
+            }
+        );
+        return response?.data;
+    };
+
+    /**
+     * Polling 2 messages each time until polled messages includes the latest message in the current messages, which
+     * indicates there is no message left out between the latest message sand polled messages.
+     * @param latestMessage
+     * @param threadId
+     * @param interval
+     * @returns
+     */
+    const pollResponses = async (messageCount: number, threadId: string, latestMessage?: Message, signal?: AbortSignal) => {
+        // latest response sorted in descending order by timestamp
+        const responses: Message[] = [];
+
+        while (true) {
+            const messages: Message[] = await getMessages(threadId, responses.length, messageCount, signal);
+            if (messages.length < 0) {
+                break;
+            } else {
+                responses.push(...messages);
+                if (noGapBetweenNewMessagesAndExistingMessages(messages, latestMessage)) {
+                    break;
+                }
+            }
+        }
+
+        return [...responses];
     };
 
     const waitUntilNewMessageIsAvailable = async (threadId: string, signal: AbortSignal, latestMessage?: Message) => {

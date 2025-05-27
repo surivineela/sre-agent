@@ -9,7 +9,7 @@ import { Body1Strong, Button, Image, mergeClasses, Text, tokens } from '@fluentu
 import { SquareDismissRegular } from '@fluentui/react-icons';
 import axios from 'axios';
 import mermaid from 'mermaid';
-import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useContext, useMemo, useState } from 'react';
 import {
     AiOutlineCheckCircle,
     AiOutlineClockCircle,
@@ -22,6 +22,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
+import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import DailyReport from '../../Common/Components/DailyReport';
 import IncidentAlert from '../../Common/Components/IncidentAlert';
 import InvestigationSummary from '../../Common/Components/InvestigationSummary';
@@ -703,6 +704,7 @@ const ChatMessage = ({
 }: IChatMessageProps) => {
     const chatStyles = useChatBoxStyles();
     const intl = useIntl();
+    const { sreAgentEndpoint } = useContext(EnvironmentContext);
 
     const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
     const [selectedFeedback, setSelectedFeedback] = useState<'positive' | 'negative'>();
@@ -866,7 +868,7 @@ const ChatMessage = ({
     };
 
     const sendApprovalDecision = async (threadId: string, approvalId: string, decision: ApprovalDecision) => {
-        const url = `../api/v1/approvals/${threadId}/${approvalId}/decision`;
+        const url = `${sreAgentEndpoint}/api/v1/approvals/${threadId}/${approvalId}/decision`;
 
         const response = await axios.post(
             url,
