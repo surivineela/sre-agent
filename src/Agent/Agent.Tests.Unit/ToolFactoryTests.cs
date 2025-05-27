@@ -1,11 +1,10 @@
 using System.ComponentModel;
 using System.Reflection;
 using Agent.Framework;
-using Microsoft.Extensions.AI;
+using Agent.Runtime.Reasoning;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
 namespace Agent.Tests.Unit
 {
@@ -91,7 +90,7 @@ namespace Agent.Tests.Unit
         public void Constructor_ShouldRegisterToolsFromAgentAssemblies()
         {
             // Act
-            var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider);
+            var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
 
             // Assert
             Assert.True(toolFactory.HasAIFunction("SayHello"));
@@ -100,24 +99,10 @@ namespace Agent.Tests.Unit
         }
 
         [Fact]
-        public void Constructor_WithNullLogger_ShouldThrowArgumentNullException()
-        {
-            // Act & Assert
-            Assert.Throws<ArgumentNullException>(() => new ToolFactory(null!, _serviceProvider));
-        }
-
-        [Fact]
-        public void Constructor_WithNullServiceProvider_ShouldThrowArgumentNullException()
-        {
-            // Act & Assert
-            Assert.Throws<ArgumentNullException>(() => new ToolFactory(_mockLogger.Object, null!));
-        }
-
-        [Fact]
         public void FindAIFunction_WithValidName_ShouldReturnFunction()
         {
             // Arrange
-            var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider);
+            var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
 
             // Act
             var function = toolFactory.FindAIFunction("SayHello");
@@ -131,7 +116,7 @@ namespace Agent.Tests.Unit
         public void FindAIFunction_WithInvalidName_ShouldThrowKeyNotFoundException()
         {
             // Arrange
-            var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider);
+            var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
 
             // Act & Assert
             Assert.Throws<KeyNotFoundException>(() => toolFactory.FindAIFunction("NonExistentFunction"));
@@ -141,7 +126,7 @@ namespace Agent.Tests.Unit
         public async Task FindAIFunction_WithThreadId_ShouldSetThreadIdOnPlugin()
         {
             // Arrange
-            var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider);
+            var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
             var threadId = Guid.NewGuid();
 
             var function = toolFactory.FindAIFunction("GetThreadId", threadId);
@@ -154,7 +139,7 @@ namespace Agent.Tests.Unit
         public void TryFindAIFunction_WithValidName_ShouldReturnTrueAndFunction()
         {
             // Arrange
-            var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider);
+            var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
 
             // Act
             var result = toolFactory.TryFindAIFunction("Calculate", out var function);
@@ -169,7 +154,7 @@ namespace Agent.Tests.Unit
         public void TryFindAIFunction_WithInvalidName_ShouldReturnFalseAndNullFunction()
         {
             // Arrange
-            var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider);
+            var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
 
             // Act
             var result = toolFactory.TryFindAIFunction("NonExistentFunction", out var function);
@@ -183,7 +168,7 @@ namespace Agent.Tests.Unit
         public void HasAIFunction_WithValidName_ShouldReturnTrue()
         {
             // Arrange
-            var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider);
+            var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
 
             // Act & Assert
             Assert.True(toolFactory.HasAIFunction("SayHello"));
@@ -195,7 +180,7 @@ namespace Agent.Tests.Unit
         public void HasAIFunction_WithInvalidName_ShouldReturnFalse()
         {
             // Arrange
-            var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider);
+            var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
 
             // Act & Assert
             Assert.False(toolFactory.HasAIFunction("NonExistentFunction"));
@@ -207,7 +192,7 @@ namespace Agent.Tests.Unit
         public void AsyncMethods_ShouldHaveAsyncSuffixRemoved()
         {
             // Arrange
-            var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider);
+            var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
 
             // Act & Assert
             Assert.True(toolFactory.HasAIFunction("ProcessData"));
@@ -218,7 +203,7 @@ namespace Agent.Tests.Unit
         public void MethodsWithoutDescriptionAttribute_ShouldNotBeRegistered()
         {
             // Arrange
-            var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider);
+            var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
 
             // Act & Assert
             Assert.False(toolFactory.HasAIFunction("IgnoredMethod"));
@@ -230,7 +215,7 @@ namespace Agent.Tests.Unit
             // Arrange
             _services.AddTransient<IgnoredPlugin>();
             var serviceProvider = _services.BuildServiceProvider();
-            var toolFactory = new ToolFactory(_mockLogger.Object, serviceProvider);
+            var toolFactory = new ToolFactory(_mockLogger.Object, serviceProvider, [Assembly.GetExecutingAssembly()]);
 
             // Act & Assert
             Assert.False(toolFactory.HasAIFunction("ShouldNotBeRegistered"));

@@ -109,7 +109,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         if (_useAgentFramwork)
         {
             AgentContext agentContext = await _repository.GetAgentContextAsync(agentContextId: threadMessage.AgentContextId, threadId: threadMessage.ThreadId);
-                        
+
             // we don't need to sink user message if the message is the start message
             var thread = await _repository.GetThreadAsync(threadMessage.ThreadId);
             if (threadMessage?.MessageId != thread?.StartMessage?.Id)

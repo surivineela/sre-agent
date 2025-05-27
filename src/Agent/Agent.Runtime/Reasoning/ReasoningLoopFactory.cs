@@ -17,7 +17,6 @@ public interface IReasoningLoopFactory
 
 public class ReasoningLoopFactory : IReasoningLoopFactory
 {
-    private readonly ILogger<ReasoningLoopFactory> _logger;
     private readonly ILoggerFactory _loggerFactory;
     private readonly IChatClient _chatClient;
     private readonly IAgentOutboundCommunicationService _outboundCommunicationService;
@@ -26,7 +25,6 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
     private readonly IThreadRepository _threadRepository;
 
     public ReasoningLoopFactory(
-        ILogger<ReasoningLoopFactory> logger,
         ILoggerFactory loggerFactory,
         IChatClient chatClient,
         IAgentOutboundCommunicationService outboundCommunicationService,
@@ -34,7 +32,6 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         IAgentFactory<AgentContext> agentFactory,
         IToolFactory toolFactory)
     {
-        _logger = logger;
         _loggerFactory = loggerFactory;
         _chatClient = chatClient;
         _outboundCommunicationService = outboundCommunicationService;

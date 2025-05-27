@@ -3,7 +3,6 @@
 // ------------------------------------------------------------
 
 using Microsoft.Extensions.AI;
-using Microsoft.Extensions.Logging;
 
 namespace Agent.Framework;
 
@@ -20,6 +19,7 @@ public static class Runner
     ) where TContext : class
     {
         var input = new List<ChatMessage>(previousResult.Input).Concat(previousResult.NewItems).ToList();
+        var functionResultMessages = new List<ChatMessage>();
 
         if (previousResult.ManualToolCalls == null)
         {
@@ -31,7 +31,7 @@ public static class Runner
             var matchingOutput = (manualToolResults.FirstOrDefault(o => o.FunctionCall.CallId == manualToolCall.FunctionCall.CallId)?.Output)
                 ?? throw new Exception("No matching output found for manual tool call");
 
-            input.Add(new ChatMessage(ChatRole.Tool, [new FunctionResultContent(manualToolCall.FunctionCall.CallId, matchingOutput)]));
+            functionResultMessages.Add(new ChatMessage(ChatRole.Tool, [new FunctionResultContent(manualToolCall.FunctionCall.CallId, matchingOutput)]));
 
             if (hooks != null)
             {
@@ -39,10 +39,11 @@ public static class Runner
             }
         }
 
-        return await RunAsync(
+        return await RunInternalAsync(
             startingAgent: previousResult.LastAgent,
             input: input,
             config: config,
+            newGeneratedItems: functionResultMessages,
             context: previousResult.ContextWrapper.Context,
             currentTurn: previousResult.CurrentTurn,
             maxTurns: previousResult.MaxTurns,
@@ -51,10 +52,32 @@ public static class Runner
         );
     }
 
-    public static async Task<RunResult<TContext>> RunAsync<TContext>(
+    public static Task<RunResult<TContext>> RunAsync<TContext>(
         Agent<TContext> startingAgent,
         List<ChatMessage> input,
         RunConfig config,
+        TContext? context = null,
+        int maxTurns = DefaultMaxTurns,
+        RunHooks<TContext>? hooks = null,
+        CancellationToken cancellationToken = default
+    ) where TContext : class
+    {
+        return RunInternalAsync(
+            startingAgent: startingAgent,
+            input: input,
+            config: config,
+            context: context,
+            maxTurns: maxTurns,
+            hooks: hooks,
+            cancellationToken: cancellationToken
+        );
+    }
+
+    private static async Task<RunResult<TContext>> RunInternalAsync<TContext>(
+        Agent<TContext> startingAgent,
+        List<ChatMessage> input,
+        RunConfig config,
+        List<ChatMessage>? newGeneratedItems = null,
         TContext? context = null,
         int currentTurn = 0,
         int maxTurns = DefaultMaxTurns,
@@ -66,8 +89,8 @@ public static class Runner
 
         bool shouldRunAgentStartHooks = true;
         Agent<TContext> currentAgent = startingAgent;
-        List<ChatMessage> originalInput = new(input);
-        List<ChatMessage> generatedMessages = [];
+        List<ChatMessage> originalInput = [.. input];
+        List<ChatMessage> generatedMessages = newGeneratedItems != null ? [.. newGeneratedItems] : [];
         List<ChatResponse> rawResponses = [];
 
         var contextWrapper = new RunContextWrapper<TContext>(context);

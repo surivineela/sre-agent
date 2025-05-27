@@ -17,6 +17,8 @@ using Agent.Runtime.SubAgents.Core;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
+namespace Agent.Runtime.Reasoning;
+
 public class ReasoningLoop
 {
     private readonly ILogger<ReasoningLoop> _logger;
@@ -26,13 +28,14 @@ public class ReasoningLoop
     private AgentContext _context;
     private readonly IThreadRepository _threadRepository;
     private readonly Channel<ChatMessage> _msgCh;
-    private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
+    private readonly SemaphoreSlim _semaphore = new(initialCount: 1, maxCount: 1);
     private readonly IToolFactory _toolFactory;
 
     private List<ChatMessage>? _chatHistory;
     private Agent<AgentContext> _currentAgent;
 
-    public ReasoningLoop(ILogger<ReasoningLoop> logger,
+    public ReasoningLoop(
+        ILogger<ReasoningLoop> logger,
         ILoggerFactory loggerFactory,
         IChatClient chatClient,
         IAgentOutboundCommunicationService outboundCommunicationService,
@@ -91,12 +94,18 @@ public class ReasoningLoop
 
     private async Task RunAsync(CancellationToken cancellationToken)
     {
-        if (!await _semaphore.WaitAsync(0))
+        if (!await _semaphore.WaitAsync(0, cancellationToken))
         {
             return;
         }
 
         AgentChatHistory agentChatHistory = await _threadRepository.GetAgentChatHistoryAsync(_context.Id);
+
+        var runConfig = new RunConfig
+        {
+            ChatClient = _chatClient,
+            LoggerFactory = _loggerFactory
+        };
 
         // TODO: handle imcompleted function calls before starting new reasoning loop
         // This may happen if the agent restart/crash in the middle
@@ -106,69 +115,77 @@ public class ReasoningLoop
             {
                 _logger.LogInternalInformation("Received new message. Running reasoning loop...");
 
-                var shouldStop = await ProcessNewApproval(agentChatHistory, cancellationToken);
+                var shouldStop = await ProcessNewApprovalAsync(agentChatHistory, cancellationToken);
                 if (shouldStop)
                 {
                     return;
                 }
 
-                await PersistReasoningMessage(agentChatHistory, msg);
+                await PersistReasoningMessageAsync(agentChatHistory, msg);
 
-                // The reasoning loop starts here
-                while (true)
+                var runResult = await Runner.RunAsync(
+                    startingAgent: _currentAgent,
+                    input: _chatHistory!,
+                    config: runConfig,
+                    context: _context,
+                    cancellationToken: cancellationToken
+                );
+
+                await PersistReasoningMessagesAsync(agentChatHistory, runResult.NewItems);
+                _currentAgent = runResult.LastAgent;
+
+                _context = _context with { CurrentAgent = _currentAgent.Name };
+                _context = await _threadRepository.UpdateAgentContextAsync(_context);
+
+                // handle manual tool calls
+                while (runResult.ManualToolCalls != null && runResult.ManualToolCalls.Count > 0)
                 {
-                    var output = await Runner.RunAsync(
-                        startingAgent: _currentAgent,
-                        input: _chatHistory!,
-                        config: new RunConfig
-                        {
-                            ChatClient = _chatClient,
-                            LoggerFactory = _loggerFactory
-                        },
-                        context: _context,
-                        cancellationToken: cancellationToken
-                    );
+                    List<ManualToolCallResult> toolResults = [];
 
-                    await PersistReasoningMessage(agentChatHistory, output.NewItems);
-                    _currentAgent = output.LastAgent;
+                    var toolCall = runResult.ManualToolCalls.Single(); // Should only be one tool call at a time
+                    var checkResult = await CheckApprovalAsync(toolCall);
 
-                    _context = _context with { CurrentAgent = _currentAgent.Name };
-                    _context = await _threadRepository.UpdateAgentContextAsync(_context);
-
-                    // Check if there are any manual tool calls
-                    if (output.ManualToolCalls != null && output.ManualToolCalls.Count > 0)
+                    if (checkResult.ApprovalStatus == ToolApprovalStatus.NotRequired)
                     {
-                        var toolCall = output.ManualToolCalls.Single(); // Should only be one tool call at a time
-                        var checkResult = await CheckApproval(toolCall);
-                        if (checkResult.ApprovalStatus == ToolApprovalStatus.NotRequired)
+                        object? functionResult = null;
+
+                        try
                         {
-                            try
-                            {
-                                var functionResult = await toolCall.Tool.InvokeAsync(toolCall.FunctionCall.Arguments);
-                                var result = new FunctionResultContent(toolCall.FunctionCall.CallId, functionResult);
-                                var functionCallMessage = new ChatMessage(ChatRole.Tool, [result]);
-                                await PersistReasoningMessage(agentChatHistory, functionCallMessage);
-                            }
-                            catch (Exception ex)
-                            {
-                                _logger.LogInternalError(ex, "Error while invoking tool: {ToolName}", toolCall.Tool.Name);
-                                var errorMessage = new ChatMessage(ChatRole.Tool, [new FunctionResultContent(toolCall.FunctionCall.CallId, $"Internal error")]);
-                                await PersistReasoningMessage(agentChatHistory, errorMessage);
-                            }
+                            functionResult = await GetAIFunctionWithThreadId(toolCall.Tool!.Name, _context.ThreadId).InvokeAsync(toolCall.FunctionCall.Arguments, cancellationToken);
                         }
-                        else
+                        catch (Exception ex)
                         {
-                            // if approval is required, stop the loop and wait for approval
-                            break;
+                            _logger.LogInternalError(ex, "Error while calling tool {ToolName}", toolCall.Tool!.Name);
+                            functionResult = ex;
                         }
+
+                        toolResults.Add(new ManualToolCallResult()
+                        {
+                            FunctionCall = toolCall.FunctionCall,
+                            Output = functionResult
+                        });
                     }
                     else
                     {
-                        await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context.ThreadId, string.Empty,
-                            new ChatMessage(ChatRole.Assistant, output.Output?.ToString()));
-                        break; // Exit the loop if there are no manual tool calls
+                        // if approval is required, stop the loop and wait for approval
+                        break;
                     }
+
+                    runResult = await Runner.ResumeFromManualToolsAsync(
+                        previousResult: runResult,
+                        manualToolResults: toolResults,
+                        config: runConfig,
+                        cancellationToken: cancellationToken
+                    );
+
+                    await PersistReasoningMessagesAsync(agentChatHistory, runResult.NewItems);
+                    _currentAgent = runResult.LastAgent;
+                    _context = _context with { CurrentAgent = _currentAgent.Name };
+                    _context = await _threadRepository.UpdateAgentContextAsync(_context);
                 }
+
+                await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context.ThreadId, string.Empty,
+                            new ChatMessage(ChatRole.Assistant, runResult.Output?.ToString()));
 
                 _logger.LogInternalInformation("Reasoning loop completed successfully.");
             }
@@ -181,7 +198,7 @@ public class ReasoningLoop
         _semaphore.Release();
     }
 
-    private async Task<bool> ProcessNewApproval(AgentChatHistory agentChatHistory, CancellationToken cancellationToken)
+    private async Task<bool> ProcessNewApprovalAsync(AgentChatHistory agentChatHistory, CancellationToken cancellationToken)
     {
         var lastMessage = _chatHistory?.LastOrDefault()?.Contents?.First();
         // if lastMessage is a tool call, we need to invoke the tool first
@@ -202,20 +219,20 @@ public class ReasoningLoop
                     var functionResult = await aiTool!.InvokeAsync(functionCall.Arguments, cancellationToken);
                     var result = new FunctionResultContent(functionCall.CallId, functionResult);
                     var functionCallMessage = new ChatMessage(ChatRole.Tool, [result]);
-                    await PersistReasoningMessage(agentChatHistory, functionCallMessage);
+                    await PersistReasoningMessageAsync(agentChatHistory, functionCallMessage);
                 }
                 catch (Exception ex)
                 {
                     _logger.LogInternalError(ex, "Error while invoking tool: {ToolName}", functionCall.Name);
                     var errorMessage = new ChatMessage(ChatRole.Tool, [new FunctionResultContent(functionCall.CallId, $"Internal error")]);
-                    await PersistReasoningMessage(agentChatHistory, errorMessage);
+                    await PersistReasoningMessageAsync(agentChatHistory, errorMessage);
                 }
             }
             else if (approval.Status == ApprovalDecision.Rejected)
             {
                 var result = new FunctionResultContent(functionCall.CallId, "rejected");
                 var functionCallMessage = new ChatMessage(ChatRole.Tool, [result]);
-                await PersistReasoningMessage(agentChatHistory, functionCallMessage);
+                await PersistReasoningMessageAsync(agentChatHistory, functionCallMessage);
             }
             else  // Pending
             {
@@ -228,7 +245,7 @@ public class ReasoningLoop
         return false;
     }
 
-    private async Task<CheckApprovalActivityOutput> CheckApproval(ManualToolCall toolCall)
+    private async Task<CheckApprovalActivityOutput> CheckApprovalAsync(ManualToolCall toolCall)
     {
         try
         {
@@ -315,7 +332,7 @@ public class ReasoningLoop
         return _toolFactory.FindAIFunction(functionName, threadId);
     }
 
-    private async Task PersistReasoningMessage(AgentChatHistory agentChatHistory, ChatMessage chatMessage)
+    private async Task PersistReasoningMessageAsync(AgentChatHistory agentChatHistory, ChatMessage chatMessage)
     {
         _chatHistory!.Add(chatMessage);
         var reasoningMessage = chatMessage.GetReasoningMessage(_context.Id);
@@ -324,7 +341,7 @@ public class ReasoningLoop
         await _threadRepository.AddReasoningMessagesToChatHistoryAsync(agentChatHistory, reasoningMessage);
     }
 
-    private async Task PersistReasoningMessage(AgentChatHistory agentChatHistory, IEnumerable<ChatMessage> chatMessage)
+    private async Task PersistReasoningMessagesAsync(AgentChatHistory agentChatHistory, IEnumerable<ChatMessage> chatMessage)
     {
         _chatHistory!.AddRange(chatMessage);
 

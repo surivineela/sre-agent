@@ -16,12 +16,11 @@ public interface IReasoningLoopManager
 public class ReasoningLoopManager : IReasoningLoopManager
 {
     private readonly IReasoningLoopFactory _reasoningLoopFactory;
-    private readonly ConcurrentDictionary<Guid, ReasoningLoop> _reasoningLoops;
+    private readonly ConcurrentDictionary<Guid, ReasoningLoop> _reasoningLoops = [];
 
     public ReasoningLoopManager(IReasoningLoopFactory reasoningLoopFactory)
     {
         _reasoningLoopFactory = reasoningLoopFactory;
-        _reasoningLoops = new ConcurrentDictionary<Guid, ReasoningLoop>();
     }
 
     public async Task AppendNewMessageAsync(AgentContext context, ChatMessage msg, CancellationToken cancellationToken = default)

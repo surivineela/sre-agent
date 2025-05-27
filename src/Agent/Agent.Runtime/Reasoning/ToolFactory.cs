@@ -3,11 +3,13 @@
 // ------------------------------------------------------------
 
 using System.Reflection;
+using Agent.Framework;
+using Agent.Logging;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace Agent.Framework;
+namespace Agent.Runtime.Reasoning;
 
 // Most tools are injected as transient, so we can defer the creation of the tool function until it's actually needed.
 public sealed class DeferredToolFunction
@@ -50,7 +52,7 @@ public sealed class DeferredToolFunction
 public class ToolFactory : IToolFactory
 {
     private readonly ILogger<ToolFactory> _logger;
-    private readonly IDictionary<string, DeferredToolFunction> _tools = new Dictionary<string, DeferredToolFunction>();
+    private readonly Dictionary<string, DeferredToolFunction> _tools = [];
     private readonly IServiceProvider _serviceProvider;
     private readonly IEnumerable<Assembly> _assemblies;
 
@@ -84,7 +86,7 @@ public class ToolFactory : IToolFactory
                 var attribute = pluginType.GetCustomAttribute<AgentToolPluginAttribute>();
                 if (attribute is null)
                 {
-                    _logger.LogWarning($"Type {pluginType.FullName} does not have AgentToolPluginAttribute.");
+                    _logger.LogInternalWarning("Type {pluginType} does not have AgentToolPluginAttribute.", pluginType.FullName);
                     continue;
                 }
 
@@ -98,18 +100,18 @@ public class ToolFactory : IToolFactory
                 foreach (var method in methodsToRegister)
                 {
                     var functionName = method.Name.EndsWith("Async")
-                        ? method.Name.Substring(0, method.Name.Length - 5)
+                        ? method.Name[..^5]
                         : method.Name;
                     var tool = new DeferredToolFunction(_serviceProvider, pluginType, method, functionName);
                     if (!RegisterAIFunction(functionName, tool, onNameConflict))
                     {
-                        _logger.LogWarning($"Failed to register tool {functionName} from type {pluginType.FullName} due to name conflict.");
+                        _logger.LogInternalWarning("Failed to register tool {functionName} from type {pluginType} due to name conflict.", functionName, pluginType.FullName);
                     }
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Failed to register tool from type {pluginType.FullName}");
+                _logger.LogInternalError(ex, "Failed to register tool from type {pluginType}.", pluginType.FullName);
             }
         }
     }
@@ -123,7 +125,7 @@ public class ToolFactory : IToolFactory
     {
         if (string.IsNullOrWhiteSpace(name))
         {
-            _logger.LogError("Function name cannot be null or whitespace.");
+            _logger.LogInternalError("Function name cannot be null or whitespace.");
             return false;
         }
 
@@ -134,29 +136,28 @@ public class ToolFactory : IToolFactory
                 case BehaviorOnNameConflict.ThrowException:
                     throw new InvalidOperationException($"Function '{name}' already exists.");
                 case BehaviorOnNameConflict.Ignore:
-                    _logger.LogWarning($"Function '{name}' already exists. Ignoring the new function.");
+                    _logger.LogInternalWarning("Function '{functionName}' already exists. Ignoring the new function.", name);
                     return false;
                 case BehaviorOnNameConflict.Overwrite:
-                    _logger.LogWarning($"Function '{name}' already exists. Overwriting the existing function.");
+                    _logger.LogInternalWarning("Function '{functionName}' already exists. Overwriting the existing function.", name);
                     break;
             }
         }
 
         _tools[name] = function;
-        _logger.LogInformation($"Function '{name}' registered successfully.");
+        _logger.LogInternalInformation("Function '{functionName}' registered successfully.", name);
         return true;
     }
 
     public bool TryFindAIFunction(string name, out AIFunction? function)
     {
-        DeferredToolFunction? deferredToolFunction;
-        if (_tools.TryGetValue(name, out deferredToolFunction))
+        if (_tools.TryGetValue(name, out var deferredToolFunction))
         {
             function = deferredToolFunction.GetToolFunction();
             return true;
         }
 
-        _logger.LogError($"Function '{name}' not found.");
+        _logger.LogInternalError("Function '{functionName}' not found.", name);
         function = null;
         return false;
     }
@@ -178,7 +179,7 @@ public class ToolFactory : IToolFactory
             return function.GetToolFunction(threadId);
         }
 
-        _logger.LogError($"Function '{name}' not found.");
+        _logger.LogInternalError("Function '{functionName}' not found.", name);
         throw new KeyNotFoundException($"Function '{name}' not found.");
     }
 }

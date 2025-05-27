@@ -23,6 +23,7 @@ using Agent.Prometheus.Services;
 using Agent.Runtime;
 using Agent.Runtime.Communication;
 using Agent.Runtime.Helpers;
+using Agent.Runtime.Reasoning;
 using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents.Core;
 using Agent.Runtime.TeamsChatServices;
@@ -142,7 +143,15 @@ class Program
         builder.Services.AddSingleton<ILogAnalyticsService, LogAnalyticsService>();
         builder.Services.AddSingleton<IBotFrameworkHttpAdapter, AdapterWithErrorHandler>();
         builder.Services.AddSingleton<IArmClientFactory, ArmClientFactory>();
-        builder.Services.AddSingleton<IToolFactory, ToolFactory>();
+        builder.Services.AddSingleton<IToolFactory, ToolFactory>(sp =>
+        {
+            return new ToolFactory(
+                logger: sp.GetRequiredService<ILogger<ToolFactory>>(),
+                serviceProvider: sp,
+                assembliesToScan: AppDomain.CurrentDomain.GetAssemblies()
+                    .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
+                    .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true));
+        });
 
         builder.Services.AddSingleton<BotFrameworkAuthentication, ConfigurationBotFrameworkAuthentication>();
         // builder.Services.AddSingleton<IBotFrameworkHttpAdapter, AdapterWithErrorHandler>();
@@ -215,7 +224,9 @@ class Program
 
         var agentFactory = new AgentFactory<CustomContext>(
             logger: host.Services.GetRequiredService<ILogger<AgentFactory<CustomContext>>>(),
-            toolFactory: toolsRepository
+            toolFactory: toolsRepository,
+            assembliesToScan: [],
+            agentsYamlDirectory: Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "agents")
         );
 
         // Load agents from YAML files in the agents folder

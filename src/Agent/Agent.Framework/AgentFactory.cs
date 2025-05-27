@@ -169,7 +169,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         }
     }
 
-    private void LoadAgentFromYaml()
+    public void LoadAgentFromYaml()
     {
         var yamlFiles = Directory.GetFiles(_agentsYamlDirectory, "*.yaml", SearchOption.AllDirectories)
                        .Concat(Directory.GetFiles(_agentsYamlDirectory, "*.yml", SearchOption.AllDirectories));
@@ -187,7 +187,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         }
     }
 
-    private void LoadAgentFromYaml(string yamlContent)
+    public void LoadAgentFromYaml(string yamlContent)
     {
         try
         {
@@ -204,7 +204,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         }
     }
 
-    private void LoadAgentFromFile(string filePath)
+    public void LoadAgentFromFile(string filePath)
     {
         try
         {

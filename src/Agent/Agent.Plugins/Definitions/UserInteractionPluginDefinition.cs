@@ -4,7 +4,6 @@
 
 using System.ComponentModel;
 using Agent.Core.Interfaces;
-using Agent.Core.Models.Api.v1;
 using Agent.Framework;
 using Microsoft.Extensions.AI;
 
@@ -21,13 +20,13 @@ namespace Agent.Plugins.Definitions
             _outboundCommunicationService = outboundCommunicationService;
         }
 
-        [Description("Sends the specified message to the user. Used this for cases where you would normally reply to the user instead of making a tool call. Do not use this if you need to wait for the user response, as this is a fire and forget notification.")]
+        [Description("Sends the specified message to the user. Use this to send updates about your current task as you are working on it. Do not use this for asking questions to the user, only for status updates.")]
         public string NotifyUser(
             [Description("The message to send to the user.")]
             string message)
         {
             _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(ThreadId, string.Empty,
-            new ChatMessage(ChatRole.Assistant, message));
+                new ChatMessage(ChatRole.Assistant, message));
 
             return "User notified";
         }
