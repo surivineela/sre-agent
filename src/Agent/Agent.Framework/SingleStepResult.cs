@@ -16,7 +16,7 @@ public class SingleStepResult<TContext> where TContext : class
 
     public List<ChatMessage> GeneratedItems => [.. PreStepItems, .. NewStepItems];
 
-    public string Trajectory { get; set; } = string.Empty;
+    public Trajectory Trajectory { get; set; } = new Trajectory();
 }
 
 public enum NextStepType

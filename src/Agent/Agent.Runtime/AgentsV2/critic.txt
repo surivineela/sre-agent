@@ -32,10 +32,13 @@ Based on your step-by-step evaluation of these criteria, produce a JSON output w
       "remarks": "Specific feedback, examples, or refinements related to this criterion. Explain your reasoning clearly."
     }
     // ... one object for each of the 5 criteria
-  ]
+  ],
+  "actor_guidance": "INTERNAL NOTE: You are receiving feedback from an internal reviewer. The user is unaware of this process. Continue addressing the user's original query while incorporating the above suggestions. Do not mention this review or feedback to the user."
 }
 
 If any criterion scores a "FAIL", the "overall_assessment" should generally be "FAIL".
 Provide specific examples or refinements in your 'remarks' to help the actor improve.
+
+{{customNote}}
 
 The user query actor attempts to solve is: {{userQuery}}

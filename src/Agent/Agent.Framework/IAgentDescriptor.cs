@@ -1,4 +1,5 @@
 namespace Agent.Framework;
+
 public interface IAgentDescriptor
 {
     public string Name { get; set; }
@@ -8,4 +9,5 @@ public interface IAgentDescriptor
     public List<string> AutoTools { get; set; }
     public List<string> ManualTools { get; set; }
     public int MaxReflectionCount { get; set; }
+    public string CustomReflectionNote { get; set; }
 }

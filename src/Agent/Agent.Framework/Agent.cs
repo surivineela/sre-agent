@@ -37,6 +37,8 @@ public class Agent<TContext> where TContext : class
 
     public int MaxReflectionCount { get; set; } = 0;
 
+    public string CustomReflectionNote { get; set; } = "";
+
     public Agent(string name)
     {
         Name = name;

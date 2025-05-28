@@ -9,6 +9,7 @@ using YamlDotNet.Serialization.NamingConventions;
 
 namespace Agent.Framework;
 
+
 public interface IAgentFactory<TContext>
     where TContext : class
 {
@@ -94,6 +95,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
             Instructions = agentDescriptor.Instructions,
             HandoffDescription = agentDescriptor.HandoffDescription,
             MaxReflectionCount = agentDescriptor.MaxReflectionCount,
+            CustomReflectionNote = agentDescriptor.CustomReflectionNote ?? string.Empty,
             Handoffs = [], // Will be populated later to avoid circular references
             AutoTools = agentDescriptor.AutoTools.Select(_toolFactory.FindAIFunction).ToList(),
             ManualTools = agentDescriptor.ManualTools.Select(_toolFactory.FindAIFunction).ToList(), // Note the tools will be created again with ThreadId in the reasoning loop
@@ -243,3 +245,4 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         return agent;
     }
 }
+

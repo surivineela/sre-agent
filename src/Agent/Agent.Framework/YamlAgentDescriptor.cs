@@ -24,4 +24,7 @@ internal class YamlAgentDescriptor : IAgentDescriptor
 
     [YamlMember(Alias = "max_reflection_count")]
     public int MaxReflectionCount { get; set; } = 0;
+
+    [YamlMember(Alias = "custom_reflection_note")]
+    public string CustomReflectionNote { get; set; } = string.Empty;
 }

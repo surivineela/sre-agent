@@ -47,6 +47,8 @@ public abstract class RunResultBase<TContext> where TContext : class
     public List<ManualToolCall>? ManualToolCalls { get; set; }
 
     public abstract Agent<TContext> LastAgent { get; }
+
+    public Trajectory Trajectory { get; set; } = new Trajectory();
 }
 
 public class RunResult<TContext>(Agent<TContext> agent) : RunResultBase<TContext> where TContext : class

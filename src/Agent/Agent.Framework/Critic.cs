@@ -8,13 +8,68 @@ using Microsoft.Extensions.AI;
 
 namespace Agent.Framework;
 
+public class Trajectory
+{
+    public StringBuilder MessageContent { get; } = new StringBuilder();
+    public StringBuilder FunctionCallContent { get; } = new StringBuilder();
+
+    public void Append(ChatResponse? modelResponse = null, ManualToolCallResult? toolCallResult = null, string? message = null)
+    {
+        if (!string.IsNullOrEmpty(message))
+        {
+            MessageContent.AppendLine(message);
+        }
+        if (modelResponse != null)
+        {
+            foreach (var msg in modelResponse.Messages)
+            {
+                foreach (var content in msg.Contents)
+                {
+                    if (content is TextContent textContent)
+                    {
+                        MessageContent.AppendLine(textContent.Text);
+                    }
+                }
+            }
+        }
+
+        if (toolCallResult != null)
+        {
+            var functionCallResultJson = JsonSerializer.Serialize(new
+            {
+                function_name = toolCallResult.FunctionCall.Name,
+                function_parameters = toolCallResult.FunctionCall.Arguments,
+                result = toolCallResult.Output
+            });
+            FunctionCallContent.AppendLine($"Function Call: {functionCallResultJson}");
+        }
+    }
+
+    public override string ToString() => MessageContent.ToString() + Environment.NewLine + FunctionCallContent.ToString();
+
+    // FunctionCallContent can be very large, so we provide a way to clear it, only critic for the recent round of function calls
+    public void ResetFunctionContent()
+    {
+        FunctionCallContent.Clear();
+    }
+}
+
 public static class Critic
 {
-    public static async Task<string> CriticAsync(RunConfig config, List<ChatMessage> input, string trajectory)
+
+    public static async Task<string> CriticAsync(RunConfig config, string customNote, List<ChatMessage> input, string trajectory)
     {
         var userQuery = await SummarizeChatMessagesAsync(config, input);
         var promptPath = Path.Combine(AppContext.BaseDirectory, "AgentsV2", "critic.txt");
         var criticPrompt = (await File.ReadAllTextAsync(promptPath)).Replace("{{userQuery}}", userQuery);
+        if (!string.IsNullOrEmpty(customNote))
+        {
+            criticPrompt = criticPrompt.Replace("{{customNote}}", customNote);
+        }
+        else
+        {
+            criticPrompt = criticPrompt.Replace("{{customNote}}", "");
+        }
         var criticChat = new List<ChatMessage>
         {
             new(ChatRole.System, criticPrompt),
