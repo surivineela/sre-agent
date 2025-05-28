@@ -70,6 +70,29 @@ namespace Agent.Tests.Unit
         }
     }
 
+    // Helper class for testing field injection
+    public class ImplementationWithThreadId
+    {
+        public Guid? ThreadId { get; set; }
+
+        public string ProcessWithThreadId()
+        {
+            return ThreadId?.ToString() ?? throw new InvalidOperationException("ThreadId must be set before calling this method.");
+        }
+    }
+
+    [AgentToolPlugin]
+    public class PluginWithImplementationField
+    {
+        private ImplementationWithThreadId _implementationWithThreadId = new();
+
+        [Description("Test method that uses implementation field")]
+        public string ProcessViaImplementation()
+        {
+            return _implementationWithThreadId.ProcessWithThreadId();
+        }
+    }
+
     public class ToolFactoryTests : IDisposable
     {
         private readonly Mock<ILogger<ToolFactory>> _mockLogger;
@@ -83,6 +106,8 @@ namespace Agent.Tests.Unit
             _services.AddSingleton(_mockLogger.Object);
             _services.AddTransient<TestPlugin>();
             _services.AddTransient<AnotherTestPlugin>();
+            _services.AddTransient<PluginWithImplementationField>();
+            _services.AddTransient<ImplementationWithThreadId>();
             _serviceProvider = _services.BuildServiceProvider();
         }
 
@@ -255,6 +280,22 @@ namespace Agent.Tests.Unit
             Assert.NotNull(function);
             // The actual verification of ThreadId setting would require accessing the plugin instance
             // which is internal to the AIFunction implementation
+        }
+
+        [Fact]
+        public async Task PluginWithImplementationField_WithThreadId_ShouldInjectThreadIdIntoImplementationField()
+        {
+            // Arrange
+            var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
+            var threadId = Guid.NewGuid();
+
+            // Act
+            var function = toolFactory.FindAIFunction("ProcessViaImplementation", threadId);
+            Assert.NotNull(function);
+            var result = await function.InvokeAsync();
+
+            // Assert
+            Assert.Equal(threadId.ToString(), result?.ToString());
         }
 
         public void Dispose()
