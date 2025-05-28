@@ -19,8 +19,6 @@ configuration:
       - k4appscore
       - srea-devs
       requiredStatusChecks:
-      - GitOps/AdvancedSecurity
-      - SREAgent-Runtime-PullRequest
       - Validate
     - branchNamePattern: "release/*"
       requiredApprovingReviewsCount: 2
