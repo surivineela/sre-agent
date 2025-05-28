@@ -320,12 +320,14 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
     {
         builder.Services.AddSingleton<IAgentsFactory, FirstPartyAgentsFactory>();
         builder.Services.AddSingleton<IToolsRepository, FirstPartyToolsRepository>();
+        builder.Services.AddSingleton<ITitleGenerationService, FirstPartyTitleGenerationService>();
         builder.RegisterFirstPartySubAgentsDependencies();
     }
     else
     {
         builder.Services.AddSingleton<IAgentsFactory, ThirdPartyAgentsFactory>();
         builder.Services.AddSingleton<IToolsRepository, ToolsRepository>();
+        builder.Services.AddSingleton<ITitleGenerationService, TitleGenerationService>();
     }
 
     // Register all subagent factories that derive from the shared impl
