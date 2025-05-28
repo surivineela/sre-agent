@@ -19,7 +19,7 @@ configuration:
       - k4appscore
       - srea-devs
       requiredStatusChecks:
-      - Validate
+      - GitOps/AdvancedSecurity
     - branchNamePattern: "release/*"
       requiredApprovingReviewsCount: 2
       restrictsPushes: true
