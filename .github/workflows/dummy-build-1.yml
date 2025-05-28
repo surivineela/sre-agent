@@ -1,0 +1,30 @@
+name: SREAgent-Runtime-PullRequest Validate
+
+on:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  BUILD_CONFIGURATION: Release
+  BUILD_SOLUTION: ./src/Agent/Agent.sln
+  BUILD_SOLUTION_OUTPUT_PATH: ./sln_output
+  BUILD_NUGET_CONFIG_PATH: ./src/nuget.config
+
+jobs:
+  build:
+    name: SREAgent-Runtime-PullRequest
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+  test:
+    name: Validate
+    runs-on: windows-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3

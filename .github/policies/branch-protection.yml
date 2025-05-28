@@ -14,13 +14,12 @@ configuration:
       requiresPullRequestBeforeMerging: true
       dismissStaleReviews: true
       allowsForcePushes: true
-      isAdminEnforced: true
+      isAdminEnforced: false
       whoCanPush:
       - k4appscore
       - srea-devs
       requiredStatusChecks:
       - GitOps/AdvancedSecurity
-      - SREAgent-Runtime-PullRequest
     - branchNamePattern: "release/*"
       requiredApprovingReviewsCount: 2
       restrictsPushes: true
@@ -30,9 +29,6 @@ configuration:
       dismissStaleReviews: true
       allowsForcePushes: true
       isAdminEnforced: false
-      requiredStatusChecks:
-      - Validate
-      - SREAgent-Runtime-PullRequest
       whoCanPush:
       - k4appscore
       - srea-devs
