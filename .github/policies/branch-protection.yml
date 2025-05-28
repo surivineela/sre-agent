@@ -20,6 +20,7 @@ configuration:
       - srea-devs
       requiredStatusChecks:
       - GitOps/AdvancedSecurity
+      - SREAgent-Runtime-PullRequest
     - branchNamePattern: "release/*"
       requiredApprovingReviewsCount: 2
       restrictsPushes: true
@@ -31,6 +32,7 @@ configuration:
       isAdminEnforced: false
       requiredStatusChecks:
       - Validate
+      - SREAgent-Runtime-PullRequest
       whoCanPush:
       - k4appscore
       - srea-devs
