@@ -31,6 +31,7 @@ namespace FirstPartyAgent.Constants
             public const string GetManagedClusterEnvironmentResourceId = "get_managed_cluster_environment_resource_id";
             public const string GetManagedEnvironmentProvisioningStatus = "get_managed_environment_provisioning_status";
             public const string GetManagedEnvironmentAdminEvents = "get_managed_environment_admin_events";
+            public const string GetManagedEnvironmentOperationErrors = "get_managed_environment_operation_errors";
             public const string GetHealthProbeFailures = "get_health_probe_failures";
             public const string GetHealthProbeSettings = "get_health_probe_settings";
             public const string GetNodeAvailabilityFailures = "get_node_availability_failures";
