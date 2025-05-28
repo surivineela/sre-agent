@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Models.Api.v1;
+using Microsoft.Extensions.AI;
 
 namespace Agent.Core.Interfaces;
 
@@ -72,10 +73,17 @@ public interface IAgentInboundCommunicationService
     Task<Guid> AppendAgentImageMessage(Guid threadId, string message);
 
     /// <summary>
-    /// Processes a user message, determining if it should be routed to an existing orchestration 
+    /// Processes a user message, determining if it should be routed to an existing orchestration
     /// or handled by the meta-agent to potentially start a new orchestration
     /// </summary>
     Task<InboundServiceResponse> ProcessUserMessageAsync(ThreadMessage message);
+
+    /// <summary>
+    /// Processes a user message and returns a stream of updates as the response is generated.
+    /// </summary>
+    /// <param name="threadMessage"></param>
+    /// <returns></returns>
+    IAsyncEnumerable<ChatResponseUpdate> ProcessUserMessageStreamAsync(ThreadMessage threadMessage);
 
     /// <summary>
     /// Processes a user's feedback on a message, which can be positive or negative.
