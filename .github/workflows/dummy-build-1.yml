@@ -15,24 +15,16 @@ env:
 
 jobs:
   build:
-    name: Build and Test
+    name: SREAgent-Runtime-PullRequest
     runs-on: windows-latest
     
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
-    
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: '9.0.x'
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '20.x'
-    
-    - name: Prepare build environment
-      run: |
-        New-Item ${{ github.workspace }}\sln_output -ItemType Directory -Force
-      shell: pwsh
+
+  test:
+    name: Validate
+    runs-on: windows-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
