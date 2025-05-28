@@ -344,8 +344,31 @@ public static class Runner
                         }
                     };
                 }
+                else
+                {
+                    // Handle unrecognized function calls by providing an error response
+                    var errorMessage = $"Function '{functionCall.Name}' is not available. Available tools are: {string.Join(", ", agent.AutoToolNames.Concat(agent.ManualToolNames).Concat(agent.HandoffNames))}";
+
+                    trajectory.AppendLine($"Unrecognized Function Call: {functionCall.Name} - {errorMessage}");
+
+                    var errorResult = new FunctionResultContent(functionCall.CallId, errorMessage);
+                    newStepItems.Add(new ChatMessage(ChatRole.Tool, [errorResult]));
+                    return new SingleStepResult<TContext>
+                    {
+                        OriginalInput = originalInput,
+                        ModelResponse = modelResponse,
+                        PreStepItems = preStepItems,
+                        NewStepItems = newStepItems,
+                        NextStep = new NextStep<TContext>
+                        {
+                            Type = NextStepType.RunAgain
+                        },
+                        Trajectory = trajectory.ToString()
+                    };
+                }
             }
         }
+
         // if we reach here, there were no tool calls in the response
         return new SingleStepResult<TContext>
         {
