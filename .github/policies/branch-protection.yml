@@ -13,7 +13,7 @@ configuration:
       requiresConversationResolution: true
       requiresPullRequestBeforeMerging: true
       dismissStaleReviews: true
-      allowsForcePushes: false
+      allowsForcePushes: true
       isAdminEnforced: true
       whoCanPush:
       - k4appscore
@@ -27,7 +27,7 @@ configuration:
       requiresConversationResolution: true
       requiresPullRequestBeforeMerging: true
       dismissStaleReviews: true
-      allowsForcePushes: false
+      allowsForcePushes: true
       isAdminEnforced: false
       requiredStatusChecks:
       - Validate
