@@ -33,11 +33,37 @@ public sealed class DeferredToolFunction
 
         if (threadId is not null)
         {
-            // If the plugin type has a ThreadId field, set it to the provided threadId.
-            var threadIdProperty = _pluginType.GetProperty("ThreadId", BindingFlags.Instance | BindingFlags.Public);
-            if (threadIdProperty is not null && threadIdProperty.PropertyType == typeof(Guid?))
+            // Check for public ThreadId property first
+            var threadIdPropertyPublic = _pluginType.GetProperty("ThreadId", BindingFlags.Instance | BindingFlags.Public);
+            if (threadIdPropertyPublic is not null && threadIdPropertyPublic.PropertyType == typeof(Guid?))
             {
-                threadIdProperty.SetValue(instance, threadId);
+                threadIdPropertyPublic.SetValue(instance, threadId);
+            }
+
+            // Check all private fields and if they have ThreadId, set it on those objects
+            var privateFields = _pluginType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic);
+            foreach (var field in privateFields)
+            {
+                // Get the actual object stored in this private field (e.g., the IArmPlugin instance)
+                var fieldValue = field.GetValue(instance);
+                if (fieldValue != null)
+                {
+                    var fieldType = fieldValue.GetType();
+
+                    // Check if this field object (e.g., IArmPlugin) has a public ThreadId property
+                    var threadIdProperty = fieldType.GetProperty("ThreadId", BindingFlags.Instance | BindingFlags.Public);
+                    if (threadIdProperty != null && threadIdProperty.PropertyType == typeof(Guid?) && threadIdProperty.CanWrite)
+                    {
+                        threadIdProperty.SetValue(fieldValue, threadId);
+                    }
+
+                    // Also check for private ThreadId fields on the field object
+                    var threadIdField = fieldType.GetField("ThreadId", BindingFlags.Instance | BindingFlags.NonPublic);
+                    if (threadIdField != null && threadIdField.FieldType == typeof(Guid?))
+                    {
+                        threadIdField.SetValue(fieldValue, threadId);
+                    }
+                }
             }
         }
 
