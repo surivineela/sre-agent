@@ -38,19 +38,47 @@ export interface AgentDeployment {
     location: string;
 }
 
-export interface Subscription {
-    subscriptionId: string; 
-    displayName: string
+// For ARM list responses
+export interface ArmListResponse<T> {
+    value: T[];
+    nextLink?: string; // For pagination
 }
 
+// Updated Subscription interface
+export interface Subscription {
+    id: string; // Full ARM ID e.g., "/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+    subscriptionId: string; // GUID e.g., "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+    displayName: string;
+    state?: string; // e.g., "Enabled", "Warned", "PastDue", "Disabled"
+    // tenantId?: string; // Might be useful in some contexts
+}
+
+// Updated ResourceGroup interface
 export interface ResourceGroup {
+    id: string; // Full ARM ID e.g., "/subscriptions/.../resourceGroups/myRG"
     name: string;
     location: string;
+    properties?: {
+        provisioningState?: string; // e.g., "Succeeded", "Failed"
+    };
+    tags?: { [key: string]: string };
 }
 
+// Updated Location interface
 export interface Location {
-    name: string;
-    displayName: string;
+    id: string; // Full ARM ID e.g., "/subscriptions/.../locations/westus"
+    name: string; // The short name for the location e.g., "westus"
+    displayName: string; // The display name for the location e.g., "West US"
+    regionalDisplayName?: string; // Regional display name e.g., "(US) West US"
+    metadata?: {
+        regionType?: string; // "Physical" or "Logical"
+        regionCategory?: string; // "Recommended", "Other"
+        geographyGroup?: string;
+        longitude?: string;
+        latitude?: string;
+        physicalLocation?: string;
+        pairedRegion?: Array<{ name: string, id: string }>;
+    };
 }
 
 export interface IcmIncident {

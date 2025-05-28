@@ -6,6 +6,7 @@ using Kusto.Cloud.Platform.Data;
 using FirstPartyAgent.Core.Clients;
 using System.Net;
 using FirstPartyAgent.Core.Configuration;
+using Newtonsoft.Json.Linq;
 
 namespace FirstPartyAgent.Core.Services;
 public class IcmAgentConfigService : IIcmAgentConfigService
@@ -515,6 +516,163 @@ Incidents
         }
     }
 
+    public async Task<List<string>> ListAllContainers()
+    {
+        await IsReady();
+
+        try
+        {
+            var client = _cosmosDbService.CosmosClient;
+            var database = client.GetDatabase(_cosmosDbService.IcmAgentDatabaseName);
+            
+            // Fetch all container names from the database
+            var containerList = new List<string>();
+            using (var iterator = database.GetContainerQueryIterator<ContainerProperties>())
+            {
+                while (iterator.HasMoreResults)
+                {
+                    var containers = await iterator.ReadNextAsync();
+                    foreach (var container in containers)
+                    {
+                        containerList.Add(container.Id);
+                    }
+                }
+            }
+            
+            return containerList;
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Error listing containers in database: {ex.Message}", ex);
+        }
+    }
+
+    public async Task<List<string>> GetAllDocumentIds(string containerName)
+    {
+        await IsReady();
+
+        if (string.IsNullOrWhiteSpace(containerName))
+        {
+            throw new ArgumentException("Container name cannot be empty", nameof(containerName));
+        }
+
+        try
+        {
+            var client = _cosmosDbService.CosmosClient;
+            var database = client.GetDatabase(_cosmosDbService.IcmAgentDatabaseName);
+            var container = database.GetContainer(containerName);
+            
+            // Query to get all document IDs in the container
+            var query = new QueryDefinition("SELECT c.id FROM c");
+            var documentIds = new List<string>();
+            
+            using (var iterator = container.GetItemQueryIterator<dynamic>(query))
+            {
+                while (iterator.HasMoreResults)
+                {
+                    var response = await iterator.ReadNextAsync();
+                    foreach (var item in response)
+                    {
+                        documentIds.Add(item.id.ToString());
+                    }
+                }
+            }
+            
+            return documentIds;
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Error getting document IDs from container '{containerName}': {ex.Message}", ex);
+        }
+    }
+
+    public async Task<string> GetDocumentById(string containerName, string documentId)
+    {
+        await IsReady();
+
+        if (string.IsNullOrWhiteSpace(containerName))
+        {
+            throw new ArgumentException("Container name cannot be empty", nameof(containerName));
+        }
+
+        if (string.IsNullOrWhiteSpace(documentId))
+        {
+            throw new ArgumentException("Document ID cannot be empty", nameof(documentId));
+        }
+
+        try
+        {
+            var client = _cosmosDbService.CosmosClient;
+            var database = client.GetDatabase(_cosmosDbService.IcmAgentDatabaseName);
+            var container = database.GetContainer(containerName);
+
+            // Query to get the document
+            var query = new QueryDefinition($"SELECT * FROM c WHERE c.id = @id")
+                .WithParameter("@id", documentId);
+
+            using var iterator = container.GetItemQueryIterator<dynamic>(query);
+
+            if (iterator.HasMoreResults)
+            {
+                var response = await iterator.ReadNextAsync();
+                var document = response.FirstOrDefault();
+                if (document == null)
+                {
+                    throw new KeyNotFoundException($"Document with ID '{documentId}' not found in container '{containerName}'.");
+                }
+                return Newtonsoft.Json.JsonConvert.SerializeObject(document);
+            }
+
+            throw new KeyNotFoundException($"Document with ID '{documentId}' not found in container '{containerName}'.");
+        }
+        catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            throw new KeyNotFoundException($"Document with ID '{documentId}' not found in container '{containerName}'.");
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Error getting document '{documentId}' from container '{containerName}': {ex.Message}", ex);
+        }
+    }
+
+    public async Task<string> UpsertDocument(string containerName, string documentJson)
+    {
+        await IsReady();
+
+        if (string.IsNullOrWhiteSpace(containerName))
+        {
+            throw new ArgumentException("Container name cannot be empty", nameof(containerName));
+        }
+
+        if (string.IsNullOrWhiteSpace(documentJson))
+        {
+            throw new ArgumentNullException(nameof(documentJson), "Document JSON cannot be null or empty");
+        }
+
+        try
+        {
+            var documentObject = Newtonsoft.Json.JsonConvert.DeserializeObject<JToken>(documentJson);
+            if (documentObject == null)
+            {
+                 throw new ArgumentException("Invalid JSON document", nameof(documentJson));
+            }
+
+            // Use the existing method in CosmosDBService to handle the upsert
+            // Assuming UpsertItemAsync can take a dynamic object and the container name
+            // and that it returns the upserted item which can then be serialized.
+            var result = await _cosmosDbService.UpsertItemAsync(_cosmosDbService.IcmAgentDatabaseName, containerName, documentObject);
+            return result.StatusCode.ToString();
+        }
+        catch (Newtonsoft.Json.JsonException jsonEx)
+        {
+            throw new ArgumentException($"Invalid JSON format: {jsonEx.Message}", nameof(documentJson), jsonEx);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Error upserting document to container '{containerName}': {ex.Message}", ex);
+        }
+    }
+
     #region Private methods
     private async Task CreateTeamConfigIfNotExists(TeamConfig teamConfig)
     {
@@ -642,4 +800,21 @@ public class IcmAgentConfigServiceDisabled : IIcmAgentConfigService
     {
         throw new NotImplementedException();
     }
+
+    public Task<List<string>> ListAllContainers()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<List<string>> GetAllDocumentIds(string containerName)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<string> GetDocumentById(string containerName, string documentId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<string> UpsertDocument(string containerName, string documentJson) { throw new NotImplementedException(); }
 }
