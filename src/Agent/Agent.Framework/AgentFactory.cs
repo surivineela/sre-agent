@@ -9,17 +9,6 @@ using YamlDotNet.Serialization.NamingConventions;
 
 namespace Agent.Framework;
 
-public interface IAgentDescriptor
-{
-    public string Name { get; set; }
-    public string Instructions { get; set; }
-    public string? HandoffDescription { get; set; }
-    public List<string> Handoffs { get; set; }
-    public List<string> AutoTools { get; set; }
-    public List<string> ManualTools { get; set; }
-    public int MaxReflectionCount { get; set; }
-}
-
 public interface IAgentFactory<TContext>
     where TContext : class
 {
@@ -110,6 +99,16 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
             ManualTools = agentDescriptor.ManualTools.Select(_toolFactory.FindAIFunction).ToList(), // Note the tools will be created again with ThreadId in the reasoning loop
         };
 
+        agent.Instructions
+            .WithHandoffInstructions()
+            .WithFormattingGuidelines();
+
+        if (_agents.ContainsKey(agentDescriptor.Name))
+        {
+            _logger.LogWarning("Agent with name {agentName} already exists.", agentDescriptor.Name);
+            return false;
+        }
+
         _agents[agentDescriptor.Name] = agent;
         _agentDescriptors[agentDescriptor.Name] = agentDescriptor;
         return true;
@@ -126,7 +125,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
                 {
                     var error = $"Agent descriptor {agentDescriptor.Name} has a handoff to {handoff} but it does not exist.";
                     _logger.LogError(error);
-                    throw new Exception(error);
+                    throw new KeyNotFoundException(error);
                 }
             }
 
@@ -150,7 +149,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
 
         if (!agentDescriptorTypes.Any())
         {
-            _logger.LogError("No agent descriptors found.");
+            _logger.LogWarning("No agent descriptors found in assembly.");
             return;
         }
 
@@ -161,64 +160,73 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
                 _logger.LogError("Failed to create an instance of {agentType}.", agentType.FullName);
                 continue;
             }
-            if (agentDescriptor.GetType()?.Name == "YamlAgentDescriptor")
+            if (agentDescriptor.GetType()?.Name == nameof(YamlAgentDescriptor))
             {
                 _logger.LogDebug("Skipping YamlAgentDescriptor type as it's just for parser.");
                 continue;
             }
 
-            AddAgentDescriptor(agentDescriptor);
+            if (AddAgentDescriptor(agentDescriptor))
+            {
+                _logger.LogInformation("Successfully loaded agent descriptor '{descriptorName}' from assembly '{assemblyName}'.", agentType.Name, agentType.Assembly.GetName().Name);
+            }
+            else
+            {
+                _logger.LogError("Failed to load agent descriptor '{descriptorName}' from assembly '{assemblyName}'.", agentType.Name, agentType.Assembly.GetName().Name);
+            }
         }
     }
 
-    public void LoadAgentFromYaml()
+    private void LoadAgentFromYaml()
     {
         var yamlFiles = Directory.GetFiles(_agentsYamlDirectory, "*.yaml", SearchOption.AllDirectories)
                        .Concat(Directory.GetFiles(_agentsYamlDirectory, "*.yml", SearchOption.AllDirectories));
 
         foreach (var yamlFile in yamlFiles)
         {
-            try
-            {
-                LoadAgentFromFile(yamlFile);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to load agent from {filePath}.", yamlFile);
-            }
+            LoadAgentFromFile(yamlFile);
         }
     }
 
-    public void LoadAgentFromYaml(string yamlContent)
+    public IAgentDescriptor LoadAgentFromYaml(string yamlContent)
     {
         try
         {
-            var agentDescriptor = AgentDescriptorParser.ParseFromYaml(yamlContent);
+            var deserializer = new DeserializerBuilder()
+                .WithNamingConvention(UnderscoredNamingConvention.Instance)
+                .Build();
+
+            var agentDescriptor = deserializer.Deserialize<YamlAgentDescriptor>(yamlContent);
+            return agentDescriptor;
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("Failed to parse YAML into AgentDescriptor", ex);
+        }
+    }
+
+    private void LoadAgentFromFile(string filePath)
+    {
+        try
+        {
+            if (!File.Exists(filePath))
+                throw new FileNotFoundException("YAML file not found", filePath);
+
+            string yamlContent = File.ReadAllText(filePath);
+
+            var agentDescriptor = LoadAgentFromYaml(yamlContent);
             if (AddAgentDescriptor(agentDescriptor))
             {
-                _logger.LogInformation("Successfully loaded agent descriptor {descriptorName} from YAML.", agentDescriptor.Name);
+                _logger.LogInformation($"Successfully loaded agent descriptor {agentDescriptor.Name} from file {filePath}.");
+            }
+            else
+            {
+                _logger.LogError($"Failed to load agent descriptor from file {filePath}.");
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to load agent from YAML content.");
-            throw;
-        }
-    }
-
-    public void LoadAgentFromFile(string filePath)
-    {
-        try
-        {
-            var agentDescriptor = AgentDescriptorParser.ParseFromFile(filePath);
-            if (AddAgentDescriptor(agentDescriptor))
-            {
-                _logger.LogInformation("Successfully loaded agent descriptor {descriptorName} from file {filePath}.", agentDescriptor.Name, filePath);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to load agent from file {FilePath}.", filePath);
+            _logger.LogError(ex, $"Failed to load agent descriptor from file {filePath}.");
             throw;
         }
     }
@@ -228,72 +236,10 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         var agentFound = _agents.TryGetValue(name, out var agent);
         if (!agentFound || agent is null)
         {
-            _logger.LogError("Agent {agentName} not found.", name);
+            _logger.LogError($"Agent {name} not found.");
             throw new KeyNotFoundException($"Agent {name} not found.");
         }
 
         return agent;
-    }
-}
-
-public class AgentDescriptorParser
-{
-    public static IAgentDescriptor ParseFromYaml(string yamlContent)
-    {
-        try
-        {
-            var deserializer = new DeserializerBuilder()
-                .WithNamingConvention(UnderscoredNamingConvention.Instance)
-                .Build();
-
-            var agentDescriptor = deserializer.Deserialize<YamlAgentDescriptor>(yamlContent);
-
-            // Validate required fields
-            if (string.IsNullOrEmpty(agentDescriptor.Name))
-                throw new ArgumentException("Name field is required in YAML");
-            if (string.IsNullOrEmpty(agentDescriptor.SystemPrompt))
-                throw new ArgumentException("SystemPrompt field is required in YAML");
-
-            agentDescriptor.Instructions = Prompt.PromptWithHandoffInstructions(agentDescriptor.SystemPrompt);
-            return agentDescriptor;
-        }
-        catch (Exception ex)
-        {
-            throw new InvalidOperationException("Failed to parse YAML into IAgentDescriptor", ex);
-        }
-    }
-
-    public static IAgentDescriptor ParseFromFile(string filePath)
-    {
-        if (!File.Exists(filePath))
-            throw new FileNotFoundException("YAML file not found", filePath);
-
-        string yamlContent = File.ReadAllText(filePath);
-        return ParseFromYaml(yamlContent);
-    }
-
-    private class YamlAgentDescriptor : IAgentDescriptor
-    {
-        [YamlMember(Alias = "name")]
-        public string Name { get; set; } = string.Empty;
-
-        [YamlMember(Alias = "system_prompt")]
-        public string SystemPrompt { get; set; } = string.Empty;
-
-        public string Instructions { get; set; } = string.Empty;
-
-        [YamlMember(Alias = "handoff_description")]
-        public string? HandoffDescription { get; set; }
-
-        [YamlMember(Alias = "handoffs")]
-        public List<string> Handoffs { get; set; } = [];
-
-        [YamlMember(Alias = "auto_tools")]
-        public List<string> AutoTools { get; set; } = [];
-
-        [YamlMember(Alias = "manual_tools")]
-        public List<string> ManualTools { get; set; } = [];
-        [YamlMember(Alias = "max_reflection_count")]
-        public int MaxReflectionCount { get; set; } = 0;
     }
 }

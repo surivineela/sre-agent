@@ -58,7 +58,7 @@ public class Handoff<TContext> : AIFunction where TContext : class
 
     public static string DefaultToolDescription(Agent<TContext> agent)
     {
-        return $"Handoff to the {agent.Name} agent to handle the request. {agent.HandoffDescription ?? ""}";
+        return $"Handoff to the {agent.Name} agent to handle the request. {agent.HandoffDescription}";
     }
 
     public static Handoff<TContext> Create(

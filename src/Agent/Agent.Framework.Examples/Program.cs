@@ -59,7 +59,7 @@ class Agent1 : Agent<CustomContext>
             Handoff<CustomContext>.Create(agent: agent2)
         ];
 
-        Instructions = Prompt.PromptWithHandoffInstructions($"You are {Name}, you can delegate to agent2 to get data");
+        Instructions = new PromptText($"You are {Name}, you can delegate to agent2 to get data").WithHandoffInstructions();
     }
 }
 
@@ -75,7 +75,7 @@ class Agent2 : Agent<CustomContext>
 
         HandoffDescription = "Handoff to get data";
 
-        Instructions = Prompt.PromptWithHandoffInstructions($"You are {Name}, use the tool to get data");
+        Instructions = new PromptText($"You are {Name}, use the tool to get data").WithHandoffInstructions();
     }
 }
 
@@ -229,30 +229,6 @@ class Program
             agentsYamlDirectory: Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "agents")
         );
 
-        // Load agents from YAML files in the agents folder
-        var agentsFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "agents");
-        if (Directory.Exists(agentsFolder))
-        {
-            var yamlFiles = Directory.GetFiles(agentsFolder, "*.yaml", SearchOption.AllDirectories)
-                           .Concat(Directory.GetFiles(agentsFolder, "*.yml", SearchOption.AllDirectories));
-
-            foreach (var yamlFile in yamlFiles)
-            {
-                try
-                {
-                    agentFactory.LoadAgentFromFile(yamlFile);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Failed to load agent from {yamlFile}: {ex.Message}");
-                }
-            }
-        }
-        else
-        {
-            Console.WriteLine($"Agents folder not found at: {agentsFolder}");
-        }
-
         var chatHistory = new List<ChatMessage>();
         var lastAgent = agentFactory.GetAgent("meta_agent");
         while (true)
@@ -342,10 +318,10 @@ class Program
 
         // construct agents manually from framework types
         var agent1 = new Agent<CustomContext>("Agent1");
-        agent1.Instructions = Prompt.PromptWithHandoffInstructions($"You are {agent1.Name}, you can delegate to agent2 to get data");
+        agent1.Instructions = new PromptText($"You are {agent1.Name}, you can delegate to agent2 to get data").WithHandoffInstructions();
 
         var agent2 = new Agent<CustomContext>("Agent2");
-        agent2.Instructions = Prompt.PromptWithHandoffInstructions($"You are {agent2.Name}, use the tool to get data");
+        agent2.Instructions = new PromptText($"You are {agent2.Name}, use the tool to get data").WithHandoffInstructions();
         agent2.HandoffDescription = "Handoff to get data";
 
         var testService = new TestService();
@@ -397,10 +373,10 @@ class Program
 
         // construct agents manually from framework types
         var agent1 = new Agent<CustomContext>("Agent1");
-        agent1.Instructions = Prompt.PromptWithHandoffInstructions($"You are {agent1.Name}, you can delegate to agent2 to get data");
+        agent1.Instructions = new PromptText($"You are {agent1.Name}, you can delegate to agent2 to get data").WithHandoffInstructions();
 
         var agent2 = new Agent<CustomContext>("Agent2");
-        agent2.Instructions = Prompt.PromptWithHandoffInstructions($"You are {agent2.Name}, use the tool to get data");
+        agent2.Instructions = new PromptText($"You are {agent2.Name}, use the tool to get data").WithHandoffInstructions();
         agent2.HandoffDescription = "Handoff to get data";
 
         var testService = new TestService();

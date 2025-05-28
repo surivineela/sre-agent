@@ -10,9 +10,9 @@ public class Agent<TContext> where TContext : class
 {
     public string Name { get; set; }
 
-    public string? HandoffDescription { get; set; }
+    public PromptText? HandoffDescription { get; set; }
 
-    public string Instructions { get; set; } = "";
+    public PromptText Instructions { get; set; } = "";
 
     /// <summary>
     /// Tools that can be automatically run by the framework without exiting the loop
