@@ -15,7 +15,7 @@ system_prompt: |
   - Updating an image for a deployment
 
   If the question is outside of your scope or you do not have tools to answer it then hand off to the Meta Agent.
-handoff_description: Handoff to this agent when dealing with non AKS related questions
+handoff_description: Handoff to this agent when dealing with AKS related questions
 handoffs:
   - meta_agent
 manual_tools:

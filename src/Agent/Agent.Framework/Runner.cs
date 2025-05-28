@@ -2,7 +2,10 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text;
+using System.Text.Json;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging;
 
 namespace Agent.Framework;
 
@@ -92,10 +95,12 @@ public static class Runner
         List<ChatMessage> originalInput = [.. input];
         List<ChatMessage> generatedMessages = newGeneratedItems != null ? [.. newGeneratedItems] : [];
         List<ChatResponse> rawResponses = [];
+        var trajectory = new StringBuilder();
 
         var contextWrapper = new RunContextWrapper<TContext>(context);
 
         var logger = config.LoggerFactory.CreateLogger("Agent.Framework.Runner");
+        int criticCount = 0;
 
         try
         {
@@ -118,6 +123,8 @@ public static class Runner
                     shouldRunAgentStartHooks: shouldRunAgentStartHooks
                 );
 
+                trajectory.AppendLine(turnResult.Trajectory);
+
                 shouldRunAgentStartHooks = false;
 
                 originalInput = turnResult.OriginalInput;
@@ -126,6 +133,20 @@ public static class Runner
 
                 if (turnResult.NextStep.Type == NextStepType.FinalOutput)
                 {
+
+                    logger.LogInformation("FinalOutput received from {AgentName}, Critic: {criticCount}/{MaxReflectionCount}", currentAgent.Name, criticCount, currentAgent.MaxReflectionCount);
+                    if (currentAgent.MaxReflectionCount > 0 && criticCount < currentAgent.MaxReflectionCount)
+                    {
+                        var criticResult = await Critic.CriticAsync(config, originalInput, trajectory.ToString());
+                        if (criticResult.Contains("FAIL"))
+                        {
+                            criticCount++;
+                            originalInput.Add(new ChatMessage(ChatRole.User, criticResult));
+                            logger.LogWarning("Critic result indicates failure: {CriticResult}", criticResult);
+                            continue;
+                        }
+                        criticCount = 0;
+                    }
                     await hooks.OnAgentEnd(contextWrapper, currentAgent, turnResult.NextStep.Output);
 
                     return new RunResult<TContext>(currentAgent)
@@ -226,11 +247,21 @@ public static class Runner
     {
         List<ChatMessage> newStepItems = [];
         newStepItems.AddRange(modelResponse.Messages);
+        var trajectory = new StringBuilder();
 
         // process tool calls
         // assume no parallel tool calling, so if a regular tool is called, we are not handing off to another agent
         foreach (var message in modelResponse.Messages)
         {
+            trajectory.AppendLine($"Role: {message.Role.Value}");
+            foreach (var content in message.Contents)
+            {
+                if (content is TextContent textContent)
+                {
+                    trajectory.AppendLine(textContent.Text);
+                }
+            }
+
             var functionCalls = message.Contents.OfType<FunctionCallContent>();
 
             foreach (var functionCall in functionCalls)
@@ -244,6 +275,15 @@ public static class Runner
                     await hooks.OnToolStart(contextWrapper, agent, tool);
 
                     var toolResult = await tool.InvokeAsync(functionCall.Arguments);
+
+                    var functionCallResultJson = JsonSerializer.Serialize(new
+                    {
+                        function_name = functionCall.Name,
+                        function_parameters = (functionCall.RawRepresentation as OpenAI.Chat.ChatToolCall)!.FunctionArguments.ToString(),
+                        result = toolResult
+                    }, new JsonSerializerOptions { WriteIndented = true });
+
+                    trajectory.AppendLine($"Function Call: {functionCallResultJson}");
 
                     await hooks.OnToolEnd(contextWrapper, agent, tool, toolResult);
 
@@ -259,7 +299,8 @@ public static class Runner
                         NextStep = new NextStep<TContext>
                         {
                             Type = NextStepType.RunAgain
-                        }
+                        },
+                        Trajectory = trajectory.ToString()
                     };
                 }
                 else if (agent.ManualToolNames.Contains(functionCall.Name))
@@ -303,6 +344,28 @@ public static class Runner
                         }
                     };
                 }
+                else
+                {
+                    // Handle unrecognized function calls by providing an error response
+                    var errorMessage = $"Function '{functionCall.Name}' is not available. Available tools are: {string.Join(", ", agent.AutoToolNames.Concat(agent.ManualToolNames).Concat(agent.HandoffNames))}";
+
+                    trajectory.AppendLine($"Unrecognized Function Call: {functionCall.Name} - {errorMessage}");
+
+                    var errorResult = new FunctionResultContent(functionCall.CallId, errorMessage);
+                    newStepItems.Add(new ChatMessage(ChatRole.Tool, [errorResult]));
+                    return new SingleStepResult<TContext>
+                    {
+                        OriginalInput = originalInput,
+                        ModelResponse = modelResponse,
+                        PreStepItems = preStepItems,
+                        NewStepItems = newStepItems,
+                        NextStep = new NextStep<TContext>
+                        {
+                            Type = NextStepType.RunAgain
+                        },
+                        Trajectory = trajectory.ToString()
+                    };
+                }
             }
         }
 
@@ -313,6 +376,7 @@ public static class Runner
             ModelResponse = modelResponse,
             PreStepItems = preStepItems,
             NewStepItems = newStepItems,
+            Trajectory = trajectory.ToString(),
             NextStep = new NextStep<TContext>
             {
                 Type = NextStepType.FinalOutput,
@@ -320,4 +384,5 @@ public static class Runner
             }
         };
     }
+
 }
