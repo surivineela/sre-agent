@@ -75,7 +75,9 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
 
         if (agentDescriptor.ManualTools.Any(toolName => !_toolFactory.HasAIFunction(toolName)))
         {
-            _logger.LogError("Agent descriptor {descriptorName} has manual tools that do not exist in the tool factory.", agentDescriptor.Name);
+            var missingManualTools = agentDescriptor.ManualTools.Where(toolName => !_toolFactory.HasAIFunction(toolName)).ToList();
+            _logger.LogError("Agent descriptor {descriptorName} has manual tools that do not exist in the tool factory: {missingTools}",
+                agentDescriptor.Name, string.Join(", ", missingManualTools));
             return false;
         }
 
