@@ -7,7 +7,6 @@ import { Message, Thread, ThreadContext, ThreadOrchestrationReasoningState } fro
 import { Guid } from '../../Common/Helpers/Guid';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { PromptResources, SreAgentResources, ThreadContextStateResources } from '../../Strings/SREAgentResources';
-import { AgentContext } from '../Activities/Activities.ReactView';
 import { noGapBetweenNewMessagesAndExistingMessages, processMessages } from '../Activities/Utility';
 import { MessageLoadingCounts, MessagePollingCounts, MessagePollingInterval } from '../Contracts/Activities';
 import { useAuthenticatedUserInfo } from './useAuthenticatedUserInfo';
@@ -25,7 +24,7 @@ const composeTemporaryUserMessage = (userId: string, userDisplayName: string, me
     };
 };
 
-export const useChatBox = (addThread: (thread: Thread) => void, threadId?: string | null, _?: string | null) => {
+export const useChatBox = (addThread: (thread: Thread) => void, promoteThread: () => void, threadId?: string | null, _?: string | null) => {
     const intl = useIntl();
 
     const [messages, setMessages] = useState<Message[]>([]);
@@ -35,6 +34,7 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
     const [noChatHistoryLeftToLoad, setNoChatHistoryLeftToLoad] = useState<boolean>(false);
     const [waitingForSendMessageResponse, setWaitingForSendMessageResponse] = useState<boolean>(false);
     const [isIntersecting, setIsIntersecting] = useState<boolean>(false);
+    const [isThreadOnTop, setIsThreadOnTop] = useState<boolean>(false);
 
     const [temporaryUserMessage, setTemporaryUserMessage] = useState<Message | null>(null);
     const [agentTypingMessage, setAgentTypingMessage] = useState<Message | null>(null);
@@ -45,15 +45,14 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
     const [enableIntersectObserver, setEnableIntersectObserver] = useState<boolean>(false);
 
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
-    const { threadsInitialized } = useContext(AgentContext);
 
     const {
         userIdAndDisplayName: { userId, displayName },
     } = useAuthenticatedUserInfo();
 
     const disableInput = useMemo(
-        () => !!agentTypingMessage || isLoadingInitialChatHistory || !threadsInitialized,
-        [agentTypingMessage, isLoadingInitialChatHistory, threadsInitialized]
+        () => !!agentTypingMessage || isLoadingInitialChatHistory,
+        [agentTypingMessage, isLoadingInitialChatHistory]
     );
 
     const isNewAndCleanThread = useMemo(
@@ -305,10 +304,13 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
                 if (newThread) {
                     setCurrentThreadId(newThread.id);
                     addThread(newThread);
+                } else if (!isThreadOnTop) {
+                    promoteThread();
+                    setIsThreadOnTop(true);
                 }
             }
         },
-        [currentThreadId, addThread, userId, displayName]
+        [currentThreadId, isThreadOnTop, addThread, promoteThread, userId, displayName]
     );
 
     useEffect(() => {
@@ -448,14 +450,14 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
 
         for (let i = messages.length - 1; i >= 0 && result.length < 3; i--) {
             const msg = messages[i];
-            if (msg.author.role !== 'SREAgent' &&  !seenTexts.has(msg.text)) {
-                result.unshift(msg); 
+            if (msg.author.role !== 'SREAgent' && !seenTexts.has(msg.text)) {
+                result.unshift(msg);
                 seenTexts.add(msg.text);
             }
         }
         return result.map(message => {
-                return message.text;
-            }); 
+            return message.text;
+        });
     }, [messages]);
 
     useEffect(() => {
@@ -498,7 +500,7 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
         intersectionObserverRef,
         currentThreadId,
         cancelResponse,
-        prompts, 
+        prompts,
         messagePromptsUsed,
         handleScroll,
         showNewMessageButton,

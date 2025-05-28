@@ -3,7 +3,7 @@ import { useContext, useEffect, useMemo, useState } from 'react';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { Action } from '../../Common/Contracts/Azure/SreAgent';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
-import { AgentContext } from '../Activities/Activities.ReactView';
+import { AgentContext } from '../Contracts/Context';
 
 export const useActions = (threadId?: string | null) => {
     const [actions, setActions] = useState<Action[]>([]);

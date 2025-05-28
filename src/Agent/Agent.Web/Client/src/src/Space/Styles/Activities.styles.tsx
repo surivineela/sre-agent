@@ -4,6 +4,9 @@ import { IStyle, mergeStyleSets } from '@fluentui/react/lib/Styling';
 import { useTheme } from '@fluentui/react/lib/Theme';
 import { CSSProperties } from 'react';
 
+export const ThreadItemHeightInPx = 40;
+export const ThreadItemPaddingTopBottomInPx = 10;
+
 export const activitiesStylesRoot: CSSProperties = {
     display: 'flex',
     justifyContent: 'flex-start',
@@ -244,6 +247,11 @@ export const useThreadMenuStyle = (collapsed?: boolean) => {
         paddingLeft: '10px',
     };
 
+    const threadListContainer: IStyle = {
+        maxWidth: '100%',
+        padding: '0px 10px',
+    };
+
     const threadList: IStyle = {
         position: 'absolute',
         height: 'calc(100vh - 278px)',
@@ -252,9 +260,10 @@ export const useThreadMenuStyle = (collapsed?: boolean) => {
     };
 
     const threadItem: IStyle = {
-        padding: '10px 0px',
+        padding: `${ThreadItemPaddingTopBottomInPx}px 0px`,
         paddingLeft: '10px',
         cursor: 'pointer',
+        height: `${ThreadItemHeightInPx}px`,
     };
 
     const activeThreadItem: IStyle = {
@@ -282,6 +291,7 @@ export const useThreadMenuStyle = (collapsed?: boolean) => {
 
     return mergeStyleSets({
         root,
+        threadListContainer,
         threadList,
         threadItem,
         activeThreadItem,
@@ -378,6 +388,10 @@ export const shimmerStyle: CSSProperties = {
     maxWidth: '100%',
     paddingLeft: '10px',
     paddingRight: '10px',
+};
+
+export const skeletonStyle: CSSProperties = {
+    paddingLeft: '10px',
 };
 
 export const nameAndTimestampContainerStyle: CSSProperties = {
