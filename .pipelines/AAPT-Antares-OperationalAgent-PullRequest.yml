@@ -8,10 +8,7 @@
 
 name: $(Date:yyyyMMdd)$(Rev:.r)
 
-trigger:
-  branches:
-    include:
-    - main
+trigger: none  # This pipeline should only trigger on pull requests, not on branch pushes
 
 pr:
   autoCancel: true
