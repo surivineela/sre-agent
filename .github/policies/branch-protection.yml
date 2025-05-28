@@ -20,7 +20,7 @@ configuration:
       - srea-devs
       requiredStatusChecks:
       - GitOps/AdvancedSecurity
-      - "Azure Pipelines / SREAgent-Runtime-PullRequest"
+      - SREAgent-Runtime-PullRequest
     - branchNamePattern: "release/*"
       requiredApprovingReviewsCount: 2
       restrictsPushes: true
@@ -34,4 +34,4 @@ configuration:
       - k4appscore
       - srea-devs
       requiredStatusChecks:
-      - "Azure Pipelines / SREAgent-Runtime-PullRequest"
+      - SREAgent-Runtime-PullRequest
