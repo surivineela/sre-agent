@@ -266,7 +266,8 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
                 assembliesToScan: AppDomain.CurrentDomain.GetAssemblies()
                     .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
                     .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true),
-                agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "AgentsV2")
+                agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "AgentsV2"),
+                commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonPrompts")
             );
         })
 

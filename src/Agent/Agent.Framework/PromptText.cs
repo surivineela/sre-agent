@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
@@ -24,7 +28,7 @@ public class PromptText
         }
 
         if (!string.IsNullOrEmpty(_value))
-        {            
+        {
             builder.AppendLine(_value);
             builder.AppendLine();
         }
@@ -32,6 +36,12 @@ public class PromptText
         if (HasFormattingGuidelines)
         {
             builder.AppendLine(PromptTextConstants.FormattingGuidelines);
+            builder.AppendLine();
+        }
+
+        foreach (var commonPrompt in _commonPrompts)
+        {
+            builder.AppendLine(commonPrompt);
             builder.AppendLine();
         }
 
@@ -63,6 +73,8 @@ public class PromptText
 
     public bool HasFormattingGuidelines { get; private set; } = false;
 
+    private readonly List<string> _commonPrompts = [];
+
     public PromptText WithHandoffInstructions()
     {
         HasHandoffInstructions = true;
@@ -73,6 +85,11 @@ public class PromptText
     {
         HasFormattingGuidelines = true;
         return this;
+    }
+
+    public void AddCommonPrompt(string promptText)
+    {
+        _commonPrompts.Add(promptText);
     }
 
     private static class PromptTextConstants
@@ -90,35 +107,35 @@ public class PromptText
 
         public static string FormattingGuidelines = """
         # Formatting Guidelines
-        Your messages will be sent via Microsoft Teams, without using adaptive cards. 
+        Your messages will be sent via Microsoft Teams, without using adaptive cards.
         Note that the below guidelines use backticks to be clear about the referenced text. The only scenario you should put backticks in your response is for the code block case outlined below.
-        Follow these guidelines:                
+        Follow these guidelines:
 
         - Allowed Markdown Syntax:
-            1. Bold: **bold text**  
+            1. Bold: **bold text**
                 - Use `**` around the text for bold (example: **This is bold**).
                 - In these guidelines, backticks around `**bold text**` are just for illustration; do not include backticks in your final output when generating bold text.
-            2. Italics: *italic text* or _italic text_  
+            2. Italics: *italic text* or _italic text_
                 - Use `*` or `_` around the text for italics (example: *This is italics* or _This is italics_).
                 - In these guidelines, backticks around `*italic text*` or `_italic text_` are for illustration only.
-            3. Underline: __underlined text__  
-            4. Strikethrough: ~~strikethrough text~~  
+            3. Underline: __underlined text__
+            4. Strikethrough: ~~strikethrough text~~
             5. Headings:
                 - # Heading 1
                 - ## Heading 2
                 - ### Heading 3
                 (Note: Teams applies limited styling to headings.)
-            6. Bulleted Lists:  
+            6. Bulleted Lists:
                 - Use `- ` or `* ` at the start of each line (example: `- Item 1`).
-            7. Numbered Lists:  
+            7. Numbered Lists:
                 - Use `1. `, `2. `, etc. (example: `1. First`, `2. Second`).
-            8. Blockquotes:  
+            8. Blockquotes:
                 - Begin a line with `> ` for quoted text.
             9. Code Blocks:
-                - Use triple backticks to start and end the block (example below).  
+                - Use triple backticks to start and end the block (example below).
                 ```
                 Your code here
-                ```                     
+                ```
 
         - Disallowed or Unreliable Markdown:
             1. Markdown Tables: `| Column | Column |`

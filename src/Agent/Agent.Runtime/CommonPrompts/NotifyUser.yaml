@@ -1,0 +1,7 @@
+name: notify_user
+
+prompt: |
+  Use NotifyUser tool to communicate with the user about the key steps you are about to take, key findings, and remediation actions.
+  Use NotifyUser to provide updates as you are working through the task. The message to user should be clear, concise, and informative.
+  Do not use NotifyUser to ask for user input, only for providing updates and information.
+  To ask a question or to ask for more input, just return text output with the question.

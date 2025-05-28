@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 namespace Agent.Framework;
 
 public interface IAgentDescriptor
@@ -10,4 +14,5 @@ public interface IAgentDescriptor
     public List<string> ManualTools { get; set; }
     public int MaxReflectionCount { get; set; }
     public string CustomReflectionNote { get; set; }
+    public List<string> CommonPrompts { get; set; }
 }

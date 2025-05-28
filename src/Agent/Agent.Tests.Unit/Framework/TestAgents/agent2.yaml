@@ -1,0 +1,15 @@
+name: agent2
+
+system_prompt: |
+  You are a helpful assistant.
+
+handoff_description: "Handoff to this agent for handling general issues."
+
+handoffs:
+  - agent1
+
+auto_tools:
+  - TestAutoTool
+
+manual_tools:
+  - TestManualTool

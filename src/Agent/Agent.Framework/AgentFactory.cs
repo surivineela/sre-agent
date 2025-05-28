@@ -22,22 +22,26 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
     // A map from Agent name -> Agent descriptor
     private readonly Dictionary<string, Agent<TContext>> _agents = [];
     private readonly Dictionary<string, IAgentDescriptor> _agentDescriptors = [];
+    private readonly Dictionary<string, IPromptDescriptor> _promptDescriptors = [];
     private readonly ILogger<AgentFactory<TContext>> _logger;
     private readonly IToolFactory _toolFactory;
     private readonly IEnumerable<Assembly> _assembliesToScan;
-    private readonly string _agentsYamlDirectory;
+    private readonly string? _agentsYamlDirectory;
+    private readonly string? _commonPromptsYamlDirectory;
 
     public AgentFactory(
         ILogger<AgentFactory<TContext>> logger,
         IToolFactory toolFactory,
         IEnumerable<Assembly> assembliesToScan,
-        string agentsYamlDirectory
+        string? agentsYamlDirectory = null,
+        string? commonPromptsYamlDirectory = null
     )
     {
         _toolFactory = toolFactory;
         _logger = logger;
         _assembliesToScan = assembliesToScan;
         _agentsYamlDirectory = agentsYamlDirectory;
+        _commonPromptsYamlDirectory = commonPromptsYamlDirectory;
         InitializeAgents();
     }
 
@@ -107,6 +111,19 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
             .WithHandoffInstructions()
             .WithFormattingGuidelines();
 
+        foreach (var commonPromptName in agentDescriptor.CommonPrompts)
+        {
+            if (!_promptDescriptors.TryGetValue(commonPromptName, out var commonPrompt))
+            {
+                _logger.LogWarning("Agent descriptor {descriptorName} has a common prompt {commonPromptName} that does not exist.",
+                    agentDescriptor.Name, commonPromptName);
+
+                return false;
+            }
+
+            agent.Instructions.AddCommonPrompt(commonPrompt.Prompt);
+        }
+
         if (_agents.ContainsKey(agentDescriptor.Name))
         {
             _logger.LogWarning("Agent with name {agentName} already exists.", agentDescriptor.Name);
@@ -139,6 +156,8 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
 
     private void InitializeAgents()
     {
+        LoadCommonPromptsFromAssembly();
+        LoadCommonPromptsFromYaml();
         LoadAgentFromAssembly();
         LoadAgentFromYaml();
         UpdateHandoffs();
@@ -183,6 +202,11 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
 
     private void LoadAgentFromYaml()
     {
+        if (_agentsYamlDirectory is null)
+        {
+            return;
+        }
+
         var yamlFiles = Directory.GetFiles(_agentsYamlDirectory, "*.yaml", SearchOption.AllDirectories)
                        .Concat(Directory.GetFiles(_agentsYamlDirectory, "*.yml", SearchOption.AllDirectories));
 
@@ -192,7 +216,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         }
     }
 
-    public IAgentDescriptor LoadAgentFromYaml(string yamlContent)
+    private IAgentDescriptor LoadAgentFromYaml(string yamlContent)
     {
         try
         {
@@ -221,17 +245,95 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
             var agentDescriptor = LoadAgentFromYaml(yamlContent);
             if (AddAgentDescriptor(agentDescriptor))
             {
-                _logger.LogInformation($"Successfully loaded agent descriptor {agentDescriptor.Name} from file {filePath}.");
+                _logger.LogInformation("Successfully loaded agent descriptor {descriptorName} from file {filePath}.", agentDescriptor.Name, filePath);
             }
             else
             {
-                _logger.LogError($"Failed to load agent descriptor from file {filePath}.");
+                _logger.LogError("Failed to load agent descriptor from file {filePath}.", filePath);
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Failed to load agent descriptor from file {filePath}.");
+            _logger.LogError(ex, "Failed to load agent descriptor from file {filePath}.", filePath);
             throw;
+        }
+    }
+
+    private void LoadCommonPromptsFromAssembly()
+    {
+        var promptDescriptorInterfaceType = typeof(IPromptDescriptor);
+        var promptDescriptorTypes = _assembliesToScan
+            .SelectMany(a => a.GetTypes())
+            .Where(t => promptDescriptorInterfaceType.IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
+
+        foreach (var promptDescriptorType in promptDescriptorTypes)
+        {
+            if (Activator.CreateInstance(promptDescriptorType) is not IPromptDescriptor promptDescriptor)
+            {
+                _logger.LogError("Failed to create an instance of {promptDescriptorType}.", promptDescriptorType.FullName);
+                continue;
+            }
+
+            if (promptDescriptor.GetType()?.Name == nameof(YamlPromptDescriptor))
+            {
+                _logger.LogDebug("Skipping YamlPromptDescriptor type as it's just for parser.");
+                continue;
+            }
+
+            _promptDescriptors[promptDescriptor.Name] = promptDescriptor;
+        }
+    }
+
+    private void LoadCommonPromptsFromYaml()
+    {
+        if (_commonPromptsYamlDirectory is null)
+        {
+            return;
+        }
+
+        var yamlFiles = Directory.GetFiles(_commonPromptsYamlDirectory, "*.yaml", SearchOption.AllDirectories)
+            .Concat(Directory.GetFiles(_commonPromptsYamlDirectory, "*.yml", SearchOption.AllDirectories));
+
+        foreach (var yamlFile in yamlFiles)
+        {
+            LoadCommonPromptFromFile(yamlFile);
+        }
+    }
+
+    private void LoadCommonPromptFromFile(string filePath)
+    {
+        try
+        {
+            if (!File.Exists(filePath))
+            {
+                throw new FileNotFoundException("YAML file not found", filePath);
+            }
+
+            string yamlContent = File.ReadAllText(filePath);
+            var promptDescriptor = LoadCommonPromptFromYaml(yamlContent);
+            _promptDescriptors[promptDescriptor.Name] = promptDescriptor;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to load common prompt from file {filePath}.", filePath);
+            throw;
+        }
+    }
+
+    private IPromptDescriptor LoadCommonPromptFromYaml(string yamlContent)
+    {
+        try
+        {
+            var deserializer = new DeserializerBuilder()
+                .WithNamingConvention(UnderscoredNamingConvention.Instance)
+                .Build();
+
+            var promptDescriptor = deserializer.Deserialize<YamlPromptDescriptor>(yamlContent);
+            return promptDescriptor;
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("Failed to parse YAML into PromptDescriptor", ex);
         }
     }
 
@@ -240,7 +342,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         var agentFound = _agents.TryGetValue(name, out var agent);
         if (!agentFound || agent is null)
         {
-            _logger.LogError($"Agent {name} not found.");
+            _logger.LogError("Agent {agentName} not found.", name);
             throw new KeyNotFoundException($"Agent {name} not found.");
         }
 
