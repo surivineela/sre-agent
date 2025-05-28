@@ -37,6 +37,7 @@ namespace FirstPartyAgent.Core.Services
         Task<string> AddParentIncidentLinkAsync(long incidentId, long parentIncidentId);
         Task<string> RemoveParentIncidentLinkAsync(long incidentId);
         Task<List<string>> GetChildIncidentsInfoAsync(long incidentId);
+        Task<List<IncidentRepairItem>> GetIncidentRepairItemsAsync(long incidentId);
     }
 
     public class ICMAPIClient : IICMAPIClient
@@ -700,6 +701,30 @@ namespace FirstPartyAgent.Core.Services
                 {
                     throw new Exception($"Failed to retrieve child incidents. Status code: {response.StatusCode} : {await response.Content.ReadAsStringAsync()}");
                 }
+            }
+        }
+
+        public async Task<List<IncidentRepairItem>> GetIncidentRepairItemsAsync(long incidentId)
+        {
+            var content = new
+            {
+                Id = $"{incidentId}",
+                IdType = "icm.incident"
+            };
+
+            string apiBasePath = _authType == AuthType.Certificate ? $"{IcmAPIPathPrefix.Replace("/api/", "/api2/")}/incidentapi" : IcmAPIPathPrefix;
+
+            var response = await SendICMPostRequestAsync($"{apiBasePath}/incidents/externallink/repairitems/get", content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var responseString = await response.Content.ReadAsStringAsync();
+                var repairItems = JsonConvert.DeserializeObject<List<IncidentRepairItem>>(responseString);
+                return repairItems;
+            }
+            else
+            {
+                throw new Exception($"Failed to retrieve incident repair items. Status code: {response.StatusCode} : {await response.Content.ReadAsStringAsync()}");
             }
         }
     }

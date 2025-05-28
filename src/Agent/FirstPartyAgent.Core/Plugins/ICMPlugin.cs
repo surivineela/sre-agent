@@ -426,6 +426,30 @@ namespace FirstPartyAgent.Core.Plugins
             return result;
         }
 
+        [KernelFunction("get_incident_repair_items")]
+        [Description("Get repair items associated with an ICM incident")]
+        public async Task<List<IncidentRepairItem>> GetIncidentRepairItems(
+            [Description("Incident ID")] long incidentId,
+            Kernel kernel)
+        {
+            var logMessage = $"[get_incident_repair_items][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
+            if (!_icmApiClient.IsEnabled())
+            {
+                return new List<IncidentRepairItem>()
+                {
+                    new IncidentRepairItem
+                    {
+                       Id = -1,
+                       Title = "ICM API not enabled. No repair items can be fetched.",
+                    }
+                };
+            }
+
+            var repairItems = await _icmApiClient.GetIncidentRepairItemsAsync(incidentId);
+            return repairItems;
+        }
+
         /// <summary>
         /// Enum representing the possible statuses of the agent.
         /// </summary>
