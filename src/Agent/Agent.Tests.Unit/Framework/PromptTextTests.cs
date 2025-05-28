@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Framework;
 
 namespace Agent.Tests.Unit.Framework
@@ -110,6 +114,15 @@ namespace Agent.Tests.Unit.Framework
             prompt.WithFormattingGuidelines();
 
             Assert.True(prompt.HasFormattingGuidelines);
+        }
+
+        [Fact]
+        public void AddCommonPrompt_AddsPrompt()
+        {
+            var prompt = new PromptText("abc");
+            prompt.AddCommonPrompt("def");
+
+            Assert.Contains("def", prompt.ToString());
         }
     }
 }

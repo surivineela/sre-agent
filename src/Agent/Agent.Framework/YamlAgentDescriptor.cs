@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using YamlDotNet.Serialization;
 
 namespace Agent.Framework;
@@ -27,4 +31,7 @@ internal class YamlAgentDescriptor : IAgentDescriptor
 
     [YamlMember(Alias = "custom_reflection_note")]
     public string CustomReflectionNote { get; set; } = string.Empty;
+
+    [YamlMember(Alias = "common_prompts")]
+    public List<string> CommonPrompts { get; set; } = [];
 }

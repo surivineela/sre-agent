@@ -139,3 +139,6 @@ manual_tools:
   - ValidateContainerAppHealth
   - GetDeploymentTimes
   - NotifyUser
+
+common_prompts:
+  - notify_user
