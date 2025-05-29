@@ -76,7 +76,6 @@ extends:
       WindowsHostVersion:
         Network: R1
         Version: 2022
-      useAMEAuthN: false
     stages:
     - stage: build
       ${{ if parameters.isOfficialBuild }}:
