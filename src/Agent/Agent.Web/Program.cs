@@ -286,6 +286,7 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
         })
         .AddSingleton<IDiagnosticsPlugin, DiagnosticsPlugin>()
         .AddSingleton<IMetaAgentFunctionAppDiagnosticsPlugin, FunctionAppDiagnosticsPlugin>()
+        .AddSingleton<ISearchPlugin, SearchPlugin>()
 
         // Register the communication activities
         .AddSingleton<UpdateThreadWithAgentMessageActivity>()

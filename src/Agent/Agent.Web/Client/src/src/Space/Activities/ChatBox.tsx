@@ -25,7 +25,7 @@ export const ChatBox = ({ addThread, promoteThread, threadId, threadSource }: IC
         intersectionObserverRef,
         currentThreadId,
         cancelResponse,
-        prompts, 
+        prompts,
         messagePromptsUsed,
         handleScroll,
         showNewMessageButton,

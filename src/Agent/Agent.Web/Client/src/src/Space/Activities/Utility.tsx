@@ -109,7 +109,7 @@ export const shouldGroupWithPreviousMessage = (currentMessage?: Message, previou
         currentMessage.author.userId === previousMessage.author.userId &&
         getSafeDateTime(currentMessage.timeStamp).getTime() - getSafeDateTime(previousMessage.timeStamp).getTime() <= 5 * 60 * 1000
     );
-}
+};
 
 export const getUTCTimestampBasedOnSelectedThreadCutoffTime = (selectedCutOffModifiedTime: SelectedTimes): string => {
     const days = selectedCutOffModifiedTime === SelectedTimes.OneDay ? 1 : selectedCutOffModifiedTime === SelectedTimes.SevenDays ? 7 : 30;

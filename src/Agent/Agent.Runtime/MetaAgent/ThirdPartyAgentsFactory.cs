@@ -492,6 +492,7 @@ $@"## Facts
             AIFunctionFactory.Create(_githubIssuePlugin.FindConnectedRepo),
             //AIFunctionFactory.Create(searchPluginDefinition.SearchAsync)
             AIFunctionFactory.Create(_diagnosticPlugin.GetAnalysisAsync)
+            //AIFunctionFactory.Create(searchPluginDefinition.SearchAsync)
         ];
 
         if (!_instanceManagementSettings.ProcessingEnabled)

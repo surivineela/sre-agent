@@ -438,11 +438,14 @@ export const useChatBox = (addThread: (thread: Thread) => void, promoteThread: (
         };
     }, [currentThreadId, noChatHistoryLeftToLoad, isIntersecting]);
 
-    const prompts = useMemo(() => [
-        intl.formatMessage(PromptResources.bestPracticesPrompt),
-        intl.formatMessage(PromptResources.notWorkingPrompt),
-        intl.formatMessage(PromptResources.availabilityPrompt),
-    ], [intl]);
+    const prompts = useMemo(
+        () => [
+            intl.formatMessage(PromptResources.bestPracticesPrompt),
+            intl.formatMessage(PromptResources.notWorkingPrompt),
+            intl.formatMessage(PromptResources.availabilityPrompt),
+        ],
+        [intl]
+    );
 
     const messagePromptsUsed = useMemo(() => {
         const result: Message[] = [];

@@ -181,7 +181,7 @@ export const useChatInputStyles = makeStyles({
         gap: '8px',
         cursor: 'pointer',
         padding: '4px 0',
-        fontSize: '13px'
+        fontSize: '13px',
     },
     sectionHeader: {
         fontWeight: 500,
@@ -195,7 +195,7 @@ export const useChatInputStyles = makeStyles({
     },
     lightbulbIcon: {
         fontSize: '16px',
-        flexShrink: 0
+        flexShrink: 0,
     },
 });
 
