@@ -100,6 +100,10 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
     builder.Services.Configure<AppInsightsSettings>(
         builder.Configuration.GetSection("AppInsightsSettings"));
 
+    //Configure Azure Search Settings settings
+    builder.Services.Configure<SearchSettings>(
+        builder.Configuration.GetSection("AppSettings:Core:SearchOptions"));
+
     // Register a default ConversationReference that can be injected into PostToTeamsPlugin
     // builder.Services.AddSingleton<Microsoft.Bot.Schema.ConversationReference>(new Microsoft.Bot.Schema.ConversationReference());
 
@@ -247,6 +251,7 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
         .AddSingleton<IDotnetAnalysisPlugin, DotnetAnalysisPlugin>()
         .AddSingleton<IReasoningLoopFactory, ReasoningLoopFactory>()
         .AddSingleton<IReasoningLoopManager, ReasoningLoopManager>()
+        .AddSingleton<ISearchPlugin, SearchPlugin>()
 
         .AddSingleton<IToolFactory, ToolFactory>(sp =>
         {
