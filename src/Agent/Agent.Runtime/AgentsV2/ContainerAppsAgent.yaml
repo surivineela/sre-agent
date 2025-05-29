@@ -140,6 +140,7 @@ manual_tools:
   - GetDeploymentTimes
   - NotifyUser
   - PlotTimeSeriesData
+  - PlotAreaChartWithCorrelation
 
 common_prompts:
   - notify_user

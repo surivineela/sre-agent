@@ -3,10 +3,12 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
+using Agent.Framework;
 using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins
 {
+    [AgentToolPlugin]
     public class ChartPluginDefinition
     {
         private readonly IChartPlugin _chartPlugin;
