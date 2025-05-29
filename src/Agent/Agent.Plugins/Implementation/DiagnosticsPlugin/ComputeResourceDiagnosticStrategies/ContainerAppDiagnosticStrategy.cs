@@ -64,7 +64,6 @@ internal sealed class ContainerAppDiagnosticStrategy : ComputeResourceDiagnostic
         }
     }
 
-
     private async Task<string> InvokeExecCommand(string resourceId, string command)
     {
         try
