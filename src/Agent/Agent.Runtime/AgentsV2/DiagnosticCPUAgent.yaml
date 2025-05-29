@@ -20,7 +20,7 @@ system_prompt: |
     - Don't include the Missing Symbols and any non-method frames.
     - Mention that this analysis is based on a nettrace file that's done via ThreadTime Analysis.
 
-handoff_description: "Handoff to this agent when dealing with issues related to CPU Analysis for all compute resources."
+handoff_description: "Handoff to this agent when dealing with issues related to CPU Analysis for all compute resources such as for CPU spikes, High CPU."
 
 handoffs:
   - container_apps_agent
