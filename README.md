@@ -24,4 +24,5 @@ Azure SRE Agent is a unified agentic platform for monitoring and troubleshooting
 
 ## Need Help?
 
-Check our [Troubleshooting Guide](docs/troubleshooting.md) or reach out to the team on our Teams channel.
+- Review the [Troubleshooting Guide](docs/troubleshooting.md).  
+- Email **srea-devs@microsoft.com**.
