@@ -73,14 +73,20 @@ public class IcmAgentConfigService : IIcmAgentConfigService
 
         if(tasks[_agentFactoryConfigsContainerName].Result.StatusCode == HttpStatusCode.Created)
         {
-            await _cosmosDbService.UpsertItemAsync(_cosmosDbService.IcmAgentDatabaseName, _agentFactoryConfigsContainerName, new AgentFactoryConfigCosmos<IcmTeam[]> { Id = "icmTeams", Content = new IcmTeam[0] });
-            await _cosmosDbService.UpsertItemAsync(_cosmosDbService.IcmAgentDatabaseName, _agentFactoryConfigsContainerName, new AgentFactoryConfigCosmos<Dictionary<int, string[]>> { Id = "teamFilters", Content = new Dictionary<int, string[]>() });
+            await InitializeagentFactoryConfigsContainer();
         }
 
 
     }
 
     public bool IsEnabled() => _cosmosDbService.IsEnabled;
+
+    private async Task InitializeagentFactoryConfigsContainer()
+    {
+        await _cosmosDbService.UpsertItemAsync(_cosmosDbService.IcmAgentDatabaseName, _agentFactoryConfigsContainerName, new AgentFactoryConfigCosmos<IcmTeam[]> { Id = AgentFactoryConfigIds.IcmTeams, Content = Array.Empty<IcmTeam>() });
+        await _cosmosDbService.UpsertItemAsync(_cosmosDbService.IcmAgentDatabaseName, _agentFactoryConfigsContainerName, new AgentFactoryConfigCosmos<Dictionary<int, string[]>> { Id = AgentFactoryConfigIds.TeamFilters, Content = new Dictionary<int, string[]>() });
+        await _cosmosDbService.UpsertItemAsync(_cosmosDbService.IcmAgentDatabaseName, _agentFactoryConfigsContainerName, new AgentFactoryConfigCosmos<IcmTeam> { Id = AgentFactoryConfigIds.DefaultIcmTeam, Content = new IcmTeam() });
+    }
 
     private async Task IsReady()
     {
@@ -161,8 +167,8 @@ public class IcmAgentConfigService : IIcmAgentConfigService
 
         try
         {
-            var icmTeams = await GetAgentFactoryConfig<List<IcmTeam>>("icmTeams");
-            var filters = await GetAgentFactoryConfig<Dictionary<int, string[]>>("teamFilters");
+            var icmTeams = await GetAgentFactoryConfig<List<IcmTeam>>(AgentFactoryConfigIds.IcmTeams);
+            var filters = await GetAgentFactoryConfig<Dictionary<int, string[]>>(AgentFactoryConfigIds.TeamFilters);
 
             var dict = filters.Content;
             var result = icmTeams.Content
@@ -174,6 +180,20 @@ public class IcmAgentConfigService : IIcmAgentConfigService
         catch (Exception ex)
         {
             throw new Exception($"Error getting Icm teams: {ex.Message}", ex);
+        }
+    }
+
+    public async Task<IcmTeam> GetDefaultIcmTeam()
+    {
+        await IsReady();
+        try
+        {
+            var defaultTeamId = await GetAgentFactoryConfig<IcmTeam>(AgentFactoryConfigIds.DefaultIcmTeam);
+            return defaultTeamId.Content;
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Error getting default ICM team ID: {ex.Message}", ex);
         }
     }
 
@@ -817,4 +837,8 @@ public class IcmAgentConfigServiceDisabled : IIcmAgentConfigService
     }
 
     public Task<string> UpsertDocument(string containerName, string documentJson) { throw new NotImplementedException(); }
+    Task<IcmTeam> IIcmAgentConfigService.GetDefaultIcmTeam()
+    {
+        throw new NotImplementedException();
+    }
 }

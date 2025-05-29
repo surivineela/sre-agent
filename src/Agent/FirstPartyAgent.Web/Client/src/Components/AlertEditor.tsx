@@ -9,7 +9,7 @@ import DeployAgent from "./DeployAgent";
 import { ICMAlertConfig, monacoJsonSchema } from "../Models/ICMAlertConfig";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { PanelStyles } from "../Styles/Content.Styles";
-import { useSharedUrlParams } from "../Context/UrlParamsProvider";
+import { useQueryParams } from "../Hooks/UseQueryParams";
 
 
 export interface AlertEditorProps {
@@ -43,8 +43,9 @@ const AlertEditor = (props: AlertEditorProps) => {
     const [editorMode] = useState<AlertEditorMode>(props.alertConfig ? AlertEditorMode.Create : AlertEditorMode.Edit);
     const scrollRef = useRef<HTMLDivElement>(null);
     const alertConfigRef = useRef<ICMAlertConfig>(props.alertConfig ? { ...props.alertConfig } : {});
-    const urlParams = useSharedUrlParams();
-    const mode = urlParams.mode; const reducer = (state: { selectedContent: SelectContent, panelHeader: string }, action: Action) => {
+    const { isPlayground } = useQueryParams();
+
+    const reducer = (state: { selectedContent: SelectContent, panelHeader: string }, action: Action) => {
         switch (action.type) {
             case 'SET_ALERT_EDITOR_CHAT':
                 openPanel();
@@ -150,7 +151,7 @@ const AlertEditor = (props: AlertEditorProps) => {
             text: 'Deploy to Agent',
             iconProps: { iconName: 'CloudUpload' },
             onClick: () => {
-                if (mode === "playground") {
+                if (isPlayground) {
                     onDeployAgent();
                 } else {
                     onSaveAlertConfig();
@@ -218,10 +219,9 @@ const AlertEditor = (props: AlertEditorProps) => {
             editorMode: editorMode
         });
         props.isChangeUnsaved.current = false;
-    }    
+    }
 
     const alertEditorStyles = mergeStyles({
-        marginTop: "20px",
         height: "100%",
         width: "80%",
         minWidth: "600px"

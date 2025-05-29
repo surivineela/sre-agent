@@ -524,4 +524,19 @@ public class IcmController : Controller
             return StatusCode(500, $"Error generating instructions: {ex.Message}");
         }
     }
+
+    [HttpGet("defaultIcmTeam")]
+    [HttpOptions("defaultIcmTeam")]
+    public async Task<IActionResult> GetDefaultTeam()
+    {
+        try
+        {
+            var defaultTeam = await _icmConfigService.GetDefaultIcmTeam();
+            return Ok(defaultTeam);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Error retrieving default team: {ex.Message}");
+        }
+    }
 }

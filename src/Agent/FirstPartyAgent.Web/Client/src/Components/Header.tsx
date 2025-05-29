@@ -1,5 +1,5 @@
 import { mergeStyles, Pivot, PivotItem } from '@fluentui/react';
-import { useSharedUrlParams } from '../Context/UrlParamsProvider';
+import { useQueryParams } from '../Hooks/UseQueryParams';
 
 export enum TabItem {
     IncidentManager = "incidentManager",
@@ -11,7 +11,7 @@ interface HeaderProps {
 }
 
 const Header = (props: HeaderProps) => {
-    const urlParams = useSharedUrlParams();  // Get URL parameters
+    const { isPlayground, isDebug } = useQueryParams();  // Get URL parameters
     const headerStyles = mergeStyles({
         backgroundColor: "f8f9fa",
         boxShadow: "0 1px 3px rgba(0, 0, 0, 0.05)",
@@ -28,7 +28,7 @@ const Header = (props: HeaderProps) => {
     return (
         <Pivot className={headerStyles} onLinkClick={onLinkClick} defaultSelectedKey="incidentManager">
             <PivotItem headerText='Incident Manager' itemKey={TabItem.IncidentManager} />
-            {urlParams.mode === 'playground' && urlParams.debug === 'true' && (
+            {isPlayground && isDebug && (
                 <PivotItem headerText='CosmosDB(Debug)' itemKey={TabItem.Config} />
             )}
         </Pivot>

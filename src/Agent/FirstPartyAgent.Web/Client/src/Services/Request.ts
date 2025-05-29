@@ -60,7 +60,7 @@ export const getLoopAlertInfo = async (loopId: string) => {
     return await get<AlertInfo[]>(`api/icm/getLoopAlerts/${loopId}`);
 }
 
-export const getLoopAlertConfigs = async (loopId?: string) => {
+export const getLoopAlertConfigs = async (loopId?: number) => {
     const url = loopId ? `api/icm/getLoopAlertConfigs/${loopId}` : 'api/icm/getLoopAlertConfigs';
     return await get<ICMAlertConfig[]>(url);
 }
@@ -148,6 +148,10 @@ export const saveAgentFactoryConfig = async (config: any) => {
 
 export const getIncidents = async (teamId: number, title: string, numOfDays: number = 30) => {
     return await get<IcmIncident[]>(`api/icm/getIncidents?loopId=${teamId}&numOfDays=${numOfDays}&title=${title}`);
+}
+
+export const getDefaultIcmTeam = async () => {
+    return await get<IcmTeamInfo>('api/icm/defaultIcmTeam');
 }
 
 export const generateInstructions = async (request: GenerateInstructionsRequest) => {

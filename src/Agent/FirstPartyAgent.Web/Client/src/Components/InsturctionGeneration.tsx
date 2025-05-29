@@ -27,7 +27,11 @@ const InstructionGeneration = (props: InstructionGenerationProps) => {
 
     const { refetch: getIncidentsRefresh, data: getIncidentsData = [], status: getIncidentsStatus, error: getIncidentsError } = useQuery({
         queryKey: ["getIncidents", props.alertConfigRef.current.teamId, props.alertConfigRef.current.incidentTitle, selectedOption?.data.numberOfDays],
-        queryFn: () => getIncidents(props.alertConfigRef.current.teamId, props.alertConfigRef.current.incidentTitle, selectedOption?.data.numberOfDays),
+        queryFn: async () => {
+            const alertConfig = props.alertConfigRef.current;
+            const titleOrAlertId = alertConfig.incidentTitleContains || alertConfig.incidentTitle || alertConfig.alertingId;
+            return await getIncidents(alertConfig.teamId, titleOrAlertId, selectedOption?.data.numberOfDays)
+        },
     });
 
     const { status: generateInstructionStatus, mutateAsync: generateInstructionAsync,reset: resetGenerateInstruction} = useMutation({

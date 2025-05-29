@@ -23,7 +23,7 @@ namespace FirstPartyAgent.Core.Models
         public List<GenevaActionConfigBase>? GenevaActions { get; set; } = new List<GenevaActionConfigBase>();
         public List<string>? AllowedGenevaActions { get; set; } = new List<string>();
         public List<ICMConfigKustoQueryModel> KustoQueries { get; set; } = new List<ICMConfigKustoQueryModel>();
-        public List<string> Owners { get; set;} = new List<string>();
+        public List<string> Owners { get; set; } = new List<string>();
         public int ActionTimeoutIntervalInMinutes { get; set; }
         public string DefaultHumanInterventionLoop { get; set; }
         public List<string> RoutingInstructions { get; set; } = new List<string>();
@@ -102,8 +102,8 @@ namespace FirstPartyAgent.Core.Models
         public string TeamAssignedTo { get; set; }
         public int? TeamId { get; set; }
 
-        public AlertDetails() 
-        { 
+        public AlertDetails()
+        {
         }
 
         public AlertDetails(AlertDetailsBase alertDetails)
@@ -120,7 +120,7 @@ namespace FirstPartyAgent.Core.Models
         }
     }
 
-    public class WawsAlertDetails:AlertDetailsBase
+    public class WawsAlertDetails : AlertDetailsBase
     {
         public List<WawsAlertAction> Actions { get; set; }
     }
@@ -177,5 +177,12 @@ namespace FirstPartyAgent.Core.Models
         [JsonProperty("id")]
         public string Id { get; set; }
         public T Content { get; set; }
+    }
+    
+    public class AgentFactoryConfigIds
+    {
+        public const string IcmTeams = "icmTeams";
+        public const string TeamFilters = "teamFilters";
+        public const string DefaultIcmTeam = "defaultIcmTeam";
     }
 }

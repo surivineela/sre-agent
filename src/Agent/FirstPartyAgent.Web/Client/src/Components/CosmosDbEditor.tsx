@@ -9,14 +9,14 @@ import {
 } from '../Services/Request';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import LoadingErrorWrapper from './LoadingErrorWrapper';
-import { useSharedUrlParams } from '../Context/UrlParamsProvider'; // Import the shared hook
+import { useQueryParams } from '../Hooks/UseQueryParams';
 
 const CosmosDbEditor: React.FC = () => {
     const [selectedContainer, setSelectedContainer] = React.useState<string | undefined>();
     const [selectedDocumentId, setSelectedDocumentId] = React.useState<string | undefined>();
     const [documentContent, setDocumentContent] = React.useState<string>('');
     const [validationError, setValidationError] = React.useState<string | null>(null);
-    const urlParams = useSharedUrlParams(); // Use the shared hook
+    const { searchParams: urlParams } = useQueryParams(); // Use the shared hook
 
     const handleDocumentContentChange = (newContent: string | undefined) => {
         setDocumentContent(newContent || '');

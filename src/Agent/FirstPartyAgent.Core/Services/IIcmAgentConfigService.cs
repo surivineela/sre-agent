@@ -24,7 +24,7 @@ public interface IIcmAgentConfigService
     Task<List<string>> GetAllDocumentIds(string containerName);
     Task<string> GetDocumentById(string containerName, string documentId); // Changed T to string
     Task<string> UpsertDocument(string containerName, string documentJson); // Changed T to string and parameter name
-
+    Task<IcmTeam> GetDefaultIcmTeam();
 }
 
 

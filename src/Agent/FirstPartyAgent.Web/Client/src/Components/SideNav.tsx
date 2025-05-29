@@ -5,12 +5,20 @@ import { AlertEditorProps } from './AlertEditor';
 import { useQuery } from '@tanstack/react-query';
 import LoadingErrorWrapper from './LoadingErrorWrapper';
 import { ICMAlertConfig } from '../Models/ICMAlertConfig';
+import { useQueryParams } from '../Hooks/UseQueryParams';
 
-const SideNav = (props: { onGetAlertConfig: (params: AlertEditorProps) => void, onCreateNewAlertHandler: () => void, selectedSideNavItemId: string }) => {
+const SideNav = (props: { onGetAlertConfig: (params: AlertEditorProps) => void, onCreateNewAlertHandler: () => void, selectedSideNavItemId: string, defaultIcmTeamId?: number }) => {
     const [searchText, setSearchText] = useState<string>("");
+    const { isPlayground } = useQueryParams();
     const { status, error, data: allLoopAlertConfigs = [] } = useQuery({
-        queryKey: ["getLoopAlertConfigs"],
-        queryFn: () => getLoopAlertConfigs(),
+        queryKey: ["getLoopAlertConfigs", props.defaultIcmTeamId],
+        queryFn: () => {
+            if (!isPlayground && props.defaultIcmTeamId) {
+                return getLoopAlertConfigs(props.defaultIcmTeamId);
+            } else {
+                return getLoopAlertConfigs();
+            }
+        },
     });
 
     const navStyles: Partial<INavStyles> = {

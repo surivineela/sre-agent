@@ -26,7 +26,7 @@ const getAlertTemplate = (teamId: number, alertingId?: string) => {
 
 export const generateCustomAlertConfig = (props: IcmTeamInfo) => {
     let defaultTemplate = getAlertTemplate(props.icmTeamId);
-    defaultTemplate.owningTeams = [`${props.icmServiceName}/${props.icmTeamName}`];
+    defaultTemplate.owningTeams = [`${props.teamPublicId}`];
     return defaultTemplate;
 }
 
