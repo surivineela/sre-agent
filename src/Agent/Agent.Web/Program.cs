@@ -251,6 +251,7 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
         .AddSingleton<IDotnetAnalysisPlugin, DotnetAnalysisPlugin>()
         .AddSingleton<IReasoningLoopFactory, ReasoningLoopFactory>()
         .AddSingleton<IReasoningLoopManager, ReasoningLoopManager>()
+        .AddSingleton<ISearchPlugin, SearchPlugin>()
 
         .AddSingleton<IToolFactory, ToolFactory>(sp =>
         {
