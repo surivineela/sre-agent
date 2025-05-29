@@ -1,22 +1,23 @@
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 
 export const useQueryParams = () => {
-    const [searchParams] = useSearchParams();
-    const [mode, setMode] = useState<string>("");
-    const [isDebug, setIsDebug] = useState<boolean>(false);
-    const [isPlayground, setIsPlayground] = useState<boolean>(false);
-    useEffect(() => {
-        const modeFromSearchParams = searchParams.get("mode") || "";
-        const debugFromSearchParams = searchParams.get("debug") || "";
-        setMode(modeFromSearchParams);
-        setIsDebug(debugFromSearchParams.toLowerCase() === "true");
-        setIsPlayground(modeFromSearchParams.toLowerCase() === "playground");
+    const [searchParams,setSearchParams] = useSearchParams();
+    
+    const queryParamValues = useMemo(() => {
+        const mode = searchParams.get("mode") || "";
+        const isDebug = searchParams.get("debug")?.toLowerCase() === "true";
+        const isPlayground = mode.toLowerCase() === "playground";
+        return {
+            mode,
+            isDebug,
+            isPlayground
+        }
     }, [searchParams]);
+
     return {
-        mode,
-        isDebug,
-        isPlayground,
-        searchParams
+        ...queryParamValues,
+        searchParams,
+        setSearchParams
     };
 }
