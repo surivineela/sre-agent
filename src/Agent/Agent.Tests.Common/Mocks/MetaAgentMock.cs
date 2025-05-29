@@ -56,7 +56,8 @@ public static class MetaAgentMock
     InstanceManagementSettings instanceManagementSettings = null,
     IAzureMonitorMetricsPlugin? azureMonitorMetricsPlugin = null,
     IMetaAgentFunctionAppDiagnosticsPlugin? functionAppDiagnosticsPlugin = null,
-    IArmPlugin? armPlugin = null) // Added parameter
+    IArmPlugin? armPlugin = null,
+    IDiagnosticsPlugin diagnosticsPlugin = null) // Added parameter
     {
 
         return new ThirdPartyAgentsFactory(
@@ -94,7 +95,8 @@ public static class MetaAgentMock
             functionAppExecutionFailuresAgentPlugin ?? Mock.Of<IMetaAgentFunctionAppExecutionFailuresAgentPlugin>(),
             azureMonitorMetricsPlugin ?? Mock.Of<IAzureMonitorMetricsPlugin>(),
             functionAppDiagnosticsPlugin ?? Mock.Of<IMetaAgentFunctionAppDiagnosticsPlugin>(),
-            armPlugin ?? Mock.Of<IArmPlugin>()// Added argument
+            armPlugin ?? Mock.Of<IArmPlugin>(), // Added argument
+            diagnosticsPlugin ?? Mock.Of<IDiagnosticsPlugin>()
         );
     }
 
