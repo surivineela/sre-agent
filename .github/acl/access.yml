@@ -18,4 +18,6 @@ configuration:
     role: Write
   - team: srea-devs
     role: Write
+  - team: srea-readers
+    role: Read
   
