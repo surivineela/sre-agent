@@ -28,6 +28,7 @@ namespace FirstPartyAgent.Models
         public string Owner { get; set; }
         public string Severity { get; set; }
         public string Title { get; set; }
+        public string Keywords { get; set; }
         public string Summary { get; set; }
         public string DiscussionEntry { get; set; }
         public string MonitoringRole { get; set; }

@@ -394,6 +394,26 @@ namespace FirstPartyAgent.Core.Services
             }
         }
 
+        public async Task<string> AddKeywordToIncident(string incidentId, string keyword)
+        {
+            if (_icmWorkflowSettings.ReadOnly)
+            {
+                return "Success. ICM Plugin is in ReadOnly mode.";
+            }
+            var payload = JsonConvert.SerializeObject(new { incidentId, keyword });
+            var response = await SendICMWorkflowRequest(_icmWorkflowSettings.AddIncidentKeywordsWorkflowName, payload);
+            if (response.IsSuccessStatusCode)
+            {
+                return "Success";
+            }
+            else
+            {
+                string errorMessage = $"Failed to add keyword to incident for incidentId: {incidentId}";
+                _logger.LogInformation(errorMessage);
+                return errorMessage;
+            }
+        }
+
         public async Task<string> MitigateIncidentAsync(string incidentId, string discussionEntry)
         {
             if (_icmWorkflowSettings.ReadOnly)
@@ -860,6 +880,9 @@ Incidents
         public Task<string> AddTagToIncident(string incidentId, string tag) =>
             Task.FromResult("ICM Plugin is disabled");
 
+        public Task<string> AddKeywordToIncident(string incidentId, string keyword) =>
+            Task.FromResult("ICM Plugin is disabled");
+
         public Task<string> MitigateIncidentAsync(string incidentId, string discussionEntry) =>
             Task.FromResult("ICM Plugin is disabled");
 
@@ -917,6 +940,7 @@ Incidents
         Task<List<DiscussionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId, DateTimeOffset? queryFrom = null);
         Task<string> TransferIncidentAsync(string incidentId, string discussionEntry, string tenantName, string owningTeam);
         Task<string> AddTagToIncident(string incidentId, string tag);
+        Task<string> AddKeywordToIncident(string incidentId, string keyword);
         Task<string> MitigateIncidentAsync(string incidentId, string discussionEntry);
         Task<List<IncidentAdvancedSearchResultItem>> SearchIncidentsWithParametersAsync(
             int lookbackPeriodInDays,

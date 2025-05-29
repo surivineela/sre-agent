@@ -29,6 +29,7 @@ namespace FirstPartyAgent.Core.Services
         Task<string> PostDiscussionEntryAsync(string incidentId, string discussionEntry, bool htmlRendering = true);
         Task<string> SetIncidentTags(string incidentId, List<string> tags);
         Task<string> AddTagToIncident(string incidentId, string tag);
+        Task<string> AddKeywordToIncident(string incidentId, string keyword);
         Task<string> AcknowledgeIncidentAsync(string incidentId, string acknowledgeContactAlias = "antagent-1p");
         Task<List<string>> GetLinkedRelatedIncidentInfoAsync(long incidentId);
         Task<string> AddRelatedIncidentLinkAsync(long incidentId, long relatedIncidentId);
@@ -476,6 +477,30 @@ namespace FirstPartyAgent.Core.Services
             }
             var incident = await GetIncidentAsync(incidentId);
             return await SetIncidentTags(incidentId, incident.Tags.Append(tag).ToList());
+        }
+
+        public async Task<string> AddKeywordToIncident(string incidentId, string keyword)
+        {
+            if (_icmApiSettings.ReadOnly)
+            {
+                return ("Success. ICM API is in read-only mode.");
+            }
+
+            var incident = await GetIncidentAsync(incidentId);
+            var updatedKeywords = string.IsNullOrWhiteSpace(incident.Keywords)? keyword: $"{incident.Keywords}, {keyword}";
+            var content = new
+            {
+                Keywords = updatedKeywords,
+            };
+            var response = await SendICMPatchRequestAsync($"{IcmAPIPathPrefix}/incidents({incidentId})", content);
+            if (response.IsSuccessStatusCode)
+            {
+                return "Keyword added successfully.";
+            }
+            else
+            {
+                throw new Exception($"Failed to add keyword to incident. Status code: {response.StatusCode}");
+            }
         }
 
         public async Task<string> AcknowledgeIncidentAsync(string incidentId, string acknowledgeContactAlias = "antagent-1p")

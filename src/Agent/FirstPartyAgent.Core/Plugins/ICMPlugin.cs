@@ -408,6 +408,20 @@ namespace FirstPartyAgent.Core.Plugins
                 : await _icmApiClient.AddTagToIncident(incidentId, tag);
         }
 
+        [KernelFunction("icm_add_keyword")]
+        [Description("Add a keyword to an ICM incident")]
+        public async Task<string> AddKeywordToIncident(
+            [Description("Id of the incident")] string incidentId,
+            [Description("Keyword to add")] string keyword,
+            Kernel kernel)
+        {
+            var logMessage = $"[icm_add_keyword][{DateTime.UtcNow}] Invoked with incidentId {incidentId}, keyword: {keyword}";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
+            return _icmWorkflowClient.IsEnabled()
+                ? await _icmWorkflowClient.AddKeywordToIncident(incidentId, keyword)
+                : await _icmApiClient.AddKeywordToIncident(incidentId, keyword);
+        }
+
         // acknowledge_icm_incident using ICM API
         [KernelFunction("acknowledge_icm_incident")]
         [Description("Acknowledges an ICM incident")]
