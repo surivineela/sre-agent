@@ -502,7 +502,9 @@ public class ReasoningLoop
     {
         _chatHistory!.AddRange(chatMessage);
 
-        var reasoningMessages = chatMessage.Select(msg => msg.GetReasoningMessage(_context.Id));
+        // Calling ToList() is important here because otherwise the reasoning messages get new IDs every time
+        // the reasoningMessages IEnumerable is enumerated.
+        var reasoningMessages = chatMessage.Select(msg => msg.GetReasoningMessage(_context.Id)).ToList();
         foreach (var reasoningMessage in reasoningMessages)
         {
             await _threadRepository.CreateReasoningMessageAsync(reasoningMessage);
