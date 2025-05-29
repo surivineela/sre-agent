@@ -268,10 +268,9 @@ $@"## Facts
     private readonly IAzureMonitorMetricsPlugin _azureMonitorMetricsPlugin;
     private readonly IMetaAgentFunctionAppDiagnosticsPlugin _functionAppDiagnosticsPlugin;
     private readonly IArmPlugin _armPlugin;
-
+    private readonly IDiagnosticsPlugin _diagnosticsPlugin;
 
     private readonly InstanceManagementSettings _instanceManagementSettings;
-
 
     public ThirdPartyAgentsFactory(
         ILogger<ThirdPartyAgentsFactory> logger,
@@ -307,7 +306,8 @@ $@"## Facts
         IMetaAgentFunctionAppExecutionFailuresAgentPlugin functionAppExecutionFailuresAgentPlugin,
         IAzureMonitorMetricsPlugin azureMonitorMetricsPlugin,
         IMetaAgentFunctionAppDiagnosticsPlugin functionAppDiagnosticsPlugin,
-        IArmPlugin armPlugin
+        IArmPlugin armPlugin,
+        IDiagnosticsPlugin diagnosticsPlugin
         )
     {
         _mcpToolsRepository = mcpToolsRepository;
@@ -348,6 +348,7 @@ $@"## Facts
         _instanceManagementSettings = instanceManagementSettings;
         _functionAppDiagnosticsPlugin = functionAppDiagnosticsPlugin;
         _armPlugin = armPlugin;
+        _diagnosticsPlugin = diagnosticsPlugin;
     }
 
     public List<AITool> GetSubAgentsAITools(Guid threadGuid, AgentContext context)
@@ -390,6 +391,7 @@ $@"## Facts
         var functionAppPluginDefinition = new FunctionAppsPluginDefinition(_functionAppsPlugin);
 
         var azureMonitorMetricsPluginDefinition = new AzureMonitorMetricsPluginDefinition(_azureMonitorMetricsPlugin);
+        var diagnosticsPluginDefinition = new DiagnosticsPluginDefinition(_diagnosticsPlugin);
 
         List<AITool> _aiTools =
         [
@@ -479,6 +481,7 @@ $@"## Facts
             AIFunctionFactory.Create(_githubIssuePlugin.CreateGithubIssue),
             AIFunctionFactory.Create(_githubIssuePlugin.CreateGithubIssueComment),
             AIFunctionFactory.Create(_githubIssuePlugin.FindConnectedRepo),
+            AIFunctionFactory.Create(_diagnosticsPlugin.GetAnalysisAsync),
         ];
 
         if (!_instanceManagementSettings.ProcessingEnabled)

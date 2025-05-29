@@ -20,6 +20,7 @@ using Agent.Logging;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Implementation;
+using Agent.Plugins.Implementation.DiagnosticsPlugin;
 using Agent.Prometheus.Services;
 using Agent.Runtime;
 using Agent.Runtime.Communication;
@@ -182,6 +183,7 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
         .AddTransient<FunctionAppExecutionFailuresPluginDefinition>()
         .AddTransient<FunctionAppConfigurationChecksPluginDefinition>()
         .AddTransient<UserInteractionPluginDefinition>()
+        .AddTransient<DiagnosticsPluginDefinition>()
 
         .AddTransient<IMetaAgentContainerAppsRemediationPlugin, ContainerAppsRemediationPlugin>()
         .AddTransient<IMetaAgentManagedIdentityMigrationPlugin, ManagedIdentityMigrationPlugin>()
@@ -247,6 +249,7 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
         .AddSingleton<IDotnetAnalysisPlugin, DotnetAnalysisPlugin>()
         .AddSingleton<IReasoningLoopFactory, ReasoningLoopFactory>()
         .AddSingleton<IReasoningLoopManager, ReasoningLoopManager>()
+        .AddSingleton<IDiagnosticsPlugin, DiagnosticsPlugin>()
 
         .AddSingleton<IToolFactory, ToolFactory>(sp =>
         {
