@@ -1,15 +1,18 @@
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
-using Agent.Plugins.Definitions;
-using Azure.Core;
+using Agent.Framework;
 using Agent.Logging;
+using Agent.Plugins.Definitions;
+using Agent.Plugins.Implementation.DiagnosticsPlugin.ComputeResourceDiagnosticStrategies;
+using Azure.Core;
 using Azure.ResourceManager.AppContainers;
 using Azure.ResourceManager.AppService;
 using Azure.ResourceManager.ContainerService;
 using Microsoft.Extensions.Logging;
-using Agent.Plugins.Implementation.DiagnosticsPlugin.ComputeResourceDiagnosticStrategies;
 
 namespace Agent.Plugins.Implementation.DiagnosticsPlugin;
+
+[AgentToolPlugin]
 public sealed class DiagnosticsPlugin : IDiagnosticsPlugin
 {
     private readonly IAuthenticationService _authService;
@@ -66,6 +69,9 @@ public sealed class DiagnosticsPlugin : IDiagnosticsPlugin
             throw new ArgumentException($"No diagnostic strategy found for resource type {computeResourceInfo.ResourceType}.");
         }
     }
+
+    public Task<string> GetCPUAnalysisAsync(string resourceId, IReadOnlyDictionary<string, string> additionalProperties)
+       => GetAnalysisAsync(resourceId, AnalysisType.Cpu, additionalProperties);
 
     /// <summary>
     /// Gets compute type, OS, architecture, and runtime information for a given resource ID.

@@ -111,6 +111,7 @@ handoff_description: "Handoff to this agent when dealing with Azure Container Ap
 handoffs:
   - container_apps_http_error_agent
   - container_apps_auto_scale_agent
+  - diagnostic_cpu_agent
   - meta_agent
 
 manual_tools:

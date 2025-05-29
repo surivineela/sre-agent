@@ -11,4 +11,5 @@ public enum AnalysisType
 public interface IDiagnosticsPlugin
 {
     Task<string> GetAnalysisAsync(string resourceId, AnalysisType analysisType, IReadOnlyDictionary<string, string> additionalProperties);
+    Task<string> GetCPUAnalysisAsync(string resourceId, IReadOnlyDictionary<string, string> additionalProperties);
 }

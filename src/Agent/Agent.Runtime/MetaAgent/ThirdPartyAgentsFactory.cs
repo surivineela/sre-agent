@@ -481,7 +481,8 @@ $@"## Facts
             AIFunctionFactory.Create(_githubIssuePlugin.CreateGithubIssue),
             AIFunctionFactory.Create(_githubIssuePlugin.CreateGithubIssueComment),
             AIFunctionFactory.Create(_githubIssuePlugin.FindConnectedRepo),
-            AIFunctionFactory.Create(_diagnosticsPlugin.GetAnalysisAsync),
+            AIFunctionFactory.Create(diagnosticsPluginDefinition.GetAnalysisAsync),
+            AIFunctionFactory.Create(diagnosticsPluginDefinition.GetCPUAnalysis),
         ];
 
         if (!_instanceManagementSettings.ProcessingEnabled)
