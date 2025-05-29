@@ -48,6 +48,7 @@ namespace FirstPartyAgent.Constants
             public const string GetActiveRevisionSessions = "get_active_revision_sessions";
             public const string GetHpaHeartbeatMetrics = "get_hpa_heartbeat_metrics";
             public const string GetRevisionSpecChanges = "get_revision_spec_changes";
+            public const string GetArmOperations = "get_arm_operations";
             public const string GetEventProcessorEventsWithoutReplica = "get_event_processor_events_without_replica";
             public const string GetPodHeartbeatStatus = "get_pod_heartbeat_status";
             public const string GetInternalEventProcessorEventsForPod = "get_internal_event_processor_events_for_pod";
