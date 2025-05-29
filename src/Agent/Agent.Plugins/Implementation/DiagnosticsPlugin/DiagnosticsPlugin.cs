@@ -12,7 +12,6 @@ using Microsoft.Extensions.Logging;
 
 namespace Agent.Plugins.Implementation.DiagnosticsPlugin;
 
-[AgentToolPlugin]
 public sealed class DiagnosticsPlugin : IDiagnosticsPlugin
 {
     private readonly IAuthenticationService _authService;

@@ -14,7 +14,6 @@ public sealed class DiagnosticsPluginDefinition
         _diagnosticsPlugin = diagnosticsPlugin;
     }
 
-    [KernelFunction("get_analysis")]
     [Description("Gets the diagnostic analysis for a particular compute resource based on a particular resourceId and analysis type.")]
     public async Task<string> GetAnalysisAsync([Description("The resource Id.")] string resourceId,
                                                [Description("The type of analysis to be conducted that could be: Memory, CPU and Threadpool Starvation.")] AnalysisType analysisType,
@@ -23,7 +22,6 @@ public sealed class DiagnosticsPluginDefinition
         return await _diagnosticsPlugin.GetAnalysisAsync(resourceId, analysisType, additionalProperties);
     }
 
-    [KernelFunction("get_cpu_analysis")]
     [Description("Gets the CPU diagnostic analysis for a particular compute resource.")]
     public async Task<string> GetCPUAnalysis([Description("The resource Id.")] string resourceId)
     {
