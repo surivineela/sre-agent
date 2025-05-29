@@ -268,6 +268,7 @@ $@"## Facts
     private readonly IAzureMonitorMetricsPlugin _azureMonitorMetricsPlugin;
     private readonly IMetaAgentFunctionAppDiagnosticsPlugin _functionAppDiagnosticsPlugin;
     private readonly IArmPlugin _armPlugin;
+    private readonly ISearchPlugin _searchPlugin;
 
 
     private readonly InstanceManagementSettings _instanceManagementSettings;
@@ -307,7 +308,8 @@ $@"## Facts
         IMetaAgentFunctionAppExecutionFailuresAgentPlugin functionAppExecutionFailuresAgentPlugin,
         IAzureMonitorMetricsPlugin azureMonitorMetricsPlugin,
         IMetaAgentFunctionAppDiagnosticsPlugin functionAppDiagnosticsPlugin,
-        IArmPlugin armPlugin
+        IArmPlugin armPlugin,
+        ISearchPlugin searchPlugin
         )
     {
         _mcpToolsRepository = mcpToolsRepository;
@@ -348,6 +350,7 @@ $@"## Facts
         _instanceManagementSettings = instanceManagementSettings;
         _functionAppDiagnosticsPlugin = functionAppDiagnosticsPlugin;
         _armPlugin = armPlugin;
+        _searchPlugin = searchPlugin;
     }
 
     public List<AITool> GetSubAgentsAITools(Guid threadGuid, AgentContext context)
@@ -390,6 +393,8 @@ $@"## Facts
         var functionAppPluginDefinition = new FunctionAppsPluginDefinition(_functionAppsPlugin);
 
         var azureMonitorMetricsPluginDefinition = new AzureMonitorMetricsPluginDefinition(_azureMonitorMetricsPlugin);
+
+        var searchPluginDefinition = new SearchPluginDefinition(_searchPlugin);
 
         List<AITool> _aiTools =
         [
@@ -479,6 +484,7 @@ $@"## Facts
             AIFunctionFactory.Create(_githubIssuePlugin.CreateGithubIssue),
             AIFunctionFactory.Create(_githubIssuePlugin.CreateGithubIssueComment),
             AIFunctionFactory.Create(_githubIssuePlugin.FindConnectedRepo),
+            //AIFunctionFactory.Create(searchPluginDefinition.SearchAsync)
         ];
 
         if (!_instanceManagementSettings.ProcessingEnabled)
