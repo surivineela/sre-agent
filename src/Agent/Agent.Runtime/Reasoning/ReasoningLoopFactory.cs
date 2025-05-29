@@ -22,7 +22,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
     private readonly IChatClient _chatClient;
     private readonly IAgentOutboundCommunicationService _outboundCommunicationService;
     private readonly IAgentFactory<AgentContext> _agentFactory;
-    private readonly IToolFactory _toolFactory;
+    private readonly ToolFactory _toolFactory;
     private readonly IThreadRepository _threadRepository;
     private readonly ActionSettings _actionSettings;
     public ReasoningLoopFactory(
@@ -31,7 +31,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         IAgentOutboundCommunicationService outboundCommunicationService,
         IThreadRepository threadRepository,
         IAgentFactory<AgentContext> agentFactory,
-        IToolFactory toolFactory,
+        ToolFactory toolFactory,
         ActionSettings actionSettings)
     {
         _loggerFactory = loggerFactory;

@@ -4,9 +4,9 @@
 
 using System.ComponentModel;
 using System.Reflection;
+using Agent.Core.Models.Api.v1;
 using Agent.Framework;
 using Agent.Runtime.Reasoning;
-using Agent.Core.Models.Api.v1;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -99,8 +99,7 @@ public class TestAgent1Descriptor : IAgentDescriptor
     public string Instructions { get; set; } = "Test Instructions";
     public string? HandoffDescription { get; set; } = "Test Handoff Description";
     public List<string> Handoffs { get; set; } = ["TestAgent2"];
-    public List<string> AutoTools { get; set; } = ["TestAutoTool"];
-    public List<string> ManualTools { get; set; } = ["TestManualTool"];
+    public List<string> Tools { get; set; } = ["TestAutoTool", "TestManualTool"];
     public int MaxReflectionCount { get; set; } = 0;
     public string CustomReflectionNote { get; set; } = "Test Custom Reflection Note";
     public List<string> CommonPrompts { get; set; } = ["test_prompt"];
@@ -112,8 +111,7 @@ public class TestAgent2Descriptor : IAgentDescriptor
     public string Instructions { get; set; } = "Test Instructions";
     public string? HandoffDescription { get; set; } = "Test Handoff Description";
     public List<string> Handoffs { get; set; } = [];
-    public List<string> AutoTools { get; set; } = ["TestAutoTool"];
-    public List<string> ManualTools { get; set; } = ["TestManualTool"];
+    public List<string> Tools { get; set; } = ["TestAutoTool", "TestManualTool"];
     public int MaxReflectionCount { get; set; } = 0;
     public string CustomReflectionNote { get; set; } = "Test Custom Reflection Note";
     public List<string> CommonPrompts { get; set; } = [];
@@ -130,6 +128,7 @@ public class TestCommonPrompt : IPromptDescriptor
 [AgentToolPlugin]
 internal class TestTools
 {
+    [AgentTool(ToolMode.Auto)]
     [Description("Test Auto Tool")]
     public string TestAutoTool()
     {

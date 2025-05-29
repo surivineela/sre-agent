@@ -33,7 +33,7 @@ handoff_description: "Handoff to this agent when try to diagnose the workload on
 handoffs:
   - aks_remediation_agent
 
-manual_tools:
+tools:
   - SearchResourceByName
   - ListResourcesByType
   - RunKubectlReadCommand

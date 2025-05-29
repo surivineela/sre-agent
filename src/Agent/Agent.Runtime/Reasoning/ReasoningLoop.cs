@@ -31,7 +31,7 @@ public class ReasoningLoop
     private readonly IThreadRepository _threadRepository;
     private readonly Channel<ChatMessage> _msgCh;
     private readonly SemaphoreSlim _semaphore = new(initialCount: 1, maxCount: 1);
-    private readonly IToolFactory _toolFactory;
+    private readonly ToolFactory _toolFactory;
     private readonly ActionSettings _actionSettings;
 
     private List<ChatMessage>? _chatHistory;
@@ -45,7 +45,7 @@ public class ReasoningLoop
         Agent<AgentContext> startingAgent,
         IThreadRepository threadRepository,
         AgentContext context,
-        IToolFactory toolFactory,
+        ToolFactory toolFactory,
         ActionSettings actionSettings)
     {
         _logger = logger;
@@ -118,10 +118,11 @@ public class ReasoningLoop
         if (agentChatHistory == null)
         {
             // should never happen
-            _chatHistory = new List<ChatMessage>();
+            _chatHistory = [];
+            return;
         }
 
-        var reasoningMessages = await agentChatHistory!.GetReasoningMessagesAsync(_threadRepository);
+        var reasoningMessages = await agentChatHistory.GetReasoningMessagesAsync(_threadRepository);
         _chatHistory = reasoningMessages.GetChatMessages();
     }
 
@@ -172,17 +173,35 @@ public class ReasoningLoop
                 LoggerFactory = _loggerFactory
             };
 
+            var runHooks = new RunHooks<AgentContext>
+            {
+                ResolveFactoryTools = (context, agent, toolNames) =>
+                {
+                    List<AIFunction> tools = [];
+
+                    foreach (var toolName in toolNames)
+                    {
+                        var tool = _toolFactory.GetTool(toolName, _context.ThreadId);
+                        tools.Add(tool);
+                    }
+
+                    return Task.FromResult(tools);
+                }
+            };
+
+            ToolStatic.AsyncLocalThreadId.Value = _context.ThreadId;
+
             var runResult = await Runner.RunAsync(
                 startingAgent: _currentAgent,
                 input: _chatHistory!,
                 config: runConfig,
                 context: _context,
+                hooks: runHooks,
                 cancellationToken: cancellationToken
             );
 
             await PersistReasoningMessagesAsync(agentChatHistory, runResult.NewItems);
             _currentAgent = runResult.LastAgent;
-
             _context = _context with { CurrentAgent = _currentAgent.Name };
             _context = await _threadRepository.UpdateAgentContextAsync(_context);
 
@@ -201,7 +220,7 @@ public class ReasoningLoop
                     try
                     {
                         ToolStatic.AsyncLocalThreadId.Value = _context.ThreadId;
-                        functionResult = await GetAIFunctionWithThreadId(toolCall.Tool!.Name, _context.ThreadId).InvokeAsync(toolCall.FunctionCall.Arguments, cancellationToken);
+                        functionResult = await toolCall.Tool.InvokeAsync(toolCall.FunctionCall.Arguments, cancellationToken);
                     }
                     catch (Exception ex)
                     {
@@ -225,6 +244,7 @@ public class ReasoningLoop
                     previousResult: runResult,
                     manualToolResults: toolResults,
                     config: runConfig,
+                    hooks: runHooks,
                     cancellationToken: cancellationToken
                 );
 
@@ -234,8 +254,11 @@ public class ReasoningLoop
                 _context = await _threadRepository.UpdateAgentContextAsync(_context);
             }
 
-            await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context.ThreadId, string.Empty,
-                        new ChatMessage(ChatRole.Assistant, runResult.Output?.ToString()));
+            if (runResult.Output != null)
+            {
+                await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context.ThreadId, string.Empty,
+                    new ChatMessage(ChatRole.Assistant, runResult.Output?.ToString()));
+            }
 
             _logger.LogInternalInformation("Reasoning loop completed successfully.");
         }
@@ -274,8 +297,6 @@ public class ReasoningLoop
     {
         try
         {
-            ToolStatic.AsyncLocalThreadId.Value = _context.ThreadId;
-
             var functionResult = await aiTool.InvokeAsync(functionCall.Arguments, cancellationToken);
             var result = new FunctionResultContent(functionCall.CallId, functionResult);
             var functionCallMessage = new ChatMessage(ChatRole.Tool, [result]);
@@ -297,7 +318,7 @@ public class ReasoningLoop
         {
             try
             {
-                var aiTool = _currentAgent.ManualTools.Find(aiTool => aiTool.Name == functionCall.Name) ?? throw new Exception($"Tool {functionCall.Name} not found");
+                var aiTool = ResolveTool(functionCall.Name) ?? throw new Exception($"Tool {functionCall.Name} not found");
 
                 if (aiTool.UnderlyingMethod?.GetCustomAttribute<RequiresApprovalAttribute>() != null)
                 {
@@ -318,6 +339,22 @@ public class ReasoningLoop
         }
 
         return false;
+    }
+
+    private AIFunction? ResolveTool(string name)
+    {
+        AIFunction? tool = null;
+
+        if (_currentAgent.StandardToolNames.Contains(name))
+        {
+            tool = _currentAgent.Tools.FirstOrDefault(aiTool => aiTool.Name == name);
+        }
+        else if (_currentAgent.FactoryTools.Contains(name))
+        {
+            tool = _toolFactory.GetTool(name, _context.ThreadId);
+        }
+
+        return tool;
     }
 
     private async Task<bool> ProcessNewApprovalAsync(
@@ -342,7 +379,7 @@ public class ReasoningLoop
             {
                 try
                 {
-                    var aiTool = _currentAgent.ManualTools.Find(aiTool => aiTool.Name == functionCall.Name) ?? throw new Exception($"Tool {functionCall.Name} not found");
+                    var aiTool = ResolveTool(functionCall.Name) ?? throw new Exception($"Tool {functionCall.Name} not found");
 
                     var approvalAttr = aiTool.UnderlyingMethod?.GetCustomAttribute<RequiresApprovalAttribute>();
 
@@ -482,11 +519,6 @@ public class ReasoningLoop
                 ApprovalStatus = ToolApprovalStatus.Pending,
             };
         }
-    }
-
-    private AIFunction GetAIFunctionWithThreadId(string functionName, Guid threadId)
-    {
-        return _toolFactory.FindAIFunction(functionName, threadId);
     }
 
     private async Task PersistReasoningMessageAsync(AgentChatHistory agentChatHistory, ChatMessage chatMessage)

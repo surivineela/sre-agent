@@ -45,8 +45,11 @@ class CustomContext
 
 class TestService
 {
-    [RequiresApproval]
+    [AgentTool(ToolMode.Auto)]
     public string GetData() => "Test Data";
+
+    [RequiresApproval]
+    public string GetDataWithApproval() => "Test Data";
 }
 
 class Agent1 : Agent<CustomContext>
@@ -69,7 +72,7 @@ class Agent2 : Agent<CustomContext>
         TestService testService // can be injected with DI
     ) : base("Agent2")
     {
-        AutoTools = [
+        Tools = [
             AIFunctionFactory.Create(testService.GetData)
         ];
 
@@ -326,7 +329,7 @@ class Program
 
         var testService = new TestService();
 
-        agent2.AutoTools = [
+        agent2.Tools = [
             AIFunctionFactory.Create(testService.GetData)
         ];
 
@@ -381,8 +384,8 @@ class Program
 
         var testService = new TestService();
 
-        agent2.ManualTools = [
-            AIFunctionFactory.Create(testService.GetData)
+        agent2.Tools = [
+            AIFunctionFactory.Create(testService.GetDataWithApproval)
         ];
 
         agent1.Handoffs = [

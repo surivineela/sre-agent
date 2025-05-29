@@ -58,8 +58,7 @@ handoffs:
   - kubernetes_service_general_requests_agent
   - aks_remediation_agent
 
-# TODO: change to "discover_applications" style
-manual_tools:
+tools:
   - DiscoverApplications
   - GetApplicationComponentsSummary
   - ListSubscriptions

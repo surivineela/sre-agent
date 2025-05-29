@@ -157,7 +157,7 @@ handoff_description: "Handoff to this agent when dealing with Azure Container Ap
 handoffs:
   - container_apps_agent
 
-manual_tools:
+tools:
   - GetContainerAppInfo
   - ListRevisions
   - GetLatestRevision

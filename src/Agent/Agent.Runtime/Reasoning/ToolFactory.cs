@@ -129,7 +129,7 @@ public class ToolFactory : IToolFactory
                         ? method.Name[..^5]
                         : method.Name;
                     var tool = new DeferredToolFunction(_serviceProvider, pluginType, method, functionName);
-                    if (!RegisterAIFunction(functionName, tool, onNameConflict))
+                    if (!RegisterTool(functionName, tool, onNameConflict))
                     {
                         _logger.LogInternalWarning("Failed to register tool {functionName} from type {pluginType} due to name conflict.", functionName, pluginType.FullName);
                     }
@@ -142,12 +142,12 @@ public class ToolFactory : IToolFactory
         }
     }
 
-    public AIFunction FindAIFunction(string name)
+    public AIFunction GetTool(string name)
     {
         return DoFindAIFunction(name, null);
     }
 
-    private bool RegisterAIFunction(string name, DeferredToolFunction function, BehaviorOnNameConflict onNameConflict)
+    private bool RegisterTool(string name, DeferredToolFunction function, BehaviorOnNameConflict onNameConflict)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -175,7 +175,7 @@ public class ToolFactory : IToolFactory
         return true;
     }
 
-    public bool TryFindAIFunction(string name, out AIFunction? function)
+    public bool TryFindTool(string name, out AIFunction? function)
     {
         if (_tools.TryGetValue(name, out var deferredToolFunction))
         {
@@ -188,12 +188,12 @@ public class ToolFactory : IToolFactory
         return false;
     }
 
-    public bool HasAIFunction(string name)
+    public bool HasTool(string name)
     {
         return _tools.ContainsKey(name);
     }
 
-    public AIFunction FindAIFunction(string name, Guid threadId)
+    public AIFunction GetTool(string name, Guid threadId)
     {
         return DoFindAIFunction(name, threadId);
     }

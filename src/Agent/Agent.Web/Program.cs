@@ -253,7 +253,7 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
         .AddSingleton<IReasoningLoopManager, ReasoningLoopManager>()
         .AddSingleton<ISearchPlugin, SearchPlugin>()
 
-        .AddSingleton<IToolFactory, ToolFactory>(sp =>
+        .AddSingleton<ToolFactory>(sp =>
         {
             return new ToolFactory(
                 logger: sp.GetRequiredService<ILogger<ToolFactory>>(),
@@ -261,6 +261,10 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
                 assembliesToScan: AppDomain.CurrentDomain.GetAssemblies()
                     .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
                     .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true));
+        })
+        .AddSingleton<IToolFactory, ToolFactory>(sp =>
+        {
+            return sp.GetRequiredService<ToolFactory>();
         })
 
         .AddSingleton<IAgentFactory<AgentContext>, AgentFactory<AgentContext>>(sp =>

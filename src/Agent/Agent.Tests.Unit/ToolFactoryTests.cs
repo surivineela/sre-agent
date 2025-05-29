@@ -122,9 +122,9 @@ namespace Agent.Tests.Unit
             var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
 
             // Assert
-            Assert.True(toolFactory.HasAIFunction("SayHello"));
-            Assert.True(toolFactory.HasAIFunction("ProcessData"));
-            Assert.True(toolFactory.HasAIFunction("Calculate"));
+            Assert.True(toolFactory.HasTool("SayHello"));
+            Assert.True(toolFactory.HasTool("ProcessData"));
+            Assert.True(toolFactory.HasTool("Calculate"));
         }
 
         [Fact]
@@ -134,7 +134,7 @@ namespace Agent.Tests.Unit
             var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
 
             // Act
-            var function = toolFactory.FindAIFunction("SayHello");
+            var function = toolFactory.GetTool("SayHello");
 
             // Assert
             Assert.NotNull(function);
@@ -148,7 +148,7 @@ namespace Agent.Tests.Unit
             var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
 
             // Act & Assert
-            Assert.Throws<KeyNotFoundException>(() => toolFactory.FindAIFunction("NonExistentFunction"));
+            Assert.Throws<KeyNotFoundException>(() => toolFactory.GetTool("NonExistentFunction"));
         }
 
         [Fact]
@@ -158,7 +158,7 @@ namespace Agent.Tests.Unit
             var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
             var threadId = Guid.NewGuid();
 
-            var function = toolFactory.FindAIFunction("GetThreadId", threadId);
+            var function = toolFactory.GetTool("GetThreadId", threadId);
             Assert.NotNull(function);
             var result = await function.InvokeAsync();
             Assert.Equal(threadId.ToString(), result.ToString());
@@ -171,7 +171,7 @@ namespace Agent.Tests.Unit
             var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
 
             // Act
-            var result = toolFactory.TryFindAIFunction("Calculate", out var function);
+            var result = toolFactory.TryFindTool("Calculate", out var function);
 
             // Assert
             Assert.True(result);
@@ -186,7 +186,7 @@ namespace Agent.Tests.Unit
             var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
 
             // Act
-            var result = toolFactory.TryFindAIFunction("NonExistentFunction", out var function);
+            var result = toolFactory.TryFindTool("NonExistentFunction", out var function);
 
             // Assert
             Assert.False(result);
@@ -200,9 +200,9 @@ namespace Agent.Tests.Unit
             var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
 
             // Act & Assert
-            Assert.True(toolFactory.HasAIFunction("SayHello"));
-            Assert.True(toolFactory.HasAIFunction("ProcessData"));
-            Assert.True(toolFactory.HasAIFunction("Calculate"));
+            Assert.True(toolFactory.HasTool("SayHello"));
+            Assert.True(toolFactory.HasTool("ProcessData"));
+            Assert.True(toolFactory.HasTool("Calculate"));
         }
 
         [Fact]
@@ -212,9 +212,9 @@ namespace Agent.Tests.Unit
             var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
 
             // Act & Assert
-            Assert.False(toolFactory.HasAIFunction("NonExistentFunction"));
-            Assert.False(toolFactory.HasAIFunction("IgnoredMethod"));
-            Assert.False(toolFactory.HasAIFunction("ShouldNotBeRegistered"));
+            Assert.False(toolFactory.HasTool("NonExistentFunction"));
+            Assert.False(toolFactory.HasTool("IgnoredMethod"));
+            Assert.False(toolFactory.HasTool("ShouldNotBeRegistered"));
         }
 
         [Fact]
@@ -224,8 +224,8 @@ namespace Agent.Tests.Unit
             var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
 
             // Act & Assert
-            Assert.True(toolFactory.HasAIFunction("ProcessData"));
-            Assert.False(toolFactory.HasAIFunction("ProcessDataAsync"));
+            Assert.True(toolFactory.HasTool("ProcessData"));
+            Assert.False(toolFactory.HasTool("ProcessDataAsync"));
         }
 
         [Fact]
@@ -235,7 +235,7 @@ namespace Agent.Tests.Unit
             var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
 
             // Act & Assert
-            Assert.False(toolFactory.HasAIFunction("IgnoredMethod"));
+            Assert.False(toolFactory.HasTool("IgnoredMethod"));
         }
 
         [Fact]
@@ -247,7 +247,7 @@ namespace Agent.Tests.Unit
             var toolFactory = new ToolFactory(_mockLogger.Object, serviceProvider, [Assembly.GetExecutingAssembly()]);
 
             // Act & Assert
-            Assert.False(toolFactory.HasAIFunction("ShouldNotBeRegistered"));
+            Assert.False(toolFactory.HasTool("ShouldNotBeRegistered"));
         }
 
         [Fact]
@@ -294,7 +294,7 @@ namespace Agent.Tests.Unit
             var threadId = Guid.NewGuid();
 
             // Act
-            var function = toolFactory.FindAIFunction("ProcessViaImplementation", threadId);
+            var function = toolFactory.GetTool("ProcessViaImplementation", threadId);
             Assert.NotNull(function);
             var result = await function.InvokeAsync();
 

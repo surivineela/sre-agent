@@ -55,7 +55,7 @@ handoffs:
   - meta_agent
   - aks_workload_diagnose_agent
 
-manual_tools:
+tools:
   - SearchResourceByName
   - ListResourcesByType
   - RunKubectlReadCommand

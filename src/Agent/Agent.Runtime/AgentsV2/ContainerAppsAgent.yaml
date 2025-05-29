@@ -113,7 +113,7 @@ handoffs:
   - container_apps_auto_scale_agent
   - meta_agent
 
-manual_tools:
+tools:
   - GetContainerAppInfo
   - ListRevisions
   - GetLatestRevision
