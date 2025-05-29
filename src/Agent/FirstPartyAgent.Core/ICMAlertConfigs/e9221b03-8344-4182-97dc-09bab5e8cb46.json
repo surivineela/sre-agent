@@ -13,8 +13,8 @@
     "   2a) To run the primary query, Use Kusto cluster name from the incident discussion entries in primary kusto query result except for flexConsumptionStamps variable in query.",
     "3. Run this primary kusto query every hour after incident is created for 3 Iterations by updating _endTime Variable in kusto query. For example: If Incident is created at 8 AM, _endTime variable will be for 3 iterations 9 AM, 10 AM and 11 AM and follow below logic to execute query",
     "   3a) If current time is more than 3 hours from Incident Created Date, execute all 3 iterations together",
-    "   3b) Otherwise run kusto query every hour from Incident Creation",
-    "4. If no result is found in all 3 iterations, then mark the incident as Mitigated with the summary of your findings along with _endTime Value, SubscriptionImpacted, CorelationId in tabular format and update ICM fields How fixed as Transient",
+    "   3b) Otherwise run primary kusto query every hour from Incident Creation",
+    "4. If no result is found in all 3 iterations for Primary Kusto Query, then mark the incident as Mitigated with the summary of your findings along with _endTime Value, SubscriptionImpacted, CorelationId in tabular format and update ICM fields How fixed as Transient",
     "5. If results are found, then post the details of your findings in the ICM incident in tabular format and transfer the incident for Human Intervention."
   ],
   "AgentName": "Functions_FlexConsumption"
