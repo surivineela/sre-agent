@@ -5,11 +5,13 @@
 using System.ComponentModel;
 using Agent.Core.Attributes;
 using Agent.Core.Models;
+using Agent.Framework;
 using Agent.Plugins.Attributes;
 using Agent.Plugins.Models;
 
 namespace Agent.Plugins
 {
+    [AgentToolPlugin]
     public class ArmPluginDefinition
     {
         private readonly IArmPlugin _armPlugin;

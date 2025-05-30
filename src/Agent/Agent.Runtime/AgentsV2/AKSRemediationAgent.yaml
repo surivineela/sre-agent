@@ -52,6 +52,7 @@ system_prompt: |
 handoff_description: "Handoff to this agent when dealing with Azure Kubernetes Service (AKS) related issues, especially when diagnosing workloads and taking remediation actions."
 
 handoffs:
+  - aks_network_remediation_agent
   - meta_agent
   - aks_workload_diagnose_agent
 

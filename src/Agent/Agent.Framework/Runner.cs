@@ -9,7 +9,7 @@ namespace Agent.Framework;
 
 public static class Runner
 {
-    private const int DefaultMaxTurns = 20;
+    private const int DefaultMaxTurns = 50;
 
     public static async Task<RunResult<TContext>> ResumeFromManualToolsAsync<TContext>(
         RunResult<TContext> previousResult,

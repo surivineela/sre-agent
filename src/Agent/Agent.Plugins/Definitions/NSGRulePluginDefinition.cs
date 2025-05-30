@@ -4,10 +4,13 @@
 
 using System.ComponentModel;
 using Agent.Core.Attributes;
+using Agent.Framework;
 using Azure.ResourceManager.Network;
 using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins.Definitions;
+
+[AgentToolPlugin]
 public class NSGRulePluginDefinition
 {
     private readonly INSGRulePlugin _nsgRulePlugin;
