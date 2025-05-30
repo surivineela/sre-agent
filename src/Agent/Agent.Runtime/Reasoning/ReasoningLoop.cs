@@ -32,7 +32,7 @@ public class ReasoningLoop
     private readonly IThreadRepository _threadRepository;
     private readonly Channel<ChatMessage> _msgCh;
     private readonly SemaphoreSlim _semaphore = new(initialCount: 1, maxCount: 1);
-    private readonly ToolFactory _toolFactory;
+    private readonly ToolFactory<AgentContext> _toolFactory;
     private readonly ActionSettings _actionSettings;
 
     private List<ChatMessage>? _chatHistory;
@@ -46,7 +46,7 @@ public class ReasoningLoop
         Agent<AgentContext> startingAgent,
         IThreadRepository threadRepository,
         AgentContext context,
-        ToolFactory toolFactory,
+        ToolFactory<AgentContext> toolFactory,
         ActionSettings actionSettings)
     {
         _logger = logger;
@@ -218,7 +218,7 @@ public class ReasoningLoop
                 if (checkAzCliWrite)
                 {
                     await InvokeToolWithErrorHandlingAsync(toolCall, cancellationToken);
-                    
+
                     var cliExecution = await _threadRepository.ListPendingAzCliExecutionAsync(_context.ThreadId);
                     cliExecution = cliExecution with
                     {
@@ -247,6 +247,7 @@ public class ReasoningLoop
                     previousResult: runResult,
                     manualToolResults: toolResults,
                     config: runConfig,
+                    context: _context,
                     hooks: runHooks,
                     cancellationToken: cancellationToken
                 );

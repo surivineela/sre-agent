@@ -25,14 +25,14 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
     private readonly Dictionary<string, IAgentDescriptor> _agentDescriptors = [];
     private readonly Dictionary<string, IPromptDescriptor> _promptDescriptors = [];
     private readonly ILogger<AgentFactory<TContext>> _logger;
-    private readonly IToolFactory _toolFactory;
+    private readonly IToolFactory<TContext> _toolFactory;
     private readonly IEnumerable<Assembly> _assembliesToScan;
     private readonly string? _agentsYamlDirectory;
     private readonly string? _commonPromptsYamlDirectory;
 
     public AgentFactory(
         ILogger<AgentFactory<TContext>> logger,
-        IToolFactory toolFactory,
+        IToolFactory<TContext> toolFactory,
         IEnumerable<Assembly> assembliesToScan,
         string? agentsYamlDirectory = null,
         string? commonPromptsYamlDirectory = null
