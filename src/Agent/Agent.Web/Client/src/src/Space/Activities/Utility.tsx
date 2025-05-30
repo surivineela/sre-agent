@@ -15,7 +15,8 @@ import { SelectedTimes } from './TimeDropdown';
 export const processThreads = (prevThreads: Thread[], threads: Thread[], reverse: boolean) => {
     if (threads.length === 0) return prevThreads;
 
-    const updatedExistingThreads = prevThreads;
+    const updatedExistingThreads = [...prevThreads];
+    let isPrevThreadsUpdated = false;
 
     const threadsMap: Map<string, Thread> = new Map();
     threads.forEach(thread => threadsMap.set(thread.id, thread));
@@ -26,6 +27,7 @@ export const processThreads = (prevThreads: Thread[], threads: Thread[], reverse
             if (duplicatedThread.modifiedTimestamp !== prevThreads[i].modifiedTimestamp) {
                 // Remove thread with outdated modifiedTimestamp out of the existing threads
                 updatedExistingThreads.splice(i, 1);
+                isPrevThreadsUpdated = true;
             } else {
                 // Remove thread out of the threadsMap because the thread is already in the existing threads and has not been modified
                 threadsMap.delete(prevThreads[i].id);
@@ -36,55 +38,62 @@ export const processThreads = (prevThreads: Thread[], threads: Thread[], reverse
     const threadsToAdd: Thread[] = Array.from(threadsMap.values());
     threadsToAdd.sort((a, b) => getSafeDateTime(b.modifiedTimestamp).getTime() - getSafeDateTime(a.modifiedTimestamp).getTime());
 
+    const existingThreads = isPrevThreadsUpdated ? updatedExistingThreads : prevThreads;
+
     if (threadsToAdd.length === 0) {
-        return updatedExistingThreads;
+        return existingThreads;
     }
 
-    return reverse ? [...threadsToAdd, ...updatedExistingThreads] : [...updatedExistingThreads, ...threadsToAdd];
+    return reverse ? [...threadsToAdd, ...existingThreads] : [...existingThreads, ...threadsToAdd];
 };
 
 /**
- * @param prevMessages messages sorted in ascending order by timestamp
- * @param currentMessages messages sorted in descending order by timestamp
+ * @param prevMessages existing messages sorted in descending order by timestamp
+ * @param newMessages new messages sorted in descending order by timestamp
  * @param reverse if true, the current messages are placed before the old messages
  * @returns
  */
-export const processMessages = (prevMessages: Message[], currentMessages: Message[], reverse: boolean) => {
-    // Instead of using a Map, we'll use findIndex directly
-    const uniqueThreadIds = new Set<string>();
-    const messagesToAdd: Message[] = [];
-    const updatedPrevMessages = [...prevMessages];
-    let isPrevMessagesUpdated = false;
+export const processNewMessages = (prevMessages: Message[], newMessages: Message[]) => {
+    const updatedPrevMessages = prevMessages;
+    const newMessagesMap: Map<string, Message> = new Map<string, Message>();
+    newMessages.forEach((msg: Message) => newMessagesMap.set(msg.id, msg));
 
-    for (let i = 0; i < currentMessages.length; i++) {
-        const currentMsg = currentMessages[i];
-        // Skip if we've already processed this ID
-        if (uniqueThreadIds.has(currentMsg.id)) {
-            continue;
-        }
-
-        uniqueThreadIds.add(currentMsg.id);
-        const existingMsgIndex = prevMessages.findIndex(msg => msg.id === currentMsg.id);
-
-        if (existingMsgIndex === -1) {
-            // New message
-            messagesToAdd.unshift(currentMsg);
-        } else if (currentMsg.text !== prevMessages[existingMsgIndex].text) {
-            // Update existing message
-            updatedPrevMessages[existingMsgIndex] = currentMsg;
-            isPrevMessagesUpdated = true;
+    for (let i = 0; i < updatedPrevMessages.length; i++) {
+        const message = newMessagesMap.get(updatedPrevMessages[i].id);
+        if (message) {
+            if (message.text !== updatedPrevMessages[i].text) {
+                // Update existing message
+                updatedPrevMessages[i] = message;
+            } else {
+                // If the text is the same, we can skip updating this message
+                newMessagesMap.delete(updatedPrevMessages[i].id);
+            }
         }
     }
+
+    const messagesToAdd: Message[] = Array.from(newMessagesMap.values());
+    messagesToAdd.sort((a, b) => getSafeDateTime(b.timeStamp).getTime() - getSafeDateTime(a.timeStamp).getTime());
 
     if (messagesToAdd.length === 0) {
         // Do not return copied old messages as it will introduce unnecessary re-renders
-        return isPrevMessagesUpdated ? updatedPrevMessages : prevMessages;
+        return updatedPrevMessages;
     }
 
-    return reverse
-        ? [...messagesToAdd, ...(isPrevMessagesUpdated ? updatedPrevMessages : prevMessages)]
-        : [...(isPrevMessagesUpdated ? updatedPrevMessages : prevMessages), ...messagesToAdd];
+    return [...messagesToAdd, ...updatedPrevMessages];
 };
+
+/**
+ * 
+ * @param prevMessages existing messages sorted in descending order by timestamp
+ * @param oldMessages older messages sorted in descending order by timestamp
+ */
+export const processOldMessages = (prevMessages: Message[], oldMessages: Message[]) => {
+    if (oldMessages.length === 0) {
+        return prevMessages;
+    }
+
+    return [...prevMessages, ...oldMessages];
+}
 
 export const noGapBetweenNewMessagesAndExistingMessages = (messages: Message[], currentLatestMessage?: Message) => {
     if (messages.length === 0 || !currentLatestMessage) {
@@ -109,7 +118,7 @@ export const shouldGroupWithPreviousMessage = (currentMessage?: Message, previou
         currentMessage.author.userId === previousMessage.author.userId &&
         getSafeDateTime(currentMessage.timeStamp).getTime() - getSafeDateTime(previousMessage.timeStamp).getTime() <= 5 * 60 * 1000
     );
-};
+}
 
 export const getUTCTimestampBasedOnSelectedThreadCutoffTime = (selectedCutOffModifiedTime: SelectedTimes): string => {
     const days = selectedCutOffModifiedTime === SelectedTimes.OneDay ? 1 : selectedCutOffModifiedTime === SelectedTimes.SevenDays ? 7 : 30;

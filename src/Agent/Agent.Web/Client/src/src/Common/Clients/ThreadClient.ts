@@ -1,7 +1,8 @@
 import axios from 'axios';
-import { Thread, ThreadSource } from '../Contracts/Azure/SreAgent';
+import { Thread, ThreadContext, ThreadSource } from '../Contracts/Azure/SreAgent';
 import { getAgentHeaders } from '../Helpers/headers';
 import { DataPlaneClient, Response } from './DataPlaneClient.ts';
+import { MessagePostOptions } from './MessageClient.ts';
 
 export enum ThreadSeverity {
     Warning = 'Warning',
@@ -142,6 +143,42 @@ export class ThreadClient extends DataPlaneClient {
                 isSuccessful: false,
                 error: e,
             };
+        }
+    };
+
+    public getThreadContext = async (threadId: string, signal: AbortSignal): Promise<Response<ThreadContext | undefined>> => {
+        const url = this.getRequestUrl(`}/api/v1/threads/${threadId}/context`);
+        const { data } = await axios.get(url, {
+            headers: getAgentHeaders(),
+            signal,
+        });
+        return {
+            isSuccessful: true,
+            content: data as ThreadContext | undefined,
+        }
+    };
+
+    public createThread = async (options: MessagePostOptions, signal?: AbortSignal): Promise<Response<Thread | undefined>> => {
+        const url = this.getRequestUrl(`/api/v1/threads`);
+        const { userId, userDisplayName, message } = options;
+
+        const response = await axios.post(
+            url,
+            {
+                startMessage: {
+                    text: message,
+                    userId: userId,
+                    displayName: userDisplayName,
+                },
+            },
+            {
+                headers: getAgentHeaders(),
+                signal,
+            }
+        );
+        return {
+            isSuccessful: true,
+            content: response?.data
         }
     };
 }
