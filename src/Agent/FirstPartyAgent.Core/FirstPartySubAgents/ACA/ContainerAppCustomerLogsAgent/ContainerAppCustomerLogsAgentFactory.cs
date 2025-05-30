@@ -8,8 +8,6 @@ using Agent.Plugins;
 using Agent.Runtime.Communication;
 using Agent.Runtime.SubAgents;
 using FirstPartyAgent.Core.Plugins.Definitions;
-using FirstPartyAgent.Core.Plugins.Implementation;
-using FirstPartyAgent.Core.Plugins.Implementation;
 using FirstPartyAgent.Core.Plugins.Interfaces;
 using FirstPartyAgent.Plugins;
 using FirstPartyAgent.Plugins.Definitions;
@@ -44,7 +42,7 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCustomerLogsA
 
             //Add more plugins as required
 
-            var logsMetricsPluginDefinition = new ContainerAppCustomerLogsPluginDefinition(containerAppCustomerLogsPlugin);
+            var logsMetricsPluginDefinition = new ContainerAppCustomerLogsPluginDefinition(containerAppCustomerLogsPlugin, managedClusterPlugin);
             toolSignatures.Add(_toolsRegistry.GetSignature(() => logsMetricsPluginDefinition.GetLogConfiguration));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => logsMetricsPluginDefinition.GetEventProcessorLeaderElectionEvents));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => logsMetricsPluginDefinition.GetEventProcessorErrors));
@@ -53,6 +51,12 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCustomerLogsA
             toolSignatures.Add(_toolsRegistry.GetSignature(() => logsMetricsPluginDefinition.GetLogProcessorPods));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => logsMetricsPluginDefinition.GetEventProcessorPodStatus));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => logsMetricsPluginDefinition.GetLogProcessorPodStatus));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => logsMetricsPluginDefinition.GetContainerAppWorkloadProfile));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => logsMetricsPluginDefinition.GetInputPressureOnLogProcessor));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => logsMetricsPluginDefinition.GetMemoryPressureOnFluentbit));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => logsMetricsPluginDefinition.GetFluentbitOutputCount));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => logsMetricsPluginDefinition.GetFluentbitBufferPressure));
+
 
             var envoyPluginDefinition = new ContainerAppEnvoyPluginDefinition(envoyPlugin);
             toolSignatures.Add(_toolsRegistry.GetSignature(() => envoyPluginDefinition.GetContainerAppManagedCluster));
