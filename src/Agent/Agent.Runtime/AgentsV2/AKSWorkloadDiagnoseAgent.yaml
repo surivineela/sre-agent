@@ -40,3 +40,6 @@ tools:
   - RunKubectlWriteCommand
   - PatchKubernetesYaml
   - GetKubeResourceMetricsRange
+
+common_prompts:
+  - ground_rail

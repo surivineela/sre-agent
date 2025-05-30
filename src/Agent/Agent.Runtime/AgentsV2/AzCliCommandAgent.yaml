@@ -264,6 +264,10 @@ tools:
    - GetAzCliHelp
    - NotifyUser
 
+common_prompts:
+   - notify_user
+   - ground_rail
+
 max_reflection_count: 3
 
 custom_reflection_note: |
