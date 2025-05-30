@@ -57,8 +57,8 @@ public static class MetaAgentMock
     IAzureMonitorMetricsPlugin? azureMonitorMetricsPlugin = null,
     IDiagnosticsPlugin? diagnosticsPlugin = null,
     IMetaAgentFunctionAppDiagnosticsPlugin? functionAppDiagnosticsPlugin = null,
-    IArmPlugin? armPlugin = null, // Added parameter
-    ISearchPlugin searchPlugin = null)
+    IArmPlugin? armPlugin = null,
+    ISearchPlugin searchPlugin = null) // Added parameter
     {
 
         return new ThirdPartyAgentsFactory(
