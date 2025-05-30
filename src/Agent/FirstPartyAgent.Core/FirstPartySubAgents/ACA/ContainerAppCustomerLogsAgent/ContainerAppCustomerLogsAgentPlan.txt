@@ -106,6 +106,7 @@ Do not procced with the workflow if the Managed Cluster is not found. You will n
     - If the output records count has decreased significantly, it indicates that fluentbit is dropping logs. Engineer needs to investigate fluentbit for more details. Conclude the investigation with summary as described in step 11.
 - Step 9.5: Use tool `GetFluentbitOutputErrors` to see if there was any error in fluentbit output for customer container app or job during the impact duration.
     - If the output errors are seen, it indicates fluentbit issues. Engineer needs to investigate fluentbit for more details as this could be configuration issue. Conclude the investigation with summary as described in step 11.
+- Step 9.6: If no issues are seen in metrics analysis, continue with step 10.
 
 ### Step 10: If no platform-side issues are found from above steps:
 - If log-destination is AzureMonitor, suggest the user to check the AzureMonitor table in dgrep.
