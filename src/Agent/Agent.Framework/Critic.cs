@@ -60,7 +60,7 @@ public static class Critic
     public static async Task<string> CriticAsync(RunConfig config, string customNote, List<ChatMessage> input, string trajectory)
     {
         var userQuery = await SummarizeChatMessagesAsync(config, input);
-        var promptPath = Path.Combine(AppContext.BaseDirectory, "AgentsV2", "critic.txt");
+        var promptPath = Path.Combine(AppContext.BaseDirectory, "AgentsV2", "Prompts", "critic-prompt.txt");
         var criticPrompt = (await File.ReadAllTextAsync(promptPath)).Replace("{{userQuery}}", userQuery);
         if (!string.IsNullOrEmpty(customNote))
         {

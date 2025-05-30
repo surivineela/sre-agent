@@ -217,16 +217,8 @@ public class ReasoningLoop
 
                 if (checkAzCliWrite)
                 {
-                    try
-                    {
-                        ToolStatic.AsyncLocalThreadId.Value = _context.ThreadId;
-                        var functionResult = await toolCall.Tool.InvokeAsync(toolCall.FunctionCall.Arguments, cancellationToken);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogInternalError(ex, "Error while calling tool {ToolName}", toolCall.Tool!.Name);
-                        var functionResult = GetErrorMessage(toolCall.FunctionCall, ex);
-                    }
+                    await InvokeToolWithErrorHandlingAsync(toolCall, cancellationToken);
+                    
                     var cliExecution = await _threadRepository.ListPendingAzCliExecutionAsync(_context.ThreadId);
                     cliExecution = cliExecution with
                     {
@@ -238,19 +230,7 @@ public class ReasoningLoop
 
                 if (checkApprovalResult.ApprovalStatus == ToolApprovalStatus.NotRequired)
                 {
-                    object? functionResult = null;
-
-                    try
-                    {
-                        ToolStatic.AsyncLocalThreadId.Value = _context.ThreadId;
-                        functionResult = await toolCall.Tool.InvokeAsync(toolCall.FunctionCall.Arguments, cancellationToken);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogInternalError(ex, "Error while calling tool {ToolName}", toolCall.Tool!.Name);
-                        functionResult = GetErrorMessage(toolCall.FunctionCall, ex);
-                    }
-
+                    var functionResult = await InvokeToolWithErrorHandlingAsync(toolCall, cancellationToken);
                     toolResults.Add(new ManualToolCallResult()
                     {
                         FunctionCall = toolCall.FunctionCall,
@@ -580,5 +560,19 @@ public class ReasoningLoop
         }
 
         await _threadRepository.AddReasoningMessagesToChatHistoryAsync(agentChatHistory, reasoningMessages);
+    }
+
+    private async Task<object?> InvokeToolWithErrorHandlingAsync(ManualToolCall toolCall, CancellationToken cancellationToken)
+    {
+        try
+        {
+            ToolStatic.AsyncLocalThreadId.Value = _context.ThreadId;
+            return await toolCall.Tool.InvokeAsync(toolCall.FunctionCall.Arguments, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error while calling tool {ToolName}", toolCall.Tool!.Name);
+            return GetErrorMessage(toolCall.FunctionCall, ex);
+        }
     }
 }
