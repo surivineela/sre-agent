@@ -493,8 +493,6 @@ $@"## Facts
             AIFunctionFactory.Create(diagnosticsPluginDefinition.GetAnalysisAsync),
             AIFunctionFactory.Create(diagnosticsPluginDefinition.GetCPUAnalysis),
             //AIFunctionFactory.Create(searchPluginDefinition.SearchAsync)
-            AIFunctionFactory.Create(_diagnosticPlugin.GetAnalysisAsync)
-            //AIFunctionFactory.Create(searchPluginDefinition.SearchAsync)
         ];
 
         if (!_instanceManagementSettings.ProcessingEnabled)

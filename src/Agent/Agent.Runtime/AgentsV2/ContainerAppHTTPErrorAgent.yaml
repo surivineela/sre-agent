@@ -13,6 +13,7 @@ handoff_description: "Handoff to this agent when a user reports HTTP errors acce
 
 handoffs:
   - container_apps_agent
+  - diagnostic_memory_agent
 
 tools:
   - GetContainerAppInfo

@@ -26,5 +26,5 @@ handoffs:
   - container_apps_agent
   - meta_agent 
 
-manual_tools:
+tools:
   - GetCPUAnalysis 
