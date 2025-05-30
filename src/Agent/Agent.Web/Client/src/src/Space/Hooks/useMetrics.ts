@@ -1,28 +1,8 @@
 import axios from 'axios';
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
+import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { SelectedTimes } from '../Activities/TimeDropdown';
-
-const getActionSeverityMetrics = async (startTime: string, endTime: string): Promise<ActionSeverityMetrics> => {
-    const { data } = await axios.get(`../api/v1/metrics/actionSeverity?startTime=${startTime}&endTime=${endTime}`, {
-        headers: getAgentHeaders(),
-    });
-    return data;
-};
-
-const getActionStatusMetrics = async (startTime: string, endTime: string): Promise<ActionStatusMetrics> => {
-    const { data } = await axios.get(`../api/v1/metrics/actionStatus?startTime=${startTime}&endTime=${endTime}`, {
-        headers: getAgentHeaders(),
-    });
-    return data;
-};
-
-const getIncidentSeverityMetrics = async (startTime: string, endTime: string): Promise<IncidentMetrics> => {
-    const { data } = await axios.get(`../api/v1/metrics/incidentStatus?startTime=${startTime}&endTime=${endTime}`, {
-        headers: getAgentHeaders(),
-    });
-    return data;
-};
 
 export interface ActionSeverityMetrics {
     criticalActionsCount: number;
@@ -67,11 +47,34 @@ export function getTimeRange(selectedTime: SelectedTimes): { start: string; end:
 }
 
 export const useMetrics = (selectedTime: SelectedTimes) => {
+    const { sreAgentEndpoint } = useContext(EnvironmentContext);
+
     const [actionSeverityMetrics, setActionSeverityMetrics] = useState<ActionSeverityMetrics>();
     const [actionStatusMetrics, setActionStatusMetrics] = useState<ActionStatusMetrics>();
     const [incidentMetrics, setIncidentMetrics] = useState<IncidentMetrics>();
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isInitialized, setIsInitialized] = useState<boolean>(false);
+
+    const getActionSeverityMetrics = async (startTime: string, endTime: string): Promise<ActionSeverityMetrics> => {
+        const { data } = await axios.get(`${sreAgentEndpoint}/api/v1/metrics/actionSeverity?startTime=${startTime}&endTime=${endTime}`, {
+            headers: getAgentHeaders(),
+        });
+        return data;
+    };
+
+    const getActionStatusMetrics = async (startTime: string, endTime: string): Promise<ActionStatusMetrics> => {
+        const { data } = await axios.get(`${sreAgentEndpoint}/api/v1/metrics/actionStatus?startTime=${startTime}&endTime=${endTime}`, {
+            headers: getAgentHeaders(),
+        });
+        return data;
+    };
+
+    const getIncidentSeverityMetrics = async (startTime: string, endTime: string): Promise<IncidentMetrics> => {
+        const { data } = await axios.get(`${sreAgentEndpoint}/api/v1/metrics/incidentStatus?startTime=${startTime}&endTime=${endTime}`, {
+            headers: getAgentHeaders(),
+        });
+        return data;
+    };
 
     useEffect(() => {
         let isSubscribed = true;

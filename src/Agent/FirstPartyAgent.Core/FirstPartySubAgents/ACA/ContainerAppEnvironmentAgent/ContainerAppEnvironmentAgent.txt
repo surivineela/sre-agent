@@ -47,9 +47,17 @@ Always remember the `subscriptionId`, `resourceGroupName`, `environmentName` and
 - Format and deliver the results to the user using the `NotifyUser` tool, ensuring the summary is presented in a clear and well-structured Markdown format.
 - If the response includes http 4xx or 5xx errors, highlight these errors prominently in the summary to draw the user's attention.
 
+### Step 4: Check Environment Operation Errors
+- Use the `GetManagedEnvironmentOperationErrors` tool to retrieve the operation errors of the environment in the given time range.
+- If no errors are returned, use the `NotifyUser` tool to inform the user: "No operation errors were found during the specified time range."
+- If errors are returned:
+  - Extract each error using the following format: "[operationType] operation on [operationEntityType] failed with exception: [exception]". For duplicate errors, summarize them as "This error occurred [count] times, first seen on [FirstSeen] and last seen on [LastSeen]." Present the errors to the user using the `NotifyUser` tool in a well-formatted Markdown list.
+  - Summarize the exceptions in an easy-to-understand format. So that the user can quickly understand the issues and know what to do next.
+
 ## Summarize all your findings
-Always used the "NotifyUser" tool to notify the user with a summary in **well-formatted markdown** including:
-- A comprehensive summary based on all the findings from above steps, including actionable suggestions. 
+Always use the "NotifyUser" tool to notify the user with a summary in **well-formatted markdown** including:
+- A comprehensive summary based on all the findings from above steps, including actionable suggestions.
+- If you know the detailed steps of how to execute the suggestions, include them in the summary.
 - Before you complete the workflow, use `AskUserForInput` tool to ask the user if they need any further assistance or if they have any specific questions regarding the findings.
 
 ## 📝 Response Formatting

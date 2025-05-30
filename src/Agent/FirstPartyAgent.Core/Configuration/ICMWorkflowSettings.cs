@@ -54,6 +54,7 @@ namespace FirstPartyAgent.Core.Configuration
         public string RedisDeploymentDetailsWorkflowName { get; set; } = string.Empty;
         public string RedisDeploymentHistoryWorkflowName { get; set; } = string.Empty;
         public string AddIncidentTagWorkflowName { get; set; } = string.Empty;
+        public string AddIncidentKeywordsWorkflowName { get; set; } = string.Empty;
         public string ApplensPluginWorkflowName { get; set; } = string.Empty;
         public string HumanInterventionServiceName { get; set; } = string.Empty;
         public string HumanInterventionTeamName { get; set; } = string.Empty;

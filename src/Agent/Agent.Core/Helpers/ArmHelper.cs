@@ -2314,13 +2314,6 @@ public class ArmHelper
             verb = cmd;
         }
 
-        if (!verb.StartsWith("list") &&
-            !verb.StartsWith("show") &&
-            (!verb.StartsWith("get") || string.Equals(verb, "get-access-token")))
-        {
-            return "[Validation Failed]: Command must be a read operation (e.g., 'list', 'show', 'get').";
-        }
-
         // Check for dangerous characters that could indicate command injection
         var dangerousPatterns = new string[]
         {

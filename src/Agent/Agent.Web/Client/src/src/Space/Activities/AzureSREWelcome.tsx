@@ -40,8 +40,9 @@ import {
     Screenshot24Regular,
 } from '@fluentui/react-icons';
 import { Collapse } from '@fluentui/react-motion-components-preview';
-import { useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { FaGithub } from 'react-icons/fa';
+import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 
 /* ────────────────────────────────  STYLES  ──────────────────────────────── */
@@ -497,6 +498,8 @@ interface AzureSREWelcomeProps {
 }
 
 const AzureSREWelcome = ({ threadId }: AzureSREWelcomeProps) => {
+    const { sreAgentEndpoint } = useContext(EnvironmentContext);
+
     const styles = useStyles();
     const inputId = useId('github-repo-input');
     const { dispatchToast } = useToastController();
@@ -542,7 +545,7 @@ const AzureSREWelcome = ({ threadId }: AzureSREWelcomeProps) => {
                     return;
                 }
 
-                const res = await fetch(`../api/v1/threads/${threadId}/welcomeMessage`, {
+                const res = await fetch(`${sreAgentEndpoint}/api/v1/threads/${threadId}/welcomeMessage`, {
                     headers: getAgentHeaders(),
                 });
                 if (!res.ok) throw new Error(await res.text());
@@ -618,7 +621,7 @@ const AzureSREWelcome = ({ threadId }: AzureSREWelcomeProps) => {
         const intervalId = setInterval(fetchWelcomeMessage, 10000);
 
         return () => clearInterval(intervalId);
-    }, [threadId]);
+    }, [sreAgentEndpoint, threadId]);
 
     /* --------------------------------------------------------------------- */
     /*  3.  HELPERS                                                          */
@@ -696,7 +699,7 @@ const AzureSREWelcome = ({ threadId }: AzureSREWelcomeProps) => {
 
         setIsLinking(true);
         try {
-            const response = await fetch('../api/v1/github/link', {
+            const response = await fetch(`${sreAgentEndpoint}/api/v1/github/link`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

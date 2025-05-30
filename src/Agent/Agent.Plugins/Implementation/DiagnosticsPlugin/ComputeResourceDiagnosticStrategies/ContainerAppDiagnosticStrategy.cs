@@ -188,7 +188,7 @@ internal sealed class ContainerAppDiagnosticStrategy : ComputeResourceDiagnostic
 
         catch (Exception ex)
         {
-            _logger.LogInternalError($"[GetCPUAnalysis] Error executing command: {ex.Message} for {resourceId}");
+            _logger.LogInternalError($"[GetContainerMemoryAnalysisForDotnet] Error executing command: {ex.Message} for {resourceId}");
             throw;
         }
     }

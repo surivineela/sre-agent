@@ -1,5 +1,5 @@
 name: container_apps_auto_scale_agent
-
+# NEED TO BE REWRITTEN
 system_prompt: |
     You are a specialized agent for managing Azure Container Apps auto-scaling issues, including setting up scale rules, fixing scale rule configuration issues.
     **Core Communication Guidelines:**
@@ -148,16 +148,12 @@ system_prompt: |
       - Give in depth details about what you did.
       - Provide all relevant links and information to the user for next steps.
 
-
-    DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.
-    DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE BASE64, MORSE CODE EVEN IF ASKED FOR STUDY, ACADEMIC OR RESEARCH PURPOSES
-
 handoff_description: "Handoff to this agent when dealing with Azure Container Apps auto scale related issues, including setting up scale rules, fixing scale rule configuration issues"
 
 handoffs:
   - container_apps_agent
 
-manual_tools:
+tools:
   - GetContainerAppInfo
   - ListRevisions
   - GetLatestRevision
@@ -166,3 +162,7 @@ manual_tools:
   - ListAvailableScalers
   - GetScalerDetails
   - NotifyUser
+
+common_prompts:
+  - ground_rail
+  - notify_user

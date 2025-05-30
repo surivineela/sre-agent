@@ -9,6 +9,11 @@ namespace Agent.Plugins
 {
     public interface IArmPlugin
     {
+        /// <summary>
+        /// Gets or sets the thread context
+        /// </summary>
+        public Guid? ThreadId { get; set; }
+
         Task<string> SetMinimumTlsVersion(string appResourceId, string minimumTlsVersion);
         Task<List<TlsStatus>> GetTlsSettings(List<string> resourceIds);
         Task<bool> CheckIfResourceExists(string appResourceId);
@@ -23,6 +28,8 @@ namespace Agent.Plugins
         Task<IDictionary<string, string>> ListKeysForStorageAsync(string resourceId);
         Task<bool> UpdateAppSettingsAsync(string resourceId, IDictionary<string, string> appSettings);
         Task<string> RunAzCliReadCommandsAsync(string command);
+        Task<string> RunAzCliWriteCommandsAsync(string command);
+        Task<string> GetAzCliHelpAsync(string helpTopic, string grepPattern = null);
     }
 }
 

@@ -69,6 +69,7 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.RevisionAgent
             toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetHttpScalerEventsForContainerApp));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetInternalEventProcessorEventsForPod));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetRevisionSpecChanges));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetArmOperations));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetLegionErrors));
 
 

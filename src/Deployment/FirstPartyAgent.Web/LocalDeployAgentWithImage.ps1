@@ -115,4 +115,39 @@ do {
     $provisioningState = $statusResponse.properties.provisioningState
 } while ($provisioningState -ne "Succeeded")
 
+# This is for manually updating "defaultIcmTeam" under AgentFactoryConfigs container for now
+# In future, it can be via ARM request after agent is deployed
+$agentEndpoint = $statusResponse.properties.agentEndpoint
+if ($agentEndpoint) {
+    # Acquire sre token
+    $sreTokenJson = az account get-access-token --scope https://azuresre.dev/.default -o json | ConvertFrom-Json
+    $sreToken = $sreTokenJson.accessToken
+
+    $configUrl = "$agentEndpoint/api/config/containers/AgentFactoryConfigs/documents"
+    Write-Host "Posting configuration to $configUrl"
+
+    $configBody = @{
+        id = "defaultIcmTeam"
+        Content = @{
+            IcmServiceId = 10060
+            IcmServiceName = "App Service (Web Apps)"
+            IcmTeamName = "Windows Azure Websites Servicing"
+            IcmTeamId = 10468
+            TeamPublicId = "WINDOWSAZUREWEBSITES\WindowsAzureWebsitesServicing"
+        }
+    } | ConvertTo-Json -Depth 5
+
+    $configResponse = Invoke-RestMethod -Uri $configUrl `
+                                        -Method Post `
+                                        -Headers @{Authorization = "Bearer $sreToken"} `
+                                        -ContentType "application/json" `
+                                        -Body $configBody
+
+    Write-Host "Config POST response:"
+    Write-Host $configResponse
+} else {
+    Write-Host "agentEndpoint not found in provisioning response."
+}
+
+
 Write-Host "Provisioning succeeded!"

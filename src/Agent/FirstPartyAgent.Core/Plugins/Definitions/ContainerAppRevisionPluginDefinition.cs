@@ -207,6 +207,24 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
             return _plugin.GetRevisionSpecChanges(region.NormalizeLocation(), fromDate, toDate, revisionName, containerAppName, resourceGroupName, subscriptionId);
         }
 
+        [KernelFunction(KernelFunctionNames.ACA.GetArmOperations)]
+        [Description(
+@"Retrieves all ARM(Azure resource manager) operations for the container app. These include PUT,UPDATE,DELETE and the appropriate status codes pertaining to those operations.
+    Projects:
+    - Timestamp: The timestamp of metric capture.
+    - Legend: Metric type(e.g., cpu: current, memory: target).
+    - Value: The numeric value of the metric."
+)]
+        public Task<string> GetArmOperations([Description("Azure region.")] string region,
+    [Description("Start time.")] DateTime fromDate,
+    [Description("End time.")] DateTime toDate,    
+    [Description("App name.")] string containerAppName,
+    [Description("Resource group.")] string resourceGroupName,
+    [Description("Subscription ID.")] string subscriptionId)
+        {
+            return _plugin.GetArmOperations(region.NormalizeLocation(), fromDate, toDate, containerAppName, resourceGroupName, subscriptionId);
+        }
+
         [KernelFunction(KernelFunctionNames.ACA.GetEventProcessorEventsWithoutReplica)]
         [Description(
     @"Retrieve EventProcessor events for a revision where no replica is associated.

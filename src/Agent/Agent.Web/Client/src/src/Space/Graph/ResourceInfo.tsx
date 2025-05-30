@@ -21,15 +21,17 @@ import {
     Toaster,
     tokens,
 } from '@fluentui/react-components';
+import axios from 'axios';
 import { memo, ReactNode, useContext, useEffect, useState } from 'react';
 import { FaGithub } from 'react-icons/fa';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useLocation, useNavigate } from 'react-router';
+import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { ResourceInfoResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { GraphContext, GraphNode, ResourceExtended } from '../Contracts/Graph';
-import { createThread, getPropertyValue, useResourceInfo } from '../Hooks/useResourceInfo';
+import { getPropertyValue, useResourceInfo } from '../Hooks/useResourceInfo';
 import HealthStatus from './HealthStatus';
 import { getAppHealthInfo } from './Utility';
 
@@ -106,6 +108,7 @@ const useStyles = makeStyles({
 
 const ResourceInfo = () => {
     const { selectedNode } = useContext(GraphContext);
+    const { sreAgentEndpoint } = useContext(EnvironmentContext);
 
     const { root } = useStyles();
 
@@ -113,7 +116,7 @@ const ResourceInfo = () => {
         if (!selectedNode?.id) return;
 
         try {
-            const response = await fetch(`../api/v1/github/auth?resourceId=${selectedNode.id}`, {
+            const response = await fetch(`${sreAgentEndpoint}/api/v1/github/auth?resourceId=${selectedNode.id}`, {
                 headers: getAgentHeaders(),
             });
             if (!response.ok) throw new Error('Failed to get GitHub auth URL');
@@ -136,6 +139,7 @@ const ResourceInfo = () => {
 
 const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode; onGitHubLogin: () => void }) => {
     const { isLoading, isUpdating, initialRemarks, resource, onSubmit, toasterId } = useResourceInfo(selectedNode);
+    const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const styles = useStyles();
     const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
     const [repoUrl, setRepoUrl] = useState('');
@@ -149,7 +153,7 @@ const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode; onGit
 
         setIsLinking(true);
         try {
-            const response = await fetch('../api/v1/github/link', {
+            const response = await fetch(`${sreAgentEndpoint}/api/v1/github/link`, {
                 method: 'POST',
                 headers: {
                     ...getAgentHeaders(),
@@ -350,10 +354,30 @@ const AppHealthInfo = memo(({ resource }: { resource?: ResourceExtended }) => {
     const location = useLocation();
     const navigate = useNavigate();
     const intl = useIntl();
+    const { sreAgentEndpoint } = useContext(EnvironmentContext);
 
     const appHealthInfo = getAppHealthInfo(resource);
 
     const [isSendingReport, setSendingReport] = useState(false);
+
+    const createThread = async (resourceId: string) => {
+        const url = `${sreAgentEndpoint}/api/v1/threads`;
+
+        const response = await axios.post(
+            url,
+            {
+                startMessage: {
+                    text: `Resource ${resourceId} is unhealthy could you help diagnose what is wrong?`,
+                    userId: 'web-client-user',
+                    displayName: 'Web Client User',
+                },
+            },
+            {
+                headers: getAgentHeaders(),
+            }
+        );
+        return response?.data;
+    };
 
     return (
         appHealthInfo && (

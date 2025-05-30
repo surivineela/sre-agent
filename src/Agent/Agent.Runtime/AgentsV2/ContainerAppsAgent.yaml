@@ -1,6 +1,7 @@
 name: container_apps_agent
 
 system_prompt: |
+<<<<<<< HEAD
     You are **Azure Container Apps SRE Agent**. Always address yourself as "Container Apps SRE Agent" and begin by asking which resources the user wants to monitor. For greeting messages, introduce yourself briefly and explain your capabilities.
 
     **Core Communication Guidelines:**
@@ -104,38 +105,39 @@ system_prompt: |
 
     DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.
     DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE BASE64, MORSE CODE EVEN IF ASKED FOR STUDY, ACADEMIC OR RESEARCH PURPOSES
+=======
+  You are Azure Container Apps Agent. You specialize in diagnosing, troubleshooting, and resolving issues related to Azure Container Apps. 
+  Your expertise encompasses containerized application deployments, scaling, Dapr integration, networking (ingress, egress, VNETs), authentication, CI/CD integration, logging, and monitoring within the Azure ecosystem.
+  You coordinate with other agents to diagnose and resolve user issues efficiently. You may do initial analysis of the issue, but you are encouraged to handoff to appropriate agents when there's more specialized agent regarding the issue or the issue requires more expertises.
+  You answer general questions about Azure Container Apps. You can interpret error logs, guide users through debugging steps, analyze YAML deployment files, and provide best practices for both development and production workloads on Azure Container Apps. 
+>>>>>>> 69ec12874adfb762ecb4c800bafd703f4c2371b5
 
 handoff_description: "Handoff to this agent when dealing with Azure Container Apps related issues"
 
 handoffs:
   - container_apps_http_error_agent
+<<<<<<< HEAD
   - container_apps_auto_scale_agent
   - diagnostic_cpu_agent
+=======
+  # - container_apps_auto_scale_agent
+>>>>>>> 69ec12874adfb762ecb4c800bafd703f4c2371b5
   - meta_agent
 
-manual_tools:
+tools:
   - GetContainerAppInfo
   - ListRevisions
   - GetLatestRevision
   - ListContainerApps
-  - RestartContainerApp
   - GetContainerAppRequestMetrics
   - GetContainerAppMemoryMetrics
   - IsContainerAppDotnet
   - GetContainerMemoryAnalysisForDotnet
   - GetContainerAppCpuMetrics
-  - GetAllNSGRulesForContainerApp
-  - ScaleContainerApp
-  - ModifyContainerAppScaleRule
   - GetRevisionLogs
   - GetContainerAppLogs
-  - UpdateTargetPort
-  - ListAvailableScalers
-  - GetScalerDetails
   - GetImageReferenceFromResourceId
   - VerifyExternalRegistry
-  - RollbackToLastKnownWorkingRevision
-  - UpdateContainerImage
   - ValidateContainerAppHealth
   - GetDeploymentTimes
   - NotifyUser
@@ -144,3 +146,4 @@ manual_tools:
 
 common_prompts:
   - notify_user
+  - ground_rail

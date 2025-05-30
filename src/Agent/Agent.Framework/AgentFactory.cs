@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Reflection;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -71,17 +72,11 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
             return false;
         }
 
-        if (agentDescriptor.AutoTools.Any(toolName => !_toolFactory.HasAIFunction(toolName)))
+        if (agentDescriptor.Tools.Any(toolName => !_toolFactory.HasTool(toolName)))
         {
-            _logger.LogError("Agent descriptor {descriptorName} has auto tools that do not exist in the tool factory.", agentDescriptor.Name);
-            return false;
-        }
-
-        if (agentDescriptor.ManualTools.Any(toolName => !_toolFactory.HasAIFunction(toolName)))
-        {
-            var missingManualTools = agentDescriptor.ManualTools.Where(toolName => !_toolFactory.HasAIFunction(toolName)).ToList();
-            _logger.LogError("Agent descriptor {descriptorName} has manual tools that do not exist in the tool factory: {missingTools}",
-                agentDescriptor.Name, string.Join(", ", missingManualTools));
+            var missingTools = agentDescriptor.Tools.Where(toolName => !_toolFactory.HasTool(toolName)).ToList();
+            _logger.LogError("Agent descriptor {descriptorName} has tools that do not exist in the tool factory: {missingTools}",
+                agentDescriptor.Name, string.Join(", ", missingTools));
             return false;
         }
 
@@ -103,8 +98,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
             MaxReflectionCount = agentDescriptor.MaxReflectionCount,
             CustomReflectionNote = agentDescriptor.CustomReflectionNote ?? string.Empty,
             Handoffs = [], // Will be populated later to avoid circular references
-            AutoTools = agentDescriptor.AutoTools.Select(_toolFactory.FindAIFunction).ToList(),
-            ManualTools = agentDescriptor.ManualTools.Select(_toolFactory.FindAIFunction).ToList(), // Note the tools will be created again with ThreadId in the reasoning loop
+            FactoryTools = agentDescriptor.Tools
         };
 
         agent.Instructions
@@ -347,6 +341,21 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         }
 
         return agent;
+    }
+
+    public List<Agent<TContext>> GetAllAgents()
+    {
+        return [.. _agents.Values];
+    }
+
+    public List<IPromptDescriptor> GetAllCommonPrompts()
+    {
+        return [.. _promptDescriptors.Values];
+    }
+
+    public List<IAgentDescriptor> GetAllAgentDescriptors()
+    {
+        return [.. _agentDescriptors.Values];
     }
 }
 

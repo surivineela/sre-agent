@@ -19,6 +19,7 @@ namespace FirstPartyAgent.Core.Helpers
         private static Dictionary<string, List<string>> AgentPluginsConfig = new Dictionary<string, List<string>>()
         {
             { "None", new List<string>(){ "KustoPlugin", "TimePlugin", "HttpRequestPlugin", "AzureDevOpsPlugin" } },
+            { "ControlPlane", new List<string>(){ "ControlPlanePlugin", "ICMChartPlugin", "IcmPlugin", "KustoPlugin", "TimePlugin", "WebAppPlugin" } },
             { "Sev2", new List<string>(){ "KustoPlugin", "IcmPlugin", "GenevaActionsPlugin", "ICMChartPlugin", "WebAppPlugin", "AzureAlertingPlugin", "TimePlugin", "HttpRequestPlugin" } },
             { "TestModeAgent", new List<string>(){ "KustoPlugin", "IcmPlugin", "GenevaActionsPlugin", "ICMChartPlugin", "WebAppPlugin", "AzureAlertingPlugin", "TimePlugin", "HttpRequestPlugin" } },
             { "ICMAgent", new List<string>(){ "KustoPlugin", "IcmPlugin", "GenevaActionsPlugin", "ICMChartPlugin", "AzureAlertingPlugin" } },
@@ -31,6 +32,7 @@ namespace FirstPartyAgent.Core.Helpers
 
         public static Dictionary<string, List<string>> AgentDataParsingConfig = new Dictionary<string, List<string>>()
         {
+            { "ControlPlane", new List<string>(){ "IncidentId" } },
             { "Hotsite", new List<string>(){ "IncidentId" } },
             { "Sev2", new List<string>(){ "IncidentId" } },
             { "ICMAgent", new List<string>(){ "IncidentId" } },
@@ -41,7 +43,7 @@ namespace FirstPartyAgent.Core.Helpers
 
         public static List<string> ListAgentModes()
         {
-            var allowedAgentModes = new List<string>() { "None", "ColdStart", "ICMAgent", "Sev2", "ICMSummarizer", "ICMCorrelationAgent" };
+            var allowedAgentModes = new List<string>() { "None", "ColdStart", "ControlPlane", "ICMAgent", "Sev2", "ICMSummarizer", "ICMCorrelationAgent" };
             return Enum.GetNames(typeof(AgentMode)).Where(x => allowedAgentModes.Contains(x)).ToList();
         }
 

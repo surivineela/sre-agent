@@ -10,8 +10,9 @@ import {
     Text,
 } from '@fluentui/react-components';
 import axios from 'axios';
-import { memo, useEffect, useState } from 'react';
+import { memo, useContext, useEffect, useState } from 'react';
 import { FormattedMessage } from 'react-intl';
+import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { GraphResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { ResourceExtended, Subscription } from '../Contracts/Graph';
@@ -21,29 +22,9 @@ interface IResourceSelectorProps {
     onAppGroupUpdate: (appGroup?: ResourceExtended) => void;
 }
 
-const getSubscriptions = async (): Promise<Subscription[]> => {
-    try {
-        const { data } = await axios.get(`../api/v1/graph/subscriptions`, {
-            headers: getAgentHeaders(),
-        });
-        return data ?? [];
-    } catch {
-        return [];
-    }
-};
-
-const getAppGroups = async (subscriptionId: string): Promise<ResourceExtended[]> => {
-    try {
-        const { data } = await axios.get(`../api/v1/graph/${subscriptionId}/appGroups`, {
-            headers: getAgentHeaders(),
-        });
-        return data ?? [];
-    } catch {
-        return [];
-    }
-};
-
 const ResourceSelector = ({ onAppGroupUpdate }: IResourceSelectorProps) => {
+    const { sreAgentEndpoint } = useContext(EnvironmentContext);
+
     const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
     const [appGroups, setAppGroups] = useState<ResourceExtended[]>([]);
 
@@ -54,6 +35,28 @@ const ResourceSelector = ({ onAppGroupUpdate }: IResourceSelectorProps) => {
     const [isAppGroupLoading, setIsAppGroupLoading] = useState<boolean>(false);
 
     const { root, field, option, optionText, optionSubtext } = useResourceSelectorStyles();
+
+    const getSubscriptions = async (): Promise<Subscription[]> => {
+        try {
+            const { data } = await axios.get(`${sreAgentEndpoint}/api/v1/graph/subscriptions`, {
+                headers: getAgentHeaders(),
+            });
+            return data ?? [];
+        } catch {
+            return [];
+        }
+    };
+
+    const getAppGroups = async (subscriptionId: string): Promise<ResourceExtended[]> => {
+        try {
+            const { data } = await axios.get(`${sreAgentEndpoint}/api/v1/graph/${subscriptionId}/appGroups`, {
+                headers: getAgentHeaders(),
+            });
+            return data ?? [];
+        } catch {
+            return [];
+        }
+    };
 
     const onSelectSubscription = async (_: SelectionEvents, data: OptionOnSelectData) => {
         const id = data.optionValue;

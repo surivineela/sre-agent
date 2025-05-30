@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -174,6 +174,11 @@ namespace FirstPartyAgent.Models
         /// Quota for consumption GPUs for T4 VMs per subscription
         /// </summary>
         SubscriptionConsumptionT4Gpus,
+
+        /// <summary>
+        /// Quota for additional ports per subscription
+        /// </summary>
+        ContainerAppAdditionalPorts,
 
         /// <summary>
         /// Quota for managed environment consumption cores

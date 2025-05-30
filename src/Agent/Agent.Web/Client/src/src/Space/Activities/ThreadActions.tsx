@@ -8,9 +8,9 @@ import { Action, ActionStatus } from '../../Common/Contracts/Azure/SreAgent';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { ActionsResources, ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { IThreadActivitiesProps } from '../Contracts/Activities';
+import { AgentContext } from '../Contracts/Context';
 import { useActions } from '../Hooks/useActions';
 import { getExpandCollapseButtonStyles, searchBoxStyle, shimmerStyle, useThreadActionsStyles } from '../Styles/Activities.styles';
-import { AgentContext } from './Activities.ReactView';
 
 export const ThreadActions: FC<IThreadActivitiesProps> = (props: IThreadActivitiesProps) => {
     const { threadContentAndActionKey } = useContext(AgentContext);
@@ -28,7 +28,6 @@ const expandCollapseButtonStyles = getExpandCollapseButtonStyles('right');
 
 const ThreadActionsContent: FC<IThreadActivitiesProps> = (props: IThreadActivitiesProps) => {
     const { thread, collapsed, setCollapsed } = props;
-    const { threadsInitialized } = useContext(AgentContext);
     const { actions, isLoading } = useActions(thread?.id);
     const intl = useIntl();
 
@@ -60,11 +59,10 @@ const ThreadActionsContent: FC<IThreadActivitiesProps> = (props: IThreadActiviti
             </Text>
             <SearchBox
                 style={searchBoxStyle}
-                disabled={!threadsInitialized}
                 placeholder={intl.formatMessage(SreAgentResources.search)}
                 onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) => setSearchString(data.value ?? ''))}
             />
-            <Shimmer isDataLoaded={threadsInitialized && !isLoading} style={shimmerStyle}>
+            <Shimmer isDataLoaded={!isLoading} style={shimmerStyle}>
                 <ActionCardList actions={filteredActions} />
             </Shimmer>
         </div>

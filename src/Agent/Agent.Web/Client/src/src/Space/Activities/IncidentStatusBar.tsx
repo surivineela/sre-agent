@@ -1,5 +1,4 @@
 import { Text } from '@fluentui/react-components';
-import { Dispatch } from 'react';
 import { useIntl } from 'react-intl';
 import { MetricsResources } from '../../Strings/SREAgentResources';
 import { IncidentMetrics } from '../Hooks/useMetrics';
@@ -8,7 +7,7 @@ import TimeDropdown, { SelectedTimes } from './TimeDropdown';
 
 interface IncidentStatusBarProps {
     selectedTime: SelectedTimes;
-    setSelectedTime: Dispatch<React.SetStateAction<SelectedTimes>>;
+    setSelectedTime: (selectedTime: SelectedTimes) => void;
     incidentMetrics?: IncidentMetrics;
 }
 

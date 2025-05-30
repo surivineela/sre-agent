@@ -8,36 +8,44 @@ using Agent.Core.Extensions;
 
 namespace Agent.Core.Helpers;
 
-public static class TitleHelper
+public class TitleGenerationService : ITitleGenerationService
 {
+    private readonly IChatClient _chatClient;
+    private readonly IThreadRepository _threadRepository;
+    public TitleGenerationService(
+        IChatClient chatClient,
+        IThreadRepository threadRepository)
+    {
+        _chatClient = chatClient ?? throw new ArgumentNullException(nameof(chatClient));
+        _threadRepository = threadRepository ?? throw new ArgumentNullException(nameof(threadRepository));
+    }
+
+    public virtual string GetTitleGenerationSystemPrompt()
+    {
+        return "This is a thread for Azure SRE Agent. Generate a concise, descriptive title (maximum 6 words) for this conversation. Return only the title text without quotes or extra formatting.";
+    }
+
     /// <summary>
     /// Generates a concise title for a conversation based on the provided message
     /// </summary>
-    /// <param name="chatClient">The chat client to use for title generation</param>
     /// <param name="message">The message content to generate a title from</param>
     /// <returns>A generated title string</returns>
-    public static async Task<string> GenerateTitleAsync(
-        IChatClient chatClient,
-        string message)
+    public async Task<string> GenerateTitleAsync(string message)
     {
-        // Input validation
-        if (chatClient == null)
-            throw new ArgumentNullException(nameof(chatClient));
-
         if (string.IsNullOrWhiteSpace(message))
         {
-            return "Conversation title...";
+            return CreateFallbackTitle();
         }
 
         try
         {
             var chats = new List<ChatMessage>
             {
-                new ChatMessage(ChatRole.System, "This is a thread for Azure SRE Agent. Generate a concise, descriptive title (maximum 6 words) for this conversation. Return only the title text without quotes or extra formatting."),
+                new ChatMessage(ChatRole.System, GetTitleGenerationSystemPrompt()),
                 new ChatMessage(ChatRole.User, message)
             };
 
-            var response = await chatClient.GetResponseAsync(chats);
+            var response = await _chatClient.GetResponseAsync(chats);
             string title = response.GetMessage().Text?.Trim() ?? "";
 
             // Validate the response
@@ -65,19 +73,13 @@ public static class TitleHelper
     /// <summary>
     /// Background task to generate a better title and update the thread
     /// </summary>
-    /// <param name="chatClient">The chat client to generate the title</param>
-    /// <param name="threadRepository">The repository to update the thread</param>
     /// <param name="threadId">The ID of the thread to update</param>
     /// <param name="message">The message content to generate a title from</param>
-    public static async Task GenerateTitleAndUpdateAsync(
-        IChatClient chatClient,
-        IThreadRepository threadRepository,
-        Guid threadId,
-        string message)
+    public async Task GenerateTitleAndUpdateThreadAsync(Guid threadId, string message)
     {
         // Generate the AI title
-        string aiTitle = await GenerateTitleAsync(chatClient, message);
+        string aiTitle = await GenerateTitleAsync(message);
         // Update the thread title in the database
-        await threadRepository.UpdateThreadTitleAsync(threadId, aiTitle);
+        await _threadRepository.UpdateThreadTitleAsync(threadId, aiTitle);
     }
 }

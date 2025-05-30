@@ -55,9 +55,10 @@ public static class MetaAgentMock
     IMetaAgentFunctionAppExecutionFailuresAgentPlugin? functionAppExecutionFailuresAgentPlugin = null,
     InstanceManagementSettings instanceManagementSettings = null,
     IAzureMonitorMetricsPlugin? azureMonitorMetricsPlugin = null,
+    IDiagnosticsPlugin? diagnosticsPlugin = null,
     IMetaAgentFunctionAppDiagnosticsPlugin? functionAppDiagnosticsPlugin = null,
     IArmPlugin? armPlugin = null,
-    IDiagnosticsPlugin diagnosticsPlugin = null) // Added parameter
+    ISearchPlugin searchPlugin = null) // Added parameter
     {
 
         return new ThirdPartyAgentsFactory(
@@ -89,14 +90,15 @@ public static class MetaAgentMock
             cpuAnalysisPlugin ?? Mock.Of<IMetaAgentCPUAnalysisPlugin>(),
             appCodePlugin ?? Mock.Of<IAppCodeAnalysisPlugin>(),
             cpuPlugin ?? Mock.Of<ICpuAnalysisPlugin>(),
+            diagnosticsPlugin ?? Mock.Of<IDiagnosticsPlugin>(),
             metricsPlugin ?? Mock.Of<IMetricsPlugin>(),
             instanceManagementSettings ?? Mock.Of<InstanceManagementSettings>(),
             incidentPlugin ?? Mock.Of<IIncidentPlugin>(),
             functionAppExecutionFailuresAgentPlugin ?? Mock.Of<IMetaAgentFunctionAppExecutionFailuresAgentPlugin>(),
             azureMonitorMetricsPlugin ?? Mock.Of<IAzureMonitorMetricsPlugin>(),
             functionAppDiagnosticsPlugin ?? Mock.Of<IMetaAgentFunctionAppDiagnosticsPlugin>(),
-            armPlugin ?? Mock.Of<IArmPlugin>(), // Added argument
-            diagnosticsPlugin ?? Mock.Of<IDiagnosticsPlugin>()
+            armPlugin ?? Mock.Of<IArmPlugin>(),// Added argument
+            searchPlugin ?? Mock.Of<ISearchPlugin>()
         );
     }
 

@@ -52,10 +52,15 @@ system_prompt: |
 handoff_description: Handoff to this agent when dealing with AKS general questions and operations.
 handoffs:
     - meta_agent
-manual_tools:
+tools:
     - RunKubectlReadCommand
     - RunKubectlWriteCommand
-    - NotifyUser
+
+common_prompts:
+  - ground_rail
+
 max_reflection_count: 3
 custom_reflection_note: |
     For AKS general questions, the answer should focus on AKS cluster, resources inside AKS clusters, or cloud resources that are directly related to AKS clusters.
+common_prompts:
+  - notify_user

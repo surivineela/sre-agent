@@ -1,23 +1,15 @@
 import { Edge, Node, useEdgesState, useNodesState, useReactFlow } from '@xyflow/react';
 import axios from 'axios';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
+import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { GraphEdge, GraphNode, Resource, ResourceExtended } from '../Contracts/Graph';
 import { getNewNodesAndEdges, getSubscriptionIdFromNodeId } from '../Graph/Utility';
 import { useGraphLayout } from './useGraphLayout';
 
-export const getResources = async (subscriptionId: string, resourceId: string): Promise<Resource[]> => {
-    try {
-        const { data } = await axios.get(`../api/v1/graph/${subscriptionId}/appGroups/${resourceId}`, {
-            headers: getAgentHeaders(),
-        });
-        return data ?? [];
-    } catch {
-        return [];
-    }
-};
-
 export const useGraph = () => {
+    const { sreAgentEndpoint } = useContext(EnvironmentContext);
+
     const [graph, setGraph] = useState<Map<string, { appGroupNode?: Node<GraphNode>; nodes: Node<GraphNode>[]; edges: Edge<GraphEdge>[] }>>(
         new Map<string, { nodes: Node<GraphNode>[]; edges: Edge<GraphEdge>[] }>()
     );
@@ -32,6 +24,17 @@ export const useGraph = () => {
     const layoutGraph = useGraphLayout();
 
     const { fitView } = useReactFlow();
+
+    const getResources = async (subscriptionId: string, resourceId: string): Promise<Resource[]> => {
+        try {
+            const { data } = await axios.get(`${sreAgentEndpoint}/api/v1/graph/${subscriptionId}/appGroups/${resourceId}`, {
+                headers: getAgentHeaders(),
+            });
+            return data ?? [];
+        } catch {
+            return [];
+        }
+    };
 
     const hoverNode = useCallback(
         (nodeId: string) => {

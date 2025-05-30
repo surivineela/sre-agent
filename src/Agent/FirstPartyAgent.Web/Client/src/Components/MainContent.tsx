@@ -1,11 +1,14 @@
-import { mergeStyles, Separator, Stack } from "@fluentui/react";
-import { memo, useCallback, useMemo, useReducer, useRef, useState } from "react";
+import { mergeStyles, Separator, Stack, getTheme } from "@fluentui/react";
+import { memo, useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import Landing from "./Landing";
 import AlertEditor, { AlertEditorProps } from "./AlertEditor";
 import EditOverview from "./EditOverview";
 import SideNav from "./SideNav";
 import { IcmTeamInfo } from "../Models/Response";
-import { Step, StepLabel, Stepper } from "@mui/material";
+import { Step, StepLabel, Stepper, SxProps, Theme } from "@mui/material";
+import { useQuery } from "@tanstack/react-query";
+import { getDefaultIcmTeam } from "../Services/Request";
+import { useQueryParams } from "../Hooks/UseQueryParams";
 
 enum Page {
     SelectedTeam = "SelectedTeam",
@@ -30,6 +33,20 @@ type Action =
 
 const MainContent = () => {
     const isEditorChangeUnsaved = useRef<boolean>(false);
+    const { palette } = getTheme();
+    const { isPlayground } = useQueryParams();
+    const {
+        data: defaultIcmTeam
+    } = useQuery({
+        queryKey: ["defaultIcmTeam"],
+        queryFn: async () => {
+            if (!isPlayground) {
+                return await getDefaultIcmTeam();
+            } else {
+                return null;
+            }
+        }
+    })
 
     const isContinueNavigate = () => {
         if (isEditorChangeUnsaved.current) {
@@ -47,7 +64,7 @@ const MainContent = () => {
                 return { ...state, page: Page.SelectedTeam, context: { ...state.context, alertEditor: {} } };
             case 'SWITCH_TO_ALERT_OVERVIEW':
                 if (!isContinueNavigate()) return { ...state };
-                return { ...state, page: Page.AzureOverview, context: { ...state.context } };
+                return { ...state, page: Page.AzureOverview, context: { ...state.context, alertEditor: {} } };
             case 'SWITCH_TO_ALERT_EDITING':
                 if (!isContinueNavigate()) return { ...state };
                 return { ...state, page: Page.AlertEditor, context: { ...state.context } };
@@ -62,17 +79,16 @@ const MainContent = () => {
         }
     };
 
-
     const [state, dispatch] = useReducer(reducer, { page: Page.SelectedTeam, context: {} });
     const [displayStepper, setDisplayStepper] = useState(true);
 
+    useEffect(() => {
+        if (!isPlayground && defaultIcmTeam) {
+            dispatch({ type: 'SET_ICM_TEAM', payload: defaultIcmTeam });
+        }
+    }, [isPlayground, defaultIcmTeam]);
+
     const steps = [
-        {
-            label: 'Select Team',
-            page: Page.SelectedTeam,
-            onClick: () => dispatch({ type: "SWITCH_TO_SELECT_TEAM" }),
-            completed: () => Object.keys(state?.context?.selectedTeam ?? {}).length > 0,
-        },
         {
             label: 'Choose Alert',
             page: Page.AzureOverview,
@@ -93,6 +109,16 @@ const MainContent = () => {
         }
     ];
 
+    // For pre-deployment, need to add "selecting team" as the first step
+    if (isPlayground) {
+        steps.unshift({
+            label: 'Select Team',
+            page: Page.SelectedTeam,
+            onClick: () => dispatch({ type: "SWITCH_TO_SELECT_TEAM" }),
+            completed: () => Object.keys(state?.context?.selectedTeam ?? {}).length > 0,
+        })
+    }
+
     const activateStep = useMemo(() => {
         return steps.findIndex((step) => step.page === state.page);
     }, [state.page]);
@@ -106,7 +132,12 @@ const MainContent = () => {
     }, []);
 
     const createNewAlertHandler = useCallback(() => {
-        dispatch({ type: 'SWITCH_TO_SELECT_TEAM' });
+        if (isPlayground) {
+            dispatch({ type: 'SWITCH_TO_SELECT_TEAM' });
+            
+        } else {
+            dispatch({ type: 'SWITCH_TO_ALERT_OVERVIEW' });
+        }
         setDisplayStepper(true);
     }, []);
 
@@ -126,9 +157,12 @@ const MainContent = () => {
         backgroundColor: "rgb(223, 240, 255)",
     });
 
-    const stepperStyles = mergeStyles({
-        paddingTop: "20px",
-    });
+    const stepperStyles: SxProps<Theme> = {
+        marginTop: "16px",
+        "& .MuiSvgIcon-root.Mui-completed": {
+            color: palette.green
+        }
+    }
 
 
 
@@ -136,15 +170,15 @@ const MainContent = () => {
         <>
             <Stack horizontal verticalFill enableScopedSelectors tokens={{ childrenGap: 5 }}>
                 <Stack.Item styles={{ root: { width: "15%" } }} grow={0}>
-                    <SideNav onGetAlertConfig={directToAlertEditor} onCreateNewAlertHandler={createNewAlertHandler} selectedSideNavItemId={state.context?.alertEditor?.alertId ?? ""}/>
+                    <SideNav onGetAlertConfig={directToAlertEditor} onCreateNewAlertHandler={createNewAlertHandler} selectedSideNavItemId={state.context?.alertEditor?.alertId ?? ""} defaultIcmTeamId={state.context?.selectedTeam?.icmTeamId ?? 0} />
                 </Stack.Item>
                 <Stack.Item className={separatorStyles}>
                     <Separator vertical alignContent="center"></Separator>
                 </Stack.Item>
                 <Stack.Item grow={1}>
                     <Stack verticalFill tokens={{ childrenGap: 5 }} verticalAlign="start" enableScopedSelectors>
-                        {displayStepper && <Stack.Item className={stepperStyles}>
-                            <Stepper activeStep={activateStep} alternativeLabel>
+                        {displayStepper && <Stack.Item>
+                            <Stepper activeStep={activateStep} alternativeLabel sx={stepperStyles}>
                                 {steps.map((step) => (
                                     <Step key={step.label} onClick={step.onClick} completed={step.completed()} >
                                         <StepLabel>{step.label}</StepLabel>

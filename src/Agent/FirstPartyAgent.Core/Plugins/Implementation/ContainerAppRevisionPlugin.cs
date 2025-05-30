@@ -69,6 +69,19 @@ public class ContainerAppRevisionPlugin : IContainerAppRevisionPlugin
             });
     }
 
+    public async Task<string> GetArmOperations(string region, DateTime fromDate, DateTime toDate, string containerAppName, string resourceGroupName, string subscriptionId, SamplingOptions samplingOptions)
+    {
+        return await _kustoPlugin.ExecuteLocalFunctionAsync("GetArmCalls", region,
+            new Dictionary<string, string> {
+            { "fromDate", fromDate.ToString() },
+            { "toDate", toDate.ToString() },            
+            { "containerAppName", containerAppName },
+            { "resourceGroupName", resourceGroupName },
+            { "subscriptionId", subscriptionId }
+            });
+    }
+
+
     public async Task<string> GetEventProcessorEventsWithoutReplica(string region, DateTime fromDate, DateTime toDate, string revisionName, string containerAppName, string resourceGroupName, string subscriptionId, SamplingOptions samplingOptions)
     {
         return await _kustoPlugin.ExecuteLocalFunctionAsync("GetEventProcessorEventsWithoutReplica", region,

@@ -13,6 +13,7 @@ public class IncidentAdvancedSearchFilter
             { "OccurringServiceInstanceId", new List<string> { "==" } },
             { "IncidentType", new List<string> { "==" } },
             { "Keywords", new List<string> { "==", "contains", "has" } },
+            { "Tags", new List<string> { "==", "contains", "has" } },
             { "ModifiedDate", new List<string> { "==", ">=", "<=" } },
             { "OwningTeamId", new List<string> { "==" } },
             { "OwningTenantId", new List<string> { "==" } },

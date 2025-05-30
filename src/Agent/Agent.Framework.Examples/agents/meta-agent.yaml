@@ -57,7 +57,7 @@ handoffs:
   - container_apps_agent
   - aks_qa_agent
 
-manual_tools:
+tools:
   - GetResourceCount
   - ListSubscriptions
   - ListResourceGroups

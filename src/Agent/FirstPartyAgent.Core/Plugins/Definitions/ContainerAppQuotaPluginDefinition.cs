@@ -84,10 +84,10 @@ Input parameters:
 - subscriptionId: (Required) The subscription ID associated with the quota request.
 - region: (Required) The Azure region where the quota is requested.
 - targetQuotaLimit: (Required) The target quota limit being requested.
-- environmentResourceURL: (Optional) The resource url of the container app environment. It is optional for ManagedEnvironmentCount, SubscriptionNCA100Gpus, SubscriptionConsumptionNCA100Gpus, SubscriptionConsumptionT4Gpus quota types. But Required for  ManagedEnvironmentConsumptionCores, ManagedEnvironmentGeneralPurposeCores, ManagedEnvironmentMemoryOptimizedCores quota types.
+- environmentResourceURL: (Optional) The resource url of the container app environment. It is optional for ManagedEnvironmentCount, SubscriptionNCA100Gpus, SubscriptionConsumptionNCA100Gpus, SubscriptionConsumptionT4Gpus, ContainerAppAdditionalPorts quota types. But Required for ManagedEnvironmentConsumptionCores, ManagedEnvironmentGeneralPurposeCores, ManagedEnvironmentMemoryOptimizedCores quota types.
 
 Output:
-The function returns a string containing two key pieces of information:
+The function returns a string containing three key pieces of information:
 
 1. ApprovalResult: The status of the quota request, which can be one of the following:
    - Approved: The request has been successfully approved.
@@ -95,7 +95,7 @@ The function returns a string containing two key pieces of information:
    - Pending: Additional manual approval is required.
    - NotStarted: The request is incomplete and requires more details.
 2. OfferType: The offer type of the subscription.
-2. Reason: Provides an explanation for the validation decision.
+3. Reason: Provides an explanation for the validation decision.
 
 This function helps ensure quota requests comply with predefined rules and provides a clear decision with supporting context.
 ")]

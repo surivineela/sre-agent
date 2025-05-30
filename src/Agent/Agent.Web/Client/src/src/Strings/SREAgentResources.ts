@@ -176,6 +176,15 @@ export const ResourcePickerTabResources = defineMessages({
     resourceGroupMaxError: { defaultMessage: 'You can choose a maximum of 20 resource groups that the agent will manage.', id: '6tlKgy' },
 });
 
+export const PromptResources = defineMessages({
+    latestPrompts: { defaultMessage: 'Latest prompts', id: 'cHsYT3' },
+    popularPrompts: { defaultMessage: 'Popular prompts', id: 'rAGm8M' },
+    promptLibrary: { defaultMessage: 'Prompt library', id: 'zvLfRe' },
+    bestPracticesPrompt: { defaultMessage: 'Can you audit best practices for my resource?', id: '4OUjTL' },
+    notWorkingPrompt: { defaultMessage: "Why isn't my application working?", id: 'DlSXUR' },
+    availabilityPrompt: { defaultMessage: "Can you analyze my resource's availability over the last 24 hours?", id: 'EI4WZI' },
+});
+
 export const ActionsResources = defineMessages({
     actions: { defaultMessage: 'Actions', id: 'wL7VAE' },
     allStatuses: { defaultMessage: 'All statuses', id: 'fvK8Qi' },

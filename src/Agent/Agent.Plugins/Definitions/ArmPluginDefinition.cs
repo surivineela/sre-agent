@@ -5,11 +5,13 @@
 using System.ComponentModel;
 using Agent.Core.Attributes;
 using Agent.Core.Models;
+using Agent.Framework;
 using Agent.Plugins.Attributes;
 using Agent.Plugins.Models;
 
 namespace Agent.Plugins
 {
+    [AgentToolPlugin]
     public class ArmPluginDefinition
     {
         private readonly IArmPlugin _armPlugin;
@@ -81,7 +83,7 @@ namespace Agent.Plugins
 
         [Description("Check if all the associated resources can be reached from an Azure function app")]
         public async Task<string> CheckConnectivityViaConnectionString(
-    [Description("Full resource id of an Azure Function App")] string resourceId)
+            [Description("Full resource id of an Azure Function App")] string resourceId)
         {
             return await _armPlugin.CheckConnectivityToAzureWebJobsStorage(resourceId);
         }
@@ -125,22 +127,63 @@ namespace Agent.Plugins
         }
 
         [Description("""
-        Safely execute az commands to perform read operations on Azure resources.
-        USAGE: Provide the complete az cli command as a string. Do not assume the default subscription the command will run against. ALWAYS specify the subscription id with --subscription parameter if needed. You should only provide one az command at a time.
-        BASIC EXAMPLES:
-        - List container apps: 'az containerapp list -g MyResourceGroup --subscription <subId>'
-        ADVANCED EXAMPLES:
-        - Get container app ingress property with query: 'az containerapp show -g MyResourceGroup -n MyContainerApp --query properties.configuration.ingress.external --subscription <subId>'
-        BEST PRACTICES:
-        - ONLY consider using this tool if you cannot find tools that more specific for your task.
-        - ALWAYS specify the subscription with --subscription parameter if needed.
-        - DO NOT use this tool for commands that modify the azure resource, e.g., commands contain 'create', 'update', 'delete', etc.
-        """)]
+Execute az commands for Azure resource read operations. Commands run IMMEDIATELY without approval.
+USAGE: Provide complete az cli command string. ALWAYS specify --subscription parameter with valid subscriptionId/guid.
+ALLOWED: Only 'list', 'show', 'get' commands.
+EXAMPLES:
+- List: 'az containerapp list -g MyRG --subscription <subId>'
+- Show with query: 'az containerapp show -g MyRG -n MyApp --query properties.configuration.ingress --subscription <subId>'
+BEST PRACTICES:
+- Use only if no specific tool available
+- Always include --subscription parameter
+- Executes immediately - no approval needed
+- Use to understand current state before changes
+""")]
         public async Task<string> RunAzCliReadCommandsAsync(
-            [Description("Complete az command string")] string command)
+    [Description("Complete az command string for read operations (list, show, get)")] string command)
         {
             return await _armPlugin.RunAzCliReadCommandsAsync(command);
         }
+
+        [Description("""
+Execute az commands for Azure resource write operations. Requires user approval before execution.
+USAGE: Provide complete az cli command string. ALWAYS specify --subscription parameter with valid subscriptionId/guid.
+ALLOWED: 'create', 'update', 'set', 'scale', 'start', 'stop', 'restart', 'add'
+FORBIDDEN: 'delete', 'remove' commands NOT allowed for safety.
+EXAMPLES:
+- Create: 'az containerapp create -g MyRG -n MyApp --subscription <subId> --image myimage:latest'
+- Update: 'az webapp update -g MyRG -n MyApp --set httpsOnly=true --subscription <subId>'
+- Scale: 'az webapp scale -g MyRG -n MyApp --instance-count 3 --subscription <subId>'
+BEST PRACTICES:
+- Run read command first to understand current state
+- Explain what will change
+- Include rollback commands when possible
+- Requires USER APPROVAL before execution
+""")]
+        public async Task<string> RunAzCliWriteCommandsAsync(
+            [Description("Complete az command string for write operations (create, update, set, scale, start, stop, restart)")] string command)
+        {
+            return await _armPlugin.RunAzCliWriteCommandsAsync(command);
+        }
+
+        [Description("""
+Get Azure CLI help information with optional text filtering. Used internally to validate and correct command syntax.
+USAGE: Provide the Azure CLI command/topic to get help for, with optional search pattern to filter results.
+PURPOSE: This tool helps the agent understand correct command syntax and parameters to fix invalid commands.
+FILTERING: The optional pattern searches through the help text and returns only lines containing that text.
+EXAMPLES:
+- Get help for webapp: 'webapp'
+- Get help for specific subcommand: 'webapp create'
+- Filter help for location info: 'webapp create' with pattern 'location' (returns only help lines mentioning 'location')
+- Filter for parameter info: 'containerapp' with pattern '--cpu' (returns only lines about CPU parameters)
+NOTE: This is an internal tool for command validation, not for generating user documentation.
+""")]
+        public async Task<string> GetAzCliHelpAsync(
+            [Description("The Azure CLI command/topic to get help for (e.g., 'webapp', 'containerapp create')")] string helpTopic,
+            [Description("Optional search pattern to filter help output - returns only lines containing this text")] string grepPattern = null)
+        {
+
+            return await _armPlugin.GetAzCliHelpAsync(helpTopic, grepPattern);
+        }
     }
 }
-

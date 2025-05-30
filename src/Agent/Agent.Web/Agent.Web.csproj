@@ -17,6 +17,7 @@
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
     <PackageReference Include="Microsoft.Bot.Builder" />
     <PackageReference Include="Microsoft.Bot.Builder.Integration.AspNet.Core" />
+    <PackageReference Include="WebSocketSharp" />
   </ItemGroup>
 
   <ItemGroup>

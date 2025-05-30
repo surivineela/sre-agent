@@ -86,6 +86,7 @@ public class ToolsRepository : IToolsRepository
         RegisterPlugin<AppCodeAnalysisPluginDefinition>();
         RegisterPlugin<CpuAnalysisPluginDefinition>();
         RegisterPlugin<DotnetAnalysisPluginDefinition>();
+        RegisterPlugin<DiagnosticsPluginDefinition>();
         RegisterPlugin<RoleAssignmentPluginDefinition>();
         RegisterPlugin<FunctionAppsPluginDefinition>();
         RegisterPlugin<FunctionAppExecutionFailuresPluginDefinition>();

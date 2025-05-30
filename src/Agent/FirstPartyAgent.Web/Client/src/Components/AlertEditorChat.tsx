@@ -1,4 +1,4 @@
-import { Checkbox, DocumentCard, DocumentCardDetails, DocumentCardType, MessageBar, MessageBarType, PrimaryButton, ProgressIndicator, Stack, TextField, mergeStyles,Text, SearchBox } from "@fluentui/react";
+import { Checkbox, DocumentCard, DocumentCardDetails, DocumentCardType, MessageBar, MessageBarType, PrimaryButton, ProgressIndicator, Stack, TextField, mergeStyles, Text } from "@fluentui/react";
 import { MutableRefObject, useEffect, useMemo, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
@@ -6,6 +6,7 @@ import { getRequestForAlertStream } from "../Services/Request";
 import { AlertStreamPostBody } from "../Models/Response";
 import { useStream } from "../Hooks/UseStream";
 import { ICMAlertConfig } from "../Models/ICMAlertConfig";
+import { iconButtonStyles } from "../Styles/Content.Styles";
 
 export interface AlertEditorChatProps {
     alertConfigRef: MutableRefObject<ICMAlertConfig>;
@@ -115,10 +116,18 @@ const AlertEditorChat = (props: AlertEditorChatProps) => {
         width: "80%",
         minWidth: "12rem",
     });
-    
+    const onEnterKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter") {
+            streamAlert();
+        }
+    }
+
     return (
         <Stack tokens={{ childrenGap: 10 }}>
-            <SearchBox placeholder="Incident Id for testing" onChange={(e, newValue) => setIncidentId(newValue ?? "")} disabled={isStreamLoading} className={inputStyles} autoComplete="false" onSearch={(newValue) => streamAlert()}/>
+            <Stack horizontal horizontalAlign="start" tokens={{childrenGap: 10}}>
+                <TextField placeholder="Type Incident id" disabled={isStreamLoading} className={inputStyles} onChange={(e, newValue) => setIncidentId(newValue ?? "")} onKeyDown={onEnterKey}/>
+                <PrimaryButton title="send" iconProps={{ iconName: "send" }} onClick={(e) => streamAlert()} disabled={isStreamLoading} className={iconButtonStyles}/>
+            </Stack>
             <Text variant="small">Clicking the 'Send' button initiates a test run only, without impacting the incident or executing any actions.</Text>
             <Stack styles={{ root: { overflowY: "auto" } }} tokens={{ childrenGap: 10 }}>
                 {streamResponses?.length > 0 ? <Checkbox label="Show incident discussion only" checked={showIncidentDiscussionOnly} onChange={(e, checked) => setShowIncidentDiscussionOnly(!!checked)} /> : null}

@@ -1,0 +1,179 @@
+{
+  "id": "245c5900-d024-479f-9768-8aa8f1beb28e",
+  "serviceName": "App Service (Web Apps)",
+  "serviceId": "10060",
+  "isAutoApproved": false,
+  "createdBy": "pvbchak@microsoft.com",
+  "lastUpdated": "2024-03-08T06:44:49.6760939+00:00",
+  "title": "Geomaster Failures (Public Stamp below 90% API Success)",
+  "description": "<p>The API success of the below&nbsp;Stamp is less than 90% in the last one hour. Use the Stamp Jarvis Dashboard link for further investigation.</p><p><a href=\"https://jarvis-west.dc.ad.msft.net/dashboard/WAWS/Deployments/GeoMaster%2520check\" target=\"_blank\" style=\"color: rgb(80, 80, 80);\"><strong>Global Geomaster Dashboard</strong></a></p><p><a href=\"https://portal.microsoftgeneva.com/dashboard/WAWS/Deployments/Regional%2520GeoMaster%2520check?overrides=[{%22query%22:%22//*[id%3D%27eventStampName%27]%22,%22key%22:%22value%22,%22replacement%22:%22rgm-prod-bay%22},{%22query%22:%22//*[id%3D%27cluster%27]%22,%22key%22:%22value%22,%22replacement%22:%22wawswus%22},{%22query%22:%22//*[id%3D%27Tenant%27]%22,%22key%22:%22value%22,%22replacement%22:%22%22},{%22query%22:%22//*[id%3D%27endpoint%27]%22,%22key%22:%22value%22,%22replacement%22:%22%22},{%22query%22:%22//*[id%3D%27databaseServerName%27]%22,%22key%22:%22value%22,%22replacement%22:%22%22},{%22query%22:%22//*[id%3D%27databaseCluster%27]%22,%22key%22:%22value%22,%22replacement%22:%22sqlazureeus22%22}]%20\" target=\"_blank\"><strong>Regional Geomaster Dashboard</strong></a> (rgm-prod-bay - change to affected geomaster)</p><p><strong style=\"color: rgb(80, 80, 80);\">Some of the TSGs</strong><span style=\"color: rgb(80, 80, 80);\">:</span></p><p><strong>1. </strong>The issue may be transient, self healing, occur for less than one hour, and not require a root cause analysis. This could be due to some instances reimaging or upgrading which would cause them to briefly not process requests.</p><p><strong style=\"color: rgb(80, 80, 80);\">2.</strong><span style=\"color: rgb(80, 80, 80);\"> Automorphism automatically scales up the hosting DB (default is P1)&nbsp;if usage is high. Check if scale up is triggered &amp; finished. If not, scale up the hosting database using the portal or automorphism&nbsp;(</span><a href=\"about:blank\" target=\"_blank\" style=\"color: rgb(0, 102, 204);\">Database auto scaling</a>&nbsp;(<a href=\"https://microsoft.sharepoint.com/teams/Antares/_layouts/OneNote.aspx?id=%2Fteams%2FAntares%2FShared%20Documents%2FAntares%20Feature%20Crew&amp;wd=target%28AutoMorphism.one%7CAD8AC820-F32D-4120-8CF0-FA66B36ED913%2FDatabase%20auto%20scaling%7C32AF00B6-55E9-40C9-AB06-D3C0124A4A83%2F%29\" target=\"_blank\" style=\"color: rgb(0, 102, 204);\">Web view</a>)).</p><p>If you see that scaling up operation is stuck for a long time, this might be due to stuck,&nbsp;long running&nbsp;transactions. There is apparently a fix for that in ANT75.&nbsp;However, in the mean time you can identify these transactions and kill them.&nbsp;</p><p>a. Get the hosting database connection string via secret store manager, or get RDP&nbsp;access to any controller&nbsp;role instance. Decrypt the connection string. (<a href=\"about:blank\" target=\"_blank\">How to decrypt Antares ConnectionStrings in registry and database and from secret store for troubleshooting</a>&nbsp;(<a href=\"https://microsoft.sharepoint.com/teams/Antares/_layouts/OneNote.aspx?id=%2Fteams%2FAntares%2FShared%20Documents%2FAntares%20Engineering&amp;wd=target%28Engineering%20HowTos%20%28Restored%5C%29.one%7C21CD2DD3-E3B7-4F21-B9D6-72E75B8A5307%2FHow%20to%20decrypt%20Antares%20ConnectionStrings%20in%20registry%20and%20database%20and%7CFFC06053-93F3-4242-924F-04329E76A172%2F%29\" target=\"_blank\">Web view</a>))</p><p>b. Connect to the hosting database via SQL Server Management Studio using the connection string and run the query below. The query will identify all transactions running for longer than 2 days.&nbsp;</p><p>select dt.transaction_id, dt.database_transaction_state, dt.database_transaction_begin_time, st.is_user_transaction, st.open_transaction_count, st.session_id, es.login_time</p><p>from sys.dm_tran_database_transactions dt</p><p>join sys.dm_tran_session_transactions st on st.transaction_id = dt.transaction_id</p><p>join sys.dm_exec_sessions es on es.session_id = st.session_id</p><p>where dt.database_id &gt;= 5 and database_transaction_type = 1 and es.login_time &lt;= getutcdate() - 2&nbsp;</p><p>c. Kill transactions using the pids in the query result.</p><p>kill &lt;pid&gt;</p><p><br></p><p><strong style=\"color: rgb(80, 80, 80);\">3.</strong><span style=\"color: rgb(80, 80, 80);\"> Try mitigations explained in this TSG:</span><a href=\"about:blank\" target=\"_blank\" style=\"color: rgb(51, 51, 51);\">TSG: GeomasterApiSubscriptionImpactAllRequests </a><span style=\"color: rgb(120, 120, 120); background-color: rgb(255, 255, 255);\">&nbsp;(</span><a href=\"https://microsoft.sharepoint.com/teams/Antares/_layouts/OneNote.aspx?id=%2Fteams%2FAntares%2FShared%20Documents%2FServicing%2FWAWS%20Servicing%20Handbook&amp;wd=target%28Internal%20TSG.one%7C2F88A99A-3E89-45BA-82F7-EC793A605F47%2FTSG%3A%20GeomasterApiSubscriptionImpactAllRequests%7C3AA48510-C0C9-48CC-9935-7AC14FAE3F3B%2F%29\" target=\"_blank\" style=\"color: rgb(51, 51, 51);\">Web view</a><span style=\"color: rgb(120, 120, 120); background-color: rgb(255, 255, 255);\">). </span>If indeed a single or few subscriptions are verified as making huge amounts of API calls and hogging resources, follow the throttling steps described there. Otherwise, avoid random or unnecessary throttling, and escalate or transfer the incident.</p><p><br></p><p><strong>4. </strong>Check API traffic distribution between the Controller Role instances on the stamp. There are two ways to do this:</p><p><br></p><p><u>First Method:</u></p><p>You can check the number of 40006 events on each controller. 40006 is the eventId for APIs. Use this query:</p><p>AntaresAdminControllerEvents</p><p>| where PreciseTimeStamp &gt;= ago(90m) // double check this time aligns with when the alert fired</p><p>| where EventPrimaryStampName == \"&lt;stampName&gt;\"</p><p>| where EventId == 40006</p><p>| where RoleInstance startswith \"ControllerRole_IN\"</p><p>| summarize count() by bin(PreciseTimeStamp, 10m), RoleInstance</p><p>| render timechart</p><p><br></p><p><u>\tSecond Method:</u></p><p>The other way to do this would be to look at the StatsCounterFiveMinuteTable table. Use this query:</p><p>StatsCounterFiveMinuteTable</p><p>| where TIMESTAMP &gt;= ago(90m) // double check this time aligns with when the alert fired</p><p>| where EventPrimaryStampName == \"&lt;stampName&gt;\"</p><p>| where RoleInstance startswith \"ControllerRole_IN\"</p><p>| where CounterName == \"<a href=\"about:blank\" target=\"_blank\">\\\\W3SVC_W3WP(_Total)\\\\Active Requests</a>\"</p><p>| project TIMESTAMP, RoleInstance, CounterValue</p><p>| render timechart</p><p><br></p><p>You may find that 1 or more controllerRole instances are not handling traffic (i.e. they are limping along) and most of the traffic is being handled by other controllers. In this case, do the following:</p><ol><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Keep one instance in broken state and reimage the rest, one instance at a time (make sure you leave one in bad/broken state)</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Quickly RDP to the one 'bad' instance and grab a memory dump (instructions here --&gt; <a href=\"https://eng.ms/docs/cloud-ai-platform/devdiv/serverless-paas-balam/serverless-paas-benbyrd/app-service-web-apps/antares-trouble-shooting-guides-tsg/servicingapproach/servicingactions/memorydump\" target=\"_blank\">Memory dumps | App Service TSG (eng.ms)</a>)</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Still in the RDP session, take this instance out of rotation by adding this regKey --&gt; REG ADD \"HKLM\\SOFTWARE\\Microsoft\\IIS Extensions\\Web Hosting Framework\" -v <strong>VmssInstanceStatus</strong> -d 0x0 -t REG_DWORD -f</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>RA/Engage the VMSS team to RCA what's going on with the bad instance</li></ol><p><br></p><p><strong style=\"color: rgb(80, 80, 80);\">5.</strong><span style=\"color: rgb(80, 80, 80);\"> Loop in Control Plane owners : </span><strong style=\"color: rgb(80, 80, 80);\">AntMgmt Servicing</strong><span style=\"color: rgb(80, 80, 80);\"> Team in IcM. Take a memory dump when transferring the incident so Control Plane can analyze it later.</span></p><p><strong style=\"color: rgb(80, 80, 80);\">6. </strong><span style=\"color: rgb(80, 80, 80);\">Restart an affected worker process instance.</span></p><p><strong style=\"color: rgb(80, 80, 80);\">7. </strong><span style=\"color: rgb(80, 80, 80);\">Reboot, upgrade, or reimage the affected instance. Before doing so, </span><strong style=\"color: rgb(80, 80, 80);\">please note:</strong><span style=\"color: rgb(80, 80, 80);\"> if you end up needing to reboot any of the GeoMasterRole instances, </span><strong style=\"color: rgb(80, 80, 80);\"><em>please take a dump of the two w3wp processes</em></strong><span style=\"color: rgb(80, 80, 80);\">. Follow this TSG (note that you may need to search around for procdump.exe; it's not in the same location on GeoMasters as on controllers):&nbsp;</span><a href=\"about:blank\" target=\"_blank\">TSG How to create a memory dump when controller does not process requests</a>&nbsp;(<a href=\"https://microsoft.sharepoint.com/teams/Antares/_layouts/OneNote.aspx?id=%2Fteams%2FAntares%2FShared%20Documents%2FServicing%2FWAWS%20Servicing%20Handbook&amp;wd=target%28Internal%20TSG.one%7C2F88A99A-3E89-45BA-82F7-EC793A605F47%2FTSG%20How%20to%20create%20a%20memory%20dump%20when%20controller%20does%7CE4D72AB3-5F9D-4A28-B647-0510C7A3A0AF%2F%29\" target=\"_blank\">Web view</a>)</p>",
+  "clouds": [
+    "[\"Public;wawswus.Kusto.Windows.Net;wawsprod\",\"Public;wawseus.Kusto.Windows.Net;wawsprod\",\"Public;wawscus.Kusto.Windows.Net;wawsprod\",\"Public;wawsweu.Kusto.Windows.Net;wawsprod\",\"Public;wawsneu.Kusto.Windows.Net;wawsprod\",\"Public;wawseas.Kusto.Windows.Net;wawsprod\",\"Mooncake;cnwsbjs20.chinanorth2.kusto.chinacloudapi.cn;cnwsprod\",\"Fairfax;gcwsbn1ff.kusto.usgovcloudapi.net;gcwsprod\"]"
+  ],
+  "minimumHitCount": 1,
+  "tags": [
+    "v1migration",
+    "app service (web apps)",
+    "pvbchak",
+    "icm",
+    "sev2",
+    "suwatch",
+    "rukulkar",
+    "jcantrell",
+    "benbyrd",
+    "pavelzel",
+    "eddiazme",
+    "tamahmoo"
+  ],
+  "primaryKustoQuery": {
+    "title": "Primary kusto query",
+    "kustoQuery": "let publicStamps = (RoleInstanceHeartbeat\r\n    | where PreciseTimeStamp > now() - 1h\r\n    | where PreciseTimeStamp < now()    | where EventStampType == \"Stamp\"\r\n    | summarize by EventPrimaryStampName);\r\nAntaresAdminGeoEvents \r\n| where PreciseTimeStamp > now() - 1h\r\n    | where PreciseTimeStamp < now()\r\n| where EventId == 40006 and (isempty(StampName) or StampName in (publicStamps)) and StampName !contains \".api.\"\r\n| where IsGeomasterByEventStampName(EventStampName) \r\n| where StampName != \"waws-prod-msftintdm3-501\" \r\n| project StatusCode, StampName, SubscriptionId, EventStampName, SourceNamespace\r\n| summarize totalReqs = count() , failedReqs = countif(StatusCode >= 500), TotalSubs = dcount(SubscriptionId), FailingSubs=dcountif(SubscriptionId,StatusCode >= 500) by StampName, EventStampName, SourceNamespace\r\n| extend availability = 100 - (failedReqs * 100.0 / totalReqs), impactedSubs = FailingSubs * 100.0 / TotalSubs\r\n| where totalReqs > 1000\r\n| where availability < 90 and impactedSubs > 5 and isnotempty(StampName)\r\n| extend SliceOverride = StampName, CorrelationIdOverride = \"StampAPIAlert\"\r\n| extend CorrelationId = strcat(EventStampName, \"=>\", StampName)\r\n    , titlePrefix = iif(SourceNamespace == \"WAWS\" and StampName !contains \"int\", \"[AppServiceCP][AutoComms],\", \"[AppServiceCP],\")\r\n    , MonitorId = strcat(SourceNamespace, iif(StampName contains \"int\", \"Not\", \"\"), \"ApiAutoPost\")\r\n| extend JarvisDashboard = strcat(\"https://wawshealth.azurewebsites.windows.net/VisualApi/JarvisDashboard?stampName=\", StampName)",
+    "isGraphInReport": false,
+    "position": 0
+  },
+  "mooncakeKustoQuery": null,
+  "mooncakeKustoClusters": null,
+  "fairfaxKustoQuery": null,
+  "fairfaxKustoClusters": null,
+  "ussecKustoQuery": {
+    "title": "Primary kusto query",
+    "kustoQuery": "\r\nlet publicStamps = (RoleInstanceHeartbeat | where PreciseTimeStamp > ago(1h) | where EventStampType == \"Stamp\" | summarize by EventPrimaryStampName);\r\nAntaresAdminGeoEvents \r\n| where TIMESTAMP > ago(1h)\r\n| where EventId == 40006 and (StampName == \"\" or StampName in (publicStamps))  and StampName !contains \".api.\"\r\n| where IsGeomasterByEventStampName(EventStampName) \r\n| where StampName != \"waws-prod-msftintdm3-501\" \r\n| project StatusCode, StampName, SubscriptionId, EventStampName, SourceNamespace\r\n| summarize totalReqs = count() , failedReqs = countif(StatusCode >= 500),TotalSubs=dcount(SubscriptionId), FailingSubs=dcountif(SubscriptionId,StatusCode >= 500)  by StampName, EventStampName, SourceNamespace\r\n| extend availability = 100-(failedReqs*100.0/totalReqs), impactedSubs = FailingSubs*100.0/TotalSubs\r\n| where totalReqs > 1000\r\n| where availability < 90 and impactedSubs > 5  and StampName != \"\"\r\n| extend SliceOverride = StampName, CorrelationIdOverride = \"StampAPIAlert\"\r\n| extend CorrelationId=strcat(EventStampName,\"=>\", StampName), titlePrefix = iif(SourceNamespace == \"WAWS\", \"[AppServiceCP][AutoComms],\", \"[AppServiceCP],\"), MonitorId = strcat(SourceNamespace, \"ApiAutoPost\")\r\n| extend JarvisDashboard = strcat(\"https://wawshealth.azurewebsites.windows.net/VisualApi/JarvisDashboard?stampName=\", StampName) ",
+    "isGraphInReport": false,
+    "position": 0
+  },
+  "ussecKustoClusters": [
+    {
+      "cloud": "USSec",
+      "serviceName": "App Service (Web Apps)",
+      "cluster": "antareseast.usseceast",
+      "database": "antaresprod",
+      "description": "USSec East Kusto",
+      "backupCluster": null,
+      "followerCluster": null,
+      "clusterSuffix": "kusto.core.microsoft.scloud",
+      "useSts": null
+    },
+    {
+      "cloud": "USSec",
+      "serviceName": "App Service (Web Apps)",
+      "cluster": "antareswest.ussecwest",
+      "database": "antaresprod",
+      "description": "USSec West Kusto",
+      "backupCluster": null,
+      "followerCluster": null,
+      "clusterSuffix": "kusto.core.microsoft.scloud",
+      "useSts": null
+    }
+  ],
+  "usnatKustoQuery": {
+    "title": "Primary kusto query",
+    "kustoQuery": "\r\nlet publicStamps = (RoleInstanceHeartbeat | where PreciseTimeStamp > ago(1h) | where EventStampType == \"Stamp\" | summarize by EventPrimaryStampName);\r\nAntaresAdminGeoEvents \r\n| where TIMESTAMP > ago(1h)\r\n| where EventId == 40006 and (StampName == \"\" or StampName in (publicStamps))  and StampName !contains \".api.\"\r\n| where IsGeomasterByEventStampName(EventStampName) \r\n| where StampName != \"waws-prod-msftintdm3-501\" \r\n| project StatusCode, StampName, SubscriptionId, EventStampName, SourceNamespace\r\n| summarize totalReqs = count() , failedReqs = countif(StatusCode >= 500),TotalSubs=dcount(SubscriptionId), FailingSubs=dcountif(SubscriptionId,StatusCode >= 500)  by StampName, EventStampName, SourceNamespace\r\n| extend availability = 100-(failedReqs*100.0/totalReqs), impactedSubs = FailingSubs*100.0/TotalSubs\r\n| where totalReqs > 1000\r\n| where availability < 90 and impactedSubs > 5  and StampName != \"\"\r\n| extend SliceOverride = StampName, CorrelationIdOverride = \"StampAPIAlert\"\r\n| extend CorrelationId=strcat(EventStampName,\"=>\", StampName), titlePrefix = iif(SourceNamespace == \"WAWS\", \"[AppServiceCP][AutoComms],\", \"[AppServiceCP],\"), MonitorId = strcat(SourceNamespace, \"ApiAutoPost\")\r\n| extend JarvisDashboard = strcat(\"https://wawshealth.azurewebsites.windows.net/VisualApi/JarvisDashboard?stampName=\", StampName) ",
+    "isGraphInReport": false,
+    "position": 0
+  },
+  "usnatKustoClusters": [
+    {
+      "cloud": "USNat",
+      "serviceName": "App Service (Web Apps)",
+      "cluster": "antareseast.usnateast",
+      "database": "antaresprod",
+      "description": "USNat East Kusto",
+      "backupCluster": null,
+      "followerCluster": null,
+      "clusterSuffix": "kusto.core.eaglex.ic.gov",
+      "useSts": null
+    },
+    {
+      "cloud": "USNat",
+      "serviceName": "App Service (Web Apps)",
+      "cluster": "antareswest.usnatwest",
+      "database": "antaresprod",
+      "description": "USNat West Kusto",
+      "backupCluster": null,
+      "followerCluster": null,
+      "clusterSuffix": "kusto.core.eaglex.ic.gov",
+      "useSts": null
+    }
+  ],
+  "secondaryKustoQueries": [
+    {
+      "title": "Availability",
+      "kustoQuery": "let publicStamps = (RoleInstanceHeartbeat | where PreciseTimeStamp > ago(1h) | where EventStampType == \"Stamp\" | summarize by EventPrimaryStampName); let stamps=toscalar(AntaresAdminGeoEvents | where TIMESTAMP > ago(1h) | where EventId == 40006 and (StampName == \"\" or StampName in (publicStamps)) and StampName !contains \".api.\" and Address !has \"/metrics?\" | where EventStampName == extract(\"^([^=>]+)\", 1, \"{correlationId}\") | project StatusCode, StampName, SubscriptionId, EventId, EventStampName | summarize totalReqs = count() , failedReqs = countif(StatusCode >= 500),TotalSubs=dcount(SubscriptionId), FailingSubs=dcountif(SubscriptionId,StatusCode >= 500) by StampName, EventStampName | extend availability = 100-(failedReqs*100.0/totalReqs), impactedSubs = FailingSubs*100.0/TotalSubs | where totalReqs > 1000 | where availability < 90 and impactedSubs > 5 | summarize makeset(StampName,100)); AntaresAdminGeoEvents | where TIMESTAMP > ago(6h) | where EventId == 40006 and StampName in (stamps) | where EventStampName == extract(\"^([^=>]+)\", 1, \"{correlationId}\") | extend CorrelationId=strcat(EventStampName,\"=>\", StampName) | where CorrelationId == \"{CorrelationId}\" | summarize totalReqs = count() , failedReqs = countif(StatusCode >= 500) by StampName, EventStampName,bin(TIMESTAMP,1m) | extend availability = 100-(failedReqs*100.0/totalReqs) | project StampName , TIMESTAMP , availability | evaluate pivot(StampName,avg(availability))",
+      "isGraphInReport": true,
+      "position": 1
+    },
+    {
+      "title": "Latencies",
+      "kustoQuery": " let publicStamps = (RoleInstanceHeartbeat | where PreciseTimeStamp > ago(1h) | where EventStampType == \"Stamp\" | summarize by EventPrimaryStampName); let stamps=toscalar(AntaresAdminGeoEvents | where TIMESTAMP > ago(1h) | where EventId == 40006 and (StampName == \"\" or StampName in (publicStamps)) and StampName !contains \".api.\" and Address !has \"/metrics?\" | where EventStampName == extract(\"^([^=>]+)\", 1, \"{correlationId}\") | project StatusCode, StampName, SubscriptionId, EventStampName | summarize totalReqs = count() , failedReqs = countif(StatusCode >= 500),TotalSubs=dcount(SubscriptionId), FailingSubs=dcountif(SubscriptionId,StatusCode >= 500) by StampName, EventStampName | extend availability = 100-(failedReqs*100.0/totalReqs), impactedSubs = FailingSubs*100.0/TotalSubs | where totalReqs > 1000 | where availability < 90 and impactedSubs > 5 | summarize makeset(StampName,100)); AntaresAdminGeoEvents | where TIMESTAMP > ago(6h) | where EventId == 40006 and StampName in (stamps) | where EventStampName == extract(\"^([^=>]+)\", 1, \"{correlationId}\") | extend CorrelationId=strcat(EventStampName,\"=>\", StampName) | where CorrelationId == \"{CorrelationId}\" | summarize AvgLatency=avg(LatencyInMilliseconds) by StampName, EventStampName,bin(TIMESTAMP,1m) | project StampName , TIMESTAMP , AvgLatency | evaluate pivot(StampName,avg(AvgLatency))",
+      "isGraphInReport": true,
+      "position": 2
+    },
+    {
+      "title": "Top impacted subs",
+      "kustoQuery": "let publicStamps = (RoleInstanceHeartbeat | where PreciseTimeStamp > ago(1h) | where EventStampType == \"Stamp\" | summarize by EventPrimaryStampName); let stamps=toscalar(AntaresAdminGeoEvents | where TIMESTAMP > ago(1h) | where EventId == 40006 and (StampName == \"\" or StampName in (publicStamps)) and StampName !contains \".api.\" and Address !has \"/metrics?\" | where EventStampName == extract(\"^([^=>]+)\", 1, \"{correlationId}\") | project StatusCode, StampName, SubscriptionId, EventStampName | summarize totalReqs = count() , failedReqs = countif(StatusCode >= 500),TotalSubs=dcount(SubscriptionId), FailingSubs=dcountif(SubscriptionId,StatusCode >= 500) by StampName, EventStampName | extend availability = 100-(failedReqs*100.0/totalReqs), impactedSubs = FailingSubs*100.0/TotalSubs | where totalReqs > 1000 | where availability < 90 and impactedSubs > 5 | summarize makeset(StampName,100)); AntaresAdminGeoEvents | where TIMESTAMP > ago(1h) | where EventId == 40006 and StampName in (stamps) | where EventStampName == extract(\"^([^=>]+)\", 1, \"{correlationId}\") | extend CorrelationId=strcat(EventStampName,\"=>\", StampName) | where CorrelationId == \"{CorrelationId}\" | summarize totalReqs = count() , failedReqs = countif(StatusCode >= 500) by StampName, EventStampName, SubscriptionId | where failedReqs >=5 | order by failedReqs desc,totalReqs desc | take 10",
+      "isGraphInReport": false,
+      "position": 3
+    }
+  ],
+  "ussecSecondaryKustoQueries": [
+    {
+      "title": "Availability",
+      "kustoQuery": "let publicStamps = (RoleInstanceHeartbeat | where PreciseTimeStamp > ago(1h) | where EventStampType == \"Stamp\" | summarize by EventPrimaryStampName); let stamps=toscalar(AntaresAdminGeoEvents | where TIMESTAMP > ago(1h) | where EventId == 40006 and (StampName == \"\" or StampName in (publicStamps)) and StampName !contains \".api.\" and Address !has \"/metrics?\" | where EventStampName == extract(\"^([^=>]+)\", 1, \"{correlationId}\") | project StatusCode, StampName, SubscriptionId, EventId, EventStampName | summarize totalReqs = count() , failedReqs = countif(StatusCode >= 500),TotalSubs=dcount(SubscriptionId), FailingSubs=dcountif(SubscriptionId,StatusCode >= 500) by StampName, EventStampName | extend availability = 100-(failedReqs*100.0/totalReqs), impactedSubs = FailingSubs*100.0/TotalSubs | where totalReqs > 1000 | where availability < 90 and impactedSubs > 5 | summarize makeset(StampName,100)); AntaresAdminGeoEvents | where TIMESTAMP > ago(6h) | where EventId == 40006 and StampName in (stamps) | where EventStampName == extract(\"^([^=>]+)\", 1, \"{correlationId}\") | extend CorrelationId=strcat(EventStampName,\"=>\", StampName) | where CorrelationId == \"{CorrelationId}\" | summarize totalReqs = count() , failedReqs = countif(StatusCode >= 500) by StampName, EventStampName,bin(TIMESTAMP,1m) | extend availability = 100-(failedReqs*100.0/totalReqs) | project StampName , TIMESTAMP , availability | evaluate pivot(StampName,avg(availability))",
+      "isGraphInReport": true,
+      "position": 0
+    },
+    {
+      "title": "Latencies",
+      "kustoQuery": " let publicStamps = (RoleInstanceHeartbeat | where PreciseTimeStamp > ago(1h) | where EventStampType == \"Stamp\" | summarize by EventPrimaryStampName); let stamps=toscalar(AntaresAdminGeoEvents | where TIMESTAMP > ago(1h) | where EventId == 40006 and (StampName == \"\" or StampName in (publicStamps)) and StampName !contains \".api.\" and Address !has \"/metrics?\" | where EventStampName == extract(\"^([^=>]+)\", 1, \"{correlationId}\") | project StatusCode, StampName, SubscriptionId, EventStampName | summarize totalReqs = count() , failedReqs = countif(StatusCode >= 500),TotalSubs=dcount(SubscriptionId), FailingSubs=dcountif(SubscriptionId,StatusCode >= 500) by StampName, EventStampName | extend availability = 100-(failedReqs*100.0/totalReqs), impactedSubs = FailingSubs*100.0/TotalSubs | where totalReqs > 1000 | where availability < 90 and impactedSubs > 5 | summarize makeset(StampName,100)); AntaresAdminGeoEvents | where TIMESTAMP > ago(6h) | where EventId == 40006 and StampName in (stamps) | where EventStampName == extract(\"^([^=>]+)\", 1, \"{correlationId}\") | extend CorrelationId=strcat(EventStampName,\"=>\", StampName) | where CorrelationId == \"{CorrelationId}\" | summarize AvgLatency=avg(LatencyInMilliseconds) by StampName, EventStampName,bin(TIMESTAMP,1m) | project StampName , TIMESTAMP , AvgLatency | evaluate pivot(StampName,avg(AvgLatency))",
+      "isGraphInReport": true,
+      "position": 1
+    },
+    {
+      "title": "Top impacted subs",
+      "kustoQuery": "let publicStamps = (RoleInstanceHeartbeat | where PreciseTimeStamp > ago(1h) | where EventStampType == \"Stamp\" | summarize by EventPrimaryStampName); let stamps=toscalar(AntaresAdminGeoEvents | where TIMESTAMP > ago(1h) | where EventId == 40006 and (StampName == \"\" or StampName in (publicStamps)) and StampName !contains \".api.\" and Address !has \"/metrics?\" | where EventStampName == extract(\"^([^=>]+)\", 1, \"{correlationId}\") | project StatusCode, StampName, SubscriptionId, EventStampName | summarize totalReqs = count() , failedReqs = countif(StatusCode >= 500),TotalSubs=dcount(SubscriptionId), FailingSubs=dcountif(SubscriptionId,StatusCode >= 500) by StampName, EventStampName | extend availability = 100-(failedReqs*100.0/totalReqs), impactedSubs = FailingSubs*100.0/TotalSubs | where totalReqs > 1000 | where availability < 90 and impactedSubs > 5 | summarize makeset(StampName,100)); AntaresAdminGeoEvents | where TIMESTAMP > ago(1h) | where EventId == 40006 and StampName in (stamps) | where EventStampName == extract(\"^([^=>]+)\", 1, \"{correlationId}\") | extend CorrelationId=strcat(EventStampName,\"=>\", StampName) | where CorrelationId == \"{CorrelationId}\" | summarize totalReqs = count() , failedReqs = countif(StatusCode >= 500) by StampName, EventStampName, SubscriptionId | where failedReqs >=5 | order by failedReqs desc,totalReqs desc | take 10",
+      "isGraphInReport": false,
+      "position": 2
+    }
+  ],
+  "usnatSecondaryKustoQueries": [
+    {
+      "title": "Availability",
+      "kustoQuery": "let publicStamps = (RoleInstanceHeartbeat | where PreciseTimeStamp > ago(1h) | where EventStampType == \"Stamp\" | summarize by EventPrimaryStampName); let stamps=toscalar(AntaresAdminGeoEvents | where TIMESTAMP > ago(1h) | where EventId == 40006 and (StampName == \"\" or StampName in (publicStamps)) and StampName !contains \".api.\" and Address !has \"/metrics?\" | where EventStampName == extract(\"^([^=>]+)\", 1, \"{correlationId}\") | project StatusCode, StampName, SubscriptionId, EventId, EventStampName | summarize totalReqs = count() , failedReqs = countif(StatusCode >= 500),TotalSubs=dcount(SubscriptionId), FailingSubs=dcountif(SubscriptionId,StatusCode >= 500) by StampName, EventStampName | extend availability = 100-(failedReqs*100.0/totalReqs), impactedSubs = FailingSubs*100.0/TotalSubs | where totalReqs > 1000 | where availability < 90 and impactedSubs > 5 | summarize makeset(StampName,100)); AntaresAdminGeoEvents | where TIMESTAMP > ago(6h) | where EventId == 40006 and StampName in (stamps) | where EventStampName == extract(\"^([^=>]+)\", 1, \"{correlationId}\") | extend CorrelationId=strcat(EventStampName,\"=>\", StampName) | where CorrelationId == \"{CorrelationId}\" | summarize totalReqs = count() , failedReqs = countif(StatusCode >= 500) by StampName, EventStampName,bin(TIMESTAMP,1m) | extend availability = 100-(failedReqs*100.0/totalReqs) | project StampName , TIMESTAMP , availability | evaluate pivot(StampName,avg(availability))",
+      "isGraphInReport": true,
+      "position": 0
+    },
+    {
+      "title": "Latencies",
+      "kustoQuery": " let publicStamps = (RoleInstanceHeartbeat | where PreciseTimeStamp > ago(1h) | where EventStampType == \"Stamp\" | summarize by EventPrimaryStampName); let stamps=toscalar(AntaresAdminGeoEvents | where TIMESTAMP > ago(1h) | where EventId == 40006 and (StampName == \"\" or StampName in (publicStamps)) and StampName !contains \".api.\" and Address !has \"/metrics?\" | where EventStampName == extract(\"^([^=>]+)\", 1, \"{correlationId}\") | project StatusCode, StampName, SubscriptionId, EventStampName | summarize totalReqs = count() , failedReqs = countif(StatusCode >= 500),TotalSubs=dcount(SubscriptionId), FailingSubs=dcountif(SubscriptionId,StatusCode >= 500) by StampName, EventStampName | extend availability = 100-(failedReqs*100.0/totalReqs), impactedSubs = FailingSubs*100.0/TotalSubs | where totalReqs > 1000 | where availability < 90 and impactedSubs > 5 | summarize makeset(StampName,100)); AntaresAdminGeoEvents | where TIMESTAMP > ago(6h) | where EventId == 40006 and StampName in (stamps) | where EventStampName == extract(\"^([^=>]+)\", 1, \"{correlationId}\") | extend CorrelationId=strcat(EventStampName,\"=>\", StampName) | where CorrelationId == \"{CorrelationId}\" | summarize AvgLatency=avg(LatencyInMilliseconds) by StampName, EventStampName,bin(TIMESTAMP,1m) | project StampName , TIMESTAMP , AvgLatency | evaluate pivot(StampName,avg(AvgLatency))",
+      "isGraphInReport": true,
+      "position": 1
+    },
+    {
+      "title": "Top impacted subs",
+      "kustoQuery": "let publicStamps = (RoleInstanceHeartbeat | where PreciseTimeStamp > ago(1h) | where EventStampType == \"Stamp\" | summarize by EventPrimaryStampName); let stamps=toscalar(AntaresAdminGeoEvents | where TIMESTAMP > ago(1h) | where EventId == 40006 and (StampName == \"\" or StampName in (publicStamps)) and StampName !contains \".api.\" and Address !has \"/metrics?\" | where EventStampName == extract(\"^([^=>]+)\", 1, \"{correlationId}\") | project StatusCode, StampName, SubscriptionId, EventStampName | summarize totalReqs = count() , failedReqs = countif(StatusCode >= 500),TotalSubs=dcount(SubscriptionId), FailingSubs=dcountif(SubscriptionId,StatusCode >= 500) by StampName, EventStampName | extend availability = 100-(failedReqs*100.0/totalReqs), impactedSubs = FailingSubs*100.0/TotalSubs | where totalReqs > 1000 | where availability < 90 and impactedSubs > 5 | summarize makeset(StampName,100)); AntaresAdminGeoEvents | where TIMESTAMP > ago(1h) | where EventId == 40006 and StampName in (stamps) | where EventStampName == extract(\"^([^=>]+)\", 1, \"{correlationId}\") | extend CorrelationId=strcat(EventStampName,\"=>\", StampName) | where CorrelationId == \"{CorrelationId}\" | summarize totalReqs = count() , failedReqs = countif(StatusCode >= 500) by StampName, EventStampName, SubscriptionId | where failedReqs >=5 | order by failedReqs desc,totalReqs desc | take 10",
+      "isGraphInReport": false,
+      "position": 2
+    }
+  ],
+  "queryType": 0,
+  "alertState": 1,
+  "prLink": "https://dev.azure.com/msazure/One/_git/AAPT-Antares-WAWSAlertingMetadata/pullrequest/9606976",
+  "standardTime": 2,
+  "customTimes": null,
+  "cron": null,
+  "actions": [
+    {
+      "severity": 2,
+      "routingID": "WAWS://Vendors",
+      "teamAssignedTo": "Antares Vendors Loop"
+    }
+  ],
+  "skipValidation": false,
+  "kustoClusters": null,
+  "prodPipelineLink": null,
+  "prodState": 0,
+  "alertApprovers": "antcp",
+  "modifiedBy": "tamahmoo@microsoft.com",
+  "approvalDocumentId": null,
+  "approvalDocumentUri": null
+}

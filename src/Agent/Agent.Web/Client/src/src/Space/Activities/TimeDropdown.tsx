@@ -1,5 +1,4 @@
 import { Dropdown, Option } from '@fluentui/react-components';
-import { Dispatch } from 'react';
 import { useActionsStatusBarStyles } from '../Styles/Incident.styles';
 
 export enum SelectedTimes {
@@ -10,7 +9,7 @@ export enum SelectedTimes {
 
 interface TimeDropdownProps {
     selectedTime: SelectedTimes;
-    setSelectedTime: Dispatch<React.SetStateAction<SelectedTimes>>;
+    setSelectedTime: (selectedTime: SelectedTimes) => void;
 }
 
 const TimeDropdown = (props: TimeDropdownProps) => {
