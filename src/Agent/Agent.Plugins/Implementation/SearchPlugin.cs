@@ -3,13 +3,12 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Configuration;
+using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Logging;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Helpers;
-using Azure;
 using Azure.Core;
-using Azure.Identity;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Models;
 using Microsoft.Extensions.Logging;
@@ -22,13 +21,18 @@ namespace Agent.Plugins.Implementation
         private readonly ILogger<SearchPlugin> _logger;
         private readonly SearchClient _searchClient;
         private readonly SearchSettings _settings;
+        private readonly IAuthenticationService _authService;
+
+        private const int MAX_RESULTS_TO_FETCH = 20;
 
         public SearchPlugin(
             IOptions<SearchSettings> settings,
-            ILogger<SearchPlugin> logger)
+            ILogger<SearchPlugin> logger,
+            IAuthenticationService authservice)
         {
             _logger = logger;
             _settings = settings.Value;
+            _authService = authservice;
 
             ValidateSettings();
             GetSearchClientForIndex(_settings.DefaultIndexName ?? "default-index");
@@ -39,28 +43,68 @@ namespace Agent.Plugins.Implementation
             string searchText,
             CancellationToken cancellationToken = default)
         {
-            return await KernelFunctionHelpers.TryAction(
-                nameof(SearchPlugin),
-                async () =>
-                {
-                    ValidateSettings();
-
-                    var searchClient = GetSearchClientForIndex(searchIndex);
-
-                    var options = new SearchOptions
+            try
+            {
+                return await KernelFunctionHelpers.TryAction(
+                    nameof(SearchPlugin),
+                    async () =>
                     {
-                        IncludeTotalCount = true
-                    };
+                        ValidateSettings();
 
-                    _logger.LogInternalInformation($"Searching index '{searchIndex}' with query: '{searchText}'");
-                    var response = await searchClient.SearchAsync<SearchArticle>(searchText, options, cancellationToken);
+                        var searchClient = GetSearchClientForIndex(searchIndex);
 
-                    _logger.LogInternalInformation($"Search returned {response.Value.TotalCount} results");
+                        var options = new SearchOptions
+                        {
+                            IncludeTotalCount = true,
+                            QueryType = SearchQueryType.Full,
+                            Size = MAX_RESULTS_TO_FETCH
+                        };
 
-                    return response.Value.GetResults().Select(x => x.Document).ToList();
-                },
-                _logger
-            );
+                        _logger.LogInternalInformation($"Searching index '{searchIndex}' with query: '{searchText}'");
+                        var response = await searchClient.SearchAsync<SearchArticle>(searchText, options, cancellationToken);
+
+                        _logger.LogInternalInformation($"Search returned {response.Value.TotalCount} results");
+
+                        var results = response.Value.GetResults().Select(x => x.Document).ToList();
+
+                        // return results;
+
+                        // Before returning results, process them, this is to avoid context length exceeded error in ProcessUserMessageAsync in metaagent
+                        var optimizedResults = new List<SearchArticle>();
+                        foreach (var article in results)
+                        {
+                            string summarizedContent = article.Content;
+                            const int MaxContentLengthForLLM = 500;
+                            if (summarizedContent.Length > MaxContentLengthForLLM)
+                            {
+                                summarizedContent = summarizedContent.Substring(0, MaxContentLengthForLLM) + "...";
+                            }
+
+                            optimizedResults.Add(new SearchArticle
+                            {
+                                Title = article.Title,
+                                Content = summarizedContent,
+                                Url = article.Url,
+                                Id = article.Id,
+                                Tag = article.Tag,
+                            });
+                        }
+                        return optimizedResults;
+                    },
+                    _logger
+                );
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError(ex, $"Network error during search for index '{searchIndex}' with query '{searchText}': {ex.Message}. This could be due to a 'no such host' issue, DNS problems, or firewall restrictions. Ensure the search service URL is correct and accessible.");
+                // Return empty list on network error
+                return new List<SearchArticle>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"An unexpected error occurred during search for index '{searchIndex}' with query '{searchText}': {ex.Message}");
+                throw;
+            }
         }
 
         private void ValidateSettings()
@@ -83,14 +127,13 @@ namespace Agent.Plugins.Implementation
                 return _searchClient; // Return the default client if querying the default index
             }
 
-            // Create a token credential using DefaultAzureCredential
-            TokenCredential credential = new DefaultAzureCredential();
+            TokenCredential credential = _authService.GetSearchPluginCredential();
 
             // Create a new client for this specific index using Managed Identity
             return new SearchClient(
-                new Uri($"https://{_settings.SearchServiceEndpoint}.search.windows.net/"),
-                indexName,
-                credential);
+                 new Uri(_settings.SearchServiceEndpoint),
+                 indexName,
+                 credential);
         }
     }
 }

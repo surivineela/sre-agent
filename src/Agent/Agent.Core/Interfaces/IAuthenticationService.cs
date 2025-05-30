@@ -2,7 +2,6 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Core.Models;
 using Azure.Core;
 
 namespace Agent.Core.Interfaces;
@@ -26,6 +25,12 @@ public interface IAuthenticationService
     /// </summary>
     /// <returns></returns>
     public TokenCredential GetSearchEndpointCredential();
+
+    /// <summary>
+    /// Get the credential to access the search plugin
+    /// </summary>
+    /// <returns></returns>
+    public TokenCredential GetSearchPluginCredential();
 
 
     /// <summary>

@@ -1,7 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
-using Agent.Core.Models;
 using Azure.Core;
 using Agent.Logging;
 using Azure.Identity;
@@ -82,6 +81,17 @@ public class AuthenticationService : IAuthenticationService
         return GetWorkloadIdentityCredential(_federationSettings.ClientId, _federationSettings.TenantId, _federationSettings.AuthorityHost);
     }
 
+    public TokenCredential GetSearchPluginCredential()
+    {
+        if (_hostEnvironment.IsDevelopment())
+        {
+            return GetDefaultAzureCredential();
+        }
+
+        return GetManagedIdentityCredential(GetActionIdentity());
+    }
+
+
     #endregion
 
 
@@ -97,7 +107,7 @@ public class AuthenticationService : IAuthenticationService
         return GetManagedIdentityCredential(_crawlerSettings.Identity);
     }
 
-    public async  Task<TokenCredential> GetArmOperationCredential()
+    public async Task<TokenCredential> GetArmOperationCredential()
     {
         if (_hostEnvironment.IsDevelopment())
         {
@@ -255,7 +265,7 @@ public class AuthenticationService : IAuthenticationService
 
     private string? GetActionIdentity()
     {
-        if(string.IsNullOrEmpty(_actionSettings.Identity))
+        if (string.IsNullOrEmpty(_actionSettings.Identity))
         {
             // This should only for legacy agents
             return _crawlerSettings.Identity;
