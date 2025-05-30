@@ -22,9 +22,15 @@ public sealed class DiagnosticsPluginDefinition
         return await _diagnosticsPlugin.GetAnalysisAsync(resourceId, analysisType, additionalProperties);
     }
 
-    [Description("Gets the CPU diagnostic analysis for a particular compute resource.")]
+    [Description("Gets the CPU diagnostic analysis for a particular compute resource for high cpu situations or situations with cpu spikes.")]
     public async Task<string> GetCPUAnalysis([Description("The resource Id.")] string resourceId)
     {
-        return await _diagnosticsPlugin.GetAnalysisAsync(resourceId, AnalysisType.Cpu, new Dictionary<string, string>());
+        return await _diagnosticsPlugin.GetCPUAnalysisAsync(resourceId, new Dictionary<string, string>());
+    }
+
+    [Description("Gets the Memory diagnostic analysis for a particular compute resource for High Memory situations and memory spikes.")]
+    public async Task<string> GetMemoryAnalysis([Description("The resource Id.")] string resourceId)
+    {
+        return await _diagnosticsPlugin.GetMemoryAnalysisAsync(resourceId, new Dictionary<string, string>());
     }
 }

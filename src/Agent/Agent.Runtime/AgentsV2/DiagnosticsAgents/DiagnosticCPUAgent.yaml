@@ -24,6 +24,7 @@ handoff_description: "Handoff to this agent when dealing with issues related to 
 
 handoffs:
   - container_apps_agent
+  - meta_agent 
 
 manual_tools:
   - GetCPUAnalysis 
