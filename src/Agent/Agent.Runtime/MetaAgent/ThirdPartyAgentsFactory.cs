@@ -358,6 +358,7 @@ $@"## Facts
         _tlsBestPracticesPlugin.ThreadId = threadGuid;
         _managedIdentityMigrationPlugin.ThreadId = threadGuid;
         //_appServiceRemediationPlugin.ThreadId = threadGuid;
+        _armPlugin.ThreadId = threadGuid;
         _containerAppsRemediationPlugin.ThreadId = threadGuid;
         _kubernetesAgentPlugin.ThreadId = threadGuid;
         _aksQaAgentPlugin.ThreadId = threadGuid;
@@ -421,6 +422,7 @@ $@"## Facts
             AIFunctionFactory.Create(aksPluginDefinition.GetKubeResourceSpecStatusAsync),
             AIFunctionFactory.Create(aksPluginDefinition.GetKubeResourceMetricsRangeAsync),
             AIFunctionFactory.Create(_armPlugin.RunAzCliReadCommandsAsync),
+            AIFunctionFactory.Create(_armPlugin.GetAzCliHelpAsync),
             //AIFunctionFactory.Create(_containerAppPlugin.ListContainerAppsAsync),
             //AIFunctionFactory.Create(appServicePluginDefinition.ListAppServicesAsync),
             //AIFunctionFactory.Create(appServicePluginDefinition.GetAppServiceInfoAsync),
@@ -519,6 +521,7 @@ $@"## Facts
         // TODO: remove as it is only needed for first party agents
         throw new NotImplementedException();
     }
+
     private List<AITool> GetSubAgentV2Tools(Guid threadGuid, AgentContext context, Assembly assembly)
     {
         List<AITool> subAgentAItools = [];

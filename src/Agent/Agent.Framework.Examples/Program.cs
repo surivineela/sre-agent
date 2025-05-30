@@ -130,6 +130,7 @@ class Program
             .AddTransient<GraphDBPluginDefinition>()
             .AddTransient<ContainerAppPluginDefinition>()
             .AddTransient<KubePluginDefinition>()
+            .AddTransient<ArmPluginDefinition>()
             .AddSingleton<ArmHelper>();
 
         builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();

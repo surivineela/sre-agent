@@ -16,6 +16,7 @@ public record MessageDocument(
     bool IsImageContent = false,
     Posted? Posted = null,
     Approval? Approval = null,
+    AzCliExecution? AzCliExecution = null,
     // e.g. If this message belongs to a PagerDuty incident thread and is a discussion(called note in PagerDuty), 
     // it is the PagerDuty note id. PagerDuty note id is is not a guid
     string? IncidentDiscussionId = null,
@@ -37,6 +38,7 @@ public record MessageDocument(
             message.IsImageContent,
             message.Posted,
             Approval: message.Approval ?? null,
+            AzCliExecution: message.AzCliExecution ?? null,
             IncidentDiscussionId: message.IncidentDiscussionId,
             message.IsDailyReport
         );
@@ -50,6 +52,7 @@ public record MessageDocument(
             IsImageContent,
             Posted,
             Approval,
+            AzCliExecution,
             IncidentDiscussionId: IncidentDiscussionId,
             IsDailyReport
         );

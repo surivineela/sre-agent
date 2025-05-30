@@ -14,6 +14,8 @@ namespace Agent.Plugins.Mocks
         private readonly Dictionary<string, TlsStatus> _tlsStatuses = new();
         private readonly Dictionary<string, AppReliability> _reliabilityStatuses = new();
 
+        public Guid? ThreadId { get; set; }
+
         public MockArmPlugin(TimeProvider timeProvider)
         {
             _timeProvider = timeProvider;
@@ -143,6 +145,21 @@ namespace Agent.Plugins.Mocks
         {
             return Task.FromResult("Command executed");
         }
+
+        public Task<string> RunAzCliWriteCommandsAsync(string command)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> GetAzCliHelpAsync(string helpTopic, string grepPattern = null)
+        {
+            // Mock implementation for testing
+            var mockHelp = $"Mock help for Azure CLI topic: {helpTopic}";
+            if (!string.IsNullOrEmpty(grepPattern))
+            {
+                mockHelp += $"\nFiltered by pattern: {grepPattern}";
+            }
+            return Task.FromResult(mockHelp);
+        }
     }
 }
-

@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System;
 using System.Reflection;
 using System.Threading.Channels;
 using Agent.Core;
@@ -211,9 +212,31 @@ public class ReasoningLoop
                 List<ManualToolCallResult> toolResults = [];
 
                 var toolCall = runResult.ManualToolCalls.Single(); // Should only be one tool call at a time
-                var checkResult = await CheckApprovalAsync(toolCall);
+                var checkApprovalResult = await CheckApprovalAsync(toolCall);
+                var checkAzCliWrite = CheckAzCliWriteToolCallAsync(toolCall);
 
-                if (checkResult.ApprovalStatus == ToolApprovalStatus.NotRequired)
+                if (checkAzCliWrite)
+                {
+                    try
+                    {
+                        ToolStatic.AsyncLocalThreadId.Value = _context.ThreadId;
+                        var functionResult = await toolCall.Tool.InvokeAsync(toolCall.FunctionCall.Arguments, cancellationToken);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogInternalError(ex, "Error while calling tool {ToolName}", toolCall.Tool!.Name);
+                        var functionResult = GetErrorMessage(toolCall.FunctionCall, ex);
+                    }
+                    var cliExecution = await _threadRepository.ListPendingAzCliExecutionAsync(_context.ThreadId);
+                    cliExecution = cliExecution with
+                    {
+                        AgentContextId = _context.Id,
+                    };
+                    await _threadRepository.UpdateAzCliExecutionAsync(_context.ThreadId, cliExecution);
+                    break;
+                }
+
+                if (checkApprovalResult.ApprovalStatus == ToolApprovalStatus.NotRequired)
                 {
                     object? functionResult = null;
 
@@ -521,6 +544,21 @@ public class ReasoningLoop
         }
     }
 
+    private bool CheckAzCliWriteToolCallAsync(ManualToolCall toolCall)
+    {
+        if (toolCall.Tool == null)
+        {
+            return false;
+        }
+
+        if (toolCall.Tool.UnderlyingMethod?.Name != "RunAzCliWriteCommandsAsync")
+        {
+            return false;
+        }
+
+        return true;
+    }
+
     private async Task PersistReasoningMessageAsync(AgentChatHistory agentChatHistory, ChatMessage chatMessage)
     {
         _chatHistory!.Add(chatMessage);
@@ -533,7 +571,6 @@ public class ReasoningLoop
     private async Task PersistReasoningMessagesAsync(AgentChatHistory agentChatHistory, IEnumerable<ChatMessage> chatMessage)
     {
         _chatHistory!.AddRange(chatMessage);
-
         // Calling ToList() is important here because otherwise the reasoning messages get new IDs every time
         // the reasoningMessages IEnumerable is enumerated.
         var reasoningMessages = chatMessage.Select(msg => msg.GetReasoningMessage(_context.Id)).ToList();

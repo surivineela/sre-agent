@@ -203,6 +203,7 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
         .AddTransient<IIncidentPlugin, IncidentPlugin>()
         .AddTransient<IFunctionAppExecutionFailuresPlugin, FunctionAppExecutionFailuresPlugin>()
         .AddTransient<IAzureMonitorMetricsPlugin, AzureMonitorMetricsPlugin>()
+        .AddTransient<IArmPlugin, ArmPlugin>()
 
         //.AddSingleton<AppServiceRemediationAgentFactory>()
         .AddSingleton<KubernetesAgentFactory>()
@@ -226,7 +227,6 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
         .AddSingleton<AppServiceScanner>()
         .AddSingleton<DailyReportSummaryAgentFactory>()
         .AddSingleton<IPostToTeamsPlugin, PostToTeamsPlugin>()
-        .AddSingleton<IArmPlugin, ArmPlugin>()
         .AddSingleton<IConnectedIntegrationsPlugin, ConnectedIntegrationsPlugin>()
         .AddSingleton<IGrafanaPlugin, GrafanaPlugin>()
         .AddSingleton<IRecordActionsPlugin, RecordActionsPlugin>()
