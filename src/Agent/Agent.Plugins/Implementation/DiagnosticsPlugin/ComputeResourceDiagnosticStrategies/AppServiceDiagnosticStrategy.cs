@@ -20,7 +20,6 @@ internal sealed class AppServiceDiagnosticStrategy : ComputeResourceDiagnosticSt
         };
     }
 
-
     public override bool CanHandle(ComputeResourceInfo resourceInfo)
         => resourceInfo.ResourceType == ComputeResourceType.AppService;
 
@@ -29,13 +28,25 @@ internal sealed class AppServiceDiagnosticStrategy : ComputeResourceDiagnosticSt
         // Step 1: Take a full memory dump.
         string memoryDumpFile = Path.GetFileName(Path.GetTempFileName() + ".dmp");
         KuduManager kuduManager = await KuduManager.Initialize(resourceId, _armHelper);
+        int pid = await _armHelper.GetDefaultProcessIdForWebAppAsync(resourceId, kuduManager.OS, kuduManager.KuduHostName);
+
         if (kuduManager.OS == "Linux")
         {
-            throw new NotImplementedException("Currently this behavior isn't implemented for Linux");
+            string collectionResult = await kuduManager.ExecuteCommandAsync($"wget http://0.0.0.0:8181/api/processes/{pid}/dump?type=full -O {memoryDumpFile}", "/");
+
+            if (kuduManager.Is32Bit)
+            {
+                // TODO: Fill.
+                //await kuduManager.ExecuteCommandAsync("curl -X GET https://dotnetanalysis.blob.core.windows.net/win32/DotnetAnalyzer.exe -o DotnetAnalyzer.exe", "C://home//");
+            }
+
+            else
+            {
+                await kuduManager.ExecuteCommandAsync("curl -X GET https://dotnetanalysis.blob.core.windows.net/lin64/DotnetAnalyzer -o DotnetAnalyzer && chmod u+x ./DotnetAnalyzer", "/");
+            }
         }
 
         // Curl command on the machine to collect the dump.
-        int pid = await _armHelper.GetDefaultProcessIdForWebAppAsync(resourceId, kuduManager.OS, kuduManager.KuduHostName);
         string command = $"C://devtools//sysinternals//procdump.exe -ma {pid} -accepteula C://home//{memoryDumpFile}";
         string commandResult = await _armHelper.ExecuteKuduCommandAsync(kuduManager.KuduHostName, command, "C://home//");
 
@@ -80,16 +91,24 @@ internal sealed class AppServiceDiagnosticStrategy : ComputeResourceDiagnosticSt
         KuduManager kuduManager = await KuduManager.Initialize(resourceId, _armHelper);
         if (kuduManager.OS != "Linux")
         {
-        }
-
-        else
-        {
+            throw new ArgumentException("Not implemented for Windows yet.");
         }
 
         // Get the default Process ID for the web app.
         int pid = await _armHelper.GetDefaultProcessIdForWebAppAsync(resourceId, kuduManager.OS, kuduManager.KuduHostName);
 
-        // POST on the Kudu API to collect a CPU Trace. 
+        string collectionResult = await kuduManager.ExecuteCommandAsync("wget http://0.0.0.0:8181/api/processes/1012/profile/start?durationSeconds=10 -O trace.nettrace", "/");
+
+        if (kuduManager.Is32Bit)
+        {
+            await kuduManager.ExecuteCommandAsync("curl -X GET https://dotnetanalysis.blob.core.windows.net/win32/DotnetAnalyzer.exe -o DotnetAnalyzer.exe", "C://home//");
+        }
+
+        else
+        {
+            await kuduManager.ExecuteCommandAsync("curl -X GET https://dotnetanalysis.blob.core.windows.net/win64/DotnetAnalyzer.exe -o DotnetAnalyzer.exe", "C://home//");
+        }
+        // TODO: Invoke dotnet-analyzer analyze-cpu <>
 
         return null;
     }
