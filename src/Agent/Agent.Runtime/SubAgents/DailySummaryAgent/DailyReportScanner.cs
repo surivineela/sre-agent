@@ -8,9 +8,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
-using System.Threading;
 using Agent.Core.Configuration;
-using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
@@ -18,17 +16,10 @@ using Agent.Data.Repositories;
 using Agent.Logging;
 using Agent.Plugins;
 using Agent.Runtime.Services;
-using Azure.Core;
-using Azure.Identity;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using Microsoft.Graph.Models.Security;
-using Octokit;
-using static Agent.Runtime.SubAgents.DailyReportSummary.DailyReportScanner;
 using Thread = Agent.Core.Models.Api.v1.Thread;
-using System.Collections.Concurrent;
-using System.Linq;
 using Microsoft.Extensions.Configuration;
 using Agent.Data.DataModels;
 
@@ -63,6 +54,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
         private readonly IGithubIssuePlugin _githubIssuePlugin;
         private readonly IConfiguration _configuration;
         private readonly IAppHealthHistoryRepository _appHealthHistoryRepository;
+        private readonly CoreSettings _coreSettings;
 
         private readonly string DashboardScreenshotsFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DashboardScreenshots");
 
@@ -95,6 +87,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             IGithubIssuePlugin githubIssuePlugin,
             IConfiguration configuration,
             IAppHealthHistoryRepository appHealthHistoryRepository,
+            CoreSettings coreSettings,
             string mainDashboardFile = "Main-Dashboard.json",
             string puppeteerScreenshotApiUrl = "https://test-capp.ambitiouspond-10f27fe1.canadaeast.azurecontainerapps.io")
         {
@@ -137,33 +130,39 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             _githubIssuePlugin = githubIssuePlugin;
             _configuration = configuration;
             _appHealthHistoryRepository = appHealthHistoryRepository;
+            _coreSettings = coreSettings;
         }
 
         public async Task<Thread?> ScanAndGenerateReport(CancellationToken cancellationToken)
         {
-            // Check if a report agent is already running
-            var runningAgents = await _durableTaskClient.GetAllInstancesAsync(new OrchestrationQuery
+            if (!_coreSettings.UseAgentFramework)
             {
-                Statuses = new[] { OrchestrationRuntimeStatus.Running },
-                InstanceIdPrefix = DailyReportSummaryAgentFactory.OrchestrationInstanceIdPrefix
-            }).ToListAsync();
+                // Check if a report agent is already running
+                var runningAgents = await _durableTaskClient.GetAllInstancesAsync(new OrchestrationQuery
+                {
+                    Statuses = new[] { OrchestrationRuntimeStatus.Running },
+                    InstanceIdPrefix = DailyReportSummaryAgentFactory.OrchestrationInstanceIdPrefix
+                }).ToListAsync();
 
-            foreach (var agent in runningAgents)
-            {
-                await _durableTaskClient.TerminateInstanceAsync(agent.InstanceId);
+                foreach (var agent in runningAgents)
+                {
+                    await _durableTaskClient.TerminateInstanceAsync(agent.InstanceId);
+                }
+
+                runningAgents = await _durableTaskClient.GetAllInstancesAsync(new OrchestrationQuery
+                {
+                    Statuses = new[] { OrchestrationRuntimeStatus.Running },
+                    InstanceIdPrefix = DailyReportSummaryAgentFactory.OrchestrationInstanceIdPrefix
+                }).ToListAsync();
+
+                if (runningAgents.Count > 0)
+                {
+                    _logger.LogInternalInformation("Daily report summary agent already running, skipping this run.");
+                    return null;
+                }
             }
 
-            runningAgents = await _durableTaskClient.GetAllInstancesAsync(new OrchestrationQuery
-            {
-                Statuses = new[] { OrchestrationRuntimeStatus.Running },
-                InstanceIdPrefix = DailyReportSummaryAgentFactory.OrchestrationInstanceIdPrefix
-            }).ToListAsync();
-
-            if (runningAgents.Count > 0)
-            {
-                _logger.LogInternalInformation("Daily report summary agent already running, skipping this run.");
-                return null;
-            }
+            _logger.LogInternalInformation("Starting daily report generation...");
 
             // Check if we need to run the daily report (e.g., only during certain hours)
             var now = DateTime.UtcNow;
@@ -187,7 +186,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             string mainDashboardUrl = string.Empty;
 
             // only try to generate dashboard summary if grafana is enabled
-            if (!string.IsNullOrWhiteSpace(_dashboardSettings.GrafanaUrl) && !string.IsNullOrWhiteSpace(_dashboardSettings.GrafanaApiKey))
+            if (!string.IsNullOrWhiteSpace(_dashboardSettings.GrafanaUrl))
             {
                 try
                 {
@@ -202,6 +201,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             var suggestedActionsAndObservations = await GenerateSuggestedActionsAndOverallObservations(dashboardSummary, mainDashboardUrl, cveSummary, appGroupsHealthSummary, incidentsSummary);
 
             var overview = GenerateOverview(cveSummary, incidentsSummary, appGroupsHealthSummary);
+            _logger.LogInternalInformation("Overview generated successfully.");
 
             // Prepare the input for the agent
             var input = new DailyReportSummaryInput
@@ -231,6 +231,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                     new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
                 }
             });
+            _logger.LogInternalInformation("Daily report input JSON: {ReportJson}", report);
 
             (var thread, var agentContext) = await _agentInboundCommunicationService.CreateAgentThread(
                 $"Daily Resources Report - {dateFormatted}\n\n",
@@ -239,38 +240,57 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 ThreadSource.Agent,
                 isDailyReport: true);
 
-            // Start the agent orchestration
-            var instanceId = await _dailyReportSummaryAgentFactory.StartOrchestration(input, agentContext.ThreadId);
+            _logger.LogInternalInformation("Created thread for daily report: {ThreadId}", thread.Id);
 
-            _logger.LogInternalInformation("Started daily report generation with instance ID: {InstanceId}", instanceId);
+            if (_coreSettings.UseAgentFramework)
+            {
+                _logger.LogInternalInformation("Using Agent Framework to process daily report summary");
+                var message = new ThreadMessage(
+                    ThreadId: agentContext.ThreadId,
+                    AgentContextId: agentContext.Id,
+                    MessageId: Guid.NewGuid(),
+                    Message: "Summarize the report.",
+                    UserId: "",
+                    DisplayName: "",
+                    Timestamp: DateTime.UtcNow);
+                await _agentInboundCommunicationService.ProcessUserMessageAsync(message);
+                return thread;
+            }
+            else
+            {
+                // Start the agent orchestration
+                var instanceId = await _dailyReportSummaryAgentFactory.StartOrchestration(input, agentContext.ThreadId);
 
-            // Wait for completion or handle timeout
-            try
-            {
-                using (var timeoutCts = new CancellationTokenSource(TimeSpan.FromHours(1))) // 1 hour timeout
-                using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken))
-                {
-                    await _durableTaskClient.WaitForInstanceCompletionAsync(instanceId, linkedCts.Token);
-                    _logger.LogInternalInformation("Daily report generation completed successfully.");
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    _logger.LogInternalWarning("Daily report generation was cancelled.");
-                }
-                else
-                {
-                    _logger.LogInternalWarning("Daily report generation timed out.");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogInternalError(ex, "Error waiting for daily report generation: {Message}", ex.Message);
-            }
+                _logger.LogInternalInformation("Started daily report generation with instance ID: {InstanceId}", instanceId);
 
-            return thread;
+                // Wait for completion or handle timeout
+                try
+                {
+                    using (var timeoutCts = new CancellationTokenSource(TimeSpan.FromHours(1))) // 1 hour timeout
+                    using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken))
+                    {
+                        await _durableTaskClient.WaitForInstanceCompletionAsync(instanceId, linkedCts.Token);
+                        _logger.LogInternalInformation("Daily report generation completed successfully.");
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        _logger.LogInternalWarning("Daily report generation was cancelled.");
+                    }
+                    else
+                    {
+                        _logger.LogInternalWarning("Daily report generation timed out.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalError(ex, "Error waiting for daily report generation: {Message}", ex.Message);
+                }
+
+                return thread;
+            }
         }
 
         // Returns main dashboard url
@@ -1222,16 +1242,16 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                                 if (latestHealthInfo != null)
                                 {
                                     // Get health history from CosmosDB
-                                    try 
+                                    try
                                     {
                                         // Get the historical data document
                                         var historyDocument = await _appHealthHistoryRepository.GetAppHealthHistoryAsync(appId.Replace("_", "/"));
-                                        
+
                                         if (historyDocument != null)
                                         {
                                             // Create aggregated view based on stored history
                                             var aggregatedHealthInfo = AggregateHealthInfoFromHistory(historyDocument);
-                                            
+
                                             summary.Add(new AppGroupResourceInfo
                                             {
                                                 Name = appGroup["name"]?.ToString() ?? string.Empty,
@@ -1253,7 +1273,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                                     catch (Exception ex)
                                     {
                                         _logger.LogInternalError(ex, "Failed to retrieve app health history for {AppId}, using latest health info only", appId);
-                                        
+
                                         // Fall back to using the latest health info only
                                         summary.Add(new AppGroupResourceInfo
                                         {
@@ -1287,8 +1307,8 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             }
 
             var healthInfos = historyDocument.HistoryData
-                .Select(dp => new 
-                { 
+                .Select(dp => new
+                {
                     HealthState = dp.Health,
                     Availability = dp.Availability,
                     CpuUsage = dp.AvgCpuUsage,
