@@ -342,5 +342,20 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
 
         return agent;
     }
+
+    public List<Agent<TContext>> GetAllAgents()
+    {
+        return [.. _agents.Values];
+    }
+
+    public List<IPromptDescriptor> GetAllCommonPrompts()
+    {
+        return [.. _promptDescriptors.Values];
+    }
+
+    public List<IAgentDescriptor> GetAllAgentDescriptors()
+    {
+        return [.. _agentDescriptors.Values];
+    }
 }
 

@@ -161,6 +161,8 @@ tools:
   - ModifyContainerAppScaleRule
   - ListAvailableScalers
   - GetScalerDetails
+  - NotifyUser
 
 common_prompts:
   - ground_rail
+  - notify_user

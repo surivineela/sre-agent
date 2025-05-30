@@ -109,3 +109,6 @@ tools:
   - GetApplicationComponentsSummary
   - FindAllNetworkConnectedResources
   - NotifyUser
+
+common_prompts:
+  - notify_user
