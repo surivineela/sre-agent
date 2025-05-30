@@ -8,6 +8,8 @@ import { IBladeClosed, IBladeClosedResult, IOpenBlade, IOpenBladeRequest } from 
 import { ITelemetryInfo } from './Models/ITelemetryInfo';
 import { ITokenInfo } from './Models/ITokenInfo';
 
+export const defaultSreAgentEndpoint = '..';
+
 export default class AzPortalProxy {
     public shellSrc: string = '';
 
@@ -160,6 +162,7 @@ export default class AzPortalProxy {
                     effectiveLocale: envInfo.effectiveLocale,
                     resourceId: envInfo.resourceId,
                     armEndpoint: envInfo.armEndpoint,
+                    sreAgentEndpoint: envInfo.sreAgentEndpoint ?? defaultSreAgentEndpoint,
                 };
                 this.setEnvironmentInfo(AzPortalProxy.envInfo);
                 break;

@@ -163,5 +163,27 @@ Projects:
         {
             return _plugin.GetManagedEnvironmentAdminEvents(region, fromDate, toDate, environmentName, resourceGroupName, subscriptionId);
         }
+
+        [KernelFunction(KernelFunctionNames.ACA.GetManagedEnvironmentOperationErrors)]
+        [Description(
+        @"Retrieve the Azure Container Apps environment operation errors.
+        Projects:
+        - FirstSeen: Timestamp of the first occurrence of the error.
+        - LastSeen: Timestamp of the last occurrence of the error.
+        - count: The number of times the error has occurred.
+        - operationType: The type of operation that caused the error.
+        - operationEntityType: The type of entity that the operation was performed on.
+        - exception: The exception message associated with the error."
+        )]
+        public Task<string> GetManagedEnvironmentOperationErrors(
+            [Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed environment.")] string environmentName,
+            [Description("Name of the resource group.")] string resourceGroupName,
+            [Description("Azure subscription ID.")] string subscriptionId)
+        {
+            return _plugin.GetManagedEnvironmentOperationErrors(region, fromDate, toDate, environmentName, resourceGroupName, subscriptionId);
+        }
     }
 }

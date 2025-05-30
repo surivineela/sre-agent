@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { AzPortalContext } from '../AzPortalProxy/Providers/AzPortalProxyContext';
+import { EnvironmentContext } from '../AzPortalProxy/Providers/StartupInfoContext';
 import { KnowledgeGraphBuildStatus } from '../Contracts/Azure/SreAgent';
 import { getAgentHeaders } from '../Helpers/headers';
 
@@ -15,11 +16,12 @@ export const KnowledgeGraphBuildStatusContext = createContext<KnowledgeGraphBuil
 export const KnowledgeGraphBuildStatusProvider = ({ children }: { children?: ReactNode }) => {
     const [isKnowledgeGraphBuildCompleted, setIsKnowledgeraphBuildCompleted] = useState(true);
 
+    const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const { log } = useContext(AzPortalContext);
 
     const getProgress = async (): Promise<KnowledgeGraphBuildStatus | undefined> => {
         try {
-            const response = await axios.get(`../api/v1/graph/progress`, {
+            const response = await axios.get(`${sreAgentEndpoint}/api/v1/graph/progress`, {
                 headers: getAgentHeaders(),
             });
             return response.data;

@@ -5,45 +5,47 @@ import { memo, useCallback, useContext } from 'react';
 import { useIntl } from 'react-intl';
 import { ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { IThreadContentProps } from '../Contracts/Activities';
+import { AgentContext } from '../Contracts/Context';
 import { getExpandCollapseButtonStyles, ThreadContentStyles } from '../Styles/Activities.styles';
-import { AgentContext } from './Activities.ReactView';
 import ChatBox from './ChatBox';
 import ThreadDeleteAction from './ThreadDeleteAction';
 
 const expandCollapseButtonStyles = getExpandCollapseButtonStyles('right');
 
-export const ThreadContent = memo(({ thread, addThread, deleteThread, actionsCollapsed, expandActions }: IThreadContentProps) => {
-    const { threadContentAndActionKey } = useContext(AgentContext);
-    const intl = useIntl();
+export const ThreadContent = memo(
+    ({ thread, addThread, promoteThread, deleteThread, actionsCollapsed, expandActions }: IThreadContentProps) => {
+        const { threadContentAndActionKey } = useContext(AgentContext);
+        const intl = useIntl();
 
-    const handleThreadDelete = useCallback(() => {
-        if (thread) {
-            deleteThread(thread);
-        }
-    }, [thread, deleteThread]);
+        const handleThreadDelete = useCallback(() => {
+            if (thread) {
+                deleteThread(thread);
+            }
+        }, [thread, deleteThread]);
 
-    return (
-        <div className={ThreadContentStyles.root} key={threadContentAndActionKey}>
-            <div className={ThreadContentStyles.titleContainer}>
-                <Text as="h2" nowrap block className={ThreadContentStyles.title}>
-                    {thread?.title ?? intl.formatMessage(SreAgentResources.newThread)}
-                </Text>
-                {thread && <ThreadDeleteAction handleThreadDelete={handleThreadDelete} />}
-                {actionsCollapsed && (
-                    <div style={expandCollapseButtonStyles.container}>
-                        <Button
-                            style={expandCollapseButtonStyles.button}
-                            icon={<PanelRightExpandRegular />}
-                            onClick={expandActions}
-                            aria-label={intl.formatMessage(ActivitiesResources.showThreadActionsButtonText)}
-                            appearance="transparent"
-                        />
-                    </div>
-                )}
+        return (
+            <div className={ThreadContentStyles.root} key={threadContentAndActionKey}>
+                <div className={ThreadContentStyles.titleContainer}>
+                    <Text as="h2" nowrap block className={ThreadContentStyles.title}>
+                        {thread?.title ?? intl.formatMessage(SreAgentResources.newThread)}
+                    </Text>
+                    {thread && <ThreadDeleteAction handleThreadDelete={handleThreadDelete} />}
+                    {actionsCollapsed && (
+                        <div style={expandCollapseButtonStyles.container}>
+                            <Button
+                                style={expandCollapseButtonStyles.button}
+                                icon={<PanelRightExpandRegular />}
+                                onClick={expandActions}
+                                aria-label={intl.formatMessage(ActivitiesResources.showThreadActionsButtonText)}
+                                appearance="transparent"
+                            />
+                        </div>
+                    )}
+                </div>
+                <ChatBox threadId={thread?.id} addThread={addThread} promoteThread={promoteThread} threadSource={thread?.source} />
             </div>
-            <ChatBox threadId={thread?.id} addThread={addThread} threadSource={thread?.source} />
-        </div>
-    );
-});
+        );
+    }
+);
 
 ThreadContent.displayName = 'ThreadContent';

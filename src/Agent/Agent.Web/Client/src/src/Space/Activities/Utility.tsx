@@ -1,40 +1,46 @@
-import { Message, Thread } from '../../Common/Contracts/Azure/SreAgent';
+import { ThreadSeverity } from '../../Common/Clients/ThreadClient';
+import { Message, Thread, ThreadSource } from '../../Common/Contracts/Azure/SreAgent';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
+import { ThreadLoadingCounts } from '../Contracts/Activities';
+import { ThreadItemHeightInPx, ThreadItemPaddingTopBottomInPx } from '../Styles/Activities.styles';
+import { SelectedTimes } from './TimeDropdown';
 
+/**
+ * Add additional threads to the existing threads list and update existing threads if they have been modified.
+ * @param prevThreads existing threads sorted in descending order by modifiedTimestamp
+ * @param threads additional threads sorted in descending order by modifiedTimestamp
+ * @param reverse
+ * @returns
+ */
 export const processThreads = (prevThreads: Thread[], threads: Thread[], reverse: boolean) => {
-    const threadsToAdd: Thread[] = [];
-    const uniqueThreadIds = new Set<string>();
+    if (threads.length === 0) return prevThreads;
 
-    for (let i = 0; i < threads.length; i++) {
-        const thread = threads[i];
-        if (!prevThreads.some((t: Thread) => t.id === thread.id) && !uniqueThreadIds.has(thread.id)) {
-            threadsToAdd.push(thread);
-            uniqueThreadIds.add(thread.id);
+    const updatedExistingThreads = prevThreads;
+
+    const threadsMap: Map<string, Thread> = new Map();
+    threads.forEach(thread => threadsMap.set(thread.id, thread));
+
+    for (let i = 0; i < prevThreads.length; i++) {
+        const duplicatedThread = threadsMap.get(prevThreads[i].id);
+        if (duplicatedThread) {
+            if (duplicatedThread.modifiedTimestamp !== prevThreads[i].modifiedTimestamp) {
+                // Remove thread with outdated modifiedTimestamp out of the existing threads
+                updatedExistingThreads.splice(i, 1);
+            } else {
+                // Remove thread out of the threadsMap because the thread is already in the existing threads and has not been modified
+                threadsMap.delete(prevThreads[i].id);
+            }
         }
     }
 
+    const threadsToAdd: Thread[] = Array.from(threadsMap.values());
+    threadsToAdd.sort((a, b) => getSafeDateTime(b.modifiedTimestamp).getTime() - getSafeDateTime(a.modifiedTimestamp).getTime());
+
     if (threadsToAdd.length === 0) {
-        return prevThreads;
+        return updatedExistingThreads;
     }
 
-    return reverse ? [...threadsToAdd, ...prevThreads] : [...prevThreads, ...threadsToAdd];
-};
-
-export const noGapBetweenNewThreadsAndExistingThreads = (threads: Thread[], currentLatestThread?: Thread) => {
-    if (threads.length === 0 || !currentLatestThread) {
-        return true;
-    }
-
-    return (
-        getSafeDateTime(threads[0].createdTimestamp).getTime() <= getSafeDateTime(currentLatestThread.createdTimestamp).getTime() ||
-        threads.some(thread => thread.id === currentLatestThread.id)
-    );
-};
-
-export const getLatestThread = (threads?: Thread[]) => {
-    if (threads && threads.length > 0) {
-        return threads[0];
-    }
+    return reverse ? [...threadsToAdd, ...updatedExistingThreads] : [...updatedExistingThreads, ...threadsToAdd];
 };
 
 /**
@@ -103,4 +109,59 @@ export const shouldGroupWithPreviousMessage = (currentMessage?: Message, previou
         currentMessage.author.userId === previousMessage.author.userId &&
         getSafeDateTime(currentMessage.timeStamp).getTime() - getSafeDateTime(previousMessage.timeStamp).getTime() <= 5 * 60 * 1000
     );
+};
+
+export const getUTCTimestampBasedOnSelectedThreadCutoffTime = (selectedCutOffModifiedTime: SelectedTimes): string => {
+    const days = selectedCutOffModifiedTime === SelectedTimes.OneDay ? 1 : selectedCutOffModifiedTime === SelectedTimes.SevenDays ? 7 : 30;
+    const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+    return cutoff.toISOString();
+};
+
+export const getFilteredThreads = (
+    threads: Thread[],
+    filterOptions: {
+        selectedCutoffTime: string;
+        threadSeverity?: ThreadSeverity;
+        searchText?: string;
+        source?: ThreadSource;
+    }
+): Thread[] => {
+    const { selectedCutoffTime, threadSeverity, searchText, source } = filterOptions;
+
+    return threads.filter(thread => {
+        let match = getSafeDateTime(thread.modifiedTimestamp).getTime() >= getSafeDateTime(selectedCutoffTime).getTime();
+        if (searchText) {
+            match = thread.title.toLowerCase().includes(searchText.toLocaleLowerCase());
+        }
+        if (threadSeverity) {
+            match =
+                threadSeverity === ThreadSeverity.Critical
+                    ? !!thread.status?.actionsStatus?.hasCriticalActions
+                    : !!thread.status?.actionsStatus?.hasWarningActions;
+        }
+        if (source === ThreadSource.incident) {
+            match = thread.source === ThreadSource.incident;
+        }
+        return match;
+    });
+};
+
+/**
+ * Return 1.5 times of the number of threads that can fill the threads list div to make sure the div is overflowed. Return 5 if the result is less than 5.
+ * @param threadsListContainerHeight
+ * @param numberOfThreadsInDiv the existing number of threads in the div
+ * @returns
+ */
+export const getNumberOfThreadsToOverflowThreadsListDiv = (
+    threadsListDivHeightInPx: number | undefined,
+    numberOfThreadsInDiv: number
+): number => {
+    if (threadsListDivHeightInPx === undefined) return ThreadLoadingCounts.default;
+
+    const threadItemHeightInPx = ThreadItemHeightInPx + ThreadItemPaddingTopBottomInPx * 2;
+
+    const numberOfThreadsToLoad = Math.ceil(1.5 * (threadsListDivHeightInPx / threadItemHeightInPx)) - numberOfThreadsInDiv;
+
+    return Math.max(numberOfThreadsToLoad, ThreadLoadingCounts.default);
 };

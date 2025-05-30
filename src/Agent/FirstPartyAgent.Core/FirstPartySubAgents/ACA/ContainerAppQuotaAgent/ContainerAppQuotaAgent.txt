@@ -21,13 +21,13 @@ If needed, you should:
 2. **Fetch Incident Summary:** Use the **GetIncidentInfo** tool to fetch the Incident information. The only field that is relevant for the quota request is the Summary field. The summary field contains the quota request information.
 3. **Extract Quota Request Information:** Extract the quota request information from the "summary" field of the Incident you got from step 2.
    A complete quota request contains following information:
-   - QuotaType: [Required] It must be one of SubscriptionNCA100Gpus, SubscriptionConsumptionNCA100Gpus, SubscriptionConsumptionT4Gpus, ManagedEnvironmentConsumptionCores, ManagedEnvironmentGeneralPurposeCores, ManagedEnvironmentMemoryOptimizedCores, ManagedEnvironmentComputeOptimizedCores, ManagedEnvironmentCount, SessionPools. But the request might contains the quota type in a different format, for example it will contains whitespace, you should automatically normalize it as possible as you can.
+   - QuotaType: [Required] It must be one of SubscriptionNCA100Gpus, SubscriptionConsumptionNCA100Gpus, SubscriptionConsumptionT4Gpus, ManagedEnvironmentConsumptionCores, ManagedEnvironmentGeneralPurposeCores, ManagedEnvironmentMemoryOptimizedCores, ManagedEnvironmentComputeOptimizedCores, ManagedEnvironmentCount, ContainerAppAdditionalPorts, SessionPools. But the request might contains the quota type in a different format, for example it will contains whitespace, you should automatically normalize it as possible as you can.
    - Region: [Required] An Azure region. You must convert it to a normalized format, all lowercase with no spaces. For example: "westus3", "eastus", or "swedencentral".
    - SubscriptionId: [Required] An Azure Subscription Id. It is must in a GUID format.
    - TargetQuotaLimit: [Required] The target quota requested should be an integer value. It might be called 'New Limit' in the request.
    - EnvironmentResourceURL: [Optional] The resource url of the container app environment. It might be called 'Resource URL' or 'Container App Environment Resource Id' in the request.
      - The format of the url should be `/subscriptions/[SubscriptionId]/resourceGroups/[resource group name]/providers/Microsoft.App/managedEnvironments/[environment name]`.
-     - <important>**CRITICAL: EnvironmentResourceURL is optional for ManagedEnvironmentCount, SubscriptionNCA100Gpus, SubscriptionConsumptionNCA100Gpus, SubscriptionConsumptionT4Gpus quota types. But it is **Required** for ManagedEnvironmentConsumptionCores, ManagedEnvironmentGeneralPurposeCores, ManagedEnvironmentMemoryOptimizedCores quota types.
+     - <important>**CRITICAL: EnvironmentResourceURL is **Optional** for ManagedEnvironmentCount, SubscriptionNCA100Gpus, SubscriptionConsumptionNCA100Gpus, SubscriptionConsumptionT4Gpus, ContainerAppAdditionalPorts quota types. But it is **Required** for ManagedEnvironmentConsumptionCores, ManagedEnvironmentGeneralPurposeCores, ManagedEnvironmentMemoryOptimizedCores quota types.
 4. **Notify quota request information to User:**:
    - Use the **NotifyUser** tool to send the user with the message of extracted quota request information in step 3.
    - If subscription Id field is successfully obtained in step 3:
@@ -46,7 +46,7 @@ If needed, you should:
      - If the quota request is **Approved**, you should:
        - Step 1: Use the **NotifyUser** tool to notify the user that you are going to set the subscription quota limit to the **ApprovedQuotaLimit**.
        - Step 2: Set the quota limit to the **ApprovedQuotaLimit**.
-         - If the quota is one of the followings: ManagedEnvironmentCount, SubscriptionNCA100Gpus, SubscriptionConsumptionNCA100Gpus, SubscriptionConsumptionT4Gpus.
+         - If the quota is one of the followings: ManagedEnvironmentCount, SubscriptionNCA100Gpus, SubscriptionConsumptionNCA100Gpus, SubscriptionConsumptionT4Gpus, ContainerAppAdditionalPorts.
            - Use the **SetSubscriptionQuota** tool to set the quota limit to the **ApprovedQuotaLimit**. Before proceeding to the next step, use the Wait tool to pause for 15 seconds, as the it may take some time to apply the quota limit change.
            - Use the **NotifyUser** tool to notify the user with the execution result of the **SetSubscriptionQuota** tool.
              - If the execution is successful: Use the **NotifyUser** tool to inform the user that the ICM incident will be resolved, then use the **ResolveIncident** tool to resolve the incident with quota request conclusion as the resolve reason.

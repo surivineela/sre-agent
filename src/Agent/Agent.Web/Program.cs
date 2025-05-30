@@ -20,6 +20,7 @@ using Agent.Logging;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Implementation;
+using Agent.Plugins.Implementation.DiagnosticsPlugin;
 using Agent.Prometheus.Services;
 using Agent.Runtime;
 using Agent.Runtime.Communication;
@@ -56,6 +57,7 @@ using Agent.Runtime.SubAgents.VmRdpInvestigatorAgent;
 using Agent.Runtime.SubAgents.WebAppDownAgent;
 using Agent.Runtime.TeamsChatServices;
 using Agent.Web.Services;
+using Agent.Web.WebSocket;
 using Azure.Monitor.OpenTelemetry.Exporter;
 using FirstPartyAgent.Core.FirstPartyAgents;
 using Microsoft.Bot.Builder;
@@ -67,11 +69,13 @@ using Microsoft.DurableTask.Client.AzureManaged;
 using Microsoft.DurableTask.Worker;
 using Microsoft.DurableTask.Worker.AzureManaged;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Azure;
 using Microsoft.SemanticKernel;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using WebSocketSharp.Server;
 
 
 var isFirstAgent = (Environment.GetEnvironmentVariable("IS_FIRST_PARTY") ?? String.Empty).Trim().ToLower() switch
@@ -181,6 +185,7 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
         .AddTransient<CpuAnalysisPluginDefinition>()
         .AddTransient<AppCodeAnalysisPluginDefinition>()
         .AddTransient<DotnetAnalysisPluginDefinition>()
+        .AddTransient<DiagnosticsPluginDefinition>()
         .AddTransient<RoleAssignmentPluginDefinition>()
         .AddTransient<IncidentPluginDefinition>()
         .AddTransient<FunctionAppExecutionFailuresPluginDefinition>()
@@ -279,6 +284,9 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
                 commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonPrompts")
             );
         })
+        .AddSingleton<IDiagnosticsPlugin, DiagnosticsPlugin>()
+        .AddSingleton<IMetaAgentFunctionAppDiagnosticsPlugin, FunctionAppDiagnosticsPlugin>()
+        .AddSingleton<ISearchPlugin, SearchPlugin>()
 
         // Register the communication activities
         .AddSingleton<UpdateThreadWithAgentMessageActivity>()
@@ -316,12 +324,14 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
     {
         builder.Services.AddSingleton<IAgentsFactory, FirstPartyAgentsFactory>();
         builder.Services.AddSingleton<IToolsRepository, FirstPartyToolsRepository>();
+        builder.Services.AddSingleton<ITitleGenerationService, FirstPartyTitleGenerationService>();
         builder.RegisterFirstPartySubAgentsDependencies();
     }
     else
     {
         builder.Services.AddSingleton<IAgentsFactory, ThirdPartyAgentsFactory>();
         builder.Services.AddSingleton<IToolsRepository, ToolsRepository>();
+        builder.Services.AddSingleton<ITitleGenerationService, TitleGenerationService>();
     }
 
     // Register all subagent factories that derive from the shared impl
@@ -457,6 +467,9 @@ builder.Services.AddServerSideBlazor();
 // Add GraphService registration
 builder.Services.AddSingleton<IGraphService, GraphService>();
 
+// Add Websocket service registration
+builder.Services.AddSingleton<IAsyncEventService, WebSocketEventService>();
+
 var app = builder.Build();
 
 var metricsService = app.Services.GetRequiredService<IGremlinMetricsService>();
@@ -493,6 +506,15 @@ var azureSettings = builder.Configuration.GetSection("AppSettings:Core:Azure").G
 var loggingSettings = builder.Configuration.GetSection("Logging").Get<LoggingSettings>();
 
 await app.Services.CreateCosmosContainerIfNotExists(builder.Configuration);
+
+// Add WebSocket, default 7024 due to TcpStream conflict with HTTP on 7023
+var ws = new WebSocketServer(builder.Configuration.GetValue<string>("AppSettings:WebSocketEndpoint") ?? "ws://localhost:7024");
+var websocketService = (WebSocketEventService) app.Services.GetRequiredService<IAsyncEventService>();
+ws.AddWebSocketService<WebSocketEventService>("/ws", () =>
+{
+    return websocketService;
+});
+ws.Start();
 
 app.Run();
 

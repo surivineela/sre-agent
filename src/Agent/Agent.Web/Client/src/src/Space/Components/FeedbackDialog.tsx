@@ -1,29 +1,10 @@
 import { Button, Dialog, DialogActions, DialogBody, DialogContent, DialogSurface, DialogTitle, Textarea } from '@fluentui/react-components';
 import axios from 'axios';
-import { useCallback, useState } from 'react';
+import { useCallback, useContext, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { FeedbackResources, SreAgentResources } from '../../Strings/SREAgentResources';
-
-const sendMessageFeedback = async (threadId: string, isPositive: boolean, feedbackText: string) => {
-    try {
-        const url = `../api/v1/threads/${threadId}/feedbacks`;
-        await axios.post(
-            url,
-            {
-                isPositive: isPositive,
-                feedbackText: feedbackText,
-            },
-            {
-                headers: getAgentHeaders(),
-            }
-        );
-    } catch (error) {
-        // ToDo: handle error
-        console.error('Failed to send feedback:', error);
-        return undefined;
-    }
-};
 
 interface FeedbackDialogProps {
     isOpen: boolean;
@@ -36,16 +17,40 @@ export const FeedbackDialog = (props: FeedbackDialogProps) => {
     const { isOpen, setIsOpen, threadId, isPositiveFeedback } = props;
 
     const intl = useIntl();
+    const { sreAgentEndpoint } = useContext(EnvironmentContext);
 
     const [feedbackText, setFeedbackText] = useState('');
     // const [isOkToContact, setIsOkToContact] = useState(false);
+
+    const sendMessageFeedback = useCallback(
+        async (threadId: string, isPositive: boolean, feedbackText: string) => {
+            try {
+                const url = `${sreAgentEndpoint}/api/v1/threads/${threadId}/feedbacks`;
+                await axios.post(
+                    url,
+                    {
+                        isPositive: isPositive,
+                        feedbackText: feedbackText,
+                    },
+                    {
+                        headers: getAgentHeaders(),
+                    }
+                );
+            } catch (error) {
+                // ToDo: handle error
+                console.error('Failed to send feedback:', error);
+                return undefined;
+            }
+        },
+        [sreAgentEndpoint]
+    );
 
     const handleFeedbackSubmit = useCallback(async () => {
         await sendMessageFeedback(threadId, isPositiveFeedback!, feedbackText);
 
         setIsOpen(false);
         setFeedbackText('');
-    }, [threadId, isPositiveFeedback, setIsOpen, feedbackText]);
+    }, [threadId, isPositiveFeedback, setIsOpen, feedbackText, sendMessageFeedback]);
 
     return (
         <Dialog open={isOpen} onOpenChange={(_e, data) => setIsOpen(data.open)}>

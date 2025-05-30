@@ -4,6 +4,9 @@ import { IStyle, mergeStyleSets } from '@fluentui/react/lib/Styling';
 import { useTheme } from '@fluentui/react/lib/Theme';
 import { CSSProperties } from 'react';
 
+export const ThreadItemHeightInPx = 40;
+export const ThreadItemPaddingTopBottomInPx = 10;
+
 export const activitiesStylesRoot: CSSProperties = {
     display: 'flex',
     justifyContent: 'flex-start',
@@ -157,12 +160,42 @@ export const useChatInputStyles = makeStyles({
     },
     footer: {
         display: 'flex',
-        justifyContent: 'flex-end',
+        justifyContent: 'space-between',
+        alignItems: 'center',
     },
     chatStatement: {
         color: tokens.colorNeutralForeground3,
         maxWidth: textFieldMaxWidth,
         margin: 'auto',
+    },
+    popoverSurface: {
+        width: '280px',
+        padding: '10px',
+        display: 'flex',
+        flexDirection: 'column',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+    },
+    promptItem: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        cursor: 'pointer',
+        padding: '4px 0',
+        fontSize: '13px',
+    },
+    sectionHeader: {
+        fontWeight: 500,
+        fontSize: '13px',
+        marginBottom: '4px',
+        paddingLeft: '2px',
+    },
+    sectionDivider: {
+        margin: '8px 0px',
+        borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
+    },
+    lightbulbIcon: {
+        fontSize: '16px',
+        flexShrink: 0,
     },
 });
 
@@ -214,6 +247,11 @@ export const useThreadMenuStyle = (collapsed?: boolean) => {
         paddingLeft: '10px',
     };
 
+    const threadListContainer: IStyle = {
+        maxWidth: '100%',
+        padding: '0px 10px',
+    };
+
     const threadList: IStyle = {
         position: 'absolute',
         height: 'calc(100vh - 278px)',
@@ -222,9 +260,10 @@ export const useThreadMenuStyle = (collapsed?: boolean) => {
     };
 
     const threadItem: IStyle = {
-        padding: '10px 0px',
+        padding: `${ThreadItemPaddingTopBottomInPx}px 0px`,
         paddingLeft: '10px',
         cursor: 'pointer',
+        height: `${ThreadItemHeightInPx}px`,
     };
 
     const activeThreadItem: IStyle = {
@@ -252,6 +291,7 @@ export const useThreadMenuStyle = (collapsed?: boolean) => {
 
     return mergeStyleSets({
         root,
+        threadListContainer,
         threadList,
         threadItem,
         activeThreadItem,
@@ -348,6 +388,10 @@ export const shimmerStyle: CSSProperties = {
     maxWidth: '100%',
     paddingLeft: '10px',
     paddingRight: '10px',
+};
+
+export const skeletonStyle: CSSProperties = {
+    paddingLeft: '10px',
 };
 
 export const nameAndTimestampContainerStyle: CSSProperties = {

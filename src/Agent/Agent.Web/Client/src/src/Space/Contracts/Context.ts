@@ -1,4 +1,5 @@
 import { createContext } from 'react';
+import { AgentContextProps } from './Activities';
 
 type SreAgentContextProps = {
     grafana: {
@@ -20,4 +21,9 @@ export const SreAgentContext = createContext<SreAgentContextProps>({
         setIsGrafanaUpdating: () => {},
         setDeploymentId: () => {},
     },
+});
+
+export const AgentContext = createContext<AgentContextProps>({
+    threadContentAndActionKey: '',
+    activeThreadId: '',
 });

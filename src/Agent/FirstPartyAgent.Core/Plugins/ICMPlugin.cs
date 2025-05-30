@@ -408,6 +408,20 @@ namespace FirstPartyAgent.Core.Plugins
                 : await _icmApiClient.AddTagToIncident(incidentId, tag);
         }
 
+        [KernelFunction("icm_add_keyword")]
+        [Description("Add a keyword to an ICM incident")]
+        public async Task<string> AddKeywordToIncident(
+            [Description("Id of the incident")] string incidentId,
+            [Description("Keyword to add")] string keyword,
+            Kernel kernel)
+        {
+            var logMessage = $"[icm_add_keyword][{DateTime.UtcNow}] Invoked with incidentId {incidentId}, keyword: {keyword}";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
+            return _icmWorkflowClient.IsEnabled()
+                ? await _icmWorkflowClient.AddKeywordToIncident(incidentId, keyword)
+                : await _icmApiClient.AddKeywordToIncident(incidentId, keyword);
+        }
+
         // acknowledge_icm_incident using ICM API
         [KernelFunction("acknowledge_icm_incident")]
         [Description("Acknowledges an ICM incident")]
@@ -424,6 +438,30 @@ namespace FirstPartyAgent.Core.Plugins
             var result = await _icmApiClient.AcknowledgeIncidentAsync(incidentId);
             await UpdateAgentStatus(incidentId, AgentStatus.Acknowledged, kernel);
             return result;
+        }
+
+        [KernelFunction("get_incident_repair_items")]
+        [Description("Get repair items associated with an ICM incident")]
+        public async Task<List<IncidentRepairItem>> GetIncidentRepairItems(
+            [Description("Incident ID")] long incidentId,
+            Kernel kernel)
+        {
+            var logMessage = $"[get_incident_repair_items][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
+            if (!_icmApiClient.IsEnabled())
+            {
+                return new List<IncidentRepairItem>()
+                {
+                    new IncidentRepairItem
+                    {
+                       Id = -1,
+                       Title = "ICM API not enabled. No repair items can be fetched.",
+                    }
+                };
+            }
+
+            var repairItems = await _icmApiClient.GetIncidentRepairItemsAsync(incidentId);
+            return repairItems;
         }
 
         /// <summary>

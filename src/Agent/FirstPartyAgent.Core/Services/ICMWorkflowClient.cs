@@ -6,9 +6,13 @@ using System.ComponentModel;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using Agent.Core.Helpers;
+using Azure.Core;
+using Azure.Identity;
 using FirstPartyAgent.Core.Configuration;
+using FirstPartyAgent.Core.Extensions;
 using FirstPartyAgent.Core.Models;
 using FirstPartyAgent.Models;
+using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -87,6 +91,35 @@ namespace FirstPartyAgent.Core.Services
                         Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
                     };
                     _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_icmWorkflowSettings.UserToken}");
+                }
+                else if ((!string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateSubjectName) || !string.IsNullOrEmpty(_icmWorkflowSettings.CertificateKeyVaultSecretName))
+                        && (!string.IsNullOrWhiteSpace(KeyVaultConfigurationExtension.GetPlatformKeyVaultSettingFromEnvironment("KeyVaultUri"))
+                            || !string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateKeyVaultUri)))
+                {
+                    string certKvSecretName = !string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateSubjectName)
+                                             ? _icmWorkflowSettings.CertificateSubjectName
+                                             : _icmWorkflowSettings.CertificateKeyVaultSecretName;
+
+                    string keyVaultUri = !string.IsNullOrWhiteSpace(KeyVaultConfigurationExtension.GetPlatformKeyVaultSettingFromEnvironment("KeyVaultUri"))
+                                            ? KeyVaultConfigurationExtension.GetPlatformKeyVaultSettingFromEnvironment("KeyVaultUri")
+                                            : _icmWorkflowSettings.CertificateKeyVaultUri;
+
+                    string certMsi = KeyVaultConfigurationExtension.GetPlatformKeyVaultSettingFromEnvironment("Identity");
+                    if (string.IsNullOrWhiteSpace(KeyVaultConfigurationExtension.GetPlatformKeyVaultSettingFromEnvironment("KeyVaultUri")))
+                    {
+                        certMsi = _icmWorkflowSettings.ManagedIdentityClientId ?? string.Empty;
+                    }
+
+                    var certificate = CertLoader.LoadCertFromKeyVault(keyVaultUri, certKvSecretName, certMsi, null, _logger);
+
+                    var handler = new HttpClientHandler();
+                    handler.ClientCertificates.Add(certificate);
+                    _logger.LogInformation("Successfully loaded Cert from keyvault for ICMWorkflowClient.");
+                    _httpClient = new HttpClient(handler)
+                    {
+                        Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
+                    };
+
                 }
                 else if (!string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateKeyVaultUri) && !string.IsNullOrEmpty(_icmWorkflowSettings.CertificateKeyVaultSecretName))
                 {
@@ -357,6 +390,26 @@ namespace FirstPartyAgent.Core.Services
             else
             {
                 string errorMessage = $"Failed to add tag to incident incident for incidentId: {incidentId}";
+                return errorMessage;
+            }
+        }
+
+        public async Task<string> AddKeywordToIncident(string incidentId, string keyword)
+        {
+            if (_icmWorkflowSettings.ReadOnly)
+            {
+                return "Success. ICM Plugin is in ReadOnly mode.";
+            }
+            var payload = JsonConvert.SerializeObject(new { incidentId, keyword });
+            var response = await SendICMWorkflowRequest(_icmWorkflowSettings.AddIncidentKeywordsWorkflowName, payload);
+            if (response.IsSuccessStatusCode)
+            {
+                return "Success";
+            }
+            else
+            {
+                string errorMessage = $"Failed to add keyword to incident for incidentId: {incidentId}";
+                _logger.LogInformation(errorMessage);
                 return errorMessage;
             }
         }
@@ -827,6 +880,9 @@ Incidents
         public Task<string> AddTagToIncident(string incidentId, string tag) =>
             Task.FromResult("ICM Plugin is disabled");
 
+        public Task<string> AddKeywordToIncident(string incidentId, string keyword) =>
+            Task.FromResult("ICM Plugin is disabled");
+
         public Task<string> MitigateIncidentAsync(string incidentId, string discussionEntry) =>
             Task.FromResult("ICM Plugin is disabled");
 
@@ -884,6 +940,7 @@ Incidents
         Task<List<DiscussionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId, DateTimeOffset? queryFrom = null);
         Task<string> TransferIncidentAsync(string incidentId, string discussionEntry, string tenantName, string owningTeam);
         Task<string> AddTagToIncident(string incidentId, string tag);
+        Task<string> AddKeywordToIncident(string incidentId, string keyword);
         Task<string> MitigateIncidentAsync(string incidentId, string discussionEntry);
         Task<List<IncidentAdvancedSearchResultItem>> SearchIncidentsWithParametersAsync(
             int lookbackPeriodInDays,

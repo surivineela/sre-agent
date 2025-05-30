@@ -1,7 +1,7 @@
 import axios, { AxiosRequestConfig, Method } from "axios";
-import { AgentDeployment, AlertInfo, AlertStreamPostBody, DeployAgentPostBody, GenerateInstructionsRequest, GenerateInstructionsResponse, IcmIncident, IcmTeamInfo, Location, ResourceGroup, Subscription, TeamConfig } from "../Models/Response";
+import { AgentDeployment, AlertInfo, AlertStreamPostBody, ArmListResponse, DeployAgentPostBody, GenerateInstructionsRequest, GenerateInstructionsResponse, IcmIncident, IcmTeamInfo, Location, ResourceGroup, Subscription, TeamConfig } from "../Models/Response";
 import { ICMAlertConfig } from "../Models/ICMAlertConfig";
-import { getAgentHeaders } from "../Helpers/Headers";
+import { getAgentHeaders, getArmHeaders } from "../Helpers/Headers";
 
 
 const makeRequest = async<T>(apiPath: string, method: Method, data: any = null): Promise<T | null> => {
@@ -17,6 +17,18 @@ const makeRequest = async<T>(apiPath: string, method: Method, data: any = null):
         url: url,
         data: data,
         headers: getAgentHeaders(),
+    };
+    const response = await axios.request(request);
+    return response.data;
+}
+
+const makeArmRequest = async<T>(url: string, method: Method, data: any = null): Promise<T | null> => {
+
+    const request: AxiosRequestConfig = {
+        method: method,
+        url: url,
+        data: data,
+        headers: getArmHeaders(),
     };
     const response = await axios.request(request);
     return response.data;
@@ -48,7 +60,7 @@ export const getLoopAlertInfo = async (loopId: string) => {
     return await get<AlertInfo[]>(`api/icm/getLoopAlerts/${loopId}`);
 }
 
-export const getLoopAlertConfigs = async (loopId?: string) => {
+export const getLoopAlertConfigs = async (loopId?: number) => {
     const url = loopId ? `api/icm/getLoopAlertConfigs/${loopId}` : 'api/icm/getLoopAlertConfigs';
     return await get<ICMAlertConfig[]>(url);
 }
@@ -82,17 +94,32 @@ export const saveGenevaConfig = async (config: any) => {
     return await post(`api/icm/saveGenevaConfig`, config);
 }
 
-// New methods for deploy agent feature
-export const getSubscriptions = async () => {
-    return await get<Subscription[]>('api/icm/subscriptions');
+// New methods for deploy agent feature - Mock implementations
+export const getSubscriptions = async (): Promise<Subscription[]> => {
+    //https://management.azure.com/subscriptions?api-version=2020-01-01
+    const response = await makeArmRequest<ArmListResponse<Subscription>>(
+        'https://management.azure.com/subscriptions?api-version=2020-01-01', 
+        'GET'
+    );
+    return response?.value || [];
 }
 
-export const getResourceGroups = async (subscriptionId: string) => {
-    return await get<ResourceGroup[]>(`api/icm/subscriptions/${subscriptionId}/resourceGroups`);
+export const getResourceGroups = async (subscriptionId: string): Promise<ResourceGroup[]> => {
+    // https://management.azure.com/subscriptions/{subscriptionId}/resourcegroups?api-version=2021-04-01
+    const response = await makeArmRequest<ArmListResponse<ResourceGroup>>(
+        `https://management.azure.com/subscriptions/${subscriptionId}/resourcegroups?api-version=2021-04-01`,
+        'GET'
+    );
+    return response?.value || [];
 }
 
-export const getLocations = async (subscriptionId: string) => {
-    return await get<Location[]>(`api/icm/subscriptions/${subscriptionId}/locations`);
+export const getLocations = async (subscriptionId: string): Promise<Location[]> => {
+    // https://management.azure.com/subscriptions/{subscriptionId}/locations?api-version=2020-01-01
+    const response = await makeArmRequest<ArmListResponse<Location>>(
+        `https://management.azure.com/subscriptions/${subscriptionId}/locations?api-version=2020-01-01`,
+        'GET'
+    );
+    return response?.value || [];
 }
 
 export const getAgentDeployments = async (loopId: number) => {
@@ -123,6 +150,10 @@ export const getIncidents = async (teamId: number, title: string, numOfDays: num
     return await get<IcmIncident[]>(`api/icm/getIncidents?loopId=${teamId}&numOfDays=${numOfDays}&title=${title}`);
 }
 
+export const getDefaultIcmTeam = async () => {
+    return await get<IcmTeamInfo>('api/icm/defaultIcmTeam');
+}
+
 export const generateInstructions = async (request: GenerateInstructionsRequest) => {
     return await post<GenerateInstructionsResponse>('api/icm/generateInstructions', request);
     // return await generateInstructionsMock(request);
@@ -136,4 +167,22 @@ export const getRequestForAlertStream = (postBody: AlertStreamPostBody): AxiosRe
         data: postBody,
         headers: getAgentHeaders(),
     };
+}
+
+export const listAllContainers = async () => {
+    return await get<string[]>('api/config/containers');
+}
+
+export const getAllDocumentIds = async (containerName: string) => {
+    return await get<string[]>(`api/config/containers/${containerName}/documents`);
+}
+
+export const getDocumentById = async (containerName: string, documentId: string) => {
+    // Expecting a JSON string as response, so using 'string' as the type.
+    return await get<any>(`api/config/containers/${containerName}/documents/${documentId}`);
+}
+
+export const upsertDocument = async (containerName: string, documentJson: string) => {
+    // Sending a JSON string and expecting a JSON string as response.
+    return await post<string>(`api/config/containers/${containerName}/documents`, documentJson);
 }
