@@ -100,6 +100,7 @@ namespace FirstPartyAgent.Constants
             public const string GetMemoryPressureOnFluentbit = "get_memory_pressure_on_fluentbit";
             public const string GetFluentbitOutputCount = "get_fluentbit_output_count";
             public const string GetFluentbitBufferPressure = "get_fluentbit_buffer_pressure";
+            public const string GetFluentbitOutputErrors = "get_fluentbit_output_errors";
         }
 
         public static class Kusto

@@ -280,5 +280,23 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
                 0);
         }
 
+        [KernelFunction(KernelFunctionNames.ACA.GetFluentbitOutputErrors)]
+        [Description(
+            @"Get any output errors faced by Fluentbit for the customer's container app or job in the managed Kubernetes cluster.
+            What this metric measures: The query calculates the total output errors for the customer's container app or job experienced by fluentbit.
+            When it is applicable: Existence of this metric indicates that fluentbit is having issues in processing the output. Manual investigation is required."
+        )]
+        public Task<string> GetFluentbitOutputErrors(
+            [Description("Azure region in lower case. example: 'westeurope'")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed cluster.")] string managedClusterName)
+        {
+            return _plugin.GetFluentbitOutputErrors(
+                region.NormalizeLocation(),
+                fromDate,
+                toDate,
+                managedClusterName);
+        }
     }
 }

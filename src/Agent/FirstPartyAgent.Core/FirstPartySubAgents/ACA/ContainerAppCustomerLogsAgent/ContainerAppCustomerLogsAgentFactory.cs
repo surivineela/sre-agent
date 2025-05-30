@@ -56,6 +56,7 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCustomerLogsA
             toolSignatures.Add(_toolsRegistry.GetSignature(() => logsMetricsPluginDefinition.GetMemoryPressureOnFluentbit));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => logsMetricsPluginDefinition.GetFluentbitOutputCount));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => logsMetricsPluginDefinition.GetFluentbitBufferPressure));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => logsMetricsPluginDefinition.GetFluentbitOutputErrors));
 
 
             var envoyPluginDefinition = new ContainerAppEnvoyPluginDefinition(envoyPlugin);

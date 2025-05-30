@@ -114,4 +114,16 @@ public class ContainerAppCustomerLogsPlugin : IContainerAppCustomerLogsPlugin
             { "containerAppOrJobName", containerAppOrJobName }
         });
     }
+
+    public Task<string> GetFluentbitOutputErrors(string region, DateTime fromDate, DateTime toDate, string managedClusterName)
+    {
+        return _kustoPlugin.ExecuteLocalFunctionAsync("GetFluentbitOutputErrorsForApp", region,
+        new Dictionary<string, string> {
+            { "region", region.ToString() },
+            { "fromDate", fromDate.ToString() },
+            { "toDate", toDate.ToString() },
+            { "managedClusterName", managedClusterName },
+            { "metricName", "fluentbit_output_errors_total" }
+        });
+    }
 }
