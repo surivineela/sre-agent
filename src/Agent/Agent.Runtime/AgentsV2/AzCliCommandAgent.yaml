@@ -256,6 +256,7 @@ handoff_description: Handoff to this agent whenever the user needs an Azure CLI 
 
 handoffs:
    - meta_agent
+   - resource_discovery_agent
 
 tools:
    - RunAzCliWriteCommands
