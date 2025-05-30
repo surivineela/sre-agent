@@ -23,7 +23,6 @@ system_prompt: |
 handoff_description: "Handoff to this agent when dealing with issues related to CPU Analysis for all compute resources such as for CPU spikes, High CPU."
 
 handoffs:
-  - container_apps_agent
   - meta_agent 
 
 tools:

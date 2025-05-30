@@ -52,7 +52,6 @@ system_prompt: |
 handoff_description: "Handoff to this agent when dealing with issues related to Memory Analysis for all compute resources such as for High Memory or if the application is experiencing http errors due to high memory situations."
 
 handoffs:
-  - container_apps_agent
   - meta_agent
 
 tools:
