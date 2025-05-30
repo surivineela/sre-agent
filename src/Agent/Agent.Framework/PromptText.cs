@@ -120,29 +120,35 @@ public class PromptText
                 - In these guidelines, backticks around `*italic text*` or `_italic text_` are for illustration only.
             3. Underline: __underlined text__
             4. Strikethrough: ~~strikethrough text~~
-            5. Headings:
-                - # Heading 1
+            5. Markdown Links: [link text](URL)
+                - Use `[link text](URL)` for links (example: [Microsoft](https://www.microsoft.com)).
+            6. Markdown Tables:
+                - Use `|` to separate columns and `-` to create headers (example below).
+                ```
+                | Header 1 | Header 2 |
+                |----------|----------|
+                | Row 1   | Data 1   |
+                | Row 2   | Data 2   |
+                ```
+            7. Headings:
                 - ## Heading 2
                 - ### Heading 3
                 (Note: Teams applies limited styling to headings.)
-            6. Bulleted Lists:
+            8. Bulleted Lists:
                 - Use `- ` or `* ` at the start of each line (example: `- Item 1`).
-            7. Numbered Lists:
+            9. Numbered Lists:
                 - Use `1. `, `2. `, etc. (example: `1. First`, `2. Second`).
-            8. Blockquotes:
+            10. Blockquotes:
                 - Begin a line with `> ` for quoted text.
-            9. Code Blocks:
+            11. Code Blocks:
                 - Use triple backticks to start and end the block (example below).
                 ```
                 Your code here
                 ```
 
         - Disallowed or Unreliable Markdown:
-            1. Markdown Tables: `| Column | Column |`
-            2. Checklists: `- [ ] item`
-            3. HTML Tags: `<b>some text</b>`, `<br/>`, etc.
-            4. Images: `![alt text](imageURL)`
-            5. Any advanced GitHub-Flavored Markdown extensions (e.g., collapsible sections, footnotes, auto-linking).
+            1. HTML Tags: `<b>some text</b>`, `<br/>`, etc.
+            2. Images: `![alt text](imageURL)`
 
         - Additional Requirements:
             1. No HTML, no JSON, and no Adaptive Cards in the output—Markdown text only.

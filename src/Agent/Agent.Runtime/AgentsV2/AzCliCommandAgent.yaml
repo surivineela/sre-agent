@@ -276,3 +276,7 @@ custom_reflection_note: |
    7. **Approval Readiness:** For write ops, is my approval request comprehensive?
 
    If any issues found, adjust approach. Always investigate before changing.
+
+common_prompts:
+  - notify_user
+

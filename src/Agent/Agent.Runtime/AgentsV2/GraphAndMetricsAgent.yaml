@@ -131,3 +131,8 @@ tools:
    - GetKnowledgeGraphResourceUsageDashboard
    - GetResourceDetailedProperties
    - GetResourceIdForResourceName
+   - NotifyUser
+
+common_prompts:
+  - notify_user
+
