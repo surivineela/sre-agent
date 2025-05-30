@@ -9,7 +9,7 @@ import { Body1Strong, Button, Image, mergeClasses, Text, tokens } from '@fluentu
 import { SquareDismissRegular } from '@fluentui/react-icons';
 import axios from 'axios';
 import mermaid from 'mermaid';
-import { memo, useCallback, useContext, useMemo, useState } from 'react';
+import { memo, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import {
     AiOutlineCheckCircle,
     AiOutlineClockCircle,

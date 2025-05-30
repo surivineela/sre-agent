@@ -26,6 +26,7 @@ public class ThreadManagementService(
     IAgentInboundCommunicationService agentInboundCommunicationService,
     IAgentsFactory agentsFactory,
     IThreadRepository repository,
+    ITitleGenerationService titleGenerationService,
     IChatClient chatClient,
     ILogger<ThreadManagementService> logger,
     CoreSettings coreSettings)
