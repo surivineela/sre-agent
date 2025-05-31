@@ -6,6 +6,7 @@ using Agent.Runtime.SubAgents;
 using FirstPartyAgent.Core.Plugins;
 using FirstPartyAgent.Core.Plugins.Definitions;
 using FirstPartyAgent.Core.Plugins.Interfaces;
+using FirstPartyAgent.Plugins.Definitions;
 using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
 
@@ -22,6 +23,8 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCustomerMetri
 
         public ContainerAppCustomerMetricsAgentFactory(
         IContainerAppCustomerMetricsPlugin metricsAgentPlugin,
+        IManagedClusterPlugin managedClusterPlugin,
+        IContainerAppIcMPlugin containerAppIcMPlugin,
         IAzureDocSearchPlugin azureDocSearchPlugin,
         IToolsRepository toolsRepository,
         IThreadOrchestrationManager mappingManager,
@@ -35,6 +38,20 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCustomerMetri
             toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetMdmPodHeartbeatMissedTimes));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetMissedMdmMetricTimes));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetBillingPodLeaderElection));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetContainerAppInfraLayer));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetVKPodLeaderElection));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetAKSKubeletRuntimeErrors));
+
+            var containerAppIcMPluginDefinition = new ContainerAppIcMPluginDefinition(containerAppIcMPlugin);
+            // READ operations
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppIcMPluginDefinition.GetInitialInvestigationReportAsync));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppIcMPluginDefinition.GetIssueInvestigationTimeRange));
+            // WRITE operations
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppIcMPluginDefinition.AddDiscussionEntry));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppIcMPluginDefinition.WasAgentHelpfulInDebuggingIssueAsync));
+
+            var managedClusterPluginDefinition = new ManagedClusterPluginDefinition(managedClusterPlugin);
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => managedClusterPluginDefinition.GetAksClusterCcpNamespace));
 
             var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
             toolSignatures.Add(_toolsRegistry.GetSignature(() => controlFlowPluginDefinition.Wait));

@@ -1,15 +1,16 @@
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
+using Agent.Logging;
 using Agent.Plugins.Definitions;
 using Azure.Core;
-using Agent.Logging;
+using Agent.Plugins.Implementation.DiagnosticsPlugin.ComputeResourceDiagnosticStrategies;
 using Azure.ResourceManager.AppContainers;
 using Azure.ResourceManager.AppService;
 using Azure.ResourceManager.ContainerService;
 using Microsoft.Extensions.Logging;
-using Agent.Plugins.Implementation.DiagnosticsPlugin.ComputeResourceDiagnosticStrategies;
 
 namespace Agent.Plugins.Implementation.DiagnosticsPlugin;
+
 public sealed class DiagnosticsPlugin : IDiagnosticsPlugin
 {
     private readonly IAuthenticationService _authService;
@@ -25,11 +26,14 @@ public sealed class DiagnosticsPlugin : IDiagnosticsPlugin
     {
         _authService = authenticationService;
         _armClientFactory = armClientFactory;
+
+        // Register Compute Diagnostic Strategies.
         _computeDiagnosticStrategies = new List<IComputeResourceDiagnosticStrategy>
         {
             new KubernetesDiagnosticStrategy(logger),
             new AppServiceDiagnosticStrategy(logger, armHelper),
             new ContainerAppDiagnosticStrategy(logger, armHelper, armClientFactory)
+            // TODO: Add one for Function Apps.
         };
 
         _armHelper = armHelper;
@@ -50,10 +54,10 @@ public sealed class DiagnosticsPlugin : IDiagnosticsPlugin
         }
 
         // Step 1. Get the Compute Resource Info.
-        var computeResourceInfo = await GetComputeResourceInfoAsync(resourceId, additionProperties);
+        ComputeResourceInfo computeResourceInfo = await GetComputeResourceInfoAsync(resourceId, additionProperties);
 
         // Step 2. Based on the Compute Info -> Dispatch to the right analysis type.
-        var diagnosticStrategy = _computeDiagnosticStrategies.FirstOrDefault(strategy => strategy.CanHandle(computeResourceInfo));
+        IComputeResourceDiagnosticStrategy diagnosticStrategy = _computeDiagnosticStrategies.FirstOrDefault(strategy => strategy.CanHandle(computeResourceInfo));
 
         // Step 3. Return the result.
         if (diagnosticStrategy != null)
@@ -63,9 +67,17 @@ public sealed class DiagnosticsPlugin : IDiagnosticsPlugin
 
         else
         {
-            throw new ArgumentException($"No diagnostic strategy found for resource type {computeResourceInfo.ResourceType}.");
+            string error = $"No diagnostic strategy found for resource type {computeResourceInfo.ResourceType}.";
+            _logger.LogInternalError(error);
+            throw new ArgumentException(error);
         }
     }
+
+    public Task<string> GetCPUAnalysisAsync(string resourceId, IReadOnlyDictionary<string, string> additionalProperties)
+       => GetAnalysisAsync(resourceId, AnalysisType.Cpu, additionalProperties);
+
+    public Task<string> GetMemoryAnalysisAsync(string resourceId, IReadOnlyDictionary<string, string> additionalProperties)
+        => GetAnalysisAsync(resourceId, AnalysisType.Memory, additionalProperties);
 
     /// <summary>
     /// Gets compute type, OS, architecture, and runtime information for a given resource ID.
@@ -88,6 +100,7 @@ public sealed class DiagnosticsPlugin : IDiagnosticsPlugin
                 var osType = OSType.Linux;
                 var architecture = Architecture.x64; // Default to x64 for Container Apps
 
+                // TODO: Determine Arch.
                 // Commented out logic for potentially determining architecture from SKU or image tag.
                 // Try to determine architecture from image tag first
                 //var imageRef = containerApp.Value.Data.Template?.Containers?.FirstOrDefault()?.Image ?? "";
@@ -136,7 +149,8 @@ public sealed class DiagnosticsPlugin : IDiagnosticsPlugin
                 var osType = kuduManager.OS.Contains("linux", StringComparison.OrdinalIgnoreCase) ? OSType.Linux : OSType.Windows;
 
                 // Determine architecture - Now using stack settings and SKU info
-                var architecture = Architecture.x64; // Default assumption
+                var architecture = kuduManager.Is32Bit ? Architecture.x86 : Architecture.x64; // Default assumption
+
                 // TODO: Improve this eventually.
                 //if (kind.Contains("arm64") || site.Value.Data.SiteConfig?.?.TryGetValue("IsArm64", out var isArm64) == true && isArm64 == "true")
                 //{
@@ -207,13 +221,14 @@ public sealed class DiagnosticsPlugin : IDiagnosticsPlugin
                     Is32Bit: architecture == Architecture.x86
                 );
             }
+
             catch (Exception ex)
             {
                 _logger.LogInternalError(ex, $"Error determining AKS details for {resourceId}");
             }
         }
 
-        // Default fallback
+        // Default fallback.
         _logger.LogInternalWarning($"Could not determine resource details for {resourceId} of type {type}");
         return new ComputeResourceInfo(
             ResourceType: ComputeResourceType.Unknown,
@@ -223,8 +238,10 @@ public sealed class DiagnosticsPlugin : IDiagnosticsPlugin
             Is32Bit: false
         );
     }
+
     private async Task<LanguageStack> DetectLanguageStackAsync(string resourceId)
     {
+        // TODO: Add more.
         return LanguageStack.Dotnet; // For now, assume only .NET is used. Change this accordingly later.
     }
 }

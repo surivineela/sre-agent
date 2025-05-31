@@ -15,6 +15,7 @@ public static class Runner
         RunResult<TContext> previousResult,
         List<ManualToolCallResult> manualToolResults,
         RunConfig config,
+        TContext? context = null,
         RunHooks<TContext>? hooks = null,
         CancellationToken cancellationToken = default
     ) where TContext : class
@@ -50,7 +51,7 @@ public static class Runner
             input: input,
             config: config,
             newGeneratedItems: functionResultMessages,
-            context: previousResult.ContextWrapper.Context,
+            context: context,
             currentTurn: previousResult.CurrentTurn,
             maxTurns: previousResult.MaxTurns,
             hooks: hooks,
@@ -317,6 +318,11 @@ public static class Runner
 
                 if (tool != null)
                 {
+                    if (tool is ContextAIFunction<TContext> contextTool)
+                    {
+                        contextTool.SetContext(contextWrapper.Context);
+                    }
+
                     if (tool.GetToolMode() == ToolMode.Auto)
                     {
                         // run auto tool

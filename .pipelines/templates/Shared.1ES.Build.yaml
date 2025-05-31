@@ -1,0 +1,334 @@
+#################################################################################
+#                              Shared Build Pipeline                            #
+#                                                                               #
+#                               OneBranch Pipelines                             #
+# Documentation:  https://aka.ms/onebranchrelease                               #
+# Yaml Schema:    https://aka.ms/obpipelines/yaml/schema                        #
+# Support:        https://aka.ms/onebranchsupport                               #
+#################################################################################
+
+# Please uncomment and provide values for the placeholders in the << >> notation:
+# 1. The "dependsOn" in the download stage of the test stage example (if applicable)
+# 2. The "ServiceRootPath" and "RolloutSpecPath" in each of the test stage example
+
+parameters:
+- name: 'isOfficialBuild'
+  displayName: 'Enables or Disables an Official build and its configuration (signing and other build steps)'
+  type: boolean
+  default: false
+
+resources:
+  repositories:
+  - repository: 1ESPipelineTemplates
+    type: git
+    name: 1ESPipelineTemplates/1ESPipelineTemplates
+    ref: refs/tags/release
+
+extends:
+  ${{ if parameters.isOfficialBuild }}:
+    template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
+  ${{ else }}:
+    template: v1/1ES.Unofficial.PipelineTemplate.yml@1ESPipelineTemplates
+  parameters:
+
+    stages:
+    - stage: build
+      ${{ if parameters.isOfficialBuild }}:
+        displayName: "🛠️ Build Official"
+      ${{ else }}:
+        displayName: "🛠️ Build NonOfficial"
+      jobs:
+      - job: main # Super std name for main build step in this stage
+        displayName: "🔨 Build Agent"
+        pool:
+          # read more about custom job pool types at https://aka.ms/obpipelines/yaml/jobs
+          type: windows # RoslynAnalyzers are not supported on Linux yet
+        variables:
+          #
+          # Constants (because there is no better way to do it in YAML)
+          #
+          BuildSolution: .\src\Agent\Agent.sln
+          BuildSolutionOutputPath: $(Build.SourcesDirectory)\sln_output
+          BuildConfiguration: Release
+          BuildNugetConfigPath: .\src\nuget.config
+
+          # Input and source location-related variables
+          #
+          ProjectSourcePath: '$(Build.SourcesDirectory)\src\Agent'
+          #
+          # Build flags
+          #
+          ${{ if parameters.isOfficialBuild }}:
+            ExtraBuildFlags: '/p:Version=$(Build.BuildNumber) /p:OfficialBuild=true'
+          ${{ else }}:
+            ExtraBuildFlags: ''
+
+        steps:
+        # Collect Build info & make output directories just in case
+        - task: PowerShell@2
+          displayName: "ℹ️ Collect build info"
+          continueOnError: true # This is not a required step, don't stop the build if it fails
+          inputs:
+            targetType: 'inline'
+            workingDirectory: $(ProjectSourcePath)
+            script: |
+              echo "Build.BuildNumber is $(Build.BuildNumber)"
+              echo "Build.Repository.Name is $(Build.Repository.Name)"
+              echo "Build.SourcesDirectory is $(Build.SourcesDirectory)"
+              echo "Build.BuildNumber is $(Build.BuildNumber)"
+              echo "Build.BinariesDirectory is $(Build.BinariesDirectory)"              
+
+              echo "Contents of ProjectSourcePath $(ProjectSourcePath)"
+              Get-ChildItem -Recurse  $(ProjectSourcePath) | Foreach-Object { $_.FullName }
+
+        # Some of our tools create output directories as they go while some others require them to exist
+        # before they can create their output. Let's make sure they are all there anyway
+        - task: PowerShell@2
+          displayName: '🔧 Prepare the build environment (make artifact output directories)'
+          inputs:
+            workingDirectory: $(Build.SourcesDirectory)
+            targetType: 'inline'
+            script: |
+              New-Item $(BuildSolutionOutputPath) -ItemType Directory -Force
+
+        #
+        # Just start the build process
+        #
+        - task: UseDotNet@2
+          continueOnError: false
+          displayName: '🧰 Setup .NET 9'
+          inputs:
+            version: 9.x
+            packageType: 'sdk'
+
+        #
+        # Restore nuget packages
+        #
+        - task: DotNetCoreCLI@2
+          displayName: '🔨 Restore Nuget packages'
+          inputs:
+            command: 'restore'
+            projects: |
+              $(BuildSolution)
+            includeNuGetOrg: false
+            feedsToUse: config
+            nugetConfigPath: $(BuildNugetConfigPath)
+            ## verbosityRestore: 'detailed'  # Use this to figure out whether the NuGet restore is hitting public internet.
+        
+        #
+        # UX - Localization
+        #
+        - task: OneLocBuild@3
+          displayName: '🔠 UX - Localization'
+          env:
+            SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+          inputs:
+            locProj: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client\src\src\Strings\LocProject.json'
+            outDir: '$(ob_outputDirectory)' # \loc
+            packageSourceAuth: 'patAuth'
+            dependencyPackageSource: 'https://msazure.pkgs.visualstudio.com/One/_packaging/OnelocbuildLocToolsFeed/nuget/v3/index.json'
+
+        #
+        # UX - Set node version for installing npm packages
+        #
+        - task: NodeTool@0
+          inputs:
+            versionSpec: "22.x"
+            checkLatest: true
+
+        #
+        # UX - Authenticate NPM registry
+        #
+        - task: npmAuthenticate@0
+          displayName: 'UX - Auth'
+          inputs:
+            workingFile: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client\.npmrc'
+
+        #
+        # UX - Install NPM packages
+        #
+        - task: Npm@1
+          displayName: 'UX - Install NPM packages'
+          inputs:
+            command: 'install'
+            workingDir: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client'
+        
+        #
+        # UX - Compile extracted/translated strings
+        #
+        - task: Npm@1
+          displayName: Formatjs - Compile extracted/translated strings
+          inputs:
+            command: "custom"
+            workingDir: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client'
+            customCommand: "run compile:loc"
+        
+        #
+        # UX - Unit tests
+        #
+        - task: Npm@1
+          displayName: '🧪 UX unit tests'
+          inputs:
+              command: 'custom'
+              workingDir: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client'
+              customCommand: 'run test'
+        
+        #
+        # UX - Publish unit test results
+        #
+        - task: PublishTestResults@2
+          displayName: '📢 Publish UX unit test results'
+          inputs:
+            testResultsFormat: JUnit
+            testResultsFiles: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client\junit-report.xml'
+            failTaskOnFailedTests: true
+            testRunTitle: 'UX_UnitTests'
+
+        
+        
+        #  Need to run npmAuthenticate again for the FirstPartyAgent.Web project first
+        #  Due to Client React app also build during whole solution build phase
+        - task: npmAuthenticate@0
+          displayName: 'FirstPartyAgent.Web - Auth'
+          inputs:
+            workingFile: '$(Build.SourcesDirectory)\src\Agent\FirstPartyAgent.Web\Client\.npmrc'
+
+        #
+        # Build Solution
+        #
+        - task: DotNetCoreCLI@2
+          displayName: '🦾 Build Agent solution'
+          inputs:
+            command: build
+            projects: '$(BuildSolution)'
+            arguments: '--no-restore --output $(BuildSolutionOutputPath) -c $(BuildConfiguration) -p:Version=$(Build.BuildNumber)'
+            includeNuGetOrg: false
+
+        - task: DotNetCoreCLI@2
+          displayName: '🔨 Publish Agent.Web'
+          inputs:
+            command: 'publish'
+            publishWebProjects: false
+            projects: '.\src\Agent\Agent.Web\Agent.Web.csproj'
+            arguments: '--no-restore --output $(ob_outputDirectory) -c $(BuildConfiguration) -p:Version=$(Build.BuildNumber)'
+            includeNuGetOrg: false
+            zipAfterPublish: false
+
+        # Add runtime test for Agent.Web
+        # Commenting this out for now, since running this project depends on settings being present
+        # (We want to know if something is broken before runtime)
+        # We can re-enable this once we set up some infra or mock this for pipelines
+        #
+        # - task: PowerShell@2
+        #   displayName: '🧪 Runtime test Agent.Web'
+        #   inputs:
+        #     targetType: 'inline'
+        #     workingDirectory: $(Build.SourcesDirectory)
+        #     script: |
+        #         $process = Start-Process -FilePath "dotnet" -ArgumentList "run --project ./src/Agent/Agent.Web/Agent.Web.csproj --session" -RedirectStandardOutput "runtime.log" -RedirectStandardError "error.log" -PassThru
+        #         Write-Host "Started Agent.Web with PID: $($process.Id)"
+        #         Start-Sleep -Seconds 30
+        #         if (!$process.HasExited) {
+        #           Write-Host "Agent.Web ran successfully for 30 seconds, stopping process..."
+        #           Stop-Process -Id $process.Id -Force
+        #           exit 0
+        #         } else {
+        #           Write-Host "Agent.Web crashed or exited prematurely"
+        #           Write-Host "Error logs:"
+        #           Get-Content "error.log"
+        #           exit 1
+        #         }
+
+        # keep roslynanalyzers task separate from dotnet build, otherwise compile-time LoggerMessage autogen partial classes will result in build error CS8795
+        - task: RoslynAnalyzers@3
+          displayName: '🔨 RoslynAnalyzers'
+          inputs:
+            copyLogsOnly: true
+
+        # Run unit tests
+        - task: DotNetCoreCLI@2
+          displayName: '🧪 Run unit tests'
+          inputs:
+            command: 'test'
+            projects: '$(BuildSolution)'
+            arguments: '--no-build --output $(BuildSolutionOutputPath) -c $(BuildConfiguration) --blame --logger trx --collect "Code coverage" --results-directory $(Build.SourcesDirectory)\TestResults\ --filter FullyQualifiedName~Agent.Tests.Unit' 
+            publishTestResults: false
+
+        #
+        # Run integration tests
+        #
+        - task: DotNetCoreCLI@2
+          displayName: '🧪 Run integration tests'
+          inputs:
+            command: 'test'
+            projects: '$(BuildSolution)'
+            arguments: '--no-build --output $(BuildSolutionOutputPath) -c $(BuildConfiguration) --blame --logger trx --collect "Code coverage" --results-directory $(Build.SourcesDirectory)\TestResults\ --filter FullyQualifiedName\!~Agent.Tests' 
+            publishTestResults: false
+
+        #
+        # Publish Integration Test results
+        #
+        - task: PublishTestResults@2
+          displayName: '📢 Publish test results'
+          inputs:
+            testResultsFormat: VSTest
+            testResultsFiles: '$(Build.SourcesDirectory)\TestResults\*.trx'
+            failTaskOnFailedTests: true
+        
+        # - task: PowerShell@2
+        #   displayName: 'Copy dockerfile to output directory'
+        #   inputs:
+        #     targetType: 'inline'
+        #     script: |
+        #       Copy-Item -Path $(Build.SourcesDirectory)\src\Deployment\Agent.Web\Dockerfile -Destination $(ob_outputDirectory)\src\Deployment\Agent.Web\Dockerfile
+
+        #
+        # Sign output binaries if it is an official build
+        #
+        - ${{ if parameters.isOfficialBuild }}:
+          - task: onebranch.pipeline.signing@1
+            displayName: '✒️ Sign output binaries'
+            inputs:
+              command: 'sign'
+              signing_profile: 'internal_azure_service'
+              files_to_sign: '**/*.exe;**/*.dll;**/*.ps1;**/*.js;**/*.css;**/*.html'
+              search_root: '$(ob_outputDirectory)'
+
+    - ${{ if parameters.isOfficialBuild }}:
+      - stage: docker      
+        dependsOn: build
+        jobs:
+        - job: buildImageForAgentWeb
+          displayName: "🔨 Build Docker Image for Agent.Web"
+          pool:
+            type: docker
+            os: linux
+          variables:
+            ob_git_checkout: true
+          steps:
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              targetPath: $(Build.SourcesDirectory)/dst/drop_build_main
+              artifact: drop_build_main
+            # This task downloads the build artifacts from the previous stage.
+
+          - task: onebranch.pipeline.containercontrol@1
+            displayName: "Login to ACR"
+            inputs:
+              command: login
+              acr_name: k8seprod
+              endpoint: k8seprod
+
+          - task: onebranch.pipeline.imagebuildinfo@1
+            displayName: 'Build Docker image for Agent.Web'
+            inputs:
+              registry: k8seprod.azurecr.io
+              repositoryName: public/k8se/sre-agent-web
+              dockerFileRelPath: src/Deployment/Agent.Web/Dockerfile
+              dockerFileContextPath: drop_build_main/Agent.Web
+              saveImageToPath: 'images/sre-agent-web.tar.gz'
+              saveMetadataToPath: 'images/sre-agent-web-metadata.json'
+              enable_service_tree_acr_path: false
+              build_tag: $(Build.BuildNumber)
+              enable_acr_push: true
+              endpoint: k8seprod

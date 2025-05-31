@@ -1,13 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FirstPartyAgent.Constants;
 using FirstPartyAgent.Core.Plugins.Interfaces;
 using FirstPartyAgent.Plugins;
-using Microsoft.SemanticKernel;
 
 namespace FirstPartyAgent.Core.Plugins.Implementation
 {
@@ -19,7 +11,36 @@ namespace FirstPartyAgent.Core.Plugins.Implementation
             _kustoPlugin = kustoPlugin;
         }
 
-        [KernelFunction(KernelFunctionNames.ACA.GetMetricsMdmCount)]
+        public Task<string> GetContainerAppInfraLayer(string region, DateTime fromDate, DateTime toDate, string subscriptionId, string resourceGroupName, string containerAppName, string managedClusterName)
+        {
+            return _kustoPlugin.ExecuteLocalFunctionAsync("GetContainerAppInfraLayer", region,
+                new Dictionary<string, string>
+                {
+                    { "fromDate", fromDate.ToString() },
+                    { "toDate", toDate.ToString() },
+                    { "region", region },
+                    { "subscriptionId", subscriptionId },
+                    { "resourceGroupName", resourceGroupName },
+                    { "containerAppName", containerAppName },
+                    { "managedClusterName", managedClusterName }
+                });
+        }
+
+        public Task<string> GetAKSKubeletRuntimeErrors(string regionName, DateTime fromDate, DateTime toDate, string resourceGroupName, string subscriptionId, string managedClusterName, string ccpClusterId)
+        {
+            return _kustoPlugin.ExecuteLocalFunctionOnClusterAsync("GetAKSKubeletRuntimeErrors", "akshuba.centralus", "AKSCCPMetrics",
+                new Dictionary<string, string>
+                {
+                    { "regionName", regionName },
+                    { "fromDate", fromDate.ToString() },
+                    { "toDate", toDate.ToString() },
+                    { "resourceGroupName", resourceGroupName },
+                    { "subscriptionId", subscriptionId },
+                    { "managedClusterName", managedClusterName },
+                    { "ccpClusterId", ccpClusterId }
+                });
+        }
+
         public Task<string> GetMetricsMdmCount(string region, DateTime fromDate, DateTime toDate, string metricName, string containerAppArmId)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetMetricsMdmCount", region,
@@ -32,7 +53,6 @@ namespace FirstPartyAgent.Core.Plugins.Implementation
              });
         }
 
-        [KernelFunction(KernelFunctionNames.ACA.GetMdmPodHeartbeatMissedTimes)]
         public Task<string> GetMdmPodHeartbeatMissedTimes(string region, DateTime fromDate, DateTime toDate, string managedClusterName)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetMdmPodHeartbeatMissedTimes", region,
@@ -44,7 +64,6 @@ namespace FirstPartyAgent.Core.Plugins.Implementation
                 });
         }
 
-        [KernelFunction(KernelFunctionNames.ACA.GetMissedMdmMetricTimes)]
         public Task<string> GetMissedMdmMetricTimes(string region, DateTime fromDate, DateTime toDate, string metricName, string containerAppArmId)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetMissedMdmMetricTimes", region,
@@ -58,10 +77,20 @@ namespace FirstPartyAgent.Core.Plugins.Implementation
                 });
         }
 
-        [KernelFunction(KernelFunctionNames.ACA.GetBillingPodLeaderElection)]
         public Task<string> GetBillingPodLeaderElection(string region, DateTime fromDate, DateTime toDate, string managedClusterName)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetBillingPodLeaderElection", region,
+                new Dictionary<string, string>
+                {
+                    { "fromDate", fromDate.ToString() },
+                    { "toDate", toDate.ToString() },
+                    { "managedClusterName", managedClusterName }
+                });
+        }
+
+        public Task<string> GetVKPodLeaderElection(string region, DateTime fromDate, DateTime toDate, string managedClusterName)
+        {
+            return _kustoPlugin.ExecuteLocalFunctionAsync("GetVKPodLeaderElection", region,
                 new Dictionary<string, string>
                 {
                     { "fromDate", fromDate.ToString() },

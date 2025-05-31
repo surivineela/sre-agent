@@ -496,7 +496,8 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             AgentType: agentTypeEnum,
             ContextState: ContextStateEnum.Idle,
             WaitInformation: null,
-            ApprovalInformation: null
+            ApprovalInformation: null,
+            CurrentAgent: isDailyReport ? "daily_report_agent" : null
         );
 
         var startReasoningMessage = new ReasoningMessage(

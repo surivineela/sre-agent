@@ -55,7 +55,9 @@ handoffs:
 tools:
     - RunKubectlReadCommand
     - RunKubectlWriteCommand
-    - NotifyUser
 max_reflection_count: 3
 custom_reflection_note: |
     For AKS general questions, the answer should focus on AKS cluster, resources inside AKS clusters, or cloud resources that are directly related to AKS clusters.
+common_prompts:
+  - ground_rail
+  - notify_user

@@ -18,14 +18,14 @@ namespace Agent.Tests.Unit.Framework;
 public class AgentFactoryTests
 {
     private readonly Mock<ILogger<AgentFactory<AgentContext>>> _mockLogger;
-    private readonly Mock<ILogger<ToolFactory>> _mockToolFactoryLogger;
+    private readonly Mock<ILogger<ToolFactory<AgentContext>>> _mockToolFactoryLogger;
     private readonly IServiceProvider _serviceProvider;
     private readonly ServiceCollection _services;
 
     public AgentFactoryTests()
     {
         _mockLogger = new Mock<ILogger<AgentFactory<AgentContext>>>();
-        _mockToolFactoryLogger = new Mock<ILogger<ToolFactory>>();
+        _mockToolFactoryLogger = new Mock<ILogger<ToolFactory<AgentContext>>>();
         _services = new ServiceCollection();
         _services.AddSingleton(_mockLogger.Object);
         _services.AddSingleton(_mockToolFactoryLogger.Object);
@@ -38,7 +38,7 @@ public class AgentFactoryTests
     {
         var agentFactory = new AgentFactory<AgentContext>(
             logger: _mockLogger.Object,
-            toolFactory: new ToolFactory(
+            toolFactory: new ToolFactory<AgentContext>(
                 logger: _mockToolFactoryLogger.Object,
                 serviceProvider: _serviceProvider,
                 assembliesToScan: [Assembly.GetExecutingAssembly()]
@@ -63,7 +63,7 @@ public class AgentFactoryTests
     {
         var agentFactory = new AgentFactory<AgentContext>(
             logger: _mockLogger.Object,
-            toolFactory: new ToolFactory(
+            toolFactory: new ToolFactory<AgentContext>(
                 logger: _mockToolFactoryLogger.Object,
                 serviceProvider: _serviceProvider,
                 assembliesToScan: [Assembly.GetExecutingAssembly()]

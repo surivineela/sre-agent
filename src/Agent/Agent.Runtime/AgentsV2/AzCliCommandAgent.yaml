@@ -256,12 +256,17 @@ handoff_description: Handoff to this agent whenever the user needs an Azure CLI 
 
 handoffs:
    - meta_agent
+   - resource_discovery_agent
 
 tools:
    - RunAzCliWriteCommands
    - RunAzCliReadCommands
    - GetAzCliHelp
    - NotifyUser
+
+common_prompts:
+   - notify_user
+   - ground_rail
 
 max_reflection_count: 3
 
@@ -276,3 +281,7 @@ custom_reflection_note: |
    7. **Approval Readiness:** For write ops, is my approval request comprehensive?
 
    If any issues found, adjust approach. Always investigate before changing.
+
+common_prompts:
+  - notify_user
+

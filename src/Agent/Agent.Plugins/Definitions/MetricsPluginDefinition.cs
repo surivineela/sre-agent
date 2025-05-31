@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Framework;
 using Agent.Plugins.Attributes;
 using Microsoft.SemanticKernel;
 using System.ComponentModel;
@@ -9,6 +10,7 @@ using System.ComponentModel;
 namespace Agent.Plugins;
 
 // [Export]
+[AgentToolPlugin]
 public class MetricsPluginDefinition
 {
     private readonly IMetricsPlugin _metricsPlugin;

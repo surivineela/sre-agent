@@ -4,9 +4,11 @@
 
 using System.ComponentModel;
 using Agent.Core.Attributes;
+using Agent.Framework;
 
 namespace Agent.Plugins
 {
+    [AgentToolPlugin]
     public class GrafanaPluginDefinition
     {
         private readonly IGrafanaPlugin _grafanaPlugin;
@@ -20,10 +22,10 @@ namespace Agent.Plugins
         public async Task<byte[]> CaptureScreenshot(
             [Description("The UID of the dashboard to capture")]
             string dashboardUid,
-            
+
             [Description("The width of the screenshot in pixels")]
             int width = 1920,
-            
+
             [Description("The height of the screenshot in pixels")]
             int height = 1080)
         {
@@ -35,7 +37,7 @@ namespace Agent.Plugins
         public async Task<string> PublishDashboardWithPrometheusDataSource(
             [Description("The dashboard JSON definition")]
             string dashboardJson,
-            
+
             [Description("Whether to set this as the default data source")]
             bool isDefault = false)
         {
