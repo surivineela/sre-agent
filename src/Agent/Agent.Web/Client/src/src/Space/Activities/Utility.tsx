@@ -48,13 +48,17 @@ export const processThreads = (prevThreads: Thread[], threads: Thread[], reverse
 };
 
 /**
- * @param prevMessages existing messages sorted in descending order by timestamp
+ * Return messages in ascending order by timestamp
+ * @param prevMessages existing messages sorted in ascending order by timestamp
  * @param newMessages new messages sorted in descending order by timestamp
- * @param reverse if true, the current messages are placed before the old messages
  * @returns
  */
 export const processNewMessages = (prevMessages: Message[], newMessages: Message[]) => {
-    const updatedPrevMessages = prevMessages;
+    if (newMessages.length === 0) return prevMessages;
+
+    const updatedPrevMessages = [...prevMessages];
+    let isPrevMessagesUpdated = false;
+
     const newMessagesMap: Map<string, Message> = new Map<string, Message>();
     newMessages.forEach((msg: Message) => newMessagesMap.set(msg.id, msg));
 
@@ -64,6 +68,7 @@ export const processNewMessages = (prevMessages: Message[], newMessages: Message
             if (message.text !== updatedPrevMessages[i].text) {
                 // Update existing message
                 updatedPrevMessages[i] = message;
+                isPrevMessagesUpdated = true;
             } else {
                 // If the text is the same, we can skip updating this message
                 newMessagesMap.delete(updatedPrevMessages[i].id);
@@ -72,19 +77,21 @@ export const processNewMessages = (prevMessages: Message[], newMessages: Message
     }
 
     const messagesToAdd: Message[] = Array.from(newMessagesMap.values());
-    messagesToAdd.sort((a, b) => getSafeDateTime(b.timeStamp).getTime() - getSafeDateTime(a.timeStamp).getTime());
+    messagesToAdd.sort((a, b) => getSafeDateTime(a.timeStamp).getTime() - getSafeDateTime(b.timeStamp).getTime());
+
+    const existingMessages = isPrevMessagesUpdated ? updatedPrevMessages : prevMessages;
 
     if (messagesToAdd.length === 0) {
         // Do not return copied old messages as it will introduce unnecessary re-renders
-        return updatedPrevMessages;
+        return existingMessages;
     }
 
-    return [...messagesToAdd, ...updatedPrevMessages];
+    return [...existingMessages, ...messagesToAdd];
 };
 
 /**
- * 
- * @param prevMessages existing messages sorted in descending order by timestamp
+ * Return messages sorted in ascending order by timestamp
+ * @param prevMessages existing messages sorted in ascending order by timestamp
  * @param oldMessages older messages sorted in descending order by timestamp
  */
 export const processOldMessages = (prevMessages: Message[], oldMessages: Message[]) => {
@@ -92,7 +99,9 @@ export const processOldMessages = (prevMessages: Message[], oldMessages: Message
         return prevMessages;
     }
 
-    return [...prevMessages, ...oldMessages];
+    const oldMessagesInAscendingOrder = [...oldMessages].reverse();
+
+    return [...oldMessagesInAscendingOrder, ...prevMessages];
 }
 
 export const noGapBetweenNewMessagesAndExistingMessages = (messages: Message[], currentLatestMessage?: Message) => {
@@ -174,3 +183,14 @@ export const getNumberOfThreadsToOverflowThreadsListDiv = (
 
     return Math.max(numberOfThreadsToLoad, ThreadLoadingCounts.default);
 };
+
+/**
+ * The time in millseconds to wait before issuing a next request. The max interval is 15 minutes.
+ * @param exponentialBackoffDepth 
+ * @returns 
+ */
+export const getIntervalBetweenLoading = (exponentialBackoffDepth: number) => {
+    const base = 100;
+    const maxInterval = 15 * 60 * 1000; // 15 minutes in milliseconds
+    return Math.min(base + Math.floor(Math.pow(2, exponentialBackoffDepth)) * 1000, maxInterval);
+}

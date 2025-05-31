@@ -1,12 +1,12 @@
 import debounce from 'lodash/debounce';
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { MessageClient } from '../../Common/Clients/MessageClient';
 import { Message, Thread, ThreadOrchestrationReasoningState } from '../../Common/Contracts/Azure/SreAgent';
 import { Guid } from '../../Common/Helpers/Guid';
 import { PromptResources, SreAgentResources, ThreadContextStateResources } from '../../Strings/SREAgentResources';
-import { noGapBetweenNewMessagesAndExistingMessages, processNewMessages } from '../Activities/Utility';
+import { getIntervalBetweenLoading, noGapBetweenNewMessagesAndExistingMessages, processNewMessages, processOldMessages } from '../Activities/Utility';
 import { MessageLoadingCounts, MessagePollingCounts, MessagePollingInterval } from '../Contracts/Activities';
 import { useAuthenticatedUserInfo } from './useAuthenticatedUserInfo';
 import { ThreadClient } from '../../Common/Clients/ThreadClient';
@@ -80,6 +80,7 @@ export const useChatBox = (addThread: (thread: Thread) => void, promoteThread: (
 
     const isMounted = useRef(true);
     const isPreviousNewMessagesPollingCompleted = useRef(true);
+    const isPreviousOldMessagesLoadingCompleted = useRef(true);
     // The latest message of either the latest message of chat history, the latest message of the polling that happens every 5 seconds or the answers of the send message
     const latestMessageRef = useRef<Message>();
     const oldestMessageRef = useRef<Message>();
@@ -87,6 +88,9 @@ export const useChatBox = (addThread: (thread: Thread) => void, promoteThread: (
     const intersectionObserverRef = useRef<HTMLDivElement>(null);
     const abortControllerRef = useRef<AbortController>();
     const loadOldChatHistoryCallId = useRef<number>(0);
+    const currentScrollTop = useRef<number>(0);
+    const currentScrollHeight = useRef<number>(0);
+    const oldMessagesToBeAdded = useRef<boolean>(false);
 
     const scrollToBottom = (smooth: boolean) =>
         messagesDivRef.current?.scrollTo({ top: messagesDivRef.current.scrollHeight, behavior: smooth ? 'smooth' : undefined });
@@ -95,13 +99,25 @@ export const useChatBox = (addThread: (thread: Thread) => void, promoteThread: (
         messagesDivRef.current &&
         messagesDivRef.current.scrollHeight - messagesDivRef.current.offsetHeight - messagesDivRef.current.scrollTop <= 2;
 
-    const handleScroll = debounce(() => {
+
+    const handleScroll = debounce((isScrollingToTop: boolean) => {
+        if (isScrollingToTop) {
+            loadOldChatHistory();
+        }
+
         const isAtBottom = isChatAtBottom();
 
         if (isAtBottom) {
             setShowNewMessageButton(false);
         }
     }, 300);
+
+    const onScroll = () => {
+        const prevScrollTop = currentScrollTop.current;
+        currentScrollTop.current = messagesDivRef.current?.scrollTop || 0;
+
+        handleScroll(currentScrollTop.current < prevScrollTop);
+    }
 
     const onClickNewMessageButton = () => {
         scrollToBottom(false);
@@ -127,15 +143,16 @@ export const useChatBox = (addThread: (thread: Thread) => void, promoteThread: (
 
     /**
      *
-     * @param newMessages messages in desceding order by timeStamp
+     * @param newMessages messages in descending order by timeStamp
      * @param shouldAutoScrollOrShowNewMessagesButton
      */
     const handleNewMessages = (newMessages: Message[], shouldAutoScrollOrShowNewMessagesButton: boolean) => {
+        oldMessagesToBeAdded.current = false;
         setMessages(prev => {
             const updatedMessages = processNewMessages(prev, newMessages);
 
             const wasAtBottom = isChatAtBottom();
-            const hasNewMessages = updatedMessages.length > 0 && updatedMessages[0].id !== prev[0]?.id;
+            const hasNewMessages = updatedMessages.length > 0 && updatedMessages[updatedMessages.length - 1].id !== prev[prev.length - 1]?.id;
 
             if (shouldAutoScrollOrShowNewMessagesButton && hasNewMessages) {
                 setTimeout(() => {
@@ -149,13 +166,17 @@ export const useChatBox = (addThread: (thread: Thread) => void, promoteThread: (
 
             return updatedMessages;
         });
-
-        latestMessageRef.current = newMessages[0];
     };
+
+    const handleOldMessages = (oldMessages: Message[]) => {
+        oldMessagesToBeAdded.current = true;
+        currentScrollHeight.current = messagesDivRef.current?.scrollHeight || 0;
+        setMessages(prev => processOldMessages(prev, oldMessages));
+    }
 
     /**
      * Polling 2 messages each time until polled messages includes the latest message in the current messages, which
-     * indicates there is no message left out between the latest message sand polled messages.
+     * indicates there is no message left out between the latest messages and polled messages.
      * @param latestMessage
      * @param threadId
      * @param interval
@@ -273,9 +294,11 @@ export const useChatBox = (addThread: (thread: Thread) => void, promoteThread: (
         [currentThreadId, isThreadOnTop, addThread, promoteThread, userId, displayName]
     );
 
-    const loadOldChatHistory = useCallback(async () => {
-        if (currentThreadId && oldestMessageRef.current) {
+    const loadOldChatHistory = useCallback(async (): Promise<boolean | undefined> => {
+        if (currentThreadId && oldestMessageRef.current && isPreviousOldMessagesLoadingCompleted.current && !noChatHistoryLeftToLoad) {
+            isPreviousOldMessagesLoadingCompleted.current = false;
             const callId = loadOldChatHistoryCallId.current;
+
             const currentMessagesResponse = await messageClient.getMessages(
                 currentThreadId,
                 {
@@ -286,19 +309,22 @@ export const useChatBox = (addThread: (thread: Thread) => void, promoteThread: (
                 }
             );
 
+            isPreviousOldMessagesLoadingCompleted.current = true;
+
             if (callId === loadOldChatHistoryCallId.current) {
                 const currentMessages = currentMessagesResponse.content || [];
-                setMessages(prev => processNewMessages(prev, currentMessages));
+                handleOldMessages(currentMessages);
                 if (currentMessagesResponse.isSuccessful && currentMessages.length < MessageLoadingCounts.active) {
                     setNoChatHistoryLeftToLoad(true);
                 }
+                return currentMessagesResponse.isSuccessful;
             }
         }
-    }, [currentThreadId]);
+    }, [currentThreadId, noChatHistoryLeftToLoad]);
 
     useEffect(() => {
         loadOldChatHistoryCallId.current += 1
-    }, [currentThreadId])
+    }, [currentThreadId, noChatHistoryLeftToLoad])
 
     useEffect(() => {
         let isSubscribed = true;
@@ -335,7 +361,11 @@ export const useChatBox = (addThread: (thread: Thread) => void, promoteThread: (
         let isSubscribed = true;
 
         const loadLatest20ChatHistory = async () => {
+            setIsLoadingInitialChatHistory(true);
+            setNoChatHistoryLeftToLoad(false);
+
             if (currentThreadId) {
+                isPreviousOldMessagesLoadingCompleted.current = false;
                 const messagesResponse = await messageClient.getMessages(currentThreadId, {
                     skip: 0,
                     top: MessageLoadingCounts.default,
@@ -345,9 +375,8 @@ export const useChatBox = (addThread: (thread: Thread) => void, promoteThread: (
                 const messages = messagesResponse.content || [];
 
                 if (isSubscribed) {
+                    handleOldMessages(messages);
                     setIsLoadingInitialChatHistory(false);
-                    setMessages(messages);
-                    latestMessageRef.current = messages.length > 0 ? messages[0] : undefined;
 
                     // The threshold depends on the number of the messages this query is intended to return.
                     // if the top parameter for calling getMessages, the threshold should be changed accordingly
@@ -355,6 +384,7 @@ export const useChatBox = (addThread: (thread: Thread) => void, promoteThread: (
                         setNoChatHistoryLeftToLoad(true);
                     }
                 }
+                isPreviousOldMessagesLoadingCompleted.current = true;
             } else {
                 setIsLoadingInitialChatHistory(false);
                 setNoChatHistoryLeftToLoad(true);
@@ -387,10 +417,15 @@ export const useChatBox = (addThread: (thread: Thread) => void, promoteThread: (
         let timeoutId: NodeJS.Timeout | undefined = undefined;
 
         if (isIntersecting && !noChatHistoryLeftToLoad) {
-            const loadOldMessages = async () => {
-                await loadOldChatHistory();
+            let exponentialBackoffDepth = -1;
 
-                timeoutId = setTimeout(loadOldChatHistory, 100);
+            const loadOldMessages = async () => {
+                const isSuccessful = await loadOldChatHistory();
+
+                exponentialBackoffDepth = isSuccessful ? -1 : exponentialBackoffDepth + 1;
+                const interval = getIntervalBetweenLoading(exponentialBackoffDepth);
+
+                timeoutId = setTimeout(loadOldChatHistory, interval);
             }
 
             loadOldMessages();
@@ -400,6 +435,30 @@ export const useChatBox = (addThread: (thread: Thread) => void, promoteThread: (
             clearTimeout(timeoutId);
         };
     }, [loadOldChatHistory, noChatHistoryLeftToLoad, isIntersecting]);
+
+    // When old messages are added at the top of the chat, this useLayoutEffect will calculate the new scroll top
+    // to make sure the chat does not scroll to top before the next paint
+    useLayoutEffect(() => {
+        let timeoutId: number | undefined = undefined;
+        if (messagesDivRef.current && oldMessagesToBeAdded.current) {
+            const prevScrollHeight = currentScrollHeight.current;
+
+            timeoutId = requestAnimationFrame(() => {
+                if (messagesDivRef.current) {
+                    const scrollHeight = messagesDivRef.current.scrollHeight;
+                    messagesDivRef.current.scrollTop += (scrollHeight - prevScrollHeight);
+                }
+            })
+
+        }
+
+        return () => {
+            if (timeoutId !== undefined) {
+                cancelAnimationFrame(timeoutId);
+            }
+        }
+    }, [messages.length]);
+
 
     const prompts = useMemo(
         () => [
@@ -427,6 +486,11 @@ export const useChatBox = (addThread: (thread: Thread) => void, promoteThread: (
     }, [messages]);
 
     useEffect(() => {
+        latestMessageRef.current = messages[messages.length - 1];
+        oldestMessageRef.current = messages[0];
+    }, [messages])
+
+    useEffect(() => {
         if (temporaryUserMessage && agentTypingMessage) {
             scrollToBottom(true);
         }
@@ -440,13 +504,10 @@ export const useChatBox = (addThread: (thread: Thread) => void, promoteThread: (
         };
     }, []);
 
-    useEffect(() => {
-        oldestMessageRef.current = messages.length > 0 ? messages[messages.length - 1] : undefined;
-    }, [messages]);
-
     return {
         messages,
         isLoadingInitialChatHistory,
+        noChatHistoryLeftToLoad,
         temporaryUserMessage,
         agentTypingMessage,
         threadOrchestrationReasoningState,
@@ -459,8 +520,9 @@ export const useChatBox = (addThread: (thread: Thread) => void, promoteThread: (
         cancelResponse,
         prompts,
         messagePromptsUsed,
-        handleScroll,
+        onScroll,
         showNewMessageButton,
         onClickNewMessageButton,
+        loadOldChatHistory,
     };
 };

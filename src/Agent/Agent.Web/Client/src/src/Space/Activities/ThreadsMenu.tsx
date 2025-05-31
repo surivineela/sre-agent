@@ -6,6 +6,7 @@ import { ThreadSeverity } from '../../Common/Clients/ThreadClient';
 import { ThreadSource } from '../../Common/Contracts/Azure/SreAgent';
 import { ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import ThreadsList from '../Components/ThreadsList';
+
 import { IThreadsMenuProps, RemoveThreadFromListHandle } from '../Contracts/Activities';
 import { AgentContext } from '../Contracts/Context';
 import { useMetrics } from '../Hooks/useMetrics';
