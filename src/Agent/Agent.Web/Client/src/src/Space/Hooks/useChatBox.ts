@@ -3,13 +3,18 @@ import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, u
 import { useIntl } from 'react-intl';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { MessageClient } from '../../Common/Clients/MessageClient';
+import { ThreadClient } from '../../Common/Clients/ThreadClient';
 import { Message, Thread, ThreadOrchestrationReasoningState } from '../../Common/Contracts/Azure/SreAgent';
 import { Guid } from '../../Common/Helpers/Guid';
 import { PromptResources, SreAgentResources, ThreadContextStateResources } from '../../Strings/SREAgentResources';
-import { getIntervalBetweenLoading, noGapBetweenNewMessagesAndExistingMessages, processNewMessages, processOldMessages } from '../Activities/Utility';
+import {
+    getIntervalBetweenLoading,
+    noGapBetweenNewMessagesAndExistingMessages,
+    processNewMessages,
+    processOldMessages,
+} from '../Activities/Utility';
 import { MessageLoadingCounts, MessagePollingCounts, MessagePollingInterval } from '../Contracts/Activities';
 import { useAuthenticatedUserInfo } from './useAuthenticatedUserInfo';
-import { ThreadClient } from '../../Common/Clients/ThreadClient';
 
 const composeTemporaryUserMessage = (userId: string, userDisplayName: string, message: string): Message => {
     return {
@@ -27,7 +32,7 @@ const composeTemporaryUserMessage = (userId: string, userDisplayName: string, me
 export const useChatBox = (addThread: (thread: Thread) => void, promoteThread: () => void, threadId?: string | null, _?: string | null) => {
     const intl = useIntl();
 
-    const [messages, setMessages] = useState<Message[]>([]); // All messages are in the descending order by timeStamp
+    const [messages, setMessages] = useState<Message[]>([]);
     const [currentThreadId, setCurrentThreadId] = useState<string | null>(threadId || null);
 
     const [isLoadingInitialChatHistory, setIsLoadingInitialChatHistory] = useState<boolean>(true);
@@ -99,7 +104,6 @@ export const useChatBox = (addThread: (thread: Thread) => void, promoteThread: (
         messagesDivRef.current &&
         messagesDivRef.current.scrollHeight - messagesDivRef.current.offsetHeight - messagesDivRef.current.scrollTop <= 2;
 
-
     const handleScroll = debounce((isScrollingToTop: boolean) => {
         if (isScrollingToTop) {
             loadOldChatHistory();
@@ -117,7 +121,7 @@ export const useChatBox = (addThread: (thread: Thread) => void, promoteThread: (
         currentScrollTop.current = messagesDivRef.current?.scrollTop || 0;
 
         handleScroll(currentScrollTop.current < prevScrollTop);
-    }
+    };
 
     const onClickNewMessageButton = () => {
         scrollToBottom(false);
@@ -142,9 +146,7 @@ export const useChatBox = (addThread: (thread: Thread) => void, promoteThread: (
     }, [intl]);
 
     /**
-     *
      * @param newMessages messages in descending order by timeStamp
-     * @param shouldAutoScrollOrShowNewMessagesButton
      */
     const handleNewMessages = (newMessages: Message[], shouldAutoScrollOrShowNewMessagesButton: boolean) => {
         oldMessagesToBeAdded.current = false;
@@ -152,7 +154,8 @@ export const useChatBox = (addThread: (thread: Thread) => void, promoteThread: (
             const updatedMessages = processNewMessages(prev, newMessages);
 
             const wasAtBottom = isChatAtBottom();
-            const hasNewMessages = updatedMessages.length > 0 && updatedMessages[updatedMessages.length - 1].id !== prev[prev.length - 1]?.id;
+            const hasNewMessages =
+                updatedMessages.length > 0 && updatedMessages[updatedMessages.length - 1].id !== prev[prev.length - 1]?.id;
 
             if (shouldAutoScrollOrShowNewMessagesButton && hasNewMessages) {
                 setTimeout(() => {
@@ -172,7 +175,7 @@ export const useChatBox = (addThread: (thread: Thread) => void, promoteThread: (
         oldMessagesToBeAdded.current = true;
         currentScrollHeight.current = messagesDivRef.current?.scrollHeight || 0;
         setMessages(prev => processOldMessages(prev, oldMessages));
-    }
+    };
 
     /**
      * Polling 2 messages each time until polled messages includes the latest message in the current messages, which
@@ -299,15 +302,12 @@ export const useChatBox = (addThread: (thread: Thread) => void, promoteThread: (
             isPreviousOldMessagesLoadingCompleted.current = false;
             const callId = loadOldChatHistoryCallId.current;
 
-            const currentMessagesResponse = await messageClient.getMessages(
-                currentThreadId,
-                {
-                    skip: 0,
-                    top: MessageLoadingCounts.active,
-                    descending: true,
-                    maxTimestamp: oldestMessageRef.current.timeStamp,
-                }
-            );
+            const currentMessagesResponse = await messageClient.getMessages(currentThreadId, {
+                skip: 0,
+                top: MessageLoadingCounts.active,
+                descending: true,
+                maxTimestamp: oldestMessageRef.current.timeStamp,
+            });
 
             isPreviousOldMessagesLoadingCompleted.current = true;
 
@@ -323,8 +323,8 @@ export const useChatBox = (addThread: (thread: Thread) => void, promoteThread: (
     }, [currentThreadId, noChatHistoryLeftToLoad]);
 
     useEffect(() => {
-        loadOldChatHistoryCallId.current += 1
-    }, [currentThreadId, noChatHistoryLeftToLoad])
+        loadOldChatHistoryCallId.current += 1;
+    }, [currentThreadId, noChatHistoryLeftToLoad]);
 
     useEffect(() => {
         let isSubscribed = true;
@@ -422,11 +422,11 @@ export const useChatBox = (addThread: (thread: Thread) => void, promoteThread: (
             const loadOldMessages = async () => {
                 const isSuccessful = await loadOldChatHistory();
 
-                exponentialBackoffDepth = isSuccessful ? -1 : exponentialBackoffDepth + 1;
+                exponentialBackoffDepth = isSuccessful === false ? exponentialBackoffDepth + 1 : -1;
                 const interval = getIntervalBetweenLoading(exponentialBackoffDepth);
 
                 timeoutId = setTimeout(loadOldChatHistory, interval);
-            }
+            };
 
             loadOldMessages();
         }
@@ -446,19 +446,17 @@ export const useChatBox = (addThread: (thread: Thread) => void, promoteThread: (
             timeoutId = requestAnimationFrame(() => {
                 if (messagesDivRef.current) {
                     const scrollHeight = messagesDivRef.current.scrollHeight;
-                    messagesDivRef.current.scrollTop += (scrollHeight - prevScrollHeight);
+                    messagesDivRef.current.scrollTop += scrollHeight - prevScrollHeight;
                 }
-            })
-
+            });
         }
 
         return () => {
             if (timeoutId !== undefined) {
                 cancelAnimationFrame(timeoutId);
             }
-        }
+        };
     }, [messages.length]);
-
 
     const prompts = useMemo(
         () => [
@@ -488,7 +486,7 @@ export const useChatBox = (addThread: (thread: Thread) => void, promoteThread: (
     useEffect(() => {
         latestMessageRef.current = messages[messages.length - 1];
         oldestMessageRef.current = messages[0];
-    }, [messages])
+    }, [messages]);
 
     useEffect(() => {
         if (temporaryUserMessage && agentTypingMessage) {

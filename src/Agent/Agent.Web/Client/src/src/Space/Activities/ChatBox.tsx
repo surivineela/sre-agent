@@ -36,12 +36,10 @@ export const ChatBox = ({ addThread, promoteThread, threadId, threadSource }: IC
 
     const { scrollable } = useScrollableComponentStyles();
 
-
-
     return (
         <div className={ChatBoxStyles.chatBox}>
             <CopilotProvider mode="canvas" className={ChatBoxStyles.chatBoxInner}>
-                <div className={mergeClasses(scrollable, ChatBoxStyles.chatContainer)} ref={messagesDivRef} onScroll={onScroll} >
+                <div className={mergeClasses(scrollable, ChatBoxStyles.chatContainer)} ref={messagesDivRef} onScroll={onScroll}>
                     <CopilotChat className={ChatBoxStyles.chat}>
                         <div ref={intersectionObserverRef} />
 
@@ -52,6 +50,7 @@ export const ChatBox = ({ addThread, promoteThread, threadId, threadSource }: IC
                         {/* Insert the richer welcome experience once at the top for welcome threads */}
                         {isWelcomeThread && <AzureSREWelcome threadId={currentThreadId} />}
 
+                        {/* Render the remaining chat history */}
                         {messages.map((message, index) => (
                             <ChatMessage
                                 key={index}

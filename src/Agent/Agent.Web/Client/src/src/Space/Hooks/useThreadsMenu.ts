@@ -66,9 +66,9 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<RemoveTh
                     },
                     max: oldestThread
                         ? {
-                            timestamp: oldestThread.modifiedTimestamp,
-                            inclusive: false,
-                        }
+                              timestamp: oldestThread.modifiedTimestamp,
+                              inclusive: false,
+                          }
                         : undefined,
                 },
                 source: threadSource,
@@ -149,8 +149,6 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<RemoveTh
                     oldestThread.current
                 );
 
-                isLoadingOldThreads.current = false;
-
                 if (callId === loadOldThreadCallId.current) {
                     const oldThreads = oldThreadsResponse.content ?? [];
                     if (oldThreadsResponse.isSuccessful && oldThreads.length < numberOfThreadsToLoad) {
@@ -158,7 +156,12 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<RemoveTh
                     }
                     setThreads(prevThread => processThreads(prevThread, oldThreads, false));
 
+                    isLoadingOldThreads.current = false;
+
                     return oldThreadsResponse.isSuccessful;
+                } else {
+                    isLoadingOldThreads.current = false;
+                    return undefined;
                 }
             }
         },

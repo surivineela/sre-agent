@@ -48,10 +48,9 @@ export const processThreads = (prevThreads: Thread[], threads: Thread[], reverse
 };
 
 /**
- * Return messages in ascending order by timestamp
  * @param prevMessages existing messages sorted in ascending order by timestamp
  * @param newMessages new messages sorted in descending order by timestamp
- * @returns
+ * @returns messages combined in ascending order by timestamp
  */
 export const processNewMessages = (prevMessages: Message[], newMessages: Message[]) => {
     if (newMessages.length === 0) return prevMessages;
@@ -90,19 +89,20 @@ export const processNewMessages = (prevMessages: Message[], newMessages: Message
 };
 
 /**
- * Return messages sorted in ascending order by timestamp
  * @param prevMessages existing messages sorted in ascending order by timestamp
  * @param oldMessages older messages sorted in descending order by timestamp
+ * @returns messages sorted in ascending order by timestamp
  */
 export const processOldMessages = (prevMessages: Message[], oldMessages: Message[]) => {
     if (oldMessages.length === 0) {
         return prevMessages;
     }
 
+    // Copy oldMessages as reverse() will mutate the original array and return the same reference
     const oldMessagesInAscendingOrder = [...oldMessages].reverse();
 
     return [...oldMessagesInAscendingOrder, ...prevMessages];
-}
+};
 
 export const noGapBetweenNewMessagesAndExistingMessages = (messages: Message[], currentLatestMessage?: Message) => {
     if (messages.length === 0 || !currentLatestMessage) {
@@ -127,7 +127,7 @@ export const shouldGroupWithPreviousMessage = (currentMessage?: Message, previou
         currentMessage.author.userId === previousMessage.author.userId &&
         getSafeDateTime(currentMessage.timeStamp).getTime() - getSafeDateTime(previousMessage.timeStamp).getTime() <= 5 * 60 * 1000
     );
-}
+};
 
 export const getUTCTimestampBasedOnSelectedThreadCutoffTime = (selectedCutOffModifiedTime: SelectedTimes): string => {
     const days = selectedCutOffModifiedTime === SelectedTimes.OneDay ? 1 : selectedCutOffModifiedTime === SelectedTimes.SevenDays ? 7 : 30;
@@ -185,12 +185,11 @@ export const getNumberOfThreadsToOverflowThreadsListDiv = (
 };
 
 /**
- * The time in millseconds to wait before issuing a next request. The max interval is 15 minutes.
- * @param exponentialBackoffDepth 
- * @returns 
+ * @param exponentialBackoffDepth
+ * @returns The time in millseconds to wait before issuing a next request. The max interval is 15 minutes.
  */
 export const getIntervalBetweenLoading = (exponentialBackoffDepth: number) => {
     const base = 100;
     const maxInterval = 15 * 60 * 1000; // 15 minutes in milliseconds
     return Math.min(base + Math.floor(Math.pow(2, exponentialBackoffDepth)) * 1000, maxInterval);
-}
+};
