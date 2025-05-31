@@ -96,13 +96,13 @@ namespace Agent.Plugins.Implementation
             }
             catch (HttpRequestException ex)
             {
-                _logger.LogError(ex, $"Network error during search for index '{searchIndex}' with query '{searchText}': {ex.Message}. This could be due to a 'no such host' issue, DNS problems, or firewall restrictions. Ensure the search service URL is correct and accessible.");
+                _logger.LogInternalError(ex, $"Network error during search for index '{searchIndex}' with query '{searchText}': {ex.Message}. This could be due to a 'no such host' issue, DNS problems, or firewall restrictions. Ensure the search service URL is correct and accessible.");
                 // Return empty list on network error
                 return new List<SearchArticle>();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"An unexpected error occurred during search for index '{searchIndex}' with query '{searchText}': {ex.Message}");
+                _logger.LogInternalError(ex, $"An unexpected error occurred during search for index '{searchIndex}' with query '{searchText}': {ex.Message}");
                 throw;
             }
         }
