@@ -43,11 +43,13 @@ using Agent.Runtime.SubAgents.DailyReportSummary;
 using Agent.Runtime.SubAgents.FeedbackRCAAgent;
 using Agent.Runtime.SubAgents.FunctionAppConfigurationCheck;
 using Agent.Runtime.SubAgents.FunctionAppConnectivityAgent;
+using Agent.Runtime.SubAgents.FunctionAppDeploymentChecksAgent;
 using Agent.Runtime.SubAgents.FunctionAppDiagnosticsAgent;
 using Agent.Runtime.SubAgents.FunctionAppExecutionFailuresAgent;
 using Agent.Runtime.SubAgents.KubernetesAgent;
 using Agent.Runtime.SubAgents.ManagedIdentityMigration;
 using Agent.Runtime.SubAgents.PagerDutyAgent;
+using Agent.Runtime.SubAgents.FunctionAppDeploymentChecksAgent;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
 using Agent.Runtime.SubAgents.SqlDbQueryPerfAgent;
 using Agent.Runtime.SubAgents.TlsBestPractices;
@@ -154,6 +156,9 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
         .AddSingleton<FunctionAppConfigurationCheckAgentFactory>()
         .AddTransient<IFunctionAppConfigurationChecksPlugin, FunctionAppConfigurationChecksPlugin>()
         .AddTransient<IMetaAgentFunctionAppConfigurationCheckAgentPlugin, FunctionAppConfigurationCheckPlugin>()
+
+        .AddTransient<IFunctionAppDeploymentChecksPlugin, FunctionAppDeploymentChecksPlugin>() 
+        .AddTransient<FunctionAppDeploymentChecksPluginDefinition>()
 
         .AddTransient<MetricsPluginDefinition>()
         .AddTransient<AzureMonitorMetricsPluginDefinition>()
