@@ -18,7 +18,7 @@ namespace Agent.Plugins.Definitions
         }
 
         [KernelFunction("SearchAsync")]
-        [Description("Performs a semantic search using Azure AI Search to find relevant documents. For example, search design doc or search how to configure grafana")]
+        [Description("Performs a semantic search using Azure AI Search to find relevant documents.")]
         public async Task<List<SearchArticle>> SearchAsync(
             [Description("The name of the search index to query")] string searchIndex,
             [Description("The search query text")] string searchText)
