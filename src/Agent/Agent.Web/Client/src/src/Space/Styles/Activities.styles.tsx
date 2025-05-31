@@ -107,7 +107,6 @@ export const ChatBoxStyles = mergeStyleSets({
                 padding: 0,
             },
         },
-
     },
     chatContainer: {
         height: '100%',
@@ -115,9 +114,9 @@ export const ChatBoxStyles = mergeStyleSets({
         borderRadius: tokens.borderRadiusLarge,
     },
     chat: {
-        // height: '100%',
+        height: '100%',
         maxWidth: '1000px',
-        margin: 'auto'
+        margin: 'auto',
     },
     userMessage: {
         alignSelf: 'flex-end',
@@ -128,7 +127,7 @@ export const ChatBoxStyles = mergeStyleSets({
         lineHeight: '24px',
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'flex-end'
+        alignItems: 'flex-end',
     },
     agentMessage: {
         fontSize: '16px',
@@ -398,5 +397,5 @@ export const skeletonStyle: CSSProperties = {
 export const nameAndTimestampContainerStyle: CSSProperties = {
     display: 'flex',
     alignItems: 'center',
-    gap: '8px'
+    gap: '8px',
 };
