@@ -270,11 +270,10 @@ $@"## Facts
     private readonly IAzureMonitorMetricsPlugin _azureMonitorMetricsPlugin;
     private readonly IMetaAgentFunctionAppDiagnosticsPlugin _functionAppDiagnosticsPlugin;
     private readonly IArmPlugin _armPlugin;
+    private readonly IDiagnosticsPlugin _diagnosticsPlugin;
     private readonly ISearchPlugin _searchPlugin;
 
-
     private readonly InstanceManagementSettings _instanceManagementSettings;
-
 
     public ThirdPartyAgentsFactory(
         ILogger<ThirdPartyAgentsFactory> logger,
@@ -399,6 +398,7 @@ $@"## Facts
         var functionAppPluginDefinition = new FunctionAppsPluginDefinition(_functionAppsPlugin);
 
         var azureMonitorMetricsPluginDefinition = new AzureMonitorMetricsPluginDefinition(_azureMonitorMetricsPlugin);
+        var diagnosticsPluginDefinition = new DiagnosticsPluginDefinition(_diagnosticsPlugin);
 
         var searchPluginDefinition = new SearchPluginDefinition(_searchPlugin);
 
@@ -491,7 +491,8 @@ $@"## Facts
             AIFunctionFactory.Create(_githubIssuePlugin.CreateGithubIssue),
             AIFunctionFactory.Create(_githubIssuePlugin.CreateGithubIssueComment),
             AIFunctionFactory.Create(_githubIssuePlugin.FindConnectedRepo),
-            AIFunctionFactory.Create(_diagnosticPlugin.GetAnalysisAsync),
+            AIFunctionFactory.Create(diagnosticsPluginDefinition.GetAnalysisAsync),
+            AIFunctionFactory.Create(diagnosticsPluginDefinition.GetCPUAnalysis),
             AIFunctionFactory.Create(searchPluginDefinition.SearchAsync)
         ];
 

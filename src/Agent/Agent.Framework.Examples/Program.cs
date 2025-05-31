@@ -147,10 +147,10 @@ class Program
         builder.Services.AddSingleton<ILogAnalyticsService, LogAnalyticsService>();
         builder.Services.AddSingleton<IBotFrameworkHttpAdapter, AdapterWithErrorHandler>();
         builder.Services.AddSingleton<IArmClientFactory, ArmClientFactory>();
-        builder.Services.AddSingleton<IToolFactory, ToolFactory>(sp =>
+        builder.Services.AddSingleton<IToolFactory<CustomContext>, ToolFactory<CustomContext>>(sp =>
         {
-            return new ToolFactory(
-                logger: sp.GetRequiredService<ILogger<ToolFactory>>(),
+            return new ToolFactory<CustomContext>(
+                logger: sp.GetRequiredService<ILogger<ToolFactory<CustomContext>>>(),
                 serviceProvider: sp,
                 assembliesToScan: AppDomain.CurrentDomain.GetAssemblies()
                     .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
@@ -224,7 +224,7 @@ class Program
 
         var chatClient = host.Services.GetRequiredService<IChatClient>();
 
-        var toolsRepository = host.Services.GetRequiredService<IToolFactory>();
+        var toolsRepository = host.Services.GetRequiredService<IToolFactory<CustomContext>>();
 
         var agentFactory = new AgentFactory<CustomContext>(
             logger: host.Services.GetRequiredService<ILogger<AgentFactory<CustomContext>>>(),

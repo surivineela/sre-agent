@@ -333,23 +333,23 @@ public class Program
 
             .AddSingleton(sp =>
             {
-                return new ToolFactory(
-                    logger: sp.GetRequiredService<ILogger<ToolFactory>>(),
+                return new ToolFactory<AgentContext>(
+                    logger: sp.GetRequiredService<ILogger<ToolFactory<AgentContext>>>(),
                     serviceProvider: sp,
                     assembliesToScan: AppDomain.CurrentDomain.GetAssemblies()
                         .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
                         .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true));
             })
-            .AddSingleton<IToolFactory, ToolFactory>(sp =>
+            .AddSingleton<IToolFactory<AgentContext>, ToolFactory<AgentContext>>(sp =>
             {
-                return sp.GetRequiredService<ToolFactory>();
+                return sp.GetRequiredService<ToolFactory<AgentContext>>();
             })
 
             .AddSingleton<IAgentFactory<AgentContext>, AgentFactory<AgentContext>>(sp =>
             {
                 return new AgentFactory<AgentContext>(
                     logger: sp.GetRequiredService<ILogger<AgentFactory<AgentContext>>>(),
-                    toolFactory: sp.GetRequiredService<IToolFactory>(),
+                    toolFactory: sp.GetRequiredService<IToolFactory<AgentContext>>(),
                     assembliesToScan: AppDomain.CurrentDomain.GetAssemblies()
                         .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
                         .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true),

@@ -27,6 +27,7 @@ internal sealed class ContainerAppDiagnosticStrategy : ComputeResourceDiagnostic
         _analysisHandlers = new Dictionary<AnalysisType, Func<string, ComputeResourceInfo, AnalysisType, Task<string>>>
         {
             { AnalysisType.Memory, AnalyzeMemoryAsync },
+            { AnalysisType.Cpu, AnalyzeCPUAsync },
         };
     }
 
@@ -37,12 +38,27 @@ internal sealed class ContainerAppDiagnosticStrategy : ComputeResourceDiagnostic
     {
         if (computeResourceInfo.LanguageStack == LanguageStack.Dotnet && await IsDotnetBased(resourceId))
         {
-            return await GetContainerMemoryAnalysisForDotnet(resourceId);
+            return await GetMemoryAnalysis(resourceId);
         }
 
         else
         {
             string errorMessage = $"Unsupported language stack for memory analysis: {resourceId}";
+            _logger.LogInternalError(errorMessage);
+            throw new ArgumentException(errorMessage);
+        }
+    }
+
+    internal async Task<string> AnalyzeCPUAsync(string resourceId, ComputeResourceInfo computeResourceInfo, AnalysisType type)
+    {
+        if (computeResourceInfo.LanguageStack == LanguageStack.Dotnet && await IsDotnetBased(resourceId))
+        {
+            return await GetCPUAnalysis(resourceId);
+        }
+
+        else
+        {
+            string errorMessage = $"Unsupported language stack for CPU analysis: {resourceId}";
             _logger.LogInternalError(errorMessage);
             throw new ArgumentException(errorMessage);
         }
@@ -145,14 +161,31 @@ internal sealed class ContainerAppDiagnosticStrategy : ComputeResourceDiagnostic
         }
     }
 
-    public async Task<string> GetContainerMemoryAnalysisForDotnet(string resourceId)
+    public async Task<string> GetMemoryAnalysis(string resourceId)
     {
-        _logger.LogInternalInformation($"[GetContainerMemoryAnalysisForDotnet] Getting memory analysis for {resourceId}");
+        _logger.LogInternalInformation($"[GetMemoryAnalysis] Getting memory analysis for {resourceId}");
         try
         {
             string commands = " apt-get update; apt-get install -y curl; curl https://dotnetanalysis.blob.core.windows.net/acascripts/dotnet-dump-analyze.sh -o /tmp/dotnet-dump-analyze.sh; chmod +x /tmp/dotnet-dump-analyze.sh; sh /tmp/dotnet-dump-analyze.sh";
             return await InvokeExecCommand(resourceId, commands);
         }
+
+        catch (Exception ex)
+        {
+            _logger.LogInternalError($"[GetMemoryAnalysis] Error executing command: {ex.Message} for {resourceId}");
+            throw;
+        }
+    }
+
+    public async Task<string> GetCPUAnalysis(string resourceId)
+    {
+        _logger.LogInternalInformation($"[GetCPUAnalysis] Getting CPU analysis for {resourceId}");
+        try
+        {
+            string commands = " apt-get update; apt-get install -y curl; curl https://dotnetanalysis.blob.core.windows.net/acascripts/dotnet-cpu-analyzer.sh -o /tmp/dotnet-cpu-analyzer.sh; chmod +x /tmp/dotnet-cpu-analyzer.sh; sh /tmp/dotnet-cpu-analyzer.sh";
+            return await InvokeExecCommand(resourceId, commands);
+        }
+
         catch (Exception ex)
         {
             _logger.LogInternalError($"[GetContainerMemoryAnalysisForDotnet] Error executing command: {ex.Message} for {resourceId}");
