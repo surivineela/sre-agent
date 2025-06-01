@@ -1,6 +1,4 @@
-using System;
 using System.ComponentModel;
-using System.Threading.Tasks;
 using Agent.Logging;
 using Agent.Runtime.SubAgents.FunctionAppDeploymentChecksAgent;
 using Microsoft.DurableTask.Client;
@@ -12,7 +10,7 @@ namespace Agent.Runtime.MetaAgent;
 /// <summary>
 /// Plugin for starting the Function App Deployment Checks Agent
 /// </summary>
-public class FunctionAppDeploymentChecksAgentPlugin
+public class FunctionAppDeploymentChecksAgentPlugin : IMetaAgentFunctionAppDeploymentChecksAgentPlugin
 {
     private readonly DurableTaskClient _durableTaskClient;
     private readonly FunctionAppDeploymentChecksAgentFactory _functionAppDeploymentChecksAgentFactory;
