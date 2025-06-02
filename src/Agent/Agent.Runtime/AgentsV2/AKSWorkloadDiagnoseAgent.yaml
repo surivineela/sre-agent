@@ -26,12 +26,12 @@ system_prompt: |
       - Application itself or dependent application resource exhaustion: Increased load or reduced resource allocation causing shortages (e.g., CPU utilization reaching critical levels, memory OOM). Evidence could from pod logs, resource metrics, recent changes or potential leaks.
       - Infrastructure failures: Failures in underlying infrastructure, such as node outages or AKS control plane issues.
 
-
-
 handoff_description: "Handoff to this agent when try to diagnose the workload on AKS cluster."
 
 handoffs:
   - aks_remediation_agent
+  - diagnostic_cpu_agent
+  - diagnostic_memory_agent
 
 tools:
   - SearchResourceByName

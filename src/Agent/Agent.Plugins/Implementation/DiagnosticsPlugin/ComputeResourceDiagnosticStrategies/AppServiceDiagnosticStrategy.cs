@@ -13,7 +13,7 @@ internal sealed class AppServiceDiagnosticStrategy : ComputeResourceDiagnosticSt
         : base(logger)
     {
         _armHelper = armHelper;
-        _analysisHandlers = new Dictionary<AnalysisType, Func<string, ComputeResourceInfo, AnalysisType, Task<string>>>
+        _analysisHandlers = new Dictionary<AnalysisType, Func<string, ComputeResourceInfo, AnalysisType, string, Task<string>>>
         {
             { AnalysisType.Memory, AnalyzeMemoryAsync },
             { AnalysisType.Cpu, AnalyzeCpuAsync },
@@ -23,7 +23,7 @@ internal sealed class AppServiceDiagnosticStrategy : ComputeResourceDiagnosticSt
     public override bool CanHandle(ComputeResourceInfo resourceInfo)
         => resourceInfo.ResourceType == ComputeResourceType.AppService;
 
-    internal async Task<string> AnalyzeMemoryAsync(string resourceId, ComputeResourceInfo computeResourceInfo, AnalysisType analysisType)
+    internal async Task<string> AnalyzeMemoryAsync(string resourceId, ComputeResourceInfo computeResourceInfo, AnalysisType analysisType, string additionalProperties)
     {
         // Step 1: Take a full memory dump.
         string memoryDumpFile = Path.GetFileName(Path.GetTempFileName() + ".dmp");
@@ -73,7 +73,7 @@ internal sealed class AppServiceDiagnosticStrategy : ComputeResourceDiagnosticSt
         }
     }
 
-    internal async Task<string> AnalyzeCpuAsync(string resourceId, ComputeResourceInfo info, AnalysisType type)
+    internal async Task<string> AnalyzeCpuAsync(string resourceId, ComputeResourceInfo info, AnalysisType type, string additionalProperties)
     {
         // TODO: Implement CPU analysis for App Service.
         throw new NotImplementedException();

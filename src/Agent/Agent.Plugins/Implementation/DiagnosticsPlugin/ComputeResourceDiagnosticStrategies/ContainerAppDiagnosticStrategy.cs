@@ -24,7 +24,7 @@ internal sealed class ContainerAppDiagnosticStrategy : ComputeResourceDiagnostic
         _armHelper = armHelper;
         _armClientFactory = armClientFactory;
         
-        _analysisHandlers = new Dictionary<AnalysisType, Func<string, ComputeResourceInfo, AnalysisType, Task<string>>>
+        _analysisHandlers = new Dictionary<AnalysisType, Func<string, ComputeResourceInfo, AnalysisType, string, Task<string>>>
         {
             { AnalysisType.Memory, AnalyzeMemoryAsync },
             { AnalysisType.Cpu, AnalyzeCPUAsync },
@@ -34,7 +34,7 @@ internal sealed class ContainerAppDiagnosticStrategy : ComputeResourceDiagnostic
     public override bool CanHandle(ComputeResourceInfo resourceInfo)
         => resourceInfo.ResourceType == ComputeResourceType.ContainerApp;
 
-    internal async Task<string> AnalyzeMemoryAsync(string resourceId, ComputeResourceInfo computeResourceInfo, AnalysisType analysisType)
+    internal async Task<string> AnalyzeMemoryAsync(string resourceId, ComputeResourceInfo computeResourceInfo, AnalysisType analysisType, string additionalProperties)
     {
         if (computeResourceInfo.LanguageStack == LanguageStack.Dotnet && await IsDotnetBased(resourceId))
         {
@@ -49,7 +49,7 @@ internal sealed class ContainerAppDiagnosticStrategy : ComputeResourceDiagnostic
         }
     }
 
-    internal async Task<string> AnalyzeCPUAsync(string resourceId, ComputeResourceInfo computeResourceInfo, AnalysisType type)
+    internal async Task<string> AnalyzeCPUAsync(string resourceId, ComputeResourceInfo computeResourceInfo, AnalysisType type, string additionalProperties)
     {
         if (computeResourceInfo.LanguageStack == LanguageStack.Dotnet && await IsDotnetBased(resourceId))
         {

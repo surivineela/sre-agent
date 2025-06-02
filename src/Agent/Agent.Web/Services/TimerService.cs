@@ -276,7 +276,7 @@ public class TimerService : IHostedService, IDisposable
     }
 
     /// <summary>
-    /// Kicks off the crawler every 30 minutes on a different thread
+    /// Kicks off the crawler every BackgroundCrawlIntervalInMinutes (60) minutes on a different thread
     /// </summary>
     public void StartCrawlerTimer(CancellationToken cancellationToken)
     {
