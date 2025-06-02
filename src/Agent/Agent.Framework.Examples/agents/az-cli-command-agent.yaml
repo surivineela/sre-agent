@@ -194,14 +194,14 @@ handoff_description: Handoff to this agent when users need to execute Azure CLI 
 handoffs:
     - meta_agent
 
-manual_tools:
+tools:
     - RunAzCliReadCommandsAsync
     - RunAzCliWriteCommandsAsync
     - NotifyUser
 
 max_reflection_count: 3
 
-reflection_prompt: |
+custom_reflection_note: |
     Before taking action, reflect on:
     1. **Current Understanding:** Do I have enough information about the current state?
     2. **Command Classification:** Is this a read (auto-execute) or write (needs approval) operation?
