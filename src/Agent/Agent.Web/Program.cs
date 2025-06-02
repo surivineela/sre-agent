@@ -268,6 +268,7 @@ public class Program
             .AddTransient<IncidentPluginDefinition>()
             .AddTransient<FunctionAppExecutionFailuresPluginDefinition>()
             .AddTransient<FunctionAppConfigurationChecksPluginDefinition>()
+            .AddTransient<FunctionAppDeploymentChecksPluginDefinition>()
             .AddTransient<UserInteractionPluginDefinition>()
 
             .AddTransient<IMetaAgentContainerAppsRemediationPlugin, ContainerAppsRemediationPlugin>()
