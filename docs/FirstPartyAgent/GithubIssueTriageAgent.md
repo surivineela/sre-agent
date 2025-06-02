@@ -134,10 +134,14 @@ Body:
 {
   "action": "opened",
   "issue": {
-    "url": "https://github.com/Azure/azure-functions-host/issues/11029",
-    "user": {
-      "login": "liliankasem"
-    }
+    "url": "https://api.github.com/repos/Azure/azure-functions-host/issues/11099",
+    "number": 11099
+  },
+  "repository": {
+    "name": "azure-functions-host"
+  },
+  "sender": {
+    "login": "jviau"
   }
 }
 ```

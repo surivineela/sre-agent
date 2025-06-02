@@ -39,11 +39,9 @@ namespace FirstPartyAgent.FunctionApp
                 return badResponse;
             }
 
-            // Extract the issueUrl from the GitHub issue JSON body.
-            var issueJson = JsonConvert.DeserializeObject<dynamic>(gitHubIssueBody);
-            var issueAction = issueJson?.action?.ToString() ?? "created";
+            var gitHubEvent = JsonConvert.DeserializeObject<GitHubIssueEvent>(gitHubIssueBody);
 
-            if (issueAction.Contains("label", StringComparison.OrdinalIgnoreCase))
+            if (gitHubEvent.Action.Contains("label", StringComparison.OrdinalIgnoreCase))
             {
                 // Todo: Auto index the issue to reflect latest state before returning.
                 var responseForIgnoringLabelEvents = req.CreateResponse(HttpStatusCode.OK);
@@ -52,7 +50,7 @@ namespace FirstPartyAgent.FunctionApp
                 return responseForIgnoringLabelEvents;
             }
 
-            var initiatedBy = issueJson?.issue?.user?.login?.ToString() ?? "unknown";
+            var initiatedBy = gitHubEvent?.Sender?.Login?.ToString() ?? "unknown";
             if (initiatedBy.Contains("sreagent", StringComparison.OrdinalIgnoreCase) || initiatedBy.Contains("sre-agent", StringComparison.OrdinalIgnoreCase))
             {
                 var responseForIgnoringSreAgentEvents = req.CreateResponse(HttpStatusCode.OK);
@@ -61,26 +59,12 @@ namespace FirstPartyAgent.FunctionApp
                 return responseForIgnoringSreAgentEvents;
             }
 
-            var issueToAnalyze = issueJson?.issue?.url?.ToString() ?? gitHubIssueBody;
-
-            // Use regex to extract owner, repo, and issue ID
-            var match = Regex.Match(issueToAnalyze, @"github\.com/[^/]+/([^/]+)/issues/(\d+)", RegexOptions.IgnoreCase);
-
-            if (!match.Success)
-            {
-                _logger.LogInformation($"Unable to extract repository name and issue ID from URL, this might not be a triage issue: {issueToAnalyze}");
-                return req.CreateResponse(HttpStatusCode.BadRequest);
-            }
-
-            string repoName = match.Success ? match.Groups[1].Value : "unidentified";
-            string issueId = match.Success ? match.Groups[2].Value : null;
-
             var requestBody = new MessageRequestBody
             {
                 AgentMode = "GithubIssueTagger",
-                Message = $"Process the following.\n\nAction taken: {issueAction}\nIssue URL: {issueToAnalyze}",
-                Title = issueId is not null
-                    ? $"{repoName} - Issue #{issueId}"
+                Message = $"Process the following.\n\nAction taken: {gitHubEvent?.Action}\nIssue URL: {gitHubEvent?.Issue?.Url}",
+                Title = gitHubEvent?.Issue?.Number is not null
+                    ? $"{gitHubEvent.Repository.Name} - Issue #{gitHubEvent.Issue.Number}"
                     : string.Empty,
                 Sender = "TriageGithubIssueFunction",
                 SessionId = Guid.NewGuid().ToString(),
