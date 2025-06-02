@@ -3,7 +3,6 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Models;
-using Azure.Search.Documents.Models;
 using Microsoft.SemanticKernel;
 using System.ComponentModel;
 

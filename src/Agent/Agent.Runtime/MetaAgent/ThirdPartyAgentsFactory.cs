@@ -136,6 +136,7 @@ User Provided Resource Validation:
 - **Function App Diagnostics**: Help users troubleshoot Function App issues like Function App down, connectivity, errors or configuration issues in their Function apps
 - **Function App Connectivity Troubleshooting**: Help users test connectivity from their Function app to Storage account
 - **Function App Execution Failures** Help users with errors in their Function apps
+- **Use Azure AI Search** Use SearchAsync to search documents or instructions on Azure AI Search
 
 ## Metrics
 You have capability to discover, analyze, and visualize metrics. Always prefer using these built-in metrics capabilities over external tools like Grafana.
@@ -492,7 +493,7 @@ $@"## Facts
             AIFunctionFactory.Create(_githubIssuePlugin.FindConnectedRepo),
             AIFunctionFactory.Create(diagnosticsPluginDefinition.GetAnalysisAsync),
             AIFunctionFactory.Create(diagnosticsPluginDefinition.GetCPUAnalysis),
-            //AIFunctionFactory.Create(searchPluginDefinition.SearchAsync)
+            AIFunctionFactory.Create(searchPluginDefinition.SearchAsync)
         ];
 
         if (!_instanceManagementSettings.ProcessingEnabled)

@@ -1,22 +1,27 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Text.Json.Serialization;
 using Azure.Search.Documents.Indexes;
 
 namespace Agent.Core.Models;
 public class SearchArticle
 {
     [SimpleField(IsKey = true)]
+    [JsonPropertyName("id")]
     public string Id { get; set; } = string.Empty;
 
     [SearchableField]
-    public string Content { get; set; } = string.Empty;
+    [JsonPropertyName("content")]
+    public string? Content { get; set; }
 
     [SearchableField]
-    public string Title { get; set; } = string.Empty;
+    [JsonPropertyName("title")]
+    public string? Title { get; set; }
 
     [SimpleField]
-    public string Url { get; set; } = string.Empty;
+    [JsonPropertyName("url")]
+    public string? Url { get; set; }
+
+    [SearchableField]
+    [JsonPropertyName("tag")]
+    public string? Tag { get; set; }
 }
+
