@@ -91,6 +91,7 @@ public class ToolsRepository : IToolsRepository
         RegisterPlugin<FunctionAppsPluginDefinition>();
         RegisterPlugin<FunctionAppExecutionFailuresPluginDefinition>();
         RegisterPlugin<FunctionAppConfigurationChecksPluginDefinition>();
+        RegisterPlugin<FunctionAppDeploymentChecksPluginDefinition>();
         RegisterPlugin<IncidentPluginDefinition>();
 
         // Not all tools were registered, so registering individually

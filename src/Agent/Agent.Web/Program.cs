@@ -44,6 +44,7 @@ using Agent.Runtime.SubAgents.DailyReportSummary;
 using Agent.Runtime.SubAgents.FeedbackRCAAgent;
 using Agent.Runtime.SubAgents.FunctionAppConfigurationCheck;
 using Agent.Runtime.SubAgents.FunctionAppConnectivityAgent;
+using Agent.Runtime.SubAgents.FunctionAppDeploymentChecksAgent;
 using Agent.Runtime.SubAgents.FunctionAppDiagnosticsAgent;
 using Agent.Runtime.SubAgents.FunctionAppExecutionFailuresAgent;
 using Agent.Runtime.SubAgents.KubernetesAgent;
@@ -236,6 +237,10 @@ public class Program
             .AddTransient<IFunctionAppConfigurationChecksPlugin, FunctionAppConfigurationChecksPlugin>()
             .AddTransient<IMetaAgentFunctionAppConfigurationCheckAgentPlugin, FunctionAppConfigurationCheckPlugin>()
 
+            .AddSingleton<FunctionAppDeploymentChecksAgentFactory>()
+            .AddTransient<IFunctionAppDeploymentChecksPlugin, FunctionAppDeploymentChecksPlugin>()
+            .AddTransient<IMetaAgentFunctionAppDeploymentChecksAgentPlugin, FunctionAppDeploymentChecksAgentPlugin>()
+
             .AddTransient<MetricsPluginDefinition>()
             .AddTransient<AzureMonitorMetricsPluginDefinition>()
             .AddTransient<ChartPluginDefinition>()
@@ -263,6 +268,7 @@ public class Program
             .AddTransient<IncidentPluginDefinition>()
             .AddTransient<FunctionAppExecutionFailuresPluginDefinition>()
             .AddTransient<FunctionAppConfigurationChecksPluginDefinition>()
+            .AddTransient<FunctionAppDeploymentChecksPluginDefinition>()
             .AddTransient<UserInteractionPluginDefinition>()
 
             .AddTransient<IMetaAgentContainerAppsRemediationPlugin, ContainerAppsRemediationPlugin>()

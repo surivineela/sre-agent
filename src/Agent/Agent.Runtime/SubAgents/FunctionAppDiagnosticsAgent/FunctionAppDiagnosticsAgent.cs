@@ -54,6 +54,9 @@ namespace Agent.Runtime.SubAgents.FunctionAppDiagnosticsAgent
 
                 var configurationCheckToolSignatures = agentInput.ToolSignatures.TryGetValue(FunctionAppDiagnosticsAgentFactory.FunctionAppConfigurationCheckAgentKey,
                                                         out var configSignatures) ? configSignatures : [];
+                var deploymentChecksToolSignatures = agentInput.ToolSignatures.TryGetValue(
+                    FunctionAppDiagnosticsAgentFactory.FunctionAppDeploymentChecksAgentKey,
+                    out var deploymentSignatures) ? deploymentSignatures : [];
                 string response = string.Empty;
                 // Use the routing output to determine the next steps
                 switch (routingOutput.AgentType)
@@ -99,10 +102,15 @@ namespace Agent.Runtime.SubAgents.FunctionAppDiagnosticsAgent
                         break;
                 }
                 var configResult2 = await context.CallFunctionAppConfigurationCheckAgentAsync(
-                new FunctionAppConfigurationCheck.FunctionAppConfigurationCheckAgentInput(
-                    agentInput.FunctionAppResourceId,
-                    configurationCheckToolSignatures,
-                    agentInput.ThreadId));
+                    new FunctionAppConfigurationCheck.FunctionAppConfigurationCheckAgentInput(
+                        agentInput.FunctionAppResourceId,
+                        configurationCheckToolSignatures,
+                        agentInput.ThreadId));
+                var deploymentResult = await context.CallFunctionAppDeploymentChecksAgentAsync(
+                    new FunctionAppDeploymentChecksAgent.FunctionAppDeploymentChecksAgentInput(
+                        agentInput.FunctionAppResourceId,
+                        deploymentChecksToolSignatures,
+                        agentInput.ThreadId));
                 return response;
             }
             catch (Exception ex)

@@ -20,6 +20,7 @@ public sealed class FunctionAppDiagnosticsAgentFactory
     public const string FunctionAppConnectivityAgentKey = "FunctionAppConnectivityAgent";
     public const string FunctionAppExecutionFailuresAgentKey = "FunctionAppExecutionFailuresAgent";
     public const string FunctionAppConfigurationCheckAgentKey = "FunctionAppConfigurationCheckAgent";
+    public const string FunctionAppDeploymentChecksAgentKey = "FunctionAppDeploymentChecksAgent";
 
     public FunctionAppDiagnosticsAgentFactory(
         IToolsRepository toolsRepository,
@@ -35,7 +36,8 @@ public sealed class FunctionAppDiagnosticsAgentFactory
         IRoleAssignmentPlugin roleAssignmentPlugin,
         IGraphDBPlugin graphDBPlugin,
         ChartPluginV2 chartPlugin,
-        IFunctionAppConfigurationChecksPlugin functionAppConfigurationChecksPlugin
+        IFunctionAppConfigurationChecksPlugin functionAppConfigurationChecksPlugin,
+        IFunctionAppDeploymentChecksPlugin functionAppDeploymentChecksPlugin
         )
     {
         _logger = logger;
@@ -124,6 +126,12 @@ public sealed class FunctionAppDiagnosticsAgentFactory
         executionFailuresAgentTools.Add(toolsRepository.GetSignature(() => functionAppExecutionFailuresPluginDefinition.GetHostRuntimeErrorEvents));
         executionFailuresAgentTools.Add(toolsRepository.GetSignature(() => functionAppExecutionFailuresPluginDefinition.GetTop3ExceptionsPerFunction));
 
+        // Add deployment checks capabilities to execution failures agent
+        var functionAppDeploymentChecksPluginDefinition = new FunctionAppDeploymentChecksPluginDefinition(functionAppDeploymentChecksPlugin);
+        executionFailuresAgentTools.Add(toolsRepository.GetSignature(() => functionAppDeploymentChecksPluginDefinition.GetFunctionAppDeploymentChecks));
+        executionFailuresAgentTools.Add(toolsRepository.GetSignature(() => functionAppDeploymentChecksPluginDefinition.GetFunctionAppDeploymentHistory));
+        executionFailuresAgentTools.Add(toolsRepository.GetSignature(() => functionAppDeploymentChecksPluginDefinition.IsFunctionApp));
+
         toolSignaturesDictionary[FunctionAppExecutionFailuresAgentKey] = executionFailuresAgentTools;
 
         // Create tool signatures for FunctionAppConfigurationCheckAgent
@@ -149,6 +157,25 @@ public sealed class FunctionAppDiagnosticsAgentFactory
 
         // Add FunctionAppConfigurationCheckAgent tools to dictionary
         toolSignaturesDictionary[FunctionAppConfigurationCheckAgentKey] = configurationCheckAgentTools;
+
+        // Create tool signatures for FunctionAppDeploymentChecksAgent
+        var deploymentChecksAgentTools = new List<string>
+        {
+            toolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait),
+            toolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete),
+            toolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser),
+            toolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput),
+            toolsRepository.GetSignature(() => armPluginDefinition.GetArmResourceAsJson)
+        };
+
+        deploymentChecksAgentTools.Add(toolsRepository.GetSignature(() => functionAppDeploymentChecksPluginDefinition.GetFunctionAppDeploymentChecks));
+        deploymentChecksAgentTools.Add(toolsRepository.GetSignature(() => functionAppDeploymentChecksPluginDefinition.GetFunctionAppDeploymentHistory));
+        deploymentChecksAgentTools.Add(toolsRepository.GetSignature(() => functionAppDeploymentChecksPluginDefinition.IsFunctionApp));
+
+        deploymentChecksAgentTools.Add(toolsRepository.GetSignature(() => chartPluginDefinition.PlotTimeSeriesData));
+
+        // Add FunctionAppDeploymentChecksAgent tools to dictionary
+        toolSignaturesDictionary[FunctionAppDeploymentChecksAgentKey] = deploymentChecksAgentTools;
 
         // Set readonly dictionary
         _toolSignatures = toolSignaturesDictionary;
