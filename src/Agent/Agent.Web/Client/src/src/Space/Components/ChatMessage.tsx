@@ -185,6 +185,7 @@ const AzCliExecutionComponent: React.FC<{
     const [isActionLoading, setIsActionLoading] = useState(false);
     const [loadingAction, setLoadingAction] = useState<'run' | 'cancel' | null>(null);
     const [copied, setCopied] = useState(false);
+    const [outputCopied, setOutputCopied] = useState(false);
 
     const { userIdAndDisplayName } = useAuthenticatedUserInfo();
 
@@ -198,6 +199,25 @@ const AzCliExecutionComponent: React.FC<{
             setTimeout(() => setCopied(false), 2000);
         } catch (err) {
             console.error('Failed to copy command:', err);
+        }
+    };
+
+    const copyOutput = async () => {
+        try {
+            let outputText = '';
+            if (currentExecution.output) {
+                outputText += currentExecution.output;
+            }
+            if (currentExecution.error) {
+                if (outputText) outputText += '\n\n';
+                outputText += `Error: ${currentExecution.error}`;
+            }
+
+            await navigator.clipboard.writeText(outputText);
+            setOutputCopied(true);
+            setTimeout(() => setOutputCopied(false), 2000);
+        } catch (err) {
+            console.error('Failed to copy output:', err);
         }
     };
 
@@ -471,67 +491,103 @@ const AzCliExecutionComponent: React.FC<{
             {(currentExecution.output || currentExecution.error) && currentExecution.status !== 'Pending' && (
                 <div
                     style={{
+                        position: 'relative',
                         backgroundColor: '#1e1e1e',
                         borderRadius: '6px',
                         padding: '12px',
                         marginBottom: '12px',
                         maxHeight: '300px',
                         overflowY: 'auto',
+                        // Custom scrollbar styling
+                        scrollbarWidth: 'thin',
+                        scrollbarColor: '#4a5568 #2d3748',
                     }}
+                    className="custom-scrollbar"
                 >
-                    {currentExecution.output && (
-                        <pre
-                            style={{
-                                margin: 0,
-                                whiteSpace: 'pre-wrap',
-                                wordBreak: 'break-word',
-                                color: '#4ade80',
-                                fontSize: '12px',
-                                fontFamily: 'Consolas, Monaco, monospace',
-                            }}
-                        >
-                            {currentExecution.output}
-                        </pre>
-                    )}
-                    {currentExecution.error && (
-                        <pre
-                            style={{
-                                margin: currentExecution.output ? '8px 0 0 0' : 0,
-                                color: '#f87171',
-                                whiteSpace: 'pre-wrap',
-                                wordBreak: 'break-word',
-                                fontSize: '12px',
-                                fontFamily: 'Consolas, Monaco, monospace',
-                            }}
-                        >
-                            Error: {currentExecution.error}
-                        </pre>
-                    )}
+                    <button
+                        onClick={copyOutput}
+                        style={{
+                            position: 'absolute',
+                            top: '8px',
+                            right: '8px',
+                            padding: '6px',
+                            backgroundColor: 'transparent',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            color: outputCopied ? '#16a34a' : '#6b7280',
+                            transition: 'color 0.2s',
+                            zIndex: 1,
+                            opacity: 0.7,
+                        }}
+                        title="Copy output"
+                        onMouseEnter={e => {
+                            e.currentTarget.style.color = '#ffffff';
+                            e.currentTarget.style.opacity = '1';
+                        }}
+                        onMouseLeave={e => {
+                            e.currentTarget.style.color = outputCopied ? '#16a34a' : '#6b7280';
+                            e.currentTarget.style.opacity = '0.7';
+                        }}
+                    >
+                        {outputCopied ? <AiOutlineCheckCircle size={16} /> : <AiOutlineCopy size={16} />}
+                    </button>
 
-                    {currentExecution.status === 'Running' && (
-                        <div
-                            style={{
-                                marginTop: '8px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                color: '#60a5fa',
-                                fontSize: '12px',
-                            }}
-                        >
+                    <div style={{ paddingRight: '40px' }}>
+                        {currentExecution.output && (
+                            <pre
+                                style={{
+                                    margin: 0,
+                                    whiteSpace: 'pre-wrap',
+                                    wordBreak: 'break-word',
+                                    color: '#4ade80',
+                                    fontSize: '12px',
+                                    fontFamily: 'Consolas, Monaco, monospace',
+                                }}
+                            >
+                                {currentExecution.output}
+                            </pre>
+                        )}
+                        {currentExecution.error && (
+                            <pre
+                                style={{
+                                    margin: currentExecution.output ? '8px 0 0 0' : 0,
+                                    color: '#f87171',
+                                    whiteSpace: 'pre-wrap',
+                                    wordBreak: 'break-word',
+                                    fontSize: '12px',
+                                    fontFamily: 'Consolas, Monaco, monospace',
+                                }}
+                            >
+                                Error: {currentExecution.error}
+                            </pre>
+                        )}
+
+                        {currentExecution.status === 'Running' && (
                             <div
                                 style={{
-                                    width: '12px',
-                                    height: '12px',
-                                    border: '2px solid #60a5fa',
-                                    borderTop: '2px solid transparent',
-                                    borderRadius: '50%',
-                                    animation: 'spin 1s linear infinite',
+                                    marginTop: '8px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    color: '#60a5fa',
+                                    fontSize: '12px',
                                 }}
-                            />
-                            <span>Executing...</span>
-                        </div>
-                    )}
+                            >
+                                <div
+                                    style={{
+                                        width: '12px',
+                                        height: '12px',
+                                        border: '2px solid #60a5fa',
+                                        borderTop: '2px solid transparent',
+                                        borderRadius: '50%',
+                                        animation: 'spin 1s linear infinite',
+                                    }}
+                                />
+                                <span>Executing...</span>
+                            </div>
+                        )}
+                    </div>
                 </div>
             )}
 
@@ -571,17 +627,19 @@ const AzCliExecutionComponent: React.FC<{
                 )}
             </div>
 
-            <p
-                style={{
-                    fontSize: '11px',
-                    color: '#888',
-                    marginTop: '12px',
-                    marginBottom: '0',
-                    fontStyle: 'italic',
-                }}
-            >
-                This operation will be executed using your Azure credentials
-            </p>
+            {currentExecution.status === 'Pending' && (
+                <p
+                    style={{
+                        fontSize: '11px',
+                        color: '#888',
+                        marginTop: '12px',
+                        marginBottom: '0',
+                        fontStyle: 'italic',
+                    }}
+                >
+                    This operation will be executed using your Azure credentials
+                </p>
+            )}
 
             {/* CSS for animations */}
             <style>
@@ -589,6 +647,25 @@ const AzCliExecutionComponent: React.FC<{
                     @keyframes spin {
                         0% { transform: rotate(0deg); }
                         100% { transform: rotate(360deg); }
+                    }
+                    
+                    .custom-scrollbar::-webkit-scrollbar {
+                        width: 8px;
+                    }
+                    
+                    .custom-scrollbar::-webkit-scrollbar-track {
+                        background: #2d3748;
+                        border-radius: 4px;
+                    }
+                    
+                    .custom-scrollbar::-webkit-scrollbar-thumb {
+                        background: #4a5568;
+                        border-radius: 4px;
+                        border: 1px solid #2d3748;
+                    }
+                    
+                    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                        background: #718096;
                     }
                 `}
             </style>
