@@ -22,7 +22,8 @@ public sealed class DiagnosticsPlugin : IDiagnosticsPlugin
     public DiagnosticsPlugin(IAuthenticationService authenticationService,
                              IArmClientFactory armClientFactory,
                              ArmHelper armHelper,
-                             ILogger<DiagnosticsPlugin> logger)
+                             ILogger<DiagnosticsPlugin> logger,
+                             IKubePlugin kubePlugin)
     {
         _authService = authenticationService;
         _armClientFactory = armClientFactory;
@@ -30,7 +31,7 @@ public sealed class DiagnosticsPlugin : IDiagnosticsPlugin
         // Register Compute Diagnostic Strategies.
         _computeDiagnosticStrategies = new List<IComputeResourceDiagnosticStrategy>
         {
-            new KubernetesDiagnosticStrategy(logger),
+            new KubernetesDiagnosticStrategy(logger, kubePlugin),
             new AppServiceDiagnosticStrategy(logger, armHelper),
             new ContainerAppDiagnosticStrategy(logger, armHelper, armClientFactory)
             // TODO: Add one for Function Apps.
@@ -40,7 +41,7 @@ public sealed class DiagnosticsPlugin : IDiagnosticsPlugin
         _logger = logger;
     }
 
-    public async Task<string> GetAnalysisAsync(string resourceId, AnalysisType analysisType, IReadOnlyDictionary<string, string> additionProperties)
+    public async Task<string> GetAnalysisAsync(string resourceId, AnalysisType analysisType, string additionalProperties)
     {
         // Precondition Checks.
         if (string.IsNullOrEmpty(resourceId))
@@ -54,7 +55,7 @@ public sealed class DiagnosticsPlugin : IDiagnosticsPlugin
         }
 
         // Step 1. Get the Compute Resource Info.
-        ComputeResourceInfo computeResourceInfo = await GetComputeResourceInfoAsync(resourceId, additionProperties);
+        ComputeResourceInfo computeResourceInfo = await GetComputeResourceInfoAsync(resourceId, additionalProperties);
 
         // Step 2. Based on the Compute Info -> Dispatch to the right analysis type.
         IComputeResourceDiagnosticStrategy diagnosticStrategy = _computeDiagnosticStrategies.FirstOrDefault(strategy => strategy.CanHandle(computeResourceInfo));
@@ -62,7 +63,7 @@ public sealed class DiagnosticsPlugin : IDiagnosticsPlugin
         // Step 3. Return the result.
         if (diagnosticStrategy != null)
         {
-            return await diagnosticStrategy.PerformAnalysisAsync(resourceId, computeResourceInfo, analysisType);
+            return await diagnosticStrategy.PerformAnalysisAsync(resourceId, computeResourceInfo, analysisType, additionalProperties);
         }
 
         else
@@ -73,16 +74,16 @@ public sealed class DiagnosticsPlugin : IDiagnosticsPlugin
         }
     }
 
-    public Task<string> GetCPUAnalysisAsync(string resourceId, IReadOnlyDictionary<string, string> additionalProperties)
+    public Task<string> GetCPUAnalysisAsync(string resourceId, string additionalProperties)
        => GetAnalysisAsync(resourceId, AnalysisType.Cpu, additionalProperties);
 
-    public Task<string> GetMemoryAnalysisAsync(string resourceId, IReadOnlyDictionary<string, string> additionalProperties)
+    public Task<string> GetMemoryAnalysisAsync(string resourceId, string additionalProperties)
         => GetAnalysisAsync(resourceId, AnalysisType.Memory, additionalProperties);
 
     /// <summary>
     /// Gets compute type, OS, architecture, and runtime information for a given resource ID.
     /// </summary>
-    internal async Task<ComputeResourceInfo> GetComputeResourceInfoAsync(string resourceId, IReadOnlyDictionary<string, string> additionalProperties)
+    internal async Task<ComputeResourceInfo> GetComputeResourceInfoAsync(string resourceId, string additionalProperties)
     {
         var armClient = await _armClientFactory.GetArmOperationClient();
         var resourceIdentifier = new ResourceIdentifier(resourceId);

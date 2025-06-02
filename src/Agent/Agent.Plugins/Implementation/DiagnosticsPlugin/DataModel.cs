@@ -46,13 +46,13 @@ internal enum LanguageStack
 internal interface IComputeResourceDiagnosticStrategy
 {
     bool CanHandle(ComputeResourceInfo resourceInfo);
-    Task<string> PerformAnalysisAsync(string resourceId, ComputeResourceInfo resourceInfo, AnalysisType analysisType);
+    Task<string> PerformAnalysisAsync(string resourceId, ComputeResourceInfo resourceInfo, AnalysisType analysisType, string additionalProperties);
 }
 
 internal abstract class ComputeResourceDiagnosticStrategyBase : IComputeResourceDiagnosticStrategy
 {
     protected readonly ILogger<DiagnosticsPlugin> _logger;
-    protected IDictionary<AnalysisType, Func<string, ComputeResourceInfo, AnalysisType, Task<string>>> _analysisHandlers;
+    protected IDictionary<AnalysisType, Func<string, ComputeResourceInfo, AnalysisType, string, Task<string>>> _analysisHandlers;
 
     public ComputeResourceDiagnosticStrategyBase(ILogger<DiagnosticsPlugin> logger)
     {
@@ -60,11 +60,11 @@ internal abstract class ComputeResourceDiagnosticStrategyBase : IComputeResource
     }
 
     public abstract bool CanHandle(ComputeResourceInfo resourceInfo);
-    public Task<string> PerformAnalysisAsync(string resourceId, ComputeResourceInfo resourceInfo, AnalysisType analysisType)
+    public Task<string> PerformAnalysisAsync(string resourceId, ComputeResourceInfo resourceInfo, AnalysisType analysisType, string additionalProperties)
     {
         if (_analysisHandlers.TryGetValue(analysisType, out var handler))
         {
-            return handler(resourceId, resourceInfo, analysisType);
+            return handler(resourceId, resourceInfo, analysisType, additionalProperties);
         }
 
         else
