@@ -23,5 +23,7 @@ namespace FirstPartyAgent.Plugins
         Task<string> GetLogProcessorPodStatus(string region, DateTime fromDate, DateTime toDate, string managedClusterName);
 
         Task<string> GetContainerAppWorkloadProfile(string region, DateTime fromDate, DateTime toDate, string containerAppOrJobName);
+
+        Task<string> GetFluentbitOutputErrors(string region, DateTime fromDate, DateTime toDate, string managedClusterName);
     }
 }

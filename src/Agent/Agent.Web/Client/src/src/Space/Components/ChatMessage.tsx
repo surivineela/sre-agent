@@ -9,16 +9,25 @@ import { Body1Strong, Button, Image, mergeClasses, Text, tokens } from '@fluentu
 import { SquareDismissRegular } from '@fluentui/react-icons';
 import axios from 'axios';
 import mermaid from 'mermaid';
-import { memo, useCallback, useMemo, useState } from 'react';
+import { memo, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import {
+    AiOutlineCheckCircle,
+    AiOutlineClockCircle,
+    AiOutlineClose,
+    AiOutlineCloseCircle,
+    AiOutlineCopy,
+    AiOutlinePlayCircle,
+} from 'react-icons/ai';
 import { FormattedMessage, useIntl } from 'react-intl';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
+import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import DailyReport from '../../Common/Components/DailyReport';
 import IncidentAlert from '../../Common/Components/IncidentAlert';
 import InvestigationSummary from '../../Common/Components/InvestigationSummary';
 import InvestigationSummaryPanel from '../../Common/Components/InvestigationSummaryPanel';
-import { ApprovalDecision } from '../../Common/Contracts/Azure/SreAgent';
+import { ApprovalDecision, AzCliExecution } from '../../Common/Contracts/Azure/SreAgent';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
@@ -52,7 +61,6 @@ const chatMessageStyles = mergeStyleSets({
 });
 
 // Initialize mermaid with default configuration
-// This should be called once when the app loads
 mermaid.initialize({
     startOnLoad: false,
     theme: 'neutral',
@@ -114,25 +122,556 @@ const tableStyles = `
 
   @media (prefers-color-scheme: dark) {
   tr {
-    background-color: #161b22; /* Slightly lighter than default dark */
-    border-top: 1px solid #30363d; /* More visible border */
+    background-color: #161b22;
+    border-top: 1px solid #30363d;
   }
 
   tr:nth-child(2n) {
-    background-color: #21262d; /* Alternate row for better distinction */
+    background-color: #21262d;
   }
 
   td,
   th {
-    border: 1px solid #444c56; /* Softer border for cells */
-    color: #c9d1d9; /* Light text for readability */
+    border: 1px solid #444c56;
+    color: #c9d1d9;
   }
 
   th {
-    background-color: #21262d; /* Header row background */
+    background-color: #21262d;
     font-weight: bold;
   }
 }`;
+
+const getRiskLevel = (command: string): 'Safe' | 'Low' | 'Medium' | 'High' => {
+    const cmd = command.toLowerCase();
+
+    // High risk operations
+    if (cmd.includes('delete') || cmd.includes('remove') || cmd.includes('purge')) return 'High';
+
+    // Medium risk operations
+    if (cmd.includes('create') || cmd.includes('update') || cmd.includes('set') || cmd.includes('scale') || cmd.includes('restart'))
+        return 'Medium';
+
+    // Low risk operations
+    if (cmd.includes('start') || cmd.includes('stop') || cmd.includes('enable') || cmd.includes('disable')) return 'Low';
+
+    // Safe operations (read-only)
+    if (cmd.includes('list') || cmd.includes('show') || cmd.includes('get')) return 'Safe';
+
+    return 'Medium'; // Default
+};
+
+const getRiskColor = (risk: string) => {
+    switch (risk) {
+        case 'Safe':
+            return '#16a34a';
+        case 'Low':
+            return '#3b82f6';
+        case 'Medium':
+            return '#f59e0b';
+        case 'High':
+            return '#dc2626';
+        default:
+            return '#6b7280';
+    }
+};
+
+// Azure CLI Execution Component
+const AzCliExecutionComponent: React.FC<{
+    execution: AzCliExecution;
+    threadId: string;
+}> = ({ execution, threadId }) => {
+    const [currentExecution, setCurrentExecution] = useState<AzCliExecution>(execution);
+    const [isActionLoading, setIsActionLoading] = useState(false);
+    const [loadingAction, setLoadingAction] = useState<'run' | 'cancel' | null>(null);
+    const [copied, setCopied] = useState(false);
+    const [outputCopied, setOutputCopied] = useState(false);
+
+    const { userIdAndDisplayName } = useAuthenticatedUserInfo();
+
+    const riskLevel = getRiskLevel(currentExecution.command);
+    const riskColor = getRiskColor(riskLevel);
+
+    const copyCommand = async () => {
+        try {
+            await navigator.clipboard.writeText(currentExecution.command);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch (err) {
+            console.error('Failed to copy command:', err);
+        }
+    };
+
+    const copyOutput = async () => {
+        try {
+            let outputText = '';
+            if (currentExecution.output) {
+                outputText += currentExecution.output;
+            }
+            if (currentExecution.error) {
+                if (outputText) outputText += '\n\n';
+                outputText += `Error: ${currentExecution.error}`;
+            }
+
+            await navigator.clipboard.writeText(outputText);
+            setOutputCopied(true);
+            setTimeout(() => setOutputCopied(false), 2000);
+        } catch (err) {
+            console.error('Failed to copy output:', err);
+        }
+    };
+
+    const getStatusIcon = () => {
+        switch (currentExecution.status) {
+            case 'Completed':
+                return <AiOutlineCheckCircle size={16} color="#16a34a" />;
+            case 'Failed':
+                return <AiOutlineCloseCircle size={16} color="#dc2626" />;
+            case 'Running':
+                return (
+                    <div
+                        style={{
+                            width: '16px',
+                            height: '16px',
+                            border: '2px solid #3b82f6',
+                            borderTop: '2px solid transparent',
+                            borderRadius: '50%',
+                            animation: 'spin 1s linear infinite',
+                        }}
+                    />
+                );
+            case 'Pending':
+                return <AiOutlineClockCircle size={16} color="#f59e0b" />;
+            case 'Cancelled':
+                return <AiOutlineClose size={16} color="#6b7280" />;
+            default:
+                return <AiOutlineClockCircle size={16} color="#6b7280" />;
+        }
+    };
+
+    useEffect(() => {
+        if (currentExecution.status === 'Running') {
+            // Poll for updates using EventSource
+            const eventSource = new EventSource(`/api/v1/azCliExecution/${threadId}/${execution.id}/output`);
+
+            eventSource.onmessage = (event: MessageEvent) => {
+                const data = JSON.parse(event.data);
+                setCurrentExecution(prev => ({
+                    ...prev,
+                    output: data.output,
+                    status: data.status,
+                    error: data.error,
+                }));
+
+                if (data.completed) {
+                    eventSource.close();
+                }
+            };
+
+            eventSource.onerror = () => {
+                eventSource.close();
+            };
+
+            return () => eventSource.close();
+        }
+    }, [currentExecution.status, execution.id, threadId]);
+
+    const handleAction = async (action: 'run' | 'cancel') => {
+        setIsActionLoading(true);
+        setLoadingAction(action);
+
+        try {
+            const response = await axios.post(
+                `/api/v1/azCliExecution/${threadId}/${execution.id}/action`,
+                {
+                    action,
+                    user: userIdAndDisplayName?.userId || 'sreagent-client',
+                },
+                { headers: getAgentHeaders() }
+            );
+
+            if (response.data) {
+                setCurrentExecution(prev => ({
+                    ...prev,
+                    status: response.data.status,
+                    startedTimestamp: response.data.startedTimestamp || prev.startedTimestamp,
+                    executedBy: response.data.executedBy
+                        ? {
+                              displayName: response.data.executedBy,
+                              userId: response.data.executedById,
+                              role: 'User',
+                          }
+                        : prev.executedBy,
+                }));
+            }
+        } catch (error: any) {
+            console.error(`Failed to ${action} execution:`, error);
+
+            if (error.response?.status === 409) {
+                alert(`Cannot ${action} - execution is already ${error.response.data.currentStatus}`);
+            } else {
+                alert(`Failed to ${action} execution. Please try again.`);
+            }
+        } finally {
+            setIsActionLoading(false);
+            setLoadingAction(null);
+        }
+    };
+
+    return (
+        <div
+            style={{
+                border: '1px solid #ececec',
+                borderRadius: '8px',
+                padding: '16px',
+                marginTop: '16px',
+                backgroundColor: '#f9f9f9',
+            }}
+        >
+            {/* Header with title, risk, and status */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '16px' }}>🖥️</span>
+                        <h4 style={{ margin: '0', fontWeight: '600' }}>Azure CLI Command</h4>
+                    </div>
+
+                    {/* Subtle risk indicator */}
+                    <span
+                        style={{
+                            padding: '2px 8px',
+                            fontSize: '11px',
+                            fontWeight: '500',
+                            borderRadius: '12px',
+                            backgroundColor: `${riskColor}15`,
+                            color: riskColor,
+                            border: `1px solid ${riskColor}25`,
+                        }}
+                    >
+                        {riskLevel}
+                    </span>
+                </div>
+
+                {/* Status badge */}
+                <div
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '6px 12px',
+                        borderRadius: '16px',
+                        backgroundColor: '#f0f0f0',
+                        border: '1px solid #e0e0e0',
+                    }}
+                >
+                    {getStatusIcon()}
+                    <span style={{ fontSize: '13px', fontWeight: '500', color: '#333' }}>{currentExecution.status}</span>
+                </div>
+            </div>
+
+            <p style={{ fontSize: '14px', color: '#666', marginBottom: '12px', margin: '0 0 12px 0' }}>{currentExecution.description}</p>
+
+            {/* Command block with copy button */}
+            <div style={{ position: 'relative', backgroundColor: '#1e1e1e', borderRadius: '6px', padding: '12px', marginBottom: '12px' }}>
+                <button
+                    onClick={copyCommand}
+                    style={{
+                        position: 'absolute',
+                        top: '8px',
+                        right: '8px',
+                        padding: '6px',
+                        backgroundColor: 'transparent',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        color: copied ? '#16a34a' : '#9ca3af',
+                        transition: 'color 0.2s',
+                    }}
+                    title="Copy command"
+                    onMouseEnter={e => (e.currentTarget.style.color = '#ffffff')}
+                    onMouseLeave={e => (e.currentTarget.style.color = copied ? '#16a34a' : '#9ca3af')}
+                >
+                    {copied ? <AiOutlineCheckCircle size={16} /> : <AiOutlineCopy size={16} />}
+                </button>
+
+                <pre
+                    style={{
+                        margin: '0',
+                        paddingRight: '40px',
+                        overflow: 'auto',
+                        whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-all',
+                        fontFamily: 'Consolas, Monaco, monospace',
+                        fontSize: '13px',
+                        color: '#c9d1d9',
+                    }}
+                >
+                    <code>{currentExecution.command}</code>
+                </pre>
+            </div>
+
+            {/* Action buttons for pending state */}
+            {currentExecution.status === 'Pending' && (
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                    <button
+                        onClick={() => handleAction('run')}
+                        disabled={isActionLoading}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '8px 16px',
+                            backgroundColor: '#0078D4',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            cursor: isActionLoading ? 'not-allowed' : 'pointer',
+                            fontWeight: '500',
+                            fontSize: '14px',
+                            opacity: isActionLoading ? 0.7 : 1,
+                            transition: 'all 0.2s',
+                        }}
+                    >
+                        {loadingAction === 'run' ? (
+                            <div
+                                style={{
+                                    width: '14px',
+                                    height: '14px',
+                                    border: '2px solid #ffffff',
+                                    borderTop: '2px solid transparent',
+                                    borderRadius: '50%',
+                                    animation: 'spin 1s linear infinite',
+                                }}
+                            />
+                        ) : (
+                            <AiOutlinePlayCircle size={14} />
+                        )}
+                        Run
+                    </button>
+
+                    <button
+                        onClick={() => handleAction('cancel')}
+                        disabled={isActionLoading}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '8px 16px',
+                            backgroundColor: '#f5f5f5',
+                            color: '#333',
+                            border: '1px solid #d0d0d0',
+                            borderRadius: '6px',
+                            cursor: isActionLoading ? 'not-allowed' : 'pointer',
+                            fontWeight: '500',
+                            fontSize: '14px',
+                            opacity: isActionLoading ? 0.7 : 1,
+                            transition: 'all 0.2s',
+                        }}
+                    >
+                        {loadingAction === 'cancel' ? (
+                            <div
+                                style={{
+                                    width: '14px',
+                                    height: '14px',
+                                    border: '2px solid #333333',
+                                    borderTop: '2px solid transparent',
+                                    borderRadius: '50%',
+                                    animation: 'spin 1s linear infinite',
+                                }}
+                            />
+                        ) : (
+                            <AiOutlineClose size={14} />
+                        )}
+                        Cancel
+                    </button>
+                </div>
+            )}
+
+            {/* Output section */}
+            {(currentExecution.output || currentExecution.error) && currentExecution.status !== 'Pending' && (
+                <div
+                    style={{
+                        position: 'relative',
+                        backgroundColor: '#1e1e1e',
+                        borderRadius: '6px',
+                        padding: '12px',
+                        marginBottom: '12px',
+                        maxHeight: '300px',
+                        overflowY: 'auto',
+                        // Custom scrollbar styling
+                        scrollbarWidth: 'thin',
+                        scrollbarColor: '#4a5568 #2d3748',
+                    }}
+                    className="custom-scrollbar"
+                >
+                    <button
+                        onClick={copyOutput}
+                        style={{
+                            position: 'absolute',
+                            top: '8px',
+                            right: '8px',
+                            padding: '6px',
+                            backgroundColor: 'transparent',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            color: outputCopied ? '#16a34a' : '#6b7280',
+                            transition: 'color 0.2s',
+                            zIndex: 1,
+                            opacity: 0.7,
+                        }}
+                        title="Copy output"
+                        onMouseEnter={e => {
+                            e.currentTarget.style.color = '#ffffff';
+                            e.currentTarget.style.opacity = '1';
+                        }}
+                        onMouseLeave={e => {
+                            e.currentTarget.style.color = outputCopied ? '#16a34a' : '#6b7280';
+                            e.currentTarget.style.opacity = '0.7';
+                        }}
+                    >
+                        {outputCopied ? <AiOutlineCheckCircle size={16} /> : <AiOutlineCopy size={16} />}
+                    </button>
+
+                    <div style={{ paddingRight: '40px' }}>
+                        {currentExecution.output && (
+                            <pre
+                                style={{
+                                    margin: 0,
+                                    whiteSpace: 'pre-wrap',
+                                    wordBreak: 'break-word',
+                                    color: '#4ade80',
+                                    fontSize: '12px',
+                                    fontFamily: 'Consolas, Monaco, monospace',
+                                }}
+                            >
+                                {currentExecution.output}
+                            </pre>
+                        )}
+                        {currentExecution.error && (
+                            <pre
+                                style={{
+                                    margin: currentExecution.output ? '8px 0 0 0' : 0,
+                                    color: '#f87171',
+                                    whiteSpace: 'pre-wrap',
+                                    wordBreak: 'break-word',
+                                    fontSize: '12px',
+                                    fontFamily: 'Consolas, Monaco, monospace',
+                                }}
+                            >
+                                Error: {currentExecution.error}
+                            </pre>
+                        )}
+
+                        {currentExecution.status === 'Running' && (
+                            <div
+                                style={{
+                                    marginTop: '8px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    color: '#60a5fa',
+                                    fontSize: '12px',
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        width: '12px',
+                                        height: '12px',
+                                        border: '2px solid #60a5fa',
+                                        borderTop: '2px solid transparent',
+                                        borderRadius: '50%',
+                                        animation: 'spin 1s linear infinite',
+                                    }}
+                                />
+                                <span>Executing...</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* Execution metadata */}
+            {currentExecution.executedBy && (
+                <div style={{ fontSize: '14px', color: '#666', marginBottom: '8px' }}>
+                    <strong>{currentExecution.status === 'Cancelled' ? 'Cancelled by' : 'Executed by'}:</strong>{' '}
+                    {currentExecution.executedBy.displayName}
+                </div>
+            )}
+
+            {/* Timestamps */}
+            <div style={{ fontSize: '12px', color: '#888', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                <div>
+                    <strong>Created:</strong> {new Date(currentExecution.createdTimestamp).toLocaleString()}
+                </div>
+                {currentExecution.startedTimestamp && (
+                    <div>
+                        <strong>Started:</strong> {new Date(currentExecution.startedTimestamp).toLocaleString()}
+                    </div>
+                )}
+                {currentExecution.completedTimestamp && (
+                    <div>
+                        <strong>Completed:</strong> {new Date(currentExecution.completedTimestamp).toLocaleString()}
+                    </div>
+                )}
+                {currentExecution.startedTimestamp && currentExecution.completedTimestamp && (
+                    <div>
+                        <strong>Duration:</strong>{' '}
+                        {Math.round(
+                            (new Date(currentExecution.completedTimestamp).getTime() -
+                                new Date(currentExecution.startedTimestamp).getTime()) /
+                                1000
+                        )}
+                        s
+                    </div>
+                )}
+            </div>
+
+            {currentExecution.status === 'Pending' && (
+                <p
+                    style={{
+                        fontSize: '11px',
+                        color: '#888',
+                        marginTop: '12px',
+                        marginBottom: '0',
+                        fontStyle: 'italic',
+                    }}
+                >
+                    This operation will be executed using your Azure credentials
+                </p>
+            )}
+
+            {/* CSS for animations */}
+            <style>
+                {`
+                    @keyframes spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                    
+                    .custom-scrollbar::-webkit-scrollbar {
+                        width: 8px;
+                    }
+                    
+                    .custom-scrollbar::-webkit-scrollbar-track {
+                        background: #2d3748;
+                        border-radius: 4px;
+                    }
+                    
+                    .custom-scrollbar::-webkit-scrollbar-thumb {
+                        background: #4a5568;
+                        border-radius: 4px;
+                        border: 1px solid #2d3748;
+                    }
+                    
+                    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                        background: #718096;
+                    }
+                `}
+            </style>
+        </div>
+    );
+};
 
 // Helper function to parse and render markdown with images and mermaid diagrams
 const renderMarkdownWithImagesAndMermaid = (text: string) => {
@@ -242,6 +781,7 @@ const ChatMessage = ({
 }: IChatMessageProps) => {
     const chatStyles = useChatBoxStyles();
     const intl = useIntl();
+    const { sreAgentEndpoint } = useContext(EnvironmentContext);
 
     const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
     const [selectedFeedback, setSelectedFeedback] = useState<'positive' | 'negative'>();
@@ -253,12 +793,13 @@ const ChatMessage = ({
 
     const messageContent = useMemo(() => {
         // Make sure we have a text property and it's not empty
-        if (!message.text && !isTyping) {
+        // But if there's an azCliExecution, approval, or isDailyReport, it's okay to have no text
+        if (!message.text && !isTyping && !message.azCliExecution && !message.approval && !message.isDailyReport) {
             return 'No message content to display';
         }
         const content = renderMarkdownWithImagesAndMermaid(message.text);
         return Array.isArray(content) ? content : message.text;
-    }, [message.text, isTyping]);
+    }, [message.text, isTyping, message.azCliExecution, message.approval, message.isDailyReport]);
 
     const agentMessageProps = useMemo(() => {
         const messageProps: CopilotMessageProps = {
@@ -404,7 +945,7 @@ const ChatMessage = ({
     };
 
     const sendApprovalDecision = async (threadId: string, approvalId: string, decision: ApprovalDecision) => {
-        const url = `../api/v1/approvals/${threadId}/${approvalId}/decision`;
+        const url = `${sreAgentEndpoint}/api/v1/approvals/${threadId}/${approvalId}/decision`;
 
         const response = await axios.post(
             url,
@@ -709,14 +1250,16 @@ const ChatMessage = ({
                         {message.approval ? (
                             <>{renderApprovalContent()}</>
                         ) : message.isDailyReport ? (
-                            /* For daily reports, render the daily report */
                             <>{renderDailyReport()}</>
-                        ) : (
-                            /* For regular messages, just render the content */
+                        ) : message.azCliExecution ? (
+                            <>
+                                <AzCliExecutionComponent execution={message.azCliExecution} threadId={threadId} />
+                            </>
+                        ) : message.text || isTyping ? (
                             renderContent()
-                        )}
+                        ) : null}
 
-                        {showFeedbackButtons && (
+                        {showFeedbackButtons && ( // Only show buttons when the agent is not typing
                             <FeedbackButtons
                                 positiveFeedbackButton={{ onClick: () => handleFeedbackClick(true) }}
                                 negativeFeedbackButton={{ onClick: () => handleFeedbackClick(false) }}

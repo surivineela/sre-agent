@@ -10,6 +10,7 @@
 
 3. **How do I handle quota issues with OpenAI deployment?**
    - If you encounter quota issues, change the location for OpenAI in the `openai.bicep` file to a region where you have available quota, such as `francecentral`. 
+   - Additionally, if you already have an SRE agent resource group deployed on your subscription that is *no longer being used*, you can delete it to free up your quota. (Delete the resource group, and then go `Azure OpenAI` -> `Manage deleted resources` -> `Purge` the OpenAI resource of the resource group you just deleted.) Afterwards, you should be able to deploy a new instance on your subscription.
 
 4. **What should I do if I see an error related to the DurableTask feature?**
    - Ensure that the DurableTask feature is registered by running: `az provider register --namespace Microsoft.DurableTask`. 

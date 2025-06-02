@@ -27,7 +27,6 @@ namespace Agent.Plugins
         Task<string> GetEtcdStatusAsync(string AKSClusterResourceId, string timeRange);
         Task<string> DiagnoseAKSAppAsync(string AKSClusterResourceId, string _namespace, string kind, string name);
         Task<string> PatchKubernetesYamlAsync(string resourceId, string yamlContent);
-        Task<IDictionary<string, string>> GetNsgRulesForWorkloadAsync(string aksResourceId, string _namespace, string kind, string workloadName);
         Task<string> ListWorkloadRevisions(string AKSClusterResourceId, string _namespace, string kind, string name);
         Task<string> RunKubectlReadCommandAsync(string AKSClusterResourceId, string command);
         Task<string> RunKubectlWriteCommandAsync(string AKSClusterResourceId, string command);

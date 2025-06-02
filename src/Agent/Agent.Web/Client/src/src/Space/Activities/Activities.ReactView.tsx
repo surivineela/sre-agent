@@ -1,5 +1,5 @@
-import { createContext, FC, useState } from 'react';
-import { AgentContextProps } from '../Contracts/Activities';
+import { FC, useState } from 'react';
+import { AgentContext } from '../Contracts/Context';
 import { useActivities } from '../Hooks/useActivities';
 import { activitiesStylesRoot } from '../Styles/Activities.styles';
 import { Resizable, ResizableChildProps } from './Resizable';
@@ -7,29 +7,24 @@ import { ThreadActions } from './ThreadActions';
 import { ThreadContent } from './ThreadContent';
 import { ThreadsMenu } from './ThreadsMenu';
 
-export const AgentContext = createContext<AgentContextProps>({
-    threadContentAndActionKey: '',
-    threadsInitialized: false,
-    activeThreadId: '',
-});
-
 const Activities: FC = () => {
     const {
-        threads,
-        threadsInitialized,
         selectedThread,
-        threadContentAndActionKey,
-        selectThread,
         addThread,
+        promoteThread,
         deleteThread,
+        selectThread,
+        threadContentAndActionKey,
         activeThreadId,
+        threadPollingTriggerId,
+        removeThreadFromListRef,
     } = useActivities();
 
     const [menuCollapsed, setMenuCollapsed] = useState<boolean>(false);
     const [actionsCollapsed, setActionsCollapsed] = useState<boolean>(true);
 
     return (
-        <AgentContext.Provider value={{ threadContentAndActionKey, threadsInitialized, activeThreadId }}>
+        <AgentContext.Provider value={{ threadContentAndActionKey, activeThreadId }}>
             <div style={activitiesStylesRoot}>
                 <Resizable
                     position="left"
@@ -42,13 +37,19 @@ const Activities: FC = () => {
                     setCollapsed={setMenuCollapsed}
                 >
                     {(resizableChildProps: ResizableChildProps) => (
-                        <ThreadsMenu threads={threads} selectThread={selectThread} {...resizableChildProps} />
+                        <ThreadsMenu
+                            selectThread={selectThread}
+                            threadPollingTriggerId={threadPollingTriggerId}
+                            ref={removeThreadFromListRef}
+                            {...resizableChildProps}
+                        />
                     )}
                 </Resizable>
                 <ThreadContent
                     thread={selectedThread}
                     addThread={addThread}
                     deleteThread={deleteThread}
+                    promoteThread={promoteThread}
                     actionsCollapsed={actionsCollapsed}
                     expandActions={() => setActionsCollapsed(false)}
                 />

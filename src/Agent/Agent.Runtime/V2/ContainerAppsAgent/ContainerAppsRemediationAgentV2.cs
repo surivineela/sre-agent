@@ -44,6 +44,8 @@ public class ContainerAppsRemediationAgentV2(
             toolsRegistry.RegisterTool<ChartPluginDefinition>(x => x.PlotPieChartAsync);
             toolsRegistry.RegisterTool<ChartPluginDefinition>(x => x.PlotBarChartAsync);
             toolsRegistry.RegisterTool<ChartPluginDefinition>(x => x.PlotScatterAsync);
+            toolsRegistry.RegisterTool<DiagnosticsPluginDefinition>(x => x.GetAnalysisAsync);
+            toolsRegistry.RegisterTool<DiagnosticsPluginDefinition>(x => x.GetCPUAnalysis);
 
             return toolsRegistry.ToolSignatures;
         }

@@ -6,6 +6,7 @@ import { FC, useCallback, useContext, useEffect, useMemo, useState } from 'react
 import { useIntl } from 'react-intl';
 import { BrowserRouter, Route, Routes, useLocation, useNavigate } from 'react-router';
 import AzPortalProxy from '../Common/AzPortalProxy/AzPortalProxy';
+import { AzPortalContext } from '../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { WorkspaceClient } from '../Common/Clients/WorkspaceClient';
 import { ArmResourceDescriptor } from '../Common/Helpers/ResourceDescriptors';
@@ -31,6 +32,7 @@ enum TabValues {
     Logs = 'logs',
 }
 
+const baseRoute = import.meta.env.BASE_ROUTE;
 const inStandaloneMode = AzPortalProxy.inStandaloneMode;
 
 const query = `ContainerAppConsoleLogs_CL | where TimeGenerated > ago(1d)`;
@@ -149,9 +151,30 @@ const TabsListWrapper: FC = () => {
 };
 
 const SREAgentSpace: FC = () => {
+    const azPortalProxy = useContext(AzPortalContext);
+
     const [isGrafanaUpdating, setIsGrafanaUpdating] = useState(false);
     const [deploymentId, setDeploymentId] = useState<string>('');
     const [notificationId, setNotificationId] = useState<string>('');
+
+    useEffect(() => {
+        const logSiteVersion = () => {
+            const version = import.meta.env.SRE_UX_VERSION;
+            if (!inStandaloneMode && version) {
+                azPortalProxy.log({
+                    action: 'AgentSiteVersion',
+                    actionModifier: 'info',
+                    data: { version },
+                });
+            }
+        };
+
+        // Log initial and every 60 minutes (for long-running sessions)
+        logSiteVersion();
+        const interval = setInterval(logSiteVersion, 60 * 60 * 1000);
+
+        return () => clearInterval(interval);
+    }, [azPortalProxy]);
 
     return (
         <SreAgentContext.Provider
@@ -166,7 +189,7 @@ const SREAgentSpace: FC = () => {
                 },
             }}
         >
-            <BrowserRouter basename="/static">
+            <BrowserRouter basename={baseRoute}>
                 <TabsListWrapper />
                 <Routes>
                     <Route path="/views/settings/:menuItem" element={<Settings />} />

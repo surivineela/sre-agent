@@ -102,5 +102,18 @@ public class ManagedEnvironmentPlugin : IManagedEnvironmentPlugin
                 { "subscriptionId", subscriptionId }
             });
     }
+
+    public async Task<string> GetManagedEnvironmentOperationErrors(string region, DateTime fromDate, DateTime toDate, string environmentName, string resourceGroupName, string subscriptionId)
+    {
+        return await _kustoPlugin.ExecuteLocalFunctionAsync("GetManagedEnvironmentOperationErrors", region,
+            new Dictionary<string, string>
+            {
+                { "fromDate", fromDate.ToString() },
+                { "toDate", toDate.ToString() },
+                { "environmentName", environmentName },
+                { "resourceGroupName", resourceGroupName },
+                { "subscriptionId", subscriptionId }
+            });
+    }
 }
 

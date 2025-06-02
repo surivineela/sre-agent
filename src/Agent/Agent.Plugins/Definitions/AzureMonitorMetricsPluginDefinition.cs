@@ -3,11 +3,13 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
+using Agent.Framework;
 using Azure.Monitor.Query.Models;
 using Microsoft.OperationalAgent.Core.Extensions;
 
 namespace Agent.Plugins
 {
+    [AgentToolPlugin]
     public class AzureMonitorMetricsPluginDefinition
     {
         public IAzureMonitorMetricsPlugin _plugin { get; }

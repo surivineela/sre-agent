@@ -18,4 +18,6 @@ public interface IManagedEnvironmentPlugin
     Task<string> GetManagedEnvironmentProvisioningStatus(string region, DateTime fromDate, DateTime toDate, string environmentName, string resourceGroupName, string subscriptionId);
 
     Task<string> GetManagedEnvironmentAdminEvents(string region, DateTime fromDate, DateTime toDate, string environmentName, string resourceGroupName, string subscriptionId);
+
+    Task<string> GetManagedEnvironmentOperationErrors(string region, DateTime fromDate, DateTime toDate, string environmentName, string resourceGroupName, string subscriptionId);
 }

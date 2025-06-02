@@ -2,17 +2,22 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Collections.Concurrent;
 using System.Security.Cryptography.X509Certificates;
+using Agent.Logging;
+using Azure.Core;
 using Azure.Identity;
 using Azure.Security.KeyVault.Certificates;
 using Azure.Security.KeyVault.Secrets;
 using Microsoft.Extensions.Logging;
-using Agent.Logging;
 
 namespace Agent.Core.Helpers
 {
     public static class CertLoader
     {
+        private static ConcurrentDictionary<string, SecretClient> kvSecretClientCache = new ConcurrentDictionary<string, SecretClient>(StringComparer.OrdinalIgnoreCase);
+        private static ConcurrentDictionary<string, CertificateClient> kvCertClientCache = new ConcurrentDictionary<string, CertificateClient>(StringComparer.OrdinalIgnoreCase);
+
         public static X509Certificate2 LoadCertFromAppService(string SubjectName, string Thumbprint = null, ILogger log = null)
         {
             //StoreLocation location = Utilities.IsLocalDevelopment()? StoreLocation.LocalMachine: StoreLocation.CurrentUser;
@@ -89,21 +94,29 @@ namespace Agent.Core.Helpers
             }
         }
 
-        public static X509Certificate2 LoadCertFromKeyVault(string keyVaultUrl, string certificateName, string? managedIdentityClientId = null,  string? certPassword = null, ILogger? log = null)
+        public static X509Certificate2 LoadCertFromKeyVault(string keyVaultUrl, string certificateName, string? managedIdentityId = null,  string? certPassword = null, ILogger? log = null)
         {
             try
             {
                 var credOptions = new DefaultAzureCredentialOptions();
-                if (!string.IsNullOrEmpty(managedIdentityClientId))
+                if (!string.IsNullOrEmpty(managedIdentityId))
                 {
-                    credOptions.ManagedIdentityClientId = managedIdentityClientId;
+                    if (Azure.Core.ResourceIdentifier.TryParse(managedIdentityId, out ResourceIdentifier certMsiResourceUri))
+                    {
+                        // This is true when the MSI is being specified as a resource ID via ARM settings
+                        credOptions.ManagedIdentityResourceId = certMsiResourceUri;
+                    }
+                    else
+                    {
+                        credOptions.ManagedIdentityClientId = managedIdentityId;
+                    }
                 }
-                log?.LogInternalInformation($"Loading cert from Key Vault: {keyVaultUrl}, Certificate Name: {certificateName}, Managed Identity Client Id: {managedIdentityClientId}");
-                DefaultAzureCredential cred = new DefaultAzureCredential(credOptions);
-                var client = new CertificateClient(new Uri(keyVaultUrl), cred);
-                KeyVaultCertificateWithPolicy certificateWithPolicy = client.GetCertificate(certificateName);
 
-                KeyVaultSecret secret = new SecretClient(new Uri(keyVaultUrl), cred).GetSecret(certificateWithPolicy.Name);
+                log?.LogInternalInformation($"Loading cert from Key Vault: {keyVaultUrl}, Certificate Name: {certificateName}, Managed Identity Client Id: {managedIdentityId}");
+                DefaultAzureCredential cred = new DefaultAzureCredential(credOptions);
+
+                KeyVaultCertificateWithPolicy certificateWithPolicy = GetKVCertificateClient(keyVaultUrl, credOptions, log).GetCertificate(certificateName);                
+                KeyVaultSecret secret = GetKVSecretClient(keyVaultUrl, credOptions, log).GetSecret(certificateWithPolicy.Name);
 
                 byte[] privateKeyBytes = Convert.FromBase64String(secret.Value);
 
@@ -116,6 +129,51 @@ namespace Agent.Core.Helpers
             catch (Exception ex)
             {
                 log?.LogInternalError(ex, "Error: {} occurred while trying to load cert from Key Vault {}", ex.Message, keyVaultUrl);
+                throw;
+            }
+        }
+
+        private static CertificateClient GetKVCertificateClient(string keyVaultUrl, DefaultAzureCredentialOptions? credOptions = null, ILogger? log = null)
+        {
+            if (kvCertClientCache.TryGetValue(keyVaultUrl, out var certClient))
+            {
+                return certClient;
+            }
+            try
+            {
+                var client = credOptions != null
+                    ? new CertificateClient(new Uri(keyVaultUrl), new DefaultAzureCredential(credOptions))
+                    : new CertificateClient(new Uri(keyVaultUrl), new DefaultAzureCredential());
+
+                kvCertClientCache[keyVaultUrl] = client;
+                log?.LogInternalInformation($"Successfully created CertificateClient for Key Vault: {keyVaultUrl}");
+                return client;
+            }
+            catch (Exception ex)
+            {
+                log?.LogInternalError(ex, $"Error: {ex.Message} occurred while trying to create CertificateClient for Key Vault {keyVaultUrl}");
+                throw;
+            }
+        }
+
+        private static SecretClient GetKVSecretClient(string keyVaultUrl, DefaultAzureCredentialOptions? credOptions = null, ILogger? log = null)
+        {
+            if (kvSecretClientCache.TryGetValue(keyVaultUrl, out var secretClient))
+            {
+                return secretClient;
+            }
+            try
+            {
+                var client = credOptions != null
+                    ? new SecretClient(new Uri(keyVaultUrl), new DefaultAzureCredential(credOptions))
+                    : new SecretClient(new Uri(keyVaultUrl), new DefaultAzureCredential());
+                kvSecretClientCache[keyVaultUrl] = client;
+                log?.LogInternalInformation($"Successfully created SecretClient for Key Vault: {keyVaultUrl}");
+                return client;
+            }
+            catch (Exception ex)
+            {
+                log?.LogInternalError(ex, $"Error: {ex.Message} occurred while trying to create SecretClient for Key Vault {keyVaultUrl}");
                 throw;
             }
         }

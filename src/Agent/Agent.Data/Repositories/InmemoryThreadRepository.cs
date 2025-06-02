@@ -691,6 +691,31 @@ namespace Agent.Data.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<AzCliExecution> GetAzCliExecutionAsync(Guid threadId, Guid executionId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<AzCliExecution> CreateAzCliExecutionAsync(Guid threadId, AzCliExecution execution)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<AzCliExecution> UpdateAzCliExecutionAsync(Guid threadId, AzCliExecution execution)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<AzCliExecution> UpdateAzCliExecutionOutputAsync(Guid threadId, Guid executionId, string output, string? error = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<AzCliExecution> ListPendingAzCliExecutionAsync(Guid threadId)
+        {
+            throw new NotImplementedException();
+        }
         #endregion
     }
 }

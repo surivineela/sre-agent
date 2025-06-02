@@ -14,20 +14,13 @@ public class Agent<TContext> where TContext : class
 
     public PromptText Instructions { get; set; } = "";
 
-    /// <summary>
-    /// Tools that can be automatically run by the framework without exiting the loop
-    /// </summary>
-    public List<AIFunction> AutoTools { get; set; } = [];
+    // Tools that are retrieved from the tool factory
+    public List<string> FactoryTools { get; set; } = [];
 
-    public List<string> AutoToolNames => AutoTools.Select(t => t.Name).ToList();
+    // Tools preconfigured in the agent
+    public List<AIFunction> Tools { get; set; } = [];
 
-    /// <summary>
-    /// Tools that should not be called automatically by the framework, control will return to the caller
-    /// to handle the tool call.
-    /// </summary>
-    public List<AIFunction> ManualTools { get; set; } = [];
-
-    public List<string> ManualToolNames => ManualTools.Select(t => t.Name).ToList();
+    public List<string> StandardToolNames => Tools.Select(t => t.Name).ToList();
 
     public List<Handoff<TContext>> Handoffs { get; set; } = [];
 
@@ -39,36 +32,18 @@ public class Agent<TContext> where TContext : class
 
     public string CustomReflectionNote { get; set; } = "";
 
+    public virtual ChatToolMode ChatToolMode { get; set; } = ChatToolMode.Auto;
+
+    public virtual float Temperature { get; set; } = 0.3f;
+
     public Agent(string name)
     {
         Name = name;
     }
 
-    public virtual ChatOptions GetChatOptions(RunConfig config)
-    {
-        return new ChatOptions
-        {
-            Tools = GetAllTools(),
-            ToolMode = ChatToolMode.Auto,
-            AdditionalProperties = new AdditionalPropertiesDictionary
-            {
-                ["AllowParallelToolCalls"] = false
-            },
-            // Configure low temperature first to make the response deterministic
-            // So we can refine our prompt based on a stable response.
-            // After the result become stable, we can increase the temperature to get more creative responses.
-            Temperature = 0.3f
-        };
-    }
-
     public virtual IChatClient GetChatClient(RunConfig config)
     {
         return config.ChatClient;
-    }
-
-    public List<AITool> GetAllTools()
-    {
-        return new List<AITool>(AutoTools).Concat(ManualTools).Concat(Handoffs).ToList();
     }
 }
 

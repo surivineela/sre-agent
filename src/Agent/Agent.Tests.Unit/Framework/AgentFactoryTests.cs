@@ -4,9 +4,9 @@
 
 using System.ComponentModel;
 using System.Reflection;
+using Agent.Core.Models.Api.v1;
 using Agent.Framework;
 using Agent.Runtime.Reasoning;
-using Agent.Core.Models.Api.v1;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -18,14 +18,14 @@ namespace Agent.Tests.Unit.Framework;
 public class AgentFactoryTests
 {
     private readonly Mock<ILogger<AgentFactory<AgentContext>>> _mockLogger;
-    private readonly Mock<ILogger<ToolFactory>> _mockToolFactoryLogger;
+    private readonly Mock<ILogger<ToolFactory<AgentContext>>> _mockToolFactoryLogger;
     private readonly IServiceProvider _serviceProvider;
     private readonly ServiceCollection _services;
 
     public AgentFactoryTests()
     {
         _mockLogger = new Mock<ILogger<AgentFactory<AgentContext>>>();
-        _mockToolFactoryLogger = new Mock<ILogger<ToolFactory>>();
+        _mockToolFactoryLogger = new Mock<ILogger<ToolFactory<AgentContext>>>();
         _services = new ServiceCollection();
         _services.AddSingleton(_mockLogger.Object);
         _services.AddSingleton(_mockToolFactoryLogger.Object);
@@ -38,7 +38,7 @@ public class AgentFactoryTests
     {
         var agentFactory = new AgentFactory<AgentContext>(
             logger: _mockLogger.Object,
-            toolFactory: new ToolFactory(
+            toolFactory: new ToolFactory<AgentContext>(
                 logger: _mockToolFactoryLogger.Object,
                 serviceProvider: _serviceProvider,
                 assembliesToScan: [Assembly.GetExecutingAssembly()]
@@ -63,7 +63,7 @@ public class AgentFactoryTests
     {
         var agentFactory = new AgentFactory<AgentContext>(
             logger: _mockLogger.Object,
-            toolFactory: new ToolFactory(
+            toolFactory: new ToolFactory<AgentContext>(
                 logger: _mockToolFactoryLogger.Object,
                 serviceProvider: _serviceProvider,
                 assembliesToScan: [Assembly.GetExecutingAssembly()]
@@ -99,8 +99,7 @@ public class TestAgent1Descriptor : IAgentDescriptor
     public string Instructions { get; set; } = "Test Instructions";
     public string? HandoffDescription { get; set; } = "Test Handoff Description";
     public List<string> Handoffs { get; set; } = ["TestAgent2"];
-    public List<string> AutoTools { get; set; } = ["TestAutoTool"];
-    public List<string> ManualTools { get; set; } = ["TestManualTool"];
+    public List<string> Tools { get; set; } = ["TestAutoTool", "TestManualTool"];
     public int MaxReflectionCount { get; set; } = 0;
     public string CustomReflectionNote { get; set; } = "Test Custom Reflection Note";
     public List<string> CommonPrompts { get; set; } = ["test_prompt"];
@@ -112,8 +111,7 @@ public class TestAgent2Descriptor : IAgentDescriptor
     public string Instructions { get; set; } = "Test Instructions";
     public string? HandoffDescription { get; set; } = "Test Handoff Description";
     public List<string> Handoffs { get; set; } = [];
-    public List<string> AutoTools { get; set; } = ["TestAutoTool"];
-    public List<string> ManualTools { get; set; } = ["TestManualTool"];
+    public List<string> Tools { get; set; } = ["TestAutoTool", "TestManualTool"];
     public int MaxReflectionCount { get; set; } = 0;
     public string CustomReflectionNote { get; set; } = "Test Custom Reflection Note";
     public List<string> CommonPrompts { get; set; } = [];
@@ -130,6 +128,7 @@ public class TestCommonPrompt : IPromptDescriptor
 [AgentToolPlugin]
 internal class TestTools
 {
+    [AgentTool(ToolMode.Auto)]
     [Description("Test Auto Tool")]
     public string TestAutoTool()
     {

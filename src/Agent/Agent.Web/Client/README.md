@@ -7,10 +7,10 @@
 **Pre:** Follow steps to deploy3p resources with your alias as prefix -> duplicate appsettings.json to `appsettings.Development.json` and set "EnvPrefix" to said prefix
 
 1. Make sure `docker` running -> run `./src/run-durable-emulator.ps1`
-1. Go to ./src/Agent/Agent.Web/Client
-    1. Run `npm run watch` to run a vite server to host the Agent site and start incremental builds.  (NOTE: HTTP requests won't work yet until you run the ASP.Net backend)
+1. Go to `./src/Agent/Agent.Web/Client`
+    1. Run `npm run watch` to run a vite server to host the Agent site and start incremental builds. (NOTE: HTTP requests won't work yet until you run the ASP.Net backend)
 1. Open `./src/Agent/Agent.Web.sln` to open up Visual Studio
-1. On the debug button on the top of VS (it looks like a "play" button), choose the `react` profile.  Then click on it to build and run.
+1. On the debug button on the top of VS (it looks like a "play" button), choose the `react` profile. Then click on it to build and run.
     1. A browser window will automatically open pointing to the vite server and you should be good to go.
 
 ### Portal (PaasServerless extension) entrypoint

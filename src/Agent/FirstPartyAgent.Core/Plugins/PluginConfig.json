@@ -52,6 +52,10 @@
     "ServiceIdentifier": "FirstPartyAgent.Core.Plugins.AzureAlertingPlugin"
   },
   {
+    "PluginName": "ControlPlanePlugin",
+    "ServiceIdentifier": "FirstPartyAgent.Core.Plugins.ControlPlanePlugin"
+  },
+  {
     "PluginName": "ColdStartPlugin",
     "ServiceIdentifier": "FirstPartyAgent.Plugins.ColdStartPlugin"
   },

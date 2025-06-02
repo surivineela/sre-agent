@@ -3,7 +3,7 @@ import { ThemeProvider } from '@fluentui/react';
 import { FluentProvider, webDarkTheme, webLightTheme } from '@fluentui/react-components';
 import { useEffect, useState } from 'react';
 import './App.css';
-import AzPortalProxy from './src/Common/AzPortalProxy/AzPortalProxy';
+import AzPortalProxy, { defaultSreAgentEndpoint } from './src/Common/AzPortalProxy/AzPortalProxy';
 import { IEnvironmentInfo } from './src/Common/AzPortalProxy/Models/IEnvironmentInfo';
 import { ThemeMode } from './src/Common/AzPortalProxy/Models/ITheme';
 import { AzPortalContext } from './src/Common/AzPortalProxy/Providers/AzPortalProxyContext';
@@ -15,7 +15,7 @@ import { IntlProvider } from './src/Strings/Intl/IntlProvider';
 const portalProxy = new AzPortalProxy();
 
 const App: React.FC = () => {
-    const [environmentInfo, setEnvironmentInfo] = useState({} as IEnvironmentInfo);
+    const [environmentInfo, setEnvironmentInfo] = useState({ sreAgentEndpoint: defaultSreAgentEndpoint } as IEnvironmentInfo);
 
     useEffect(() => {
         portalProxy.initialize(setEnvironmentInfo);

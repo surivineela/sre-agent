@@ -2,50 +2,11 @@ import axios from 'axios';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
+import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { Guid } from '../../Common/Helpers/Guid';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { ResourceInfoResources } from '../../Strings/SREAgentResources';
 import { GraphNode, ResourceExtended } from '../Contracts/Graph';
-
-const getResource = async (resourceId: string): Promise<ResourceExtended | undefined> => {
-    try {
-        const { data } = await axios.get(`../api/v1/graph/resource/${resourceId}`, {
-            headers: getAgentHeaders(),
-        });
-        return (data ?? [])?.[0];
-    } catch {
-        return undefined;
-    }
-};
-
-const patchResource = async (resourceId: string, remarks: string): Promise<void> => {
-    await axios.patch(
-        `../api/v1/graph/resource/${resourceId}/remarks`,
-        { remarks },
-        {
-            headers: getAgentHeaders(),
-        }
-    );
-};
-
-export const createThread = async (resourceId: string) => {
-    const url = `../api/v1/threads`;
-
-    const response = await axios.post(
-        url,
-        {
-            startMessage: {
-                text: `Resource ${resourceId} is unhealthy could you help diagnose what is wrong?`,
-                userId: 'web-client-user',
-                displayName: 'Web Client User',
-            },
-        },
-        {
-            headers: getAgentHeaders(),
-        }
-    );
-    return response?.data;
-};
 
 export const getPropertyValue = (input?: string[]): string => {
     return input?.[0] ?? '';
@@ -59,8 +20,30 @@ export const useResourceInfo = (selectedNode?: GraphNode) => {
 
     const toasterId = useMemo(() => Guid.newGuid(), []);
 
+    const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const azPortalContext = useContext(AzPortalContext);
     const intl = useIntl();
+
+    const getResource = async (resourceId: string): Promise<ResourceExtended | undefined> => {
+        try {
+            const { data } = await axios.get(`${sreAgentEndpoint}/api/v1/graph/resource/${resourceId}`, {
+                headers: getAgentHeaders(),
+            });
+            return (data ?? [])?.[0];
+        } catch {
+            return undefined;
+        }
+    };
+
+    const patchResource = async (resourceId: string, remarks: string): Promise<void> => {
+        await axios.patch(
+            `${sreAgentEndpoint}/api/v1/graph/resource/${resourceId}/remarks`,
+            { remarks },
+            {
+                headers: getAgentHeaders(),
+            }
+        );
+    };
 
     const onSubmit = useCallback(
         async (remarks: string) => {

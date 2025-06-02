@@ -10,14 +10,12 @@ import { ContentStyleSets } from "../Styles/Content.Styles";
 enum EditViewType {
     Overview,
     AzureAlerting,
-    CustomAlerting,
 }
 
 const EditOverview = (props: { icmTeamInfo: IcmTeamInfo, onGetAlertConfig: (params: AlertEditorProps) => void }) => {
     const [currentViewType, setCurrentViewType] = useState(EditViewType.Overview);
 
     const navigateToCustomAlerting = () => {
-        setCurrentViewType(EditViewType.CustomAlerting);
         const customAlertConfig = generateCustomAlertConfig(props.icmTeamInfo);
         const editorProps: AlertEditorProps = {
             alertConfig: customAlertConfig

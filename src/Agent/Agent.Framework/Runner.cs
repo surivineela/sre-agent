@@ -2,8 +2,6 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Text;
-using System.Text.Json;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
@@ -11,12 +9,13 @@ namespace Agent.Framework;
 
 public static class Runner
 {
-    private const int DefaultMaxTurns = 20;
+    private const int DefaultMaxTurns = 50;
 
     public static async Task<RunResult<TContext>> ResumeFromManualToolsAsync<TContext>(
         RunResult<TContext> previousResult,
         List<ManualToolCallResult> manualToolResults,
         RunConfig config,
+        TContext? context = null,
         RunHooks<TContext>? hooks = null,
         CancellationToken cancellationToken = default
     ) where TContext : class
@@ -52,7 +51,7 @@ public static class Runner
             input: input,
             config: config,
             newGeneratedItems: functionResultMessages,
-            context: previousResult.ContextWrapper.Context,
+            context: context,
             currentTurn: previousResult.CurrentTurn,
             maxTurns: previousResult.MaxTurns,
             hooks: hooks,
@@ -223,7 +222,23 @@ public static class Runner
         }
 
         var systemPrompt = agent.Instructions;
-        var chatOptions = agent.GetChatOptions(config);
+
+        List<AIFunction> tools = [];
+        tools.AddRange(agent.Tools);
+        tools.AddRange(await hooks.ResolveFactoryTools(contextWrapper, agent, agent.FactoryTools));
+        tools.AddRange(agent.Handoffs);
+
+        var chatOptions = new ChatOptions
+        {
+            Tools = tools.Cast<AITool>().ToList(),
+            ToolMode = agent.ChatToolMode,
+            AdditionalProperties = new AdditionalPropertiesDictionary
+            {
+                ["AllowParallelToolCalls"] = false
+            },
+            Temperature = agent.Temperature
+        };
+
         var chatClient = agent.GetChatClient(config);
 
         List<ChatMessage> modelInput = [new ChatMessage(ChatRole.System, systemPrompt)];
@@ -244,6 +259,7 @@ public static class Runner
             modelResponse: response,
             hooks: hooks,
             contextWrapper: contextWrapper,
+            tools: tools,
             trajectory: trajectory
         );
     }
@@ -255,6 +271,7 @@ public static class Runner
         ChatResponse modelResponse,
         RunHooks<TContext> hooks,
         RunContextWrapper<TContext> contextWrapper,
+        List<AIFunction> tools,
         Trajectory? trajectory = null
     ) where TContext : class
     {
@@ -272,60 +289,8 @@ public static class Runner
 
             foreach (var functionCall in functionCalls)
             {
-                if (agent.AutoToolNames.Contains(functionCall.Name))
-                {
-                    // run auto tool
-
-                    var tool = agent.AutoTools.First(t => t.Name == functionCall.Name);
-
-                    await hooks.OnToolStart(contextWrapper, agent, tool);
-
-                    var toolResult = await tool.InvokeAsync(functionCall.Arguments);
-
-                    trajectory.Append(null, new ManualToolCallResult
-                    {
-                        FunctionCall = functionCall,
-                        Output = toolResult
-                    });
-
-                    await hooks.OnToolEnd(contextWrapper, agent, tool, toolResult);
-
-                    var result = new FunctionResultContent(functionCall.CallId, toolResult);
-                    newStepItems.Add(new ChatMessage(ChatRole.Tool, [result]));
-
-                    return new SingleStepResult<TContext>
-                    {
-                        OriginalInput = originalInput,
-                        ModelResponse = modelResponse,
-                        PreStepItems = preStepItems,
-                        NewStepItems = newStepItems,
-                        NextStep = new NextStep<TContext>
-                        {
-                            Type = NextStepType.RunAgain
-                        },
-                        Trajectory = trajectory
-                    };
-                }
-                else if (agent.ManualToolNames.Contains(functionCall.Name))
-                {
-                    var tool = agent.ManualTools.First(t => t.Name == functionCall.Name);
-
-                    await hooks.OnToolStart(contextWrapper, agent, tool);
-
-                    return new SingleStepResult<TContext>
-                    {
-                        OriginalInput = originalInput,
-                        ModelResponse = modelResponse,
-                        PreStepItems = preStepItems,
-                        NewStepItems = newStepItems,
-                        NextStep = new NextStep<TContext>
-                        {
-                            Type = NextStepType.ManualTool,
-                            ManualToolCall = new ManualToolCall { FunctionCall = functionCall, Tool = tool }
-                        }
-                    };
-                }
-                else if (agent.HandoffNames.Contains(functionCall.Name))
+                // handle handoff
+                if (agent.HandoffNames.Contains(functionCall.Name))
                 {
                     var handoff = agent.Handoffs.First(h => h.Name == functionCall.Name);
                     var newAgent = await handoff.OnInvokeHandoff(contextWrapper);
@@ -347,10 +312,73 @@ public static class Runner
                         }
                     };
                 }
+
+                // handle regular tool call
+                AIFunction? tool = tools.FirstOrDefault(t => t.Name == functionCall.Name);
+
+                if (tool != null)
+                {
+                    if (tool is ContextAIFunction<TContext> contextTool)
+                    {
+                        contextTool.SetContext(contextWrapper.Context);
+                    }
+
+                    if (tool.GetToolMode() == ToolMode.Auto)
+                    {
+                        // run auto tool
+
+                        await hooks.OnToolStart(contextWrapper, agent, tool);
+
+                        var toolResult = await tool.InvokeAsync(functionCall.Arguments);
+
+                        trajectory.Append(null, new ManualToolCallResult
+                        {
+                            FunctionCall = functionCall,
+                            Output = toolResult
+                        });
+
+                        await hooks.OnToolEnd(contextWrapper, agent, tool, toolResult);
+
+                        var result = new FunctionResultContent(functionCall.CallId, toolResult);
+                        newStepItems.Add(new ChatMessage(ChatRole.Tool, [result]));
+
+                        return new SingleStepResult<TContext>
+                        {
+                            OriginalInput = originalInput,
+                            ModelResponse = modelResponse,
+                            PreStepItems = preStepItems,
+                            NewStepItems = newStepItems,
+                            NextStep = new NextStep<TContext>
+                            {
+                                Type = NextStepType.RunAgain
+                            },
+                            Trajectory = trajectory
+                        };
+                    }
+                    else
+                    {
+                        // return manual tool call result
+
+                        await hooks.OnToolStart(contextWrapper, agent, tool);
+
+                        return new SingleStepResult<TContext>
+                        {
+                            OriginalInput = originalInput,
+                            ModelResponse = modelResponse,
+                            PreStepItems = preStepItems,
+                            NewStepItems = newStepItems,
+                            NextStep = new NextStep<TContext>
+                            {
+                                Type = NextStepType.ManualTool,
+                                ManualToolCall = new ManualToolCall { FunctionCall = functionCall, Tool = tool }
+                            }
+                        };
+                    }
+                }
                 else
                 {
                     // Handle unrecognized function calls by providing an error response
-                    var errorMessage = $"Function '{functionCall.Name}' is not available. Available tools are: {string.Join(", ", agent.AutoToolNames.Concat(agent.ManualToolNames).Concat(agent.HandoffNames))}";
+                    var errorMessage = $"Function '{functionCall.Name}' is not available. Available tools are: {string.Join(", ", tools.Select(t => t.Name))}";
 
                     trajectory.Append(message: $"Unrecognized Function Call: {functionCall.Name} - {errorMessage}");
 
