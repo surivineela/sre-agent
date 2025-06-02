@@ -8,7 +8,8 @@ import {
     getFilteredThreads,
     getUTCTimestampBasedOnSelectedThreadCutoffTime,
     noGapBetweenNewMessagesAndExistingMessages,
-    processMessages,
+    processNewMessages,
+    processOldMessages,
     processThreads,
     shouldGroupWithPreviousMessage,
 } from '../Utility';
@@ -88,7 +89,33 @@ const areMessagesSame = (lhs: Message[], rhs: Message[]) => {
         const lhsMessage = lhs[i];
         const rhsMessage = rhs[i];
 
-        if (lhsMessage.id !== rhsMessage.id) return false;
+        if (lhsMessage.id !== rhsMessage.id || lhsMessage.text !== rhsMessage.text) return false;
+    }
+
+    return true;
+};
+
+const areMessagesSortedAscByTimeStamp = (messages: Message[]) => {
+    let isSortedAsc = true;
+
+    for (let i = 0; i < messages.length - 1; i++) {
+        if (getSafeDateTime(messages[i].timeStamp).getTime() > getSafeDateTime(messages[i + 1].timeStamp).getTime()) {
+            isSortedAsc = false;
+            break;
+        }
+    }
+
+    return isSortedAsc;
+};
+
+const areMessagesUnique = (messages: Message[]) => {
+    const messageIds: Set<string> = new Set<string>();
+
+    for (const message of messages) {
+        if (messageIds.has(message.id)) {
+            return false;
+        }
+        messageIds.add(message.id);
     }
 
     return true;
@@ -345,57 +372,7 @@ describe('getFilteredThreads', () => {
     });
 });
 
-describe('processMessages', () => {
-    const areMessagesSortedAscByTimeStamp = (messages: Message[]) => {
-        let isSortedAsc = true;
-
-        for (let i = 0; i < messages.length - 1; i++) {
-            if (getSafeDateTime(messages[i].timeStamp).getTime() > getSafeDateTime(messages[i + 1].timeStamp).getTime()) {
-                isSortedAsc = false;
-                break;
-            }
-        }
-
-        return isSortedAsc;
-    };
-
-    const areMessagesUnique = (messages: Message[]) => {
-        const messageIds: Set<string> = new Set<string>();
-
-        for (const message of messages) {
-            if (messageIds.has(message.id)) {
-                return false;
-            }
-            messageIds.add(message.id);
-        }
-
-        return true;
-    };
-
-    it('Add old messages', () => {
-        const messages: Message[] = [
-            getDefaultMessage('2023-10-04T00:00:00Z'),
-            getDefaultMessage('2023-10-05T00:00:00Z'),
-            getDefaultMessage('2023-10-06T00:00:00Z'),
-        ];
-
-        const oldMessages: Message[] = [
-            getDefaultMessage('2023-10-03T00:00:00Z'),
-            getDefaultMessage('2023-10-02T00:00:00Z'),
-            getDefaultMessage('2023-10-01T00:00:00Z', '01'),
-            getDefaultMessage('2023-10-01T00:00:00Z', '01'),
-        ];
-
-        const copiedOldMessages = [...oldMessages];
-        copiedOldMessages.splice(3, 1);
-
-        const result = processMessages(messages, oldMessages, true);
-
-        expect(areMessagesSame(result, [...copiedOldMessages.reverse(), ...messages])).toBe(true);
-        expect(areMessagesSortedAscByTimeStamp(result)).toBe(true);
-        expect(areMessagesUnique(result)).toBe(true);
-    });
-
+describe('processNewMessages', () => {
     it('Add new messages', () => {
         const messages: Message[] = [
             getDefaultMessage('2023-10-01T00:00:00Z'),
@@ -410,7 +387,7 @@ describe('processMessages', () => {
             getDefaultMessage('2023-10-04T00:00:00Z'),
         ];
 
-        const result = processMessages(messages, newMessages, false);
+        const result = processNewMessages(messages, newMessages);
 
         newMessages.splice(2, 1);
         expect(areMessagesSame(result, [...messages, ...newMessages.reverse()])).toBe(true);
@@ -434,11 +411,33 @@ describe('processMessages', () => {
             getDefaultMessage('2023-10-01T00:00:00Z', '01'),
         ];
 
-        const result = processMessages(messages, newMessages, false);
+        const result = processNewMessages(messages, newMessages);
         const expectedResult = [...messages, ...newMessages.reverse().slice(3)];
 
         expect(result.length).toBe(6);
         expect(areMessagesSame(result, expectedResult)).toBe(true);
+        expect(areMessagesSortedAscByTimeStamp(result)).toBe(true);
+        expect(areMessagesUnique(result)).toBe(true);
+    });
+});
+
+describe('processOldMessages', () => {
+    it('Add old messages', () => {
+        const messages: Message[] = [
+            getDefaultMessage('2023-10-04T00:00:00Z'),
+            getDefaultMessage('2023-10-05T00:00:00Z'),
+            getDefaultMessage('2023-10-06T00:00:00Z'),
+        ];
+
+        const oldMessages: Message[] = [
+            getDefaultMessage('2023-10-03T00:00:00Z'),
+            getDefaultMessage('2023-10-02T00:00:00Z'),
+            getDefaultMessage('2023-10-01T00:00:00Z'),
+        ];
+
+        const result = processOldMessages(messages, oldMessages);
+
+        expect(areMessagesSame(result, [...oldMessages.reverse(), ...messages])).toBe(true);
         expect(areMessagesSortedAscByTimeStamp(result)).toBe(true);
         expect(areMessagesUnique(result)).toBe(true);
     });
