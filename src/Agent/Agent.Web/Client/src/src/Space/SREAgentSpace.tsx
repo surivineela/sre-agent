@@ -4,7 +4,7 @@ import { LineHorizontal120Regular, Open16Regular, PersonFeedback20Regular } from
 import type { Theme } from '@fluentui/theme';
 import { FC, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { BrowserRouter, Route, Routes, useLocation, useNavigate } from 'react-router';
+import { HashRouter, Route, Routes, useLocation, useNavigate } from 'react-router';
 import AzPortalProxy from '../Common/AzPortalProxy/AzPortalProxy';
 import { AzPortalContext } from '../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../Common/AzPortalProxy/Providers/StartupInfoContext';
@@ -32,7 +32,6 @@ enum TabValues {
     Logs = 'logs',
 }
 
-const baseRoute = import.meta.env.BASE_ROUTE;
 const inStandaloneMode = AzPortalProxy.inStandaloneMode;
 
 const query = `ContainerAppConsoleLogs_CL | where TimeGenerated > ago(1d)`;
@@ -189,7 +188,7 @@ const SREAgentSpace: FC = () => {
                 },
             }}
         >
-            <BrowserRouter basename={baseRoute}>
+            <HashRouter>
                 <TabsListWrapper />
                 <Routes>
                     <Route path="/views/settings/:menuItem" element={<Settings />} />
@@ -199,7 +198,7 @@ const SREAgentSpace: FC = () => {
                     <Route path="/views/activities" element={<Activities />} />
                     <Route path="*" element={<Activities />} />
                 </Routes>
-            </BrowserRouter>
+            </HashRouter>
         </SreAgentContext.Provider>
     );
 };
