@@ -21,6 +21,10 @@ namespace FirstPartyAgent.Core.Services
         Task<string> CreatePullRequestAsync(string sourceBranchName, string targetBranchName, string title, string description = "");
         Task<string> AbandonPullRequestAsync(int pullRequestId);
         Task<string> SearchCodeAsync(string searchText, int topN);
+        Task<string> QueryWorkItemsAsync(string wiqlQuery, string organization = null, string project = null);
+        Task<string> GetWorkItemByIdAsync(int workItemId, string organization = null, string project = null);
+        Task<string> CreateWorkItemAsync(string workItemType, string title, string description = null, string assignedTo = null, string organization = null, string project = null);
+        Task<string> AssignWorkItemAsync(int workItemId, string assignedTo);
         string MainBranchName { get; }
     }
 
@@ -34,6 +38,10 @@ namespace FirstPartyAgent.Core.Services
         public Task<string> CreatePullRequestAsync(string sourceBranchName, string targetBranchName, string title, string description = "") => Task.FromResult<string>("Azure DevOps Client is Disabled.");
         public Task<string> AbandonPullRequestAsync(int pullRequestId) => Task.FromResult<string>("Azure DevOps Client is Disabled.");
         public Task<string> SearchCodeAsync(string searchText, int topN) => Task.FromResult<string>("Azure DevOps Client is Disabled.");
+        public Task<string> QueryWorkItemsAsync(string wiqlQuery, string organization = null, string project = null) => Task.FromResult<string>("Azure DevOps Client is Disabled.");
+        public Task<string> GetWorkItemByIdAsync(int workItemId, string organization = null, string project = null) => Task.FromResult<string>("Azure DevOps Client is Disabled.");
+        public Task<string> CreateWorkItemAsync(string workItemType, string title, string description = null, string assignedTo = null, string organization = null, string project = null) => Task.FromResult<string>("Azure DevOps Client is Disabled.");
+        public Task<string> AssignWorkItemAsync(int workItemId, string assignedTo) => Task.FromResult<string>("Azure DevOps Client is Disabled.");
         public string MainBranchName => null;
     }
 
@@ -298,6 +306,64 @@ namespace FirstPartyAgent.Core.Services
                 throw new HttpRequestException($"Code Search failed: {response.StatusCode} - {errorContent}");
             }
 
+            return await response.Content.ReadAsStringAsync();
+        }
+
+        public async Task<string> QueryWorkItemsAsync(string wiqlQuery, string organization = null, string project = null)
+        {
+            var url = $"{_endpoint}{organization??_organization}/{project??_project}/_apis/wit/wiql?api-version=7.0";
+            var payload = new { query = wiqlQuery };
+            var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync(url, content);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
+        }
+
+        public async Task<string> GetWorkItemByIdAsync(int workItemId, string organization = null, string project = null)
+        {
+            var url = $"{_endpoint}{organization ?? _organization}/{project ?? _project}/_apis/wit/workitems/{workItemId}?api-version=7.0";
+            var response = await _httpClient.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
+        }
+
+        public async Task<string> CreateWorkItemAsync(string workItemType, string title, string description = null, string assignedTo = null, string organization = null, string project = null)
+        {
+            var url = $"{_endpoint}{organization??_organization}/{project??_project}/_apis/wit/workitems/${workItemType}?api-version=7.0";
+            var patchDocument = new List<object>
+            {
+                new { op = "add", path = "/fields/System.Title", value = title }
+            };
+
+            if (!string.IsNullOrWhiteSpace(description))
+            {
+                patchDocument.Add(new { op = "add", path = "/fields/System.Description", value = description });
+            }
+            if (!string.IsNullOrWhiteSpace(assignedTo))
+            {
+                patchDocument.Add(new { op = "add", path = "/fields/System.AssignedTo", value = assignedTo });
+            }
+
+            var content = new StringContent(JsonSerializer.Serialize(patchDocument), Encoding.UTF8, "application/json-patch+json");
+            var request = new HttpRequestMessage(HttpMethod.Post, url) { Content = content };
+            request.Headers.Add("Accept", "application/json");
+            var response = await _httpClient.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
+        }
+
+        public async Task<string> AssignWorkItemAsync(int workItemId, string assignedTo)
+        {
+            var url = $"{_endpoint}{_organization}/{_project}/_apis/wit/workitems/{workItemId}?api-version=7.0";
+            var patchDocument = new[]
+            {
+                new { op = "add", path = "/fields/System.AssignedTo", value = assignedTo }
+            };
+            var content = new StringContent(JsonSerializer.Serialize(patchDocument), Encoding.UTF8, "application/json-patch+json");
+            var request = new HttpRequestMessage(new HttpMethod("PATCH"), url) { Content = content };
+            request.Headers.Add("Accept", "application/json");
+            var response = await _httpClient.SendAsync(request);
+            response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsStringAsync();
         }
     }

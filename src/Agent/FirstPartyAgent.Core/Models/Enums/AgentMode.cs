@@ -16,7 +16,8 @@ namespace FirstPartyAgent.Models
         ICMSummarizer,
         ColdStart,
         TestModeAgent,
-        ICMCorrelationAgent
+        ICMCorrelationAgent,
+        DevOpsAgent
     }
 }
 
