@@ -539,4 +539,36 @@ public class IcmController : Controller
             return StatusCode(500, $"Error retrieving default team: {ex.Message}");
         }
     }
+
+    [HttpGet("icmServices")]
+    [HttpOptions("icmServices")]
+    public async Task<IActionResult> GetIcmServices()
+    {
+        try
+        {
+            var services = await _icmConfigService.GetIcmServices();
+            return Ok(services);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Error retrieving ICM services: {ex.Message}");
+        }
+    }
+
+    [HttpGet("icmTeams/{serviceId}")]
+    [HttpOptions("icmTeams/{serviceId}")]
+    public async Task<IActionResult> GetIcmTeams(int serviceId)
+    {
+        try
+        {
+            var teams = await _icmConfigService.GetIcmTeams(serviceId);
+            return Ok(teams);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Error retrieving ICM teams: {ex.Message}");
+        }
+    }
+
+
 }

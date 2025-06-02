@@ -141,6 +141,37 @@ namespace FirstPartyAgent.Core.Models
         public string TeamPublicId { get; set; }
     }
 
+    public class IcmService
+    {
+        public int? Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+    }
+
+    public class IcmTeams
+    {
+        [JsonPropertyName("id")]
+        [JsonProperty("id")]
+        public string Id { get; set; } = Guid.NewGuid().ToString();
+
+        public int? ServiceId;
+        public List<Team> Teams { get; set; } = new List<Team>();
+
+        public class Team
+        {
+            public int? Id { get; set; }
+            public string Name { get; set; } = string.Empty;
+            public string PublicId { get; set; } = string.Empty;
+        }
+
+        [JsonPropertyName("_ts")]
+        [JsonProperty("_ts")]
+        public int Timestamp { get; set; }
+
+        [Newtonsoft.Json.JsonIgnore]
+        [System.Text.Json.Serialization.JsonIgnore]
+        public DateTimeOffset Datetime => DateTimeOffset.FromUnixTimeSeconds(Timestamp);
+    }
+
     public class AgentDeployment
     {
         [JsonPropertyName("id")]
@@ -177,6 +208,14 @@ namespace FirstPartyAgent.Core.Models
         [JsonProperty("id")]
         public string Id { get; set; }
         public T Content { get; set; }
+
+        [JsonPropertyName("_ts")]
+        [JsonProperty("_ts")]
+        public int Timestamp { get; set; }
+
+        [Newtonsoft.Json.JsonIgnore]
+        [System.Text.Json.Serialization.JsonIgnore]
+        public DateTimeOffset Datetime => DateTimeOffset.FromUnixTimeSeconds(Timestamp);
     }
     
     public class AgentFactoryConfigIds
@@ -184,5 +223,6 @@ namespace FirstPartyAgent.Core.Models
         public const string IcmTeams = "icmTeams";
         public const string TeamFilters = "teamFilters";
         public const string DefaultIcmTeam = "defaultIcmTeam";
+        public const string IcmServices = "icmServices";
     }
 }

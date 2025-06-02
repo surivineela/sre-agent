@@ -1,5 +1,5 @@
 import axios, { AxiosRequestConfig, Method } from "axios";
-import { AgentDeployment, AlertInfo, AlertStreamPostBody, ArmListResponse, DeployAgentPostBody, GenerateInstructionsRequest, GenerateInstructionsResponse, IcmIncident, IcmTeamInfo, Location, ResourceGroup, Subscription, TeamConfig } from "../Models/Response";
+import { AgentDeployment, AlertInfo, AlertStreamPostBody, ArmListResponse, DeployAgentPostBody, GenerateInstructionsRequest, GenerateInstructionsResponse, IcmIncident, IcmService, IcmTeamInfo, IcmTeams, Location, ResourceGroup, Subscription, TeamConfig } from "../Models/Response";
 import { ICMAlertConfig } from "../Models/ICMAlertConfig";
 import { getAgentHeaders, getArmHeaders } from "../Helpers/Headers";
 
@@ -83,6 +83,14 @@ export const getAlertDefinitions = async () => {
 
 export const getIcmTeams = async () => {
     return await get<IcmTeamInfo[]>('api/icm/icmTeams');
+}
+
+export const getIcmTeamsByServiceId = async (serviceId: string) => {
+    return await get<IcmTeams>(`api/icm/icmTeams/${serviceId}`);
+}
+
+export const getIcmServices = async () => {
+    return await get<IcmService[]>('api/icm/icmServices');
 }
 
 // Method to get Geneva configuration

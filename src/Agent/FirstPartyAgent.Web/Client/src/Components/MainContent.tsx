@@ -187,7 +187,7 @@ const MainContent = () => {
                             </Stepper>
                         </Stack.Item>}
                         <Stack.Item className={contentStyles} align="start" >
-                            {state.page === Page.SelectedTeam && <Landing onSelectTeam={updateContextWithSelectedTeam} defaultSelectedIcmInfo={state.context.selectedTeam} />}
+                            {state.page === Page.SelectedTeam && isPlayground && <Landing onSelectTeam={updateContextWithSelectedTeam} defaultSelectedIcmInfo={state.context.selectedTeam} />}
                             {state.page === Page.AzureOverview && <EditOverview icmTeamInfo={state.context.selectedTeam} onGetAlertConfig={updateContextWithAlertConfig} />}
                             {state.page === Page.AlertEditor && <AlertEditor {...state.context.alertEditor} isChangeUnsaved={isEditorChangeUnsaved} />}
                         </Stack.Item>

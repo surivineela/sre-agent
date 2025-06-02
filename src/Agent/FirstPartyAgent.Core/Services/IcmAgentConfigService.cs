@@ -7,6 +7,8 @@ using FirstPartyAgent.Core.Clients;
 using System.Net;
 using FirstPartyAgent.Core.Configuration;
 using Newtonsoft.Json.Linq;
+using Gremlin.Net.Process.Traversal;
+using Microsoft.Extensions.Logging;
 
 namespace FirstPartyAgent.Core.Services;
 public class IcmAgentConfigService : IIcmAgentConfigService
@@ -17,12 +19,14 @@ public class IcmAgentConfigService : IIcmAgentConfigService
     private readonly KustoClient _kustoClient;
     private Task _initializationTask;
     private IICMWorkflowClient _icmworkflowClient;
+    private ILogger<IcmAgentConfigService> _logger;
     private const string _alertConfigContainerName = "IcmAlertConfigs";
     private const string _teamContainerName = "Teams";
     private const string _alertDetailsContainerName = "IcmAlertDetails";
     private const string _genevaActionsContainerName = "GenevaActionsConfigs";
     private const string _agentDeploymentsContainerName = "AgentDeployments";
     private const string _agentFactoryConfigsContainerName = "AgentFactoryConfigs";
+    private const string _icmTeamsContainerName = "IcmTeams";
     private readonly IcmAgentSettings _icmAgentSettings;
 
     public IcmAgentConfigService(
@@ -31,7 +35,8 @@ public class IcmAgentConfigService : IIcmAgentConfigService
         ICosmosDBService cosmosDbService,
         KustoClient kustoClientService,
         IcmAgentSettings icmAgentSettings,
-        IICMWorkflowClient icmworkflowClient)
+        IICMWorkflowClient icmworkflowClient,
+        ILogger<IcmAgentConfigService> logger)
     {
         _env = env;
         _httpClientFactory = httpClientFactory;
@@ -45,6 +50,7 @@ public class IcmAgentConfigService : IIcmAgentConfigService
         }
 
         _icmworkflowClient = icmworkflowClient;
+        _logger = logger;
     }
 
     private async Task InitializeCosmosDbTables()
@@ -62,6 +68,7 @@ public class IcmAgentConfigService : IIcmAgentConfigService
             new() { Id = _genevaActionsContainerName, PartitionKeyPath = "/TeamId" },
             new() { Id = _alertConfigContainerName, PartitionKeyPath = "/TeamId" },
             new() { Id = _alertDetailsContainerName, PartitionKeyPath = "/TeamId" },
+            new() { Id = _icmTeamsContainerName, PartitionKeyPath = "/ServiceId" },
         };
 
 
@@ -215,6 +222,11 @@ public class IcmAgentConfigService : IIcmAgentConfigService
         }
         catch (Exception ex)
         {
+            if (ex is KeyNotFoundException)
+            {
+                throw;
+            }
+
             throw new Exception($"Error getting agent factory config with ID {id}: {ex.Message}", ex);
         }
     }
@@ -738,107 +750,223 @@ Incidents
         return queryableResult.First();
     }
 
-   
+    public async Task<List<IcmService>> GetIcmServices()
+    {
+        await IsReady();
+        try
+        {
+            var icmServices = await GetAgentFactoryConfig<List<IcmService>>(AgentFactoryConfigIds.IcmServices);
+            if(icmServices.Datetime > DateTimeOffset.UtcNow.AddDays(-7) && icmServices.Content.Count > 0)
+            {
+                return icmServices.Content;
+            }
+        }
+        catch (KeyNotFoundException ex)
+        {
+            
+        }
+
+        string query = @"
+            Teams
+            | summarize by TenantName, TenantId
+            | where TenantName !contains ""Deprecate""
+            | order by TenantName asc
+            | project-rename Name = TenantName, Id = TenantId";
+
+        string json = await _icmworkflowClient.RunKustoQuery(query);
+        var services = Newtonsoft.Json.JsonConvert.DeserializeObject<List<IcmService>>(json);
+
+        if (services == null || !services.Any(s => s.Name != null && s.Id != null))
+        {
+            throw new Exception("Failed to retrieve ICM services from Kusto query.");
+        }
+
+        services = services
+            .Where(s => !string.IsNullOrWhiteSpace(s.Name) && s.Id != null)
+            .ToList();
+
+        // write to cosmos db
+        Task.Run(() =>  UpsertAgentFactoryConfig(new AgentFactoryConfigCosmos<List<IcmService>>
+        {
+            Id = AgentFactoryConfigIds.IcmServices,
+            Content = services
+        }));
+
+        return services;
+    }
+
+    public async Task<IcmTeams> GetIcmTeams(int serviceId)
+    {
+        await IsReady();
+        try
+        {
+            var list = await _cosmosDbService.GetQueryableContainer<IcmTeams>(_cosmosDbService.IcmAgentDatabaseName, _icmTeamsContainerName)
+                .Where(c => c.ServiceId == serviceId).ToListAsync();
+
+            if(list != null && list.Any() && list[0].Datetime > DateTimeOffset.UtcNow.AddDays(-7))
+            {
+                return list.First();
+            }
+
+            string query = @$"
+                Teams
+                | where TenantId == {serviceId}
+                | summarize by Id = TeamId, Name = TeamName, PublicId = PublicTeamId
+                | order by Name asc";
+
+            string json = await _icmworkflowClient.RunKustoQuery(query);
+            var teams = Newtonsoft.Json.JsonConvert.DeserializeObject<List<IcmTeams.Team>>(json);
+            if (teams == null || !teams.Any(t => t.Id != null && t.Name != null && t.PublicId != null))
+            {
+                throw new Exception("Failed to retrieve ICM teams from Kusto query.");
+            }
+            var icmTeams = new IcmTeams
+            {
+                ServiceId = serviceId,
+                Teams = teams
+            };
+
+            Task.Run(async () =>
+            {
+                try
+                {
+                    await _cosmosDbService.UpsertItemAsync(_cosmosDbService.IcmAgentDatabaseName, _icmTeamsContainerName, icmTeams);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to upsert ICM teams for service {ServiceId}", serviceId);
+                }
+            });
+
+            return icmTeams;
+
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Error getting ICM teams for service {serviceId}: {ex.Message}", ex);
+        }
+    }
+
+
     #endregion
 }
 
 
 public class IcmAgentConfigServiceDisabled : IIcmAgentConfigService
 {
-    public bool IsEnabled() => false;
+    public bool IsEnabled()
+    {
+        return false;
+    }
 
     public Task<List<TeamConfig>> GetOnboardedLoops()
     {
-        throw new NotImplementedException();
+        return Task.FromResult(new List<TeamConfig>());
     }
 
     public Task<List<ICMAlertConfig>> GetLoopAlertConfigs(int? loopId)
     {
-        throw new NotImplementedException();
+        return Task.FromResult(new List<ICMAlertConfig>());
     }
 
     public Task<List<AlertDetails>> GetLoopAlerts(int loopId)
     {
-        throw new NotImplementedException();
+        return Task.FromResult(new List<AlertDetails>());
     }
 
     public Task<List<IcmTeam>> GetIcmTeams()
     {
-        throw new NotImplementedException();
+        return Task.FromResult(new List<IcmTeam>());
     }
 
     public Task<AgentFactoryConfigCosmos<T>> GetAgentFactoryConfig<T>(string id)
     {
-        throw new NotImplementedException();
+        return Task.FromResult<AgentFactoryConfigCosmos<T>>(null);
     }
 
     public Task<List<string>> GetAgentFactoryConfigNames()
     {
-        throw new NotImplementedException();
+        return Task.FromResult(new List<string>());
     }
 
     public Task UpsertAgentFactoryConfig<T>(AgentFactoryConfigCosmos<T> config)
     {
-        throw new NotImplementedException();
+        return Task.CompletedTask;
     }
 
     public Task<List<AlertDetails>> GetAlerts()
     {
-        throw new NotImplementedException();
+        return Task.FromResult(new List<AlertDetails>());
     }
 
     public Task<ICMAlertConfig> GetAlertConfig(int loopId, string alertId)
     {
-        throw new NotImplementedException();
+        return Task.FromResult<ICMAlertConfig>(null);
     }
 
     public Task<string> CreateAlertConfig(ICMAlertConfig alertConfig)
     {
-        throw new NotImplementedException();
+        return Task.FromResult(string.Empty);
     }
+
     public Task UpdateAlertConfig(ICMAlertConfig alertConfig, int loopId, string alertId)
     {
-        throw new NotImplementedException();
+        return Task.CompletedTask;
     }
 
     public Task<List<IcmIncidentBasicInfo>> GetIncidentsByTeamAlert(int teamId, int numOfDays, string title)
     {
-        throw new NotImplementedException();
+        return Task.FromResult(new List<IcmIncidentBasicInfo>());
     }
 
-    
     public Task<List<AgentDeployment>> GetAgentDeployments(int loopId)
     {
-        throw new NotImplementedException();
+        return Task.FromResult(new List<AgentDeployment>());
     }
 
     public Task<GenevaActionsConfigCosmos> GetGenevaActionConfig(int teamId)
     {
-        throw new NotImplementedException();
+        return Task.FromResult<GenevaActionsConfigCosmos>(null);
     }
+
     public Task<GenevaActionsConfigCosmos> SaveGenevaActionsConfig(GenevaActionsConfigCosmos genevaActionsConfig)
     {
-        throw new NotImplementedException();
+        return Task.FromResult<GenevaActionsConfigCosmos>(null);
     }
 
     public Task<List<string>> ListAllContainers()
     {
-        throw new NotImplementedException();
+        return Task.FromResult(new List<string>());
     }
 
     public Task<List<string>> GetAllDocumentIds(string containerName)
     {
-        throw new NotImplementedException();
+        return Task.FromResult(new List<string>());
     }
 
     public Task<string> GetDocumentById(string containerName, string documentId)
     {
-        throw new NotImplementedException();
+        return Task.FromResult(string.Empty);
     }
 
-    public Task<string> UpsertDocument(string containerName, string documentJson) { throw new NotImplementedException(); }
+    public Task<string> UpsertDocument(string containerName, string documentJson)
+    {
+        return Task.FromResult(string.Empty);
+    }
+
     Task<IcmTeam> IIcmAgentConfigService.GetDefaultIcmTeam()
     {
-        throw new NotImplementedException();
+        return Task.FromResult<IcmTeam>(null);
+    }
+
+    public Task<List<IcmService>> GetIcmServices()
+    {
+        return Task.FromResult(new List<IcmService>());
+    }
+
+    public Task<IcmTeams> GetIcmTeams(int serviceId)
+    {
+        return Task.FromResult<IcmTeams>(null);
     }
 }
+

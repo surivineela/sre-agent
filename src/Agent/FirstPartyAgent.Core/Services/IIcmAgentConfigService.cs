@@ -22,9 +22,11 @@ public interface IIcmAgentConfigService
     Task<GenevaActionsConfigCosmos> SaveGenevaActionsConfig(GenevaActionsConfigCosmos genevaActionsConfig);
     Task<List<string>> ListAllContainers();
     Task<List<string>> GetAllDocumentIds(string containerName);
-    Task<string> GetDocumentById(string containerName, string documentId); // Changed T to string
-    Task<string> UpsertDocument(string containerName, string documentJson); // Changed T to string and parameter name
+    Task<string> GetDocumentById(string containerName, string documentId); 
+    Task<string> UpsertDocument(string containerName, string documentJson); 
     Task<IcmTeam> GetDefaultIcmTeam();
+    Task<List<IcmService>> GetIcmServices();
+    Task<IcmTeams> GetIcmTeams(int serviceId);
 }
 
 

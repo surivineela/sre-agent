@@ -29,6 +29,25 @@ export interface IcmTeamInfo {
     teamPublicId: string;
 }
 
+export interface IcmService {
+    id: number;
+    name: string;
+}
+
+export interface IcmTeams {
+    id: string;
+    serviceId: number;
+    teams: IcmTeam[];
+    timestamp: number;
+    datetime: string;
+}
+
+export interface IcmTeam {
+    id: number;
+    name: string;
+    publicId: string;
+}
+
 export interface AgentDeployment {
     id: string;
     teamId: number;
