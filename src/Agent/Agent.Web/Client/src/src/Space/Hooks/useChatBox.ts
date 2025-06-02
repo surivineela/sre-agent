@@ -309,15 +309,17 @@ export const useChatBox = (addThread: (thread: Thread) => void, promoteThread: (
                 maxTimestamp: oldestMessageRef.current.timeStamp,
             });
 
-            isPreviousOldMessagesLoadingCompleted.current = true;
-
             if (callId === loadOldChatHistoryCallId.current) {
                 const currentMessages = currentMessagesResponse.content || [];
                 handleOldMessages(currentMessages);
                 if (currentMessagesResponse.isSuccessful && currentMessages.length < MessageLoadingCounts.active) {
                     setNoChatHistoryLeftToLoad(true);
                 }
+                isPreviousOldMessagesLoadingCompleted.current = true;
                 return currentMessagesResponse.isSuccessful;
+            } else {
+                isPreviousOldMessagesLoadingCompleted.current = true;
+                return undefined;
             }
         }
     }, [currentThreadId, noChatHistoryLeftToLoad]);
