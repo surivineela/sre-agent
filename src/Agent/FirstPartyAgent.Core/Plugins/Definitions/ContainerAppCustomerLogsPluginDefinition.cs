@@ -5,6 +5,8 @@
 using System.ComponentModel;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using FirstPartyAgent.Constants;
+using FirstPartyAgent.Core.Plugins.Implementation;
+using FirstPartyAgent.Core.Plugins.Interfaces;
 using FirstPartyAgent.Plugins;
 using Microsoft.SemanticKernel;
 
@@ -13,10 +15,12 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
     public class ContainerAppCustomerLogsPluginDefinition
     {
         private readonly IContainerAppCustomerLogsPlugin _plugin;
+        private readonly IManagedClusterPlugin _managedClusterPlugin;
 
-        public ContainerAppCustomerLogsPluginDefinition(IContainerAppCustomerLogsPlugin plugin)
+        public ContainerAppCustomerLogsPluginDefinition(IContainerAppCustomerLogsPlugin plugin, IManagedClusterPlugin ManagedClusterPlugin)
         {
             _plugin = plugin;
+            _managedClusterPlugin = ManagedClusterPlugin;
         }
 
         [KernelFunction(KernelFunctionNames.ACA.GetLogConfiguration)]
@@ -168,7 +172,7 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
 
         [KernelFunction(KernelFunctionNames.ACA.GetContainerAppWorkloadProfile)]
         [Description(
-            @"Get list of Container App Workload Profile for the container app environment at start and end of time window.
+            @"Get type of Container App Workload Profile for the container app environment at start and end of time window.
             If no data is returned then it may mean no container app workload profile data is present or there is an issue with the provided inputs. Please ensure those are correct otherwise re-run the tool.")]
         public Task<string> GetContainerAppWorkloadProfile(
             [Description("Azure region in lower case. example: 'westeurope'")] string region,
@@ -181,6 +185,118 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
                 fromDate,
                 toDate,
                 containerAppOrJobName);
+        }
+
+        [KernelFunction(KernelFunctionNames.ACA.GetInputPressureOnLogProcessor)]
+        [Description(
+            @"Get Input Pressure on Log Processor for the managed Kubernetes cluster, segmented by node or VMSS over a specified time range.
+
+            What this metric measures: The query calculates the total records input to log-processor.
+
+            When it is applicable: Anomaly in this indicates high resource pressure on the log-processor.
+        ")]
+        public Task<string> GetInputPressureOnLogProcessor(
+            [Description("Azure region in lower case. example: 'westeurope'")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed cluster.")] string managedClusterName)
+        {
+            return _managedClusterPlugin.GetGenericMetricCountData(
+                region.NormalizeLocation(),
+                fromDate,
+                toDate,
+                managedClusterName,
+                "fluentbit_input_records_total",
+                0);
+        }
+
+
+        [KernelFunction(KernelFunctionNames.ACA.GetMemoryPressureOnFluentbit)]
+        [Description(
+            @"Get Memory Pressure on Fluentbit for the managed Kubernetes cluster, segmented by node or VMSS over a specified time range.
+
+            What this metric measures: The query calculates the total input storage memory used by fluentbit in bytes.
+
+            When it is applicable: Anomaly in this indicates high memory resource pressure on the fluentbit
+        ")]
+        public Task<string> GetMemoryPressureOnFluentbit(
+            [Description("Azure region in lower case. example: 'westeurope'")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed cluster.")] string managedClusterName)
+        {
+            return _managedClusterPlugin.GetGenericMetricCountData(
+                region.NormalizeLocation(),
+                fromDate,
+                toDate,
+                managedClusterName,
+                "fluentbit_input_storage_memory_bytes",
+                0);
+        }
+
+        [KernelFunction(KernelFunctionNames.ACA.GetFluentbitOutputCount)]
+        [Description(
+            @"Get count of output processed by Fluentbit for the managed Kubernetes cluster, segmented by node or VMSS over a specified time range.
+
+            What this metric measures: The query calculates the total output records processed by fluentbit.
+
+            When it is applicable: Significant drop in the value indicates flunetbit having issues. Manunal investigation is required.
+        ")]
+        public Task<string> GetFluentbitOutputCount(
+            [Description("Azure region in lower case. example: 'westeurope'")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed cluster.")] string managedClusterName)
+        {
+            return _managedClusterPlugin.GetGenericMetricCountData(
+                region.NormalizeLocation(),
+                fromDate,
+                toDate,
+                managedClusterName,
+                "fluentbit_output_proc_records_total",
+                0);
+        }
+
+        [KernelFunction(KernelFunctionNames.ACA.GetFluentbitBufferPressure)]
+        [Description(
+            @"Get buffer pressure experienced by Fluentbit for the managed Kubernetes cluster, segmented by node or VMSS over a specified time range.
+
+            What this metric measures: The query calculates input storage buffer overflow for fluentbit.
+
+            When it is applicable: Existence of this metric indicates that input storage has exceeded its configured limit. No records indicate healthy.
+        ")]
+        public Task<string> GetFluentbitBufferPressure(
+            [Description("Azure region in lower case. example: 'westeurope'")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed cluster.")] string managedClusterName)
+        {
+            return _managedClusterPlugin.GetGenericMetricCountData(
+                region.NormalizeLocation(),
+                fromDate,
+                toDate,
+                managedClusterName,
+                "fluentbit_input_storage_overlimit",
+                0);
+        }
+
+        [KernelFunction(KernelFunctionNames.ACA.GetFluentbitOutputErrors)]
+        [Description(
+            @"Get any output errors faced by Fluentbit for the customer's container app or job in the managed Kubernetes cluster.
+            What this metric measures: The query calculates the total output errors for the customer's container app or job experienced by fluentbit.
+            When it is applicable: Existence of this metric indicates that fluentbit is having issues in processing the output. Manual investigation is required."
+        )]
+        public Task<string> GetFluentbitOutputErrors(
+            [Description("Azure region in lower case. example: 'westeurope'")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed cluster.")] string managedClusterName)
+        {
+            return _plugin.GetFluentbitOutputErrors(
+                region.NormalizeLocation(),
+                fromDate,
+                toDate,
+                managedClusterName);
         }
     }
 }

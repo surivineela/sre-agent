@@ -99,6 +99,11 @@ namespace FirstPartyAgent.Constants
             public const string GetContainerAppInfraLayer = "get_container_app_infra_layer";
             public const string GetVKPodLeaderElection = "get_vk_pod_leader_election";
             public const string GetAKSKubeletRuntimeErrors = "get_aks_kubelet_runtime_errors";
+            public const string GetInputPressureOnLogProcessor = "get_input_pressure_on_log_processor";
+            public const string GetMemoryPressureOnFluentbit = "get_memory_pressure_on_fluentbit";
+            public const string GetFluentbitOutputCount = "get_fluentbit_output_count";
+            public const string GetFluentbitBufferPressure = "get_fluentbit_buffer_pressure";
+            public const string GetFluentbitOutputErrors = "get_fluentbit_output_errors";
         }
 
         public static class Kusto
