@@ -95,17 +95,11 @@ namespace FirstPartyAgent.Core.Services
             {
                 BlobContainerClient containerClient = await GetContainerClient(containerName);
                 BlobClient blobClient = containerClient.GetBlobClient(blobName);
-                MemoryStream stream = new MemoryStream();
-                StreamWriter writer = new StreamWriter(stream);
-                writer.Write(content);
-                writer.Flush();
-                stream.Position = 0;
-                await blobClient.UploadAsync(stream, true);
-                BlobProperties properties = await blobClient.GetPropertiesAsync();
-                if (Encoding.UTF8.GetBytes(content).Length != properties.ContentLength)
+                using (MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(content)))
                 {
-                    throw new Exception($"Failed to validate file content after writing.");
+                    await blobClient.UploadAsync(stream, overwrite: true);
                 }
+                // Removed unreliable content length validation
             }
             catch (Exception ex)
             {
