@@ -239,7 +239,7 @@ public class Program
 
             .AddSingleton<FunctionAppDeploymentChecksAgentFactory>()
             .AddTransient<IFunctionAppDeploymentChecksPlugin, FunctionAppDeploymentChecksPlugin>()
-            .AddTransient<IMetaAgentFunctionAppDeploymentChecksAgentPlugin>()
+            .AddTransient<IMetaAgentFunctionAppDeploymentChecksAgentPlugin, FunctionAppDeploymentChecksAgentPlugin>()
 
             .AddTransient<MetricsPluginDefinition>()
             .AddTransient<AzureMonitorMetricsPluginDefinition>()
