@@ -1,9 +1,15 @@
 import react from '@vitejs/plugin-react-swc';
 import { defineConfig } from 'vite';
 
+const VERSION = process.env.SRE_UX_VERSION;
+
 export default defineConfig({
-    base: '/static',
+    base: VERSION ? `/static/${VERSION}` : '/static',
     plugins: [react()],
+    define: {
+        'import.meta.env.SRE_UX_VERSION': JSON.stringify(VERSION || ''),
+        'import.meta.env.BASE_ROUTE': JSON.stringify(VERSION ? `/static/${VERSION}/` : '/static/'),
+    },
     build: {
         outDir: '../wwwroot/static',
         emptyOutDir: true,

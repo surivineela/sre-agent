@@ -111,6 +111,7 @@ namespace FirstPartyAgent.Core.Extensions
             services.AddSingleton<WebAppPlugin>();
             services.AddSingleton<AzureAlertingClient>();
             services.AddSingleton<AzureAlertingPlugin>();
+            services.AddSingleton<ControlPlanePlugin>();
             services.AddSingleton<IStorageService>(sp =>
             {
                 try

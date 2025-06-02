@@ -97,21 +97,32 @@ namespace Agent.Tests.Unit
         }
     }
 
+    [AgentToolPlugin]
+    public class PluginWithContext : ContextToolTarget<string>
+    {
+        [Description("Get info about current context")]
+        public string GetContextInfo()
+        {
+            return Context ?? "no context";
+        }
+    }
+
     public class ToolFactoryTests : IDisposable
     {
-        private readonly Mock<ILogger<ToolFactory>> _mockLogger;
+        private readonly Mock<ILogger<ToolFactory<object>>> _mockLogger;
         private readonly IServiceProvider _serviceProvider;
         private readonly ServiceCollection _services;
 
         public ToolFactoryTests()
         {
-            _mockLogger = new Mock<ILogger<ToolFactory>>();
+            _mockLogger = new Mock<ILogger<ToolFactory<object>>>();
             _services = new ServiceCollection();
             _services.AddSingleton(_mockLogger.Object);
             _services.AddTransient<TestPlugin>();
             _services.AddTransient<AnotherTestPlugin>();
             _services.AddTransient<PluginWithImplementationField>();
             _services.AddTransient<ImplementationWithThreadId>();
+            _services.AddTransient<PluginWithContext>();
             _serviceProvider = _services.BuildServiceProvider();
         }
 
@@ -119,22 +130,22 @@ namespace Agent.Tests.Unit
         public void Constructor_ShouldRegisterToolsFromAgentAssemblies()
         {
             // Act
-            var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
+            var toolFactory = new ToolFactory<object>(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
 
             // Assert
-            Assert.True(toolFactory.HasAIFunction("SayHello"));
-            Assert.True(toolFactory.HasAIFunction("ProcessData"));
-            Assert.True(toolFactory.HasAIFunction("Calculate"));
+            Assert.True(toolFactory.HasTool("SayHello"));
+            Assert.True(toolFactory.HasTool("ProcessData"));
+            Assert.True(toolFactory.HasTool("Calculate"));
         }
 
         [Fact]
         public void FindAIFunction_WithValidName_ShouldReturnFunction()
         {
             // Arrange
-            var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
+            var toolFactory = new ToolFactory<object>(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
 
             // Act
-            var function = toolFactory.FindAIFunction("SayHello");
+            var function = toolFactory.GetTool("SayHello");
 
             // Assert
             Assert.NotNull(function);
@@ -145,20 +156,20 @@ namespace Agent.Tests.Unit
         public void FindAIFunction_WithInvalidName_ShouldThrowKeyNotFoundException()
         {
             // Arrange
-            var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
+            var toolFactory = new ToolFactory<object>(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
 
             // Act & Assert
-            Assert.Throws<KeyNotFoundException>(() => toolFactory.FindAIFunction("NonExistentFunction"));
+            Assert.Throws<KeyNotFoundException>(() => toolFactory.GetTool("NonExistentFunction"));
         }
 
         [Fact]
         public async Task FindAIFunction_WithThreadId_ShouldSetThreadIdOnPlugin()
         {
             // Arrange
-            var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
+            var toolFactory = new ToolFactory<object>(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
             var threadId = Guid.NewGuid();
 
-            var function = toolFactory.FindAIFunction("GetThreadId", threadId);
+            var function = toolFactory.GetTool("GetThreadId", threadId);
             Assert.NotNull(function);
             var result = await function.InvokeAsync();
             Assert.Equal(threadId.ToString(), result.ToString());
@@ -168,10 +179,10 @@ namespace Agent.Tests.Unit
         public void TryFindAIFunction_WithValidName_ShouldReturnTrueAndFunction()
         {
             // Arrange
-            var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
+            var toolFactory = new ToolFactory<object>(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
 
             // Act
-            var result = toolFactory.TryFindAIFunction("Calculate", out var function);
+            var result = toolFactory.TryFindTool("Calculate", out var function);
 
             // Assert
             Assert.True(result);
@@ -183,10 +194,10 @@ namespace Agent.Tests.Unit
         public void TryFindAIFunction_WithInvalidName_ShouldReturnFalseAndNullFunction()
         {
             // Arrange
-            var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
+            var toolFactory = new ToolFactory<object>(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
 
             // Act
-            var result = toolFactory.TryFindAIFunction("NonExistentFunction", out var function);
+            var result = toolFactory.TryFindTool("NonExistentFunction", out var function);
 
             // Assert
             Assert.False(result);
@@ -197,45 +208,45 @@ namespace Agent.Tests.Unit
         public void HasAIFunction_WithValidName_ShouldReturnTrue()
         {
             // Arrange
-            var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
+            var toolFactory = new ToolFactory<object>(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
 
             // Act & Assert
-            Assert.True(toolFactory.HasAIFunction("SayHello"));
-            Assert.True(toolFactory.HasAIFunction("ProcessData"));
-            Assert.True(toolFactory.HasAIFunction("Calculate"));
+            Assert.True(toolFactory.HasTool("SayHello"));
+            Assert.True(toolFactory.HasTool("ProcessData"));
+            Assert.True(toolFactory.HasTool("Calculate"));
         }
 
         [Fact]
         public void HasAIFunction_WithInvalidName_ShouldReturnFalse()
         {
             // Arrange
-            var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
+            var toolFactory = new ToolFactory<object>(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
 
             // Act & Assert
-            Assert.False(toolFactory.HasAIFunction("NonExistentFunction"));
-            Assert.False(toolFactory.HasAIFunction("IgnoredMethod"));
-            Assert.False(toolFactory.HasAIFunction("ShouldNotBeRegistered"));
+            Assert.False(toolFactory.HasTool("NonExistentFunction"));
+            Assert.False(toolFactory.HasTool("IgnoredMethod"));
+            Assert.False(toolFactory.HasTool("ShouldNotBeRegistered"));
         }
 
         [Fact]
         public void AsyncMethods_ShouldHaveAsyncSuffixRemoved()
         {
             // Arrange
-            var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
+            var toolFactory = new ToolFactory<object>(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
 
             // Act & Assert
-            Assert.True(toolFactory.HasAIFunction("ProcessData"));
-            Assert.False(toolFactory.HasAIFunction("ProcessDataAsync"));
+            Assert.True(toolFactory.HasTool("ProcessData"));
+            Assert.False(toolFactory.HasTool("ProcessDataAsync"));
         }
 
         [Fact]
         public void MethodsWithoutDescriptionAttribute_ShouldNotBeRegistered()
         {
             // Arrange
-            var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
+            var toolFactory = new ToolFactory<object>(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
 
             // Act & Assert
-            Assert.False(toolFactory.HasAIFunction("IgnoredMethod"));
+            Assert.False(toolFactory.HasTool("IgnoredMethod"));
         }
 
         [Fact]
@@ -244,17 +255,17 @@ namespace Agent.Tests.Unit
             // Arrange
             _services.AddTransient<IgnoredPlugin>();
             var serviceProvider = _services.BuildServiceProvider();
-            var toolFactory = new ToolFactory(_mockLogger.Object, serviceProvider, [Assembly.GetExecutingAssembly()]);
+            var toolFactory = new ToolFactory<object>(_mockLogger.Object, serviceProvider, [Assembly.GetExecutingAssembly()]);
 
             // Act & Assert
-            Assert.False(toolFactory.HasAIFunction("ShouldNotBeRegistered"));
+            Assert.False(toolFactory.HasTool("ShouldNotBeRegistered"));
         }
 
         [Fact]
         public void DeferredToolFunction_GetToolFunction_ShouldCreateNewInstanceEachTime()
         {
             // Arrange
-            var deferredFunction = new DeferredToolFunction(_serviceProvider, typeof(TestPlugin),
+            var deferredFunction = new DeferredToolFunction<object>(_serviceProvider, typeof(TestPlugin),
                 typeof(TestPlugin).GetMethod("SayHello")!, "SayHello");
 
             // Act
@@ -274,7 +285,7 @@ namespace Agent.Tests.Unit
         {
             // Arrange
             var threadId = Guid.NewGuid();
-            var deferredFunction = new DeferredToolFunction(_serviceProvider, typeof(TestPlugin),
+            var deferredFunction = new DeferredToolFunction<object>(_serviceProvider, typeof(TestPlugin),
                 typeof(TestPlugin).GetMethod("SayHello")!, "SayHello");
 
             // Act
@@ -290,16 +301,33 @@ namespace Agent.Tests.Unit
         public async Task PluginWithImplementationField_WithThreadId_ShouldInjectThreadIdIntoImplementationField()
         {
             // Arrange
-            var toolFactory = new ToolFactory(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
+            var toolFactory = new ToolFactory<object>(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
             var threadId = Guid.NewGuid();
 
             // Act
-            var function = toolFactory.FindAIFunction("ProcessViaImplementation", threadId);
+            var function = toolFactory.GetTool("ProcessViaImplementation", threadId);
             Assert.NotNull(function);
             var result = await function.InvokeAsync();
 
             // Assert
             Assert.Equal(threadId.ToString(), result?.ToString());
+        }
+
+        [Fact]
+        public async Task PluginWithContext()
+        {
+            var toolFactory = new ToolFactory<string>(new Mock<ILogger<ToolFactory<string>>>().Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
+
+            var tool = toolFactory.GetTool("GetContextInfo") as ContextAIFunction<string>;
+            Assert.NotNull(tool);
+
+            var context = "hello";
+            tool.SetContext(context);
+
+            var result = await tool.InvokeAsync();
+            Assert.NotNull(result);
+
+            Assert.Equal(context, result.ToString());
         }
 
         public void Dispose()

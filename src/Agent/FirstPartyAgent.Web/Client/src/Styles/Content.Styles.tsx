@@ -16,3 +16,7 @@ export const PanelStyles = mergeStyleSets({
         marginTop: "16px",
     }
 });
+
+export const iconButtonStyles = mergeStyles({
+    minWidth: "40px",
+})

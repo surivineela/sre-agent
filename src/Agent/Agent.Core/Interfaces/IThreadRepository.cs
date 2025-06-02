@@ -79,4 +79,9 @@ public interface IThreadRepository
     Task<GitHubAccessToken> GetGitHubAccessTokenAsync();
     Task<GitHubAccessToken> CreateOrUpdateGitHubAccessTokenAsync(GitHubAccessToken gitHubAccessToken);
     Task<bool> DeleteGitHubAccessTokenAsync();
+    Task<AzCliExecution> ListPendingAzCliExecutionAsync(Guid threadId);
+    Task<AzCliExecution> GetAzCliExecutionAsync(Guid threadId, Guid executionId);
+    Task<AzCliExecution> CreateAzCliExecutionAsync(Guid threadId, AzCliExecution execution);
+    Task<AzCliExecution> UpdateAzCliExecutionAsync(Guid threadId, AzCliExecution execution);
+    Task<AzCliExecution> UpdateAzCliExecutionOutputAsync(Guid threadId, Guid executionId, string output, string? error = null);
 }

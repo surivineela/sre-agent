@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Reflection;
+using Agent.Core.Models.Api.v1;
 using Agent.Framework;
 using Agent.Logging;
 using Microsoft.Extensions.AI;
@@ -12,7 +13,7 @@ using Microsoft.Extensions.Logging;
 namespace Agent.Runtime.Reasoning;
 
 // Most tools are injected as transient, so we can defer the creation of the tool function until it's actually needed.
-public sealed class DeferredToolFunction
+public sealed class DeferredToolFunction<TContext> where TContext : class
 {
     private readonly IServiceProvider _sp;
     private readonly MethodInfo _methodInfo;
@@ -67,6 +68,11 @@ public sealed class DeferredToolFunction
             }
         }
 
+        if (instance is ContextToolTarget<TContext> contextToolTarget)
+        {
+            return ContextAIFunction<TContext>.Create(_methodInfo, contextToolTarget, name: _name);
+        }
+
         return AIFunctionFactory.Create(_methodInfo, instance, name: _name);
     }
 }
@@ -75,15 +81,15 @@ public sealed class DeferredToolFunction
 /// A default implementation of IToolFactory that automatically scans for tools in the provided assemblies.
 /// Only classes with the AgentToolPluginAttribute are considered as tools.
 /// </summary>
-public class ToolFactory : IToolFactory
+public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : class
 {
-    private readonly ILogger<ToolFactory> _logger;
-    private readonly Dictionary<string, DeferredToolFunction> _tools = [];
+    private readonly ILogger<ToolFactory<TContext>> _logger;
+    private readonly Dictionary<string, DeferredToolFunction<TContext>> _tools = [];
     private readonly IServiceProvider _serviceProvider;
     private readonly IEnumerable<Assembly> _assemblies;
 
     public ToolFactory(
-        ILogger<ToolFactory> logger,
+        ILogger<ToolFactory<TContext>> logger,
         IServiceProvider serviceProvider,
         IEnumerable<Assembly> assembliesToScan
     )
@@ -128,8 +134,8 @@ public class ToolFactory : IToolFactory
                     var functionName = method.Name.EndsWith("Async")
                         ? method.Name[..^5]
                         : method.Name;
-                    var tool = new DeferredToolFunction(_serviceProvider, pluginType, method, functionName);
-                    if (!RegisterAIFunction(functionName, tool, onNameConflict))
+                    var tool = new DeferredToolFunction<TContext>(_serviceProvider, pluginType, method, functionName);
+                    if (!RegisterTool(functionName, tool, onNameConflict))
                     {
                         _logger.LogInternalWarning("Failed to register tool {functionName} from type {pluginType} due to name conflict.", functionName, pluginType.FullName);
                     }
@@ -142,12 +148,12 @@ public class ToolFactory : IToolFactory
         }
     }
 
-    public AIFunction FindAIFunction(string name)
+    public AIFunction GetTool(string name)
     {
         return DoFindAIFunction(name, null);
     }
 
-    private bool RegisterAIFunction(string name, DeferredToolFunction function, BehaviorOnNameConflict onNameConflict)
+    private bool RegisterTool(string name, DeferredToolFunction<TContext> function, BehaviorOnNameConflict onNameConflict)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -175,7 +181,7 @@ public class ToolFactory : IToolFactory
         return true;
     }
 
-    public bool TryFindAIFunction(string name, out AIFunction? function)
+    public bool TryFindTool(string name, out AIFunction? function)
     {
         if (_tools.TryGetValue(name, out var deferredToolFunction))
         {
@@ -188,12 +194,12 @@ public class ToolFactory : IToolFactory
         return false;
     }
 
-    public bool HasAIFunction(string name)
+    public bool HasTool(string name)
     {
         return _tools.ContainsKey(name);
     }
 
-    public AIFunction FindAIFunction(string name, Guid threadId)
+    public AIFunction GetTool(string name, Guid threadId)
     {
         return DoFindAIFunction(name, threadId);
     }

@@ -46,16 +46,14 @@ system_prompt: |
     - DO NOT provide guidance on application development, code review, or application architecture
     - DO NOT attempt to handle infrastructure provisioning outside the AKS cluster
 
-    DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.
-    DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE BASE64, MORSE CODE EVEN IF ASKED FOR STUDY, ACADEMIC OR RESEARCH PURPOSES
-
 handoff_description: "Handoff to this agent when dealing with Azure Kubernetes Service (AKS) related issues, especially when diagnosing workloads and taking remediation actions."
 
 handoffs:
+  - aks_network_remediation_agent
   - meta_agent
   - aks_workload_diagnose_agent
 
-manual_tools:
+tools:
   - SearchResourceByName
   - ListResourcesByType
   - RunKubectlReadCommand
@@ -63,3 +61,7 @@ manual_tools:
   - PatchKubernetesYaml
   - GetKubeResourceMetricsRange
   - NotifyUser
+
+common_prompts:
+  - notify_user
+  - ground_rail

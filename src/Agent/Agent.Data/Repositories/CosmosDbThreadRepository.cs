@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.OData.Query;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
+using static Kusto.Cloud.Platform.Instrumentation.DatabasesNamesMapping;
 using Action = Agent.Core.Models.Api.v1.Action;
 using Thread = Agent.Core.Models.Api.v1.Thread;
 
@@ -529,8 +530,41 @@ public class CosmosDbThreadRepository : IThreadRepository
                         messageDoc.IsImageContent,
                         messageDoc.Posted,
                         approvalDoc?.ToDomainModel(),
+                        messageDoc.AzCliExecution,
                         messageDoc.IncidentDiscussionId,
                         messageDoc.IsDailyReport);
+                }
+
+                if (messageDoc.AzCliExecution != null)
+                {
+                    var executionQuery = _client.GetContainer<CliExecutionDocument>(_databaseName)
+                        .GetItemLinqQueryable<CliExecutionDocument>()
+                        .Where(e => e.Id == messageDoc.AzCliExecution.Id.ToString());
+
+                    using var executionIterator = executionQuery.ToFeedIterator();
+                    CliExecutionDocument executionDoc = null;
+                    if (executionIterator.HasMoreResults)
+                    {
+                        var executionResults = await executionIterator.ReadNextAsync();
+                        executionDoc = executionResults.FirstOrDefault();
+                    }
+
+                    if (executionDoc != null)
+                    {
+                        messageDocWithApproval = new MessageDocument(
+                            messageDoc.Id,
+                            messageDoc.ThreadId,
+                            messageDoc.TimeStamp,
+                            messageDoc.Author,
+                            messageDoc.Text,
+                            messageDoc.IsImageContent,
+                            messageDoc.Posted,
+                            messageDoc.Approval,
+                            executionDoc.ToDomainModel(), // Use the updated execution
+                            messageDoc.IncidentDiscussionId,
+                            messageDoc.IsDailyReport
+                        );
+                    }
                 }
                 messages.Add(messageDocWithApproval.ToDomainModel(isDailyReport: messageDoc.IsDailyReport));
             }
@@ -1675,5 +1709,111 @@ public class CosmosDbThreadRepository : IThreadRepository
             return false;
         }
     }
+    #endregion
+
+    #region AzCliExecution Operations
+
+    public async Task<AzCliExecution> GetAzCliExecutionAsync(Guid threadId, Guid executionId)
+    {
+        try
+        {
+            string threadIdStr = threadId.ToString();
+            string executionIdStr = executionId.ToString();
+
+            CliExecutionDocument executionDoc = await GetDocumentAsync<CliExecutionDocument>(executionIdStr, threadIdStr);
+
+            return executionDoc?.ToDomainModel();
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+    }
+
+    public async Task<AzCliExecution> CreateAzCliExecutionAsync(Guid threadId, AzCliExecution execution)
+    {
+        // Ensure ID is set
+        if (execution.Id == Guid.Empty)
+        {
+            execution = execution with { Id = Guid.NewGuid() };
+        }
+
+        string threadIdStr = threadId.ToString();
+
+        // Create the execution document
+        CliExecutionDocument executionDoc = CliExecutionDocument.FromDomainModel(execution, threadIdStr);
+        await _client.GetContainer<CliExecutionDocument>(_databaseName).CreateItemAsync(executionDoc, new PartitionKey(executionDoc.PartitionKey));
+
+        return execution;
+    }
+
+    public async Task<AzCliExecution> UpdateAzCliExecutionAsync(Guid threadId, AzCliExecution execution)
+    {
+        string threadIdStr = threadId.ToString();
+
+        var executionDoc = CliExecutionDocument.FromDomainModel(execution, threadIdStr);
+        await _client.GetContainer<CliExecutionDocument>(_databaseName).UpsertItemAsync(executionDoc, new PartitionKey(executionDoc.PartitionKey));
+
+        return execution;
+    }
+
+    public async Task<AzCliExecution> UpdateAzCliExecutionOutputAsync(Guid threadId, Guid executionId, string output, string? error = null)
+    {
+        string threadIdStr = threadId.ToString();
+        string executionIdStr = executionId.ToString();
+
+        try
+        {
+            var executionDoc = await GetDocumentAsync<CliExecutionDocument>(executionIdStr, threadIdStr);
+            if (executionDoc == null) return null;
+
+            var updatedDoc = executionDoc with
+            {
+                Output = output,
+                Error = error,
+                Status = error != null ? AzCliExecutionStatus.Failed : executionDoc.Status
+            };
+
+            await _client.GetContainer<CliExecutionDocument>(_databaseName).ReplaceItemAsync(
+                updatedDoc,
+                updatedDoc.Id,
+                new PartitionKey(updatedDoc.PartitionKey)
+            );
+
+            return updatedDoc.ToDomainModel();
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+    }
+
+    public async Task<AzCliExecution> ListPendingAzCliExecutionAsync(Guid threadId)
+    {
+        try
+        {
+            string threadIdStr = threadId.ToString();
+            var pendingExecutions = new List<AzCliExecution>();
+
+            var query = _client.GetContainer<CliExecutionDocument>(_databaseName).GetItemLinqQueryable<CliExecutionDocument>()
+                .Where(m => m.DocumentType == "CliExecution" && m.ThreadId == threadIdStr && m.Status == AzCliExecutionStatus.Pending);
+            using var iterator = query.ToFeedIterator();
+
+            while (iterator.HasMoreResults)
+            {
+                foreach (var executionDocument in await iterator.ReadNextAsync())
+                {
+                    pendingExecutions.Add(executionDocument.ToDomainModel());
+                }
+            }
+
+            return pendingExecutions.FirstOrDefault();
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+    }
+
     #endregion
 }

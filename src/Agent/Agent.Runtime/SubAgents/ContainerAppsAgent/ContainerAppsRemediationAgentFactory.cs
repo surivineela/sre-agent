@@ -40,6 +40,8 @@ public sealed class ContainerAppsRemediationAgentFactory
         registry.RegisterTool<GitHubIssuePluginDefinition>(x => x.FindConnectedRepo);
 
         registry.RegisterTool<HelperAgentsPluginDefinition>(x => x.StartDiagnosisAgent);
+        registry.RegisterTool<DiagnosticsPluginDefinition>(x => x.GetCPUAnalysis);
+        registry.RegisterPlugin<DiagnosticsPluginDefinition>();
 
         _toolSignatures = registry.ToolSignatures;
 

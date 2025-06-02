@@ -8,10 +8,8 @@ handoff_description: "Handoff to this agent for handling general issues."
 handoffs:
   - agent2
 
-auto_tools:
+tools:
   - TestAutoTool
-
-manual_tools:
   - TestManualTool
 
 common_prompts:

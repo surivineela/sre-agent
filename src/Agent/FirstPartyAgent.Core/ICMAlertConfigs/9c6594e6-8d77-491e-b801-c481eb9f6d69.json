@@ -15,10 +15,10 @@
     "Step 3 - Run this primary kusto query every hour after incident is created for 3 Iterations by updating _endTime Variable in kusto query. For example: If Incident is created at 8 AM, _endTime variable will be for 3 iterations 9 AM, 10 AM and 11 AM and follow below logic to execute query",
     "       - If current time is more than 3 hours from Incident Created Date, execute all 3 iterations together",
     "       - Otherwise run kusto query every hour from Incident Creation",
-    "Step 4 - If no result is found in all 3 iterations.post the details of your findings in the ICM incident in tabular format",
+    "Step 4 - If no result is found in all 3 iterations for the Incident Stamp.post the details of your findings in the ICM incident in tabular format",
     "       - Check for SyncRequestSlot High Traffic",
     "         - Use Secondary Kusto Query with title 'Validate High Number of SyncRequestSlot Requests' from Incident discussion and replace _endTime variable with Incident Creation Time",
-    "         - Execute the query and check if results shows count_ more than 1 million",
+    "         - Execute the query and check if results shows count_ more than 100000",
     "         - If count_ is greater than 100000, that shows high traffic for SyncRequestSlots",
     "         - Otherwise, it doesn't reflect high volume for SyncRequestSlot operation",
     "         - Based on above logic, post in ICM discussion, if SyncRequestSlot high traffic is observed",
@@ -29,8 +29,8 @@
     "         - If results contains same value for Count_ variable for all time, it shows Data Role Process is not restarted",
     "         - Based on above logic, post in ICM discussion, if Data Role Process is restarted or not in below format. Example: if values in resuts are 4 and 5, then discussion can be like 'DataRole Pid counts varied between 4 and 5 Pids in a 10min bucket, showing DataRole VM or process restarted at least once'",
     "       - If in step 3 all iterations lead to no results from Primary query and either SyncRequestSlot high traffic is observed or Data Role process is restarted in step 4",
-    "         - then mark the incident as Mitigated with the summary of your findings along with _endTime Value, SubscriptionImpacted, CorelationId in tabular format and update ICM fields How fixed as Transient",
-    "Step 5. Otherwise, post the details of your findings in the ICM incident in tabular format and transfer the incident for Human Intervention."
+    "         - then mark the incident as Mitigated with the summary of your findings and update ICM fields How fixed as Transient",
+    "Step 5. Otherwise, post the details of your findings in the ICM incident in tabular format for Query Results and transfer the incident for Human Intervention."
   ],
   "AgentName": "Functions_FlexConsumption"
 }

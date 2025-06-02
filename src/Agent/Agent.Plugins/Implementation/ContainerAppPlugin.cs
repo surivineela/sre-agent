@@ -45,6 +45,7 @@ namespace Agent.Plugins.Implementation
         private readonly IChatClient _chatClient;
         private readonly IArmClientFactory _armClientFactory;
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IDiagnosticsPlugin _diagnosticsPlugin;
 
         // ContainerAppData from Azure SDK can't be serialized directly to JSON because it contains
         // IPAddress and IPEndPoint properties, which throw ISocketException when serialized.
@@ -67,7 +68,8 @@ namespace Agent.Plugins.Implementation
             IAuthenticationService authService,
             IHttpClientFactory httpClientFactory,
             ILogAnalyticsService logAnalyticsService,
-            IChatClient chatClient)
+            IChatClient chatClient,
+            IDiagnosticsPlugin diagnosticsPlugin)
         {
             _databaseClient = graphDbClient;
             _graphDbPlugin = graphDBPlugin;
@@ -78,6 +80,7 @@ namespace Agent.Plugins.Implementation
             _chatClient = chatClient;
             _armClientFactory = armClientFactory;
             _httpClientFactory = httpClientFactory;
+            _diagnosticsPlugin = diagnosticsPlugin;
         }
 
         public async Task<string> GetContainerAppInfoAsync(string resourceId)

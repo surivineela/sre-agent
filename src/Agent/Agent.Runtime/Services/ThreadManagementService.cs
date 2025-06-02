@@ -26,6 +26,7 @@ public class ThreadManagementService(
     IAgentInboundCommunicationService agentInboundCommunicationService,
     IAgentsFactory agentsFactory,
     IThreadRepository repository,
+    ITitleGenerationService titleGenerationService,
     IChatClient chatClient,
     ILogger<ThreadManagementService> logger,
     CoreSettings coreSettings)
@@ -103,8 +104,8 @@ public class ThreadManagementService(
         threadContext.AddMessage(thread.StartMessage);
         await repository.AddThreadContextAsync(threadContext);
 
-        //Start the background title generation task (fire and forget)
-        _ = TitleHelper.GenerateTitleAndUpdateAsync(chatClient, repository, thread.Id, request.StartMessage.Text);
+        // Start the background title generation task (fire and forget)
+        _ = titleGenerationService.GenerateTitleAndUpdateThreadAsync( thread.Id, request.StartMessage.Text);
 
         var response = await agentInboundCommunicationService.ProcessUserMessageAsync(new ThreadMessage
         (

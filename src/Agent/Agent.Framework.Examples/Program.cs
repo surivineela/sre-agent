@@ -45,8 +45,11 @@ class CustomContext
 
 class TestService
 {
-    [RequiresApproval]
+    [AgentTool(ToolMode.Auto)]
     public string GetData() => "Test Data";
+
+    [RequiresApproval]
+    public string GetDataWithApproval() => "Test Data";
 }
 
 class Agent1 : Agent<CustomContext>
@@ -69,7 +72,7 @@ class Agent2 : Agent<CustomContext>
         TestService testService // can be injected with DI
     ) : base("Agent2")
     {
-        AutoTools = [
+        Tools = [
             AIFunctionFactory.Create(testService.GetData)
         ];
 
@@ -127,6 +130,7 @@ class Program
             .AddTransient<GraphDBPluginDefinition>()
             .AddTransient<ContainerAppPluginDefinition>()
             .AddTransient<KubePluginDefinition>()
+            .AddTransient<ArmPluginDefinition>()
             .AddSingleton<ArmHelper>();
 
         builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
@@ -143,10 +147,10 @@ class Program
         builder.Services.AddSingleton<ILogAnalyticsService, LogAnalyticsService>();
         builder.Services.AddSingleton<IBotFrameworkHttpAdapter, AdapterWithErrorHandler>();
         builder.Services.AddSingleton<IArmClientFactory, ArmClientFactory>();
-        builder.Services.AddSingleton<IToolFactory, ToolFactory>(sp =>
+        builder.Services.AddSingleton<IToolFactory<CustomContext>, ToolFactory<CustomContext>>(sp =>
         {
-            return new ToolFactory(
-                logger: sp.GetRequiredService<ILogger<ToolFactory>>(),
+            return new ToolFactory<CustomContext>(
+                logger: sp.GetRequiredService<ILogger<ToolFactory<CustomContext>>>(),
                 serviceProvider: sp,
                 assembliesToScan: AppDomain.CurrentDomain.GetAssemblies()
                     .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
@@ -220,7 +224,7 @@ class Program
 
         var chatClient = host.Services.GetRequiredService<IChatClient>();
 
-        var toolsRepository = host.Services.GetRequiredService<IToolFactory>();
+        var toolsRepository = host.Services.GetRequiredService<IToolFactory<CustomContext>>();
 
         var agentFactory = new AgentFactory<CustomContext>(
             logger: host.Services.GetRequiredService<ILogger<AgentFactory<CustomContext>>>(),
@@ -326,7 +330,7 @@ class Program
 
         var testService = new TestService();
 
-        agent2.AutoTools = [
+        agent2.Tools = [
             AIFunctionFactory.Create(testService.GetData)
         ];
 
@@ -381,8 +385,8 @@ class Program
 
         var testService = new TestService();
 
-        agent2.ManualTools = [
-            AIFunctionFactory.Create(testService.GetData)
+        agent2.Tools = [
+            AIFunctionFactory.Create(testService.GetDataWithApproval)
         ];
 
         agent1.Handoffs = [

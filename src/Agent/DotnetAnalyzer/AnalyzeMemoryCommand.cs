@@ -31,7 +31,7 @@ public static class AnalyzeMemoryCommand
             // Traverse the heap once and get statistics on each type.
             foreach (ClrObject obj in heap.EnumerateObjects())
             {
-                if (obj.Type == null || obj.Type?.MethodTable == null)
+                if (obj.Type == null || obj.Type?.MethodTable == null || obj.Type?.Name == null)
                 {
                     continue;
                 }

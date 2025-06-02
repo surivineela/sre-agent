@@ -136,6 +136,7 @@ User Provided Resource Validation:
 - **Function App Diagnostics**: Help users troubleshoot Function App issues like Function App down, connectivity, errors or configuration issues in their Function apps
 - **Function App Connectivity Troubleshooting**: Help users test connectivity from their Function app to Storage account
 - **Function App Execution Failures** Help users with errors in their Function apps
+- **Use Azure AI Search** Use SearchAsync to search documents or instructions on Azure AI Search
 
 ## Metrics
 You have capability to discover, analyze, and visualize metrics. Always prefer using these built-in metrics capabilities over external tools like Grafana.
@@ -258,6 +259,7 @@ $@"## Facts
     private readonly IMetaAgentSqlDbQueryPerfPlugin _sqlDbQueryPerfPlugin;
     private readonly IConnectedIntegrationsPlugin _connectedIntegrationsPlugin;
     private readonly IThreadRepository _threadRepository;
+    private readonly IDiagnosticsPlugin _diagnosticPlugin;
     private readonly IMetaAgentAppCodeAnalysisPlugin _appCodeAgentPlugin;
     private readonly IMetaAgentCPUAnalysisPlugin _cpuAnalysisAgentPlugin;
     private readonly IAppCodeAnalysisPlugin _appCodeAnalysisPlugin;
@@ -268,10 +270,10 @@ $@"## Facts
     private readonly IAzureMonitorMetricsPlugin _azureMonitorMetricsPlugin;
     private readonly IMetaAgentFunctionAppDiagnosticsPlugin _functionAppDiagnosticsPlugin;
     private readonly IArmPlugin _armPlugin;
-
+    private readonly IDiagnosticsPlugin _diagnosticsPlugin;
+    private readonly ISearchPlugin _searchPlugin;
 
     private readonly InstanceManagementSettings _instanceManagementSettings;
-
 
     public ThirdPartyAgentsFactory(
         ILogger<ThirdPartyAgentsFactory> logger,
@@ -301,13 +303,15 @@ $@"## Facts
         IMetaAgentCPUAnalysisPlugin cpuAnalysisAgentPlugin,
         IAppCodeAnalysisPlugin appCodeAnalysisPlugin,
         ICpuAnalysisPlugin cpuAnalysisPlugin,
+        IDiagnosticsPlugin diagnosticsPlugin,
         IMetricsPlugin metricsPlugin,
         InstanceManagementSettings instanceManagementSettings,
         IIncidentPlugin incidentPlugin,
         IMetaAgentFunctionAppExecutionFailuresAgentPlugin functionAppExecutionFailuresAgentPlugin,
         IAzureMonitorMetricsPlugin azureMonitorMetricsPlugin,
         IMetaAgentFunctionAppDiagnosticsPlugin functionAppDiagnosticsPlugin,
-        IArmPlugin armPlugin
+        IArmPlugin armPlugin,
+        ISearchPlugin searchPlugin
         )
     {
         _mcpToolsRepository = mcpToolsRepository;
@@ -341,6 +345,7 @@ $@"## Facts
         _metricsPlugin = metricsPlugin;
         _functionAppExecutionFailuresAgentPlugin = functionAppExecutionFailuresAgentPlugin;
         _azureMonitorMetricsPlugin = azureMonitorMetricsPlugin;
+        _diagnosticPlugin = diagnosticsPlugin;
 
         _sqlDbQueryPerfPlugin = sqlDbQueryPerfPlugin;
         _incidentPlugin = incidentPlugin;
@@ -348,6 +353,7 @@ $@"## Facts
         _instanceManagementSettings = instanceManagementSettings;
         _functionAppDiagnosticsPlugin = functionAppDiagnosticsPlugin;
         _armPlugin = armPlugin;
+        _searchPlugin = searchPlugin;
     }
 
     public List<AITool> GetSubAgentsAITools(Guid threadGuid, AgentContext context)
@@ -355,6 +361,7 @@ $@"## Facts
         _tlsBestPracticesPlugin.ThreadId = threadGuid;
         _managedIdentityMigrationPlugin.ThreadId = threadGuid;
         //_appServiceRemediationPlugin.ThreadId = threadGuid;
+        _armPlugin.ThreadId = threadGuid;
         _containerAppsRemediationPlugin.ThreadId = threadGuid;
         _kubernetesAgentPlugin.ThreadId = threadGuid;
         _aksQaAgentPlugin.ThreadId = threadGuid;
@@ -376,6 +383,7 @@ $@"## Facts
         var graphDbPluginDefinition = new GraphDBPluginDefinition(_graphDbPlugin);
 
         var containerAppPluginDefinition = new ContainerAppPluginDefinition(_containerAppPlugin);
+        var diagnosticPluginDefinition = new DiagnosticsPluginDefinition(_diagnosticPlugin);
 
         var appServicePluginDefinition = new AppServicePluginDefinition(_appServicePlugin);
 
@@ -390,6 +398,9 @@ $@"## Facts
         var functionAppPluginDefinition = new FunctionAppsPluginDefinition(_functionAppsPlugin);
 
         var azureMonitorMetricsPluginDefinition = new AzureMonitorMetricsPluginDefinition(_azureMonitorMetricsPlugin);
+        var diagnosticsPluginDefinition = new DiagnosticsPluginDefinition(_diagnosticsPlugin);
+
+        var searchPluginDefinition = new SearchPluginDefinition(_searchPlugin);
 
         List<AITool> _aiTools =
         [
@@ -416,6 +427,7 @@ $@"## Facts
             AIFunctionFactory.Create(aksPluginDefinition.GetKubeResourceSpecStatusAsync),
             AIFunctionFactory.Create(aksPluginDefinition.GetKubeResourceMetricsRangeAsync),
             AIFunctionFactory.Create(_armPlugin.RunAzCliReadCommandsAsync),
+            AIFunctionFactory.Create(_armPlugin.GetAzCliHelpAsync),
             //AIFunctionFactory.Create(_containerAppPlugin.ListContainerAppsAsync),
             //AIFunctionFactory.Create(appServicePluginDefinition.ListAppServicesAsync),
             //AIFunctionFactory.Create(appServicePluginDefinition.GetAppServiceInfoAsync),
@@ -479,6 +491,9 @@ $@"## Facts
             AIFunctionFactory.Create(_githubIssuePlugin.CreateGithubIssue),
             AIFunctionFactory.Create(_githubIssuePlugin.CreateGithubIssueComment),
             AIFunctionFactory.Create(_githubIssuePlugin.FindConnectedRepo),
+            AIFunctionFactory.Create(diagnosticsPluginDefinition.GetAnalysisAsync),
+            AIFunctionFactory.Create(diagnosticsPluginDefinition.GetCPUAnalysis),
+            AIFunctionFactory.Create(searchPluginDefinition.SearchAsync)
         ];
 
         if (!_instanceManagementSettings.ProcessingEnabled)
@@ -513,6 +528,7 @@ $@"## Facts
         // TODO: remove as it is only needed for first party agents
         throw new NotImplementedException();
     }
+
     private List<AITool> GetSubAgentV2Tools(Guid threadGuid, AgentContext context, Assembly assembly)
     {
         List<AITool> subAgentAItools = [];

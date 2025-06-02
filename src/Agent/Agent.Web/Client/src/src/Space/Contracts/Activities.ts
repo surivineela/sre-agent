@@ -6,13 +6,12 @@ export interface IActivitiesProps {
 
 export interface AgentContextProps {
     threadContentAndActionKey: string;
-    threadsInitialized: boolean;
     activeThreadId: string;
 }
 
 export interface IThreadsMenuProps {
-    threads: Thread[];
     selectThread: (thread: Thread | null) => void;
+    threadPollingTriggerId: number;
     collapsed?: boolean;
     setCollapsed: (collapsed: boolean) => void;
 }
@@ -23,6 +22,7 @@ export interface IThreadContentProps {
     expandActions: () => void;
     addThread: (thread: Thread) => void;
     deleteThread: (thread: Thread) => void;
+    promoteThread: () => void;
 }
 
 export interface IThreadActivitiesProps {
@@ -31,9 +31,15 @@ export interface IThreadActivitiesProps {
     thread?: Thread | null;
 }
 
+export type RemoveThreadFromListHandle = {
+    removeThreadFromList: (thread: Thread) => void;
+};
+
 export interface IChatBoxProps {
     addThread: (thread: Thread) => void;
+    promoteThread: () => void;
     threadId?: string;
+    threadSource?: string;
 }
 
 export interface IChatMessageProps {
@@ -59,6 +65,21 @@ export interface IChatBoxFooterProps {
     disableInput: boolean;
     isNewMessageButtonVisible: boolean;
     onClickNewMessageButton: () => void;
+    prompts: string[];
+    messagePromptsUsed: string[];
+}
+
+export class ThreadLoadingCounts {
+    public static readonly default = 5;
+    public static readonly scroll = 10;
+}
+
+export class ThreadPollingCounts {
+    public static readonly default = 5;
+}
+
+export class ThreadPollingInterval {
+    public static readonly default = 10000;
 }
 
 export class MessagePollingInterval {

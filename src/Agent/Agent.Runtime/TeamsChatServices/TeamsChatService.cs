@@ -40,6 +40,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
     private readonly IAgentsFactory _agentsFactory;
     private readonly IThreadRepository _threadRepository;
     private readonly IBotFrameworkHttpAdapter _teamsAdapter;
+    private readonly ITitleGenerationService _titleGenerationService;
 
     private readonly CancellationTokenSource _pollingCancellationSource = new();
     private bool _isPollingStarted = false;
@@ -69,6 +70,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
         IThreadRepository threadRepository,
         IThreadTeamsMappingRepository threadTeamsMappingRepository,
         TeamsBotSettings teamsBot,
+        ITitleGenerationService titleGenerationService,
         IChatClient chatClient)
     {
         _logger = logger;
@@ -78,6 +80,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
         _agentInboundCommunicationService = agentInboundCommunicationService;
         _agentsFactory = agentsFactory;
         _threadRepository = threadRepository;
+        _titleGenerationService = titleGenerationService;
 
         // Initialize credentials from configuration
         _appId = teamsBot.AppId;
@@ -335,7 +338,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
         await _threadRepository.AddThreadContextAsync(threadContext);
 
         // Start the background title generation task (fire and forget)
-        _ = TitleHelper.GenerateTitleAndUpdateAsync(_chatClient, _threadRepository, thread.Id, thread.StartMessage.Text);
+        _ = _titleGenerationService.GenerateTitleAndUpdateThreadAsync(thread.Id, thread.StartMessage.Text);
 
         await _conversationThreadMapping.AddMappingAsync(new ThreadTeamsMapping(
             $"teams_{newThreadId}",

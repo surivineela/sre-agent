@@ -24,6 +24,9 @@ Tip: Set the crawl root to a resource group instead of your subscription. This w
 ![Project Demo](images/Project.gif)
 
 [Back to Development Setup](development-setup.md) | [Next: Graph Database Setup](graph-database.md) 
+* Note: You no longer need to do the *Graph Database Setup*, as the graph database resource is already deployed for you during the "deploy3p" command in `development-setup.md`. However, feel free to read `graph-database.md` to get a better understanding of it.  
+
+*At this point, you should have a fully running local SRE agent running in your browser*.
 
 # Running the Crawler
 The crawler scans Azure resources and puts them into a CosmosDB graph for use by various agents.

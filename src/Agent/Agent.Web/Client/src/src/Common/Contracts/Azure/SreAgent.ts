@@ -132,6 +132,7 @@ export interface Message {
     text: string;
     title?: string;
     approval?: Approval;
+    azCliExecution?: AzCliExecution;
     isDailyReport?: boolean;
 }
 
@@ -141,6 +142,23 @@ export interface KnowledgeGraphBuildStatus {
     isCrawling: boolean;
     properties: any;
     totalVisibleResources: number;
+}
+
+export interface AzCliExecution {
+    id: string;
+    command: string;
+    description: string;
+    status: 'Pending' | 'Running' | 'Completed' | 'Failed' | 'Cancelled';
+    output?: string;
+    error?: string;
+    createdTimestamp: string;
+    startedTimestamp?: string;
+    completedTimestamp?: string;
+    executedBy?: {
+        displayName: string;
+        userId: string;
+        role: string;
+    };
 }
 
 export enum ApprovalDecision {

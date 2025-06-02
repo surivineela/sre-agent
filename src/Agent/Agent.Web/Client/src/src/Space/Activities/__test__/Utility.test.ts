@@ -1,26 +1,33 @@
 import { describe, expect, it } from 'vitest';
-import { Message, Thread } from '../../Common/Contracts/Azure/SreAgent';
-import { getSafeDateTime } from '../../Common/Helpers/Date';
-import { Guid } from '../../Common/Helpers/Guid';
+import { ThreadSeverity } from '../../../Common/Clients/ThreadClient';
+import { Message, Thread, ThreadSource } from '../../../Common/Contracts/Azure/SreAgent';
+import { getSafeDateTime } from '../../../Common/Helpers/Date';
+import { Guid } from '../../../Common/Helpers/Guid';
+import { SelectedTimes } from '../TimeDropdown';
 import {
-    getLatestThread,
+    getFilteredThreads,
+    getUTCTimestampBasedOnSelectedThreadCutoffTime,
     noGapBetweenNewMessagesAndExistingMessages,
-    noGapBetweenNewThreadsAndExistingThreads,
     processMessages,
     processThreads,
     shouldGroupWithPreviousMessage,
-} from './Utility';
+} from '../Utility';
 
-const getDefaultThread = (createdTimestamp: string, id?: string): Thread => {
-    const title = Guid.newTinyGuid();
+const getDefaultThread = (
+    modifiedTimestamp: string,
+    id?: string,
+    severity?: ThreadSeverity,
+    title?: string,
+    source?: ThreadSource
+): Thread => {
     return {
         id: id ?? Guid.newGuid(),
-        createdTimestamp: createdTimestamp,
-        modifiedTimestamp: createdTimestamp,
-        title: title,
+        createdTimestamp: modifiedTimestamp,
+        modifiedTimestamp: modifiedTimestamp,
+        title: title ?? Guid.newTinyGuid(),
         startMessage: {
             id: Guid.newGuid(),
-            timeStamp: createdTimestamp,
+            timeStamp: modifiedTimestamp,
             author: {
                 role: 'User',
                 userId: 'Web-Client-User',
@@ -30,7 +37,7 @@ const getDefaultThread = (createdTimestamp: string, id?: string): Thread => {
         },
         lastMessage: {
             id: Guid.newGuid(),
-            timeStamp: createdTimestamp,
+            timeStamp: modifiedTimestamp,
             author: {
                 role: 'SREAgent',
                 userId: 'SREAgent',
@@ -38,6 +45,13 @@ const getDefaultThread = (createdTimestamp: string, id?: string): Thread => {
             },
             text: 'last message',
         },
+        status: {
+            actionsStatus: {
+                hasCriticalActions: severity === ThreadSeverity.Critical,
+                hasWarningActions: severity === ThreadSeverity.Warning,
+            },
+        },
+        source,
     };
 };
 
@@ -81,11 +95,11 @@ const areMessagesSame = (lhs: Message[], rhs: Message[]) => {
 };
 
 describe('processThreads', () => {
-    const areThreadsSortedDescByCreatedTimeStamp = (threads: Thread[]) => {
+    const areThreadsSortedDescByModifiedTimeStamp = (threads: Thread[]) => {
         let isSortedDesc = true;
 
         for (let i = 0; i < threads.length - 1; i++) {
-            if (getSafeDateTime(threads[i].createdTimestamp).getTime() < getSafeDateTime(threads[i + 1].createdTimestamp).getTime()) {
+            if (getSafeDateTime(threads[i].modifiedTimestamp).getTime() < getSafeDateTime(threads[i + 1].modifiedTimestamp).getTime()) {
                 isSortedDesc = false;
                 break;
             }
@@ -121,11 +135,13 @@ describe('processThreads', () => {
             getDefaultThread('2023-10-01T00:00:00Z', '01'),
         ];
 
+        const copiedOldThreads = [...oldThreads];
+        copiedOldThreads.splice(3, 1); // Remove the duplicate thread
+
         const result = processThreads(threads, oldThreads, false);
 
-        oldThreads.splice(3, 1);
-        expect(areThreadsSame(result, [...threads, ...oldThreads])).toBe(true);
-        expect(areThreadsSortedDescByCreatedTimeStamp(result)).toBe(true);
+        expect(areThreadsSame(result, [...threads, ...copiedOldThreads])).toBe(true);
+        expect(areThreadsSortedDescByModifiedTimeStamp(result)).toBe(true);
         expect(areThreadsUnique(result)).toBe(true);
     });
 
@@ -143,11 +159,13 @@ describe('processThreads', () => {
             getDefaultThread('2023-10-04T00:00:00Z', '01'),
         ];
 
+        const copiedNewThreads = [...newThreads];
+        copiedNewThreads.splice(3, 1);
+
         const result = processThreads(threads, newThreads, true);
 
-        newThreads.splice(3, 1);
-        expect(areThreadsSame(result, [...newThreads, ...threads])).toBe(true);
-        expect(areThreadsSortedDescByCreatedTimeStamp(result)).toBe(true);
+        expect(areThreadsSame(result, [...copiedNewThreads, ...threads])).toBe(true);
+        expect(areThreadsSortedDescByModifiedTimeStamp(result)).toBe(true);
         expect(areThreadsUnique(result)).toBe(true);
     });
 
@@ -165,113 +183,165 @@ describe('processThreads', () => {
             getDefaultThread('2023-10-03T00:00:00Z', '03'),
         ];
 
+        const copiedNewThreads = [...newThreads];
+        copiedNewThreads.splice(3, 1);
+
         const result = processThreads(threads, newThreads, true);
-        newThreads.splice(3, 1);
-        const expectedResult = [...newThreads, ...threads];
+
+        const expectedResult = [...copiedNewThreads, ...threads];
 
         expect(result.length).toBe(6);
         expect(areThreadsSame(result, expectedResult)).toBe(true);
-        expect(areThreadsSortedDescByCreatedTimeStamp(result)).toBe(true);
+        expect(areThreadsSortedDescByModifiedTimeStamp(result)).toBe(true);
+        expect(areThreadsUnique(result)).toBe(true);
+    });
+
+    it('Add new threads with duplicated id but different modifiedTimestamp', () => {
+        const threads: Thread[] = [
+            getDefaultThread('2023-10-03T00:00:00Z', '03'),
+            getDefaultThread('2023-10-02T00:00:00Z'),
+            getDefaultThread('2023-10-01T00:00:00Z'),
+        ];
+
+        const newThreads: Thread[] = [
+            getDefaultThread('2023-10-06T00:00:00Z'),
+            getDefaultThread('2023-10-05T00:00:00Z'),
+            getDefaultThread('2023-10-04T00:00:00Z'),
+            getDefaultThread('2023-10-03T01:00:00Z', '03'),
+        ];
+
+        const expectedResult = [...newThreads, ...threads.slice(1)];
+        const result = processThreads(threads, newThreads, true);
+
+        expect(result.length).toBe(6);
+        expect(areThreadsSame(result, expectedResult)).toBe(true);
+        expect(areThreadsSortedDescByModifiedTimeStamp(result)).toBe(true);
+        expect(areThreadsUnique(result)).toBe(true);
+    });
+
+    it('Add old threads with duplicated id but different modifiedTimestamp', () => {
+        const threads: Thread[] = [
+            getDefaultThread('2023-10-03T00:00:00Z', '03'),
+            getDefaultThread('2023-10-02T00:00:00Z'),
+            getDefaultThread('2023-10-01T00:00:00Z'),
+        ];
+
+        const oldThreads: Thread[] = [
+            getDefaultThread('2023-09-0500:00:00Z'),
+            getDefaultThread('2023-09-04T00:00:00Z'),
+            getDefaultThread('2023-09-03T00:00:00Z'),
+            getDefaultThread('2023-09-02T01:00:00Z', '03'),
+        ];
+
+        const expectedResult = [...threads.slice(1), ...oldThreads];
+        const result = processThreads(threads, oldThreads, false);
+
+        expect(result.length).toBe(6);
+        expect(areThreadsSame(result, expectedResult)).toBe(true);
+        expect(areThreadsSortedDescByModifiedTimeStamp(result)).toBe(true);
         expect(areThreadsUnique(result)).toBe(true);
     });
 });
 
-describe('noGapBetweenNewThreadsAndExistingThreads', () => {
-    it('No latest thread', () => {
-        const threads: Thread[] = [
-            getDefaultThread('2023-10-03T00:00:00Z', '03'),
-            getDefaultThread('2023-10-02T00:00:00Z', '02'),
-            getDefaultThread('2023-10-01T00:00:00Z'),
-        ];
-
-        expect(noGapBetweenNewThreadsAndExistingThreads(threads)).toBe(true);
+describe('getUTCTimestampBasedOnSelectedThreadCutoffTime', () => {
+    it('30 days cutoff', () => {
+        const thirtyDaysAgo = getUTCTimestampBasedOnSelectedThreadCutoffTime(SelectedTimes.ThirtyDays);
+        const diff = Date.now() - getSafeDateTime(thirtyDaysAgo).getTime();
+        expect(diff).toBeGreaterThan(29 * 24 * 60 * 60 * 1000);
+        expect(diff).toBeLessThan(31 * 24 * 60 * 60 * 1000);
     });
 
-    it('No threads', () => {
-        const latestThread = getDefaultThread('2023-10-03T00:00:00Z');
-        expect(noGapBetweenNewThreadsAndExistingThreads([], latestThread)).toBe(true);
+    it('7 days cutoff', () => {
+        const thirtyDaysAgo = getUTCTimestampBasedOnSelectedThreadCutoffTime(SelectedTimes.SevenDays);
+        const diff = Date.now() - getSafeDateTime(thirtyDaysAgo).getTime();
+        expect(diff).toBeGreaterThan(6 * 24 * 60 * 60 * 1000);
+        expect(diff).toBeLessThan(8 * 24 * 60 * 60 * 1000);
     });
 
-    it('The latest thread is newer than existing threads', () => {
-        const threads: Thread[] = [
-            getDefaultThread('2023-10-03T00:00:00Z', '03'),
-            getDefaultThread('2023-10-02T00:00:00Z', '02'),
-            getDefaultThread('2023-10-01T00:00:00Z'),
-        ];
-
-        const latestThread = getDefaultThread('2023-10-04T00:00:00Z');
-
-        expect(noGapBetweenNewThreadsAndExistingThreads(threads, latestThread)).toBe(true);
-    });
-
-    it('The oldest thread is newer than the latest thread', () => {
-        const threads: Thread[] = [
-            getDefaultThread('2023-10-03T00:00:00Z', '03'),
-            getDefaultThread('2023-10-02T00:00:00Z', '02'),
-            getDefaultThread('2023-10-01T09:00:00Z'),
-        ];
-
-        const latestThread = getDefaultThread('2023-10-01T00:00:00Z');
-
-        expect(noGapBetweenNewThreadsAndExistingThreads(threads, latestThread)).toBe(false);
-    });
-
-    it('The latest thread is the same as the oldest thread', () => {
-        const threads: Thread[] = [
-            getDefaultThread('2023-10-03T00:00:00Z', '03'),
-            getDefaultThread('2023-10-02T00:00:00Z', '02'),
-            getDefaultThread('2023-10-01T09:00:00Z', '01'),
-        ];
-
-        const latestThread = getDefaultThread('2023-10-01T09:00:00Z', '01');
-
-        expect(noGapBetweenNewThreadsAndExistingThreads(threads, latestThread)).toBe(true);
-    });
-
-    it('The newest thread is older than the latest thread', () => {
-        const threads: Thread[] = [
-            getDefaultThread('2023-10-03T00:00:00Z', '03'),
-            getDefaultThread('2023-10-02T00:00:00Z', '02'),
-            getDefaultThread('2023-10-01T00:00:00Z', '01'),
-        ];
-
-        const latestThread = getDefaultThread('2023-10-04T09:00:00Z', '99');
-
-        expect(noGapBetweenNewThreadsAndExistingThreads(threads, latestThread)).toBe(true);
-    });
-
-    it('Threads contains the latest thread', () => {
-        const threads: Thread[] = [
-            getDefaultThread('2023-10-03T00:00:00Z', '03'),
-            getDefaultThread('2023-10-02T00:00:00Z', '02'),
-            getDefaultThread('2023-10-01T00:00:00Z', '01'),
-        ];
-
-        const latestThread = getDefaultThread('2023-10-03T00:00:00Z', '03');
-
-        expect(noGapBetweenNewThreadsAndExistingThreads(threads, latestThread)).toBe(true);
+    it('1 day cutoff', () => {
+        const thirtyDaysAgo = getUTCTimestampBasedOnSelectedThreadCutoffTime(SelectedTimes.OneDay);
+        const diff = Date.now() - getSafeDateTime(thirtyDaysAgo).getTime();
+        expect(diff).toBeGreaterThan(23 * 60 * 60 * 1000);
+        expect(diff).toBeLessThan(25 * 60 * 60 * 1000);
     });
 });
 
-describe('getLatestThread', () => {
-    it('Undefined threads', () => {
-        expect(getLatestThread(undefined)).toBeUndefined();
+describe('getFilteredThreads', () => {
+    it('Filter threads based on timestamp', () => {
+        const cutoffTime = getUTCTimestampBasedOnSelectedThreadCutoffTime(SelectedTimes.OneDay);
+
+        let threads: Thread[] = [getDefaultThread(new Date(getSafeDateTime(cutoffTime).getTime() - 1).toISOString(), '01')];
+        let result = getFilteredThreads(threads, { selectedCutoffTime: cutoffTime });
+        expect(result.length).toBe(0);
+
+        threads = [getDefaultThread(new Date(getSafeDateTime(cutoffTime).getTime() + 1).toISOString(), '01')];
+        result = getFilteredThreads(threads, { selectedCutoffTime: cutoffTime });
+        expect(result.length).toBe(1);
     });
 
-    it('Empty threads', () => {
-        expect(getLatestThread([])).toBeUndefined();
+    it('Filter threads based on severity', () => {
+        const cutoffTime = getUTCTimestampBasedOnSelectedThreadCutoffTime(SelectedTimes.OneDay);
+
+        let threads: Thread[] = [
+            getDefaultThread(new Date(getSafeDateTime(cutoffTime).getTime() + 1).toISOString(), '01', ThreadSeverity.Critical),
+        ];
+        let result = getFilteredThreads(threads, { selectedCutoffTime: cutoffTime, threadSeverity: ThreadSeverity.Critical });
+        expect(result.length).toBe(1);
+        result = getFilteredThreads(threads, { selectedCutoffTime: cutoffTime, threadSeverity: ThreadSeverity.Warning });
+        expect(result.length).toBe(0);
+
+        threads = [getDefaultThread(new Date(getSafeDateTime(cutoffTime).getTime() + 1).toISOString(), '01', ThreadSeverity.Warning)];
+        result = getFilteredThreads(threads, { selectedCutoffTime: cutoffTime, threadSeverity: ThreadSeverity.Critical });
+        expect(result.length).toBe(0);
+        result = getFilteredThreads(threads, { selectedCutoffTime: cutoffTime, threadSeverity: ThreadSeverity.Warning });
+        expect(result.length).toBe(1);
+
+        threads = [getDefaultThread(new Date(getSafeDateTime(cutoffTime).getTime() + 1).toISOString(), '01')];
+        result = getFilteredThreads(threads, { selectedCutoffTime: cutoffTime, threadSeverity: ThreadSeverity.Critical });
+        expect(result.length).toBe(0);
+        result = getFilteredThreads(threads, { selectedCutoffTime: cutoffTime, threadSeverity: ThreadSeverity.Warning });
+        expect(result.length).toBe(0);
+        result = getFilteredThreads(threads, { selectedCutoffTime: cutoffTime });
+        expect(result.length).toBe(1);
     });
 
-    it('Thread are not empty', () => {
+    it('Filter threads based on search text', () => {
+        const cutoffTime = getUTCTimestampBasedOnSelectedThreadCutoffTime(SelectedTimes.OneDay);
+
         const threads: Thread[] = [
-            getDefaultThread('2023-10-03T00:00:00Z', '03'),
-            getDefaultThread('2023-10-02T00:00:00Z', '02'),
-            getDefaultThread('2023-10-01T00:00:00Z', '01'),
+            getDefaultThread(new Date(getSafeDateTime(cutoffTime).getTime() + 1).toISOString(), '01', undefined, 'Thread 01'),
+        ];
+        let result = getFilteredThreads(threads, { selectedCutoffTime: cutoffTime, searchText: '' });
+        expect(result.length).toBe(1);
+        result = getFilteredThreads(threads, { selectedCutoffTime: cutoffTime, searchText: 'Thread 02' });
+        expect(result.length).toBe(0);
+        result = getFilteredThreads(threads, { selectedCutoffTime: cutoffTime, searchText: 'Thread 011' });
+        expect(result.length).toBe(0);
+        result = getFilteredThreads(threads, { selectedCutoffTime: cutoffTime, searchText: 'Thread 01' });
+        expect(result.length).toBe(1);
+    });
+
+    it('Filter threads based on source', () => {
+        const cutoffTime = getUTCTimestampBasedOnSelectedThreadCutoffTime(SelectedTimes.OneDay);
+
+        let threads: Thread[] = [
+            getDefaultThread(
+                new Date(getSafeDateTime(cutoffTime).getTime() + 1).toISOString(),
+                '01',
+                undefined,
+                undefined,
+                ThreadSource.incident
+            ),
         ];
 
-        const latestThread = getLatestThread(threads);
-        expect(latestThread).toBeDefined();
-        expect(latestThread?.id).toBe('03');
+        let result = getFilteredThreads(threads, { selectedCutoffTime: cutoffTime, source: undefined });
+        expect(result.length).toBe(1);
+        result = getFilteredThreads(threads, { selectedCutoffTime: cutoffTime, source: ThreadSource.incident });
+        expect(result.length).toBe(1);
+
+        threads = [getDefaultThread(new Date(getSafeDateTime(cutoffTime).getTime() + 1).toISOString(), '01', undefined, undefined)];
+        result = getFilteredThreads(threads, { selectedCutoffTime: cutoffTime, source: ThreadSource.incident });
+        expect(result.length).toBe(0);
     });
 });
 
@@ -316,10 +386,12 @@ describe('processMessages', () => {
             getDefaultMessage('2023-10-01T00:00:00Z', '01'),
         ];
 
+        const copiedOldMessages = [...oldMessages];
+        copiedOldMessages.splice(3, 1);
+
         const result = processMessages(messages, oldMessages, true);
 
-        oldMessages.splice(3, 1);
-        expect(areMessagesSame(result, [...oldMessages.reverse(), ...messages])).toBe(true);
+        expect(areMessagesSame(result, [...copiedOldMessages.reverse(), ...messages])).toBe(true);
         expect(areMessagesSortedAscByTimeStamp(result)).toBe(true);
         expect(areMessagesUnique(result)).toBe(true);
     });

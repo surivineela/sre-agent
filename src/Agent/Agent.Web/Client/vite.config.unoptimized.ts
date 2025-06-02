@@ -4,8 +4,12 @@ import mkcert from 'vite-plugin-mkcert';
 
 console.log('Building unoptimized');
 export default defineConfig({
+    // Don't need base path logic here - prod config produces same thing if local dev
     base: '/static',
     plugins: [react(), mkcert()],
+    define: {
+        'import.meta.env.BASE_ROUTE': JSON.stringify('/static/'),
+    },
     build: {
         outDir: '../wwwroot/static',
         emptyOutDir: true,

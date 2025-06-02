@@ -1,289 +1,199 @@
-import { Checkbox, DefaultButton, Dialog, DialogContent, DialogFooter, DialogType, Dropdown, IDialogContentProps, IDropdownOption, IModalProps, PrimaryButton, Stack, TextField } from "@fluentui/react";
-import { useBoolean } from "@fluentui/react-hooks";
+import { Checkbox, PrimaryButton, Stack } from "@fluentui/react";
+import { Autocomplete, TextField } from "@mui/material";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { createAgent, getAgentDeployments, getLocations, getResourceGroups, getSubscriptions } from "../Services/Request";
-import { AgentDeployment, DeployAgentPostBody, Location, ResourceGroup, Subscription } from "../Models/Response";
+import { createAgent, getLocations, getResourceGroups, getSubscriptions } from "../Services/Request";
+import { DeployAgentPostBody, Location, ResourceGroup, Subscription } from "../Models/Response";
 import { useEffect, useMemo, useState } from "react";
-import FeatureUtils from "../Helpers/Feature";
 
-
-const defaultFirstPartySubOptions: IDropdownOption<Subscription>[] =
-    [
-        {
-            'key': 'SRE Agent 1P',
-            'text': 'SRE Agent 1P',
-            'data': {
-                subscriptionId: 'ab32b825-51f2-41b0-8d25-85f7a0071a6f',
-                displayName: 'SRE Agent 1P'
-            }
-        },
-    ]
-
-
-const defaultFirstPartyResourceGroupOptions: IDropdownOption<ResourceGroup>[] = [
-    {
-        'key': 'sreagent1p-rg',
-        'text': 'sreagent1p-rg',
-        'data': {
-            name: 'sreagent1p-rg',
-            location: ''
-        }
-    },
-    {
-        'key': 'sreagent1p-logicapps-rg',
-        'text': 'sreagent1p-logicapps-rg',
-        'data': {
-            name: 'sreagent1p-logicapps-rg',
-            location: ''
-        }
-    },
-    {
-        'key': 'sreagent1p-redis-rg',
-        'text': 'sreagent1p-redis-rg',
-        'data': {
-            name: 'sreagent1p-redis-rg',
-            location: ''
-        }
-    }
-];
-
-const defaultFirstPartyLocationOptions: IDropdownOption<Location>[] = [
-    {
-        "key": "Central US EUAP",
-        "text": "Central US EUAP",
-        'data': {
-            name: 'centraluseuap',
-            displayName: 'Central US EUAP'
-        }
-    },
-    {
-        "key": "Australia East",
-        "text": "Australia East",
-        'data': {
-            name: 'australiaeast',
-            displayName: 'Australia East'
-        }
-    },
-    {
-        "key": "Sweden Central",
-        "text": "Sweden Central",
-        'data': {
-            name: 'swedencentral',
-            displayName: 'Sweden Central'
-        }
-    }
-]
+interface IAutoCompleteOption<T> {
+    label: string;
+    data: T;
+}
 
 // Todo: fill in with actual options
-const DeployAgent = (props: { teamId: number }) => {
-    const [isDialogVisible, { setTrue: displayDialog, setFalse: hideDialog }] = useBoolean(false);
+const DeployAgent = ({ teamId: _teamId }: { teamId: number }) => {
 
-    const [inputsReadOnly, { setTrue: enableInputReadOnly, setFalse: disableInputsReadOnly }] = useBoolean(true);
-    const [selectedSubscription, setSelectedSubscription] = useState<IDropdownOption<Subscription> | null>(null);
-    const [selectedResourceGroup, setSelectedResourceGroup] = useState<IDropdownOption<ResourceGroup> | null>(null);
-    const [selectedLocation, setSelectedLocation] = useState<IDropdownOption<Location> | null>(null);
+    const [selectedSubscription, setSelectedSubscription] = useState<IAutoCompleteOption<Subscription> | null>(null);
+
+    const [selectedResourceGroup, setSelectedResourceGroup] = useState<IAutoCompleteOption<ResourceGroup> | null>(null);
+    const [selectedLocation, setSelectedLocation] = useState<IAutoCompleteOption<Location> | null>(null);
     const [agentName, setAgentName] = useState<string>("");
+    const [createNewResourceGroup, setCreateNewResourceGroup] = useState<boolean>(false);
+    const [newResourceGroupName, setNewResourceGroupName] = useState<string>("");
 
-    const isDeployAgentEnabled = FeatureUtils.isFeatureEnabled();
-    const dialogContentProps: IDialogContentProps = {
-        type: DialogType.largeHeader,
-        title: 'Deploy Agent',
-    };
-
-    const modalProps: IModalProps = {
-        isBlocking: false,
-        styles: { main: { minWidth: 400, maxWidth: 450 } },
-    };
-
-    const { status: getAgentDeploymentStatus, error: getAgentDeploymentError, data: agentDeploymentsData = null, refetch: getAgentDeploymentsAsync } = useQuery({
-        queryFn: async () => {
-            const deployments = await getAgentDeployments(props.teamId);
-            if (Array.isArray(deployments) && deployments.length > 0) {
-                return deployments[0];
-            }
-            return null;
-        },
-        queryKey: ["getAgentDeployments", props.teamId],
-        enabled: false
-    });
-
-    const { status: getSubscriptionsStatus, error: getSubscriptionsError, data: subscriptions = [], refetch: getSubscriptionsAsync } = useQuery({
+    const { data: subscriptions = [], refetch: getSubscriptionsAsync, isLoading: isLoadingSubscriptions } = useQuery({
         queryFn: () => getSubscriptions(),
         queryKey: ["getSubscriptions"],
         enabled: false
     });
 
-    const { status: getResourceGroupsStatus, error: getResourceGroupError, data: resourceGroups = [], refetch: getResourceGroupAsync } = useQuery({
-        queryFn: () => getResourceGroups(selectedSubscription.data.subscriptionId),
+    const { data: resourceGroups = [], isLoading: isLoadingResourceGroups } = useQuery({
+        queryFn: () => getResourceGroups(selectedSubscription!.data.subscriptionId),
         queryKey: ["getResourceGroups", selectedSubscription],
-        enabled: false
+        enabled: !!selectedSubscription
     });
 
-    const { status: getLocationsStatus, error: getLocationsError, data: locations = [], refetch: getLocationsAsync } = useQuery({
-        queryFn: () => getLocations(selectedSubscription.data.subscriptionId),
+    const { data: locations = [], isLoading: isLoadingLocations } = useQuery({
+        queryFn: () => getLocations(selectedSubscription!.data.subscriptionId),
         queryKey: ["getLocations", selectedSubscription],
-        enabled: false
+        enabled: !!selectedSubscription
     });
 
-    const { status: createAgentStatus, error: createAgentError, mutateAsync: createAgentAsync } = useMutation({
+    const { mutateAsync: createAgentAsync } = useMutation({
         mutationFn: (postBody: DeployAgentPostBody) => createAgent(postBody),
         mutationKey: ["createAgent"],
     });
 
     useEffect(() => {
         (async () => {
-            let defaultAgentDeployment: AgentDeployment | null = null;
-            defaultAgentDeployment = (await getAgentDeploymentsAsync()).data;
-            if (defaultAgentDeployment) {
-                disableInputsReadOnly();
-            } else {
-                enableInputReadOnly();
-                await getSubscriptionsAsync();
-            }
+            await getSubscriptionsAsync();
         })();
-    }, []);
-
-    useEffect(() => {
-        (async () => {
-            if (!selectedSubscription || inputsReadOnly) return;
-            // await Promise.allSettled([
-            //     getResourceGroupAsync(),
-            //     getLocationsAsync()
-            // ]);
-        })();
-    }, [selectedSubscription, inputsReadOnly]);
-
-    const subscriptionOptions: IDropdownOption<Subscription>[] = useMemo(() => {
-        if (agentDeploymentsData != null) {
-            return [
-                {
-                    key: agentDeploymentsData.subscriptionId,
-                    text: agentDeploymentsData.subscriptionId,
-                    data: {
-                        subscriptionId: agentDeploymentsData.subscriptionId,
-                        displayName: agentDeploymentsData.subscriptionId
-                    }
-                }
-            ]
-        }
-        if (subscriptions.length > 0) {
-            return subscriptions.map((subscription) => {
+    }, [getSubscriptionsAsync]); const subscriptionOptions: IAutoCompleteOption<Subscription>[] = useMemo(() => {
+        // order the subscriptions by displayName
+        return subscriptions
+            .sort((a, b) => a.displayName.localeCompare(b.displayName))
+            .map((subscription) => {
                 return {
-                    key: subscription.subscriptionId,
-                    text: subscription.subscriptionId,
+                    label: subscription.displayName, // Use displayName as label
                     data: { ...subscription }
                 }
             });
-        }
-        // return [];
-        return defaultFirstPartySubOptions;
+    }, [subscriptions]);
 
-    }, [agentDeploymentsData, subscriptions]);
-
-    const resourceGroupOptions: IDropdownOption<ResourceGroup>[] = useMemo(() => {
-        if (agentDeploymentsData != null) {
-            return [
-                {
-                    key: agentDeploymentsData.resourceGroup,
-                    text: agentDeploymentsData.resourceGroup,
-                    data: {
-                        name: agentDeploymentsData.resourceGroup,
-                        location: ''
-                    }
-                }
-            ]
-        }
-        if (resourceGroups.length > 0) {
-            return resourceGroups.map((resourceGroup) => {
+    const resourceGroupOptions: IAutoCompleteOption<ResourceGroup>[] = useMemo(() => {
+        return resourceGroups
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .map((resourceGroup) => {
                 return {
-                    key: resourceGroup.name,
-                    text: resourceGroup.name,
+                    label: resourceGroup.name, // Use name as label
                     data: { ...resourceGroup }
                 }
             });
-        }
-        // return [];
-        return defaultFirstPartyResourceGroupOptions;
+    }, [resourceGroups]);
 
-    }, [agentDeploymentsData, resourceGroups]);
-
-    const locationOptions: IDropdownOption<Location>[] = useMemo(() => {
-        if (agentDeploymentsData != null) {
-            return [
-                {
-                    key: agentDeploymentsData.location,
-                    text: agentDeploymentsData.location,
-                    data: {
-                        name: agentDeploymentsData.location,
-                        displayName: agentDeploymentsData.location
-                    }
-                }
-            ]
-        }
-        if (locations?.length > 0) {
-            return locations.map((location) => {
+    const locationOptions: IAutoCompleteOption<Location>[] = useMemo(() => {
+        return locations
+            .sort((a, b) => a.displayName.localeCompare(b.displayName))
+            .map((location) => {
                 return {
-                    key: location.name,
-                    text: location.displayName,
+                    label: location.displayName, // Use displayName as label
                     data: { ...location }
                 }
             });
-        }
-        // return [];
-        return defaultFirstPartyLocationOptions;
-
-
-    }, [agentDeploymentsData, locations]);
-
-    const onUpdateSubscription = (event: any, item?: IDropdownOption) => {
+    }, [locations]); const onUpdateSubscription = (_event: any, item?: IAutoCompleteOption<Subscription> | null) => {
         if (!item) return;
         setSelectedSubscription(item);
+        // Clear dependent selections when subscription changes
+        setSelectedResourceGroup(null);
+        setSelectedLocation(null);
+        setNewResourceGroupName(""); // Clear new resource group name as well
     }
 
-    const onUpdateResourceGroup = (event: any, item?: IDropdownOption) => {
+    const onUpdateResourceGroup = (_event: any, item?: IAutoCompleteOption<ResourceGroup> | null) => {
         if (!item) return;
         setSelectedResourceGroup(item);
+        // Clear location selection when resource group changes
+        setSelectedLocation(null);
     }
 
-    const onUpdateLocation = (event: any, item?: IDropdownOption) => {
+    const onUpdateLocation = (_event: any, item?: IAutoCompleteOption<Location> | null) => {
         if (!item) return;
         setSelectedLocation(item);
     }
 
-    const onUpdateAgentName = (event: any, newValue?: string) => {
+    const onUpdateAgentName = (_event: any, newValue?: string) => {
         setAgentName(newValue || "");
     }
 
+    const onToggleCreateNewResourceGroup = (_event: any, checked?: boolean) => {
+        setCreateNewResourceGroup(checked || false);
+        if (checked) {
+            setSelectedResourceGroup(null); // Clear existing selection when switching to create new
+        } else {
+            setNewResourceGroupName(""); // Clear new name when switching back to selection
+        }
+    }
+
+    const onUpdateNewResourceGroupName = (_event: any, newValue?: string) => {
+        setNewResourceGroupName(newValue || "");
+    }
+
     const onCreateAgent = async () => {
-        if (!selectedSubscription || !selectedResourceGroup || !selectedLocation) return;
+        if (!selectedSubscription || !selectedLocation) return;
+
+        // Validate resource group selection or new name
+        const resourceGroupName = createNewResourceGroup
+            ? newResourceGroupName.trim()
+            : selectedResourceGroup?.data.name;
+
+        if (!resourceGroupName) return;
+
         const postBody: DeployAgentPostBody = {
             subscriptionId: selectedSubscription.data.subscriptionId,
-            resourceGroup: selectedResourceGroup.data.name,
+            resourceGroup: resourceGroupName,
             location: selectedLocation.data.name,
             resourceName: agentName
-        }
+        };
         await createAgentAsync(postBody);
     }
 
-    return (
-        <>
-            <PrimaryButton text="Deploy to agent" disabled={!isDeployAgentEnabled} onClick={displayDialog} />
-            <Dialog hidden={!isDialogVisible} onDismiss={hideDialog} dialogContentProps={dialogContentProps} modalProps={modalProps}>
-                <DialogContent>
-                    <Stack tokens={{ childrenGap: 5 }}>
-                        <Dropdown options={subscriptionOptions} label="Subscription" disabled={inputsReadOnly} onChange={onUpdateSubscription} defaultSelectedKey={inputsReadOnly ? subscriptionOptions[0].key : ""}></Dropdown>
-                        <Dropdown options={resourceGroupOptions} label="Resource Group" disabled={inputsReadOnly} onChange={onUpdateResourceGroup} defaultSelectedKey={inputsReadOnly ? resourceGroupOptions[0].key : ""}></Dropdown>
-                        <Checkbox label="Create new resource group" disabled={inputsReadOnly} />
-                        <Dropdown options={locationOptions} label="Location" disabled={inputsReadOnly} onChange={onUpdateLocation} defaultSelectedKey={inputsReadOnly ? locationOptions[0].key : ""}></Dropdown>
-                        <TextField label="Agent Name" defaultValue={inputsReadOnly ? agentDeploymentsData?.name : ""} />
-                    </Stack>
-                </DialogContent>
-                <DialogFooter>
-                    <PrimaryButton text="Update Agent" />
-                    <DefaultButton text="Cancel" onClick={hideDialog} />
-                </DialogFooter>
-            </Dialog>
-        </>
+    return (<Stack tokens={{ childrenGap: 20 }}>        <Autocomplete
+        options={subscriptionOptions}
+        onChange={onUpdateSubscription}
+        value={selectedSubscription}
+        renderInput={(params) => <TextField {...params} label="Subscription" />}
+        size="medium"
+        disablePortal
+        disabled={isLoadingSubscriptions}
+    />
+
+        <Checkbox
+            label="Create new resource group"
+            checked={createNewResourceGroup}
+            onChange={onToggleCreateNewResourceGroup}
+        />
+
+        {createNewResourceGroup ? (
+            <TextField
+                label="Resource Group"
+                placeholder="Enter new resource group name"
+                value={newResourceGroupName}
+                onChange={onUpdateNewResourceGroupName}
+                disabled={!selectedSubscription}
+            />) : (<Autocomplete
+                options={resourceGroupOptions}
+                onChange={onUpdateResourceGroup}
+                value={selectedResourceGroup}
+                renderInput={(params) => <TextField {...params} label="Resource Group" />}
+                size="medium"
+                disablePortal
+                disabled={!selectedSubscription || isLoadingResourceGroups}
+            />
+        )}        <Autocomplete
+            options={locationOptions}
+            onChange={onUpdateLocation}
+            value={selectedLocation}
+            renderInput={(params) => <TextField {...params} label="Location" />}
+            size="medium"
+            disablePortal
+            disabled={!selectedSubscription || isLoadingLocations}
+        />
+        <TextField
+            label="Agent Name"
+            defaultValue=""
+            onChange={onUpdateAgentName}
+        />            <Stack horizontal tokens={{ childrenGap: 10 }}>
+            <PrimaryButton
+                text="Create Agent"
+                onClick={onCreateAgent}
+                disabled={
+                    !selectedSubscription ||
+                    !selectedLocation ||
+                    (createNewResourceGroup ? !newResourceGroupName.trim() : !selectedResourceGroup)
+                }
+            />
+        </Stack>
+    </Stack>
     );
 
 }

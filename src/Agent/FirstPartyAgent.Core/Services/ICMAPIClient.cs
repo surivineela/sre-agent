@@ -29,6 +29,7 @@ namespace FirstPartyAgent.Core.Services
         Task<string> PostDiscussionEntryAsync(string incidentId, string discussionEntry, bool htmlRendering = true);
         Task<string> SetIncidentTags(string incidentId, List<string> tags);
         Task<string> AddTagToIncident(string incidentId, string tag);
+        Task<string> AddKeywordToIncident(string incidentId, string keyword);
         Task<string> AcknowledgeIncidentAsync(string incidentId, string acknowledgeContactAlias = "antagent-1p");
         Task<List<string>> GetLinkedRelatedIncidentInfoAsync(long incidentId);
         Task<string> AddRelatedIncidentLinkAsync(long incidentId, long relatedIncidentId);
@@ -37,6 +38,7 @@ namespace FirstPartyAgent.Core.Services
         Task<string> AddParentIncidentLinkAsync(long incidentId, long parentIncidentId);
         Task<string> RemoveParentIncidentLinkAsync(long incidentId);
         Task<List<string>> GetChildIncidentsInfoAsync(long incidentId);
+        Task<List<IncidentRepairItem>> GetIncidentRepairItemsAsync(long incidentId);
     }
 
     public class ICMAPIClient : IICMAPIClient
@@ -477,6 +479,30 @@ namespace FirstPartyAgent.Core.Services
             return await SetIncidentTags(incidentId, incident.Tags.Append(tag).ToList());
         }
 
+        public async Task<string> AddKeywordToIncident(string incidentId, string keyword)
+        {
+            if (_icmApiSettings.ReadOnly)
+            {
+                return ("Success. ICM API is in read-only mode.");
+            }
+
+            var incident = await GetIncidentAsync(incidentId);
+            var updatedKeywords = string.IsNullOrWhiteSpace(incident.Keywords)? keyword: $"{incident.Keywords}, {keyword}";
+            var content = new
+            {
+                Keywords = updatedKeywords,
+            };
+            var response = await SendICMPatchRequestAsync($"{IcmAPIPathPrefix}/incidents({incidentId})", content);
+            if (response.IsSuccessStatusCode)
+            {
+                return "Keyword added successfully.";
+            }
+            else
+            {
+                throw new Exception($"Failed to add keyword to incident. Status code: {response.StatusCode}");
+            }
+        }
+
         public async Task<string> AcknowledgeIncidentAsync(string incidentId, string acknowledgeContactAlias = "antagent-1p")
         {
             if (_icmApiSettings.ReadOnly)
@@ -700,6 +726,30 @@ namespace FirstPartyAgent.Core.Services
                 {
                     throw new Exception($"Failed to retrieve child incidents. Status code: {response.StatusCode} : {await response.Content.ReadAsStringAsync()}");
                 }
+            }
+        }
+
+        public async Task<List<IncidentRepairItem>> GetIncidentRepairItemsAsync(long incidentId)
+        {
+            var content = new
+            {
+                Id = $"{incidentId}",
+                IdType = "icm.incident"
+            };
+
+            string apiBasePath = _authType == AuthType.Certificate ? $"{IcmAPIPathPrefix.Replace("/api/", "/api2/")}/incidentapi" : IcmAPIPathPrefix;
+
+            var response = await SendICMPostRequestAsync($"{apiBasePath}/incidents/externallink/repairitems/get", content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var responseString = await response.Content.ReadAsStringAsync();
+                var repairItems = JsonConvert.DeserializeObject<List<IncidentRepairItem>>(responseString);
+                return repairItems;
+            }
+            else
+            {
+                throw new Exception($"Failed to retrieve incident repair items. Status code: {response.StatusCode} : {await response.Content.ReadAsStringAsync()}");
             }
         }
     }

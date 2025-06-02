@@ -31,6 +31,7 @@ namespace FirstPartyAgent.Constants
             public const string GetManagedClusterEnvironmentResourceId = "get_managed_cluster_environment_resource_id";
             public const string GetManagedEnvironmentProvisioningStatus = "get_managed_environment_provisioning_status";
             public const string GetManagedEnvironmentAdminEvents = "get_managed_environment_admin_events";
+            public const string GetManagedEnvironmentOperationErrors = "get_managed_environment_operation_errors";
             public const string GetHealthProbeFailures = "get_health_probe_failures";
             public const string GetHealthProbeSettings = "get_health_probe_settings";
             public const string GetNodeAvailabilityFailures = "get_node_availability_failures";
@@ -47,6 +48,7 @@ namespace FirstPartyAgent.Constants
             public const string GetActiveRevisionSessions = "get_active_revision_sessions";
             public const string GetHpaHeartbeatMetrics = "get_hpa_heartbeat_metrics";
             public const string GetRevisionSpecChanges = "get_revision_spec_changes";
+            public const string GetArmOperations = "get_arm_operations";
             public const string GetEventProcessorEventsWithoutReplica = "get_event_processor_events_without_replica";
             public const string GetPodHeartbeatStatus = "get_pod_heartbeat_status";
             public const string GetInternalEventProcessorEventsForPod = "get_internal_event_processor_events_for_pod";
@@ -94,6 +96,14 @@ namespace FirstPartyAgent.Constants
             public const string GetEventProcessorPodStatus = "get_event_processor_pod_status";
             public const string GetLogProcessorPodStatus = "get_log_processor_pod_status";
             public const string GetContainerAppWorkloadProfile = "get_container_app_workload_profile";
+            public const string GetContainerAppInfraLayer = "get_container_app_infra_layer";
+            public const string GetVKPodLeaderElection = "get_vk_pod_leader_election";
+            public const string GetAKSKubeletRuntimeErrors = "get_aks_kubelet_runtime_errors";
+            public const string GetInputPressureOnLogProcessor = "get_input_pressure_on_log_processor";
+            public const string GetMemoryPressureOnFluentbit = "get_memory_pressure_on_fluentbit";
+            public const string GetFluentbitOutputCount = "get_fluentbit_output_count";
+            public const string GetFluentbitBufferPressure = "get_fluentbit_buffer_pressure";
+            public const string GetFluentbitOutputErrors = "get_fluentbit_output_errors";
         }
 
         public static class Kusto

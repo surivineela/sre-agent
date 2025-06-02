@@ -1,17 +1,16 @@
 import { Text } from '@fluentui/react-components';
 import { CheckmarkCircle16Regular } from '@fluentui/react-icons';
-import { Dispatch } from 'react';
 import { useIntl } from 'react-intl';
+import { ThreadSeverity } from '../../Common/Clients/ThreadClient';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
 import { ActionSeverityMetrics, ActionStatusMetrics } from '../Hooks/useMetrics';
 import { useActionsStatusBarStyles } from '../Styles/Incident.styles';
-import { ThreadActionFilter } from './ThreadsMenu';
 import TimeDropdown, { SelectedTimes } from './TimeDropdown';
 
 interface ActivitiesStatusBarProps {
     selectedTime: SelectedTimes;
-    setSelectedTime: Dispatch<React.SetStateAction<SelectedTimes>>;
-    setThreadActionFilter: Dispatch<React.SetStateAction<ThreadActionFilter>>;
+    setSelectedTime: (selectedTime: SelectedTimes) => void;
+    setThreadSeverity: (severity: ThreadSeverity | undefined) => void;
     onCriticalClick: () => void;
     onWarningClick: () => void;
     actionSeverityMetrics?: ActionSeverityMetrics;

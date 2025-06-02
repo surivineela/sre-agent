@@ -285,23 +285,6 @@ eg: please give me the availability rate for statefulset for last 2 hour.")]
             return await _kubePlugin.GetKubeResourceMetricsRangeAsync(AKSClusterResourceId, _namespace, kind, name, metricsType, startTime, endTime);
         }
 
-        [KernelFunction("GetNsgRulesForWorkload")]
-        [Description(
-    @"Gets the Network Security Group (NSG) rules (in JSON format) associated with the subnet(s) used by the node pools where a specific Kubernetes Deployment or StatefulSet is currently running pods.
-    This helps understand the network security posture and connectivity rules applied to a specific application component within the AKS cluster.
-    Only supports 'deployment' and 'statefulset' workload kinds.
-    eg: 'What NSG rules apply to the 'api-gateway' deployment in the 'production' namespace?'
-    eg: 'Show me the network security rules affecting my 'user-database' statefulset in the 'data-services' namespace.'"
-    )]
-        public async Task<IDictionary<string, string>> GetNsgRulesForWorkloadAsync(
-        [Description("The resource ID of the Azure Kubernetes Service (AKS) cluster.")] string AKSClusterResourceId,
-        [Description("Kubernetes namespace where the workload (Deployment or StatefulSet) is located, e.g., 'default', 'production'.")] string _namespace,
-        [Description("The kind of the Kubernetes workload. Supported values are 'deployment' or 'statefulset'.")] string kind,
-        [Description("The name of the Kubernetes Deployment or StatefulSet, e.g., 'frontend-app', 'backend-worker', 'redis-cache'.")] string workloadName)
-        {
-            return await _kubePlugin.GetNsgRulesForWorkloadAsync(AKSClusterResourceId, _namespace, kind, workloadName);
-        }
-
         [KernelFunction("listWorkloadRevisions")]
         [Description(
 @"List all revisions for a specific Kubernetes workload (Deployment or StatefulSet) and sort by revision number.
