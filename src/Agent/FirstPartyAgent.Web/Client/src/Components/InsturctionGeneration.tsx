@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, MutableRefObject } from "react";
 import { generateInstructions, getIncidents } from "../Services/Request";
 import { GenerateInstructionsRequest, IcmIncident } from "../Models/Response";
-import { DetailsList, DetailsListLayoutMode, Dropdown, IColumn, MessageBar, MessageBarType, PrimaryButton, SelectionMode, Stack, TextField, Selection, IDropdownOption, Link, ProgressIndicator } from "@fluentui/react";
+import { DetailsList, DetailsListLayoutMode, Dropdown, IColumn, MessageBar, MessageBarType, PrimaryButton, SelectionMode, Stack, TextField, Selection, IDropdownOption, Link, ProgressIndicator,Text } from "@fluentui/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import LoadingErrorWrapper from "./LoadingErrorWrapper";
 import { ICMAlertConfig } from "../Models/ICMAlertConfig";
@@ -84,11 +84,11 @@ const InstructionGeneration = (props: InstructionGenerationProps) => {
         <div>
             <Stack tokens={{ childrenGap: 10 }}>
                 <Stack horizontal horizontalAlign="space-between" verticalAlign="center">
-                    <h3>Past Mitigated/Resolved Incidents of this Alert</h3>
+                    <Text variant="large">Past Mitigated/Resolved Incidents of this Alert</Text>
                     <Dropdown options={dropdownOptions} selectedKey={selectedOption.key} onChange={(e, o) => setSelectedOption(o)} disabled={getIncidentsStatus === "pending"} />
                 </Stack>
 
-                <Stack.Item style={{ maxHeight: "50vh" }}>
+                <Stack.Item style={{ maxHeight: "50vh",overflowY: "scroll" }}>
                     <LoadingErrorWrapper error={getIncidentsError} status={getIncidentsStatus} renderLoading="Loading ICM incidents..." renderError="An error occurred while loading ICM incidents">
                         <InstructionGenerationIcmList data={getIncidentsData} selectedICMsRef={selectedICMsRef} />
                     </LoadingErrorWrapper>

@@ -18,7 +18,7 @@ const Header = (props: HeaderProps) => {
         padding: "0.75rem, 0",
     });
 
-     const onLinkClick = (item?: PivotItem) => {
+    const onLinkClick = (item?: PivotItem) => {
         if (item?.props.itemKey) {
             const curItem = item.props.itemKey as TabItem;
             props.onViewChange(curItem);
@@ -26,12 +26,12 @@ const Header = (props: HeaderProps) => {
     };
 
     return (
-        <Pivot className={headerStyles} onLinkClick={onLinkClick} defaultSelectedKey="incidentManager">
-            <PivotItem headerText='Incident Manager' itemKey={TabItem.IncidentManager} />
-            {isPlayground && isDebug && (
+        (isPlayground && isDebug) ?
+            <Pivot className={headerStyles} onLinkClick={onLinkClick} defaultSelectedKey="incidentManager">
+                <PivotItem headerText='Incident Manager' itemKey={TabItem.IncidentManager} />
                 <PivotItem headerText='CosmosDB(Debug)' itemKey={TabItem.Config} />
-            )}
-        </Pivot>
+            </Pivot>
+            : null
     );
 }
 

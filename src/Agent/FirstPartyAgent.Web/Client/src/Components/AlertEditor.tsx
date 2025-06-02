@@ -1,14 +1,14 @@
 import { MutableRefObject, useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { createAlertConfig, getAlertConfig, updateAlertConfig } from "../Services/Request";
 import MonacoEditor, { Monaco } from '@monaco-editor/react';
-import { CommandBar, Panel, PanelType, ICommandBarItemProps, Stack, Text, mergeStyles, MessageBar, MessageBarType, Spinner, SpinnerSize } from "@fluentui/react";
+import { CommandBar, Panel, PanelType, ICommandBarItemProps, Stack, Text, mergeStyles, MessageBar, MessageBarType, Spinner, SpinnerSize, IconButton, Separator } from "@fluentui/react";
 import { useBoolean } from '@fluentui/react-hooks';
 import AlertEditorChat from "./AlertEditorChat";
 import InstructionGeneration from "./InsturctionGeneration";
 import DeployAgent from "./DeployAgent";
 import { ICMAlertConfig, monacoJsonSchema } from "../Models/ICMAlertConfig";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { PanelStyles } from "../Styles/Content.Styles";
+import { PanelStyles, separatorStyles } from "../Styles/Content.Styles";
 import { useQueryParams } from "../Hooks/UseQueryParams";
 
 
@@ -41,7 +41,6 @@ const AlertEditor = (props: AlertEditorProps) => {
     const [isOpen, { setTrue: openPanel, setFalse: dismissPanel }] = useBoolean(false);
     const [defaultAlertConfig, setDefaultAlertConfig] = useState<ICMAlertConfig>(props.alertConfig ? { ...props.alertConfig } : {});
     const [editorMode] = useState<AlertEditorMode>(props.alertConfig ? AlertEditorMode.Create : AlertEditorMode.Edit);
-    const scrollRef = useRef<HTMLDivElement>(null);
     const alertConfigRef = useRef<ICMAlertConfig>(props.alertConfig ? { ...props.alertConfig } : {});
     const { isPlayground } = useQueryParams();
 
@@ -223,57 +222,71 @@ const AlertEditor = (props: AlertEditorProps) => {
 
     const alertEditorStyles = mergeStyles({
         height: "100%",
-        width: "80%",
-        minWidth: "600px"
     })
 
     const onDeployAgent = async () => {
         dispatch({ type: 'SET_DEPLOY_AGENT' });
     }
 
+    const editorContainerStyles = useMemo(() => {
+        return mergeStyles({
+            width: isOpen ? "70%" : "100%",
+            minWidth: "600px",
+            maxWidth: isOpen ? "60vw" : "100%",
+        })
+    }, [isOpen]);
+
     return (
         <>
-            <Stack horizontalAlign="center" verticalFill>
-                <Stack tokens={{ childrenGap: 10 }} className={alertEditorStyles} >
-                    {defaultAlertConfig?.alertingId && !isAlertConfigLoading ?
-                        <>
-                            <Text variant="large">{title}</Text>
-                            <CommandBar items={commandBarItems} styles={{ root: { paddingLeft: "0px" } }} />
-                            {isSavingAlertConfigError && <MessageBar messageBarType={MessageBarType.error}>Sorry, an error occurred while saving alert config, please retry</MessageBar>}
-                            {isSavingAlertConfigSuccess && <MessageBar messageBarType={MessageBarType.success}>Alert config saved successfully</MessageBar>}
-                            <MonacoAlertEditor defaultConfig={defaultAlertConfig} onChange={onAlertConfigChange} />
-                        </> : <Spinner label="Loading alert config..." size={SpinnerSize.large} />
-                    }
+            <Stack horizontalAlign="center" verticalFill horizontal tokens={{ childrenGap: 10 }}>
+                <Stack.Item className={editorContainerStyles} shrink={false}>
+                    <Stack className={alertEditorStyles}>
+                        {defaultAlertConfig?.alertingId && !isAlertConfigLoading ?
+                            <>
+                                <Text variant="large">{title}</Text>
+                                <CommandBar items={commandBarItems} styles={{ root: { paddingLeft: "0px" } }} />
+                                {isSavingAlertConfigError && <MessageBar messageBarType={MessageBarType.error}>Sorry, an error occurred while saving alert config, please retry</MessageBar>}
+                                {isSavingAlertConfigSuccess && <MessageBar messageBarType={MessageBarType.success}>Alert config saved successfully</MessageBar>}
+                                <MonacoAlertEditor defaultConfig={defaultAlertConfig} onChange={onAlertConfigChange} />
+                            </> : <Spinner label="Loading alert config..." size={SpinnerSize.large} />
+                        }
 
-                </Stack>
+                    </Stack>
+                </Stack.Item>
+                {isOpen &&
+                    <>
+                        <Stack.Item className={separatorStyles}>
+                            <Separator vertical alignContent="center"></Separator>
+                        </Stack.Item>
+                        <Stack.Item grow={true} styles={{ root: {maxWidth: "26vw"}}}>
+                            <Stack className={PanelStyles.container} tokens={{ childrenGap: 10 }}>
+                                <Stack horizontal horizontalAlign="space-between" verticalAlign="center">
+                                    <Text variant="large">{contextState.panelHeader}</Text>
+                                    <IconButton onClick={(e) => dismissPanel()} iconProps={{ iconName: "ChromeClose" }} ariaLabel="close panel"></IconButton>
+                                </Stack>
+
+                                <div>
+                                    {contextState.selectedContent === SelectContent.AlertEditorChat &&
+                                        <AlertEditorChat
+                                            alertConfigRef={alertConfigRef}
+                                        />
+                                    }
+                                    {contextState.selectedContent === SelectContent.InstructionGeneration &&
+                                        <InstructionGeneration
+                                            alertConfigRef={alertConfigRef}
+                                            onGeneratedInstruction={updateAlertConfigWithInstruction} />
+                                    }
+                                    {contextState.selectedContent === SelectContent.DeployAgent &&
+                                        <DeployAgent
+                                            teamId={alertConfigRef.current.teamId}
+                                        />
+                                    }
+                                </div>
+                            </Stack>
+                        </Stack.Item>
+                    </>
+                }
             </Stack>
-            <Panel isOpen={isOpen}
-                onDismiss={dismissPanel}
-                closeButtonAriaLabel="Close"
-                headerText={contextState.panelHeader}
-                isBlocking={false}
-                type={PanelType.medium}
-                isFooterAtBottom={true}
-                onRenderFooter={() => <div ref={scrollRef}></div>}>
-                <div className={PanelStyles.container}>
-                    {contextState.selectedContent === SelectContent.AlertEditorChat &&
-                        <AlertEditorChat
-                            alertConfigRef={alertConfigRef}
-                            scrollRef={scrollRef}
-                        />
-                    }
-                    {contextState.selectedContent === SelectContent.InstructionGeneration &&
-                        <InstructionGeneration
-                            alertConfigRef={alertConfigRef}
-                            onGeneratedInstruction={updateAlertConfigWithInstruction} />
-                    }
-                    {contextState.selectedContent === SelectContent.DeployAgent &&
-                        <DeployAgent
-                            teamId={alertConfigRef.current.teamId}
-                        />
-                    }
-                </div>
-            </Panel>
         </>
     );
 }
@@ -317,11 +330,12 @@ const MonacoAlertEditor = (props: { defaultConfig: any, onChange: (object: any |
 
 
     return (
-        <MonacoEditor language="json" height="100%" theme="vs-dark" options={{
+        <MonacoEditor language="json" height="100%" theme="vs" options={{
             automaticLayout: true,
             formatOnType: true,
             formatOnPaste: true,
-            fontSize: 15
+            fontSize: 15,
+            wordWrap: "on",
         }}
             onMount={handleEditorDidMount}
             value={disPlayValue}

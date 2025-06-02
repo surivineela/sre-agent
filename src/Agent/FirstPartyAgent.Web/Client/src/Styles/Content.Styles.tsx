@@ -1,4 +1,4 @@
-import { mergeStyleSets,IStyle, mergeStyles } from "@fluentui/merge-styles";
+import { mergeStyleSets, IStyle, mergeStyles } from "@fluentui/merge-styles";
 
 
 export const ContentStyleSets = mergeStyleSets({
@@ -19,4 +19,10 @@ export const PanelStyles = mergeStyleSets({
 
 export const iconButtonStyles = mergeStyles({
     minWidth: "40px",
-})
+});
+
+export const separatorStyles = mergeStyles({
+    height: "100%",
+    width: "8px",
+    backgroundColor: "rgb(223, 240, 255)",
+});

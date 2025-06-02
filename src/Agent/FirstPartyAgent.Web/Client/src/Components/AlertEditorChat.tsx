@@ -1,5 +1,5 @@
 import { Checkbox, DocumentCard, DocumentCardDetails, DocumentCardType, MessageBar, MessageBarType, PrimaryButton, ProgressIndicator, Stack, TextField, mergeStyles, Text } from "@fluentui/react";
-import { MutableRefObject, useEffect, useMemo, useState } from "react";
+import { MutableRefObject, useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import { getRequestForAlertStream } from "../Services/Request";
@@ -10,7 +10,6 @@ import { iconButtonStyles } from "../Styles/Content.Styles";
 
 export interface AlertEditorChatProps {
     alertConfigRef: MutableRefObject<ICMAlertConfig>;
-    scrollRef: MutableRefObject<HTMLDivElement>;
 }
 
 const AlertEditorChat = (props: AlertEditorChatProps) => {
@@ -18,11 +17,12 @@ const AlertEditorChat = (props: AlertEditorChatProps) => {
     const [showIncidentDiscussionOnly, setShowIncidentDiscussionOnly] = useState<boolean>(false);
     const [validationError, setValidationError] = useState<string>("");
     const { streamResponses, isPending: isStreamLoading, mutateAsync: startStreamAsync, error: streamError } = useStream<string>();
+    const scrollRef = useRef<HTMLDivElement>(null);
 
     //Always scroll to the bottom when there is a new response
     useEffect(() => {
-        if (props.scrollRef.current) {
-            props.scrollRef.current.scrollIntoView({ behavior: "smooth" });
+        if (scrollRef.current && streamResponses?.length > 0) {
+            scrollRef.current.scrollIntoView({ behavior: "smooth" });
         }
     }, [streamResponses]);
 
@@ -110,12 +110,18 @@ const AlertEditorChat = (props: AlertEditorChatProps) => {
         maxWidth: "100%",
         padding: "8px",
         height: "auto",
+        // Allow text within markdown can be selectable
+        userSelect: "text",
+        "& *": {
+            userSelect: "text"
+        }
     });
 
     const inputStyles = mergeStyles({
         width: "80%",
         minWidth: "12rem",
     });
+
     const onEnterKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "Enter") {
             streamAlert();
@@ -124,12 +130,12 @@ const AlertEditorChat = (props: AlertEditorChatProps) => {
 
     return (
         <Stack tokens={{ childrenGap: 10 }}>
-            <Stack horizontal horizontalAlign="start" tokens={{childrenGap: 10}}>
-                <TextField placeholder="Type Incident id" disabled={isStreamLoading} className={inputStyles} onChange={(e, newValue) => setIncidentId(newValue ?? "")} onKeyDown={onEnterKey}/>
-                <PrimaryButton title="send" iconProps={{ iconName: "send" }} onClick={(e) => streamAlert()} disabled={isStreamLoading} className={iconButtonStyles}/>
+            <Stack horizontal horizontalAlign="start" tokens={{ childrenGap: 10 }}>
+                <TextField placeholder="Type Incident id" disabled={isStreamLoading} className={inputStyles} onChange={(e, newValue) => setIncidentId(newValue ?? "")} onKeyDown={onEnterKey} />
+                <PrimaryButton title="send" iconProps={{ iconName: "send" }} onClick={(e) => streamAlert()} disabled={isStreamLoading} className={iconButtonStyles} />
             </Stack>
             <Text variant="small">Clicking the 'Send' button initiates a test run only, without impacting the incident or executing any actions.</Text>
-            <Stack styles={{ root: { overflowY: "auto" } }} tokens={{ childrenGap: 10 }}>
+            <Stack styles={{ root: { maxHeight: "85vh", overflowY: "auto" } }} tokens={{ childrenGap: 8 }}>
                 {streamResponses?.length > 0 ? <Checkbox label="Show incident discussion only" checked={showIncidentDiscussionOnly} onChange={(e, checked) => setShowIncidentDiscussionOnly(!!checked)} /> : null}
                 {displayErrorMessage ? <MessageBar messageBarType={MessageBarType.error} isMultiline>{displayErrorMessage}</MessageBar> :
                     displayStreamResponses.map((response, index) => {
@@ -142,6 +148,7 @@ const AlertEditorChat = (props: AlertEditorChatProps) => {
                         );
                     })
                 }
+                <div ref={scrollRef}></div>
             </Stack>
             {isStreamLoading ? <ProgressIndicator /> : null}
         </Stack>

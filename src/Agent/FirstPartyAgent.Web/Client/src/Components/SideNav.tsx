@@ -109,7 +109,7 @@ const SideNav = (props: { onGetAlertConfig: (params: AlertEditorProps) => void, 
 
 
     return (
-        <Stack tokens={{ childrenGap: 10 }}>
+        <Stack tokens={{ childrenGap: 10 }} styles={{ root: { maxHeight: "100vh",overflowY: "auto" } }}>
             <LoadingErrorWrapper status={status} error={error} renderLoading="Loading alerts...">
                 <SearchBox placeholder='Filter alerts' onChange={onSearchBoxUpdate} />
                 <PrimaryButton onClick={(e) => { props.onCreateNewAlertHandler() }}>Create New Alert Handler</PrimaryButton>

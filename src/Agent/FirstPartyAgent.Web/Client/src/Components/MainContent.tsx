@@ -9,6 +9,7 @@ import { Step, StepLabel, Stepper, SxProps, Theme } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
 import { getDefaultIcmTeam } from "../Services/Request";
 import { useQueryParams } from "../Hooks/UseQueryParams";
+import { separatorStyles } from "../Styles/Content.Styles";
 
 enum Page {
     SelectedTeam = "SelectedTeam",
@@ -80,7 +81,12 @@ const MainContent = () => {
     };
 
     const [state, dispatch] = useReducer(reducer, { page: Page.SelectedTeam, context: {} });
-    const [displayStepper, setDisplayStepper] = useState(true);
+    
+    // For AlertEditor page, not showing up stepper to save space
+    const displayStepper = useMemo(() => {
+        return state.page !== Page.AlertEditor;
+    }, [state.page]);
+
 
     useEffect(() => {
         if (!isPlayground && defaultIcmTeam) {
@@ -138,23 +144,15 @@ const MainContent = () => {
         } else {
             dispatch({ type: 'SWITCH_TO_ALERT_OVERVIEW' });
         }
-        setDisplayStepper(true);
     }, []);
 
     const directToAlertEditor = useCallback((nextEditorProps: AlertEditorProps) => {
         dispatch({ type: 'SET_ALERT_CONFIG', payload: nextEditorProps });
-        setDisplayStepper(false);
     }, [state.context]);
 
     const contentStyles = mergeStyles({
         width: "100%",
         height: "100%",
-    });
-
-    const separatorStyles = mergeStyles({
-        height: "100%",
-        width: "8px",
-        backgroundColor: "rgb(223, 240, 255)",
     });
 
     const stepperStyles: SxProps<Theme> = {
@@ -169,13 +167,13 @@ const MainContent = () => {
     return (
         <>
             <Stack horizontal verticalFill enableScopedSelectors tokens={{ childrenGap: 5 }}>
-                <Stack.Item styles={{ root: { width: "15%" } }} grow={0}>
+                <Stack.Item basis="12%" grow={false}>
                     <SideNav onGetAlertConfig={directToAlertEditor} onCreateNewAlertHandler={createNewAlertHandler} selectedSideNavItemId={state.context?.alertEditor?.alertId ?? ""} defaultIcmTeamId={state.context?.selectedTeam?.icmTeamId ?? 0} />
                 </Stack.Item>
                 <Stack.Item className={separatorStyles}>
                     <Separator vertical alignContent="center"></Separator>
                 </Stack.Item>
-                <Stack.Item grow={1}>
+                <Stack.Item grow={true}>
                     <Stack verticalFill tokens={{ childrenGap: 5 }} verticalAlign="start" enableScopedSelectors>
                         {displayStepper && <Stack.Item>
                             <Stepper activeStep={activateStep} alternativeLabel sx={stepperStyles}>
@@ -186,7 +184,7 @@ const MainContent = () => {
                                 ))}
                             </Stepper>
                         </Stack.Item>}
-                        <Stack.Item className={contentStyles} align="start" >
+                        <Stack.Item className={contentStyles} align="start">
                             {state.page === Page.SelectedTeam && isPlayground && <Landing onSelectTeam={updateContextWithSelectedTeam} defaultSelectedIcmInfo={state.context.selectedTeam} />}
                             {state.page === Page.AzureOverview && <EditOverview icmTeamInfo={state.context.selectedTeam} onGetAlertConfig={updateContextWithAlertConfig} />}
                             {state.page === Page.AlertEditor && <AlertEditor {...state.context.alertEditor} isChangeUnsaved={isEditorChangeUnsaved} />}
