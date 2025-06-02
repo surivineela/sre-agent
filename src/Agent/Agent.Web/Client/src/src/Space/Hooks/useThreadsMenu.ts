@@ -129,7 +129,7 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<RemoveTh
     );
 
     const loadMoreOldThreads = useCallback(
-        async (overflowDiv: boolean) => {
+        async (overflowDiv: boolean): Promise<boolean | undefined> => {
             const { threadSearchText, threadSource, oldestThreadModifiedTimestamp, threadSeverity } = threadsFilterOptions;
 
             if (!isLoadingInitialThreads && !isLoadingOldThreads.current) {
@@ -155,8 +155,14 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<RemoveTh
                         setHasMoreOldThreads(false);
                     }
                     setThreads(prevThread => processThreads(prevThread, oldThreads, false));
+
+                    isLoadingOldThreads.current = false;
+
+                    return oldThreadsResponse.isSuccessful;
+                } else {
+                    isLoadingOldThreads.current = false;
+                    return undefined;
                 }
-                isLoadingOldThreads.current = false;
             }
         },
         [threadsFilterOptions, isLoadingInitialThreads]

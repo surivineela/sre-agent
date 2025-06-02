@@ -4,6 +4,7 @@ import { forwardRef, memo, useEffect, useRef, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { Thread } from '../../Common/Contracts/Azure/SreAgent';
 import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
+import { getIntervalBetweenLoading } from '../Activities/Utility';
 import { skeletonStyle, useThreadMenuStyle } from '../Styles/Activities.styles';
 import ThreadItem from './ThreadItem';
 
@@ -12,7 +13,7 @@ interface IThreadsListProps {
     isLoadingInitialThreads: boolean;
     selectThread: (thread: Thread | null) => void;
     hasMoreOldThreads: boolean;
-    loadMoreOldThreads: (overflowDiv: boolean) => Promise<void>;
+    loadMoreOldThreads: (overflowDiv: boolean) => Promise<boolean | undefined>;
     activeThreadId: string;
 }
 
@@ -49,10 +50,15 @@ const ThreadsList = forwardRef<HTMLDivElement, IThreadsListProps>((props, ref) =
         let timeoutId: NodeJS.Timeout | null = null;
 
         if (isIntersecting && hasMoreOldThreads) {
-            const loadOldThreads = async () => {
-                await loadMoreOldThreads(true);
+            let exponentialBackoffDepth = -1;
 
-                timeoutId = setTimeout(loadOldThreads, 100);
+            const loadOldThreads = async () => {
+                const isSuccessful = await loadMoreOldThreads(true);
+
+                exponentialBackoffDepth = isSuccessful === false ? exponentialBackoffDepth + 1 : -1;
+                const interval = getIntervalBetweenLoading(exponentialBackoffDepth);
+
+                timeoutId = setTimeout(loadOldThreads, interval);
             };
             loadOldThreads();
         }

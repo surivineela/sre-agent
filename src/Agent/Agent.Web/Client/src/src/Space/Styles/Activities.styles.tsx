@@ -70,7 +70,7 @@ export const useChatBoxStyles = makeStyles({
         color: tokens.colorNeutralForeground1,
         borderRadius: tokens.borderRadiusXLarge,
         padding: '0px 16px',
-        maxWidth: 'fit-content',
+        maxWidth: '90%',
         display: 'inline-block',
     },
     userName: {

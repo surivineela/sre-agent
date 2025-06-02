@@ -94,5 +94,5 @@ export class MessagePollingCounts {
 
 export class MessageLoadingCounts {
     public static readonly default = 20;
-    public static readonly active = 1;
+    public static readonly active = 10;
 }

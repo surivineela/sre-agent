@@ -27,7 +27,7 @@ export const ChatBox = ({ addThread, promoteThread, threadId, threadSource }: IC
         cancelResponse,
         prompts,
         messagePromptsUsed,
-        handleScroll,
+        onScroll,
         showNewMessageButton,
         onClickNewMessageButton,
     } = useChatBox(addThread, promoteThread, threadId);
@@ -39,7 +39,7 @@ export const ChatBox = ({ addThread, promoteThread, threadId, threadSource }: IC
     return (
         <div className={ChatBoxStyles.chatBox}>
             <CopilotProvider mode="canvas" className={ChatBoxStyles.chatBoxInner}>
-                <div className={mergeClasses(scrollable, ChatBoxStyles.chatContainer)} ref={messagesDivRef} onScroll={handleScroll}>
+                <div className={mergeClasses(scrollable, ChatBoxStyles.chatContainer)} ref={messagesDivRef} onScroll={onScroll}>
                     <CopilotChat className={ChatBoxStyles.chat}>
                         <div ref={intersectionObserverRef} />
 

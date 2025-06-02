@@ -85,7 +85,7 @@ describe('ThreadsList.tsx', () => {
                 activeThreadId="02"
                 isLoadingInitialThreads={false}
                 hasMoreOldThreads={false}
-                loadMoreOldThreads={() => Promise.resolve()}
+                loadMoreOldThreads={() => Promise.resolve(undefined)}
                 ref={ref}
             />
         );
@@ -108,7 +108,7 @@ describe('ThreadsList.tsx', () => {
                 activeThreadId="02"
                 isLoadingInitialThreads={false}
                 hasMoreOldThreads={true}
-                loadMoreOldThreads={() => Promise.resolve()}
+                loadMoreOldThreads={() => Promise.resolve(undefined)}
                 ref={ref}
             />
         );
@@ -125,7 +125,7 @@ describe('ThreadsList.tsx', () => {
                 activeThreadId="02"
                 isLoadingInitialThreads={false}
                 hasMoreOldThreads={false}
-                loadMoreOldThreads={() => Promise.resolve()}
+                loadMoreOldThreads={() => Promise.resolve(undefined)}
                 ref={ref}
             />
         );
