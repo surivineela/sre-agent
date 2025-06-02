@@ -48,7 +48,23 @@ namespace FirstPartyAgent.Plugins
                 var databaseName = "wawsprod";
                 DateTime? nowOverride = null;
 
-                var kustoQuery = GetRequestGeneralInfoQuery(siteName, url, activityId, utcDateTime);
+                if (!DateTime.TryParse(utcDateTime, out var utcDateTimeParsed))
+                {
+                    responses.Add(new KustoQueryResponse { KustoQuery = string.Empty, KustoResult = $"Invalid  DateTime: {utcDateTime}" });
+                    return responses;
+                }
+
+                string kustoQuery = string.Empty;
+                // If the UTC date time is older than 18 hours, use the analytics query for better performance
+                if (utcDateTimeParsed <= DateTime.Now.AddHours(-30))
+                {
+                    kustoQuery = GetRequestGeneralInfoQueryFromAnalytics(siteName, url, activityId, utcDateTime);
+                }
+                else
+                {
+                    kustoQuery = GetRequestGeneralInfoQueryFromWaws(siteName, url, activityId, utcDateTime);
+                }
+
                 var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, nowOverride);
 
                 responses.Add(new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result });
@@ -269,6 +285,29 @@ namespace FirstPartyAgent.Plugins
             }
         }
 
+        [KernelFunction("run_coldstart_regression_analysis_per_region")]
+        [Description("Runs the cold start regression analysis per region.")]
+        public async Task<KustoQueryResponse> RunColdStartRegressionAnalysisPerRegion()
+        {
+            try
+            {
+                _logger.LogInformation($"Initializing ColdStartRegressionAnalysisPerRegion.");
+                var clusterName = "wawscus";
+                var databaseName = "wawsprod";
+                DateTime? nowOverride = null;
+
+                var kustoQuery = GetColdStartStatusByRegion();
+
+                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, nowOverride);
+                return new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"An error occurred while initializing ColdStartRegressionAnalysisPerRegion.");
+                return new KustoQueryResponse { KustoQuery = string.Empty, KustoResult = $"An error occurred: {ex.Message}" };
+            }
+        }
+
         [KernelFunction("run_coldstart_alert_kusto_query")]
         [Description("Runs the kusto query for the cold start alert and returns the result.")]
         public async Task<KustoQueryResponse> RunAlertKustoQuery(string alertId)
@@ -330,7 +369,7 @@ namespace FirstPartyAgent.Plugins
             return query;
         }
 
-        private static string GetRequestGeneralInfoQuery(string siteName, string url, string activityId, string utcDateTime)
+        private static string GetRequestGeneralInfoQueryFromWaws(string siteName, string url, string activityId, string utcDateTime)
         {
             var query = $@"
                 let approxDateTime = datetime({utcDateTime});
@@ -352,6 +391,48 @@ namespace FirstPartyAgent.Plugins
                 | take 10";
             return query;
         }
+
+        private static string GetRequestGeneralInfoQueryFromAnalytics(string siteName, string url, string activityId, string utcDateTime)
+        {
+            var query = $@"
+                let approxDateTime = datetime({utcDateTime});
+                let activityId = '{activityId}';
+                let siteName = '{siteName}';
+                let url = '{url}';
+                let Regions = GetRegions
+                | where Cloud == ""Azure""
+                | distinct KustoCluster, Region = AntaresAbbreviation;
+                cluster(""wawsaneus.eastus"").database(""wawsanprod"").WawsAn_dailyfunctionscoldstart
+                | where HttpRequestUTC between (approxDateTime - 1h .. approxDateTime + 1h)
+                | where (isnotempty(activityId) and ActivityId contains activityId)
+                    or (isnotempty(siteName) and SiteName contains siteName and (isempty(url) or Cs_uri_stem contains url))
+                | extend Region = tostring(split(Stamp, '-')[2])
+                | extend ConsumptionType = case(
+                                               OperatingSystem == ""Windows"", ""Windows Consumption"",
+                                               OperatingSystem == ""Legion"", ""Flex Consumption"",
+                                               OperatingSystem == ""Linux"", ""Linux Consumption"",
+                                               ""Unknown""
+                                           )
+                | join kind=leftouter Regions on Region
+                | project
+                    KustoCluster,
+                    ConsumptionType,
+                    TIMESTAMP = HttpRequestUTC,
+                    SiteName,
+                    ActivityId,
+                    Time_taken = FETimeTakenMs,
+                    UrlRewriteTimeMs,
+                    //ArrTime
+                    DSCallTime,
+                    Sc_status,
+                    //Cs_method,
+                    Cs_uri_stem,
+                    EventPrimaryStampName = Stamp
+                | order by Time_taken desc
+                | take 10";
+            return query;
+        }
+
 
         private static string GetColdStartRequestDetailsForWindowsConsumption(string activityId, string utcDateTime)
         {
@@ -455,27 +536,26 @@ namespace FirstPartyAgent.Plugins
             | extend S_sitename = AppName
             | invoke GetFunctionsSlaSiteProperties()
             | summarize
-                count(), 
-                percentile(ColdStartTime, 50),
-                percentile(JitTime, 50),
-                percentile(FunctionsGCTime, 50),
-                percentile(DiskReadTime, 50),
-                percentile(GCAllocationInBytes, 50),
-                percentile(FunctionsMemoryHardFaultTime, 50),
+                count(),
+                ColdStartTime = percentile(ColdStartTime, 50),
+                FuncHostJitTime = percentile(JitTime, 50),
+                FuncHostJitCount = percentile(JitCount, 50),
+                FuncHostMemoryHardFaultTime = percentile(FunctionsMemoryHardFaultTime, 50),
+                LanguageWorkerJitTime = percentile(LanguageWorkerJitTime, 50),
+                LanguageWorkerJitCount = percentile(LanguageWorkerJitCount, 50),
+                DiskReadTime = percentile(DiskReadTime, 50),
+                LanguageWorkerMemoryHardFaultTime = percentile(LanguageWorkerMemoryHardFaultTime, 50),
+                FuncHostGCTime = percentile(FunctionsGCTime, 50),
+                FuncHostGCAllocationInBytes = percentile(GCAllocationInBytes, 50),
+                LanguageWorkerAssemblyLoaderTime = percentile(LanguageWorkerAssemblyLoaderTime, 50),
+                LanguageWorkerAssemblyLoaderCount = percentile(LanguageWorkerAssemblyLoaderCount, 50),
+                LanguageWorkerGCTime = percentile(LanguageWorkerGCTime, 50),
                 percentile(TotalDwasOutboundCallsTime, 50),
                 percentile(TotalDwasProvisioningTime, 50),
                 percentile(DwasJitTime, 50),
-                percentile(LanguageWorkerJitTime, 50),
-                percentile(LanguageWorkerGCTime, 50),
-                percentile(LanguageWorkerMemoryHardFaultTime, 50),
-                percentile(LanguageWorkerAssemblyLoaderTime, 50),
-                percentile(JitCount, 50), 
-                percentile(LanguageWorkerJitCount, 50),
-                percentile(LanguageWorkerAssemblyLoaderCount, 50),
                 percentile(MiniYarpJitTime, 50)
-                by bin(TIMESTAMP, 7d), Stack
-            | order by TIMESTAMP asc
-            ";
+                by Stack
+                ";
             return query;
         }
 
@@ -503,25 +583,146 @@ namespace FirstPartyAgent.Plugins
         private static string GetColdStartStatusByStage()
         {
             var query = $@"
+            let PastNumberOfDays = 120;
+            let StartTime = datetime_add('day', -PastNumberOfDays, now());
             let Regions = GetRegions
             | where Cloud == ""Azure""
             | distinct Stage, AntaresAbbreviation;
             cluster(""wawsaneus.eastus"").database(""wawsanprod"").WawsAn_dailyfunctionscoldstart
-            | where pdate > ago(15d)
-            | where OperatingSystem != ""Linux""
+            | where pdate >= StartTime
             | where SiteName has_all (""sla-ws-func-prod"", ""v4-cold"")
             | where SiteName !contains ""histogram"" and SiteName !contains ""msftint""
             | where Sc_status == int(200)
             | extend S_sitename = SiteName
             | invoke GetFunctionsSlaSiteProperties()
             | parse Stamp with ""waws-prod-"" AntaresAbbreviation ""-"" *
-            | join kind=leftouter  Regions on AntaresAbbreviation
+            | join kind=leftouter Regions on AntaresAbbreviation
             | summarize percentiles(FETimeTakenMs, 50, 99) by bin(pdate, 1d), OperatingSystem, Scenario, Stage
             | order by pdate asc
-            | summarize P50List = make_list(percentile_FETimeTakenMs_50), P99List = make_list(percentile_FETimeTakenMs_99) by OperatingSystem, Scenario, Stage
+            | summarize
+                P50Percentile = percentile(percentile_FETimeTakenMs_50, 50),
+                P99Percentile = percentile(percentile_FETimeTakenMs_99, 99),
+                P50List = make_list(percentile_FETimeTakenMs_50),
+                P99List = make_list(percentile_FETimeTakenMs_99)
+                by OperatingSystem, Scenario, Stage
             | order by OperatingSystem, Scenario, Stage asc
+            | extend series_decompose_anomalies(P50List), series_decompose_anomalies(P99List, 2.5)
+            | mv-expand
+                 idx = range(0, array_length(P50List), 1),
+                 P50List, series_decompose_anomalies_P50List_ad_flag,
+                 P99List, series_decompose_anomalies_P99List_ad_flag
+            | extend day = datetime_add('day', toint(idx), StartTime)
+            | where  day >= ago(3d)        // only the last 3 days
+            | where series_decompose_anomalies_P50List_ad_flag  == 1  or series_decompose_anomalies_P99List_ad_flag == 1
+            | project OperatingSystem, Scenario, Stage, P50Number = todouble(P50List), P50ExpectedNumber = P50Percentile, IsP50Regression = tobool(series_decompose_anomalies_P50List_ad_flag), P99Number = todouble(P99List), P99ExpectedNumber = P99Percentile, IsP99Regression = tobool(series_decompose_anomalies_P99List_ad_flag), day
+            | order by IsP50Regression desc, P50Number desc, OperatingSystem desc, Stage asc, Scenario asc, IsP99Regression desc, P99Number desc
+            | union
+            (
+            cluster(""wawsaneus.eastus"").database(""wawsanprod"").WawsAn_dailyfunctionscoldstart
+            | where pdate >= StartTime
+            | where SiteName has_all (""sla-ws-func-prod"", ""v4-cold"")
+            | where SiteName !contains ""histogram"" and SiteName !contains ""msftint""
+            | where Sc_status == int(200)
+            | extend S_sitename = SiteName
+            | invoke GetFunctionsSlaSiteProperties()
+            | parse Stamp with ""waws-prod-"" AntaresAbbreviation ""-"" *
+            | join kind=leftouter Regions on AntaresAbbreviation
+            | summarize percentiles(FETimeTakenMs, 50, 99) by bin(pdate, 1d), OperatingSystem, Scenario, Stage
+            | order by pdate asc
+            | summarize
+                P50Percentile = percentile(percentile_FETimeTakenMs_50, 50),
+                P99Percentile = percentile(percentile_FETimeTakenMs_99, 99),
+                P50List = make_list(percentile_FETimeTakenMs_50),
+                P99List = make_list(percentile_FETimeTakenMs_99)
+                by OperatingSystem, Scenario, Stage
+            | order by OperatingSystem, Scenario, Stage asc
+            | extend series_decompose_anomalies(P50List), series_decompose_anomalies(P99List, 2.5)
+            | mv-expand
+                 idx = range(0, array_length(P50List), 1),
+                 P50List, series_decompose_anomalies_P50List_ad_flag,
+                 P99List, series_decompose_anomalies_P99List_ad_flag
+            | extend day = datetime_add('day', toint(idx), StartTime)
+            | where  day >= ago(3d)        // only the last 3 days
+            | where series_decompose_anomalies_P50List_ad_flag  == -1  or series_decompose_anomalies_P99List_ad_flag == -1
+            | project OperatingSystem, Scenario, Stage, P50Number = todouble(P50List), P50ExpectedNumber = P50Percentile, IsP50Improvement = tobool(series_decompose_anomalies_P50List_ad_flag), P99Number = todouble(P99List), P99ExpectedNumber = P99Percentile, IsP99Improvement = tobool(series_decompose_anomalies_P99List_ad_flag), day
+            | order by IsP50Improvement desc, P50Number desc, OperatingSystem desc, Stage asc, Scenario asc, IsP99Improvement desc, P99Number desc
+            )
             ";
             return query;
         }
+
+        private static string GetColdStartStatusByRegion()
+        {
+            var query = $@"
+            let PastNumberOfDays = 120;
+            let StartTime = datetime_add('day', -PastNumberOfDays, now());
+            let Regions = GetRegions
+            | where Cloud == ""Azure""
+            | distinct Stage, AntaresAbbreviation;
+            cluster(""wawsaneus.eastus"").database(""wawsanprod"").WawsAn_dailyfunctionscoldstart
+            | where pdate >= StartTime
+            | where SiteName has_all (""sla-ws-func-prod"", ""v4-cold"")
+            | where SiteName !contains ""histogram"" and SiteName !contains ""msftint""
+            | where Sc_status == int(200)
+            | extend S_sitename = SiteName
+            | invoke GetFunctionsSlaSiteProperties()
+            | parse Stamp with ""waws-prod-"" AntaresAbbreviation ""-"" *
+            | join kind=leftouter Regions on AntaresAbbreviation
+            | summarize percentiles(FETimeTakenMs, 50, 99) by bin(pdate, 1d), OperatingSystem, Scenario, Stage, AntaresAbbreviation
+            | order by pdate asc
+            | summarize
+                P50Percentile = percentile(percentile_FETimeTakenMs_50, 50),
+                P99Percentile = percentile(percentile_FETimeTakenMs_99, 99),
+                P50List = make_list(percentile_FETimeTakenMs_50),
+                P99List = make_list(percentile_FETimeTakenMs_99)
+                by OperatingSystem, Scenario, Stage, AntaresAbbreviation
+            | order by OperatingSystem, Scenario, Stage asc
+            | extend series_decompose_anomalies(P50List), series_decompose_anomalies(P99List, 2.5)
+            | mv-expand
+                 idx = range(0, array_length(P50List), 1),
+                 P50List, series_decompose_anomalies_P50List_ad_flag,
+                 P99List, series_decompose_anomalies_P99List_ad_flag
+            | extend day = datetime_add('day', toint(idx), StartTime)
+            | where  day >= ago(3d)        // only the last 2 days
+            | where series_decompose_anomalies_P50List_ad_flag  == 1  or series_decompose_anomalies_P99List_ad_flag == 1
+            | project OperatingSystem, Scenario, Stage, AntaresAbbreviation, P50Number = todouble(P50List), P50ExpectedNumber = P50Percentile, IsP50Regression = tobool(series_decompose_anomalies_P50List_ad_flag), P99Number = todouble(P99List), P99ExpectedNumber = P99Percentile, IsP99Regression = tobool(series_decompose_anomalies_P99List_ad_flag), day
+            | order by IsP50Regression desc, P50Number desc, OperatingSystem desc, Stage asc, Scenario asc, IsP99Regression desc, P99Number desc
+            | union
+            (
+            cluster(""wawsaneus.eastus"").database(""wawsanprod"").WawsAn_dailyfunctionscoldstart
+            | where pdate >= StartTime
+            | where SiteName has_all (""sla-ws-func-prod"", ""v4-cold"")
+            | where SiteName !contains ""histogram"" and SiteName !contains ""msftint""
+            | where Sc_status == int(200)
+            | extend S_sitename = SiteName
+            | invoke GetFunctionsSlaSiteProperties()
+            | parse Stamp with ""waws-prod-"" AntaresAbbreviation ""-"" *
+            | join kind=leftouter Regions on AntaresAbbreviation
+            | summarize percentiles(FETimeTakenMs, 50, 99) by bin(pdate, 1d), OperatingSystem, Scenario, Stage, AntaresAbbreviation
+            | order by pdate asc
+            | summarize
+                P50Percentile = percentile(percentile_FETimeTakenMs_50, 50),
+                P99Percentile = percentile(percentile_FETimeTakenMs_99, 99),
+                P50List = make_list(percentile_FETimeTakenMs_50),
+                P99List = make_list(percentile_FETimeTakenMs_99)
+                by OperatingSystem, Scenario, Stage, AntaresAbbreviation
+            | order by OperatingSystem, Scenario, Stage asc
+            | extend series_decompose_anomalies(P50List), series_decompose_anomalies(P99List, 2.5)
+            | mv-expand
+                 idx = range(0, array_length(P50List), 1),
+                 P50List, series_decompose_anomalies_P50List_ad_flag,
+                 P99List, series_decompose_anomalies_P99List_ad_flag
+            | extend day = datetime_add('day', toint(idx), StartTime)
+            | where  day >= ago(3d)        // only the last 2 days
+            | where series_decompose_anomalies_P50List_ad_flag  == -1  or series_decompose_anomalies_P99List_ad_flag == -1
+            | project OperatingSystem, Scenario, Stage, AntaresAbbreviation, P50Number = todouble(P50List), P50ExpectedNumber = P50Percentile, IsP50Improvement = tobool(series_decompose_anomalies_P50List_ad_flag), P99Number = todouble(P99List), P99ExpectedNumber = P99Percentile, IsP99Improvement = tobool(series_decompose_anomalies_P99List_ad_flag), day
+            | order by IsP50Improvement desc, P50Number desc, OperatingSystem desc, Stage asc, Scenario asc, IsP99Improvement desc, P99Number desc
+            )
+            | where Scenario !contains ""ps""
+            | where OperatingSystem != ""Linux""
+            ";
+            return query;
+        }
+
     }
 }
