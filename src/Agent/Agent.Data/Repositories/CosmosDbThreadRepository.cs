@@ -460,6 +460,46 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
     }
 
+    public async Task<Thread> UpdateThreadReadMarkAsync(Guid threadId, DateTime lastReadTime)
+    {
+        string threadIdStr = threadId.ToString();
+
+        try
+        {
+            // Get the current thread document
+            ThreadDocument threadDoc = await GetDocumentAsync<ThreadDocument>(threadIdStr, threadIdStr);
+
+            if (threadDoc == null)
+            {
+                _logger.LogInternalWarning("Cannot update thread: Thread {ThreadId} not found", threadId);
+                return null;
+            }
+
+            // Create updated thread document with properties from the input thread
+            ThreadDocument updatedThreadDoc = threadDoc with
+            {
+                ModifiedTimestamp = DateTime.UtcNow,
+                LastReadTime = lastReadTime,
+            };
+
+            // Save the updated document
+            var response = await _client.GetContainer<ThreadDocument>(_databaseName).ReplaceItemAsync(
+                updatedThreadDoc,
+                threadIdStr,
+                new PartitionKey(threadIdStr)
+            );
+
+            // Get the updated thread with all of its data
+            var updatedThread = await GetThreadAsync(threadId);
+            return updatedThread;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            _logger.LogInternalWarning(ex, "Thread {ThreadId} not found during update", threadId);
+            return null;
+        }
+    }
+
     #endregion
 
     #region Message Operations
@@ -478,6 +518,41 @@ public class CosmosDbThreadRepository : IThreadRepository
         catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
             return null;
+        }
+    }
+    public async Task<int> GetUnreadMessagesCountAsync(Guid threadId, DateTime? lastReadTime)
+    {
+        _logger.LogInternalInformation("Getting unread message count for thread: {Id}", threadId);
+
+        try
+        {
+            string threadIdStr = threadId.ToString();
+
+            // Build the query based on lastReadTime
+            var query = _client.GetContainer<MessageDocument>(_databaseName).GetItemLinqQueryable<MessageDocument>()
+                .Where(m => m.DocumentType == "Message" && m.ThreadId == threadIdStr);
+
+            if (lastReadTime != null)
+            {
+                // Add filter for lastReadTime if it exists
+                query = query.Where(m => m.TimeStamp > lastReadTime.Value);
+            }
+
+            query = query.OrderBy(m => m.TimeStamp);
+
+            // Use ToFeedIterator and count asynchronously
+            int count = await query.CountAsync();
+            return count;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            _logger.LogInternalWarning(ex, "Thread not found when getting unread message count: {Id}", threadId);
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error getting unread message count for thread: {Id}", threadId);
+            throw;
         }
     }
 
@@ -1128,7 +1203,6 @@ public class CosmosDbThreadRepository : IThreadRepository
             return false;
         }
     }
-
     #endregion
 
     #region AgentContext Operations

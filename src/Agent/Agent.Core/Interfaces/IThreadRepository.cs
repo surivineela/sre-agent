@@ -18,9 +18,11 @@ public interface IThreadRepository
     Task<bool> DeleteThreadAsync(Guid threadId);
 
     Task<Thread> UpdateThreadTitleAsync(Guid threadId, string newTitle);
+    Task<Thread> UpdateThreadReadMarkAsync(Guid threadId, DateTime lastReadTime);
 
     Task<Message> GetMessageAsync(Guid threadId, Guid messageId);
     Task<IEnumerable<Message>> GetMessagesAsync(Guid threadId, ODataQueryOptions? queryOptions = null);
+    Task<int> GetUnreadMessagesCountAsync(Guid threadId, DateTime? lastReadTime);
     Task<Message> AddMessageAsync(Guid threadId, Message message);
     Task<Message> UpdateMessageAsync(Guid threadId, Message message);
     Task<bool> DeleteMessageAsync(Guid threadId, Guid messageId);

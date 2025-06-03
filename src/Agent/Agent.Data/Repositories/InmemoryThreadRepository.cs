@@ -188,6 +188,27 @@ namespace Agent.Data.Repositories
             return Task.FromResult(updatedThread);
         }
 
+        public Task<Thread> UpdateThreadReadMarkAsync(Guid threadId, DateTime lastReadTime)
+        {
+            if (!_threads.TryGetValue(threadId, out var existingThread))
+            {
+                _logger.LogInternalWarning("Cannot update thread: Thread {ThreadId} not found", threadId);
+                return Task.FromResult<Thread>(null);
+            }
+
+            // Update the thread with new values and keep the modified timestamp current
+            var updatedThread = existingThread with
+            {
+                ModifiedTimestamp = DateTime.UtcNow,
+                LastReadTime = lastReadTime
+            };
+
+            _threads[threadId] = updatedThread;
+
+            _logger.LogInternalInformation("Successfully updated thread {ThreadId}", threadId);
+            return Task.FromResult(updatedThread);
+        }
+
         #endregion
 
         #region Helper Functions
@@ -254,6 +275,35 @@ namespace Agent.Data.Repositories
         {
             _messages.TryGetValue((threadId, messageId), out var message);
             return Task.FromResult(message);
+        }
+
+        public Task<int> GetUnreadMessagesCountAsync(Guid threadId, DateTime? lastReadTime)
+        {
+            _logger.LogInternalInformation("Getting unread message count for thread: {Id}", threadId);
+
+            // Get all messages for the thread
+            var messages = _messages
+                .Where(kvp => kvp.Key.ThreadId == threadId)
+                .Select(kvp => kvp.Value);
+
+            if (lastReadTime == null)
+            {
+                // If no lastReadTime is provided, count all messages except the first one (start message)
+                // First get the thread to identify the start message
+                if (_threads.TryGetValue(threadId, out var thread))
+                {
+                    // Exclude the start message and count the rest
+                    var totalCount = messages.Count() - 1;
+                    return Task.FromResult(Math.Max(0, totalCount));
+                }
+                return Task.FromResult(0);
+            }
+            else
+            {
+                // Count only messages after lastReadTime
+                int count = messages.Count(m => m.TimeStamp > lastReadTime);
+                return Task.FromResult(count);
+            }
         }
 
         public Task<IEnumerable<Message>> GetMessagesAsync(Guid threadId, ODataQueryOptions? queryOptions)

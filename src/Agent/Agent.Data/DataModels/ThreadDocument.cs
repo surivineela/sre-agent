@@ -23,6 +23,7 @@ public record ThreadDocument(
     public string PartitionKey => Id; // Use Thread Id as partition key
     public static string ContainerName => AgentDataConfiguration.ThreadContainerName;
     public string IncidentId { get; set; } = string.Empty; // Incident Id associated with the thread if the source of the thread is incident
+    public DateTime? LastReadTime { get; set; } = null; // The last time the thread was read
 
     // Conversion to/from domain model
     public static ThreadDocument FromDomainModel(Thread thread) =>
@@ -35,7 +36,11 @@ public record ThreadDocument(
             thread.ModifiedTimestamp,
             thread.Source,
             IncidentSource: thread.IncidentSource
-        );
+        )
+        {
+            IncidentId = thread.Status?.IncidentStatus?.IncidentId ?? string.Empty,
+            LastReadTime = thread.LastReadTime
+        };
 
     public Thread ToDomainModel(Message startMessage, Message? lastMessage) =>
         new Thread(
@@ -47,5 +52,8 @@ public record ThreadDocument(
             ModifiedTimestamp,
             Source,
             IncidentSource: IncidentSource
-        );
+        )
+        {
+            LastReadTime = LastReadTime
+        };
 }

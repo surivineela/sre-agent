@@ -246,7 +246,7 @@ namespace Agent.Web.Controllers.v1
 
             var response = await threadManagementService.CreateMessage(threadId, request);
 
-            if(response == null)
+            if (response == null)
                 return NotFound();
 
             return CreatedAtAction(
@@ -513,6 +513,57 @@ namespace Agent.Web.Controllers.v1
             ));
 
             return CreatedAtAction(nameof(GetThread), new { id = thread.Id }, thread);
+        }
+
+        /// <summary>
+        /// Marks a thread as read and updates the LastReadTime to the current timestamp
+        /// </summary>
+        /// <param name="threadId">Thread ID to mark as read</param>
+        /// <returns>Updated Thread object</returns>
+        [HttpPost("{threadId}/markRead")]
+        public async Task<ActionResult<Thread>> MarkThreadAsRead(Guid threadId)
+        {
+            logger.LogInternalInformation("Marking thread as read: {Id}", threadId);
+
+            // First check if thread exists
+            var thread = await repository.GetThreadAsync(threadId);
+
+            if (thread == null)
+            {
+                logger.LogInternalInformation("Thread not found: {Id}", threadId);
+                return NotFound();
+            }
+
+            // Update thread in repository
+            var updatedThread = await repository.UpdateThreadReadMarkAsync(threadId, DateTime.UtcNow);
+
+            return Ok(updatedThread);
+        }
+
+        /// <summary>
+        /// Gets the count of unread messages in a thread (messages created after LastReadTime)
+        /// </summary>
+        /// <param name="threadId">Thread ID to check for unread messages</param>
+        /// <returns>Count of unread messages</returns>
+        [HttpPost("{threadId}/getUnreadCount")]
+        public async Task<ActionResult<int>> GetUnreadMessageCount(Guid threadId)
+        {
+            logger.LogInternalInformation("Getting unread message count for thread: {Id}", threadId);
+
+            // First check if thread exists
+            var thread = await repository.GetThreadAsync(threadId);
+
+            if (thread == null)
+            {
+                logger.LogInternalInformation("Thread not found: {Id}", threadId);
+                return NotFound();
+            }
+
+            // Use the optimized repository method to get unread message count directly from database
+            var count = await repository.GetUnreadMessagesCountAsync(threadId, thread.LastReadTime);
+
+            // Return the count
+            return Ok(count);
         }
     }
 }

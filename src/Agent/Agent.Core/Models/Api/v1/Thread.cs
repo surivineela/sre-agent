@@ -39,6 +39,7 @@ namespace Agent.Core.Models.Api.v1
     )
     {
         public Status? Status { get; set; } = null;
+        public DateTime? LastReadTime { get; set; } = null;
     };
 
     public class Status

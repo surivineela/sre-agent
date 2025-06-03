@@ -220,7 +220,7 @@ public static class AgentDataConfiguration
         //             new VectorIndexPath()
         //             {
         //                 Path = "/descriptionVector",
-        //                 Type = VectorIndexType.DiskANN, 
+        //                 Type = VectorIndexType.DiskANN,
         //             },
         //             new VectorIndexPath()
         //             {
@@ -238,7 +238,7 @@ public static class AgentDataConfiguration
         //     properties,
         //     throughput: 1000 // Minimum throughput for now
         // );
-        
+
     }
 }
 
