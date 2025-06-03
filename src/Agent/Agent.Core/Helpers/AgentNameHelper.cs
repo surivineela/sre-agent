@@ -28,11 +28,14 @@ public class AgentNameHelper
 
     /// <summary>
     /// Generates a unique identifier for the main dashboard based on the agent name.
+    /// The returned uid is guaranteed to be 40 characters or less, because Grafana has a limit of 40 characters for dashboard UIDs.
+    /// https://github.com/grafana/grafana/issues/11620
     /// </summary>
     /// <returns></returns>
     public static string GetMainDashboardUid(bool isProd)
     {
-        return $"azure-sre-resources-{GetAgentName(isProd).ToLowerInvariant()}";
+        var name = $"{GetAgentName(isProd).ToLowerInvariant()}-azure-sre-resources";
+        return name.Length <= 40 ? name : name[..40];
     }
 
     /// <summary>
