@@ -80,6 +80,7 @@ public class Constants
         public const string OwnedBy = "OWNED_BY";
         public const string RelatedToIncident = "RELATED_TO_INCIDENT";
         public const string MonitoredBy = "MONITORED_BY";
+        public const string HasIgnoreConfig = "HAS_IGNORE_CONFIG";
     }
 
     // indicates this node is a part of specific topology

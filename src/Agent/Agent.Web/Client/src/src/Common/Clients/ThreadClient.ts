@@ -155,7 +155,7 @@ export class ThreadClient extends DataPlaneClient {
         return {
             isSuccessful: true,
             content: data as ThreadContext | undefined,
-        }
+        };
     };
 
     public createThread = async (options: MessagePostOptions, signal?: AbortSignal): Promise<Response<Thread | undefined>> => {
@@ -178,7 +178,7 @@ export class ThreadClient extends DataPlaneClient {
         );
         return {
             isSuccessful: true,
-            content: response?.data
-        }
+            content: response?.data,
+        };
     };
 }

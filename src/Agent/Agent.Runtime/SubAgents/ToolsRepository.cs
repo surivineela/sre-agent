@@ -59,6 +59,7 @@ public class ToolsRepository : IToolsRepository
         Register200<GraphDBPluginDefinition>(x => x.SearchResourceByName);
         Register200<GraphDBPluginDefinition>(x => x.GetActivityLogsSummary);
         Register200<GraphDBPluginDefinition>(x => x.ListResourcesByType);
+        Register200<GraphDBPluginDefinition>(x => x.AddIgnoreTagToResource);
 
         // Not all tools were registered, so registering individually
         Register200<ArmPluginDefinition>(x => x.SetMinimumTlsVersion);

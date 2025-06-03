@@ -15,6 +15,7 @@ public class LocalAuthAgentFactory : SimpleResourceSubAgentFactoryBase<LocalAuth
     private readonly IRemediationPlugin remediationPlugin;
     private readonly IRecordActionsPlugin recordActionsPlugin;
     private readonly IGithubIssuePlugin githubPlugin;
+    private readonly IGraphDBPlugin graphDBPlugin;
 
     public LocalAuthAgentFactory(
         IRemediationPlugin remediationPlugin,
@@ -22,6 +23,7 @@ public class LocalAuthAgentFactory : SimpleResourceSubAgentFactoryBase<LocalAuth
         IThreadOrchestrationManager mappingManager,
         IToolsRepository toolsRepository,
         IGithubIssuePlugin githubPlugin,
+        IGraphDBPlugin graphDBPlugin,
         DurableTaskClient durableTaskClient
         )
         : base(toolsRepository, mappingManager, durableTaskClient)
@@ -29,6 +31,7 @@ public class LocalAuthAgentFactory : SimpleResourceSubAgentFactoryBase<LocalAuth
         this.remediationPlugin = remediationPlugin;
         this.recordActionsPlugin = recordActionsPlugin;
         this.githubPlugin = githubPlugin;
+        this.graphDBPlugin = graphDBPlugin;
     }
 
     protected override IEnumerable<Expression<Func<Delegate>>> GetToolList()
@@ -48,6 +51,9 @@ public class LocalAuthAgentFactory : SimpleResourceSubAgentFactoryBase<LocalAuth
 
         var recordActionsPluginDefinition = new RecordActionsPluginDefinition(recordActionsPlugin);
         yield return () => recordActionsPluginDefinition.GetActionDetails;
+
+        var graphDbPluginDefinition = new GraphDBPluginDefinition(graphDBPlugin);
+        yield return () => graphDbPluginDefinition.AddIgnoreTagToResource;
 
         var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
         yield return () => controlFlowPluginDefinition.Wait;

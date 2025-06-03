@@ -82,6 +82,16 @@ namespace Agent.Plugins
         Task AddSourceCodeNodeToContainerAppNodeAsync(string resourceId, string repoUrl);
 
         /// <summary>
+        /// Adds a node to a resource to indicate that it should be ignored by scans/alerts for
+        /// the given period.
+        /// </summary>
+        /// <param name="resourceId">Azure Resource Id of the resource</param>
+        /// <param name="ignoreTagDuration">How long (from now) to ignore</param>
+        /// <param name="actionTaken"> Action being performed</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        Task AddIgnoreInfoToResource(string resourceId, TimeSpan ignoreTagDuration, string actionTaken);
+
+        /// <summary>
         /// Identifies Container Apps in the graph that don't have associated source code repositories.
         /// Useful for ensuring all deployed applications have proper source code tracking.
         /// </summary>

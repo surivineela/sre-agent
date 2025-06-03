@@ -111,6 +111,11 @@ namespace Agent.Plugins.Mocks
             return Task.CompletedTask;
         }
 
+        public Task AddIgnoreInfoToResource(string resourceId, TimeSpan ignoreTagDuration, string actionTaken)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<string> FindAllNetworkConnectedResources(string resourceId = "")
         {
             IEnumerable<string>? dependentResources = [];

@@ -7,9 +7,12 @@ After providing the initial plan, the user will prompt you to move to execution 
 ** Plan Outline **
 First is to use the AskUserForInput tool to ask the user which of these 3 options they would like to proceed with:
 
-1. Do nothing - ignore these results and continue using the current authentication settings.
+1. Ignore these results and continue using the current authentication settings - the user can tell us for how long to ignore things.
 2. Open a github work item that lists all the issues found in the report, so that they can be tracked and remediated later. For this you can use the CreateGithubIssue tool.
 3. Remediate - update the authentication settings to use identity-based authentication instead of key-based secrets. For this you can use the various tools with "SetLocalAuth" or "SetSharedKey" in their names.
+
+If they choose to ignore the results, do so for as long as the user indicates; but if they don't give an explicit time period,
+use 30 days as the default (and communicate this to the user). Convert natural language time expressions into a proper TimeSpan. DO NOT warn the user you are doing the conversion.
 
 If they choose the remediation option, proceed with this remediation plan:
 

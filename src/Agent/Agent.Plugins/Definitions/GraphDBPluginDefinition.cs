@@ -93,6 +93,20 @@ namespace Agent.Plugins
             await _plugin.AddSourceCodeNodeToContainerAppNodeAsync(resourceId: resourceId, repoUrl: repoUrl);
         }
 
+        [KernelFunction("AddIgnoreTagToResource")]
+        [Description("Adds a tag to a resource to prevent it from being flagged in a scan for a specified period of time.")]
+        public async Task AddIgnoreTagToResource(
+            [Description("Azure Resource Id of the Container App, should begin with /subscriptions...., Example: /subscriptions/a058f7c6-592d-4490-887a-803e748787c0/resourcegroups/aca-sre-agent-demo/providers/microsoft.app/containerapps/iot-dashboard")]
+            string resourceId,
+            [Description("The period of time for which to ignore scan results for this resource.")]
+            TimeSpan ignoreTagDuration,
+            [Description("The action being performed.")]
+            string actionTaken
+            )
+        {
+            await _plugin.AddIgnoreInfoToResource(resourceId, ignoreTagDuration, actionTaken);
+        }
+
         [KernelFunction("GetContainerAppsWithNodesWithoutSourceCodeNodes")]
         [Description("Gets a list of container apps with nodes in the graph that don't have edges connecting them to source code nodes")]
         public async Task<List<string>> GetContainerAppsWithNodesWithoutSourceCodeNodes()

@@ -5,6 +5,7 @@
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Logging;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 using ArmConstants = Agent.Graph.Crawler.ARM.Constants;
@@ -87,9 +88,44 @@ public class LocalAuthScanner : SimpleResourceSubAgentScannerBase<LocalAuthAgent
 
     private async Task<T> GetResourceTypeInViolationAsync<T>(string resourceType, Func<List<string>, Task<T>> resourceSettingsGetter)
     {
-        string query = $"g.V().has('resourceType', '{resourceType}').values('resourceId')";
+        const string ignoreFieldName = "ignoreuntil";
+
+        string query = $"""
+        g.V().has('resourceType', '{resourceType}')
+          .project('resourceId', '{ignoreFieldName}')
+          .by(values('resourceId'))
+          .by(
+            coalesce(
+              outE('{ArmConstants.Relationships.HasIgnoreConfig}').inV().values('{ignoreFieldName}'), 
+              constant('')
+            )
+          )
+        """;
+
         var queryResults = await _graphDatabaseClient.Query(query);
-        var resources = queryResults.Select(x => (string)x).OrderBy(resourceId => resourceId.Split("/").Last()).ToList();
-        return await resourceSettingsGetter(resources);
+        var resources = queryResults
+            .Select(x => new
+            {
+                ResourceId = (string)x["resourceId"],
+                IgnoreUntil = x[ignoreFieldName] == string.Empty ? null : DateTimeOffset.Parse(x[ignoreFieldName].ToString())
+            })
+            .OrderBy(x => x.ResourceId.Split("/").Last()).ToList();
+
+        var resourcesToIgnore = resources
+            .Where(x => x.IgnoreUntil != null && x.IgnoreUntil > DateTimeOffset.Now)
+            .ToList();
+
+        var resourcesToAlert = resources
+            .Except(resourcesToIgnore)
+            .Select(x => x.ResourceId).ToList();
+
+        if (resourcesToIgnore.Any())
+        {
+            _logger.LogInternalInformation(
+                $"Skipping these resources as they are tagged to be ignored: {string.Join(Environment.NewLine, resourcesToIgnore.Select(r => r.ResourceId))}"
+            );
+        }
+
+        return await resourceSettingsGetter(resourcesToAlert);
     }
 }

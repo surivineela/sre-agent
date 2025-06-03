@@ -12,6 +12,7 @@ using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler;
 using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Schema;
+using Agent.Logging;
 using Azure.Core;
 using Gremlin.Net.Driver;
 using Microsoft.Azure.Management.Monitor.Fluent;
@@ -23,8 +24,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Rest.Azure;
 using Microsoft.Rest.Azure.OData;
 using Microsoft.SemanticKernel;
-using Agent.Logging;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Agent.Core.Helpers;
 using Microsoft.Extensions.Hosting;
 
@@ -674,6 +673,62 @@ g.V().has('id', '{deploymentResourceId}')
             }
 
             return nodes;
+        }
+
+        public async Task AddIgnoreInfoToResource(string resourceId, TimeSpan ignoreTagDuration, string actionTaken)
+        {
+            try
+            {
+                // Format the resource node ID
+                var resourceNodeId = CrawlerExtensions.GetSanitizedCosmosDBId(resourceId);
+
+                // Check if the resource node exists
+                string query = $@"g.V().hasId('{resourceNodeId}')";
+                var resourceNodeResults = await GraphDbClient.Query(query);
+
+                if (!resourceNodeResults.Any())
+                {
+                    _logger.LogInternalWarning($"Resource with ID {resourceId} not found in graph database.");
+                    return;
+                }
+
+                // Calculate expiration time
+                var absoluteExpiration = DateTimeOffset.Now + ignoreTagDuration;
+
+                // Create a unique ID for the auth configuration node
+                string configNodeId = $"{resourceNodeId}_auth_config";
+
+                // Prepare properties for the configuration node
+                var properties = new Dictionary<string, object>
+                {
+                    { "resourceId", resourceId },
+                    { "targetResourceId", resourceId },
+                    { "last_checked_at", DateTime.UtcNow },
+                    { "notification_ignoreuntil", absoluteExpiration },
+                    { "latest_status", actionTaken },
+                    { "resourceName", $"AuthConfig-{resourceId.Split('/').Last()}" },
+                    { "updateTs", DateTime.UtcNow.Ticks },
+                };
+
+                // Create the auth configuration node
+                await GraphDbClient.AddOrUpdateNodeAsync(
+                    "resource_auth_config",
+                    configNodeId,
+                    "resource_auth_config",
+                    properties);
+
+                // Create an edge from the resource node to the auth configuration node
+                await GraphDbClient.AddOrUpdateEdgeAsync(
+                    resourceNodeId,
+                    configNodeId,
+                    "HAS_AUTH_CONFIG");
+
+                _logger.LogInternalInformation($"Created auth configuration for resource {resourceId} with ignoreuntil {absoluteExpiration}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Error creating auth configuration node.");
+            }
         }
 
         public async Task AddSourceCodeNodeToContainerAppNodeAsync(string resourceId, string repoUrl)
