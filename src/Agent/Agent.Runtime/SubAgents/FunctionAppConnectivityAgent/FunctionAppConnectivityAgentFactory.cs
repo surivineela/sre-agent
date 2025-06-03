@@ -39,7 +39,7 @@ public sealed class FunctionAppConnectivityAgentFactory
         toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.CheckTcpConnectivity));
         toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.CheckDnsResolution));
         toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.GetAppSetting));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.ListKeysForStorageAsync));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.ListKeysAndUpdateAppSettingsAsync));
         toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.UpdateAppSettingsAsync));
 
         var roleAssignmentPluginDefinition = new RoleAssignmentPluginDefinition(roleAssignmentPlugin);

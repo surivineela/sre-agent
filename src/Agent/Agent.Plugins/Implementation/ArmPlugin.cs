@@ -145,9 +145,9 @@ namespace Agent.Plugins.Implementation
             return await _armHelper.GetAppSetting(resourceId, appSettingKey);
         }
 
-        public async Task<IDictionary<string, string>> ListKeysForStorageAsync(string resourceId)
+        public async Task<bool> ListKeysAndUpdateAppSettingsAsync(string storageResourceId, string appServiceResourceId, string appSettingKey)
         {
-            return await _armHelper.ListKeysForStorageAsync(resourceId);
+            return await _armHelper.ListKeysAndUpdateAppSettingsAsync(storageResourceId, appServiceResourceId, appSettingKey);
         }
 
         public async Task<bool> UpdateAppSettingsAsync(string resourceId, IDictionary<string, string> appSettings)

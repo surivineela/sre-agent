@@ -111,17 +111,21 @@ namespace Agent.Plugins
             return await _armPlugin.GetAppSetting(resourceId, appSettingKey);
         }
 
-        [Description("Lists the keys for a given Azure Storage account.")]
-        public async Task<IDictionary<string, string>> ListKeysForStorageAsync(
-            [Description("Full resource id of an Azure Storage account")] string resourceId)
+        [RequiresApproval]
+        [Description("Lists the keys for a given Azure Storage account and updates the specified App Setting in an App Service.")]
+        public async Task<bool> ListKeysAndUpdateAppSettingsAsync(
+            [Description("Full resource id of an Azure Storage account")] string storageResourceId,
+            [Description("Full resource id of an Azure App Service")] string appServiceResourceId,
+            [Description("The App Setting key to update with the storage account connection string")] string appSettingKey)
         {
-            return await _armPlugin.ListKeysForStorageAsync(resourceId);
+            return await _armPlugin.ListKeysAndUpdateAppSettingsAsync(storageResourceId, appServiceResourceId, appSettingKey);
         }
 
-        [Description("Updates the App Settings for a given Azure resource.")]
+        [RequiresApproval]
+        [Description("Updates specific configuration values in the App Settings for a given Azure resource. Only use when explicitly asked to modify the Azure resource's configuration settings.")]
         public async Task<bool> UpdateAppSettingsAsync(
             [Description("Full resource id of an Azure resource")] string resourceId,
-            [Description("Key-value pairs of App Settings to update")] IDictionary<string, string> appSettings)
+            [Description("Key-value pairs of App Settings to update (only include settings that need to be changed)")] IDictionary<string, string> appSettings)
         {
             return await _armPlugin.UpdateAppSettingsAsync(resourceId, appSettings);
         }

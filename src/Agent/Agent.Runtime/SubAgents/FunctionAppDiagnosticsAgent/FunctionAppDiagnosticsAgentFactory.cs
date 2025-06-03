@@ -80,7 +80,7 @@ public sealed class FunctionAppDiagnosticsAgentFactory
             toolsRepository.GetSignature(() => armPluginDefinition.CheckTcpConnectivity),
             toolsRepository.GetSignature(() => armPluginDefinition.CheckDnsResolution),
             toolsRepository.GetSignature(() => armPluginDefinition.GetAppSetting),
-            toolsRepository.GetSignature(() => armPluginDefinition.ListKeysForStorageAsync),
+            toolsRepository.GetSignature(() => armPluginDefinition.ListKeysAndUpdateAppSettingsAsync),
             toolsRepository.GetSignature(() => armPluginDefinition.UpdateAppSettingsAsync)
         };
 

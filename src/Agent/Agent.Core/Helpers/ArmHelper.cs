@@ -1792,8 +1792,6 @@ public class ArmHelper
 
         httpClient.BaseAddress = new Uri("https://management.azure.com");
 
-        httpClient.BaseAddress = new Uri("https://management.azure.com");
-
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, resourceId + "/tcpPingCheck?api-version=2022-03-01");
 
         if (host.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
@@ -1915,6 +1913,12 @@ public class ArmHelper
         // Merge new app settings with existing ones
         foreach (var kvp in appSettings)
         {
+            if (existingAppSettings.ContainsKey(kvp.Key))
+            {
+                var archivedKey = $"Archived{kvp.Key}";
+                existingAppSettings[archivedKey] = existingAppSettings[kvp.Key];
+            }
+
             existingAppSettings[kvp.Key] = kvp.Value;
         }
 
@@ -1936,13 +1940,19 @@ public class ArmHelper
         return response.IsSuccessStatusCode;
     }
 
-    public async Task<Dictionary<string, string>> ListKeysForStorageAsync(string resourceId)
+    public async Task<bool> ListKeysAndUpdateAppSettingsAsync(string storageResourceId, string appServiceResourceId, string appSettingKey)
     {
-        if (string.IsNullOrWhiteSpace(resourceId))
-            throw new ArgumentException("Resource ID is required");
+        if (string.IsNullOrWhiteSpace(storageResourceId))
+            throw new ArgumentException("Storage Resource ID is required");
+
+        if (string.IsNullOrWhiteSpace(appServiceResourceId))
+            throw new ArgumentException("App Service Resource ID is required");
+
+        if (string.IsNullOrWhiteSpace(appSettingKey))
+            throw new ArgumentException("App Setting Key is required");
 
         var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
-        string requestUrl = $"https://management.azure.com{resourceId}/listKeys?api-version=2023-05-01";
+        string requestUrl = $"https://management.azure.com{storageResourceId}/listKeys?api-version=2023-05-01";
 
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
 
@@ -1957,14 +1967,31 @@ public class ArmHelper
         string responseContent = await response.Content.ReadAsStringAsync();
         var jsonResponse = JsonDocument.Parse(responseContent);
 
-        var keys = jsonResponse.RootElement.GetProperty("keys")
-            .EnumerateArray()
-            .ToDictionary(
-                key => key.GetProperty("keyName").GetString(),
-                key => key.GetProperty("value").GetString()
-            );
+        // Get the storage account name from the resource ID
+        string storageAccountName = storageResourceId.Split('/').Last();
 
-        return keys;
+        // Get the first key
+        string key = jsonResponse.RootElement.GetProperty("keys")
+            .EnumerateArray()
+            .FirstOrDefault()
+            .GetProperty("value")
+            .GetString();
+
+        if (string.IsNullOrEmpty(key))
+        {
+            throw new Exception("No valid storage key found");
+        }
+
+        // Construct the connection string
+        string connectionString = $"DefaultEndpointsProtocol=https;AccountName={storageAccountName};AccountKey={key};EndpointSuffix=core.windows.net";
+
+        // Update the app setting with the connection string
+        var appSettings = new Dictionary<string, string>
+        {
+            { appSettingKey, connectionString }
+        };
+
+        return await UpdateAppSettingsAsync(appServiceResourceId, appSettings);
     }
 
     public static int GetNumberOfCoresFromSku(string sku)

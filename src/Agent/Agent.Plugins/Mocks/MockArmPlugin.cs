@@ -126,14 +126,9 @@ namespace Agent.Plugins.Mocks
             return Task.FromResult((IDictionary<string, string>)new Dictionary<string, string>());
         }
 
-        public Task<IDictionary<string, string>> ListKeysForStorageAsync(string resourceId)
+        public Task<bool> ListKeysAndUpdateAppSettingsAsync(string storageResourceId, string appServiceResourceId, string appSettingKey)
         {
-            var mockKeys = new Dictionary<string, string>
-           {
-               { "Key1", "MockKeyValue1" },
-               { "Key2", "MockKeyValue2" }
-           };
-            return Task.FromResult((IDictionary<string, string>)mockKeys);
+            return Task.FromResult<bool>(true);
         }
 
         public Task<bool> UpdateAppSettingsAsync(string resourceId, IDictionary<string, string> appSettings)

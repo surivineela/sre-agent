@@ -25,7 +25,7 @@ namespace Agent.Plugins
         Task<string> CheckTcpConnectivity(string resourceId, string host, int port);
         Task<string> CheckDnsResolution(string resourceId, string destinationUrl);
         Task<IDictionary<string, string>> GetAppSetting(string resourceId, string appSettingKey);
-        Task<IDictionary<string, string>> ListKeysForStorageAsync(string resourceId);
+        Task<bool> ListKeysAndUpdateAppSettingsAsync(string storageResourceId, string appServiceResourceId, string appSettingKey);
         Task<bool> UpdateAppSettingsAsync(string resourceId, IDictionary<string, string> appSettings);
         Task<string> RunAzCliReadCommandsAsync(string command);
         Task<string> RunAzCliWriteCommandsAsync(string command);
