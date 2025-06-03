@@ -504,6 +504,114 @@ public class ArmHelper
         return response.IsSuccessStatusCode;
     }
 
+    public async Task<string> ProfileAndGetCPUReport(string appServiceResource)
+    {
+        try
+        {
+            // Step 1: Get the instances for the given App Service resource
+            var instances = await GetAppServiceInstanceMachineNamesAsync(appServiceResource);
+
+            if (instances == null || instances.Length == 0)
+            {
+                return string.Empty;
+            }
+
+            var requestUrl = $"https://management.azure.com{appServiceResource}/extensions/daas/sessions?api-version=2015-08-01";
+            var payload = new
+            {
+                Mode = "CollectAndAnalyze",
+                Tool = "Profiler with CPU Stacks",
+                Instances = instances
+            };
+
+            // Step 2: Send the request to start the DaaS session and obtain a session ID.
+            var content = new StringContent(JObject.FromObject(payload).ToString(), Encoding.UTF8, "application/json");
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
+            request.Content = content;
+            using var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+            var response = await httpClient.SendAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                string errorMessage = $"Failed to get DaaS SessionId for ResourceId: {appServiceResource} with error message: {await response.Content.ReadAsStringAsync()}";
+                _logger.LogInternalError(errorMessage);
+                throw new Exception(errorMessage);
+            }
+
+            string sessionId = await response.Content.ReadAsStringAsync();
+
+            // Step 3: Wait for the DaaS session to complete and retrieve the report data path.
+            var result = await WaitForDaaSSessionCompletionWithRetriesAsync(appServiceResource, sessionId);
+            string partialPath = (string)result["ActiveInstances"]?[0]?["Logs"]?[0]?["Reports"]?[0]?["PartialPath"] ?? "";
+            string instance = result["ActiveInstances"]?[0]?["Name"]?.ToString() ?? "";
+
+            if (string.IsNullOrEmpty(partialPath) || string.IsNullOrEmpty(instance))
+            {
+                string errorMessage = $"Failed to get CPU analysis for ResourceId: {appServiceResource}. PartialPath or Instance is null or empty.";
+                _logger.LogInternalError(errorMessage);
+                throw new Exception(errorMessage);
+            }
+
+            // Step 4: Get the path to the raw data.
+            partialPath = Path.Combine("C:\\home\\", partialPath);
+            string parentFolder = Path.GetDirectoryName(partialPath);
+            string reportDataPath = Path.Combine(parentFolder, instance, "reportdata");
+            reportDataPath = reportDataPath.Replace("\\", "/");
+
+            string hostName = await GetKuduHostNameAsync(appServiceResource);
+            string reportRequestUrl = $"https://{hostName}/api/vfs/{reportDataPath}/";
+            HttpRequestMessage reportRequest = new HttpRequestMessage(HttpMethod.Get, reportRequestUrl);
+            var cred = await _authService.GetArmOperationCredential();
+            var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://api.applicationinsights.io/.default" }), CancellationToken.None);
+            reportRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+            var reportResponse = await httpClient.SendAsync(reportRequest);
+
+            if (!reportResponse.IsSuccessStatusCode)
+            {
+                string errorMessage = $"Failed to retrieve report data from: {reportRequestUrl} with status code: {reportResponse.StatusCode} and error message: {await reportResponse.Content.ReadAsStringAsync()} for appServiceResource: {appServiceResource} and sessionId: {sessionId}";
+                _logger.LogInternalError(errorMessage);
+                throw new Exception(errorMessage);
+            }
+
+            // Step 5: Get the CPU stack file from the report data.
+            string reportContent = await reportResponse.Content.ReadAsStringAsync();
+            JArray reportFiles = JArray.Parse(reportContent);
+            var cpuStackFile = reportFiles.FirstOrDefault(file => file["name"] != null && file["name"].ToString().Contains("cpuStacks", StringComparison.OrdinalIgnoreCase)
+                    && !file["name"].ToString().Contains("Jmc"));
+
+            if (cpuStackFile == null)
+            {
+                string errorMessage = $"No CPU stack file found in the report data for appServiceResource: {appServiceResource} and sessionId: {sessionId} - this is because the overall CPU utilization < 2%";
+                _logger.LogInternalError(errorMessage);
+                throw new Exception(errorMessage);
+            }
+
+            // Step 6: Get the contents of the CPU Stack file.
+            string urlOfCpuStack = cpuStackFile["href"].ToString();
+            HttpRequestMessage cpuStackRequest = new HttpRequestMessage(HttpMethod.Get, urlOfCpuStack);
+            cred = await _authService.GetArmOperationCredential();
+            token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://api.applicationinsights.io/.default" }), CancellationToken.None);
+            cpuStackRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+            var cpuStackDataResponse = await httpClient.SendAsync(cpuStackRequest);
+            if (!cpuStackDataResponse.IsSuccessStatusCode)
+            {
+                string errorMessage = $"Failed to get CPU Stack Data for appServiceResource: {appServiceResource} and sessionId: {sessionId}";
+                _logger.LogInternalError(errorMessage);
+                throw new Exception(errorMessage);
+            }
+
+            string cpuStackDataContent = await cpuStackDataResponse.Content.ReadAsStringAsync();
+            return cpuStackDataContent;
+        }
+
+        catch (Exception e)
+        {
+            string errorMessage = $"Failed to Get CPU Analysis for: {appServiceResource} with exception: {e.Message}"; 
+            _logger.LogInternalError(errorMessage);
+            throw; 
+        }
+    }
+
     public async Task<string> TakeMemoryDumpAsync(string appServiceResource)
     {
         try
@@ -2039,6 +2147,61 @@ public class ArmHelper
         else
         {
             throw new InvalidOperationException("Unsupported OS type.");
+        }
+    }
+
+    public async Task<JObject> WaitForDaaSSessionCompletionWithRetriesAsync(string appServiceResource, string sessionId)
+    {
+        int retryCount = 0;
+        sessionId = sessionId.Replace("\"", "");
+        var requestUrl = $"https://management.azure.com/{appServiceResource}/extensions/daas/sessions/{sessionId}?api-version=2015-08-01";
+
+        var cred = await _authService.GetArmOperationCredential();
+        var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://management.azure.com/.default" }), default);
+        using var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+
+        while (true)
+        {
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+
+            try
+            {
+                var response = await httpClient.SendAsync(request);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new Exception($"Failed to get session details: {response.ReasonPhrase}");
+                }
+
+                var content = await response.Content.ReadAsStringAsync();
+                JObject json = JObject.Parse(content);
+                var status = json.ContainsKey("Status") ? json["Status"]?.ToString() : null;
+
+                if (status == "Complete")
+                {
+                    return json;
+                }
+
+                else
+                {
+                    ++retryCount;
+                    if (retryCount >= 30) // 5 minutes max
+                    {
+                        throw new Exception($"DaaS Session did not complete within the expected time for: {appServiceResource} for SessionId: {sessionId}.");
+                    }
+
+                    // Delay for 10 seconds before checking again
+                    await Task.Delay(TimeSpan.FromSeconds(10));
+                }
+            }
+
+            catch (Exception ex)
+            {
+                string errorMessage = $"Error checking session status for ResourceId: {appServiceResource} and sessionId: {sessionId} - {ex.Message}";
+                _logger.LogInternalError(errorMessage);
+                throw;
+            }
         }
     }
 

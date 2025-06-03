@@ -1,7 +1,15 @@
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 using Agent.Core.Helpers;
 using Agent.Logging;
 using Agent.Plugins.Definitions;
+using Azure.Core;
+using Azure.Identity;
 using Microsoft.Extensions.Logging;
+using Microsoft.Identity.Client.Platforms.Features.DesktopOs.Kerberos;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Agent.Plugins.Implementation.DiagnosticsPlugin.ComputeResourceDiagnosticStrategies;
 
@@ -75,7 +83,64 @@ internal sealed class AppServiceDiagnosticStrategy : ComputeResourceDiagnosticSt
 
     internal async Task<string> AnalyzeCpuAsync(string resourceId, ComputeResourceInfo info, AnalysisType type, string additionalProperties)
     {
-        // TODO: Implement CPU analysis for App Service.
-        throw new NotImplementedException();
+        string cpuStackReport = await _armHelper.ProfileAndGetCPUReport(resourceId);
+        var jsonReaderSettings = new JsonLoadSettings
+        {
+            CommentHandling = CommentHandling.Ignore,
+            LineInfoHandling = LineInfoHandling.Ignore
+        };
+
+        // Parse the JSON with increased depth limit
+        using (var stringReader = new StringReader(cpuStackReport))
+        using (var jsonReader = new JsonTextReader(stringReader))
+        {
+            jsonReader.MaxDepth = null;
+            var serializer = new Newtonsoft.Json.JsonSerializer
+            {
+                MaxDepth = null // Unlimited depth
+            };
+
+            var rootNode = serializer.Deserialize<FunctionNode>(jsonReader);
+
+            if (rootNode != null)
+            {
+                List<FunctionNode> allNodes = new List<FunctionNode>();
+                CPUFunctionAnalyzer.TraverseTree(rootNode, allNodes);
+
+                StringBuilder sb = new StringBuilder();
+                // Get top inclusive methods
+                var topInclusiveMethods = CPUFunctionAnalyzer.GetTopInclusiveMethods(allNodes, 10);
+                sb.AppendLine("Top Inclusive Methods:");
+                foreach (var method in topInclusiveMethods)
+                {
+                    sb.AppendLine(CPUFunctionAnalyzer.PrintSummary(method));
+                }
+
+                // Get top exclusive methods
+                var topExclusiveMethods = CPUFunctionAnalyzer.GetTopExclusiveMethods(allNodes, 10);
+                sb.AppendLine("Top Exclusive Methods:");
+                foreach (var method in topExclusiveMethods)
+                {
+                    sb.AppendLine(CPUFunctionAnalyzer.PrintSummary(method));
+                }
+
+                // Get user methods
+                sb.AppendLine("\nUser Methods:");
+                var userMethods = CPUFunctionAnalyzer.GetUserMethods(allNodes).OrderByDescending(m => m.InclusiveMetricPercent).Take(10);
+                foreach (var method in userMethods)
+                {
+                    sb.AppendLine(CPUFunctionAnalyzer.PrintSummary(method));
+                }
+
+                return sb.ToString();
+            }
+
+            else
+            {
+                string errorMessage = $"Failed to parse CPU stack report. RootNode is null or not found in the CPU stack data for {resourceId}.";
+                _logger.LogInternalError(errorMessage);
+                throw new ArgumentException(errorMessage);
+            }
+        }
     }
 }

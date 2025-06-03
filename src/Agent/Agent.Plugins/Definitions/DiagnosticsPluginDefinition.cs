@@ -1,6 +1,5 @@
 using System.ComponentModel;
 using Agent.Framework;
-using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins.Definitions;
 
