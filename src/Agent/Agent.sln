@@ -52,8 +52,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agent.Evals.Common", "Agent
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agent.Logging", "Agent.Logging\Agent.Logging.csproj", "{C846BCA8-F76C-40C4-A16C-3E3B444289C3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotnetAnalyzer", "DotnetAnalyzer\DotnetAnalyzer.csproj", "{587E55B6-87F3-4B38-B141-5C056704C3BC}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agent.Framework", "Agent.Framework\Agent.Framework.csproj", "{55BC2F28-9FD5-4313-9306-17DCDAFD0686}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agent.Framework.Examples", "Agent.Framework.Examples\Agent.Framework.Examples.csproj", "{9B08B166-A434-5ACB-EFEB-64AB5D049A9D}"

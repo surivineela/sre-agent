@@ -27,12 +27,38 @@ internal sealed class ContainerAppDiagnosticStrategy : ComputeResourceDiagnostic
         _analysisHandlers = new Dictionary<AnalysisType, Func<string, ComputeResourceInfo, AnalysisType, string, Task<string>>>
         {
             { AnalysisType.Memory, AnalyzeMemoryAsync },
+            { AnalysisType.Latency, AnalyzeLatencyAsync },
             { AnalysisType.Cpu, AnalyzeCPUAsync },
         };
     }
 
     public override bool CanHandle(ComputeResourceInfo resourceInfo)
         => resourceInfo.ResourceType == ComputeResourceType.ContainerApp;
+
+    private async Task<string> AnalyzeLatencyAsync(string resourceId, ComputeResourceInfo computeResourceInfo, AnalysisType type, string additionalProperties)
+    {
+        if (computeResourceInfo.LanguageStack == LanguageStack.Dotnet && await IsDotnetBased(resourceId))
+        {
+            _logger.LogInternalInformation($"[AnalyzeLatencyAsync] Getting latency analysis for {resourceId}");
+            try
+            {
+                string commands = " apt-get update; apt-get install -y curl; curl https://dotnetanalysis.blob.core.windows.net/acascripts/dotnet-latency-analyze.sh -o /tmp/dotnet-latency-analyze.sh; chmod +x /tmp/dotnet-latency-analyze.sh; sh /tmp/dotnet-latency-analyze.sh";
+                return await InvokeExecCommand(resourceId, commands);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError($"[AnalyzeLatencyAsync] Error executing command: {ex.Message} for {resourceId}");
+                throw;
+            }
+        }
+
+        else
+        {
+            string errorMessage = $"Unsupported language stack for memory analysis: {resourceId}";
+            _logger.LogInternalError(errorMessage);
+            throw new ArgumentException(errorMessage);
+        }
+    }
 
     internal async Task<string> AnalyzeMemoryAsync(string resourceId, ComputeResourceInfo computeResourceInfo, AnalysisType analysisType, string additionalProperties)
     {

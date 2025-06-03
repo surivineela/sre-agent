@@ -21,6 +21,13 @@ public sealed class DiagnosticsPluginDefinition
         return await _diagnosticsPlugin.GetAnalysisAsync(resourceId, analysisType, additionalProperties);
     }
 
+    [Description("Gets the diagnostic latency analysis for a particular compute resource based on a particular resourceId and analysis type.")]
+    public async Task<string> GetLatencyAnalysis([Description("The resource Id.")] string resourceId,
+                                               [Description("Additional properties for the analysis such as for AKS' resource identification.")] string additionalProperties)
+    {
+        return await _diagnosticsPlugin.GetAnalysisAsync(resourceId, AnalysisType.Latency, additionalProperties);
+    }
+
     [Description("Gets the CPU diagnostic analysis for a particular compute resource for high cpu situations or situations with cpu spikes.")]
     public async Task<string> GetCPUAnalysis([Description("The full Azure resource ID of the resource to diagnose (format: /subscriptions/{subId}/resourceGroups/{rgName}/providers/{resourceProvider}/{resourcetype}/{resourceName}).")] string resourceId,
                                              [Description("Required for AKS resources. Provide semicolon separated key-value pairs: 'namespace' (pod namespace), 'pod' (pod name), 'container' (container name within the pod).")] string additionalProperties)

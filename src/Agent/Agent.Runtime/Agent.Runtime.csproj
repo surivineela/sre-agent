@@ -50,6 +50,9 @@
     <None Update="AgentsV2\DiagnosticsAgents\DiagnosticCPUAgent.yaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="AgentsV2\DiagnosticsAgents\DiagnosticLatencyAgent.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="AgentsV2\DiagnosticsAgents\DiagnosticMemoryAgent.yaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

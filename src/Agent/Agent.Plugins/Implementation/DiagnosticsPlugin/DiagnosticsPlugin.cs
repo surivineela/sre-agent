@@ -76,7 +76,8 @@ public sealed class DiagnosticsPlugin : IDiagnosticsPlugin
 
     public Task<string> GetCPUAnalysisAsync(string resourceId, string additionalProperties)
        => GetAnalysisAsync(resourceId, AnalysisType.Cpu, additionalProperties);
-
+    public Task<string> GetLatencyAnalysisAsync(string resourceId, string additionalProperties)
+       => GetAnalysisAsync(resourceId, AnalysisType.Latency, additionalProperties);
     public Task<string> GetMemoryAnalysisAsync(string resourceId, string additionalProperties)
         => GetAnalysisAsync(resourceId, AnalysisType.Memory, additionalProperties);
 

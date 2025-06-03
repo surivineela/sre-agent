@@ -10,6 +10,7 @@ handoff_description: "Handoff to this agent when dealing with Azure Container Ap
 
 handoffs:
   - container_apps_http_error_agent
+  - diagnostic_latency_agent 
   - diagnostic_cpu_agent
   - diagnostic_memory_agent
   # - container_apps_auto_scale_agent
