@@ -141,12 +141,6 @@ public class ThreadManagementService(
             return null;
         }
 
-        if (agentContext.ApprovalInformation != null && agentContext.ApprovalInformation.PendingApprovals.Count > 0)
-        {
-            // TODO: block messages for pending approval in a better way
-            return null;
-        }
-
         var response = await agentInboundCommunicationService.ProcessUserMessageAsync(new ThreadMessage
         (
             ThreadId: threadId,

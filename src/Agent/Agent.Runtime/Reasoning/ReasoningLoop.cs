@@ -17,6 +17,7 @@ using Agent.Framework;
 using Agent.Logging;
 using Agent.Runtime.Helpers;
 using Agent.Runtime.SubAgents.Core;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
@@ -30,7 +31,7 @@ public class ReasoningLoop
     private readonly IAgentOutboundCommunicationService _outboundCommunicationService;
     private AgentContext _context;
     private readonly IThreadRepository _threadRepository;
-    private readonly Channel<ChatMessage> _msgCh;
+    private readonly Channel<ReasoningLoopMessage> _msgCh;
     private readonly SemaphoreSlim _semaphore = new(initialCount: 1, maxCount: 1);
     private readonly ToolFactory<AgentContext> _toolFactory;
     private readonly ActionSettings _actionSettings;
@@ -53,7 +54,7 @@ public class ReasoningLoop
         _loggerFactory = loggerFactory;
         _chatClient = chatClient;
         _outboundCommunicationService = outboundCommunicationService;
-        _msgCh = Channel.CreateUnbounded<ChatMessage>(new UnboundedChannelOptions
+        _msgCh = Channel.CreateUnbounded<ReasoningLoopMessage>(new UnboundedChannelOptions
         {
             SingleReader = true,
             AllowSynchronousContinuations = true
@@ -65,12 +66,12 @@ public class ReasoningLoop
         _actionSettings = actionSettings;
     }
 
-    public async Task AppendNewMessageAsync(ChatMessage msg, CancellationToken cancellationToken = default)
+    public async Task AppendNewUserMessageAsync(ChatMessage msg, CancellationToken cancellationToken = default)
     {
         if (await _msgCh.Writer.WaitToWriteAsync(cancellationToken))
         {
-            _logger.LogInternalInformation("Appending new message");
-            await _msgCh.Writer.WriteAsync(msg, cancellationToken);
+            _logger.LogInternalInformation("Appending new user message");
+            await _msgCh.Writer.WriteAsync(new ReasoningLoopUserMessage(msg), cancellationToken);
 
             _ = Task.Run(async () => await RunAsync(cancellationToken), cancellationToken);
         }
@@ -80,32 +81,19 @@ public class ReasoningLoop
         }
     }
 
-    public async Task NotifyApprovalDecisionAsync(Approval approval, CancellationToken cancellationToken = default)
+    public async Task AppendNewApprovalMessageAsync(Approval approval, CancellationToken cancellationToken = default)
     {
-        // TODO: this will not wait for the semaphore to be released if it is already acquired
-        if (!await _semaphore.WaitAsync(0, cancellationToken))
+        if (await _msgCh.Writer.WaitToWriteAsync(cancellationToken))
         {
-            return;
-        }
+            _logger.LogInternalInformation("Appending new approval message");
+            await _msgCh.Writer.WriteAsync(new ReasoningLoopApprovalMessage(approval), cancellationToken);
 
-        try
+            _ = Task.Run(async () => await RunAsync(cancellationToken), cancellationToken);
+        }
+        else
         {
-            AgentChatHistory agentChatHistory = await _threadRepository.GetAgentChatHistoryAsync(_context.Id);
-
-            bool shouldStop = await ProcessNewApprovalAsync(agentChatHistory, approval, cancellationToken);
-            if (shouldStop)
-            {
-                return;
-            }
-
-            await RunInternalAsync(agentChatHistory, cancellationToken);
+            throw new InvalidOperationException("Channel is closed.");
         }
-        catch (Exception ex)
-        {
-            _logger.LogInternalError(ex, "An error occurred while notifying approval decision.");
-        }
-
-        _semaphore.Release();
     }
 
     public async Task LoadChatHistoryAsync()
@@ -129,15 +117,13 @@ public class ReasoningLoop
 
     private async Task RunAsync(CancellationToken cancellationToken)
     {
-        // TODO: this will not wait for the semaphore to be released if it is already acquired
+        // Ensure that only one thread runs at a time
         if (!await _semaphore.WaitAsync(0, cancellationToken))
         {
             return;
         }
 
-        // TODO: handle imcompleted function calls before starting new reasoning loop
-        // This may happen if the agent restart/crash in the middle
-        while (_msgCh.Reader.TryRead(out var msg))
+        while (_msgCh.Reader.TryRead(out var reasoningLoopMessage))
         {
             try
             {
@@ -145,13 +131,44 @@ public class ReasoningLoop
 
                 AgentChatHistory agentChatHistory = await _threadRepository.GetAgentChatHistoryAsync(_context.Id);
 
-                var shouldStop = await HandleUnprocessedToolCallsAsync(agentChatHistory, cancellationToken);
-                if (shouldStop)
+                switch (reasoningLoopMessage)
                 {
-                    return;
-                }
+                    case ReasoningLoopUserMessage userMessage:
+                        {
+                            _logger.LogInternalInformation("Processing user message.");
+                            if (_context.ApprovalInformation != null &&
+                                _context.ApprovalInformation.PendingApprovals.Count > 0)
+                            {
+                                await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+                                    _context.ThreadId,
+                                    string.Empty,
+                                    new ChatMessage(ChatRole.Assistant, "You have pending approvals. Please resolve them before continuing."));
+                                break;
+                            }
+                            var shouldStop = await HandleUnprocessedToolCallsAsync(agentChatHistory, cancellationToken);
+                            if (shouldStop)
+                            {
+                                return;
+                            }
 
-                await PersistReasoningMessageAsync(agentChatHistory, msg);
+                            await PersistReasoningMessageAsync(agentChatHistory, userMessage.Message);
+                            break;
+                        }
+                    case ReasoningLoopApprovalMessage approvalMessage:
+                        {
+                            _logger.LogInternalInformation("Processing approval message.");
+                            var approval = approvalMessage.Approval;
+                            var shouldStop = await ProcessNewApprovalAsync(agentChatHistory, approval, cancellationToken);
+                            if (shouldStop)
+                            {
+                                return;
+                            }
+                            break;
+                        }
+                    default:
+                        _logger.LogInternalWarning("Received unknown message type: {Type}", reasoningLoopMessage.GetType());
+                        continue;
+                }
 
                 await RunInternalAsync(agentChatHistory, cancellationToken);
             }
@@ -424,6 +441,18 @@ public class ReasoningLoop
                 var result = new FunctionResultContent(functionCall.CallId, "Error: Function failed, user rejected the function call.");
                 var functionCallMessage = new ChatMessage(ChatRole.Tool, [result]);
                 await PersistReasoningMessageAsync(agentChatHistory, functionCallMessage);
+
+                // remove pending approval
+                var pendingApprovals = _context.ApprovalInformation?.PendingApprovals;
+                if (pendingApprovals != null && pendingApprovals.Contains(approval.Id))
+                {
+                    pendingApprovals.Remove(approval.Id);
+                    _context = _context with
+                    {
+                        ApprovalInformation = new ApprovalInformation(pendingApprovals)
+                    };
+                    _context = await _threadRepository.UpdateAgentContextAsync(_context);
+                }
             }
             else  // Pending
             {

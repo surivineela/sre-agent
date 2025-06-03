@@ -27,13 +27,13 @@ public class ReasoningLoopManager : IReasoningLoopManager
     public async Task AppendNewMessageAsync(AgentContext context, ChatMessage msg, CancellationToken cancellationToken = default)
     {
         var loop = await GetOrCreateReasoningLoopAsync(context);
-        await loop.AppendNewMessageAsync(msg, cancellationToken);
+        await loop.AppendNewUserMessageAsync(msg, cancellationToken);
     }
 
     public async Task NotifyApprovalDecisionAsync(AgentContext context, Approval approval, CancellationToken cancellationToken = default)
     {
         var loop = await GetOrCreateReasoningLoopAsync(context);
-        await loop.NotifyApprovalDecisionAsync(approval, cancellationToken);
+        await loop.AppendNewApprovalMessageAsync(approval, cancellationToken);
     }
 
     private async Task<ReasoningLoop> GetOrCreateReasoningLoopAsync(AgentContext context)
