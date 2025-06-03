@@ -2,7 +2,6 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System;
 using System.Reflection;
 using System.Threading.Channels;
 using Agent.Core;
@@ -245,7 +244,7 @@ public class ReasoningLoop
                     break;
                 }
 
-                if (checkApprovalResult.ApprovalStatus == ToolApprovalStatus.NotRequired)
+                if (checkApprovalResult.ApprovalStatus == ToolApprovalStatus.NotRequired || checkApprovalResult.ApprovalStatus == ToolApprovalStatus.AutoApproved)
                 {
                     var functionResult = await InvokeToolWithErrorHandlingAsync(toolCall, cancellationToken);
                     toolResults.Add(new ManualToolCallResult()
@@ -484,6 +483,15 @@ public class ReasoningLoop
                 return new CheckApprovalActivityOutput()
                 {
                     ApprovalStatus = ToolApprovalStatus.NotRequired,
+                };
+            }
+
+            // if in agent mode, return auto approved
+            if (_actionSettings.Mode == ActionMode.Agent)
+            {
+                return new CheckApprovalActivityOutput()
+                {
+                    ApprovalStatus = ToolApprovalStatus.AutoApproved,
                 };
             }
 
