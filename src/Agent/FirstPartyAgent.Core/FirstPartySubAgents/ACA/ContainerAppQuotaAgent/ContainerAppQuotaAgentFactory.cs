@@ -54,7 +54,9 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppQuotaAgent
 
             var containerAppQuotaPluginDefinition = new ContainerAppQuotaPluginDefinition(containerAppQuotaPlugin);
             toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppQuotaPluginDefinition.ValidateQuotaRequest));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppQuotaPluginDefinition.GetSubscriptionQuota));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppQuotaPluginDefinition.SetSubscriptionQuota));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppQuotaPluginDefinition.GetEnvironmentQuota));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppQuotaPluginDefinition.SetEnvironmentQuota));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppQuotaPluginDefinition.GetEnvironmentQuotaOperationResult));
 

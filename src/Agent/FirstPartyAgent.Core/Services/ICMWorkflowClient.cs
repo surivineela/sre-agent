@@ -286,6 +286,20 @@ namespace FirstPartyAgent.Core.Services
             return null;
         }
 
+        public async Task<string> GetSubscriptionQuota(string subscriptionId, string region, string quotaType)
+        {
+            const string workflowName = "Workflow-GenevaAction-GetSubscriptionQuota";
+            Dictionary<string, string> body = new()
+            {
+                { "SubscriptionId", subscriptionId },
+                { "Region", region },
+                { "QuotaType", quotaType },
+            };
+            var response = await SendICMWorkflowRequest(workflowName, JsonConvert.SerializeObject(body));
+            if (response.IsSuccessStatusCode) { return await response.Content.ReadAsStringAsync(); }
+            return $"Failed to get subscription quota with {response.StatusCode} error: {await response.Content.ReadAsStringAsync()}";
+        }
+
         public async Task<string> SetSubscriptionQuota(string subscriptionId, string region, string quotaType, string quotaLimit)
         {
             const string workflowName = "Workflow-GenevaAction-SetSubscriptionQuota";
@@ -301,6 +315,23 @@ namespace FirstPartyAgent.Core.Services
             var response = await SendICMWorkflowRequest(workflowName, JsonConvert.SerializeObject(body));
             if (response.IsSuccessStatusCode) { return await response.Content.ReadAsStringAsync(); }
             return "Failed to set subscription quota";
+        }
+
+        public async Task<string> GetEnvironmentQuota(string environmentUrl, string region, string quotaType)
+        {
+            const string workflowName = "Workflow-GenevaAction-GetEnvironmentQuota";
+            Dictionary<string, string> body = new()
+            {
+                { "EnvironmentURL", environmentUrl},
+                { "Region", region },
+                { "QuotaType", quotaType },
+            };
+            var response = await SendICMWorkflowRequest(workflowName, JsonConvert.SerializeObject(body));
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadAsStringAsync();
+            }
+            return $"Failed to get environment quota with {response.StatusCode} error: {await response.Content.ReadAsStringAsync()}";
         }
 
         public async Task<string> SetEnvironmentQuota(string incidentId, string environmentUrl, string region, string quotaType, string quotaLimit)

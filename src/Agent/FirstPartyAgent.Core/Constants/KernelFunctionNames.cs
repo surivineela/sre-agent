@@ -37,8 +37,10 @@ namespace FirstPartyAgent.Constants
             public const string GetNodeAvailabilityFailures = "get_node_availability_failures";
             public const string GetSubscriptionDetail = "get_subscription_detail";
             public const string GetSubscriptionUsage = "get_subscription_usage";
+            public const string GetSubscriptionQuota = "get_subscription_quota";
             public const string SetSubscriptionQuota = "set_subscription_quota";
             public const string ValidateQuotaRequest = "validate_quota_request";
+            public const string GetContainerAppEnvironmentQuota = "get_container_app_environment_quota";
             public const string SetContainerAppEnvironmentQuota = "set_container_app_environment_quota";
             public const string GetContainerAppEnvironmentQuotaOperationResult = "get_container_app_environment_quota_operation_result";
             public const string CallKustoQuery = "call_kusto_function";

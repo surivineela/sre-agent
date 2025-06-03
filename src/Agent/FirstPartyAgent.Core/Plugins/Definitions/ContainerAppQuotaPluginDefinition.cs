@@ -18,6 +18,22 @@ namespace FirstPartyAgent.Plugins.Definitions
             _plugin = plugin;
         }
 
+        [KernelFunction(KernelFunctionNames.ACA.GetSubscriptionQuota)]
+        [Description(@"Get Subscription Quota limit.
+        Input parameters:
+        - subscriptionId: The subscription Id.
+        - region: The region of the quota need to be retrieved.
+        - quotaType: The quota type.
+        The return value is a string containing the quota limit value for the specified subscription, region, and quota type.
+        ")]
+        public async Task<string> GetSubscriptionQuota(
+            [Description("The subscription Id")] string subscriptionId,
+            [Description("The region")] string region,
+            [Description("The quota type")] string quotaType)
+        {
+            return await _plugin.GetSubscriptionQuota(subscriptionId, region, quotaType);
+        }
+
         [KernelFunction(KernelFunctionNames.ACA.SetSubscriptionQuota)]
         [Description(@"Set Subscription Quota limit.
         Input parameters:
@@ -35,6 +51,22 @@ namespace FirstPartyAgent.Plugins.Definitions
             return await _plugin.SetSubscriptionQuota(subscriptionId, region, quotaType, quotaLimit);
         }
 
+        [KernelFunction(KernelFunctionNames.ACA.GetContainerAppEnvironmentQuota)]
+        [Description(@"Get Container App Environment Quota limit.
+        Input parameters:
+        - environmentResourceURL: The resource url of the container app environment.
+        - region: The region of the quota need to be set.
+        - quotaType: The quota type.
+        The return value is a string containing the quota limit value for the specified environment, region, and quota type.
+        ")]
+        public async Task<string> GetEnvironmentQuota(
+            [Description("The resource URL of the container app environment")] string environmentResourceURL,
+            [Description("The region")] string region,
+            [Description("The quota type")] string quotaType)
+        {
+            return await _plugin.GetEnvironmentQuota(environmentResourceURL, region, quotaType);
+        }
+
         [KernelFunction(KernelFunctionNames.ACA.SetContainerAppEnvironmentQuota)]
         [Description(@"Set Managed Environment Quota limit.
 Input parameters:
@@ -42,6 +74,7 @@ Input parameters:
 - environmentResourceURL: The resource url of the container app environment.
 - region: The region of the quota need to be set.
 - quotaType: The quota type.
+- quotaLimit: The target quota limit.
 
 Output:
 - id: The trace id of te operation, which can be used to track the operation in the kusto table ContainerAppsAdminEvents.
@@ -66,6 +99,7 @@ Input parameters:
 Output:
 - PreciseTimeStamp: the time when the operation is completed.
 - operationStatus: the status of the operation result.
+- message: Describes the set Managed Environment Quota limit operation result.
 ")]
         public async Task<string> GetEnvironmentQuotaOperationResult(
             [Description("The operation id")] string operationId,

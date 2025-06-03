@@ -27,9 +27,19 @@ public class ContainerAppQuotaPlugin : IContainerAppQuotaPlugin
         _kustoPlugin = kustoPlugin ?? throw new ArgumentNullException(nameof(kustoPlugin));
     }
 
+    public async Task<string> GetSubscriptionQuota(string subscriptionId, string region, string quotaType)
+    {
+        return await _icmWorkflowClient.GetSubscriptionQuota(subscriptionId, region, quotaType);
+    }
+
     public async Task<string> SetSubscriptionQuota(string subscriptionId, string region, string quotaType, string quotaLimit)
     {
         return await _icmWorkflowClient.SetSubscriptionQuota(subscriptionId, region, quotaType, quotaLimit);
+    }
+
+    public async Task<string> GetEnvironmentQuota(string environmentUrl, string region, string quotaType)
+    {
+        return await _icmWorkflowClient.GetEnvironmentQuota(environmentUrl, region, quotaType);
     }
 
     public async Task<string> SetEnvironmentQuota(string incidentId, string managedEnvironmentResourceUri, string region, string quotaType, string quotaLimit)

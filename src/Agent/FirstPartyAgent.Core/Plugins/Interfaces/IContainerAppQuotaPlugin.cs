@@ -6,7 +6,11 @@ namespace FirstPartyAgent.Plugins
 {
     public interface IContainerAppQuotaPlugin
     {
+        public Task<string> GetSubscriptionQuota(string subscriptionId, string region, string quotaType);
+
         public Task<string> SetSubscriptionQuota(string subscriptionId, string region, string quotaType, string quotaLimit);
+
+        public Task<string> GetEnvironmentQuota(string managedEnvironmentResourceUri, string region, string quotaType);
 
         public Task<string> SetEnvironmentQuota(string incidentId, string managedEnvironmentResourceUri, string region, string quotaType, string quotaLimit);
 
