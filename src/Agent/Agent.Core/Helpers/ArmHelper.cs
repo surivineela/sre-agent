@@ -2087,7 +2087,7 @@ public class ArmHelper
                         isDefault = true;
                     }
 
-                    if (processObj.TryGetPropertyValue("id", out var idNode)
+                    if (processObj.TryGetPropertyValue("pid", out var idNode)
                         && idNode is JsonValue idValue
                         && idValue.TryGetValue<int>(out var pid))
                     {
@@ -2213,6 +2213,7 @@ public class ArmHelper
                 throw new ArgumentException("Command cannot be null or empty.", nameof(command));
 
             using HttpClient httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+            httpClient.Timeout = TimeSpan.FromMinutes(5); // Set a longer timeout for command execution
             var url = $"https://{hostName}/api/command";
             var commandDetails = "{\"command\": \"" + command + "\", \"dir\": \"" + workingDirectory + "\"}";
             var commandPayload = new StringContent(commandDetails, Encoding.UTF8, "application/json");

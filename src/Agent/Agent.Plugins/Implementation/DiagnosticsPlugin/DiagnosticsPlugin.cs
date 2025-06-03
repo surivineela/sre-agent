@@ -81,6 +81,12 @@ public sealed class DiagnosticsPlugin : IDiagnosticsPlugin
     public Task<string> GetMemoryAnalysisAsync(string resourceId, string additionalProperties)
         => GetAnalysisAsync(resourceId, AnalysisType.Memory, additionalProperties);
 
+    public async Task<string> GetComputeResourceDetailsAsync(string resourceId, string additionalProperties)
+    {
+        ComputeResourceInfo computeResourceInfo = await GetComputeResourceInfoAsync(resourceId, additionalProperties);
+        return $"Resource Type: {computeResourceInfo.ResourceType}, OS: {computeResourceInfo.OsType}, Architecture: {computeResourceInfo.Architecture}, Language Stack: {computeResourceInfo.LanguageStack}, Is 32-bit: {computeResourceInfo.Is32Bit}";
+    }
+
     /// <summary>
     /// Gets compute type, OS, architecture, and runtime information for a given resource ID.
     /// </summary>

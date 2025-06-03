@@ -13,6 +13,13 @@ public sealed class DiagnosticsPluginDefinition
         _diagnosticsPlugin = diagnosticsPlugin;
     }
 
+    [Description("Gets the compute resource details for a particular compute resource based on a particular resourceId including OS, Resource Type, Language Stack etc.")]
+    public async Task<string> GetComputeResourceDetailsAsync([Description("The full Azure resource ID of the resource to diagnose (format: /subscriptions/{subId}/resourceGroups/{rgName}/providers/{resourceProvider}/{resourcetype}/{resourceName}).")] string resourceId,
+                                                             [Description("Required for AKS resources. Provide semicolon separated key-value pairs: 'namespace':'namespaceName', 'pod':'podName', 'container':'containerName'.")] string additionalProperties)
+    {
+        return await _diagnosticsPlugin.GetComputeResourceDetailsAsync(resourceId, additionalProperties);
+    }
+
     [Description("Gets the diagnostic analysis for a particular compute resource based on a particular resourceId and analysis type.")]
     public async Task<string> GetAnalysisAsync([Description("The full Azure resource ID of the resource to diagnose (format: /subscriptions/{subId}/resourceGroups/{rgName}/providers/{resourceProvider}/{resourcetype}/{resourceName}).")] string resourceId,
                                                [Description("The type of analysis to be conducted that could be: Memory, CPU and Threadpool Starvation.")] AnalysisType analysisType,
