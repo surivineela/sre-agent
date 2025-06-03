@@ -25,6 +25,8 @@ using Microsoft.Rest.Azure.OData;
 using Microsoft.SemanticKernel;
 using Agent.Logging;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Agent.Core.Helpers;
+using Microsoft.Extensions.Hosting;
 
 namespace Agent.Plugins
 {
@@ -46,6 +48,7 @@ namespace Agent.Plugins
         private readonly DashboardSettings _dashboardSettings;
         private readonly IAuthenticationService _authService;
         private readonly List<string> _crawlRoots;
+        private readonly IHostEnvironment _hostEnvironment;
 
         private const string MermaidServiceAPI = "https://mermaid-renderer.salmonhill-ad96bd78.eastus2.azurecontainerapps.io/render";
 
@@ -66,7 +69,8 @@ namespace Agent.Plugins
             IAgentOutboundCommunicationService agentOutboundCommunicationService,
             ILogger<GraphDBPlugin> logger,
             IAuthenticationService authService,
-            CrawlerSettings crawlerSettings)
+            CrawlerSettings crawlerSettings,
+            IHostEnvironment hostEnvironment)
         {
             GraphDbClient = graphDbClient;
             ChatClient = chatClient;
@@ -81,6 +85,8 @@ namespace Agent.Plugins
             _crawlRoots = crawlerSettings.CrawlRoots.Split([','], StringSplitOptions.RemoveEmptyEntries)
                 .Select(root => root.Trim())
                 .ToList();
+
+            _hostEnvironment = hostEnvironment;
         }
 
         /// <summary>
@@ -912,7 +918,7 @@ g.V().has('id', '{deploymentResourceId}')
                 return "Dashboard is not configured for this agent. Must use Knowledge graph queries. If user wants agent to deploy a dashboard they must configure Dashboard Settings.";
             }
 
-            return $"Dashboard URL: {_dashboardSettings.GrafanaUrl}/d/azure-sre-resources/sre-azure-resource-overview?orgId=1&refresh=1m";
+            return $"Dashboard URL: {_dashboardSettings.GrafanaUrl}/d/{AgentNameHelper.GetMainDashboardUid(_hostEnvironment.IsProduction())}/sre-azure-resource-overview?orgId=1&refresh=1m";
         }
 
         public async Task<List<Dictionary<string, object>>> ListResourcesByTypeAsync(

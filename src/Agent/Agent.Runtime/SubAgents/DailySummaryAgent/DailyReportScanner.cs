@@ -10,6 +10,7 @@ using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
+using Agent.Core.Helpers;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.Repositories;
@@ -22,6 +23,7 @@ using Microsoft.Extensions.Logging;
 using Thread = Agent.Core.Models.Api.v1.Thread;
 using Microsoft.Extensions.Configuration;
 using Agent.Data.DataModels;
+using Microsoft.Extensions.Hosting;
 
 namespace Agent.Runtime.SubAgents.DailyReportSummary
 {
@@ -55,6 +57,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
         private readonly IConfiguration _configuration;
         private readonly IAppHealthHistoryRepository _appHealthHistoryRepository;
         private readonly CoreSettings _coreSettings;
+        private readonly IHostEnvironment _hostEnvironment;
 
         private readonly string DashboardScreenshotsFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DashboardScreenshots");
 
@@ -88,6 +91,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             IConfiguration configuration,
             IAppHealthHistoryRepository appHealthHistoryRepository,
             CoreSettings coreSettings,
+            IHostEnvironment hostEnvironment,
             string mainDashboardFile = "Main-Dashboard.json",
             string puppeteerScreenshotApiUrl = "https://test-capp.ambitiouspond-10f27fe1.canadaeast.azurecontainerapps.io")
         {
@@ -120,7 +124,6 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 "Azure / Insights / Cosmos DB",
                 "Azure / Insights / SQL Database",
                 "Azure / Resources Overview",
-                "d/azure-sre-resources/sre-azure-resource-overview"
             };
             _dashboardSettings = dashboardSettings;
             _graphDbService = graphDbService;
@@ -131,6 +134,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             _configuration = configuration;
             _appHealthHistoryRepository = appHealthHistoryRepository;
             _coreSettings = coreSettings;
+            _hostEnvironment = hostEnvironment;
         }
 
         public async Task<Thread?> ScanAndGenerateReport(CancellationToken cancellationToken)
@@ -926,10 +930,11 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 string dashboardJson = await File.ReadAllTextAsync(_mainDashboardFilePath);
                 dashboardJson = dashboardJson.Replace("\"datasource\": \"KnowledgeGraph\"", $"\"datasource\": \"{_dataSourceName}\"");
                 dashboardJson = dashboardJson.Replace("\"PROMETHEUS_UID\"", $"\"{dataSourceUid}\"");
+                dashboardJson = dashboardJson.Replace("\"uid\": \"azure-sre-resources\"", $"\"uid\": \"{AgentNameHelper.GetMainDashboardUid(_hostEnvironment.IsProduction())}\"");
 
                 // string dateFormatted = DateTime.UtcNow.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
                 dashboardJson = dashboardJson.Replace("\"title\": \"SRE Azure Resource Overview\"",
-                    $"\"title\": \"SRE Agent Resource Monitoring Dashboard\"");
+                    $"\"title\": \"{AgentNameHelper.GetMainDashboardTitle(_hostEnvironment.IsProduction())}\"");
 
                 // Get access token for Azure Managed Grafana
                 var token = await GetAccessTokenForGrafana();
@@ -1746,13 +1751,6 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             }
 
             return overview;
-        }
-
-        public string GetAgentName()
-        {
-            return _configuration["Agent:Name"];
-            // Or from environment variables
-            // return Environment.GetEnvironmentVariable("AGENT_NAME");
         }
     }
 }
