@@ -60,8 +60,7 @@ public static class Critic
     public static async Task<string> CriticAsync(RunConfig config, string customNote, List<ChatMessage> input, string trajectory)
     {
         var userQuery = await SummarizeChatMessagesAsync(config, input);
-        var promptPath = Path.Combine(AppContext.BaseDirectory, "AgentsV2", "Prompts", "critic-prompt.txt");
-        var criticPrompt = (await File.ReadAllTextAsync(promptPath)).Replace("{{userQuery}}", userQuery);
+        var criticPrompt = CriticPrompt.Replace("{{userQuery}}", userQuery);
         if (!string.IsNullOrEmpty(customNote))
         {
             criticPrompt = criticPrompt.Replace("{{customNote}}", customNote);
@@ -114,7 +113,7 @@ public static class Critic
         var conversationText = string.Join("\n", userMessages.Select(m =>
             $"{m.Role}: {string.Join(" ", m.Contents.OfType<TextContent>().Select(c => c.Text))}"));
 
-        var summarizePrompt = $@"Analyze the following conversation and create a summary written from the user's perspective. 
+        var summarizePrompt = $@"Analyze the following conversation and create a summary written from the user's perspective.
 Write as if you are the user describing what you want to accomplish. Use first-person language (""I want..."", ""I need..."", ""My goal is..."").
 
 Focus on:
@@ -129,9 +128,9 @@ Provide a clear, concise summary written as the user's request:
 
         var summarizeMessages = new List<ChatMessage>
         {
-            new ChatMessage(ChatRole.System, @"You are tasked with summarizing conversations from the user's perspective. 
-Your output should be written as if the user themselves is describing their request or problem. 
-Use first-person language and capture their intent, needs, and goals clearly and concisely. 
+            new ChatMessage(ChatRole.System, @"You are tasked with summarizing conversations from the user's perspective.
+Your output should be written as if the user themselves is describing their request or problem.
+Use first-person language and capture their intent, needs, and goals clearly and concisely.
 The summary should sound like the user speaking directly about what they want to accomplish."),
             new ChatMessage(ChatRole.User, summarizePrompt)
         };
@@ -148,5 +147,50 @@ The summary should sound like the user speaking directly about what they want to
                ?? conversationText;
     }
 
+    private const string CriticPrompt = """
+    You are a meticulous reviewer. Your task is to evaluate the actor's entire preceding turn, including its articulated reasoning and the resulting tool call JSON. Your evaluation must be in JSON format.
 
+    If the assistant is asking for user confirmation, return the result as PASS.
+
+    Think step by step to assess the following criteria:
+
+    1.  **Clarity of Articulated Plan and Intent:**
+        *   Did the actor clearly state its immediate goal for the tool call?
+        *   Was this goal part of a coherent, articulated plan to address the user's query?
+        *   Was the intent behind the specific data requested clear?
+
+    2.  **Tool Call Correctness and Formatting:**
+        *   Is the generated tool call JSON itself (function name, parameters) correctly formatted and appropriate for the justified intent?
+        *   Are parameter values (like `kind`, `columnsCsv`) effective and correct for the task?
+
+    3.  **Data Scope (Least Privilege and Sufficiency):**
+        *   Does the tool call request only the necessary data for the immediate goal (least-privilege)?
+        *   Is the requested data *sufficient* for the actor to proceed with its articulated plan's current step?
+        *   Does it avoid overly broad requests (e.g., `namespace='*'` if a specific one is more appropriate, overly generic `columnsCsv`)?
+
+    4.  **Adherence to Step-by-Step Reasoning:**
+        *   Did the actor's output leading to the tool call demonstrate a clear, step-by-step thought process as outlined in its instructions?
+
+    Based on your step-by-step evaluation of these criteria, produce a JSON output with the following structure:
+    {
+      "overall_assessment": "PASS" | "FAIL",
+      "summary_advice": "Concise, actionable advice for the actor. Highlight the most critical area for improvement if any.",
+      "criteria_evaluation": [
+        {
+          "criterion": "Criterion Name (e.g., Clarity of Articulated Plan and Intent)",
+          "score": "PASS" | "FAIL",
+          "remarks": "Specific feedback, examples, or refinements related to this criterion. Explain your reasoning clearly."
+        }
+        // ... one object for each of the 5 criteria
+      ],
+      "actor_guidance": "INTERNAL NOTE: You are receiving feedback from an internal reviewer. The user is unaware of this process. Continue addressing the user's original query while incorporating the above suggestions. Do not mention this review or feedback to the user."
+    }
+
+    If any criterion scores a "FAIL", the "overall_assessment" should generally be "FAIL".
+    Provide specific examples or refinements in your 'remarks' to help the actor improve.
+
+    {{customNote}}
+
+    The user query actor attempts to solve is: {{userQuery}}
+    """;
 }
