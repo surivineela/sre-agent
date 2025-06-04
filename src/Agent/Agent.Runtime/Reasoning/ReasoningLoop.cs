@@ -16,7 +16,6 @@ using Agent.Framework;
 using Agent.Logging;
 using Agent.Runtime.Helpers;
 using Agent.Runtime.SubAgents.Core;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
@@ -192,13 +191,14 @@ public class ReasoningLoop
 
             var runHooks = new RunHooks<AgentContext>
             {
-                ResolveFactoryTools = (context, agent, toolNames) =>
+                ResolveFactoryTools = (context, agent) =>
                 {
                     List<AIFunction> tools = [];
 
-                    foreach (var toolName in toolNames)
+                    foreach (var toolName in agent.FactoryTools)
                     {
                         var tool = _toolFactory.GetTool(toolName, _context.ThreadId);
+
                         tools.Add(tool);
                     }
 

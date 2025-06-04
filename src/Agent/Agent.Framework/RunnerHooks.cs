@@ -23,6 +23,6 @@ public class RunHooks<TContext> where TContext : class
     public Func<RunContextWrapper<TContext>, Agent<TContext>, Agent<TContext>, Task> OnHandoff { get; set; } =
         (context, fromAgent, toAgent) => Task.CompletedTask;
 
-    public Func<RunContextWrapper<TContext>, Agent<TContext>, List<string>, Task<List<AIFunction>>> ResolveFactoryTools { get; set; } =
-        (context, agent, toolNames) => Task.FromResult<List<AIFunction>>([]);
+    public Func<RunContextWrapper<TContext>, Agent<TContext>, Task<List<AIFunction>>> ResolveFactoryTools { get; set; } =
+        (context, agent) => Task.FromResult<List<AIFunction>>([]);
 }

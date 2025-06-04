@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Collections.Concurrent;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.AI;
@@ -56,22 +57,39 @@ public class Trajectory
 
 public static class Critic
 {
+    private static readonly ConcurrentDictionary<string, string> _agentPromptTemplates = new();
 
-    public static async Task<string> CriticAsync(RunConfig config, string customNote, List<ChatMessage> input, string trajectory)
+    public static async Task<string> CriticAsync<TContext>(
+        Agent<TContext> agent,
+        List<AIFunction> agentTools,
+        List<ChatMessage> input,
+        string trajectory,
+        IChatClient chatClient)
+        where TContext : class
     {
-        var userQuery = await SummarizeChatMessagesAsync(config, input);
-        var criticPrompt = CriticPrompt.Replace("{{userQuery}}", userQuery);
-        if (!string.IsNullOrEmpty(customNote))
+        var criticPromptTemplate = CriticPrompt;
+        if (!string.IsNullOrEmpty(agent.CriticPromptPath))
         {
-            criticPrompt = criticPrompt.Replace("{{customNote}}", customNote);
+            if (!_agentPromptTemplates.TryGetValue(agent.Name, out criticPromptTemplate))
+            {
+                criticPromptTemplate = await File.ReadAllTextAsync(agent.CriticPromptPath);
+                _agentPromptTemplates.TryAdd(agent.Name, criticPromptTemplate);
+            }
         }
-        else
-        {
-            criticPrompt = criticPrompt.Replace("{{customNote}}", "");
-        }
+
+        var customNote = agent.CustomReflectionNote;
+        var userQuery = await SummarizeChatMessagesAsync(chatClient, input);
+        var allToolDescriptions = string.Join('\n', agentTools.Select(t => $"{t.Name}: {t.Description}"));
+
+        var criticPrompt = criticPromptTemplate
+            .Replace("{{customNote}}", customNote)
+            .Replace("{{userQuery}}", userQuery)
+            .Replace("{{availableTools}}", allToolDescriptions);
+
         var criticChat = new List<ChatMessage>
         {
             new(ChatRole.System, criticPrompt),
+            new(ChatRole.User, trajectory),
         };
 
         var criticChatOptions = new ChatOptions
@@ -80,12 +98,12 @@ public static class Critic
             Temperature = 0.2f,
             ResponseFormat = ChatResponseFormat.Text,
         };
-        criticChat.Add(new(ChatRole.User, trajectory));
-        var criticReply = await config.ChatClient.GetResponseAsync(criticChat, criticChatOptions);
+
+        var criticReply = await chatClient.GetResponseAsync(criticChat, criticChatOptions);
         return criticReply.Text;
     }
 
-    private static async Task<string> SummarizeChatMessagesAsync(RunConfig config, List<ChatMessage> messages)
+    private static async Task<string> SummarizeChatMessagesAsync(IChatClient chatClient, List<ChatMessage> messages)
     {
         if (messages == null || !messages.Any())
         {
@@ -135,7 +153,7 @@ The summary should sound like the user speaking directly about what they want to
             new ChatMessage(ChatRole.User, summarizePrompt)
         };
 
-        var response = await config.ChatClient.GetResponseAsync(summarizeMessages, new ChatOptions
+        var response = await chatClient.GetResponseAsync(summarizeMessages, new ChatOptions
         {
             Temperature = 0.3f,
             ToolMode = ChatToolMode.None,

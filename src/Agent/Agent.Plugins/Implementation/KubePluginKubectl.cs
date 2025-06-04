@@ -2,18 +2,9 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Collections.Concurrent;
-using System.Diagnostics;
-using System.Globalization;
-using System.Text;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using Agent.Core.Helpers;
-using k8s;
-using k8s.Models;
-using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using YamlDotNet.Serialization;
 
 namespace Agent.Plugins
 {
@@ -243,7 +234,7 @@ namespace Agent.Plugins
         {
             // get the cluster kubeconfig
             // todo: change to create a `view` clusterrolebinding with a service account, and use that guy's config
-            var kubeConfig = await _kubernetesClientFactory.GetOrAddCachedK8SConfiguration(resourceId);
+            var kubeConfig = await _kubernetesClientFactory.GetOrAddCachedK8sConfiguration(resourceId);
             if (kubeConfig is null)
             {
                 return $"[Unexpected Error]: Unable to retrieve kubeconfig for cluster.";

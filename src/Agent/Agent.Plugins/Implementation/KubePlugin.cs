@@ -2,8 +2,6 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
@@ -16,9 +14,6 @@ using Agent.Graph.Crawler.Metrics;
 using Agent.Logging;
 using Agent.Prometheus;
 using Agent.Prometheus.Services;
-using Azure.Core;
-using Azure.ResourceManager.ContainerService;
-using Azure.ResourceManager.Network;
 using k8s;
 using k8s.Models;
 using Microsoft.Extensions.AI;
@@ -712,7 +707,6 @@ namespace Agent.Plugins
 
         public async Task<string> GetKubeResourceMetricsRangeAsync(string AKSClusterResourceId, string _namespace, string kind, string name, string metricsType, string startTime, string endTime)
         {
-
             var prometheusQueryEndpoint = await GetPrometheusEndpoint(AKSClusterResourceId);
             // If we still don't have an endpoint, cannot proceed
             if (string.IsNullOrEmpty(prometheusQueryEndpoint))
@@ -2209,10 +2203,10 @@ namespace Agent.Plugins
         }
 
         public async Task<string> AnalyzeDotnetAppMemoryInAKSContainerAsync(
-        string aksResourceId,
-        string _namespace,
-        string podName,
-        string? targetContainerName)
+            string aksResourceId,
+            string _namespace,
+            string podName,
+            string? targetContainerName)
         {
             var client = await GetOrCreateClientAsync(aksResourceId);
             if (client == null)
@@ -2347,6 +2341,66 @@ namespace Agent.Plugins
             }
 
             return resultBuilder.ToString();
+        }
+
+        public async Task<string> DiscoverMetricsAsync(
+            string AKSClusterResourceId,
+            string? namePattern,
+            string? metricType)
+        {
+            var prometheusQueryEndpoint = await GetPrometheusEndpoint(AKSClusterResourceId);
+            // If we still don't have an endpoint, cannot proceed
+            if (string.IsNullOrEmpty(prometheusQueryEndpoint))
+            {
+                return $"No Prometheus query endpoint available for AKS cluster {AKSClusterResourceId}. Metrics cannot be retrieved. Please confirm if AKS has enabled Azure Monitor and agent has access to it.";
+            }
+
+            return await _prometheusQueryService.DiscoverMetricsAsync(prometheusQueryEndpoint, namePattern, metricType);
+        }
+
+        public async Task<string> GetMetricLabelsAsync(
+            string AKSClusterResourceId,
+            string metricName,
+            string? labelName)
+        {
+            var prometheusQueryEndpoint = await GetPrometheusEndpoint(AKSClusterResourceId);
+            // If we still don't have an endpoint, cannot proceed
+            if (string.IsNullOrEmpty(prometheusQueryEndpoint))
+            {
+                return $"No Prometheus query endpoint available for AKS cluster {AKSClusterResourceId}. Metrics cannot be retrieved. Please confirm if AKS has enabled Azure Monitor and agent has access to it.";
+            }
+
+            return await _prometheusQueryService.GetMetricLabelsAsync(prometheusQueryEndpoint, metricName, labelName);
+        }
+
+        public async Task<string> ExecutePromQLAsync(
+            string AKSClusterResourceId,
+            string query,
+            string duration,
+            string step,
+            string? labelFilters,
+            string? aggregateFunction,
+            string? aggregateBy,
+            int? limit,
+            double? minValue)
+        {
+            var prometheusQueryEndpoint = await GetPrometheusEndpoint(AKSClusterResourceId);
+            // If we still don't have an endpoint, cannot proceed
+            if (string.IsNullOrEmpty(prometheusQueryEndpoint))
+            {
+                return $"No Prometheus query endpoint available for AKS cluster {AKSClusterResourceId}. Metrics cannot be retrieved. Please confirm if AKS has enabled Azure Monitor and agent has access to it.";
+            }
+
+            return await _prometheusQueryService.ExecutePromQLAsync(
+                prometheusQueryEndpoint,
+                query,
+                duration,
+                step,
+                labelFilters,
+                aggregateFunction,
+                aggregateBy,
+                limit,
+                minValue);
         }
     }
 }

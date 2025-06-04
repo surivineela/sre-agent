@@ -12,13 +12,13 @@ namespace Agent.Core.Configuration
         public string LLMDeploymentName { get; set; } = string.Empty;
 
         [Required]
-        public string Endpoint { get; set; } = String.Empty;
+        public string Endpoint { get; set; } = string.Empty;
 
-        public string ApiKey { get; set; } = String.Empty;
+        public string ApiKey { get; set; } = string.Empty;
         public string ManagedIdentityClientId { get; set; } = string.Empty;
 
         [Required]
-        public string EmbeddingGeneratorDeploymentName { get; set; } = String.Empty;
+        public string EmbeddingGeneratorDeploymentName { get; set; } = string.Empty;
     }
 }
 

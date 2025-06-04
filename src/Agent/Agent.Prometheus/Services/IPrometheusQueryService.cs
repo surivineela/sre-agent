@@ -28,4 +28,25 @@ public interface IPrometheusQueryService
     /// <param name="cancellationToken"></param>
     /// <returns>QueryResponseDataMatrix on success</returns>
     Task<Response> QueryRangeAsync(string prometheusQueryEndpoint, string query, DateTime start, DateTime end, TimeSpan step, CancellationToken cancellationToken = default);
+
+    Task<string> DiscoverMetricsAsync(
+        string prometheusQueryEndpoint,
+        string? namePattern,
+        string? metricType);
+
+    Task<string> GetMetricLabelsAsync(
+        string prometheusQueryEndpoint,
+        string metricName,
+        string? labelName);
+
+    Task<string> ExecutePromQLAsync(
+        string prometheusQueryEndpoint,
+        string query,
+        string duration,
+        string step,
+        string? labelFilters,
+        string? aggregateFunction,
+        string? aggregateBy,
+        int? limit,
+        double? minValue);
 }

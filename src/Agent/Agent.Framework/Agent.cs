@@ -30,7 +30,12 @@ public class Agent<TContext> where TContext : class
 
     public int MaxReflectionCount { get; set; } = 0;
 
-    public string CustomReflectionNote { get; set; } = "";
+    public string CustomReflectionNote { get; set; } = string.Empty;
+
+    //todo: map to thinking effort
+    public string CriticPromptPath { get; set; } = string.Empty;
+
+    public bool AllowParallelToolCalls { get; set; } = false;
 
     public virtual ChatToolMode ChatToolMode { get; set; } = ChatToolMode.Auto;
 
@@ -43,7 +48,17 @@ public class Agent<TContext> where TContext : class
 
     public virtual IChatClient GetChatClient(RunConfig config)
     {
-        return config.ChatClient;
+        var innerClient = config.ChatClient;
+        if (AllowParallelToolCalls)
+        {
+            return new ChatClientBuilder(innerClient)
+                .UseFunctionInvocation()
+                .Build();
+        }
+        else
+        {
+            return innerClient;
+        }
     }
 }
 

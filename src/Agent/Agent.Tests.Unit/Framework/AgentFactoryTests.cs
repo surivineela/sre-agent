@@ -100,9 +100,12 @@ public class TestAgent1Descriptor : IAgentDescriptor
     public string? HandoffDescription { get; set; } = "Test Handoff Description";
     public List<string> Handoffs { get; set; } = ["TestAgent2"];
     public List<string> Tools { get; set; } = ["TestAutoTool", "TestManualTool"];
+    public bool AllowParallelToolCalls { get; set; } = false;
     public int MaxReflectionCount { get; set; } = 0;
     public string CustomReflectionNote { get; set; } = "Test Custom Reflection Note";
     public List<string> CommonPrompts { get; set; } = ["test_prompt"];
+    public string CriticPromptPath { get; set; } = string.Empty;
+    public float? Temperature { get; set; } = null;
 }
 
 public class TestAgent2Descriptor : IAgentDescriptor
@@ -112,9 +115,12 @@ public class TestAgent2Descriptor : IAgentDescriptor
     public string? HandoffDescription { get; set; } = "Test Handoff Description";
     public List<string> Handoffs { get; set; } = [];
     public List<string> Tools { get; set; } = ["TestAutoTool", "TestManualTool"];
+    public bool AllowParallelToolCalls { get; set; } = false;
     public int MaxReflectionCount { get; set; } = 0;
     public string CustomReflectionNote { get; set; } = "Test Custom Reflection Note";
     public List<string> CommonPrompts { get; set; } = [];
+    public string CriticPromptPath { get; set; } = string.Empty;
+    public float? Temperature { get; set; } = null;
 }
 
 public class TestCommonPrompt : IPromptDescriptor

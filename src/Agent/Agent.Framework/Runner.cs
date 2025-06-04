@@ -106,7 +106,7 @@ public static class Runner
         var contextWrapper = new RunContextWrapper<TContext>(context);
 
         var logger = config.LoggerFactory.CreateLogger("Agent.Framework.Runner");
-        int criticCount = 0;
+        var criticCount = 0;
 
         try
         {
@@ -140,19 +140,34 @@ public static class Runner
 
                 if (turnResult.NextStep.Type == NextStepType.FinalOutput)
                 {
-
                     logger.LogInformation("FinalOutput received from {AgentName}, Critic: {criticCount}/{MaxReflectionCount}", currentAgent.Name, criticCount, currentAgent.MaxReflectionCount);
                     if (currentAgent.MaxReflectionCount > 0 && criticCount < currentAgent.MaxReflectionCount)
                     {
-                        var criticResult = await Critic.CriticAsync(config, currentAgent.CustomReflectionNote, originalInput, trajectory.ToString());
-                        if (criticResult.Contains("FAIL"))
+                        // todo: improve trajectory building to include whole turn
+                        // todo: use summarizer to summarize
+                        var agentTools = await hooks.ResolveFactoryTools(contextWrapper, currentAgent);
+                        var criticResult = await Critic.CriticAsync(
+                            currentAgent,
+                            agentTools,
+                            originalInput,
+                            trajectory.ToString(),
+                            config.ChatClient);
+                        if (criticResult.Contains("\"overall_assessment\": \"FAIL\""))
                         {
                             criticCount++;
-                            generatedMessages.Add(new ChatMessage(ChatRole.User, criticResult));
+
+                            // todo: replace current interaction flow with sumary..
+                            // needs changes to turnResult.OriginalInput
+                            var criticEval = "Past run feedback:\n" + criticResult;
+                            generatedMessages.Add(new(ChatRole.User, criticEval));
+
                             logger.LogWarning("Critic result indicates failure: {CriticResult}", criticResult);
                             continue;
                         }
-                        criticCount = 0;
+                        else
+                        {
+                            logger.LogInformation("Critic approved response: {CriticResult}", criticResult);
+                        }
                     }
                     await hooks.OnAgentEnd(contextWrapper, currentAgent, turnResult.NextStep.Output);
 
@@ -225,7 +240,7 @@ public static class Runner
 
         List<AIFunction> tools = [];
         tools.AddRange(agent.Tools);
-        tools.AddRange(await hooks.ResolveFactoryTools(contextWrapper, agent, agent.FactoryTools));
+        tools.AddRange(await hooks.ResolveFactoryTools(contextWrapper, agent));
         tools.AddRange(agent.Handoffs);
 
         var chatOptions = new ChatOptions
@@ -234,7 +249,7 @@ public static class Runner
             ToolMode = agent.ChatToolMode,
             AdditionalProperties = new AdditionalPropertiesDictionary
             {
-                ["AllowParallelToolCalls"] = false
+                ["AllowParallelToolCalls"] = agent.AllowParallelToolCalls,
             },
             Temperature = agent.Temperature
         };
@@ -297,6 +312,9 @@ public static class Runner
 
                     await hooks.OnHandoff(contextWrapper, agent, newAgent);
 
+                    // review: don't really see value in adding handoff as new messages
+                    // openai probably did it cause that's how they are forced to expose tool calls..
+                    // for us it just adds tokens
                     newStepItems.Add(new ChatMessage(ChatRole.Tool, [new FunctionResultContent(functionCall.CallId, handoff.TransferMessage)]));
 
                     return new SingleStepResult<TContext>
@@ -326,7 +344,6 @@ public static class Runner
                     if (tool.GetToolMode() == ToolMode.Auto)
                     {
                         // run auto tool
-
                         await hooks.OnToolStart(contextWrapper, agent, tool);
 
                         var toolResult = await tool.InvokeAsync(functionCall.Arguments);

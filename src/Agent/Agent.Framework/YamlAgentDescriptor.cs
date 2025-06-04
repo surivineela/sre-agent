@@ -23,12 +23,21 @@ internal class YamlAgentDescriptor : IAgentDescriptor
     [YamlMember(Alias = "tools")]
     public List<string> Tools { get; set; } = [];
 
+    [YamlMember(Alias = "allow_parallel_tool_calls")]
+    public bool AllowParallelToolCalls { get; set; } = false;
+
     [YamlMember(Alias = "max_reflection_count")]
     public int MaxReflectionCount { get; set; } = 0;
+
+    [YamlMember(Alias = "critic_prompt_path")]
+    public string CriticPromptPath { get; set; } = string.Empty;
 
     [YamlMember(Alias = "custom_reflection_note")]
     public string CustomReflectionNote { get; set; } = string.Empty;
 
     [YamlMember(Alias = "common_prompts")]
     public List<string> CommonPrompts { get; set; } = [];
+
+    [YamlMember(Alias = "temperature")]
+    public float? Temperature { get; set; } = null;
 }

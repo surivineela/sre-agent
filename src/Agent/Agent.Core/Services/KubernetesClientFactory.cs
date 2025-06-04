@@ -3,8 +3,8 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Interfaces;
-using Agent.Logging;
 using Agent.Core.Models;
+using Agent.Logging;
 using Azure.Core;
 using Azure.ResourceManager.ContainerService;
 using Azure.ResourceManager.Resources;
@@ -64,7 +64,7 @@ public class KubernetesClientFactory : IKubernetesClientFactory
         return await GetK8sClient(subscription, resourceGroup, clusterName, false);
     }
 
-    public async Task<CachedK8sConfiguration?> GetOrAddCachedK8SConfiguration(string resourceId)
+    public async Task<CachedK8sConfiguration?> GetOrAddCachedK8sConfiguration(string resourceId)
     {
         var id = new ResourceIdentifier(resourceId);
         var subscription = id.SubscriptionId;
@@ -93,7 +93,7 @@ public class KubernetesClientFactory : IKubernetesClientFactory
         return new Kubernetes(kubeConfig);
     }
 
-    private async Task<(K8SConfiguration?, DateTimeOffset?)> GetK8sConfigurationFromArm(string subscription, string resourceGroup, string clusterName, TokenCredential cred)
+    private async Task<(K8SConfiguration, DateTimeOffset?)> GetK8sConfigurationFromArm(string subscription, string resourceGroup, string clusterName, TokenCredential cred)
     {
         var armClient = await _armClientFactory.GetArmOperationClient();
         var rg = armClient.GetResourceGroupResource(ResourceGroupResource.CreateResourceIdentifier(subscription, resourceGroup));

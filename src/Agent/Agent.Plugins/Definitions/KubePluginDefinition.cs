@@ -5,7 +5,7 @@
 using System.ComponentModel;
 using Agent.Core.Attributes;
 using Agent.Framework;
-using Microsoft.OData.UriParser;
+using Agent.Plugins.Helpers;
 using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins
@@ -356,20 +356,377 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
             return await _kubePlugin.RunKubectlCommandHelpAsync(AKSClusterResourceId, command);
         }
 
+        /// <summary>Run 'kubectl get' on any resource.</summary>
+        [Description(
+            "Retrieve Kubernetes resources with optional label filtering and custom columns.")]
+        public Task<string> KubectlGetAsync(
+            [Description("The resource ID of the Azure Kubernetes Service.")]
+            string AKSClusterResourceId,
+            [Description("Resource kind, e.g. pods | svc | ingress | pvc | pv | nodes | crds")]
+            string kind,
+            // "namespace" is a keyword, so we use @namespace
+            [Description("Namespace name. Use '*' for all namespaces. " +
+                     "Leave empty for cluster‑scoped kinds (nodes, pv, crd, namespace, etc.).")]
+            string? @namespace = "*",
+            [Description("Optional label selector, e.g. 'app=myapp'. Omit for none.")]
+            string? selector = null,
+            [Description("Columns to output, each as <LABEL>:<jsonpath>. " +
+                     "Example: NAME:.metadata.name,STATUS:.status.phase")]
+            string columnsCsv = "NAME:.metadata.name")
+        {
+            if (string.Equals(kind, "event", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(kind, "events", StringComparison.OrdinalIgnoreCase))
+            {
+                return Task.FromResult($"Unsupported resource kind: {kind}. Use {nameof(GetKubeEventsAsync)} instead.");
+            }
+
+            // Build command ----------------------------------------------------
+            var args = new List<string> { "kubectl", "get", kind };
+            if (!string.IsNullOrWhiteSpace(@namespace) && @namespace != "*")
+            {
+                args.AddRange(["-n", @namespace]);
+            }
+            else if (@namespace == "*")
+            {
+                args.Add("-A");
+            }
+
+            if (!string.IsNullOrWhiteSpace(selector))
+            {
+                args.Add("--selector=" + selector);
+            }
+
+            args.Add($"-o custom-columns={columnsCsv}");
+            var command = string.Join(' ', args);
+
+            return _kubePlugin.RunKubectlReadCommandAsync(AKSClusterResourceId, command);
+        }
+
+        /// <summary>
+        /// Describe a single Kubernetes object (human‑readable detail + events).
+        /// </summary>
+        [Description(
+            "Run 'kubectl describe' on a single object. " +
+            "Must specify kind, name, and namespace (or empty for cluster‑scoped kinds).")]
+        public Task<string> KubectlDescribeAsync(
+            [Description("The resource ID of the Azure Kubernetes Service.")]
+            string AKSClusterResourceId,
+            [Description("Resource kind, e.g. pod, svc, ingress, pvc, node, crd")]
+            string kind,
+            [Description("Object name")]
+            string name,
+            [Description("Namespace. Use '*' for all namespaces (rare). " +
+            "Leave empty for cluster‑scoped kinds like node or crd.")]
+            string? @namespace = "default")
+        {
+            var args = new List<string> { "kubectl", "describe", kind, name };
+
+            if (!string.IsNullOrWhiteSpace(@namespace) && @namespace != "*")
+                args.AddRange(["-n", @namespace]);
+            else if (@namespace == "*")
+                args.Add("-A");
+
+            var command = string.Join(' ', args);
+
+            return _kubePlugin.RunKubectlReadCommandAsync(AKSClusterResourceId, command);
+        }
+
+        /// <summary>
+        /// Explain fields of a resource schema (kubectl explain).
+        /// </summary>
+        [Description(
+            "Run 'kubectl explain' for API documentation. " +
+            "Always specify full resourcePath (e.g. 'pod.spec.containers') and " +
+            "whether recursion is desired.")]
+        public Task<string> KubectlExplainAsync(
+            [Description("The resource ID of the Azure Kubernetes Service.")]
+            string AKSClusterResourceId,
+            [Description("Resource path, e.g. 'pod.spec', 'deployment.spec.strategy'")]
+            string resourcePath,
+            [Description("If true, include all nested fields (-R / --recursive).")]
+            bool recursive = false,
+            [Description("Optional apiVersion such as 'apps/v1'. Omit for default.")]
+            string? apiVersion = null)
+        {
+            var args = new List<string> { "kubectl", "explain", resourcePath };
+
+            if (recursive) args.Add("--recursive");
+            if (!string.IsNullOrWhiteSpace(apiVersion))
+                args.Add("--api-version=" + apiVersion);
+
+            var command = string.Join(' ', args);
+
+            return _kubePlugin.RunKubectlReadCommandAsync(AKSClusterResourceId, command);
+        }
+
+        /// <summary>
+        /// List every API resource the cluster supports (kubectl api-resources).
+        /// </summary>
+        [Description(
+            "Run 'kubectl api-resources' with optional filters and explicit output columns.")]
+        public Task<string> KubeApiResourcesAsync(
+            [Description("The resource ID of the Azure Kubernetes Service.")]
+            string AKSClusterResourceId,
+            [Description("Filter by namespaced flag: true | false | omit")]
+            string? namespaced = null,
+            [Description("Filter by API group, e.g. 'apps' or 'batch'. Omit for all groups.")]
+            string? apiGroup = null)
+        {
+            var args = new List<string> { "kubectl", "api-resources" };
+
+            if (!string.IsNullOrWhiteSpace(namespaced))
+                args.Add($"--namespaced={namespaced}");
+
+            if (!string.IsNullOrWhiteSpace(apiGroup))
+                args.Add($"--api-group={apiGroup}");
+
+            args.Add($"-o wide");
+
+            var command = string.Join(' ', args);
+
+            return _kubePlugin.RunKubectlReadCommandAsync(AKSClusterResourceId, command);
+        }
+
+        /// <summary>Get pod logs with advanced filtering and volume reduction.</summary>
+        [Description(
+            "Retrieve Kubernetes pod logs with grep filtering, truncation, and all built-in kubectl log options.")]
+        public async Task<string> GetPodLogsAsync(
+            [Description("The resource ID of the Azure Kubernetes Service.")]
+            string AKSClusterResourceId,
+            [Description("Pod name or resource/name (e.g. 'mypod' or 'deployment/myapp')")]
+            string podOrResource,
+            [Description("Namespace name. Leave empty for current namespace context.")]
+            string? @namespace = null,
+            [Description("Container name. Leave empty for single-container pods or first container.")]
+            string? container = null,
+            [Description("Search terms for grep filtering. Space-separated for OR, comma-separated for AND. " +
+                 "Example: 'error warn' (OR) or 'error,database' (AND)")]
+            string? grepTerms = null,
+            [Description("Case-sensitive grep search. Default: false (case-insensitive)")]
+            bool caseSensitive = false,
+            [Description("Number of tail lines to retrieve. Default: 100. Use -1 for all logs.")]
+            int tailLines = 100,
+            [Description("Time duration to look back (e.g. '1h', '30m', '24h'). Overrides tailLines if specified.")]
+            string? since = null,
+            [Description("Include timestamps in output. Default: true")]
+            bool timestamps = true,
+            [Description("Get logs from previous terminated container. Default: false")]
+            bool previous = false,
+            [Description("Get logs from all containers in the pod. Default: false")]
+            bool allContainers = false,
+            [Description("Show prefix with pod/container name. Default: false")]
+            bool showPrefix = false)
+        {
+            try
+            {
+                // Build kubectl logs command
+                var args = new List<string> { "kubectl", "logs", podOrResource };
+
+                if (!string.IsNullOrWhiteSpace(@namespace))
+                    args.AddRange(["-n", @namespace]);
+
+                if (!string.IsNullOrWhiteSpace(container))
+                    args.AddRange(["-c", container]);
+
+                if (!string.IsNullOrWhiteSpace(since))
+                    args.Add($"--since={since}");
+                else if (tailLines > 0)
+                    args.Add($"--tail={tailLines}");
+
+                if (timestamps)
+                    args.Add("--timestamps");
+
+                if (previous)
+                    args.Add("--previous");
+
+                if (allContainers)
+                    args.Add("--all-containers");
+
+                if (showPrefix)
+                    args.Add("--prefix");
+
+                // Execute kubectl command
+                var command = string.Join(' ', args);
+                var rawLogs = await _kubePlugin.RunKubectlReadCommandAsync(AKSClusterResourceId, command);
+
+                if (rawLogs.StartsWith("kubectl command failed"))
+                {
+                    return rawLogs;
+                }
+
+                // Apply grep filtering
+                var filteredLogs = KernelFunctionHelpers.ApplyGrepFiltering(rawLogs, grepTerms, caseSensitive);
+
+                // Apply word truncation
+                var finalLogs = KernelFunctionHelpers.ApplyWordTruncation(filteredLogs);
+
+                return finalLogs;
+            }
+            catch (Exception ex)
+            {
+                return $"Failed to get logs: {ex.Message}";
+            }
+        }
+
+        /// <summary>Get Kubernetes events with filtering and volume reduction.</summary>
+        [Description(
+            "Retrieve Kubernetes events with grep filtering, truncation, and built-in event filtering options.")]
+        public async Task<string> GetKubeEventsAsync(
+            [Description("The resource ID of the Azure Kubernetes Service.")]
+            string AKSClusterResourceId,
+            [Description("Namespace name. Use '*' for all namespaces. Leave empty for current namespace context.")]
+            string? @namespace = "*",
+            [Description("Field selector for filtering events (e.g. 'involvedObject.name=mypod' or 'type=Warning')")]
+            string? fieldSelector = null,
+            [Description("Search terms for grep filtering. Space-separated for OR, comma-separated for AND. " +
+                 "Example: 'failed error' (OR) or 'failed,pulling' (AND)")]
+            string? grepTerms = null,
+            [Description("Case-sensitive grep search. Default: false (case-insensitive)")]
+            bool caseSensitive = false,
+            [Description("Sort events by field (e.g. '.lastTimestamp', '.metadata.name'). Default: '.lastTimestamp'")]
+            string sortBy = ".lastTimestamp",
+            [Description("Event types to include: 'All', 'Normal', 'Warning'. Default: 'All'")]
+            string eventTypes = "All")
+        {
+            try
+            {
+                // Build kubectl get events command
+                var args = new List<string> { "get", "events" };
+
+                if (!string.IsNullOrWhiteSpace(@namespace) && @namespace != "*")
+                    args.AddRange(["-n", @namespace]);
+                else if (@namespace == "*")
+                    args.Add("-A");
+
+                if (!string.IsNullOrWhiteSpace(fieldSelector))
+                    args.Add($"--field-selector={fieldSelector}");
+
+                // Add event type filtering
+                if (eventTypes != "All")
+                {
+                    var typeFilter = eventTypes == "Warning" ? "type=Warning" : "type=Normal";
+                    var existingSelector = fieldSelector ?? "";
+                    var combinedSelector = string.IsNullOrEmpty(existingSelector)
+                        ? typeFilter
+                        : $"{existingSelector},{typeFilter}";
+
+                    // Remove previous field-selector and add combined one
+                    args.RemoveAll(arg => arg.StartsWith("--field-selector="));
+                    args.Add($"--field-selector={combinedSelector}");
+                }
+
+                args.Add($"--sort-by={sortBy}");
+                args.Add("-o wide");  // Get more details
+
+                // Execute kubectl command
+                var command = string.Join(' ', args);
+                var rawEvents = await _kubePlugin.RunKubectlReadCommandAsync(AKSClusterResourceId, command);
+
+                if (rawEvents.StartsWith("kubectl command failed"))
+                {
+                    return rawEvents;
+                }
+
+                // Apply limit (take header + first N events)
+                var limitedEvents = KernelFunctionHelpers.ApplyEventLimit(rawEvents);
+
+                // Apply grep filtering
+                var filteredEvents = KernelFunctionHelpers.ApplyGrepFiltering(limitedEvents, grepTerms, caseSensitive);
+
+                // Apply word truncation
+                var finalEvents = KernelFunctionHelpers.ApplyWordTruncation(filteredEvents);
+
+                return finalEvents;
+            }
+            catch (Exception ex)
+            {
+                return $"Failed to get events: {ex.Message}";
+            }
+        }
+
+        /// <summary>Get available metrics with filtering to discover what's available.</summary>
+        [Description(
+            "Discover available Prometheus metrics with optional filtering.")]
+        public Task<string> DiscoverPrometheusMetricsAsync(
+            [Description("The resource ID of the Azure Kubernetes Service.")]
+            string AKSClusterResourceId,
+            [Description("Filter metrics by name pattern (supports wildcards). Example: 'container_*' or '*memory*'")]
+            string? namePattern = null,
+            [Description("Filter by metric type: counter, gauge, histogram, summary")]
+            string? metricType = null)
+        {
+            return _kubePlugin.DiscoverMetricsAsync(
+                AKSClusterResourceId,
+                namePattern,
+                metricType);
+        }
+
+        /// <summary>Get metric labels and values for building targeted queries.</summary>
+        [Description(
+            "Discover available label names and values for a specific metric to build more targeted queries.")]
+        public Task<string> GetMetricsLabelsAsync(
+            [Description("The resource ID of the Azure Kubernetes Service.")]
+            string AKSClusterResourceId,
+            [Description("Metric name to inspect, e.g. 'container_memory_usage_bytes'")]
+            string metricName,
+            [Description("Specific label name to get values for. Leave empty to get all label names.")]
+            string? labelName = null)
+        {
+            return _kubePlugin.GetMetricLabelsAsync(
+                AKSClusterResourceId,
+                metricName,
+                labelName);
+        }
+
+        /// <summary>Execute PromQL queries against Prometheus with volume controls.</summary>
+        [Description(
+            "Query Prometheus metrics with comprehensive filtering and aggregation options to control output volume.")]
+        public Task<string> QueryPrometheusMetricsAsync(
+            [Description("The resource ID of the Azure Kubernetes Service.")]
+            string AKSClusterResourceId,
+            [Description("PromQL query expression, e.g. 'cpu_usage_rate' or 'container_memory_usage_bytes{namespace=\"default\"}'")]
+            string query,
+            [Description("Time range duration (e.g. '1h', '30m', '24h') or 'now' for instant query. Default: '1h'")]
+            string duration = "1h",
+            [Description("Query resolution/step interval (e.g. '30s', '1m', '5m'). Larger steps = less data. Default: '1m'")]
+            string step = "5m",
+            [Description("Additional label filters as key=value pairs, comma-separated. Example: 'namespace=default,pod=myapp-*'")]
+            string? labelFilters = null,
+            [Description("Aggregation function to apply: sum, avg, max, min, count, topk, bottomk. Use with aggregateBy parameter.")]
+            string? aggregateFunction = null,
+            [Description("Labels to aggregate by when using aggregateFunction. Example: 'namespace,pod'")]
+            string? aggregateBy = null,
+            [Description("Limit number of time series returned. Useful for high-cardinality metrics. Default: no limit")]
+            int? limit = null,
+            [Description("Only return values above this threshold. Helps filter noise from metrics.")]
+            double? minValue = null)
+        {
+            return _kubePlugin.ExecutePromQLAsync(
+                AKSClusterResourceId,
+                query,
+                duration,
+                step,
+                labelFilters,
+                aggregateFunction,
+                aggregateBy,
+                limit,
+                minValue);
+    }
+
         [KernelFunction("profile_dotnet_app_cpu_in_aks_container")]
         [Description(
-    @"Performs CPU profiling for a .NET application running in a specific pod and container.
-    The analysis ('topN' report) is also performed inside the container, and its result is returned.
-    Failures during tool installation or profiling will be reported in the output.
-    eg: 'Profile CPU of 'my-app-pod' in 'default' for 60s.'"
-    )]
+        @"Performs CPU profiling for a .NET application running in a specific pod and container.
+            The analysis ('topN' report) is also performed inside the container, and its result is returned.
+            Failures during tool installation or profiling will be reported in the output.
+            eg: 'Profile CPU of 'my-app-pod' in 'default' for 60s.'"
+        )]
         [RequiresApproval("Requires approval to execute CPU profiling tools within the specified pod and container.", useOboToken: false)]
         public async Task<string> ProfileDotnetAppCpuInAKSContainerAsync(
-            [Description("The resource ID of the Azure Kubernetes Service (AKS) cluster.")] string AKSClusterResourceId,
-            [Description("Kubernetes namespace where the pod is located.")] string _namespace,
-            [Description("The name of the Kubernetes pod running the .NET application.")] string podName,
-            [Description("Optional: The name of the specific container within the pod. Auto-selected if single container or based on heuristics for multiple.")] string? targetContainerName = null,
-            [Description("Duration in seconds for which to collect the CPU trace. Default is 30 seconds.")] int durationSeconds = 30)
+        [Description("The resource ID of the Azure Kubernetes Service (AKS) cluster.")] string AKSClusterResourceId,
+        [Description("Kubernetes namespace where the pod is located.")] string _namespace,
+        [Description("The name of the Kubernetes pod running the .NET application.")] string podName,
+        [Description("Optional: The name of the specific container within the pod. Auto-selected if single container or based on heuristics for multiple.")] string? targetContainerName = null,
+        [Description("Duration in seconds for which to collect the CPU trace. Default is 30 seconds.")] int durationSeconds = 30)
         {
             return await _kubePlugin.ProfileDotnetAppCpuInAKSContainerAsync(AKSClusterResourceId, _namespace, podName, targetContainerName, durationSeconds);
         }

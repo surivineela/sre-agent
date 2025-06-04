@@ -118,7 +118,7 @@ dataPoints: semicolon-separated rows in the form
             [Description("X-axis label (time)")] string xAxisLabel,
             [Description("Y1-axis label (total requests)")] string y1AxisLabel,
             [Description("Y2-axis label (failed requests, e.g. 5xx requests)")] string y2AxisLabel,
-            [Description("Semicolon-seperated data point in format 'x|y1|y2|<correlation>|<isHighlight>|<highlightLabel>|<additionalInfo>'\n" + 
+            [Description("Semicolon-seperated data point in format 'x|y1|y2|<correlation>|<isHighlight>|<highlightLabel>|<additionalInfo>'\n" +
                 "correlation: numeric, use 0 if you have no coefficient; isHighlight: true/false to draw a marker; highlightLabel: text on marker if isHighlight is true; additionalInfo: optional tooltip text.\n" +
                 "For example: 2025-05-11T16:04:00Z|118|0|0|false||baseline;2025-05-11T16:10:00Z|120|18|0|true|Deploy r-abc123def|first spike")] string dataPoints,
             [Description("Short caption below the chart")] string description)

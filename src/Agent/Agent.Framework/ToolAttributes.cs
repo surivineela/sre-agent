@@ -10,7 +10,7 @@ public class AgentToolPluginAttribute : Attribute
 {
 }
 
-[AttributeUsageAttribute(AttributeTargets.Method, AllowMultiple = false)]
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
 public class AgentToolAttribute : Attribute
 {
     public AgentToolAttribute(ToolMode mode)

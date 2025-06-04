@@ -38,21 +38,25 @@
     <None Update="AgentsV2\*.yml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="CommonPrompts\*.yml">
+
+    <None Update="AgentsV2\Prompts\*.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+
     <None Update="CommonPrompts\*.yaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="AgentsV2\DiagnosticsAgents\DiagnosticCPUAgent.yaml">
+    <None Update="CommonPrompts\*.yml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="AgentsV2\DiagnosticsAgents\DiagnosticLatencyAgent.yaml">
+
+    <None Update="AgentsV2\DiagnosticsAgents\*.yaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="AgentsV2\DiagnosticsAgents\DiagnosticMemoryAgent.yaml">
+    <None Update="AgentsV2\DiagnosticsAgents\*.yml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+
     <None Update="SubAgents\AppCodeAnalysisAgent\AppCodeAnalysisPlan.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

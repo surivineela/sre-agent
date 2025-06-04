@@ -193,7 +193,7 @@ public class MockKubePlugin : IKubePlugin
     }
 
     // ListKubeResourcesAsync: Use configured mock data.
-    public Task<string> ListKubeResourcesAsync(string resourceId, string _namespace, string kind) // Parameter name matches interface
+    public Task<string> ListKubeResourcesAsync(string resourceId, string? _namespace, string kind) // Parameter name matches interface
     {
         switch (kind.ToLowerInvariant())
         {
@@ -507,17 +507,17 @@ public class MockKubePlugin : IKubePlugin
         switch (metricsType.ToLowerInvariant())
         {
             case "cpu":
-            baseMetricValue = metrics.Cpu;
-            break;
+                baseMetricValue = metrics.Cpu;
+                break;
             case "memory":
-            baseMetricValue = metrics.Mem;
-            break;
+                baseMetricValue = metrics.Mem;
+                break;
             case "availability":
-            baseMetricValue = metrics.Avail;
-            break;
+                baseMetricValue = metrics.Avail;
+                break;
             default:
-            baseMetricValue = 50.0; // Default fallback
-            break;
+                baseMetricValue = 50.0; // Default fallback
+                break;
         }
 
         // Generate 10 timestamps between start and end
@@ -737,6 +737,21 @@ public class MockKubePlugin : IKubePlugin
     }
 
     public Task<string> AnalyzeDotnetAppMemoryInAKSContainerAsync(string aksResourceId, string _namespace, string podName, string? targetContainerName)
+    {
+        throw new NotImplementedException();
+    }
+
+    Task<string> IKubePlugin.DiscoverMetricsAsync(string AKSClusterResourceId, string? namePattern, string? metricType)
+    {
+        throw new NotImplementedException();
+    }
+
+    Task<string> IKubePlugin.GetMetricLabelsAsync(string AKSClusterResourceId, string metricName, string? labelName)
+    {
+        throw new NotImplementedException();
+    }
+
+    Task<string> IKubePlugin.ExecutePromQLAsync(string AKSClusterResourceId, string query, string duration, string step, string? labelFilters, string? aggregateFunction, string? aggregateBy, int? limit, double? minValue)
     {
         throw new NotImplementedException();
     }

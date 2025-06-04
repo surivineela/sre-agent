@@ -135,5 +135,5 @@ tools:
 
 common_prompts:
   - notify_user
-  - ground_rail
+  - guard_rail
 

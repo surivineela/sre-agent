@@ -1,4 +1,4 @@
-name: ground_rail
+name: guard_rail
 
 prompt: |
   DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.

@@ -3,7 +3,6 @@
 // ------------------------------------------------------------
 
 using System.Reflection;
-using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -96,10 +95,17 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
             Instructions = agentDescriptor.Instructions,
             HandoffDescription = agentDescriptor.HandoffDescription,
             MaxReflectionCount = agentDescriptor.MaxReflectionCount,
-            CustomReflectionNote = agentDescriptor.CustomReflectionNote ?? string.Empty,
+            CriticPromptPath = Path.Join(AppContext.BaseDirectory, agentDescriptor.CriticPromptPath),
+            CustomReflectionNote = agentDescriptor.CustomReflectionNote,
             Handoffs = [], // Will be populated later to avoid circular references
-            FactoryTools = agentDescriptor.Tools
+            FactoryTools = agentDescriptor.Tools,
+            AllowParallelToolCalls = agentDescriptor.AllowParallelToolCalls,
         };
+
+        if (agentDescriptor.Temperature is not null)
+        {
+            agent.Temperature = agentDescriptor.Temperature.Value;
+        }
 
         agent.Instructions
             .WithHandoffInstructions()

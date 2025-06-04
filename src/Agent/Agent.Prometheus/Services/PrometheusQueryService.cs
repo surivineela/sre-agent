@@ -1,11 +1,11 @@
 using System.Net.Http.Headers;
+using System.Text;
 using System.Text.Json;
-using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 using Agent.Core.Interfaces;
+using Agent.Logging;
 using Azure.Core;
 using Microsoft.Extensions.Logging;
-using Agent.Logging;
-using Agent.Logging;
 
 namespace Agent.Prometheus.Services;
 
@@ -52,6 +52,270 @@ public class PrometheusQueryService(ILogger<PrometheusQueryService> logger, IHtt
             logger.LogInternalError("Failed to query Prometheus: {errorContent}", errorContent);
             throw new HttpRequestException($"Failed to query Prometheus: {response.StatusCode} - {errorContent}");
         }
+    }
+
+    public async Task<string> DiscoverMetricsAsync(
+        string prometheusQueryEndpoint,
+        string? namePattern,
+        string? metricType)
+    {
+        const int maxMetrics = 100;
+
+        try
+        {
+            using var client = await CreateHttpClientAsync();
+            var response = await client.GetStringAsync($"{prometheusQueryEndpoint}/api/v1/label/__name__/values");
+            var data = JsonDocument.Parse(response);
+
+            if (data.RootElement.GetProperty("status").GetString() != "success")
+            {
+                return "Failed to retrieve metrics list";
+            }
+
+            var metrics = data.RootElement.GetProperty("data").EnumerateArray()
+                .Select(m => m.GetString()!)
+                .Where(m => namePattern == null || MatchesPattern(m, namePattern))
+                .ToArray();
+
+            var metricsSb = new StringBuilder();
+
+            if (metrics.Length > maxMetrics)
+            {
+                metricsSb.AppendLine($"Retrieved {metrics.Length} metrics for regex {namePattern}. Showing only first {maxMetrics} metrics. Please query again with better filters if you need complete list.");
+                metrics = metrics
+                    .Take(maxMetrics)
+                    .ToArray();
+            }
+
+            foreach (var metric in metrics)
+            {
+                metricsSb.AppendLine(metric);
+            }
+
+            return metricsSb.ToString();
+        }
+        catch (Exception ex)
+        {
+            return $"Metrics discovery failed: {ex.Message}";
+        }
+    }
+
+    private static bool MatchesPattern(
+        string text,
+        string pattern)
+    {
+        var regex = pattern.Replace("*", ".*").Replace("?", ".");
+        return Regex.IsMatch(text, $"^{regex}$", RegexOptions.IgnoreCase);
+    }
+
+    public async Task<string> GetMetricLabelsAsync(
+        string prometheusQueryEndpoint,
+        string metricName,
+        string? labelName)
+    {
+        const int maxLabels = 100;
+
+        try
+        {
+            using var client = await CreateHttpClientAsync();
+
+            var apiUrl = string.IsNullOrEmpty(labelName)
+                // Get all label names for the metric
+                ? $"{prometheusQueryEndpoint}/api/v1/labels?match[]={Uri.EscapeDataString(metricName)}"
+                // Get values for specific label
+                : $"{prometheusQueryEndpoint}/api/v1/label/{labelName}/values?match[]={Uri.EscapeDataString(metricName)}";
+
+            var response = await client.GetStringAsync(apiUrl);
+            var data = JsonDocument.Parse(response);
+
+            if (data.RootElement.GetProperty("status").GetString() != "success")
+            {
+                return "Failed to retrieve label information";
+            }
+
+            var labels = data.RootElement.GetProperty("data").EnumerateArray()
+                .Select(item => item.GetString()!)
+                .ToArray();
+
+            var labelsSb = new StringBuilder();
+
+            if (labels.Length > maxLabels)
+            {
+                labelsSb.AppendLine($"Retrieved {labels.Length} labels for selector {labelName}. Showing only first {maxLabels} labels. Please query again with better filters if you need complete list.");
+                labels = labels
+                    .Take(maxLabels)
+                    .ToArray();
+            }
+
+            foreach (var label in labels)
+            {
+                labelsSb.AppendLine(label);
+            }
+
+            return labelsSb.ToString();
+        }
+        catch (Exception ex)
+        {
+            return $"Label discovery failed: {ex.Message}";
+        }
+    }
+
+    public async Task<string> ExecutePromQLAsync(
+        string prometheusQueryEndpoint,
+        string query,
+        string duration,
+        string step,
+        string? labelFilters,
+        string? aggregateFunction,
+        string? aggregateBy,
+        int? limit,
+        double? minValue)
+    {
+        try
+        {
+            // Build the enhanced query
+            var enhancedQuery = BuildEnhancedQuery(query, labelFilters, aggregateFunction, aggregateBy, limit);
+
+            // Determine query type and build URL
+            string apiUrl;
+            if (duration == "now")
+            {
+                // Instant query
+                apiUrl = $"{prometheusQueryEndpoint}/api/v1/query?query={Uri.EscapeDataString(enhancedQuery)}";
+            }
+            else
+            {
+                // Range query
+                var endTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                var startTime = endTime - ParseDurationToSeconds(duration);
+                apiUrl = $"{prometheusQueryEndpoint}/api/v1/query_range?query={Uri.EscapeDataString(enhancedQuery)}" +
+                        $"&start={startTime}&end={endTime}&step={step}";
+            }
+
+            using var client = await CreateHttpClientAsync();
+            var response = await client.GetStringAsync(apiUrl);
+
+            // Parse and format response
+            var data = JsonDocument.Parse(response);
+
+            if (data.RootElement.GetProperty("status").GetString() != "success")
+            {
+                return $"Query failed: {data.RootElement.GetProperty("error").GetString()}";
+            }
+
+            var result = data.RootElement.GetProperty("data").GetProperty("result");
+
+            return FormatAsCsv(result, minValue);
+        }
+        catch (Exception ex)
+        {
+            return $"PromQL query failed: {ex.Message}";
+        }
+    }
+
+    private static string BuildEnhancedQuery(
+        string query,
+        string? labelFilters,
+        string? aggregateFunction,
+        string? aggregateBy,
+        int? limit)
+    {
+        var enhancedQuery = query;
+
+        // Add label filters
+        if (!string.IsNullOrEmpty(labelFilters))
+        {
+            var filters = labelFilters.Split(',')
+                .Select(f => f.Trim())
+                .Where(f => !string.IsNullOrEmpty(f))
+                .Select(f => f.Contains('=') ? f : $"{f}=~\".*\""); // Add regex match if no operator
+
+            if (query.Contains('{'))
+            {
+                // Insert filters into existing label selector
+                enhancedQuery = query.Replace("}", $",{string.Join(",", filters)}}}");
+            }
+            else
+            {
+                // Add label selector
+                enhancedQuery = $"{query}{{{string.Join(",", filters)}}}";
+            }
+        }
+
+        // Apply aggregation
+        if (!string.IsNullOrEmpty(aggregateFunction))
+        {
+            if (!string.IsNullOrEmpty(aggregateBy))
+            {
+                enhancedQuery = $"{aggregateFunction} by ({aggregateBy}) ({enhancedQuery})";
+            }
+            else
+            {
+                enhancedQuery = $"{aggregateFunction}({enhancedQuery})";
+            }
+        }
+
+        // Apply limit using topk if specified
+        if (limit.HasValue && string.IsNullOrEmpty(aggregateFunction))
+        {
+            enhancedQuery = $"topk({limit.Value}, {enhancedQuery})";
+        }
+
+        return enhancedQuery;
+    }
+
+    private static long ParseDurationToSeconds(string duration)
+    {
+        var unit = duration[^1];
+        var value = int.Parse(duration[..^1]);
+
+        return unit switch
+        {
+            's' => value,
+            'm' => value * 60,
+            'h' => value * 3600,
+            'd' => value * 86400,
+            _ => throw new ArgumentException($"Unsupported duration unit: {unit}")
+        };
+    }
+
+    private static string FormatAsCsv(
+        JsonElement result,
+        double? minValue)
+    {
+        var output = new List<string> { "metric,labels,value,timestamp" };
+
+        foreach (var series in result.EnumerateArray())
+        {
+            var metric = series.GetProperty("metric");
+            var metricName = metric.TryGetProperty("__name__", out var name) ? name.GetString() : "unknown";
+
+            var labels = string.Join(";", metric.EnumerateObject()
+                .Where(p => p.Name != "__name__")
+                .Select(p => $"{p.Name}={p.Value.GetString()}"));
+
+            if (series.TryGetProperty("value", out var value))
+            {
+                var val = double.Parse(value[1].GetString()!);
+                if (minValue == null || val >= minValue)
+                {
+                    output.Add($"{metricName},\"{labels}\",{val},{value[0].GetInt64()}");
+                }
+            }
+            else if (series.TryGetProperty("values", out var values))
+            {
+                foreach (var valuePoint in values.EnumerateArray())
+                {
+                    var val = double.Parse(valuePoint[1].GetString()!);
+                    if (minValue == null || val >= minValue)
+                    {
+                        output.Add($"{metricName},\"{labels}\",{val},{valuePoint[0].GetInt64()}");
+                    }
+                }
+            }
+        }
+
+        return string.Join("\n", output);
     }
 
     public async Task<Response> QueryRangeAsync(string prometheusQueryEndpoint, string query, DateTime start, DateTime end, TimeSpan step, CancellationToken cancellationToken = default)

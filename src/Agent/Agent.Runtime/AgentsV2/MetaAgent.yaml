@@ -17,13 +17,15 @@ system_prompt: |
   - Only proceed with resource queries after subscription context is established
   - If questions cannot be answered intended for resource configuration, handoff to the azure_cli_command_executor_agent.
 
-handoff_description: "Handoff to this agent when you don't have tools to continue the next step'"
+handoff_description: "Handoff to this agent when you don't have tools to continue the next step"
 
 handoffs:
   - resource_discovery_agent
   - container_apps_agent
   - azure_cli_command_executor_agent
+  # todo: fix conflicts between the 3 aks agents
   - kubectl_command_executor_agent
+  - kubernetes_service_general_requests_agent
   - aks_remediation_agent
   - charts_and_metrics_and_visualization_agent
 
