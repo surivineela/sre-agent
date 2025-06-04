@@ -171,10 +171,14 @@ export const useChatBox = (addThread: (thread: Thread) => void, promoteThread: (
         });
     };
 
-    const handleOldMessages = (oldMessages: Message[]) => {
+    const handleOldMessages = (oldMessages: Message[], isInitialMessages: boolean) => {
         oldMessagesToBeAdded.current = true;
         currentScrollHeight.current = messagesDivRef.current?.scrollHeight || 0;
-        setMessages(prev => processOldMessages(prev, oldMessages));
+        if (isInitialMessages) {
+            setMessages(processOldMessages([], oldMessages));
+        } else {
+            setMessages(prev => processOldMessages(prev, oldMessages));
+        }
     };
 
     /**
@@ -311,7 +315,7 @@ export const useChatBox = (addThread: (thread: Thread) => void, promoteThread: (
 
             if (callId === loadOldChatHistoryCallId.current) {
                 const currentMessages = currentMessagesResponse.content || [];
-                handleOldMessages(currentMessages);
+                handleOldMessages(currentMessages, false);
                 if (currentMessagesResponse.isSuccessful && currentMessages.length < MessageLoadingCounts.active) {
                     setNoChatHistoryLeftToLoad(true);
                 }
@@ -363,12 +367,9 @@ export const useChatBox = (addThread: (thread: Thread) => void, promoteThread: (
         let isSubscribed = true;
 
         const loadLatest20ChatHistory = async () => {
-            setIsLoadingInitialChatHistory(true);
-            setNoChatHistoryLeftToLoad(false);
-
-            if (currentThreadId) {
+            if (threadId) {
                 isPreviousOldMessagesLoadingCompleted.current = false;
-                const messagesResponse = await messageClient.getMessages(currentThreadId, {
+                const messagesResponse = await messageClient.getMessages(threadId, {
                     skip: 0,
                     top: MessageLoadingCounts.default,
                     descending: true,
@@ -377,7 +378,7 @@ export const useChatBox = (addThread: (thread: Thread) => void, promoteThread: (
                 const messages = messagesResponse.content || [];
 
                 if (isSubscribed) {
-                    handleOldMessages(messages);
+                    handleOldMessages(messages, true);
                     setIsLoadingInitialChatHistory(false);
 
                     // The threshold depends on the number of the messages this query is intended to return.
@@ -398,7 +399,7 @@ export const useChatBox = (addThread: (thread: Thread) => void, promoteThread: (
         return () => {
             isSubscribed = false;
         };
-    }, [currentThreadId]);
+    }, [threadId]);
 
     useEffect(() => {
         const observer = new IntersectionObserver((entries: IntersectionObserverEntry[]) => {
