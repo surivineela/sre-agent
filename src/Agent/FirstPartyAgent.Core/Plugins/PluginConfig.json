@@ -62,5 +62,9 @@
   {
     "PluginName": "AzureDevOpsPlugin",
     "ServiceIdentifier": "FirstPartyAgent.Core.Plugins.AzureDevOpsPlugin"
+  },
+  {
+    "PluginName": "HandoffToAgentPlugin",
+    "ServiceIdentifier": "FirstPartyAgent.Core.Plugins.HandoffToAgentPlugin"
   }
 ]

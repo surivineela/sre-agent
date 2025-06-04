@@ -61,6 +61,7 @@ namespace FirstPartyAgent.Core.Extensions
                 return new NullableICMWorkflowClient();
             });
             services.AddSingleton<AlertHandlerClient>();
+            services.AddSingleton<IHandoffToAgentClient, HandoffToAgentClient>();
             services.AddSingleton<ICMPlugin>();
             services.AddSingleton<GenevaActionsPlugin>();
             services.AddSingleton<HttpRequestPlugin>();
@@ -146,6 +147,7 @@ namespace FirstPartyAgent.Core.Extensions
 
             services.AddSingleton<DevOpsHelperService>();
             services.AddSingleton<TsgFetcherService>();
+            services.AddSingleton<HandoffToAgentPlugin>();
         }
 
         public static IServiceCollection ConfigureSemanticKernel(this IServiceCollection services)
@@ -238,6 +240,7 @@ namespace FirstPartyAgent.Core.Extensions
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.AzureDevOps);
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.IcmAgent);
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.TsgCrawler);
+            services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.HandoffToAgentConfig);
 
             return services;
         }

@@ -24,6 +24,7 @@ namespace FirstPartyAgent.Core.Configuration
         public DevOpsSetting DevOps { get; set; }
 
         public IcmAgentSettings IcmAgent { get; set; }
+        public HandoffToAgentSettings HandoffToAgentConfig { get; set; } = new();
     }
 }
 
