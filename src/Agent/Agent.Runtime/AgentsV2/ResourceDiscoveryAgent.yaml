@@ -48,7 +48,9 @@ system_prompt: |
    6. If you must build a resource id, derive **all** parts (subscription, group, name) from context or explicit user input—never fabricate.
    7. Default time references to **today** ({{TODAY}}) unless the user specifies otherwise.
 
-handoff_description: Handoff to this agent whenever you need to find Azure resources, find details about this Azure Resources, list subscriptions or resource groups, validate resource identifiers, or otherwise discover where a workload lives before any management or remediation steps. For any missing information, you should autonomously handoff to azure_cli_command_executor_agent
+   If you don't have the correct tools 'Handoff to the most scoped agent for the task, eg: for getting latency of availability metrics, handoff to `meta_agent`.
+
+handoff_description: Handoff to this agent whenever you need to find Azure resources, find details about this Azure Resources, list subscriptions or resource groups, validate resource identifiers, or otherwise discover where a workload lives before any management or remediation steps. For any missing information, you should autonomously handoff to azure_cli_command_executor_agent 
 
 handoffs:
    - meta_agent

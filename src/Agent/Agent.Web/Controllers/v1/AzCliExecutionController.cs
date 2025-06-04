@@ -147,10 +147,10 @@ namespace Agent.Web.Controllers.v1
                             {
                                 await _reasoningLoopManager.AppendNewMessageAsync(agentContext, new Microsoft.Extensions.AI.ChatMessage()
                                 {
-                                    Role = Microsoft.Extensions.AI.ChatRole.Assistant,
+                                    Role = Microsoft.Extensions.AI.ChatRole.User,
                                     Contents = new List<Microsoft.Extensions.AI.AIContent>
                                     {
-                                        new Microsoft.Extensions.AI.TextContent($"Execution completed successfully: {execution.Command}, Result: {output}")
+                                        new Microsoft.Extensions.AI.TextContent($"Az CLI Execution completed successfully. Command: {execution.Command}, Result: {output}. You SHOULD NOT re-run the this same command (by again calling the RunAzCliWriteCommand tool with same command as the argument) as it has already run, and You should now continue to Notify the user about the results of the command and continue to the verification step")
                                     }
                                 });
                             }
@@ -174,7 +174,7 @@ namespace Agent.Web.Controllers.v1
                                     Role = Microsoft.Extensions.AI.ChatRole.Assistant,
                                     Contents = new List<Microsoft.Extensions.AI.AIContent>
                                     {
-                                        new Microsoft.Extensions.AI.TextContent($"Execution Failed: {execution.Command}, Result: {ex.Message}")
+                                        new Microsoft.Extensions.AI.TextContent($"Execution Failed: {execution.Command}, Result: {ex.Message}. I would now continue to Notify the user about the results of the command")
                                     }
                                 });
                             }

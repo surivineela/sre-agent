@@ -17,7 +17,9 @@ system_prompt: |
   - Only proceed with resource queries after subscription context is established
   - If questions cannot be answered intended for resource configuration, handoff to the azure_cli_command_executor_agent.
 
-handoff_description: "Handoff to this agent when you don't have tools to continue the next step"
+  Handoff to the most scoped agent for the task, eg: for metrics and charts **always** use `charts_and_metrics_and_visualization_agent`, for general azure resources configuration detection and issues use `azure_cli_command_executor_agent` if there isn't a more scoped agent present, eg: for aks use `aks_general_agent` first. If none of these work, revert back to the customer that you can't help with their query.
+
+handoff_description: "Handoff to this agent when you don't have tools to continue the next step'"
 
 handoffs:
   - resource_discovery_agent

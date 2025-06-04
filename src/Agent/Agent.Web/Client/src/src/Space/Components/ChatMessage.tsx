@@ -46,6 +46,14 @@ const chatMessageStyles = mergeStyleSets({
         borderRadius: tokens.borderRadiusXLarge,
     },
     codeBlock: {
+        backgroundColor: tokens.colorNeutralBackground6,
+        fontFamily: tokens.fontFamilyMonospace,
+        fontSize: tokens.fontSizeBase200,
+        display: 'inline-block',
+        padding: '2px 4px',
+        borderRadius: tokens.borderRadiusSmall,
+    },
+    codeBlockInPre: {
         backgroundColor: tokens.colorTransparentBackground,
         fontFamily: tokens.fontFamilyMonospace,
         fontSize: tokens.fontSizeBase200,
@@ -1835,7 +1843,10 @@ const ReactMarkdownComponent = ({
     }, []);
 
     const codeRenderer = useCallback((props: any) => {
-        return <code className={chatMessageStyles.codeBlock}>{props.children}</code>;
+        // Check if this code element is inside a pre element (code block)
+        const isInPre = props.node?.parent?.tagName === 'pre';
+        const className = isInPre ? chatMessageStyles.codeBlockInPre : chatMessageStyles.codeBlock;
+        return <code className={className}>{props.children}</code>;
     }, []);
 
     const preRenderer = useCallback((props: any) => {

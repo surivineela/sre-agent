@@ -362,7 +362,7 @@ namespace Agent.Plugins.Implementation
 
         private bool IsWriteCommand(string command)
         {
-            var writeVerbs = new[] { "create", "update", "set", "scale", "start", "stop", "restart", "add", "remove", "upgrade" };
+            var writeVerbs = new[] { "create", "update", "set", "scale", "start", "stop", "restart", "add", "remove", "upgrade", "query" };
             var commandLower = command.ToLower();
 
             // Check if command contains write verbs
