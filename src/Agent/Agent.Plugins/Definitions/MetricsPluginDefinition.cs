@@ -2,10 +2,10 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.ComponentModel;
 using Agent.Framework;
 using Agent.Plugins.Attributes;
 using Microsoft.SemanticKernel;
-using System.ComponentModel;
 
 namespace Agent.Plugins;
 

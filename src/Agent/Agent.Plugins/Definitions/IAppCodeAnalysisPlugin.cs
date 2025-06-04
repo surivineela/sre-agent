@@ -26,6 +26,8 @@ public interface IAppCodeAnalysisPlugin
 
     Task<string> GetAppConsoleLogs(string resourceId);
     Task<bool> WaitInMilliSeconds([Description("time to wait in milliseconds")] int numMilliSeconds);
+
+    string GetWebAppDownAnalysisLink(string resourceId);
 }
 
 

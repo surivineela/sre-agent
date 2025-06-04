@@ -845,26 +845,6 @@ public class ArmHelper
         await sqlServerAdOnlyAuthResult.Value.UpdateAsync(WaitUntil.Completed, sqlServerAdOnlyAuthResult.Value.Data);
     }
 
-    public async Task<string> GetDetectorResponse(string resourceId, string detectorId)
-    {
-        var requestUrl = new Uri(new Uri("https://management.azure.com"), $"{resourceId}/detectors/{detectorId}");
-
-        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
-        request.Headers.UserAgent.ParseAdd("SREAgent");
-
-        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
-        HttpResponseMessage response = await httpClient.SendAsync(request);
-
-        if (!response.IsSuccessStatusCode)
-        {
-            string responseBody = await response.Content.ReadAsStringAsync();
-            throw new Exception($"Failed to retrieve detector details. Status Code: {response.StatusCode}, Response: {responseBody}");
-        }
-
-        string jsonResponse = await response.Content.ReadAsStringAsync();
-        return jsonResponse;
-    }
-
     /// <summary>
     /// Gets the detector response for a resource with specified start time, enforcing a maximum time range of 3 days.
     /// The end time is always set to current time minus 15 minutes.

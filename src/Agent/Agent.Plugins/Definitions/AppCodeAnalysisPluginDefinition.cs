@@ -5,11 +5,13 @@
 using System.ComponentModel;
 using Agent.Core.Attributes;
 using Agent.Core.Helpers;
+using Agent.Framework;
 using Azure.ResourceManager.ResourceGraph.Models;
 using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins.Definitions
 {
+    [AgentToolPlugin]
     public class AppCodeAnalysisPluginDefinition
     {
 
@@ -88,6 +90,13 @@ namespace Agent.Plugins.Definitions
         [Description("resourceId of the app")] string resourceId)
         {
             return await _appCodeAnalysisPlugin.GetAppConsoleLogs(resourceId);
+        }
+
+        [Description("This function retrieves the link to the Applens web app down analysis")]
+        public string GetWebAppDownAnalysisLink(
+            [Description("resourceId of the app")] string resourceId)
+        {
+            return _appCodeAnalysisPlugin.GetWebAppDownAnalysisLink(resourceId);
         }
     }
 }

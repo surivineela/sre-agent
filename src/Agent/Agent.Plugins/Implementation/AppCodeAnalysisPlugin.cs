@@ -5,12 +5,9 @@ using Agent.Core;
 using Agent.Core.Attributes;
 using Agent.Core.Helpers;
 using Agent.Core.Models;
-using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Plugins.Definitions;
-using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 using Microsoft.SemanticKernel;
 using Newtonsoft.Json;
-using ScottPlot.TickGenerators.TimeUnits;
 
 namespace Agent.Plugins.Implementation;
 
@@ -61,6 +58,21 @@ public class AppCodeAnalysisPlugin : IAppCodeAnalysisPlugin
          await Task.Delay(numMilliSeconds);
         return true; 
     }
+
+    [Description("This function retrieves the link to the Applens web app down analysis")]
+    public string GetWebAppDownAnalysisLink(
+        [Description("The resourceId of the app")] string resourceId)
+    { 
+        var endTime = DateTime.UtcNow;
+        var startTime = endTime.AddDays(-1);
+
+        string endString = endTime.ToString("yyyy-MM-dd HH:mm");
+        string startString = endTime.ToString("yyyy-MM-dd HH:mm");
+        
+        string applensLink = $"https://applens.trafficmanager.net{resourceId}/analysis/appDownAnalysis?startTime={startString}&endTime={endString}";
+        return applensLink;
+    }
+
 
     [KernelFunction("get_summary_of_app_exceptions")]
     [Description("This function retrieves the summary of the exceptions on the app")]
@@ -150,7 +162,7 @@ public class AppCodeAnalysisPlugin : IAppCodeAnalysisPlugin
     [KernelFunction("get_app_console_logs")]
     [Description("This function attempts to retrieve error messages from an app's console logs and platform logs")]
     public async Task<string> GetAppConsoleLogs(
-[Description("resourceId of the app")] string resourceId)
+    [Description("resourceId of the app")] string resourceId)
     {
         DateTime startTime = DateTime.UtcNow.AddDays(-1);
         DateTime endTime = DateTime.UtcNow;
@@ -273,4 +285,3 @@ public class AppCodeAnalysisPlugin : IAppCodeAnalysisPlugin
         }
     }
 }
-
