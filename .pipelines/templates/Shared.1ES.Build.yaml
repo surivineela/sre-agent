@@ -30,6 +30,13 @@ extends:
   ${{ else }}:
     template: v1/1ES.Unofficial.PipelineTemplate.yml@1ESPipelineTemplates
   parameters:
+    pool:
+      name: Azure-Pipelines-1ESPT-ExDShared
+      image: windows-latest
+      os: windows
+    
+    authenticatedContainerRegistries:
+    - serviceConnection: k8seprod
 
     stages:
     - stage: build
@@ -40,9 +47,6 @@ extends:
       jobs:
       - job: main # Super std name for main build step in this stage
         displayName: "🔨 Build Agent"
-        pool:
-          # read more about custom job pool types at https://aka.ms/obpipelines/yaml/jobs
-          type: windows # RoslynAnalyzers are not supported on Linux yet
         variables:
           #
           # Constants (because there is no better way to do it in YAML)
@@ -63,7 +67,17 @@ extends:
           ${{ else }}:
             ExtraBuildFlags: ''
 
+          #
+          # Artifact and build output location-related variables
+          #
+          # this directory is uploaded to pipeline artifacts, reddog and cloudvault. More info at https://aka.ms/obpipelines/artifacts
+          ArtifactDirectory: '$(Build.SourcesDirectory)\out'
+
         steps:
+          # Used to get the packages that referenced by generated WorkerExtensions.csproj 
+        - task: NuGetAuthenticate@1
+          displayName: NuGetAuthenticate
+
         # Collect Build info & make output directories just in case
         - task: PowerShell@2
           displayName: "ℹ️ Collect build info"
@@ -76,7 +90,9 @@ extends:
               echo "Build.Repository.Name is $(Build.Repository.Name)"
               echo "Build.SourcesDirectory is $(Build.SourcesDirectory)"
               echo "Build.BuildNumber is $(Build.BuildNumber)"
-              echo "Build.BinariesDirectory is $(Build.BinariesDirectory)"              
+              echo "Build.BinariesDirectory is $(Build.BinariesDirectory)"
+
+              echo "ArtifactDirectory is $(ArtifactDirectory)"
 
               echo "Contents of ProjectSourcePath $(ProjectSourcePath)"
               Get-ChildItem -Recurse  $(ProjectSourcePath) | Foreach-Object { $_.FullName }
@@ -89,6 +105,7 @@ extends:
             workingDirectory: $(Build.SourcesDirectory)
             targetType: 'inline'
             script: |
+              New-Item $(ArtifactDirectory) -ItemType Directory -Force
               New-Item $(BuildSolutionOutputPath) -ItemType Directory -Force
 
         #
@@ -124,7 +141,7 @@ extends:
             SYSTEM_ACCESSTOKEN: $(System.AccessToken)
           inputs:
             locProj: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client\src\src\Strings\LocProject.json'
-            outDir: '$(ob_outputDirectory)' # \loc
+            outDir: '$(ArtifactDirectory)' # \loc
             packageSourceAuth: 'patAuth'
             dependencyPackageSource: 'https://msazure.pkgs.visualstudio.com/One/_packaging/OnelocbuildLocToolsFeed/nuget/v3/index.json'
 
@@ -183,8 +200,6 @@ extends:
             testResultsFiles: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client\junit-report.xml'
             failTaskOnFailedTests: true
             testRunTitle: 'UX_UnitTests'
-
-        
         
         #  Need to run npmAuthenticate again for the FirstPartyAgent.Web project first
         #  Due to Client React app also build during whole solution build phase
@@ -210,7 +225,7 @@ extends:
             command: 'publish'
             publishWebProjects: false
             projects: '.\src\Agent\Agent.Web\Agent.Web.csproj'
-            arguments: '--no-restore --output $(ob_outputDirectory) -c $(BuildConfiguration) -p:Version=$(Build.BuildNumber)'
+            arguments: '--no-restore --output $(ArtifactDirectory) -c $(BuildConfiguration) -p:Version=$(Build.BuildNumber)'
             includeNuGetOrg: false
             zipAfterPublish: false
 
@@ -244,6 +259,13 @@ extends:
           displayName: '🔨 RoslynAnalyzers'
           inputs:
             copyLogsOnly: true
+
+        # Publish the build artifacts
+        - task: 1ES.PublishPipelineArtifact@1
+          inputs:
+            path: '$(ArtifactDirectory)'
+            artifact: drop_build_main
+          displayName: 'Publish Artifact'
 
         # Run unit tests
         - task: DotNetCoreCLI@2
@@ -285,50 +307,34 @@ extends:
         #
         # Sign output binaries if it is an official build
         #
-        - ${{ if parameters.isOfficialBuild }}:
-          - task: onebranch.pipeline.signing@1
-            displayName: '✒️ Sign output binaries'
-            inputs:
-              command: 'sign'
-              signing_profile: 'internal_azure_service'
-              files_to_sign: '**/*.exe;**/*.dll;**/*.ps1;**/*.js;**/*.css;**/*.html'
-              search_root: '$(ob_outputDirectory)'
 
     - ${{ if parameters.isOfficialBuild }}:
       - stage: docker      
         dependsOn: build
         jobs:
-        - job: buildImageForAgentWeb
+        - job: image_build
           displayName: "🔨 Build Docker Image for Agent.Web"
           pool:
-            type: docker
+            name: Azure-Pipelines-1ESPT-ExDShared
+            image: ubuntu-latest
             os: linux
-          variables:
-            ob_git_checkout: true
           steps:
+            # This task downloads the build artifacts from the previous stage.
           - task: DownloadPipelineArtifact@2
             inputs:
               targetPath: $(Build.SourcesDirectory)/dst/drop_build_main
               artifact: drop_build_main
-            # This task downloads the build artifacts from the previous stage.
 
-          - task: onebranch.pipeline.containercontrol@1
-            displayName: "Login to ACR"
-            inputs:
-              command: login
-              acr_name: k8seprod
-              endpoint: k8seprod
-
-          - task: onebranch.pipeline.imagebuildinfo@1
+          - task: 1ES.BuildContainerImage@1
             displayName: 'Build Docker image for Agent.Web'
             inputs:
-              registry: k8seprod.azurecr.io
-              repositoryName: public/k8se/sre-agent-web
-              dockerFileRelPath: src/Deployment/Agent.Web/Dockerfile
-              dockerFileContextPath: drop_build_main/Agent.Web
-              saveImageToPath: 'images/sre-agent-web.tar.gz'
-              saveMetadataToPath: 'images/sre-agent-web-metadata.json'
-              enable_service_tree_acr_path: false
-              build_tag: $(Build.BuildNumber)
-              enable_acr_push: true
-              endpoint: k8seprod
+              context: $(Build.SourcesDirectory)/dst/drop_build_main/Agent.Web
+              dockerFile: $(Build.SourcesDirectory)/src/Deployment/Agent.Web/Dockerfile
+              image: k8seprod.azurecr.io/public/k8se/sre-agent-web:$(Build.BuildNumber)
+              enableNetwork: true
+
+          - task: 1ES.PushContainerImage@1
+            displayName: 'Push Docker image for Agent.Web'
+            inputs:
+              image: k8seprod.azurecr.io/public/k8se/sre-agent-web:$(Build.BuildNumber)
+              remoteImage: k8seprod.azurecr.io/public/k8se/sre-agent-web:$(Build.BuildNumber)
