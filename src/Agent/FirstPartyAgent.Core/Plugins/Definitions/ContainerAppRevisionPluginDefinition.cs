@@ -76,9 +76,10 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
             [Description("Name of the container app.")] string containerAppName,
             [Description("Name of the resource group.")] string resourceGroupName,
             [Description("Azure subscription ID.")] string subscriptionId,
+            [Description("Name of the managed cluster.")] string managedClusterName,
             [Description("provide sampling inputs")] SamplingOptions sampling)
         {
-            return _plugin.GetHttpScalerEventsForContainerApp(region.NormalizeLocation(), fromDate, toDate, containerAppName, resourceGroupName, subscriptionId, sampling);
+            return _plugin.GetHttpScalerEventsForContainerApp(region.NormalizeLocation(), fromDate, toDate, containerAppName, resourceGroupName, subscriptionId, managedClusterName, sampling);
         }
 
         [KernelFunction(KernelFunctionNames.ACA.GetKedaOperatorEventsForContainerApp)]

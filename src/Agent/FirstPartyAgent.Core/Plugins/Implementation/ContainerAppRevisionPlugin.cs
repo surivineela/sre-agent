@@ -147,14 +147,15 @@ public class ContainerAppRevisionPlugin : IContainerAppRevisionPlugin
         { "subscriptionId", subscriptionId },});
     }
 
-    public async Task<string> GetHttpScalerEventsForContainerApp(string region, DateTime fromDate, DateTime toDate, string containerAppName, string resourceGroupName, string subscriptionId,SamplingOptions samplingOptions)
+    public async Task<string> GetHttpScalerEventsForContainerApp(string region, DateTime fromDate, DateTime toDate, string containerAppName, string resourceGroupName, string subscriptionId, string managedClusterName, SamplingOptions samplingOptions)
     {
         var parm = new Dictionary<string, string> {
             { "fromDate", fromDate.ToString() },
             { "toDate", toDate.ToString() },
             { "containerAppName", containerAppName },
             { "resourceGroupName", resourceGroupName },
-            { "subscriptionId", subscriptionId }
+            { "subscriptionId", subscriptionId },
+            { "managedClusterName", managedClusterName }
             };
 
 

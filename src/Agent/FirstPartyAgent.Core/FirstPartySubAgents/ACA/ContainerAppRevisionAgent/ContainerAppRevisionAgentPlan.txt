@@ -166,7 +166,7 @@ If no scaler configuration exists, no scaling issues or KEDA references are ment
 - Step 7.1: Use `GetKedaOperatorEventsForContainerApp` and `GetHpaHeartbeatMetrics` to fetch any error log and analysis.
 
 - Step 7.2: If you find any Http scaler configuration exists, you should use `GetHttpScalerEventsForContainerApp` to fetch and check http scaler events log.
-   - **DO NOT focus solely on the logs pertaining to the specfic revision. You must consider all logs, as some deep HTTP or networking errors may not contain any revision information.**
+   - **DO NOT focus solely on the logs pertaining to the specfic revision. You must analyze all logs, especially those that don't contain any revision information, as some deep HTTP or networking errors may not contain any revision information.**
    - If most logs from `log` column indicate the request is waiting or connecting or has the key words like "waited", "timeout" or "throttling", regardless of whether they are related to the checking revision or not, please mention how many logs have this. It indicates a problem with the connection and is one of the root causes.
    
 ---
@@ -201,7 +201,7 @@ Incorporate insights from the design docs into your RCA and validation.
 
 ---
 
-## 📄 Final Step — RCA Report (Mandatory)
+### 📄 Final Step — RCA Report (Mandatory)
 
 You **must always** generate a final RCA report in this format:
 

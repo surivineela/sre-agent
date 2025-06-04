@@ -29,7 +29,7 @@ public interface IContainerAppRevisionPlugin
 
     Task<string> GetInternalEventProcessorEventsForPod(string region, DateTime fromDate, DateTime toDate, string revisionName, string podName, string containerAppName, string resourceGroupName, string subscriptionId, SamplingOptions? samplingOptions = null);
 
-    Task<string> GetHttpScalerEventsForContainerApp(string region, DateTime fromDate, DateTime toDate, string containerAppName, string resourceGroupName, string subscriptionId, SamplingOptions? samplingOptions = null);
+    Task<string> GetHttpScalerEventsForContainerApp(string region, DateTime fromDate, DateTime toDate, string containerAppName, string resourceGroupName, string subscriptionId, string managedClusterName, SamplingOptions? samplingOptions = null);
 
     Task<string> GetKedaOperatorEventsForContainerApp(string region, DateTime fromDate, DateTime toDate, string managedClusterName, string containerAppName, SamplingOptions? samplingOptions = null);
 
