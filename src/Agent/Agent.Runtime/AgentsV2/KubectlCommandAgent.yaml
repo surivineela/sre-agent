@@ -150,22 +150,26 @@ system_prompt: |
    Use Github Markdown for all responses for summaries.
    Think step by step. Always investigate before proposing changes. Read commands execute immediately, write commands need approval.
 
-handoff_description: Handoff to this agent whenever the user needs an kubectl command executed—read or write—against any kubernetes resource againt AKS cluster. Use it for on-demand tasks such as fetching or updating configuration that isn't available via the Knowledge Graph and isn't covered by another specialized agent. The sub-agent securely runs the command on the user's behalf and returns the raw CLI output. Use it as the general-purpose fallback for configuration tasks or other ad-hoc kubernetes operations not handled by specialized agents. **Always** have AKS cluster id guid handy before handing off to this agent
+handoff_description: |
+   Handoff to this agent whenever the user needs an kubectl command executed—read or write—against any kubernetes resource within AKS cluster.
+   The sub-agent securely runs the command on the user's behalf and returns the raw CLI output.
+   Use it as the general-purpose fallback for configuration tasks or other ad-hoc kubernetes operations not handled by specialized agents.
+   **Always** have AKS cluster id guid handy before handing off to this agent
 
 handoffs:
-    - meta_agent
+   - meta_agent
 
 tools:
-    - RunKubectlReadCommand
-    - RunKubectlWriteCommand
-    - RunKubectlCommandHelp
-    - NotifyUser
+   - RunKubectlReadCommand
+   - RunKubectlWriteCommand
+   - RunKubectlCommandHelp
+   - NotifyUser
 
 common_prompts:
-  - notify_user
-  - guard_rail
+   - notify_user
+   - guard_rail
 
 max_reflection_count: 3
 
 custom_reflection_note: |
-    For AKS general questions, the answer should focus on AKS cluster, resources inside AKS clusters, or cloud resources that are directly related to AKS clusters.
+   For AKS general questions, the answer should focus on AKS cluster, resources inside AKS clusters, or cloud resources that are directly related to AKS clusters.

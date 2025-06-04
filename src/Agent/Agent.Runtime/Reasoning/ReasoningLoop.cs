@@ -37,6 +37,10 @@ public class ReasoningLoop
     private List<ChatMessage>? _chatHistory;
     private Agent<AgentContext> _currentAgent;
 
+    // Retry configuration
+    private const int MaxRetryAttempts = 3;
+    private static readonly TimeSpan[] RetryDelays = { TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(500), TimeSpan.FromSeconds(1) };
+
     public ReasoningLoop(
         ILogger<ReasoningLoop> logger,
         ILoggerFactory loggerFactory,
@@ -581,9 +585,14 @@ public class ReasoningLoop
     {
         _chatHistory!.Add(chatMessage);
         var reasoningMessage = chatMessage.GetReasoningMessage(_context.Id);
-        await _threadRepository.CreateReasoningMessageAsync(reasoningMessage);
 
-        await _threadRepository.AddReasoningMessagesToChatHistoryAsync(agentChatHistory, reasoningMessage);
+        await ExecuteWithRetryAsync(
+            () => _threadRepository.CreateReasoningMessageAsync(reasoningMessage),
+            $"CreateReasoningMessage for message {reasoningMessage.Id}");
+
+        await ExecuteWithRetryAsync(
+            () => _threadRepository.AddReasoningMessagesToChatHistoryAsync(agentChatHistory, reasoningMessage),
+            $"AddReasoningMessageToChatHistory for message {reasoningMessage.Id}");
     }
 
     private async Task PersistReasoningMessagesAsync(AgentChatHistory agentChatHistory, IEnumerable<ChatMessage> chatMessage)
@@ -592,12 +601,17 @@ public class ReasoningLoop
         // Calling ToList() is important here because otherwise the reasoning messages get new IDs every time
         // the reasoningMessages IEnumerable is enumerated.
         var reasoningMessages = chatMessage.Select(msg => msg.GetReasoningMessage(_context.Id)).ToList();
+
         foreach (var reasoningMessage in reasoningMessages)
         {
-            await _threadRepository.CreateReasoningMessageAsync(reasoningMessage);
+            await ExecuteWithRetryAsync(
+                () => _threadRepository.CreateReasoningMessageAsync(reasoningMessage),
+                $"CreateReasoningMessage for message {reasoningMessage.Id}");
         }
 
-        await _threadRepository.AddReasoningMessagesToChatHistoryAsync(agentChatHistory, reasoningMessages);
+        await ExecuteWithRetryAsync(
+            () => _threadRepository.AddReasoningMessagesToChatHistoryAsync(agentChatHistory, reasoningMessages),
+            $"AddReasoningMessagesToChatHistory for {reasoningMessages.Count} messages");
     }
 
     private async Task<object?> InvokeToolWithErrorHandlingAsync(ManualToolCall toolCall, CancellationToken cancellationToken)
@@ -613,4 +627,44 @@ public class ReasoningLoop
             return GetErrorMessage(toolCall.FunctionCall, ex);
         }
     }
+
+    private async Task<T> ExecuteWithRetryAsync<T>(Func<Task<T>> operation, string operationName, CancellationToken cancellationToken = default)
+    {
+        for (int attempt = 0; attempt < MaxRetryAttempts; attempt++)
+        {
+            try
+            {
+                return await operation();
+            }
+            catch (Microsoft.Azure.Cosmos.CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+            {
+                _logger.LogInternalInformation("Resource already exists for {OperationName}, continuing without retry", operationName);
+                return default(T)!;
+            }
+            catch (Exception ex) when (attempt < MaxRetryAttempts - 1)
+            {
+                _logger.LogInternalWarning(ex, "Attempt {Attempt} failed for {OperationName}, retrying in {Delay}ms",
+                    attempt + 1, operationName, RetryDelays[attempt].TotalMilliseconds);
+
+                await Task.Delay(RetryDelays[attempt], cancellationToken);
+            }
+        }
+
+        // Final attempt without catch (except for Cosmos conflict)
+        try
+        {
+            return await operation();
+        }
+        catch (Microsoft.Azure.Cosmos.CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+        {
+            _logger.LogInternalInformation("Resource already exists for {OperationName}, continuing without retry", operationName);
+            return default(T)!;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "All retry attempts failed for {OperationName}", operationName);
+            throw;
+        }
+    }
+
 }

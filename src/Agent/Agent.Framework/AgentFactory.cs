@@ -95,12 +95,15 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
             Instructions = agentDescriptor.Instructions,
             HandoffDescription = agentDescriptor.HandoffDescription,
             MaxReflectionCount = agentDescriptor.MaxReflectionCount,
-            CriticPromptPath = Path.Join(AppContext.BaseDirectory, agentDescriptor.CriticPromptPath),
             CustomReflectionNote = agentDescriptor.CustomReflectionNote,
             Handoffs = [], // Will be populated later to avoid circular references
             FactoryTools = agentDescriptor.Tools,
             AllowParallelToolCalls = agentDescriptor.AllowParallelToolCalls,
         };
+        if (!string.IsNullOrEmpty(agentDescriptor.CriticPromptPath))
+        {
+            agent.CriticPromptPath = Path.Join(AppContext.BaseDirectory, agentDescriptor.CriticPromptPath);
+        }
 
         if (agentDescriptor.Temperature is not null)
         {

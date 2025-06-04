@@ -23,10 +23,7 @@ handoffs:
   - resource_discovery_agent
   - container_apps_agent
   - azure_cli_command_executor_agent
-  # todo: fix conflicts between the 3 aks agents
-  - kubectl_command_executor_agent
-  - kubernetes_service_general_requests_agent
-  - aks_remediation_agent
+  - aks_general_agent
   - charts_and_metrics_and_visualization_agent
 
 max_reflection_count: 1
