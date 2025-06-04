@@ -26,6 +26,7 @@ env:
 
 jobs:
   build-dotnet:
+    name: build-dotnet
     runs-on: ubuntu-latest
     outputs:
       build-version: ${{ steps.version.outputs.version }}
@@ -127,6 +128,7 @@ jobs:
         retention-days: 30
 
   build-npm:
+    name: build-npm
     runs-on: ubuntu-latest
     steps:
     - name: 🛒 Checkout code
