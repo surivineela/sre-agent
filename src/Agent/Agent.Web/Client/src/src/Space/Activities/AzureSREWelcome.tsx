@@ -42,8 +42,11 @@ import {
 import { Collapse } from '@fluentui/react-motion-components-preview';
 import { useContext, useEffect, useRef, useState } from 'react';
 import { FaGithub } from 'react-icons/fa';
+import { useLocation, useNavigate } from 'react-router';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
+import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
+import { SettingsKeys } from '../Settings/Settings.ReactView';
 
 /* ────────────────────────────────  STYLES  ──────────────────────────────── */
 
@@ -350,6 +353,26 @@ const useStyles = makeStyles({
     },
 });
 
+const getIntegrationPathName = (integrationName: string): string => {
+    if (equals(integrationName, 'dashboard', AntUxStringComparison.IgnoreCase)) {
+        return `/views/settings/${SettingsKeys.GrafanaDashboard}`;
+    } else if (equals(integrationName, 'incidentmanagement', AntUxStringComparison.IgnoreCase)) {
+        return `/views/settings/${SettingsKeys.IncidentManagement}`;
+    }
+
+    return '';
+};
+
+const getIntegrationDisplayName = (integrationName: string): string => {
+    if (equals(integrationName, 'dashboard', AntUxStringComparison.IgnoreCase)) {
+        return 'Grafana dashboard';
+    } else if (equals(integrationName, 'incidentmanagement', AntUxStringComparison.IgnoreCase)) {
+        return 'Incident management';
+    }
+
+    return '';
+};
+
 /* ────────────────────────────────  TYPES  ──────────────────────────────── */
 
 // Source-code linking
@@ -519,6 +542,8 @@ const AzureSREWelcome = ({ threadId }: AzureSREWelcomeProps) => {
     const [isAppsCollapsed, setIsAppsCollapsed] = useState(false);
     const [isIntegrationsCollapsed, setIsIntegrationsCollapsed] = useState(false);
 
+    const [isLoading, setIsLoading] = useState(true);
+
     const hasAutoCollapsed = useRef({
         analysis: false,
         apps: false,
@@ -532,13 +557,19 @@ const AzureSREWelcome = ({ threadId }: AzureSREWelcomeProps) => {
     const [repoUrlError, setRepoUrlError] = useState<string | null>(null);
     const [isLinking, setIsLinking] = useState(false);
 
+    const location = useLocation();
+    const navigate = useNavigate();
+
     /* --------------------------------------------------------------------- */
     /*  2.  DATA FETCHING (poll every 10 s)                                  */
     /* --------------------------------------------------------------------- */
 
     useEffect(() => {
-        const fetchWelcomeMessage = async () => {
+        const fetchWelcomeMessage = async (isInitialLoading: boolean) => {
             try {
+                if (isInitialLoading) {
+                    setIsLoading(true);
+                }
                 // Only attempt to fetch if threadId exists
                 if (!threadId) {
                     console.log('No threadId available, skipping fetch');
@@ -566,11 +597,13 @@ const AzureSREWelcome = ({ threadId }: AzureSREWelcomeProps) => {
 
                     // Update integrations
                     if (data.integrations) {
-                        setIntegrations(data.integrations);
+                        const integrations = data.integrations.filter(
+                            integration => !equals(integration.name, 'appinsights', AntUxStringComparison.IgnoreCase)
+                        );
+                        setIntegrations(integrations);
 
                         // Auto-collapse integrations section if all are active
-                        const allIntegrationsActive =
-                            data.integrations.length > 0 && data.integrations.every(integration => integration.isActive);
+                        const allIntegrationsActive = integrations.length > 0 && integrations.every(integration => integration.isActive);
                         if (allIntegrationsActive && !hasAutoCollapsed.current.integrations) {
                             setIsIntegrationsCollapsed(true);
                             hasAutoCollapsed.current.integrations = true;
@@ -612,13 +645,17 @@ const AzureSREWelcome = ({ threadId }: AzureSREWelcomeProps) => {
                 }
             } catch (err) {
                 console.error('Failed to fetch welcome message', err);
+            } finally {
+                if (isInitialLoading) {
+                    setIsLoading(false);
+                }
             }
         };
 
         // initial fetch
-        fetchWelcomeMessage();
+        fetchWelcomeMessage(true);
         // start polling
-        const intervalId = setInterval(fetchWelcomeMessage, 10000);
+        const intervalId = setInterval(() => fetchWelcomeMessage(false), 10000);
 
         return () => clearInterval(intervalId);
     }, [sreAgentEndpoint, threadId]);
@@ -1021,7 +1058,7 @@ const AzureSREWelcome = ({ threadId }: AzureSREWelcomeProps) => {
                 <Collapse visible={!isAppsCollapsed}>
                     <div className={styles.sectionContent}>
                         {/* Show spinner if still loading */}
-                        {logicalApps.length === 0 && (
+                        {isLoading && (
                             <div style={{ padding: tokens.spacingVerticalL, display: 'flex', justifyContent: 'center' }}>
                                 <Spinner label="Loading applications" />
                             </div>
@@ -1179,6 +1216,11 @@ const AzureSREWelcome = ({ threadId }: AzureSREWelcomeProps) => {
                             <Text weight="semibold" size={500}>
                                 Active Integrations
                             </Text>
+                            {isLoading && (
+                                <div style={{ padding: tokens.spacingVerticalL, display: 'flex', justifyContent: 'center' }}>
+                                    <Spinner size="tiny" />
+                                </div>
+                            )}
                             {integrations.length > 0 && (
                                 <div className={styles.reposRemainingTag} style={{ marginLeft: tokens.spacingHorizontalM }}>
                                     <ArrowSync24Regular style={{ fontSize: '14px' }} />
@@ -1197,7 +1239,7 @@ const AzureSREWelcome = ({ threadId }: AzureSREWelcomeProps) => {
                 </div>
                 <Collapse visible={!isIntegrationsCollapsed}>
                     <div className={styles.sectionContent}>
-                        {integrations.length === 0 ? (
+                        {integrations.length === 0 && !isLoading ? (
                             <div style={{ padding: tokens.spacingVerticalM, textAlign: 'center' }}>
                                 <Text>No integrations configured</Text>
                             </div>
@@ -1206,7 +1248,7 @@ const AzureSREWelcome = ({ threadId }: AzureSREWelcomeProps) => {
                                 <div key={index} className={styles.integrationCard}>
                                     <div className={styles.integrationHeader}>
                                         <Text weight="semibold" size={300}>
-                                            {integration.name}
+                                            {getIntegrationDisplayName(integration.name)}
                                         </Text>
                                         <div className={integration.isActive ? styles.activeBadge : styles.inactiveBadge}>
                                             {integration.isActive ? 'Active' : 'Inactive'}
@@ -1222,8 +1264,14 @@ const AzureSREWelcome = ({ threadId }: AzureSREWelcomeProps) => {
                                             appearance={integration.isActive ? 'primary' : 'secondary'}
                                             size="small"
                                             icon={<ArrowRight16Regular />}
+                                            onClick={() => {
+                                                const pathname = getIntegrationPathName(integration.name);
+                                                if (pathname) {
+                                                    navigate({ ...location, pathname });
+                                                }
+                                            }}
                                         >
-                                            {integration.isActive ? 'View Dashboard' : 'Configure'}
+                                            {integration.isActive ? 'View' : 'Configure'}
                                         </Button>
                                     </div>
                                 </div>

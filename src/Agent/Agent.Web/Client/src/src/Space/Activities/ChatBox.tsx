@@ -43,7 +43,7 @@ export const ChatBox = ({ addThread, promoteThread, threadId, threadSource }: IC
                     <CopilotChat className={ChatBoxStyles.chat}>
                         <div ref={intersectionObserverRef} />
 
-                        {isLoadingInitialChatHistory && <ChatLoading />}
+                        {isLoadingInitialChatHistory && !isWelcomeThread && <ChatLoading />}
 
                         {isNewAndCleanThread && !isWelcomeThread && <ChatSuggestions sendMessage={sendMessage} />}
 

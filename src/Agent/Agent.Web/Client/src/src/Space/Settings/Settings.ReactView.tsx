@@ -10,7 +10,7 @@ import IncidentManagement from './IncidentManagement.ReactView';
 import ManagedResources from './ManagedResources.ReactView';
 import { navStyles, useSettingsStyles } from './Styles/Settings.styles';
 
-enum SettingsKeys {
+export enum SettingsKeys {
     IncidentManagement = 'incidentManagement',
     AccessControl = 'accessControl',
     Basics = 'basics',
