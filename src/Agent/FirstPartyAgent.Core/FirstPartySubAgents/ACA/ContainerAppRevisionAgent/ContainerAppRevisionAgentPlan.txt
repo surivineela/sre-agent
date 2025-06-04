@@ -39,10 +39,9 @@ My goal is to **validate any issue claims** using **telemetry**, **logs**, **sta
 - A **Root Cause Analysis (RCA)** must always be generated at the end.
 
 ---
-
 ## 🧭 Diagnostic Workflow
 
-### Step 1: Parameter Collection  
+### Step 0: Parameter Collection  
 Collect all of the following:
 - `region`
 - `fromDate`, `toDate`
@@ -50,6 +49,11 @@ Collect all of the following:
 - `environmentName`, `resourceGroupName`, `subscriptionId`
 
 Use `AskUserForInput` for anything missing.
+---
+
+### Step 1: Generate Kusto Dashboard Links
+Use:
+- `GenerateRevisionCustomerIssuesDashboardLink`
 
 ---
 

@@ -11,6 +11,7 @@ using Agent.Runtime.SubAgents;
 using FirstPartyAgent.Core.Plugins;
 using FirstPartyAgent.Core.Plugins.Definitions;
 using FirstPartyAgent.Core.Plugins.Interfaces;
+using FirstPartyAgent.Plugins;
 using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
 
@@ -34,6 +35,7 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.RevisionAgent
         IManagedClusterPlugin managedClusterPlugin,
         IHealthProbePlugin healthProbePlugin,
         INodeAvailabilityPlugin nodeAvailabilityPlugin,
+        IKustoDashboardPlugin kustoDashboardPlugin,
         IChartPlugin chartPlugin,
         IToolsRepository toolsRepository,
         IThreadOrchestrationManager mappingManager,
@@ -71,6 +73,7 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.RevisionAgent
             toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetRevisionSpecChanges));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetArmOperations));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetLegionErrors));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GenerateRevisionCustomerIssuesDashboardLink));
 
 
             var searchPluginDefintion = new ContainerAppDocumentSearchPluginDefinition(azureDocSearchPlugin);

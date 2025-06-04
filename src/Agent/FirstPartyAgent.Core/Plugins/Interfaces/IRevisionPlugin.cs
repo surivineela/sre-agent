@@ -36,4 +36,6 @@ public interface IContainerAppRevisionPlugin
     Task<string> GetASIPageForRevision(string region, DateTime fromDate, DateTime toDate, string containerAppName, string revisionName, string resourceGroupName, string subscriptionId);
 
     Task<string> GetLegionErrors(string region, DateTime fromDate, DateTime toDate, string revisionName);
+
+    string GenerateRevisionCustomerIssuesDashboardLink(string startTime, string endTime, string region, string subscriptionId, string resourceGroupName, string containerAppName, string revisionName);
 }

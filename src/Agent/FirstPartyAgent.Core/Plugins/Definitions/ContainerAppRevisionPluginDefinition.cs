@@ -89,7 +89,7 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
     - LogTime: Log timestamp.
     - Level: Event severity(Info / Error).
     - Msg: Operator event message.
-    - KedaVersion: Current KEDA version"  
+    - KedaVersion: Current KEDA version"
 )]
         public Task<string> GetKedaOperatorEventsForContainerApp([Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
@@ -218,7 +218,7 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
 )]
         public Task<string> GetArmOperations([Description("Azure region.")] string region,
     [Description("Start time.")] DateTime fromDate,
-    [Description("End time.")] DateTime toDate,    
+    [Description("End time.")] DateTime toDate,
     [Description("App name.")] string containerAppName,
     [Description("Resource group.")] string resourceGroupName,
     [Description("Subscription ID.")] string subscriptionId)
@@ -302,6 +302,20 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
             [Description("Revision name.")] string revisionName)
         {
             return _plugin.GetLegionErrors(region, fromDate, toDate, revisionName);
+        }
+
+        [KernelFunction(KernelFunctionNames.ACA.GenerateRevisionCustomerIssuesDashboardLink)]
+        [Description("Generate a dashboard link for customer issues related to container app revisions.")]
+        public string GenerateRevisionCustomerIssuesDashboardLink(
+            [Description("Start time for the dashboard.")] string startTime,
+            [Description("End time for the dashboard.")] string endTime,
+            [Description("Azure region.")] string region,
+            [Description("Azure subscription ID.")] string subscriptionId,
+            [Description("Resource group name.")] string resourceGroupName,
+            [Description("Container app name.")] string containerAppName,
+            [Description("Revision name.")] string revisionName)
+        {
+            return _plugin.GenerateRevisionCustomerIssuesDashboardLink(startTime, endTime, region, subscriptionId, resourceGroupName, containerAppName, revisionName);
         }
     }
 }

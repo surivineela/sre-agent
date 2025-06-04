@@ -169,6 +169,8 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton<ContainerAppEnvironmentAgentPlugin>();
         services.AddSingleton<ContainerAppEnvironmentAgentFactory>();
+
+        services.AddSingleton<IKustoDashboardPlugin, KustoDashboardPlugin>();
     }
 
     private static void RegisterFirstPartySubAgentPluginImplementationDependencies(this IServiceCollection services)

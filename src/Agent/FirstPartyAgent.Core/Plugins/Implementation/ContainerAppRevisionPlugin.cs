@@ -2,19 +2,24 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.ComponentModel;
 using Agent.Core.Interfaces;
+using FirstPartyAgent.Constants;
 using FirstPartyAgent.Core.Plugins.Interfaces;
 using FirstPartyAgent.Plugins;
+using Microsoft.SemanticKernel;
 
 namespace FirstPartyAgent.Core.Plugins.Implementation;
 
 public class ContainerAppRevisionPlugin : IContainerAppRevisionPlugin
 {
     private readonly IKustoPluginChat _kustoPlugin;
+    private readonly IKustoDashboardPlugin _kustoDashboardPlugin;
     private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
-    public ContainerAppRevisionPlugin(IKustoPluginChat kustoPlugin, IAgentOutboundCommunicationService agentOutboundCommunicationService)
+    public ContainerAppRevisionPlugin(IKustoPluginChat kustoPlugin, IKustoDashboardPlugin kustoDashboardPlugin, IAgentOutboundCommunicationService agentOutboundCommunicationService)
     {
         _kustoPlugin = kustoPlugin;
+        _kustoDashboardPlugin = kustoDashboardPlugin;
         _agentOutboundCommunicationService = agentOutboundCommunicationService;
     }
 
@@ -213,6 +218,15 @@ public class ContainerAppRevisionPlugin : IContainerAppRevisionPlugin
             { "managedClusterName", managedClusterName },
             { "containerAppName", containerAppName },
             });
+    }
+
+    [KernelFunction(KernelFunctionNames.ACA.GenerateRevisionCustomerIssuesDashboardLink)]
+    [Description("Generate a dashboard link for customer issues related to container app revisions.")]
+    // Example Dashboard Link:
+    // https://dataexplorer.azure.com/dashboards/5563467d-adf2-4a55-b390-8d71e672e13b?p-_startTime=2025-03-31T08-00-00Z&p-_endTime=2025-03-31T20-25-00Z&p-ClusterUri=v-https%3A%2F%2Fcappswus2.westus2.kusto.windows.net&p-subscriptionId=v-2ca083e3-182d-4ea9-862e-f6adec08a097&p-resourceGroupName=v-Transcription-West2-Prod&p-containerAppName=v-speech01-wst2-prod&p-revisionName=v-speech01-wst2-prod--ww2ksm9#0be0e072-eeb8-4376-9543-eed343b8238c
+    public string GenerateRevisionCustomerIssuesDashboardLink(string startTime, string endTime,string region, string subscriptionId, string resourceGroupName, string containerAppName, string revisionName)
+    {
+        return _kustoDashboardPlugin.GenerateDashboardLink("5563467d-adf2-4a55-b390-8d71e672e13b", startTime, endTime, region, subscriptionId, resourceGroupName, containerAppName, revisionName);
     }
 
     public async Task<string> GetReplicaCount(string region, DateTime fromDate, DateTime toDate, string revisionName, string containerAppName, string resourceGroupName, string subscriptionId, SamplingOptions samplingOptions)
