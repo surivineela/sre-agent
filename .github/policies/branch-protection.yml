@@ -20,7 +20,8 @@ configuration:
       - srea-devs
       requiredStatusChecks:
       - GitOps/AdvancedSecurity
-      - SREAgent-Runtime-PullRequest
+      - Build and Test / build-dotnet
+      - Build and Test / build-npm
     - branchNamePattern: "release/*"
       requiredApprovingReviewsCount: 2
       restrictsPushes: true
@@ -34,4 +35,5 @@ configuration:
       - k4appscore
       - srea-devs
       requiredStatusChecks:
-      - SREAgent-Runtime-PullRequest
+      - Build and Test / build-dotnet
+      - Build and Test / build-npm

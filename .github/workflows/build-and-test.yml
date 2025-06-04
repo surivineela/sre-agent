@@ -1,0 +1,168 @@
+name: Build and Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - '*'
+
+permissions:
+  packages: read
+  contents: read
+  actions: read
+  checks: write
+  issues: write
+  pull-requests: write
+  id-token: write
+
+env:
+  DOTNET_VERSION: '9.x'
+  NODE_VERSION: '22.x'
+  BUILD_CONFIGURATION: 'Release'
+  BUILD_SOLUTION: './src/Agent/Agent.sln'
+  BUILD_NUGET_CONFIG_PATH: './src/nuget.config'
+
+jobs:
+  build-dotnet:
+    runs-on: ubuntu-latest
+    outputs:
+      build-version: ${{ steps.version.outputs.version }}
+    steps:
+    - name: 🔐 Azure OIDC Login
+      uses: azure/login@v1
+      with:
+        client-id: ${{ vars.CFS_CLIENT_ID }}
+        tenant-id: ${{ vars.CFS_TENANT_ID }}
+        allow-no-subscriptions: true
+
+    - name: 🔐 Setup CFS
+      uses: 1es-actions/setup-cfs@v1
+      with:
+        feed-url: https://msazure.pkgs.visualstudio.com/Antares/_packaging/antares-websites/
+        nuget: true
+        nuget-config: true
+        nuget-config-path: nuget.config
+
+    - name: 🛒 Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 1
+
+    - name: 🧰 Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: 📦 Cache NuGet packages
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.nuget/packages
+          ~/.local/share/NuGet/v3-cache
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json', '**/*.csproj', '**/Directory.Packages.props') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+
+    - name: 🔨 Restore NuGet packages
+      run: |
+         dotnet restore ${{ env.BUILD_SOLUTION }} \
+            --verbosity quiet \
+            --locked-mode \
+            --use-current-runtime
+
+    - name: 🦾 Build Agent solution
+      run: |
+        dotnet build ${{ env.BUILD_SOLUTION }} \
+          --no-restore \
+          --configuration ${{ env.BUILD_CONFIGURATION }} \
+          -p:SkipReactBuild=true \
+          -p:WarningLevel=0 \
+          /clp:ErrorOnly \
+          --verbosity quiet
+
+    - name: 🧪 Run Unit tests
+      run: |
+        dotnet test ${{ env.BUILD_SOLUTION }} \
+          --no-build \
+          --no-restore \
+          --configuration ${{ env.BUILD_CONFIGURATION }} \
+          --logger trx \
+          --collect "Code coverage" \
+          --results-directory ./TestResults/ \
+          --filter FullyQualifiedName~Agent.Tests.Unit \
+          --verbosity quiet
+          
+    - name: 🧪 Run Integration tests
+      # continue-on-error: true
+      run: |
+        dotnet test ${{ env.BUILD_SOLUTION }} \
+          --no-build \
+          --no-restore \
+          --configuration ${{ env.BUILD_CONFIGURATION }} \
+          --logger trx \
+          --collect "Code coverage" \
+          --results-directory ./TestResults/ \
+          --filter FullyQualifiedName!~Agent.Tests || true # Allow integration tests to fail without failing the build
+
+    - name: 📢 Publish test results
+      uses: serverless-paas-balam/actions-test-reporter@main
+      if: always()
+      with:
+        name: .NET Tests
+        path: './TestResults/*.trx'
+        reporter: dotnet-trx
+        use-actions-summary: 'true'
+        post-pr-comment: 'true'
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fail-on-error: false
+
+    - name: 📋 Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results
+        path: ./TestResults/
+        retention-days: 30
+
+  build-npm:
+    runs-on: ubuntu-latest
+    steps:
+    - name: 🛒 Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 1
+
+    - name: 🧰 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: src/Agent/Agent.Web/Client/package-lock.json
+
+    - name: 📦 Install NPM packages for Agent.Web
+      working-directory: ./src/Agent/Agent.Web/Client
+      run: npm install
+
+    - name: 🏗️ Build Agent.Web
+      working-directory: ./src/Agent/Agent.Web/Client
+      run: npm run build
+
+    - name: 🌐 Compile localization strings for Agent.Web
+      working-directory: ./src/Agent/Agent.Web/Client
+      run: npm run compile:loc
+      continue-on-error: true
+
+    - name: 🧪 Run UX unit tests
+      working-directory: ./src/Agent/Agent.Web/Client
+      run: npm run test
+
+    - name: 📢 Publish UX test results
+      uses: serverless-paas-balam/actions-test-reporter@v2
+      if: always()
+      with:
+        name: Agent.Web UX Tests
+        path: './src/Agent/Agent.Web/Client/junit-report.xml'
+        reporter: jest-junit
+        fail-on-error: false

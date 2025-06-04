@@ -48,7 +48,7 @@
     <Exec Command="git status --porcelain --short -- Client >> $(ClientBuildHashFile)" />
   </Target>
 
-  <Target Name="BuildReactApp" AfterTargets="Build" DependsOnTargets="CheckClientHash">
+  <Target Name="BuildReactApp" AfterTargets="Build" DependsOnTargets="CheckClientHash" Condition="'$(SkipReactBuild)' != 'true'">
     <PropertyGroup>
       <!-- _RunBuild IF (Release build || stampFile missing || wwwroot missing) -->
       <_RunBuild Condition="'$(Configuration)' == 'Release' or !Exists('$(ClientBuildStampFile)') or !Exists('wwwroot')">true</_RunBuild>
