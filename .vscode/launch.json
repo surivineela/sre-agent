@@ -27,5 +27,23 @@
         },
         "requireExactSource": true
     },
+        {
+            "name": "Debug Crawler",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build Agent.Cmd",
+            "program": "${workspaceFolder}/src/Agent/Agent.Cmd/bin/Debug/net9.0/Agent.Cmd.dll",
+            "args": [
+                "Crawl",
+                "/subscriptions/ea2aa16c-c257-4359-aaea-ff2b0f3b3d10/resourceGroups/capps-zhenqxu-eu2-private-rp-rg",
+                "-c"
+            ],
+            "cwd": "${workspaceFolder}/src/Agent/Agent.Cmd",
+            "env": {
+                "DOTNET_ENVIRONMENT": "Development"
+            },
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
   ]
 }

@@ -40,6 +40,23 @@
                 "panel": "shared"
             },
             "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build Agent.Cmd",
+            "command": "dotnet",
+            "type": "shell",
+            "args": [
+                "build",
+                "src/Agent/Agent.Cmd/Agent.Cmd.csproj"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": "$msCompile"
         }
     ]
 }
