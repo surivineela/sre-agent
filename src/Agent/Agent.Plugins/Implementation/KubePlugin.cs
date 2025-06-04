@@ -45,6 +45,7 @@ namespace Agent.Plugins
             IKubernetesClientFactory kubernetesClientFactory,
             IArmClientFactory armClientFactory,
             IGraphDatabaseClient graphDbClient,
+            IThreadRepository threadRepository,
             ILogger<KubePlugin>? logger)
         {
             _logger = logger;
@@ -54,6 +55,7 @@ namespace Agent.Plugins
             _kubernetesClientFactory = kubernetesClientFactory;
             _graphDbClient = graphDbClient;
             _armClientFactory = armClientFactory;
+            _threadRepository = threadRepository;
         }
 
         public async Task<IKubernetes> GetOrCreateClientAsync(string? resourceId = null)

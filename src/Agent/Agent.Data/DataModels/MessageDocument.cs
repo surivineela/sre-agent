@@ -17,7 +17,8 @@ public record MessageDocument(
     Posted? Posted = null,
     Approval? Approval = null,
     AzCliExecution? AzCliExecution = null,
-    // e.g. If this message belongs to a PagerDuty incident thread and is a discussion(called note in PagerDuty), 
+    KubectlExecution? KubectlExecution = null,
+    // e.g. If this message belongs to a PagerDuty incident thread and is a discussion(called note in PagerDuty),
     // it is the PagerDuty note id. PagerDuty note id is is not a guid
     string? IncidentDiscussionId = null,
     bool IsDailyReport = false
@@ -39,6 +40,7 @@ public record MessageDocument(
             message.Posted,
             Approval: message.Approval ?? null,
             AzCliExecution: message.AzCliExecution ?? null,
+            KubectlExecution: message.KubectlExecution ?? null,
             IncidentDiscussionId: message.IncidentDiscussionId,
             message.IsDailyReport
         );
@@ -53,6 +55,7 @@ public record MessageDocument(
             Posted,
             Approval,
             AzCliExecution,
+            KubectlExecution,
             IncidentDiscussionId: IncidentDiscussionId,
             IsDailyReport
         );

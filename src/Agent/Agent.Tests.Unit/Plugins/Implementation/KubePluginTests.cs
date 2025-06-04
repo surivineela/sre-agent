@@ -42,6 +42,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                 _mockKubernetesClientFactory.Object,
                 new Mock<IArmClientFactory>().Object,
                 new Mock<IGraphDatabaseClient>().Object,
+                new Mock<IThreadRepository>().Object,
                 new Mock<ILogger<KubePlugin>>().Object
                 );
         }

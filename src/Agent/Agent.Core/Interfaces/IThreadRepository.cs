@@ -86,4 +86,9 @@ public interface IThreadRepository
     Task<AzCliExecution> CreateAzCliExecutionAsync(Guid threadId, AzCliExecution execution);
     Task<AzCliExecution> UpdateAzCliExecutionAsync(Guid threadId, AzCliExecution execution);
     Task<AzCliExecution> UpdateAzCliExecutionOutputAsync(Guid threadId, Guid executionId, string output, string? error = null);
+    Task<KubectlExecution> ListPendingKubectlExecutionAsync(Guid threadId);
+    Task<KubectlExecution> GetKubectlExecutionAsync(Guid threadId, Guid executionId);
+    Task<KubectlExecution> CreateKubectlExecutionAsync(Guid threadId, KubectlExecution execution);
+    Task<KubectlExecution> UpdateKubectlExecutionAsync(Guid threadId, KubectlExecution execution);
+    Task<KubectlExecution> UpdateKubectlExecutionOutputAsync(Guid threadId, Guid executionId, string output, string? error = null);
 }

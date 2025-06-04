@@ -4,12 +4,22 @@
 
 using System.Text.RegularExpressions;
 using Agent.Core.Helpers;
+using Agent.Core.Interfaces;
+using Agent.Core.Models.Api.v1;
+using Agent.Logging;
+using k8s;
+using k8s.Models;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Plugins
 {
     public partial class KubePlugin : IKubePlugin
     {
+        // Add thread repository and ThreadId property for command execution tracking
+        private readonly IThreadRepository? _threadRepository;
+        public Guid? ThreadId { get; set; }
+
         public async Task<string> RunKubectlCommandHelpAsync(
             string resourceId,
             string command)
@@ -28,21 +38,100 @@ namespace Agent.Plugins
             string resourceId,
             string command)
         {
-            // Validate command format
-            var validationSummary = ValidateKubectlReadCommand(command.Trim());
-            if (validationSummary != null)
-            {
-                return validationSummary; // Return the validation error message
-            }
-
-            // Execute the command
             try
             {
-                return await ExecuteCommandSafely(resourceId, command);
+                // Validate command format
+                var validationSummary = ValidateKubectlReadCommand(command.Trim());
+                if (validationSummary != null)
+                {
+                    return validationSummary; // Return the validation error message
+                }
+
+                if (ThreadId == null || _threadRepository == null)
+                {
+                    return "Error: ThreadId is not set or ThreadRepository is not available. Please set the ThreadId before running commands.";
+                }
+
+                var executionId = Guid.NewGuid();
+
+                // Create execution record in Running state
+                var execution = new KubectlExecution(
+                    Id: executionId,
+                    Command: command,
+                    Description: GetCommandDescription(command),
+                    Status: KubectlExecutionStatus.Running,
+                    ClusterResourceId: resourceId,
+                    Output: null,
+                    Error: null,
+                    CreatedTimestamp: DateTime.UtcNow,
+                    StartedTimestamp: DateTime.UtcNow,
+                    CompletedTimestamp: null,
+                    ExecutedBy: null,
+                    AgentContextId: null
+                );
+
+                await _threadRepository.CreateKubectlExecutionAsync(ThreadId.Value, execution);
+
+                // Create a new message with the execution
+                var message = new Message(
+                    Id: Guid.NewGuid(),
+                    TimeStamp: DateTime.UtcNow,
+                    Author: new Author(
+                        DisplayName: "SRE Agent",
+                        UserId: "SREAgent",
+                        Role: Role.SREAgent
+                    ),
+                    Text: "",
+                    IsImageContent: false,
+                    Posted: new Posted(false),
+                    Approval: null,
+                    AzCliExecution: null,
+                    KubectlExecution: execution,
+                    IncidentDiscussionId: null,
+                    IsDailyReport: false
+                );
+
+                await _threadRepository.AddMessageAsync(ThreadId.Value, message);
+
+                try
+                {
+                    // Execute the actual command
+                    var output = await ExecuteCommandSafely(resourceId, command);
+
+                    // Update execution with success
+                    execution = execution with
+                    {
+                        Status = KubectlExecutionStatus.Completed,
+                        Output = output,
+                        CompletedTimestamp = DateTime.UtcNow
+                    };
+
+                    await _threadRepository.UpdateKubectlExecutionAsync(ThreadId.Value, execution);
+
+                    // Return the actual output
+                    return $"Kubectl command completed successfully. Output:\n{output}";
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogInternalError(ex, "Failed to execute read command: {Command}", command);
+
+                    // Update execution with failure
+                    execution = execution with
+                    {
+                        Status = KubectlExecutionStatus.Failed,
+                        Error = ex.Message,
+                        CompletedTimestamp = DateTime.UtcNow
+                    };
+
+                    await _threadRepository.UpdateKubectlExecutionAsync(ThreadId.Value, execution);
+
+                    return $"Failed to execute command: {ex.Message}";
+                }
             }
             catch (Exception ex)
             {
-                return $"[Exception encountered]: Failed to execute command: {ex.ToString()}";
+                _logger?.LogInternalError(ex, "Failed to create execution for read command: {Command}", command);
+                return $"Failed to prepare command execution: {ex.Message}";
             }
         }
 
@@ -50,21 +139,67 @@ namespace Agent.Plugins
             string resourceId,
             string command)
         {
-            // Validate command format
-            var validationSummary = ValidateKubectlWriteCommand(command.Trim());
-            if (validationSummary != null)
-            {
-                return validationSummary; // Return the validation error message
-            }
-
-            // Execute the command
             try
             {
-                return await ExecuteCommandSafely(resourceId, command);
+                // Validate command format
+                var validationSummary = ValidateKubectlWriteCommand(command.Trim());
+                if (validationSummary != null)
+                {
+                    return validationSummary; // Return the validation error message
+                }
+
+                if (ThreadId == null || _threadRepository == null)
+                {
+                    return "Error: ThreadId is not set or ThreadRepository is not available. Please set the ThreadId before running commands.";
+                }
+
+                var executionId = Guid.NewGuid();
+
+                // Create execution record in Pending state for approval
+                var execution = new KubectlExecution(
+                    Id: executionId,
+                    Command: command,
+                    Description: GetCommandDescription(command),
+                    Status: KubectlExecutionStatus.Pending,
+                    ClusterResourceId: resourceId,
+                    Output: null,
+                    Error: null,
+                    CreatedTimestamp: DateTime.UtcNow,
+                    StartedTimestamp: null,
+                    CompletedTimestamp: null,
+                    ExecutedBy: null,
+                    AgentContextId: null
+                );
+
+                await _threadRepository.CreateKubectlExecutionAsync(ThreadId.Value, execution);
+
+                // Create a new message with the execution
+                var message = new Message(
+                    Id: Guid.NewGuid(),
+                    TimeStamp: DateTime.UtcNow,
+                    Author: new Author(
+                        DisplayName: "SRE Agent",
+                        UserId: "SREAgent",
+                        Role: Role.SREAgent
+                    ),
+                    Text: "",
+                    IsImageContent: false,
+                    Posted: new Posted(false),
+                    Approval: null,
+                    AzCliExecution: null,
+                    KubectlExecution: execution,
+                    IncidentDiscussionId: null,
+                    IsDailyReport: false
+                );
+
+                await _threadRepository.AddMessageAsync(ThreadId.Value, message);
+
+                return "Kubectl write command has been prepared for approval. Please click 'Run' to execute or 'Cancel' to dismiss.";
             }
             catch (Exception ex)
             {
-                return $"[Exception encountered]: Failed to execute command: {ex.ToString()}";
+                _logger?.LogInternalError(ex, "Failed to create execution for write command: {Command}", command);
+                return $"Failed to prepare command execution: {ex.Message}";
             }
         }
 
@@ -228,7 +363,7 @@ namespace Agent.Plugins
             return match.Success ? match.Groups["action"].Value.ToLowerInvariant() : null;
         }
 
-        private async Task<string> ExecuteCommandSafely(
+        public async Task<string> ExecuteCommandSafely(
             string resourceId,
             string command)
         {
@@ -304,6 +439,78 @@ namespace Agent.Plugins
             // No subcommand found
             _logger?.LogWarning("No subcommand found in kubectl command: {Command}", command);
             return null;
+        }
+
+        /// <summary>
+        /// Generates a human-readable description for a kubectl command.
+        /// </summary>
+        private string GetCommandDescription(string command)
+        {
+            var subcommand = ParseKubectlSubcommand(command);
+            if (string.IsNullOrEmpty(subcommand))
+            {
+                return "Execute kubectl command";
+            }
+
+            // Extract the resource type and name if present
+            var parts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            string resourceType = string.Empty;
+            string resourceName = string.Empty;
+
+            // Find resource type and name after the subcommand
+            for (int i = 0; i < parts.Length; i++)
+            {
+                if (parts[i].Equals(subcommand, StringComparison.OrdinalIgnoreCase) && i + 2 < parts.Length)
+                {
+                    // Check if next parts are resource type and name (not flags)
+                    if (!parts[i + 1].StartsWith("-"))
+                    {
+                        resourceType = parts[i + 1];
+
+                        // Check if the next part is a name and not a flag
+                        if (!parts[i + 2].StartsWith("-"))
+                        {
+                            resourceName = parts[i + 2];
+                        }
+                        break;
+                    }
+                }
+            }
+
+            switch (subcommand.ToLowerInvariant())
+            {
+                case "apply":
+                    return $"Apply Kubernetes configuration";
+                case "create":
+                    return $"Create Kubernetes resource";
+                case "patch":
+                    return !string.IsNullOrEmpty(resourceType) && !string.IsNullOrEmpty(resourceName)
+                        ? $"Patch {resourceType} '{resourceName}'"
+                        : $"Patch Kubernetes resource";
+                case "replace":
+                    return !string.IsNullOrEmpty(resourceType) && !string.IsNullOrEmpty(resourceName)
+                        ? $"Replace {resourceType} '{resourceName}'"
+                        : $"Replace Kubernetes resource";
+                case "scale":
+                    return !string.IsNullOrEmpty(resourceType) && !string.IsNullOrEmpty(resourceName)
+                        ? $"Scale {resourceType} '{resourceName}'"
+                        : $"Scale Kubernetes resource";
+                case "label":
+                    return !string.IsNullOrEmpty(resourceType) && !string.IsNullOrEmpty(resourceName)
+                        ? $"Add/update labels for {resourceType} '{resourceName}'"
+                        : $"Add/update Kubernetes resource labels";
+                case "annotate":
+                    return !string.IsNullOrEmpty(resourceType) && !string.IsNullOrEmpty(resourceName)
+                        ? $"Add/update annotations for {resourceType} '{resourceName}'"
+                        : $"Add/update Kubernetes resource annotations";
+                case "rollout":
+                    var rolloutAction = ParseRolloutAction(command);
+                    return !string.IsNullOrEmpty(resourceType) && !string.IsNullOrEmpty(resourceName)
+                        ? $"Rollout {rolloutAction} for {resourceType} '{resourceName}'"
+                        : $"Kubernetes rollout {rolloutAction}";
+                default:
+                    return $"Execute kubectl {subcommand} command";
+            }
         }
     }
 }

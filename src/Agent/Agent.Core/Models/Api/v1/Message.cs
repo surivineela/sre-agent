@@ -13,9 +13,10 @@ public record Message(
     Posted? Posted = null,
     Approval? Approval = null,
     AzCliExecution? AzCliExecution = null,
-    // e.g. If this message belongs to a PagerDuty incident thread and is a discussion(called note in PagerDuty), 
+    KubectlExecution? KubectlExecution = null,
+    // e.g. If this message belongs to a PagerDuty incident thread and is a discussion(called note in PagerDuty),
     // it is the PagerDuty note id. PagerDuty note id is is not a guid
-    string? IncidentDiscussionId = null, 
+    string? IncidentDiscussionId = null,
     bool IsDailyReport = false
 );
 

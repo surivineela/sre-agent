@@ -606,9 +606,9 @@ public class ArmHelper
 
         catch (Exception e)
         {
-            string errorMessage = $"Failed to Get CPU Analysis for: {appServiceResource} with exception: {e.Message}"; 
+            string errorMessage = $"Failed to Get CPU Analysis for: {appServiceResource} with exception: {e.Message}";
             _logger.LogInternalError(errorMessage);
-            throw; 
+            throw;
         }
     }
 
@@ -1853,10 +1853,10 @@ public class ArmHelper
 
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, resourceId + "/dnsCheck?api-version=2022-03-01");
 
-        string payload = $@"{{  
-           ""properties"": {{  
-               ""dnsName"": ""{destinationUrl}""  
-           }}  
+        string payload = $@"{{
+           ""properties"": {{
+               ""dnsName"": ""{destinationUrl}""
+           }}
        }}";
         request.Content = new StringContent(payload, Encoding.UTF8, "application/json");
 

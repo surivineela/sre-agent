@@ -133,6 +133,7 @@ export interface Message {
     title?: string;
     approval?: Approval;
     azCliExecution?: AzCliExecution;
+    kubectlExecution?: KubectlExecution;
     isDailyReport?: boolean;
 }
 
@@ -145,6 +146,23 @@ export interface KnowledgeGraphBuildStatus {
 }
 
 export interface AzCliExecution {
+    id: string;
+    command: string;
+    description: string;
+    status: 'Pending' | 'Running' | 'Completed' | 'Failed' | 'Cancelled';
+    output?: string;
+    error?: string;
+    createdTimestamp: string;
+    startedTimestamp?: string;
+    completedTimestamp?: string;
+    executedBy?: {
+        displayName: string;
+        userId: string;
+        role: string;
+    };
+}
+
+export interface KubectlExecution {
     id: string;
     command: string;
     description: string;

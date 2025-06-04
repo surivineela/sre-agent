@@ -27,6 +27,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             var mockKubernetesClientFactory = new Mock<IKubernetesClientFactory>();
             var mockArmClientFactory = new Mock<IArmClientFactory>();
             var mockGraphDatabaseClient = new Mock<IGraphDatabaseClient>();
+            var mockThreadRepository = new Mock<IThreadRepository>();
             _mockLogger = new Mock<ILogger<KubePlugin>>();
 
             // Create an actual instance with our mocked dependencies
@@ -37,6 +38,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                 mockKubernetesClientFactory.Object,
                 mockArmClientFactory.Object,
                 mockGraphDatabaseClient.Object,
+                mockThreadRepository.Object,
                 _mockLogger.Object
             );
         }

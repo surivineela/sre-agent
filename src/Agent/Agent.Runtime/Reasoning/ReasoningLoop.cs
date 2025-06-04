@@ -234,6 +234,7 @@ public class ReasoningLoop
                 var toolCall = runResult.ManualToolCalls.Single(); // Should only be one tool call at a time
                 var checkApprovalResult = await CheckApprovalAsync(toolCall);
                 var checkAzCliWrite = CheckAzCliWriteToolCallAsync(toolCall);
+                var checkKubectlWrite = CheckKubectlWriteToolCallAsync(toolCall);
 
                 if (checkAzCliWrite)
                 {
@@ -245,6 +246,19 @@ public class ReasoningLoop
                         AgentContextId = _context.Id,
                     };
                     await _threadRepository.UpdateAzCliExecutionAsync(_context.ThreadId, cliExecution);
+                    break;
+                }
+
+                if (checkKubectlWrite)
+                {
+                    await InvokeToolWithErrorHandlingAsync(toolCall, cancellationToken);
+
+                    var kubectlExecution = await _threadRepository.ListPendingKubectlExecutionAsync(_context.ThreadId);
+                    kubectlExecution = kubectlExecution with
+                    {
+                        AgentContextId = _context.Id,
+                    };
+                    await _threadRepository.UpdateKubectlExecutionAsync(_context.ThreadId, kubectlExecution);
                     break;
                 }
 
@@ -574,6 +588,21 @@ public class ReasoningLoop
         }
 
         if (toolCall.Tool.UnderlyingMethod?.Name != "RunAzCliWriteCommandsAsync")
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private bool CheckKubectlWriteToolCallAsync(ManualToolCall toolCall)
+    {
+        if (toolCall.Tool == null)
+        {
+            return false;
+        }
+
+        if (toolCall.Tool.UnderlyingMethod?.Name != "RunKubectlWriteCommandAsync")
         {
             return false;
         }

@@ -606,6 +606,7 @@ public class CosmosDbThreadRepository : IThreadRepository
                         messageDoc.Posted,
                         approvalDoc?.ToDomainModel(),
                         messageDoc.AzCliExecution,
+                        messageDoc.KubectlExecution,
                         messageDoc.IncidentDiscussionId,
                         messageDoc.IsDailyReport);
                 }
@@ -636,6 +637,40 @@ public class CosmosDbThreadRepository : IThreadRepository
                             messageDoc.Posted,
                             messageDoc.Approval,
                             executionDoc.ToDomainModel(), // Use the updated execution
+                            null,
+                            messageDoc.IncidentDiscussionId,
+                            messageDoc.IsDailyReport
+                        );
+                    }
+                }
+
+                if (messageDoc.KubectlExecution != null)
+                {
+                    var executionQuery = _client.GetContainer<KubectlExecutionDocument>(_databaseName)
+                        .GetItemLinqQueryable<KubectlExecutionDocument>()
+                        .Where(e => e.Id == messageDoc.KubectlExecution.Id.ToString());
+
+                    using var executionIterator = executionQuery.ToFeedIterator();
+                    KubectlExecutionDocument executionDoc = null;
+                    if (executionIterator.HasMoreResults)
+                    {
+                        var executionResults = await executionIterator.ReadNextAsync();
+                        executionDoc = executionResults.FirstOrDefault();
+                    }
+
+                    if (executionDoc != null)
+                    {
+                        messageDocWithApproval = new MessageDocument(
+                            messageDoc.Id,
+                            messageDoc.ThreadId,
+                            messageDoc.TimeStamp,
+                            messageDoc.Author,
+                            messageDoc.Text,
+                            messageDoc.IsImageContent,
+                            messageDoc.Posted,
+                            messageDoc.Approval,
+                            null, // Use the updated execution
+                            executionDoc.ToDomainModel(),
                             messageDoc.IncidentDiscussionId,
                             messageDoc.IsDailyReport
                         );
@@ -1871,6 +1906,112 @@ public class CosmosDbThreadRepository : IThreadRepository
 
             var query = _client.GetContainer<CliExecutionDocument>(_databaseName).GetItemLinqQueryable<CliExecutionDocument>()
                 .Where(m => m.DocumentType == "CliExecution" && m.ThreadId == threadIdStr && m.Status == AzCliExecutionStatus.Pending);
+            using var iterator = query.ToFeedIterator();
+
+            while (iterator.HasMoreResults)
+            {
+                foreach (var executionDocument in await iterator.ReadNextAsync())
+                {
+                    pendingExecutions.Add(executionDocument.ToDomainModel());
+                }
+            }
+
+            return pendingExecutions.FirstOrDefault();
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+    }
+
+    #endregion
+
+    #region KubectlExecution Operations
+
+    public async Task<KubectlExecution> GetKubectlExecutionAsync(Guid threadId, Guid executionId)
+    {
+        try
+        {
+            string threadIdStr = threadId.ToString();
+            string executionIdStr = executionId.ToString();
+
+            KubectlExecutionDocument executionDoc = await GetDocumentAsync<KubectlExecutionDocument>(executionIdStr, threadIdStr);
+
+            return executionDoc?.ToDomainModel();
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+    }
+
+    public async Task<KubectlExecution> CreateKubectlExecutionAsync(Guid threadId, KubectlExecution execution)
+    {
+        // Ensure ID is set
+        if (execution.Id == Guid.Empty)
+        {
+            execution = execution with { Id = Guid.NewGuid() };
+        }
+
+        string threadIdStr = threadId.ToString();
+
+        // Create the execution document
+        KubectlExecutionDocument executionDoc = KubectlExecutionDocument.FromDomainModel(execution, threadIdStr);
+        await _client.GetContainer<KubectlExecutionDocument>(_databaseName).CreateItemAsync(executionDoc, new PartitionKey(executionDoc.PartitionKey));
+
+        return execution;
+    }
+
+    public async Task<KubectlExecution> UpdateKubectlExecutionAsync(Guid threadId, KubectlExecution execution)
+    {
+        string threadIdStr = threadId.ToString();
+
+        var executionDoc = KubectlExecutionDocument.FromDomainModel(execution, threadIdStr);
+        await _client.GetContainer<KubectlExecutionDocument>(_databaseName).UpsertItemAsync(executionDoc, new PartitionKey(executionDoc.PartitionKey));
+
+        return execution;
+    }
+
+    public async Task<KubectlExecution> UpdateKubectlExecutionOutputAsync(Guid threadId, Guid executionId, string output, string? error = null)
+    {
+        string threadIdStr = threadId.ToString();
+        string executionIdStr = executionId.ToString();
+
+        try
+        {
+            var executionDoc = await GetDocumentAsync<KubectlExecutionDocument>(executionIdStr, threadIdStr);
+            if (executionDoc == null) return null;
+
+            var updatedDoc = executionDoc with
+            {
+                Output = output,
+                Error = error,
+                Status = error != null ? KubectlExecutionStatus.Failed : executionDoc.Status
+            };
+
+            await _client.GetContainer<KubectlExecutionDocument>(_databaseName).ReplaceItemAsync(
+                updatedDoc,
+                updatedDoc.Id,
+                new PartitionKey(updatedDoc.PartitionKey)
+            );
+
+            return updatedDoc.ToDomainModel();
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+    }
+
+    public async Task<KubectlExecution> ListPendingKubectlExecutionAsync(Guid threadId)
+    {
+        try
+        {
+            string threadIdStr = threadId.ToString();
+            var pendingExecutions = new List<KubectlExecution>();
+
+            var query = _client.GetContainer<KubectlExecutionDocument>(_databaseName).GetItemLinqQueryable<KubectlExecutionDocument>()
+                .Where(m => m.DocumentType == "KubectlExecution" && m.ThreadId == threadIdStr && m.Status == KubectlExecutionStatus.Pending);
             using var iterator = query.ToFeedIterator();
 
             while (iterator.HasMoreResults)

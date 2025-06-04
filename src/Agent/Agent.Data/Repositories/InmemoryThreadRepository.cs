@@ -766,6 +766,31 @@ namespace Agent.Data.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<KubectlExecution> GetKubectlExecutionAsync(Guid threadId, Guid executionId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<KubectlExecution> CreateKubectlExecutionAsync(Guid threadId, KubectlExecution execution)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<KubectlExecution> UpdateKubectlExecutionAsync(Guid threadId, KubectlExecution execution)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<KubectlExecution> UpdateKubectlExecutionOutputAsync(Guid threadId, Guid executionId, string output, string? error = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<KubectlExecution> ListPendingKubectlExecutionAsync(Guid threadId)
+        {
+            throw new NotImplementedException();
+        }
         #endregion
     }
 }
