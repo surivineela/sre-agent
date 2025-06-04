@@ -14,6 +14,8 @@ Azure SRE Agent is a unified agentic platform for monitoring and troubleshooting
 
 3. Run the application following the [Running the Application](docs/running-the-app.md) guide
 
+4. Authoring your first agent? [Read the Agent Handbook.](https://github.com/serverless-paas-balam/sreagent-runtime/wiki/Agents-Handbook).
+
 ## Project Resources
 
 - [Github Tracking Board](https://github.com/orgs/serverless-paas-balam/projects/196/views/2)
