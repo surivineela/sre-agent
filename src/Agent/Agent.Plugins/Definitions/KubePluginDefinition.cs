@@ -345,6 +345,17 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
             return await _kubePlugin.RunKubectlWriteCommandAsync(AKSClusterResourceId, command);
         }
 
+        [Description(
+        @"Provides help information about kubectl commands and resources.
+        Used whenever user needs guidance on using kubectl commands or understanding Kubernetes resources.
+        eg: 'How do I use kubectl get pods?', 'What options are available for kubectl describe?'")]
+        public async Task<string> RunKubectlCommandHelpAsync(
+            [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
+            [Description("The kubectl command or resource to get help for, e.g. 'get', 'describe pod', 'create deployment'")] string command)
+        {
+            return await _kubePlugin.RunKubectlCommandHelpAsync(AKSClusterResourceId, command);
+        }
+
         [KernelFunction("profile_dotnet_app_cpu_in_aks_container")]
         [Description(
     @"Performs CPU profiling for a .NET application running in a specific pod and container.

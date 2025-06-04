@@ -19,6 +19,20 @@ namespace Agent.Plugins
 {
     public partial class KubePlugin : IKubePlugin
     {
+        public async Task<string> RunKubectlCommandHelpAsync(
+            string resourceId,
+            string command)
+        {
+            try
+            {
+                return await ExecuteCommandSafely(resourceId, $"{command} --help");
+            }
+            catch (Exception ex)
+            {
+                return $"[Exception encountered]: Failed to execute command: {ex.ToString()}";
+            }
+        }
+
         public async Task<string> RunKubectlReadCommandAsync(
             string resourceId,
             string command)

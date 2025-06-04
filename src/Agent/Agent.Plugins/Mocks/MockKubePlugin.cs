@@ -726,6 +726,11 @@ public class MockKubePlugin : IKubePlugin
         throw new NotImplementedException();
     }
 
+    public Task<string> RunKubectlCommandHelpAsync(string AKSClusterResourceId, string command)
+    {
+        throw new NotImplementedException();
+    }
+
     public Task<string> ProfileDotnetAppCpuInAKSContainerAsync(string aksResourceId, string _namespace, string podName, string? targetContainerName, int durationSeconds = 30)
     {
         throw new NotImplementedException();

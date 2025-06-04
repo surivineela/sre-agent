@@ -23,8 +23,8 @@ handoffs:
   - resource_discovery_agent
   - container_apps_agent
   - azure_cli_command_executor_agent
+  - kubectl_command_executor_agent
   - aks_remediation_agent
-  - kubernetes_service_general_requests_agent
   - charts_and_metrics_and_visualization_agent
 
 max_reflection_count: 1

@@ -324,15 +324,15 @@ namespace Agent.Plugins.Implementation
                 // Use the ArmHelper to get help information
                 var helpCommand = $"az {helpTopic} --help";
                 var helpOutput = await _armHelper.RunAzCliReadCommandsAsync(helpCommand);
-                
+
                 // If grep pattern is provided, filter the output
                 if (!string.IsNullOrEmpty(grepPattern))
                 {
                     var lines = helpOutput.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-                    var filteredLines = lines.Where(line => 
+                    var filteredLines = lines.Where(line =>
                         line.Contains(grepPattern, StringComparison.InvariantCultureIgnoreCase))
                         .ToList();
-                    
+
                     if (filteredLines.Any())
                     {
                         return string.Join('\n', filteredLines);
@@ -342,7 +342,7 @@ namespace Agent.Plugins.Implementation
                         return $"No help information found for pattern '{grepPattern}' in topic '{helpTopic}'";
                     }
                 }
-                
+
                 return helpOutput;
             }
             catch (Exception ex)
