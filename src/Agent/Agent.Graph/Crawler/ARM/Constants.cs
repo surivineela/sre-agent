@@ -65,6 +65,7 @@ public class Constants
     {
         public const string Contains = "CONTAINS";
         public const string Linked = "LINKED";
+        public const string Manages = "MANAGES";
         public const string SqlConnected = "SQL_CONNECTED";
         public const string PostgreSqlConnected = "POSTGRESQL_CONNECTED";
         public const string RedisConnected = "REDIS_CONNECTED";
@@ -82,6 +83,9 @@ public class Constants
         public const string RelatedToIncident = "RELATED_TO_INCIDENT";
         public const string MonitoredBy = "MONITORED_BY";
         public const string HasIgnoreConfig = "HAS_IGNORE_CONFIG";
+        public const string StoresIn = "STORES_IN";
+        public const string Uses = "USES";
+        public const string PullsFrom = "PULLS_FROM";
     }
 
     // indicates this node is a part of specific topology

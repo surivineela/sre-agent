@@ -3,17 +3,15 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Interfaces;
-using Agent.Core.Configuration;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Logging;
 using Azure.ResourceManager;
-using Azure.ResourceManager.ResourceGraph;
-using Azure.ResourceManager.ResourceGraph.Models;
 using Azure.Core;
 using k8s;
 using k8s.Models;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
+using Azure.ResourceManager.ContainerService;
 
 namespace Agent.Graph.Crawler.ARM;
 
@@ -46,6 +44,60 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
 
         var aksNode = (AksNode)clusterNode;
         _logger.LogDebug($"Crawling Kubernetes cluster: {aksNode.GetNodeId()}");
+
+        // Get AKS cluster details to extract network, identity, and disk information
+        List<GraphNode> extractedNodes = new List<GraphNode>();
+        try
+        {
+            var aksResourceId = new ResourceIdentifier(aksNode.ResourceId);
+            var aksResource = _armClient.GetContainerServiceManagedClusterResource(aksResourceId);
+            var cluster = await aksResource.GetAsync();
+
+            if (cluster != null && cluster.Value.HasData)
+            {
+                var clusterData = cluster.Value.Data;
+
+                // Extract and create network connections (VNet and Subnet)
+                await foreach (var networkNode in ExtractNetworkConnections(aksNode, clusterData))
+                {
+                    extractedNodes.Add(networkNode);
+                }
+
+                // Extract and create identity connections
+                await foreach (var identityNode in ExtractIdentityConnections(aksNode, clusterData))
+                {
+                    extractedNodes.Add(identityNode);
+                }
+
+                // Extract and create disk connections from agent pools
+                await foreach (var diskNode in ExtractDiskConnections(aksNode, clusterData))
+                {
+                    extractedNodes.Add(diskNode);
+                }
+
+                // Extract all infrastructure resources from node resource group (VMSS, LB, PIP, NSG, etc.)
+                await foreach (var infraNode in ExtractNodeResourceGroupResources(aksNode, clusterData))
+                {
+                    extractedNodes.Add(infraNode);
+                }
+
+                // Extract container registry connections
+                await foreach (var acrNode in ExtractContainerRegistryConnections(aksNode, clusterData))
+                {
+                    extractedNodes.Add(acrNode);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning($"Failed to get AKS cluster details for {aksNode.ResourceId}: {ex.Message}");
+        }
+
+        // Yield all extracted nodes
+        foreach (var node in extractedNodes)
+        {
+            yield return node;
+        }
 
         // Find connected Azure Monitor workspaces using Azure Resource Graph
         // This query looks for Azure Monitor workspaces that are connected to this AKS cluster
@@ -220,5 +272,421 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
         
         return workspaces;
     }
-}
 
+    /// <summary>
+    /// Extract network connections (VNet and Subnet) from AKS cluster configuration
+    /// </summary>
+    private async IAsyncEnumerable<GraphNode> ExtractNetworkConnections(AksNode aksNode, ContainerServiceManagedClusterData clusterData)
+    {
+        if (clusterData.NetworkProfile?.NetworkPlugin != null)
+        {
+            foreach (var agentPool in clusterData.AgentPoolProfiles)
+            {
+                if (agentPool.VnetSubnetId != null)
+                {
+                    var subnetResourceId = new ResourceIdentifier(agentPool.VnetSubnetId);
+
+                    // Extract VNet resource ID from subnet ID
+                    // Subnet ID format: /subscriptions/{sub}/resourceGroups/{rg}/providers/Microsoft.Network/virtualNetworks/{vnet}/subnets/{subnet}
+                    var vnetResourceId = subnetResourceId.Parent;
+
+                    // Create VNet node
+                    var vnetNode = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(vnetResourceId.ToString());
+                    if (vnetNode != null)
+                    {
+                        await _graphDbClient.AddOrUpdateNodeAsync(vnetNode);
+                        var vnetEdge = new ArmResourceEdge(aksNode.GetNodeId(), vnetNode.GetNodeId(), Constants.Relationships.Connected);
+                        vnetEdge.AddOrUpdateEdgeProperty("connectionType", "network");
+                        await _graphDbClient.AddOrUpdateEdgeAsync(vnetEdge);
+                        _logger.LogDebug($"Connected AKS cluster {aksNode.ResourceName} to VNet {vnetNode.ResourceName}");
+                        yield return vnetNode;
+                    }
+
+                    // Create Subnet node
+                    var subnetNode = new ArmResourceNode(
+                        Constants.VirtualNetworkType,
+                        agentPool.VnetSubnetId,
+                        subnetResourceId.SubscriptionId,
+                        subnetResourceId.ResourceGroupName,
+                        subnetResourceId.Name,
+                        aksNode.Location);
+
+                    await _graphDbClient.AddOrUpdateNodeAsync(subnetNode);
+                    var subnetEdge = new ArmResourceEdge(aksNode.GetNodeId(), subnetNode.GetNodeId(), Constants.Relationships.Connected);
+                    subnetEdge.AddOrUpdateEdgeProperty("connectionType", "network");
+                    subnetEdge.AddOrUpdateEdgeProperty("agentPool", agentPool.Name);
+                    await _graphDbClient.AddOrUpdateEdgeAsync(subnetEdge);
+                    _logger.LogDebug($"Connected AKS cluster {aksNode.ResourceName} to Subnet {subnetNode.ResourceName} for agent pool {agentPool.Name}");
+                    yield return subnetNode;
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Extract identity connections from AKS cluster configuration
+    /// </summary>
+    private async IAsyncEnumerable<GraphNode> ExtractIdentityConnections(AksNode aksNode, ContainerServiceManagedClusterData clusterData)
+    {
+        // Handle system-assigned identity
+        if (clusterData.Identity?.ManagedServiceIdentityType == Azure.ResourceManager.Models.ManagedServiceIdentityType.SystemAssigned ||
+            clusterData.Identity?.ManagedServiceIdentityType == Azure.ResourceManager.Models.ManagedServiceIdentityType.SystemAssignedUserAssigned)
+        {
+            if (clusterData.Identity.PrincipalId != null)
+            {
+                var systemIdentityNode = new ManagedIdentityNode(
+                    ManagedIdentityNode.SystemAssignedManagedIdentityType,
+                    aksNode.ResourceId, // System MI uses the parent resource ID
+                    aksNode.SubscriptionId,
+                    aksNode.ResourceGroupName,
+                    aksNode.ResourceName + "-system",
+                    aksNode.Location);
+
+                systemIdentityNode.PrincipalId = clusterData.Identity.PrincipalId.ToString();
+                systemIdentityNode.TenantId = clusterData.Identity.TenantId?.ToString();
+
+                await _graphDbClient.AddOrUpdateNodeAsync(systemIdentityNode);
+                var edge = new ArmResourceEdge(aksNode.GetNodeId(), systemIdentityNode.GetNodeId(), Constants.Relationships.HasIdentity);
+                edge.AddOrUpdateEdgeProperty("identityType", "system-assigned");
+                await _graphDbClient.AddOrUpdateEdgeAsync(edge);
+                _logger.LogDebug($"Connected AKS cluster {aksNode.ResourceName} to system-assigned identity");
+                yield return systemIdentityNode;
+            }
+        }
+
+        // Handle user-assigned identities
+        if (clusterData.Identity?.UserAssignedIdentities != null)
+        {
+            foreach (var identity in clusterData.Identity.UserAssignedIdentities)
+            {
+                var identityResourceId = identity.Key;
+                var identityNode = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(identityResourceId.ToString());
+                if (identityNode != null)
+                {
+                    await _graphDbClient.AddOrUpdateNodeAsync(identityNode);
+                    var edge = new ArmResourceEdge(aksNode.GetNodeId(), identityNode.GetNodeId(), Constants.Relationships.HasIdentity);
+                    edge.AddOrUpdateEdgeProperty("identityType", "user-assigned");
+                    edge.AddOrUpdateEdgeProperty("clientId", identity.Value.ClientId?.ToString());
+                    edge.AddOrUpdateEdgeProperty("principalId", identity.Value.PrincipalId?.ToString());
+                    await _graphDbClient.AddOrUpdateEdgeAsync(edge);
+                    _logger.LogDebug($"Connected AKS cluster {aksNode.ResourceName} to user-assigned identity {identityNode.ResourceName}");
+                    yield return identityNode;
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Extract disk connections from AKS agent pools
+    /// </summary>
+    private async IAsyncEnumerable<GraphNode> ExtractDiskConnections(AksNode aksNode, ContainerServiceManagedClusterData clusterData)
+    {
+        // Query for managed disks attached to VMs in the node resource group
+        var nodeResourceGroup = clusterData.NodeResourceGroup;
+        if (string.IsNullOrEmpty(nodeResourceGroup))
+        {
+            yield break;
+        }
+
+        List<GraphNode> diskNodes = new List<GraphNode>();
+
+        try
+        {
+            var diskQuery = $@"
+            resources
+            | where type == ""microsoft.compute/disks""
+            | where resourceGroup =~ ""{nodeResourceGroup}""
+            | project id, name, location, properties";
+
+            var diskResults = await _graphClient.Query(new[] { aksNode.SubscriptionId }, diskQuery);
+
+            if (diskResults != null && diskResults.Data != null)
+            {
+                var jsonData = diskResults.Data.ToString();
+                var results = JsonDocument.Parse(jsonData).RootElement;
+
+                if (results.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var disk in results.EnumerateArray())
+                    {
+                        if (disk.TryGetProperty("id", out var diskIdElement))
+                        {
+                            var diskResourceId = diskIdElement.GetString();
+                            var diskNode = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(diskResourceId);
+
+                            if (diskNode != null)
+                            {
+                                await _graphDbClient.AddOrUpdateNodeAsync(diskNode);
+                                var edge = new ArmResourceEdge(aksNode.GetNodeId(), diskNode.GetNodeId(), Constants.Relationships.Uses);
+                                edge.AddOrUpdateEdgeProperty("resourceType", "disk");
+                                edge.AddOrUpdateEdgeProperty("nodeResourceGroup", nodeResourceGroup);
+                                await _graphDbClient.AddOrUpdateEdgeAsync(edge);
+                                _logger.LogDebug($"Connected AKS cluster {aksNode.ResourceName} to disk {diskNode.ResourceName}");
+                                diskNodes.Add(diskNode);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning($"Failed to query disks for AKS cluster {aksNode.ResourceName}: {ex.Message}");
+        }
+
+        foreach (var node in diskNodes)
+        {
+            yield return node;
+        }
+    }
+
+    /// <summary>
+    /// Extract all infrastructure resources from the node resource group
+    /// </summary>
+    private async IAsyncEnumerable<GraphNode> ExtractNodeResourceGroupResources(AksNode aksNode, ContainerServiceManagedClusterData clusterData)
+    {
+        var nodeResourceGroup = clusterData.NodeResourceGroup;
+        if (string.IsNullOrEmpty(nodeResourceGroup))
+        {
+            _logger.LogDebug($"No node resource group found for AKS cluster {aksNode.ResourceName}");
+            yield break;
+        }
+
+        _logger.LogDebug($"Extracting resources from node resource group: {nodeResourceGroup}");
+        List<GraphNode> resourceNodes = new List<GraphNode>();
+
+        try
+        {
+            // Query for all relevant resources in the node resource group
+            var resourceQuery = $@"
+            resources
+            | where resourceGroup =~ ""{nodeResourceGroup}""
+            | where type in~ (
+                ""microsoft.compute/virtualmachinescalesets"",
+                ""microsoft.network/loadbalancers"", 
+                ""microsoft.network/publicipaddresses"",
+                ""microsoft.network/networksecuritygroups"",
+                ""microsoft.network/routetables"",
+                ""microsoft.storage/storageaccounts""
+            )
+            | project id, name, type, location, properties";
+
+            var queryResults = await _graphClient.Query(new[] { aksNode.SubscriptionId }, resourceQuery);
+
+            if (queryResults != null && queryResults.Data != null)
+            {
+                var jsonData = queryResults.Data.ToString();
+                var results = JsonDocument.Parse(jsonData).RootElement;
+
+                if (results.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var resource in results.EnumerateArray())
+                    {
+                        if (resource.TryGetProperty("id", out var resourceIdElement) &&
+                            resource.TryGetProperty("type", out var typeElement))
+                        {
+                            var resourceId = resourceIdElement.GetString();
+                            var resourceType = typeElement.GetString().ToLowerInvariant();
+
+                            var resourceNode = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(resourceId);
+                            if (resourceNode != null)
+                            {
+                                await _graphDbClient.AddOrUpdateNodeAsync(resourceNode);
+
+                                // Create appropriate relationship based on resource type
+                                var relationshipType = DetermineRelationshipType(resourceType);
+                                var edge = new ArmResourceEdge(aksNode.GetNodeId(), resourceNode.GetNodeId(), relationshipType);
+                                edge.AddOrUpdateEdgeProperty("nodeResourceGroup", nodeResourceGroup);
+                                edge.AddOrUpdateEdgeProperty("managedBy", "aks");
+
+                                // Add specific metadata based on resource type
+                                if (resourceType.Contains("virtualmachinescalesets"))
+                                {
+                                    edge.AddOrUpdateEdgeProperty("resourceRole", "nodePool");
+                                    // Try to extract agent pool name from VMSS name
+                                    var vmssName = resource.TryGetProperty("name", out var nameElement) ? nameElement.GetString() : "";
+                                    if (!string.IsNullOrEmpty(vmssName))
+                                    {
+                                        // AKS VMSS names typically follow pattern: aks-{poolname}-{id}-vmss
+                                        var parts = vmssName.Split('-');
+                                        if (parts.Length >= 2)
+                                        {
+                                            edge.AddOrUpdateEdgeProperty("agentPoolName", parts[1]);
+                                        }
+                                    }
+                                }
+                                else if (resourceType.Contains("loadbalancers"))
+                                {
+                                    edge.AddOrUpdateEdgeProperty("resourceRole", "networking");
+                                }
+                                else if (resourceType.Contains("publicipaddresses"))
+                                {
+                                    edge.AddOrUpdateEdgeProperty("resourceRole", "networking");
+                                }
+                                else if (resourceType.Contains("networksecuritygroups"))
+                                {
+                                    edge.AddOrUpdateEdgeProperty("resourceRole", "security");
+                                }
+                                else if (resourceType.Contains("routetables"))
+                                {
+                                    edge.AddOrUpdateEdgeProperty("resourceRole", "networking");
+                                }
+                                else if (resourceType.Contains("storageaccounts"))
+                                {
+                                    edge.AddOrUpdateEdgeProperty("resourceRole", "diagnostics");
+                                }
+
+                                await _graphDbClient.AddOrUpdateEdgeAsync(edge);
+                                _logger.LogDebug($"Connected AKS cluster {aksNode.ResourceName} to {resourceType}: {resourceNode.ResourceName}");
+                                resourceNodes.Add(resourceNode);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning($"Failed to query node resource group resources for AKS cluster {aksNode.ResourceName}: {ex.Message}");
+        }
+
+        foreach (var node in resourceNodes)
+        {
+            yield return node;
+        }
+    }
+
+    /// <summary>
+    /// Extract container registry connections
+    /// </summary>     
+    private async IAsyncEnumerable<GraphNode> ExtractContainerRegistryConnections(AksNode aksNode, ContainerServiceManagedClusterData clusterData)
+    {
+        // Check if there are any configured container registries in the cluster
+        if (clusterData.ServicePrincipalProfile?.ClientId == null && clusterData.Identity == null)
+        {
+            yield break;
+        }
+
+        List<GraphNode> acrNodes = new List<GraphNode>();
+        
+        try
+        {
+            // Query for container registries that might be connected via role assignments
+            var acrQuery = $@"
+            resources
+            | where type == ""microsoft.containerregistry/registries""
+            | where subscriptionId == ""{aksNode.SubscriptionId}""
+            | project id, name, location";
+            
+            var acrResults = await _graphClient.Query(new[] { aksNode.SubscriptionId }, acrQuery);
+            
+            if (acrResults != null && acrResults.Data != null)
+            {
+                var jsonData = acrResults.Data.ToString();
+                var results = JsonDocument.Parse(jsonData).RootElement;
+                
+                if (results.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var acr in results.EnumerateArray())
+                    {
+                        if (acr.TryGetProperty("id", out var acrIdElement))
+                        {
+                            var acrResourceId = acrIdElement.GetString();
+                            
+                            // Check if this ACR has role assignments from the AKS identity
+                            bool hasConnection = await CheckACRConnection(aksNode, clusterData, acrResourceId);
+                            
+                            if (hasConnection)
+                            {
+                                var acrNode = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(acrResourceId);
+                                if (acrNode != null)
+                                {
+                                    await _graphDbClient.AddOrUpdateNodeAsync(acrNode);
+                                    var edge = new ArmResourceEdge(aksNode.GetNodeId(), acrNode.GetNodeId(), Constants.Relationships.PullsFrom);
+                                    edge.AddOrUpdateEdgeProperty("connectionType", "containerRegistry");
+                                    await _graphDbClient.AddOrUpdateEdgeAsync(edge);
+                                    _logger.LogDebug($"Connected AKS cluster {aksNode.ResourceName} to ACR {acrNode.ResourceName}");
+                                    acrNodes.Add(acrNode);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning($"Failed to query container registries for AKS cluster {aksNode.ResourceName}: {ex.Message}");
+        }
+
+        foreach (var node in acrNodes)
+        {
+            yield return node;
+        }
+    }
+
+    /// <summary>
+    /// Check if AKS has access to the specified ACR
+    /// </summary>
+    private async Task<bool> CheckACRConnection(AksNode aksNode, ContainerServiceManagedClusterData clusterData, string acrResourceId)
+    {
+        try
+        {
+            var principalIds = new List<string>();
+
+            // Collect all possible principal IDs that might have ACR access
+            if (clusterData.Identity?.PrincipalId != null)
+            {
+                principalIds.Add(clusterData.Identity.PrincipalId.ToString());
+            }
+
+            if (clusterData.IdentityProfile != null && clusterData.IdentityProfile.ContainsKey("kubeletidentity"))
+            {
+                var kubeletIdentity = clusterData.IdentityProfile["kubeletidentity"];
+                if (kubeletIdentity.ObjectId != null)
+                {
+                    principalIds.Add(kubeletIdentity.ObjectId.ToString());
+                }
+            }
+
+            if (principalIds.Count == 0)
+            {
+                return false;
+            }
+
+            // Query for role assignments
+            var roleQuery = $@"
+            authorizationresources
+            | where type == ""microsoft.authorization/roleassignments""
+            | where properties.scope =~ ""{acrResourceId}""
+            | where properties.principalId in~ ({string.Join(",", principalIds.Select(p => $"'{p}'"))})
+            | project principalId = properties.principalId";
+
+            var roleResults = await _graphClient.Query(new[] { aksNode.SubscriptionId }, roleQuery);
+            return roleResults != null && roleResults.Count > 0;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Determine the appropriate relationship type based on resource type
+    /// </summary>
+    private string DetermineRelationshipType(string resourceType)
+    {
+        if (resourceType.Contains("virtualmachinescalesets"))
+            return Constants.Relationships.Manages;
+        if (resourceType.Contains("loadbalancers") || resourceType.Contains("publicip"))
+            return Constants.Relationships.Uses;
+        if (resourceType.Contains("networksecuritygroups"))
+            return Constants.Relationships.Linked;
+        if (resourceType.Contains("routetables"))
+            return Constants.Relationships.Linked;
+        if (resourceType.Contains("storage"))
+            return Constants.Relationships.StoresIn;
+
+        return Constants.Relationships.Uses;
+    }
+}
