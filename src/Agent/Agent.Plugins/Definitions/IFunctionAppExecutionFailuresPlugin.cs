@@ -65,5 +65,12 @@ namespace Agent.Plugins.Definitions
         /// <param name="endTime">Optional end time for the query (defaults to current time minus 15 minutes)</param>
         /// <returns>True if host runtime errors are detected, false otherwise</returns>
         Task<bool> HasHostRuntimeErrors(string resourceId, DateTime? startTime = null, DateTime? endTime = null);
+
+        /// <summary>
+        /// Triggers a sync operation on a Function App's host to check for runtime errors or refresh the function app
+        /// </summary>
+        /// <param name="resourceId">The Azure resource ID of the Function App to sync</param>
+        /// <returns>The response from the sync operation</returns>
+        Task<string> TriggerFunctionAppSync(string resourceId);
     }
 }

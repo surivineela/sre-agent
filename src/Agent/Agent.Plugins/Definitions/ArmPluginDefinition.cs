@@ -81,8 +81,8 @@ namespace Agent.Plugins
             return await _armPlugin.GetVirtualMachineBootDiagnostics(resourceId);
         }
 
-        [Description("Check if all the associated resources can be reached from an Azure function app")]
-        public async Task<string> CheckConnectivityViaConnectionString(
+        [Description("ONLY use when function app is using AzureWebJobsStorage connection string (NOT for managed identity). Tests connectivity from function app to its storage account.")]
+        public async Task<string> CheckConnectivityToAzureWebJobsStorage(
             [Description("Full resource id of an Azure Function App")] string resourceId)
         {
             return await _armPlugin.CheckConnectivityToAzureWebJobsStorage(resourceId);
@@ -90,7 +90,9 @@ namespace Agent.Plugins
 
         [Description("Check if a connection from the given resource to www.microsoft.com can be established.")]
         public async Task<string> CheckTcpConnectivity(
-            [Description("Full resource id of an Azure resource")] string resourceId, string host, int port)
+            [Description("Full resource id of an Azure resource")] string resourceId, 
+            [Description("Host to test connectivity to")] string host, 
+            [Description("Port to test connectivity to")] int port)
         {
             return await _armPlugin.CheckTcpConnectivity(resourceId, host, port);
         }

@@ -1,44 +1,38 @@
 using System.ComponentModel;
+using Agent.Framework;
 
-namespace Agent.Plugins.Definitions;
-
-/// <summary>
-/// Definition for the Function App Configuration Checks Plugin
-/// </summary>
-public class FunctionAppConfigurationChecksPluginDefinition
+namespace Agent.Plugins.Definitions
 {
-    private readonly IFunctionAppConfigurationChecksPlugin _functionAppConfigurationChecksPlugin;
 
     /// <summary>
-    /// Constructor for FunctionAppConfigurationChecksPluginDefinition
+    /// Definition for the Function App Configuration Checks Plugin
     /// </summary>
-    /// <param name="functionAppConfigurationChecksPlugin">The Function App Configuration Checks Plugin implementation</param>
-    public FunctionAppConfigurationChecksPluginDefinition(IFunctionAppConfigurationChecksPlugin functionAppConfigurationChecksPlugin)
+    [AgentToolPlugin]
+    public class FunctionAppConfigurationChecksPluginDefinition
     {
-        _functionAppConfigurationChecksPlugin = functionAppConfigurationChecksPlugin;
-    }
+        private readonly IFunctionAppConfigurationChecksPlugin _functionAppConfigurationChecksPlugin;
 
-    /// <summary>
-    /// Gets Function App configuration checks for a Function App
-    /// </summary>
-    [Description("Gets Function App configuration checks to identify potential issues in the Function App configuration. " +
-                "Analyzes settings like runtime version, extension version, platform, and other configuration values. " +
-                "Returns detailed analysis with potential issues and recommendations for optimization.")]
-    public async Task<string> GetFunctionAppConfigurationChecks(
-        [Description("The full Azure resource ID of the Function App to check configuration for.")] string resourceId,
-        [Description("Optional start time for the query (defaults to 1 hour ago)")] DateTime? startTime = null,
-        [Description("Optional end time for the query (defaults to current time minus 15 minutes)")] DateTime? endTime = null)
-    {
-        return await _functionAppConfigurationChecksPlugin.GetFunctionAppConfigurationChecks(resourceId, startTime, endTime);
-    }
+        /// <summary>
+        /// Constructor for FunctionAppConfigurationChecksPluginDefinition
+        /// </summary>
+        /// <param name="functionAppConfigurationChecksPlugin">The Function App Configuration Checks Plugin implementation</param>
+        public FunctionAppConfigurationChecksPluginDefinition(IFunctionAppConfigurationChecksPlugin functionAppConfigurationChecksPlugin)
+        {
+            _functionAppConfigurationChecksPlugin = functionAppConfigurationChecksPlugin;
+        }
 
-    /// <summary>
-    /// Checks if a resource is a Function App
-    /// </summary>
-    [Description("Checks if a resource is a Function App by verifying its 'kind' property contains 'functionapp'")]
-    public async Task<bool> IsFunctionApp(
-        [Description("The full Azure resource ID to check")] string resourceId)
-    {
-        return await _functionAppConfigurationChecksPlugin.IsFunctionApp(resourceId);
+        /// <summary>
+        /// Gets Function App configuration checks for a Function App
+        /// </summary>
+        [Description("Gets Function App configuration checks to identify potential issues in the Function App configuration. " +
+                    "Analyzes settings like runtime version, extension version, platform, and other configuration values. " +
+                    "Returns detailed analysis with potential issues and recommendations for optimization.")]
+        public async Task<string> GetFunctionAppConfigurationChecks(
+            [Description("The full Azure resource ID of the Function App to check configuration for.")] string resourceId,
+            [Description("Optional start time for the query (defaults to 1 hour ago)")] DateTime? startTime = null,
+            [Description("Optional end time for the query (defaults to current time minus 15 minutes)")] DateTime? endTime = null)
+        {
+            return await _functionAppConfigurationChecksPlugin.GetFunctionAppConfigurationChecks(resourceId, startTime, endTime);
+        }
     }
 }

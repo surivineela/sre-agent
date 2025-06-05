@@ -5,10 +5,12 @@
 using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
+using Agent.Framework;
 using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins.Definitions
 {
+    [AgentToolPlugin]
     public class FunctionAppExecutionFailuresPluginDefinition(IFunctionAppExecutionFailuresPlugin functionAppExecutionFailuresPlugin)
     {
         private readonly IFunctionAppExecutionFailuresPlugin _functionAppExecutionFailuresPlugin = functionAppExecutionFailuresPlugin;
@@ -75,6 +77,14 @@ namespace Agent.Plugins.Definitions
             [Description("Optional end time for the query (defaults to current time minus 15 minutes)")] DateTime? endTime = null)
         {
             return await _functionAppExecutionFailuresPlugin.HasHostRuntimeErrors(resourceId, startTime, endTime);
+        }
+
+        [KernelFunction("trigger_function_app_sync")]
+        [Description("Triggers a sync operation on a Function App's host to check for runtime errors or refresh the function app")]
+        public async Task<string> TriggerFunctionAppSync(
+            [Description("The full Azure resource ID of the Function App to sync")] string resourceId)
+        {
+            return await _functionAppExecutionFailuresPlugin.TriggerFunctionAppSync(resourceId);
         }
     }
 }

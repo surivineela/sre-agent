@@ -56,28 +56,4 @@ public class FunctionAppConfigurationChecksPlugin : IFunctionAppConfigurationChe
             throw;
         }
     }
-
-    /// <summary>
-    /// Checks if a resource is a Function App by verifying its 'kind' property contains 'functionapp'
-    /// </summary>
-    /// <param name="resourceId">The Azure resource ID to check</param>
-    /// <returns>True if the resource is a Function App, false otherwise</returns>
-    public async Task<bool> IsFunctionApp(string resourceId)
-    {
-        try
-        {
-            _logger.LogInternalInformation("Checking if {ResourceId} is a Function App", resourceId);
-
-            // Get the ARM resource as JSON
-            string armResource = await _armHelper.GetArmResourceAsJsonAsync(resourceId);
-
-            // Check if the resource contains 'functionapp' in its kind property
-            return armResource.Contains("\"kind\"") && armResource.Contains("functionapp");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalError(ex, "Error checking if {ResourceId} is a Function App", resourceId);
-            return false;
-        }
-    }
 }

@@ -17,6 +17,7 @@ namespace Agent.Plugins.Definitions
 
         private IAppCodeAnalysisPlugin _appCodeAnalysisPlugin;
 
+
         public AppCodeAnalysisPluginDefinition(IAppCodeAnalysisPlugin appCodeAnalysisPlugin)
         {
             _appCodeAnalysisPlugin = appCodeAnalysisPlugin;

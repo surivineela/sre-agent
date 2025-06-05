@@ -35,12 +35,11 @@ public sealed class FunctionAppConnectivityAgentFactory
 
         var armPluginDefinition = new ArmPluginDefinition(armPlugin);
         toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.GetArmResourceAsJson));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.CheckConnectivityViaConnectionString));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.CheckConnectivityToAzureWebJobsStorage));
         toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.CheckTcpConnectivity));
         toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.CheckDnsResolution));
         toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.GetAppSetting));
         toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.ListKeysAndUpdateAppSettingsAsync));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.UpdateAppSettingsAsync));
 
         var roleAssignmentPluginDefinition = new RoleAssignmentPluginDefinition(roleAssignmentPlugin);
         toolSignatures.Add(_toolsRepository.GetSignature(() => roleAssignmentPluginDefinition.AddRoleAssignment));

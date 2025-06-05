@@ -31,6 +31,7 @@ handoffs:
   - charts_and_metrics_and_visualization_agent
   - diagnostic_cpu_agent
   - diagnostic_memory_agent
+  - function_app_agent 
 
 max_reflection_count: 1
 custom_reflection_note: |

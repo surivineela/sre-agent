@@ -409,5 +409,31 @@ namespace Agent.Plugins.Implementation
                 return false;
             }
         }
+
+        [KernelFunction("trigger_function_app_sync")]
+        [Description("This function triggers a sync operation on a Function App's host to check for runtime errors or refresh the function app")]
+        public async Task<string> TriggerFunctionAppSync(string resourceId)
+        {
+            _logger.LogInternalInformation("[trigger_function_app_sync] Invoked with resourceId {resourceId}", resourceId);
+            if (string.IsNullOrEmpty(resourceId))
+            {
+                _logger.LogInternalError("Resource ID is null or empty.");
+                return "Invalid resource ID.";
+            }
+
+            try
+            {
+                // Call ArmHelper's SyncFunctionAppHost method
+                _logger.LogInternalInformation("Triggering Function App host sync for {resourceId}", resourceId);
+                string syncResponse = await _armHelper.SyncFunctionAppHost(resourceId);
+                
+                return syncResponse;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Error triggering Function App host sync for {resourceId}", resourceId);
+                return $"Failed to sync Function App host: {ex.Message}";
+            }
+        }
     }
 }

@@ -21,7 +21,7 @@ public interface IFunctionAppDeploymentChecksPlugin
     /// <param name="endTime">Optional end time for the query (defaults to current time minus 15 minutes)</param>
     /// <returns>A summary of function app deployment information</returns>
     Task<string> GetFunctionAppDeploymentChecks(string resourceId, DateTime? startTime = null, DateTime? endTime = null);
-    
+
     /// <summary>
     /// Gets Function App deployment history for a Function App
     /// </summary>
@@ -30,11 +30,4 @@ public interface IFunctionAppDeploymentChecksPlugin
     /// <param name="endTime">Optional end time for the query (defaults to current time minus 15 minutes)</param>
     /// <returns>A detailed history of function app deployments</returns>
     Task<string> GetFunctionAppDeploymentHistory(string resourceId, DateTime? startTime = null, DateTime? endTime = null);
-    
-    /// <summary>
-    /// Checks if a resource is a Function App by verifying its 'kind' property contains 'functionapp'
-    /// </summary>
-    /// <param name="resourceId">The Azure resource ID to check</param>
-    /// <returns>True if the resource is a Function App, false otherwise</returns>
-    Task<bool> IsFunctionApp(string resourceId);
 }
