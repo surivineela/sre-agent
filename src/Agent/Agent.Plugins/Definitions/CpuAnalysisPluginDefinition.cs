@@ -4,10 +4,12 @@
 
 using System.ComponentModel;
 using Agent.Core.Attributes;
+using Agent.Framework;
 using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins
 {
+    [AgentToolPlugin]
     public class CpuAnalysisPluginDefinition
     {
         private readonly ICpuAnalysisPlugin _cpuAnalysisPlugin;
@@ -24,22 +26,6 @@ namespace Agent.Plugins
         [Description("resourceId of the app")] string resourceId)
         {
             return await _cpuAnalysisPlugin.ScaleUpAppServicePlanBySku(resourceId);
-        }
-
-        [KernelFunction("collect_memory_dump_for_app")]
-        [Description("Collect Memory Dump for App")]
-        public async Task<string> CollectMemoryDumpForApp(
-        [Description("resourceId of the app")] string resourceId)
-        {
-            return await _cpuAnalysisPlugin.CollectMemoryDumpForApp(resourceId);
-        }
-
-        [KernelFunction("collect_profile_for_app")]
-        [Description("Collect a profile or trace for an App Service to assess CPU activity.")]
-        public async Task<string> CollectProfileForApp([Description("resourceId of the app")] string resourceId,
-                                                       [Description("Duration of profile in seconds")] int durationOfProfileInSeconds = 20)
-        {
-            return await _cpuAnalysisPlugin.CollectProfileForApp(resourceId, durationOfProfileInSeconds);
         }
 
         [KernelFunction("autoscale_app_service")]

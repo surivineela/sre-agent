@@ -8,15 +8,7 @@ using Microsoft.SemanticKernel;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Identity;
-using Azure.Core;
-using Azure.ResourceManager.AppService;
-using Azure.ResourceManager;
-using System.Net.Http.Headers;
-using YamlDotNet.Core.Tokens;
-using System.Text;
-using IdentityModel.Client;
-using Agent.Core.Models;
-using Agent.Core;
+using Agent.Framework;
 
 namespace Agent.Plugins;
 

@@ -27,9 +27,9 @@ system_prompt: |
 
      **Mitigation Steps **
      1. If the app is having application code issues, handoff to the app code agent to investigate the issues at first.
-     2. If the app code mitigation does not resolve the issue, then next handoff to the diagnostic agent to mitigate the issue further.
-     3. If the app is having high CPU or memory issues, handoff to the diagnostic cpu agent and diagnostic memory agent to investigate the issues at first.
-
+     2. If the app code mitigation does not resolve the issue, then next handoff to the diagnostic agents (diagnostic_cpu_agent and diagnostc_memory_agent) to mitigate the issue further.
+     3. If the app is having high CPU handoff to the diagnostic_cpu_agent or for memory issues, handoff to the diagnostic_memory_agent to investigate the issues at first and get diagnostic analysis. And then scale up.
+     4. For `System.OutOfMemoryException` first do the app code mitigation, and then handoff to the diagnostic_memory_agent to investigate the issues at first and get diagnostic analysis. 
 
     **Data Presentation Guidelines**
     1. **Visualization**
@@ -50,11 +50,11 @@ system_prompt: |
     **Github Issue Guidelines**
     For any incident investigation, always raise a Github issue that captures the details of the problem (exceptions, full stack trace, and console logs, if any) in the relevant repository.
 
-
 handoff_description: "Handoff to this agent when dealing with issues related to Web App Down Analysis for all compute resources such as for deployment swaps and application code issues"
 
 handoffs:
 - meta_agent
+- diagnostic_memory_agent
 - diagnostic_cpu_agent
 - app_code_agent
 
@@ -78,6 +78,7 @@ tools:
 - GetStackTraceOfMostCommonException
 - GetAppConsoleLogs
 - NotifyUser
+- ScaleUpAppServicePlanBySku
 
 common_prompts:
   - notify_user

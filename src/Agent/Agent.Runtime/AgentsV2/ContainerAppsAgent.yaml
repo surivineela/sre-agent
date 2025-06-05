@@ -24,7 +24,7 @@ system_prompt: |
   **Working Approach:**
   1. Use your tools to gather information and analyze the Container Apps environment
   2. Provide comprehensive answers with relevant data and insights
-  3. If you discover specialized issues during your analysis, then consider handoff
+  3. If you discover specialized issues during your analysis, then consider handoff e.g., if there is a CPU or memory issue, handoff to the diagnostic_cpu_agent or diagnostic_memory_agent.
   4. Always aim to solve the user's Container Apps questions directly when possible
 
 handoff_description: "Handoff to this agent for any Azure Container Apps related questions, issues, or tasks. This is the primary entry point that intelligently routes users to specialized Container Apps agents based on their specific needs—whether informational queries, troubleshooting problems, HTTP errors, or auto-scaling configuration. The agent quickly assesses the request and delegates to the most appropriate specialist."
@@ -32,6 +32,9 @@ handoff_description: "Handoff to this agent for any Azure Container Apps related
 handoffs:
   - container_apps_http_error_agent
   - container_apps_auto_scale_agent
+  - diagnostic_cpu_agent
+  - diagnostic_memory_agent
+  - diagnostic_latency_agent
   - meta_agent
 
 tools:
