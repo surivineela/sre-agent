@@ -65,6 +65,8 @@ public interface IPagerDutyService
     /// <returns></returns>
     Task<PagerDutyIncidentsResponse> GetIncidentsAsync(uint limit, uint offset);
 
+    Task<PagerDutyIncident> GetPagerDutyIncidentAsync(string incidentId);
+
     /// <summary>
     /// Get the latest incident description from PagerDuty.
     /// Note the default get incident API returns description of the incident when it was created, not the latest description.

@@ -37,7 +37,8 @@ public class PagerDutyService : IPagerDutyService
         using var client = CreateHttpClient();
         // The default time range of Listing incidents is a month, per https://developer.pagerduty.com/api-reference/9d0b4b12e36f9-list-incidents
         // Note: include%5B%5D=first_trigger_log_entries is required to get the full log entry, which contains the real incident description.
-        var request = new HttpRequestMessage(HttpMethod.Get, $"https://api.pagerduty.com/incidents?limit={limit}&offset={offset}&include%5B%5D=first_trigger_log_entries&statuses%5B%5D=triggered&statuses%5B%5D=acknowledged");
+        // Note: removing the status filters as they prevent indexing incidents that will be used to derive learnings from
+        var request = new HttpRequestMessage(HttpMethod.Get, $"https://api.pagerduty.com/incidents?limit={limit}&offset={offset}&include%5B%5D=first_trigger_log_entries");
         var response = await client.SendAsync(request);
         if (response.IsSuccessStatusCode)
         {
@@ -59,6 +60,35 @@ public class PagerDutyService : IPagerDutyService
         }
 
         throw new HttpRequestException($"Failed to get PagerDuty incidents: {response.StatusCode}");
+    }
+
+    // method to fetch full details of an incident by id
+    public async Task<PagerDutyIncident> GetPagerDutyIncidentAsync(string incidentId)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(incidentId, nameof(incidentId));
+        _logger.LogInternalInformation("Getting PagerDuty incident with ID: {incidentId}", incidentId);
+        using var client = CreateHttpClient();
+        var request = new HttpRequestMessage(HttpMethod.Get, $"https://api.pagerduty.com/incidents/{incidentId}?include%5B%5D=first_trigger_log_entries");
+        var response = await client.SendAsync(request);
+        if (response.IsSuccessStatusCode)
+        {
+            var incidentResponse = await response.Content.ReadFromJsonAsync<PagerDutyIncident>();
+            if (incidentResponse != null)
+            {
+                _logger.LogInternalInformation("Successfully retrieved PagerDuty incident ID: {incidentId}", incidentId);
+                return incidentResponse;
+            }
+            else
+            {
+                _logger.LogInternalError("Failed to deserialize PagerDuty incident response.");
+            }
+        }
+        else
+        {
+            var errorContent = await response.Content.ReadAsStringAsync();
+            _logger.LogInternalError("Failed to get PagerDuty incident ID: {incidentId}. Error: {errorContent}", incidentId, errorContent);
+        }
+        throw new HttpRequestException($"Failed to get PagerDuty incident ID: {incidentId}");
     }
 
 

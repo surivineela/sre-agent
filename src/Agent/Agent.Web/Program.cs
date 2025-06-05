@@ -10,6 +10,7 @@ using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
 using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DataModels;
 using Agent.Framework;
 using Agent.Graph.Crawler;
 using Agent.Graph.Crawler.ARM;
@@ -439,6 +440,9 @@ public class Program
         builder.Services.AddSingleton<IActivityLogService, ActivityLogService>();
         builder.Services.AddSingleton<IPagerDutyService, PagerDutyService>();
         builder.Services.AddSingleton<PagerDutyScanner>();
+        builder.Services.AddSingleton<IncidentManagementService<PagerDutyIncidentDocument>>();
+        builder.Services.AddSingleton<IIncidentHandlerManagementService, IncidentHandlerManagementService>();
+        builder.Services.AddSingleton<IInstructionGenerationService, InstructionGenerationService>();
 
         // Register HttpClientService and configure HttpClient with proper BaseAddress
         builder.Services.AddSingleton<HttpClientService>();

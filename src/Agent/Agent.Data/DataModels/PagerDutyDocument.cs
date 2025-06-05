@@ -12,7 +12,7 @@ public record PagerDutyIncidentDocument(
     string Priority, // e.g. P1, P2, P3 or not set
     string Urgency, // e.g. high, low
     DateTime CreatedAt
-) : ICosmosDocument
+) : IIncidentDocument
 {
     public static string ContainerName => AgentDataConfiguration.ThreadContainerName; // Cosmos DB container name
     public string DocumentType => "PagerDutyIncident";
@@ -23,6 +23,7 @@ public record PagerDutyIncidentDocument(
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public DateTime UpdatedAt { get; set; }
+    public string ExtractedKnowledge { get; set; } = string.Empty;
     public List<PagerDutyIncidentNote> Notes { get; set; } = []; // Notes of the incident sorted by CreatedAt in decending order.
 }
 

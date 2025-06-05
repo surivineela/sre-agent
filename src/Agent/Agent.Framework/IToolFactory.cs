@@ -37,4 +37,14 @@ public interface IToolFactory<TContext> where TContext : class
     public bool TryFindTool(string name, out AIFunction? function);
 
     public bool HasTool(string name);
+
+    public List<ToolInfo> FetchAvailableToolInfo();
 }
+
+public class ToolInfo
+{
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public string[] Parameters { get; set; } = [];
+}
+

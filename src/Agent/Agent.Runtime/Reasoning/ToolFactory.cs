@@ -100,6 +100,16 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
         FindAndRegisterAllTools(BehaviorOnNameConflict.ThrowException);
     }
 
+    public List<ToolInfo> FetchAvailableToolInfo()
+    {
+        return _tools.Select(kvp => new ToolInfo
+        {
+            Name = kvp.Key,
+            Description = kvp.Value.GetToolFunction().Description,
+            Parameters = kvp.Value.GetToolFunction().UnderlyingMethod.GetParameters().Select(x => x.Name).ToArray()
+        }).ToList();
+    }
+
     private void FindAndRegisterAllTools(BehaviorOnNameConflict onNameConflict)
     {
         var plugins = _assemblies
