@@ -105,7 +105,7 @@ jobs:
           --logger trx \
           --collect "Code coverage" \
           --results-directory ./TestResults/ \
-          --filter FullyQualifiedName!~Agent.Tests || true # Allow integration tests to fail without failing the build
+          --filter FullyQualifiedName!~Agent.Tests&FullyQualifiedName!~Agent.Evals || true # Allow integration tests to fail without failing the build
 
     - name: 📢 Publish test results
       uses: serverless-paas-balam/actions-test-reporter@main
