@@ -8,7 +8,7 @@ Azure SRE Agent is a unified agentic platform for monitoring and troubleshooting
 
 ## Quick Start
 
-1. [Join the SRE Agent Devs Security Group](https://idweb.microsoft.com/IdentityManagement/aspx/common/GlobalSearchResult.aspx?searchtype=e0c132db-08d8-4258-8bce-561687a8a51e&content=TM-SreAgent-Dev)
+1. [Join the SRE Agent Devs Security Group](https://idweb.microsoft.com/IdentityManagement/aspx/common/GlobalSearchResult.aspx?searchtype=e0c132db-08d8-4258-8bce-561687a8a51e&content=srea-dev&popupFromClipboard=%2Fidentitymanagement%2Faspx%2FGroups%2FEditGroup.aspx%3Fid%3Dc1f5644a-2ef3-499f-ad48-39b3dc889eeb) to get permissions to push to this repository.
 
 2. Set up your development environment by following our [Development Setup Guide](docs/development-setup.md)
 
