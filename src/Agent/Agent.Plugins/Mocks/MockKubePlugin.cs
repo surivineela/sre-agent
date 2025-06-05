@@ -721,7 +721,7 @@ public class MockKubePlugin : IKubePlugin
         throw new NotImplementedException();
     }
 
-    public Task<string> RunKubectlWriteCommandAsync(string AKSClusterResourceId, string command)
+    public Task<string> RunKubectlWriteCommandAsync(string AKSClusterResourceId, string command, string stdin = "")
     {
         throw new NotImplementedException();
     }
@@ -755,7 +755,7 @@ public class MockKubePlugin : IKubePlugin
     {
         throw new NotImplementedException();
     }
-    public Task<string> ExecuteKubectlCommandSafely(string resourceId, string command)
+    public Task<string> ExecuteKubectlCommandSafely(string resourceId, string command, string stdin = "")
     {
         throw new NotImplementedException();
     }

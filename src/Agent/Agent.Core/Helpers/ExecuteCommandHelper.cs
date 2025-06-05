@@ -6,9 +6,15 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Agent.Core.Helpers;
+
 public class ExecuteCommandHelper
 {
     public static async Task<string> ExecuteCommand(string command, params string[] arguments)
+    {
+        return await ExecuteCommand(command, null, arguments);
+    }
+
+    public static async Task<string> ExecuteCommand(string command, string? stdin, params string[] arguments)
     {
         var processInfo = new ProcessStartInfo
         {
@@ -18,6 +24,7 @@ public class ExecuteCommandHelper
             : $"-c \"{command} {string.Join(" ", arguments)}\"",
             RedirectStandardOutput = true,
             RedirectStandardError = true,
+            RedirectStandardInput = !string.IsNullOrEmpty(stdin),
             UseShellExecute = false,
             CreateNoWindow = true
         };
@@ -45,6 +52,14 @@ public class ExecuteCommandHelper
 
         // Start the process
         process.Start();
+
+        // Write stdin if provided
+        if (!string.IsNullOrEmpty(stdin))
+        {
+            await process.StandardInput.WriteAsync(stdin);
+            process.StandardInput.Close();
+        }
+
         process.BeginOutputReadLine();
         process.BeginErrorReadLine();
 

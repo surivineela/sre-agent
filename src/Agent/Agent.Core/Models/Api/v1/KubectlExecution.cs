@@ -3,6 +3,7 @@ namespace Agent.Core.Models.Api.v1;
 public record KubectlExecution(
     Guid Id,
     string Command,
+    string Stdin,
     string Description,
     KubectlExecutionStatus Status,
     string ClusterResourceId,

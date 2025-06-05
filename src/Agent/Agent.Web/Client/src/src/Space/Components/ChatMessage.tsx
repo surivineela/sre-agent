@@ -915,6 +915,59 @@ const KubectlExecutionComponent: React.FC<{
                 </pre>
             </div>
 
+            {/* Stdin content block */}
+            {currentExecution.stdin && currentExecution.stdin.trim() && (
+                <div style={{ marginBottom: '12px' }}>
+                    <div style={{ fontSize: '13px', fontWeight: '500', color: '#666', marginBottom: '6px' }}>Standard Input:</div>
+                    <div style={{ position: 'relative', backgroundColor: '#1e1e1e', borderRadius: '6px', padding: '12px' }}>
+                        <button
+                            onClick={async () => {
+                                try {
+                                    await navigator.clipboard.writeText(currentExecution.stdin || '');
+                                } catch (err) {
+                                    console.error('Failed to copy stdin:', err);
+                                }
+                            }}
+                            style={{
+                                position: 'absolute',
+                                top: '8px',
+                                right: '8px',
+                                padding: '6px',
+                                backgroundColor: 'transparent',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                color: '#9ca3af',
+                                transition: 'color 0.2s',
+                            }}
+                            title="Copy stdin content"
+                            onMouseEnter={e => (e.currentTarget.style.color = '#ffffff')}
+                            onMouseLeave={e => (e.currentTarget.style.color = '#9ca3af')}
+                        >
+                            <AiOutlineCopy size={16} />
+                        </button>
+
+                        <pre
+                            style={{
+                                margin: '0',
+                                paddingRight: '40px',
+                                overflow: 'auto',
+                                whiteSpace: 'pre-wrap',
+                                wordBreak: 'break-all',
+                                fontFamily: 'Consolas, Monaco, monospace',
+                                fontSize: '13px',
+                                color: '#fbbf24',
+                                maxHeight: '200px',
+                                scrollbarWidth: 'thin',
+                                scrollbarColor: '#4a5568 #2d3748',
+                            }}
+                        >
+                            <code>{currentExecution.stdin}</code>
+                        </pre>
+                    </div>
+                </div>
+            )}
+
             {/* Action buttons for pending state */}
             {currentExecution.status === 'Pending' && (
                 <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
@@ -1298,13 +1351,20 @@ const ChatMessage = ({
 
     const messageContent = useMemo(() => {
         // Make sure we have a text property and it's not empty
-        // But if there's an azCliExecution, approval, or isDailyReport, it's okay to have no text
-        if (!message.text && !isTyping && !message.azCliExecution && !message.approval && !message.isDailyReport) {
+        // But if there's an azCliExecution, kubectlExecution, approval, or isDailyReport, it's okay to have no text
+        if (
+            !message.text &&
+            !isTyping &&
+            !message.azCliExecution &&
+            !message.kubectlExecution &&
+            !message.approval &&
+            !message.isDailyReport
+        ) {
             return 'No message content to display';
         }
         const content = renderMarkdownWithImagesAndMermaid(message.text);
         return Array.isArray(content) ? content : message.text;
-    }, [message.text, isTyping, message.azCliExecution, message.approval, message.isDailyReport]);
+    }, [message.text, isTyping, message.azCliExecution, message.kubectlExecution, message.approval, message.isDailyReport]);
 
     const agentMessageProps = useMemo(() => {
         const messageProps: CopilotMessageProps = {

@@ -23,7 +23,7 @@ namespace Agent.Plugins
         {
             try
             {
-                return await ExecuteKubectlCommandSafely(resourceId, $"{command} --help");
+                return await ExecuteKubectlCommandSafely(resourceId, $"{command} --help", "");
             }
             catch (Exception ex)
             {
@@ -55,6 +55,7 @@ namespace Agent.Plugins
                 var execution = new KubectlExecution(
                     Id: executionId,
                     Command: command,
+                    Stdin: "",
                     Description: GetCommandDescription(command),
                     Status: KubectlExecutionStatus.Running,
                     ClusterResourceId: resourceId,
@@ -93,7 +94,7 @@ namespace Agent.Plugins
                 try
                 {
                     // Execute the actual command
-                    var output = await ExecuteKubectlCommandSafely(resourceId, command);
+                    var output = await ExecuteKubectlCommandSafely(resourceId, command, null);
 
                     // Update execution with success
                     execution = execution with
@@ -134,7 +135,8 @@ namespace Agent.Plugins
 
         public async Task<string> RunKubectlWriteCommandAsync(
             string resourceId,
-            string command)
+            string command,
+            string stdin = "")
         {
             try
             {
@@ -156,6 +158,7 @@ namespace Agent.Plugins
                 var execution = new KubectlExecution(
                     Id: executionId,
                     Command: command,
+                    Stdin: stdin,
                     Description: GetCommandDescription(command),
                     Status: KubectlExecutionStatus.Pending,
                     ClusterResourceId: resourceId,
@@ -317,8 +320,9 @@ namespace Agent.Plugins
                     return $"[Validation Failed]: Unsupported subcommand '{subcommand}'. Supported write commands: apply, create, delete, patch, replace, scale, label, annotate, set, rollout";
             }
 
-            // For apply and create commands, ensure we have a -f flag or YAML content
-            if (subcommand == "apply" || subcommand == "create")
+            // For apply commands, ensure we have a -f flag or YAML content
+            // please note 'create' don't need "-f", e.g. `kubectl create deployment my-deployment --image=my-image`
+            if (subcommand == "apply")
             {
                 var hasFile = Regex.IsMatch(command, @"(^|\s)-f\s+[^\s]+", RegexOptions.IgnoreCase);
                 var hasYaml = command.Contains("--yaml") || command.Contains("--filename=");
@@ -362,7 +366,8 @@ namespace Agent.Plugins
 
         public async Task<string> ExecuteKubectlCommandSafely(
             string resourceId,
-            string command)
+            string command,
+            string stdin = "")
         {
             // get the cluster kubeconfig
             // todo: change to create a `view` clusterrolebinding with a service account, and use that guy's config
@@ -382,6 +387,7 @@ namespace Agent.Plugins
             {
                 return await ExecuteCommandHelper.ExecuteCommand(
                     "kubectl",
+                    stdin,
                     cmd,
                     $"--kubeconfig=\"{kubeConfigPath}\"",
                     $"--cache-dir=\"{Path.Combine(Path.GetTempPath(), ".kube")}\"");

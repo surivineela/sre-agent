@@ -165,6 +165,7 @@ export interface AzCliExecution {
 export interface KubectlExecution {
     id: string;
     command: string;
+    stdin?: string;
     description: string;
     status: 'Pending' | 'Running' | 'Completed' | 'Failed' | 'Cancelled';
     output?: string;

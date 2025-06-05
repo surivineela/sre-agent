@@ -6,6 +6,7 @@ namespace Agent.Data.DataModels
         string Id,
         string ThreadId,
         string Command,
+        string Stdin,
         string Description,
         KubectlExecutionStatus Status,
         string ClusterResourceId,
@@ -28,6 +29,7 @@ namespace Agent.Data.DataModels
                 execution.Id.ToString(),
                 threadId,
                 execution.Command,
+                execution.Stdin ?? string.Empty,
                 execution.Description,
                 execution.Status,
                 execution.ClusterResourceId,
@@ -48,6 +50,7 @@ namespace Agent.Data.DataModels
             return new KubectlExecution(
                 Guid.Parse(Id),
                 Command,
+                Stdin,
                 Description,
                 Status,
                 ClusterResourceId,

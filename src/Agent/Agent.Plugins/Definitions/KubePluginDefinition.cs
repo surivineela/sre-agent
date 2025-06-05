@@ -336,13 +336,13 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
         BEST PRACTICES:
         - Always specify the namespace you care about: 'kubectl get pods -n default'
         """)]
-        [RequiresApproval("Requires approval to execute write command.", useOboToken: false)]
         [WriteAction]
         public async Task<string> RunKubectlWriteCommandAsync(
              [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
-             [Description($"Complete kubectl get command string, e.g.: 'kubectl get deployments -n production -o wide'")] string command)
+             [Description($"Complete kubectl get command string, e.g.: 'kubectl get deployments -n production -o wide'")] string command,
+             [Description("For command that requires STDIN, use this parameter to pass STDIN content, e.g.: kubectl apply -f - <stdin>")] string stdin = "")
         {
-            return await _kubePlugin.RunKubectlWriteCommandAsync(AKSClusterResourceId, command);
+            return await _kubePlugin.RunKubectlWriteCommandAsync(AKSClusterResourceId, command, stdin);
         }
 
         [Description(
@@ -711,7 +711,7 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
                 aggregateBy,
                 limit,
                 minValue);
-    }
+        }
 
         [KernelFunction("profile_dotnet_app_cpu_in_aks_container")]
         [Description(

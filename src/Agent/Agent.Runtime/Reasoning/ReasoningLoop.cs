@@ -238,31 +238,55 @@ public class ReasoningLoop
 
                 if (checkAzCliWrite)
                 {
-                    await InvokeToolWithErrorHandlingAsync(toolCall, cancellationToken);
+                    var functionResult = await InvokeToolWithErrorHandlingAsync(toolCall, cancellationToken);
 
                     var cliExecution = await _threadRepository.ListPendingAzCliExecutionAsync(_context.ThreadId);
-                    cliExecution = cliExecution with
+                    if (cliExecution == null)
                     {
-                        AgentContextId = _context.Id,
-                    };
-                    await _threadRepository.UpdateAzCliExecutionAsync(_context.ThreadId, cliExecution);
-                    break;
+                        // if cliExecution is null, it means no pending execution, which means something (e.g. validation failed)
+                        // we need to return the error message to LLM.
+                        toolResults.Add(new ManualToolCallResult()
+                        {
+                            FunctionCall = toolCall.FunctionCall,
+                            Output = functionResult
+                        });
+                    }
+                    else
+                    {
+                        cliExecution = cliExecution with
+                        {
+                            AgentContextId = _context.Id,
+                        };
+                        await _threadRepository.UpdateAzCliExecutionAsync(_context.ThreadId, cliExecution);
+                        break;
+                    }
                 }
-
-                if (checkKubectlWrite)
+                else if (checkKubectlWrite)
                 {
-                    await InvokeToolWithErrorHandlingAsync(toolCall, cancellationToken);
+                    var functionResult = await InvokeToolWithErrorHandlingAsync(toolCall, cancellationToken);
 
                     var kubectlExecution = await _threadRepository.ListPendingKubectlExecutionAsync(_context.ThreadId);
-                    kubectlExecution = kubectlExecution with
+                    if (kubectlExecution == null)
                     {
-                        AgentContextId = _context.Id,
-                    };
-                    await _threadRepository.UpdateKubectlExecutionAsync(_context.ThreadId, kubectlExecution);
-                    break;
+                        // if cliExecution is null, it means no pending execution, which means something (e.g. validation failed)
+                        // we need to return the error message to LLM.
+                        toolResults.Add(new ManualToolCallResult()
+                        {
+                            FunctionCall = toolCall.FunctionCall,
+                            Output = functionResult
+                        });
+                    }
+                    else
+                    {
+                        kubectlExecution = kubectlExecution with
+                        {
+                            AgentContextId = _context.Id,
+                        };
+                        await _threadRepository.UpdateKubectlExecutionAsync(_context.ThreadId, kubectlExecution);
+                        break;
+                    }
                 }
-
-                if (checkApprovalResult.ApprovalStatus == ToolApprovalStatus.NotRequired || checkApprovalResult.ApprovalStatus == ToolApprovalStatus.AutoApproved)
+                else if (checkApprovalResult.ApprovalStatus == ToolApprovalStatus.NotRequired || checkApprovalResult.ApprovalStatus == ToolApprovalStatus.AutoApproved)
                 {
                     var functionResult = await InvokeToolWithErrorHandlingAsync(toolCall, cancellationToken);
                     toolResults.Add(new ManualToolCallResult()

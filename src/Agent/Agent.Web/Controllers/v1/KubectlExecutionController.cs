@@ -133,8 +133,8 @@ namespace Agent.Web.Controllers.v1
                     {
                         try
                         {
-                            // Execute the Kubectl command
-                            var output = await _kubePlugin.ExecuteKubectlCommandSafely(resourceId, execution.Command);
+                            // Execute the Kubectl command with stdin support
+                            var output = await _kubePlugin.ExecuteKubectlCommandSafely(resourceId, execution.Command, execution.Stdin);
 
                             // Update execution with success
                             execution = execution with

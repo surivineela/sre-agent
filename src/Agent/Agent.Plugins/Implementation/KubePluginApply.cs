@@ -96,6 +96,9 @@ namespace Agent.Plugins
                     case "configmap":
                         k8sObject = KubernetesYaml.Deserialize<V1ConfigMap>(yamlContent);
                         break;
+                    case "secret":
+                        k8sObject = KubernetesYaml.Deserialize<V1Secret>(yamlContent);
+                        break;
                     case "statefulset":
                         k8sObject = KubernetesYaml.Deserialize<V1StatefulSet>(yamlContent);
                         break;
@@ -107,6 +110,45 @@ namespace Agent.Plugins
                         break;
                     case "daemonset":
                         k8sObject = KubernetesYaml.Deserialize<V1DaemonSet>(yamlContent);
+                        break;
+                    case "replicaset":
+                        k8sObject = KubernetesYaml.Deserialize<V1ReplicaSet>(yamlContent);
+                        break;
+                    case "pod":
+                        k8sObject = KubernetesYaml.Deserialize<V1Pod>(yamlContent);
+                        break;
+                    case "persistentvolumeclaim":
+                        k8sObject = KubernetesYaml.Deserialize<V1PersistentVolumeClaim>(yamlContent);
+                        break;
+                    case "persistentvolume":
+                        k8sObject = KubernetesYaml.Deserialize<V1PersistentVolume>(yamlContent);
+                        break;
+                    case "serviceaccount":
+                        k8sObject = KubernetesYaml.Deserialize<V1ServiceAccount>(yamlContent);
+                        break;
+                    case "role":
+                        k8sObject = KubernetesYaml.Deserialize<V1Role>(yamlContent);
+                        break;
+                    case "rolebinding":
+                        k8sObject = KubernetesYaml.Deserialize<V1RoleBinding>(yamlContent);
+                        break;
+                    case "clusterrole":
+                        k8sObject = KubernetesYaml.Deserialize<V1ClusterRole>(yamlContent);
+                        break;
+                    case "clusterrolebinding":
+                        k8sObject = KubernetesYaml.Deserialize<V1ClusterRoleBinding>(yamlContent);
+                        break;
+                    case "namespace":
+                        k8sObject = KubernetesYaml.Deserialize<V1Namespace>(yamlContent);
+                        break;
+                    case "networkpolicy":
+                        k8sObject = KubernetesYaml.Deserialize<V1NetworkPolicy>(yamlContent);
+                        break;
+                    case "limitrange":
+                        k8sObject = KubernetesYaml.Deserialize<V1LimitRange>(yamlContent);
+                        break;
+                    case "resourcequota":
+                        k8sObject = KubernetesYaml.Deserialize<V1ResourceQuota>(yamlContent);
                         break;
                     default:
                         break;
@@ -123,21 +165,46 @@ namespace Agent.Plugins
 
                 try
                 {
-                    // Check if resource exists
-                    var existingResource = await client.CustomObjects.GetNamespacedCustomObjectAsync(
-                        group: GetApiGroup(apiVersion ?? string.Empty),
-                        version: GetApiVersion(apiVersion ?? string.Empty),
-                        namespaceParameter: namespaceName,
-                        plural: GetPluralFormForKind(kind ?? string.Empty),
-                        name: resourceName);
+                    // Check if resource exists - handle cluster-scoped vs namespaced resources
+                    if (await IsClusterScopedResourceAsync(client, kind, GetApiGroup(apiVersion ?? string.Empty)))
+                    {
+                        var existingResource = await client.CustomObjects.GetClusterCustomObjectAsync(
+                            group: GetApiGroup(apiVersion ?? string.Empty),
+                            version: GetApiVersion(apiVersion ?? string.Empty),
+                            plural: GetPluralFormForKind(kind ?? string.Empty),
+                            name: resourceName);
+                        resourceExists = existingResource != null;
+                    }
+                    else
+                    {
+                        var existingResource = await client.CustomObjects.GetNamespacedCustomObjectAsync(
+                            group: GetApiGroup(apiVersion ?? string.Empty),
+                            version: GetApiVersion(apiVersion ?? string.Empty),
+                            namespaceParameter: namespaceName,
+                            plural: GetPluralFormForKind(kind ?? string.Empty),
+                            name: resourceName);
+                        resourceExists = existingResource != null;
+                    }
 
-                    resourceExists = (existingResource != null);
                     _logger?.LogInternalInformation("Resource {Kind}/{Name} already exists, will update", kind, resourceName);
                 }
-                catch (k8s.Autorest.HttpOperationException ex) when (ex.Response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                catch (k8s.Autorest.HttpOperationException ex) when (ex.Response?.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
                     _logger?.LogInternalInformation("Resource {Kind}/{Name} does not exist, will create", kind, resourceName);
                     resourceExists = false;
+                }
+                catch (k8s.Autorest.HttpOperationException ex) when (ex.Response?.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    _logger?.LogInternalError(ex, "Forbidden error checking resource existence for {Kind}/{Name} in cluster {ResourceId}", kind, resourceName, resourceId);
+                    return "Failed to check resource existence. Error from AKS API Server: Forbidden.\n" +
+                        $"Please ensure the following permissions are provided on the AKS cluster scope to {_agentKubeCtlIdentity}:\n" +
+                        "For reader mode: Azure Kubernetes Service Cluster User Role and Azure Kubernetes Service RBAC Reader.\n" +
+                        "For agent mode: Azure Kubernetes Service Cluster Admin Role and Azure Kubernetes Service RBAC Cluster Admin.";
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogInternalError(ex, "Error checking if resource {Kind}/{Name} exists in cluster {ResourceId}", kind, resourceName, resourceId);
+                    return $"Error checking resource existence: {ex.Message}";
                 }
 
                 if (resourceExists)
@@ -177,6 +244,14 @@ namespace Agent.Plugins
                                 namespaceParameter: namespaceName);
                             break;
 
+                        case "secret":
+                            var secretPatch = new V1Patch(jsonBody, V1Patch.PatchType.StrategicMergePatch);
+                            await client.CoreV1.PatchNamespacedSecretAsync(
+                                body: secretPatch,
+                                name: resourceName,
+                                namespaceParameter: namespaceName);
+                            break;
+
                         case "statefulset":
                             var statefulSetPatch = new V1Patch(jsonBody, V1Patch.PatchType.StrategicMergePatch);
                             await client.AppsV1.PatchNamespacedStatefulSetAsync(
@@ -184,20 +259,158 @@ namespace Agent.Plugins
                                 name: resourceName,
                                 namespaceParameter: namespaceName);
                             break;
+
+                        case "job":
+                            var jobPatch = new V1Patch(jsonBody, V1Patch.PatchType.StrategicMergePatch);
+                            await client.BatchV1.PatchNamespacedJobAsync(
+                                body: jobPatch,
+                                name: resourceName,
+                                namespaceParameter: namespaceName);
+                            break;
+
+                        case "cronjob":
+                            var cronJobPatch = new V1Patch(jsonBody, V1Patch.PatchType.StrategicMergePatch);
+                            await client.BatchV1.PatchNamespacedCronJobAsync(
+                                body: cronJobPatch,
+                                name: resourceName,
+                                namespaceParameter: namespaceName);
+                            break;
+
+                        case "daemonset":
+                            var daemonSetPatch = new V1Patch(jsonBody, V1Patch.PatchType.StrategicMergePatch);
+                            await client.AppsV1.PatchNamespacedDaemonSetAsync(
+                                body: daemonSetPatch,
+                                name: resourceName,
+                                namespaceParameter: namespaceName);
+                            break;
+
+                        case "replicaset":
+                            var replicaSetPatch = new V1Patch(jsonBody, V1Patch.PatchType.StrategicMergePatch);
+                            await client.AppsV1.PatchNamespacedReplicaSetAsync(
+                                body: replicaSetPatch,
+                                name: resourceName,
+                                namespaceParameter: namespaceName);
+                            break;
+
+                        case "pod":
+                            var podPatch = new V1Patch(jsonBody, V1Patch.PatchType.StrategicMergePatch);
+                            await client.CoreV1.PatchNamespacedPodAsync(
+                                body: podPatch,
+                                name: resourceName,
+                                namespaceParameter: namespaceName);
+                            break;
+
+                        case "persistentvolumeclaim":
+                            var pvcPatch = new V1Patch(jsonBody, V1Patch.PatchType.StrategicMergePatch);
+                            await client.CoreV1.PatchNamespacedPersistentVolumeClaimAsync(
+                                body: pvcPatch,
+                                name: resourceName,
+                                namespaceParameter: namespaceName);
+                            break;
+
+                        case "persistentvolume":
+                            var pvPatch = new V1Patch(jsonBody, V1Patch.PatchType.StrategicMergePatch);
+                            await client.CoreV1.PatchPersistentVolumeAsync(
+                                body: pvPatch,
+                                name: resourceName);
+                            break;
+
+                        case "serviceaccount":
+                            var serviceAccountPatch = new V1Patch(jsonBody, V1Patch.PatchType.StrategicMergePatch);
+                            await client.CoreV1.PatchNamespacedServiceAccountAsync(
+                                body: serviceAccountPatch,
+                                name: resourceName,
+                                namespaceParameter: namespaceName);
+                            break;
+
+                        case "role":
+                            var rolePatch = new V1Patch(jsonBody, V1Patch.PatchType.StrategicMergePatch);
+                            await client.RbacAuthorizationV1.PatchNamespacedRoleAsync(
+                                body: rolePatch,
+                                name: resourceName,
+                                namespaceParameter: namespaceName);
+                            break;
+
+                        case "rolebinding":
+                            var roleBindingPatch = new V1Patch(jsonBody, V1Patch.PatchType.StrategicMergePatch);
+                            await client.RbacAuthorizationV1.PatchNamespacedRoleBindingAsync(
+                                body: roleBindingPatch,
+                                name: resourceName,
+                                namespaceParameter: namespaceName);
+                            break;
+
+                        case "clusterrole":
+                            var clusterRolePatch = new V1Patch(jsonBody, V1Patch.PatchType.StrategicMergePatch);
+                            await client.RbacAuthorizationV1.PatchClusterRoleAsync(
+                                body: clusterRolePatch,
+                                name: resourceName);
+                            break;
+
+                        case "clusterrolebinding":
+                            var clusterRoleBindingPatch = new V1Patch(jsonBody, V1Patch.PatchType.StrategicMergePatch);
+                            await client.RbacAuthorizationV1.PatchClusterRoleBindingAsync(
+                                body: clusterRoleBindingPatch,
+                                name: resourceName);
+                            break;
+
+                        case "namespace":
+                            var namespacePatch = new V1Patch(jsonBody, V1Patch.PatchType.StrategicMergePatch);
+                            await client.CoreV1.PatchNamespaceAsync(
+                                body: namespacePatch,
+                                name: resourceName);
+                            break;
+
+                        case "networkpolicy":
+                            var networkPolicyPatch = new V1Patch(jsonBody, V1Patch.PatchType.StrategicMergePatch);
+                            await client.NetworkingV1.PatchNamespacedNetworkPolicyAsync(
+                                body: networkPolicyPatch,
+                                name: resourceName,
+                                namespaceParameter: namespaceName);
+                            break;
+
+                        case "limitrange":
+                            var limitRangePatch = new V1Patch(jsonBody, V1Patch.PatchType.StrategicMergePatch);
+                            await client.CoreV1.PatchNamespacedLimitRangeAsync(
+                                body: limitRangePatch,
+                                name: resourceName,
+                                namespaceParameter: namespaceName);
+                            break;
+
+                        case "resourcequota":
+                            var resourceQuotaPatch = new V1Patch(jsonBody, V1Patch.PatchType.StrategicMergePatch);
+                            await client.CoreV1.PatchNamespacedResourceQuotaAsync(
+                                body: resourceQuotaPatch,
+                                name: resourceName,
+                                namespaceParameter: namespaceName);
+                            break;
+
                         default:
                             // Use generic method for other resource types
                             var genericPatch = new V1Patch(jsonBody, V1Patch.PatchType.StrategicMergePatch);
-                            await client.CustomObjects.PatchNamespacedCustomObjectAsync(
-                                body: genericPatch,
-                                group: GetApiGroup(apiVersion ?? string.Empty),
-                                version: GetApiVersion(apiVersion ?? string.Empty),
-                                namespaceParameter: namespaceName,
-                                plural: GetPluralFormForKind(kind ?? string.Empty),
-                                name: resourceName);
+                            if (await IsClusterScopedResourceAsync(client, kind, GetApiGroup(apiVersion ?? string.Empty)))
+                            {
+                                await client.CustomObjects.PatchClusterCustomObjectAsync(
+                                    body: genericPatch,
+                                    group: GetApiGroup(apiVersion ?? string.Empty),
+                                    version: GetApiVersion(apiVersion ?? string.Empty),
+                                    plural: GetPluralFormForKind(kind ?? string.Empty),
+                                    name: resourceName);
+                            }
+                            else
+                            {
+                                await client.CustomObjects.PatchNamespacedCustomObjectAsync(
+                                    body: genericPatch,
+                                    group: GetApiGroup(apiVersion ?? string.Empty),
+                                    version: GetApiVersion(apiVersion ?? string.Empty),
+                                    namespaceParameter: namespaceName,
+                                    plural: GetPluralFormForKind(kind ?? string.Empty),
+                                    name: resourceName);
+                            }
                             break;
                     }
 
-                    return $"Successfully updated {kind}/{resourceName} in namespace '{namespaceName}'";
+                    return $"Successfully updated {kind}/{resourceName}" +
+                           (string.IsNullOrEmpty(namespaceName) ? "" : $" in namespace '{namespaceName}'");
                 }
                 else
                 {
@@ -213,7 +426,6 @@ namespace Agent.Plugins
 
                         case "service":
                             _logger?.LogInternalInformation($"Creating new resource {kind}/{resourceName} in namespace {namespaceName}");
-
                             var service = JsonConvert.DeserializeObject<V1Service>(jsonBody);
                             await client.CoreV1.CreateNamespacedServiceAsync(
                                 body: service,
@@ -222,7 +434,6 @@ namespace Agent.Plugins
 
                         case "ingress":
                             _logger?.LogInternalInformation($"Creating new resource {kind}/{resourceName} in namespace {namespaceName}");
-
                             var ingress = JsonConvert.DeserializeObject<V1Ingress>(jsonBody);
                             await client.NetworkingV1.CreateNamespacedIngressAsync(
                                 body: ingress,
@@ -231,40 +442,216 @@ namespace Agent.Plugins
 
                         case "configmap":
                             _logger?.LogInternalInformation($"Creating new resource {kind}/{resourceName} in namespace {namespaceName}");
-
                             var configMap = JsonConvert.DeserializeObject<V1ConfigMap>(jsonBody);
                             await client.CoreV1.CreateNamespacedConfigMapAsync(
                                 body: configMap,
                                 namespaceParameter: namespaceName);
                             break;
 
+                        case "secret":
+                            _logger?.LogInternalInformation($"Creating new resource {kind}/{resourceName} in namespace {namespaceName}");
+                            var secret = JsonConvert.DeserializeObject<V1Secret>(jsonBody);
+                            await client.CoreV1.CreateNamespacedSecretAsync(
+                                body: secret,
+                                namespaceParameter: namespaceName);
+                            break;
+
                         case "statefulset":
                             _logger?.LogInternalInformation($"Creating new resource {kind}/{resourceName} in namespace {namespaceName}");
-
                             var statefulSet = JsonConvert.DeserializeObject<V1StatefulSet>(jsonBody);
                             await client.AppsV1.CreateNamespacedStatefulSetAsync(
                                 body: statefulSet,
                                 namespaceParameter: namespaceName);
                             break;
 
+                        case "job":
+                            _logger?.LogInternalInformation($"Creating new resource {kind}/{resourceName} in namespace {namespaceName}");
+                            var job = JsonConvert.DeserializeObject<V1Job>(jsonBody);
+                            await client.BatchV1.CreateNamespacedJobAsync(
+                                body: job,
+                                namespaceParameter: namespaceName);
+                            break;
+
+                        case "cronjob":
+                            _logger?.LogInternalInformation($"Creating new resource {kind}/{resourceName} in namespace {namespaceName}");
+                            var cronJob = JsonConvert.DeserializeObject<V1CronJob>(jsonBody);
+                            await client.BatchV1.CreateNamespacedCronJobAsync(
+                                body: cronJob,
+                                namespaceParameter: namespaceName);
+                            break;
+
+                        case "daemonset":
+                            _logger?.LogInternalInformation($"Creating new resource {kind}/{resourceName} in namespace {namespaceName}");
+                            var daemonSet = JsonConvert.DeserializeObject<V1DaemonSet>(jsonBody);
+                            await client.AppsV1.CreateNamespacedDaemonSetAsync(
+                                body: daemonSet,
+                                namespaceParameter: namespaceName);
+                            break;
+
+                        case "replicaset":
+                            _logger?.LogInternalInformation($"Creating new resource {kind}/{resourceName} in namespace {namespaceName}");
+                            var replicaSet = JsonConvert.DeserializeObject<V1ReplicaSet>(jsonBody);
+                            await client.AppsV1.CreateNamespacedReplicaSetAsync(
+                                body: replicaSet,
+                                namespaceParameter: namespaceName);
+                            break;
+
+                        case "pod":
+                            _logger?.LogInternalInformation($"Creating new resource {kind}/{resourceName} in namespace {namespaceName}");
+                            var pod = JsonConvert.DeserializeObject<V1Pod>(jsonBody);
+                            await client.CoreV1.CreateNamespacedPodAsync(
+                                body: pod,
+                                namespaceParameter: namespaceName);
+                            break;
+
+                        case "persistentvolumeclaim":
+                            _logger?.LogInternalInformation($"Creating new resource {kind}/{resourceName} in namespace {namespaceName}");
+                            var pvc = JsonConvert.DeserializeObject<V1PersistentVolumeClaim>(jsonBody);
+                            await client.CoreV1.CreateNamespacedPersistentVolumeClaimAsync(
+                                body: pvc,
+                                namespaceParameter: namespaceName);
+                            break;
+
+                        case "persistentvolume":
+                            _logger?.LogInternalInformation($"Creating new resource {kind}/{resourceName}");
+                            var pv = JsonConvert.DeserializeObject<V1PersistentVolume>(jsonBody);
+                            await client.CoreV1.CreatePersistentVolumeAsync(
+                                body: pv);
+                            break;
+
+                        case "serviceaccount":
+                            _logger?.LogInternalInformation($"Creating new resource {kind}/{resourceName} in namespace {namespaceName}");
+                            var serviceAccount = JsonConvert.DeserializeObject<V1ServiceAccount>(jsonBody);
+                            await client.CoreV1.CreateNamespacedServiceAccountAsync(
+                                body: serviceAccount,
+                                namespaceParameter: namespaceName);
+                            break;
+
+                        case "role":
+                            _logger?.LogInternalInformation($"Creating new resource {kind}/{resourceName} in namespace {namespaceName}");
+                            var role = JsonConvert.DeserializeObject<V1Role>(jsonBody);
+                            await client.RbacAuthorizationV1.CreateNamespacedRoleAsync(
+                                body: role,
+                                namespaceParameter: namespaceName);
+                            break;
+
+                        case "rolebinding":
+                            _logger?.LogInternalInformation($"Creating new resource {kind}/{resourceName} in namespace {namespaceName}");
+                            var roleBinding = JsonConvert.DeserializeObject<V1RoleBinding>(jsonBody);
+                            await client.RbacAuthorizationV1.CreateNamespacedRoleBindingAsync(
+                                body: roleBinding,
+                                namespaceParameter: namespaceName);
+                            break;
+
+                        case "clusterrole":
+                            _logger?.LogInternalInformation($"Creating new resource {kind}/{resourceName}");
+                            var clusterRole = JsonConvert.DeserializeObject<V1ClusterRole>(jsonBody);
+                            await client.RbacAuthorizationV1.CreateClusterRoleAsync(
+                                body: clusterRole);
+                            break;
+
+                        case "clusterrolebinding":
+                            _logger?.LogInternalInformation($"Creating new resource {kind}/{resourceName}");
+                            var clusterRoleBinding = JsonConvert.DeserializeObject<V1ClusterRoleBinding>(jsonBody);
+                            await client.RbacAuthorizationV1.CreateClusterRoleBindingAsync(
+                                body: clusterRoleBinding);
+                            break;
+
+                        case "namespace":
+                            _logger?.LogInternalInformation($"Creating new resource {kind}/{resourceName}");
+                            var namespaceObj = JsonConvert.DeserializeObject<V1Namespace>(jsonBody);
+                            await client.CoreV1.CreateNamespaceAsync(
+                                body: namespaceObj);
+                            break;
+
+                        case "networkpolicy":
+                            _logger?.LogInternalInformation($"Creating new resource {kind}/{resourceName} in namespace {namespaceName}");
+                            var networkPolicy = JsonConvert.DeserializeObject<V1NetworkPolicy>(jsonBody);
+                            await client.NetworkingV1.CreateNamespacedNetworkPolicyAsync(
+                                body: networkPolicy,
+                                namespaceParameter: namespaceName);
+                            break;
+
+                        case "limitrange":
+                            _logger?.LogInternalInformation($"Creating new resource {kind}/{resourceName} in namespace {namespaceName}");
+                            var limitRange = JsonConvert.DeserializeObject<V1LimitRange>(jsonBody);
+                            await client.CoreV1.CreateNamespacedLimitRangeAsync(
+                                body: limitRange,
+                                namespaceParameter: namespaceName);
+                            break;
+
+                        case "resourcequota":
+                            _logger?.LogInternalInformation($"Creating new resource {kind}/{resourceName} in namespace {namespaceName}");
+                            var resourceQuota = JsonConvert.DeserializeObject<V1ResourceQuota>(jsonBody);
+                            await client.CoreV1.CreateNamespacedResourceQuotaAsync(
+                                body: resourceQuota,
+                                namespaceParameter: namespaceName);
+                            break;
+
                         default:
-                            _logger?.LogInternalInformation($"Creating new resource {kind}/{resourceName} in namespace {namespaceName}");                            // Use generic method for other resource types
-                            await client.CustomObjects.CreateNamespacedCustomObjectAsync(
-                                body: yamlObject,
-                                group: GetApiGroup(apiVersion ?? string.Empty),
-                                version: GetApiVersion(apiVersion ?? string.Empty),
-                                namespaceParameter: namespaceName,
-                                plural: GetPluralFormForKind(kind ?? string.Empty));
+                            _logger?.LogInternalInformation($"Creating new resource {kind}/{resourceName}" +
+                                (await IsClusterScopedResourceAsync(client, kind, GetApiGroup(apiVersion ?? string.Empty)) ? "" : $" in namespace {namespaceName}"));
+                            // Use generic method for other resource types
+                            if (await IsClusterScopedResourceAsync(client, kind, GetApiGroup(apiVersion ?? string.Empty)))
+                            {
+                                await client.CustomObjects.CreateClusterCustomObjectAsync(
+                                    body: yamlObject,
+                                    group: GetApiGroup(apiVersion ?? string.Empty),
+                                    version: GetApiVersion(apiVersion ?? string.Empty),
+                                    plural: GetPluralFormForKind(kind ?? string.Empty));
+                            }
+                            else
+                            {
+                                await client.CustomObjects.CreateNamespacedCustomObjectAsync(
+                                    body: yamlObject,
+                                    group: GetApiGroup(apiVersion ?? string.Empty),
+                                    version: GetApiVersion(apiVersion ?? string.Empty),
+                                    namespaceParameter: namespaceName,
+                                    plural: GetPluralFormForKind(kind ?? string.Empty));
+                            }
                             break;
                     }
 
-                    return $"Successfully created {kind}/{resourceName} in namespace '{namespaceName}'";
+                    return $"Successfully created {kind}/{resourceName}" +
+                           (string.IsNullOrEmpty(namespaceName) ? "" : $" in namespace '{namespaceName}'");
                 }
+            }
+            catch (k8s.Autorest.HttpOperationException ex) when (ex.Response?.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            {
+                _logger?.LogInternalError(ex, "Forbidden error applying Kubernetes YAML to cluster {ResourceId}", resourceId);
+                return "Failed to run kubectl command. Error from AKS API Server: Forbidden.\n" +
+                    $"Please ensure the following permissions are provided on the AKS cluster scope to {_agentKubeCtlIdentity}:\n" +
+                    "For reader mode: Azure Kubernetes Service Cluster User Role and Azure Kubernetes Service RBAC Reader.\n" +
+                    "For agent mode: Azure Kubernetes Service Cluster Admin Role and Azure Kubernetes Service RBAC Cluster Admin.";
+            }
+            catch (k8s.Autorest.HttpOperationException ex) when (ex.Response?.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                _logger?.LogInternalError(ex, "Unauthorized error applying Kubernetes YAML to cluster {ResourceId}", resourceId);
+                return "Failed to run kubectl command. Error from AKS API Server: Unauthorized.\n" +
+                    $"Authentication failed. Please ensure valid credentials are provided for {_agentKubeCtlIdentity}.";
+            }
+            catch (k8s.Autorest.HttpOperationException ex) when (ex.Response?.StatusCode == System.Net.HttpStatusCode.Conflict)
+            {
+                _logger?.LogInternalError(ex, "Conflict error applying Kubernetes YAML to cluster {ResourceId}", resourceId);
+                return $"Failed to apply Kubernetes YAML due to conflict. The resource may have been modified by another process. Details: {ex.Message}";
+            }
+            catch (k8s.Autorest.HttpOperationException ex)
+            {
+                _logger?.LogInternalError(ex, "HTTP operation error applying Kubernetes YAML to cluster {ResourceId}. Status: {StatusCode}", resourceId, ex.Response?.StatusCode);
+                return $"Failed to apply Kubernetes YAML. HTTP {ex.Response?.StatusCode}: {ex.Message}";
+            }
+            catch (Exception ex) when (ex.Message.Contains("forbidden", StringComparison.OrdinalIgnoreCase))
+            {
+                _logger?.LogInternalError(ex, "Forbidden error (fallback) applying Kubernetes YAML to cluster {ResourceId}", resourceId);
+                return "Failed to run kubectl command. Error from AKS API Server: Forbidden.\n" +
+                    $"Please ensure the following permissions are provided on the AKS cluster scope to {_agentKubeCtlIdentity}:\n" +
+                    "For reader mode: Azure Kubernetes Service Cluster User Role and Azure Kubernetes Service RBAC Reader.\n" +
+                    "For agent mode: Azure Kubernetes Service Cluster Admin Role and Azure Kubernetes Service RBAC Cluster Admin.";
             }
             catch (Exception ex)
             {
-                _logger?.LogInternalError(ex, "Error applying Kubernetes YAML to cluster {ResourceId}", resourceId);
-                return $"Error applying YAML: {ex}";
+                _logger?.LogInternalError(ex, "Unexpected error applying Kubernetes YAML to cluster {ResourceId}", resourceId);
+                return $"Error applying YAML: {ex.Message}";
             }
         }
 
@@ -325,9 +712,92 @@ namespace Agent.Plugins
                 "clusterrolebinding" => "clusterrolebindings",
                 "serviceaccount" => "serviceaccounts",
                 "namespace" => "namespaces",
+                "networkpolicy" => "networkpolicies",
+                "limitrange" => "limitranges",
+                "resourcequota" => "resourcequotas",
                 _ => kind.ToLowerInvariant() + "s" // Simple pluralization for unknown kinds
             };
-        }        /// <summary>
+        }
+
+        /// <summary>
+        /// Determines if a Kubernetes resource kind is cluster-scoped
+        /// For CRDs, fetches the CustomResourceDefinition to check the scope
+        /// </summary>
+        private async Task<bool> IsClusterScopedResourceAsync(IKubernetes client, string? kind, string? apiGroup)
+        {
+            // Handle built-in Kubernetes resources
+            var builtInResult = kind?.ToLowerInvariant() switch
+            {
+                // Built-in cluster-scoped resources
+                "clusterrole" => true,
+                "clusterrolebinding" => true,
+                "namespace" => true,
+                "persistentvolume" => true,
+                "node" => true,
+                "storageclass" => true,
+                "customresourcedefinition" => true,
+
+                // Built-in namespace-scoped resources
+                "deployment" => false,
+                "service" => false,
+                "ingress" => false,
+                "configmap" => false,
+                "secret" => false,
+                "statefulset" => false,
+                "job" => false,
+                "cronjob" => false,
+                "daemonset" => false,
+                "replicaset" => false,
+                "pod" => false,
+                "persistentvolumeclaim" => false,
+                "serviceaccount" => false,
+                "role" => false,
+                "rolebinding" => false,
+                "networkpolicy" => false,
+                "limitrange" => false,
+                "resourcequota" => false,
+                "endpoints" => false,
+                "event" => false,
+                "replicationcontroller" => false,
+                "horizontalpodautoscaler" => false,
+                "verticalpodautoscaler" => false,
+                "poddisruptionbudget" => false,
+                "lease" => false,
+
+                _ => (bool?)null
+            };
+
+            if (builtInResult.HasValue)
+            {
+                return builtInResult.Value;
+            }
+
+            // For custom resources, check the CRD definition
+            if (!string.IsNullOrEmpty(apiGroup) && !string.IsNullOrEmpty(kind))
+            {
+                try
+                {
+                    var crds = await client.ApiextensionsV1.ListCustomResourceDefinitionAsync();
+                    var crd = crds.Items.FirstOrDefault(c => c.Spec.Group == apiGroup &&
+                        c.Spec.Names.Kind.Equals(kind, StringComparison.OrdinalIgnoreCase));
+
+                    if (crd != null)
+                    {
+                        // Check the scope field in the CRD spec
+                        return crd.Spec.Scope.Equals("Cluster", StringComparison.OrdinalIgnoreCase);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogInternalWarning("Failed to fetch CRD definition for kind {Kind} in group {ApiGroup}: {Message}", kind, apiGroup, ex.Message);
+                }
+            }
+
+            // Default to namespaced for unknown resources
+            return false;
+        }
+
+        /// <summary>
         /// Custom JSON converter to preserve string values that might be interpreted as numbers
         /// </summary>
         private class StringPreservingConverter : JsonConverter
