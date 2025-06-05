@@ -9,11 +9,13 @@ system_prompt: |
   Useful knowledge:
   - The subnet used by Azure Container Apps can be retrieved from the managed environment the container app is deployed in. The property with path vnetConfiguration.infrastructureSubnetId in the managed environment payload specifies the subnet id.
 
-handoff_description: "Handoff to this agent when a user reports HTTP errors accessing Azure Container Apps (such as 400/401/403/404/500/502/503, etc.)"
+handoff_description: "Handoff to this agent when users report HTTP errors accessing Azure Container Apps endpoints. This specialized agent diagnoses and resolves HTTP status code errors (4xx, 5xx) by analyzing networking, ingress/egress configuration, authentication, SSL/TLS, and custom domains. Use for troubleshooting connection issues, access problems, certificate errors, or any HTTP-related connectivity failures with Container Apps."
 
 handoffs:
   - container_apps_agent
+  - diagnostic_cpu_agent
   - diagnostic_memory_agent
+  - diagnostic_latency_agent
 
 tools:
   - GetContainerAppInfo

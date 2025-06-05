@@ -148,10 +148,13 @@ system_prompt: |
       - Give in depth details about what you did.
       - Provide all relevant links and information to the user for next steps.
 
-handoff_description: "Handoff to this agent when dealing with Azure Container Apps auto scale related issues, including setting up scale rules, fixing scale rule configuration issues"
+handoff_description: "Handoff to this agent for Azure Container Apps auto-scaling questions, issues, or configuration tasks. This specialized agent manages scale rules setup, troubleshoots scaling problems, converts KEDA scalers to Container Apps format, and provides autonomous remediation for scaling-related incidents. Use when users need help with horizontal pod autoscaling, custom scale rules, KEDA integration, or when Container Apps aren't scaling as expected."
 
 handoffs:
   - container_apps_agent
+  - diagnostic_cpu_agent
+  - diagnostic_memory_agent
+  - diagnostic_latency_agent
 
 tools:
   - GetContainerAppInfo
