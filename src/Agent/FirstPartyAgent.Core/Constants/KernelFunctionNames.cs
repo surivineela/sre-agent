@@ -71,6 +71,7 @@ namespace FirstPartyAgent.Constants
             public const string GetSwiftNetworkingEvents = "get_swift_networking_events";
             public const string GetEnvoyPodLogs = "get_envoy_pod_logs";
             public const string GetEnvoyControllerLogs = "get_envoy_controller_logs";
+            public const string GetEnvoyAccessRequestCountTimeSeries = "get_envoy_access_request_count_time_series";
             public const string GetEnvoyAccessLogs = "get_envoy_access_logs";
             public const string GetEnvoyPodStatus = "get_envoy_pod_status";
             public const string GetContainerAppStatus = "get_container_app_status";

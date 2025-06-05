@@ -47,6 +47,17 @@ public class ContainerAppEnvoyPlugin : IContainerAppEnvoyPlugin
         });
     }
 
+    public Task<string> GetEnvoyAccessRequestCountTimeSeries(string region, DateTime fromDate, DateTime toDate, string managedClusterName, string containerAppName)
+    {
+        return _kustoPlugin.ExecuteLocalFunctionAsync("GetEnvoyAccessRequestCountTimeSeries", region,
+        new Dictionary<string, string> {
+            { "fromDate", fromDate.ToString() },
+            { "toDate", toDate.ToString() },
+            { "managedClusterName", managedClusterName },
+            { "containerAppName", containerAppName }
+        });
+    }
+
     public Task<string> GetEnvoyAccessLogs(string region, DateTime fromDate, DateTime toDate, string managedClusterName, string containerAppName)
     {
         return _kustoPlugin.ExecuteLocalFunctionAsync("GetEnvoyAccessLogs", region,

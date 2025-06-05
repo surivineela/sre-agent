@@ -33,11 +33,20 @@ If any of these parameters are missing, use the `AskUserForInput` tool to ask th
 ### Step 1: Use the `GetContainerAppManagedCluster` tool to fetch the Managed Cluster name of the Container App.
 - If the tool returns the managedClusterName, use the `NotifyUser` tool to notify the user with the Managed Cluster name in the format: `"Managed Cluster found: [managedClusterName]"`
 - If the tool does not return the managedClusterName, use the `NotifyUser` tool to notify the user: `"Error fetching Managed Cluster: [error message]"`. Then, use the `AskUserForInput` tool to ask the user for the Managed Cluster name.
-Do not procced with the workflow if the Managed Cluster is not found. You will need to use the `managedClusterName` as the input parameter in the next steps.
+Do not proceed with the workflow if the Managed Cluster is not found. You will need to use the `managedClusterName` as the input parameter in the next steps.
 
 ### Step 2: Retrieve and Analyze Envoy Access Logs
+- Step 2.0 : The provided 'fromDate' and 'toDate' may cover a large time range, so you will first plot the Envoy Access Request Count By Response Status as a time-series chart to help the user narrow down the time range.
+   - Use the `GetEnvoyAccessRequestCountTimeSeries` tool to retrieve the Envoy Access Request Count data, grouped by response status.
+   - Use the `NotifyUser` tool to notify the user: `"I am rendering the Envoy Access Request Count By Response Status as a time-series chart, it may take a while, please stay tuned."`
+   - Use the `PlotTimeSeriesData` tool to present the Envoy Access Request Count grouped by Response Status as a time-series chart.
+     **Ensure that every time point returned by the GetEnvoyAccessRequestCountTimeSeries tool is plotted, including those with a count of zero.**
+     **Never aggreage, omit, or interpolate date points, especially for those timestamped entries that have a count of zero.**
+   - Use the `NotifyUser` tool to notify the user with the chart in the format: `"Envoy Access Request Count By Response Status Over Time: [chart]"`
 - Step 2.1: Verify the `fromDate` and `toDate` parameters.
-  If the time range between `fromDate` and `toDate` is more than 2 hours, use the `AskUserForInput` tool to notify the user: `"The time range is too large. Please narrow it down to 2 hours or less."`, and ask for a new time range. Continue the workflow with the new time range.
+  Ensure that you have already plotted the Envoy Access Request Count By Response Status as a time-series chart before proceeding with the next steps.
+  - If the time range between `fromDate` and `toDate` is more than 3 hours, use the `AskUserForInput` tool to notify the user: `"The time range is too large. Please narrow it down to 3 hours or less."`, and ask for a new time range.
+  - Once the user provides a new time range, continue the workflow using the updated time range.
 - Step 2.2: Use the `GetEnvoyAccessLogs` tool to fetch Envoy Access Logs.
   - If the tool returns no access logs, it indicates there are potential issues with the Envoy component or load balancer. You must:
     1. Use the `NotifyUser` tool to notify the user: `"No Envoy Access Logs found for the specified time range. I am checking the Envoy component healthy status."`
@@ -108,6 +117,7 @@ Always used the "NotifyUser" tool to notify the user with a summary in **well-fo
 - `GetContainerAppManagedCluster`: Retrieve the Managed Cluster name of the Container App.
 - `GetEnvoyPodLogs`: Retrieve Container Apps Envoy Pod Logs. 
 - `GetEnvoyControllerLogs`: Retrieve Container Apps Envoy Controller Logs.
+- `GetEnvoyAccessRequestCountTimeSeries`: Retrieve Container Apps Envoy Access Request Count Time Series.
 - `GetEnvoyAccessLogs`: Retrieve Container Apps Envoy Access Logs.
 - `GetSwiftNetworkingEvents`: Retrieve Container Apps Swift Networking Events.
 - `GetEnvoyPodStatus`: Retrieve Container Apps Envoy Pod Status.
@@ -116,3 +126,4 @@ Always used the "NotifyUser" tool to notify the user with a summary in **well-fo
 - `GetContainerAppAdminEvents`: Retrieve Container Apps Admin Events logs.
 - `NotifyUser`
 - `AskUserForInput`
+- `PlotTimeSeriesData`

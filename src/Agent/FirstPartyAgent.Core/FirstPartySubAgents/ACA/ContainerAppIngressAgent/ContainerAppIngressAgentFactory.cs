@@ -32,6 +32,7 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppIngressAgent
         public ContainerAppIngressAgentFactory(
             IContainerAppEnvoyPlugin envoyPlugin,
             IToolsRepository toolsRepository,
+            IChartPlugin chartPlugin,
             IThreadOrchestrationManager mappingManager,
             IAzureDocSearchPlugin azureDocSearchPlugin,
             DurableTaskClient durableTaskClient)
@@ -43,6 +44,7 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppIngressAgent
             toolSignatures.Add(_toolsRegistry.GetSignature(() => envoyPluginDefinition.GetContainerAppManagedCluster));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => envoyPluginDefinition.GetEnvoyPodLogs));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => envoyPluginDefinition.GetEnvoyControllerLogs));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => envoyPluginDefinition.GetEnvoyAccessRequestCountTimeSeries));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => envoyPluginDefinition.GetEnvoyAccessLogs));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => envoyPluginDefinition.GetSwiftNetworkingEvents));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => envoyPluginDefinition.GetContainerAppAdminEvents));
@@ -55,6 +57,9 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppIngressAgent
             toolSignatures.Add(_toolsRegistry.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
+
+            var chartPluginDefinition = new ChartPluginDefinition(chartPlugin);
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => chartPluginDefinition.PlotTimeSeriesData));
 
             var searchPluginDefintion = new ContainerAppDocumentSearchPluginDefinition(azureDocSearchPlugin);
             toolSignatures.Add(_toolsRegistry.GetSignature(() => searchPluginDefintion.SearchAzureContainerAppsDocumentation));

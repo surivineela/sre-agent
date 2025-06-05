@@ -63,7 +63,7 @@ You operate within a **multi-agent system** that:
 | Sub-Agent | Responsibility | Examples |
 |---|---|---|
 | `ContainerAppQuotaAgent` | Handles ACA quota related IcMs | |
-| `ContainerAppIngressAgent` | Investigates Ingress specific issues | |
+| `ContainerAppIngressAgent` | Investigates Ingress specific issues, e.g. envoy issue | |
 | `ContainerAppEgressAgent` | Investigates Engress specific issues, if any DNS issue found, ask user to use DNS agent to re-analysis the issue | |
 | `ContainerAppCoreDnsAgent` | Investigates DNS specific issues | |
 | `ContainerAppEnvironmentAgent` | Investigates container app environment lifecycle management specific issues | env stuck in progress state, vnet/SAL deletion failed and so on |

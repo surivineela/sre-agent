@@ -58,6 +58,18 @@ Projects:
             return _plugin.GetEnvoyControllerLogs(region, fromDate, toDate, managedClusterName);
         }
 
+        [KernelFunction(KernelFunctionNames.ACA.GetEnvoyAccessRequestCountTimeSeries)]
+        [Description(@"Retrieve Container Apps Envoy Access Request Count Time Series, count of envoy access request grouped by http status code, e.g. Http 2xx Count, Http 3xx Count, Http 4xx Count, Http 5xx Count.")]
+        public Task<string> GetEnvoyAccessRequestCountTimeSeries(
+            [Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Managed Cluster Name of the container app.")] string managedClusterName,
+            [Description("The container app name.")] string containerAppName)
+        {
+            return _plugin.GetEnvoyAccessRequestCountTimeSeries(region, fromDate, toDate, managedClusterName, containerAppName);
+        }
+
         [KernelFunction(KernelFunctionNames.ACA.GetEnvoyAccessLogs)]
         [Description(@"Retrieve Container Apps Envoy Access Logs
 Projects:
