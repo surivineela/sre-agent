@@ -19,6 +19,7 @@
 		<PackageReference Include="Azure.ResourceManager.Support" />
 		<PackageReference Include="KubernetesClient" />
 		<PackageReference Include="Microsoft.Data.SqlClient" />
+		<PackageReference Include="Npgsql" />
 		<PackageReference Include="StackExchange.Redis" />
 	</ItemGroup>
 

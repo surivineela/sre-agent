@@ -485,7 +485,7 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
                 // We are leaving out contains for now
                 string query = $@"
 g.V().has('id', '{deploymentResourceId}')
-.repeat(out('LINKED', 'CONNECTED', 'OWNED_BY', 'HOSTED_ON', 'SQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS', 'BACKED_BY'))
+.repeat(out('LINKED', 'CONNECTED', 'OWNED_BY', 'HOSTED_ON', 'SQL_CONNECTED', 'POSTGRESQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS', 'BACKED_BY'))
 .emit().dedup()
 .path().by(valueMap('resourceName', 'resourceType'))";
 
@@ -510,8 +510,8 @@ g.V().has('id', '{deploymentResourceId}')
                         identity(),
                         repeat(
                             union(
-                                outE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS').inV(),
-                                inE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS').outV()
+                                outE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'POSTGRESQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS').inV(),
+                                inE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'POSTGRESQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS').outV()
                             )
                             .not(has('resourceType', within('resourcegroup', 'subscription')))
                             .simplePath()

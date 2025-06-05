@@ -103,9 +103,7 @@ public class SqlConnectionStringHelper
         if (string.IsNullOrEmpty(value)) return false;
 
         // Common SQL connection string indicators
-        return value.Contains("Server=", StringComparison.OrdinalIgnoreCase) ||
-               value.Contains("Data Source=", StringComparison.OrdinalIgnoreCase) ||
-               value.Contains(".database.windows.net", StringComparison.OrdinalIgnoreCase);
+        return value.Contains(".database.windows.net", StringComparison.OrdinalIgnoreCase);
     }
 
     public async Task<ArmResourceNode> TryLinkSqlResourceById(GraphNode workloadNode, string possibleSqlResource, string sourceType, string sourceName)

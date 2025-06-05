@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Octokit;
 
 namespace Agent.Graph.Crawler.Kubernetes;
+
 public class KubernetesStatefulSetCrawler : IResourceCrawler
 {
     private readonly ILogger<KubernetesStatefulSetCrawler> _logger;
@@ -20,6 +21,7 @@ public class KubernetesStatefulSetCrawler : IResourceCrawler
     private readonly IKubernetesService _k8sService;
     private readonly ArmClient _armClient;
     private readonly SqlConnectionStringHelper _sqlHelper;
+    private readonly PostgreSqlConnectionStringHelper _postgresHelper;
 
     public KubernetesStatefulSetCrawler(
         ILogger<KubernetesStatefulSetCrawler> logger,
@@ -30,6 +32,7 @@ public class KubernetesStatefulSetCrawler : IResourceCrawler
         _graphDbClient = graphDbClient;
         _k8sService = k8sService;
         _sqlHelper = new SqlConnectionStringHelper(logger, _armClient, _graphDbClient);
+        _postgresHelper = new PostgreSqlConnectionStringHelper(logger, _armClient, _graphDbClient);
     }
 
     public async IAsyncEnumerable<GraphNode> Crawl(GraphNode node)
@@ -73,6 +76,14 @@ public class KubernetesStatefulSetCrawler : IResourceCrawler
                         if (sqlNode != null)
                         {
                             yield return sqlNode;
+                            continue;
+                        }
+
+                        // match postgresql connection string
+                        var postgresNode = await env.TryMatchAndLinkPostgreSqlResourcesAsync(statefulSetNode, _postgresHelper, _graphDbClient, "statefulset", _logger);
+                        if (postgresNode != null)
+                        {
+                            yield return postgresNode;
                             continue;
                         }
 

@@ -8,6 +8,7 @@ using k8s.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler;
+
 public static partial class KubernetesExtensions
 {
     [GeneratedRegex("^(?:http:\\/\\/|https:\\/\\/)?(?<serviceName>[a-z](?:[a-z0-9-]*[a-z0-9])?)(?<serviceNamespace>\\.[a-z](?:[a-z0-9-]*[a-z0-9])?)?:\\d+$")]
@@ -75,6 +76,37 @@ public static partial class KubernetesExtensions
         }
 
         return sqlNode;
+    }
+
+    public static async Task<ArmResourceNode> TryMatchAndLinkPostgreSqlResourcesAsync(
+        this V1EnvVar env,
+        KubernetesNamespacedResourceNode node,
+        PostgreSqlConnectionStringHelper postgresHelper,
+        IGraphDatabaseClient graphDbClient,
+        string sourceType,
+        ILogger logger)
+    {
+        var val = string.Empty;
+        if (env.Value != null)
+        {
+            val = env.Value;
+        }
+
+        ArmResourceNode postgresNode = null;
+        if (postgresHelper.IsPostgreSqlConnectionString(val))
+        {
+            postgresNode = await postgresHelper.GetPostgreSqlResourceFromConnectionStringAsync(
+                node,
+                val,
+                $"k8s:{sourceType}:env",
+                env.Name);
+        }
+        else if (val.Contains("/Microsoft.DBforPostgreSQL/", StringComparison.OrdinalIgnoreCase))
+        {
+            postgresNode = await postgresHelper.TryLinkPostgreSqlResourceById(node, val, $"k8s:{sourceType}:env", env.Name);
+        }
+
+        return postgresNode;
     }
 
     // try to extract service name and service namespace if the env value is a service url

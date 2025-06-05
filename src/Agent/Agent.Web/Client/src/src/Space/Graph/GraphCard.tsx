@@ -32,6 +32,8 @@ const ICON_LOOKUP: Record<string, string> = {
     // Databases & caches
     cosmos: 'CosmosDB.svg',
     cosmosdb: 'CosmosDB.svg',
+    postgresql: 'POSTGRESQLServer.svg',
+    postgres: 'POSTGRESQLServer.svg',
     sql: 'SQLServer.svg',
     sqlserver: 'SQLServer.svg',
     redis: 'AzureRedisCache.svg',
@@ -67,6 +69,8 @@ const FRIENDLY_NAMES: Record<string, string> = {
     // Databases & caches
     cosmos: 'Cosmos DB',
     cosmosdb: 'Cosmos DB',
+    postgresql: 'PostgreSQL Server',
+    postgres: 'PostgreSQL Server',
     sql: 'SQL Server',
     sqlserver: 'SQL Server',
     redis: 'Redis Cache',

@@ -17,6 +17,7 @@ public class KubernetesDeploymentCrawler : IResourceCrawler
     private readonly IKubernetesService _k8sService;
     private readonly ArmClient _armClient;
     private readonly SqlConnectionStringHelper _sqlHelper;
+    private readonly PostgreSqlConnectionStringHelper _postgresHelper;
 
     public KubernetesDeploymentCrawler(ILogger<KubernetesDeploymentCrawler> logger, IGraphDatabaseClient graphDbClient, ArmClient armClient, IKubernetesService k8sService)
     {
@@ -24,6 +25,7 @@ public class KubernetesDeploymentCrawler : IResourceCrawler
         _graphDbClient = graphDbClient;
         _armClient = armClient;
         _sqlHelper = new SqlConnectionStringHelper(logger, _armClient, _graphDbClient);
+        _postgresHelper = new PostgreSqlConnectionStringHelper(logger, _armClient, _graphDbClient);
         _k8sService = k8sService;
     }
 
@@ -68,6 +70,14 @@ public class KubernetesDeploymentCrawler : IResourceCrawler
                         if (sqlNode != null)
                         {
                             yield return sqlNode;
+                            continue;
+                        }
+
+                        // match postgresql connection string
+                        var postgresNode = await env.TryMatchAndLinkPostgreSqlResourcesAsync(deploymentNode, _postgresHelper, _graphDbClient, "deployment", _logger);
+                        if (postgresNode != null)
+                        {
+                            yield return postgresNode;
                             continue;
                         }
 

@@ -19,6 +19,7 @@ public class KubernetesDaemonSetCrawler : IResourceCrawler
     private readonly ArmClient _armClient;
     private readonly IKubernetesService _k8sService;
     private readonly SqlConnectionStringHelper _sqlHelper;
+    private readonly PostgreSqlConnectionStringHelper _postgresHelper;
 
     public KubernetesDaemonSetCrawler(ILogger<KubernetesDaemonSetCrawler> logger, IGraphDatabaseClient graphDbClient, ArmClient armClient, IKubernetesService k8sService)
     {
@@ -28,6 +29,7 @@ public class KubernetesDaemonSetCrawler : IResourceCrawler
         var config = KubernetesClientConfiguration.BuildDefaultConfig();
         _k8sService = k8sService;
         _sqlHelper = new SqlConnectionStringHelper(logger, _armClient, _graphDbClient);
+        _postgresHelper = new PostgreSqlConnectionStringHelper(logger, _armClient, _graphDbClient);
     }
 
     public async IAsyncEnumerable<GraphNode> Crawl(GraphNode node)
@@ -71,6 +73,14 @@ public class KubernetesDaemonSetCrawler : IResourceCrawler
                         if (sqlNode != null)
                         {
                             yield return sqlNode;
+                            continue;
+                        }
+
+                        // match postgresql connection string
+                        var postgresNode = await env.TryMatchAndLinkPostgreSqlResourcesAsync(daemonSetNode, _postgresHelper, _graphDbClient, "daemonset", _logger);
+                        if (postgresNode != null)
+                        {
+                            yield return postgresNode;
                             continue;
                         }
 

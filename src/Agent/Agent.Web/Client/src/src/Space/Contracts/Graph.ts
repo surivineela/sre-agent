@@ -91,6 +91,7 @@ export enum NodeRelations {
     Contains = 'CONTAINS',
     Linked = 'LINKED',
     SqlConnected = 'SQL_CONNECTED',
+    PostgreSqlConnected = 'POSTGRESQL_CONNECTED',
     RedisConnected = 'REDIS_CONNECTED',
     UsesRedis = 'USES_REDIS',
     HasRole = 'HAS_ROLE',

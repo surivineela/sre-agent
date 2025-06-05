@@ -66,6 +66,7 @@ public class Constants
         public const string Contains = "CONTAINS";
         public const string Linked = "LINKED";
         public const string SqlConnected = "SQL_CONNECTED";
+        public const string PostgreSqlConnected = "POSTGRESQL_CONNECTED";
         public const string RedisConnected = "REDIS_CONNECTED";
         public const string UsesRedis = "USES_REDIS";
         public const string HasRole = "HAS_ROLE";

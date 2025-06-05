@@ -96,6 +96,7 @@
     <PackageVersion Include="Microsoft.SemanticKernel.Connectors.InMemory" Version="1.37.0-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.2" />
     <PackageVersion Include="ModelContextProtocol" Version="0.1.0-preview.1.25171.12" />
+    <PackageVersion Include="Npgsql" Version="9.0.3" />
     <PackageVersion Include="OpenTelemetry" Version="1.11.2" />
     <PackageVersion Include="prometheus-net" Version="8.2.1" />
     <PackageVersion Include="prometheus-net.AspNetCore" Version="8.2.1" />

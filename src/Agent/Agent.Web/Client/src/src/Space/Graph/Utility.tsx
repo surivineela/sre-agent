@@ -206,6 +206,7 @@ export const getFriendlyEdgeLabel = (nodeRelations: string) => {
         case NodeRelations.ServesCode.toLowerCase():
             return GraphEdgeLabel.linkedTo;
         case NodeRelations.SqlConnected.toLowerCase():
+        case NodeRelations.PostgreSqlConnected.toLowerCase():
         case NodeRelations.RedisConnected.toLowerCase():
         case NodeRelations.Connected.toLowerCase():
         case NodeRelations.UsesRedis.toLowerCase():
