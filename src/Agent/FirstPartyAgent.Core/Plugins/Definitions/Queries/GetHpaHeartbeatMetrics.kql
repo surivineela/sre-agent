@@ -4,7 +4,7 @@ let capp_name = "##containerAppName##";
 let capp_rg = "##resourceGroupName##";
 let capp_sub = "##subscriptionId##";
 let capp_revision = "##revisionName##";
-let managedCluster = toscalar(GetManagedClusterName(capp_name, capp_rg, capp_sub));
+let managedCluster = "##managedClusterName##";
 ContainerAppControllerEvents
 | where TIMESTAMP between (queryFrom .. queryTo)
 | where Tenant == managedCluster
@@ -17,8 +17,6 @@ ContainerAppControllerEvents
          target_raw  = todouble(replace("m", "", tostring(metric.targetValue)))
 | extend current = iif(metric.currentValue  endswith "m", curr_raw   / 1000.0, curr_raw),
          target  = iif(metric.targetValue   endswith "m", target_raw / 1000.0, target_raw)
-| summarize current = avg(current),
-           target  = avg(target)
-        by metricName, TIMESTAMP = bin(TIMESTAMP, 1m)
-| project TIMESTAMP, metricName, current, target
-| order by metricName, TIMESTAMP asc
+| extend ratio = current/target
+| summarize max_value = max(ratio), min_value = min(ratio) by metricName
+| take 100

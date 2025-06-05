@@ -184,9 +184,10 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
             [Description("Name of the revision.")] string revisionName,
             [Description("Container app name.")] string containerAppName,
             [Description("Resource group name.")] string resourceGroupName,
-            [Description("Subscription ID.")] string subscriptionId)
+            [Description("Subscription ID.")] string subscriptionId,
+            [Description("Managed cluster name.")] string managedClusterName)
         {
-            return _plugin.GetHpaHeartbeatMetrics(region.NormalizeLocation(), fromDate, toDate, revisionName, containerAppName, resourceGroupName, subscriptionId);
+            return _plugin.GetHpaHeartbeatMetrics(region.NormalizeLocation(), fromDate, toDate, revisionName, containerAppName, resourceGroupName, subscriptionId, managedClusterName);
         }
 
         [KernelFunction(KernelFunctionNames.ACA.GetRevisionSpecChanges)]

@@ -43,10 +43,13 @@ My goal is to **validate any issue claims** using **telemetry**, **logs**, **sta
 
 ### Step 0: Parameter Collection  
 Collect all of the following:
-- `region`
-- `fromDate`, `toDate`
-- `containerAppName`, `revisionName`
-- `environmentName`, `resourceGroupName`, `subscriptionId`
+- `region` (Required)
+- `fromDate` (Required) (Use this DateTime as query from in the tools)
+- `toDate` (Required) (Use this DateTime as query to in the tools)
+- `containerAppName`(Required) (The name of the Container App) 
+- `revisionName` (Required) (The revision name of the revision of the Container App)
+- `resourceGroupName`(Required) (The azure resource group of the Container App)
+- `subscriptionId` (Required) (The azure subscription id of the Container App)
 
 Use `AskUserForInput` for anything missing.
 ---
@@ -167,26 +170,20 @@ You should check and validate the scaler configuration and show the result in th
 
 If no scaler configuration exists, no scaling issues or KEDA references are mentioned, or if no KEDA error logs were found in the previous step, you can skip Step 7 and proceed to the next step.
 
-- Step 7.1: Use `GetKedaOperatorEventsForContainerApp` and `GetHpaHeartbeatMetrics` to fetch any error log and analysis.
+- Step 7.1: Use `GetKedaOperatorEventsForContainerApp` to fetch any error log and analysis.
 
 - Step 7.2: If you find any Http scaler configuration exists, you should use `GetHttpScalerEventsForContainerApp` to fetch and check http scaler events log.
    - **DO NOT focus solely on the logs pertaining to the specfic revision. You must analyze all logs, especially those that don't contain any revision information, as some deep HTTP or networking errors may not contain any revision information.**
    - If most logs from `log` column indicate the request is waiting or connecting or has the key words like "waited", "timeout" or "throttling", regardless of whether they are related to the checking revision or not, please mention how many logs have this. It indicates a problem with the connection and is one of the root causes.
+
+- Step 7.3: If no scaling error founded in previous step, you should use `GetHpaHeartbeatMetrics` to fetch and check http scaler events log.
+    - If the asking app cannot scale up and the max value exceeds 1, please indicate that this metric has a problem.
+    - If the asking app cannot scale down and the min value is lower than 1, please indicate that this metric has a problem.
    
 ---
 
 ### Step 8: Legion Errors
 Use `GetLegionErrors` to find Legion errors related to the revision.
-
-### Step 9: Get CcpNamespace
-You must use `GetAksClusterCcpNamespace` to get CcpNamespace
-
-Respond with:
-
-```markdown
-> 🔗 **aks query result**
-> -ccpNamespace {{ccpNamespace}}
-```
 
 ---
 

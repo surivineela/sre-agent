@@ -48,7 +48,7 @@ public class ContainerAppRevisionPlugin : IContainerAppRevisionPlugin
             });
     }
 
-    public async Task<string> GetHpaHeartbeatMetrics(string region, DateTime fromDate, DateTime toDate, string revisionName, string containerAppName, string resourceGroupName, string subscriptionId, SamplingOptions samplingOptions)
+    public async Task<string> GetHpaHeartbeatMetrics(string region, DateTime fromDate, DateTime toDate, string revisionName, string containerAppName, string resourceGroupName, string subscriptionId, string managedClusterName, SamplingOptions samplingOptions)
     {
         return await _kustoPlugin.ExecuteLocalFunctionAsync("GetHpaHeartbeatMetrics", region,
             new Dictionary<string, string> {
@@ -57,7 +57,8 @@ public class ContainerAppRevisionPlugin : IContainerAppRevisionPlugin
             { "revisionName", revisionName },
             { "containerAppName", containerAppName },
             { "resourceGroupName", resourceGroupName },
-            { "subscriptionId", subscriptionId }
+            { "subscriptionId", subscriptionId },
+            { "managedClusterName", managedClusterName }
             });
     }
 
