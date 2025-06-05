@@ -1,12 +1,11 @@
+using System.ComponentModel.DataAnnotations;
 using Agent.Core.Configuration;
-using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Logging;
 using Agent.Plugins;
 using Agent.Runtime.Reasoning;
 using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel.DataAnnotations;
 
 namespace Agent.Web.Controllers.v1
 {
@@ -113,7 +112,7 @@ namespace Agent.Web.Controllers.v1
 #pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
                     AgentContext agentContext = await _threadRepository.GetAgentContextAsync(agentContextId: executionDoc.AgentContextId.Value, threadId: threadGuid);
 #pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
-                              // Update execution with user info
+                    // Update execution with user info
                     execution = execution with
                     {
                         Status = KubectlExecutionStatus.Running,
@@ -135,7 +134,7 @@ namespace Agent.Web.Controllers.v1
                         try
                         {
                             // Execute the Kubectl command
-                            var output = await _kubePlugin.ExecuteCommandSafely(resourceId, execution.Command);
+                            var output = await _kubePlugin.ExecuteKubectlCommandSafely(resourceId, execution.Command);
 
                             // Update execution with success
                             execution = execution with

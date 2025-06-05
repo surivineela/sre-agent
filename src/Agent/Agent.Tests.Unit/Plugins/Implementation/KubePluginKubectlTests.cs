@@ -1,15 +1,14 @@
 // filepath: c:\Users\zhaoziqi\Documents\work\codes\AAPT-Antares-OperationalAgent\src\Agent\Agent.Tests.Unit\Plugins\Implementation\KubePluginKubectlTests.cs
-using Microsoft.Extensions.Logging;
-using Xunit;
-using Moq;
-using Agent.Plugins;
-using Microsoft.Extensions.AI;
-using Agent.Prometheus.Services;
-using Agent.Graph.Crawler.Metrics;
+using System.Reflection;
 using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
-using System;
-using System.Reflection;
+using Agent.Graph.Crawler.Metrics;
+using Agent.Plugins;
+using Agent.Prometheus.Services;
+using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace Agent.Tests.Unit.Plugins.Implementation
 {
@@ -28,6 +27,8 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             var mockArmClientFactory = new Mock<IArmClientFactory>();
             var mockGraphDatabaseClient = new Mock<IGraphDatabaseClient>();
             var mockThreadRepository = new Mock<IThreadRepository>();
+            var mockAuthService = new Mock<IAuthenticationService>();
+            var mockHostEnv = new Mock<IHostEnvironment>();
             _mockLogger = new Mock<ILogger<KubePlugin>>();
 
             // Create an actual instance with our mocked dependencies
@@ -39,6 +40,8 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                 mockArmClientFactory.Object,
                 mockGraphDatabaseClient.Object,
                 mockThreadRepository.Object,
+                mockAuthService.Object,
+                mockHostEnv.Object,
                 _mockLogger.Object
             );
         }

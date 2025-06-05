@@ -1,8 +1,8 @@
 using System.IdentityModel.Tokens.Jwt;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
-using Azure.Core;
 using Agent.Logging;
+using Azure.Core;
 using Azure.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -263,7 +263,7 @@ public class AuthenticationService : IAuthenticationService
         return DelegatedTokenCredential.Create((_, _) => accessToken);
     }
 
-    private string? GetActionIdentity()
+    public string? GetActionIdentity()
     {
         if (string.IsNullOrEmpty(_actionSettings.Identity))
         {

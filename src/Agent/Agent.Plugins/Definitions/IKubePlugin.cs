@@ -36,6 +36,6 @@ namespace Agent.Plugins
         Task<string> ExecutePromQLAsync(string AKSClusterResourceId, string query, string duration, string step, string? labelFilters, string? aggregateFunction, string? aggregateBy, int? limit, double? minValue);
         Task<string> ProfileDotnetAppCpuInAKSContainerAsync(string aksResourceId, string _namespace, string podName, string? targetContainerName, int durationSeconds = 30);
         Task<string> AnalyzeDotnetAppMemoryInAKSContainerAsync(string aksResourceId, string _namespace, string podName, string? targetContainerName);
-        Task<string> ExecuteCommandSafely(string resourceId, string command);
+        Task<string> ExecuteKubectlCommandSafely(string resourceId, string command);
     }
 }

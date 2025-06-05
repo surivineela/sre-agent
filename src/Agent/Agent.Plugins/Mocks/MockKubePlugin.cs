@@ -755,7 +755,7 @@ public class MockKubePlugin : IKubePlugin
     {
         throw new NotImplementedException();
     }
-    public Task<string> ExecuteCommandSafely(string resourceId, string command)
+    public Task<string> ExecuteKubectlCommandSafely(string resourceId, string command)
     {
         throw new NotImplementedException();
     }

@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using Agent.Core;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
@@ -17,6 +18,7 @@ using Agent.Prometheus.Services;
 using k8s;
 using k8s.Models;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using YamlDotNet.Serialization;
 
@@ -25,12 +27,13 @@ namespace Agent.Plugins
     public partial class KubePlugin : IKubePlugin
     {
         private readonly ILogger? _logger;
-        private IChatClient _chatClient;
+        private readonly IChatClient _chatClient;
         private readonly IKubernetesClientFactory _kubernetesClientFactory;
         private readonly IPrometheusQueryService _prometheusQueryService;
         private readonly IAzureMetricsClient _azureMetricsClient;
         private readonly IGraphDatabaseClient? _graphDbClient;
         private readonly IArmClientFactory _armClientFactory;
+        private readonly string _agentKubeCtlIdentity;
 
         private static readonly ISerializer _configJsonSerializer = new SerializerBuilder().ConfigureDefaultValuesHandling(DefaultValuesHandling.OmitNull).Build();
 
@@ -46,6 +49,8 @@ namespace Agent.Plugins
             IArmClientFactory armClientFactory,
             IGraphDatabaseClient graphDbClient,
             IThreadRepository threadRepository,
+            IAuthenticationService authenticationService,
+            IHostEnvironment hostEnvironment,
             ILogger<KubePlugin>? logger)
         {
             _logger = logger;
@@ -56,6 +61,30 @@ namespace Agent.Plugins
             _graphDbClient = graphDbClient;
             _armClientFactory = armClientFactory;
             _threadRepository = threadRepository;
+            _agentKubeCtlIdentity = GetAgentKubectlIdentity(authenticationService, hostEnvironment);
+        }
+
+        private static string GetAgentKubectlIdentity(
+            IAuthenticationService authenticationService,
+            IHostEnvironment hostEnvironment)
+        {
+            if (hostEnvironment.IsDevelopment())
+            {
+                return "your developer identity";
+            }
+
+            var agentIdentity = authenticationService.GetActionIdentity();
+            if (string.IsNullOrEmpty(agentIdentity))
+            {
+                return "<failed to retrieve operation identity>";
+            }
+
+            if (string.Equals(Constants.SystemManagedIdentityName, agentIdentity, StringComparison.OrdinalIgnoreCase))
+            {
+                return "SRE Agent System Managed Identity";
+            }
+
+            return $"SRE Agent User-Assigned Identity {agentIdentity}";
         }
 
         public async Task<IKubernetes> GetOrCreateClientAsync(string? resourceId = null)

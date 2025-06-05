@@ -2269,7 +2269,7 @@ public class ArmHelper
 
             return resp.Properties.Token;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             throw;
         }
@@ -2537,7 +2537,7 @@ public class ArmHelper
         {
             identity = _azureSettings.Action.Identity;
         }
-        else if(!string.IsNullOrEmpty(_azureSettings.Crawler.Identity))
+        else if (!string.IsNullOrEmpty(_azureSettings.Crawler.Identity))
         {
             identity = _azureSettings.Crawler.Identity;
         }

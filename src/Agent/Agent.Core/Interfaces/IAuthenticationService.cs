@@ -77,4 +77,6 @@ public interface IAuthenticationService
     public TokenCredential GetLogAnalyticsCredential();
 
     public Task<TokenCredential> GetKubernetesOperationCredential();
+
+    public string? GetActionIdentity();
 }

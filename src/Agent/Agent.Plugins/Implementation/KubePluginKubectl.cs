@@ -7,9 +7,6 @@ using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Logging;
-using k8s;
-using k8s.Models;
-using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Plugins
@@ -26,7 +23,7 @@ namespace Agent.Plugins
         {
             try
             {
-                return await ExecuteCommandSafely(resourceId, $"{command} --help");
+                return await ExecuteKubectlCommandSafely(resourceId, $"{command} --help");
             }
             catch (Exception ex)
             {
@@ -96,7 +93,7 @@ namespace Agent.Plugins
                 try
                 {
                     // Execute the actual command
-                    var output = await ExecuteCommandSafely(resourceId, command);
+                    var output = await ExecuteKubectlCommandSafely(resourceId, command);
 
                     // Update execution with success
                     execution = execution with
@@ -363,7 +360,7 @@ namespace Agent.Plugins
             return match.Success ? match.Groups["action"].Value.ToLowerInvariant() : null;
         }
 
-        public async Task<string> ExecuteCommandSafely(
+        public async Task<string> ExecuteKubectlCommandSafely(
             string resourceId,
             string command)
         {
@@ -381,11 +378,23 @@ namespace Agent.Plugins
 
             var cmd = command.Substring("kubectl ".Length); // Remove "kubectl " prefix
 
-            return await ExecuteCommandHelper.ExecuteCommand(
-                "kubectl",
-                cmd,
-                $"--kubeconfig=\"{kubeConfigPath}\"",
-                $"--cache-dir=\"{Path.Combine(Path.GetTempPath(), ".kube")}\"");
+            try
+            {
+                return await ExecuteCommandHelper.ExecuteCommand(
+                    "kubectl",
+                    cmd,
+                    $"--kubeconfig=\"{kubeConfigPath}\"",
+                    $"--cache-dir=\"{Path.Combine(Path.GetTempPath(), ".kube")}\"");
+            }
+            catch (Exception ex) when (ex.Message.Contains("forbidden", StringComparison.OrdinalIgnoreCase))
+            {
+                var errorMessage = "Failed to run kubectl command. Error from AKS API Server: Forbidden.\n" +
+                    $"Please ensure the following permissions are provided on the AKS cluster scope to {_agentKubeCtlIdentity}:\n" +
+                    "For reader mode: Azure Kubernetes Service Cluster User Role and Azure Kubernetes Service RBAC Reader.\n" +
+                    "For agent mode: Azure Kubernetes Service Cluster Admin Role and Azure Kubernetes Service RBAC Cluster Admin.";
+
+                throw new Exception(errorMessage);
+            }
         }
 
 

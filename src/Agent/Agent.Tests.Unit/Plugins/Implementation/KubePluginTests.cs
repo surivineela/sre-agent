@@ -1,16 +1,13 @@
-using Microsoft.Extensions.Logging;
-using Xunit;
-using Moq;
-using Agent.Plugins;
-using Microsoft.Extensions.AI;
-using Agent.Prometheus.Services;
-using Agent.Graph.Crawler.Metrics;
 using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Graph.Crawler.Metrics;
+using Agent.Plugins;
+using Agent.Prometheus.Services;
 using k8s;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace Agent.Tests.Unit.Plugins.Implementation
 {
@@ -24,7 +21,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         {
             // Create mock for Kubernetes client factory
             _mockKubernetesClientFactory = new Mock<IKubernetesClientFactory>();
-              // Setup the mock to use local kubeconfig for KinD cluster
+            // Setup the mock to use local kubeconfig for KinD cluster
             _mockKubernetesClientFactory
                 .Setup(x => x.CreateKubernetesClientFromResourceIdAsync(It.IsAny<string>()))
                 .Returns<string>(resourceId => Task.FromResult<IKubernetes?>(new Kubernetes(KubernetesClientConfiguration.BuildDefaultConfig())));
@@ -43,6 +40,8 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                 new Mock<IArmClientFactory>().Object,
                 new Mock<IGraphDatabaseClient>().Object,
                 new Mock<IThreadRepository>().Object,
+                new Mock<IAuthenticationService>().Object,
+                new Mock<IHostEnvironment>().Object,
                 new Mock<ILogger<KubePlugin>>().Object
                 );
         }

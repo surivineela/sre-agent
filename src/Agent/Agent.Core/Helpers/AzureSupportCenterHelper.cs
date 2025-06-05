@@ -52,7 +52,7 @@ public class AzureSupportCenterHelper
                     .Any(resourceType => resourceIdentifier.ToString().IndexOf(resourceType, StringComparison.OrdinalIgnoreCase) > -1))
                 ?.ToList() ?? new List<SupportProductFromArmModel>();
         }
-        catch(JsonException ex)
+        catch (JsonException ex)
         {
             throw new Exception($"Error parsing support product response: {ex.Message}", ex);
         }
@@ -99,7 +99,7 @@ public class AzureSupportCenterHelper
                 ?.Where(problemClassification => !problemClassification.properties.metadata.state.Equals("retired", StringComparison.OrdinalIgnoreCase))
                 ?.ToList() ?? new List<SupportProblemClassificationModel>();
         }
-        catch(JsonException ex)
+        catch (JsonException ex)
         {
             throw new Exception($"Error parsing support classification response: {ex.Message}", ex);
         }
@@ -110,7 +110,7 @@ public class AzureSupportCenterHelper
     public async Task<AzureSupportCenterApolloResponsePayload> GetDiagnosticResultsFromApollo(string resourceId, SupportProductFromArmModel targetSupportProduct, SupportProblemClassificationModel targetSupportProblemClassification, string question)
     {
         string apolloDiagnosticsReqId = Guid.NewGuid().ToString();
-        if(!resourceId.StartsWith("/"))
+        if (!resourceId.StartsWith("/"))
         {
             resourceId = $"/{resourceId}";
         }
@@ -135,7 +135,7 @@ public class AzureSupportCenterHelper
 
         var response = await httpClient.SendAsync(request);
         response.EnsureSuccessStatusCode();
-        
+
         bool isDiagnosticRunning = false;
         int pollingAttempts = 0;
         AzureSupportCenterApolloResponsePayload apolloDiagnosticResult = null;

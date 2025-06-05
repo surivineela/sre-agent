@@ -15,11 +15,6 @@ namespace Agent.Core.Configuration
         public AppInsightsSettings AppInsights { get; set; } = new();
 
         [Required]
-        public bool OpenSupportTickets { get; set; }
-
-        public string ManagedIdentityClientId { get; set; }
-
-        [Required]
         public CosmosDBSettings CosmosDB { get; set; } = new();
 
         [Required]
