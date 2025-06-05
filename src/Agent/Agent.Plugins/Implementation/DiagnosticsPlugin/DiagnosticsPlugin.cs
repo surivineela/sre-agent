@@ -33,8 +33,8 @@ public sealed class DiagnosticsPlugin : IDiagnosticsPlugin
         {
             new KubernetesDiagnosticStrategy(logger, kubePlugin),
             new AppServiceDiagnosticStrategy(logger, armHelper),
+            new FunctionAppsDiagnosticStrategy(logger, armHelper),
             new ContainerAppDiagnosticStrategy(logger, armHelper, armClientFactory)
-            // TODO: Add one for Function Apps.
         };
 
         _armHelper = armHelper;
@@ -143,13 +143,17 @@ public sealed class DiagnosticsPlugin : IDiagnosticsPlugin
             }
         }
 
-        // App Service
+        // App Service or Function Apps
         else if (type.Contains("microsoft.web/sites"))
         {
             try
             {
                 var webSiteResource = armClient.GetWebSiteResource(resourceIdentifier);
                 var site = await webSiteResource.GetAsync();
+                var siteData = site.Value.Data;
+
+                bool isFunctionApp = siteData.Kind?.Contains("functionapp", StringComparison.OrdinalIgnoreCase) == true;
+                var resourceType = isFunctionApp ? ComputeResourceType.FunctionApp : ComputeResourceType.AppService;
 
                 // Get app service site config to determine properties
                 var kuduManager = await KuduManager.Initialize(resourceId, _armHelper);
@@ -178,7 +182,7 @@ public sealed class DiagnosticsPlugin : IDiagnosticsPlugin
                 LanguageStack languageStack = LanguageStack.Dotnet;
 
                 return new ComputeResourceInfo(
-                    ResourceType: ComputeResourceType.AppService,
+                    ResourceType: resourceType, 
                     OsType: osType,
                     Architecture: architecture,
                     LanguageStack: languageStack,

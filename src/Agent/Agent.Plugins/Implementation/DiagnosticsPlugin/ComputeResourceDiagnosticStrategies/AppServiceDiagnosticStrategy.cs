@@ -9,7 +9,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Agent.Plugins.Implementation.DiagnosticsPlugin.ComputeResourceDiagnosticStrategies;
 
-internal sealed class AppServiceDiagnosticStrategy : ComputeResourceDiagnosticStrategyBase
+internal class AppServiceDiagnosticStrategy : ComputeResourceDiagnosticStrategyBase
 {
     private readonly ArmHelper _armHelper;
 

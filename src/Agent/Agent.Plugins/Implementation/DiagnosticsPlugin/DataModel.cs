@@ -17,6 +17,7 @@ internal enum ComputeResourceType
     ContainerApp,
     AppService,
     KubernetesService,
+    FunctionApp,
     Unknown,
 }
 
