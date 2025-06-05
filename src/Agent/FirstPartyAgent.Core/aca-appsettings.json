@@ -296,6 +296,211 @@
                   "ClusterUri": "https://cappstest.westus.kusto.windows.net"
                 }
               ]
+            },
+            {
+              "Name": "Legion",
+              "Regions": [
+                {
+                  "Region": "australiaeast",
+                  "Database": "legion",
+                  "ClusterUri": "https://legionae.australiaeast.kusto.windows.net"
+                },
+                {
+                  "Region": "brazilsouth",
+                  "Database": "legion",
+                  "ClusterUri": "https://legionbrs.brazilsouth.kusto.windows.net"
+                },
+                {
+                  "Region": "canadacentral",
+                  "Database": "legion",
+                  "ClusterUri": "https://legioncc.canadacentral.kusto.windows.net"
+                },
+                {
+                  "Region": "centralindia",
+                  "Database": "legion",
+                  "ClusterUri": "https://legionci.centralindia.kusto.windows.net"
+                },
+                {
+                  "Region": "centralus",
+                  "Database": "legion",
+                  "ClusterUri": "https://legioncus.centralus.kusto.windows.net"
+                },
+                {
+                  "Region": "centraluseuap",
+                  "Database": "legion",
+                  "ClusterUri": "https://legioncuseuap.centralus.kusto.windows.net"
+                },
+                {
+                  "Region": "eastasia",
+                  "Database": "legion",
+                  "ClusterUri": "https://legionea.eastasia.kusto.windows.net"
+                },
+                {
+                  "Region": "eastus",
+                  "Database": "legion",
+                  "ClusterUri": "https://legioneus.eastus.kusto.windows.net"
+                },
+                {
+                  "Region": "eastus2",
+                  "Database": "legion",
+                  "ClusterUri": "https://legioneus2.eastus2.kusto.windows.net"
+                },
+                {
+                  "Region": "eastus2euap",
+                  "Database": "legion",
+                  "ClusterUri": "https://legioneus2euap.eastus2euap.kusto.windows.net"
+                },
+                {
+                  "Region": "francecentral",
+                  "Database": "legion",
+                  "ClusterUri": "https://legionfrc.francecentral.kusto.windows.net"
+                },
+                {
+                  "Region": "germanywestcentral",
+                  "Database": "legion",
+                  "ClusterUri": "https://legionfrc.francecentral.kusto.windows.net"
+                },
+                {
+                  "Region": "italynorth",
+                  "Database": "legion",
+                  "ClusterUri": "https://legionitn.italynorth.kusto.windows.net"
+                },
+                {
+                  "Region": "japaneast",
+                  "Database": "legion",
+                  "ClusterUri": "https://legionjpe.japaneast.kusto.windows.net"
+                },
+                {
+                  "Region": "koreacentral",
+                  "Database": "legion",
+                  "ClusterUri": "https://legionkc.koreacentral.kusto.windows.net"
+                },
+                {
+                  "Region": "northcentralus",
+                  "Database": "legion",
+                  "ClusterUri": "https://legionncus.northcentralus.kusto.windows.net"
+                },
+                {
+                  "Region": "northeurope",
+                  "Database": "legion",
+                  "ClusterUri": "https://legionneu.northeurope.kusto.windows.net"
+                },
+                {
+                  "Region": "norwayeast",
+                  "Database": "legion",
+                  "ClusterUri": "https://legionnore.norwayeast.kusto.windows.net"
+                },
+                {
+                  "Region": "polandcentral",
+                  "Database": "legion",
+                  "ClusterUri": "https://legionplc.polandcentral.kusto.windows.net"
+                },
+                {
+                  "Region": "southafricanorth",
+                  "Database": "legion",
+                  "ClusterUri": "https://legionsan.southafricanorth.kusto.windows.net"
+                },
+                {
+                  "Region": "southcentralus",
+                  "Database": "legion",
+                  "ClusterUri": "https://legionscus.southcentralus.kusto.windows.net"
+                },
+                {
+                  "Region": "switzerlandnorth",
+                  "Database": "legion",
+                  "ClusterUri": "https://legionswzn.switzerlandnorth.kusto.windows.net"
+                },
+                {
+                  "Region": "switzerlandwest",
+                  "Database": "legion",
+                  "ClusterUri": "https://legionswzw.switzerlandwest.kusto.windows.net"
+                },
+                {
+                  "Region": "uaenorth",
+                  "Database": "legion",
+                  "ClusterUri": "https://legionuaen.uaenorth.kusto.windows.net"
+                },
+                {
+                  "Region": "uksouth",
+                  "Database": "legion",
+                  "ClusterUri": "https://legionuks.uksouth.kusto.windows.net"
+                },
+                {
+                  "Region": "westeurope",
+                  "Database": "legion",
+                  "ClusterUri": "https://legionweu.westeurope.kusto.windows.net"
+                },
+                {
+                  "Region": "westus",
+                  "Database": "legion",
+                  "ClusterUri": "https://legionwus.westus.kusto.windows.net"
+                },
+                {
+                  "Region": "westus2",
+                  "Database": "legion",
+                  "ClusterUri": "https://legionwus2.westus2.kusto.windows.net"
+                },
+                {
+                  "Region": "westus3",
+                  "Database": "legion",
+                  "ClusterUri": "https://legionwus3.westus3.kusto.windows.net"
+                },
+                {
+                  "Region": "swedencentral",
+                  "Database": "legion",
+                  "ClusterUri": "https://legionswec.swedencentral.kusto.windows.net"
+                },
+                {
+                  "Region": "southeastasia",
+                  "Database": "legion",
+                  "ClusterUri": "https://legionsea.southeastasia.kusto.windows.net"
+                },
+                {
+                  "Region": "canadaeast",
+                  "Database": "legion",
+                  "ClusterUri": "https://legioncae.canadaeast.kusto.windows.net"
+                },
+                {
+                  "Region": "ukwest",
+                  "Database": "legion",
+                  "ClusterUri": "https://legionukw.ukwest.kusto.windows.net"
+                },
+                {
+                  "Region": "westcentralus",
+                  "Database": "legion",
+                  "ClusterUri": "https://legionwcu.westcentralus.kusto.windows.net"
+                },
+                {
+                  "Region": "southindia",
+                  "Database": "legion",
+                  "ClusterUri": "https://legionsi.southindia.kusto.windows.net"
+                },
+                {
+                  "Region": "australiasoutheast",
+                  "Database": "legion",
+                  "ClusterUri": "https://legionase.australiasoutheast.kusto.windows.net"
+                },
+                {
+                  "Region": "francesouth",
+                  "Database": "legion",
+                  "ClusterUri": "https://legionfrs.francesouth.kusto.windows.net"
+                },
+                {
+                  "Region": "jioindiawest",
+                  "Database": "legion",
+                  "ClusterUri": "https://legionjiw.jioindiawest.kusto.windows.net"
+                },
+                {
+                  "Region": "spaincentral",
+                  "Database": "legion",
+                  "ClusterUri": "https://legionesp.spaincentral.kusto.windows.net"
+                },
+                {
+                  "Region": "japanwest",
+                  "Database": "legion",
+                  "ClusterUri": "https://legionjpw.japanwest.kusto.windows.net"
+                }
+              ]
             }
           ],
           "Auth": {

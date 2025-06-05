@@ -60,6 +60,17 @@ Use:
 
 ---
 
+### Step 1: Identify common potential transient issues with the platform
+ALWAYS Notify the user with this phrase: "Checking form common potential transient issues with the platform"
+Use:
+- `GetK4appsHelmChartUpgradeTimes`
+- `GetAksNodeImageUpgradeTimes`
+- `GetLegionHostRoleOSUpgradeTimes`
+
+ALWAYS Notify the user if any of the times line up with the time frame for the incident
+
+---
+
 ### Step 2: Generate ASI Insight Pages  
 Use:
 - `GetASIPageForRevision`

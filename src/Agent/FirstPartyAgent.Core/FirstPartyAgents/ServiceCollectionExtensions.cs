@@ -116,6 +116,7 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton<IContainerAppJobsPlugin, ContainerAppJobsPlugin>();
         services.AddSingleton<IAzureDocSearchPlugin, AzureDocSearchPlugin>();
+        services.AddSingleton<IPlatformUpgradesPlugin, PlatformUpgradePlugin>();
         services.AddSingleton<IAzureSearchClient, AzureSearchClient>();
         services.AddSingleton<IContainerAppRevisionPlugin, ContainerAppRevisionPlugin>();
         services.AddSingleton<IManagedClusterPlugin, ManagedClusterPlugin>();
@@ -125,6 +126,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ContainerAppJobsAgentPlugin>();
         services.AddSingleton<ContainerAppRevisionAgentPlugin>();
         services.AddSingleton<ContainerAppDocumentSearchPluginDefinition>();
+        services.AddSingleton<PlatformUpgradesPluginDefinition>();
         services.AddSingleton<ContainerAppRevisionPluginDefinition>();
         services.AddSingleton<ContainerAppJobsPluginDefinition>();
         services.AddSingleton<ManagedEnvironmentPluginDefinition>();

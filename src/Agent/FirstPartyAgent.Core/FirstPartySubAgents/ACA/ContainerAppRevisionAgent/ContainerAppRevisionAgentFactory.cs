@@ -35,6 +35,7 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.RevisionAgent
         IManagedClusterPlugin managedClusterPlugin,
         IHealthProbePlugin healthProbePlugin,
         INodeAvailabilityPlugin nodeAvailabilityPlugin,
+        IPlatformUpgradesPlugin platformUpgradePlugin,
         IKustoDashboardPlugin kustoDashboardPlugin,
         IChartPlugin chartPlugin,
         IToolsRepository toolsRepository,
@@ -75,6 +76,10 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.RevisionAgent
             toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetLegionErrors));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GenerateRevisionCustomerIssuesDashboardLink));
 
+            var platformUpgradePluginDefinition = new PlatformUpgradesPluginDefinition(platformUpgradePlugin);
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => platformUpgradePluginDefinition.GetK4appsHelmChartUpgradeTimes));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => platformUpgradePluginDefinition.GetAksNodeImageUpgradeTimes));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => platformUpgradePluginDefinition.GetLegionHostRoleOSUpgradeTimes));
 
             var searchPluginDefintion = new ContainerAppDocumentSearchPluginDefinition(azureDocSearchPlugin);
             toolSignatures.Add(_toolsRegistry.GetSignature(() => searchPluginDefintion.SearchAzureContainerAppsDocumentation));

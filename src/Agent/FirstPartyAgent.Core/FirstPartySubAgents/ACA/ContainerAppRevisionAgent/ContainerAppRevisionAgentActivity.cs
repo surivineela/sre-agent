@@ -35,6 +35,7 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.RevisionAgent
                     - Revision Name: {input.RevisionName}
                     - Resource Group Name: {input.ResourceGroupName}
                     - Managed Environment Name: {input.ManagedEnvironmentName}
+                    - Managed Cluster Name: {input.ManagedClusterName}
                     - Subscription: {input.SubscriptionId}
                     - Region: {input.Region}
                     - From: {input.FromDate:O}

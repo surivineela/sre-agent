@@ -122,6 +122,7 @@ public class FirstPartyAgentsFactory : IAgentsFactory
             typeof(ContainerAppSessionsPluginDefinition),
             typeof(ContainerAppCustomerLogsPluginDefinition),
             typeof(ContainerAppCustomerMetricsPluginDefinition),
+            typeof(PlatformUpgradesPluginDefinition)
         };
         return types;
     }

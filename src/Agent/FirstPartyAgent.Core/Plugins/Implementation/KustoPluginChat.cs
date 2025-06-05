@@ -48,7 +48,7 @@ namespace FirstPartyAgent.Plugins
             return queryResult.Result;
         }
 
-        public async Task<string> ExecuteLocalFunctionAsync(string functionName, string region, Dictionary<string, string> args, SamplingOptions? samplingOptions = null)
+        public async Task<string> ExecuteLocalFunctionAsync(string functionName, string region, Dictionary<string, string> args, string groupName = "ContainerApps", SamplingOptions? samplingOptions = null)
         {
             region = region.NormalizeLocation();
             SamplingParameterHelper.AddSamplingParameters(args, samplingOptions);
@@ -58,7 +58,7 @@ namespace FirstPartyAgent.Plugins
             if (File.Exists(fileName))
             {
                 var formatted = FormatQuery(args, fileName);
-                queryResult = await _kustoPlugin.ExecuteKustoQuery(region, formatted);
+                queryResult = await _kustoPlugin.ExecuteKustoQuery(region, formatted, groupName);
             }
             else
             {
@@ -92,10 +92,10 @@ namespace FirstPartyAgent.Plugins
             return formatted;
         }
 
-        Task<KustoQueryResult> IACAKustoPlugin.ExecuteKustoQuery(string region, string query)
+        Task<KustoQueryResult> IACAKustoPlugin.ExecuteKustoQuery(string region, string query, string groupName = "ContainerApps")
         {
             region = region.NormalizeLocation();
-            return _kustoPlugin.ExecuteKustoQuery(region, query);
+            return _kustoPlugin.ExecuteKustoQuery(region, query, groupName);
         }
 
         Task<KustoQueryResult> IACAKustoPlugin.ExecuteClusterKustoQuery(string cluster, string database, string fullQuery, DateTime? NowOverride)
@@ -103,7 +103,7 @@ namespace FirstPartyAgent.Plugins
             return _kustoPlugin.ExecuteClusterKustoQuery(cluster, database, fullQuery, NowOverride);
         }
 
-        Task<KustoQueryResult> IACAKustoPlugin.ExecuteFunctionAsync(string functionName, string region, Dictionary<string, string>? args)
+        Task<KustoQueryResult> IACAKustoPlugin.ExecuteFunctionAsync(string functionName, string region, Dictionary<string, string>? args, string groupName = "ContainerApps")
         {
             region = region.NormalizeLocation();
             return _kustoPlugin.ExecuteFunctionAsync(functionName, region, args);

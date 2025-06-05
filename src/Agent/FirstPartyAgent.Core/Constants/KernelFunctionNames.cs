@@ -107,6 +107,9 @@ namespace FirstPartyAgent.Constants
             public const string GetFluentbitOutputCount = "get_fluentbit_output_count";
             public const string GetFluentbitBufferPressure = "get_fluentbit_buffer_pressure";
             public const string GetFluentbitOutputErrors = "get_fluentbit_output_errors";
+            public const string GetK4appsHelmChartUpgradeTimes = "get_k4apps_helm_chart_upgrade_times";
+            public const string GetAksNodeImageUpgradeTimes = "get_aks_node_image_upgrade_times";
+            public const string GetLegionHostRoleOSUpgradeTimes = "get_legion_host_role_os_upgrade_times";
             public const string GenerateRevisionCustomerIssuesDashboardLink = "generate_revision_customer_issues_dashboard_link";
         }
 

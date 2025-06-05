@@ -165,7 +165,7 @@ public class ContainerAppRevisionPlugin : IContainerAppRevisionPlugin
             };
 
 
-        return await _kustoPlugin.ExecuteLocalFunctionAsync("GetHttpScalerEventsForContainerApp", region, parm,samplingOptions);
+        return await _kustoPlugin.ExecuteLocalFunctionAsync("GetHttpScalerEventsForContainerApp", region, parm, samplingOptions: samplingOptions);
 
             
     }

@@ -75,13 +75,14 @@ namespace FirstPartyAgent.Plugins
         [Description("Executes a Kusto query on a regional cluster and returns the result as a JSON string.")]
         public async Task<KustoQueryResult> ExecuteKustoQuery(
             [Description("The region of the target Kusto cluster.")] string region,
-            [Description("The Kusto query to execute.")] string query
+            [Description("The Kusto query to execute.")] string query,
+            [Description("Optional group name for the Kusto cluster.")] string groupName = "ContainerApps"
             )
         {
             try
             {
                 // TODO: update this plugin with a parameter to allow querying regional clusters for other products
-                KustoRegionalGroupClient regionalKustoClient = _kustoRegionalGroupClientProvider.GetRegionalGroupKustoClient("ContainerApps");
+                KustoRegionalGroupClient regionalKustoClient = _kustoRegionalGroupClientProvider.GetRegionalGroupKustoClient(groupName);
 
                 var stopwatch = System.Diagnostics.Stopwatch.StartNew();
                 _logger.LogInformation($"execute_kusto_query called with {region} / {query}");
@@ -176,7 +177,8 @@ namespace FirstPartyAgent.Plugins
         public async Task<KustoQueryResult> ExecuteFunctionAsync(
             [Description("The name of the Kusto function to invoke.")] string functionName,
             [Description("The region of the Kusto cluster.")] string region,
-            Dictionary<string, string>? args = null
+            Dictionary<string, string>? args = null,
+            [Description("Optional group name for the Kusto cluster.")] string groupName = "ContainerApps"
             )
         {
             string argList = args != null && args.Count > 0
@@ -188,7 +190,7 @@ namespace FirstPartyAgent.Plugins
             try
             {
                 // TODO: update this plugin with a parameter to allow querying regional clusters for other products
-                KustoRegionalGroupClient regionalKustoClient = _kustoRegionalGroupClientProvider.GetRegionalGroupKustoClient("ContainerApps");
+                KustoRegionalGroupClient regionalKustoClient = _kustoRegionalGroupClientProvider.GetRegionalGroupKustoClient(groupName);
 
                 var stopwatch = System.Diagnostics.Stopwatch.StartNew();
                 using var reader = await regionalKustoClient.PerformQueryAsync(query, region);

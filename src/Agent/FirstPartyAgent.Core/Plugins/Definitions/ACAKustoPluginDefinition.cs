@@ -20,9 +20,10 @@ namespace FirstPartyAgent.Plugins.Definitions
         [Description("Executes a Kusto query on a regional cluster and returns the result in JSON format.")]
         public async Task<string> ExecuteKustoQuery(
             [Description("The region of the target Kusto cluster.")] string region,
-            [Description("The Kusto query to execute.")] string query)
+            [Description("The Kusto query to execute.")] string query,
+            [Description("Optional group name")] string groupName)
         {
-            var result = await _plugin.ExecuteKustoQuery(region, query);
+            var result = await _plugin.ExecuteKustoQuery(region, query, groupName);
             return result.Result;
         }
 

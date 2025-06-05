@@ -9,5 +9,8 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.RevisionAgent
 
         [Description("The revision name of the container app.")]
         public string RevisionName { get; init; } = string.Empty;
+
+        [Description("The name of the managed cluster")]
+        public string ManagedClusterName {  get; init; } = string.Empty;
     }
 }

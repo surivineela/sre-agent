@@ -1,0 +1,21 @@
+let queryFrom = datetime("##fromDate##");
+let queryTo = datetime("##toDate##");
+let capp_pod_names = dynamic(##cappPodNames##);
+let clusterName = "##managedClusterName##";
+let legion_pod_role_instances = SystemLogs
+| where PreciseTimeStamp between(queryFrom..queryTo)
+| where ResourceNamespace == clusterName
+| where PodName != ""
+| where eventId in (301, 304) 
+| where PodName in (capp_pod_names)
+| distinct CenturionRoleId
+| where CenturionRoleId != "";
+SystemLogs
+| where TIMESTAMP between (queryFrom .. queryTo)
+| where isnotempty(VmImageVersion) and CenturionRoleId != ""
+| where CenturionRoleId in (legion_pod_role_instances)
+| summarize arg_max(PreciseTimeStamp, VmImageVersion) by CenturionRoleId, LegionStampName, bin(PreciseTimeStamp, 1m)
+| order by CenturionRoleId, LegionStampName, PreciseTimeStamp
+| extend PreviousVmImageVersion = iff(CenturionRoleId == prev(CenturionRoleId) and LegionStampName == prev(LegionStampName), prev(VmImageVersion), VmImageVersion)
+| where PreviousVmImageVersion != VmImageVersion
+| distinct PreciseTimeStamp

@@ -3,6 +3,7 @@ using Agent.Runtime.SubAgents;
 using Agent.Runtime.MetaAgent.Interfaces;
 using System.Reflection;
 using FirstPartyAgent.Plugins.Definitions;
+using FirstPartyAgent.Core.Plugins.Definitions;
 
 namespace FirstPartyAgent.Core.FirstPartyAgents;
 public class FirstPartyToolsRepository : ToolsRepository
