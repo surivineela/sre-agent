@@ -2343,7 +2343,11 @@ public class ArmHelper
 
         var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
         var response = await httpClient.SendAsync(request);
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogInternalWarning($"Failed to fetch TLS status for {resourceId}: {response.ReasonPhrase}");
+            return null;
+        }
 
         string responseJson = await response.Content.ReadAsStringAsync();
         var jsonObject = JObject.Parse(responseJson);

@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
@@ -11,6 +12,7 @@ using Agent.Logging;
 using Agent.Runtime.SubAgents.TlsBestPractices;
 using Grpc.Core;
 using Microsoft.DurableTask.Client;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.SubAgents.TlsBestPracticesAgent
@@ -24,6 +26,7 @@ namespace Agent.Runtime.SubAgents.TlsBestPracticesAgent
         private readonly IAgentInboundCommunicationService _agentInboundCommunicationService;
         private readonly IGraphDatabaseClient _graphDatabaseClient;
         private readonly ArmHelper _armHelper;
+        private readonly CoreSettings _coreSettings;
 
         public TlsBestPracticesScanner(
             DurableTaskClient durableTaskClient,
@@ -32,7 +35,8 @@ namespace Agent.Runtime.SubAgents.TlsBestPracticesAgent
             ILogger<TlsBestPracticesScanner> logger,
             IAgentInboundCommunicationService agentInboundCommunicationService,
             IGraphDatabaseClient graphDatabaseClient,
-            ArmHelper armHelper)
+            ArmHelper armHelper,
+            CoreSettings coreSettings)
         {
             _logger = logger;
             _durableTaskClient = durableTaskClient;
@@ -41,26 +45,31 @@ namespace Agent.Runtime.SubAgents.TlsBestPracticesAgent
             _agentInboundCommunicationService = agentInboundCommunicationService;
             _graphDatabaseClient = graphDatabaseClient;
             _armHelper = armHelper;
+            _coreSettings = coreSettings;
         }
 
         public async Task Scan(CancellationToken cancellationToken)
         {
-
-            var runningAgents = await _durableTaskClient.GetAllInstancesAsync(new OrchestrationQuery
+            if (!_coreSettings.UseAgentFramework)
             {
-                Statuses = new[] { OrchestrationRuntimeStatus.Running },
-                InstanceIdPrefix = TlsBestPracticeAgentFactory.OrchestrationInstanceIdPrefix
-            }).ToListAsync();
+                _logger.LogInternalInformation("Agent framework is disabled. Need to check if TlsBestPractices agent is already running.");
+                var runningAgents = await _durableTaskClient.GetAllInstancesAsync(new OrchestrationQuery
+                {
+                    Statuses = new[] { OrchestrationRuntimeStatus.Running },
+                    InstanceIdPrefix = TlsBestPracticeAgentFactory.OrchestrationInstanceIdPrefix
+                }).ToListAsync();
 
-            if (runningAgents.Count > 0)
-            {
-                _logger.LogInternalInformation("TlsBestPractices agent already running, skipping the scan.");
-                return;
+                if (runningAgents.Count > 0)
+                {
+                    _logger.LogInternalInformation("TlsBestPractices agent already running, skipping the scan.");
+                    return;
+                }
             }
 
             var queryResults = await _graphDatabaseClient.Query("g.V().has('resourceType', 'microsoft.web/sites').values('resourceId')");
 
             var resources = queryResults.Select(x => (string)x).OrderBy(resourceId => resourceId.Split("/").Last()).ToList();
+            _logger.LogInternalInformation("Found Web Apps / Function Apps in the graph database. {Apps}", string.Join(", ", resources));
 
             // TODO - remove.
             // some temp filtering because Paul has too many resources
@@ -70,16 +79,18 @@ namespace Agent.Runtime.SubAgents.TlsBestPracticesAgent
             var appsInViolation = tlsSettings.Where(x => new Version(x.MinimumTlsVersion) < new Version("1.2"))
                 .ToList();
 
+            _logger.LogInternalInformation("Found {Count} apps in violation of TLS best practices.", appsInViolation.Count);
+
             if (appsInViolation.Count > 0)
             {
                 (var thread, var agentContext) = await _agentInboundCommunicationService.CreateAgentThread(
                     "TLS Best Practices",
                     """
-                    Hi there! I found Web Apps / Function Apps that are allowing TLS connections below the recommended minimum version. 
-                    For more information on Microsoft's cryptographic recommendations see:  
-                    https://learn.microsoft.com/en-us/security/engineering/cryptographic-recommendations#tlsssl-versions  
+                    Hi there! I found Web Apps / Function Apps that are allowing TLS connections below the recommended minimum version.
+                    For more information on Microsoft's cryptographic recommendations see:
+                    https://learn.microsoft.com/en-us/security/engineering/cryptographic-recommendations#tlsssl-versions
 
-                    Preparing details...  
+                    Preparing details...
                     """,
                     agentTypeEnum: AgentTypeEnum.DTS);
 
@@ -90,24 +101,44 @@ namespace Agent.Runtime.SubAgents.TlsBestPracticesAgent
                     DesiredVersion = "1.2"
                 };
 
-                var instanceId = await _tlsBestPracticeAgentFactory.StartOrchestration(input, agentContext.ThreadId);
 
-                // work around "bad grpc response 504" error
-                bool completed = false;
-                while (!completed)
+                if (!_coreSettings.UseAgentFramework)
                 {
-                    try
+                    var instanceId = await _tlsBestPracticeAgentFactory.StartOrchestration(input, agentContext.ThreadId);
+                    // work around "bad grpc response 504" error
+                    bool completed = false;
+                    while (!completed)
                     {
-                        await _durableTaskClient.WaitForInstanceCompletionAsync(instanceId, cancellationToken);
-                        completed = true;
+                        try
+                        {
+                            await _durableTaskClient.WaitForInstanceCompletionAsync(instanceId, cancellationToken);
+                            completed = true;
+                        }
+                        catch (RpcException ex)
+                        {
+                            _logger.LogInternalError(ex, "Error while waiting for instance completion: {Message}", ex.Message);
+                            await Task.Delay(1000, cancellationToken);
+                        }
                     }
-                    catch (RpcException ex)
-                    {
-                        _logger.LogInternalError(ex, "Error while waiting for instance completion: {Message}", ex.Message);
-                        await Task.Delay(1000, cancellationToken);
-                    }
-                }
 
+                }
+                else
+                {
+                    _logger.LogInternalInformation("Using Agent Framework to process tls best practices agent.");
+
+                    var existingAppsDetails = string.Join(Environment.NewLine,
+                        input.AppsInViolation.Select(x => $"{x.ResourceId} has a current minimum TLS version of {x.MinimumTlsVersion}. Proceed and update it if necessary."));
+
+                    var message = new ThreadMessage(
+                        ThreadId: agentContext.ThreadId,
+                        AgentContextId: agentContext.Id,
+                        MessageId: Guid.NewGuid(),
+                        Message: existingAppsDetails,
+                        UserId: "",
+                        DisplayName: "",
+                        Timestamp: DateTime.UtcNow);
+                    await _agentInboundCommunicationService.ProcessUserMessageAsync(message);
+                }
             }
         }
     }

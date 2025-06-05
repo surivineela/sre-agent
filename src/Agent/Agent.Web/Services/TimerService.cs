@@ -88,7 +88,7 @@ public class TimerService : IHostedService, IDisposable
 
     private Timer? _tlsTimer = null;
     private bool _tlsTimerIsRunning = false;
-    private TimeSpan _tlsTimerInterval = TimeSpan.FromMinutes(1);
+    private TimeSpan _tlsTimerInterval = TimeSpan.FromHours(1);
 
     private Timer? _dailyReportTimer = null;
     private bool _dailyReportTimerIsRunning = false;
