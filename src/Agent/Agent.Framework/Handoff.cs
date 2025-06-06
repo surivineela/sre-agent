@@ -10,8 +10,6 @@ public class Handoff<TContext> : AIFunction where TContext : class
 {
     public string AgentName { get; }
 
-    public string TransferMessage => $"{{'assistant': '{AgentName}'}}";
-
     public Type? InputType { get; }
 
     #region AITool overrides

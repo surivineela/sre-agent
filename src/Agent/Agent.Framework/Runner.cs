@@ -291,7 +291,6 @@ public static class Runner
     ) where TContext : class
     {
         List<ChatMessage> newStepItems = [];
-        newStepItems.AddRange(modelResponse.Messages);
         trajectory ??= new Trajectory();
 
         // process tool calls
@@ -312,11 +311,6 @@ public static class Runner
 
                     await hooks.OnHandoff(contextWrapper, agent, newAgent);
 
-                    // review: don't really see value in adding handoff as new messages
-                    // openai probably did it cause that's how they are forced to expose tool calls..
-                    // for us it just adds tokens
-                    newStepItems.Add(new ChatMessage(ChatRole.Tool, [new FunctionResultContent(functionCall.CallId, handoff.TransferMessage)]));
-
                     return new SingleStepResult<TContext>
                     {
                         OriginalInput = originalInput,
@@ -330,6 +324,9 @@ public static class Runner
                         }
                     };
                 }
+
+                // record model response only if it's not a handoff
+                newStepItems.Add(message);
 
                 // handle regular tool call
                 AIFunction? tool = tools.FirstOrDefault(t => t.Name == functionCall.Name);
