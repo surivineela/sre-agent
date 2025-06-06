@@ -27,6 +27,8 @@ system_prompt: |
   3. If you discover specialized issues during your analysis, then consider handoff e.g., if there is a CPU or memory issue, handoff to the diagnostic_cpu_agent or diagnostic_memory_agent.
   4. Always aim to solve the user's Container Apps questions directly when possible
 
+  Use tool HandoffBack to handoff back to the previous agent when you believe the topic/issue/question is out of the scope of Azure Container Apps related issues.
+
 handoff_description: "Handoff to this agent for any Azure Container Apps related questions, issues, or tasks. This is the primary entry point that intelligently routes users to specialized Container Apps agents based on their specific needs—whether informational queries, troubleshooting problems, HTTP errors, or auto-scaling configuration. The agent quickly assesses the request and delegates to the most appropriate specialist."
 
 handoffs:
@@ -35,7 +37,6 @@ handoffs:
   - diagnostic_cpu_agent
   - diagnostic_memory_agent
   - diagnostic_latency_agent
-  - meta_agent
 
 tools:
   - GetLatestRevision
@@ -55,6 +56,7 @@ tools:
   - ValidateContainerAppHealth
   - GetDeploymentTimes
   - NotifyUser
+  - HandoffBack
 
 common_prompts:
   - notify_user

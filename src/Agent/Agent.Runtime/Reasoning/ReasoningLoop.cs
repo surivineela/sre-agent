@@ -35,6 +35,7 @@ public class ReasoningLoop
     private readonly SemaphoreSlim _semaphore = new(initialCount: 1, maxCount: 1);
     private readonly ToolFactory<AgentContext> _toolFactory;
     private readonly ActionSettings _actionSettings;
+    private readonly IAgentFactory<AgentContext> _agentFactory;
 
     private List<ChatMessage>? _chatHistory;
     private Agent<AgentContext> _currentAgent;
@@ -52,7 +53,8 @@ public class ReasoningLoop
         IThreadRepository threadRepository,
         AgentContext context,
         ToolFactory<AgentContext> toolFactory,
-        ActionSettings actionSettings)
+        ActionSettings actionSettings,
+        IAgentFactory<AgentContext> agentFactory)
     {
         _logger = logger;
         _loggerFactory = loggerFactory;
@@ -68,6 +70,7 @@ public class ReasoningLoop
         _toolFactory = toolFactory;
         _currentAgent = startingAgent;
         _actionSettings = actionSettings;
+        _agentFactory = agentFactory;
     }
 
     public async Task AppendNewUserMessageAsync(ChatMessage msg, CancellationToken cancellationToken = default)
@@ -295,7 +298,14 @@ public class ReasoningLoop
                     }
 
                     return Task.FromResult(tools);
-                }
+                },
+                OnHandoff = async (context, agent, handoffAgent) =>
+                {
+                    _logger.LogInternalInformation($"Handoff from {agent.Name} to {handoffAgent.Name}");
+                    _context.AgentHandoffChain.Add(handoffAgent.Name);
+                    _currentAgent = handoffAgent;
+                    await _threadRepository.UpdateAgentContextAsync(_context);
+                },
             };
 
             ToolStatic.AsyncLocalThreadId.Value = _context.ThreadId;
@@ -309,10 +319,15 @@ public class ReasoningLoop
                 cancellationToken: cancellationToken
             );
 
+            // remove handoff back tool call
+            // assumes only 1 function call
+            var lastToolCall = runResult.NewItems.LastOrDefault()?.Contents.OfType<FunctionCallContent>().SingleOrDefault();
+            if (lastToolCall != null && lastToolCall.Name == "HandoffBack")
+            {
+                runResult.NewItems.RemoveAt(runResult.NewItems.Count - 1);
+            }
+
             await PersistReasoningMessagesAsync(agentChatHistory, runResult.NewItems);
-            _currentAgent = runResult.LastAgent;
-            _context = _context with { CurrentAgent = _currentAgent.Name };
-            _context = await _threadRepository.UpdateAgentContextAsync(_context);
 
             // handle manual tool calls
             while (runResult.ManualToolCalls != null && runResult.ManualToolCalls.Count > 0)
@@ -320,73 +335,104 @@ public class ReasoningLoop
                 List<ManualToolCallResult> toolResults = [];
 
                 var toolCall = runResult.ManualToolCalls.Single(); // Should only be one tool call at a time
-                var checkApprovalResult = await CheckApprovalAsync(toolCall);
-                var checkAzCliWrite = CheckAzCliWriteToolCallAsync(toolCall);
-                var checkKubectlWrite = CheckKubectlWriteToolCallAsync(toolCall);
-
-                if (checkAzCliWrite)
+                // TODO: move handoff back to Agent.Framework 
+                if (toolCall.Tool.UnderlyingMethod?.Name == "HandoffBack")
                 {
-                    var functionResult = await InvokeToolWithErrorHandlingAsync(toolCall, cancellationToken);
+                    _context.AgentHandoffChain.RemoveAt(_context.AgentHandoffChain.Count - 1);
+                    var agentName = _context.AgentHandoffChain[^1];
+                    _currentAgent = _agentFactory.GetAgent(agentName);
 
-                    var cliExecution = await _threadRepository.ListPendingAzCliExecutionAsync(_context.ThreadId);
-                    if (cliExecution == null)
+                    runResult = new RunResult<AgentContext>(_currentAgent)
                     {
-                        // if cliExecution is null, it means no pending execution, which means something (e.g. validation failed)
-                        // we need to return the error message to LLM.
-                        toolResults.Add(new ManualToolCallResult()
-                        {
-                            FunctionCall = toolCall.FunctionCall,
-                            Output = functionResult
-                        });
-                    }
-                    else
-                    {
-                        cliExecution = cliExecution with
-                        {
-                            AgentContextId = _context.Id,
-                        };
-                        await _threadRepository.UpdateAzCliExecutionAsync(_context.ThreadId, cliExecution);
-                        break;
-                    }
-                }
-                else if (checkKubectlWrite)
-                {
-                    var functionResult = await InvokeToolWithErrorHandlingAsync(toolCall, cancellationToken);
+                        Input = runResult.Input,
+                        NewItems = runResult.NewItems,
+                        Output = runResult.Output,
+                        ContextWrapper = runResult.ContextWrapper,
+                        ManualToolCalls = [], // assuming only one tool call
+                        CurrentTurn = runResult.CurrentTurn,
+                        MaxTurns = runResult.MaxTurns,
+                        RawResponses = runResult.RawResponses,
+                        Trajectory = runResult.Trajectory
+                    };
 
-                    var kubectlExecution = await _threadRepository.ListPendingKubectlExecutionAsync(_context.ThreadId);
-                    if (kubectlExecution == null)
-                    {
-                        // if cliExecution is null, it means no pending execution, which means something (e.g. validation failed)
-                        // we need to return the error message to LLM.
-                        toolResults.Add(new ManualToolCallResult()
-                        {
-                            FunctionCall = toolCall.FunctionCall,
-                            Output = functionResult
-                        });
-                    }
-                    else
-                    {
-                        kubectlExecution = kubectlExecution with
-                        {
-                            AgentContextId = _context.Id,
-                        };
-                        await _threadRepository.UpdateKubectlExecutionAsync(_context.ThreadId, kubectlExecution);
-                        break;
-                    }
-                }
-                else if (checkApprovalResult.ApprovalStatus == ToolApprovalStatus.NotRequired || checkApprovalResult.ApprovalStatus == ToolApprovalStatus.AutoApproved)
-                {
-                    var functionResult = await InvokeToolWithErrorHandlingAsync(toolCall, cancellationToken);
-                    toolResults.Add(new ManualToolCallResult()
-                    {
-                        FunctionCall = toolCall.FunctionCall,
-                        Output = functionResult
-                    });
+                    // simulate the handoff
+                    runResult.NewItems.Add(new ChatMessage(ChatRole.Assistant, [
+                        new FunctionCallContent(toolCall.FunctionCall.CallId, $"transfer_to_{_currentAgent.Name}", new Dictionary<string, object?>())
+                    ]));
+                    runResult.NewItems.Add(new ChatMessage(ChatRole.Tool, [
+                        new FunctionResultContent(toolCall.FunctionCall.CallId, $"{{'assistant': '{_currentAgent.Name}'}}") // copied from src\Agent\Agent.Framework\Handoff.cs
+                    ]));
                 }
                 else
                 {
-                    // if approval is required, stop the loop and wait for approval
-                    break;
+                    var checkApprovalResult = await CheckApprovalAsync(toolCall);
+                    var checkAzCliWrite = CheckAzCliWriteToolCallAsync(toolCall);
+                    var checkKubectlWrite = CheckKubectlWriteToolCallAsync(toolCall);
+
+                    if (checkAzCliWrite)
+                    {
+                        var functionResult = await InvokeToolWithErrorHandlingAsync(toolCall, cancellationToken);
+
+                        var cliExecution = await _threadRepository.ListPendingAzCliExecutionAsync(_context.ThreadId);
+                        if (cliExecution == null)
+                        {
+                            // if cliExecution is null, it means no pending execution, which means something (e.g. validation failed)
+                            // we need to return the error message to LLM.
+                            toolResults.Add(new ManualToolCallResult()
+                            {
+                                FunctionCall = toolCall.FunctionCall,
+                                Output = functionResult
+                            });
+                        }
+                        else
+                        {
+                            cliExecution = cliExecution with
+                            {
+                                AgentContextId = _context.Id,
+                            };
+                            await _threadRepository.UpdateAzCliExecutionAsync(_context.ThreadId, cliExecution);
+                            break;
+                        }
+                    }
+                    else if (checkKubectlWrite)
+                    {
+                        var functionResult = await InvokeToolWithErrorHandlingAsync(toolCall, cancellationToken);
+
+                        var kubectlExecution = await _threadRepository.ListPendingKubectlExecutionAsync(_context.ThreadId);
+                        if (kubectlExecution == null)
+                        {
+                            // if cliExecution is null, it means no pending execution, which means something (e.g. validation failed)
+                            // we need to return the error message to LLM.
+                            toolResults.Add(new ManualToolCallResult()
+                            {
+                                FunctionCall = toolCall.FunctionCall,
+                                Output = functionResult
+                            });
+                        }
+                        else
+                        {
+                            kubectlExecution = kubectlExecution with
+                            {
+                                AgentContextId = _context.Id,
+                            };
+                            await _threadRepository.UpdateKubectlExecutionAsync(_context.ThreadId, kubectlExecution);
+                            break;
+                        }
+                    }
+                    else if (checkApprovalResult.ApprovalStatus == ToolApprovalStatus.NotRequired || checkApprovalResult.ApprovalStatus == ToolApprovalStatus.AutoApproved)
+                    {
+                        var functionResult = await InvokeToolWithErrorHandlingAsync(toolCall, cancellationToken);
+                        toolResults.Add(new ManualToolCallResult()
+                        {
+                            FunctionCall = toolCall.FunctionCall,
+                            Output = functionResult
+                        });
+                    }
+                    else
+                    {
+                        // if approval is required, stop the loop and wait for approval
+                        break;
+                    }
                 }
 
                 runResult = await Runner.ResumeFromManualToolsAsync(
@@ -398,10 +444,15 @@ public class ReasoningLoop
                     cancellationToken: cancellationToken
                 );
 
+                // remove handoff back tool call
+                // assumes only 1 function call
+                lastToolCall = runResult.NewItems.LastOrDefault()?.Contents.OfType<FunctionCallContent>().SingleOrDefault();
+                if (lastToolCall != null && lastToolCall.Name == "HandoffBack")
+                {
+                    runResult.NewItems.RemoveAt(runResult.NewItems.Count - 1);
+                }
+
                 await PersistReasoningMessagesAsync(agentChatHistory, runResult.NewItems);
-                _currentAgent = runResult.LastAgent;
-                _context = _context with { CurrentAgent = _currentAgent.Name };
-                _context = await _threadRepository.UpdateAgentContextAsync(_context);
             }
 
             if (runResult.Output != null)

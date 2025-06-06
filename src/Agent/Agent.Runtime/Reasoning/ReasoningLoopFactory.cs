@@ -45,7 +45,22 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
 
     public async Task<ReasoningLoop> Create(AgentContext context)
     {
-        var agent = _agentFactory.GetAgent(context.CurrentAgent ?? "meta_agent");
+        var agentName = "meta_agent";
+        if (context.AgentHandoffChain.Count > 0)
+        {
+            // If the agent stack is provided, use the last agent in the stack
+            agentName = context.AgentHandoffChain[^1];
+        }
+        else
+        {
+            if (context.CurrentAgent != null)
+            {
+                agentName = context.CurrentAgent;
+            }
+
+            context.AgentHandoffChain.Add(agentName);
+        }
+        var agent = _agentFactory.GetAgent(agentName);
         // Create and return a new instance of ReasoningLoop
         var loop = new ReasoningLoop(
             _loggerFactory.CreateLogger<ReasoningLoop>(),
@@ -56,7 +71,8 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
             _threadRepository,
             context,
             _toolFactory,
-            _actionSettings);
+            _actionSettings,
+            _agentFactory);
 
         await loop.LoadChatHistoryAsync();
         return loop;

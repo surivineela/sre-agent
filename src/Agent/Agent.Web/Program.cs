@@ -271,6 +271,7 @@ public class Program
             .AddTransient<FunctionAppConfigurationChecksPluginDefinition>()
             .AddTransient<FunctionAppDeploymentChecksPluginDefinition>()
             .AddTransient<UserInteractionPluginDefinition>()
+            .AddTransient<AgentControlFlowPluginDefinition>()
 
             .AddTransient<IMetaAgentContainerAppsRemediationPlugin, ContainerAppsRemediationPlugin>()
             .AddTransient<IMetaAgentManagedIdentityMigrationPlugin, ManagedIdentityMigrationPlugin>()
