@@ -88,5 +88,6 @@ tools:
 max_reflection_count: 3
 
 critic_prompt_path: "AgentsV2/Prompts/aks-critic-prompt_medium.txt"
+
 # the model makes many more tool calls on higher temperature
 # temperature: 0.8

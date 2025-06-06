@@ -48,7 +48,7 @@ public abstract class RunResultBase<TContext> where TContext : class
 
     public abstract Agent<TContext> LastAgent { get; }
 
-    public Trajectory Trajectory { get; set; } = new Trajectory();
+    public required Trajectory Trajectory { get; init; }
 }
 
 public class RunResult<TContext>(Agent<TContext> agent) : RunResultBase<TContext> where TContext : class

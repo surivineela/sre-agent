@@ -9,14 +9,12 @@ namespace Agent.Framework;
 public class SingleStepResult<TContext> where TContext : class
 {
     public required ChatResponse ModelResponse { get; set; }
-    public List<ChatMessage> OriginalInput { get; set; } = [];
+    public required List<ChatMessage> OriginalInput { get; set; }
     public List<ChatMessage> PreStepItems { get; set; } = [];
     public List<ChatMessage> NewStepItems { get; set; } = [];
     public required NextStep<TContext> NextStep { get; set; }
 
     public List<ChatMessage> GeneratedItems => [.. PreStepItems, .. NewStepItems];
-
-    public Trajectory Trajectory { get; set; } = new Trajectory();
 }
 
 public enum NextStepType
