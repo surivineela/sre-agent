@@ -7,5 +7,5 @@ ContainerAppControllerEvents
 | where EnvironmentName =~ clusterName
 | where PodName != ""
 | where PodName startswith podNamePrefix
-| summarize StartTime = min(TIMESTAMP), EndTime = max(TIMESTAMP) by  Node = Role, PodName
+| summarize StartTime = min(PreciseTimeStamp), EndTime = max(PreciseTimeStamp) by  Node = Role, PodName
 | take 1000 

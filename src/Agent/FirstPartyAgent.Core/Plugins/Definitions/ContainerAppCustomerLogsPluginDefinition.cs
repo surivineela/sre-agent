@@ -122,6 +122,9 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
         [KernelFunction(KernelFunctionNames.ACA.GetLogProcessorPods)]
         [Description(
             @"Get list of Log Processor Pods for the container app environment at start and end of time window.
+            
+            Returns list of log processor pods along with their start and end time and the node on which they are running. If many pods on the same node have short duration, it may indicate issue with log processor on the node.
+
             If no data is returned then it may mean no log processor pods are present or there is an issue with the provided inputs. Please ensure those are correct otherwise re-run the tool.")]
         public Task<string> GetLogProcessorPods(
             [Description("Azure region in lower case. example: 'westeurope'")] string region,
@@ -138,7 +141,7 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
 
         [KernelFunction(KernelFunctionNames.ACA.GetEventProcessorPodStatus)]
         [Description(
-            @"Get list of Event Processor Pod Status for the container app environment at start and end of time window.
+            @"Get list of Event Processor Pod Status along with their restart counts for the container app environment at start and end of time window.
             If no data is returned then it may mean no event processor pod status data is present or there is an issue with the provided inputs. Please ensure those are correct otherwise re-run the tool.")]
         public Task<string> GetEventProcessorPodStatus(
             [Description("Azure region in lower case. example: 'westeurope'")] string region,
@@ -155,7 +158,7 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
 
         [KernelFunction(KernelFunctionNames.ACA.GetLogProcessorPodStatus)]
         [Description(
-            @"Get list of Log Processor Pod Status for the container app environment at start and end of time window.
+            @"Get list of Log Processor Pod Status along with their restart counts for the container app environment at start and end of time window.
             If no data is returned then it may mean no log processor pod status data is present or there is an issue with the provided inputs. Please ensure those are correct otherwise re-run the tool.")]
         public Task<string> GetLogProcessorPodStatus(
             [Description("Azure region in lower case. example: 'westeurope'")] string region,

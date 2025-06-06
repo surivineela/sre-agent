@@ -10,5 +10,8 @@ ContainerAppControllerEvents
 | where PodNamespace == podNamespace
 | where PodName contains podNamePrefix
 | project PreciseTimeStamp,PodName,PodStatus,NodeName,PodContainerStatus
-| summarize StartTime = min(PreciseTimeStamp),EndTime=max(PreciseTimeStamp) by PodName,PodStatus,NodeName
-| project StartTime, EndTime, PodName, NodeName, PodStatus, Health = iff(PodStatus in ("Running","Succeeded"),"Healthy","Degraded")
+| extend containers = parse_json(PodContainerStatus)
+| mv-expand containers
+| extend restartCount= todecimal(containers.restartCount)
+| summarize StartTime = min(PreciseTimeStamp),EndTime=max(PreciseTimeStamp),restartCount= max(restartCount) by PodName,PodStatus,NodeName
+| project StartTime, EndTime, PodName, NodeName, PodStatus, Health = iff(PodStatus in ("Running","Succeeded"),"Healthy","Degraded"), restartCount
