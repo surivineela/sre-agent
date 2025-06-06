@@ -37,3 +37,19 @@ configuration:
       requiredStatusChecks:
       - build-dotnet
       - build-npm
+    - branchNamePattern: "rcaagent-port-new-framework"
+      requiredApprovingReviewsCount: 2
+      restrictsPushes: true
+      requireLastPushApproval: true
+      requiresConversationResolution: true
+      requiresPullRequestBeforeMerging: true
+      dismissStaleReviews: true
+      allowsForcePushes: true
+      isAdminEnforced: false
+      whoCanPush:
+      - k4appscore
+      - srea-devs
+      requiredStatusChecks:
+      - GitOps/AdvancedSecurity
+      - build-dotnet
+      - build-npm
