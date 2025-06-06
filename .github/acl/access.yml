@@ -22,4 +22,7 @@ configuration:
     role: Write
   - team: srea-readers
     role: Read
-  
+  - member: vsoto
+    role: Maintain
+  - member: dashe
+    role: Maintain
