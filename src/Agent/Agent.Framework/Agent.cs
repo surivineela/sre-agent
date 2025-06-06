@@ -22,7 +22,7 @@ public class Agent<TContext> where TContext : class
 
     public List<string> StandardToolNames => Tools.Select(t => t.Name).ToList();
 
-    public IReadOnlyList<Handoff<TContext>> Handoffs { get; set; } = [];
+    public List<Handoff<TContext>> Handoffs { get; set; } = [];
 
     public List<string> HandoffNames => Handoffs.Select(h => h.Name).ToList();
 

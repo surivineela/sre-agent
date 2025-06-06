@@ -73,6 +73,24 @@ public class KernelFunctionHelpers
         }
     }
 
+    public static string ApplyWordTruncation(string input)
+    {
+        const int maxWords = 1000;
+
+        var words = input.Split(new[] { ' ', '\t', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+
+        if (words.Length <= maxWords)
+            return input;
+
+        var truncatedWords = words.Take(maxWords);
+        var truncatedText = string.Join(" ", truncatedWords);
+
+        var remainingWords = words.Length - maxWords;
+        truncatedText += $"\n\n[TRUNCATED: Output limited to first {maxWords} words. {remainingWords} additional words were cut.]";
+
+        return truncatedText;
+    }
+
     public static string ApplyEventLimit(string events)
     {
         const int maxEvents = 20;

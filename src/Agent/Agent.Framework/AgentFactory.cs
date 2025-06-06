@@ -153,9 +153,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
                 }
             }
 
-            agent.Handoffs = agentDescriptor.Handoffs
-                .Select(h => Handoff<TContext>.Create(_agents[h]))
-                .ToList();
+            agent.Handoffs = agentDescriptor.Handoffs.Select(h => Handoff<TContext>.Create(_agents[h])).ToList();
         }
     }
 

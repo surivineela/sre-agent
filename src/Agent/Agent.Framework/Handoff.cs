@@ -10,7 +10,7 @@ public class Handoff<TContext> : AIFunction where TContext : class
 {
     public string AgentName { get; }
 
-    public string TransferMessage => GetTransferMessage(AgentName);
+    public string TransferMessage => $"{{'assistant': '{AgentName}'}}";
 
     public Type? InputType { get; }
 
@@ -59,11 +59,6 @@ public class Handoff<TContext> : AIFunction where TContext : class
     public static string DefaultToolDescription(Agent<TContext> agent)
     {
         return $"Handoff to the {agent.Name} agent to handle the request. {agent.HandoffDescription}";
-    }
-
-    public static string GetTransferMessage(string agentName)
-    {
-        return $"{{'assistant': '{agentName}'}}";
     }
 
     public static Handoff<TContext> Create(
