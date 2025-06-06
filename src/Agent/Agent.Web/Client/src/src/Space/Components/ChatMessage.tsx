@@ -288,42 +288,58 @@ const AzCliExecutionComponent: React.FC<{
         setIsActionLoading(true);
         setLoadingAction(action);
 
-        try {
-            const response = await axios.post(
-                `/api/v1/azCliExecution/${threadId}/${execution.id}/action`,
-                {
-                    action,
-                    user: userIdAndDisplayName?.userId || 'sreagent-client',
-                },
-                { headers: getAgentHeaders() }
-            );
+        const maxRetries = 3;
+        const baseDelay = 1000;
 
-            if (response.data) {
-                setCurrentExecution(prev => ({
-                    ...prev,
-                    status: response.data.status,
-                    startedTimestamp: response.data.startedTimestamp || prev.startedTimestamp,
-                    executedBy: response.data.executedBy
-                        ? {
-                              displayName: response.data.executedBy,
-                              userId: response.data.executedById,
-                              role: 'User',
-                          }
-                        : prev.executedBy,
-                }));
-            }
-        } catch (error: any) {
-            console.error(`Failed to ${action} execution:`, error);
+        for (let attempt = 0; attempt <= maxRetries; attempt++) {
+            try {
+                const response = await axios.post(
+                    `/api/v1/azCliExecution/${threadId}/${execution.id}/action`,
+                    {
+                        action,
+                        user: userIdAndDisplayName?.userId || 'sreagent-client',
+                    },
+                    { headers: getAgentHeaders() }
+                );
 
-            if (error.response?.status === 409) {
-                alert(`Cannot ${action} - execution is already ${error.response.data.currentStatus}`);
-            } else {
-                alert(`Failed to ${action} execution. Please try again.`);
+                if (response.data) {
+                    setCurrentExecution(prev => ({
+                        ...prev,
+                        status: response.data.status,
+                        startedTimestamp: response.data.startedTimestamp || prev.startedTimestamp,
+                        executedBy: response.data.executedBy
+                            ? {
+                                  displayName: response.data.executedBy,
+                                  userId: response.data.executedById,
+                                  role: 'User',
+                              }
+                            : prev.executedBy,
+                    }));
+                }
+
+                // Success - break out of retry loop
+                break;
+            } catch (error: any) {
+                console.error(`Failed to ${action} execution (attempt ${attempt + 1}/${maxRetries + 1}):`, error);
+
+                // If this was the last attempt, handle the error
+                if (attempt === maxRetries) {
+                    if (error.response?.status === 409) {
+                        alert(`Cannot ${action} - execution is already ${error.response.data.currentStatus}`);
+                    } else {
+                        alert(`Failed to ${action} execution after ${maxRetries + 1} attempts. Please try again.`);
+                    }
+                } else {
+                    // Wait before retrying (exponential backoff)
+                    const delay = baseDelay * Math.pow(2, attempt);
+                    console.log(`Retrying in ${delay}ms...`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
             }
-        } finally {
-            setIsActionLoading(false);
-            setLoadingAction(null);
         }
+
+        setIsActionLoading(false);
+        setLoadingAction(null);
     };
 
     return (
@@ -785,42 +801,58 @@ const KubectlExecutionComponent: React.FC<{
         setIsActionLoading(true);
         setLoadingAction(action);
 
-        try {
-            const response = await axios.post(
-                `/api/v1/kubectlExecution/${threadId}/${execution.id}/action`,
-                {
-                    action,
-                    user: userIdAndDisplayName?.userId || 'sreagent-client',
-                },
-                { headers: getAgentHeaders() }
-            );
+        const maxRetries = 3;
+        const baseDelay = 1000;
 
-            if (response.data) {
-                setCurrentExecution(prev => ({
-                    ...prev,
-                    status: response.data.status,
-                    startedTimestamp: response.data.startedTimestamp || prev.startedTimestamp,
-                    executedBy: response.data.executedBy
-                        ? {
-                              displayName: response.data.executedBy,
-                              userId: response.data.executedById,
-                              role: 'User',
-                          }
-                        : prev.executedBy,
-                }));
-            }
-        } catch (error: any) {
-            console.error(`Failed to ${action} execution:`, error);
+        for (let attempt = 0; attempt <= maxRetries; attempt++) {
+            try {
+                const response = await axios.post(
+                    `/api/v1/kubectlExecution/${threadId}/${execution.id}/action`,
+                    {
+                        action,
+                        user: userIdAndDisplayName?.userId || 'sreagent-client',
+                    },
+                    { headers: getAgentHeaders() }
+                );
 
-            if (error.response?.status === 409) {
-                alert(`Cannot ${action} - execution is already ${error.response.data.currentStatus}`);
-            } else {
-                alert(`Failed to ${action} execution. Please try again.`);
+                if (response.data) {
+                    setCurrentExecution(prev => ({
+                        ...prev,
+                        status: response.data.status,
+                        startedTimestamp: response.data.startedTimestamp || prev.startedTimestamp,
+                        executedBy: response.data.executedBy
+                            ? {
+                                  displayName: response.data.executedBy,
+                                  userId: response.data.executedById,
+                                  role: 'User',
+                              }
+                            : prev.executedBy,
+                    }));
+                }
+
+                // Success - break out of retry loop
+                break;
+            } catch (error: any) {
+                console.error(`Failed to ${action} execution (attempt ${attempt + 1}/${maxRetries + 1}):`, error);
+
+                // If this was the last attempt, handle the error
+                if (attempt === maxRetries) {
+                    if (error.response?.status === 409) {
+                        alert(`Cannot ${action} - execution is already ${error.response.data.currentStatus}`);
+                    } else {
+                        alert(`Failed to ${action} execution after ${maxRetries + 1} attempts. Please try again.`);
+                    }
+                } else {
+                    // Wait before retrying (exponential backoff)
+                    const delay = baseDelay * Math.pow(2, attempt);
+                    console.log(`Retrying in ${delay}ms...`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
             }
-        } finally {
-            setIsActionLoading(false);
-            setLoadingAction(null);
         }
+
+        setIsActionLoading(false);
+        setLoadingAction(null);
     };
 
     return (
