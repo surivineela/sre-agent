@@ -27,5 +27,9 @@ namespace Agent.Web.Models.WebSocket
         // Only used for debugging and testing purposes
         [JsonPropertyName("textOnly"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public bool? TextOnly { get; set; }
+
+        // Mirrored back for all requests associated with a specific stream
+        [JsonPropertyName("streamId"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public string? StreamId { get; set; }
     }
 }

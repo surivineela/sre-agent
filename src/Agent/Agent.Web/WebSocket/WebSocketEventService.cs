@@ -60,7 +60,7 @@ namespace Agent.Web.WebSocket
                         AdditionalProperties = new AdditionalPropertiesDictionary
                         {
                             { "websocketId", _webSocketId.ToString() },
-                            { "actionName", nameof(OnMessage) }
+                            { "actionName", nameof(OnMessage) },
                         }
                     };
                     Send(JsonSerializer.Serialize(errorMessage));
@@ -70,7 +70,7 @@ namespace Agent.Web.WebSocket
                 switch (message.MessageType)
                 {
                     case "CreateMessage":
-                        await ProcessCreateMessage(threadId, message.Content, message.TextOnly ?? false);
+                        await ProcessCreateMessage(threadId, message.Content, message.TextOnly ?? false, message.StreamId ?? string.Empty);
                         break;
                     default:
                         var errorMessage = new ChatResponseUpdate
@@ -83,7 +83,8 @@ namespace Agent.Web.WebSocket
                             AdditionalProperties = new AdditionalPropertiesDictionary
                             {
                                 { "websocketId", _webSocketId.ToString() },
-                                { "actionName", nameof(OnMessage) }
+                                { "actionName", nameof(OnMessage) },
+                                { "streamId", message.StreamId ?? string.Empty }
                             }
                         };
                         _logger.LogInternalError("Unknown message type: " + message.MessageType);
@@ -104,7 +105,7 @@ namespace Agent.Web.WebSocket
                     AdditionalProperties = new AdditionalPropertiesDictionary
                     {
                         { "websocketId", _webSocketId.ToString() },
-                        { "actionName", nameof(OnMessage) }
+                        { "actionName", nameof(OnMessage) },
                     }
                 };
                 Send(JsonSerializer.Serialize(errorMessage));
@@ -129,7 +130,7 @@ namespace Agent.Web.WebSocket
             }
         }
 
-        private async Task ProcessCreateMessage(Guid threadId, string content, bool textOnly = false)
+        private async Task ProcessCreateMessage(Guid threadId, string content, bool textOnly = false, string streamId = "")
         {
             IAsyncEnumerable<ChatResponseUpdate> results = AsyncEnumerable.Empty<ChatResponseUpdate>();
             try
@@ -166,7 +167,8 @@ namespace Agent.Web.WebSocket
                         { "messageId", messageId.ToString() },
                         { "threadId", threadId.ToString() },
                         { "userId", createMessageRequest.UserId },
-                        { "actionName", nameof(ProcessCreateMessage) }
+                        { "actionName", nameof(ProcessCreateMessage) },
+                        { "streamId", streamId }
                     }
                 };
                 Send(JsonSerializer.Serialize(userMessage));
@@ -186,6 +188,7 @@ namespace Agent.Web.WebSocket
                     result.AdditionalProperties ??= new AdditionalPropertiesDictionary();
                     result.AdditionalProperties["websocketId"] = _webSocketId.ToString();
                     result.AdditionalProperties["actionName"] = nameof(ProcessCreateMessage);
+                    result.AdditionalProperties["streamId"] = streamId;
 
                     if (textOnly)
                     {
