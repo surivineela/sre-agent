@@ -69,6 +69,7 @@ namespace Agent.Web.Controllers.v1
             var authzHeader = Request.Headers["Authorization"].ToString();
             string userName = "Unknown User";
             string userId = request.User ?? "sreagent-client"; // Use provided user or default
+            string? userEmail = null;
 
             // Check if user is sreagent-client (frontend default)
             if (userId == "sreagent-client")
@@ -85,6 +86,7 @@ namespace Agent.Web.Controllers.v1
 
                     if (jsonToken != null)
                     {
+                        userEmail = jsonToken.Claims.FirstOrDefault(c => c.Type == "upn")?.Value ?? jsonToken.Claims.FirstOrDefault(c => c.Type == "unique_name")?.Value;
                         userId = jsonToken.Claims.FirstOrDefault(c => c.Type == "oid")?.Value ?? userId;
                         var givenName = jsonToken.Claims.FirstOrDefault(c => c.Type == "given_name")?.Value;
                         var familyName = jsonToken.Claims.FirstOrDefault(c => c.Type == "family_name")?.Value;
@@ -118,7 +120,7 @@ namespace Agent.Web.Controllers.v1
                         Status = KubectlExecutionStatus.Running,
                         StartedTimestamp = DateTime.UtcNow,
                         ExecutedBy = new Author(
-                            DisplayName: userName,
+                            DisplayName: $"{userName} <{userEmail}>",
                             UserId: userId,
                             Role: Role.User
                         )
@@ -188,7 +190,7 @@ namespace Agent.Web.Controllers.v1
                     return Ok(new
                     {
                         status = "Running",
-                        executedBy = userName,
+                        executedBy = $"{userName} <{userEmail}>",
                         executedById = userId,
                         startedTimestamp = DateTime.UtcNow
                     });
@@ -200,7 +202,7 @@ namespace Agent.Web.Controllers.v1
                         Status = KubectlExecutionStatus.Cancelled,
                         CompletedTimestamp = DateTime.UtcNow,
                         ExecutedBy = new Author(
-                            DisplayName: userName,
+                            DisplayName: $"{userName} <{userEmail}>",
                             UserId: userId,
                             Role: Role.User
                         )
@@ -210,7 +212,7 @@ namespace Agent.Web.Controllers.v1
                     return Ok(new
                     {
                         status = "Cancelled",
-                        cancelledBy = userName,
+                        cancelledBy = $"{userName} <{userEmail}>",
                         cancelledById = userId,
                         cancelledTimestamp = DateTime.UtcNow
                     });

@@ -109,7 +109,7 @@ namespace Agent.Plugins.Implementation
             {
                 vmPowerOnResult = false;
                 message = $"Error powering on the virtual machine: {ex.Message}";
-        }
+            }
 
             return new RemediationResult(
                     Success: vmPowerOnResult,
@@ -158,7 +158,7 @@ namespace Agent.Plugins.Implementation
         public async Task<string> RunAzCliReadCommandsAsync(string command)
         {
             try
-                {
+            {
                 if (!IsReadOnlyCommand(command))
                 {
                     return "Error: This method only supports read operations (list, show, get). Use RunAzCliWriteCommandsAsync for write operations.";
@@ -171,80 +171,90 @@ namespace Agent.Plugins.Implementation
 
                 var executionId = Guid.NewGuid();
 
-                    // Create execution record in Pending state
-                    var execution = new AzCliExecution(
-                        Id: executionId,
-                        Command: command,
-                        Description: GetCommandDescription(command),
-                        Status: AzCliExecutionStatus.Running,
-                        Output: null,
-                        Error: null,
-                        CreatedTimestamp: DateTime.UtcNow,
-                        StartedTimestamp: DateTime.UtcNow,
-                        CompletedTimestamp: null,
-                        ExecutedBy: null,
-                        AgentContextId: null
-                    );
+                // Create execution record in Pending state
+                var execution = new AzCliExecution(
+                    Id: executionId,
+                    Command: command,
+                    Description: GetCommandDescription(command),
+                    Status: AzCliExecutionStatus.Running,
+                    Output: null,
+                    Error: null,
+                    CreatedTimestamp: DateTime.UtcNow,
+                    StartedTimestamp: DateTime.UtcNow,
+                    CompletedTimestamp: null,
+                    ExecutedBy: null,
+                    AgentContextId: null
+                );
 
-                    await _threadRepository.CreateAzCliExecutionAsync(ThreadId.Value, execution);
+                await _threadRepository.CreateAzCliExecutionAsync(ThreadId.Value, execution);
 
-                    // Create a new message with the execution
-                    var message = new Message(
-                        Id: Guid.NewGuid(),
-                        TimeStamp: DateTime.UtcNow,
-                        Author: new Author(
+                // Create a new message with the execution
+                var message = new Message(
+                    Id: Guid.NewGuid(),
+                    TimeStamp: DateTime.UtcNow,
+                    Author: new Author(
+                        DisplayName: "SRE Agent",
+                        UserId: "SREAgent",
+                        Role: Role.SREAgent
+                    ),
+                    Text: "",
+                    IsImageContent: false,
+                    Posted: new Posted(false),
+                    Approval: null,
+                    AzCliExecution: execution,
+                    IncidentDiscussionId: null,
+                    IsDailyReport: false
+                );
+
+                await _threadRepository.AddMessageAsync(ThreadId.Value, message);
+                try
+                {
+                    // Execute the actual command synchronously
+                    var output = await _armHelper.RunAzCliReadCommandsAsync(command);
+
+                    // Update execution with success
+                    execution = execution with
+                    {
+                        Status = AzCliExecutionStatus.Completed,
+                        ExecutedBy = new Author(
                             DisplayName: "SRE Agent",
-                            UserId: "SREAgent",
-                            Role: Role.SREAgent
+                            UserId: "SRE Agent",
+                            Role: Role.User
                         ),
-                        Text: "",
-                        IsImageContent: false,
-                        Posted: new Posted(false),
-                        Approval: null,
-                        AzCliExecution: execution,
-                        IncidentDiscussionId: null,
-                        IsDailyReport: false
-                    );
+                        Output = output,
+                        CompletedTimestamp = DateTime.UtcNow
+                    };
 
-                    await _threadRepository.AddMessageAsync(ThreadId.Value, message);
-                    try
+                    await _threadRepository.UpdateAzCliExecutionAsync(ThreadId.Value, execution);
+
+                    // Return the actual output
+                    return $"Azure CLI command completed successfully. Output: {output}";
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogInternalError(ex, "Failed to execute read command: {Command}", command);
+
+                    // Update execution with failure
+                    execution = execution with
                     {
-                        // Execute the actual command synchronously
-                        var output = await _armHelper.RunAzCliReadCommandsAsync(command);
+                        Status = AzCliExecutionStatus.Failed,
+                        ExecutedBy = new Author(
+                            DisplayName: "SRE Agent",
+                            UserId: "SRE Agent",
+                            Role: Role.User
+                        ),
+                        Error = ex.Message,
+                        CompletedTimestamp = DateTime.UtcNow
+                    };
 
-                        // Update execution with success
-                        execution = execution with
-                        {
-                            Status = AzCliExecutionStatus.Completed,
-                            Output = output,
-                            CompletedTimestamp = DateTime.UtcNow
-                        };
+                    await _threadRepository.UpdateAzCliExecutionAsync(ThreadId.Value, execution);
 
-                        await _threadRepository.UpdateAzCliExecutionAsync(ThreadId.Value, execution);
-
-                        // Return the actual output
-                        return $"Azure CLI command completed successfully. Output: {output}";
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger?.LogInternalError(ex, "Failed to execute read command: {Command}", command);
-
-                        // Update execution with failure
-                        execution = execution with
-                        {
-                            Status = AzCliExecutionStatus.Failed,
-                            Error = ex.Message,
-                            CompletedTimestamp = DateTime.UtcNow
-                        };
-
-                        await _threadRepository.UpdateAzCliExecutionAsync(ThreadId.Value, execution);
-
-                        throw; // Re-throw to let the caller handle the error
-                    }
+                    throw; // Re-throw to let the caller handle the error
+                }
             }
             catch (Exception ex)
             {
-               _logger?.LogInternalError(ex, "Failed to create execution for command: {Command}", command);
+                _logger?.LogInternalError(ex, "Failed to create execution for command: {Command}", command);
                 return $"Failed to prepare command execution: {ex.Message}";
             }
         }

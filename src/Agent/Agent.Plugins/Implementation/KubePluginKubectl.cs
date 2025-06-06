@@ -100,6 +100,11 @@ namespace Agent.Plugins
                     execution = execution with
                     {
                         Status = KubectlExecutionStatus.Completed,
+                        ExecutedBy = new Author(
+                            DisplayName: "SRE Agent",
+                            UserId: "SRE Agent",
+                            Role: Role.User
+                        ),
                         Output = output,
                         CompletedTimestamp = DateTime.UtcNow
                     };
@@ -117,6 +122,11 @@ namespace Agent.Plugins
                     execution = execution with
                     {
                         Status = KubectlExecutionStatus.Failed,
+                        ExecutedBy = new Author(
+                            DisplayName: "SRE Agent",
+                            UserId: "SRE Agent",
+                            Role: Role.User
+                        ),
                         Error = ex.Message,
                         CompletedTimestamp = DateTime.UtcNow
                     };
