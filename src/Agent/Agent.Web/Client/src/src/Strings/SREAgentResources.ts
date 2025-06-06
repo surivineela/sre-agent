@@ -147,6 +147,7 @@ export const SreAgentTabResources = defineMessages({
     activities: { defaultMessage: 'Activities', id: 'UmEsZF' },
     settings: { defaultMessage: 'Settings', id: 'D3idYv' },
     resourceMapping: { defaultMessage: 'Resource mapping', id: 'TdeXH0' },
+    incidentHandlers: { defaultMessage: 'Incident handlers', id: '5/4URn' },
     logs: { defaultMessage: 'Logs', id: 'SNuQo7' },
     feedback: { defaultMessage: 'Give us feedback', id: 'aQPexO' },
     incidentManagement: { defaultMessage: 'Incident management', id: 'T7WpWs' },
@@ -570,4 +571,9 @@ export const AppHealth = defineMessages({
     degraded: { defaultMessage: 'Degraded', id: 'VQDmmK' },
     reportUnhealthyNode: { defaultMessage: 'Report unhealthy node', id: 'YE+vjH' },
     sendingReport: { defaultMessage: 'Sending a report...', id: '5GUtRJ' },
+});
+
+export const IncidentHandlerCreateResources = defineMessages({
+    generateHandler: { defaultMessage: 'Generate handler', id: 'QZoqFk' },
+    reviewAndEdit: { defaultMessage: 'Review + Edit', id: 'AsJvG0' },
 });

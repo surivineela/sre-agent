@@ -1,24 +1,23 @@
 import { Button, Dropdown, Input } from '@fluentui/react-components';
 import { Add16Regular, Delete16Regular } from '@fluentui/react-icons';
-import { FC, useCallback } from 'react';
+import { FC } from 'react';
 import { useIntl } from 'react-intl';
 import { IncidentManagementResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { useIncidentManagementStyles } from '../Styles/IncidentManagement.styles';
 import IncidentHandlerDetailsList from './IncidentHandlerDetailsList';
+interface IncidentHandlerTabProps {
+    openHandlerCreate?: () => void;
+}
 
-const IncidentHandlerTab: FC = () => {
+const IncidentHandlerTab: FC<IncidentHandlerTabProps> = ({ openHandlerCreate }) => {
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
-
-    const onNewIncidentHandlerClick = useCallback(async () => {
-        //TODO: new incident handler
-    }, []);
 
     return (
         <div className={styles.tabRoot}>
             <div className={styles.toolbar}>
                 <div style={{ display: 'flex', gap: '8px' }}>
-                    <Button icon={<Add16Regular />} appearance="transparent" className={styles.button} onClick={onNewIncidentHandlerClick}>
+                    <Button icon={<Add16Regular />} appearance="transparent" className={styles.button} onClick={openHandlerCreate}>
                         {intl.formatMessage(IncidentManagementResources.newIncidentHandler)}
                     </Button>
                     <div className={styles.divider} />

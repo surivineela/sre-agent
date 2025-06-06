@@ -231,6 +231,12 @@
       "value": "Approved by"
     }
   ],
+  "5/4URn": [
+    {
+      "type": 0,
+      "value": "Incident handlers"
+    }
+  ],
   "5GUtRJ": [
     {
       "type": 0,
@@ -463,6 +469,12 @@
     {
       "type": 0,
       "value": "Monitoring Reader Role"
+    }
+  ],
+  "AsJvG0": [
+    {
+      "type": 0,
+      "value": "Review + Edit"
     }
   ],
   "AuFOi8": [
@@ -891,6 +903,12 @@
     {
       "type": 0,
       "value": "Agent"
+    }
+  ],
+  "QZoqFk": [
+    {
+      "type": 0,
+      "value": "Generate handler"
     }
   ],
   "QkOLyp": [
