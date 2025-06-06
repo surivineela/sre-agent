@@ -13,6 +13,7 @@ public interface IReasoningLoopManager
 {
     Task AppendNewMessageAsync(AgentContext context, ChatMessage msg, CancellationToken cancellationToken = default);
     IAsyncEnumerable<RunResult<AgentContext>> AppendNewMessageStreamingAsync(AgentContext context, ChatMessage msg, CancellationToken cancellationToken = default);
+    Task<IEnumerable<ChatMessage>> ExportChatHistory(AgentContext agentContext, CancellationToken token = default);
     Task NotifyApprovalDecisionAsync(AgentContext context, Approval approval, CancellationToken cancellationToken = default);
 }
 
@@ -47,6 +48,12 @@ public class ReasoningLoopManager : IReasoningLoopManager
     {
         var loop = await GetOrCreateReasoningLoopAsync(context);
         await loop.AppendNewApprovalMessageAsync(approval, cancellationToken);
+    }
+
+    public async Task<IEnumerable<ChatMessage>> ExportChatHistory(AgentContext context, CancellationToken cancellationToken = default)
+    {
+        var loop = await GetOrCreateReasoningLoopAsync(context);
+        return await loop.ExportChatHistory(cancellationToken);
     }
 
     private async Task<ReasoningLoop> GetOrCreateReasoningLoopAsync(AgentContext context)

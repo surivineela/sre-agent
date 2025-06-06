@@ -1,10 +1,13 @@
 using System.Threading;
+using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
+using Agent.Framework;
 using Agent.Plugins;
 using Agent.Runtime.MetaAgent;
 using Agent.Runtime.MetaAgent.Interfaces;
+using Agent.Runtime.Reasoning;
 using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents.TlsBestPractices;
 using Agent.Tests.Common;
@@ -15,6 +18,7 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.AI.Evaluation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Agent.Evals;
 
@@ -49,7 +53,7 @@ public class TlsHandoffEvals
         _mocks = new E2EMockSetup(DateTimeOffset.Parse("2025-02-24T01:00:00Z"), graphName: "gsimpleweb", logger: null);
         builder.Services.AddServices(_mocks);
 
-        builder.Services.AddPluginDefinitionsForTlsSubAgent();
+        builder.Services.AddPluginDefinitionsForGenericSubAgent();
         builder.Services.AddSingleton<TlsBestPracticesPlugin>();
         builder.Services.AddSingleton<TlsBestPracticeAgentFactory>();
         builder.Services.AddSingleton<IAgentsFactory>( sp =>
@@ -59,6 +63,38 @@ public class TlsHandoffEvals
                 graphDBPlugin: sp.GetRequiredService<GraphDBPlugin>()
                 );
         });
+
+        builder.Services.AddSingleton<IReasoningLoopManager, ReasoningLoopManager>();
+        builder.Services.AddSingleton<IReasoningLoopFactory, ReasoningLoopFactory>();
+        builder.Services.AddSingleton(sp =>
+        {
+            return new ToolFactory<AgentContext>(
+                logger: sp.GetRequiredService<ILogger<ToolFactory<AgentContext>>>(),
+                serviceProvider: sp,
+                assembliesToScan: AppDomain.CurrentDomain.GetAssemblies()
+                    .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
+                    .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true));
+        });
+
+        builder.Services.AddSingleton<IToolFactory<AgentContext>, ToolFactory<AgentContext>>(sp =>
+        {
+            return sp.GetRequiredService<ToolFactory<AgentContext>>();
+        });
+
+        builder.Services.AddSingleton<IAgentFactory<AgentContext>, AgentFactory<AgentContext>>(sp =>
+        {
+            return new AgentFactory<AgentContext>(
+                logger: sp.GetRequiredService<ILogger<AgentFactory<AgentContext>>>(),
+                toolFactory: sp.GetRequiredService<IToolFactory<AgentContext>>(),
+                assembliesToScan: AppDomain.CurrentDomain.GetAssemblies()
+                    .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
+                    .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true),
+                agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "AgentsV2"),
+                commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonPrompts")
+            );
+        });
+
+        builder.Services.AddSingleton<ITitleGenerationService, TitleGenerationService>();
 
         _host = builder.Build();
 
@@ -134,6 +170,7 @@ public class TlsHandoffEvals
             if(orchestrationMetadata != null)
             {
                 await _durableTaskClient.TerminateInstanceAsync(orchestrationMetadata.InstanceId);
+                await Task.Delay(TimeSpan.FromMilliseconds(200));
             }
         }
     }

@@ -36,9 +36,7 @@ public class GenericExecuteActionActivity : TaskActivity<ExecuteActionInput, Exe
         TaskActivityContext context,
         ExecuteActionInput input)
     {
-        // Get all tools and find matching tool
-        var aiFunctions = _toolsRepository.GetAllTools(input.ToolSignatures).Select(_toolsRepository.FindAiFunction);
-        var matchingTool = aiFunctions.Single(x => x.ToolFunction.Name == input.FunctionCallContent.Name);
+        var matchingTool = _toolsRepository.ResolveTool(input);
 
         try
         {

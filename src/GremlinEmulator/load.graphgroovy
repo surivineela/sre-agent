@@ -14,16 +14,27 @@ try {
   def vCount = functionsBadFlexApps.traversal().V().count().next()
   def eCount = functionsBadFlexApps.traversal().E().count().next()
   logger.info("✅ Functions graph loaded successfully: ${vCount} vertices, ${eCount} edges")
-
   simpleWebApps.io(GraphMLIo.build()).readGraph('/opt/graphs/simple-webapps.graphml')
+  funcScenarios1.io(GraphMLIo.build()).readGraph('/opt/graphs/func-scenarios1.graphml')
+  mrsharmAcaDiag.io(GraphMLIo.build()).readGraph('/opt/graphs/mrsharm-aca-diag.graphml')
+
   vCount = simpleWebApps.traversal().V().count().next()
   eCount = simpleWebApps.traversal().E().count().next()
   logger.info("✅ Simple Web Apps graph loaded successfully: ${vCount} vertices, ${eCount} edges")
 
+  vCount = funcScenarios1.traversal().V().count().next()
+  eCount = funcScenarios1.traversal().E().count().next()
+  logger.info("✅ Func Scenarios 1 graph loaded successfully: ${vCount} vertices, ${eCount} edges")
+
+  vCount = mrsharmAcaDiag.traversal().V().count().next()
+  eCount = mrsharmAcaDiag.traversal().E().count().next()
+  logger.info("✅ MrSharm ACA Diag graph loaded successfully: ${vCount} vertices, ${eCount} edges")
   // bind the traversal source 'g' globally after loading
   def globals = [:]
   globals << [gfuncbad : traversal().withEmbedded(functionsBadFlexApps)]
   globals << [gsimpleweb : traversal().withEmbedded(simpleWebApps)]
+  globals << [gfuncscenarios1 : traversal().withEmbedded(funcScenarios1)]
+  globals << [gmrsharmacadiag : traversal().withEmbedded(mrsharmAcaDiag)]
 
 } catch (FileNotFoundException fnf) {
   logger.error("❌ File not found: ${fnf.message}", fnf)

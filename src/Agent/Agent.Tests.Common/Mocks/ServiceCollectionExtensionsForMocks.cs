@@ -57,9 +57,13 @@ public static class ServiceCollectionExtensionsForMocks
     public static void AddServices(this IServiceCollection services, E2EMockSetup mocks)
     {
         services.AddMockServices(mocks.BasicMocks);
-        services.AddLocalGremlin("gsimpleweb");
+        services.AddLocalGremlin(mocks.GraphName);
 
+        // Overwrite the graph mock setup in basic mocks with a real one (it will use the gremlin container)
         services.AddSingleton<GraphDBPlugin>();
+        services.AddSingleton<IGraphDBPlugin, GraphDBPlugin>();
+        services.AddSingleton<GraphDBPluginDefinition>();
+
         services.AddSingleton<ThreadManagementService>();
         services.AddSingleton<IAgentInboundCommunicationService, InboundCommunicationService>();
         services.AddSingleton<IAgentOutboundCommunicationService, OutboundCommunicationService>();

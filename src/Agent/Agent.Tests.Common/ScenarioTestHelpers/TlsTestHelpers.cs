@@ -12,7 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Agent.Tests.Common.ScenarioTestHelpers;
 public static class TlsTestHelpers
 {
-    public static void AddPluginDefinitionsForTlsSubAgent(this IServiceCollection services)
+    public static void AddPluginDefinitionsForGenericSubAgent(this IServiceCollection services)
     {
         services.AddSingleton<MetricsPluginDefinition>();
         services.AddSingleton<ArmPluginDefinition>();

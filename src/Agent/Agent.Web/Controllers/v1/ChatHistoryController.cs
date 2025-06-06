@@ -2,10 +2,14 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json;
+using Agent.Core.Interfaces;
+using Agent.Core.Models.Api.v1;
 using Agent.Logging;
+using Agent.Runtime.Reasoning;
+using Agent.Runtime.TeamsChatServices;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.DurableTask.Client;
-using System.Text.Json;
 
 namespace Agent.Web.Controllers.v1
 {
@@ -15,13 +19,33 @@ namespace Agent.Web.Controllers.v1
     {
         private readonly ILogger<ChatHistoryController> _logger;
         private readonly DurableTaskClient _durableTaskClient;
+        private readonly IThreadRepository _threadRepository;
+        private readonly IReasoningLoopManager _reasoningLoopManager;
 
         public ChatHistoryController(
             ILogger<ChatHistoryController> logger,
+            IThreadRepository threadRepository,
+            IReasoningLoopManager reasoningLoopManager,
             DurableTaskClient durableTaskClient)
         {
             _logger = logger;
+            _threadRepository = threadRepository;
+            _reasoningLoopManager = reasoningLoopManager;
             _durableTaskClient = durableTaskClient;
+        }
+
+        [HttpGet("agentFramework/{threadId}")]
+        public async Task<IActionResult> GetAgentFrameworkChatHistory(Guid threadId)
+        {
+            var contexts = await _threadRepository.GetAgentContextsForThreadAsync(threadId);
+            if (contexts.Count() == 0)
+            {
+                return NotFound();
+            }
+
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            var history = await _reasoningLoopManager.ExportChatHistory(contexts.First(), cts.Token);
+            return Ok(history);
         }
 
         /// <summary>

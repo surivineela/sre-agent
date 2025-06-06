@@ -34,6 +34,7 @@ public class OrchestrationAgent
     public Task<ChatMessage> _newMessageTask;
     public Task<ApprovalStatus> _approvalTask;
     private ILogger log;
+    private TaskRetryOptions _retryOptions;
 
     public int StepCount { get; set; } = 0;
 
@@ -53,6 +54,15 @@ public class OrchestrationAgent
         log = taskOrchestrationContext.CreateReplaySafeLogger<OrchestrationAgent>();
         _newMessageTask = _taskOrchestrationContext.WaitForExternalEvent<ChatMessage>("NewChatMessage");
         _approvalTask = _taskOrchestrationContext.WaitForExternalEvent<ApprovalStatus>("ApprovalEvent");
+
+        if (AppDomain.CurrentDomain.IsTestingContext())
+        {
+            _retryOptions = new TaskRetryOptions(new RetryPolicy(1, TimeSpan.FromSeconds(1)));
+        }
+        else
+        {
+            _retryOptions = new TaskRetryOptions(new RetryPolicy(10, TimeSpan.FromSeconds(1), backoffCoefficient: 1.5f, maxRetryInterval: TimeSpan.FromSeconds(10)));
+        }
     }
 
     // we can remove the generic args once we have derived classes inherit from this rather than generic agent orchestrator
@@ -90,7 +100,7 @@ public class OrchestrationAgent
             ToolSignatures = this.ToolSignatures
         },
         // There's potential throttling for OpenAI calls, use retry policy to avoid.
-        new TaskOptions(new TaskRetryOptions(new RetryPolicy(10, TimeSpan.FromSeconds(1), backoffCoefficient: 1.5f, maxRetryInterval: TimeSpan.FromSeconds(10)))));
+        new TaskOptions());
 
         log.LogInternalInformation("[{ThreadId}] Next action received: {ChatMessage}", threadId, reasoningResult.ToString());
 

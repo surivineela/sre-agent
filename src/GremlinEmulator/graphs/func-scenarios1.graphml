@@ -1,0 +1,578 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<graphml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd" xmlns="http://graphml.graphdrawing.org/xmlns">
+  <key id="labelV" for="node" attr.name="label" attr.type="string" xmlns="" />
+  <key id="prop_updateTs" for="node" attr.name="updateTs" attr.type="string" xmlns="" />
+  <key id="prop_resourceId" for="node" attr.name="resourceId" attr.type="string" xmlns="" />
+  <key id="prop_subscriptionId" for="node" attr.name="subscriptionId" attr.type="string" xmlns="" />
+  <key id="prop_resourceGroupName" for="node" attr.name="resourceGroupName" attr.type="string" xmlns="" />
+  <key id="prop_location" for="node" attr.name="location" attr.type="string" xmlns="" />
+  <key id="prop_resourceType" for="node" attr.name="resourceType" attr.type="string" xmlns="" />
+  <key id="prop_subscriptionName" for="node" attr.name="subscriptionName" attr.type="string" xmlns="" />
+  <key id="prop_resourceName" for="node" attr.name="resourceName" attr.type="string" xmlns="" />
+  <key id="prop_remarks" for="node" attr.name="remarks" attr.type="string" xmlns="" />
+  <key id="prop_numberOfWorkers" for="node" attr.name="numberOfWorkers" attr.type="string" xmlns="" />
+  <key id="prop_status" for="node" attr.name="status" attr.type="string" xmlns="" />
+  <key id="prop_maximumNumberOfWOrkers" for="node" attr.name="maximumNumberOfWOrkers" attr.type="string" xmlns="" />
+  <key id="prop_geoRegion" for="node" attr.name="geoRegion" attr.type="string" xmlns="" />
+  <key id="prop_kind" for="node" attr.name="kind" attr.type="string" xmlns="" />
+  <key id="prop_provisioningState" for="node" attr.name="provisioningState" attr.type="string" xmlns="" />
+  <key id="prop_zoneRedundant" for="node" attr.name="zoneRedundant" attr.type="string" xmlns="" />
+  <key id="prop_healthCheckEnabled" for="node" attr.name="healthCheckEnabled" attr.type="string" xmlns="" />
+  <key id="prop_functionsHostVersion" for="node" attr.name="functionsHostVersion" attr.type="string" xmlns="" />
+  <key id="prop_usesAppInsights" for="node" attr.name="usesAppInsights" attr.type="string" xmlns="" />
+  <key id="prop_hostNames" for="node" attr.name="hostNames" attr.type="string" xmlns="" />
+  <key id="prop_hostname_0" for="node" attr.name="hostname_0" attr.type="string" xmlns="" />
+  <key id="prop_hasCustomDomains" for="node" attr.name="hasCustomDomains" attr.type="string" xmlns="" />
+  <key id="prop_function_0_name" for="node" attr.name="function_0_name" attr.type="string" xmlns="" />
+  <key id="prop_function_0_triggerType" for="node" attr.name="function_0_triggerType" attr.type="string" xmlns="" />
+  <key id="prop_appHealthInfo" for="node" attr.name="appHealthInfo" attr.type="string" xmlns="" />
+  <key id="prop_minTlsVersion" for="node" attr.name="minTlsVersion" attr.type="string" xmlns="" />
+  <key id="prop_autoHealEnabled" for="node" attr.name="autoHealEnabled" attr.type="string" xmlns="" />
+  <key id="prop_alwaysOn" for="node" attr.name="alwaysOn" attr.type="string" xmlns="" />
+  <key id="prop_ipSecurityRestrictions" for="node" attr.name="ipSecurityRestrictions" attr.type="string" xmlns="" />
+  <key id="prop_webSocketsEnabled" for="node" attr.name="webSocketsEnabled" attr.type="string" xmlns="" />
+  <key id="prop_stackVersion" for="node" attr.name="stackVersion" attr.type="string" xmlns="" />
+  <key id="prop_planType" for="node" attr.name="planType" attr.type="string" xmlns="" />
+  <key id="prop_workerRuntime" for="node" attr.name="workerRuntime" attr.type="string" xmlns="" />
+  <key id="prop_skuName" for="node" attr.name="skuName" attr.type="string" xmlns="" />
+  <key id="prop_skuTier" for="node" attr.name="skuTier" attr.type="string" xmlns="" />
+  <key id="prop_skuSize" for="node" attr.name="skuSize" attr.type="string" xmlns="" />
+  <key id="prop_skuCapacity" for="node" attr.name="skuCapacity" attr.type="string" xmlns="" />
+  <key id="prop_function_1_name" for="node" attr.name="function_1_name" attr.type="string" xmlns="" />
+  <key id="prop_function_1_triggerType" for="node" attr.name="function_1_triggerType" attr.type="string" xmlns="" />
+  <key id="prop_function_2_name" for="node" attr.name="function_2_name" attr.type="string" xmlns="" />
+  <key id="prop_function_2_triggerType" for="node" attr.name="function_2_triggerType" attr.type="string" xmlns="" />
+  <key id="prop_function_3_name" for="node" attr.name="function_3_name" attr.type="string" xmlns="" />
+  <key id="prop_function_3_triggerType" for="node" attr.name="function_3_triggerType" attr.type="string" xmlns="" />
+  <key id="prop_identityType" for="node" attr.name="identityType" attr.type="string" xmlns="" />
+  <key id="prop_tenantId" for="node" attr.name="tenantId" attr.type="string" xmlns="" />
+  <key id="prop_principalId" for="node" attr.name="principalId" attr.type="string" xmlns="" />
+  <key id="prop_clientId" for="node" attr.name="clientId" attr.type="string" xmlns="" />
+  <key id="edge_label" for="edge" attr.name="label" attr.type="string" xmlns="" />
+  <graph id="G" edgedefault="directed" xmlns="">
+    <node id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg">
+      <data key="labelV">resourcegroups</data>
+      <data key="prop_resourceId">/subscriptions/a2c49f0f-548f-4f3b-86a4-39c8eafc0780/resourcegroups/mybuggyfunctionapp-rg</data>
+      <data key="prop_subscriptionId">a2c49f0f-548f-4f3b-86a4-39c8eafc0780</data>
+      <data key="prop_resourceGroupName">mybuggyfunctionapp-rg</data>
+      <data key="prop_location">southcentralus</data>
+      <data key="prop_resourceType">resourcegroups</data>
+    </node>
+    <node id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780">
+      <data key="labelV">subscriptions</data>
+      <data key="prop_resourceId">/subscriptions/a2c49f0f-548f-4f3b-86a4-39c8eafc0780</data>
+      <data key="prop_subscriptionId">a2c49f0f-548f-4f3b-86a4-39c8eafc0780</data>
+      <data key="prop_resourceType">subscriptions</data>
+      <data key="prop_subscriptionName">Private Test Sub CURIBE</data>
+    </node>
+    <node id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.alertsmanagement_smartdetectoralertrules_failure_anomalies_-_alsobuggyfunctionapp">
+      <data key="labelV">microsoft.alertsmanagement/smartdetectoralertrules</data>
+      <data key="prop_resourceId">/subscriptions/a2c49f0f-548f-4f3b-86a4-39c8eafc0780/resourcegroups/mybuggyfunctionapp-rg/providers/microsoft.alertsmanagement/smartdetectoralertrules/failure anomalies - alsobuggyfunctionapp</data>
+      <data key="prop_subscriptionId">a2c49f0f-548f-4f3b-86a4-39c8eafc0780</data>
+      <data key="prop_resourceGroupName">mybuggyfunctionapp-rg</data>
+      <data key="prop_location">global</data>
+      <data key="prop_resourceType">microsoft.alertsmanagement/smartdetectoralertrules</data>
+      <data key="prop_resourceName">failure anomalies - alsobuggyfunctionapp</data>
+    </node>
+    <node id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.alertsmanagement_smartdetectoralertrules_failure_anomalies_-_mybuggyfunctionapp">
+      <data key="labelV">microsoft.alertsmanagement/smartdetectoralertrules</data>
+      <data key="prop_resourceId">/subscriptions/a2c49f0f-548f-4f3b-86a4-39c8eafc0780/resourcegroups/mybuggyfunctionapp-rg/providers/microsoft.alertsmanagement/smartdetectoralertrules/failure anomalies - mybuggyfunctionapp</data>
+      <data key="prop_subscriptionId">a2c49f0f-548f-4f3b-86a4-39c8eafc0780</data>
+      <data key="prop_resourceGroupName">mybuggyfunctionapp-rg</data>
+      <data key="prop_location">global</data>
+      <data key="prop_resourceType">microsoft.alertsmanagement/smartdetectoralertrules</data>
+      <data key="prop_resourceName">failure anomalies - mybuggyfunctionapp</data>
+    </node>
+    <node id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.alertsmanagement_smartdetectoralertrules_failure_anomalies_-_notafunctionapp">
+      <data key="labelV">microsoft.alertsmanagement/smartdetectoralertrules</data>
+      <data key="prop_resourceId">/subscriptions/a2c49f0f-548f-4f3b-86a4-39c8eafc0780/resourcegroups/mybuggyfunctionapp-rg/providers/microsoft.alertsmanagement/smartdetectoralertrules/failure anomalies - notafunctionapp</data>
+      <data key="prop_subscriptionId">a2c49f0f-548f-4f3b-86a4-39c8eafc0780</data>
+      <data key="prop_resourceGroupName">mybuggyfunctionapp-rg</data>
+      <data key="prop_location">global</data>
+      <data key="prop_resourceType">microsoft.alertsmanagement/smartdetectoralertrules</data>
+      <data key="prop_resourceName">failure anomalies - notafunctionapp</data>
+    </node>
+    <node id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.insights_components_alsobuggyfunctionapp">
+      <data key="labelV">microsoft.insights/components</data>
+      <data key="prop_resourceId">/subscriptions/a2c49f0f-548f-4f3b-86a4-39c8eafc0780/resourcegroups/mybuggyfunctionapp-rg/providers/microsoft.insights/components/alsobuggyfunctionapp</data>
+      <data key="prop_subscriptionId">a2c49f0f-548f-4f3b-86a4-39c8eafc0780</data>
+      <data key="prop_resourceGroupName">mybuggyfunctionapp-rg</data>
+      <data key="prop_location">southcentralus</data>
+      <data key="prop_resourceType">microsoft.insights/components</data>
+      <data key="prop_resourceName">alsobuggyfunctionapp</data>
+    </node>
+    <node id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.insights_components_mybuggyfunctionapp">
+      <data key="labelV">microsoft.insights/components</data>
+      <data key="prop_resourceId">/subscriptions/a2c49f0f-548f-4f3b-86a4-39c8eafc0780/resourcegroups/mybuggyfunctionapp-rg/providers/microsoft.insights/components/mybuggyfunctionapp</data>
+      <data key="prop_subscriptionId">a2c49f0f-548f-4f3b-86a4-39c8eafc0780</data>
+      <data key="prop_resourceGroupName">mybuggyfunctionapp-rg</data>
+      <data key="prop_location">southcentralus</data>
+      <data key="prop_resourceType">microsoft.insights/components</data>
+      <data key="prop_resourceName">mybuggyfunctionapp</data>
+    </node>
+    <node id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.insights_components_notafunctionapp">
+      <data key="labelV">microsoft.insights/components</data>
+      <data key="prop_resourceId">/subscriptions/a2c49f0f-548f-4f3b-86a4-39c8eafc0780/resourcegroups/mybuggyfunctionapp-rg/providers/microsoft.insights/components/notafunctionapp</data>
+      <data key="prop_subscriptionId">a2c49f0f-548f-4f3b-86a4-39c8eafc0780</data>
+      <data key="prop_resourceGroupName">mybuggyfunctionapp-rg</data>
+      <data key="prop_location">southcentralus</data>
+      <data key="prop_resourceType">microsoft.insights/components</data>
+      <data key="prop_resourceName">notafunctionapp</data>
+    </node>
+    <node id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.storage_storageaccounts_alsobuggyfunctionappstrg">
+      <data key="labelV">microsoft.storage/storageaccounts</data>
+      <data key="prop_resourceId">/subscriptions/a2c49f0f-548f-4f3b-86a4-39c8eafc0780/resourcegroups/mybuggyfunctionapp-rg/providers/microsoft.storage/storageaccounts/alsobuggyfunctionappstrg</data>
+      <data key="prop_subscriptionId">a2c49f0f-548f-4f3b-86a4-39c8eafc0780</data>
+      <data key="prop_resourceGroupName">mybuggyfunctionapp-rg</data>
+      <data key="prop_location">southcentralus</data>
+      <data key="prop_resourceType">microsoft.storage/storageaccounts</data>
+      <data key="prop_resourceName">alsobuggyfunctionappstrg</data>
+    </node>
+    <node id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.storage_storageaccounts_mybuggyfunctionappra9c8">
+      <data key="labelV">microsoft.storage/storageaccounts</data>
+      <data key="prop_resourceId">/subscriptions/a2c49f0f-548f-4f3b-86a4-39c8eafc0780/resourcegroups/mybuggyfunctionapp-rg/providers/microsoft.storage/storageaccounts/mybuggyfunctionappra9c8</data>
+      <data key="prop_subscriptionId">a2c49f0f-548f-4f3b-86a4-39c8eafc0780</data>
+      <data key="prop_resourceGroupName">mybuggyfunctionapp-rg</data>
+      <data key="prop_location">southcentralus</data>
+      <data key="prop_resourceType">microsoft.storage/storageaccounts</data>
+      <data key="prop_resourceName">mybuggyfunctionappra9c8</data>
+    </node>
+    <node id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.web_serverfarms_mybuggyfunctionapp-asp">
+      <data key="labelV">microsoft.web/serverfarms</data>
+      <data key="prop_resourceId">/subscriptions/a2c49f0f-548f-4f3b-86a4-39c8eafc0780/resourcegroups/mybuggyfunctionapp-rg/providers/microsoft.web/serverfarms/mybuggyfunctionapp-asp</data>
+      <data key="prop_subscriptionId">a2c49f0f-548f-4f3b-86a4-39c8eafc0780</data>
+      <data key="prop_resourceGroupName">mybuggyfunctionapp-rg</data>
+      <data key="prop_location">southcentralus</data>
+      <data key="prop_resourceType">microsoft.web/serverfarms</data>
+      <data key="prop_resourceName">mybuggyfunctionapp-asp</data>
+      <data key="prop_remarks">"southcentralus"</data>
+      <data key="prop_numberOfWorkers">1</data>
+      <data key="prop_status">Ready</data>
+      <data key="prop_maximumNumberOfWOrkers">10</data>
+      <data key="prop_geoRegion">South Central US</data>
+      <data key="prop_kind">app</data>
+      <data key="prop_provisioningState">Succeeded</data>
+      <data key="prop_zoneRedundant">False</data>
+    </node>
+    <node id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.web_serverfarms_notafunctionappasp">
+      <data key="labelV">microsoft.web/serverfarms</data>
+      <data key="prop_resourceId">/subscriptions/a2c49f0f-548f-4f3b-86a4-39c8eafc0780/resourcegroups/mybuggyfunctionapp-rg/providers/microsoft.web/serverfarms/notafunctionappasp</data>
+      <data key="prop_subscriptionId">a2c49f0f-548f-4f3b-86a4-39c8eafc0780</data>
+      <data key="prop_resourceGroupName">mybuggyfunctionapp-rg</data>
+      <data key="prop_location">southcentralus</data>
+      <data key="prop_resourceType">microsoft.web/serverfarms</data>
+      <data key="prop_resourceName">notafunctionappasp</data>
+      <data key="prop_remarks">"southcentralus"</data>
+      <data key="prop_numberOfWorkers">1</data>
+      <data key="prop_status">Ready</data>
+      <data key="prop_maximumNumberOfWOrkers">10</data>
+      <data key="prop_geoRegion">South Central US</data>
+      <data key="prop_kind">app</data>
+      <data key="prop_provisioningState">Succeeded</data>
+      <data key="prop_zoneRedundant">False</data>
+    </node>
+    <node id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.web_sites_alsobuggyfunctionapp">
+      <data key="labelV">microsoft.web/sites</data>
+      <data key="prop_resourceId">/subscriptions/a2c49f0f-548f-4f3b-86a4-39c8eafc0780/resourcegroups/mybuggyfunctionapp-rg/providers/microsoft.web/sites/alsobuggyfunctionapp</data>
+      <data key="prop_subscriptionId">a2c49f0f-548f-4f3b-86a4-39c8eafc0780</data>
+      <data key="prop_resourceGroupName">mybuggyfunctionapp-rg</data>
+      <data key="prop_location">southcentralus</data>
+      <data key="prop_resourceType">microsoft.web/sites</data>
+      <data key="prop_resourceName">alsobuggyfunctionapp</data>
+      <data key="prop_kind">functionapp,linux,container,azurecontainerapps</data>
+      <data key="prop_healthCheckEnabled">False</data>
+      <data key="prop_functionsHostVersion">~4</data>
+      <data key="prop_usesAppInsights">False</data>
+      <data key="prop_hostNames">alsobuggyfunctionapp.whitesky-9287f4e2.southcentralus.azurecontainerapps.io</data>
+      <data key="prop_hostname_0">alsobuggyfunctionapp.whitesky-9287f4e2.southcentralus.azurecontainerapps.io</data>
+      <data key="prop_hasCustomDomains">True</data>
+      <data key="prop_function_0_name">alsobuggyfunctionapp/HttpExample</data>
+      <data key="prop_function_0_triggerType">Unknown</data>
+      <data key="prop_appHealthInfo">{"LastDataCaptureTimeStampInUTC":"2025-05-22T01:41:47.1715068Z","Health":"Healthy","Availability":100,"Transactions":0,"Costs":0,"AvgLatencyInMs":null,"AvgMemoryUsage":0,"AvgCpuUsage":0,"AdditionalMetrics":{},"TimeSinceLastActivity":null}</data>
+    </node>
+    <node id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.web_sites_mybuggyfunctionapp">
+      <data key="labelV">microsoft.web/sites</data>
+      <data key="prop_resourceId">/subscriptions/a2c49f0f-548f-4f3b-86a4-39c8eafc0780/resourcegroups/mybuggyfunctionapp-rg/providers/microsoft.web/sites/mybuggyfunctionapp</data>
+      <data key="prop_subscriptionId">a2c49f0f-548f-4f3b-86a4-39c8eafc0780</data>
+      <data key="prop_resourceGroupName">mybuggyfunctionapp-rg</data>
+      <data key="prop_location">southcentralus</data>
+      <data key="prop_resourceType">microsoft.web/sites</data>
+      <data key="prop_resourceName">mybuggyfunctionapp</data>
+      <data key="prop_numberOfWorkers">1</data>
+      <data key="prop_kind">functionapp</data>
+      <data key="prop_zoneRedundant">False</data>
+      <data key="prop_healthCheckEnabled">False</data>
+      <data key="prop_functionsHostVersion">~4</data>
+      <data key="prop_usesAppInsights">True</data>
+      <data key="prop_hostNames">mybuggyfunctionapp.azurewebsites.net</data>
+      <data key="prop_hostname_0">mybuggyfunctionapp.azurewebsites.net</data>
+      <data key="prop_function_0_name">mybuggyfunctionapp/AlternatingExceptionTimerTrigger</data>
+      <data key="prop_function_0_triggerType">Unknown</data>
+      <data key="prop_appHealthInfo">{"LastDataCaptureTimeStampInUTC":"2025-05-22T01:41:54.52237Z","Health":"Healthy","Availability":100,"Transactions":0,"Costs":0,"AvgLatencyInMs":null,"AvgMemoryUsage":56079448.42,"AvgCpuUsage":0,"AdditionalMetrics":{},"TimeSinceLastActivity":null}</data>
+      <data key="prop_minTlsVersion">1.2</data>
+      <data key="prop_autoHealEnabled">False</data>
+      <data key="prop_alwaysOn">True</data>
+      <data key="prop_ipSecurityRestrictions">[{"IPAddressOrCidr":"Any","SubnetMask":null,"VnetSubnetResourceId":null,"VnetTrafficTag":null,"SubnetTrafficTag":null,"Action":"Allow","Tag":null,"Priority":2147483647,"Name":"Allow all","Description":"Allow all access","Headers":{}}]</data>
+      <data key="prop_webSocketsEnabled">False</data>
+      <data key="prop_stackVersion">dotnet-isolated</data>
+      <data key="prop_planType">Standard</data>
+      <data key="prop_workerRuntime">dotnet-isolated</data>
+      <data key="prop_skuName">S1</data>
+      <data key="prop_skuTier">Standard</data>
+      <data key="prop_skuSize">S1</data>
+      <data key="prop_skuCapacity">1</data>
+      <data key="prop_function_1_name">mybuggyfunctionapp/HttpExample</data>
+      <data key="prop_function_1_triggerType">Unknown</data>
+      <data key="prop_function_2_name">mybuggyfunctionapp/TimeoutHttpTrigger</data>
+      <data key="prop_function_2_triggerType">Unknown</data>
+      <data key="prop_function_3_name">mybuggyfunctionapp/TimerTriggerExample</data>
+      <data key="prop_function_3_triggerType">Unknown</data>
+    </node>
+    <node id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.web_sites_notafunctionapp">
+      <data key="labelV">microsoft.web/sites</data>
+      <data key="prop_resourceId">/subscriptions/a2c49f0f-548f-4f3b-86a4-39c8eafc0780/resourcegroups/mybuggyfunctionapp-rg/providers/microsoft.web/sites/notafunctionapp</data>
+      <data key="prop_subscriptionId">a2c49f0f-548f-4f3b-86a4-39c8eafc0780</data>
+      <data key="prop_resourceGroupName">mybuggyfunctionapp-rg</data>
+      <data key="prop_location">southcentralus</data>
+      <data key="prop_resourceType">microsoft.web/sites</data>
+      <data key="prop_resourceName">notafunctionapp</data>
+      <data key="prop_numberOfWorkers">1</data>
+      <data key="prop_kind">app</data>
+      <data key="prop_zoneRedundant">False</data>
+      <data key="prop_healthCheckEnabled">False</data>
+      <data key="prop_usesAppInsights">False</data>
+      <data key="prop_hostNames">notafunctionapp-hmcydadkckapgaa6.southcentralus-01.azurewebsites.net</data>
+      <data key="prop_hostname_0">notafunctionapp-hmcydadkckapgaa6.southcentralus-01.azurewebsites.net</data>
+      <data key="prop_appHealthInfo">{"LastDataCaptureTimeStampInUTC":"2025-05-22T01:42:02.5679383Z","Health":"Healthy","Availability":100,"Transactions":0,"Costs":0,"AvgLatencyInMs":null,"AvgMemoryUsage":26313454.93,"AvgCpuUsage":0.17,"AdditionalMetrics":{},"TimeSinceLastActivity":null}</data>
+      <data key="prop_minTlsVersion">1.2</data>
+      <data key="prop_autoHealEnabled">False</data>
+      <data key="prop_alwaysOn">True</data>
+      <data key="prop_ipSecurityRestrictions">[{"IPAddressOrCidr":"Any","SubnetMask":null,"VnetSubnetResourceId":null,"VnetTrafficTag":null,"SubnetTrafficTag":null,"Action":"Allow","Tag":null,"Priority":2147483647,"Name":"Allow all","Description":"Allow all access","Headers":{}}]</data>
+      <data key="prop_webSocketsEnabled">False</data>
+      <data key="prop_planType">Standard</data>
+      <data key="prop_skuName">S1</data>
+      <data key="prop_skuTier">Standard</data>
+      <data key="prop_skuSize">S1</data>
+      <data key="prop_skuCapacity">1</data>
+    </node>
+    <node id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg">
+      <data key="labelV">resourcegroups</data>
+      <data key="prop_resourceId">/subscriptions/5c75d2a9-b911-4d50-9939-bacb68fdac97/resourcegroups/echo-sre-agent-test-rg</data>
+      <data key="prop_subscriptionId">5c75d2a9-b911-4d50-9939-bacb68fdac97</data>
+      <data key="prop_resourceGroupName">echo-sre-agent-test-rg</data>
+      <data key="prop_location">eastus</data>
+      <data key="prop_resourceType">resourcegroups</data>
+    </node>
+    <node id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97">
+      <data key="labelV">subscriptions</data>
+      <data key="prop_resourceId">/subscriptions/5c75d2a9-b911-4d50-9939-bacb68fdac97</data>
+      <data key="prop_subscriptionId">5c75d2a9-b911-4d50-9939-bacb68fdac97</data>
+      <data key="prop_resourceType">subscriptions</data>
+      <data key="prop_subscriptionName">Private Test Sub EUNSEOCHO</data>
+    </node>
+    <node id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.alertsmanagement_smartdetectoralertrules_failure_anomalies_-_echosretestappins">
+      <data key="labelV">microsoft.alertsmanagement/smartdetectoralertrules</data>
+      <data key="prop_resourceId">/subscriptions/5c75d2a9-b911-4d50-9939-bacb68fdac97/resourcegroups/echo-sre-agent-test-rg/providers/microsoft.alertsmanagement/smartdetectoralertrules/failure anomalies - echosretestappins</data>
+      <data key="prop_subscriptionId">5c75d2a9-b911-4d50-9939-bacb68fdac97</data>
+      <data key="prop_resourceGroupName">echo-sre-agent-test-rg</data>
+      <data key="prop_location">global</data>
+      <data key="prop_resourceType">microsoft.alertsmanagement/smartdetectoralertrules</data>
+      <data key="prop_resourceName">failure anomalies - echosretestappins</data>
+    </node>
+    <node id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.containerregistry_registries_echosreagenttestacr">
+      <data key="labelV">microsoft.containerregistry/registries</data>
+      <data key="prop_resourceId">/subscriptions/5c75d2a9-b911-4d50-9939-bacb68fdac97/resourcegroups/echo-sre-agent-test-rg/providers/microsoft.containerregistry/registries/echosreagenttestacr</data>
+      <data key="prop_subscriptionId">5c75d2a9-b911-4d50-9939-bacb68fdac97</data>
+      <data key="prop_resourceGroupName">echo-sre-agent-test-rg</data>
+      <data key="prop_location">eastus</data>
+      <data key="prop_resourceType">microsoft.containerregistry/registries</data>
+      <data key="prop_resourceName">echosreagenttestacr</data>
+    </node>
+    <node id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.insights_components_echosretestappins">
+      <data key="labelV">microsoft.insights/components</data>
+      <data key="prop_resourceId">/subscriptions/5c75d2a9-b911-4d50-9939-bacb68fdac97/resourcegroups/echo-sre-agent-test-rg/providers/microsoft.insights/components/echosretestappins</data>
+      <data key="prop_subscriptionId">5c75d2a9-b911-4d50-9939-bacb68fdac97</data>
+      <data key="prop_resourceGroupName">echo-sre-agent-test-rg</data>
+      <data key="prop_location">eastus</data>
+      <data key="prop_resourceType">microsoft.insights/components</data>
+      <data key="prop_resourceName">echosretestappins</data>
+    </node>
+    <node id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.managedidentity_userassignedidentities_echo-sre-agent-test-fhrwkm47nzicm">
+      <data key="labelV">microsoft.managedidentity/userassignedidentities</data>
+      <data key="prop_resourceId">/subscriptions/5c75d2a9-b911-4d50-9939-bacb68fdac97/resourcegroups/echo-sre-agent-test-rg/providers/microsoft.managedidentity/userassignedidentities/echo-sre-agent-test-fhrwkm47nzicm</data>
+      <data key="prop_subscriptionId">5c75d2a9-b911-4d50-9939-bacb68fdac97</data>
+      <data key="prop_resourceGroupName">echo-sre-agent-test-rg</data>
+      <data key="prop_location">southafricanorth</data>
+      <data key="prop_resourceType">microsoft.managedidentity/userassignedidentities</data>
+      <data key="prop_resourceName">echo-sre-agent-test-fhrwkm47nzicm</data>
+    </node>
+    <node id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.managedidentity_userassignedidentities_echo-sre-agent-test-j2kr5xvbgy2kc">
+      <data key="labelV">microsoft.managedidentity/userassignedidentities</data>
+      <data key="prop_resourceId">/subscriptions/5c75d2a9-b911-4d50-9939-bacb68fdac97/resourcegroups/echo-sre-agent-test-rg/providers/microsoft.managedidentity/userassignedidentities/echo-sre-agent-test-j2kr5xvbgy2kc</data>
+      <data key="prop_subscriptionId">5c75d2a9-b911-4d50-9939-bacb68fdac97</data>
+      <data key="prop_resourceGroupName">echo-sre-agent-test-rg</data>
+      <data key="prop_location">southafricanorth</data>
+      <data key="prop_resourceType">microsoft.managedidentity/userassignedidentities</data>
+      <data key="prop_resourceName">echo-sre-agent-test-j2kr5xvbgy2kc</data>
+    </node>
+    <node id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.managedidentity_userassignedidentities_echo-sre-agent-test-ozgnwrv2scn74">
+      <data key="labelV">microsoft.managedidentity/userassignedidentities</data>
+      <data key="prop_resourceId">/subscriptions/5c75d2a9-b911-4d50-9939-bacb68fdac97/resourcegroups/echo-sre-agent-test-rg/providers/microsoft.managedidentity/userassignedidentities/echo-sre-agent-test-ozgnwrv2scn74</data>
+      <data key="prop_subscriptionId">5c75d2a9-b911-4d50-9939-bacb68fdac97</data>
+      <data key="prop_resourceGroupName">echo-sre-agent-test-rg</data>
+      <data key="prop_location">southafricanorth</data>
+      <data key="prop_resourceType">microsoft.managedidentity/userassignedidentities</data>
+      <data key="prop_resourceName">echo-sre-agent-test-ozgnwrv2scn74</data>
+    </node>
+    <node id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.managedidentity_userassignedidentities_echo-sre-agent-test-vqcu7dohijspc">
+      <data key="labelV">microsoft.managedidentity/userassignedidentities</data>
+      <data key="prop_resourceId">/subscriptions/5c75d2a9-b911-4d50-9939-bacb68fdac97/resourcegroups/echo-sre-agent-test-rg/providers/microsoft.managedidentity/userassignedidentities/echo-sre-agent-test-vqcu7dohijspc</data>
+      <data key="prop_subscriptionId">5c75d2a9-b911-4d50-9939-bacb68fdac97</data>
+      <data key="prop_resourceGroupName">echo-sre-agent-test-rg</data>
+      <data key="prop_location">southafricanorth</data>
+      <data key="prop_resourceType">microsoft.managedidentity/userassignedidentities</data>
+      <data key="prop_resourceName">echo-sre-agent-test-vqcu7dohijspc</data>
+    </node>
+    <node id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.operationalinsights_workspaces_workspacefhrwkm47nzicm">
+      <data key="labelV">microsoft.operationalinsights/workspaces</data>
+      <data key="prop_resourceId">/subscriptions/5c75d2a9-b911-4d50-9939-bacb68fdac97/resourcegroups/echo-sre-agent-test-rg/providers/microsoft.operationalinsights/workspaces/workspacefhrwkm47nzicm</data>
+      <data key="prop_subscriptionId">5c75d2a9-b911-4d50-9939-bacb68fdac97</data>
+      <data key="prop_resourceGroupName">echo-sre-agent-test-rg</data>
+      <data key="prop_location">swedencentral</data>
+      <data key="prop_resourceType">microsoft.operationalinsights/workspaces</data>
+      <data key="prop_resourceName">workspacefhrwkm47nzicm</data>
+    </node>
+    <node id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.operationalinsights_workspaces_workspacej2kr5xvbgy2kc">
+      <data key="labelV">microsoft.operationalinsights/workspaces</data>
+      <data key="prop_resourceId">/subscriptions/5c75d2a9-b911-4d50-9939-bacb68fdac97/resourcegroups/echo-sre-agent-test-rg/providers/microsoft.operationalinsights/workspaces/workspacej2kr5xvbgy2kc</data>
+      <data key="prop_subscriptionId">5c75d2a9-b911-4d50-9939-bacb68fdac97</data>
+      <data key="prop_resourceGroupName">echo-sre-agent-test-rg</data>
+      <data key="prop_location">swedencentral</data>
+      <data key="prop_resourceType">microsoft.operationalinsights/workspaces</data>
+      <data key="prop_resourceName">workspacej2kr5xvbgy2kc</data>
+    </node>
+    <node id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.operationalinsights_workspaces_workspaceozgnwrv2scn74">
+      <data key="labelV">microsoft.operationalinsights/workspaces</data>
+      <data key="prop_resourceId">/subscriptions/5c75d2a9-b911-4d50-9939-bacb68fdac97/resourcegroups/echo-sre-agent-test-rg/providers/microsoft.operationalinsights/workspaces/workspaceozgnwrv2scn74</data>
+      <data key="prop_subscriptionId">5c75d2a9-b911-4d50-9939-bacb68fdac97</data>
+      <data key="prop_resourceGroupName">echo-sre-agent-test-rg</data>
+      <data key="prop_location">swedencentral</data>
+      <data key="prop_resourceType">microsoft.operationalinsights/workspaces</data>
+      <data key="prop_resourceName">workspaceozgnwrv2scn74</data>
+    </node>
+    <node id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.operationalinsights_workspaces_workspacevqcu7dohijspc">
+      <data key="labelV">microsoft.operationalinsights/workspaces</data>
+      <data key="prop_resourceId">/subscriptions/5c75d2a9-b911-4d50-9939-bacb68fdac97/resourcegroups/echo-sre-agent-test-rg/providers/microsoft.operationalinsights/workspaces/workspacevqcu7dohijspc</data>
+      <data key="prop_subscriptionId">5c75d2a9-b911-4d50-9939-bacb68fdac97</data>
+      <data key="prop_resourceGroupName">echo-sre-agent-test-rg</data>
+      <data key="prop_location">swedencentral</data>
+      <data key="prop_resourceType">microsoft.operationalinsights/workspaces</data>
+      <data key="prop_resourceName">workspacevqcu7dohijspc</data>
+    </node>
+    <node id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.storage_storageaccounts_echostoragetest">
+      <data key="labelV">microsoft.storage/storageaccounts</data>
+      <data key="prop_resourceId">/subscriptions/5c75d2a9-b911-4d50-9939-bacb68fdac97/resourcegroups/echo-sre-agent-test-rg/providers/microsoft.storage/storageaccounts/echostoragetest</data>
+      <data key="prop_subscriptionId">5c75d2a9-b911-4d50-9939-bacb68fdac97</data>
+      <data key="prop_resourceGroupName">echo-sre-agent-test-rg</data>
+      <data key="prop_location">eastus</data>
+      <data key="prop_resourceType">microsoft.storage/storageaccounts</data>
+      <data key="prop_resourceName">echostoragetest</data>
+    </node>
+    <node id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.web_serverfarms_eastusplan">
+      <data key="labelV">microsoft.web/serverfarms</data>
+      <data key="prop_resourceId">/subscriptions/5c75d2a9-b911-4d50-9939-bacb68fdac97/resourcegroups/echo-sre-agent-test-rg/providers/microsoft.web/serverfarms/eastusplan</data>
+      <data key="prop_subscriptionId">5c75d2a9-b911-4d50-9939-bacb68fdac97</data>
+      <data key="prop_resourceGroupName">echo-sre-agent-test-rg</data>
+      <data key="prop_location">eastus</data>
+      <data key="prop_resourceType">microsoft.web/serverfarms</data>
+      <data key="prop_resourceName">eastusplan</data>
+      <data key="prop_remarks">"eastus"</data>
+      <data key="prop_numberOfWorkers">0</data>
+      <data key="prop_status">Ready</data>
+      <data key="prop_maximumNumberOfWOrkers">0</data>
+      <data key="prop_geoRegion">East US</data>
+      <data key="prop_kind">functionapp</data>
+      <data key="prop_provisioningState">Succeeded</data>
+      <data key="prop_zoneRedundant">False</data>
+    </node>
+    <node id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.web_sites_echofunctioninvalidconnstr">
+      <data key="labelV">microsoft.web/sites</data>
+      <data key="prop_resourceId">/subscriptions/5c75d2a9-b911-4d50-9939-bacb68fdac97/resourcegroups/echo-sre-agent-test-rg/providers/microsoft.web/sites/echofunctioninvalidconnstr</data>
+      <data key="prop_subscriptionId">5c75d2a9-b911-4d50-9939-bacb68fdac97</data>
+      <data key="prop_resourceGroupName">echo-sre-agent-test-rg</data>
+      <data key="prop_location">eastus</data>
+      <data key="prop_resourceType">microsoft.web/sites</data>
+      <data key="prop_resourceName">echofunctioninvalidconnstr</data>
+      <data key="prop_numberOfWorkers">1</data>
+      <data key="prop_kind">functionapp</data>
+      <data key="prop_zoneRedundant">False</data>
+      <data key="prop_healthCheckEnabled">False</data>
+      <data key="prop_functionsHostVersion">~4</data>
+      <data key="prop_usesAppInsights">False</data>
+      <data key="prop_hostNames">echofunctioninvalidconnstr.azurewebsites.net</data>
+      <data key="prop_hostname_0">echofunctioninvalidconnstr.azurewebsites.net</data>
+      <data key="prop_function_0_name">echofunctioninvalidconnstr/ContainerCountInBlob</data>
+      <data key="prop_function_0_triggerType">Unknown</data>
+      <data key="prop_appHealthInfo">{"LastDataCaptureTimeStampInUTC":"2025-05-22T01:42:10.1604384Z","Health":"Healthy","Availability":100,"Transactions":0,"Costs":0,"AvgLatencyInMs":null,"AvgMemoryUsage":0,"AvgCpuUsage":0,"AdditionalMetrics":{},"TimeSinceLastActivity":null}</data>
+      <data key="prop_minTlsVersion">1.2</data>
+      <data key="prop_autoHealEnabled">False</data>
+      <data key="prop_alwaysOn">False</data>
+      <data key="prop_ipSecurityRestrictions">[{"IPAddressOrCidr":"Any","SubnetMask":null,"VnetSubnetResourceId":null,"VnetTrafficTag":null,"SubnetTrafficTag":null,"Action":"Allow","Tag":null,"Priority":2147483647,"Name":"Allow all","Description":"Allow all access","Headers":{}}]</data>
+      <data key="prop_webSocketsEnabled">False</data>
+      <data key="prop_stackVersion">dotnet</data>
+      <data key="prop_planType">FlexConsumption</data>
+      <data key="prop_workerRuntime">dotnet</data>
+      <data key="prop_skuName">Y1</data>
+      <data key="prop_skuTier">Dynamic</data>
+      <data key="prop_skuSize">Y1</data>
+      <data key="prop_skuCapacity">0</data>
+    </node>
+    <node id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.web_sites_echofunctionminotconfigured">
+      <data key="labelV">microsoft.web/sites</data>
+      <data key="prop_resourceId">/subscriptions/5c75d2a9-b911-4d50-9939-bacb68fdac97/resourcegroups/echo-sre-agent-test-rg/providers/microsoft.web/sites/echofunctionminotconfigured</data>
+      <data key="prop_subscriptionId">5c75d2a9-b911-4d50-9939-bacb68fdac97</data>
+      <data key="prop_resourceGroupName">echo-sre-agent-test-rg</data>
+      <data key="prop_location">eastus</data>
+      <data key="prop_resourceType">microsoft.web/sites</data>
+      <data key="prop_resourceName">echofunctionminotconfigured</data>
+      <data key="prop_numberOfWorkers">1</data>
+      <data key="prop_kind">functionapp</data>
+      <data key="prop_zoneRedundant">False</data>
+      <data key="prop_healthCheckEnabled">False</data>
+      <data key="prop_functionsHostVersion">~4</data>
+      <data key="prop_usesAppInsights">False</data>
+      <data key="prop_hostNames">echofunctionminotconfigured.azurewebsites.net</data>
+      <data key="prop_hostname_0">echofunctionminotconfigured.azurewebsites.net</data>
+      <data key="prop_function_0_name">echofunctionminotconfigured/ContainerCountInBlob</data>
+      <data key="prop_function_0_triggerType">Unknown</data>
+      <data key="prop_appHealthInfo">{"LastDataCaptureTimeStampInUTC":"2025-05-22T01:42:17.4821666Z","Health":"Healthy","Availability":100,"Transactions":0,"Costs":0,"AvgLatencyInMs":null,"AvgMemoryUsage":0,"AvgCpuUsage":0,"AdditionalMetrics":{},"TimeSinceLastActivity":null}</data>
+      <data key="prop_minTlsVersion">1.2</data>
+      <data key="prop_autoHealEnabled">False</data>
+      <data key="prop_alwaysOn">False</data>
+      <data key="prop_ipSecurityRestrictions">[{"IPAddressOrCidr":"Any","SubnetMask":null,"VnetSubnetResourceId":null,"VnetTrafficTag":null,"SubnetTrafficTag":null,"Action":"Allow","Tag":null,"Priority":2147483647,"Name":"Allow all","Description":"Allow all access","Headers":{}}]</data>
+      <data key="prop_webSocketsEnabled">False</data>
+      <data key="prop_stackVersion">dotnet</data>
+      <data key="prop_planType">FlexConsumption</data>
+      <data key="prop_workerRuntime">dotnet</data>
+      <data key="prop_skuName">Y1</data>
+      <data key="prop_skuTier">Dynamic</data>
+      <data key="prop_skuSize">Y1</data>
+      <data key="prop_skuCapacity">0</data>
+      <data key="prop_identityType">System</data>
+      <data key="prop_tenantId">72f988bf-86f1-41af-91ab-2d7cd011db47</data>
+      <data key="prop_principalId">c870d56d-cea2-44f1-ac35-54f79adb12a0</data>
+      <data key="prop_clientId">8af5199f-69c1-4ab9-8833-c2916efede18</data>
+    </node>
+    <edge id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_CONTAINS__subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.alertsmanagement_smartdetectoralertrules_failure_anomalies_-_alsobuggyfunctionapp" source="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg" target="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.alertsmanagement_smartdetectoralertrules_failure_anomalies_-_alsobuggyfunctionapp">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_CONTAINS__subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.alertsmanagement_smartdetectoralertrules_failure_anomalies_-_mybuggyfunctionapp" source="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg" target="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.alertsmanagement_smartdetectoralertrules_failure_anomalies_-_mybuggyfunctionapp">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_CONTAINS__subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.alertsmanagement_smartdetectoralertrules_failure_anomalies_-_notafunctionapp" source="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg" target="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.alertsmanagement_smartdetectoralertrules_failure_anomalies_-_notafunctionapp">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_CONTAINS__subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.insights_components_alsobuggyfunctionapp" source="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg" target="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.insights_components_alsobuggyfunctionapp">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_CONTAINS__subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.insights_components_mybuggyfunctionapp" source="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg" target="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.insights_components_mybuggyfunctionapp">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_CONTAINS__subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.insights_components_notafunctionapp" source="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg" target="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.insights_components_notafunctionapp">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_CONTAINS__subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.storage_storageaccounts_alsobuggyfunctionappstrg" source="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg" target="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.storage_storageaccounts_alsobuggyfunctionappstrg">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_CONTAINS__subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.storage_storageaccounts_mybuggyfunctionappra9c8" source="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg" target="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.storage_storageaccounts_mybuggyfunctionappra9c8">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_CONTAINS__subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.web_serverfarms_mybuggyfunctionapp-asp" source="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg" target="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.web_serverfarms_mybuggyfunctionapp-asp">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_CONTAINS__subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.web_serverfarms_notafunctionappasp" source="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg" target="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.web_serverfarms_notafunctionappasp">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_CONTAINS__subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.web_sites_alsobuggyfunctionapp" source="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg" target="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.web_sites_alsobuggyfunctionapp">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_CONTAINS__subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.web_sites_mybuggyfunctionapp" source="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg" target="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.web_sites_mybuggyfunctionapp">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_CONTAINS__subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.web_sites_notafunctionapp" source="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg" target="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.web_sites_notafunctionapp">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_CONTAINS__subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.alertsmanagement_smartdetectoralertrules_failure_anomalies_-_echosretestappins" source="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg" target="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.alertsmanagement_smartdetectoralertrules_failure_anomalies_-_echosretestappins">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_CONTAINS__subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.containerregistry_registries_echosreagenttestacr" source="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg" target="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.containerregistry_registries_echosreagenttestacr">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_CONTAINS__subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.insights_components_echosretestappins" source="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg" target="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.insights_components_echosretestappins">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_CONTAINS__subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.managedidentity_userassignedidentities_echo-sre-agent-test-fhrwkm47nzicm" source="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg" target="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.managedidentity_userassignedidentities_echo-sre-agent-test-fhrwkm47nzicm">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_CONTAINS__subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.managedidentity_userassignedidentities_echo-sre-agent-test-j2kr5xvbgy2kc" source="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg" target="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.managedidentity_userassignedidentities_echo-sre-agent-test-j2kr5xvbgy2kc">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_CONTAINS__subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.managedidentity_userassignedidentities_echo-sre-agent-test-ozgnwrv2scn74" source="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg" target="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.managedidentity_userassignedidentities_echo-sre-agent-test-ozgnwrv2scn74">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_CONTAINS__subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.managedidentity_userassignedidentities_echo-sre-agent-test-vqcu7dohijspc" source="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg" target="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.managedidentity_userassignedidentities_echo-sre-agent-test-vqcu7dohijspc">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_CONTAINS__subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.operationalinsights_workspaces_workspacefhrwkm47nzicm" source="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg" target="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.operationalinsights_workspaces_workspacefhrwkm47nzicm">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_CONTAINS__subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.operationalinsights_workspaces_workspacej2kr5xvbgy2kc" source="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg" target="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.operationalinsights_workspaces_workspacej2kr5xvbgy2kc">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_CONTAINS__subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.operationalinsights_workspaces_workspaceozgnwrv2scn74" source="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg" target="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.operationalinsights_workspaces_workspaceozgnwrv2scn74">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_CONTAINS__subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.operationalinsights_workspaces_workspacevqcu7dohijspc" source="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg" target="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.operationalinsights_workspaces_workspacevqcu7dohijspc">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_CONTAINS__subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.storage_storageaccounts_echostoragetest" source="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg" target="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.storage_storageaccounts_echostoragetest">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_CONTAINS__subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.web_serverfarms_eastusplan" source="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg" target="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.web_serverfarms_eastusplan">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_CONTAINS__subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.web_sites_echofunctioninvalidconnstr" source="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg" target="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.web_sites_echofunctioninvalidconnstr">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_CONTAINS__subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.web_sites_echofunctionminotconfigured" source="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg" target="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.web_sites_echofunctionminotconfigured">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.web_sites_mybuggyfunctionapp_HOSTED_ON__subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.web_serverfarms_mybuggyfunctionapp-asp" source="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.web_sites_mybuggyfunctionapp" target="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.web_serverfarms_mybuggyfunctionapp-asp">
+      <data key="edge_label">HOSTED_ON</data>
+    </edge>
+    <edge id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.web_sites_notafunctionapp_HOSTED_ON__subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.web_serverfarms_notafunctionappasp" source="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.web_sites_notafunctionapp" target="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.web_serverfarms_notafunctionappasp">
+      <data key="edge_label">HOSTED_ON</data>
+    </edge>
+    <edge id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.web_sites_echofunctioninvalidconnstr_HOSTED_ON__subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.web_serverfarms_eastusplan" source="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.web_sites_echofunctioninvalidconnstr" target="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.web_serverfarms_eastusplan">
+      <data key="edge_label">HOSTED_ON</data>
+    </edge>
+    <edge id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.web_sites_echofunctionminotconfigured_HOSTED_ON__subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.web_serverfarms_eastusplan" source="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.web_sites_echofunctionminotconfigured" target="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.web_serverfarms_eastusplan">
+      <data key="edge_label">HOSTED_ON</data>
+    </edge>
+    <edge id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.web_sites_echofunctionminotconfigured_HAS_ROLE__subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.storage_storageaccounts_echostoragetest" source="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.web_sites_echofunctionminotconfigured" target="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.storage_storageaccounts_echostoragetest">
+      <data key="edge_label">HAS_ROLE</data>
+    </edge>
+    <edge id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.web_serverfarms_mybuggyfunctionapp-asp_HOSTS__subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.web_sites_mybuggyfunctionapp" source="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.web_serverfarms_mybuggyfunctionapp-asp" target="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.web_sites_mybuggyfunctionapp">
+      <data key="edge_label">HOSTS</data>
+    </edge>
+    <edge id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.web_serverfarms_notafunctionappasp_HOSTS__subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.web_sites_notafunctionapp" source="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.web_serverfarms_notafunctionappasp" target="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.web_sites_notafunctionapp">
+      <data key="edge_label">HOSTS</data>
+    </edge>
+    <edge id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.web_serverfarms_eastusplan_HOSTS__subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.web_sites_echofunctioninvalidconnstr" source="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.web_serverfarms_eastusplan" target="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.web_sites_echofunctioninvalidconnstr">
+      <data key="edge_label">HOSTS</data>
+    </edge>
+    <edge id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.web_serverfarms_eastusplan_HOSTS__subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.web_sites_echofunctionminotconfigured" source="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.web_serverfarms_eastusplan" target="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.web_sites_echofunctionminotconfigured">
+      <data key="edge_label">HOSTS</data>
+    </edge>
+  </graph>
+</graphml>

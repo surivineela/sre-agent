@@ -19,38 +19,31 @@ public class FunctionAppConfigurationCheckAgent : GenericAgentOrchestrator<Funct
     {
         var log = context.CreateReplaySafeLogger<FunctionAppConfigurationCheckAgent>();
 
-        try
-        {
-            log.LogInternalInformation("Starting Function App Configuration Check for {ResourceId}", agentInput.FunctionAppResourceId);
 
-            // Initial planning phase: generate plan
-            List<ChatMessage> chatHistory = await context.CallFunctionAppConfigurationCheckAgentPlanActivityAsync(agentInput);
+        log.LogInternalInformation("Starting Function App Configuration Check for {ResourceId}", agentInput.FunctionAppResourceId);
 
-            var monitoringMessage = $"Thank you for the confirmation, I will now check the configuration of the Function App {agentInput.FunctionAppResourceId} for potential issues";
+        // Initial planning phase: generate plan
+        List<ChatMessage> chatHistory = await context.CallFunctionAppConfigurationCheckAgentPlanActivityAsync(agentInput);
 
-            // Send a summary and start the execution
-            chatHistory = await context.CallSendSummaryAndStartActivityAsync(
-                new GetNextActionInput
-                {
-                    ChatMessages = chatHistory,
-                    StepCounter = 0,
-                    ToolSignatures = agentInput.ToolSignatures
-                });
+        var monitoringMessage = $"Thank you for the confirmation, I will now check the configuration of the Function App {agentInput.FunctionAppResourceId} for potential issues";
 
-            // Run the generic reasoning loop to get actions and process function calls until the plan is complete
-            chatHistory = await RunReasoningLoopAsync(
-                context,
-                chatHistory,
-                agentInput.ToolSignatures,
-                log,
-                agentInput.ThreadId);
+        // Send a summary and start the execution
+        chatHistory = await context.CallSendSummaryAndStartActivityAsync(
+            new GetNextActionInput
+            {
+                ChatMessages = chatHistory,
+                StepCounter = 0,
+                ToolSignatures = agentInput.ToolSignatures
+            });
 
-            return $"completed for {agentInput.FunctionAppResourceId}";
-        }
-        catch (Exception ex)
-        {
-            log.LogInternalError(ex, "Error running Function App Configuration Check Agent for {ResourceId}", agentInput.FunctionAppResourceId);
-            return "failed";
-        }
+        // Run the generic reasoning loop to get actions and process function calls until the plan is complete
+        chatHistory = await RunReasoningLoopAsync(
+            context,
+            chatHistory,
+            agentInput.ToolSignatures,
+            log,
+            agentInput.ThreadId);
+
+        return $"completed for {agentInput.FunctionAppResourceId}";
     }
 }

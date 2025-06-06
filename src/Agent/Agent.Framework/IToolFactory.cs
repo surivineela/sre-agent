@@ -34,6 +34,8 @@ public interface IToolFactory<TContext> where TContext : class
     /// <exception cref="KeyNotFoundException">Thrown when the function with the specified name is not found.</exception>
     public AIFunction GetTool(string name);
 
+    public AIFunction GetTool(string name, Guid threadId);
+
     public bool TryFindTool(string name, out AIFunction? function);
 
     public bool HasTool(string name);

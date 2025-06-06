@@ -33,7 +33,7 @@ public class ReasoningLoop
     private readonly IThreadRepository _threadRepository;
     private readonly Channel<ReasoningLoopMessage> _msgCh;
     private readonly SemaphoreSlim _semaphore = new(initialCount: 1, maxCount: 1);
-    private readonly ToolFactory<AgentContext> _toolFactory;
+    private readonly IToolFactory<AgentContext> _toolFactory;
     private readonly ActionSettings _actionSettings;
     private readonly IAgentFactory<AgentContext> _agentFactory;
 
@@ -52,7 +52,7 @@ public class ReasoningLoop
         Agent<AgentContext> startingAgent,
         IThreadRepository threadRepository,
         AgentContext context,
-        ToolFactory<AgentContext> toolFactory,
+        IToolFactory<AgentContext> toolFactory,
         ActionSettings actionSettings,
         IAgentFactory<AgentContext> agentFactory)
     {
@@ -140,6 +140,13 @@ public class ReasoningLoop
 
         var reasoningMessages = await agentChatHistory.GetReasoningMessagesAsync(_threadRepository);
         _chatHistory = reasoningMessages.GetChatMessages();
+    }
+
+    
+    public async Task<IEnumerable<ChatMessage>> ExportChatHistory(CancellationToken cancellationToken)
+    {
+        //TODO - synchronization with writers. Currently only used during development so not a blocker.
+        return _chatHistory?.ToArray() ?? Array.Empty<ChatMessage>();
     }
 
     private async Task RunAsync(CancellationToken cancellationToken)

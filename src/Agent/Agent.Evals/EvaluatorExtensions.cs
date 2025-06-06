@@ -68,4 +68,15 @@ public static class EvaluatorExtensions
             return null;
         }
     }
+
+    public static ChatResponse CombineAgentResponses(this List<ChatMessage>? chatMessages)
+    {
+        var combinedText = string.Join($"{Environment.NewLine}{Environment.NewLine}", chatMessages
+            .Where(x => x.Role == ChatRole.Assistant)
+            .Where(x => !string.IsNullOrEmpty(x.Text))
+            .Select(x => x.Text)
+            .ToList());
+        
+        return new ChatResponse(new ChatMessage(ChatRole.Assistant, combinedText));
+    }
 }

@@ -11,6 +11,8 @@ using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Interfaces;
 using Agent.Graph.Services;
 using Agent.Runtime;
+using Azure.AI.OpenAI;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.CommandLineUtils;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -40,11 +42,17 @@ namespace Agent.Cmd
             builder.Services.AddSingleton<IArmClientFactory, ArmClientFactory>();
             builder.Services.AddSingleton<IKubernetesClientFactory, KubernetesClientFactory>();
             builder.Services.AddKeyedSingleton<IKubernetesService, CrawlerKubernetesService>("Crawler");
-
             builder.Services.AddSingleton<CrawlerCommand>();
             builder.Services.AddSingleton<GraphCommand>();
+            builder.Services.AddSingleton<ScenarioCommand>();
 
             builder.Services.AddCrawlerHttpClient();
+            builder.Services.AddHttpClient();
+
+            string llmDeploymentName = builder.Configuration["AppSettings:Core:Azure:OpenAI:LLMDeploymentName"];
+            builder.Services.ConfigureAzureOpenAIClient();
+            builder.Services.AddKeyedChatClient("function-invocation-enabled", serviceProvider => serviceProvider.GetRequiredService<AzureOpenAIClient>().AsChatClient(llmDeploymentName), ServiceLifetime.Singleton)
+                .UseFunctionInvocation();
 
             var host = builder.Build();
             CommandLineApplication commandLineApplication = new(throwOnUnexpectedArg: true);
@@ -76,6 +84,13 @@ namespace Agent.Cmd
                 {
                     var cmd = host.Services.GetRequiredService<GraphCommand>();
                     cmd.ExportGraphML(command);
+                });
+
+            commandLineApplication.Command("RunScenario",
+                (command) =>
+                {
+                    var cmd = host.Services.GetRequiredService<ScenarioCommand>();
+                    cmd.RunScenario(command);
                 });
 
             commandLineApplication.OnExecute(() =>

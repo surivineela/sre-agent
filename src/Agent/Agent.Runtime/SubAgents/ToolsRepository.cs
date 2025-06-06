@@ -10,6 +10,7 @@ using Agent.Plugins.Definitions;
 using Agent.Runtime.HelperAgents;
 using Agent.Runtime.Helpers;
 using Agent.Runtime.Models;
+using Agent.Runtime.SubAgents.Core;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Runtime.SubAgents;
@@ -250,4 +251,10 @@ public class ToolsRepository : IToolsRepository
         return _connectionToToolSignatures.Values.SelectMany(t => t).Concat(localTools).ToList().AsReadOnly();
     }
 
+    public virtual IToolFunction ResolveTool(ExecuteActionInput action)
+    {
+        var aiFunctions = this.GetAllTools(action.ToolSignatures).Select(this.FindAiFunction);
+        var matchingTool = aiFunctions.Single(x => x.ToolFunction.Name == action.FunctionCallContent.Name);
+        return matchingTool;
+    }
 }

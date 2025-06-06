@@ -61,9 +61,41 @@ https://dev.azure.com/msazure/One/_git/AAPT-Antares-OperationalAgent b19d0afddbe
 
 Use graphname `gsimpleweb` to connect to this graph.
 
+### Func Scenarios 1
+
+The graph `func-scenarios1.graphml` is based on a crawl of a subscription named "Private Test Sub CURIBE". It includes several function apps and related resources within the "mybuggyfunctionapp-rg" resource group. Key applications and components represented in this graph are:
+
+- `mybuggyfunctionapp`
+- `alsobuggyfunctionapp`
+- `notafunctionapp` (Note: this is a web app ).
+
+The graph primarily contains `microsoft.insights/components` (Application Insights) and `microsoft.alertsmanagement/smartdetectoralertrules` associated with these applications.
+
+Graph was last updated on 2025-05-22.
+
+Use graphname `gfuncscenarios1` to connect to this graph.
+
+### MrSharm ACA Diag
+
+The graph `mrsharm-aca-diag.graphml` is based on a crawl of Azure Container Apps (ACA) resources for diagnostic purposes. The graph contains:
+
+- **Container App:** `diagnosticbench-app-202504091010` in resource group `mrsharm-operations-agent-3p-rg`
+- **Managed Environment:** `approvalservice` in resource group `approval-service-rg`
+- **Multiple Revisions:** Various revisions of the diagnostic bench app with different suffixes
+- **Location:** eastus2
+
+This graph focuses on Azure Container Apps infrastructure and is useful for testing ACA-related diagnostics and scenarios.
+
+Graph was last updated on 2025-06-02.
+
+Use graphname `gmrsharmacadiag` to connect to this graph.
+
 ## Adding a new Graph
 
-1. Prepare your knowledge graph (by confinguring your crawlroots and running the crawler and if necessary, making your own edits)
+Protip - coding agents are pretty good at following these instructions! Do step 1 (prep your knowledge graph) yourself, then try telling github copilot in agent mode:
+"follow the instructions in this readme to add a new myGraph1 graph. I have already prepped my graph database."
+
+1. Prepare your knowledge graph by configuring your crawlroots and running the crawler and if necessary, making your own edits. Consider dropping everything from your graph beforehand with `g.V().drop()` to make sure you're not exporting unrelated stuff.
 1. Export your graph, giving it a name e.g. `unhealthy-container-apps`
 
         dotnet run --no-restore --project src/Agent/Agent.Cmd/Agent.Cmd.csproj -- ExportGraphML unhealthy-container-apps

@@ -109,7 +109,7 @@ namespace Agent.Tests.Integration
             services.AddSingleton<IToolsRepository, ToolsRepository>();
             services.AddSingleton<TlsBestPracticeAgentFactory>();
 
-            TlsTestHelpers.AddPluginDefinitionsForTlsSubAgent(services);
+            TlsTestHelpers.AddPluginDefinitionsForGenericSubAgent(services);
 
             _host = builder.Build();
 

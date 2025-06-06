@@ -34,4 +34,9 @@
   <ItemGroup>
     <ProjectReference Include="..\Agent.Analyzers\Agent.Analyzers.csproj" OutputItemType="Analyzer" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="ToolReplayLogs\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

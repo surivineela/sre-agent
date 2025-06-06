@@ -1,12 +1,26 @@
+using System;
+using System.Collections.Concurrent;
+using System.Linq;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 using Agent.Core.Configuration;
+using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
+using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
 using Agent.Data.Repositories;
+using Agent.Framework;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Runtime;
 using Agent.Runtime.Communication;
+using Agent.Runtime.MetaAgent;
+using Agent.Runtime.MetaAgent.Interfaces;
+using Agent.Runtime.Reasoning;
 using Agent.Runtime.Services;
+using Agent.Tests.Common.Mocks;
+using Agent.Tests.Common.Mocks.FunctionCalling;
 using Azure.AI.OpenAI;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,11 +28,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
-using System;
-using System.Collections.Concurrent;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Agent.Evals;
 
@@ -117,6 +126,58 @@ public static class TestHelpers
         return builder;
     }
 
+    public static HostApplicationBuilder RegisterServicesForAgentFrameworkEval(this HostApplicationBuilder builder, JsonSerializerOptions? toolReplaySerializerOptions = null)
+    {
+        builder.Services.AddSingleton<ThreadManagementService>();
+        builder.Services.AddSingleton<IAgentInboundCommunicationService, InboundCommunicationService>();
+        builder.Services.AddSingleton<IAgentOutboundCommunicationService, OutboundCommunicationService>();
+        builder.Services.AddTransient<Agent.Runtime.MetaAgent.IAgent, MetaAgent>();
+        builder.Services.AddSingleton<IAuthenticationService>(Mock.Of<IAuthenticationService>());
+        builder.Services.AddSingleton<ITitleGenerationService, TitleGenerationService>();
+
+        builder.Services.AddSingleton<GraphDBPlugin>();
+        builder.Services.AddSingleton<UserInteractionPluginDefinition>();
+        builder.Services.AddSingleton<AgentControlFlowPluginDefinition>();
+
+        builder.Services.AddSingleton<IReasoningLoopManager, ReasoningLoopManager>();
+        builder.Services.AddSingleton<IReasoningLoopFactory, ReasoningLoopFactory>();
+        builder.Services.AddSingleton<IToolFactory<AgentContext>>(sp =>
+        {
+            var inner = new ToolFactory<AgentContext>(
+                logger: sp.GetRequiredService<ILogger<ToolFactory<AgentContext>>>(),
+                serviceProvider: sp,
+                assembliesToScan: AppDomain.CurrentDomain.GetAssemblies()
+                    .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
+                    .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true));
+
+            var replay = new ReplayToolFactory<AgentContext>(inner, toolReplaySerializerOptions ?? new JsonSerializerOptions(JsonSerializerDefaults.Web));
+            return replay;
+        });
+
+        builder.Services.AddSingleton<IAgentFactory<AgentContext>, AgentFactory<AgentContext>>(sp =>
+        {
+            return new AgentFactory<AgentContext>(
+                logger: sp.GetRequiredService<ILogger<AgentFactory<AgentContext>>>(),
+                toolFactory: sp.GetRequiredService<IToolFactory<AgentContext>>(),
+                assembliesToScan: AppDomain.CurrentDomain.GetAssemblies()
+                    .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
+                    .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true),
+                agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "AgentsV2"),
+                commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonPrompts")
+            );
+        });
+
+        // should be removed later - currently required because ThreadManagementService has code for handling UseAgentFramework=false
+        builder.Services.AddSingleton<IAgentsFactory>(sp =>
+        {
+            return MetaAgentMock.GetMockedThirdPartAgentsFactory(
+                graphDBPlugin: sp.GetRequiredService<GraphDBPlugin>()
+                );
+        });
+
+        return builder;
+    }
+
     public static ChatResponse? GetChatResponseForUser(this ChatMessage msg)
     {
         var response = msg switch
@@ -134,7 +195,15 @@ public static class TestHelpers
     {
         foreach (var message in chatMessages)
         {
-            testContext.WriteLine($"[{message.Role}] {message.Text}");
+            if(string.IsNullOrEmpty(message.Text))
+            {
+                testContext.WriteLine($"{System.Text.Json.JsonSerializer.Serialize(message.Contents)}");
+            }
+            else
+            {
+                testContext.WriteLine($"[{message.Role}] {message.Text}");
+            }
+                
         }
     }
 
