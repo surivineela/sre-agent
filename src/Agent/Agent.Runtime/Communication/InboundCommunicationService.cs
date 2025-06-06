@@ -252,155 +252,197 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
 
     public async IAsyncEnumerable<ChatResponseUpdate> ProcessUserMessageStreamAsync(ThreadMessage threadMessage)
     {
-        string orchestrationInstanceId = String.Empty;
-        Guid responseMessageId = Guid.Empty;
-        var streamResponses = AsyncEnumerable.Empty<ChatResponseUpdate>();
-        bool streamedAgentTextResponse = false;
-        bool hasRecordedResponse = false;
-
-        AgentContext agentContext = await _repository.GetAgentContextAsync(agentContextId: threadMessage.AgentContextId, threadId: threadMessage.ThreadId);
-        AgentChatHistory agentChatHistory = await _repository.GetAgentChatHistoryAsync(threadMessage.AgentContextId);
-
-        orchestrationInstanceId = agentContext != null ? await _threadService.GetOrchestrationInstanceId(agentContext.ThreadId) : orchestrationInstanceId;
-
-        // we don't need to sink user message if the message is the start message
-        var thread = await _repository.GetThreadAsync(threadMessage.ThreadId);
-        ReasoningMessage? reasoningMessage = null;
-        if (threadMessage?.MessageId != thread?.StartMessage?.Id)
+        if (_useAgentFramwork)
         {
-            await _sinkService.SinkUserMessageAsync(threadMessage);
-            reasoningMessage = new ReasoningMessage(
-                Id: Guid.NewGuid(),
-                AgentContextId: threadMessage.AgentContextId,
-                Role: ReasoningMessageRoleEnum.User,
-                SerializedChatMessage: JsonSerializer.Serialize(new ChatMessage(ChatRole.User, threadMessage.Message)));
-            await _repository.CreateReasoningMessageAsync(reasoningMessage);
+            AgentContext agentFrameworkContext = await _repository.GetAgentContextAsync(agentContextId: threadMessage.AgentContextId, threadId: threadMessage.ThreadId);
 
-            await _repository.AddReasoningMessagesToChatHistoryAsync(agentChatHistory, reasoningMessage);
-        }
-
-        if (!string.IsNullOrEmpty(orchestrationInstanceId))
-        {
-
-            var existingOrchestration = await _durableTaskClient.GetInstanceAsync(orchestrationInstanceId,
-                getInputsAndOutputs: true, CancellationToken.None);
-            // Check for failed orchestrations and clean them if needed
-            bool cleaned = await _threadService.CleanOrchestration(
-                thread.Id,
-                orchestrationInstanceId,
-                existingOrchestration);
-
-            // If the orchestration was cleaned, get the updated orchestration ID (might be empty now)
-            if (cleaned)
+            // we don't need to sink user message if the message is the start message
+            var agentFrameworkThread = await _repository.GetThreadAsync(threadMessage.ThreadId);
+            if (threadMessage?.MessageId != agentFrameworkThread?.StartMessage?.Id)
             {
-                orchestrationInstanceId = await _threadService.GetOrchestrationInstanceId(agentContext.ThreadId);
+                await _sinkService.SinkUserMessageAsync(threadMessage);
             }
-        }
 
-        if (string.IsNullOrEmpty(orchestrationInstanceId))
-        {
-            // No existing orchestration, create a new one
-            _logger.LogInternalInformation("No existing orchestration for thread: {ThreadId}", threadMessage.ThreadId);
+            var streamingResult = _reasoningLoopManager.AppendNewMessageStreamingAsync(
+                context: agentFrameworkContext!,
+                msg: new ChatMessage(ChatRole.User, threadMessage.Message),
+                cancellationToken: default);
 
-            string agentResponse = string.Empty;
-
-            if (agentContext != null && AgentTypeHelper.IsScannerAgent(agentContext.AgentType))
+            Guid streamedResponseMessageId = Guid.NewGuid();
+            if (streamingResult != null)
             {
-                ScannerSubAgent scannerSubAgent = null;
-                switch (agentContext.AgentType)
+                await foreach (var response in streamingResult)
                 {
-                    case AgentTypeEnum.CVE:
-                        scannerSubAgent = _serviceProvider.GetRequiredService<CVEAgent>();
-                        break;
-                    case AgentTypeEnum.SourceCode:
-                        scannerSubAgent = _serviceProvider.GetRequiredService<SourceCodeAgent>();
-                        break;
-                    default:
-                        throw new NotSupportedException($"Scanner agent type {agentContext.AgentType} is not supported.");
+                    ChatResponseUpdate update = new ChatResponseUpdate(ChatRole.Assistant, response.Output?.ToString() ?? string.Empty);
+                    update.AdditionalProperties ??= new AdditionalPropertiesDictionary();
+                    update.AdditionalProperties.Add("messageId", streamedResponseMessageId.ToString());
+                    update.AdditionalProperties.Add("threadId", threadMessage.ThreadId.ToString());
+                    update.AdditionalProperties.Add("currentAgent", response.LastAgent.Name ?? string.Empty);
+                    yield return update;
+                    if (response.ManualToolCalls != null && response.ManualToolCalls.Any())
+                    {
+                        List<AIContent> toolCalls = new List<AIContent>();
+                        foreach (var toolCall in response.ManualToolCalls)
+                        {
+                            toolCalls.Add(toolCall.FunctionCall);
+                        }
+                        ChatResponseUpdate toolCallUpdate = new ChatResponseUpdate(ChatRole.Tool, toolCalls);
+                        yield return toolCallUpdate;
+                    }
                 }
-
-                if (scannerSubAgent != null)
-                {
-                    agentResponse = await scannerSubAgent.DoWork(agentContext: agentContext, agentChatHistory: agentChatHistory, threadMessage.Message);
-                }
-            }
-            else if (agentContext != null && agentContext.HandoffToAgentContextId != null && reasoningMessage != null)
-            {
-                // this context handed off to another context, need to add a reasoning message to that one as well, then the background processor will handle it
-
-                var handoffToContext = await _repository.GetAgentContextAsync(agentContextId: agentContext.HandoffToAgentContextId.Value, threadId: threadMessage.ThreadId)
-                    ?? throw new InvalidOperationException($"Handoff to agent context {agentContext.HandoffToAgentContextId} not found for thread {threadMessage.ThreadId}.");
-
-                var handoffToChatHistory = await _repository.GetAgentChatHistoryAsync(handoffToContext.Id);
-
-                var handoffReasoningMessage = reasoningMessage with
-                {
-                    Id = Guid.NewGuid(),
-                    AgentContextId = handoffToContext.Id
-                };
-
-                await _repository.CreateReasoningMessageAsync(handoffReasoningMessage);
-                await _repository.AddReasoningMessagesToChatHistoryAsync(handoffToChatHistory, handoffReasoningMessage);
-
-                // tack on handoff response to message stream for now. TODO: work on streaming contract for handoff from API
-                var serviceResponse = new InboundServiceResponse(threadMessage.ThreadId, responseMessageId, orchestrationInstanceId);
-                streamResponses = AddServiceResponseToStream(serviceResponse, isHandoffToDifferentThread: true);
-            }
-            else
-            {
-                // Process the message with MetaAgent
-                streamedAgentTextResponse = true;
-                streamResponses = _metaAgent.ProcessUserMessageStream(agentContext: agentContext, agentChatHistory: agentChatHistory);
-            }
-            if (!streamedAgentTextResponse)
-            {
-                responseMessageId = await _sinkService.SinkAgentMessageAsync(agentContext.ThreadId, agentResponse);
-                hasRecordedResponse = true;
             }
         }
         else
         {
-            // TODO (jianbosun):
-            // For now, we assume there's only 1:1 mapping for threadId and orchestrationInstanceId,
-            // but we may change this to allow multiple orchestrations per thread, e.g. to choose sub-agent type in one thread as a different orchestration.
-            // This will enable us for scenarios that need to share chat history with multiple orchestrations for different purposes.
+            string orchestrationInstanceId = String.Empty;
+            Guid responseMessageId = Guid.Empty;
+            var streamResponses = AsyncEnumerable.Empty<ChatResponseUpdate>();
+            bool streamedAgentTextResponse = false;
+            bool hasRecordedResponse = false;
 
-            // Existing orchestration, raise an event to it
-            var handoffThreadAgentMessage = "Sending message to existing orchestration for thread: " + threadMessage?.ThreadId;
-            _logger.LogInternalInformation(handoffThreadAgentMessage);
-            await _durableTaskClient.RaiseEventAsync(
-                orchestrationInstanceId,
-                "NewChatMessage",
-                new ChatMessage(ChatRole.User, threadMessage.Message));
-            var contextMessageId = Guid.NewGuid();
-            var serviceResponse = new InboundServiceResponse(threadMessage.ThreadId, contextMessageId, orchestrationInstanceId);
-            streamResponses = AddServiceResponseToStream(serviceResponse, isHandoffToDifferentThread: true);
+            AgentContext agentContext = await _repository.GetAgentContextAsync(agentContextId: threadMessage.AgentContextId, threadId: threadMessage.ThreadId);
+            AgentChatHistory agentChatHistory = await _repository.GetAgentChatHistoryAsync(threadMessage.AgentContextId);
 
-        }
+            orchestrationInstanceId = agentContext != null ? await _threadService.GetOrchestrationInstanceId(agentContext.ThreadId) : orchestrationInstanceId;
 
-        StringBuilder agentTextResponse = new StringBuilder();
-        Guid streamedResponseMessageId = Guid.NewGuid();
-        await foreach (var response in streamResponses)
-        {
-            if (streamedAgentTextResponse)
+            // we don't need to sink user message if the message is the start message
+            var thread = await _repository.GetThreadAsync(threadMessage.ThreadId);
+            ReasoningMessage? reasoningMessage = null;
+            if (threadMessage?.MessageId != thread?.StartMessage?.Id)
             {
-                agentTextResponse.Append(response.Text);
-                response.AdditionalProperties ??= new AdditionalPropertiesDictionary();
-                response.AdditionalProperties.Add("messageId", streamedResponseMessageId.ToString());
-                response.AdditionalProperties.Add("threadId", threadMessage.ThreadId.ToString());
-                // ignore duplicate STOP commands from model and only record response once
-                if (response.FinishReason == ChatFinishReason.Stop && !hasRecordedResponse)
+                await _sinkService.SinkUserMessageAsync(threadMessage);
+                reasoningMessage = new ReasoningMessage(
+                    Id: Guid.NewGuid(),
+                    AgentContextId: threadMessage.AgentContextId,
+                    Role: ReasoningMessageRoleEnum.User,
+                    SerializedChatMessage: JsonSerializer.Serialize(new ChatMessage(ChatRole.User, threadMessage.Message)));
+                await _repository.CreateReasoningMessageAsync(reasoningMessage);
+
+                await _repository.AddReasoningMessagesToChatHistoryAsync(agentChatHistory, reasoningMessage);
+            }
+
+            if (!string.IsNullOrEmpty(orchestrationInstanceId))
+            {
+
+                var existingOrchestration = await _durableTaskClient.GetInstanceAsync(orchestrationInstanceId,
+                    getInputsAndOutputs: true, CancellationToken.None);
+                // Check for failed orchestrations and clean them if needed
+                bool cleaned = await _threadService.CleanOrchestration(
+                    thread.Id,
+                    orchestrationInstanceId,
+                    existingOrchestration);
+
+                // If the orchestration was cleaned, get the updated orchestration ID (might be empty now)
+                if (cleaned)
                 {
-                    ChatResponse chatResponse = new ChatResponse(
-                        new ChatMessage(ChatRole.Assistant, agentTextResponse.ToString())
-                    );
-                    await _sinkService.SinkAgentMessageAsync(agentContext.ThreadId, agentTextResponse.ToString(), agentResponseMessageId: streamedResponseMessageId);
+                    orchestrationInstanceId = await _threadService.GetOrchestrationInstanceId(agentContext.ThreadId);
+                }
+            }
+
+            if (string.IsNullOrEmpty(orchestrationInstanceId))
+            {
+                // No existing orchestration, create a new one
+                _logger.LogInternalInformation("No existing orchestration for thread: {ThreadId}", threadMessage.ThreadId);
+
+                string agentResponse = string.Empty;
+
+                if (agentContext != null && AgentTypeHelper.IsScannerAgent(agentContext.AgentType))
+                {
+                    ScannerSubAgent scannerSubAgent = null;
+                    switch (agentContext.AgentType)
+                    {
+                        case AgentTypeEnum.CVE:
+                            scannerSubAgent = _serviceProvider.GetRequiredService<CVEAgent>();
+                            break;
+                        case AgentTypeEnum.SourceCode:
+                            scannerSubAgent = _serviceProvider.GetRequiredService<SourceCodeAgent>();
+                            break;
+                        default:
+                            throw new NotSupportedException($"Scanner agent type {agentContext.AgentType} is not supported.");
+                    }
+
+                    if (scannerSubAgent != null)
+                    {
+                        agentResponse = await scannerSubAgent.DoWork(agentContext: agentContext, agentChatHistory: agentChatHistory, threadMessage.Message);
+                    }
+                }
+                else if (agentContext != null && agentContext.HandoffToAgentContextId != null && reasoningMessage != null)
+                {
+                    // this context handed off to another context, need to add a reasoning message to that one as well, then the background processor will handle it
+
+                    var handoffToContext = await _repository.GetAgentContextAsync(agentContextId: agentContext.HandoffToAgentContextId.Value, threadId: threadMessage.ThreadId)
+                        ?? throw new InvalidOperationException($"Handoff to agent context {agentContext.HandoffToAgentContextId} not found for thread {threadMessage.ThreadId}.");
+
+                    var handoffToChatHistory = await _repository.GetAgentChatHistoryAsync(handoffToContext.Id);
+
+                    var handoffReasoningMessage = reasoningMessage with
+                    {
+                        Id = Guid.NewGuid(),
+                        AgentContextId = handoffToContext.Id
+                    };
+
+                    await _repository.CreateReasoningMessageAsync(handoffReasoningMessage);
+                    await _repository.AddReasoningMessagesToChatHistoryAsync(handoffToChatHistory, handoffReasoningMessage);
+
+                    // tack on handoff response to message stream for now. TODO: work on streaming contract for handoff from API
+                    var serviceResponse = new InboundServiceResponse(threadMessage.ThreadId, responseMessageId, orchestrationInstanceId);
+                    streamResponses = AddServiceResponseToStream(serviceResponse, isHandoffToDifferentThread: true);
+                }
+                else
+                {
+                    // Process the message with MetaAgent
+                    streamedAgentTextResponse = true;
+                    streamResponses = _metaAgent.ProcessUserMessageStream(agentContext: agentContext, agentChatHistory: agentChatHistory);
+                }
+                if (!streamedAgentTextResponse)
+                {
+                    responseMessageId = await _sinkService.SinkAgentMessageAsync(agentContext.ThreadId, agentResponse);
                     hasRecordedResponse = true;
                 }
             }
-            yield return response;
-        }
+            else
+            {
+                // TODO (jianbosun):
+                // For now, we assume there's only 1:1 mapping for threadId and orchestrationInstanceId,
+                // but we may change this to allow multiple orchestrations per thread, e.g. to choose sub-agent type in one thread as a different orchestration.
+                // This will enable us for scenarios that need to share chat history with multiple orchestrations for different purposes.
 
+                // Existing orchestration, raise an event to it
+                var handoffThreadAgentMessage = "Sending message to existing orchestration for thread: " + threadMessage?.ThreadId;
+                _logger.LogInternalInformation(handoffThreadAgentMessage);
+                await _durableTaskClient.RaiseEventAsync(
+                    orchestrationInstanceId,
+                    "NewChatMessage",
+                    new ChatMessage(ChatRole.User, threadMessage.Message));
+                var contextMessageId = Guid.NewGuid();
+                var serviceResponse = new InboundServiceResponse(threadMessage.ThreadId, contextMessageId, orchestrationInstanceId);
+                streamResponses = AddServiceResponseToStream(serviceResponse, isHandoffToDifferentThread: true);
+
+            }
+
+            StringBuilder agentTextResponse = new StringBuilder();
+            Guid streamedResponseMessageId = Guid.NewGuid();
+            await foreach (var response in streamResponses)
+            {
+                if (streamedAgentTextResponse)
+                {
+                    agentTextResponse.Append(response.Text);
+                    response.AdditionalProperties ??= new AdditionalPropertiesDictionary();
+                    response.AdditionalProperties.Add("messageId", streamedResponseMessageId.ToString());
+                    response.AdditionalProperties.Add("threadId", threadMessage.ThreadId.ToString());
+                    // ignore duplicate STOP commands from model and only record response once
+                    if (response.FinishReason == ChatFinishReason.Stop && !hasRecordedResponse)
+                    {
+                        ChatResponse chatResponse = new ChatResponse(
+                            new ChatMessage(ChatRole.Assistant, agentTextResponse.ToString())
+                        );
+                        await _sinkService.SinkAgentMessageAsync(agentContext.ThreadId, agentTextResponse.ToString(), agentResponseMessageId: streamedResponseMessageId);
+                        hasRecordedResponse = true;
+                    }
+                }
+                yield return response;
+            }
+        }
     }
 
     private async IAsyncEnumerable<ChatResponseUpdate> AddServiceResponseToStream(InboundServiceResponse response, bool isHandoffToDifferentThread = false)

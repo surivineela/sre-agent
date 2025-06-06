@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading.Channels;
 using Agent.Core;
 using Agent.Core.Attributes;
@@ -16,6 +17,7 @@ using Agent.Framework;
 using Agent.Logging;
 using Agent.Runtime.Helpers;
 using Agent.Runtime.SubAgents.Core;
+using Microsoft.Bot.Schema.Teams;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
@@ -76,6 +78,26 @@ public class ReasoningLoop
             await _msgCh.Writer.WriteAsync(new ReasoningLoopUserMessage(msg), cancellationToken);
 
             _ = Task.Run(async () => await RunAsync(cancellationToken), cancellationToken);
+        }
+        else
+        {
+            throw new InvalidOperationException("Channel is closed.");
+        }
+    }
+
+    public async IAsyncEnumerable<RunResult<AgentContext>> AppendNewUserMessageStreamAsync(ChatMessage msg, CancellationToken cancellationToken = default)
+    {
+        // TODO: use queue system to iterate over events and *actually* do something with them before returning all events to user
+        if (await _msgCh.Writer.WaitToWriteAsync(cancellationToken))
+        {
+            _logger.LogInternalInformation("Appending new user message");
+            await _msgCh.Writer.WriteAsync(new ReasoningLoopUserMessage(msg), cancellationToken);
+
+            var streamingResult = RunStreamingAsync(cancellationToken);
+            await foreach (var update in streamingResult.WithCancellation(cancellationToken))
+            {
+                yield return update;
+            }
         }
         else
         {
@@ -181,6 +203,72 @@ public class ReasoningLoop
         }
 
         _semaphore.Release();
+    }
+
+    private async IAsyncEnumerable<RunResult<AgentContext>> RunStreamingAsync(CancellationToken cancellationToken)
+    {
+        if (!await _semaphore.WaitAsync(0, cancellationToken))
+        {
+            _logger.LogInternalInformation("Semaphore is already acquired by another thread. Skipping this run.");
+            yield break;
+        }
+
+        while (_msgCh.Reader.TryRead(out var reasoningLoopMessage))
+        {
+
+            _logger.LogInternalInformation("Received new message. Running reasoning loop...");
+
+            AgentChatHistory agentChatHistory = await _threadRepository.GetAgentChatHistoryAsync(_context.Id);
+
+            switch (reasoningLoopMessage)
+            {
+                case ReasoningLoopUserMessage userMessage:
+                    {
+                        _logger.LogInternalInformation("Processing user message.");
+                        if (_context.ApprovalInformation != null &&
+                            _context.ApprovalInformation.PendingApprovals.Count > 0)
+                        {
+                            await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+                                _context.ThreadId,
+                                string.Empty,
+                                new ChatMessage(ChatRole.Assistant, "You have pending approvals. Please resolve them before continuing."));
+                            break;
+                        }
+                        var shouldStop = await HandleUnprocessedToolCallsAsync(agentChatHistory, cancellationToken);
+                        if (shouldStop)
+                        {
+                            yield break;
+                        }
+
+                        await PersistReasoningMessageAsync(agentChatHistory, userMessage.Message);
+                        break;
+                    }
+                case ReasoningLoopApprovalMessage approvalMessage:
+                    {
+                        _logger.LogInternalInformation("Processing approval message.");
+                        var approval = approvalMessage.Approval;
+                        var shouldStop = await ProcessNewApprovalAsync(agentChatHistory, approval, cancellationToken);
+                        if (shouldStop)
+                        {
+                            yield break;
+                        }
+                        break;
+                    }
+                default:
+                    _logger.LogInternalWarning("Received unknown message type: {Type}", reasoningLoopMessage.GetType());
+                    continue;
+            }
+
+            var results = RunInternalStreamingAsync(agentChatHistory, cancellationToken);
+
+            await foreach (var result in results)
+            {
+                yield return result;
+            }
+        }
+
+        _semaphore.Release();
+        yield break;
     }
 
     private async Task RunInternalAsync(AgentChatHistory agentChatHistory, CancellationToken cancellationToken)
@@ -329,6 +417,126 @@ public class ReasoningLoop
             _logger.LogInternalError(ex, "An error occurred during reasoning loop.");
         }
     }
+
+    private async IAsyncEnumerable<RunResult<AgentContext>> RunInternalStreamingAsync(AgentChatHistory agentChatHistory, [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var runConfig = new RunConfig
+        {
+            ChatClient = _chatClient,
+            LoggerFactory = _loggerFactory
+        };
+
+        var runHooks = new RunHooks<AgentContext>
+        {
+            ResolveFactoryTools = (context, agent) =>
+            {
+                List<AIFunction> tools = [];
+
+                foreach (var toolName in agent.FactoryTools)
+                {
+                    var tool = _toolFactory.GetTool(toolName, _context.ThreadId);
+
+                    tools.Add(tool);
+                }
+
+                return Task.FromResult(tools);
+            }
+        };
+
+        ToolStatic.AsyncLocalThreadId.Value = _context.ThreadId;
+
+        var runResult = await Runner.RunAsync(
+            startingAgent: _currentAgent,
+            input: _chatHistory!,
+            config: runConfig,
+            context: _context,
+            hooks: runHooks,
+            cancellationToken: cancellationToken
+        );
+        yield return runResult;
+
+        await PersistReasoningMessagesAsync(agentChatHistory, runResult.NewItems);
+        _currentAgent = runResult.LastAgent;
+        _context = _context with { CurrentAgent = _currentAgent.Name };
+        _context = await _threadRepository.UpdateAgentContextAsync(_context);
+
+        // handle manual tool calls
+        while (runResult.ManualToolCalls != null && runResult.ManualToolCalls.Count > 0)
+        {
+            List<ManualToolCallResult> toolResults = [];
+
+            var toolCall = runResult.ManualToolCalls.Single(); // Should only be one tool call at a time
+            var checkApprovalResult = await CheckApprovalAsync(toolCall);
+            var checkAzCliWrite = CheckAzCliWriteToolCallAsync(toolCall);
+            var checkKubectlWrite = CheckKubectlWriteToolCallAsync(toolCall);
+
+            if (checkAzCliWrite)
+            {
+                await InvokeToolWithErrorHandlingAsync(toolCall, cancellationToken);
+
+                var cliExecution = await _threadRepository.ListPendingAzCliExecutionAsync(_context.ThreadId);
+                cliExecution = cliExecution with
+                {
+                    AgentContextId = _context.Id,
+                };
+                await _threadRepository.UpdateAzCliExecutionAsync(_context.ThreadId, cliExecution);
+                break;
+            }
+
+            if (checkKubectlWrite)
+            {
+                await InvokeToolWithErrorHandlingAsync(toolCall, cancellationToken);
+
+                var kubectlExecution = await _threadRepository.ListPendingKubectlExecutionAsync(_context.ThreadId);
+                kubectlExecution = kubectlExecution with
+                {
+                    AgentContextId = _context.Id,
+                };
+                await _threadRepository.UpdateKubectlExecutionAsync(_context.ThreadId, kubectlExecution);
+                break;
+            }
+
+            if (checkApprovalResult.ApprovalStatus == ToolApprovalStatus.NotRequired || checkApprovalResult.ApprovalStatus == ToolApprovalStatus.AutoApproved)
+            {
+                var functionResult = await InvokeToolWithErrorHandlingAsync(toolCall, cancellationToken);
+                toolResults.Add(new ManualToolCallResult()
+                {
+                    FunctionCall = toolCall.FunctionCall,
+                    Output = functionResult
+                });
+            }
+            else
+            {
+                // if approval is required, stop the loop and wait for approval
+                break;
+            }
+
+            runResult = await Runner.ResumeFromManualToolsAsync(
+                previousResult: runResult,
+                manualToolResults: toolResults,
+                config: runConfig,
+                context: _context,
+                hooks: runHooks,
+                cancellationToken: cancellationToken
+            );
+            yield return runResult;
+
+            await PersistReasoningMessagesAsync(agentChatHistory, runResult.NewItems);
+            _currentAgent = runResult.LastAgent;
+            _context = _context with { CurrentAgent = _currentAgent.Name };
+            _context = await _threadRepository.UpdateAgentContextAsync(_context);
+        }
+
+        if (runResult.Output != null)
+        {
+            await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context.ThreadId, string.Empty,
+                new ChatMessage(ChatRole.Assistant, runResult.Output?.ToString()));
+        }
+
+        _logger.LogInternalInformation("Reasoning loop completed successfully.");
+        yield break;
+    }
+
 
     private string GetApprovalTitle(FunctionCallContent functionCall)
     {

@@ -14,7 +14,7 @@ public class Trajectory
     public StringBuilder MessageContent { get; } = new StringBuilder();
     public StringBuilder FunctionCallContent { get; } = new StringBuilder();
 
-    public void Append(ChatResponse? modelResponse = null, ManualToolCallResult? toolCallResult = null, string? message = null)
+    public void Append(ChatResponse? modelResponse = null, ManualToolCallResult? toolCallResult = null, string? message = null, ChatResponseUpdate? chatResponseUpdate = null)
     {
         if (!string.IsNullOrEmpty(message))
         {
@@ -43,6 +43,17 @@ public class Trajectory
                 result = toolCallResult.Output
             });
             FunctionCallContent.AppendLine($"Function Call: {functionCallResultJson}");
+        }
+
+        if (chatResponseUpdate != null && chatResponseUpdate.Contents != null)
+        {
+            foreach (var content in chatResponseUpdate.Contents)
+            {
+                if (content is TextContent textContent)
+                {
+                    MessageContent.Append(textContent.Text);
+                }
+            }
         }
     }
 

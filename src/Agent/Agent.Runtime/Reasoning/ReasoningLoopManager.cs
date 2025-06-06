@@ -4,6 +4,7 @@
 
 using System.Collections.Concurrent;
 using Agent.Core.Models.Api.v1;
+using Agent.Framework;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Runtime.Reasoning;
@@ -11,6 +12,7 @@ namespace Agent.Runtime.Reasoning;
 public interface IReasoningLoopManager
 {
     Task AppendNewMessageAsync(AgentContext context, ChatMessage msg, CancellationToken cancellationToken = default);
+    IAsyncEnumerable<RunResult<AgentContext>> AppendNewMessageStreamingAsync(AgentContext context, ChatMessage msg, CancellationToken cancellationToken = default);
     Task NotifyApprovalDecisionAsync(AgentContext context, Approval approval, CancellationToken cancellationToken = default);
 }
 
@@ -29,6 +31,17 @@ public class ReasoningLoopManager : IReasoningLoopManager
         var loop = await GetOrCreateReasoningLoopAsync(context);
         await loop.AppendNewUserMessageAsync(msg, cancellationToken);
     }
+
+    public async IAsyncEnumerable<RunResult<AgentContext>> AppendNewMessageStreamingAsync(AgentContext context, ChatMessage msg, CancellationToken cancellationToken = default)
+    {
+        var loop = await GetOrCreateReasoningLoopAsync(context);
+        var results = loop.AppendNewUserMessageStreamAsync(msg, cancellationToken);
+        await foreach(var result in results.WithCancellation(cancellationToken))
+        {
+            yield return result;
+        }
+    }
+
 
     public async Task NotifyApprovalDecisionAsync(AgentContext context, Approval approval, CancellationToken cancellationToken = default)
     {
