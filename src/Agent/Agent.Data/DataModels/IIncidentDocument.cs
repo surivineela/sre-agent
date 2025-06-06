@@ -8,6 +8,12 @@ public interface IIncidentDocument : ICosmosDocument
 {
     DateTime CreatedAt { get; }
     DateTime UpdatedAt { get; set; }
+    string ImpactedServiceId { get; set; }
+    string ImpactedServiceName { get; set; }
+    string Id { get; }
+    string Status { get; set; }
+    string IncidentType { get; set; }
+    string Priority { get; set; }
     string Title { get; set; }
     string Description { get; set; }
     string ExtractedKnowledge { get; set; }

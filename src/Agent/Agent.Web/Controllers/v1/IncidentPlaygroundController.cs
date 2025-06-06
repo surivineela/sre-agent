@@ -20,6 +20,7 @@ public class IncidentPlaygroundController : ControllerBase
 {
     private IInstructionGenerationService _instructionGenerationService;
     private readonly IIncidentHandlerManagementService _incidentHandlerManagementService;
+    private readonly IIncidentFilterManagementService _incidentFilterManagementService;
     private readonly IncidentManagementService<PagerDutyIncidentDocument> _incidentManagementService;
     private readonly ILogger<IncidentPlaygroundController> _logger;
 
@@ -27,25 +28,27 @@ public class IncidentPlaygroundController : ControllerBase
         IInstructionGenerationService instructionGenerationService,
         IncidentManagementService<PagerDutyIncidentDocument> incidentManagementService,
         IIncidentHandlerManagementService incidentHandlerManagementService,
+        IIncidentFilterManagementService incidentFilterManagementService,
         ILogger<IncidentPlaygroundController> logger)
     {
         _incidentManagementService = incidentManagementService;
         _instructionGenerationService = instructionGenerationService;
         _incidentHandlerManagementService = incidentHandlerManagementService;
+        _incidentFilterManagementService = incidentFilterManagementService;
         _logger = logger;
     }
 
     [HttpGet("handlers")]
     public async Task<IActionResult> ListIncidentHandlers()
     {
-        var handlers = await _incidentHandlerManagementService.ListIncidentHandlers(new List<string>());
+        var handlers = await _incidentHandlerManagementService.ListIncidentHandlers();
         return Ok(handlers);
     }
 
-    [HttpPost("filterHandlers")]
-    public async Task<IActionResult> FilterIncidentHandlers([FromBody] List<string> filteringKeywords)
+    [HttpPost("queryHandlers")]
+    public async Task<IActionResult> QueryIncidentHandlers([FromBody] List<string> filteringKeywords)
     {
-        var handlers = await _incidentHandlerManagementService.ListIncidentHandlers(filteringKeywords);
+        var handlers = await _incidentHandlerManagementService.QueryIncidentHandlers(filteringKeywords);
         return Ok(handlers);
     }
 
@@ -74,7 +77,7 @@ public class IncidentPlaygroundController : ControllerBase
             document.Id,
             document.Name,
             document.Description,
-            document.TitleKeywords,
+            document.IncidentFilterId,
             document.IncidentProcessingGuide,
             document.Tools,
             document.Incidents,
@@ -100,7 +103,7 @@ public class IncidentPlaygroundController : ControllerBase
 
         existingHandler.Name = document.Name;
         existingHandler.Description = document.Description;
-        existingHandler.TitleKeywords = document.TitleKeywords;
+        existingHandler.IncidentFilterId = document.IncidentFilterId;
         existingHandler.IncidentProcessingGuide = document.IncidentProcessingGuide;
         existingHandler.Tools = document.Tools;
         existingHandler.Incidents = document.Incidents;
@@ -120,6 +123,85 @@ public class IncidentPlaygroundController : ControllerBase
         return Ok();
     }
 
+    // List all incident filters
+    [HttpGet("filters")]
+    public async Task<IActionResult> ListIncidentFilters()
+    {
+        var filters = await _incidentFilterManagementService.ListIncidentFilters();
+        return Ok(filters);
+    }
+
+    // Get a specific incident filter by ID
+    [HttpGet("filters/{filterId}")]
+    public async Task<IActionResult> GetIncidentFilter(string filterId)
+    {
+        var filter = await _incidentFilterManagementService.GetIncidentFilter(filterId);
+        if (filter == null)
+            return NotFound();
+        return Ok(filter);
+    }
+
+    // Create a new incident filter (PUT)
+    [HttpPut("filters/{filterId}")]
+    public async Task<IActionResult> CreateIncidentFilter([FromBody] IncidentFilterDocumentPayload payload)
+    {
+        if (payload == null || string.IsNullOrEmpty(payload.Id))
+        {
+            return BadRequest("Invalid incident filter document");
+        }
+        var existingFilter = await _incidentFilterManagementService.GetIncidentFilter(payload.Id);
+        if (existingFilter != null)
+        {
+            return Conflict("Incident filter with the same ID already exists. Use POST to update.");
+        }
+        var filterDoc = new IncidentFilterDocument(
+            payload.Id,
+            DateTime.UtcNow,
+            payload.ImpactedService,
+            payload.Priority,
+            payload.IncidentType,
+            payload.AlertId,
+            payload.TitleContains
+        );
+        var saved = await _incidentFilterManagementService.SaveIncidentFilter(filterDoc);
+        return Ok(saved);
+    }
+
+    // Update an existing incident filter (POST)
+    [HttpPost("filters/{filterId}")]
+    public async Task<IActionResult> SaveIncidentFilter([FromBody] IncidentFilterDocumentPayload payload)
+    {
+        if (payload == null || string.IsNullOrEmpty(payload.Id))
+        {
+            return BadRequest("Invalid incident filter document");
+        }
+        var existingFilter = await _incidentFilterManagementService.GetIncidentFilter(payload.Id);
+        if (existingFilter == null)
+        {
+            return NotFound("Incident filter not found. Use PUT to create a new filter.");
+        }
+
+        existingFilter.ImpactedService = payload.ImpactedService;
+        existingFilter.Priority = payload.Priority;
+        existingFilter.IncidentType = payload.IncidentType;
+        existingFilter.AlertId = payload.AlertId;
+        existingFilter.TitleContains = payload.TitleContains;
+        existingFilter.UpdatedAt = DateTime.UtcNow;
+
+        var saved = await _incidentFilterManagementService.SaveIncidentFilter(existingFilter);
+        return Ok(saved);
+    }
+
+    // Delete an incident filter
+    [HttpDelete("filters/{filterId}")]
+    public async Task<IActionResult> DeleteIncidentFilter(string filterId)
+    {
+        var result = await _incidentFilterManagementService.DeleteIncidentFilter(filterId);
+        if (!result)
+            return NotFound();
+        return Ok();
+    }
+
     [HttpPost("queryIncidents")]
     public async Task<IActionResult> QueryIncidents([FromBody] IncidentQueryRequest request)
     {
@@ -129,7 +211,7 @@ public class IncidentPlaygroundController : ControllerBase
             {
                 return BadRequest("Invalid query request");
             }
-            var incidents = await _incidentManagementService.QueryIncidents(request.Keywords);
+            var incidents = await _incidentManagementService.QueryIncidents(request);
             return Ok(incidents);
         }
         catch (Exception ex)

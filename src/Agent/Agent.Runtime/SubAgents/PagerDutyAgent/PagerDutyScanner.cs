@@ -219,7 +219,16 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
             {
                 needsUpsert = true;
                 logger.LogInternalInformation("Creating new incident document by id {incidentId}", incident.IncidentId);
-                incidentDocument = new PagerDutyIncidentDocument(Id: incident.IncidentId, HtmlUrl: incident.HtmlUrl, CreatedAt: incident.CreatedAt, Status: incident.Status, Priority: incident.Priority?.Summary ?? "Not set", Urgency: incident.Urgency ?? "Not set")
+                incidentDocument = new PagerDutyIncidentDocument(
+                    Id: incident.IncidentId,
+                    HtmlUrl: incident.HtmlUrl,
+                    CreatedAt: incident.CreatedAt,
+                    Status: incident.Status,
+                    IncidentType: incident.IncidentType?.Name,
+                    ImpactedServiceId: incident.ImpactedService?.Id ?? "Not set",
+                    ImpactedServiceName: incident.ImpactedService?.Summary ?? "Not set",
+                    Priority: incident.Priority?.Summary ?? "Not set",
+                    Urgency: incident.Urgency ?? "Not set")
                 {
                     Title = incident.Title,
                     // Well done PagerDuty. Took me hours to figure out where to find the real description.

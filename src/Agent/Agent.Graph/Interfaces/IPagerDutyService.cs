@@ -27,6 +27,16 @@ public record Priority(
     [property: JsonPropertyName("summary")] string Summary // e.g. P1, P2, P3
 );
 
+public record PDIncidentType(
+    [property: JsonPropertyName("name")] string Name
+);
+
+public record ImpactedService(
+    [property: JsonPropertyName("id")] string Id, // e.g. PHULJQ6
+    [property: JsonPropertyName("summary")] string Summary, // e.g. Default Service
+    [property: JsonPropertyName("type")] string Type // e.g. service_reference
+);
+
 public record PagerDutyIncident(
     [property: JsonPropertyName("id") ] string IncidentId, // PagerDuty incident ID
     // For whatever reason, the description is always the same as the title.
@@ -44,7 +54,9 @@ public record PagerDutyIncident(
     // include[]=first_trigger_log_entries parameter is required to get the full log entry.
     [property: JsonPropertyName("first_trigger_log_entry")] FirstTriggerLogEntry FirstTriggerLogEntry,
     [property: JsonPropertyName("priority")] Priority? Priority,
-    [property: JsonPropertyName("urgency")] string Urgency
+    [property: JsonPropertyName("urgency")] string? Urgency,
+    [property: JsonPropertyName("incident_type")] PDIncidentType? IncidentType, // e.g. incident, problem, maintenance
+    [property: JsonPropertyName("service")] ImpactedService? ImpactedService // e.g. "Microsoft Teams", "Azure Storage"
 );
 
 public record PagerDutyIncidentsResponse(

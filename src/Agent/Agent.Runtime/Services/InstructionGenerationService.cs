@@ -265,11 +265,6 @@ public class InstructionGenerationRequest
     public string ExistingInstructions { get; set; } = string.Empty;
 }
 
-public class IncidentQueryRequest
-{
-    public string[] Keywords { get; set; }
-}
-
 
 public class InstructionGenerationResponse
 {

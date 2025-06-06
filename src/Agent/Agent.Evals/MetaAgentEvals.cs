@@ -632,6 +632,9 @@ public class MetaAgentEvals
                     "triggered",
                     "P1",
                     "high",
+                    "major_default",
+                    "PHULJQ6",
+                    "Default Service",
                     DateTime.UtcNow.AddDays(-1))
                     {
                         Title = "Test incident titled edited",

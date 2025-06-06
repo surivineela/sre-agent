@@ -443,6 +443,7 @@ public class Program
         builder.Services.AddSingleton<PagerDutyScanner>();
         builder.Services.AddSingleton<IncidentManagementService<PagerDutyIncidentDocument>>();
         builder.Services.AddSingleton<IIncidentHandlerManagementService, IncidentHandlerManagementService>();
+        builder.Services.AddSingleton<IIncidentFilterManagementService, IncidentFilterManagementService>();
         builder.Services.AddSingleton<IInstructionGenerationService, InstructionGenerationService>();
 
         // Register HttpClientService and configure HttpClient with proper BaseAddress

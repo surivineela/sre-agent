@@ -8,7 +8,8 @@ namespace Agent.Runtime.Services
 {
     public interface IIncidentHandlerManagementService
     {
-        Task<List<IncidentHandlerDocument>> ListIncidentHandlers(List<string> filteringKeywords);
+        Task<List<IncidentHandlerDocument>> ListIncidentHandlers();
+        Task<List<IncidentHandlerDocument>> QueryIncidentHandlers(List<string> keywords);
         Task<IncidentHandlerDocument?> GetIncidentHandler(string handlerId);
         Task<IncidentHandlerDocument> SaveIncidentHandler(IncidentHandlerDocument incidentHandlerDocument);
         Task<bool> DeleteIncidentHandler(string handlerId);
@@ -27,27 +28,20 @@ namespace Agent.Runtime.Services
             );
         }
 
-        public async Task<List<IncidentHandlerDocument>> ListIncidentHandlers(List<string> filteringKeywords)
+        public async Task<List<IncidentHandlerDocument>> ListIncidentHandlers()
         {
-            if (filteringKeywords == null || filteringKeywords.Count == 0)
-            {
-                // Return all incident handlers if no filtering keywords are provided
-                var queryable = _container.GetItemLinqQueryable<IncidentHandlerDocument>(allowSynchronousQueryExecution: false)
-                    .Where(c => c.DocumentType == DocumentType && c.IsDeleted == false);
+            // Return all incident handlers
+            var queryable = _container.GetItemLinqQueryable<IncidentHandlerDocument>(allowSynchronousQueryExecution: false)
+                .Where(c => c.DocumentType == DocumentType && c.IsDeleted == false);
 
-                var iterator = queryable.ToFeedIterator();
-                var results = new List<IncidentHandlerDocument>();
-                while (iterator.HasMoreResults)
-                {
-                    var response = await iterator.ReadNextAsync();
-                    results.AddRange(response);
-                }
-                return results;
-            }
-            else
+            var iterator = queryable.ToFeedIterator();
+            var results = new List<IncidentHandlerDocument>();
+            while (iterator.HasMoreResults)
             {
-                return await QueryIncidentHandlersInternal(filteringKeywords);
+                var response = await iterator.ReadNextAsync();
+                results.AddRange(response);
             }
+            return results;
         }
 
         public async Task<IncidentHandlerDocument?> GetIncidentHandler(string handlerId)
@@ -99,7 +93,7 @@ namespace Agent.Runtime.Services
             }
         }
 
-        private async Task<List<IncidentHandlerDocument>> QueryIncidentHandlersInternal(List<string> keywords)
+        public async Task<List<IncidentHandlerDocument>> QueryIncidentHandlers(List<string> keywords)
         {
             // Lowercase keywords for case-insensitive search
             var loweredKeywords = keywords.Select(k => k.ToLower()).ToArray();
