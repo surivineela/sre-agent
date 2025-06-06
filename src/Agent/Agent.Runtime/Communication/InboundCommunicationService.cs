@@ -286,10 +286,29 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                         {
                             toolCalls.Add(toolCall.FunctionCall);
                         }
+                        yield return new ChatResponseUpdate(ChatRole.Assistant, string.Empty)
+                        {
+                            FinishReason = ChatFinishReason.ToolCalls,
+                            AdditionalProperties = new AdditionalPropertiesDictionary
+                            {
+                                { "messageId", streamedResponseMessageId.ToString() },
+                                { "threadId", threadMessage.ThreadId.ToString() },
+                            }
+                        };
                         ChatResponseUpdate toolCallUpdate = new ChatResponseUpdate(ChatRole.Tool, toolCalls);
                         yield return toolCallUpdate;
                     }
                 }
+                // Add STOP command to the stream to indicate completion
+                yield return new ChatResponseUpdate(ChatRole.Assistant, string.Empty)
+                {
+                    FinishReason = ChatFinishReason.Stop,
+                    AdditionalProperties = new AdditionalPropertiesDictionary
+                    {
+                        { "messageId", streamedResponseMessageId.ToString() },
+                        { "threadId", threadMessage.ThreadId.ToString() },
+                    }
+                };
             }
         }
         else

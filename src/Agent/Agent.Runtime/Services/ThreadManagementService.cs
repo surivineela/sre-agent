@@ -121,6 +121,119 @@ public class ThreadManagementService(
         return thread;
     }
 
+    public async IAsyncEnumerable<ChatResponseUpdate> CreateUserInitiatedThreadStream(CreateThreadRequest request)
+    {
+        var threadId = Guid.NewGuid();
+        var messageId = Guid.NewGuid();
+
+        string temporaryTitle = request.StartMessage.Text.Length <= 50 ? request.StartMessage.Text : request.StartMessage.Text.Substring(0, 47) + "...";
+
+        var message = new Message(
+                Id: messageId,
+                TimeStamp: DateTime.UtcNow,
+                Author: new Author(Role.User, request.StartMessage.UserId, request.StartMessage.DisplayName),
+                Text: request.StartMessage.Text
+            );
+        var thread = new Thread(
+            Id: threadId,
+            Title: temporaryTitle,
+            StartMessage: message,
+            LastMessage: message,
+            CreatedTimestamp: DateTime.UtcNow,
+            ModifiedTimestamp: DateTime.UtcNow,
+            Source: request.Source ?? ThreadSource.Conversation
+        );
+
+        var agentContext = new AgentContext(
+            Id: Guid.NewGuid(),
+            ThreadId: thread.Id,
+            AgentType: AgentTypeEnum.Meta,
+            ContextState: ContextStateEnum.Idle,
+            WaitInformation: null,
+            ApprovalInformation: null
+        );
+
+        var reasoningMessages = new List<ReasoningMessage>();
+
+        // when using new agent framework, the chat history is fully handled by reasoning loop
+        if (!coreSettings.UseAgentFramework)
+        {
+            var systemPromptReasoningMessage = new ReasoningMessage(
+            Id: Guid.NewGuid(),
+                AgentContextId: agentContext.Id,
+                Role: ReasoningMessageRoleEnum.System,
+                SerializedChatMessage: JsonSerializer.Serialize(new ChatMessage(ChatRole.System, agentsFactory.GetMetaAgentSystemPrompt()))
+            );
+
+            var startReasoningMessage = new ReasoningMessage(
+                Id: Guid.NewGuid(),
+                AgentContextId: agentContext.Id,
+                Role: ReasoningMessageRoleEnum.User,
+                SerializedChatMessage: JsonSerializer.Serialize(new ChatMessage(ChatRole.User, message.Text))
+            );
+            reasoningMessages.Add(systemPromptReasoningMessage);
+            reasoningMessages.Add(startReasoningMessage);
+        }
+
+        var agentChatHistory = new AgentChatHistory(
+            AgentContextId: agentContext.Id,
+            ReasoningMessageIds: reasoningMessages.Select(r => r.Id).ToList());
+
+        thread = await repository.CreateThreadAsync(thread);
+        message = await repository.AddMessageAsync(thread.Id, message);
+        agentContext = await repository.CreateAgentContextAsync(agentContext);
+
+        foreach (var reasoningMessage in reasoningMessages)
+        {
+            await repository.CreateReasoningMessageAsync(reasoningMessage);
+        }
+
+        agentChatHistory = await repository.CreateAgentChatHistoryAsync(agentChatHistory);
+
+        var threadContext = new ThreadContext(thread.Id, AgentTypeEnum.Meta);
+        threadContext.AddMessage(thread.StartMessage);
+        await repository.AddThreadContextAsync(threadContext);
+
+        // Start the background title generation task (fire and forget)
+        _ = titleGenerationService.GenerateTitleAndUpdateThreadAsync( thread.Id, request.StartMessage.Text);
+
+        // Return thread back to caller first before calling model
+        yield return new ChatResponseUpdate(ChatRole.System, JsonSerializer.Serialize(thread));
+
+        // Return user message to caller
+        var userMessage = new ChatResponseUpdate
+        {
+            AuthorName = request.StartMessage.DisplayName,
+            Role = ChatRole.User,
+            CreatedAt = DateTime.UtcNow,
+            Contents = [new TextContent(request.StartMessage.Text)],
+            AdditionalProperties = new AdditionalPropertiesDictionary
+            {
+                { "messageId", messageId.ToString() },
+                { "threadId", threadId.ToString() },
+                { "userId", request.StartMessage.UserId },
+                { "actionName", nameof(CreateUserInitiatedThreadStream) }
+            }
+        };
+        yield return userMessage;
+
+        var response = agentInboundCommunicationService.ProcessUserMessageStreamAsync(new ThreadMessage
+        (
+            ThreadId: thread.Id,
+            AgentContextId: agentContext.Id,
+            MessageId: thread.StartMessage.Id,
+            Message: request.StartMessage.Text,
+            UserId: request.StartMessage.UserId,
+            DisplayName: request.StartMessage.DisplayName,
+            Timestamp: DateTime.UtcNow
+        ));
+
+        await foreach (var update in response)
+        {
+            yield return update;
+        }
+    }
+
     public async Task<InboundServiceResponse?> CreateMessage(Guid threadId, CreateMessageRequest request)
     {
         // First check if thread exists

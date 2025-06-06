@@ -10,6 +10,7 @@ using Agent.Logging;
 using Agent.Web.Models.WebSocket;
 using Agent.Core.Models.Api.v1;
 using Microsoft.Extensions.AI;
+using Agent.Runtime.Services;
 
 
 namespace Agent.Web.WebSocket
@@ -18,10 +19,12 @@ namespace Agent.Web.WebSocket
     {
         private Guid _webSocketId = Guid.Empty;
         private readonly IAgentInboundCommunicationService _agentInboundCommunicationService;
+        private readonly ThreadManagementService threadManagementService;
         private readonly IThreadRepository _repository;
         private readonly ILogger<WebSocketEventService> _logger;
         public WebSocketEventService(
             IAgentInboundCommunicationService agentInboundCommunicationService,
+            ThreadManagementService threadManagementService,
             IThreadRepository repository,
             ILogger<WebSocketEventService> logger
         )
@@ -71,6 +74,9 @@ namespace Agent.Web.WebSocket
                 {
                     case "CreateMessage":
                         await ProcessCreateMessage(threadId, message.Content, message.TextOnly ?? false, message.StreamId ?? string.Empty);
+                        break;
+                    case "CreateThread":
+                        await ProcessCreateThread(message.Content, message.TextOnly ?? false);
                         break;
                     default:
                         var errorMessage = new ChatResponseUpdate
@@ -127,6 +133,66 @@ namespace Agent.Web.WebSocket
             {
                 _logger.LogInternalError("Error parsing WebSocket message: " + ex.Message);
                 throw new Exception("Invalid message format", ex);
+            }
+        }
+
+        private async Task ProcessCreateThread(string content, bool textOnly = false)
+        {
+            IAsyncEnumerable<ChatResponseUpdate> results = AsyncEnumerable.Empty<ChatResponseUpdate>();
+            try
+            {
+                var createThreadRequestWs = JsonSerializer.Deserialize<WebSocketCreateThreadRequest>(content);
+                if (createThreadRequestWs == null)
+                {
+                    throw new Exception("Invalid message format");
+                }
+                var createMessageRequest = new CreateMessageRequest(
+                    createThreadRequestWs.StartMessage.Text,
+                    createThreadRequestWs.StartMessage.UserId,
+                    createThreadRequestWs.StartMessage.DisplayName
+                );
+                var createThreadRequest = new CreateThreadRequest(createMessageRequest, createThreadRequestWs.Source);
+
+                results = threadManagementService.CreateUserInitiatedThreadStream(createThreadRequest);
+                await foreach (var result in results)
+                {
+                    result.AdditionalProperties ??= new AdditionalPropertiesDictionary();
+                    result.AdditionalProperties["websocketId"] = _webSocketId.ToString();
+                    result.AdditionalProperties["actionName"] = nameof(ProcessCreateThread);
+
+                    if (textOnly)
+                    {
+                        if (!String.IsNullOrEmpty(result.Text))
+                        {
+                            Send(result.Text);
+                        }
+                        if (result.FinishReason == ChatFinishReason.ToolCalls && result.Contents.Count > 0 && result.Contents[0].GetType() == typeof(FunctionCallContent))
+                        {
+                            var toolCallContent = (FunctionCallContent)result.Contents[0];
+
+                            Send("Calling tool... " + toolCallContent.Name);
+                            Send("Tool call params: " + JsonSerializer.Serialize(toolCallContent.Arguments));
+                        }
+                        if (textOnly && result.Role == ChatRole.Tool && result.Contents.Count > 0 && result.Contents[0].GetType() == typeof(FunctionResultContent))
+                        {
+                            Send("Tool call completed.");
+                        }
+                    }
+                    else
+                    {
+                        if (result.CreatedAt == null || result.CreatedAt < new DateTime(2025, 1, 1))
+                        {
+                            result.CreatedAt = DateTime.UtcNow; // Ensure CreatedAt is set to now for invalid dates
+                        }
+                        Send(JsonSerializer.Serialize(result));
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError("Error processing user message stream: " + ex.Message);
+                throw ex;
             }
         }
 

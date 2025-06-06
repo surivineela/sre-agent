@@ -89,6 +89,63 @@ namespace Agent.Web.Controllers.v1
             return CreatedAtAction(nameof(GetThread), new { id = thread.Id }, thread);
         }
 
+        [HttpPost("stream/create")]
+        public async Task CreateThreadWithStreamedResponse(CreateThreadRequest request)
+        {
+            StreamWriter sw;
+
+            if (!ModelState.IsValid)
+            {
+                Response.StatusCode = 400;
+                Response.ContentType = "application/json";
+                BadRequestObjectResult badRequest = new BadRequestObjectResult(ModelState);
+                await using ((sw = new StreamWriter(Response.Body))
+                    .ConfigureAwait(false))
+                {
+                    await sw.WriteLineAsync(JsonSerializer.Serialize(badRequest)).ConfigureAwait(false);
+                    await sw.FlushAsync().ConfigureAwait(false);
+                }
+                return;
+            }
+            Response.StatusCode = 200;
+            Response.ContentType = "text/html";
+            var messageId = Guid.NewGuid();
+            IAsyncEnumerable<ChatResponseUpdate> results = AsyncEnumerable.Empty<ChatResponseUpdate>();
+
+            try
+            {
+                results = threadManagementService.CreateUserInitiatedThreadStream(request);
+            }
+            catch (Exception ex)
+            {
+                Response.StatusCode = 500;
+                var errorResponse = new { Message = "An unexpected error occurred. Please try again later." };
+                logger.LogInternalError(ex, "Error processing user message stream");
+
+                await using ((sw = new StreamWriter(Response.Body))
+                    .ConfigureAwait(false))
+                {
+                    await sw.WriteLineAsync(JsonSerializer.Serialize(errorResponse)).ConfigureAwait(false);
+                    await sw.FlushAsync().ConfigureAwait(false);
+                }
+                return;
+            }
+
+            StringBuilder completeMessage = new StringBuilder();
+            await using ((sw = new StreamWriter(Response.Body))
+                .ConfigureAwait(false))
+            {
+                await foreach (var result in results)
+                {
+                    completeMessage.Append(result.Text);
+                    await sw.WriteLineAsync(JsonSerializer.Serialize(result)).ConfigureAwait(false);
+                    await sw.FlushAsync().ConfigureAwait(false);
+                }
+                await sw.WriteLineAsync("[DONE]").ConfigureAwait(false);
+                logger.LogInternalInformation($"Stream output complete response: {completeMessage.ToString()}");
+            }
+        }
+
         [HttpGet("{threadId}/messages")]
         public async Task<ActionResult<PagedResponse<Message>>> GetMessages(Guid threadId, ODataQueryOptions<MessageDocument> queryOptions)
         {
