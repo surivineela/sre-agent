@@ -45,10 +45,6 @@ public sealed class WebAppDownAgentFactory
 
         registry.RegisterPlugin<CpuAnalysisPluginDefinition>();
 
-        registry.RegisterTool<DotnetAnalysisPluginDefinition>(x => x.GetMemoryAnalysis);
-        registry.RegisterTool<DotnetAnalysisPluginDefinition>(x => x.GetCPUAnalysis);
-        registry.RegisterTool<DotnetAnalysisPluginDefinition>(x => x.ShouldTriggerMemoryDump);
-
         registry.RegisterTool<HelperAgentsPluginDefinition>(x => x.StartDiagnosisAgent);
 
         _toolSignatures = registry.ToolSignatures;
@@ -91,7 +87,6 @@ public sealed class WebAppDownAgentFactory
         diagnosticAgentTools.RegisterReadOnlyTool<AppCodeAnalysisPluginDefinition>(x => x.GetStackTraceOfMostCommonException);
         diagnosticAgentTools.RegisterReadOnlyTool<AppCodeAnalysisPluginDefinition>(x => x.GetAppConsoleLogs);
         diagnosticAgentTools.RegisterReadOnlyPlugin<CpuAnalysisPluginDefinition>();
-        diagnosticAgentTools.RegisterReadOnlyPlugin<DotnetAnalysisPluginDefinition>();
 
         var diagnosticAgentInput = new DiagnosisAgentInput
         {

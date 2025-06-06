@@ -15,10 +15,13 @@ namespace Agent.Plugins;
 public class CpuAnalysisPlugin : ICpuAnalysisPlugin
 {
     private readonly ArmHelper _armHelper;
+    private readonly IMetricsPlugin _metricsPlugin;
+
     public Guid? ThreadId { get; set; }
 
-    public CpuAnalysisPlugin(ArmHelper armHelper)
+    public CpuAnalysisPlugin(ArmHelper armHelper, IMetricsPlugin metricsPlugin)
     {
+        _metricsPlugin = metricsPlugin;
         _armHelper = armHelper;
     }
 
@@ -37,26 +40,6 @@ public class CpuAnalysisPlugin : ICpuAnalysisPlugin
             return $"The app service plan for {resourceId} has been scaled up to {nextSku.Name}";
         }
         return $"There was an issue scaling up your app service plan";
-    }
-
-    [KernelFunction("collect_memory_dump_for_app")]
-    [Description("Collect Memory Dump for App")]
-    public async Task<string> CollectMemoryDumpForApp(
-    [Description("resourceId of the app")] string resourceId)
-    {
-        // Placeholder for the memory dump file name.
-        string memoryDumpFile = Path.GetFileName(Path.GetTempFileName() + ".dmp");
-        KuduManager kuduManager = await KuduManager.Initialize(resourceId, _armHelper);
-        if (kuduManager.OS == "Linux")
-        {
-            throw new NotImplementedException("Currently this behavior isn't implemented for Linux");
-        }
-
-        // Curl command on the machine to collect the dump.
-        int pid = await _armHelper.GetDefaultProcessIdForWebAppAsync(resourceId, kuduManager.OS, kuduManager.KuduHostName);
-        string command = $"C://devtools//sysinternals//procdump.exe -ma {pid} -accepteula C://home//{memoryDumpFile}";
-        string commandResult = await _armHelper.ExecuteKuduCommandAsync(kuduManager.KuduHostName, command, "C://home//");
-        return $"The memory dump for {resourceId} has been collected:\n{memoryDumpFile}";
     }
 
     [KernelFunction("autoscale_app_service")]
@@ -130,12 +113,91 @@ public class CpuAnalysisPlugin : ICpuAnalysisPlugin
         return res;
     }
 
-    [KernelFunction("collect_profile_for_app")]
-    [Description("Collect a profile or trace for an App Service to assess CPU activity.")] 
-    public async Task<string> CollectProfileForApp(string resourceId, int durationOfTraceInSeconds = 20)
+    private async Task<bool> ShouldTriggerDiagnosticScenario(List<double> values, double spikeThreshold = 0.2, double endWindowFraction = 0.3, double sustainedDropLength = 3)
     {
-        // TODO: Implement this akin to the Memory Dump Tool.
-        throw new NotImplementedException();
+        bool HasRecentSpike(List<double> values)
+        {
+            int windowSize = (int)(values.Count * endWindowFraction);
+            windowSize = Math.Max(windowSize, 3);
+
+            if (values.Count < windowSize + 1)
+                return false;
+
+            double baseline = values[values.Count - windowSize - 1];
+
+            for (int i = values.Count - windowSize; i < values.Count; i++)
+            {
+                double change = (values[i] - baseline) / baseline;
+                if (change >= spikeThreshold)
+                    return true;
+            }
+
+            return false;
+        }
+
+        int dropStartIndex = FindSustainedDropStartIndex(values);
+
+        // Slice the original time series data, not just the values
+        var dataToEvaluate = dropStartIndex >= 0
+            ? values.ToList().GetRange(dropStartIndex, values.Count - dropStartIndex)
+            : values;
+
+        bool IsMonotonicallyIncreasing(List<double> values)
+        {
+            int increaseCount = 0;
+            for (int i = 1; i < values.Count; i++)
+            {
+                if (values[i] > values[i - 1])
+                    increaseCount++;
+            }
+
+            double increaseRatio = (double)increaseCount / (values.Count - 1);
+            return increaseRatio > 0.8;
+        }
+
+        int FindSustainedDropStartIndex(List<double> values)
+        {
+            int dropCount = 0;
+
+            for (int i = values.Count - 1; i > 0; i--)
+            {
+                if (values[i] < values[i - 1])
+                    dropCount++;
+                else
+                    dropCount = 0;
+
+                if (dropCount >= sustainedDropLength)
+                    return i;
+            }
+
+            return -1;
+        }
+
+        if (IsMonotonicallyIncreasing(dataToEvaluate))
+            return true;
+
+        if (HasRecentSpike(dataToEvaluate))
+            return true;
+
+        return false;
+    }
+
+    public async Task<bool> ShouldTriggerHighMemoryScenario(string resourceId, double spikeThreshold = 0.2, double endWindowFraction = 0.1, double sustainedDropLength = 3)
+    {
+        var memorySeries = await _metricsPlugin.GetMemoryMetrics(resourceId);
+        if (memorySeries == null || memorySeries.Count < 5)
+            return false;
+
+        return await ShouldTriggerDiagnosticScenario(memorySeries.Select(m => m.AverageMemoryInBytes).ToList(), spikeThreshold, endWindowFraction, sustainedDropLength);
+    }
+
+    public async Task<bool> ShouldTriggerHighCPUScenario(string resourceId, double spikeThreshold = 0.2, double endWindowFraction = 0.1, double sustainedDropLength = 3)
+    {
+        var cpuSeries = await _metricsPlugin.GetWebAppCpuMetrics(resourceId);
+        if (cpuSeries == null || cpuSeries.Count < 5)
+            return false;
+
+        return await ShouldTriggerDiagnosticScenario(cpuSeries.Select(m => m.AverageCpuUtilizationPercentage).ToList(), spikeThreshold, endWindowFraction, sustainedDropLength);
     }
 }
 

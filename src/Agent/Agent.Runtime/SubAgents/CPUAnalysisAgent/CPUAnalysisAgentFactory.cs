@@ -1,30 +1,12 @@
-using Agent.Core.Models;
+using Agent.Core;
 using Agent.Plugins.Definitions;
 using Agent.Plugins;
 using Microsoft.DurableTask.Client;
 using Microsoft.DurableTask;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Text.Json;
-using Agent.Core;
-using Agent.Core.Models.Api.v1;
-using Agent.Core.Configuration;
-using Agent.Core.Interfaces;
-using Microsoft.Extensions.Logging;
-using Agent.Plugins.Implementation;
-using Agent.Runtime.MetaAgent;
-using Agent.Core.Helpers;
-using Microsoft.SemanticKernel;
-using System.ComponentModel;
-using Agent.Core.Attributes;
 
 namespace Agent.Runtime.SubAgents.CPUAnalysisAgent;
 
-
-// [Export]
 public sealed class CPUAnalysisAgentFactory
 {
     private readonly IReadOnlyList<string> _toolSignatures;
@@ -39,8 +21,7 @@ public sealed class CPUAnalysisAgentFactory
         IToolsRepository toolsRepository,
         DurableTaskClient durableTaskClient,
         ICpuAnalysisPlugin cpuAnalysisPlugin,
-        IAppCodeAnalysisPlugin appCodeAnalysisPlugin,
-        IDotnetAnalysisPlugin dotnetAnalysisPlugin)
+        IAppCodeAnalysisPlugin appCodeAnalysisPlugin)
     {
         _toolsRepository = toolsRepository;
         var toolSignatures = new List<string>();
@@ -64,12 +45,6 @@ public sealed class CPUAnalysisAgentFactory
         var appCodeAnalysisPluginDefinition = new AppCodeAnalysisPluginDefinition(appCodeAnalysisPlugin);
         toolSignatures.Add(_toolsRepository.GetSignature(() => appCodeAnalysisPluginDefinition.WaitInMilliSeconds));
 
-        var dotnetAnalysisPluginDefinition = new DotnetAnalysisPluginDefinition(dotnetAnalysisPlugin);
-        toolSignatures.Add(_toolsRepository.GetSignature(() => dotnetAnalysisPluginDefinition.GetMemoryAnalysis));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => dotnetAnalysisPluginDefinition.ShouldTriggerMemoryDump));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => dotnetAnalysisPluginDefinition.GetCPUAnalysis));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => dotnetAnalysisPluginDefinition.GetGCCPUAnalysis));
-
         _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;
     }
@@ -90,5 +65,4 @@ public sealed class CPUAnalysisAgentFactory
     {
         return JsonSerializer.Deserialize<CPUAnalysisAgentInput>(serializedOrchestrationInput).ThrowIfNull().Input;
     }
-
 }

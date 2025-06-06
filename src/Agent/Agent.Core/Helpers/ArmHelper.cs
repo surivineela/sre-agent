@@ -521,7 +521,7 @@ public class ArmHelper
             {
                 Mode = "CollectAndAnalyze",
                 Tool = "Profiler with CPU Stacks",
-                Instances = instances
+                Instances = new[] { instances[0] }
             };
 
             // Step 2: Send the request to start the DaaS session and obtain a session ID.

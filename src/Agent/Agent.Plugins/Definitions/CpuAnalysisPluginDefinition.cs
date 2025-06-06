@@ -76,5 +76,19 @@ namespace Agent.Plugins
                 scaleValue,
                 cooldown);
         }
+
+        [Description("Check if the high memory scenario should be triggered based on a spike of the memory.")]
+        public async Task<bool> ShouldTriggerHighMemoryScenario(
+            [Description("The full Azure resource ID of the resource to diagnose (format: /subscriptions/{subId}/resourceGroups/{rgName}/providers/{resourceProvider}/{resourcetype}/{resourceName}).")] string resourceId)
+        {
+            return await _cpuAnalysisPlugin.ShouldTriggerHighMemoryScenario(resourceId);
+        }
+
+        [Description("Check if the high cpu scenario should be triggered based on a spike of the cpu.")]
+        public async Task<bool> ShouldTriggerHighCPUScenario(
+            [Description("The full Azure resource ID of the resource to diagnose (format: /subscriptions/{subId}/resourceGroups/{rgName}/providers/{resourceProvider}/{resourcetype}/{resourceName}).")] string resourceId)
+        {
+            return await _cpuAnalysisPlugin.ShouldTriggerHighCPUScenario(resourceId);
+        }
     }
 }

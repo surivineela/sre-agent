@@ -86,7 +86,6 @@ public class ToolsRepository : IToolsRepository
         RegisterPlugin<KubePluginDefinition>();
         RegisterPlugin<AppCodeAnalysisPluginDefinition>();
         RegisterPlugin<CpuAnalysisPluginDefinition>();
-        RegisterPlugin<DotnetAnalysisPluginDefinition>();
         RegisterPlugin<RoleAssignmentPluginDefinition>();
         RegisterPlugin<FunctionAppsPluginDefinition>();
         RegisterPlugin<FunctionAppExecutionFailuresPluginDefinition>();

@@ -35,14 +35,20 @@ public sealed class DiagnosticsPluginDefinition
         return await _diagnosticsPlugin.GetAnalysisAsync(resourceId, AnalysisType.Latency, additionalProperties);
     }
 
-    [Description("Gets the CPU diagnostic analysis for a particular compute resource for high cpu situations or situations with cpu spikes.")]
+    [Description("Gets the CPU diagnostic analysis for a particular compute resource for high cpu situations or situations with cpu spikes or can be independently asked for by the user. " +
+        "Example 1: 'My app's CPU is extremely high - analyze to see what's going on' " +
+        "Example 2: 'My app is experiencing 500s and I see a spike in CPU. Help me figure out what's going on'" +
+        "Example 3: 'My app is down and I see a spike in CPU. Help me figure out what's going on'" )]
     public async Task<string> GetCPUAnalysis([Description("The full Azure resource ID of the resource to diagnose (format: /subscriptions/{subId}/resourceGroups/{rgName}/providers/{resourceProvider}/{resourcetype}/{resourceName}).")] string resourceId,
                                              [Description("Required for AKS resources. Provide semicolon separated key-value pairs: 'namespace' (pod namespace), 'pod' (pod name), 'container' (container name within the pod).")] string additionalProperties)
     {
         return await _diagnosticsPlugin.GetCPUAnalysisAsync(resourceId, additionalProperties);
     }
 
-    [Description("Gets the Memory diagnostic analysis for a particular compute resource for High Memory situations and memory spikes.")]
+    [Description("Gets the Memory diagnostic analysis for a particular compute resource for high memory situations or situations with memory spikes or can be independently asked for by the user. " +
+        "Example 1: 'My app's Memory is extremely high - analyze to see what's going on' " +
+        "Example 2: 'My app is experiencing 500s and I see a spike in Memory. Help me figure out what's going on'" +
+        "Example 3: 'My app is down and I see a spike in Memory. Help me figure out what's going on'" )]
     public async Task<string> GetMemoryAnalysis([Description("The full Azure resource ID of the resource to diagnose (format: /subscriptions/{subId}/resourceGroups/{rgName}/providers/{resourceProvider}/{resourcetype}/{resourceName}).")] string resourceId,
                                                 [Description("Required for AKS resources. Provide semicolon separated key-value pairs: 'namespace' (pod namespace), 'pod' (pod name), 'container' (container name within the pod).")] string additionalProperties)
     {
