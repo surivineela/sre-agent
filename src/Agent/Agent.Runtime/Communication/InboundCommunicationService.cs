@@ -12,6 +12,7 @@ using Agent.Framework;
 using Agent.Logging;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
+using Agent.Runtime.Helpers;
 using Agent.Runtime.MetaAgent;
 using Agent.Runtime.Reasoning;
 using Agent.Runtime.Services;
@@ -22,6 +23,7 @@ using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Graph.Drives.Item.Items.Item.Workbook.Functions.Var_P;
 
 namespace Agent.Runtime.Communication;
 
@@ -284,7 +286,10 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                         List<AIContent> toolCalls = new List<AIContent>();
                         foreach (var toolCall in response.ManualToolCalls)
                         {
-                            toolCalls.Add(toolCall.FunctionCall);
+                            var functionCall = toolCall.FunctionCall;
+                            functionCall.AdditionalProperties ??= new AdditionalPropertiesDictionary();
+                            functionCall.AdditionalProperties.Add("userDescription", ToolDescriptionHelper.GetUserDescriptionForFunctionCallName(functionCall.Name));
+                            toolCalls.Add(functionCall);
                         }
                         yield return new ChatResponseUpdate(ChatRole.Assistant, string.Empty)
                         {
@@ -449,6 +454,21 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                     response.AdditionalProperties ??= new AdditionalPropertiesDictionary();
                     response.AdditionalProperties.Add("messageId", streamedResponseMessageId.ToString());
                     response.AdditionalProperties.Add("threadId", threadMessage.ThreadId.ToString());
+                    if (response.Contents != null)
+                    {
+                        foreach(var content in response.Contents)
+                        {
+                            // Add user friendly function call description to content
+                            if (content is FunctionCallContent functionCall)
+                            {
+                                string functionName = functionCall.Name;
+                                string userFriendlyDescription = ToolDescriptionHelper.GetUserDescriptionForFunctionCallName(functionName);
+                                content.AdditionalProperties ??= new AdditionalPropertiesDictionary();
+                                content.AdditionalProperties.Add("functionCallDescription", userFriendlyDescription);
+                            }
+                        }
+                    }
+
                     // ignore duplicate STOP commands from model and only record response once
                     if (response.FinishReason == ChatFinishReason.Stop && !hasRecordedResponse)
                     {
