@@ -14,6 +14,8 @@ configuration:
     role: Maintain
   - member: ruslany
     role: Maintain
+  - member: nazimlala
+    role: Maintain
   - team: k4appscore
     role: Write
   - team: srea-devs
