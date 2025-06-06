@@ -69,8 +69,6 @@ tools:
    - ListResourceGroups
    - SearchResource
    - SearchResourceByName
-   - GetActivityLogsSummary
-   - GetGeneralHealth
    - VisualizeApplicationComponents
    - GetResourceCount
    - ListResourcesByType

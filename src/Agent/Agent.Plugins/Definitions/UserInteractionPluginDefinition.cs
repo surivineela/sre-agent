@@ -20,6 +20,7 @@ namespace Agent.Plugins.Definitions
             _outboundCommunicationService = outboundCommunicationService;
         }
 
+        [AgentTool(ToolMode.Auto)]
         [Description("Sends the specified message to the user. Use this to send updates about your current task as you are working on it. Do not use this for asking questions to the user, only for status updates.")]
         public string NotifyUser(
             [Description("The message to send to the user.")]

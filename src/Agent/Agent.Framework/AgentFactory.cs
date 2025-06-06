@@ -157,6 +157,46 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         }
     }
 
+    private void UpdateAgentTools()
+    {
+        foreach (var agentDescriptor in _agentDescriptors.Values)
+        {
+            if (agentDescriptor is not YamlAgentDescriptor yamlDescriptor ||
+                yamlDescriptor.AgentsAsTools == null ||
+                !yamlDescriptor.AgentsAsTools.Any())
+            {
+                continue;
+            }
+
+            var agent = _agents[agentDescriptor.Name];
+
+            foreach (var agentAsTool in yamlDescriptor.AgentsAsTools)
+            {
+                if (!_agents.TryGetValue(agentAsTool.AgentName, out var targetAgent))
+                {
+                    _logger.LogWarning("Agent {agentName} specified in agents_as_tools for {sourceAgent} does not exist.",
+                    agentAsTool.AgentName, agentDescriptor.Name);
+                    continue;
+                }
+
+                // Initialize agent as tool
+                var agentAsToolName = $"use_as_tool_{agentAsTool.AgentName.ToLower().Replace(" ", "_")}";
+                var toolDescription = $"Use the {agentAsTool.AgentName} agent to process the input and get a response. Provide your query or instructions as input.";
+
+                var tool = targetAgent.AsTool(
+                    name: string.IsNullOrEmpty(agentAsTool.ToolName) ? agentAsToolName : agentAsTool.ToolName,
+                    description: string.IsNullOrEmpty(agentAsTool.ToolDescription) ? toolDescription : agentAsTool.ToolDescription,
+                    inputDescription: agentAsTool.InputDescription
+                );
+
+                agent.Tools.Add(tool);
+
+                _logger.LogInformation("Added agent {targetAgent} as tool to agent {sourceAgent}",
+                agentAsTool.AgentName, agentDescriptor.Name);
+            }
+        }
+    }
+
     private void InitializeAgents()
     {
         LoadCommonPromptsFromAssembly();
@@ -164,6 +204,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         LoadAgentFromAssembly();
         LoadAgentFromYaml();
         UpdateHandoffs();
+        UpdateAgentTools();
     }
 
     private void LoadAgentFromAssembly()

@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Reflection;
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
+using Agent.Framework.Models;
 using Agent.Runtime.Reasoning;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -106,6 +107,7 @@ public class TestAgent1Descriptor : IAgentDescriptor
     public List<string> CommonPrompts { get; set; } = ["test_prompt"];
     public string CriticPromptPath { get; set; } = string.Empty;
     public float? Temperature { get; set; } = null;
+    public List<AgentsAsTools> AgentsAsTools { get; set; } = [];
 }
 
 public class TestAgent2Descriptor : IAgentDescriptor
@@ -121,6 +123,7 @@ public class TestAgent2Descriptor : IAgentDescriptor
     public List<string> CommonPrompts { get; set; } = [];
     public string CriticPromptPath { get; set; } = string.Empty;
     public float? Temperature { get; set; } = null;
+    public List<AgentsAsTools> AgentsAsTools { get; set; } = [];
 }
 
 public class TestCommonPrompt : IPromptDescriptor

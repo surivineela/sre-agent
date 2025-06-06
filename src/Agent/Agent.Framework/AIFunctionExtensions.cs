@@ -13,4 +13,9 @@ public static class AIFunctionExtensions
     {
         return function.UnderlyingMethod?.GetCustomAttribute<AgentToolAttribute>()?.Mode ?? defaultMode;
     }
+
+    public static bool IsAgentAsTool(this AIFunction tool)
+    {
+        return tool.GetType().IsGenericType && tool.GetType().GetGenericTypeDefinition() == typeof(AgentAsTool<>);
+    }
 }

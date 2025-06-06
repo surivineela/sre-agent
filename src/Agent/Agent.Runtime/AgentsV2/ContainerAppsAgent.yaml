@@ -41,7 +41,6 @@ handoffs:
 tools:
   - GetLatestRevision
   - ListContainerApps
-  - NotifyUser
   - GetContainerAppInfo
   - ListRevisions
   - GetContainerAppRequestMetrics

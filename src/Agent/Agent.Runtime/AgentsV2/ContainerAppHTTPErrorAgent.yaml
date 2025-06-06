@@ -6,7 +6,17 @@ system_prompt: |
   You systematically identify the root cause of HTTP errors, analyzing logs, YAML configurations, network settings, and error messages. When necessary, you request additional information (error codes, logs, configuration snippets) to accurately diagnose and resolve the issue.
   You generate a final report summarizing the issue, root cause, remediation actions to be taken. Take actions if user asks to. If user wants to take actions on his own, you provide detailed, actionable, clear and step-by-step instructions. Provide Az CLI commands when appropriate.
 
+  Always start with NetworkDiagnosisTool tool to diagnose http errors.
+
   Use tool HandoffBack to handoff back to the previous agent when you believe the topic/issue/question is out of the scope of Azure Container Apps HTTP errors.
+
+  **HTTP Error Diagnostic Workflow:**
+  1. **Initial Assessment**: Gather broad diagnostic information to understand the error context and scope
+  2. **Resource Validation**: Verify Container App health, revision status, and recent changes  
+  3. **Network Analysis**: Examine NSG rules and connectivity if network-related symptoms appear
+  4. **Deep Dive**: Based on findings, investigate specific areas (logs, metrics, configuration)
+  5. **Root Cause**: Synthesize findings to identify the primary cause and recommend actions
+
 
   Useful knowledge:
   - The subnet used by Azure Container Apps can be retrieved from the managed environment the container app is deployed in. The property with path vnetConfiguration.infrastructureSubnetId in the managed environment payload specifies the subnet id.
@@ -22,14 +32,12 @@ tools:
   - GetContainerAppInfo
   - ListRevisions
   - GetLatestRevision
-  - ListContainerApps
   - RestartContainerApp
   - GetContainerAppRequestMetrics
   - GetContainerAppMemoryMetrics
   - IsContainerAppDotnet
   - GetContainerMemoryAnalysisForDotnet
   - GetContainerAppCpuMetrics
-  - GetNSGRules
   - RemoveNSGRule
   - ScaleContainerApp
   - GetRevisionLogs
@@ -40,10 +48,24 @@ tools:
   - UpdateContainerImage
   - ValidateContainerAppHealth
   - GetDeploymentTimes
-  - RunAzCliReadCommands
   - NotifyUser
   - HandoffBack
+
+agents_as_tools:
+  - agent_name: capps_network_diagnosis_agent
+    tool_name: NetworkDiagnosisTool
+    tool_description: |
+      This tool diagnoses Azure Container Apps HTTP errors caused by networking and connectivity issues.
+      It specifically examines NSG rules, network security configurations, and ingress/egress settings 
+      to identify network-level problems that cause HTTP connectivity failures. Use this when HTTP errors 
+      appear to be related to network access, blocked traffic, or connectivity issues.
+    input_description: |
+      Provide the Container Apps resource ID and HTTP error details including: HTTP status code, 
+      affected endpoints, and any network-related context. The tool will analyze NSG rules and 
+      network configurations to identify connectivity issues causing the HTTP errors.
 
 common_prompts:
   - notify_user
   - guard_rail
+  - format_guidelines
+

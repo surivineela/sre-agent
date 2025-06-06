@@ -24,6 +24,8 @@ public class Agent<TContext> where TContext : class
 
     public List<Handoff<TContext>> Handoffs { get; set; } = [];
 
+    public List<AgentAsTool<TContext>> AgentsAsTools { get; set; } = [];
+
     public List<string> HandoffNames => Handoffs.Select(h => h.Name).ToList();
 
     public IAgentHooks? Hooks { get; set; }

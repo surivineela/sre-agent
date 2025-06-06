@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Framework.Models;
 using YamlDotNet.Serialization;
 
 namespace Agent.Framework;
@@ -25,6 +26,9 @@ internal class YamlAgentDescriptor : IAgentDescriptor
 
     [YamlMember(Alias = "allow_parallel_tool_calls")]
     public bool AllowParallelToolCalls { get; set; } = false;
+
+    [YamlMember(Alias = "agents_as_tools")]
+    public List<AgentsAsTools> AgentsAsTools { get; set; } = [];
 
     [YamlMember(Alias = "max_reflection_count")]
     public int MaxReflectionCount { get; set; } = 0;

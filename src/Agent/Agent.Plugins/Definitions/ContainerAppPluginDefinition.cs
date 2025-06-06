@@ -136,6 +136,7 @@ namespace Agent.Plugins.Definitions
         #region NSG Plugins
 
         [KernelFunction("get_containerapp_nsg_rules")]
+        [AgentTool(ToolMode.Auto)]
         [Description(
             "Retrieves all Network Security Groups (NSGs) associated with a Container App and their security rules. " +
             "Returns a dictionary where keys are NSG resource IDs and values are lists of security rules. " +
@@ -204,6 +205,7 @@ namespace Agent.Plugins.Definitions
         }
 
         [Description("Get the logs of a specific revision of a Container App instance.")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> GetRevisionLogsAsync(
             [Description("The resource ID of the Container App instance.")]
             string resourceId,
@@ -257,6 +259,7 @@ namespace Agent.Plugins.Definitions
         }
 
         [KernelFunction("verify_external_registry")]
+        [AgentTool(ToolMode.Auto)]
         [Description("Verify connectivity to an external container registry. This is useful for checking if the Container App can pull images from the specified registry.")]
         public async Task<bool> VerifyExternalRegistry(
             [Description("Resource ID of the Container App to check")]
@@ -290,6 +293,7 @@ namespace Agent.Plugins.Definitions
         }
 
         [KernelFunction("validate_containerapp_health")]
+        [AgentTool(ToolMode.Auto)]
         [Description("Validates if a Container App is healthy by checking various health indicators including provisioning state, revision status, logs, and endpoint reachability. Use this after making remediation changes to verify the app is working correctly.")]
         public async Task<ContainerAppHealthValidationResult> ValidateContainerAppHealth(
             [Description("The resource ID of the Container App instance to validate")]
@@ -299,6 +303,7 @@ namespace Agent.Plugins.Definitions
         }
 
         [KernelFunction("get_containerapp_deployment_times")]
+        [AgentTool(ToolMode.Auto)]
         [Description("Get the deployment times of a Container App instance.")]
         public async Task<List<DateTimeOffset>> GetDeploymentTimes(
             [Description("The resource ID of the Container App instance.")]

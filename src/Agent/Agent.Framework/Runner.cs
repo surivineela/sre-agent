@@ -263,8 +263,9 @@ public static class Runner
                 }
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            logger.LogError($"Exception thrown while executing reasoning loop: {ex.Message}");
             // todo: log
             throw;
         }
@@ -325,6 +326,7 @@ public static class Runner
             modelResponse: response,
             hooks: hooks,
             contextWrapper: contextWrapper,
+            runConfig: config,
             tools: tools,
             trajectory: trajectory
         );
@@ -337,6 +339,7 @@ public static class Runner
         ChatResponse modelResponse,
         RunHooks<TContext> hooks,
         RunContextWrapper<TContext> contextWrapper,
+        RunConfig runConfig,
         List<AIFunction> tools,
         Trajectory trajectory
     ) where TContext : class
@@ -378,12 +381,37 @@ public static class Runner
 
                 if (tool != null)
                 {
-                    if (tool is ContextAIFunction<TContext> contextTool)
+                    // check runtime type AgentAsTool
+                    if (tool.IsAgentAsTool())
                     {
-                        contextTool.SetContext(contextWrapper.Context);
-                    }
+                        var agentAsTool = (AgentAsTool<TContext>)tool;
+                        agentAsTool.RunConfig = runConfig;
+                        agentAsTool.RunHooks = hooks;
 
-                    if (tool.GetToolMode() == ToolMode.Auto)
+                        await hooks.OnToolStart(contextWrapper, agent, agentAsTool);
+
+                        var toolResult = await agentAsTool.InvokeAsync(functionCall.Arguments);
+
+                        await hooks.OnToolEnd(contextWrapper, agent, agentAsTool, toolResult);
+
+                        var result = new FunctionResultContent(functionCall.CallId, toolResult);
+                        newStepItems.Add(modelResponseMessage);
+                        newStepItems.Add(new ChatMessage(ChatRole.Tool, [result]));
+                        trajectory.Append(result);
+
+                        return new SingleStepResult<TContext>
+                        {
+                            OriginalInput = originalInput,
+                            ModelResponse = modelResponse,
+                            PreStepItems = preStepItems,
+                            NewStepItems = newStepItems,
+                            NextStep = new NextStep<TContext>
+                            {
+                                Type = NextStepType.RunAgain
+                            }
+                        };
+                    }
+                    else if (tool.GetToolMode() == ToolMode.Auto)
                     {
                         // run auto tool
                         await hooks.OnToolStart(contextWrapper, agent, tool);

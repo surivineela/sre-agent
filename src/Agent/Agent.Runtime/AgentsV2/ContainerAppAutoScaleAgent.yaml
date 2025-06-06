@@ -26,5 +26,6 @@ tools:
   - HandoffBack
 
 common_prompts:
-  - guard_rail
   - notify_user
+  - guard_rail
+  - format_guidelines

@@ -435,6 +435,7 @@ $@"## Facts
             AIFunctionFactory.Create(containerAppPluginDefinition.RestartContainerApp),
             //AIFunctionFactory.Create(containerAppPluginDefinition.GetContainerAppCpuMetrics),
             AIFunctionFactory.Create(containerAppPluginDefinition.GetRevisionLogsAsync),
+            AIFunctionFactory.Create(containerAppPluginDefinition.GetAllNSGRulesForContainerAppAsync),
             AIFunctionFactory.Create(containerAppPluginDefinition.GetContainerAppLogsAsync),
             AIFunctionFactory.Create(containerAppPluginDefinition.UpdateTargetPort),
             AIFunctionFactory.Create(containerAppPluginDefinition.GetScalerDetails),
