@@ -11,6 +11,6 @@ namespace Agent.Core.Configuration
         // 'system' for system managed identity
         // or resource id of user assigned managed identity
         public string? Identity { get; set; }
-        public ActionMode? Mode { get; set; } = ActionMode.Manual;
+        public ActionMode? Mode { get; set; } = ActionMode.Review;
     }
 }

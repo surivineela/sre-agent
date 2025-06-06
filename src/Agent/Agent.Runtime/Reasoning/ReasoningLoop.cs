@@ -450,7 +450,7 @@ public class ReasoningLoop
                         var approvalContext = new ApprovalContext(
                             ThreadId: _context.ThreadId,
                             ApprovalId: approval.Id,
-                            UseOboToken: approvalAttr.UseOboToken && _actionSettings.Mode == ActionMode.Manual
+                            UseOboToken: approvalAttr.UseOboToken && _actionSettings.Mode == ActionMode.Review
                         );
 
                         ToolStatic.AsyncLocalApprovalContext.Value = approvalContext;
@@ -529,7 +529,7 @@ public class ReasoningLoop
             }
 
             // if in agent mode, return auto approved
-            if (_actionSettings.Mode == ActionMode.Agent)
+            if (_actionSettings.Mode == ActionMode.Autonomous)
             {
                 return new CheckApprovalActivityOutput()
                 {

@@ -2,17 +2,14 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Text.Json;
 using System.Reflection;
 using Agent.Core.Attributes;
 using Agent.Logging;
-using Agent.Plugins.Attributes;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Agent.Core;
 using Agent.Core.Models;
-using Microsoft.Diagnostics.Tracing.Parsers.MicrosoftWindowsTCPIP;
 using Agent.Core.Configuration;
 using Agent.Core.Models.Api.v1;
 
@@ -88,7 +85,7 @@ public class GenericExecuteActionActivity : TaskActivity<ExecuteActionInput, Exe
     {
         var attribute = toolFunction.ToolFunction.UnderlyingMethod?.GetCustomAttribute<RequiresApprovalAttribute>();
 
-        var useOboToken = (attribute?.UseOboToken ?? false) && (_actionSettings.Mode == ActionMode.Manual);
+        var useOboToken = (attribute?.UseOboToken ?? false) && (_actionSettings.Mode == ActionMode.Review);
 
         return new ApprovalContext(
             ThreadId: input.ThreadId,

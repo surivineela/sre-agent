@@ -18,9 +18,9 @@ public enum ActionStatus
 public enum ActionMode
 {
     // Write actions will be taken after user approval
-    Manual,
+    Review,       // used to be manual mode
     // Write actions will be taken without user approval
-    Agent,
+    Autonomous,  // used to be agent mode
     // No write actions will be taken by agent
     ReadOnly
 }

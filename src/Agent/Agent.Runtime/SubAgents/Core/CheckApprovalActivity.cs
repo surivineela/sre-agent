@@ -2,8 +2,6 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Reflection;
-using Agent.Core.Attributes;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
@@ -80,7 +78,7 @@ public class CheckApprovalActivity : TaskActivity<CheckApprovalActivityInput, Ch
                 };
             }
 
-            if (_actionSettings.Mode == ActionMode.Agent)
+            if (_actionSettings.Mode == ActionMode.Autonomous)
             {
                 _logger.LogInternalInformation("[{ThreadId}] approval is auto approved for tool {FunctionName}", input.ThreadId, targetFunction);
 
