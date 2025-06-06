@@ -41,6 +41,12 @@
       "value": "Container Apps Operator"
     }
   ],
+  "0AwXvo": [
+    {
+      "type": 0,
+      "value": "Incident handler"
+    }
+  ],
   "0UwFzs": [
     {
       "type": 0,
@@ -91,6 +97,12 @@
     {
       "type": 0,
       "value": "The selected managed resource groups were deleted successfully"
+    }
+  ],
+  "1TlUPy": [
+    {
+      "type": 0,
+      "value": "New incident handler"
     }
   ],
   "1ZgrhW": [
@@ -751,6 +763,12 @@
     {
       "type": 0,
       "value": " deleted successfully"
+    }
+  ],
+  "KyDsjH": [
+    {
+      "type": 0,
+      "value": "Date modified"
     }
   ],
   "L0KVkI": [
@@ -1621,6 +1639,12 @@
       "value": "Disconnect"
     }
   ],
+  "qlcuNQ": [
+    {
+      "type": 0,
+      "value": "ID"
+    }
+  ],
   "rAGm8M": [
     {
       "type": 0,
@@ -1769,6 +1793,12 @@
       "value": "Time"
     }
   ],
+  "vCAhII": [
+    {
+      "type": 0,
+      "value": "Severity"
+    }
+  ],
   "vXCeIi": [
     {
       "type": 0,
@@ -1901,6 +1931,12 @@
     {
       "type": 0,
       "value": "Managed resource groups"
+    }
+  ],
+  "zGhyFV": [
+    {
+      "type": 0,
+      "value": "All severity"
     }
   ],
   "zN87hN": [

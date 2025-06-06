@@ -9,12 +9,14 @@ import AzPortalProxy from '../Common/AzPortalProxy/AzPortalProxy';
 import { AzPortalContext } from '../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { WorkspaceClient } from '../Common/Clients/WorkspaceClient';
+import { IncidentManagementType } from '../Common/Contracts/Azure/SreAgent';
 import { ArmResourceDescriptor } from '../Common/Helpers/ResourceDescriptors';
 import { SreAgentTabResources } from '../Strings/SREAgentResources';
 import Activities from './Activities/Activities.ReactView';
 import { FeedbackDialog } from './Components/FeedbackDialog';
 import { SreAgentContext } from './Contracts/Context';
 import Graph from './Graph/Graph';
+import IncidentManagement from './IncidentManagement/IncidentManagement';
 import { useSreAgent } from './Settings/Hooks/useSreAgent';
 import Settings from './Settings/Settings.ReactView';
 import { useSreAgentSpaceStyles } from './Settings/Styles/SreAgentSpaceStyles';
@@ -30,6 +32,7 @@ enum TabValues {
     Settings = 'settings',
     Graph = 'graph',
     Logs = 'logs',
+    IncidentManagement = 'incidentmanagement',
 }
 
 const inStandaloneMode = AzPortalProxy.inStandaloneMode;
@@ -54,6 +57,9 @@ const TabsListWrapper: FC = () => {
         if (location.pathname?.startsWith('/views/settings')) {
             return TabValues.Settings;
         }
+        if (location.pathname?.startsWith('/views/incidentmanagement')) {
+            return TabValues.IncidentManagement;
+        }
         return TabValues.Activities;
     }, [location.pathname]);
 
@@ -63,6 +69,10 @@ const TabsListWrapper: FC = () => {
     const styles = useSreAgentSpaceStyles();
 
     const { agent, agentLoaded } = useSreAgent(environmentContext.resourceId);
+
+    const isIncidentManagementEnabled = useMemo(() => {
+        return agent?.properties?.incidentManagementConfiguration?.type === IncidentManagementType.PagerDuty;
+    }, [agent?.properties?.incidentManagementConfiguration?.type]);
 
     const fetchWorkspaceId = useCallback(async () => {
         const { subscription, resourceGroup } = new ArmResourceDescriptor(environmentContext.resourceId);
@@ -85,7 +95,7 @@ const TabsListWrapper: FC = () => {
                 '_blank'
             );
         }
-    }, [workspaceId, agent?.properties?.logConfiguration?.logAnalyticsConfiguration?.workspaceId]);
+    }, [workspaceId]);
 
     const onTabSelect = useCallback(
         (_: SelectTabEvent, data: SelectTabData) => {
@@ -95,6 +105,10 @@ const TabsListWrapper: FC = () => {
                 }
             } else if (data.value === TabValues.Graph) {
                 navigate({ ...location, pathname: '/views/resourcegraph' });
+            } else if (data.value === TabValues.IncidentManagement) {
+                if (!location.pathname?.startsWith('/views/incidentmanagement')) {
+                    navigate({ ...location, pathname: '/views/incidentmanagement' });
+                }
             } else if (data.value === TabValues.Settings) {
                 if (!location.pathname?.startsWith('/views/settings')) {
                     navigate({ ...location, pathname: '/views/settings' });
@@ -123,6 +137,11 @@ const TabsListWrapper: FC = () => {
                 </Tab>
                 {!inStandaloneMode && (
                     <>
+                        {isIncidentManagementEnabled && (
+                            <Tab id="IncidentManagement" value={TabValues.IncidentManagement} disabled={!agentLoaded}>
+                                {intl.formatMessage(SreAgentTabResources.incidentManagement)}
+                            </Tab>
+                        )}
                         <Tab id="Settings" value={TabValues.Settings}>
                             {intl.formatMessage(SreAgentTabResources.settings)}
                         </Tab>{' '}
@@ -194,6 +213,7 @@ const SREAgentSpace: FC = () => {
                     <Route path="/views/settings/:menuItem" element={<Settings />} />
                     <Route path="/views/settings" element={<Settings />} />
                     <Route path="/views/resourcegraph" element={<Graph />} />
+                    <Route path="/views/incidentmanagement" element={<IncidentManagement />} />
                     <Route path="/views/activities/threads/:threadId" element={<Activities />} />
                     <Route path="/views/activities" element={<Activities />} />
                     <Route path="*" element={<Activities />} />

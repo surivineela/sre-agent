@@ -149,6 +149,7 @@ export const SreAgentTabResources = defineMessages({
     resourceMapping: { defaultMessage: 'Resource mapping', id: 'TdeXH0' },
     logs: { defaultMessage: 'Logs', id: 'SNuQo7' },
     feedback: { defaultMessage: 'Give us feedback', id: 'aQPexO' },
+    incidentManagement: { defaultMessage: 'Incident management', id: 'T7WpWs' },
 });
 
 export const ResourcePickerTabResources = defineMessages({
@@ -282,6 +283,12 @@ export const IncidentManagementResources = defineMessages({
         id: 'aSn3tP',
     },
     incidentPlatform: { defaultMessage: 'Incident platform', id: 'EZBG/A' },
+    newIncidentHandler: { defaultMessage: 'New incident handler', id: '1TlUPy' },
+    incidentHandler: { defaultMessage: 'Incident handler', id: '0AwXvo' },
+    id: { defaultMessage: 'ID', id: 'qlcuNQ' },
+    severity: { defaultMessage: 'Severity', id: 'vCAhII' },
+    dateModified: { defaultMessage: 'Date modified', id: 'KyDsjH' },
+    allSeverity: { defaultMessage: 'All severity', id: 'zGhyFV' },
 });
 
 export const IncidentManagementPlatformResources = defineMessages({

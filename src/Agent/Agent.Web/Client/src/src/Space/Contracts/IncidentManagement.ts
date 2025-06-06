@@ -20,3 +20,10 @@ export interface IncidentManagementFormProps {
     saving?: boolean;
     saveFailure?: string;
 }
+
+export interface IncidentHandler {
+    id: string;
+    name: string;
+    severity: string;
+    dateModified: Date;
+}
