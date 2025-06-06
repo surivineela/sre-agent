@@ -23,7 +23,7 @@ public static class Runner
         var input = previousResult.Input
             .Concat(previousResult.NewItems)
             .ToList();
-        var functionResultMessages = new List<ChatMessage>();
+        var functionCallMessages = new List<ChatMessage>();
 
         if (previousResult.ManualToolCalls is null
             || previousResult.ManualToolCalls.Count == 0)
@@ -33,19 +33,25 @@ public static class Runner
 
         foreach (var manualToolCall in previousResult.ManualToolCalls)
         {
-            var matchingOutput = manualToolResults
-                ?.FirstOrDefault(o => o.FunctionCall.CallId == manualToolCall.FunctionCall.CallId)
-                ?.Output
-                ?? throw new Exception("No matching output found for manual tool call");
+            var matchingResult = manualToolResults.FirstOrDefault(o => o.FunctionCall.CallId == manualToolCall.FunctionCall.CallId)
+                ?? throw new Exception("No matching result found for manual tool call");
 
-            var resultContent = new FunctionResultContent(manualToolCall.FunctionCall.CallId, matchingOutput);
+            if (!matchingResult.SkipToolCall)
+            {
+                var matchingOutput = matchingResult.Output
+                    ?? throw new Exception("No matching output found for manual tool call");
 
-            functionResultMessages.Add(new(ChatRole.Tool, [resultContent]));
-            previousResult.Trajectory.Append(resultContent);
+                var resultContent = new FunctionResultContent(manualToolCall.FunctionCall.CallId, matchingOutput);
+
+                functionCallMessages.Add(manualToolCall.OriginalMessage);
+                functionCallMessages.Add(new ChatMessage(ChatRole.Tool, [resultContent]));
+
+                previousResult.Trajectory.Append(resultContent);
+            }
 
             if (hooks != null)
             {
-                await hooks.OnToolEnd(previousResult.ContextWrapper, previousResult.LastAgent, manualToolCall.Tool, matchingOutput);
+                await hooks.OnToolEnd(previousResult.ContextWrapper, previousResult.LastAgent, manualToolCall.Tool, matchingResult.Output);
             }
         }
 
@@ -53,7 +59,7 @@ public static class Runner
             startingAgent: previousResult.LastAgent,
             input: input,
             config: config,
-            newGeneratedItems: functionResultMessages,
+            newGeneratedItems: functionCallMessages,
             context: context,
             currentTurn: previousResult.CurrentTurn,
             maxTurns: previousResult.MaxTurns,
@@ -339,9 +345,9 @@ public static class Runner
 
         // process tool calls
         // assume no parallel tool calling, so if a regular tool is called, we are not handing off to another agent
-        foreach (var message in modelResponse.Messages)
+        foreach (var modelResponseMessage in modelResponse.Messages)
         {
-            var functionCalls = message.Contents.OfType<FunctionCallContent>();
+            var functionCalls = modelResponseMessage.Contents.OfType<FunctionCallContent>();
 
             foreach (var functionCall in functionCalls)
             {
@@ -367,9 +373,6 @@ public static class Runner
                     };
                 }
 
-                // record model response only if it's not a handoff
-                newStepItems.Add(message);
-
                 // handle regular tool call
                 AIFunction? tool = tools.FirstOrDefault(t => t.Name == functionCall.Name);
 
@@ -390,7 +393,7 @@ public static class Runner
                         await hooks.OnToolEnd(contextWrapper, agent, tool, toolResult);
 
                         var result = new FunctionResultContent(functionCall.CallId, toolResult);
-
+                        newStepItems.Add(modelResponseMessage);
                         newStepItems.Add(new ChatMessage(ChatRole.Tool, [result]));
                         trajectory.Append(result);
 
@@ -411,6 +414,8 @@ public static class Runner
                         // return manual tool call result
                         await hooks.OnToolStart(contextWrapper, agent, tool);
 
+                        // modelResponseMessage will be added to the context when the loop is resumed
+
                         return new SingleStepResult<TContext>
                         {
                             OriginalInput = originalInput,
@@ -420,7 +425,12 @@ public static class Runner
                             NextStep = new NextStep<TContext>
                             {
                                 Type = NextStepType.ManualTool,
-                                ManualToolCall = new ManualToolCall { FunctionCall = functionCall, Tool = tool }
+                                ManualToolCall = new ManualToolCall
+                                {
+                                    FunctionCall = functionCall,
+                                    Tool = tool,
+                                    OriginalMessage = modelResponseMessage
+                                }
                             }
                         };
                     }
@@ -432,6 +442,7 @@ public static class Runner
 
                     var errorResult = new FunctionResultContent(functionCall.CallId, errorMessage);
 
+                    newStepItems.Add(modelResponseMessage);
                     newStepItems.Add(new ChatMessage(ChatRole.Tool, [errorResult]));
                     trajectory.Append(errorResult);
 
@@ -451,6 +462,9 @@ public static class Runner
         }
 
         // if we reach here, there were no tool calls in the response
+
+        newStepItems.AddRange(modelResponse.Messages);
+
         return new SingleStepResult<TContext>
         {
             OriginalInput = originalInput,

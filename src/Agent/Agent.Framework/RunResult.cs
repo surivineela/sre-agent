@@ -54,6 +54,22 @@ public abstract class RunResultBase<TContext> where TContext : class
 public class RunResult<TContext>(Agent<TContext> agent) : RunResultBase<TContext> where TContext : class
 {
     public override Agent<TContext> LastAgent { get; } = agent;
+
+    public RunResult<TContext> WithNewAgent(Agent<TContext> newAgent)
+    {
+        return new RunResult<TContext>(newAgent)
+        {
+            Input = Input,
+            NewItems = NewItems,
+            RawResponses = RawResponses,
+            CurrentTurn = CurrentTurn,
+            MaxTurns = MaxTurns,
+            Output = Output,
+            ContextWrapper = ContextWrapper,
+            ManualToolCalls = ManualToolCalls,
+            Trajectory = Trajectory
+        };
+    }
 }
 
 public class RunResultStreaming<TContext> : RunResultBase<TContext> where TContext : class
@@ -71,10 +87,12 @@ public class ManualToolCall
 {
     public required FunctionCallContent FunctionCall { get; set; }
     public required AIFunction Tool { get; set; }
+    public required ChatMessage OriginalMessage { get; set; }
 }
 
 public class ManualToolCallResult
 {
     public required FunctionCallContent FunctionCall { get; set; }
     public required object? Output { get; set; }
+    public bool SkipToolCall { get; set; } = false;
 }

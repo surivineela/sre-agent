@@ -15,9 +15,9 @@ using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
 using Agent.Framework;
 using Agent.Logging;
+using Agent.Plugins.Definitions;
 using Agent.Runtime.Helpers;
 using Agent.Runtime.SubAgents.Core;
-using Microsoft.Bot.Schema.Teams;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
@@ -319,14 +319,6 @@ public class ReasoningLoop
                 cancellationToken: cancellationToken
             );
 
-            // remove handoff back tool call
-            // assumes only 1 function call
-            var lastToolCall = runResult.NewItems.LastOrDefault()?.Contents.OfType<FunctionCallContent>().SingleOrDefault();
-            if (lastToolCall != null && lastToolCall.Name == "HandoffBack")
-            {
-                runResult.NewItems.RemoveAt(runResult.NewItems.Count - 1);
-            }
-
             await PersistReasoningMessagesAsync(agentChatHistory, runResult.NewItems);
 
             // handle manual tool calls
@@ -335,33 +327,34 @@ public class ReasoningLoop
                 List<ManualToolCallResult> toolResults = [];
 
                 var toolCall = runResult.ManualToolCalls.Single(); // Should only be one tool call at a time
-                // TODO: move handoff back to Agent.Framework 
-                if (toolCall.Tool.UnderlyingMethod?.Name == "HandoffBack")
+
+                // TODO: move handoff back to Agent.Framework so we don't have to manipulate the chat history so much outside the runner
+                if (toolCall.Tool.UnderlyingMethod?.Name == nameof(AgentControlFlowPluginDefinition.HandoffBack))
                 {
-                    _context.AgentHandoffChain.RemoveAt(_context.AgentHandoffChain.Count - 1);
-                    var agentName = _context.AgentHandoffChain[^1];
-                    _currentAgent = _agentFactory.GetAgent(agentName);
-
-                    runResult = new RunResult<AgentContext>(_currentAgent)
+                    if (_context.AgentHandoffChain.Count > 1)
                     {
-                        Input = runResult.Input,
-                        NewItems = runResult.NewItems,
-                        Output = runResult.Output,
-                        ContextWrapper = runResult.ContextWrapper,
-                        ManualToolCalls = [], // assuming only one tool call
-                        CurrentTurn = runResult.CurrentTurn,
-                        MaxTurns = runResult.MaxTurns,
-                        RawResponses = runResult.RawResponses,
-                        Trajectory = runResult.Trajectory
-                    };
+                        // pop agent off the chain
+                        _context.AgentHandoffChain.RemoveAt(_context.AgentHandoffChain.Count - 1);
+                        var agentName = _context.AgentHandoffChain[^1];
+                        _currentAgent = _agentFactory.GetAgent(agentName);
 
-                    // simulate the handoff
-                    runResult.NewItems.Add(new ChatMessage(ChatRole.Assistant, [
-                        new FunctionCallContent(toolCall.FunctionCall.CallId, $"transfer_to_{_currentAgent.Name}", new Dictionary<string, object?>())
-                    ]));
-                    runResult.NewItems.Add(new ChatMessage(ChatRole.Tool, [
-                        new FunctionResultContent(toolCall.FunctionCall.CallId, $"{{'assistant': '{_currentAgent.Name}'}}") // copied from src\Agent\Agent.Framework\Handoff.cs
-                    ]));
+                        runResult = runResult.WithNewAgent(_currentAgent);
+
+                        toolResults.Add(new ManualToolCallResult()
+                        {
+                            FunctionCall = toolCall.FunctionCall,
+                            Output = null,
+                            SkipToolCall = true // skip handoff tool calls
+                        });
+                    }
+                    else
+                    {
+                        toolResults.Add(new ManualToolCallResult()
+                        {
+                            FunctionCall = toolCall.FunctionCall,
+                            Output = "There are no agents to handoff back to, a different handoff must be used instead."
+                        });
+                    }
                 }
                 else
                 {
@@ -443,14 +436,6 @@ public class ReasoningLoop
                     hooks: runHooks,
                     cancellationToken: cancellationToken
                 );
-
-                // remove handoff back tool call
-                // assumes only 1 function call
-                lastToolCall = runResult.NewItems.LastOrDefault()?.Contents.OfType<FunctionCallContent>().SingleOrDefault();
-                if (lastToolCall != null && lastToolCall.Name == "HandoffBack")
-                {
-                    runResult.NewItems.RemoveAt(runResult.NewItems.Count - 1);
-                }
 
                 await PersistReasoningMessagesAsync(agentChatHistory, runResult.NewItems);
             }
