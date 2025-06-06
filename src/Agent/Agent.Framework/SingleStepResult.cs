@@ -6,17 +6,14 @@ using Microsoft.Extensions.AI;
 
 namespace Agent.Framework;
 
-public class SingleStepResult<TContext> where TContext : class
+public sealed class SingleStepResult<TContext> where TContext : class
 {
-    public required ChatResponse ModelResponse { get; set; }
-    public List<ChatMessage> OriginalInput { get; set; } = [];
-    public List<ChatMessage> PreStepItems { get; set; } = [];
-    public List<ChatMessage> NewStepItems { get; set; } = [];
-    public required NextStep<TContext> NextStep { get; set; }
+    public required ChatResponse ModelResponse { get; init; }
+    public IReadOnlyList<ChatMessage> PreStepItems { get; init; } = [];
+    public IReadOnlyList<ChatMessage> NewStepItems { get; init; } = [];
+    public required NextStep<TContext> NextStep { get; init; }
 
     public List<ChatMessage> GeneratedItems => [.. PreStepItems, .. NewStepItems];
-
-    public Trajectory Trajectory { get; set; } = new Trajectory();
 }
 
 public enum NextStepType

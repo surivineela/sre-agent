@@ -314,6 +314,7 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
         BEST PRACTICES:
         - Always specify the namespace you care about: 'kubectl get pods -n default'
         """)]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> RunKubectlReadCommandAsync(
             [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
             [Description($"Complete kubectl get command string, e.g.: 'kubectl get deployments -n production -o wide'")] string command)
@@ -346,9 +347,10 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
         }
 
         [Description(
-        @"Provides help information about kubectl commands and resources.
-        Used whenever user needs guidance on using kubectl commands or understanding Kubernetes resources.
-        eg: 'How do I use kubectl get pods?', 'What options are available for kubectl describe?'")]
+            @"Provides help information about kubectl commands and resources.
+            Used whenever user needs guidance on using kubectl commands or understanding Kubernetes resources.
+            eg: 'How do I use kubectl get pods?', 'What options are available for kubectl describe?'")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> RunKubectlCommandHelpAsync(
             [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
             [Description("The kubectl command or resource to get help for, e.g. 'get', 'describe pod', 'create deployment'")] string command)
@@ -359,6 +361,7 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
         /// <summary>Run 'kubectl get' on any resource.</summary>
         [Description(
             "Retrieve Kubernetes resources with optional label filtering and custom columns.")]
+        [AgentTool(ToolMode.Auto)]
         public Task<string> KubectlGetAsync(
             [Description("The resource ID of the Azure Kubernetes Service.")]
             string AKSClusterResourceId,
@@ -408,6 +411,7 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
         [Description(
             "Run 'kubectl describe' on a single object. " +
             "Must specify kind, name, and namespace (or empty for cluster‑scoped kinds).")]
+        [AgentTool(ToolMode.Auto)]
         public Task<string> KubectlDescribeAsync(
             [Description("The resource ID of the Azure Kubernetes Service.")]
             string AKSClusterResourceId,
@@ -438,6 +442,7 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
             "Run 'kubectl explain' for API documentation. " +
             "Always specify full resourcePath (e.g. 'pod.spec.containers') and " +
             "whether recursion is desired.")]
+        [AgentTool(ToolMode.Auto)]
         public Task<string> KubectlExplainAsync(
             [Description("The resource ID of the Azure Kubernetes Service.")]
             string AKSClusterResourceId,
@@ -464,6 +469,7 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
         /// </summary>
         [Description(
             "Run 'kubectl api-resources' with optional filters and explicit output columns.")]
+        [AgentTool(ToolMode.Auto)]
         public Task<string> KubeApiResourcesAsync(
             [Description("The resource ID of the Azure Kubernetes Service.")]
             string AKSClusterResourceId,
@@ -490,6 +496,7 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
         /// <summary>Get pod logs with advanced filtering and volume reduction.</summary>
         [Description(
             "Retrieve Kubernetes pod logs with grep filtering, truncation, and all built-in kubectl log options.")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> GetPodLogsAsync(
             [Description("The resource ID of the Azure Kubernetes Service.")]
             string AKSClusterResourceId,
@@ -558,7 +565,7 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
                 var filteredLogs = KernelFunctionHelpers.ApplyGrepFiltering(rawLogs, grepTerms, caseSensitive);
 
                 // Apply word truncation
-                var finalLogs = KernelFunctionHelpers.ApplyWordTruncation(filteredLogs);
+                var finalLogs = TextVolumeHelpers.ApplyWordTruncation(filteredLogs);
 
                 return finalLogs;
             }
@@ -571,6 +578,7 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
         /// <summary>Get Kubernetes events with filtering and volume reduction.</summary>
         [Description(
             "Retrieve Kubernetes events with grep filtering, truncation, and built-in event filtering options.")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> GetKubeEventsAsync(
             [Description("The resource ID of the Azure Kubernetes Service.")]
             string AKSClusterResourceId,
@@ -634,7 +642,7 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
                 var filteredEvents = KernelFunctionHelpers.ApplyGrepFiltering(limitedEvents, grepTerms, caseSensitive);
 
                 // Apply word truncation
-                var finalEvents = KernelFunctionHelpers.ApplyWordTruncation(filteredEvents);
+                var finalEvents = TextVolumeHelpers.ApplyWordTruncation(filteredEvents);
 
                 return finalEvents;
             }
@@ -647,6 +655,7 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
         /// <summary>Get available metrics with filtering to discover what's available.</summary>
         [Description(
             "Discover available Prometheus metrics with optional filtering.")]
+        [AgentTool(ToolMode.Auto)]
         public Task<string> DiscoverPrometheusMetricsAsync(
             [Description("The resource ID of the Azure Kubernetes Service.")]
             string AKSClusterResourceId,
@@ -664,6 +673,7 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
         /// <summary>Get metric labels and values for building targeted queries.</summary>
         [Description(
             "Discover available label names and values for a specific metric to build more targeted queries.")]
+        [AgentTool(ToolMode.Auto)]
         public Task<string> GetMetricsLabelsAsync(
             [Description("The resource ID of the Azure Kubernetes Service.")]
             string AKSClusterResourceId,
@@ -681,6 +691,7 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
         /// <summary>Execute PromQL queries against Prometheus with volume controls.</summary>
         [Description(
             "Query Prometheus metrics with comprehensive filtering and aggregation options to control output volume.")]
+        [AgentTool(ToolMode.Auto)]
         public Task<string> QueryPrometheusMetricsAsync(
             [Description("The resource ID of the Azure Kubernetes Service.")]
             string AKSClusterResourceId,

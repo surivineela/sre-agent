@@ -1,11 +1,8 @@
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
-using Agent.Core.Models.Api.v1;
 using Agent.Data.Repositories;
 using Agent.Plugins;
-using Agent.Plugins.Definitions;
 using Agent.Plugins.Mocks;
-using Agent.Runtime;
 using Agent.Runtime.SubAgents;
 using Agent.Runtime.SubAgents.AppReliabilityAgent;
 using Agent.Runtime.SubAgents.Core;
@@ -21,12 +18,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Time.Testing;
-using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit.Abstractions;
 using Helper = Agent.Tests.Integration.Helpers.Helper;
 
@@ -64,7 +55,7 @@ namespace Agent.Tests.Integration
             public static int NumberOfWorkers = 3;
             public static bool AlwaysOnEnabled = true;
             public static bool HealthCheckEnabled = true;
-            public static bool AutoHealEnabled  = true;
+            public static bool AutoHealEnabled = true;
             public static Tuple<bool, bool, bool, int> Configuration = new Tuple<bool, bool, bool, int>(AlwaysOnEnabled, HealthCheckEnabled, AutoHealEnabled, NumberOfWorkers);
         }
 
@@ -250,7 +241,7 @@ namespace Agent.Tests.Integration
                 Assert.True(orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Completed);
 
                 Assert.Equal(ReliableApp.Configuration, _mockArmPlugin.GetAppReliability(_testApps[0].ResourceId));
-                Assert.Equal(new Tuple<bool, bool, bool, int> (false, true, false, 2), _mockArmPlugin.GetAppReliability(_testApps[1].ResourceId));
+                Assert.Equal(new Tuple<bool, bool, bool, int>(false, true, false, 2), _mockArmPlugin.GetAppReliability(_testApps[1].ResourceId));
                 Assert.Equal(ReliableApp.Configuration, _mockArmPlugin.GetAppReliability(_testApps[2].ResourceId));
                 Assert.Equal(ReliableApp.Configuration, _mockArmPlugin.GetAppReliability(_testApps[3].ResourceId));
                 Assert.Equal(ReliableApp.Configuration, _mockArmPlugin.GetAppReliability(_testApps[4].ResourceId));

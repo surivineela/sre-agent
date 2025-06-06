@@ -1,0 +1,91 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.Text;
+using System.Text.Json;
+using Microsoft.Extensions.AI;
+
+namespace Agent.Framework;
+
+public sealed class Trajectory
+{
+    public int CriticCount { get; private set; } = 0;
+
+    private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web)
+    {
+        WriteIndented = true,
+    };
+
+    private const int MaxResultWords = 200;
+
+    private StringBuilder TrajectoryBuilder { get; } = new();
+
+    public void Append(ChatResponse modelResponse)
+    {
+        foreach (var msg in modelResponse.Messages)
+        {
+            TrajectoryBuilder.AppendLine($"Role: {msg.Role}");
+            TrajectoryBuilder.AppendLine();
+
+            foreach (var content in msg.Contents)
+            {
+                if (content is TextContent textContent)
+                {
+                    TrajectoryBuilder.AppendLine(textContent.Text);
+                    TrajectoryBuilder.AppendLine();
+                }
+                else if (content is FunctionCallContent functionCallContent)
+                {
+                    TrajectoryBuilder.AppendLine($"Function Call: {functionCallContent.Name}");
+                    TrajectoryBuilder.AppendLine($"Parameters: {(functionCallContent.RawRepresentation as OpenAI.Chat.ChatToolCall)!.FunctionArguments.ToString()}");
+                    TrajectoryBuilder.AppendLine();
+                }
+                // don't expect this in general as tool calls are handled manually
+                // however for parallel tool call we use functionInvokingChatClient, which will inline the results
+                else if (content is FunctionResultContent functionResultContent)
+                {
+                    Append(functionResultContent);
+                }
+                else
+                {
+                    throw new Exception($"Unknown content type: {content.GetType()}");
+                }
+            }
+        }
+
+        TrajectoryBuilder.AppendLine();
+    }
+
+    public void Append(FunctionResultContent functionResult)
+    {
+        string resultString;
+        if (functionResult.Result is null)
+        {
+            resultString = "null";
+        }
+        else
+        {
+            var resultElement = (JsonElement)functionResult.Result;
+            resultString = resultElement.ValueKind == JsonValueKind.String
+                ? resultElement.GetString()!
+                : JsonSerializer.Serialize(functionResult.Result, _jsonOptions);
+
+            resultString = TextVolumeHelpers.ApplyWordTruncation(
+                input: resultString,
+                maxWords: MaxResultWords,
+                addTruncationMessage: false);
+        }
+
+        TrajectoryBuilder.AppendLine($"Function Call Result:\n{resultString}");
+        TrajectoryBuilder.AppendLine();
+    }
+
+    public string Close()
+    {
+        var trajectory = TrajectoryBuilder.ToString();
+        TrajectoryBuilder.Clear();
+        CriticCount++;
+        return trajectory;
+    }
+}
