@@ -11,7 +11,7 @@ namespace Agent.Runtime.Services
     {
         Task<InstructionGenerationResponse> GenerateInstructionsFromIncidents(InstructionGenerationRequest request);
 
-        Task<List<ToolInfo>> FilterTools(string searchString);
+        Task<List<ToolInfo>> FilterTools(string? searchString);
 
     }
 
@@ -35,7 +35,7 @@ namespace Agent.Runtime.Services
             _logger = logger;
         }
 
-        public async Task<List<ToolInfo>> FilterTools(string searchString)
+        public async Task<List<ToolInfo>> FilterTools(string? searchString)
         {
             var availableTools = _toolFactory.FetchAvailableToolInfo();
             if (string.IsNullOrWhiteSpace(searchString))

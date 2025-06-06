@@ -222,7 +222,7 @@ public class IncidentPlaygroundController : ControllerBase
     }
 
     [HttpGet("listTools")]
-    public async Task<IActionResult> ListTools(string searchString)
+    public async Task<IActionResult> ListTools(string? searchString)
     {
         try
         {

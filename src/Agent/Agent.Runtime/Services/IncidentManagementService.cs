@@ -96,9 +96,13 @@ namespace Agent.Runtime.Services
             }
         }
 
-        private async Task<List<T>> QueryIncidentsInternal(IncidentQueryRequest request, int durationInDays = 60)
+        private async Task<List<T>> QueryIncidentsInternal(IncidentQueryRequest request)
         {
-            var since = DateTime.UtcNow.AddDays(-durationInDays);
+            if (request.DurationInDays > 90)
+            {
+                request.DurationInDays = 90;
+            }
+            var since = DateTime.UtcNow.AddDays(-request.DurationInDays);
             if (request.Filter == null)
             {
                 if (request.Keywords == null || request.Keywords.Length == 0)
@@ -195,4 +199,5 @@ public class IncidentQueryRequest
 
     // Should only use Keywords in special scenarios where Filter isn't viable
     public string[] Keywords { get; set; } = [];
+    public int DurationInDays { get; set; } = 60; // Default to 60 days for incident history
 }
