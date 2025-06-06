@@ -54,7 +54,7 @@ system_prompt: |
 
    If you don't have the correct tools handoff to the most scoped agent for the task, eg: for getting latency of availability metrics, handoff to `meta_agent`.
 
-handoff_description: Handoff to this agent whenever you need to find Azure resources, find details about Azure Resources, list subscriptions or resource groups, validate resource identifiers, or otherwise discover where a workload lives before any management or remediation steps. For any missing information, you should autonomously handoff to azure_cli_command_executor_agent
+handoff_description: Handoff to this agent whenever you need to find Azure resources, find details about Azure Resources, list subscriptions or resource groups, validate resource identifiers, or otherwise discover where a workload lives before any management or remediation steps.
 
 handoffs:
    - meta_agent
