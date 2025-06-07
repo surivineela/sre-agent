@@ -66,10 +66,9 @@ public sealed class Trajectory
         }
         else
         {
-            var resultElement = (JsonElement)functionResult.Result;
-            resultString = resultElement.ValueKind == JsonValueKind.String
-                ? resultElement.GetString()!
-                : JsonSerializer.Serialize(functionResult.Result, _jsonOptions);
+            var resultObj = functionResult.Result;
+
+            resultString = (resultObj is string str) ? str : JsonSerializer.Serialize(resultObj, _jsonOptions);
 
             resultString = TextVolumeHelpers.ApplyWordTruncation(
                 input: resultString,
