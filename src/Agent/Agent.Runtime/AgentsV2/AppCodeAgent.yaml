@@ -16,7 +16,7 @@ handoff_description: "Handoff to this agent when dealing with application code e
 
 handoffs:
 - meta_agent
-- web_app_agent
+- web_app_down_agent
 
 tools:
 - GetResourceDetailedProperties
