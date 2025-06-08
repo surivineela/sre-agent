@@ -27,5 +27,6 @@ tools:
 
 common_prompts:
   - notify_user
+  - handoff_back
   - guard_rail
   - format_guidelines

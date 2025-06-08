@@ -9,7 +9,7 @@ namespace Agent.Framework;
 
 public static class Runner
 {
-    private const int DefaultMaxTurns = 50;
+    private const int DefaultMaxTurns = 30;
 
     public static async Task<RunResult<TContext>> ResumeFromManualToolsAsync<TContext>(
         RunResult<TContext> previousResult,
@@ -102,8 +102,8 @@ public static class Runner
         int maxTurns = DefaultMaxTurns,
         RunHooks<TContext>? hooks = null,
         Trajectory? trajectory = null,
-        CancellationToken cancellationToken = default, // TODO: use cancellation token
-        bool _shouldRunAgentStartHooks = true
+        bool _shouldRunAgentStartHooks = true,
+        CancellationToken cancellationToken = default // TODO: use cancellation token
     ) where TContext : class
     {
         hooks ??= new RunHooks<TContext>();
@@ -128,7 +128,22 @@ public static class Runner
 
                 if (currentTurn > maxTurns)
                 {
-                    throw new Exception("Max turns reached");
+                    var result = new RunResult<TContext>(currentAgent)
+                    {
+                        Input = originalInput,
+                        NewItems = generatedMessages,
+                        Output = "Max turns reached",
+                        ContextWrapper = contextWrapper,
+                        CurrentTurn = currentTurn,
+                        MaxTurns = maxTurns,
+                        RawResponses = rawResponses,
+                        Trajectory = trajectory,
+                    };
+
+                    throw new TurnLimitReachedException<TContext>(
+                        "Max turns reached",
+                        result
+                    );
                 }
 
                 var turnResult = await RunSingleTurnAsync(
@@ -296,14 +311,15 @@ public static class Runner
         tools.AddRange(await hooks.ResolveFactoryTools(contextWrapper, agent));
         tools.AddRange(agent.Handoffs);
 
+        var additionalProperties = tools.Count > 0
+            ? new AdditionalPropertiesDictionary { ["AllowParallelToolCalls"] = agent.AllowParallelToolCalls }
+            : null;
+
         var chatOptions = new ChatOptions
         {
             Tools = tools.Cast<AITool>().ToList(),
             ToolMode = agent.ChatToolMode,
-            AdditionalProperties = new AdditionalPropertiesDictionary
-            {
-                ["AllowParallelToolCalls"] = agent.AllowParallelToolCalls,
-            },
+            AdditionalProperties = additionalProperties,
             Temperature = agent.Temperature
         };
 

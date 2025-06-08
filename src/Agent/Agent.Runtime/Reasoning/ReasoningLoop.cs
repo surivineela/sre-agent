@@ -299,15 +299,14 @@ public class ReasoningLoop
 
     private async Task RunInternalAsync(AgentChatHistory agentChatHistory, CancellationToken cancellationToken, Tracer tracer)
     {
+        var runConfig = new RunConfig
+        {
+            ChatClient = _chatClient,
+            LoggerFactory = _loggerFactory,
+        };
 
         try
         {
-            var runConfig = new RunConfig
-            {
-                ChatClient = _chatClient,
-                LoggerFactory = _loggerFactory,
-            };
-
             var runHooks = new RunHooks<AgentContext>
             {
                 ResolveFactoryTools = (context, agent) =>
@@ -507,12 +506,49 @@ public class ReasoningLoop
 
             if (runResult.Output != null)
             {
-                await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context.ThreadId, string.Empty,
+                await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+                    _context,
                     new ChatMessage(ChatRole.Assistant, runResult.Output?.ToString()));
             }
 
             _logger.LogInternalInformation("Reasoning loop completed successfully.");
             // span.SetStatus(OpenTelemetry.Trace.Status.Ok);
+        }
+        catch (TurnLimitReachedException<AgentContext> ex)
+        {
+            _logger.LogInternalWarning("Turn limit reached.", ex);
+
+            // generate progress summary
+
+            var result = ex.RunResult;
+
+            await PersistReasoningMessagesAsync(agentChatHistory, result.NewItems);
+
+            var progressSummaryAgent = _agentFactory.GetAgent("progress_summary_agent");
+
+            var summaryResult = await Runner.RunAsync(
+                startingAgent: progressSummaryAgent,
+                input: [.. result.Input, .. result.NewItems],
+                config: runConfig,
+                context: _context,
+                maxTurns: 1,
+                cancellationToken: cancellationToken
+            );
+
+            var summary = summaryResult.Output?.ToString();
+
+            if (string.IsNullOrEmpty(summary))
+            {
+                throw new Exception("Progress summary agent returned no output.");
+            }
+
+            var assistantMessage = new ChatMessage(ChatRole.Assistant, summary);
+
+            await PersistReasoningMessageAsync(agentChatHistory, assistantMessage);
+
+            await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+                _context,
+                assistantMessage);
         }
         catch (Exception ex)
         {

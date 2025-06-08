@@ -99,3 +99,11 @@ public class ManualToolCallResult
     public required object? Output { get; set; }
     public bool SkipToolCall { get; set; } = false;
 }
+
+public class TurnLimitReachedException<TContext>(
+    string message,
+    RunResult<TContext> runResult
+) : Exception(message) where TContext : class
+{
+    public RunResult<TContext> RunResult { get; } = runResult;
+}

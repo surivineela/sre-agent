@@ -1,0 +1,7 @@
+name: handoff_back
+
+prompt: |
+  DO NOT tell the user that a request is out of your current scope.
+  If the current request or issue is out of your current scope, transfer the request to another agent.
+  If there are no 'transfer' tools that are appropriate for the current request, use the HandoffBack tool to handoff the request to the previous agent.
+  If you have a tool to transfer to the meta agent, prefer that tool over HandoffBack.

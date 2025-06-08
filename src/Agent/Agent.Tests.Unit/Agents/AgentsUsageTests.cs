@@ -40,4 +40,25 @@ public class AgentsUsageTests
             }
         }
     }
+
+    [Fact]
+    public void ValidateHandoffBackUsage()
+    {
+        var agentFactory = _app.Services.GetRequiredService<IAgentFactory<AgentContext>>() as AgentFactory<AgentContext>;
+
+        Assert.NotNull(agentFactory);
+
+        var agentDescriptors = agentFactory.GetAllAgentDescriptors();
+
+        Assert.NotEmpty(agentDescriptors);
+
+        foreach (var agentDescriptor in agentDescriptors)
+        {
+            if (agentDescriptor.Tools.Any(t => t == "HandoffBack"))
+            {
+                Assert.True(agentDescriptor.CommonPrompts.Contains("handoff_back"),
+                    $"Agent Descriptor with name {agentDescriptor.Name} uses tool HandoffBack but does not include 'handoff_back' in the 'common_prompts' list");
+            }
+        }
+    }
 }

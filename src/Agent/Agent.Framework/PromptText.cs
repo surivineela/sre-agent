@@ -103,6 +103,7 @@ public class PromptText
         Handoffs are achieved by calling a handoff function, generally named
         `transfer_to_<agent_name>`. Transfers between agents are handled seamlessly in the background;
          do not mention or draw attention to these transfers in your conversation with the user.
+         perform the handoff automatically and do not ask the user if you can proceed.
         """;
 
         public static string FormattingGuidelines = """
