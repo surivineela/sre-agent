@@ -2299,7 +2299,7 @@ public class ArmHelper
             }
 
             var cmd = command.Substring("az ".Length);
-            return await ExecuteCommandHelper.ExecuteCommand("az", cmd);
+            return await ExecuteCommandHelper.ExecuteCommand("az", null, cmd);
         }
         catch (Exception ex)
         {
@@ -2522,7 +2522,7 @@ public class ArmHelper
 
         try
         {
-            var result = await ExecuteCommandHelper.ExecuteCommand("az", cmd);
+            var result = await ExecuteCommandHelper.ExecuteCommand("az", null, cmd);
             if (string.Equals(result, "servicePrincipal", StringComparison.OrdinalIgnoreCase)
                 // local test
                 || string.Equals(result, "user", StringComparison.OrdinalIgnoreCase))
