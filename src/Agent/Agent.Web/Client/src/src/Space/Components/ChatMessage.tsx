@@ -359,7 +359,7 @@ const AzCliExecutionComponent: React.FC<{
                     border: '1px solid #ececec',
                     borderRadius: '8px',
                     padding: '12px',
-                    marginTop: '16px',
+                    marginTop: '8px',
                     backgroundColor: '#f9f9f9',
                     cursor: 'pointer',
                     transition: 'background-color 0.2s',
@@ -507,7 +507,7 @@ const AzCliExecutionComponent: React.FC<{
                 border: '1px solid #ececec',
                 borderRadius: '8px',
                 padding: '16px',
-                marginTop: '16px',
+                marginTop: '8px',
                 backgroundColor: '#f9f9f9',
             }}
         >
@@ -1097,7 +1097,7 @@ const KubectlExecutionComponent: React.FC<{
                     border: '1px solid #ececec',
                     borderRadius: '8px',
                     padding: '12px',
-                    marginTop: '16px',
+                    marginTop: '8px',
                     backgroundColor: '#f9f9f9',
                     cursor: 'pointer',
                     transition: 'background-color 0.2s',
@@ -1245,7 +1245,7 @@ const KubectlExecutionComponent: React.FC<{
                 border: '1px solid #ececec',
                 borderRadius: '8px',
                 padding: '16px',
-                marginTop: '16px',
+                marginTop: '8px',
                 backgroundColor: '#f9f9f9',
             }}
         >

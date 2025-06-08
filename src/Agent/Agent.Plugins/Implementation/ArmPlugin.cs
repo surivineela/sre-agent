@@ -194,7 +194,7 @@ namespace Agent.Plugins.Implementation
                     TimeStamp: DateTime.UtcNow,
                     Author: new Author(
                         DisplayName: "SRE Agent",
-                        UserId: "SREAgent",
+                        UserId: "agent-default",
                         Role: Role.SREAgent
                     ),
                     Text: "",
@@ -218,7 +218,7 @@ namespace Agent.Plugins.Implementation
                         Status = AzCliExecutionStatus.Completed,
                         ExecutedBy = new Author(
                             DisplayName: "SRE Agent",
-                            UserId: "SRE Agent",
+                            UserId: "agent-default",
                             Role: Role.User
                         ),
                         Output = output,
@@ -304,7 +304,7 @@ namespace Agent.Plugins.Implementation
                     TimeStamp: DateTime.UtcNow,
                     Author: new Author(
                         DisplayName: "SRE Agent",
-                        UserId: "SREAgent",
+                        UserId: "agent-default",
                         Role: Role.SREAgent
                     ),
                     Text: "",

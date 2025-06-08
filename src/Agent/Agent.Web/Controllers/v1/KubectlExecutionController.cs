@@ -68,13 +68,13 @@ namespace Agent.Web.Controllers.v1
             // Get user info from token or use provided user
             var authzHeader = Request.Headers["Authorization"].ToString();
             string userName = "Unknown User";
-            string userId = request.User ?? "sreagent-client"; // Use provided user or default
+            string userId = request.User ?? "agent-default"; // Use provided user or default
             string? userEmail = null;
 
             // Check if user is sreagent-client (frontend default)
-            if (userId == "sreagent-client")
+            if (userId == "agent-default")
             {
-                userName = "SRE Agent Client";
+                userName = "SRE Agent";
             }
             else if (!string.IsNullOrEmpty(authzHeader) && authzHeader.StartsWith("Bearer "))
             {
