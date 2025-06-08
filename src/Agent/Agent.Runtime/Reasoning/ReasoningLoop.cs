@@ -20,7 +20,6 @@ using Agent.Runtime.Helpers;
 using Agent.Runtime.SubAgents.Core;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using OpenTelemetry;
 using OpenTelemetry.Trace;
 
 namespace Agent.Runtime.Reasoning;
@@ -149,7 +148,7 @@ public class ReasoningLoop
         _chatHistory = reasoningMessages.GetChatMessages();
     }
 
-    
+
     public async Task<IEnumerable<ChatMessage>> ExportChatHistory(CancellationToken cancellationToken)
     {
         //TODO - synchronization with writers. Currently only used during development so not a blocker.
@@ -488,6 +487,8 @@ public class ReasoningLoop
                     else
                     {
                         // if approval is required, stop the loop and wait for approval
+                        await PersistReasoningMessageAsync(agentChatHistory, toolCall.OriginalMessage);
+
                         break;
                     }
                 }
@@ -615,6 +616,8 @@ public class ReasoningLoop
             else
             {
                 // if approval is required, stop the loop and wait for approval
+                await PersistReasoningMessageAsync(agentChatHistory, toolCall.OriginalMessage);
+
                 break;
             }
 
@@ -772,7 +775,15 @@ public class ReasoningLoop
                     }
 
                     await ExecuteToolAsync(agentChatHistory, aiTool, functionCall, cancellationToken);
-
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalError(ex, "Error while invoking tool: {ToolName}", functionCall.Name);
+                    var errorMessage = new ChatMessage(ChatRole.Tool, [new FunctionResultContent(functionCall.CallId, GetErrorMessage(functionCall, ex))]);
+                    await PersistReasoningMessageAsync(agentChatHistory, errorMessage);
+                }
+                finally
+                {
                     // remove pending approval
                     var pendingApprovals = _context.ApprovalInformation?.PendingApprovals;
                     if (pendingApprovals != null && pendingApprovals.Contains(approval.Id))
@@ -784,12 +795,6 @@ public class ReasoningLoop
                         };
                         _context = await _threadRepository.UpdateAgentContextAsync(_context);
                     }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogInternalError(ex, "Error while invoking tool: {ToolName}", functionCall.Name);
-                    var errorMessage = new ChatMessage(ChatRole.Tool, [new FunctionResultContent(functionCall.CallId, GetErrorMessage(functionCall, ex))]);
-                    await PersistReasoningMessageAsync(agentChatHistory, errorMessage);
                 }
             }
             else if (approval.Status == ApprovalDecision.Rejected)

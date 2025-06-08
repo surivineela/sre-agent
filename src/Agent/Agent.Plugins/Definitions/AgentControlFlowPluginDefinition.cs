@@ -7,8 +7,8 @@ namespace Agent.Plugins.Definitions;
 public class AgentControlFlowPluginDefinition
 {
     [Description(
-        @"Handoff the current context to the upper level agent.
-        Do not use this tool when there are other appropriate agents to handoff to.
+        @"Handoff the current context to the upper level agent when the current request is out of your current scope.
+        Do not use this tool if there are other appropriate handoff tools available.
         Use this tool when you do not have any other tools or handoffs to properly handle the current task.")]
     [AgentTool(ToolMode.Manual)] // requires special handling outside the framework
     public string HandoffBack()
