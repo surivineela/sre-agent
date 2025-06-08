@@ -8,6 +8,7 @@ using Agent.Core.Models.Api.v1;
 using Agent.Framework;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry.Trace;
 
 namespace Agent.Runtime.Reasoning;
 
@@ -25,14 +26,17 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
     private readonly IToolFactory<AgentContext> _toolFactory;
     private readonly IThreadRepository _threadRepository;
     private readonly ActionSettings _actionSettings;
+
+    private readonly Tracer _tracer;
     public ReasoningLoopFactory(
         ILoggerFactory loggerFactory,
         IChatClient chatClient,
         IAgentOutboundCommunicationService outboundCommunicationService,
         IThreadRepository threadRepository,
         IAgentFactory<AgentContext> agentFactory,
-        IToolFactory<AgentContext> toolFactory,
-        ActionSettings actionSettings)
+        ToolFactory<AgentContext> toolFactory,
+        ActionSettings actionSettings,
+        Tracer tracer)
     {
         _loggerFactory = loggerFactory;
         _chatClient = chatClient;
@@ -41,6 +45,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         _threadRepository = threadRepository;
         _toolFactory = toolFactory;
         _actionSettings = actionSettings;
+        _tracer = tracer;
     }
 
     public async Task<ReasoningLoop> Create(AgentContext context)
@@ -72,6 +77,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
             context,
             _toolFactory,
             _actionSettings,
+            _tracer,
             _agentFactory);
 
         await loop.LoadChatHistoryAsync();

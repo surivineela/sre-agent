@@ -12,6 +12,7 @@
     <PackageReference Include="Microsoft.Extensions.AI.OpenAI" />
     <PackageReference Include="Azure.AI.OpenAI" />
     <PackageReference Include="YamlDotNet" />
+    <PackageReference Include="OpenTelemetry" />
   </ItemGroup>
 
 </Project>

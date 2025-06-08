@@ -65,7 +65,8 @@ public static class Runner
             maxTurns: previousResult.MaxTurns,
             hooks: hooks,
             previousResult.Trajectory,
-            cancellationToken: cancellationToken
+            cancellationToken: cancellationToken,
+            _shouldRunAgentStartHooks: false // do not run agent start hooks on resume
         );
     }
 
@@ -86,7 +87,8 @@ public static class Runner
             context: context,
             maxTurns: maxTurns,
             hooks: hooks,
-            cancellationToken: cancellationToken
+            cancellationToken: cancellationToken,
+            _shouldRunAgentStartHooks: true // always run agent start hooks on initial run
         );
     }
 
@@ -100,13 +102,13 @@ public static class Runner
         int maxTurns = DefaultMaxTurns,
         RunHooks<TContext>? hooks = null,
         Trajectory? trajectory = null,
-        CancellationToken cancellationToken = default // TODO: use cancellation token
+        CancellationToken cancellationToken = default, // TODO: use cancellation token
+        bool _shouldRunAgentStartHooks = true
     ) where TContext : class
     {
         hooks ??= new RunHooks<TContext>();
-
-        var shouldRunAgentStartHooks = true;
-        var currentAgent = startingAgent;
+        bool shouldRunAgentStartHooks = _shouldRunAgentStartHooks;
+        Agent<TContext> currentAgent = startingAgent;
         List<ChatMessage> originalInput = [.. input];
         List<ChatMessage> generatedMessages = newGeneratedItems is not null
             ? [.. newGeneratedItems]
@@ -324,6 +326,7 @@ public static class Runner
             originalInput: originalInput,
             preStepItems: generatedMessages,
             modelResponse: response,
+            config: config,
             hooks: hooks,
             contextWrapper: contextWrapper,
             runConfig: config,
@@ -337,6 +340,7 @@ public static class Runner
         List<ChatMessage> originalInput,
         List<ChatMessage> preStepItems,
         ChatResponse modelResponse,
+        RunConfig config,
         RunHooks<TContext> hooks,
         RunContextWrapper<TContext> contextWrapper,
         RunConfig runConfig,
@@ -506,5 +510,4 @@ public static class Runner
             }
         };
     }
-
 }

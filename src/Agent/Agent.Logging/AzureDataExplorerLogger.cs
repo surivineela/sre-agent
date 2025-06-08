@@ -103,9 +103,6 @@ public class AzureDataExplorerLogger : ILogger
         else
         {
             Console.WriteLine($"[{DateTime.UtcNow}] [Console] {logMessage}");
-
-            // TODO: Uncomment to make strongly opinionated
-            //throw new Exception($"Invalid logType value: {logType}");
         }
     }
 

@@ -76,6 +76,7 @@ using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using System.Diagnostics;
 using WebSocketSharp.Server;
 
 namespace Agent.Web;
@@ -106,7 +107,6 @@ public class Program
                           .SetIsOriginAllowedToAllowWildcardSubdomains());
 
         app.UseHttpsRedirection();
-
         // Serve static files from wwwroot
         app.UseDefaultFiles();
         app.UseStaticFiles();
@@ -449,6 +449,7 @@ public class Program
         builder.Services.AddArmHelperHttpClient();
         builder.Services.AddRazorHttpClient();
         builder.Services.AddCrawlerHttpClient();
+
         builder.Services.AddSingleton<ILogAnalyticsService, LogAnalyticsService>();
         builder.Services.AddSingleton<ILogAnalysisService, LogAnalysisService>();
 
@@ -547,11 +548,37 @@ public class Program
         builder.Services.AddServerSideBlazor();
 
         // Add GraphService registration
-        builder.Services.AddSingleton<IGraphService, GraphService>();
-
-        // Add Websocket service registration
+        builder.Services.AddSingleton<IGraphService, GraphService>();        // Add Websocket service registration
         builder.Services.AddSingleton<IAsyncEventService, WebSocketEventService>();
 
+        var azureSettings = builder.Configuration.GetSection("AppSettings:Core:Azure").Get<AzureSettings>();
+
+        builder.Services.AddOpenTelemetry().WithTracing(tracingBuilder =>
+        {
+            tracingBuilder.AddSource("SREAgent")
+                .SetResourceBuilder(ResourceBuilder.CreateDefault()
+                    .AddService(serviceName: "SREAgent", serviceVersion: "1.1.0"));
+
+            if (builder.Environment.IsDevelopment())
+            {
+                var exportedActivities = new List<Activity>();
+                builder.Services.AddSingleton<ICollection<Activity>>(exportedActivities);
+                tracingBuilder.AddInMemoryExporter(exportedActivities);
+            }
+
+            if (azureSettings != null
+                && azureSettings.AgentTraceADX != null
+                && !string.IsNullOrEmpty(azureSettings.AgentTraceADX.ClusterUri))
+            {
+                tracingBuilder.AddAzureDataExplorerExporter(options =>
+                {
+                    options.DatabaseName = azureSettings.AgentTraceADX.DatabaseName;
+                    options.TableName = azureSettings.AgentTraceADX.TableName;
+                    options.ClusterUri = azureSettings.AgentTraceADX.ClusterUri;
+                });
+            }
+        });
+        builder.Services.AddSingleton(TracerProvider.Default.GetTracer("SREAgent"));
 
         return builder;
     }
@@ -571,6 +598,7 @@ public class Program
         {
             builder = builder.AddAzureMonitorTraceExporter(options => options.ConnectionString = azureSettings.AppInsights.ConnectionString);
         }
+
 
         return builder.Build();
     }

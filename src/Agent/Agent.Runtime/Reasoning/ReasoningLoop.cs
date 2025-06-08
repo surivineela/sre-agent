@@ -20,6 +20,8 @@ using Agent.Runtime.Helpers;
 using Agent.Runtime.SubAgents.Core;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry;
+using OpenTelemetry.Trace;
 
 namespace Agent.Runtime.Reasoning;
 
@@ -35,8 +37,11 @@ public class ReasoningLoop
     private readonly SemaphoreSlim _semaphore = new(initialCount: 1, maxCount: 1);
     private readonly IToolFactory<AgentContext> _toolFactory;
     private readonly ActionSettings _actionSettings;
+    private readonly Tracer _tracer;
+    private TelemetrySpan? _rootSpan;
+    private TelemetrySpan? _currentAgentSpan;
+    private TelemetrySpan? _currentToolSpan;
     private readonly IAgentFactory<AgentContext> _agentFactory;
-
     private List<ChatMessage>? _chatHistory;
     private Agent<AgentContext> _currentAgent;
 
@@ -54,6 +59,7 @@ public class ReasoningLoop
         AgentContext context,
         IToolFactory<AgentContext> toolFactory,
         ActionSettings actionSettings,
+        Tracer tracer,
         IAgentFactory<AgentContext> agentFactory)
     {
         _logger = logger;
@@ -70,6 +76,7 @@ public class ReasoningLoop
         _toolFactory = toolFactory;
         _currentAgent = startingAgent;
         _actionSettings = actionSettings;
+        _tracer = tracer;
         _agentFactory = agentFactory;
     }
 
@@ -159,6 +166,9 @@ public class ReasoningLoop
 
         while (_msgCh.Reader.TryRead(out var reasoningLoopMessage))
         {
+
+            _rootSpan = _tracer.StartRootSpan(TraceOperationName.UserMessage);
+            _rootSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
             try
             {
                 _logger.LogInternalInformation("Received new message. Running reasoning loop...");
@@ -170,6 +180,7 @@ public class ReasoningLoop
                     case ReasoningLoopUserMessage userMessage:
                         {
                             _logger.LogInternalInformation("Processing user message.");
+                            _rootSpan.SetAttribute(TraceAttribute.MessageContent, userMessage.Message.Text);
                             if (_context.ApprovalInformation != null &&
                                 _context.ApprovalInformation.PendingApprovals.Count > 0)
                             {
@@ -191,6 +202,7 @@ public class ReasoningLoop
                     case ReasoningLoopApprovalMessage approvalMessage:
                         {
                             _logger.LogInternalInformation("Processing approval message.");
+                            _rootSpan.SetAttribute(TraceAttribute.MessageContent, approvalMessage.Approval.Title);
                             var approval = approvalMessage.Approval;
                             var shouldStop = await ProcessNewApprovalAsync(agentChatHistory, approval, cancellationToken);
                             if (shouldStop)
@@ -204,11 +216,16 @@ public class ReasoningLoop
                         continue;
                 }
 
-                await RunInternalAsync(agentChatHistory, cancellationToken);
+                await RunInternalAsync(agentChatHistory, cancellationToken, _tracer);
             }
             catch (Exception ex)
             {
                 _logger.LogInternalError(ex, "An error occurred during reasoning loop.");
+            }
+            finally
+            {
+                _rootSpan.End();
+                _rootSpan = null;
             }
         }
 
@@ -281,14 +298,15 @@ public class ReasoningLoop
         yield break;
     }
 
-    private async Task RunInternalAsync(AgentChatHistory agentChatHistory, CancellationToken cancellationToken)
+    private async Task RunInternalAsync(AgentChatHistory agentChatHistory, CancellationToken cancellationToken, Tracer tracer)
     {
+
         try
         {
             var runConfig = new RunConfig
             {
                 ChatClient = _chatClient,
-                LoggerFactory = _loggerFactory
+                LoggerFactory = _loggerFactory,
             };
 
             var runHooks = new RunHooks<AgentContext>
@@ -306,13 +324,52 @@ public class ReasoningLoop
 
                     return Task.FromResult(tools);
                 },
+                OnAgentStart = async (context, agent) =>
+                {
+                    _logger.LogInternalInformation("Trace invoke agent: {AgentName}", agent.Name);
+                    _currentAgentSpan = tracer.StartActiveSpan($"invoke.agent.{agent.Name}", SpanKind.Internal, _rootSpan);
+                    _currentAgentSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
+                    _currentAgentSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
+                    _currentAgentSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.InvokeAgent);
+                },
+                OnAgentEnd = async (context, agent, output) =>
+                {
+                    _logger.LogInternalInformation("Trace Ending agent: {AgentName}", agent.Name);
+                    _currentAgentSpan?.End();
+                    _currentAgentSpan = null;
+                },
                 OnHandoff = async (context, agent, handoffAgent) =>
                 {
-                    _logger.LogInternalInformation($"Handoff from {agent.Name} to {handoffAgent.Name}");
+                    _logger.LogInternalInformation("Trace Handoff from agent: {AgentName} to agent: {HandoffAgentName}", agent.Name, handoffAgent.Name);
+                    _currentToolSpan = tracer.StartSpan($"handoff", SpanKind.Internal, _currentAgentSpan);
+                    _currentToolSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
+                    _currentToolSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.Handoff);
+                    _currentToolSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
+                    _currentToolSpan.SetAttribute(TraceAttribute.HandeOffAgentName, handoffAgent.Name);
+                    _currentToolSpan.End();
+                    _currentToolSpan = null;
+                    _currentAgentSpan?.End();
                     _context.AgentHandoffChain.Add(handoffAgent.Name);
                     _currentAgent = handoffAgent;
                     await _threadRepository.UpdateAgentContextAsync(_context);
                 },
+                OnToolStart = async (context, agent, tool) =>
+                {
+                    _logger.LogInternalInformation("Trace Starting tool: {ToolName} for agent: {AgentName}", tool.Name, agent.Name);
+                    _currentToolSpan = tracer.StartActiveSpan($"tool.{tool.Name}", SpanKind.Internal, _currentAgentSpan);
+                    _currentToolSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
+                    _currentToolSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.Tool);
+                    _currentToolSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
+                    _currentToolSpan.SetAttribute(TraceAttribute.ToolName, tool.Name);
+                    _currentToolSpan.SetAttribute(TraceAttribute.ToolDescription, tool.Description);
+                },
+                OnToolEnd = async (context, agent, tool, output) =>
+                {
+                    _logger.LogInternalInformation("Trace Ending tool: {ToolName} for agent: {AgentName}", tool.Name, agent.Name);
+                    _currentToolSpan?.SetAttribute(TraceAttribute.ToolOutput, output?.ToString() ?? string.Empty);
+                    _currentToolSpan?.End();
+                    _currentToolSpan = null;
+                }
             };
 
             ToolStatic.AsyncLocalThreadId.Value = _context.ThreadId;
@@ -454,10 +511,17 @@ public class ReasoningLoop
             }
 
             _logger.LogInternalInformation("Reasoning loop completed successfully.");
+            // span.SetStatus(OpenTelemetry.Trace.Status.Ok);
         }
         catch (Exception ex)
         {
+            // span.SetStatus(OpenTelemetry.Trace.Status.Error.WithDescription(ex.Message));
+            // span.RecordException(ex);
             _logger.LogInternalError(ex, "An error occurred during reasoning loop.");
+        }
+        finally
+        {
+            // span.End();
         }
     }
 

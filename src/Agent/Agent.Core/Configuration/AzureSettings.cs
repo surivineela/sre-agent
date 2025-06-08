@@ -31,6 +31,8 @@ namespace Agent.Core.Configuration
         public KustoFirstPartyAppSettings Kusto { get; set; } = new();
 
         public SearchEndpointSettings SearchEndpoint { get; set; } = new();
+
+        public AgentTraceADX AgentTraceADX { get; set; } = new();
     }
 }
 

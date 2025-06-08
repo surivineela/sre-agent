@@ -14,6 +14,8 @@
     <PackageReference Include="Microsoft.Azure.Kusto.Ingest" />
     <PackageReference Include="OpenTelemetry" />
     <PackageReference Include="OpenTelemetry.Exporter.Console" />
+    <PackageReference Include="OpenTelemetry.Exporter.InMemory" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
     <PackageReference Include="Microsoft.Bot.Builder" />
     <PackageReference Include="Microsoft.Bot.Builder.Integration.AspNet.Core" />
@@ -44,8 +46,8 @@
   <!-- React Build Targets -->
   <Target Name="CheckClientHash" BeforeTargets="BuildReactApp">
     <!-- using git to compute the state of the Agent.Web/Client directory -->
-    <Exec Command="git log -n 1 --pretty=format:%%H -- Client > $(ClientBuildHashFile)" />
-    <Exec Command="git status --porcelain --short -- Client >> $(ClientBuildHashFile)" />
+    <Exec Command="git log -n 1 --pretty=format:%%H -- Client &gt; $(ClientBuildHashFile)" />
+    <Exec Command="git status --porcelain --short -- Client &gt;&gt; $(ClientBuildHashFile)" />
   </Target>
 
   <Target Name="BuildReactApp" AfterTargets="Build" DependsOnTargets="CheckClientHash" Condition="'$(SkipReactBuild)' != 'true'">
