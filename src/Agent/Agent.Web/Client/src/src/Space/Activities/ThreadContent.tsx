@@ -8,7 +8,7 @@ import { IThreadContentProps } from '../Contracts/Activities';
 import { AgentContext } from '../Contracts/Context';
 import { getExpandCollapseButtonStyles, ThreadContentStyles } from '../Styles/Activities.styles';
 import ChatBox from './ChatBox';
-import ThreadDeleteAction from './ThreadDeleteAction';
+import ThreadActionsMenu from './ThreadActionsMenu';
 
 const expandCollapseButtonStyles = getExpandCollapseButtonStyles('right');
 
@@ -29,7 +29,7 @@ export const ThreadContent = memo(
                     <Text as="h2" nowrap block className={ThreadContentStyles.title}>
                         {thread?.title ?? intl.formatMessage(SreAgentResources.newThread)}
                     </Text>
-                    {thread && <ThreadDeleteAction handleThreadDelete={handleThreadDelete} />}
+                    {thread && <ThreadActionsMenu thread={thread} handleThreadDelete={handleThreadDelete} />}
                     {actionsCollapsed && (
                         <div style={expandCollapseButtonStyles.container}>
                             <Button
