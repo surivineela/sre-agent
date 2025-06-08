@@ -49,6 +49,8 @@ public abstract class RunResultBase<TContext> where TContext : class
     public abstract Agent<TContext> LastAgent { get; }
 
     public required Trajectory Trajectory { get; init; }
+
+    internal bool AgentChanged { get; set; } = false;
 }
 
 public class RunResult<TContext>(Agent<TContext> agent) : RunResultBase<TContext> where TContext : class
@@ -67,7 +69,8 @@ public class RunResult<TContext>(Agent<TContext> agent) : RunResultBase<TContext
             Output = Output,
             ContextWrapper = ContextWrapper,
             ManualToolCalls = ManualToolCalls,
-            Trajectory = Trajectory
+            Trajectory = Trajectory,
+            AgentChanged = true
         };
     }
 }

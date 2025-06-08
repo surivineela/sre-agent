@@ -66,7 +66,7 @@ public static class Runner
             hooks: hooks,
             previousResult.Trajectory,
             cancellationToken: cancellationToken,
-            _shouldRunAgentStartHooks: false // do not run agent start hooks on resume
+            _shouldRunAgentStartHooks: previousResult.AgentChanged
         );
     }
 

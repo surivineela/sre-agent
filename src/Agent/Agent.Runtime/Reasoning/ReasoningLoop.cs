@@ -523,6 +523,8 @@ public class ReasoningLoop
         finally
         {
             // span.End();
+            _currentAgentSpan?.End();
+            _currentAgentSpan = null;
         }
     }
 
