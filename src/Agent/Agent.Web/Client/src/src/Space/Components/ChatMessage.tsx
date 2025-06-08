@@ -194,6 +194,8 @@ const AzCliExecutionComponent: React.FC<{
     const [loadingAction, setLoadingAction] = useState<'run' | 'cancel' | null>(null);
     const [copied, setCopied] = useState(false);
     const [outputCopied, setOutputCopied] = useState(false);
+    const [isOutputCollapsed, setIsOutputCollapsed] = useState(false);
+    const [isExecutionCollapsed, setIsExecutionCollapsed] = useState(execution.status !== 'Pending');
 
     const { userIdAndDisplayName } = useAuthenticatedUserInfo();
 
@@ -284,6 +286,13 @@ const AzCliExecutionComponent: React.FC<{
         }
     }, [currentExecution.status, execution.id, threadId]);
 
+    // Auto-collapse output when execution completes
+    useEffect(() => {
+        if (currentExecution.status === 'Completed' || currentExecution.status === 'Failed') {
+            setIsOutputCollapsed(true);
+        }
+    }, [currentExecution.status]);
+
     const handleAction = async (action: 'run' | 'cancel') => {
         setIsActionLoading(true);
         setLoadingAction(action);
@@ -342,6 +351,156 @@ const AzCliExecutionComponent: React.FC<{
         setLoadingAction(null);
     };
 
+    // Render collapsed view for non-pending executions
+    if (isExecutionCollapsed && currentExecution.status !== 'Pending') {
+        return (
+            <div
+                style={{
+                    border: '1px solid #ececec',
+                    borderRadius: '8px',
+                    padding: '12px',
+                    marginTop: '16px',
+                    backgroundColor: '#f9f9f9',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.2s',
+                }}
+                onClick={() => setIsExecutionCollapsed(false)}
+                onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#f0f0f0')}
+                onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#f9f9f9')}
+            >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontSize: '16px' }}>🖥️</span>
+                            <span style={{ fontWeight: '600', fontSize: '14px' }}>Azure CLI</span>
+                        </div>
+
+                        {/* Risk indicator */}
+                        <span
+                            style={{
+                                padding: '2px 8px',
+                                fontSize: '11px',
+                                fontWeight: '500',
+                                borderRadius: '12px',
+                                backgroundColor: `${riskColor}15`,
+                                color: riskColor,
+                                border: `1px solid ${riskColor}25`,
+                            }}
+                        >
+                            {riskLevel}
+                        </span>
+
+                        {/* Status badge - icon only */}
+                        <div
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                padding: '4px 6px',
+                                borderRadius: '12px',
+                                backgroundColor: '#e8e8e8',
+                                border: '1px solid #d0d0d0',
+                            }}
+                        >
+                            {getStatusIcon()}
+                        </div>
+
+                        {/* Show executor info only if it's not SRE Agent */}
+                        {currentExecution.executedBy &&
+                            currentExecution.executedBy.displayName !== 'SRE Agent' &&
+                            currentExecution.status !== 'Cancelled' && (
+                                <span
+                                    style={{
+                                        fontSize: '11px',
+                                        color: '#666',
+                                        fontStyle: 'italic',
+                                    }}
+                                >
+                                    Executed by {currentExecution.executedBy.displayName}
+                                </span>
+                            )}
+                    </div>
+
+                    {/* Expand indicator */}
+                    <div
+                        style={{
+                            color: '#666',
+                            fontSize: '12px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                        }}
+                    >
+                        <span>Click to expand</span>
+                        <span>▶</span>
+                    </div>
+                </div>
+
+                {/* Command preview with dark background and copy button */}
+                <div
+                    style={{
+                        marginTop: '8px',
+                        position: 'relative',
+                        backgroundColor: '#1e1e1e',
+                        borderRadius: '6px',
+                        padding: '8px 12px',
+                        border: '1px solid #333',
+                    }}
+                >
+                    <div
+                        style={{
+                            fontSize: '13px',
+                            color: '#e0e0e0',
+                            fontFamily: 'Consolas, Monaco, monospace',
+                            fontWeight: '500',
+                            lineHeight: '1.4',
+                            paddingRight: '40px',
+                        }}
+                    >
+                        {currentExecution.command.length > 80
+                            ? `${currentExecution.command.substring(0, 80)}...`
+                            : currentExecution.command}
+                    </div>
+
+                    {/* Copy button */}
+                    <button
+                        onClick={async e => {
+                            e.stopPropagation();
+                            await copyCommand();
+                        }}
+                        style={{
+                            position: 'absolute',
+                            top: '6px',
+                            right: '8px',
+                            background: 'transparent',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: copied ? '#4CAF50' : '#888',
+                            fontSize: '14px',
+                            padding: '4px',
+                            borderRadius: '4px',
+                            transition: 'color 0.2s',
+                        }}
+                        title={copied ? 'Copied!' : 'Copy command'}
+                        onMouseEnter={e => !copied && (e.currentTarget.style.color = '#fff')}
+                        onMouseLeave={e => !copied && (e.currentTarget.style.color = '#888')}
+                    >
+                        <AiOutlineCopy size={16} />
+                    </button>
+                </div>
+
+                {/* CSS for animations in collapsed view */}
+                <style>
+                    {`
+                        @keyframes spin {
+                            0% { transform: rotate(0deg); }
+                            100% { transform: rotate(360deg); }
+                        }
+                    `}
+                </style>
+            </div>
+        );
+    }
+
     return (
         <div
             style={{
@@ -352,7 +511,7 @@ const AzCliExecutionComponent: React.FC<{
                 backgroundColor: '#f9f9f9',
             }}
         >
-            {/* Header with title, risk, and status */}
+            {/* Header with title, risk, status and collapse button */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -376,20 +535,43 @@ const AzCliExecutionComponent: React.FC<{
                     </span>
                 </div>
 
-                {/* Status badge */}
-                <div
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        padding: '6px 12px',
-                        borderRadius: '16px',
-                        backgroundColor: '#f0f0f0',
-                        border: '1px solid #e0e0e0',
-                    }}
-                >
-                    {getStatusIcon()}
-                    <span style={{ fontSize: '13px', fontWeight: '500', color: '#333' }}>{currentExecution.status}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {/* Status badge */}
+                    <div
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '6px 12px',
+                            borderRadius: '16px',
+                            backgroundColor: '#f0f0f0',
+                            border: '1px solid #e0e0e0',
+                        }}
+                    >
+                        {getStatusIcon()}
+                        <span style={{ fontSize: '13px', fontWeight: '500', color: '#333' }}>{currentExecution.status}</span>
+                    </div>
+
+                    {/* Collapse button for non-pending executions */}
+                    {currentExecution.status !== 'Pending' && (
+                        <button
+                            onClick={() => setIsExecutionCollapsed(true)}
+                            style={{
+                                background: 'transparent',
+                                border: 'none',
+                                cursor: 'pointer',
+                                color: '#666',
+                                fontSize: '12px',
+                                padding: '4px',
+                                borderRadius: '4px',
+                            }}
+                            title="Collapse"
+                            onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#e0e0e0')}
+                            onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
+                        >
+                            ▲
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -513,105 +695,148 @@ const AzCliExecutionComponent: React.FC<{
 
             {/* Output section */}
             {(currentExecution.output || currentExecution.error) && currentExecution.status !== 'Pending' && (
-                <div
-                    style={{
-                        position: 'relative',
-                        backgroundColor: '#1e1e1e',
-                        borderRadius: '6px',
-                        padding: '12px',
-                        marginBottom: '12px',
-                        maxHeight: '300px',
-                        overflowY: 'auto',
-                        // Custom scrollbar styling
-                        scrollbarWidth: 'thin',
-                        scrollbarColor: '#4a5568 #2d3748',
-                    }}
-                    className="custom-scrollbar"
-                >
-                    <button
-                        onClick={copyOutput}
+                <div style={{ marginBottom: '12px' }}>
+                    {/* Output header with collapse toggle */}
+                    <div
                         style={{
-                            position: 'absolute',
-                            top: '8px',
-                            right: '8px',
-                            padding: '6px',
-                            backgroundColor: 'transparent',
-                            border: 'none',
-                            borderRadius: '4px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '8px 12px',
+                            backgroundColor: '#2d3748',
+                            borderRadius: isOutputCollapsed ? '6px' : '6px 6px 0 0',
                             cursor: 'pointer',
-                            color: outputCopied ? '#16a34a' : '#6b7280',
-                            transition: 'color 0.2s',
-                            zIndex: 1,
-                            opacity: 0.7,
+                            borderBottom: isOutputCollapsed ? 'none' : '1px solid #4a5568',
                         }}
-                        title="Copy output"
-                        onMouseEnter={e => {
-                            e.currentTarget.style.color = '#ffffff';
-                            e.currentTarget.style.opacity = '1';
-                        }}
-                        onMouseLeave={e => {
-                            e.currentTarget.style.color = outputCopied ? '#16a34a' : '#6b7280';
-                            e.currentTarget.style.opacity = '0.7';
-                        }}
+                        onClick={() => setIsOutputCollapsed(!isOutputCollapsed)}
                     >
-                        {outputCopied ? <AiOutlineCheckCircle size={16} /> : <AiOutlineCopy size={16} />}
-                    </button>
-
-                    <div style={{ paddingRight: '40px' }}>
-                        {currentExecution.output && (
-                            <pre
-                                style={{
-                                    margin: 0,
-                                    whiteSpace: 'pre-wrap',
-                                    wordBreak: 'break-word',
-                                    color: '#4ade80',
-                                    fontSize: '12px',
-                                    fontFamily: 'Consolas, Monaco, monospace',
-                                }}
-                            >
-                                {currentExecution.output}
-                            </pre>
-                        )}
-                        {currentExecution.error && (
-                            <pre
-                                style={{
-                                    margin: currentExecution.output ? '8px 0 0 0' : 0,
-                                    color: '#f87171',
-                                    whiteSpace: 'pre-wrap',
-                                    wordBreak: 'break-word',
-                                    fontSize: '12px',
-                                    fontFamily: 'Consolas, Monaco, monospace',
-                                }}
-                            >
-                                Error: {currentExecution.error}
-                            </pre>
-                        )}
-
-                        {currentExecution.status === 'Running' && (
-                            <div
-                                style={{
-                                    marginTop: '8px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '8px',
-                                    color: '#60a5fa',
-                                    fontSize: '12px',
-                                }}
-                            >
-                                <div
-                                    style={{
-                                        width: '12px',
-                                        height: '12px',
-                                        border: '2px solid #60a5fa',
-                                        borderTop: '2px solid transparent',
-                                        borderRadius: '50%',
-                                        animation: 'spin 1s linear infinite',
-                                    }}
-                                />
-                                <span>Executing...</span>
-                            </div>
-                        )}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ color: '#e2e8f0', fontSize: '13px', fontWeight: '500' }}>
+                                Output {currentExecution.status === 'Running' ? '(Running...)' : ''}
+                            </span>
+                            {isOutputCollapsed && (
+                                <span style={{ color: '#a0aec0', fontSize: '11px' }}>
+                                    {currentExecution.output && currentExecution.error
+                                        ? 'Output and error available'
+                                        : currentExecution.output
+                                          ? 'Output available'
+                                          : 'Error available'}
+                                </span>
+                            )}
+                        </div>
+                        <div
+                            style={{
+                                transform: isOutputCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
+                                transition: 'transform 0.2s',
+                                color: '#a0aec0',
+                            }}
+                        >
+                            ▼
+                        </div>
                     </div>
+
+                    {/* Collapsible output content */}
+                    {!isOutputCollapsed && (
+                        <div
+                            style={{
+                                position: 'relative',
+                                backgroundColor: '#1e1e1e',
+                                borderRadius: '0 0 6px 6px',
+                                padding: '12px',
+                                maxHeight: '300px',
+                                overflowY: 'auto',
+                                // Custom scrollbar styling
+                                scrollbarWidth: 'thin',
+                                scrollbarColor: '#4a5568 #2d3748',
+                            }}
+                            className="custom-scrollbar"
+                        >
+                            <button
+                                onClick={copyOutput}
+                                style={{
+                                    position: 'absolute',
+                                    top: '8px',
+                                    right: '8px',
+                                    padding: '6px',
+                                    backgroundColor: 'transparent',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    color: outputCopied ? '#16a34a' : '#6b7280',
+                                    transition: 'color 0.2s',
+                                    zIndex: 1,
+                                    opacity: 0.7,
+                                }}
+                                title="Copy output"
+                                onMouseEnter={e => {
+                                    e.currentTarget.style.color = '#ffffff';
+                                    e.currentTarget.style.opacity = '1';
+                                }}
+                                onMouseLeave={e => {
+                                    e.currentTarget.style.color = outputCopied ? '#16a34a' : '#6b7280';
+                                    e.currentTarget.style.opacity = '0.7';
+                                }}
+                            >
+                                {outputCopied ? <AiOutlineCheckCircle size={16} /> : <AiOutlineCopy size={16} />}
+                            </button>
+
+                            <div style={{ paddingRight: '40px' }}>
+                                {currentExecution.output && (
+                                    <pre
+                                        style={{
+                                            margin: 0,
+                                            whiteSpace: 'pre-wrap',
+                                            wordBreak: 'break-word',
+                                            color: '#4ade80',
+                                            fontSize: '12px',
+                                            fontFamily: 'Consolas, Monaco, monospace',
+                                        }}
+                                    >
+                                        {currentExecution.output}
+                                    </pre>
+                                )}
+                                {currentExecution.error && (
+                                    <pre
+                                        style={{
+                                            margin: currentExecution.output ? '8px 0 0 0' : 0,
+                                            color: '#f87171',
+                                            whiteSpace: 'pre-wrap',
+                                            wordBreak: 'break-word',
+                                            fontSize: '12px',
+                                            fontFamily: 'Consolas, Monaco, monospace',
+                                        }}
+                                    >
+                                        Error: {currentExecution.error}
+                                    </pre>
+                                )}
+
+                                {currentExecution.status === 'Running' && (
+                                    <div
+                                        style={{
+                                            marginTop: '8px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '8px',
+                                            color: '#60a5fa',
+                                            fontSize: '12px',
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                width: '12px',
+                                                height: '12px',
+                                                border: '2px solid #60a5fa',
+                                                borderTop: '2px solid transparent',
+                                                borderRadius: '50%',
+                                                animation: 'spin 1s linear infinite',
+                                            }}
+                                        />
+                                        <span>Executing...</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -707,6 +932,8 @@ const KubectlExecutionComponent: React.FC<{
     const [loadingAction, setLoadingAction] = useState<'run' | 'cancel' | null>(null);
     const [copied, setCopied] = useState(false);
     const [outputCopied, setOutputCopied] = useState(false);
+    const [isOutputCollapsed, setIsOutputCollapsed] = useState(false);
+    const [isExecutionCollapsed, setIsExecutionCollapsed] = useState(execution.status !== 'Pending');
 
     const { userIdAndDisplayName } = useAuthenticatedUserInfo();
 
@@ -797,6 +1024,13 @@ const KubectlExecutionComponent: React.FC<{
         }
     }, [currentExecution.status, execution.id, threadId]);
 
+    // Auto-collapse output when execution completes
+    useEffect(() => {
+        if (currentExecution.status === 'Completed' || currentExecution.status === 'Failed') {
+            setIsOutputCollapsed(true);
+        }
+    }, [currentExecution.status]);
+
     const handleAction = async (action: 'run' | 'cancel') => {
         setIsActionLoading(true);
         setLoadingAction(action);
@@ -855,6 +1089,156 @@ const KubectlExecutionComponent: React.FC<{
         setLoadingAction(null);
     };
 
+    // Render collapsed view for non-pending executions
+    if (isExecutionCollapsed && currentExecution.status !== 'Pending') {
+        return (
+            <div
+                style={{
+                    border: '1px solid #ececec',
+                    borderRadius: '8px',
+                    padding: '12px',
+                    marginTop: '16px',
+                    backgroundColor: '#f9f9f9',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.2s',
+                }}
+                onClick={() => setIsExecutionCollapsed(false)}
+                onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#f0f0f0')}
+                onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#f9f9f9')}
+            >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontSize: '16px' }}>⎈</span>
+                            <span style={{ fontWeight: '600', fontSize: '14px' }}>Kubernetes</span>
+                        </div>
+
+                        {/* Risk indicator */}
+                        <span
+                            style={{
+                                padding: '2px 8px',
+                                fontSize: '11px',
+                                fontWeight: '500',
+                                borderRadius: '12px',
+                                backgroundColor: `${riskColor}15`,
+                                color: riskColor,
+                                border: `1px solid ${riskColor}25`,
+                            }}
+                        >
+                            {riskLevel}
+                        </span>
+
+                        {/* Status badge - icon only */}
+                        <div
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                padding: '4px 6px',
+                                borderRadius: '12px',
+                                backgroundColor: '#e8e8e8',
+                                border: '1px solid #d0d0d0',
+                            }}
+                        >
+                            {getStatusIcon()}
+                        </div>
+
+                        {/* Show executor info only if it's not SRE Agent */}
+                        {currentExecution.executedBy &&
+                            currentExecution.executedBy.displayName !== 'SRE Agent' &&
+                            currentExecution.status !== 'Cancelled' && (
+                                <span
+                                    style={{
+                                        fontSize: '11px',
+                                        color: '#666',
+                                        fontStyle: 'italic',
+                                    }}
+                                >
+                                    Executed by {currentExecution.executedBy.displayName}
+                                </span>
+                            )}
+                    </div>
+
+                    {/* Expand indicator */}
+                    <div
+                        style={{
+                            color: '#666',
+                            fontSize: '12px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                        }}
+                    >
+                        <span>Click to expand</span>
+                        <span>▶</span>
+                    </div>
+                </div>
+
+                {/* Command preview with dark background and copy button */}
+                <div
+                    style={{
+                        marginTop: '8px',
+                        position: 'relative',
+                        backgroundColor: '#1e1e1e',
+                        borderRadius: '6px',
+                        padding: '8px 12px',
+                        border: '1px solid #333',
+                    }}
+                >
+                    <div
+                        style={{
+                            fontSize: '13px',
+                            color: '#e0e0e0',
+                            fontFamily: 'Consolas, Monaco, monospace',
+                            fontWeight: '500',
+                            lineHeight: '1.4',
+                            paddingRight: '40px',
+                        }}
+                    >
+                        {currentExecution.command.length > 80
+                            ? `${currentExecution.command.substring(0, 80)}...`
+                            : currentExecution.command}
+                    </div>
+
+                    {/* Copy button */}
+                    <button
+                        onClick={async e => {
+                            e.stopPropagation();
+                            await copyCommand();
+                        }}
+                        style={{
+                            position: 'absolute',
+                            top: '6px',
+                            right: '8px',
+                            background: 'transparent',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: copied ? '#4CAF50' : '#888',
+                            fontSize: '14px',
+                            padding: '4px',
+                            borderRadius: '4px',
+                            transition: 'color 0.2s',
+                        }}
+                        title={copied ? 'Copied!' : 'Copy command'}
+                        onMouseEnter={e => !copied && (e.currentTarget.style.color = '#fff')}
+                        onMouseLeave={e => !copied && (e.currentTarget.style.color = '#888')}
+                    >
+                        <AiOutlineCopy size={16} />
+                    </button>
+                </div>
+
+                {/* CSS for animations in collapsed view */}
+                <style>
+                    {`
+                        @keyframes spin {
+                            0% { transform: rotate(0deg); }
+                            100% { transform: rotate(360deg); }
+                        }
+                    `}
+                </style>
+            </div>
+        );
+    }
+
     return (
         <div
             style={{
@@ -865,7 +1249,7 @@ const KubectlExecutionComponent: React.FC<{
                 backgroundColor: '#f9f9f9',
             }}
         >
-            {/* Header with title, risk, and status */}
+            {/* Header with title, risk, status and collapse button */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -889,20 +1273,43 @@ const KubectlExecutionComponent: React.FC<{
                     </span>
                 </div>
 
-                {/* Status badge */}
-                <div
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        padding: '6px 12px',
-                        borderRadius: '16px',
-                        backgroundColor: '#f0f0f0',
-                        border: '1px solid #e0e0e0',
-                    }}
-                >
-                    {getStatusIcon()}
-                    <span style={{ fontSize: '13px', fontWeight: '500', color: '#333' }}>{currentExecution.status}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {/* Status badge */}
+                    <div
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '6px 12px',
+                            borderRadius: '16px',
+                            backgroundColor: '#f0f0f0',
+                            border: '1px solid #e0e0e0',
+                        }}
+                    >
+                        {getStatusIcon()}
+                        <span style={{ fontSize: '13px', fontWeight: '500', color: '#333' }}>{currentExecution.status}</span>
+                    </div>
+
+                    {/* Collapse button for non-pending executions */}
+                    {currentExecution.status !== 'Pending' && (
+                        <button
+                            onClick={() => setIsExecutionCollapsed(true)}
+                            style={{
+                                background: 'transparent',
+                                border: 'none',
+                                cursor: 'pointer',
+                                color: '#666',
+                                fontSize: '12px',
+                                padding: '4px',
+                                borderRadius: '4px',
+                            }}
+                            title="Collapse"
+                            onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#e0e0e0')}
+                            onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
+                        >
+                            ▲
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -1079,105 +1486,148 @@ const KubectlExecutionComponent: React.FC<{
 
             {/* Output section */}
             {(currentExecution.output || currentExecution.error) && currentExecution.status !== 'Pending' && (
-                <div
-                    style={{
-                        position: 'relative',
-                        backgroundColor: '#1e1e1e',
-                        borderRadius: '6px',
-                        padding: '12px',
-                        marginBottom: '12px',
-                        maxHeight: '300px',
-                        overflowY: 'auto',
-                        // Custom scrollbar styling
-                        scrollbarWidth: 'thin',
-                        scrollbarColor: '#4a5568 #2d3748',
-                    }}
-                    className="custom-scrollbar"
-                >
-                    <button
-                        onClick={copyOutput}
+                <div style={{ marginBottom: '12px' }}>
+                    {/* Output header with collapse toggle */}
+                    <div
                         style={{
-                            position: 'absolute',
-                            top: '8px',
-                            right: '8px',
-                            padding: '6px',
-                            backgroundColor: 'transparent',
-                            border: 'none',
-                            borderRadius: '4px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '8px 12px',
+                            backgroundColor: '#2d3748',
+                            borderRadius: isOutputCollapsed ? '6px' : '6px 6px 0 0',
                             cursor: 'pointer',
-                            color: outputCopied ? '#16a34a' : '#6b7280',
-                            transition: 'color 0.2s',
-                            zIndex: 1,
-                            opacity: 0.7,
+                            borderBottom: isOutputCollapsed ? 'none' : '1px solid #4a5568',
                         }}
-                        title="Copy output"
-                        onMouseEnter={e => {
-                            e.currentTarget.style.color = '#ffffff';
-                            e.currentTarget.style.opacity = '1';
-                        }}
-                        onMouseLeave={e => {
-                            e.currentTarget.style.color = outputCopied ? '#16a34a' : '#6b7280';
-                            e.currentTarget.style.opacity = '0.7';
-                        }}
+                        onClick={() => setIsOutputCollapsed(!isOutputCollapsed)}
                     >
-                        {outputCopied ? <AiOutlineCheckCircle size={16} /> : <AiOutlineCopy size={16} />}
-                    </button>
-
-                    <div style={{ paddingRight: '40px' }}>
-                        {currentExecution.output && (
-                            <pre
-                                style={{
-                                    margin: 0,
-                                    whiteSpace: 'pre-wrap',
-                                    wordBreak: 'break-word',
-                                    color: '#4ade80',
-                                    fontSize: '12px',
-                                    fontFamily: 'Consolas, Monaco, monospace',
-                                }}
-                            >
-                                {currentExecution.output}
-                            </pre>
-                        )}
-                        {currentExecution.error && (
-                            <pre
-                                style={{
-                                    margin: currentExecution.output ? '8px 0 0 0' : 0,
-                                    color: '#f87171',
-                                    whiteSpace: 'pre-wrap',
-                                    wordBreak: 'break-word',
-                                    fontSize: '12px',
-                                    fontFamily: 'Consolas, Monaco, monospace',
-                                }}
-                            >
-                                Error: {currentExecution.error}
-                            </pre>
-                        )}
-
-                        {currentExecution.status === 'Running' && (
-                            <div
-                                style={{
-                                    marginTop: '8px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '8px',
-                                    color: '#60a5fa',
-                                    fontSize: '12px',
-                                }}
-                            >
-                                <div
-                                    style={{
-                                        width: '12px',
-                                        height: '12px',
-                                        border: '2px solid #60a5fa',
-                                        borderTop: '2px solid transparent',
-                                        borderRadius: '50%',
-                                        animation: 'spin 1s linear infinite',
-                                    }}
-                                />
-                                <span>Executing...</span>
-                            </div>
-                        )}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ color: '#e2e8f0', fontSize: '13px', fontWeight: '500' }}>
+                                Output {currentExecution.status === 'Running' ? '(Running...)' : ''}
+                            </span>
+                            {isOutputCollapsed && (
+                                <span style={{ color: '#a0aec0', fontSize: '11px' }}>
+                                    {currentExecution.output && currentExecution.error
+                                        ? 'Output and error available'
+                                        : currentExecution.output
+                                          ? 'Output available'
+                                          : 'Error available'}
+                                </span>
+                            )}
+                        </div>
+                        <div
+                            style={{
+                                transform: isOutputCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
+                                transition: 'transform 0.2s',
+                                color: '#a0aec0',
+                            }}
+                        >
+                            ▼
+                        </div>
                     </div>
+
+                    {/* Collapsible output content */}
+                    {!isOutputCollapsed && (
+                        <div
+                            style={{
+                                position: 'relative',
+                                backgroundColor: '#1e1e1e',
+                                borderRadius: '0 0 6px 6px',
+                                padding: '12px',
+                                maxHeight: '300px',
+                                overflowY: 'auto',
+                                // Custom scrollbar styling
+                                scrollbarWidth: 'thin',
+                                scrollbarColor: '#4a5568 #2d3748',
+                            }}
+                            className="custom-scrollbar"
+                        >
+                            <button
+                                onClick={copyOutput}
+                                style={{
+                                    position: 'absolute',
+                                    top: '8px',
+                                    right: '8px',
+                                    padding: '6px',
+                                    backgroundColor: 'transparent',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    color: outputCopied ? '#16a34a' : '#6b7280',
+                                    transition: 'color 0.2s',
+                                    zIndex: 1,
+                                    opacity: 0.7,
+                                }}
+                                title="Copy output"
+                                onMouseEnter={e => {
+                                    e.currentTarget.style.color = '#ffffff';
+                                    e.currentTarget.style.opacity = '1';
+                                }}
+                                onMouseLeave={e => {
+                                    e.currentTarget.style.color = outputCopied ? '#16a34a' : '#6b7280';
+                                    e.currentTarget.style.opacity = '0.7';
+                                }}
+                            >
+                                {outputCopied ? <AiOutlineCheckCircle size={16} /> : <AiOutlineCopy size={16} />}
+                            </button>
+
+                            <div style={{ paddingRight: '40px' }}>
+                                {currentExecution.output && (
+                                    <pre
+                                        style={{
+                                            margin: 0,
+                                            whiteSpace: 'pre-wrap',
+                                            wordBreak: 'break-word',
+                                            color: '#4ade80',
+                                            fontSize: '12px',
+                                            fontFamily: 'Consolas, Monaco, monospace',
+                                        }}
+                                    >
+                                        {currentExecution.output}
+                                    </pre>
+                                )}
+                                {currentExecution.error && (
+                                    <pre
+                                        style={{
+                                            margin: currentExecution.output ? '8px 0 0 0' : 0,
+                                            color: '#f87171',
+                                            whiteSpace: 'pre-wrap',
+                                            wordBreak: 'break-word',
+                                            fontSize: '12px',
+                                            fontFamily: 'Consolas, Monaco, monospace',
+                                        }}
+                                    >
+                                        Error: {currentExecution.error}
+                                    </pre>
+                                )}
+
+                                {currentExecution.status === 'Running' && (
+                                    <div
+                                        style={{
+                                            marginTop: '8px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '8px',
+                                            color: '#60a5fa',
+                                            fontSize: '12px',
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                width: '12px',
+                                                height: '12px',
+                                                border: '2px solid #60a5fa',
+                                                borderTop: '2px solid transparent',
+                                                borderRadius: '50%',
+                                                animation: 'spin 1s linear infinite',
+                                            }}
+                                        />
+                                        <span>Executing...</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
 
