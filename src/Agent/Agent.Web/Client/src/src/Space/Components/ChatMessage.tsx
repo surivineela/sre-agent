@@ -260,30 +260,51 @@ const AzCliExecutionComponent: React.FC<{
     };
 
     useEffect(() => {
-        if (currentExecution.status === 'Running') {
-            // Poll for updates using EventSource
-            const eventSource = new EventSource(`/api/v1/azCliExecution/${threadId}/${execution.id}/output`);
-
-            eventSource.onmessage = (event: MessageEvent) => {
-                const data = JSON.parse(event.data);
-                setCurrentExecution(prev => ({
-                    ...prev,
-                    output: data.output,
-                    status: data.status,
-                    error: data.error,
-                }));
-
-                if (data.completed) {
-                    eventSource.close();
-                }
-            };
-
-            eventSource.onerror = () => {
-                eventSource.close();
-            };
-
-            return () => eventSource.close();
+        if (currentExecution.status !== 'Running') {
+            return;
         }
+
+        let isPolling = true;
+        const pollInterval: NodeJS.Timeout = setInterval(async () => {
+            if (!isPolling) return;
+
+            try {
+                const response = await fetch(`/api/v1/azCliExecution/${threadId}/${execution.id}/output`, {
+                    headers: getAgentHeaders(),
+                    cache: 'no-cache',
+                });
+
+                if (!response.ok) {
+                    console.error('Failed to fetch execution output:', response.status, response.statusText);
+                    return;
+                }
+
+                const data = await response.json();
+
+                if (isPolling) {
+                    setCurrentExecution(prev => ({
+                        ...prev,
+                        output: data.output || prev.output,
+                        status: data.status || prev.status,
+                        error: data.error || prev.error,
+                        completedTimestamp: data.completedTimestamp || prev.completedTimestamp,
+                    }));
+
+                    // Stop polling if execution is complete
+                    if (data.completed) {
+                        isPolling = false;
+                        clearInterval(pollInterval);
+                    }
+                }
+            } catch (error) {
+                console.error('Error polling for execution output:', error);
+            }
+        }, 2000);
+
+        return () => {
+            isPolling = false;
+            clearInterval(pollInterval);
+        };
     }, [currentExecution.status, execution.id, threadId]);
 
     // Auto-collapse output when execution completes
@@ -390,20 +411,6 @@ const AzCliExecutionComponent: React.FC<{
                             {riskLevel}
                         </span>
 
-                        {/* Status badge - icon only */}
-                        <div
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                padding: '4px 6px',
-                                borderRadius: '12px',
-                                backgroundColor: '#e8e8e8',
-                                border: '1px solid #d0d0d0',
-                            }}
-                        >
-                            {getStatusIcon()}
-                        </div>
-
                         {/* Show executor info only if it's not SRE Agent */}
                         {currentExecution.executedBy &&
                             currentExecution.executedBy.displayName !== 'SRE Agent' &&
@@ -420,18 +427,18 @@ const AzCliExecutionComponent: React.FC<{
                             )}
                     </div>
 
-                    {/* Expand indicator */}
+                    {/* Status badge moved to right */}
                     <div
                         style={{
-                            color: '#666',
-                            fontSize: '12px',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '4px',
+                            padding: '4px 6px',
+                            borderRadius: '12px',
+                            backgroundColor: '#e8e8e8',
+                            border: '1px solid #d0d0d0',
                         }}
                     >
-                        <span>Click to expand</span>
-                        <span>▶</span>
+                        {getStatusIcon()}
                     </div>
                 </div>
 
@@ -999,30 +1006,51 @@ const KubectlExecutionComponent: React.FC<{
     };
 
     useEffect(() => {
-        if (currentExecution.status === 'Running') {
-            // Poll for updates using EventSource
-            const eventSource = new EventSource(`/api/v1/kubectlExecution/${threadId}/${execution.id}/output`);
-
-            eventSource.onmessage = (event: MessageEvent) => {
-                const data = JSON.parse(event.data);
-                setCurrentExecution(prev => ({
-                    ...prev,
-                    output: data.output,
-                    status: data.status,
-                    error: data.error,
-                }));
-
-                if (data.completed) {
-                    eventSource.close();
-                }
-            };
-
-            eventSource.onerror = () => {
-                eventSource.close();
-            };
-
-            return () => eventSource.close();
+        if (currentExecution.status !== 'Running') {
+            return;
         }
+
+        let isPolling = true;
+        const pollInterval: NodeJS.Timeout = setInterval(async () => {
+            if (!isPolling) return;
+
+            try {
+                const response = await fetch(`/api/v1/kubectlExecution/${threadId}/${execution.id}/output`, {
+                    headers: getAgentHeaders(),
+                    cache: 'no-cache',
+                });
+
+                if (!response.ok) {
+                    console.error('Failed to fetch execution output:', response.status, response.statusText);
+                    return;
+                }
+
+                const data = await response.json();
+
+                if (isPolling) {
+                    setCurrentExecution(prev => ({
+                        ...prev,
+                        output: data.output || prev.output,
+                        status: data.status || prev.status,
+                        error: data.error || prev.error,
+                        completedTimestamp: data.completedTimestamp || prev.completedTimestamp,
+                    }));
+
+                    // Stop polling if execution is complete
+                    if (data.completed) {
+                        isPolling = false;
+                        clearInterval(pollInterval);
+                    }
+                }
+            } catch (error) {
+                console.error('Error polling for execution output:', error);
+            }
+        }, 2000);
+
+        return () => {
+            isPolling = false;
+            clearInterval(pollInterval);
+        };
     }, [currentExecution.status, execution.id, threadId]);
 
     // Auto-collapse output when execution completes
@@ -1129,20 +1157,6 @@ const KubectlExecutionComponent: React.FC<{
                             {riskLevel}
                         </span>
 
-                        {/* Status badge - icon only */}
-                        <div
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                padding: '4px 6px',
-                                borderRadius: '12px',
-                                backgroundColor: '#e8e8e8',
-                                border: '1px solid #d0d0d0',
-                            }}
-                        >
-                            {getStatusIcon()}
-                        </div>
-
                         {/* Show executor info only if it's not SRE Agent */}
                         {currentExecution.executedBy &&
                             currentExecution.executedBy.displayName !== 'SRE Agent' &&
@@ -1159,18 +1173,18 @@ const KubectlExecutionComponent: React.FC<{
                             )}
                     </div>
 
-                    {/* Expand indicator */}
+                    {/* Status badge moved to right */}
                     <div
                         style={{
-                            color: '#666',
-                            fontSize: '12px',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '4px',
+                            padding: '4px 6px',
+                            borderRadius: '12px',
+                            backgroundColor: '#e8e8e8',
+                            border: '1px solid #d0d0d0',
                         }}
                     >
-                        <span>Click to expand</span>
-                        <span>▶</span>
+                        {getStatusIcon()}
                     </div>
                 </div>
 

@@ -256,71 +256,47 @@ namespace Agent.Web.Controllers.v1
         }
 
         /// <summary>
-        /// Stream execution output
+        /// Get kubectl execution output
         /// </summary>
         [HttpGet("{threadId}/{executionId}/output")]
         public async Task<IActionResult> GetExecutionOutput(string threadId, string executionId)
         {
-            _logger.LogInternalInformation("Getting execution output for thread {ThreadId} execution {ExecutionId}",
+            _logger.LogInternalInformation("Getting kubectl execution output for thread {ThreadId} execution {ExecutionId}",
                 threadId, executionId);
-
-            var execution = await _threadRepository.GetKubectlExecutionAsync(
-                Guid.Parse(threadId),
-                Guid.Parse(executionId)
-            );
-
-            if (execution == null)
-            {
-                return NotFound();
-            }            // For streaming, we'll use Server-Sent Events
-            Response.Headers["Content-Type"] = "text/event-stream";
-            Response.Headers["Cache-Control"] = "no-cache";
-            Response.Headers["Connection"] = "keep-alive";
-
-            var writer = new StreamWriter(Response.Body);
 
             try
             {
-                while (execution.Status == KubectlExecutionStatus.Running ||
-                       execution.Status == KubectlExecutionStatus.Pending)
+                var execution = await _threadRepository.GetKubectlExecutionAsync(
+                    Guid.Parse(threadId),
+                    Guid.Parse(executionId)
+                );
+
+                if (execution == null)
                 {
-                    // Send current output
-                    await writer.WriteAsync($"data: {System.Text.Json.JsonSerializer.Serialize(new
-                    {
-                        output = execution.Output ?? "",
-                        status = execution.Status.ToString(),
-                        error = execution.Error
-                    })}\n\n");
-                    await writer.FlushAsync();
-
-                    // Wait before next poll
-                    await Task.Delay(1000);
-
-                    // Re-fetch execution
-                    execution = await _threadRepository.GetKubectlExecutionAsync(
-                        Guid.Parse(threadId),
-                        Guid.Parse(executionId)
-                    );
-
-                    if (execution == null) break;
+                    return NotFound(new { error = "Execution not found" });
                 }
 
-                // Send final status
-                await writer.WriteAsync($"data: {System.Text.Json.JsonSerializer.Serialize(new
+                // Return current state as JSON
+                return Ok(new
                 {
-                    output = execution?.Output ?? "",
-                    status = execution?.Status.ToString() ?? "Unknown",
-                    error = execution?.Error,
-                    completed = true
-                })}\n\n");
-                await writer.FlushAsync();
+                    output = execution.Output ?? "",
+                    status = execution.Status.ToString(),
+                    error = execution.Error,
+                    completed = execution.Status != KubectlExecutionStatus.Running &&
+                                execution.Status != KubectlExecutionStatus.Pending,
+                    completedTimestamp = execution.CompletedTimestamp
+                });
+            }
+            catch (FormatException ex)
+            {
+                _logger.LogInternalError(ex, "Invalid GUID format for threadId or executionId");
+                return BadRequest(new { error = "Invalid ID format" });
             }
             catch (Exception ex)
             {
-                _logger.LogInternalError(ex, "Error streaming execution output");
+                _logger.LogInternalError(ex, "Error getting kubectl execution output");
+                return StatusCode(500, new { error = "Internal server error" });
             }
-
-            return new EmptyResult();
         }
 
         /// <summary>

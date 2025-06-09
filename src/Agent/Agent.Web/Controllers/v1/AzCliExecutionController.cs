@@ -254,7 +254,7 @@ namespace Agent.Web.Controllers.v1
         }
 
         /// <summary>
-        /// Stream execution output
+        /// Get execution output (non-streaming version)
         /// </summary>
         [HttpGet("{threadId}/{executionId}/output")]
         public async Task<IActionResult> GetExecutionOutput(string threadId, string executionId)
@@ -272,55 +272,16 @@ namespace Agent.Web.Controllers.v1
                 return NotFound();
             }
 
-            // For streaming, we'll use Server-Sent Events
-            Response.Headers.Add("Content-Type", "text/event-stream");
-            Response.Headers.Add("Cache-Control", "no-cache");
-            Response.Headers.Add("Connection", "keep-alive");
-
-            var writer = new StreamWriter(Response.Body);
-
-            try
+            // Return current state as JSON
+            return Ok(new
             {
-                while (execution.Status == AzCliExecutionStatus.Running ||
-                       execution.Status == AzCliExecutionStatus.Pending)
-                {
-                    // Send current output
-                    await writer.WriteAsync($"data: {System.Text.Json.JsonSerializer.Serialize(new
-                    {
-                        output = execution.Output ?? "",
-                        status = execution.Status.ToString(),
-                        error = execution.Error
-                    })}\n\n");
-                    await writer.FlushAsync();
-
-                    // Wait before next poll
-                    await Task.Delay(1000);
-
-                    // Re-fetch execution
-                    execution = await _threadRepository.GetAzCliExecutionAsync(
-                        Guid.Parse(threadId),
-                        Guid.Parse(executionId)
-                    );
-
-                    if (execution == null) break;
-                }
-
-                // Send final status
-                await writer.WriteAsync($"data: {System.Text.Json.JsonSerializer.Serialize(new
-                {
-                    output = execution?.Output ?? "",
-                    status = execution?.Status.ToString() ?? "Unknown",
-                    error = execution?.Error,
-                    completed = true
-                })}\n\n");
-                await writer.FlushAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogInternalError(ex, "Error streaming execution output");
-            }
-
-            return new EmptyResult();
+                output = execution.Output ?? "",
+                status = execution.Status.ToString(),
+                error = execution.Error,
+                completed = execution.Status != AzCliExecutionStatus.Running &&
+                            execution.Status != AzCliExecutionStatus.Pending,
+                completedTimestamp = execution.CompletedTimestamp
+            });
         }
 
         /// <summary>
