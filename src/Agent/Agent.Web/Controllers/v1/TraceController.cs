@@ -25,7 +25,7 @@ namespace Agent.Web.Controllers.v1
         }
 
         [HttpPost("fetch")]
-        public ActionResult<TraceResponse> GetTraces([FromBody] TraceRequest request)
+        public ActionResult<List<TraceResponse>> GetTraces([FromBody] TraceRequest request)
         {
             _logger.LogInternalInformation("Fetching exported traces for threadId: {ThreadId}", request.ThreadId);
 
@@ -40,61 +40,59 @@ namespace Agent.Web.Controllers.v1
             if (!filteredActivities.Any())
             {
                 _logger.LogInternalInformation("No traces found for threadId: {ThreadId}", request.ThreadId);
-                return Ok(new TraceResponse
-                {
-                    TraceId = string.Empty,
-                    TotalDuration = 0,
-                    SpanCount = 0,
-                    Metadata = new TraceMetadata(),
-                    Spans = new List<Span>()
-                });
+                return Ok(new List<TraceResponse>());
             }
 
-            // Group by TraceId and get the first trace (assuming single trace per request)
-            var traceGroup = filteredActivities.GroupBy(a => a.TraceId).FirstOrDefault();
-            if (traceGroup == null)
+            // Group by TraceId and process all traces
+            var traceGroups = filteredActivities.GroupBy(a => a.TraceId);
+            var traceResponses = new List<TraceResponse>();
+
+            foreach (var traceGroup in traceGroups)
             {
-                return Ok(new TraceResponse());
+                var traceActivities = traceGroup.ToList();
+                var totalDuration = (int)traceActivities.Sum(a => a.Duration.TotalMilliseconds);
+
+                // Convert activities to spans
+                var spans = traceActivities.Select(activity => new Span
+                {
+                    SpanId = activity.SpanId.ToString(),
+                    ParentSpanId = activity.ParentSpanId.ToString(),
+                    OperationName = activity.OperationName ?? activity.DisplayName ?? "Unknown",
+                    StartTime = new DateTimeOffset(activity.StartTimeUtc).ToUnixTimeMilliseconds(),
+                    Duration = (int)activity.Duration.TotalMilliseconds,
+                    Status = activity.Status.ToString(),
+                    Attributes = activity.Tags.ToDictionary(kvp => kvp.Key, kvp => (object)(kvp.Value ?? "")),
+                    Events = activity.Events.Select(e => new SpanEvent
+                    {
+                        Name = e.Name,
+                        Timestamp = e.Timestamp.ToUnixTimeMilliseconds(),
+                        Attributes = e.Tags.ToDictionary(kvp => kvp.Key, kvp => (object)(kvp.Value ?? ""))
+                    }).ToList()
+                }).ToList();
+
+                var traceResponse = new TraceResponse
+                {
+                    TraceId = traceGroup.Key.ToString(),
+                    TotalDuration = totalDuration,
+                    SpanCount = spans.Count,
+                    Metadata = new TraceMetadata
+                    {
+                        Environment = "Development", // You can extract this from activity tags if available
+                        Version = "1.0.0", // You can extract this from activity tags if available
+                        Region = "Unknown" // You can extract this from activity tags if available
+                    },
+                    Spans = spans
+                };
+
+                traceResponses.Add(traceResponse);
             }
 
-            var traceActivities = traceGroup.ToList();
-            var totalDuration = (int)traceActivities.Sum(a => a.Duration.TotalMilliseconds);
+            _logger.LogInternalInformation("Returning {TraceCount} traces with total {SpanCount} spans for threadId: {ThreadId}",
+                traceResponses.Count,
+                traceResponses.Sum(t => t.SpanCount),
+                request.ThreadId);
 
-            // Convert activities to spans
-            var spans = traceActivities.Select(activity => new Span
-            {
-                SpanId = activity.SpanId.ToString(),
-                ParentSpanId = activity.ParentSpanId.ToString(),
-                OperationName = activity.OperationName ?? activity.DisplayName ?? "Unknown",
-                StartTime = new DateTimeOffset(activity.StartTimeUtc).ToUnixTimeMilliseconds(),
-                Duration = (int)activity.Duration.TotalMilliseconds,
-                Status = activity.Status.ToString(),
-                Attributes = activity.Tags.ToDictionary(kvp => kvp.Key, kvp => (object)(kvp.Value ?? "")),
-                Events = activity.Events.Select(e => new SpanEvent
-                {
-                    Name = e.Name,
-                    Timestamp = e.Timestamp.ToUnixTimeMilliseconds(),
-                    Attributes = e.Tags.ToDictionary(kvp => kvp.Key, kvp => (object)(kvp.Value ?? ""))
-                }).ToList()
-            }).ToList();
-
-            var response = new TraceResponse
-            {
-                TraceId = traceGroup.Key.ToString(),
-                TotalDuration = totalDuration,
-                SpanCount = spans.Count,
-                Metadata = new TraceMetadata
-                {
-                    Environment = "Development", // You can extract this from activity tags if available
-                    Version = "1.0.0", // You can extract this from activity tags if available
-                    Region = "Unknown" // You can extract this from activity tags if available
-                },
-                Spans = spans
-            };
-
-            _logger.LogInternalInformation("Returning trace with {SpanCount} spans for threadId: {ThreadId}", response.SpanCount, request.ThreadId);
-
-            return Ok(response);
+            return Ok(traceResponses);
         }
 
         [HttpGet("health")]
