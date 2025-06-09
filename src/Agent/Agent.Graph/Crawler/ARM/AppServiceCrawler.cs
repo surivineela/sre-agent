@@ -19,6 +19,7 @@ public class AppServiceCrawler : GenericArmResourceCrawler
     private readonly ILogger<AppServiceCrawler> _logger;
     private readonly IGraphDatabaseClient _graphDbClient;
     private readonly SqlConnectionStringHelper _sqlHelper;
+    private readonly PostgreSqlConnectionStringHelper _postgreSqlHelper;
 
     public AppServiceCrawler(ILogger<AppServiceCrawler> logger, IGraphDatabaseClient dbManager, ArmClient armClient)
         : base(logger, dbManager, armClient, false)
@@ -26,6 +27,7 @@ public class AppServiceCrawler : GenericArmResourceCrawler
         _logger = logger;
         _graphDbClient = dbManager;
         _sqlHelper = new SqlConnectionStringHelper(logger, armClient, dbManager);
+        _postgreSqlHelper = new PostgreSqlConnectionStringHelper(logger, armClient, dbManager);
     }
 
     public override async IAsyncEnumerable<GraphNode> Crawl(GraphNode node)
@@ -367,13 +369,19 @@ public class AppServiceCrawler : GenericArmResourceCrawler
 
             // Look for SQL connection strings in app settings
             ArmResourceNode sqlNode = null;
+            ArmResourceNode postgreSqlNode = null;
             ArmResourceNode redisNode = null;
-            
+
             try
             {
                 if (_sqlHelper.IsSqlConnectionString(value))
                 {
                     sqlNode = await _sqlHelper.GetSqlResourceFromConnectionStringAsync(appServiceNode, value, "appService:appSetting", name);
+                }
+                // Look for PostgreSQL connection strings in app settings
+                else if (_postgreSqlHelper.IsPostgreSqlConnectionString(value, name))
+                {
+                    postgreSqlNode = await _postgreSqlHelper.GetPostgreSqlResourceFromConnectionStringAsync(appServiceNode, value, "appService:appSetting", name);
                 }
                 // Look for Redis connection strings in app settings
                 else if (IsRedisConnectionString(value))
@@ -405,10 +413,36 @@ public class AppServiceCrawler : GenericArmResourceCrawler
             {
                 yield return sqlNode;
             }
+
+            if (postgreSqlNode != null)
+            {
+                yield return postgreSqlNode;
+            }
             
             if (redisNode != null)
             {
                 yield return redisNode;
+            }
+        }
+
+        // After processing individual app settings, scan for Individual Variables patterns (PostgreSQL environment variables)
+        var appSettingsDict = appSettings.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+        if (_postgreSqlHelper.HasPostgreSqlEnvironmentVariables(appSettingsDict))
+        {
+            ArmResourceNode postgreSqlEnvNode = null;
+            try
+            {
+                postgreSqlEnvNode = await _postgreSqlHelper.GetPostgreSqlResourceFromEnvironmentVariablesAsync(
+                    appServiceNode, appSettingsDict, "appService:environmentVariables");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalWarning($"Error processing PostgreSQL environment variables for {appServiceNode.ResourceId}: {ex.Message}");
+            }
+
+            if (postgreSqlEnvNode != null)
+            {
+                yield return postgreSqlEnvNode;
             }
         }
     }

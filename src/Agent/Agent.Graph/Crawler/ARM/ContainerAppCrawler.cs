@@ -20,6 +20,7 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
     private readonly ILogger<ContainerAppCrawler> _logger;
     private readonly IGraphDatabaseClient _graphDbClient;
     private readonly SqlConnectionStringHelper _sqlHelper;
+    private readonly PostgreSqlConnectionStringHelper _postgreSqlHelper;
     private readonly AzureResourceGraphClient _graphClient;
 
 
@@ -29,6 +30,7 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
         _logger = logger;
         _graphDbClient = graphDbClient;
         _sqlHelper = new SqlConnectionStringHelper(logger, armClient, graphDbClient);
+        _postgreSqlHelper = new PostgreSqlConnectionStringHelper(logger, armClient, graphDbClient);
         _graphClient = graphClient;
     }
 
@@ -135,7 +137,7 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
             {
                 var kvNode = new ArmResourceNode(
                     resourceId: result.GetProperty("id").GetString(),
-                    subscriptionId : result.GetProperty("subscriptionId").GetString(),
+                    subscriptionId: result.GetProperty("subscriptionId").GetString(),
                     resourceGroupName: result.GetProperty("resourceGroup").GetString(),
                     resourceName: result.GetProperty("name").GetString(),
                     resourceType: Constants.KeyVaultType,
@@ -188,6 +190,31 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
                         yield return resourceNode;
                     }
                 }
+            }
+        }
+
+        // After processing individual environment variables, scan for Individual Variables patterns (PostgreSQL environment variables)
+        var allEnvVars = capp.Template.Containers
+            .SelectMany(c => c.Env)
+            .Where(env => !string.IsNullOrEmpty(env.Value))
+            .ToDictionary(env => env.Name, env => env.Value);
+
+        if (_postgreSqlHelper.HasPostgreSqlEnvironmentVariables(allEnvVars))
+        {
+            ArmResourceNode postgreSqlEnvNode = null;
+            try
+            {
+                postgreSqlEnvNode = await _postgreSqlHelper.GetPostgreSqlResourceFromEnvironmentVariablesAsync(
+                    cappNode, allEnvVars, "containerApp:environmentVariables");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalWarning($"Error processing PostgreSQL environment variables for {cappNode.ResourceId}: {ex.Message}");
+            }
+
+            if (postgreSqlEnvNode != null)
+            {
+                yield return postgreSqlEnvNode;
             }
         }
     }
@@ -371,6 +398,23 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
             if (sqlNode != null)
             {
                 yield return sqlNode;
+            }
+        }
+        // Look for PostgreSQL connection strings
+        else if (_postgreSqlHelper.IsPostgreSqlConnectionString(value, name))
+        {
+            var postgreSqlNode = await _postgreSqlHelper.GetPostgreSqlResourceFromConnectionStringAsync(node, value, $"containerApp:{sourceType}", name);
+            if (postgreSqlNode != null)
+            {
+                var properties = postgreSqlNode.GetNodeProperties();
+                properties["authType"] = value.Contains("Managed Identity", StringComparison.OrdinalIgnoreCase)
+                    ? "managedIdentity"
+                    : "connectionString";
+                properties["source"] = $"containerApp:{sourceType}:{name}";
+
+                await _graphDbClient.AddOrUpdateNodeAsync(postgreSqlNode);
+
+                yield return postgreSqlNode;
             }
         }
         // Look for Redis connection strings

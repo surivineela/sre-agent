@@ -93,6 +93,11 @@ public class ArmResourceCrawlerFactory
                 return new AzureKubernetesServiceCrawler(_loggerFactory.CreateLogger<AzureKubernetesServiceCrawler>(), _graphDbClient, _loggerFactory, armClient, _k8sService, _graphClient);
             }
 
+            if (Constants.PostgreSqlFlexServerType.Equals(armNode.ResourceType, StringComparison.OrdinalIgnoreCase))
+            {
+                return new PostgreSqlFlexServerCrawler(_loggerFactory.CreateLogger<PostgreSqlFlexServerCrawler>(), _graphDbClient, armClient);
+            }
+
             return new GenericArmResourceCrawler(_loggerFactory.CreateLogger<GenericArmResourceCrawler>(), _graphDbClient, armClient);
         }
         else if (node is KubernetesResourceNode k8sNode)
@@ -188,6 +193,10 @@ public class ArmResourceCrawlerFactory
         if (Constants.ManagedClusterType.Equals(id.ResourceType, StringComparison.OrdinalIgnoreCase))
         {
             return new AksNode(id.ResourceType, id.ToString(), id.SubscriptionId, id.ResourceGroupName, id.Name);
+        }
+        if (Constants.PostgreSqlFlexServerType.Equals(id.ResourceType, StringComparison.OrdinalIgnoreCase))
+        {
+            return new PostgreSqlFlexServerNode(id.ResourceType, id.ToString(), id.SubscriptionId, id.ResourceGroupName, id.Name);
         }
 
         return new ArmResourceNode(id.ResourceType, id.ToString(), id.SubscriptionId, id.ResourceGroupName, id.Name);

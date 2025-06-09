@@ -1,5 +1,6 @@
 using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Logging;
 using Azure.Core;
 using Azure.ResourceManager;
 using k8s.Models;
@@ -46,9 +47,7 @@ public class KubernetesDeploymentCrawler : IResourceCrawler
         if (deployment == null)
         {
             yield break;
-        }
-
-        if (deployment.Spec?.Template?.Spec?.Containers != null)
+        }        if (deployment.Spec?.Template?.Spec?.Containers != null)
         {
             HashSet<string> knownVolumes = [];
             foreach (var container in deployment.Spec.Template.Spec.Containers)
@@ -106,6 +105,32 @@ public class KubernetesDeploymentCrawler : IResourceCrawler
                             }
                         }
                     }
+                }
+            }
+
+            // After processing individual environment variables, scan for Individual Variables patterns (PostgreSQL environment variables)
+            var allEnvVars = deployment.Spec.Template.Spec.Containers
+                .Where(c => c.Env != null)
+                .SelectMany(c => c.Env)
+                .Where(env => !string.IsNullOrEmpty(env.Value))
+                .ToDictionary(env => env.Name, env => env.Value);
+
+            if (_postgresHelper.HasPostgreSqlEnvironmentVariables(allEnvVars))
+            {
+                ArmResourceNode postgreSqlEnvNode = null;
+                try
+                {
+                    postgreSqlEnvNode = await _postgresHelper.GetPostgreSqlResourceFromEnvironmentVariablesAsync(
+                        deploymentNode, allEnvVars, "k8s:deployment:environmentVariables");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalWarning($"Error processing PostgreSQL environment variables for {deploymentNode.GetNodeId()}: {ex.Message}");
+                }
+
+                if (postgreSqlEnvNode != null)
+                {
+                    yield return postgreSqlEnvNode;
                 }
             }
         }

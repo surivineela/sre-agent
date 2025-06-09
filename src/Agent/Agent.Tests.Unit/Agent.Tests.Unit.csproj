@@ -20,11 +20,11 @@
   <ItemGroup>
     <Using Include="Xunit" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Agent.Runtime\Agent.Runtime.csproj" />
     <ProjectReference Include="..\Agent.Prometheus\Agent.Prometheus.csproj" />
     <ProjectReference Include="..\Agent.Web\Agent.Web.csproj" />
+    <ProjectReference Include="..\Agent.Graph\Agent.Graph.csproj" />
     <ProjectReference Include="..\Agent.Tests.Common\Agent.Tests.Common.csproj" /> 
   </ItemGroup>
 

@@ -159,6 +159,19 @@ public class ResourceGroupCrawler : IResourceCrawler
                     yield return diskNode;
                 }
             }
+            else if (Constants.PostgreSqlFlexServerType.Equals(type, StringComparison.OrdinalIgnoreCase))
+            {
+                var pgNode = CreateNodeFromJson(resource);
+                if (pgNode != null)
+                {
+                    pgNode.Location = resource.GetProperty("location").GetString();
+                    await _graphDbClient.AddOrUpdateNodeAsync(pgNode);
+                    var edge = new ArmResourceEdge(rgNode.GetNodeId(), pgNode.GetNodeId(), Constants.Relationships.Contains);
+                    edge.AddRbacInheritedEdgeProperties();
+                    await _graphDbClient.AddOrUpdateEdgeAsync(edge);
+                    yield return pgNode;
+                }
+            }
             else
             {
                 var genericNode = CreateNodeFromJson(resource);

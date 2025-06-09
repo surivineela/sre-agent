@@ -24,6 +24,7 @@ public class Constants
     public const string AzureRedisCacheType = "Microsoft.Cache/redis";
     public const string AzureSQLType = "Microsoft.Sql/servers";
     public const string CosmosDbType = "Microsoft.DocumentDB/databaseAccounts";
+    public const string PostgreSqlFlexServerType = "Microsoft.DBforPostgreSQL/flexibleServers";
     public const string StorageType = "Microsoft.Storage/storageAccounts";
     public const string EventHubType = "microsoft.eventhub/namespaces";
     public const string ServiceBusType = "microsoft.servicebus/namespaces";
@@ -89,6 +90,8 @@ public class Constants
         public const string StoresIn = "STORES_IN";
         public const string Uses = "USES";
         public const string PullsFrom = "PULLS_FROM";
+        public const string DelegatedTo = "DELEGATED_TO";
+        public const string UsesDnsZone = "USES_DNS_ZONE";
     }
 
     // indicates this node is a part of specific topology

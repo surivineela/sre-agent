@@ -403,6 +403,7 @@ FodyWeavers.xsd
 
 # Custom
 !src/Agent/Agent.Graph/Crawler/ARM/
+!src/Agent/Agent.Tests.Unit/Graph/Crawler/ARM/
 
 .DS_Store
 
