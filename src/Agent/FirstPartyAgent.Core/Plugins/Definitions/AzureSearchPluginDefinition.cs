@@ -2,12 +2,14 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.ComponentModel;
+using Agent.Core.Models;
 using Azure.Search.Documents.Models;
 using FirstPartyAgent.Constants;
-using Microsoft.SemanticKernel;
-using System.ComponentModel;
-using FirstPartyAgent.Core.Plugins;
+using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Core.Models;
+using FirstPartyAgent.Core.Plugins;
+using Microsoft.SemanticKernel;
 
 namespace FirstPartyAgent.Core.Plugins.Definitions
 {
@@ -23,6 +25,16 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
             CancellationToken cancellationToken = default)
         {
             var result = await _plugin.LookupRelatedGitHubIssues(issueUrl, issueSummaries, cancellationToken);
+            return result;
+        }
+
+        [KernelFunction(KernelFunctionNames.AzureSearch.GetTsgContent)]
+        [Description("Retrieve TSG (Troubleshooting Guide) content from Azure Search based on search text.")]
+        public async Task<SearchResult> GetTsgContent(
+            [Description("Text to search for in the TSG content")] string searchText,
+            CancellationToken cancellationToken = default)
+        {
+            var result = await _plugin.GetTsgContent(searchText, cancellationToken);
             return result;
         }
     }

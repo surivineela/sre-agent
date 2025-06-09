@@ -31,6 +31,7 @@ namespace FirstPartyAgent.FunctionApp
         private readonly TeamsClientSettings _teamsClientSettings;
         private const string hotsiteAgentAlertDetailsCosmosDbContainer = "IcmAlertDetails";
         private readonly AlertHandlerService _alertHandlerService;
+        private readonly TsgCrawlerClient _tsgCrawlerClient;
 
         public ApiController(
             ILogger<ApiController> logger,
@@ -42,7 +43,8 @@ namespace FirstPartyAgent.FunctionApp
             IICMWorkflowClient icmWorkflowClient,
             ITeamsClient teamsClient,
             TeamsClientSettings teamsClientSettings,
-            AlertHandlerService alertHandlerService)
+            AlertHandlerService alertHandlerService,
+            TsgCrawlerClient tsgCrawlerClient)
         {
             _logger = logger;
             _chatService = chatService;
@@ -54,6 +56,7 @@ namespace FirstPartyAgent.FunctionApp
             _teamsClient = teamsClient;
             _teamsClientSettings = teamsClientSettings;
             _alertHandlerService = alertHandlerService;
+            _tsgCrawlerClient = tsgCrawlerClient;
         }
 
         [Function("ListConfigs")]
@@ -467,6 +470,27 @@ namespace FirstPartyAgent.FunctionApp
                 var badResponse = req.CreateResponse(HttpStatusCode.InternalServerError);
                 await badResponse.WriteAsJsonAsync(new { error = $"Failed to process request: {ex.Message}" });
                 return badResponse;
+            }
+        }
+
+        [Function("CrawlTsgRepository")]
+        public async Task<HttpResponseData> CrawlTsgRepository(
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "Crawl")] HttpRequestData req)
+        {
+            try
+            {
+                _logger.LogInformation("Starting TSG repository crawl process");
+                await _tsgCrawlerClient.CrawlAndStoreRepositoryAsync();
+                var response = req.CreateResponse(HttpStatusCode.OK);
+                await response.WriteAsJsonAsync(new { success = true, message = "Repository crawl completed successfully" });
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error during repository crawl process: {ex.Message}");
+                var errorResponse = req.CreateResponse(HttpStatusCode.InternalServerError);
+                await errorResponse.WriteAsJsonAsync(new { success = false, error = $"Error crawling repository: {ex.Message}" });
+                return errorResponse;
             }
         }
     }

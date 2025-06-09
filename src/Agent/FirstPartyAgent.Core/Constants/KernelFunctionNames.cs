@@ -136,7 +136,8 @@ namespace FirstPartyAgent.Constants
 
         public static class AzureSearch
         {
-            public const string LookupRelatedGitHubIssues = "lookup_related_github_issues";
+            public const string LookupRelatedGitHubIssues = "LookupRelatedGitHubIssues";
+            public const string GetTsgContent = "GetTsgContent";
         }
     }
 }

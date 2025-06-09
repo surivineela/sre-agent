@@ -22,6 +22,11 @@ namespace FirstPartyAgent.Core.Services
             string searchText,
             Action<SearchOptions>? configureOptions = null,
             CancellationToken cancellationToken = default);
+
+        Task<T?> GetTopDocumentAsync<T>(
+            string searchIndex,
+            string searchText,
+            CancellationToken cancellationToken = default);
     }
 
     public class AzureSearchClient : IAzureSearchClient
@@ -162,6 +167,25 @@ namespace FirstPartyAgent.Core.Services
                     return (await searchClient.SearchAsync<T>(searchText, searchOptions, cancellationToken)).Value;
                 }
            
+        }
+
+        // Example method to get the top document from search results
+        public async Task<T?> GetTopDocumentAsync<T>(
+            string searchIndex,
+            string searchText,
+            CancellationToken cancellationToken = default)
+        {
+            var searchResults = await SearchAsync<T>(
+                searchIndex,
+                searchText,
+                options => {
+                    options.Size = 1; // Only retrieve the top result
+                },
+                cancellationToken);
+
+            // Get the first document if any results were returned
+            var resultList = searchResults.GetResults().ToList();
+            return resultList.Count > 0 ? resultList[0].Document : default;
         }
     }
 }

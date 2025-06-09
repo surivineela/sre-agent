@@ -6,7 +6,7 @@ using Azure.Search.Documents.Models;
 using FirstPartyAgent.Core.Models;
 using FirstPartyAgent.Core.Plugins;
 using Newtonsoft.Json;
-
+using Agent.Core.Models;
 
 namespace FirstPartyAgent.Tests.Integration.Mocks
 {
@@ -21,6 +21,25 @@ namespace FirstPartyAgent.Tests.Integration.Mocks
                 searchResults.AddRange(results);
             }
             return searchResults;
+        }
+
+        public async Task<SearchResult> GetTsgContent(string searchText, CancellationToken cancellationToken = default)
+        {
+            if (searchText?.Contains("MockNoResponse", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                return new SearchResult();
+            }
+            
+            return await Task.FromResult(new SearchResult
+            {
+                Title = $"Mock TSG Result for: {searchText}",
+                Content = $"This is a mock troubleshooting guide content for the query: '{searchText}'. It contains steps to diagnose and resolve the issue.",
+                Confidence = "0.85",
+                Source = "Mock TSG Repository",
+                ResultType = "TSG",
+                Rank = 1,
+                Link = "https://example.com/mock-tsg-content"
+            });
         }
 
         private Task<IEnumerable<SearchResult<IndexedGitHubIssueModel>>> GetSearchResult(string issueDescription)

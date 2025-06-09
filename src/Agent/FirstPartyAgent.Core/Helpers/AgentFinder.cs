@@ -18,12 +18,12 @@ namespace FirstPartyAgent.Core.Helpers
     {
         private static Dictionary<string, List<string>> AgentPluginsConfig = new Dictionary<string, List<string>>()
         {
-            { "None", new List<string>(){ "KustoPlugin", "TimePlugin", "HttpRequestPlugin", "AzureDevOpsPlugin" } },
+            { "None", new List<string>(){ "AzureSearchPlugin" } },
             { "DevOpsAgent", new List<string>() { "KustoPlugin", "TimePlugin", "HttpRequestPlugin", "AzureDevOpsPlugin" } },
             { "ControlPlane", new List<string>(){ "ControlPlanePlugin", "ICMChartPlugin", "IcmPlugin", "KustoPlugin", "TimePlugin", "WebAppPlugin" } },
             { "Sev2", new List<string>(){ "KustoPlugin", "IcmPlugin", "GenevaActionsPlugin", "ICMChartPlugin", "WebAppPlugin", "AzureAlertingPlugin", "TimePlugin", "HttpRequestPlugin" } },
             { "TestModeAgent", new List<string>(){ "KustoPlugin", "IcmPlugin", "GenevaActionsPlugin", "ICMChartPlugin", "WebAppPlugin", "AzureAlertingPlugin", "TimePlugin", "HttpRequestPlugin" } },
-            { "ICMAgent", new List<string>(){ "KustoPlugin", "IcmPlugin", "GenevaActionsPlugin", "ICMChartPlugin", "AzureAlertingPlugin" } },
+            { "ICMAgent", new List<string>(){ "KustoPlugin", "IcmPlugin", "GenevaActionsPlugin", "ICMChartPlugin", "AzureAlertingPlugin", "AzureSearchPlugin" } },
             { "MFP", new List<string>(){ "IcmPlugin", "GenevaActionsPlugin", "KustoPlugin", "TeamsPlugin" } },
             { "GithubIssueTagger", new List<string>() { "GitHubIssuePlugin", "AzureSearchPlugin" } },
             { "ICMSummarizer", new List<string>(){ "IcmPlugin" } },

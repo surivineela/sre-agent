@@ -2,12 +2,14 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Models;
 using Agent.Plugins.Helpers;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Models;
-using Microsoft.Extensions.Logging;
-using FirstPartyAgent.Core.Services;
+using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Core.Models;
+using FirstPartyAgent.Core.Services;
+using Microsoft.Extensions.Logging;
 
 namespace FirstPartyAgent.Core.Plugins
 {
@@ -15,11 +17,13 @@ namespace FirstPartyAgent.Core.Plugins
     {
         private readonly IAzureSearchClient _searchClient;
         private readonly ILogger<AzureSearchPlugin> _logger;
+        private readonly TsgCrawlerSettings _tsgSettings;
 
-        public AzureSearchPlugin(ILogger<AzureSearchPlugin> logger, IAzureSearchClient azureSearchClient)
+        public AzureSearchPlugin(ILogger<AzureSearchPlugin> logger, IAzureSearchClient azureSearchClient, TsgCrawlerSettings tsgSettings)
         {
             _logger = logger;
             _searchClient = azureSearchClient;
+            _tsgSettings = tsgSettings;
         }
 
         public async Task<IEnumerable<SearchResult<IndexedGitHubIssueModel>>> LookupRelatedGitHubIssues(
@@ -96,6 +100,50 @@ namespace FirstPartyAgent.Core.Plugins
                 {
                     return new List<SearchResult<IndexedGitHubIssueModel>>();
                 }
+            },
+            _logger
+            );
+        }
+
+        public async Task<SearchResult> GetTsgContent(
+            string searchText,
+            CancellationToken cancellationToken = default)
+        {
+            return await KernelFunctionHelpers.TryAction(
+            nameof(AzureSearchPlugin),
+            async () =>
+            {
+                if (string.IsNullOrWhiteSpace(searchText))
+                {
+                    throw new ArgumentException("Search text cannot be empty", nameof(searchText));
+                }
+
+                if (_tsgSettings == null)
+                {
+                    throw new ArgumentNullException(nameof(_tsgSettings));
+                }
+
+                string searchIndex = _tsgSettings.AiSearchSettings.SearchIndexes.FirstOrDefault()?.IndexName;
+                if (string.IsNullOrWhiteSpace(searchIndex))
+                {
+                    throw new InvalidOperationException("TSG search index not found in settings");
+                }
+                var tsgSearchClient = new AzureSearchClient(_tsgSettings.AiSearchSettings);
+
+                _logger.LogInformation($"Searching TSG content with index: {searchIndex}, query: {searchText}");
+
+                var document = await tsgSearchClient.GetTopDocumentAsync<SearchResult>(
+                    searchIndex,
+                    searchText,
+                    cancellationToken);
+
+                if (document == null)
+                {
+                    _logger.LogWarning("No TSG content found for the query");
+                    return new SearchResult();
+                }
+
+                return document;
             },
             _logger
             );
