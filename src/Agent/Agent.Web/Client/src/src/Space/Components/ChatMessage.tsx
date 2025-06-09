@@ -474,7 +474,7 @@ const AzCliExecutionComponent: React.FC<{
                             background: 'transparent',
                             border: 'none',
                             cursor: 'pointer',
-                            color: copied ? '#4CAF50' : '#888',
+                            color: copied ? '#16a34a' : '#888',
                             fontSize: '14px',
                             padding: '4px',
                             borderRadius: '4px',
@@ -484,7 +484,7 @@ const AzCliExecutionComponent: React.FC<{
                         onMouseEnter={e => !copied && (e.currentTarget.style.color = '#fff')}
                         onMouseLeave={e => !copied && (e.currentTarget.style.color = '#888')}
                     >
-                        <AiOutlineCopy size={16} />
+                        {copied ? <AiOutlineCheckCircle size={16} /> : <AiOutlineCopy size={16} />}
                     </button>
                 </div>
 
@@ -934,6 +934,7 @@ const KubectlExecutionComponent: React.FC<{
     const [outputCopied, setOutputCopied] = useState(false);
     const [isOutputCollapsed, setIsOutputCollapsed] = useState(false);
     const [isExecutionCollapsed, setIsExecutionCollapsed] = useState(execution.status !== 'Pending');
+    const [stdinCopied, setStdinCopied] = useState(false);
 
     const { userIdAndDisplayName } = useAuthenticatedUserInfo();
 
@@ -1212,7 +1213,7 @@ const KubectlExecutionComponent: React.FC<{
                             background: 'transparent',
                             border: 'none',
                             cursor: 'pointer',
-                            color: copied ? '#4CAF50' : '#888',
+                            color: copied ? '#16a34a' : '#888',
                             fontSize: '14px',
                             padding: '4px',
                             borderRadius: '4px',
@@ -1222,7 +1223,7 @@ const KubectlExecutionComponent: React.FC<{
                         onMouseEnter={e => !copied && (e.currentTarget.style.color = '#fff')}
                         onMouseLeave={e => !copied && (e.currentTarget.style.color = '#888')}
                     >
-                        <AiOutlineCopy size={16} />
+                        {copied ? <AiOutlineCheckCircle size={16} /> : <AiOutlineCopy size={16} />}
                     </button>
                 </div>
 
@@ -1363,6 +1364,8 @@ const KubectlExecutionComponent: React.FC<{
                             onClick={async () => {
                                 try {
                                     await navigator.clipboard.writeText(currentExecution.stdin || '');
+                                    setStdinCopied(true);
+                                    setTimeout(() => setStdinCopied(false), 2000);
                                 } catch (err) {
                                     console.error('Failed to copy stdin:', err);
                                 }
@@ -1376,14 +1379,14 @@ const KubectlExecutionComponent: React.FC<{
                                 border: 'none',
                                 borderRadius: '4px',
                                 cursor: 'pointer',
-                                color: '#9ca3af',
+                                color: stdinCopied ? '#16a34a' : '#9ca3af',
                                 transition: 'color 0.2s',
                             }}
-                            title="Copy stdin content"
-                            onMouseEnter={e => (e.currentTarget.style.color = '#ffffff')}
-                            onMouseLeave={e => (e.currentTarget.style.color = '#9ca3af')}
+                            title={stdinCopied ? 'Copied!' : 'Copy stdin content'}
+                            onMouseEnter={e => !stdinCopied && (e.currentTarget.style.color = '#ffffff')}
+                            onMouseLeave={e => !stdinCopied && (e.currentTarget.style.color = '#9ca3af')}
                         >
-                            <AiOutlineCopy size={16} />
+                            {stdinCopied ? <AiOutlineCheckCircle size={16} /> : <AiOutlineCopy size={16} />}
                         </button>
 
                         <pre

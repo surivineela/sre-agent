@@ -15,7 +15,7 @@ import {
     MenuTrigger,
     tokens,
 } from '@fluentui/react-components';
-import { CopyRegular, DeleteRegular, InfoRegular, MoreHorizontal20Regular } from '@fluentui/react-icons';
+import { CheckmarkCircleRegular, CopyRegular, DeleteRegular, InfoRegular, MoreHorizontal20Regular } from '@fluentui/react-icons';
 import { memo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { Thread } from '../../Common/Contracts/Azure/SreAgent';
@@ -81,6 +81,7 @@ const ThreadActionsMenu = ({ thread, handleThreadDelete }: ThreadActionsMenuProp
     const intl = useIntl();
     const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(false);
     const [copied, setCopied] = useState(false);
+    const [threadIdCopied, setThreadIdCopied] = useState(false);
 
     const formatThreadInfo = (thread: Thread) => {
         const created = new Date(thread.createdTimestamp).toLocaleDateString();
@@ -107,6 +108,8 @@ Thread ID: ${thread.id}`;
     const handleCopyThreadId = async () => {
         try {
             await navigator.clipboard.writeText(thread.id);
+            setThreadIdCopied(true);
+            setTimeout(() => setThreadIdCopied(false), 2000);
         } catch (err) {
             console.error('Failed to copy thread ID to clipboard:', err);
         }
@@ -118,11 +121,15 @@ Thread ID: ${thread.id}`;
                 <span>{thread.id}</span>
                 <Button
                     className={threadIdCopyButton}
-                    icon={<CopyRegular />}
+                    icon={threadIdCopied ? <CheckmarkCircleRegular /> : <CopyRegular />}
                     onClick={handleCopyThreadId}
                     appearance="transparent"
                     size="small"
-                    title="Copy Thread ID"
+                    title={threadIdCopied ? 'Copied!' : 'Copy Thread ID'}
+                    style={{
+                        color: threadIdCopied ? '#16a34a' : undefined,
+                        transition: 'color 0.2s',
+                    }}
                 />
             </div>
 
@@ -204,7 +211,7 @@ Thread ID: ${thread.id}`;
                         </DialogContent>
                         <DialogActions>
                             <Button
-                                icon={<CopyRegular />}
+                                icon={copied ? <CheckmarkCircleRegular /> : <CopyRegular />}
                                 onClick={handleCopyToClipboard}
                                 appearance="secondary"
                                 style={{
