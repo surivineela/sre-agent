@@ -28,6 +28,12 @@ public static class TraceAttribute
     public const string ToolOutput = "tool.output";
 
     public const string ToolDescription = "tool.description";
+
+    public const string ModelInput = "model.input";
+    public const string ModelOutput = "model.output";
+    public const string ModelInputTokensCount = "model.input.tokens.count";
+    public const string ModelOutputTokensCount = "model.output.tokens.count";
+    public const string ModelTotalTokensCount = "model.total.tokens.count";
 }
 
 public static class TraceOperationName
@@ -41,5 +47,7 @@ public static class TraceOperationName
     public const string Handoff = "handoff";
 
     public const string ChatMessage = "chat.message";
+
+    public const string ModelGeneration = "model.generation";
 }
 

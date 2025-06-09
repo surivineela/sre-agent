@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading.Channels;
+using System.Text.Json.Serialization;
 using Agent.Core;
 using Agent.Core.Attributes;
 using Agent.Core.Configuration;
@@ -44,6 +45,8 @@ public class ReasoningLoop
     private TelemetrySpan? _rootSpan;
     private TelemetrySpan? _currentAgentSpan;
     private TelemetrySpan? _currentToolSpan;
+
+    private TelemetrySpan? _currentGenerationSpan;
     private readonly IAgentFactory<AgentContext> _agentFactory;
     private List<ChatMessage>? _chatHistory;
     private Agent<AgentContext> _currentAgent;
@@ -396,6 +399,25 @@ public class ReasoningLoop
                     _currentToolSpan?.SetAttribute(TraceAttribute.ToolOutput, output?.ToString() ?? string.Empty);
                     _currentToolSpan?.End();
                     _currentToolSpan = null;
+                },
+                OnModelGenerationStart = async (context, agent, messages, chatOptions) =>
+                {
+                    _logger.LogInternalInformation("Trace Starting model generation for agent: {AgentName}", agent.Name);
+                    _currentGenerationSpan = tracer.StartActiveSpan($"model_generation", SpanKind.Internal, _currentAgentSpan);
+                    _currentGenerationSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
+                    _currentGenerationSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
+                    _currentGenerationSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.ModelGeneration);
+                    _currentGenerationSpan.SetAttribute(TraceAttribute.ModelInput, FormatChatMessages(messages));
+                },
+                OnModelGenerationEnd = async (context, agent, response) =>
+                {
+                    _logger.LogInternalInformation("Trace Ending model generation for agent: {AgentName}", agent.Name);
+                    _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelOutput, FormatChatMessages(response.Messages));
+                    _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelInputTokensCount, response.Usage?.InputTokenCount.ToString() ?? string.Empty);
+                    _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelOutputTokensCount, response.Usage?.OutputTokenCount.ToString() ?? string.Empty);
+                    _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelTotalTokensCount, response.Usage?.TotalTokenCount.ToString() ?? string.Empty);
+                    _currentGenerationSpan?.End();
+                    _currentGenerationSpan = null;
                 }
             };
 
@@ -1137,5 +1159,44 @@ public class ReasoningLoop
             return string.Join(", ", arguments.Select(kv => $"{kv.Key}: {kv.Value?.ToString() ?? "null"}"));
         }
     }
+
+    private static string FormatChatMessages(IEnumerable<ChatMessage> messages)
+    {
+        if (messages == null || !messages.Any())
+        {
+            return string.Empty;
+        }
+
+        try
+        {
+            // Create a list of anonymous objects for better JSON formatting
+            var formattedMessages = messages.Select(message => new
+            {
+                Role = message.Role.ToString(),
+                Contents = message.Contents?.Select(content => new
+                {
+                    Type = content.GetType().Name,
+                    Value = content
+                })
+            }).ToList();
+
+            // Use JsonSerializer with options to make output prettier
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+            };
+
+            return JsonSerializer.Serialize(formattedMessages, options);
+        }
+        catch (Exception ex)
+        {
+            // In case of serialization issues, fallback to basic formatting
+            return $"Error formatting messages: {ex.Message}\n" +
+                   string.Join("\n", messages.Select(m => $"{m.Role}: {m.Text?.Substring(0, Math.Min(m.Text?.Length ?? 0, 50))}..."));
+        }
+    }
+
 
 }

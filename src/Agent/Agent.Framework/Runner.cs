@@ -329,7 +329,9 @@ public static class Runner
         modelInput.AddRange(originalInput);
         modelInput.AddRange(generatedMessages);
 
+        await hooks.OnModelGenerationStart(contextWrapper, agent, modelInput, chatOptions);
         var response = await chatClient.GetResponseAsync(modelInput, chatOptions);
+        await hooks.OnModelGenerationEnd(contextWrapper, agent, response);
         trajectory.Append(response);
 
         if (response.Usage != null)
