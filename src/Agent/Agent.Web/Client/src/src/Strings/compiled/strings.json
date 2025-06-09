@@ -135,12 +135,6 @@
       "value": "The selected resource groups are being set up"
     }
   ],
-  "2WxP2i": [
-    {
-      "type": 0,
-      "value": "Delete thread"
-    }
-  ],
   "2tOWr2": [
     {
       "type": 0,
@@ -763,20 +757,6 @@
       "value": "Delete"
     }
   ],
-  "K5yM40": [
-    {
-      "type": 0,
-      "value": "Thread with title "
-    },
-    {
-      "type": 1,
-      "value": "title"
-    },
-    {
-      "type": 0,
-      "value": " deleted successfully"
-    }
-  ],
   "KyDsjH": [
     {
       "type": 0,
@@ -843,6 +823,20 @@
     {
       "type": 0,
       "value": "Enter name"
+    }
+  ],
+  "OMp9VI": [
+    {
+      "type": 0,
+      "value": "Deleting thread '"
+    },
+    {
+      "type": 1,
+      "value": "title"
+    },
+    {
+      "type": 0,
+      "value": "'"
     }
   ],
   "ONVN5F": [
@@ -1275,38 +1269,10 @@
       "value": "Failed to load resource groups."
     }
   ],
-  "axE+Jt": [
-    {
-      "type": 0,
-      "value": "Deleting thread with title "
-    },
-    {
-      "type": 1,
-      "value": "title"
-    }
-  ],
   "bW7B87": [
     {
       "type": 0,
       "value": "New"
-    }
-  ],
-  "bi05ZL": [
-    {
-      "type": 0,
-      "value": "Failed to delete thread with title "
-    },
-    {
-      "type": 1,
-      "value": "title"
-    },
-    {
-      "type": 0,
-      "value": " with error: "
-    },
-    {
-      "type": 1,
-      "value": "errorMessage"
     }
   ],
   "blSyDZ": [
@@ -1391,6 +1357,12 @@
     {
       "type": 0,
       "value": "Logic App name"
+    }
+  ],
+  "fLkL3F": [
+    {
+      "type": 0,
+      "value": "Deleting thread"
     }
   ],
   "ftfFhS": [
@@ -1585,6 +1557,12 @@
       "value": "Discard"
     }
   ],
+  "ns7TyW": [
+    {
+      "type": 0,
+      "value": "Thread was deleted successfully"
+    }
+  ],
   "nso3Mj": [
     {
       "type": 0,
@@ -1607,6 +1585,16 @@
     {
       "type": 0,
       "value": "Permissions to assign roles"
+    }
+  ],
+  "ocQXDt": [
+    {
+      "type": 0,
+      "value": "Failed to delete thread with error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
     }
   ],
   "ol51Ez": [

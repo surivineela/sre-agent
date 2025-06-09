@@ -249,12 +249,12 @@ export const ThreadContextStateResources = defineMessages({
 });
 
 export const ActivitiesThreadHeaderResources = defineMessages({
-    deleteThreadTitle: { defaultMessage: 'Delete thread', id: '2WxP2i' },
-    deleteThreadInProgressDescription: { defaultMessage: 'Deleting thread with title {title}', id: 'axE+Jt' },
-    deleteThreadSuccessDescription: { defaultMessage: 'Thread with title {title} deleted successfully', id: 'K5yM40' },
+    deleteThreadTitle: { defaultMessage: "Deleting thread ''{title}''", id: 'OMp9VI' },
+    deleteThreadInProgressDescription: { defaultMessage: 'Deleting thread', id: 'fLkL3F' },
+    deleteThreadSuccessDescription: { defaultMessage: 'Thread was deleted successfully', id: 'ns7TyW' },
     deleteThreadFailureDescription: {
-        defaultMessage: 'Failed to delete thread with title {title} with error: {errorMessage}',
-        id: 'bi05ZL',
+        defaultMessage: 'Failed to delete thread with error: {errorMessage}',
+        id: 'ocQXDt',
     },
     deleteThreadDialogTitle: { defaultMessage: 'Delete thread?', id: '+5BJJL' },
     deleteThreadDialogDescription: {

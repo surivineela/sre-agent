@@ -63,8 +63,8 @@ export const useActivities = () => {
     const deleteThread = useCallback(
         async (thread: Thread) => {
             const id = proxy.startNotification(
-                intl.formatMessage(ActivitiesThreadHeaderResources.deleteThreadTitle),
-                intl.formatMessage(ActivitiesThreadHeaderResources.deleteThreadInProgressDescription, { title: thread.title })
+                intl.formatMessage(ActivitiesThreadHeaderResources.deleteThreadTitle, { title: thread.title }),
+                intl.formatMessage(ActivitiesThreadHeaderResources.deleteThreadInProgressDescription)
             );
 
             try {
@@ -72,17 +72,12 @@ export const useActivities = () => {
                 removeThreadFromListRef.current?.removeThreadFromList(thread);
                 selectThread(null);
 
-                proxy.stopNotification(
-                    id,
-                    true,
-                    intl.formatMessage(ActivitiesThreadHeaderResources.deleteThreadSuccessDescription, { title: thread.title })
-                );
+                proxy.stopNotification(id, true, intl.formatMessage(ActivitiesThreadHeaderResources.deleteThreadSuccessDescription));
             } catch (e: any) {
                 proxy.stopNotification(
                     id,
                     false,
                     intl.formatMessage(ActivitiesThreadHeaderResources.deleteThreadFailureDescription, {
-                        title: thread.title,
                         errorMessage: e?.message || e?.response?.data,
                     })
                 );
