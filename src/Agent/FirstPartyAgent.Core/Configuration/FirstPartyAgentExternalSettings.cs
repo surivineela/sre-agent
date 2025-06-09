@@ -22,7 +22,7 @@ namespace FirstPartyAgent.Core.Configuration
         public AzureDevOpsSettings AzureDevOps { get; set; } = new();
         public TsgCrawlerSettings TsgCrawler { get; set; } = new();
         public DevOpsSetting DevOps { get; set; }
-
+        public ApplensSettings Applens { get; set; } = new();
         public IcmAgentSettings IcmAgent { get; set; }
         public HandoffToAgentSettings HandoffToAgentConfig { get; set; } = new();
     }

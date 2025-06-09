@@ -66,5 +66,9 @@
   {
     "PluginName": "HandoffToAgentPlugin",
     "ServiceIdentifier": "FirstPartyAgent.Core.Plugins.HandoffToAgentPlugin"
+  },
+  {
+    "PluginName": "ApplensDetectorPlugin",
+    "ServiceIdentifier": "FirstPartyAgent.Core.Plugins.ApplensDetectorPlugin"
   }
 ]

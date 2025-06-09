@@ -3,6 +3,8 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Configuration;
+using Agent.Core.Extensions;
+using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Services;
 using Agent.Data.DatabaseClients.GraphDbClient;
@@ -113,6 +115,7 @@ namespace FirstPartyAgent.Core.Extensions
             services.AddSingleton<AzureAlertingClient>();
             services.AddSingleton<AzureAlertingPlugin>();
             services.AddSingleton<ControlPlanePlugin>();
+            services.AddSingleton<ApplensDetectorPlugin>();
             services.AddSingleton<IStorageService>(sp =>
             {
                 try
@@ -130,7 +133,24 @@ namespace FirstPartyAgent.Core.Extensions
             });
             services.AddSingleton<ICMAgentInstructionGenerationService>();
 
-
+            services.AddSingleton<DiagnosticsHelper>(sp =>
+            {
+                var applensSettings = sp.GetRequiredService<ApplensSettings>();
+                var logger = sp.GetRequiredService<ILogger<DiagnosticsHelper>>();
+                return new DiagnosticsHelper(logger, applensSettings, environment);
+            });
+            services.AddSingleton<IApplensService>(sp => 
+            {
+                var applensSettings = sp.GetRequiredService<ApplensSettings>();
+                if (applensSettings.Enabled)
+                {
+                    var logger = sp.GetRequiredService<ILogger<ApplensService>>();
+                    var diagnosticsHelper = sp.GetRequiredService<DiagnosticsHelper>();
+                    return new ApplensService(applensSettings, diagnosticsHelper, logger);
+                }
+                return new ApplensServiceDisabled();
+            });
+            
             var azureSettings = services.BuildServiceProvider().GetRequiredService<IOptions<AzureSettings>>();
             var cosmosDbSettings = azureSettings.Value.CosmosDB;
 
@@ -241,6 +261,7 @@ namespace FirstPartyAgent.Core.Extensions
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.IcmAgent);
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.TsgCrawler);
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.HandoffToAgentConfig);
+            services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.Applens);
 
             return services;
         }
