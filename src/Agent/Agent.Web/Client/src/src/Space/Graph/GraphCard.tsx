@@ -1,4 +1,4 @@
-import { Card, CardHeader, Link, mergeClasses, Text } from '@fluentui/react-components';
+import { Card, CardHeader, mergeClasses, Text } from '@fluentui/react-components';
 import { Handle, Node, NodeProps, Position } from '@xyflow/react';
 import { memo, useContext, useMemo } from 'react';
 import { GraphContext, GraphNode, HandlePosition } from '../Contracts/Graph';
@@ -108,21 +108,24 @@ const getFriendlyName = (azureType?: string): string => {
     }
 };
 
-// ────────────────────────────────────────────────────────────────────────────────
-// GraphCard component
-// ────────────────────────────────────────────────────────────────────────────────
 export const GraphCard = (props: NodeProps<Node<GraphNode>>) => {
     const { id, data } = props;
-    const { hoverNode, unHoverNode, nodesToHightlight, setSelectedNode, selectedAppGroupId } = useContext(GraphContext);
+    const { hoverNode, unHoverNode, nodesToHighlight, selectedNode, setSelectedNode, hoveredNodeId, selectedAppGroupId } =
+        useContext(GraphContext);
 
-    const { card, appGroupCard, cardHightlight, header, headerText, description } = useGraphNodeStyles();
+    const { card, appGroupCard, cardHighlighted, cardHovered, appGroupCardHovered, cardSelected, header, headerText, description } =
+        useGraphNodeStyles();
 
     const isAppGroup = id === selectedAppGroupId;
+    const isHovered = hoveredNodeId === id;
+    const isSelectedNode = selectedNode?.id === id;
 
     const cardStyles = mergeClasses(
         card,
         isAppGroup ? appGroupCard : undefined,
-        nodesToHightlight.includes(id) ? cardHightlight : undefined
+        !isHovered && nodesToHighlight.includes(id) ? cardHighlighted : undefined,
+        isHovered ? (isAppGroup ? appGroupCardHovered : cardHovered) : undefined,
+        isSelectedNode ? cardSelected : undefined
     );
 
     const type = useMemo(() => {
@@ -134,28 +137,20 @@ export const GraphCard = (props: NodeProps<Node<GraphNode>>) => {
         }
     }, [data?.properties?.type]);
 
-    // Title link
-    const Header = () =>
+    const ResourceNameHeader = () =>
         data.name ? (
-            <Link
-                className={headerText}
-                onClick={e => {
-                    e.stopPropagation();
-                    setSelectedNode(data);
-                }}
-            >
-                <Text wrap={false} block={false} size={600}>
-                    {data.name}
-                </Text>
-            </Link>
+            <Text className={headerText} wrap={false} block={false} size={500}>
+                {data.name}
+            </Text>
         ) : null;
 
-    // Resource‑type subtitle
-    const Description = () => (
-        <Text wrap={false} block={false} size={400} className={mergeClasses(headerText, description)}>
+    const ResourceTypeDescription = () => (
+        <Text className={mergeClasses(headerText, description)} wrap={false} block={false} size={300}>
             {type}
         </Text>
     );
+
+    const appHealthInfo = useMemo(() => getAppHealthInfo(data?.properties)?.Health, [data?.properties]);
 
     return (
         <div onMouseEnter={() => hoverNode(id)} onMouseLeave={() => unHoverNode()}>
@@ -168,20 +163,23 @@ export const GraphCard = (props: NodeProps<Node<GraphNode>>) => {
             >
                 <CardHeader
                     className={header}
-                    image={<img width={32} height={32} src={resolveIcon(data?.properties?.type)} alt="resource icon" />}
-                    header={<Header />}
-                    description={<Description />}
+                    image={
+                        <img
+                            width={32}
+                            height={32}
+                            src={resolveIcon(data?.properties?.type)}
+                            alt={data?.properties?.type ?? 'resource type icon'}
+                        />
+                    }
+                    header={<ResourceNameHeader />}
+                    description={<ResourceTypeDescription />}
                 />
-                {/* Updated to use getAppHealthInfo */}
-                <HealthStatus health={getAppHealthInfo(data.properties)?.Health} />
+                <HealthStatus health={appHealthInfo} />
             </Card>
         </div>
     );
 };
 
-// ────────────────────────────────────────────────────────────────────────────────
-// Handles component
-// ────────────────────────────────────────────────────────────────────────────────
 const Handles = memo(() => {
     const { handle } = useGraphNodeStyles();
 

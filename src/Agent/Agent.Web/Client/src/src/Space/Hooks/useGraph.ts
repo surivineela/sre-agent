@@ -15,10 +15,11 @@ export const useGraph = () => {
     );
     const [isLoading, setIsLoading] = useState(false);
     const [selectedNode, setSelectedNode] = useState<GraphNode>();
+    const [hoveredNodeId, setHoveredNodeId] = useState<string>();
     const [nodes, setNodes, onNodesChange] = useNodesState<Node<GraphNode>>([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState<Edge<GraphEdge>>([]);
-    const [nodesToHightlight, setNodesToHightlight] = useState<string[]>([]);
-    const [edgesToHightlight, setEdgesToHightlight] = useState<string[]>([]);
+    const [nodesToHighlight, setNodesToHighlight] = useState<string[]>([]);
+    const [edgesToHighlight, setEdgesToHighlight] = useState<string[]>([]);
     const [selectedAppGroupId, setSelectedAppGroupId] = useState<string | undefined>(undefined);
 
     const layoutGraph = useGraphLayout();
@@ -47,15 +48,17 @@ export const useGraph = () => {
                 }
             }
 
-            setNodesToHightlight(nodeIds);
-            setEdgesToHightlight(edgeIds);
+            setHoveredNodeId(nodeId);
+            setNodesToHighlight(nodeIds);
+            setEdgesToHighlight(edgeIds);
         },
         [edges]
     );
 
     const unHoverNode = useCallback(() => {
-        setNodesToHightlight([]);
-        setEdgesToHightlight([]);
+        setHoveredNodeId(undefined);
+        setNodesToHighlight([]);
+        setEdgesToHighlight([]);
     }, []);
 
     const onAppGroupUpdate = useCallback(
@@ -117,11 +120,12 @@ export const useGraph = () => {
         isLoading,
         selectedNode,
         setSelectedNode,
+        hoveredNodeId,
         onAppGroupUpdate,
         hoverNode,
         unHoverNode,
-        nodesToHightlight,
-        edgesToHightlight,
+        nodesToHighlight,
+        edgesToHighlight,
         selectedAppGroupId,
     };
 };

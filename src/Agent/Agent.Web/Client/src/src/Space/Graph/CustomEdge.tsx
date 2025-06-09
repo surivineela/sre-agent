@@ -10,9 +10,9 @@ import { getFriendlyEdgeLabel } from './Utility';
 export const CustomEdge = (props: EdgeProps<Edge<GraphEdge>>) => {
     const { id, label, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, ...rest } = props;
 
-    const { edgesToHightlight } = useContext(GraphContext);
+    const { edgesToHighlight } = useContext(GraphContext);
 
-    const { hightlightedEdge } = useGraphEdgeStyles();
+    const { highlightedEdge } = useGraphEdgeStyles();
 
     const [edgePath, labelX, labelY] = getBezierPath({
         sourceX,
@@ -29,7 +29,7 @@ export const CustomEdge = (props: EdgeProps<Edge<GraphEdge>>) => {
 
     return (
         <>
-            <CustomEdgeMarker id={id} color={edgesToHightlight.includes(id) ? tokens.colorBrandForegroundLinkHover : undefined} />
+            <CustomEdgeMarker id={id} color={edgesToHighlight.includes(id) ? tokens.colorBrandForegroundLinkHover : undefined} />
             <BaseEdge
                 label={displayLabel ? <FormattedMessage {...displayLabel} /> : undefined}
                 {...rest}
@@ -38,7 +38,7 @@ export const CustomEdge = (props: EdgeProps<Edge<GraphEdge>>) => {
                 id={id}
                 path={edgePath}
                 markerEnd={`url(#${id})`}
-                className={edgesToHightlight.includes(id) ? hightlightedEdge : undefined}
+                className={edgesToHighlight.includes(id) ? highlightedEdge : undefined}
             />
         </>
     );

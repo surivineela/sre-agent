@@ -33,15 +33,31 @@ export const useGraphNodeStyles = makeStyles({
         width: `${NodeSize.width}px`,
         height: `${NodeSize.height}px`,
         position: 'relative',
-        backgroundColor: tokens.colorNeutralBackground2,
-        borderRadius: '15px',
-        border: `1px solid`,
+        borderRadius: tokens.borderRadiusMedium,
+        boxShadow: tokens.shadow4,
+        gap: '8px',
     },
     appGroupCard: {
-        backgroundColor: tokens.colorBrandStroke2,
-    },
-    cardHightlight: {
         backgroundColor: tokens.colorBrandBackground2Hover,
+        '&:hover': {
+            backgroundColor: tokens.colorBrandBackground2Hover,
+        },
+    },
+    cardHighlighted: {
+        backgroundColor: tokens.colorNeutralBackground2,
+        boxShadow: tokens.shadow8,
+    },
+    cardHovered: {
+        backgroundColor: tokens.colorNeutralBackground2,
+        boxShadow: `${tokens.shadow16} !important`,
+    },
+    appGroupCardHovered: {
+        backgroundColor: tokens.colorBrandBackground2Hover,
+        boxShadow: `${tokens.shadow16} !important`,
+    },
+    cardSelected: {
+        boxShadow: tokens.shadow4,
+        border: `2px solid ${tokens.colorBrandStroke1}`,
     },
     header: {
         width: `calc(${NodeSize.width}px - 24px)`,
@@ -52,12 +68,12 @@ export const useGraphNodeStyles = makeStyles({
         width: `calc(${NodeSize.width}px - 76px)`,
     },
     description: {
-        color: tokens.colorNeutralForeground3,
+        color: `${tokens.colorNeutralForeground3} !important`,
     },
 });
 
 export const useGraphEdgeStyles = makeStyles({
-    hightlightedEdge: {
+    highlightedEdge: {
         stroke: tokens.colorBrandForegroundLinkHover,
     },
 });

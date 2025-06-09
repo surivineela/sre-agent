@@ -67,10 +67,11 @@ export type GraphEdge = {
 interface GraphContextProps {
     selectedNode?: GraphNode;
     setSelectedNode: (_?: GraphNode) => void;
+    hoveredNodeId?: string;
     hoverNode: (nodeId: string) => void;
     unHoverNode: () => void;
-    nodesToHightlight: string[];
-    edgesToHightlight: string[];
+    nodesToHighlight: string[];
+    edgesToHighlight: string[];
     selectedAppGroupId?: string;
 }
 
@@ -78,8 +79,8 @@ export const GraphContext = createContext<GraphContextProps>({
     setSelectedNode: (_?: GraphNode) => {},
     hoverNode: () => {},
     unHoverNode: () => {},
-    nodesToHightlight: [],
-    edgesToHightlight: [],
+    nodesToHighlight: [],
+    edgesToHighlight: [],
 });
 
 export class NodeSize {

@@ -28,11 +28,12 @@ const GraphContent = () => {
         onNodesChange,
         onEdgesChange,
         selectedNode,
+        hoveredNodeId,
         onAppGroupUpdate,
         hoverNode,
         unHoverNode,
-        nodesToHightlight,
-        edgesToHightlight,
+        nodesToHighlight,
+        edgesToHighlight,
         setSelectedNode,
         selectedAppGroupId,
     } = useGraph();
@@ -46,10 +47,11 @@ const GraphContent = () => {
             value={{
                 selectedNode,
                 setSelectedNode,
+                hoveredNodeId,
                 hoverNode,
                 unHoverNode,
-                nodesToHightlight,
-                edgesToHightlight,
+                nodesToHighlight,
+                edgesToHighlight,
                 selectedAppGroupId,
             }}
         >
