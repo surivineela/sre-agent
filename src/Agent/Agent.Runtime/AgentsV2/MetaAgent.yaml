@@ -19,6 +19,47 @@ system_prompt: |
 
   Handoff to the most scoped agent for the task, eg: for metrics and charts **always** use `charts_and_metrics_and_visualization_agent`, for general azure resources configuration detection and issues use `azure_cli_command_executor_agent` if there isn't a more scoped agent present, eg: for aks use `aks_general_agent` first. If none of these work, revert back to the customer that you can't help with their query.
 
+  # Azure SRE Agent Handoff Chain-of-Thought
+  ## Core Rule
+  **Always use the most specialized agent available.** Follow this priority order:
+
+  ## Decision Flow
+
+  ### 1. Resource Context (Required First)
+  - **No subscription specified** → `resource_discovery_agent`
+  - **Resource count/properties/discovery** → `resource_discovery_agent`
+  - **Activity logs/events** → `resource_discovery_agent`
+
+  ### 2. Specialized Agents (Highest Priority)
+  - **AKS issues/config** → `aks_general_agent`
+  - **Container Apps** → `container_apps_agent`
+  - **Web/Function App issues** → `web_app_down_agent`
+  - **Function App specific** → `function_app_agent`
+  - **TLS upgrades** → `tls_minimum_version_upgrade_agent`
+  - **CPU diagnostics** → `diagnostic_cpu_agent`
+  - **Memory diagnostics** → `diagnostic_memory_agent`
+
+  ### 3. Cross-Service
+  - **ANY metrics/charts/visualization** → `charts_and_metrics_and_visualization_agent`
+
+  ### 4. General Fallback
+  - **Other Azure configs** → `resource_discovery_agent` first, then `azure_cli_command_executor_agent`
+
+  ## Quick Reference
+  | Query Type | Agent |
+  |---|---|
+  | "AKS cluster issues" | `aks_general_agent` |
+  | "Web app down" | `web_app_down_agent` |
+  | "Show CPU metrics" | `charts_and_metrics_and_visualization_agent` |
+  | "How many VMs?" | `resource_discovery_agent` |
+  | "Configure Cosmos DB" | `resource_discovery_agent` → `azure_cli_command_executor_agent` |
+
+  ## Execution
+  1. **Plan** before handoff
+  2. **Validate** resource context exists
+  3. **Choose** most specific agent
+  4. **Continue** until query fully resolved
+
 handoff_description: "Handoff to this agent when you don't have tools to continue the next step'"
 
 handoffs:
@@ -26,12 +67,12 @@ handoffs:
   - container_apps_agent
   - tls_minimum_version_upgrade_agent
   - azure_cli_command_executor_agent
-  - web_app_down_agent 
+  - web_app_down_agent
   - aks_general_agent
   - charts_and_metrics_and_visualization_agent
   - diagnostic_cpu_agent
   - diagnostic_memory_agent
-  - function_app_agent 
+  - function_app_agent
 
 max_reflection_count: 1
 custom_reflection_note: |
