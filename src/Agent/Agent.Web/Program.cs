@@ -25,7 +25,6 @@ using Agent.Plugins.Implementation.DiagnosticsPlugin;
 using Agent.Prometheus.Services;
 using Agent.Runtime;
 using Agent.Runtime.Communication;
-using Agent.Runtime.ContextManagement;
 using Agent.Runtime.HelperAgents;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.MetaAgent;
@@ -319,7 +318,7 @@ public class Program
             .AddSingleton<IReasoningStep, ConnectedComponentsAnalysisStep>()
             .AddSingleton<IReasoningStep, LogQueryAnalysisStep>()
             .AddSingleton<IReasoningStep, MetricsAnalysisStep>()
-            .AddSingleton<IHypothesisGenerator,  HypothesisGenerator>()
+            .AddSingleton<IHypothesisGenerator, HypothesisGenerator>()
             .AddSingleton<PostToTeamsPluginDefinition>()
             .AddSingleton<DailyReportScanner>()
             .AddSingleton<AppServiceScanner>()
@@ -478,11 +477,6 @@ public class Program
         {
             builder.Services.AddSingleton(agentType);
         }
-
-        // agent context management
-        builder.Services.AddSingleton<AgentContextDispatchService>();
-        builder.Services.AddSingleton<AgentContextProcessingService>();
-        builder.Services.AddHostedService<InstanceLifetimeService>();
 
         // Kick off background processes
         if (!isFirstAgent)

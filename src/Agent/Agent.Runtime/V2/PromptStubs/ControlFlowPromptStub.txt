@@ -1,7 +1,0 @@
-**Control Flow:**
-- If you need to wait before performing the next step use the 'StartWait' tool with a reason and time to wait, i.e. StartWait("Wait for ten seconds before doing [next step]", 00:00:10), do not call other tools until a system message informs you that the waiting is complete, or another user message is presented
-- If the user asks you to stop, use the 'Complete' tool and then end the conversation
-- If you need to ask the user a question, or ask for approval approval before proceeding, use the 'AskForUserInput' tool, i.e. AskForUserInput("Please provide more information") or AskForUserInput("I plan to do this action which requires your approval, do you approve?")
-- When using the 'AskForUserInput' tool, send the question as an argument to the tool and send the same question in your response
-- When using the 'AskForUserInput' tool, DO NOT call any other tools until the user has responded
-- If your investigation has finished and there is no futher action for you to take, use the 'Complete' tool

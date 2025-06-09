@@ -1,14 +1,11 @@
-using System.Reflection;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
-using Agent.Logging;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Runtime.MetaAgent.Interfaces;
 using Agent.Runtime.SubAgents;
-using Agent.Runtime.V2;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
@@ -221,7 +218,7 @@ For every Azure SRE request, follow this pattern:
 - Enclose code or configuration examples in triple backticks.
 - Organize complex responses with headings (###).
 - Avoid tables, HTML tags, and unsupported formats.
-- IMPORTANT: Don't enclose markdown tables in ```markdown <Table> ``` - this *ruins* the formatting. 
+- IMPORTANT: Don't enclose markdown tables in ```markdown <Table> ``` - this *ruins* the formatting.
 - You must show a markdown link parser and renderer that correctly handles both inline text and reference-style links with proper URL validation and escaping
 
 ## Azure knowledge
@@ -410,8 +407,8 @@ $@"## Facts
             //AIFunctionFactory.Create(_appReliabilityPlugin.StartAppReliabilityAgent),
             //AIFunctionFactory.Create(_appServiceRemediationPlugin.ListAppServiceRemediationWorkflows),
             //AIFunctionFactory.Create(_appServiceRemediationPlugin.StartAppServiceRemediationAgent),
-            //AIFunctionFactory.Create(_containerAppsRemediationPlugin.ListContainerAppsRemediationWorkflows),
-            //AIFunctionFactory.Create(_containerAppsRemediationPlugin.StartContainerAppsRemediationAgent),
+            AIFunctionFactory.Create(_containerAppsRemediationPlugin.ListContainerAppsRemediationWorkflows),
+            AIFunctionFactory.Create(_containerAppsRemediationPlugin.StartContainerAppsRemediationAgent),
             AIFunctionFactory.Create(_kubernetesAgentPlugin.StartKubernetesAgent),
             AIFunctionFactory.Create(_kubernetesAgentPlugin.ListKubernetesAgentWorkflow),
             AIFunctionFactory.Create(_aksQaAgentPlugin.StartAksQaAgent),
@@ -495,22 +492,11 @@ $@"## Facts
             AIFunctionFactory.Create(searchPluginDefinition.SearchAsync)
         ];
 
-        if (!_instanceManagementSettings.ProcessingEnabled)
-        {
-            // TODO: just for testing the old version of this agent vs. new version
-            _aiTools.AddRange([
-                AIFunctionFactory.Create(_containerAppsRemediationPlugin.ListContainerAppsRemediationWorkflows),
-                AIFunctionFactory.Create(_containerAppsRemediationPlugin.StartContainerAppsRemediationAgent)
-            ]);
-        }
-
         var subAgentTools = SubAgentDiscovery.GetSubAgentTools(threadGuid, typeof(MetaAgent).Assembly, _serviceProvider);
         if (subAgentTools?.Count > 0)
         {
             _aiTools.AddRange(subAgentTools);
         }
-
-        _aiTools.AddRange(GetSubAgentV2Tools(threadGuid, context, typeof(MetaAgent).Assembly));
 
         _aiTools.AddRange(_mcpToolsRepository.GetAllFunctions());
         return _aiTools;
@@ -526,111 +512,5 @@ $@"## Facts
     {
         // TODO: remove as it is only needed for first party agents
         throw new NotImplementedException();
-    }
-
-    private List<AITool> GetSubAgentV2Tools(Guid threadGuid, AgentContext context, Assembly assembly)
-    {
-        List<AITool> subAgentAItools = [];
-
-        if (!_instanceManagementSettings.ProcessingEnabled)
-        {
-            return subAgentAItools;
-        }
-
-        // get subagents with input data
-        var subAgentWithInputPluginClasses = TypeReflectionHelpers.GetClassesDerivedFromGeneric(
-            assembly,
-            typeof(SubAgentV2Plugin<,>));
-
-        foreach (var type in subAgentWithInputPluginClasses)
-        {
-            try
-            {
-                // get the name of the start agent method from the type
-                var propertyName = nameof(ISubAgentDefinition.StartSubAgentMemberName);
-                var startSubAgentMemberNameProperty = type.GetProperty(propertyName, BindingFlags.Static | BindingFlags.Public);
-                if (startSubAgentMemberNameProperty is null)
-                {
-                    _log.LogInternalError("Property 'StartSubAgentMemberName' does not exist on type {PluginType}", type);
-                    continue;
-                }
-
-                var startSubAgentMethodName = startSubAgentMemberNameProperty.GetValue(null)?.ToString();
-
-                if (string.IsNullOrEmpty(startSubAgentMethodName))
-                {
-                    _log.LogInternalError("Property 'StartSubAgentMemberName' is null or empty on type {PluginType}", type);
-                    continue;
-                }
-
-                var instance = Activator.CreateInstance(type, _threadRepository, threadGuid, context);
-
-                if (instance is not null)
-                {
-                    var startSubAgent = type.GetMethod(startSubAgentMethodName, BindingFlags.Public | BindingFlags.Instance);
-
-                    if (startSubAgent is null)
-                    {
-                        _log.LogInternalError("Method '{StartSubAgentMethodName}' does not exist on type {PluginType}", startSubAgentMethodName, type);
-                        continue;
-                    }
-
-                    subAgentAItools.Add(AIFunctionFactory.Create(startSubAgent, instance));
-                }
-            }
-            catch (Exception e)
-            {
-                _log.LogInternalError(e, "Failed to add tools for plugin {PluginType}", type);
-            }
-        }
-
-        // get subagents without input data
-        var subAgentWithoutInputPluginClasses = TypeReflectionHelpers.GetClassesDerivedFromGeneric(
-            assembly,
-            typeof(SubAgentV2Plugin<>));
-
-        foreach (var type in subAgentWithoutInputPluginClasses)
-        {
-            try
-            {
-                // get the name of the start agent method from the type
-                var propertyName = nameof(ISubAgentDefinition.StartSubAgentMemberName);
-                var startSubAgentMemberNameProperty = type.GetProperty(propertyName, BindingFlags.Static | BindingFlags.Public);
-                if (startSubAgentMemberNameProperty is null)
-                {
-                    _log.LogInternalError("Property 'StartSubAgentMemberName' does not exist on type {PluginType}", type);
-                    continue;
-                }
-
-                var startSubAgentMethodName = startSubAgentMemberNameProperty.GetValue(null)?.ToString();
-
-                if (string.IsNullOrEmpty(startSubAgentMethodName))
-                {
-                    _log.LogInternalError("Property 'StartSubAgentMemberName' is null or empty on type {PluginType}", type);
-                    continue;
-                }
-
-                var instance = Activator.CreateInstance(type, _threadRepository, threadGuid, context);
-
-                if (instance is not null)
-                {
-                    var startSubAgent = type.GetMethod(startSubAgentMethodName, BindingFlags.Public | BindingFlags.Instance);
-
-                    if (startSubAgent is null)
-                    {
-                        _log.LogInternalError("Method '{StartSubAgentMethodName}' does not exist on type {PluginType}", startSubAgentMethodName, type);
-                        continue;
-                    }
-
-                    subAgentAItools.Add(AIFunctionFactory.Create(startSubAgent, instance));
-                }
-            }
-            catch (Exception e)
-            {
-                _log.LogInternalError(e, "Failed to add tools for plugin {PluginType}", type);
-            }
-        }
-
-        return subAgentAItools;
     }
 }
