@@ -271,6 +271,7 @@ public class Program
             .AddTransient<FunctionAppDeploymentChecksPluginDefinition>()
             .AddTransient<UserInteractionPluginDefinition>()
             .AddTransient<AgentControlFlowPluginDefinition>()
+            .AddTransient<APIManagementPluginDefinition>()
 
             .AddTransient<IMetaAgentContainerAppsRemediationPlugin, ContainerAppsRemediationPlugin>()
             .AddTransient<IMetaAgentManagedIdentityMigrationPlugin, ManagedIdentityMigrationPlugin>()
@@ -289,6 +290,7 @@ public class Program
             .AddTransient<IFunctionAppExecutionFailuresPlugin, FunctionAppExecutionFailuresPlugin>()
             .AddTransient<IAzureMonitorMetricsPlugin, AzureMonitorMetricsPlugin>()
             .AddTransient<IArmPlugin, ArmPlugin>()
+            .AddTransient<IAPIManagementPlugin, APIManagementPlugin>()
 
             //.AddSingleton<AppServiceRemediationAgentFactory>()
             .AddSingleton<KubernetesAgentFactory>()

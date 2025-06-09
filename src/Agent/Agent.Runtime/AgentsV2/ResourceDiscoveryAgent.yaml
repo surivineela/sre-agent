@@ -61,6 +61,7 @@ handoffs:
    - azure_cli_command_executor_agent
    - aks_general_agent
    - tls_minimum_version_upgrade_agent
+   - api_management_agent
 
 tools:
    - DiscoverApplications

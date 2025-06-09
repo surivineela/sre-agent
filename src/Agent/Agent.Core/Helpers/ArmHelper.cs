@@ -1462,7 +1462,8 @@ public class ArmHelper
 
                             if (category == "AppServiceHTTPLogs" ||
                                 category == "AppServiceConsoleLogs" ||
-                                category == "AppServicePlatformLogs")
+                                category == "AppServicePlatformLogs" ||
+                                category == "GatewayLogs")
                             {
                                 var endpoint = "https://api.loganalytics.io/v1" + workSpaceId.GetString()! + "/query?timespan=" + timeSpan;
 
@@ -2305,6 +2306,17 @@ public class ArmHelper
         {
             return $"[Exception encountered]: Failed to execute command: {ex.ToString()}";
         }
+    }
+
+    public async Task<string> GetResourceByURL(string requestUrl)
+    {
+        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+
+        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+        HttpResponseMessage responseMessage = await httpClient.SendAsync(request);
+
+        var result = await responseMessage.Content.ReadAsStringAsync();
+        return result;
     }
 
     #region Private Methods

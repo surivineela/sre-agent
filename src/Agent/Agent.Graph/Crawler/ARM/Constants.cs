@@ -30,11 +30,14 @@ public class Constants
     public const string AzureMonitorWorkspaceType = "Microsoft.Monitor/accounts";
     public const string KeyVaultType = "Microsoft.KeyVault/vaults";
     public const string ManagedDiskType = "Microsoft.Compute/disks";
+    public const string ApiManagementType = "Microsoft.ApiManagement/service";
 
     // New constants for App Service Web/Function Apps and App Service Plans.
     public const string AppServiceType = "Microsoft.Web/sites";
     public const string AppServicePlanType = "Microsoft.Web/serverFarms";
     public const string FunctionAppKind = "functionapp";
+
+    public const string ApplicationInsightsKind = "applicationInsights";
 
     // k8s
     // groups
