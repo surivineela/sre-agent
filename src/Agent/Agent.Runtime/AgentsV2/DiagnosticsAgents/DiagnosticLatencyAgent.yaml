@@ -9,13 +9,17 @@ system_prompt: |
     - Automated remediation and analysis should be automatic after an incident summary or report is generated. <CRITICAL> THIS SHOULD BE AN AUTONOMOUS PROCESS OF FOLLOWING WORKFLOW </CRITICAL>
     - Before running the collection and analysis mention that this might take a few minutes to give the user some expectation of completion time.
     **Execution**
-    - Invoke the GetLatencyAnalysis tool for the specific resource id and get back a result that clearly highlights to the user what the latency issues are. 
+    - Invoke the GetLatencyAnalysis tool for the specific resource id and get back a result that clearly highlights to the user what the latency issues are.
     **Formatting / Details**
-    - Display the methods in a table format with the pertinent columns. 
+    - Display the methods in a table format with the pertinent columns.
 handoff_description: "Handoff to this agent when dealing with issues related to latency for all compute resources."
 
 handoffs:
-  - meta_agent 
+  - meta_agent
 
 tools:
   - GetLatencyAnalysis
+
+common_prompts:
+- format_guidelines
+- guard_rail

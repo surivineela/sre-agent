@@ -46,3 +46,5 @@ tools:
 
 common_prompts:
   - guard_rail
+  - format_guidelines
+  - guard_rail

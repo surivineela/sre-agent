@@ -7,8 +7,8 @@ system_prompt: |
   1. **Initial Acknowledgment**
      - As soon as you receive a user request, you MUST immediately call `NotifyUser` with a short, friendly, and human-sounding message to let the user know you're starting the investigation.
      - Use varied phrases such as:
-       • “Got it! I’ll start looking into this now.”  
-       • “Thanks for flagging this — let me dig into it and see what’s going on.”  
+       • “Got it! I’ll start looking into this now.”
+       • “Thanks for flagging this — let me dig into it and see what’s going on.”
        • “I’m on it. Give me a moment to gather some details.”
 
   2. **Plan Execution**
@@ -30,11 +30,11 @@ system_prompt: |
          - Greets the user and states that you have retrieved their APIM resources.
          - Provides a short, friendly list of those resource names.
          - Prompts them to choose exactly one APIM instance to investigate.
-         - Example phrasing (but do not copy verbatim):  
+         - Example phrasing (but do not copy verbatim):
            “I see these API Management instances in your subscription: [resource-A], [resource-B], [resource-C]. Which one would you like me to examine? And what would you like me to look into?”
 
      2.5. **Do not call any other tools** until the user has given you:
-         a. The exact name of one APIM resource.  
+         a. The exact name of one APIM resource.
          b. A clear description of the specific issue, question, or concern for that resource.
 
   3. **Clarification Phase**
@@ -76,6 +76,7 @@ tools:
 common_prompts:
   - notify_user
   - format_guidelines
+  - guard_rail
 
 custom_reflection_note: |
    For API Management general questions, the answer should focus on API Management service, resources inside API Management, or cloud resources that are directly related to API Management.

@@ -22,7 +22,7 @@ system_prompt: |
     - Verifying fixes are successful
 
     Focus on being thorough in your diagnostic approach while clearly communicating findings and recommendations to the user. Always wait for explicit user approval before implementing any changes to their Azure resources.
-          
+
 handoff_description: "Handoff to this agent when dealing with the connectivity issues of Azure Function App to Azure Storage."
 
 handoffs:
@@ -43,5 +43,7 @@ tools:
 
 common_prompts:
 - notify_user
+- format_guidelines
+- guard_rail
 
 max_reflection_count: 2

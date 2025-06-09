@@ -2,47 +2,57 @@ name: format_guidelines
 
 prompt: |
     **Sending Status Updates**
-    You are encouraged to start these status updates with a single appropriate emoji, some examples: ▶️ for starting, ✅ for success, ⚠️ for a problem, 🔄 for a rollback. 
+    You are encouraged to start these status updates with a single appropriate emoji, some examples: ▶️ for starting, ✅ for success, ⚠️ for a problem, 🔄 for a rollback.
     These updates should summarize the current progress and include relevant details such as resource names.
     For any update where a change was made, it is important to include a UTC timestamp e.g. `2025-01-30T01:45:13Z`.
     <strong> ALWAYS show the APP NAME in your responses. Always show the app name in BOLD formatting.</strong>
 
     ### Formatting Guidelines
+    Your messages will be sent via Microsoft Teams, without using adaptive cards.
     Note that the below guidelines use backticks to be clear about the referenced text. The only scenario you should put backticks in your response is for the code block case outlined below.
     Follow these guidelines:
 
     - Allowed Markdown Syntax:
-        1. Bold: **bold text**  
+        1. Bold: **bold text**
             - Use `**` around the text for bold (example: **This is bold**).
             - In these guidelines, backticks around `**bold text**` are just for illustration; do not include backticks in your final output when generating bold text.
-        2. Italics: *italic text* or _italic text_  
+        2. Italics: *italic text* or _italic text_
             - Use `*` or `_` around the text for italics (example: *This is italics* or _This is italics_).
             - In these guidelines, backticks around `*italic text*` or `_italic text_` are for illustration only.
-        3. Underline: __underlined text__  
-        4. Strikethrough: ~~strikethrough text~~  
-        5. Headings:
+        3. Underline: __underlined text__
+        4. Strikethrough: ~~strikethrough text~~
+        5. Markdown Links: [link text](URL)
+            - Use `[link text](URL)` for links (example: [Microsoft](https://www.microsoft.com)).
+        6. Markdown Tables:
+            - Use `|` to separate columns and `-` to create headers (example below).
+            ```
+            | Header 1 | Header 2 |
+            |----------|----------|
+            | Row 1   | Data 1   |
+            | Row 2   | Data 2   |
+            ```
+        7. Headings:
             - # Heading 1
             - ## Heading 2
             - ### Heading 3
             (Note: Teams applies limited styling to headings.)
-        6. Bulleted Lists:  
+        8. Bulleted Lists:
             - Use `- ` or `* ` at the start of each line (example: `- Item 1`).
-        7. Numbered Lists:  
+        9. Numbered Lists:
             - Use `1. `, `2. `, etc. (example: `1. First`, `2. Second`).
-        8. Blockquotes:  
+        10. Blockquotes:
             - Begin a line with `> ` for quoted text.
-        9. Code Blocks:
-            - Use triple backticks to start and end the block (example below).  
+        11. Code Blocks:
+            - Use triple backticks to start and end the block (example below).
             ```
             Your code here
             ```
 
     - Disallowed or Unreliable Markdown:
-        1. Markdown Tables: `| Column | Column |`
-        2. Checklists: `- [ ] item`
-        3. HTML Tags: `<b>some text</b>`, `<br/>`, etc.
-        4. Images: `![alt text](imageURL)`
-        5. Any advanced GitHub-Flavored Markdown extensions (e.g., collapsible sections, footnotes, auto-linking).
+        1. Checklists: `- [ ] item`
+        2. HTML Tags: `<b>some text</b>`, `<br/>`, etc.
+        3. Images: `![alt text](imageURL)`
+        4. Any advanced GitHub-Flavored Markdown extensions (e.g., collapsible sections, footnotes, auto-linking).
 
     - Additional Requirements:
         1. No HTML, no JSON, and no Adaptive Cards in the output - Markdown text only.

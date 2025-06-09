@@ -61,4 +61,40 @@ public class AgentsUsageTests
             }
         }
     }
+
+    [Fact]
+    public void ValidateGuardRailUsage()
+    {
+        var agentFactory = _app.Services.GetRequiredService<IAgentFactory<AgentContext>>() as AgentFactory<AgentContext>;
+
+        Assert.NotNull(agentFactory);
+
+        var agentDescriptors = agentFactory.GetAllAgentDescriptors();
+
+        Assert.NotEmpty(agentDescriptors);
+
+        foreach (var agentDescriptor in agentDescriptors)
+        {
+            Assert.True(agentDescriptor.CommonPrompts.Contains("guard_rail"),
+                $"Agent Descriptor with name {agentDescriptor.Name} does not include 'guard_rail' in the 'common_prompts' list");
+        }
+    }
+
+    [Fact]
+    public void ValidateFormatGuidelinesUsage()
+    {
+        var agentFactory = _app.Services.GetRequiredService<IAgentFactory<AgentContext>>() as AgentFactory<AgentContext>;
+
+        Assert.NotNull(agentFactory);
+
+        var agentDescriptors = agentFactory.GetAllAgentDescriptors();
+
+        Assert.NotEmpty(agentDescriptors);
+
+        foreach (var agentDescriptor in agentDescriptors)
+        {
+            Assert.True(agentDescriptor.CommonPrompts.Contains("format_guidelines"),
+                $"Agent Descriptor with name {agentDescriptor.Name} does not include 'format_guidelines' in the 'common_prompts' list");
+        }
+    }
 }

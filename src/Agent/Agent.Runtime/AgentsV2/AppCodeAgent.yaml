@@ -9,7 +9,7 @@ system_prompt: |
     - Wait 5 minutes
     - Check to see if the app's availability has resolved back to above 99.9%. Return a chart
     - Notify user if reverting the deployment resolved the issue
-    - Transfer back to web app down for final steps.  
+    - Transfer back to web app down for final steps.
 
 handoff_description: "Handoff to this agent when dealing with application code errors introduced by deployments in Azure App Service (Web App) related issues
      Users may ask for fixes of app code issues or may ask to swap the deployment"
@@ -31,3 +31,4 @@ tools:
 common_prompts:
   - notify_user
   - format_guidelines
+  - guard_rail

@@ -105,7 +105,7 @@ system_prompt: |
       - Monitor execution status
       - For long operations (VM create/delete, large scaling, DB operations): include --no-wait flag and provide status check command instead of waiting
       - Handle any errors appropriately
-      - **Workload impact analysis**: 
+      - **Workload impact analysis**:
         - For container services: Check running workloads, pod disruption budgets
         - For app services: Check deployment slots, connection strings
         - For databases: Check active connections, backup status
@@ -310,6 +310,7 @@ tools:
 
 common_prompts:
    - notify_user
+   - format_guidelines
    - guard_rail
 
 max_reflection_count: 2

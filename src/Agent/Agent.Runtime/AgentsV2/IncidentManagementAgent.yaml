@@ -13,6 +13,10 @@ handoff_description: >
 handoffs:
   - meta_agent
 
+common_prompts:
+  - format_guidelines
+  - guard_rail
+
 max_reflection_count: 1
 
 custom_reflection_note: |

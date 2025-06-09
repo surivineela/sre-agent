@@ -37,31 +37,6 @@ namespace Agent.Tests.Unit.Framework
         }
 
         [Fact]
-        public void ToString_IncludesFormattingGuidelines_WhenSet()
-        {
-            var prompt = new PromptText("Test").WithFormattingGuidelines();
-
-            var result = prompt.ToString();
-
-            Assert.Contains("Formatting Guidelines", result);
-            Assert.Contains("Test", result);
-        }
-
-        [Fact]
-        public void ToString_IncludesAllSections_WhenBothOptionsSet()
-        {
-            var prompt = new PromptText("Test")
-                .WithHandoffInstructions()
-                .WithFormattingGuidelines();
-
-            var result = prompt.ToString();
-
-            Assert.Contains("System context", result);
-            Assert.Contains("Formatting Guidelines", result);
-            Assert.Contains("Test", result);
-        }
-
-        [Fact]
         public void ImplicitOperator_String_ReturnsPromptTextString()
         {
             PromptText prompt = new PromptText("abc");
@@ -105,15 +80,6 @@ namespace Agent.Tests.Unit.Framework
             prompt.WithHandoffInstructions();
 
             Assert.True(prompt.HasHandoffInstructions);
-        }
-
-        [Fact]
-        public void WithFormattingGuidelines_SetsProperty()
-        {
-            var prompt = new PromptText("abc");
-            prompt.WithFormattingGuidelines();
-
-            Assert.True(prompt.HasFormattingGuidelines);
         }
 
         [Fact]

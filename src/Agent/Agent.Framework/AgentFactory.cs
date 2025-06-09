@@ -111,8 +111,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         }
 
         agent.Instructions
-            .WithHandoffInstructions()
-            .WithFormattingGuidelines();
+            .WithHandoffInstructions();
 
         foreach (var commonPromptName in agentDescriptor.CommonPrompts)
         {

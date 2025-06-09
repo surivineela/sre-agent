@@ -88,4 +88,5 @@ tools:
 
 common_prompts:
    - notify_user
+   - format_guidelines
    - guard_rail

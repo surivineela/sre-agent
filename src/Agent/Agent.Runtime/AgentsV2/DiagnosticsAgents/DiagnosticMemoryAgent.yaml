@@ -1,4 +1,4 @@
-name: diagnostic_memory_agent 
+name: diagnostic_memory_agent
 
 system_prompt: |
     You are a specialized agent for diagnosing Memory Issues for all compute resource types including Container Apps, Web Apps and Azure Kubernetes Service Apps. Your primary role is to present users with a comprehensive analysis of the Memory usage of their application using memory dump analysis.
@@ -55,7 +55,7 @@ handoffs:
   - meta_agent
 
 tools:
-  - GetMemoryAnalysis 
+  - GetMemoryAnalysis
   - PlotBarChart
   - NotifyUser
 

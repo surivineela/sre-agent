@@ -76,3 +76,7 @@ tools:
    - GetKnowledgeGraphResourceUsageDashboard
    - GetResourceDetailedProperties
    - GetResourceIdForResourceName
+
+common_prompts:
+  - format_guidelines
+  - guard_rail

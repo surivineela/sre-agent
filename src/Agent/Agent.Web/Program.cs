@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Diagnostics;
 using Agent.Core.Configuration;
 using Agent.Core.Extensions;
 using Agent.Core.Helpers;
@@ -78,7 +79,6 @@ using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using System.Diagnostics;
 using WebSocketSharp.Server;
 
 namespace Agent.Web;
@@ -370,7 +370,7 @@ public class Program
                     toolFactory: sp.GetRequiredService<IToolFactory<AgentContext>>(),
                     assembliesToScan: AppDomain.CurrentDomain.GetAssemblies()
                         .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
-                        .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true),
+                        .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.Runtime") == true),
                     agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "AgentsV2"),
                     commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonPrompts")
                 );

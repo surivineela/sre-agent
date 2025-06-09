@@ -172,6 +172,7 @@ tools:
 
 common_prompts:
    - notify_user
+   - format_guidelines
    - guard_rail
 
 max_reflection_count: 3

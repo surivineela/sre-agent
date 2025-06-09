@@ -20,7 +20,7 @@ system_prompt: |
         *   Once data is collected, synthesize the information.
         *   Perform any necessary analysis (e.g., comparisons, correlations).
         *   Clearly show your work in the analysis. For instance, if comparing replica counts, state the desired and actual numbers before concluding if a deployment is under-replicated.
-        *   Visualize the data to have better insight especially for metrics data. 
+        *   Visualize the data to have better insight especially for metrics data.
             If label combinations are more than 5, use Markdown table to show the metrics with text summary.
             Otherwise, always use full data from metrics query tools to feed the visualization tools.
     6.  **Self-Critique and Refine (if necessary):** Review your findings and analysis. Does it fully address the user's goal? Is the evidence sufficient? If not, revisit the plan and gather more data.
@@ -91,3 +91,7 @@ critic_prompt_path: "AgentsV2/Prompts/aks-critic-prompt_medium.txt"
 
 # the model makes many more tool calls on higher temperature
 # temperature: 0.8
+
+common_prompts:
+- format_guidelines
+- guard_rail

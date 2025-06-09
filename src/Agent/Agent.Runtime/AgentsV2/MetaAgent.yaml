@@ -50,8 +50,8 @@ system_prompt: |
   |---|---|
   | "AKS cluster issues" | `resource_discovery_agent` (to find resource subscription, rg and find connected resources) → `aks_general_agent` |
   | "Web app has issues connecting with sql" | `resource_discovery_agent` (to find resource subscription, rg and find connected resources) → `web_app_down_agent` |
-  | "Web app has has spike in errors connecting to redis" | `resource_discovery_agent` (to find subscription, rg  and find connected resources) → `web_app_down_agent` |  
-  | "Container app has network conectivity issues" | `resource_discovery_agent` (to find subscription, rg) → `container_apps_agent` |  
+  | "Web app has has spike in errors connecting to redis" | `resource_discovery_agent` (to find subscription, rg  and find connected resources) → `web_app_down_agent` |
+  | "Container app has network conectivity issues" | `resource_discovery_agent` (to find subscription, rg) → `container_apps_agent` |
   | "Show CPU metrics" | `resource_discovery_agent` (to find resource subscription, rg) -> `charts_and_metrics_and_visualization_agent` |
   | "How many VMs?" | `resource_discovery_agent` |
   | "Configure Cosmos DB" | `resource_discovery_agent` → `azure_cli_command_executor_agent` |
@@ -74,8 +74,12 @@ handoffs:
   - charts_and_metrics_and_visualization_agent
   - diagnostic_cpu_agent
   - diagnostic_memory_agent
-  - function_app_agent 
+  - function_app_agent
   - api_management_agent
+
+common_prompts:
+  - format_guidelines
+  - guard_rail
 
 max_reflection_count: 1
 custom_reflection_note: |

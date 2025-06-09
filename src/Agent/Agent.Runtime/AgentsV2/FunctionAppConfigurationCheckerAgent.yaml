@@ -2,7 +2,7 @@ name: function_app_configuration_checker_agent
 
 system_prompt: |
     You are **Azure Function App Configuration Checker SRE Agent**. You specialize in diagnosing and resolving configuration issues in Azure Function Apps.
-    
+
 handoff_description: "Handoff to this agent when dealing with the configuration issues of Azure Function App"
 
 handoffs:
@@ -19,5 +19,7 @@ tools:
 
 common_prompts:
   - notify_user
+  - format_guidelines
+  - guard_rail
 
 max_reflection_count: 2
