@@ -6,9 +6,9 @@ using System.ComponentModel.DataAnnotations;
 using System.Text;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
-using Agent.Data.DataModels;
-using Agent.Data.Repositories;
+using Agent.Core.Services;
 using Agent.Logging;
+using Agent.Runtime.SubAgents.AzMonitorAlertAgent;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.AI;
 using Newtonsoft.Json;
@@ -25,16 +25,20 @@ public class IncidentWebhookController : ControllerBase
     private readonly IThreadRepository _repository;
     private readonly IChatClient _chatClient;
     private readonly ILogger<IncidentWebhookController> _logger;
+    private readonly AzMonitorAlertScanner _azMonitorAlertScanner;
+
 
     public IncidentWebhookController(
         IAgentInboundCommunicationService inboundCommunicationService,
         IThreadRepository repository,
         IChatClient chatClient,
+        AzMonitorAlertScanner azMonitorAlertScanner,
         ILogger<IncidentWebhookController> logger)
     {
         _inboundCommunicationService = inboundCommunicationService;
         _repository = repository;
         _chatClient = chatClient;
+        _azMonitorAlertScanner = azMonitorAlertScanner;
         _logger = logger;
     }
 
@@ -66,11 +70,13 @@ public class IncidentWebhookController : ControllerBase
         }
     }
 
+#if DEBUG
     [HttpPost("azmonitor")]
-    public async Task<IActionResult> AzMonitorAlertsWebhook([FromBody] AzMonitorAlertRequest azMonitorAlertRequest)
+    public async Task AzMonitorAlertsWebhook([FromBody] AlertItem alertItem)
     {
-        throw new NotImplementedException();
+        await _azMonitorAlertScanner.ProcessAlertAsync(alertItem, CancellationToken.None);
     }
+#endif
 
     private async Task<Thread> CreateIncidentThread(PagerDutyRequest request)
     {

@@ -16,7 +16,7 @@ using Microsoft.Extensions.Logging;
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 using Thread = Agent.Core.Models.Api.v1.Thread;
 
-namespace Agent.Runtime.Services;
+namespace Agent.Runtime.Services.AzMonitorAlertInvestigationService;
 
 public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationService
 {
@@ -67,11 +67,11 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
 
             var agentContext = agentContexts.First();
 
-            string alertDetails = GetAlertInfoAsPrompt(alert);
+            var alertDetails = GetAlertInfoAsPrompt(alert);
 
             // Custom prompt for analyzing activity logs
-            string activityLogInstructions = @"Review these activity logs and identify:
-                                            - Configuration changes closely preceding the alert
+            var activityLogInstructions = @"Review these activity logs and identify:
+                                            - Configuration changes directly preceding the alert
                                             - Administrative actions with timestamps that correlate with the issue
                                             - Deployments or updates that could have introduced issues and happened closely preceding the alert
                                             - Evaluate the correlation of each activity based on timeline. The closer to the alert trigger time, the more likely it's correlated
@@ -79,12 +79,12 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
                                             - Focus on WRITE actions, e.g., Create, Update.
                                             - Ignore routine operations unrelated to the issue";
 
-            string promptWithPlaceholders = ChainPrompt
+            var promptWithPlaceholders = ChainPrompt
                 .Replace("{{AlertDetails}}", alertDetails)
                 .Replace("{{ContentAnalysisInstructions}}", activityLogInstructions)
                 .Replace("{{ContentToAnalyze}}", activityLogSummary);
 
-            string llmSummary = await SummarizeWithLLM(promptWithPlaceholders);
+            var llmSummary = await SummarizeWithLLM(promptWithPlaceholders);
 
             await _repository.CreateReasoningMessageAsync(new ReasoningMessage(
                         Guid.NewGuid(),
@@ -152,7 +152,7 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
                 }
             }
 
-            string healthAnalysisInstructions = @"Analyze health data for this Azure resource and its connected components:
+            var healthAnalysisInstructions = @"Analyze health data for this Azure resource and its connected components:
 
 1. Identify specific metric deviations in the primary resource that match the alert condition
 2. Flag any connected components showing errors/degradation (CPU, memory, availability)
@@ -165,10 +165,10 @@ Important:
 - Quantify the deviation where possible (e.g., '95% CPU vs normal 60%')";
 
 
-            string alertDetails = GetAlertInfoAsPrompt(alert);
+            var alertDetails = GetAlertInfoAsPrompt(alert);
 
 
-            string healthPromptWithPlaceholders = ChainPrompt
+            var healthPromptWithPlaceholders = ChainPrompt
                 .Replace("{{AlertDetails}}", alertDetails)
                 .Replace("{{ContentAnalysisInstructions}}", healthAnalysisInstructions)
                 .Replace("{{ContentToAnalyze}}", healthSummary.ToString());
@@ -219,9 +219,9 @@ Important:
                     return "Error: No agent context found for thread. Continuing investigation using other data sources.";
                 }
 
-                string alertDetailsForAppHealth = GetAlertInfoAsPrompt(alert);
+                var alertDetailsForAppHealth = GetAlertInfoAsPrompt(alert);
 
-                string appHealthAnalysisInstructions = @"Analyze this health information focusing ONLY on:
+                var appHealthAnalysisInstructions = @"Analyze this health information focusing ONLY on:
                     - Specific metrics showing deviation from baseline with exact values
                     - Critical performance bottlenecks with quantifiable impact
                     - Direct correlation between health patterns and the alert condition
@@ -242,7 +242,7 @@ Important:
                      
                     Avoid general observations. Include specific times, durations, and metric values.";
 
-                string appHealthPromptWithPlaceholders = ChainPrompt
+                var appHealthPromptWithPlaceholders = ChainPrompt
                     .Replace("{{AlertDetails}}", alertDetailsForAppHealth)
                     .Replace("{{ContentAnalysisInstructions}}", appHealthAnalysisInstructions)
                     .Replace("{{ContentToAnalyze}}", appHealthInfo);
@@ -276,7 +276,7 @@ Important:
 
     public async Task<string> AnalyzeLogQueries(AlertItem alert, Thread alertThread)
     {
-        string defaultMessage = "Unable to analyze log queries! Continuing with other investigation methods.";
+        var defaultMessage = "Unable to analyze log queries! Continuing with other investigation methods.";
         try
         {
             //string title = "Examining Log Analytics queries and correlating results with alert patterns";
@@ -285,7 +285,7 @@ Important:
             var alertRule = essentials.AlertRule;
             var targetResource = essentials.TargetResource;
             var resourceIdentifier = new ResourceIdentifier(targetResource);
-            string subscriptionId = resourceIdentifier.SubscriptionId;
+            var subscriptionId = resourceIdentifier.SubscriptionId;
 
             if (string.IsNullOrEmpty(subscriptionId))
             {
@@ -309,7 +309,7 @@ Important:
             // Prepare a summary of queries to pass to the LLM
             var querySummaries = savedQueries.Select(q => new
             {
-                Id = q.Id,
+                q.Id,
                 Name = q.Properties?.DisplayName ?? "Unnamed Query",
                 Description = q.Properties?.Description ?? "No description",
                 Body = q.Properties?.Body ?? "No query body",
@@ -317,12 +317,12 @@ Important:
             }).ToList();
 
             // Ask the LLM to identify relevant queries
-            string alertDetails = GetAlertInfoAsPrompt(alert);
+            var alertDetails = GetAlertInfoAsPrompt(alert);
 
-            string queriesInfo = JsonSerializer.Serialize(querySummaries);
+            var queriesInfo = JsonSerializer.Serialize(querySummaries);
 
             // Create the prompt for the LLM
-            string relevantQueriesPrompt = $@"
+            var relevantQueriesPrompt = $@"
                 You are an Azure SRE Agent investigating an alert. Your task is to identify saved queries that might help understand this alert.
 
                 # Alert Details
@@ -426,12 +426,12 @@ Important:
             }
 
             // Create the analysis prompt
-            string queryResultsJson = JsonSerializer.Serialize(queryResults);
+            var queryResultsJson = JsonSerializer.Serialize(queryResults);
 
-            string alertDetailsForLogQueries = GetAlertInfoAsPrompt(alert);
+            var alertDetailsForLogQueries = GetAlertInfoAsPrompt(alert);
 
             // Custom instructions for log query analysis
-            string logQueryAnalysisInstructions = @"Analyze these query results in relation to the alert:
+            var logQueryAnalysisInstructions = @"Analyze these query results in relation to the alert:
 1. Identify log entries that directly explain the alert (errors, exceptions)
 2. Report specific metric values/thresholds that were exceeded
 3. Note exact timestamps of relevant events relative to the alert
@@ -441,7 +441,7 @@ Include query names when referencing results.
 DO NOT suggest generic root causes without specific evidence.
 ONLY mention findings directly relevant to this alert condition.";
 
-            string queryPromptWithPlaceholders = ChainPrompt
+            var queryPromptWithPlaceholders = ChainPrompt
                 .Replace("{{AlertDetails}}", alertDetailsForLogQueries)
                 .Replace("{{ContentAnalysisInstructions}}", logQueryAnalysisInstructions)
                 .Replace("{{ContentToAnalyze}}", queryResultsJson);

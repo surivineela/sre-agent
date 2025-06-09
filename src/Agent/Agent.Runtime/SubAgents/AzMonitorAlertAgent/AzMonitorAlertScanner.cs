@@ -16,6 +16,7 @@ using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Data.DataModels;
 using Agent.Logging;
 using Agent.Plugins;
+using Agent.Runtime.Interfaces;
 using Agent.Runtime.MetaAgent.Interfaces;
 using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents.ContainerAppsRemediation;
@@ -38,6 +39,7 @@ public class AzMonitorAlertScanner
     private readonly IThreadRepository _repository;
     private readonly IChatClient _chatClient;
     private readonly IAzMonitorAlertService _azMonitorAlertService;
+    private readonly IInvestigationOrchestrator _investigationOrchestrator;
     private readonly Container _dbContainer;
     private readonly IGraphDatabaseClient _graphDbClient;
     private readonly ILogQueryService _logQueryService;
@@ -58,6 +60,7 @@ public class AzMonitorAlertScanner
         IGraphDatabaseClient graphDatabaseClient,
         ILogQueryService logQueryService,
         IAzMonitorAlertInvestigationService alertInvestigationService,
+        IInvestigationOrchestrator investigationOrchestrator,
         ContainerAppsRemediationAgentFactory containerAppsRemediationAgentFactory,
         DurableTaskClient durableTaskClient,
         IAgentsFactory agentsFactory,
@@ -76,6 +79,7 @@ public class AzMonitorAlertScanner
         _graphDbClient = graphDatabaseClient;
         _logQueryService = logQueryService;
         _azMonitorInvestigationService = alertInvestigationService;
+        _investigationOrchestrator = investigationOrchestrator;
 
         _containerAppsRemediationAgentFactory = containerAppsRemediationAgentFactory;
         _durableTaskClient = durableTaskClient;
@@ -143,8 +147,7 @@ public class AzMonitorAlertScanner
             // Create incident thread
             var (thread, agentContext) = await CreateIncidentThread(alert);
 
-            // Start investigating workflow
-            var investigationSummary = await StartInvestigationFlow(alert, thread);
+            var investigationResult = await _investigationOrchestrator.InvestigateAlertAsync(alert, thread);
 
             // Disable reasoning message for now
             //await _repository.CreateReasoningMessageAsync(new ReasoningMessage(
@@ -165,86 +168,15 @@ public class AzMonitorAlertScanner
 
             string subAgentPrompt = $"An Azure Monitor Alert was fired with the following details: {alertInfo}.\n Based on the alert details start the remediation flow with the appropriate subagent. Be as autonomous as possible without asking for permission to take actions.";
 
-            // Trigger Container app orchestration. Temp workaround to force container app orchestration
-            // TODO: Refactor to handle different resource types
-            if (resourceType != null && resourceType.Contains("containerapps"))
-            {
-                // Start the container app orchestration
-                var instanceId = await _containerAppsRemediationAgentFactory.StartOrchestration(subAgentPrompt, agentContext.ThreadId);
-
-                _logger.LogInternalInformation("Started container app remediation agent with instance ID: {InstanceId}", instanceId);
-
-                // Wait for completion or handle timeout
-                try
-                {
-                    using (var timeoutCts = new CancellationTokenSource(TimeSpan.FromHours(1))) // 1 hour timeout
-                    using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken))
-                    {
-                        await _durableTaskClient.WaitForInstanceCompletionAsync(instanceId, linkedCts.Token);
-                        _logger.LogInternalInformation("Container App Remediation Flow finished executing.");
-                    }
-                }
-                catch (OperationCanceledException)
-                {
-                    if (cancellationToken.IsCancellationRequested)
-                    {
-                        _logger.LogInternalWarning("Container App remediation agent was cancelled.");
-                    }
-                    else
-                    {
-                        _logger.LogInternalWarning("Container App remediation agent timed out.");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogInternalError(ex, "Error waiting for Container App remediation agent: {Message}", ex.Message);
-                }
-            }
-            else if (resourceType != null && (resourceType.ToLower().Contains("sites") || resourceType.ToLower().Contains("slot")))
-            {
-                // Start the container app orchestration
-                var instanceId = await _webAppDownAgentFactory.StartOrchestration(subAgentPrompt, agentContext.ThreadId);
-
-                _logger.LogInternalInformation("Started web app remediation agent with instance ID: {InstanceId}", instanceId);
-
-                try
-                {
-                    using (var timeoutCts = new CancellationTokenSource(TimeSpan.FromHours(1))) // 1 hour timeout
-                    using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken))
-                    {
-                        await _durableTaskClient.WaitForInstanceCompletionAsync(instanceId, linkedCts.Token);
-                        _logger.LogInternalInformation("Web App Remediation Flow finished executing.");
-                    }
-                }
-                catch (OperationCanceledException)
-                {
-                    if (cancellationToken.IsCancellationRequested)
-                    {
-                        _logger.LogInternalWarning("Web App remediation agent was cancelled.");
-                    }
-                    else
-                    {
-                        _logger.LogInternalWarning("Web App remediation agent timed out.");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogInternalError(ex, "Error waiting for Web App remediation agent: {Message}", ex.Message);
-                }
-            }
-            else // all other resource types
-            {
-                // Signal the agent to start investigating with all the context summaries
-                await _inboundCommunicationService.ProcessAlertMessageAsync(new ThreadMessage(
+            await _inboundCommunicationService.ProcessAlertMessageAsync(new ThreadMessage(
                    ThreadId: thread.Id,
                    AgentContextId: agentContext.Id,
                    MessageId: thread.StartMessage.Id,
-                   Message: $"I've completed an initial investigation of this alert with the following hypotheses and findings: {investigationSummary}\n\nPlease validate these hypotheses by checking the supporting evidence. If the hypotheses seem incomplete or insufficient, conduct additional targeted investigation focusing on metrics, logs, and recent changes. Your goal is to either confirm one of these hypotheses with high confidence or discover the actual root cause if it differs from what I've identified. Based on the initial findings, find an appropriate subagent to handle the remediation. Be as autonomous as possible without asking for permission to take actions.",
+                   Message: $"An automated investigation has been completed for this alert with the following hypotheses and findings: {investigationResult.Summary}\n\nPlease validate these hypotheses by checking the supporting evidence. If the hypotheses seem incomplete or insufficient, conduct additional targeted investigation focusing on metrics, logs, and recent changes. Your goal is to either confirm one of these hypotheses with high confidence or discover the actual root cause if it differs from what was identified by the automated analysis. Based on the initial findings, find an appropriate subagent to handle the remediation. Be as autonomous as possible without asking for permission to take actions.",
                    UserId: "incident-system",
                    DisplayName: "Azure Monitor Investigation Summary",
                    Timestamp: DateTime.UtcNow
                ));
-            }
         }
         catch (Exception ex)
         {
@@ -377,7 +309,7 @@ Investigation Workflow Template:
             Step N+1 - Termination
             When confident:
             - Thought: Evidence strongly supports Hypothesis B and rules out others.
-            - Final answer - Use “Summary:” heading, covering:
+            - Final answer - Use Summary: heading, covering:
                 1. Leading hypothesis & supporting facts
                 2. Ruled-out hypotheses & why
                 3. Impacted components
