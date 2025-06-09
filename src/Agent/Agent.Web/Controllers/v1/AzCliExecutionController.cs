@@ -7,7 +7,9 @@ using Agent.Logging;
 using Agent.Plugins;
 using Agent.Runtime.Reasoning;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.AI;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
 
 namespace Agent.Web.Controllers.v1
 {
@@ -147,13 +149,16 @@ namespace Agent.Web.Controllers.v1
                             await _threadRepository.UpdateAzCliExecutionAsync(threadGuid, execution);
                             if (_coreSettings.UseAgentFramework && agentContext != null)
                             {
-                                await _reasoningLoopManager.AppendNewMessageAsync(agentContext, new Microsoft.Extensions.AI.ChatMessage()
+                                var functionCall = !string.IsNullOrEmpty(execution.OriginalFunctionCall) ? JsonSerializer.Deserialize<FunctionCallContent>(execution.OriginalFunctionCall) : null;
+                                await _reasoningLoopManager.AppendFunctionCallMessagesAsync(agentContext, new List<Microsoft.Extensions.AI.ChatMessage>
                                 {
-                                    Role = Microsoft.Extensions.AI.ChatRole.User,
-                                    Contents = new List<Microsoft.Extensions.AI.AIContent>
+                                    new Microsoft.Extensions.AI.ChatMessage(Microsoft.Extensions.AI.ChatRole.Assistant,
+                                        new List<Microsoft.Extensions.AI.AIContent>{ functionCall}),
+                                    new Microsoft.Extensions.AI.ChatMessage(Microsoft.Extensions.AI.ChatRole.Tool,
+                                    new List<Microsoft.Extensions.AI.AIContent>
                                     {
-                                        new Microsoft.Extensions.AI.TextContent($"Az CLI Execution completed successfully. Command: {execution.Command}, Result: {output}. You SHOULD NOT re-run the this same command (by again calling the RunAzCliWriteCommand tool with same command as the argument) as it has already run, and You should now continue to Notify the user about the results of the command and continue to the verification step")
-                                    }
+                                        new Microsoft.Extensions.AI.FunctionResultContent(functionCall?.CallId, output)
+                                    })
                                 });
                             }
                         }
@@ -171,13 +176,16 @@ namespace Agent.Web.Controllers.v1
 
                             if (_coreSettings.UseAgentFramework && agentContext != null)
                             {
-                                await _reasoningLoopManager.AppendNewMessageAsync(agentContext, new Microsoft.Extensions.AI.ChatMessage()
+                                var functionCall = !string.IsNullOrEmpty(execution.OriginalFunctionCall) ? JsonSerializer.Deserialize<FunctionCallContent>(execution.OriginalFunctionCall) : null;
+                                await _reasoningLoopManager.AppendFunctionCallMessagesAsync(agentContext, new List<Microsoft.Extensions.AI.ChatMessage>
                                 {
-                                    Role = Microsoft.Extensions.AI.ChatRole.Assistant,
-                                    Contents = new List<Microsoft.Extensions.AI.AIContent>
+                                    new Microsoft.Extensions.AI.ChatMessage(Microsoft.Extensions.AI.ChatRole.Assistant,
+                                        new List<Microsoft.Extensions.AI.AIContent>{ functionCall}),
+                                    new Microsoft.Extensions.AI.ChatMessage(Microsoft.Extensions.AI.ChatRole.Tool,
+                                    new List<Microsoft.Extensions.AI.AIContent>
                                     {
-                                        new Microsoft.Extensions.AI.TextContent($"Execution Failed: {execution.Command}, Result: {ex.Message}. I would now continue to Notify the user about the results of the command")
-                                    }
+                                        new Microsoft.Extensions.AI.FunctionResultContent(functionCall?.CallId, $"Execution Failed: {execution.Command}, Result: {ex.Message}. I would now continue to Notify the user about the results of the command")
+                                    })
                                 });
                             }
 

@@ -12,6 +12,7 @@ namespace Agent.Runtime.Reasoning;
 public interface IReasoningLoopManager
 {
     Task AppendNewMessageAsync(AgentContext context, ChatMessage msg, CancellationToken cancellationToken = default);
+    Task AppendFunctionCallMessagesAsync(AgentContext context, List<ChatMessage> msgs, CancellationToken cancellationToken = default);
     IAsyncEnumerable<RunResult<AgentContext>> AppendNewMessageStreamingAsync(AgentContext context, ChatMessage msg, CancellationToken cancellationToken = default);
     Task<IEnumerable<ChatMessage>> ExportChatHistory(AgentContext agentContext, CancellationToken token = default);
     Task NotifyApprovalDecisionAsync(AgentContext context, Approval approval, CancellationToken cancellationToken = default);
@@ -33,11 +34,17 @@ public class ReasoningLoopManager : IReasoningLoopManager
         await loop.AppendNewUserMessageAsync(msg, cancellationToken);
     }
 
+    public async Task AppendFunctionCallMessagesAsync(AgentContext context, List<ChatMessage> msgs, CancellationToken cancellationToken = default)
+    {
+        var loop = await GetOrCreateReasoningLoopAsync(context);
+        await loop.AppendFunctionCallMessagesAsync(msgs, cancellationToken);
+    }
+
     public async IAsyncEnumerable<RunResult<AgentContext>> AppendNewMessageStreamingAsync(AgentContext context, ChatMessage msg, CancellationToken cancellationToken = default)
     {
         var loop = await GetOrCreateReasoningLoopAsync(context);
         var results = loop.AppendNewUserMessageStreamAsync(msg, cancellationToken);
-        await foreach(var result in results.WithCancellation(cancellationToken))
+        await foreach (var result in results.WithCancellation(cancellationToken))
         {
             yield return result;
         }

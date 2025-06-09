@@ -30,3 +30,13 @@ public class ReasoningLoopApprovalMessage : ReasoningLoopMessage
         Approval = approval;
     }
 }
+
+public class ReasoningLoopFunctionCall : ReasoningLoopMessage
+{
+    public List<ChatMessage> Messages { get; }
+
+    public ReasoningLoopFunctionCall(List<ChatMessage> messages)
+    {
+        Messages = messages;
+    }
+}

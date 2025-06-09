@@ -349,11 +349,11 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
         [Description(
             @"Provides help information about kubectl commands and resources.
             Used whenever user needs guidance on using kubectl commands or understanding Kubernetes resources.
-            eg: 'How do I use kubectl get pods?', 'What options are available for kubectl describe?'")]
+            eg: 'How do I use kubectl get pods?', 'What options are available for kubectl describe?'.")]
         [AgentTool(ToolMode.Auto)]
         public async Task<string> RunKubectlCommandHelpAsync(
             [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
-            [Description("The kubectl command or resource to get help for, e.g. 'get', 'describe pod', 'create deployment'")] string command)
+            [Description("Expected kubectl command input format example: 'get', 'describe pod', 'create deployment', etc. The full command will be composed with 'kubectl' prefix and ''--help' suffix.")] string command)
         {
             return await _kubePlugin.RunKubectlCommandHelpAsync(AKSClusterResourceId, command);
         }

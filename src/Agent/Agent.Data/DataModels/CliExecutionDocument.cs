@@ -1,4 +1,6 @@
 using Agent.Core.Models.Api.v1;
+using Microsoft.Extensions.AI;
+using System.Text.Json;
 
 namespace Agent.Data.DataModels
 {
@@ -8,6 +10,7 @@ namespace Agent.Data.DataModels
         string Command,
         string Description,
         AzCliExecutionStatus Status,
+        string? OriginalFunctionCall,
         string? Output,
         string? Error,
         DateTime CreatedTimestamp,
@@ -29,6 +32,7 @@ namespace Agent.Data.DataModels
                 execution.Command,
                 execution.Description,
                 execution.Status,
+                execution.OriginalFunctionCall,
                 execution.Output,
                 execution.Error,
                 execution.CreatedTimestamp,
@@ -48,6 +52,7 @@ namespace Agent.Data.DataModels
                 Command,
                 Description,
                 Status,
+                OriginalFunctionCall,
                 Output,
                 Error,
                 CreatedTimestamp,

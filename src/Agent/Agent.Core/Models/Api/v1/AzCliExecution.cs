@@ -1,3 +1,5 @@
+using Microsoft.Extensions.AI;
+
 namespace Agent.Core.Models.Api.v1;
 
 public record AzCliExecution(
@@ -5,6 +7,7 @@ public record AzCliExecution(
     string Command,
     string Description,
     AzCliExecutionStatus Status,
+    string? OriginalFunctionCall,
     string? Output,
     string? Error,
     DateTime CreatedTimestamp,

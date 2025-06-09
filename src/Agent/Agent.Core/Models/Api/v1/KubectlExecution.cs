@@ -1,3 +1,5 @@
+using Microsoft.Extensions.AI;
+
 namespace Agent.Core.Models.Api.v1;
 
 public record KubectlExecution(
@@ -7,6 +9,7 @@ public record KubectlExecution(
     string Description,
     KubectlExecutionStatus Status,
     string ClusterResourceId,
+    string? OriginalFunctionCall,
     string? Output,
     string? Error,
     DateTime CreatedTimestamp,

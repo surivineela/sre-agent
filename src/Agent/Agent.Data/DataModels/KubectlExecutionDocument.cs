@@ -1,4 +1,6 @@
 using Agent.Core.Models.Api.v1;
+using Microsoft.Extensions.AI;
+using System.Text.Json;
 
 namespace Agent.Data.DataModels
 {
@@ -10,6 +12,7 @@ namespace Agent.Data.DataModels
         string Description,
         KubectlExecutionStatus Status,
         string ClusterResourceId,
+        string? OriginalFunctionCall,
         string? Output,
         string? Error,
         DateTime CreatedTimestamp,
@@ -33,6 +36,7 @@ namespace Agent.Data.DataModels
                 execution.Description,
                 execution.Status,
                 execution.ClusterResourceId,
+                execution.OriginalFunctionCall,
                 execution.Output,
                 execution.Error,
                 execution.CreatedTimestamp,
@@ -54,6 +58,7 @@ namespace Agent.Data.DataModels
                 Description,
                 Status,
                 ClusterResourceId,
+                OriginalFunctionCall,
                 Output,
                 Error,
                 CreatedTimestamp,

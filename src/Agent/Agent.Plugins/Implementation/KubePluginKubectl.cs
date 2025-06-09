@@ -59,6 +59,7 @@ namespace Agent.Plugins
                     Description: GetCommandDescription(command),
                     Status: KubectlExecutionStatus.Running,
                     ClusterResourceId: resourceId,
+                    OriginalFunctionCall: null, // temporary, will be set later
                     Output: null,
                     Error: null,
                     CreatedTimestamp: DateTime.UtcNow,
@@ -172,6 +173,7 @@ namespace Agent.Plugins
                     Description: GetCommandDescription(command),
                     Status: KubectlExecutionStatus.Pending,
                     ClusterResourceId: resourceId,
+                    OriginalFunctionCall: null, // temporary, will be set later
                     Output: null,
                     Error: null,
                     CreatedTimestamp: DateTime.UtcNow,
@@ -391,7 +393,12 @@ namespace Agent.Plugins
             var kubeConfigPath = Path.GetTempFileName();
             await File.WriteAllTextAsync(kubeConfigPath, _configJsonSerializer.Serialize(kubeConfig.Configuration));
 
-            var cmd = command.Substring("kubectl ".Length); // Remove "kubectl " prefix
+            // Remove "kubectl" prefix more safely
+            var cmd = command.Trim();
+            if (cmd.StartsWith("kubectl ", StringComparison.OrdinalIgnoreCase))
+            {
+                cmd = cmd.Substring(8); // Remove "kubectl " (7 chars + 1 space)
+            }
 
             try
             {

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
@@ -6,6 +7,7 @@ using Agent.Logging;
 using Agent.Plugins;
 using Agent.Runtime.Reasoning;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.AI;
 
 namespace Agent.Web.Controllers.v1
 {
@@ -149,13 +151,16 @@ namespace Agent.Web.Controllers.v1
                             await _threadRepository.UpdateKubectlExecutionAsync(threadGuid, execution);
                             if (_coreSettings.UseAgentFramework && agentContext != null)
                             {
-                                await _reasoningLoopManager.AppendNewMessageAsync(agentContext, new Microsoft.Extensions.AI.ChatMessage()
+                                var functionCall = !string.IsNullOrEmpty(execution.OriginalFunctionCall) ? JsonSerializer.Deserialize<FunctionCallContent>(execution.OriginalFunctionCall) : null;
+                                await _reasoningLoopManager.AppendFunctionCallMessagesAsync(agentContext, new List<Microsoft.Extensions.AI.ChatMessage>
                                 {
-                                    Role = Microsoft.Extensions.AI.ChatRole.Assistant,
-                                    Contents = new List<Microsoft.Extensions.AI.AIContent>
+                                    new Microsoft.Extensions.AI.ChatMessage(Microsoft.Extensions.AI.ChatRole.Assistant,
+                                        new List<Microsoft.Extensions.AI.AIContent>{functionCall }),
+                                    new Microsoft.Extensions.AI.ChatMessage(Microsoft.Extensions.AI.ChatRole.Tool,
+                                    new List<Microsoft.Extensions.AI.AIContent>
                                     {
-                                        new Microsoft.Extensions.AI.TextContent($"Execution completed successfully: {execution.Command}, Result: {output}")
-                                    }
+                                        new Microsoft.Extensions.AI.FunctionResultContent(functionCall?.CallId, output)
+                                    })
                                 });
                             }
                         }
@@ -173,13 +178,16 @@ namespace Agent.Web.Controllers.v1
 
                             if (_coreSettings.UseAgentFramework && agentContext != null)
                             {
-                                await _reasoningLoopManager.AppendNewMessageAsync(agentContext, new Microsoft.Extensions.AI.ChatMessage()
+                                var functionCall = !string.IsNullOrEmpty(execution.OriginalFunctionCall) ? JsonSerializer.Deserialize<FunctionCallContent>(execution.OriginalFunctionCall) : null;
+                                await _reasoningLoopManager.AppendFunctionCallMessagesAsync(agentContext, new List<Microsoft.Extensions.AI.ChatMessage>
                                 {
-                                    Role = Microsoft.Extensions.AI.ChatRole.Assistant,
-                                    Contents = new List<Microsoft.Extensions.AI.AIContent>
+                                    new Microsoft.Extensions.AI.ChatMessage(Microsoft.Extensions.AI.ChatRole.Assistant,
+                                        new List<Microsoft.Extensions.AI.AIContent>{functionCall }),
+                                    new Microsoft.Extensions.AI.ChatMessage(Microsoft.Extensions.AI.ChatRole.Tool,
+                                    new List<Microsoft.Extensions.AI.AIContent>
                                     {
-                                        new Microsoft.Extensions.AI.TextContent($"Execution Failed: {execution.Command}, Result: {ex.Message}")
-                                    }
+                                        new Microsoft.Extensions.AI.FunctionResultContent(functionCall?.CallId, $"Execution Failed: {execution.Command}, Result: {ex.Message}")
+                                    })
                                 });
                             }
 

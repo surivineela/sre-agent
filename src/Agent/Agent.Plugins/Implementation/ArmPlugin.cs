@@ -177,6 +177,7 @@ namespace Agent.Plugins.Implementation
                     Command: command,
                     Description: GetCommandDescription(command),
                     Status: AzCliExecutionStatus.Running,
+                    OriginalFunctionCall: null, // temporary, will be set later
                     Output: null,
                     Error: null,
                     CreatedTimestamp: DateTime.UtcNow,
@@ -287,6 +288,7 @@ namespace Agent.Plugins.Implementation
                     Command: command,
                     Description: GetCommandDescription(command),
                     Status: AzCliExecutionStatus.Pending,
+                    OriginalFunctionCall: null, // temporary, will be set later
                     Output: null,
                     Error: null,
                     CreatedTimestamp: DateTime.UtcNow,

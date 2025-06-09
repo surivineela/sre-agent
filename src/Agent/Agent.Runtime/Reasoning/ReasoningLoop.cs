@@ -4,6 +4,7 @@
 
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using System.Threading.Channels;
 using Agent.Core;
 using Agent.Core.Attributes;
@@ -88,6 +89,21 @@ public class ReasoningLoop
         {
             _logger.LogInternalInformation("Appending new user message");
             await _msgCh.Writer.WriteAsync(new ReasoningLoopUserMessage(msg), cancellationToken);
+
+            _ = Task.Run(async () => await RunAsync(cancellationToken), cancellationToken);
+        }
+        else
+        {
+            throw new InvalidOperationException("Channel is closed.");
+        }
+    }
+
+    public async Task AppendFunctionCallMessagesAsync(List<ChatMessage> msgs, CancellationToken cancellationToken = default)
+    {
+        if (await _msgCh.Writer.WaitToWriteAsync(cancellationToken))
+        {
+            _logger.LogInternalInformation("Appending new user message");
+            await _msgCh.Writer.WriteAsync(new ReasoningLoopFunctionCall(msgs), cancellationToken);
 
             _ = Task.Run(async () => await RunAsync(cancellationToken), cancellationToken);
         }
@@ -210,6 +226,15 @@ public class ReasoningLoop
                             if (shouldStop)
                             {
                                 return;
+                            }
+                            break;
+                        }
+                    case ReasoningLoopFunctionCall functionCall:
+                        {
+                            _logger.LogInternalInformation("Processing function call messages.");
+                            foreach (var msg in functionCall.Messages)
+                            {
+                                await PersistReasoningMessageAsync(agentChatHistory, msg);
                             }
                             break;
                         }
@@ -448,6 +473,7 @@ public class ReasoningLoop
                             cliExecution = cliExecution with
                             {
                                 AgentContextId = _context.Id,
+                                OriginalFunctionCall = JsonSerializer.Serialize(toolCall.FunctionCall),
                             };
                             await _threadRepository.UpdateAzCliExecutionAsync(_context.ThreadId, cliExecution);
                             break;
@@ -473,6 +499,7 @@ public class ReasoningLoop
                             kubectlExecution = kubectlExecution with
                             {
                                 AgentContextId = _context.Id,
+                                OriginalFunctionCall = JsonSerializer.Serialize(toolCall.FunctionCall),
                             };
                             await _threadRepository.UpdateKubectlExecutionAsync(_context.ThreadId, kubectlExecution);
                             break;
