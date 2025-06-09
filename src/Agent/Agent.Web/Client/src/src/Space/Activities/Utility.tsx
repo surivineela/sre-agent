@@ -68,10 +68,8 @@ export const processNewMessages = (prevMessages: Message[], newMessages: Message
                 // Update existing message
                 updatedPrevMessages[i] = message;
                 isPrevMessagesUpdated = true;
-            } else {
-                // If the text is the same, we can skip updating this message
-                newMessagesMap.delete(updatedPrevMessages[i].id);
             }
+            newMessagesMap.delete(updatedPrevMessages[i].id);
         }
     }
 

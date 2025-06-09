@@ -69,7 +69,7 @@ const areThreadsSame = (lhs: Thread[], rhs: Thread[]) => {
     return true;
 };
 
-const getDefaultMessage = (timeStamp: string, id?: string): Message => {
+const getDefaultMessage = (timeStamp: string, id?: string, message?: string): Message => {
     return {
         id: id ?? Guid.newGuid(),
         timeStamp: timeStamp,
@@ -78,7 +78,7 @@ const getDefaultMessage = (timeStamp: string, id?: string): Message => {
             userId: 'Web-Client-User',
             displayName: 'Web Client User',
         },
-        text: 'start message',
+        text: message ?? 'start message',
     };
 };
 
@@ -395,7 +395,7 @@ describe('processNewMessages', () => {
         expect(areMessagesUnique(result)).toBe(true);
     });
 
-    it('Add duplicated messages', () => {
+    it('Add duplicated messages with same text', () => {
         const messages: Message[] = [
             getDefaultMessage('2023-10-01T00:00:00Z', '01'),
             getDefaultMessage('2023-10-02T00:00:00Z', '02'),
@@ -412,6 +412,32 @@ describe('processNewMessages', () => {
         ];
 
         const result = processNewMessages(messages, newMessages);
+        const expectedResult = [...messages, ...newMessages.reverse().slice(3)];
+
+        expect(result.length).toBe(6);
+        expect(areMessagesSame(result, expectedResult)).toBe(true);
+        expect(areMessagesSortedAscByTimeStamp(result)).toBe(true);
+        expect(areMessagesUnique(result)).toBe(true);
+    });
+
+    it('Add duplicated messages with different text', () => {
+        const messages: Message[] = [
+            getDefaultMessage('2023-10-01T00:00:00Z', '01'),
+            getDefaultMessage('2023-10-02T00:00:00Z', '02'),
+            getDefaultMessage('2023-10-03T00:00:00Z', '03'),
+        ];
+
+        const newMessages: Message[] = [
+            getDefaultMessage('2023-10-06T00:00:00Z'),
+            getDefaultMessage('2023-10-05T00:00:00Z'),
+            getDefaultMessage('2023-10-04T00:00:00Z'),
+            getDefaultMessage('2023-10-03T00:00:00Z', '03'),
+            getDefaultMessage('2023-10-02T00:00:00Z', '02'),
+            getDefaultMessage('2023-10-01T00:00:00Z', '01', 'Hello'),
+        ];
+
+        const result = processNewMessages(messages, newMessages);
+        messages[0].text = 'Hello'; // Update the text of the first message to match the new message
         const expectedResult = [...messages, ...newMessages.reverse().slice(3)];
 
         expect(result.length).toBe(6);
