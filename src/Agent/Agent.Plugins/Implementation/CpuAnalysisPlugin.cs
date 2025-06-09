@@ -194,10 +194,11 @@ public class CpuAnalysisPlugin : ICpuAnalysisPlugin
     public async Task<bool> ShouldTriggerHighCPUScenario(string resourceId, double spikeThreshold = 0.2, double endWindowFraction = 0.1, double sustainedDropLength = 3)
     {
         var cpuSeries = await _metricsPlugin.GetWebAppCpuMetrics(resourceId);
+        double averageCpuMetric = cpuSeries.Average(cpu => cpu.AverageCpuUtilizationPercentage);
         if (cpuSeries == null || cpuSeries.Count < 5)
             return false;
 
-        return await ShouldTriggerDiagnosticScenario(cpuSeries.Select(m => m.AverageCpuUtilizationPercentage).ToList(), spikeThreshold, endWindowFraction, sustainedDropLength);
+        return averageCpuMetric > 50 && await ShouldTriggerDiagnosticScenario(cpuSeries.Select(m => m.AverageCpuUtilizationPercentage).ToList(), spikeThreshold, endWindowFraction, sustainedDropLength);
     }
 }
 

@@ -499,8 +499,14 @@ public class ArmHelper
             Content = new StringContent(jsonBody, Encoding.UTF8, "application/json")
         };
 
+        var cred = await _authService.GetArmOperationCredential();
+        var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://management.azure.com/.default" }), CancellationToken.None);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+
         var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
         HttpResponseMessage response = await httpClient.SendAsync(request);
+        var responseContent = await response.Content.ReadAsStringAsync();
+        _logger.LogInternalInformation($"ScaleUpAppServicePlanByNameAsync response: {responseContent}");
         return response.IsSuccessStatusCode;
     }
 
