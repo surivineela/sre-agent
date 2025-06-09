@@ -445,11 +445,12 @@ export const useChatBox = (addThread: (thread: Thread) => void, promoteThread: (
         let timeoutId: number | undefined = undefined;
         if (messagesDivRef.current && oldMessagesToBeAdded.current) {
             const prevScrollHeight = currentScrollHeight.current;
+            const prevScrollTop = currentScrollTop.current;
 
             timeoutId = requestAnimationFrame(() => {
                 if (messagesDivRef.current) {
                     const scrollHeight = messagesDivRef.current.scrollHeight;
-                    messagesDivRef.current.scrollTop += scrollHeight - prevScrollHeight;
+                    messagesDivRef.current.scrollTop = prevScrollTop + scrollHeight - prevScrollHeight;
                 }
             });
         }
