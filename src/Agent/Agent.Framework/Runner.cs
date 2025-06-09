@@ -408,7 +408,7 @@ public static class Runner
                         agentAsTool.RunConfig = runConfig;
                         agentAsTool.RunHooks = hooks;
 
-                        await hooks.OnToolStart(contextWrapper, agent, agentAsTool);
+                        await hooks.OnToolStart(contextWrapper, agent, agentAsTool, functionCall.Arguments);
 
                         var toolResult = await agentAsTool.InvokeAsync(functionCall.Arguments);
 
@@ -434,7 +434,7 @@ public static class Runner
                     else if (tool.GetToolMode() == ToolMode.Auto)
                     {
                         // run auto tool
-                        await hooks.OnToolStart(contextWrapper, agent, tool);
+                        await hooks.OnToolStart(contextWrapper, agent, tool, functionCall.Arguments);
 
                         var toolResult = await tool.InvokeAsync(functionCall.Arguments);
 
@@ -460,7 +460,7 @@ public static class Runner
                     else
                     {
                         // return manual tool call result
-                        await hooks.OnToolStart(contextWrapper, agent, tool);
+                        await hooks.OnToolStart(contextWrapper, agent, tool, functionCall.Arguments);
 
                         // modelResponseMessage will be added to the context when the loop is resumed
 

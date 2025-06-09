@@ -21,11 +21,14 @@ using Agent.Runtime.SubAgents.Core;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
+using System.Text.Json;
 
 namespace Agent.Runtime.Reasoning;
 
 public class ReasoningLoop
 {
+
+
     private readonly ILogger<ReasoningLoop> _logger;
     private readonly ILoggerFactory _loggerFactory;
     private readonly IChatClient _chatClient;
@@ -351,7 +354,7 @@ public class ReasoningLoop
                     _currentAgent = handoffAgent;
                     await _threadRepository.UpdateAgentContextAsync(_context);
                 },
-                OnToolStart = async (context, agent, tool) =>
+                OnToolStart = async (context, agent, tool, input) =>
                 {
                     _logger.LogInternalInformation("Trace Starting tool: {ToolName} for agent: {AgentName}", tool.Name, agent.Name);
                     _currentToolSpan = tracer.StartActiveSpan($"tool.{tool.Name}", SpanKind.Internal, _currentAgentSpan);
@@ -359,6 +362,7 @@ public class ReasoningLoop
                     _currentToolSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.Tool);
                     _currentToolSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
                     _currentToolSpan.SetAttribute(TraceAttribute.ToolName, tool.Name);
+                    _currentToolSpan.SetAttribute(TraceAttribute.ToolInput, FormatToolArguments(input as IEnumerable<KeyValuePair<string, object?>>));
                     _currentToolSpan.SetAttribute(TraceAttribute.ToolDescription, tool.Description);
                 },
                 OnToolEnd = async (context, agent, tool, output) =>
@@ -1075,6 +1079,35 @@ public class ReasoningLoop
         {
             _logger.LogInternalError(ex, "All retry attempts failed for {OperationName}", operationName);
             throw;
+        }
+    }
+
+    // Helper method to format tool input arguments into a readable string
+    private static string FormatToolArguments(IEnumerable<KeyValuePair<string, object?>>? arguments)
+    {
+        if (arguments == null)
+        {
+            return string.Empty;
+        }
+
+        try
+        {
+            // Create a dictionary for JSON serialization
+            var argsDict = arguments.ToDictionary(kv => kv.Key, kv => kv.Value);
+
+            // Use JsonSerializer with options to make output prettier
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
+
+            return JsonSerializer.Serialize(argsDict, options);
+        }
+        catch (Exception)
+        {
+            // In case of serialization issues, fallback to basic formatting
+            return string.Join(", ", arguments.Select(kv => $"{kv.Key}: {kv.Value?.ToString() ?? "null"}"));
         }
     }
 
