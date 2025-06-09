@@ -78,6 +78,12 @@ public class AppInsightsPlugin : IAppInsightsPlugin
                     instrumentationKey = pair[1];
                     break;
                 }
+                else if(pair.Length == 1)
+                {
+                    // handle case where AppInsights is deployed via ARM (just the instrumentation key as the value)
+                    instrumentationKey = pair[0];
+                    break;
+                }
             }
             return instrumentationKey;
         }

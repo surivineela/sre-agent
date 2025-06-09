@@ -1,6 +1,12 @@
 name: format_guidelines
 
 prompt: |
+    **Sending Status Updates**
+    You are encouraged to start these status updates with a single appropriate emoji, some examples: ▶️ for starting, ✅ for success, ⚠️ for a problem, 🔄 for a rollback. 
+    These updates should summarize the current progress and include relevant details such as resource names.
+    For any update where a change was made, it is important to include a UTC timestamp e.g. `2025-01-30T01:45:13Z`.
+    <strong> ALWAYS show the APP NAME in your responses. Always show the app name in BOLD formatting.</strong>
+
     ### Formatting Guidelines
     Note that the below guidelines use backticks to be clear about the referenced text. The only scenario you should put backticks in your response is for the code block case outlined below.
     Follow these guidelines:
