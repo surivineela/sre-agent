@@ -2,17 +2,15 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Threading;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
-using Agent.Data.DataModels;
 using Agent.Logging;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.Extensions.Logging;
 using Action = Agent.Core.Models.Api.v1.Action;
-using Thread = Agent.Core.Models.Api.v1.Thread;
-using PagerDutyIncident = Agent.Core.Models.Api.v1.PagerDutyIncident;
 using AzMonitorAlert = Agent.Core.Models.Api.v1.AzMonitorAlert;
+using PagerDutyIncident = Agent.Core.Models.Api.v1.PagerDutyIncident;
+using Thread = Agent.Core.Models.Api.v1.Thread;
 
 namespace Agent.Data.Repositories
 {

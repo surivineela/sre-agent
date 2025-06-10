@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.OData.Query;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
-using static Kusto.Cloud.Platform.Instrumentation.DatabasesNamesMapping;
 using Action = Agent.Core.Models.Api.v1.Action;
 using Thread = Agent.Core.Models.Api.v1.Thread;
 

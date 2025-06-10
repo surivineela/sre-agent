@@ -1,4 +1,12 @@
-using System.Net;using Agent.Core.Configuration;using Agent.Data.DatabaseClients.GraphDbClient;using Agent.Data.DataModels;using Agent.Data.Helpers;using Agent.Logging;using Microsoft.Azure.Cosmos;using Microsoft.Azure.Cosmos.Linq;using Microsoft.Extensions.Logging;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Data.DataModels;
+using Agent.Logging;
+using Microsoft.Azure.Cosmos;
+using Microsoft.Azure.Cosmos.Linq;
+using Microsoft.Extensions.Logging;
 
 namespace Agent.Data.Repositories;
 
