@@ -9,6 +9,7 @@ import { ThemeMode } from './src/Common/AzPortalProxy/Models/ITheme';
 import { AzPortalContext } from './src/Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from './src/Common/AzPortalProxy/Providers/StartupInfoContext';
 import { KnowledgeGraphBuildStatusProvider } from './src/Common/Providers/KnowledgeGraphBuildStatusProvider';
+import { WebSocketProvider } from './src/Common/Providers/WebSocketProvider';
 import SREAgentSpace from './src/Space/SREAgentSpace';
 import { IntlProvider } from './src/Strings/Intl/IntlProvider';
 
@@ -36,9 +37,11 @@ const App: React.FC = () => {
                 <FluentProvider theme={environmentInfo.theme?.mode === ThemeMode.Dark ? webDarkTheme : webLightTheme}>
                     <IntlProvider locale={environmentInfo.effectiveLocale}>
                         <AzPortalContext.Provider value={portalProxy}>
-                            <KnowledgeGraphBuildStatusProvider>
-                                <SREAgentSpace />
-                            </KnowledgeGraphBuildStatusProvider>
+                            <WebSocketProvider>
+                                <KnowledgeGraphBuildStatusProvider>
+                                    <SREAgentSpace />
+                                </KnowledgeGraphBuildStatusProvider>
+                            </WebSocketProvider>
                         </AzPortalContext.Provider>
                     </IntlProvider>
                 </FluentProvider>

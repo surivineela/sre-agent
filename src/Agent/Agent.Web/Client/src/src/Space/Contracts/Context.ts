@@ -12,6 +12,11 @@ type SreAgentContextProps = {
     };
 };
 
+type WebSocketContextProps = {
+    sendMessage: (message: string) => void;
+    addMessageListener: (handler: (e: MessageEvent<any>) => void) => void;
+};
+
 export const SreAgentContext = createContext<SreAgentContextProps>({
     grafana: {
         isGrafanaUpdating: false,
@@ -26,4 +31,9 @@ export const SreAgentContext = createContext<SreAgentContextProps>({
 export const AgentContext = createContext<AgentContextProps>({
     threadContentAndActionKey: '',
     activeThreadId: '',
+});
+
+export const WebSocketContext = createContext<WebSocketContextProps>({
+    sendMessage: () => {},
+    addMessageListener: () => {},
 });
