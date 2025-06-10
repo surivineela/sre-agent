@@ -311,16 +311,12 @@ public static class Runner
         tools.AddRange(await hooks.ResolveFactoryTools(contextWrapper, agent));
         tools.AddRange(agent.Handoffs);
 
-        var additionalProperties = tools.Count > 0
-            ? new AdditionalPropertiesDictionary { ["AllowParallelToolCalls"] = agent.AllowParallelToolCalls }
-            : null;
-
         var chatOptions = new ChatOptions
         {
             Tools = tools.Cast<AITool>().ToList(),
             ToolMode = agent.ChatToolMode,
-            AdditionalProperties = additionalProperties,
-            Temperature = agent.Temperature
+            Temperature = agent.Temperature,
+            AllowMultipleToolCalls = tools.Count > 0 && agent.AllowParallelToolCalls
         };
 
         var chatClient = agent.GetChatClient(config);
