@@ -14,6 +14,7 @@ interface CreateIncidentHandlerProps {
 const CreateIncidentHandler: FC<CreateIncidentHandlerProps> = ({ exitToHome }) => {
     const intl = useIntl();
     const [currentStep, setCurrentStep] = useState<IncidentHandlerCreateSteps>(IncidentHandlerCreateSteps.GenerateHandler);
+    const [instructions, setInstructions] = useState<string>('');
 
     return (
         <div style={{ background: tokens.colorNeutralBackground3 }}>
@@ -58,11 +59,14 @@ const CreateIncidentHandler: FC<CreateIncidentHandlerProps> = ({ exitToHome }) =
                         ]}
                     />
                 </div>
-                <div>
+                <div style={{ width: '100%' }}>
                     <IncidentHandlerCreateContext.Provider
                         value={{
                             currentStep,
                             setCurrentStep,
+                            instructions,
+                            setInstructions,
+                            exitToHome,
                         }}
                     >
                         {currentStep === IncidentHandlerCreateSteps.GenerateHandler ? (

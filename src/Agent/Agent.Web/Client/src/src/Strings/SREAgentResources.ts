@@ -576,4 +576,35 @@ export const AppHealth = defineMessages({
 export const IncidentHandlerCreateResources = defineMessages({
     generateHandler: { defaultMessage: 'Generate handler', id: 'QZoqFk' },
     reviewAndEdit: { defaultMessage: 'Review + Edit', id: 'AsJvG0' },
+    priority: { defaultMessage: 'Priority', id: '8lCjAM' },
+    dateCreated: { defaultMessage: 'Date Created', id: 'jY/3Cs' },
+    title: { defaultMessage: 'Title', id: '9a9+ww' },
+    incidentId: { defaultMessage: 'Incident ID', id: 'MB9ceM' },
+    status: { defaultMessage: 'Status', id: 'tzMNF3' },
+    tool: { defaultMessage: 'Tool', id: 'h6183G' },
+    description: { defaultMessage: 'Description', id: 'Q8Qw5B' },
+    last15days: { defaultMessage: 'Last 15 days', id: '5l3nDr' },
+    last30days: { defaultMessage: 'Last 30 days', id: 'Rfvi9/' },
+    last60days: { defaultMessage: 'Last 60 days', id: 'KLYuRX' },
+    last90days: { defaultMessage: 'Last 90 days', id: 'mgYBYo' },
+    chooseIncidentTitle: { defaultMessage: 'Choose Incidents', id: 'f525yt' },
+    chooseIncidentDescription: {
+        defaultMessage: `These are previous incidents similar to the filter you set for incident type. Choose any you'd like the agent to learn from.`,
+        id: 'XtZDRH',
+    },
+    chooseToolsTitle: { defaultMessage: 'Available Tools', id: 'bF6CsW' },
+    chooseToolsDescription: {
+        defaultMessage: `The agent uses these available tools to generate incident handler instructions, based on patterns it learned from the past incidents. You can remove any tools you don't want the agent to use.`,
+        id: 'U4e+Yf',
+    },
+    customInstructionTitle: { defaultMessage: 'Custom instruction', id: '7KZ+mT' },
+    customInstructionDescription: {
+        defaultMessage:
+            'An incident handler contains common instructions for how to handle an incident. Add custom instructions for specific conditions not covered by default response.',
+        id: 'WC+0um',
+    },
+    customInstructionPlaceholder: { defaultMessage: 'Enter custom instructions', id: '25brjd' },
+    next: { defaultMessage: 'Next', id: '9+Ddtu' },
+    skip: { defaultMessage: 'Skip', id: '/4tOwT' },
+    cancel: { defaultMessage: 'Cancel', id: '47FYwb' },
 });

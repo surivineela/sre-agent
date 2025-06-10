@@ -1,3 +1,4 @@
+import { mergeStyleSets } from '@fluentui/react';
 import { makeStyles, tokens } from '@fluentui/react-components';
 
 export const useIncidentManagementStyles = makeStyles({
@@ -56,5 +57,26 @@ export const useIncidentManagementStyles = makeStyles({
     },
     button: {
         fontWeight: 400,
+    },
+});
+
+export const generateHandlerStyles = mergeStyleSets({
+    container: {
+        display: 'flex',
+        flexDirection: 'column',
+        marginTop: '20px',
+    },
+    dropdown: {
+        maxWidth: '300px',
+    },
+    textField: {
+        maxWidth: '600px',
+    },
+    buttonContainer: {
+        marginTop: '20px',
+    },
+    detailListContainer: {
+        maxHeight: '365px',
+        overflowY: 'scroll',
     },
 });

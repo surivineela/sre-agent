@@ -35,6 +35,12 @@
       "value": "Choose a platform"
     }
   ],
+  "/4tOwT": [
+    {
+      "type": 0,
+      "value": "Skip"
+    }
+  ],
   "/WrP/v": [
     {
       "type": 0,
@@ -127,6 +133,12 @@
     {
       "type": 0,
       "value": "Add"
+    }
+  ],
+  "25brjd": [
+    {
+      "type": 0,
+      "value": "Enter custom instructions"
     }
   ],
   "2OQ6yB": [
@@ -255,6 +267,12 @@
       "value": "Denied"
     }
   ],
+  "5l3nDr": [
+    {
+      "type": 0,
+      "value": "Last 15 days"
+    }
+  ],
   "5pQrWI": [
     {
       "type": 1,
@@ -335,6 +353,12 @@
       "value": "New Azure Monitor Alert Detected"
     }
   ],
+  "7KZ+mT": [
+    {
+      "type": 0,
+      "value": "Custom instruction"
+    }
+  ],
   "7MvYEX": [
     {
       "type": 0,
@@ -383,6 +407,12 @@
       "value": "Building knowledge graph"
     }
   ],
+  "8lCjAM": [
+    {
+      "type": 0,
+      "value": "Priority"
+    }
+  ],
   "8quEg9": [
     {
       "type": 0,
@@ -417,6 +447,12 @@
     {
       "type": 0,
       "value": "Requested at"
+    }
+  ],
+  "9a9+ww": [
+    {
+      "type": 0,
+      "value": "Title"
     }
   ],
   "9uOFF3": [
@@ -757,6 +793,12 @@
       "value": "Delete"
     }
   ],
+  "KLYuRX": [
+    {
+      "type": 0,
+      "value": "Last 60 days"
+    }
+  ],
   "KyDsjH": [
     {
       "type": 0,
@@ -787,6 +829,12 @@
     {
       "type": 0,
       "value": "Hide thread actions"
+    }
+  ],
+  "MB9ceM": [
+    {
+      "type": 0,
+      "value": "Incident ID"
     }
   ],
   "NV14yw": [
@@ -939,6 +987,12 @@
       "value": "Show thread menu"
     }
   ],
+  "Rfvi9/": [
+    {
+      "type": 0,
+      "value": "Last 30 days"
+    }
+  ],
   "RrCui3": [
     {
       "type": 0,
@@ -1051,6 +1105,12 @@
       "value": "Saving incident management configuration"
     }
   ],
+  "U4e+Yf": [
+    {
+      "type": 0,
+      "value": "The agent uses these available tools to generate incident handler instructions, based on patterns it learned from the past incidents. You can remove any tools you don't want the agent to use."
+    }
+  ],
   "UV4Dx5": [
     {
       "type": 0,
@@ -1097,6 +1157,12 @@
     {
       "type": 0,
       "value": "Resolved"
+    }
+  ],
+  "WC+0um": [
+    {
+      "type": 0,
+      "value": "An incident handler contains common instructions for how to handle an incident. Add custom instructions for specific conditions not covered by default response."
     }
   ],
   "WCaf5C": [
@@ -1163,6 +1229,12 @@
     {
       "type": 0,
       "value": "Connect to Azure Monitor so that the SRE Agent can automatically monitor notifications from resources in the resource groups it manages, without additional provisioning."
+    }
+  ],
+  "XtZDRH": [
+    {
+      "type": 0,
+      "value": "These are previous incidents similar to the filter you set for incident type. Choose any you'd like the agent to learn from."
     }
   ],
   "XvrDTb": [
@@ -1269,6 +1341,12 @@
       "value": "Failed to load resource groups."
     }
   ],
+  "bF6CsW": [
+    {
+      "type": 0,
+      "value": "Available Tools"
+    }
+  ],
   "bW7B87": [
     {
       "type": 0,
@@ -1359,6 +1437,12 @@
       "value": "Logic App name"
     }
   ],
+  "f525yt": [
+    {
+      "type": 0,
+      "value": "Choose Incidents"
+    }
+  ],
   "fLkL3F": [
     {
       "type": 0,
@@ -1405,6 +1489,12 @@
     {
       "type": 0,
       "value": "You need permissions to set up a Grafana dashboard."
+    }
+  ],
+  "h6183G": [
+    {
+      "type": 0,
+      "value": "Tool"
     }
   ],
   "hK4HcH": [
@@ -1491,6 +1581,12 @@
       "value": "Grafana resource must be unique within the resource group."
     }
   ],
+  "jY/3Cs": [
+    {
+      "type": 0,
+      "value": "Date Created"
+    }
+  ],
   "jvo0vs": [
     {
       "type": 0,
@@ -1531,6 +1627,12 @@
     {
       "type": 0,
       "value": "Region"
+    }
+  ],
+  "mgYBYo": [
+    {
+      "type": 0,
+      "value": "Last 90 days"
     }
   ],
   "mq/sud": [
