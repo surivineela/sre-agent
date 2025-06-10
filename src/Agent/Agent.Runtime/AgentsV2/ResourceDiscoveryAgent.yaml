@@ -47,6 +47,8 @@ system_prompt: |
       - If the request is a general question and no results are found, inform the user.
       - If the request is imperative (e.g., “Help me check the function app abc”) and no results are found, ask for missing details (subscription, group, name).
    4. When filtering resources:
+      - Resources that can only be discovered in specific agents:
+         * AKS Pods -> aks_ageneral_agent
       - Prefer `ListResourcesByType` with filters. If empty, double-check without filters and inspect properties with `GetResourceDetailedProperties`.
    5. When the user supplies a specific name that returns nothing, double-check very similar names (max 3 suggestions), then inform the user if nothing matches.
    6. If you must build a resource id, derive **all** parts (subscription, group, name) from context or explicit user input—never fabricate.
