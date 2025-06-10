@@ -49,7 +49,7 @@ public class IncidentPlaygroundController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "Error during connectivity check");
-            return StatusCode(500, "Connectivity check failed");
+            return Ok(false);
         }
     }
 
@@ -191,7 +191,8 @@ public class IncidentPlaygroundController : ControllerBase
             payload.Priority,
             payload.IncidentType,
             payload.AlertId,
-            payload.TitleContains
+            payload.TitleContains,
+            true
         );
         var saved = await _incidentFilterManagementService.SaveIncidentFilter(filterDoc);
         return Ok(saved);
@@ -216,6 +217,48 @@ public class IncidentPlaygroundController : ControllerBase
         existingFilter.IncidentType = payload.IncidentType;
         existingFilter.AlertId = payload.AlertId;
         existingFilter.TitleContains = payload.TitleContains;
+        existingFilter.UpdatedAt = DateTime.UtcNow;
+
+        var saved = await _incidentFilterManagementService.SaveIncidentFilter(existingFilter);
+        return Ok(saved);
+    }
+
+    // Enable an existing incident filter (POST)
+    [HttpPost("filters/{filterId}/enable")]
+    public async Task<IActionResult> EnableIncidentFilter(string filterId)
+    {
+        if (filterId == null || string.IsNullOrEmpty(filterId))
+        {
+            return BadRequest("Invalid incident filter document");
+        }
+        var existingFilter = await _incidentFilterManagementService.GetIncidentFilter(filterId);
+        if (existingFilter == null)
+        {
+            return NotFound($"Incident filter with id '{filterId}' not found.");
+        }
+
+        existingFilter.IsEnabled = true;
+        existingFilter.UpdatedAt = DateTime.UtcNow;
+
+        var saved = await _incidentFilterManagementService.SaveIncidentFilter(existingFilter);
+        return Ok(saved);
+    }
+
+    // Enable an existing incident filter (POST)
+    [HttpPost("filters/{filterId}/disable")]
+    public async Task<IActionResult> DisableIncidentFilter(string filterId)
+    {
+        if (filterId == null || string.IsNullOrEmpty(filterId))
+        {
+            return BadRequest("Invalid incident filter document");
+        }
+        var existingFilter = await _incidentFilterManagementService.GetIncidentFilter(filterId);
+        if (existingFilter == null)
+        {
+            return NotFound($"Incident filter with id '{filterId}' not found.");
+        }
+
+        existingFilter.IsEnabled = false;
         existingFilter.UpdatedAt = DateTime.UtcNow;
 
         var saved = await _incidentFilterManagementService.SaveIncidentFilter(existingFilter);
