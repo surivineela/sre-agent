@@ -127,10 +127,10 @@ public class Program
 
         // Add WebSocket, default 7024 due to TcpStream conflict with HTTP on 7023
         var ws = new WebSocketServer(builder.Configuration.GetValue<string>("AppSettings:WebSocketEndpoint") ?? "ws://localhost:7024");
-        var websocketService = (WebSocketEventService)app.Services.GetRequiredService<IAsyncEventService>();
         ws.AddWebSocketService<WebSocketEventService>("/ws", () =>
         {
-            return websocketService;
+            var service = app.Services.GetRequiredService<WebSocketEventService>();
+            return service;
         });
         ws.Start();
 
@@ -556,7 +556,9 @@ public class Program
 
         // Add GraphService registration
         builder.Services.AddSingleton<IGraphService, GraphService>();        // Add Websocket service registration
-        builder.Services.AddSingleton<IAsyncEventService, WebSocketEventService>();
+
+        // add websocket service as transient instead of singleton to allow multiple instances
+        builder.Services.AddTransient<WebSocketEventService>();
 
         var azureSettings = builder.Configuration.GetSection("AppSettings:Core:Azure").Get<AzureSettings>();
 
