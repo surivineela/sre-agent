@@ -22,19 +22,22 @@ namespace Agent.Web.Controllers.v1
         private readonly ILogger<AzCliExecutionController> _logger;
         private readonly IReasoningLoopManager _reasoningLoopManager;
         private readonly CoreSettings _coreSettings;
+        private readonly IHostEnvironment _hostEnvironment;
 
         public AzCliExecutionController(
             IThreadRepository threadRepository,
             ArmHelper armHelper,
             IReasoningLoopManager reasoningLoopManager,
             CoreSettings coreSettings,
-            ILogger<AzCliExecutionController> logger)
+            ILogger<AzCliExecutionController> logger,
+            IHostEnvironment hostEnvironment)
         {
             _reasoningLoopManager = reasoningLoopManager;
             _threadRepository = threadRepository;
             _armHelper = armHelper;
             _logger = logger;
             _coreSettings = coreSettings;
+            _hostEnvironment = hostEnvironment;
         }
 
         /// <summary>
@@ -69,8 +72,14 @@ namespace Agent.Web.Controllers.v1
                 });
             }
 
-            // Get user info from token or use provided user
             var authzHeader = Request.Headers["Authorization"].ToString();
+            var token = authzHeader.StartsWith("Bearer ") ? authzHeader.Substring("Bearer ".Length).Trim() : null;
+            if (string.IsNullOrEmpty(token) && !_hostEnvironment.IsDevelopment())
+            {
+                return Unauthorized();
+            }
+
+            // Get user info from token or use provided user
             string userName = "Unknown User";
             string userId = request.User ?? "sreagent-client"; // Use provided user or default
             string? userEmail = null;
@@ -84,7 +93,6 @@ namespace Agent.Web.Controllers.v1
             {
                 try
                 {
-                    var token = authzHeader.Substring("Bearer ".Length).Trim();
                     var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
                     var jsonToken = handler.ReadToken(token) as System.IdentityModel.Tokens.Jwt.JwtSecurityToken;
 
@@ -136,7 +144,7 @@ namespace Agent.Web.Controllers.v1
                         try
                         {
                             // Execute the Azure CLI command
-                            var output = await _armHelper.RunAzCliReadCommandsAsync(execution.Command);
+                            var output = await _armHelper.RunAzCliCommandsAsync(execution.Command, token);
 
                             // Update execution with success
                             execution = execution with

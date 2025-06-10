@@ -12,7 +12,6 @@
                 "src/Agent/Agent.Web/Agent.Web.csproj",
                 "-o",
                 "out/publish",
-                "-p:SkipReactAppBuild=true"
             ],
             "group": "build",
             "presentation": {
@@ -30,7 +29,6 @@
             "args": [
                 "build",
                 "src/Agent/Agent.Web/Agent.Web.csproj",
-                "-p:SkipReactAppBuild=true"
             ],
             "group": "build",
             "presentation": {

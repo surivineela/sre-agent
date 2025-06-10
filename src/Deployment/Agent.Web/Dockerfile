@@ -1,3 +1,13 @@
+FROM python:3.12-slim AS installer  
+  
+WORKDIR /
+
+# Copy wheel into the image
+COPY Temp-AzCliBinary/*.whl .
+
+RUN mkdir /azcli && \
+    pip install --prefix /azcli --find-links ./ azure_cli-2.74.0.post20250610082848-py3-none-any.whl
+
 # Use the official .NET 9 runtime image to run the app
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 
@@ -16,6 +26,8 @@ RUN apt-get update && \
     install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl && \
     rm kubectl
 
+# Overwrite site-packages    
+COPY --from=installer /azcli/lib/python3.12/site-packages /opt/az/lib/python3.12/site-packages
 
 WORKDIR /app
 COPY . .

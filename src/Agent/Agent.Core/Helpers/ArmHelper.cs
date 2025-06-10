@@ -30,6 +30,7 @@ using Azure.ResourceManager.Sql;
 using Azure.ResourceManager.Sql.Models;
 using Azure.ResourceManager.Storage;
 using Azure.ResourceManager.Storage.Models;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using JsonSerializer = System.Text.Json.JsonSerializer;
@@ -55,6 +56,7 @@ public class ArmHelper
     private readonly IArmClientFactory _armClientFactory;
     private readonly IAuthenticationService _authService;
     private readonly AzureSettings _azureSettings;
+    private readonly IHostEnvironment _hostEnvironment;
 
     // Crawler MI is used for production environment as current solution
     public ArmHelper(
@@ -62,13 +64,15 @@ public class ArmHelper
         IHttpClientFactory httpClientFactory,
         IArmClientFactory armClientFactory,
         IAuthenticationService authService,
-        AzureSettings azureSettings)
+        AzureSettings azureSettings,
+        IHostEnvironment hostEnvironment)
     {
         _logger = logger;
         _httpClientFactory = httpClientFactory;
         _armClientFactory = armClientFactory;
         _authService = authService;
         _azureSettings = azureSettings;
+        _hostEnvironment = hostEnvironment;
     }
 
     public async Task<List<AzureSubscription>> GetSubscriptionsAsync()
@@ -2282,9 +2286,9 @@ public class ArmHelper
         }
     }
 
-    public async Task<string> RunAzCliReadCommandsAsync(string command)
+    public async Task<string> RunAzCliCommandsAsync(string command, string oboToken = "")
     {
-        _logger.LogInternalInformation($"[RunAzCliReadCommandsAsync] command: {command}");
+        _logger.LogInternalInformation($"[RunAzCliCommandsAsync] command: {command}");
         // Trim any leading/trailing whitespace
         command = command.Trim();
 
@@ -2292,21 +2296,44 @@ public class ArmHelper
         var validationSummary = ValidateCommand(command);
         if (validationSummary != null)
         {
-            _logger.LogInternalError($"[RunAzCliReadCommandsAsync] Validation failed: {validationSummary}");
+            _logger.LogInternalError($"[RunAzCliCommandsAsync] Validation failed: {validationSummary}");
             return validationSummary;
         }
 
         // Execute the command
         try
         {
-            var login = await AzLoginIfNecessary();
-            if (!login)
+            var configDir = _hostEnvironment.IsDevelopment() ? string.Empty : Path.Join(Path.GetTempPath(), $"azcli-{Path.GetRandomFileName()}");
+            // az login does not support access token
+            // the token is consumed using Environment variable AZURE_CLI_ACCESS_TOKEN
+            if (string.IsNullOrEmpty(oboToken))
             {
-                return "[Exception encountered]: Failed to login to Azure CLI";
+                var login = await AzLogin(configDir);
+                if (!login)
+                {
+                    return "[Exception encountered]: Failed to login to Azure CLI";
+                }
+            }
+            else
+            {
+                _logger.LogInternalInformation($"[RunAzCliCommandsAsync] Skip Az login and use OBO token for command execution.");
             }
 
             var cmd = command.Substring("az ".Length);
-            return await ExecuteCommandHelper.ExecuteCommand("az", null, cmd);
+
+            var envs = new Dictionary<string, string>();
+
+            if (!string.IsNullOrEmpty(configDir))
+            {
+                envs["AZURE_CONFIG_DIR"] = configDir;
+            }
+
+            if (!string.IsNullOrEmpty(oboToken))
+            {
+                envs["AZURE_CLI_ACCESS_TOKEN"] = oboToken;
+            }
+
+            return await ExecuteCommandHelper.ExecuteCommand("az", [cmd], envs);
         }
         catch (Exception ex)
         {
@@ -2534,24 +2561,11 @@ public class ArmHelper
         return null; // No validation errors
     }
 
-    private async Task<bool> AzLoginIfNecessary()
+    private async Task<bool> AzLogin(string configDir)
     {
-        var cmd = "account show --query 'user.type' -o tsv";
-
-        try
+        if (_hostEnvironment.IsDevelopment())
         {
-            var result = await ExecuteCommandHelper.ExecuteCommand("az", null, cmd);
-            if (string.Equals(result, "servicePrincipal", StringComparison.OrdinalIgnoreCase)
-                // local test
-                || string.Equals(result, "user", StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalError($"Az login check failed: {ex}");
-            // continue with login
+            return true;
         }
 
         var identity = string.Empty;
@@ -2582,7 +2596,14 @@ public class ArmHelper
         _logger.LogInternalInformation($"Az login with managed identity {identity}");
         try
         {
-            await ExecuteCommandHelper.ExecuteCommand("az", loginCommands);
+            var envs = new Dictionary<string, string>();
+
+            if (!string.IsNullOrEmpty(configDir))
+            {
+                envs["AZURE_CONFIG_DIR"] = configDir;
+            }
+
+            await ExecuteCommandHelper.ExecuteCommand("az", loginCommands, envs);
         }
         catch (Exception ex)
         {

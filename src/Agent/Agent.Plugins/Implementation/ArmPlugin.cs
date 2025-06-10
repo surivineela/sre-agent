@@ -211,7 +211,7 @@ namespace Agent.Plugins.Implementation
                 try
                 {
                     // Execute the actual command synchronously
-                    var output = await _armHelper.RunAzCliReadCommandsAsync(command);
+                    var output = await _armHelper.RunAzCliCommandsAsync(command);
 
                     // Update execution with success
                     execution = execution with
@@ -335,7 +335,7 @@ namespace Agent.Plugins.Implementation
             {
                 // Use the ArmHelper to get help information
                 var helpCommand = $"az {helpTopic} --help";
-                var helpOutput = await _armHelper.RunAzCliReadCommandsAsync(helpCommand);
+                var helpOutput = await _armHelper.RunAzCliCommandsAsync(helpCommand);
 
                 // If grep pattern is provided, filter the output
                 if (!string.IsNullOrEmpty(grepPattern))

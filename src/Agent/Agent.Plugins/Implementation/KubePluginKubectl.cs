@@ -405,9 +405,11 @@ namespace Agent.Plugins
                 return await ExecuteCommandHelper.ExecuteCommand(
                     "kubectl",
                     stdin,
-                    cmd,
-                    $"--kubeconfig=\"{kubeConfigPath}\"",
-                    $"--cache-dir=\"{Path.Combine(Path.GetTempPath(), ".kube")}\"");
+                    [
+                        cmd,
+                        $"--kubeconfig=\"{kubeConfigPath}\"",
+                        $"--cache-dir=\"{Path.Combine(Path.GetTempPath(), ".kube")}\""
+                    ]);
             }
             catch (Exception ex) when (ex.Message.Contains("forbidden", StringComparison.OrdinalIgnoreCase))
             {

@@ -90,8 +90,8 @@ namespace Agent.Plugins
 
         [Description("Check if a connection from the given resource to www.microsoft.com can be established.")]
         public async Task<string> CheckTcpConnectivity(
-            [Description("Full resource id of an Azure resource")] string resourceId, 
-            [Description("Host to test connectivity to")] string host, 
+            [Description("Full resource id of an Azure resource")] string resourceId,
+            [Description("Host to test connectivity to")] string host,
             [Description("Port to test connectivity to")] int port)
         {
             return await _armPlugin.CheckTcpConnectivity(resourceId, host, port);

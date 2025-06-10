@@ -9,12 +9,12 @@ namespace Agent.Core.Helpers;
 
 public class ExecuteCommandHelper
 {
-    public static async Task<string> ExecuteCommand(string command, params string[] arguments)
+    public static async Task<string> ExecuteCommand(string command, string[] arguments, Dictionary<string, string>? envs = null)
     {
-        return await ExecuteCommand(command, null, arguments);
+        return await ExecuteCommand(command, null, arguments, envs);
     }
 
-    public static async Task<string> ExecuteCommand(string command, string? stdin, params string[] arguments)
+    public static async Task<string> ExecuteCommand(string command, string? stdin, string[] arguments, Dictionary<string, string>? envs = null)
     {
         var processInfo = new ProcessStartInfo
         {
@@ -28,6 +28,11 @@ public class ExecuteCommandHelper
             UseShellExecute = false,
             CreateNoWindow = true
         };
+
+        foreach (var env in envs ?? new Dictionary<string, string>())
+        {
+            processInfo.Environment[env.Key] = env.Value;
+        }
 
         using var process = new Process { StartInfo = processInfo };
         var outputBuilder = new StringBuilder();
