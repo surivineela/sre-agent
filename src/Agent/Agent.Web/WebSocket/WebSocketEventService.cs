@@ -36,6 +36,8 @@ namespace Agent.Web.WebSocket
             _webSocketId = Guid.NewGuid();
         }
 
+        public FunctionCallContent FunctionCall { get; set; }
+
         protected override void OnOpen()
         {
             _logger.LogInternalInformation("Client connected to websocket: " + Context.UserEndPoint + " WebsocketId: " + _webSocketId);
@@ -73,12 +75,16 @@ namespace Agent.Web.WebSocket
 
                 var streamId = message.StreamId ?? string.Empty;
 
+                var initialToolCallContent = new FunctionCallContent(Guid.NewGuid().ToString(), "", new AdditionalPropertiesDictionary());
+                initialToolCallContent.AdditionalProperties ??= new AdditionalPropertiesDictionary();
+                initialToolCallContent.AdditionalProperties.Add("userDescription", "Analyzing...");
+
                 var initialMessage = new ChatResponseUpdate
                 {
                     AuthorName = "System",
                     Role = ChatRole.System,
                     CreatedAt = DateTime.UtcNow,
-                    Contents = [new TextContent("Analyzing...")],
+                    Contents = [initialToolCallContent],
                     AdditionalProperties = new AdditionalPropertiesDictionary
                             {
                                 { "websocketId", _webSocketId.ToString() },
