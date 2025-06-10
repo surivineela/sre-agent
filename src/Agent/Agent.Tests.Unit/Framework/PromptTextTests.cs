@@ -61,7 +61,7 @@ namespace Agent.Tests.Unit.Framework
             PromptText prompt = value;
 
             Assert.NotNull(prompt);
-            Assert.Equal(value, prompt.ToString().Trim());
+            Assert.Contains(value, prompt.ToString());
         }
 
         [Fact]

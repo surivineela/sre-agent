@@ -391,6 +391,7 @@ public class ReasoningLoop
                     _currentToolSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
                     _currentToolSpan.SetAttribute(TraceAttribute.ToolName, tool.Name);
                     _currentToolSpan.SetAttribute(TraceAttribute.ToolInput, FormatToolArguments(input as IEnumerable<KeyValuePair<string, object?>>));
+                    _currentToolSpan.SetAttribute(TraceAttribute.ModelTemperature, agent.Temperature.ToString());
                     _currentToolSpan.SetAttribute(TraceAttribute.ToolDescription, tool.Description);
                 },
                 OnToolEnd = async (context, agent, tool, output) =>
@@ -411,11 +412,12 @@ public class ReasoningLoop
                 },
                 OnModelGenerationEnd = async (context, agent, response) =>
                 {
-                    _logger.LogInternalInformation("Trace Ending model generation for agent: {AgentName}", agent.Name);
-                    _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelOutput, FormatChatMessages(response.Messages));
-                    _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelInputTokensCount, response.Usage?.InputTokenCount.ToString() ?? string.Empty);
-                    _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelOutputTokensCount, response.Usage?.OutputTokenCount.ToString() ?? string.Empty);
-                    _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelTotalTokensCount, response.Usage?.TotalTokenCount.ToString() ?? string.Empty);
+                    _logger.LogInternalInformation("Trace Ending model generation for agent: {AgentName}", agent?.Name ?? "Unknown");
+                    _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelOutput, FormatChatMessages(response?.Messages ?? []));
+                    _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelInputTokensCount, response?.Usage?.InputTokenCount?.ToString() ?? string.Empty);
+                    _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelOutputTokensCount, response?.Usage?.OutputTokenCount?.ToString() ?? string.Empty);
+                    _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelTotalTokensCount, response?.Usage?.TotalTokenCount?.ToString() ?? string.Empty);
+                    _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelTemperature, agent?.Temperature.ToString() ?? string.Empty);
                     _currentGenerationSpan?.End();
                     _currentGenerationSpan = null;
                 }

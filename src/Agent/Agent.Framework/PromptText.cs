@@ -26,6 +26,9 @@ public class PromptText
             builder.AppendLine();
         }
 
+        builder.AppendLine(PromptTextConstants.Introduction.Replace("{{currentDateTime}}", DateTimeOffset.Now.ToString("yyyy-MM-dd HH:mm:ss zzz")));
+        builder.AppendLine();
+
         if (HasHandoffInstructions)
         {
             builder.AppendLine(PromptTextConstants.HandoffInstructions);
@@ -106,5 +109,9 @@ public class PromptText
          do not mention or draw attention to these transfers in your conversation with the user.
          perform the handoff automatically and do not ask the user if you can proceed.
         """;
+
+        public const string Introduction = """
+            The current date is {{currentDateTime}}.
+            """;
     }
 }
