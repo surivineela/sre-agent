@@ -36,7 +36,8 @@ extends:
       os: windows
     
     authenticatedContainerRegistries:
-    - serviceConnection: k8seprod
+    - serviceConnection: sreagentdev
+    - serviceConnection: sreagentprod
 
     stages:
     - stage: build
@@ -330,11 +331,13 @@ extends:
             inputs:
               context: $(Build.SourcesDirectory)/dst/drop_build_main/Agent.Web
               dockerFile: $(Build.SourcesDirectory)/src/Deployment/Agent.Web/Dockerfile
-              image: k8seprod.azurecr.io/public/k8se/sre-agent-web:$(Build.BuildNumber)
+              image: sre-agent-web:$(Build.BuildNumber)
               enableNetwork: true
-
-          - task: 1ES.PushContainerImage@1
-            displayName: 'Push Docker image for Agent.Web'
-            inputs:
-              image: k8seprod.azurecr.io/public/k8se/sre-agent-web:$(Build.BuildNumber)
-              remoteImage: k8seprod.azurecr.io/public/k8se/sre-agent-web:$(Build.BuildNumber)
+          
+          templateContext:
+            outputs:
+            - output: containerImage
+              image: sre-agent-web:$(Build.BuildNumber)
+              remoteImage:
+              - sreagentdev.azurecr.io/sre-agent-web:$(Build.BuildNumber)
+              - sreagentprod.azurecr.io/sre-agent-web:$(Build.BuildNumber)
