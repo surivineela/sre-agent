@@ -1,13 +1,24 @@
+using System.Net.Http.Json;
 using Agent.Core.Configuration;
 using Agent.Data;
 using Agent.Data.DataModels;
+using Agent.Graph.Interfaces;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 
 namespace Agent.Runtime.Services
 {
+    public class IncidentFilterFieldOption
+    {
+        public string FieldName { get; set; } = string.Empty;
+        public string DisplayName { get; set; } = string.Empty;
+        public List<KeyValuePair<string, string>> Options { get; set; } = new List<KeyValuePair<string, string>>();
+    }
+
     public interface IIncidentFilterManagementService
     {
+        Task<bool> CheckConnectivity();
+        Task<List<IncidentFilterFieldOption>> ListIncidentFilterFieldOptions();
         Task<List<IncidentFilterDocument>> ListIncidentFilters();
         Task<IncidentFilterDocument?> GetIncidentFilter(string filterId);
         Task<IncidentFilterDocument> SaveIncidentFilter(IncidentFilterDocument IncidentFilterDocument);
@@ -18,13 +29,96 @@ namespace Agent.Runtime.Services
     {
         private readonly Container _container;
         protected readonly string DocumentType = "IncidentFilter";
+        private readonly IncidentManagementSettings _incidentManagementSettings;
+        private readonly IPagerDutyService _pagerDutyService;
 
-        public IncidentFilterManagementService(CosmosClient cosmosClient, CosmosDBSettings cosmosDbSettings)
+        public IncidentFilterManagementService(
+            CosmosClient cosmosClient,
+            CosmosDBSettings cosmosDbSettings,
+            IncidentManagementSettings incidentManagementSettings,
+            IPagerDutyService pagerDutyService)
         {
+            _incidentManagementSettings = incidentManagementSettings;
             _container = cosmosClient.GetContainer(
                 cosmosDbSettings.Docs.Database,
                 AgentDataConfiguration.ThreadContainerName
             );
+            _pagerDutyService = pagerDutyService;
+        }
+
+        public async Task<bool> CheckConnectivity()
+        {
+            // Check if the PagerDuty service is reachable
+            if (_incidentManagementSettings.Type == IncidentManagementType.PagerDuty)
+            {
+                try
+                {
+                    var response = await _pagerDutyService.GetPagerDutyRequest("status");
+                    return response.IsSuccessStatusCode;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Failed to connect to PagerDuty service.", ex);
+                }
+            }
+            // For other types, we can assume connectivity is not implemented
+            return false;
+        }
+
+        public async Task<List<IncidentFilterFieldOption>> ListIncidentFilterFieldOptions()
+        {
+            switch (_incidentManagementSettings.Type)
+            {
+                case IncidentManagementType.PagerDuty:
+                    return await ListPagerDutyIncidentFilterFieldOptions();
+                case IncidentManagementType.Icm:
+                case IncidentManagementType.AzMonitor:
+                default:
+                    throw new NotImplementedException($"Incident management type '{_incidentManagementSettings.Type}' is not implemented.");
+            }
+        }
+
+        public async Task<List<IncidentFilterFieldOption>> ListPagerDutyIncidentFilterFieldOptions()
+        {
+            var result = new List<IncidentFilterFieldOption>();
+            // Get Impacted Services List
+            var servicesResponse = await _pagerDutyService.GetPagerDutyRequest("services");
+            var services = await servicesResponse.Content.ReadFromJsonAsync<PDServicesResponse>();
+            if (services != null && services.Services.Any())
+            {
+                result.Add(new IncidentFilterFieldOption
+                {
+                    FieldName = "ImpactedService",
+                    DisplayName = "Impacted Service",
+                    Options = services.Services.Select(s => new KeyValuePair<string, string>(s.Id, s.Name)).ToList()
+                });
+            }
+
+            // Get Incident Types List
+            var incidentTypesResponse = await _pagerDutyService.GetPagerDutyRequest("incidents/types");
+            var incidentTypes = await incidentTypesResponse.Content.ReadFromJsonAsync<PDIncidentTypesResponse>();
+            if (incidentTypes != null && incidentTypes.IncidentTypes.Any())
+            {
+                result.Add(new IncidentFilterFieldOption
+                {
+                    FieldName = "IncidentType",
+                    DisplayName = "Incident Type",
+                    Options = incidentTypes.IncidentTypes.Select(it => new KeyValuePair<string, string>(it.Id, it.Name)).ToList()
+                });
+            }
+            // Get Priorities List
+            var prioritiesResponse = await _pagerDutyService.GetPagerDutyRequest("priorities");
+            var priorities = await prioritiesResponse.Content.ReadFromJsonAsync<PDPrioritiesResponse>();
+            if (priorities != null && priorities.Priorities.Any())
+            {
+                result.Add(new IncidentFilterFieldOption
+                {
+                    FieldName = "Priority",
+                    DisplayName = "Priority",
+                    Options = priorities.Priorities.Select(p => new KeyValuePair<string, string>(p.Id, p.Name)).ToList()
+                });
+            }
+            return result;
         }
 
         public async Task<List<IncidentFilterDocument>> ListIncidentFilters()

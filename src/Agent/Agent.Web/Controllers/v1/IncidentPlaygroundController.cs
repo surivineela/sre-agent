@@ -38,6 +38,36 @@ public class IncidentPlaygroundController : ControllerBase
         _logger = logger;
     }
 
+    [HttpGet("checkConnectivity")]
+    public async Task<IActionResult> CheckConnectivity()
+    {
+        try
+        {
+            // Simple connectivity check
+            return Ok(await _incidentFilterManagementService.CheckConnectivity());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error during connectivity check");
+            return StatusCode(500, "Connectivity check failed");
+        }
+    }
+
+    [HttpGet("filterFieldOptions")]
+    public async Task<IActionResult> GetFilterFieldOptions()
+    {
+        try
+        {
+            var options = await _incidentFilterManagementService.ListIncidentFilterFieldOptions();
+            return Ok(options);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error retrieving filter field options");
+            return StatusCode(500, "Failed to retrieve filter field options");
+        }
+    }
+
     [HttpGet("handlers")]
     public async Task<IActionResult> ListIncidentHandlers()
     {

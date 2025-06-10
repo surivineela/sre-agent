@@ -62,6 +62,24 @@ public class PagerDutyService : IPagerDutyService
         throw new HttpRequestException($"Failed to get PagerDuty incidents: {response.StatusCode}");
     }
 
+    public async Task<HttpResponseMessage> GetPagerDutyRequest(string requestPath)
+    {
+        using var client = CreateHttpClient();
+        var request = new HttpRequestMessage(HttpMethod.Get, $"https://api.pagerduty.com/{requestPath}");
+        var response = await client.SendAsync(request);
+        if (response.IsSuccessStatusCode)
+        {
+            _logger.LogInternalInformation("Successfully retrieved PagerDuty request: {requestPath}", requestPath);
+            return response;
+        }
+        else
+        {
+            var errorContent = await response.Content.ReadAsStringAsync();
+            _logger.LogInternalError("Failed to get PagerDuty request {requestPath}. Error: {errorContent}", requestPath, errorContent);
+            throw new HttpRequestException($"Failed to get PagerDuty request {requestPath}. Error: {errorContent}");
+        }
+    }
+
     // method to fetch full details of an incident by id
     public async Task<PagerDutyIncident> GetPagerDutyIncidentAsync(string incidentId)
     {
@@ -197,6 +215,11 @@ public class PagerDutyService : IPagerDutyService
     {
         return new PutIncidentRequest(new Incident("incident_reference", "resolved"));
     }
+
+    private static PutIncidentRequest CreateAcknowledgeIncidentRequest()
+    {
+        return new PutIncidentRequest(new Incident("incident_reference", "acknowledged"));
+    }
     public async Task ResolveIncident(string incidentId)
     {
         if (string.IsNullOrEmpty(incidentId))
@@ -236,5 +259,40 @@ public class PagerDutyService : IPagerDutyService
             throw new HttpRequestException($"Failed to resolve PagerDuty incident ID: {incidentId}. Error: {errorContent}");
         }
         
+    }
+
+    public async Task AcknowledgeIncident(string incidentId)
+    {
+        if (string.IsNullOrEmpty(incidentId))
+        {
+            throw new ArgumentException("Incident ID cannot be null or empty.", nameof(incidentId));
+        }
+        if (_settings == null || _settings.Type != IncidentManagementType.PagerDuty)
+        {
+            throw new InvalidOperationException("PagerDuty incident management is not configured.");
+        }
+        if (string.IsNullOrEmpty(_pagerDutyApiKey))
+        {
+            throw new InvalidOperationException("PagerDuty API key is not configured.");
+        }
+        if (string.IsNullOrEmpty(_settings.OboUser))
+        {
+            throw new InvalidOperationException("PagerDuty OBO user is not configured. Cannot acknowledge incident.");
+        }
+        using var client = CreateHttpClient();
+        client.DefaultRequestHeaders.Add("From", _settings.OboUser);
+        var request = new HttpRequestMessage(HttpMethod.Put, $"https://api.pagerduty.com/incidents/{incidentId}");
+        request.Content = JsonContent.Create(CreateAcknowledgeIncidentRequest());
+        var response = await client.SendAsync(request);
+        if (response.IsSuccessStatusCode)
+        {
+            _logger.LogInternalInformation("Successfully acknowledged PagerDuty incident ID: {incidentId}", incidentId);
+        }
+        else
+        {
+            var errorContent = await response.Content.ReadAsStringAsync();
+            _logger.LogInternalError("Failed to acknowledge PagerDuty incident ID: {incidentId}. Error: {errorContent}", incidentId, errorContent);
+            throw new HttpRequestException($"Failed to acknowledge PagerDuty incident ID: {incidentId}. Error: {errorContent}");
+        }
     }
 }

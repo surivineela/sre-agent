@@ -37,6 +37,37 @@ public record ImpactedService(
     [property: JsonPropertyName("type")] string Type // e.g. service_reference
 );
 
+public record PDServiceMetadata(
+    [property: JsonPropertyName("id")] string Id, // e.g. P1A2B3C4D5
+    [property: JsonPropertyName("name")] string Name, // e.g. Microsoft Teams
+    [property: JsonPropertyName("description")] string Description
+);
+
+public record PDServicesResponse(
+    [property: JsonPropertyName("services")] List<PDServiceMetadata> Services
+);
+
+public record PDIncidentTypeMetadata(
+    [property: JsonPropertyName("id")] string Id, // e.g. P1A2B3C4D5
+    [property: JsonPropertyName("name")] string Name, // e.g. incident, problem, maintenance
+    [property: JsonPropertyName("description")] string Description
+);
+
+public record PDIncidentTypesResponse(
+    [property: JsonPropertyName("incident_types")] List<PDIncidentTypeMetadata> IncidentTypes
+);
+
+
+public record PDPriorityMetadata(
+    [property: JsonPropertyName("id")] string Id, // e.g. P1A2B3C4D5
+    [property: JsonPropertyName("name")] string Name, // e.g. P1, P2, P3
+    [property: JsonPropertyName("description")] string Description
+);
+
+public record PDPrioritiesResponse(
+    [property: JsonPropertyName("priorities")] List<PDPriorityMetadata> Priorities
+);
+
 public record PagerDutyIncident(
     [property: JsonPropertyName("id") ] string IncidentId, // PagerDuty incident ID
     // For whatever reason, the description is always the same as the title.
@@ -79,6 +110,8 @@ public interface IPagerDutyService
 
     Task<PagerDutyIncident> GetPagerDutyIncidentAsync(string incidentId);
 
+    Task<HttpResponseMessage> GetPagerDutyRequest(string requestPath);
+
     /// <summary>
     /// Get the latest incident description from PagerDuty.
     /// Note the default get incident API returns description of the incident when it was created, not the latest description.
@@ -92,4 +125,5 @@ public interface IPagerDutyService
     /// <param name="incidentId"></param>
     /// <returns></returns>
     Task ResolveIncident(string incidentId);
+    Task AcknowledgeIncident(string incidentId);
 }
