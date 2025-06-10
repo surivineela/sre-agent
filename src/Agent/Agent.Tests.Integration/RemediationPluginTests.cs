@@ -51,7 +51,7 @@ namespace Agent.Tests.Integration
                 Tools = [
                     AIFunctionFactory.Create(remediationPlugin.ScaleAppServicePlanVertically),
                     AIFunctionFactory.Create(remediationPlugin.CollectMemoryDump),
-                    AIFunctionFactory.Create(remediationPlugin.RestartWebApplication),
+                    AIFunctionFactory.Create(remediationPlugin.RestartWebApp),
                     AIFunctionFactory.Create(remediationPlugin.SuggestNextSku),
                     AIFunctionFactory.Create(remediationPlugin.CalculateScalingCost),
                 ]

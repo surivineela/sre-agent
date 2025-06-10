@@ -10,7 +10,6 @@ namespace Agent.Plugins.Mocks
 {
     public class MockRemediationPlugin : IRemediationPlugin
     {
-        public Guid? ThreadId { get; set; }
         private readonly TimeProvider _timeProvider;
         private readonly MockArmPlugin _armPlugin;
 
@@ -40,7 +39,7 @@ namespace Agent.Plugins.Mocks
                 FinishedTime: _timeProvider.GetUtcNow().DateTime);
         }
 
-        public async Task<RemediationResult> RestartWebApplication(string resourceId)
+        public async Task<RemediationResult> RestartWebApp(string resourceId)
         {
             bool success = await _armPlugin.RestartWebApp(resourceId);
 
