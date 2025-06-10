@@ -3,11 +3,14 @@ import { PanelRightExpandRegular } from '@fluentui/react-icons';
 import { Text } from '@fluentui/react/lib/Text';
 import { memo, useCallback, useContext } from 'react';
 import { useIntl } from 'react-intl';
+import { showChatBoxV2 } from '../../Common/Constants/FeatureFlags';
+import { useFeatureFlag } from '../../Common/Hooks/useFeatureFlag';
 import { ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { IThreadContentProps } from '../Contracts/Activities';
 import { AgentContext } from '../Contracts/Context';
 import { getExpandCollapseButtonStyles, ThreadContentStyles } from '../Styles/Activities.styles';
 import ChatBox from './ChatBox';
+import ChatBoxV2 from './ChatBoxV2';
 import ThreadActionsMenu from './ThreadActionsMenu';
 
 const expandCollapseButtonStyles = getExpandCollapseButtonStyles('right');
@@ -16,6 +19,8 @@ export const ThreadContent = memo(
     ({ thread, addThread, promoteThread, deleteThread, actionsCollapsed, expandActions }: IThreadContentProps) => {
         const { threadContentAndActionKey } = useContext(AgentContext);
         const intl = useIntl();
+
+        const chatBoxV2 = useFeatureFlag(showChatBoxV2);
 
         const handleThreadDelete = useCallback(() => {
             if (thread) {
@@ -42,7 +47,11 @@ export const ThreadContent = memo(
                         </div>
                     )}
                 </div>
-                <ChatBox threadId={thread?.id} addThread={addThread} promoteThread={promoteThread} threadSource={thread?.source} />
+                {chatBoxV2 ? (
+                    <ChatBoxV2 />
+                ) : (
+                    <ChatBox threadId={thread?.id} addThread={addThread} promoteThread={promoteThread} threadSource={thread?.source} />
+                )}
             </div>
         );
     }
