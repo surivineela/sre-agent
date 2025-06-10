@@ -1,3 +1,4 @@
+using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
@@ -15,6 +16,7 @@ using Agent.Tests.Common.ScenarioTestHelpers;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.AI.Evaluation;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -63,6 +65,18 @@ public class TlsHandoffEvals
                 );
         });
 
+        var agentModeString = builder.Configuration.GetSection("AppSettings:Core:Azure:Action:Mode").Get<string>();
+
+        // This block is correct for conditionally registering the configurator
+        if (string.Equals(agentModeString, "ReadOnly", StringComparison.OrdinalIgnoreCase))
+        {
+            builder.Services.AddSingleton<IAgentModeConfigurator<AgentContext>, ReadOnlyAgentModeConfigurator<AgentContext>>();
+        }
+        else // Assuming this is your default/full access mode
+        {
+            builder.Services.AddSingleton<IAgentModeConfigurator<AgentContext>, DefaultAgentModeConfigurator<AgentContext>>();
+        }
+
         builder.Services.AddSingleton<IReasoningLoopManager, ReasoningLoopManager>();
         builder.Services.AddSingleton<IReasoningLoopFactory, ReasoningLoopFactory>();
         builder.Services.AddSingleton(sp =>
@@ -82,12 +96,14 @@ public class TlsHandoffEvals
 
         builder.Services.AddSingleton<IAgentFactory<AgentContext>, AgentFactory<AgentContext>>(sp =>
         {
+            var modeConfigurator = sp.GetRequiredService<IAgentModeConfigurator<AgentContext>>();
             return new AgentFactory<AgentContext>(
                 logger: sp.GetRequiredService<ILogger<AgentFactory<AgentContext>>>(),
                 toolFactory: sp.GetRequiredService<IToolFactory<AgentContext>>(),
                 assembliesToScan: AppDomain.CurrentDomain.GetAssemblies()
                     .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
                     .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true),
+                modeConfigurator: modeConfigurator,
                 agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "AgentsV2"),
                 commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonPrompts")
             );

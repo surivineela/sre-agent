@@ -28,8 +28,6 @@ namespace Agent.Runtime.Reasoning;
 
 public class ReasoningLoop
 {
-
-
     private readonly ILogger<ReasoningLoop> _logger;
     private readonly ILoggerFactory _loggerFactory;
     private readonly IChatClient _chatClient;
@@ -697,6 +695,33 @@ public class ReasoningLoop
                 break;
             }
 
+            // readonly mode
+            if (_actionSettings.Mode == ActionMode.ReadOnly)
+            {
+                var checkWriteActionResult = await CheckWriteActionInReadOnlyModeAsync(toolCall);
+                if (checkWriteActionResult.NeedSkip)
+                {
+                    var chatMessage = new ChatMessage(ChatRole.User, checkWriteActionResult.Prompt);
+
+                    toolResults.Add(new ManualToolCallResult()
+                    {
+                        FunctionCall = toolCall.FunctionCall,
+                        Output = null,
+                        SkipToolCall = true,
+                        ReplacementMessage = chatMessage,
+                    });
+
+                    runResult = await Runner.ResumeFromManualToolsAsync(
+                        previousResult: runResult,
+                        manualToolResults: toolResults,
+                        config: runConfig,
+                        context: _context,
+                        hooks: runHooks,
+                        cancellationToken: cancellationToken
+                    );
+                }
+            }
+
             if (checkApprovalResult.ApprovalStatus == ToolApprovalStatus.NotRequired || checkApprovalResult.ApprovalStatus == ToolApprovalStatus.AutoApproved)
             {
                 var functionResult = await InvokeToolWithErrorHandlingAsync(toolCall, cancellationToken);
@@ -714,30 +739,40 @@ public class ReasoningLoop
                 break;
             }
 
-            runResult = await Runner.ResumeFromManualToolsAsync(
-                previousResult: runResult,
-                manualToolResults: toolResults,
-                config: runConfig,
-                context: _context,
-                hooks: runHooks,
-                cancellationToken: cancellationToken
-            );
-            yield return runResult;
+            if (_actionSettings.Mode != ActionMode.ReadOnly && checkApprovalResult.ApprovalStatus == ToolApprovalStatus.NotRequired)
+            {
+                var functionResult = await InvokeToolWithErrorHandlingAsync(toolCall, cancellationToken);
+                toolResults.Add(new ManualToolCallResult()
+                {
+                    FunctionCall = toolCall.FunctionCall,
+                    Output = functionResult
+                });
 
-            await PersistReasoningMessagesAsync(agentChatHistory, runResult.NewItems);
-            _currentAgent = runResult.LastAgent;
-            _context = _context with { CurrentAgent = _currentAgent.Name };
-            _context = await _threadRepository.UpdateAgentContextAsync(_context);
+                runResult = await Runner.ResumeFromManualToolsAsync(
+                    previousResult: runResult,
+                    manualToolResults: toolResults,
+                    config: runConfig,
+                    context: _context,
+                    hooks: runHooks,
+                    cancellationToken: cancellationToken
+                );
+                yield return runResult;
+
+                await PersistReasoningMessagesAsync(agentChatHistory, runResult.NewItems);
+                _currentAgent = runResult.LastAgent;
+                _context = _context with { CurrentAgent = _currentAgent.Name };
+                _context = await _threadRepository.UpdateAgentContextAsync(_context);
+            }
+
+            if (runResult.Output != null)
+            {
+                await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context.ThreadId, string.Empty,
+                    new ChatMessage(ChatRole.Assistant, runResult.Output?.ToString()));
+            }
+
+            _logger.LogInternalInformation("Reasoning loop completed successfully.");
+            yield break;
         }
-
-        if (runResult.Output != null)
-        {
-            await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context.ThreadId, string.Empty,
-                new ChatMessage(ChatRole.Assistant, runResult.Output?.ToString()));
-        }
-
-        _logger.LogInternalInformation("Reasoning loop completed successfully.");
-        yield break;
     }
 
 
@@ -1091,6 +1126,51 @@ public class ReasoningLoop
         {
             _logger.LogInternalError(ex, "Error while calling tool {ToolName}", toolCall.Tool!.Name);
             return GetErrorMessage(toolCall.FunctionCall, ex);
+        }
+    }
+
+    private async Task<WriteActionActivityOutput> CheckWriteActionInReadOnlyModeAsync(ManualToolCall toolCall)
+    {
+        try
+        {
+            if (toolCall.FunctionCall == null)
+            {
+                return new WriteActionActivityOutput()
+                {
+                    IsWriteAction = false,
+                };
+            }
+
+            var attribute = toolCall.Tool.UnderlyingMethod?.GetCustomAttribute<WriteActionAttribute>();
+            if (attribute == null)
+            {
+                return new WriteActionActivityOutput()
+                {
+                    IsWriteAction = false,
+                };
+            }
+
+            // Check if NeedExecute is true, and if so, add "agentmode" parameter to the function call
+            var prompt = $"\nThe suggestion is to call Function '{toolCall.FunctionCall.Name}' with arguments: {System.Text.Json.JsonSerializer.Serialize(toolCall.FunctionCall.Arguments)}. " +
+                        "Please format this as a clear, actionable instruction for the user.";
+
+            return new WriteActionActivityOutput()
+            {
+                IsWriteAction = true,
+                Prompt = prompt,
+                NeedSkip = true,
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error while writing action in read-only mode: {ToolName}", toolCall.Tool.Name);
+            return new WriteActionActivityOutput
+            {
+                ModifiedFunctionCall = null,
+                IsWriteAction = false,
+                Prompt = GetErrorMessage(toolCall.FunctionCall, ex),
+                NeedSkip = true
+            };
         }
     }
 

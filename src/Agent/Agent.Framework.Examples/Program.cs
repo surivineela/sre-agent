@@ -110,6 +110,18 @@ class Program
             loggingBuilder.AddConsole();
         });
 
+        var agentModeString = builder.Configuration.GetSection("AppSettings:Core:Azure:Action:Mode").Get<string>();
+
+        // register the specific IAgentModeConfigurator implementation
+        if (string.Equals(agentModeString, "ReadOnly", StringComparison.OrdinalIgnoreCase))
+        {
+            builder.Services.AddSingleton<IAgentModeConfigurator<CustomContext>, ReadOnlyAgentModeConfigurator<CustomContext>>();
+        }
+        else
+        {
+            builder.Services.AddSingleton<IAgentModeConfigurator<CustomContext>, DefaultAgentModeConfigurator<CustomContext>>();
+        }
+
         builder.LoadAppSettings(builder.Environment.IsDevelopment());
         builder.ValidateAndRegisterAppSettings<AppSettings>();
         builder.Services
@@ -225,11 +237,13 @@ class Program
         var chatClient = host.Services.GetRequiredService<IChatClient>();
 
         var toolsRepository = host.Services.GetRequiredService<IToolFactory<CustomContext>>();
+        var modeConfigurator = host.Services.GetRequiredService<IAgentModeConfigurator<CustomContext>>();
 
         var agentFactory = new AgentFactory<CustomContext>(
             logger: host.Services.GetRequiredService<ILogger<AgentFactory<CustomContext>>>(),
             toolFactory: toolsRepository,
             assembliesToScan: [],
+            modeConfigurator: modeConfigurator,
             agentsYamlDirectory: Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "agents")
         );
 

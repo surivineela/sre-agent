@@ -4,6 +4,7 @@
 
 using System.ComponentModel;
 using System.Reflection;
+using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
 using Agent.Framework.Models;
@@ -20,6 +21,7 @@ public class AgentFactoryTests
 {
     private readonly Mock<ILogger<AgentFactory<AgentContext>>> _mockLogger;
     private readonly Mock<ILogger<ToolFactory<AgentContext>>> _mockToolFactoryLogger;
+    private readonly Mock<IAgentModeConfigurator<AgentContext>> _mockAgentModeConfigurator;
     private readonly IServiceProvider _serviceProvider;
     private readonly ServiceCollection _services;
 
@@ -27,6 +29,7 @@ public class AgentFactoryTests
     {
         _mockLogger = new Mock<ILogger<AgentFactory<AgentContext>>>();
         _mockToolFactoryLogger = new Mock<ILogger<ToolFactory<AgentContext>>>();
+        _mockAgentModeConfigurator = new Mock<IAgentModeConfigurator<AgentContext>>();
         _services = new ServiceCollection();
         _services.AddSingleton(_mockLogger.Object);
         _services.AddSingleton(_mockToolFactoryLogger.Object);
@@ -44,6 +47,7 @@ public class AgentFactoryTests
                 serviceProvider: _serviceProvider,
                 assembliesToScan: [Assembly.GetExecutingAssembly()]
             ),
+            modeConfigurator: _mockAgentModeConfigurator.Object,
             assembliesToScan: [Assembly.GetExecutingAssembly()]
         );
 
@@ -70,6 +74,7 @@ public class AgentFactoryTests
                 assembliesToScan: [Assembly.GetExecutingAssembly()]
             ),
             assembliesToScan: [],
+            modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
             commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts")
         );
@@ -91,6 +96,83 @@ public class AgentFactoryTests
         Assert.Contains(prompt1.Prompt, agent1.Instructions);
 
         Assert.Contains(agent2.Name, agent1.Handoffs.Select(h => h.AgentName));
+    }
+
+    [Fact]
+    public void AutomaticallyAddsReadOnlyPromptWhenAgentModeIsReadOnly()
+    {
+        // Arrange
+        // Set up the mock configurator to add the read-only prompt
+        _mockAgentModeConfigurator
+            .Setup(c => c.ConfigureAgent(
+                It.IsAny<Agent<AgentContext>>(), // Corrected type: The concrete Agent type
+                It.IsAny<IAgentDescriptor>(),
+                It.IsAny<IReadOnlyDictionary<string, IPromptDescriptor>>()
+            ))
+            .Callback<Agent<AgentContext>, IAgentDescriptor, IReadOnlyDictionary<string, IPromptDescriptor>>(
+                (agent, agentDescriptor, promptDescriptors) =>
+                {
+                    agent.Instructions += "\n\n**READ-ONLY MODE**";
+                    agent.Instructions += "\nYou can only perform READ operations.";
+                    agent.Instructions += "\nYou CANNOT make any changes.";
+                });
+
+        var toolFactory = new ToolFactory<AgentContext>(
+            logger: _mockToolFactoryLogger.Object,
+            serviceProvider: _serviceProvider,
+            assembliesToScan: [Assembly.GetExecutingAssembly()]
+        );
+
+        // Act
+        // Pass the mockAgentModeConfigurator.Object to the AgentFactory constructor
+        var agentFactory = new AgentFactory<AgentContext>(
+            logger: _mockLogger.Object,
+            toolFactory: toolFactory,
+            assembliesToScan: [Assembly.GetExecutingAssembly()],
+            modeConfigurator: _mockAgentModeConfigurator.Object
+        );
+
+        var agent = agentFactory.GetAgent("TestAgent1");
+        Assert.NotNull(agent);
+
+        // Assert
+        Assert.Contains("READ-ONLY MODE", agent.Instructions);
+        Assert.Contains("You can only perform READ operations", agent.Instructions);
+        Assert.Contains("You CANNOT make any changes", agent.Instructions);
+    }
+
+    [Fact]
+    public void DoesNotAddReadOnlyPromptWhenAgentModeIsNotReadOnly()
+    {
+        _mockAgentModeConfigurator
+            .Setup(c => c.ConfigureAgent(
+                It.IsAny<Agent<AgentContext>>(), // Corrected type
+                It.IsAny<IAgentDescriptor>(),
+                It.IsAny<IReadOnlyDictionary<string, IPromptDescriptor>>()
+            ))
+            .Callback<Agent<AgentContext>, IAgentDescriptor, IReadOnlyDictionary<string, IPromptDescriptor>>(
+                (agent, agentDescriptor, promptDescriptors) =>
+                {
+
+                });
+
+        var agentFactory = new AgentFactory<AgentContext>(
+            logger: _mockLogger.Object,
+            toolFactory: new ToolFactory<AgentContext>(
+                logger: _mockToolFactoryLogger.Object,
+                serviceProvider: _serviceProvider,
+                assembliesToScan: [Assembly.GetExecutingAssembly()]
+            ),
+            assembliesToScan: [Assembly.GetExecutingAssembly()],
+            modeConfigurator: _mockAgentModeConfigurator.Object
+        );
+
+        var agent = agentFactory.GetAgent("TestAgent1");
+        Assert.NotNull(agent);
+
+        // Should NOT contain the readonly prompt instructions
+        Assert.DoesNotContain("READ-ONLY MODE", agent.Instructions);
+        Assert.DoesNotContain("You can only perform READ operations", agent.Instructions);
     }
 }
 
@@ -131,6 +213,14 @@ public class TestCommonPrompt : IPromptDescriptor
     public const string PromptText = "test prompt text";
 
     public string Name { get; set; } = "test_prompt";
+    public string Prompt { get; set; } = PromptText;
+}
+
+public class TestReadOnlyPrompt : IPromptDescriptor
+{
+    public const string PromptText = "# Read-Only Mode Instructions\n\n**IMPORTANT: You are operating in READ-ONLY MODE.**\n\n**Read-Only Restrictions:**\n- You can only perform READ operations and queries\n- You CANNOT make any changes, modifications, or write operations";
+
+    public string Name { get; set; } = "readonly";
     public string Prompt { get; set; } = PromptText;
 }
 

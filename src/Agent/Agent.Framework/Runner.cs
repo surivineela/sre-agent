@@ -48,6 +48,10 @@ public static class Runner
 
                 previousResult.Trajectory.Append(resultContent);
             }
+            else if (matchingResult.ReplacementMessage != null)
+            {
+                functionCallMessages.Add(matchingResult.ReplacementMessage);
+            }
 
             if (hooks != null)
             {

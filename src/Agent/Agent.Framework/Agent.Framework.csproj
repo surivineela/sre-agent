@@ -14,5 +14,4 @@
     <PackageReference Include="YamlDotNet" />
     <PackageReference Include="OpenTelemetry" />
   </ItemGroup>
-
 </Project>

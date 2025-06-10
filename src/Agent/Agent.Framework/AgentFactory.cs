@@ -30,10 +30,13 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
     private readonly string? _commonPromptsYamlDirectory;
     private readonly IEnumerable<string>? _promptStarters;
 
+    private readonly IAgentModeConfigurator<TContext> _modeConfigurator;
+
     public AgentFactory(
         ILogger<AgentFactory<TContext>> logger,
         IToolFactory<TContext> toolFactory,
         IEnumerable<Assembly> assembliesToScan,
+        IAgentModeConfigurator<TContext> modeConfigurator,
         string? agentsYamlDirectory = null,
         string? commonPromptsYamlDirectory = null,
         IEnumerable<string>? promptStarters = null
@@ -45,6 +48,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         _agentsYamlDirectory = agentsYamlDirectory;
         _commonPromptsYamlDirectory = commonPromptsYamlDirectory;
         _promptStarters = promptStarters;
+        _modeConfigurator = modeConfigurator;
         InitializeAgents();
     }
 
@@ -124,6 +128,9 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
                 agent.Instructions.AddPromptStarter(promptStarter);
             }
         }
+
+        // Automatically configure agent for different modes
+        _modeConfigurator.ConfigureAgent(agent, agentDescriptor, _promptDescriptors);
 
         foreach (var commonPromptName in agentDescriptor.CommonPrompts)
         {

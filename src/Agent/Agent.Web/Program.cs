@@ -178,13 +178,26 @@ public class Program
         builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
 
 
-        //Configure Azure App Insights settings
+        // Configure Azure App Insights settings
         builder.Services.Configure<AppInsightsSettings>(
             builder.Configuration.GetSection("AppInsightsSettings"));
 
-        //Configure Azure Search Settings settings
+        // Configure Azure Search Settings settings
         builder.Services.Configure<SearchSettings>(
             builder.Configuration.GetSection("AppSettings:Core:SearchOptions"));
+
+        var azureSettings = builder.Configuration.GetSection("AppSettings:Core:Azure").Get<AzureSettings>();
+        var agentModeString = azureSettings?.Action.Mode.ToString();
+
+        // inject readonly configurator if readonly mode. For other modes pass the default (do nothing) for now
+        if (string.Equals(agentModeString, "ReadOnly", StringComparison.OrdinalIgnoreCase))
+        {
+            builder.Services.AddSingleton<IAgentModeConfigurator<AgentContext>, ReadOnlyAgentModeConfigurator<AgentContext>>();
+        }
+        else
+        {
+            builder.Services.AddSingleton<IAgentModeConfigurator<AgentContext>, DefaultAgentModeConfigurator<AgentContext>>();
+        }
 
         // Register a default ConversationReference that can be injected into PostToTeamsPlugin
         // builder.Services.AddSingleton<Microsoft.Bot.Schema.ConversationReference>(new Microsoft.Bot.Schema.ConversationReference());
@@ -366,12 +379,17 @@ public class Program
 
             .AddSingleton<IAgentFactory<AgentContext>, AgentFactory<AgentContext>>(sp =>
             {
+                var configuration = sp.GetRequiredService<IConfiguration>();
+                var azureSettings = configuration.GetSection("AppSettings:Core:Azure").Get<AzureSettings>();
+                var modeConfigurator = sp.GetRequiredService<IAgentModeConfigurator<AgentContext>>();
+
                 return new AgentFactory<AgentContext>(
                     logger: sp.GetRequiredService<ILogger<AgentFactory<AgentContext>>>(),
                     toolFactory: sp.GetRequiredService<IToolFactory<AgentContext>>(),
                     assembliesToScan: AppDomain.CurrentDomain.GetAssemblies()
                         .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
                         .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.Runtime") == true),
+                    modeConfigurator: modeConfigurator,
                     agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "AgentsV2"),
                     commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonPrompts"),
                     promptStarters: [Core.Constants.SREAgentPromptStarter]
@@ -561,8 +579,6 @@ public class Program
 
         // add websocket service as transient instead of singleton to allow multiple instances
         builder.Services.AddTransient<WebSocketEventService>();
-
-        var azureSettings = builder.Configuration.GetSection("AppSettings:Core:Azure").Get<AzureSettings>();
 
         builder.Services.AddOpenTelemetry().WithTracing(tracingBuilder =>
         {
