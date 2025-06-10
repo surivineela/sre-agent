@@ -28,13 +28,15 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
     private readonly IEnumerable<Assembly> _assembliesToScan;
     private readonly string? _agentsYamlDirectory;
     private readonly string? _commonPromptsYamlDirectory;
+    private readonly IEnumerable<string>? _promptStarters;
 
     public AgentFactory(
         ILogger<AgentFactory<TContext>> logger,
         IToolFactory<TContext> toolFactory,
         IEnumerable<Assembly> assembliesToScan,
         string? agentsYamlDirectory = null,
-        string? commonPromptsYamlDirectory = null
+        string? commonPromptsYamlDirectory = null,
+        IEnumerable<string>? promptStarters = null
     )
     {
         _toolFactory = toolFactory;
@@ -42,6 +44,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         _assembliesToScan = assembliesToScan;
         _agentsYamlDirectory = agentsYamlDirectory;
         _commonPromptsYamlDirectory = commonPromptsYamlDirectory;
+        _promptStarters = promptStarters;
         InitializeAgents();
     }
 
@@ -113,6 +116,14 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
 
         agent.Instructions
             .WithHandoffInstructions();
+
+        if (_promptStarters is not null)
+        {
+            foreach (var promptStarter in _promptStarters)
+            {
+                agent.Instructions.AddPromptStarter(promptStarter);
+            }
+        }
 
         foreach (var commonPromptName in agentDescriptor.CommonPrompts)
         {

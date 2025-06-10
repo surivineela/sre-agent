@@ -373,7 +373,8 @@ public class Program
                         .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
                         .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.Runtime") == true),
                     agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "AgentsV2"),
-                    commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonPrompts")
+                    commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonPrompts"),
+                    promptStarters: [Core.Constants.SREAgentPromptStarter]
                 );
             })
             .AddSingleton<IDiagnosticsPlugin, DiagnosticsPlugin>()

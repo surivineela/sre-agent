@@ -90,5 +90,14 @@ namespace Agent.Tests.Unit.Framework
 
             Assert.Contains("def", prompt.ToString());
         }
+
+        [Fact]
+        public void AddPromptStarter_AddsPrompt()
+        {
+            var prompt = new PromptText("abc");
+            prompt.AddPromptStarter("def");
+
+            Assert.StartsWith("def", prompt.ToString());
+        }
     }
 }

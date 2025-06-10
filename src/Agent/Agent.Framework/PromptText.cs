@@ -20,6 +20,12 @@ public class PromptText
     {
         StringBuilder builder = new StringBuilder();
 
+        foreach (var promptStarter in _promptStarters)
+        {
+            builder.AppendLine(promptStarter);
+            builder.AppendLine();
+        }
+
         if (HasHandoffInstructions)
         {
             builder.AppendLine(PromptTextConstants.HandoffInstructions);
@@ -69,6 +75,8 @@ public class PromptText
 
     private readonly List<string> _commonPrompts = [];
 
+    private readonly List<string> _promptStarters = [];
+
     public PromptText WithHandoffInstructions()
     {
         HasHandoffInstructions = true;
@@ -78,6 +86,11 @@ public class PromptText
     public void AddCommonPrompt(string promptText)
     {
         _commonPrompts.Add(promptText);
+    }
+
+    public void AddPromptStarter(string promptStarter)
+    {
+        _promptStarters.Add(promptStarter);
     }
 
     private static class PromptTextConstants
