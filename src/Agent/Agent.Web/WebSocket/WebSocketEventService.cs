@@ -19,7 +19,7 @@ namespace Agent.Web.WebSocket
     {
         private Guid _webSocketId = Guid.Empty;
         private readonly IAgentInboundCommunicationService _agentInboundCommunicationService;
-        private readonly ThreadManagementService threadManagementService;
+        private readonly ThreadManagementService _threadManagementService;
         private readonly IThreadRepository _repository;
         private readonly ILogger<WebSocketEventService> _logger;
         public WebSocketEventService(
@@ -30,6 +30,7 @@ namespace Agent.Web.WebSocket
         )
         {
             _agentInboundCommunicationService = agentInboundCommunicationService;
+            _threadManagementService = threadManagementService;
             _repository = repository;
             _logger = logger;
             _webSocketId = Guid.NewGuid();
@@ -153,7 +154,7 @@ namespace Agent.Web.WebSocket
                 );
                 var createThreadRequest = new CreateThreadRequest(createMessageRequest, createThreadRequestWs.Source);
 
-                results = threadManagementService.CreateUserInitiatedThreadStream(createThreadRequest);
+                results = _threadManagementService.CreateUserInitiatedThreadStream(createThreadRequest);
                 await foreach (var result in results)
                 {
                     result.AdditionalProperties ??= new AdditionalPropertiesDictionary();
