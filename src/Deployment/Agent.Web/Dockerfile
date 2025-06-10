@@ -1,4 +1,4 @@
-FROM python:3.12-slim AS installer  
+FROM mcr.microsoft.com/azurelinux/base/python:3.12 AS installer  
   
 WORKDIR /
 
