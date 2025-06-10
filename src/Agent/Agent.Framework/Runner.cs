@@ -316,7 +316,9 @@ public static class Runner
             Tools = tools.Cast<AITool>().ToList(),
             ToolMode = agent.ChatToolMode,
             Temperature = agent.Temperature,
-            AllowMultipleToolCalls = tools.Count > 0 && agent.AllowParallelToolCalls
+            AllowMultipleToolCalls = tools.Count > 0
+                ? false // agent.AllowParallelToolCalls TODO: not supported yet
+                : null // if there are no tools this value needs to be null, not false
         };
 
         var chatClient = agent.GetChatClient(config);
