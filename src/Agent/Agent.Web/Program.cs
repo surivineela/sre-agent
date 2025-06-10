@@ -80,6 +80,7 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using WebSocketSharp.Server;
+using System.Linq;
 
 namespace Agent.Web;
 
@@ -564,6 +565,7 @@ public class Program
 
         builder.Services.AddOpenTelemetry().WithTracing(tracingBuilder =>
         {
+
             tracingBuilder.AddSource("SREAgent")
                 .SetResourceBuilder(ResourceBuilder.CreateDefault()
                     .AddService(serviceName: "SREAgent", serviceVersion: "1.1.0"));
@@ -584,6 +586,19 @@ public class Program
                     options.DatabaseName = azureSettings.AgentTraceADX.DatabaseName;
                     options.TableName = azureSettings.AgentTraceADX.TableName;
                     options.ClusterUri = azureSettings.AgentTraceADX.ClusterUri;
+                    // Add custom column population logic
+                    options.PopulateColumns = (activity, trace) =>
+                    {
+                        // Add standard fields from activity tags
+                        trace["ThreadId"] = activity.GetTagItem("thread.id")?.ToString() ?? string.Empty;
+                        trace["OperationName"] = activity.TagObjects.FirstOrDefault(t => t.Key == "operation.name").Value?.ToString() ?? string.Empty;
+                        trace["ToolName"] = activity.TagObjects.FirstOrDefault(t => t.Key == "tool.name").Value?.ToString() ?? string.Empty;
+                        trace["AgentName"] = activity.TagObjects.FirstOrDefault(t => t.Key == "agent.name").Value?.ToString() ?? string.Empty;
+                        trace["ModelInputTokensCount"] = activity.TagObjects.FirstOrDefault(t => t.Key == "model.input.tokens.count").Value?.ToString() ?? "0";
+                        trace["ModelOutputTokensCount"] = activity.TagObjects.FirstOrDefault(t => t.Key == "model.output.tokens.count").Value?.ToString() ?? "0";
+                        trace["ModelTotalTokensCount"] = activity.TagObjects.FirstOrDefault(t => t.Key == "model.total.tokens.count").Value?.ToString() ?? "0";
+                        trace["AgentId"] = AgentNameHelper.GetAgentName(builder.Environment.IsProduction());
+                    };
                 });
             }
         });

@@ -13,6 +13,13 @@ using OpenTelemetry;
 namespace Agent.Logging;
 
 /// <summary>
+/// Delegate for customizing trace data columns.
+/// </summary>
+/// <param name="activity">The activity containing the telemetry data.</param>
+/// <param name="trace">The trace data dictionary to populate with custom columns.</param>
+public delegate void PopulateColumnsDelegate(Activity activity, Dictionary<string, object> trace);
+
+/// <summary>
 /// Exporter for sending OpenTelemetry trace data to Azure Data Explorer (Kusto).
 /// </summary>
 public class AzureDataExplorerExporter : BaseExporter<Activity>
@@ -23,6 +30,10 @@ public class AzureDataExplorerExporter : BaseExporter<Activity>
     private readonly DataSourceFormat _format;
     private readonly LogBuffer? _logBuffer;
     private readonly bool _useBatchProcessing;
+    /// <summary>
+    /// Gets or sets a function that can be used to populate custom columns in the trace data.
+    /// </summary>
+    private PopulateColumnsDelegate? _populateColumns { get; set; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AzureDataExplorerExporter"/> class.
@@ -35,7 +46,8 @@ public class AzureDataExplorerExporter : BaseExporter<Activity>
         IKustoIngestClient kustoClient,
         string databaseName,
         string tableName,
-        bool useBatchProcessing = false)
+        bool useBatchProcessing = false,
+        PopulateColumnsDelegate? populateColumns = null)
     {
         _kustoClient = kustoClient ?? throw new ArgumentNullException(nameof(kustoClient));
         _databaseName = databaseName ?? throw new ArgumentNullException(nameof(databaseName));
@@ -47,6 +59,7 @@ public class AzureDataExplorerExporter : BaseExporter<Activity>
         {
             _logBuffer = new LogBuffer();
         }
+        _populateColumns = populateColumns;
     }
 
     /// <inheritdoc/>
@@ -120,14 +133,7 @@ public class AzureDataExplorerExporter : BaseExporter<Activity>
             ["Duration"] = activity.Duration.TotalMilliseconds,
             ["Attributes"] = JsonSerializer.Serialize(activity.TagObjects), // Serialize attributes to JSON string
             ["Events"] = JsonSerializer.Serialize(activity.Events), // Serialize events to JSON string
-            ["Status"] = activity.Status.ToString(),
-            ["ThreadId"] = activity.GetTagItem("thread.id")?.ToString() ?? string.Empty,
-            ["OperationName"] = activity.TagObjects.FirstOrDefault(t => t.Key == "operation.name").Value?.ToString() ?? string.Empty,
-            ["ToolName"] = activity.TagObjects.FirstOrDefault(t => t.Key == "tool.name").Value?.ToString() ?? string.Empty,
-            ["AgentName"] = activity.TagObjects.FirstOrDefault(t => t.Key == "agent.name").Value?.ToString() ?? string.Empty,
-            ["ModelInputTokensCount"] = activity.TagObjects.FirstOrDefault(t => t.Key == "model.input.tokens.count").Value?.ToString() ?? "0",
-            ["ModelOutputTokensCount"] = activity.TagObjects.FirstOrDefault(t => t.Key == "model.output.tokens.count").Value?.ToString() ?? "0",
-            ["ModelTotalTokensCount"] = activity.TagObjects.FirstOrDefault(t => t.Key == "model.total.tokens.count").Value?.ToString() ?? "0",
+            ["Status"] = activity.Status.ToString()
         };
 
         // Add status information if available
@@ -136,17 +142,8 @@ public class AzureDataExplorerExporter : BaseExporter<Activity>
             traceData["StatusDescription"] = activity.StatusDescription;
         }
 
-        // Add all tags (attributes)
-        foreach (var tag in activity.TagObjects)
-        {
-            traceData[tag.Key] = tag.Value?.ToString() ?? string.Empty;
-        }
-
-        // Add all baggages
-        foreach (var baggage in activity.Baggage)
-        {
-            traceData[$"Baggage_{baggage.Key}"] = baggage.Value ?? string.Empty;
-        }
+        // Use the PopulateColumns plugin function if provided
+        _populateColumns?.Invoke(activity, traceData);
 
         return traceData;
     }

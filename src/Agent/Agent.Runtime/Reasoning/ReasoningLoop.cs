@@ -189,6 +189,7 @@ public class ReasoningLoop
 
             _rootSpan = _tracer.StartRootSpan(TraceOperationName.UserMessage);
             _rootSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
+            _rootSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.UserMessage);
             try
             {
                 _logger.LogInternalInformation("Received new message. Running reasoning loop...");

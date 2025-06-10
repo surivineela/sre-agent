@@ -61,15 +61,15 @@ public static class AzureDataExplorerExporterExtensions
         if (string.IsNullOrEmpty(options.TableName))
         {
             throw new ArgumentException("TableName must be specified", nameof(configure));
-        }
-
-        // Register the exporter with the TracerProviderBuilder using a factory function
+        }        // Register the exporter with the TracerProviderBuilder using a factory function
         return builder.AddProcessor(sp =>
         {
             var exporter = new AzureDataExplorerExporter(
                 kustoIngestClient,
                 options.DatabaseName,
-                options.TableName);
+                options.TableName,
+                options.UseBatchProcessing,
+                options.PopulateColumns);
 
             // Use the built-in BatchActivityExportProcessor from OpenTelemetry
             return new BatchActivityExportProcessor(
@@ -102,6 +102,11 @@ public class AzureDataExplorerExporterOptions
     /// </summary>
     public string ClusterUri { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Gets or sets a function that can be used to populate custom columns in the trace data.
+    /// </summary>
+    public PopulateColumnsDelegate? PopulateColumns { get; set; }
+
     public string FirstPartyAppClientId { get; set; } = string.Empty;
     public string FirstPartyAppTenantId { get; set; } = string.Empty;
     public string FirstPartyAppCertificatePath { get; set; } = string.Empty;
@@ -110,7 +115,7 @@ public class AzureDataExplorerExporterOptions
     /// Gets or sets a value indicating whether to use batch processing.
     /// When true, activities are first collected in a batch before being sent to Kusto.
     /// </summary>
-    public bool UseBatchProcessing { get; set; } = true;
+    public bool UseBatchProcessing { get; set; } = false;
 
     /// <summary>
     /// Gets or sets the maximum size of the queue used by the batch processor.
