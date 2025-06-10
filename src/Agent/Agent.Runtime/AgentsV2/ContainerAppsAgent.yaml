@@ -37,6 +37,7 @@ handoffs:
   - diagnostic_cpu_agent
   - diagnostic_memory_agent
   - diagnostic_latency_agent
+  - github_issue_agent
 
 tools:
   - GetLatestRevision
@@ -50,6 +51,7 @@ tools:
   - GetContainerAppCpuMetrics
   - GetRevisionLogs
   - GetContainerAppLogs
+  - ScaleContainerApp
   - GetImageReferenceFromResourceId
   - VerifyExternalRegistry
   - ValidateContainerAppHealth
