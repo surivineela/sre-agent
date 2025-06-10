@@ -147,15 +147,22 @@ export class ThreadClient extends DataPlaneClient {
     };
 
     public getThreadContext = async (threadId: string, signal: AbortSignal): Promise<Response<ThreadContext | undefined>> => {
-        const url = this.getRequestUrl(`}/api/v1/threads/${threadId}/context`);
-        const { data } = await axios.get(url, {
-            headers: getAgentHeaders(),
-            signal,
-        });
-        return {
-            isSuccessful: true,
-            content: data as ThreadContext | undefined,
-        };
+        const url = this.getRequestUrl(`/api/v1/threads/${threadId}/context`);
+        try {
+            const { data } = await axios.get(url, {
+                headers: getAgentHeaders(),
+                signal,
+            });
+            return {
+                isSuccessful: true,
+                content: data as ThreadContext | undefined,
+            };
+        } catch (e) {
+            return {
+                isSuccessful: false,
+                error: e,
+            };
+        }
     };
 
     public createThread = async (options: MessagePostOptions, signal?: AbortSignal): Promise<Response<Thread | undefined>> => {
