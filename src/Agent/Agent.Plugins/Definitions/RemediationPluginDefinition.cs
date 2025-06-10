@@ -5,14 +5,17 @@
 using System.ComponentModel;
 using Agent.Core.Attributes;
 using Agent.Core.Helpers;
+using Agent.Framework;
 using Agent.Plugins.Models;
 using Microsoft.SemanticKernel;
 using ArmConstants = Agent.Graph.Crawler.ARM.Constants;
 
 namespace Agent.Plugins.Definitions
 {
+    [AgentToolPlugin]
     public class RemediationPluginDefinition : IRemediationPlugin
     {
+        public Guid? ThreadId { get; set; }
         private IRemediationPlugin _remediationPlugin;
         public RemediationPluginDefinition(IRemediationPlugin remediationPlugin)
         {
@@ -48,11 +51,11 @@ namespace Agent.Plugins.Definitions
         [KernelFunction("restart_webapp")]
         [Description("Restart a Web App instance to mitigate memory leaks. This is typically used after scaling up " +
                "if memory issues persist. The restart will clear the memory and start fresh.")]
-        public async Task<RemediationResult> RestartWebApp(
+        public async Task<RemediationResult> RestartWebApplication(
             [Description("The resource ID of the App Service.")]
             string resourceId)
         {
-            return await _remediationPlugin.RestartWebApp(resourceId);
+            return await _remediationPlugin.RestartWebApplication(resourceId);
         }
 
         [RequiresApproval]

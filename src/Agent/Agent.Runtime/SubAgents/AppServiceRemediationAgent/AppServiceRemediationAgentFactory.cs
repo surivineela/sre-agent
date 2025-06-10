@@ -56,7 +56,7 @@ public sealed class AppServiceRemediationAgentFactory
         toolSignatures.Add(_toolsRepository.GetSignature(() => remediationPluginDefinition.ScaleAppServicePlanVertically));
         toolSignatures.Add(_toolsRepository.GetSignature(() => remediationPluginDefinition.SuggestNextSku));
         toolSignatures.Add(_toolsRepository.GetSignature(() => remediationPluginDefinition.CalculateScalingCost));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => remediationPluginDefinition.RestartWebApp));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => remediationPluginDefinition.RestartWebApplication));
         toolSignatures.Add(_toolsRepository.GetSignature(() => remediationPluginDefinition.CollectMemoryDump));
 
         var recordActionsPluginDefinition = new RecordActionsPluginDefinition(recordActionsPlugin);

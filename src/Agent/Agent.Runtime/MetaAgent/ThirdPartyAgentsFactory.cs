@@ -268,6 +268,7 @@ $@"## Facts
     private readonly IArmPlugin _armPlugin;
     private readonly IDiagnosticsPlugin _diagnosticsPlugin;
     private readonly ISearchPlugin _searchPlugin;
+    private readonly IRemediationPlugin _remediationPlugin;
 
     private readonly InstanceManagementSettings _instanceManagementSettings;
 
@@ -307,7 +308,8 @@ $@"## Facts
         IAzureMonitorMetricsPlugin azureMonitorMetricsPlugin,
         IMetaAgentFunctionAppDiagnosticsPlugin functionAppDiagnosticsPlugin,
         IArmPlugin armPlugin,
-        ISearchPlugin searchPlugin
+        ISearchPlugin searchPlugin,
+        IRemediationPlugin remediationPlugin
         )
     {
         _mcpToolsRepository = mcpToolsRepository;
@@ -350,6 +352,8 @@ $@"## Facts
         _functionAppDiagnosticsPlugin = functionAppDiagnosticsPlugin;
         _armPlugin = armPlugin;
         _searchPlugin = searchPlugin;
+
+        _remediationPlugin = remediationPlugin;
     }
 
     public List<AITool> GetSubAgentsAITools(Guid threadGuid, AgentContext context)
@@ -371,7 +375,7 @@ $@"## Facts
         _functionAppExecutionFailuresAgentPlugin.ThreadId = threadGuid;
         _functionAppDiagnosticsPlugin.ThreadId = threadGuid;
         _githubIssuePlugin.ThreadId = threadGuid;
-
+        _remediationPlugin.ThreadId= threadGuid;
 
 
         var chartPluginDefinition = new ChartPluginDefinition(_chartPlugin);
@@ -396,6 +400,8 @@ $@"## Facts
         var diagnosticsPluginDefinition = new DiagnosticsPluginDefinition(_diagnosticsPlugin);
 
         var searchPluginDefinition = new SearchPluginDefinition(_searchPlugin);
+
+        var remediationPluginDefinition = new RemediationPluginDefinition(_remediationPlugin);
 
         List<AITool> _aiTools =
         [
@@ -489,7 +495,9 @@ $@"## Facts
             AIFunctionFactory.Create(_githubIssuePlugin.FindConnectedRepo),
             AIFunctionFactory.Create(diagnosticsPluginDefinition.GetAnalysisAsync),
             AIFunctionFactory.Create(diagnosticsPluginDefinition.GetCPUAnalysis),
-            AIFunctionFactory.Create(searchPluginDefinition.SearchAsync)
+            AIFunctionFactory.Create(searchPluginDefinition.SearchAsync),
+            AIFunctionFactory.Create(_remediationPlugin.ServiceBusSetLocalAuthSupport)
+
         ];
 
         var subAgentTools = SubAgentDiscovery.GetSubAgentTools(threadGuid, typeof(MetaAgent).Assembly, _serviceProvider);

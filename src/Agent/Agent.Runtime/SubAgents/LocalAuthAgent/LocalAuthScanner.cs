@@ -27,12 +27,11 @@ public class LocalAuthScanner : SimpleResourceSubAgentScannerBase<LocalAuthAgent
 
     }
 
-    protected override TimeSpan RunInterval => TimeSpan.FromDays(1);
+    public override TimeSpan RunInterval => TimeSpan.FromDays(1);
 
     protected override string MessageWhenFoundResourcesInViolation => """
                     Hi there! I found some resources that have key-based access enabled;
                     this is generally not recommended - it is not as secure as using Entra-based authentication.
-                    Preparing details...  
                     """;
 
     protected override LocalAuthAgentActivityInput GenerateActivityInput(IEnumerable<SimpleResourceSubAgentResourceInformation> Resources)
@@ -45,7 +44,6 @@ public class LocalAuthScanner : SimpleResourceSubAgentScannerBase<LocalAuthAgent
 
     protected override async Task<ICollection<SimpleResourceSubAgentResourceInformation>> GetResourcesInViolationAsync()
     {
-
         var storageStatusesTask = GetResourceTypeInViolationAsync(ArmConstants.StorageType.ToLower(), _armHelper.GetStorageSettings);
         var cosmosStatusesTask = GetResourceTypeInViolationAsync(ArmConstants.CosmosDbType.ToLower(), _armHelper.GetCosmosDbSettings);
         var sqlStatusesTask = GetResourceTypeInViolationAsync(ArmConstants.AzureSQLType.ToLower(), _armHelper.GetAzureSqlServerSettings);

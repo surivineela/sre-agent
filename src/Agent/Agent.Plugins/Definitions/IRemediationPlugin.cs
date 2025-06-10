@@ -9,11 +9,12 @@ namespace Agent.Plugins.Definitions
 {
     public interface IRemediationPlugin
     {
+        public Guid? ThreadId { get; set; }
         Task<RemediationResult> ScaleAppServicePlanVertically(string resourceId);
 
         Task<RemediationResult> CollectMemoryDump(string resourceId);
 
-        Task<RemediationResult> RestartWebApp(string resourceId);
+        Task<RemediationResult> RestartWebApplication(string resourceId);
 
         Task<RemediationResult> SuggestNextSku(string resourceId, string direction, string currentSku);
 

@@ -7,7 +7,7 @@ using Agent.Framework;
 
 namespace Agent.Plugins
 {
-    
+    [AgentToolPlugin]
     public class ControlFlowPluginDefinition
     {
         [Description("Waits for a specified amount of time. Other system events or user messages can interrupt a wait. In this case, you might need to resume the wait by calling the wait tool again, with a different duration")]

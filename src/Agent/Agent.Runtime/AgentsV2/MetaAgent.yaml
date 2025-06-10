@@ -72,6 +72,7 @@ handoffs:
   - web_app_down_agent
   - aks_general_agent
   - charts_and_metrics_and_visualization_agent
+  - local_auth_agent
   - diagnostic_cpu_agent
   - diagnostic_memory_agent
   - function_app_agent

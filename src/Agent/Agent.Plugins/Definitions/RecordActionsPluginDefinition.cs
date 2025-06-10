@@ -4,10 +4,12 @@
 
 using System.ComponentModel;
 using Agent.Core.Models.Api.v1;
+using Agent.Framework;
 using Action = Agent.Core.Models.Api.v1.Action;
 
 namespace Agent.Plugins.Definitions
 {
+    [AgentToolPlugin]
     public class RecordActionsPluginDefinition
     {
         private readonly IRecordActionsPlugin _recordActionsPlugin;
