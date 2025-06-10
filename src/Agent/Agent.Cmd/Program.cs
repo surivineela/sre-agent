@@ -51,7 +51,7 @@ namespace Agent.Cmd
 
             string llmDeploymentName = builder.Configuration["AppSettings:Core:Azure:OpenAI:LLMDeploymentName"];
             builder.Services.ConfigureAzureOpenAIClient();
-            builder.Services.AddKeyedChatClient("function-invocation-enabled", serviceProvider => serviceProvider.GetRequiredService<AzureOpenAIClient>().AsChatClient(llmDeploymentName), ServiceLifetime.Singleton)
+            builder.Services.AddKeyedChatClient("function-invocation-enabled", serviceProvider => serviceProvider.GetRequiredService<AzureOpenAIClient>().GetChatClient(llmDeploymentName).AsIChatClient(), ServiceLifetime.Singleton)
                 .UseFunctionInvocation();
 
             var host = builder.Build();

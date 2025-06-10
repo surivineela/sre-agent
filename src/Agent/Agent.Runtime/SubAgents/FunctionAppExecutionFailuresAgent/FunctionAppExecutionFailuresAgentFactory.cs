@@ -2,11 +2,9 @@ using System.Text.Json;
 using Agent.Core;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
-using Agent.Plugins.Implementation;
 using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
-using OperationalAgentCore;
 
 namespace Agent.Runtime.SubAgents.FunctionAppExecutionFailuresAgent;
 public sealed class FunctionAppExecutionFailuresAgentFactory

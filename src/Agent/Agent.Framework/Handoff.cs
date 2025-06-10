@@ -22,8 +22,8 @@ public class Handoff<TContext> : AIFunction where TContext : class
 
     #region AIFunction overrides
 
-    protected override Task<object?> InvokeCoreAsync(
-        IEnumerable<KeyValuePair<string, object?>> arguments,
+    protected override ValueTask<object?> InvokeCoreAsync(
+        AIFunctionArguments arguments,
         CancellationToken cancellationToken)
     {
         // not to be called directly, handoffs will be intercepted by the run loop and handled separately

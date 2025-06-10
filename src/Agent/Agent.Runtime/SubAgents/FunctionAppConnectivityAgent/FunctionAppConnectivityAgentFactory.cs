@@ -1,11 +1,9 @@
 using System.Text.Json;
 using Agent.Core;
 using Agent.Plugins;
-using Microsoft.DurableTask.Client;
-using Agent.Core.Models.Api.v1;
-using Microsoft.DurableTask;
 using Agent.Plugins.Definitions;
-using OperationalAgentCore;
+using Microsoft.DurableTask;
+using Microsoft.DurableTask.Client;
 
 namespace Agent.Runtime.SubAgents.FunctionAppConnectivityAgent;
 public sealed class FunctionAppConnectivityAgentFactory

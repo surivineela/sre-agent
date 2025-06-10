@@ -1,11 +1,9 @@
 using Agent.Core.Interfaces;
-using Agent.Core.Configuration;
 using Agent.Core.Models;
 using Agent.Data.Repositories;
 using Agent.Plugins;
 using Agent.Plugins.Mocks;
 using Agent.Runtime.Communication;
-using Agent.Runtime;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.AI.Evaluation;
@@ -48,8 +46,7 @@ public sealed class SourceCodeAgentEvals
         var builder = TestHelpers.BuildTestApp(out _llmDeploymentName);
         _host = builder.Build();
         IChatClient client = _host.Services.GetRequiredService<IChatClient>();
-        IEvaluationTokenCounter? tokenCounter = null;
-        _chatConfiguration = new ChatConfiguration(client, tokenCounter);
+        _chatConfiguration = new ChatConfiguration(client);
 
         await _host.StartAsync();
     }

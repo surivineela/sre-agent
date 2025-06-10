@@ -31,7 +31,7 @@ public class StartHelperAgentActivity(
 
         try
         {
-            var invokeResult = await AIFunctionFactory.Create(startMethod, helperAgent).InvokeAsync(input.FunctionCall.Arguments);
+            var invokeResult = await AIFunctionFactory.Create(startMethod, helperAgent).InvokeAsync(new AIFunctionArguments(input.FunctionCall.Arguments));
             var result = new FunctionResultContent(input.FunctionCall.CallId, invokeResult);
             var message = new ChatMessage(ChatRole.Tool, [result]);
 
@@ -82,7 +82,7 @@ public class RunHelperAgentLongRunningActivity(
 
         try
         {
-            var invokeResult = await AIFunctionFactory.Create(longRunningMethod, helperAgent).InvokeAsync(input.FunctionCall.Arguments);
+            var invokeResult = await AIFunctionFactory.Create(longRunningMethod, helperAgent).InvokeAsync(new AIFunctionArguments(input.FunctionCall.Arguments));
 
             return new ChatMessage(
                 ChatRole.System,

@@ -80,7 +80,7 @@ namespace Agent.Runtime
                     var openAISettings = sp.GetRequiredService<OpenAISettings>();
                     var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
 
-                    return new ChatClientBuilder(client.AsChatClient(openAISettings.LLMDeploymentName))
+                    return new ChatClientBuilder(client.GetChatClient(openAISettings.LLMDeploymentName).AsIChatClient())
                         .UseLogging(loggerFactory)
                         .Build();
                 }))
@@ -90,7 +90,7 @@ namespace Agent.Runtime
                     var openAISettings = sp.GetRequiredService<OpenAISettings>();
                     var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
 
-                    return new ChatClientBuilder(client.AsChatClient(openAISettings.LLMDeploymentName))
+                    return new ChatClientBuilder(client.GetChatClient(openAISettings.LLMDeploymentName).AsIChatClient())
                         .UseLogging(loggerFactory)
                         .UseFunctionInvocation(loggerFactory, x =>
                         {
@@ -104,7 +104,7 @@ namespace Agent.Runtime
                     var openAISettings = sp.GetRequiredService<OpenAISettings>();
                     var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
 
-                    return new ChatClientBuilder(client.AsChatClient(openAISettings.LLMDeploymentName))
+                    return new ChatClientBuilder(client.GetChatClient(openAISettings.LLMDeploymentName).AsIChatClient())
                         .UseLogging(loggerFactory)
                         .UseFunctionInvocation(loggerFactory, x =>
                         {
@@ -121,7 +121,7 @@ namespace Agent.Runtime
                     var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
                     var settings = sp.GetRequiredService<InstanceManagementSettings>();
 
-                    return new ChatClientBuilder(client.AsChatClient(openAISettings.LLMDeploymentName))
+                    return new ChatClientBuilder(client.GetChatClient(openAISettings.LLMDeploymentName).AsIChatClient())
                         .UseLogging(loggerFactory)
                         .UseFunctionInvocation(loggerFactory, x =>
                         {
@@ -140,7 +140,7 @@ namespace Agent.Runtime
                     var openAISettings = sp.GetRequiredService<OpenAISettings>();
                     var client = sp.GetRequiredService<AzureOpenAIClient>();
 
-                    return client.AsEmbeddingGenerator(openAISettings.EmbeddingGeneratorDeploymentName);
+                    return client.GetEmbeddingClient(openAISettings.EmbeddingGeneratorDeploymentName).AsIEmbeddingGenerator();
                 }));
         }
     }

@@ -79,8 +79,8 @@ public class ContextAIFunction<TContext> : AIFunction where TContext : class
     public override JsonSerializerOptions JsonSerializerOptions => _innerFunction.JsonSerializerOptions;
     public override MethodInfo? UnderlyingMethod => _innerFunction.UnderlyingMethod;
 
-    protected override Task<object?> InvokeCoreAsync(
-        IEnumerable<KeyValuePair<string, object?>> arguments,
+    protected override ValueTask<object?> InvokeCoreAsync(
+        AIFunctionArguments arguments,
         CancellationToken cancellationToken)
     {
         return _innerFunction.InvokeAsync(arguments, cancellationToken);

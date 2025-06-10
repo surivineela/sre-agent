@@ -2,39 +2,26 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Core;
 using Agent.Core.Configuration;
-using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
-using Agent.Core.Models.Api.v1;
 using Agent.Data.Repositories;
-using Agent.Plugins;
 using Agent.Plugins.Definitions;
-using Agent.Plugins.Mocks;
 using Agent.Runtime;
 using Agent.Runtime.Communication;
 using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents;
-using Agent.Runtime.SubAgents.Core;
-using Agent.Runtime.SubAgents.ManagedIdentityMigration;
 using Agent.Runtime.SubAgents.TlsBestPractices;
 using Agent.Tests.Common;
 using Agent.Tests.Common.Mocks;
 using Agent.Tests.Common.ScenarioTestHelpers;
-using Agent.Tests.Integration.Fixtures;
 using Agent.Tests.Integration.Helpers;
 using Azure.AI.OpenAI;
-using DurableTask.Core.Tracking;
 using Microsoft.DurableTask.Client;
-using Microsoft.DurableTask.Client.AzureManaged;
-using Microsoft.DurableTask.Worker;
-using Microsoft.DurableTask.Worker.AzureManaged;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Time.Testing;
 using Moq;
 using Xunit.Abstractions;
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
@@ -63,7 +50,7 @@ namespace Agent.Tests.Integration
 
         public TlsBestPracticesAgentTests(ITestOutputHelper testOutputHelper)
         {
-            var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings {  EnvironmentName = Environments.Development });
+            var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { EnvironmentName = Environments.Development });
             var services = builder.Services;
 
             builder.LoadAppSettings();
@@ -89,12 +76,12 @@ namespace Agent.Tests.Integration
 
             string llmDeploymentName = builder.Configuration["AppSettings:Core:Azure:OpenAI:LLMDeploymentName"];
 
-            services.AddChatClient(serviceProvider => serviceProvider.GetRequiredService<AzureOpenAIClient>().AsChatClient(llmDeploymentName), ServiceLifetime.Singleton)
+            services.AddChatClient(serviceProvider => serviceProvider.GetRequiredService<AzureOpenAIClient>().GetChatClient(llmDeploymentName).AsIChatClient(), ServiceLifetime.Singleton)
                 .UseAgenticLogging()
                 .UseDistributedCache(diskCache);
 
             // if we want, we can have different chat clients, some with function invocation enabled
-            services.AddKeyedChatClient("function-invocation-enabled", serviceProvider => serviceProvider.GetRequiredService<AzureOpenAIClient>().AsChatClient(llmDeploymentName), ServiceLifetime.Singleton)
+            services.AddKeyedChatClient("function-invocation-enabled", serviceProvider => serviceProvider.GetRequiredService<AzureOpenAIClient>().GetChatClient(llmDeploymentName).AsIChatClient(), ServiceLifetime.Singleton)
                 .UseAgenticLogging()
                 .UseDistributedCache(diskCache)
                 .UseFunctionInvocation();

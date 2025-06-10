@@ -4,7 +4,6 @@
 
 using Agent.Logging;
 using Agent.Plugins;
-using Agent.Runtime.MetaAgent;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -20,7 +19,7 @@ public sealed record ChartToolCallInput(
 [DurableTask]
 public class ChartToolCallActivity : TaskActivity<ChartToolCallInput, ExecuteActionOutput>
 {
-    private readonly IChartPlugin _chartPlugin;    
+    private readonly IChartPlugin _chartPlugin;
     private readonly ILogger<GenericExecuteActionActivity> _logger;
 
     public ChartToolCallActivity(
@@ -48,13 +47,13 @@ public class ChartToolCallActivity : TaskActivity<ChartToolCallInput, ExecuteAct
             AIFunctionFactory.Create(chartDefinition.PlotBarChartAsync),
             AIFunctionFactory.Create(chartDefinition.PlotAreaChartWithCorrelationAsync),
         ];
-        
+
         var matchingTool = aiFunctions.Single(x => x.Name == input.FunctionCallContent.Name);
 
         try
         {
             // Invoke the function
-            var invokeResult = await matchingTool.InvokeAsync(input.FunctionCallContent.Arguments);
+            var invokeResult = await matchingTool.InvokeAsync(new AIFunctionArguments(input.FunctionCallContent.Arguments));
             var result = new FunctionResultContent(input.FunctionCallContent.CallId, invokeResult);
 
             // Return successful result

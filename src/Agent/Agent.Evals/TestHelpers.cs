@@ -1,14 +1,8 @@
-using System;
-using System.Collections.Concurrent;
-using System.Linq;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
-using Agent.Core.Services;
 using Agent.Data.Repositories;
 using Agent.Framework;
 using Agent.Plugins;
@@ -26,7 +20,6 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Moq;
 
 namespace Agent.Evals;
@@ -76,14 +69,14 @@ public static class TestHelpers
             builder.AddConsole();
         });
 
-        builder.Services.AddChatClient(sp => sp.GetRequiredService<AzureOpenAIClient>().AsChatClient(llmDeploymentName));
+        builder.Services.AddChatClient(sp => sp.GetRequiredService<AzureOpenAIClient>().GetChatClient(llmDeploymentName).AsIChatClient());
 
         builder.Services.AddKeyedSingleton<IChatClient>("function-invocation-enabled", (sp, _) =>
         {
             var client = sp.GetRequiredService<AzureOpenAIClient>();
             var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
 
-            return new ChatClientBuilder(client.AsChatClient(llmDeploymentName))
+            return new ChatClientBuilder(client.GetChatClient(llmDeploymentName).AsIChatClient())
                 .UseLogging(loggerFactory)
                 .UseFunctionInvocation(loggerFactory, x =>
                 {
@@ -97,7 +90,7 @@ public static class TestHelpers
             var client = sp.GetRequiredService<AzureOpenAIClient>();
             var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
 
-            return new ChatClientBuilder(client.AsChatClient(llmDeploymentName))
+            return new ChatClientBuilder(client.GetChatClient(llmDeploymentName).AsIChatClient())
                 .UseLogging(loggerFactory)
                 .UseFunctionInvocation(loggerFactory, x =>
                 {
@@ -195,7 +188,7 @@ public static class TestHelpers
     {
         foreach (var message in chatMessages)
         {
-            if(string.IsNullOrEmpty(message.Text))
+            if (string.IsNullOrEmpty(message.Text))
             {
                 testContext.WriteLine($"{System.Text.Json.JsonSerializer.Serialize(message.Contents)}");
             }
@@ -203,7 +196,7 @@ public static class TestHelpers
             {
                 testContext.WriteLine($"[{message.Role}] {message.Text}");
             }
-                
+
         }
     }
 

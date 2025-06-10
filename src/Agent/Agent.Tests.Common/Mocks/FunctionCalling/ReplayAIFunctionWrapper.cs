@@ -28,8 +28,8 @@ internal class ReplayAIFunctionWrapper : AIFunction
     public override JsonSerializerOptions JsonSerializerOptions => _originalFunction.JsonSerializerOptions;
     public override MethodInfo? UnderlyingMethod => _originalFunction.UnderlyingMethod;
 
-    protected override async Task<object?> InvokeCoreAsync(
-        IEnumerable<KeyValuePair<string, object?>> arguments,
+    protected override async ValueTask<object?> InvokeCoreAsync(
+        AIFunctionArguments arguments,
         CancellationToken cancellationToken = default)
     {
         try
@@ -40,7 +40,7 @@ internal class ReplayAIFunctionWrapper : AIFunction
                 return await _originalFunction.InvokeAsync(arguments, cancellationToken);
             }
         }
-        catch(Exception e)
+        catch (Exception e)
         {
             throw;
         }

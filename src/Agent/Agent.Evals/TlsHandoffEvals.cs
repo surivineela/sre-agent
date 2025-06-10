@@ -1,4 +1,3 @@
-using System.Threading;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
@@ -56,7 +55,7 @@ public class TlsHandoffEvals
         builder.Services.AddPluginDefinitionsForGenericSubAgent();
         builder.Services.AddSingleton<TlsBestPracticesPlugin>();
         builder.Services.AddSingleton<TlsBestPracticeAgentFactory>();
-        builder.Services.AddSingleton<IAgentsFactory>( sp =>
+        builder.Services.AddSingleton<IAgentsFactory>(sp =>
         {
             return MetaAgentMock.GetMockedThirdPartAgentsFactory(
                 tlsBestPracticesPlugin: sp.GetRequiredService<TlsBestPracticesPlugin>(),
@@ -104,7 +103,7 @@ public class TlsHandoffEvals
         await SetupArmMockForTls();
 
         var evalClient = _host.Services.GetRequiredService<IChatClient>();
-        _chatConfiguration = new ChatConfiguration(evalClient, tokenCounter: null);
+        _chatConfiguration = new ChatConfiguration(evalClient);
 
         await _host.StartAsync();
     }
@@ -167,7 +166,7 @@ public class TlsHandoffEvals
         finally
         {
             // No need to complete the update.
-            if(orchestrationMetadata != null)
+            if (orchestrationMetadata != null)
             {
                 await _durableTaskClient.TerminateInstanceAsync(orchestrationMetadata.InstanceId);
                 await Task.Delay(TimeSpan.FromMilliseconds(200));

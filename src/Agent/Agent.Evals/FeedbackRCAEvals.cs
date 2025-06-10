@@ -1,23 +1,15 @@
-using System.Text;
 using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
-using Agent.Core.Models;
+using Agent.Core.Models.Api.v1;
 using Agent.Data.Repositories;
-using Agent.Plugins;
-using Agent.Plugins.Mocks;
 using Agent.Runtime.Communication;
+using Agent.Runtime.SubAgents.FeedbackRCAAgent;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.AI.Evaluation;
-using Microsoft.Extensions.AI.Evaluation.Quality;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Hosting;
-using Moq;
-using Newtonsoft.Json;
-using OpenAI.Chat;
+using Microsoft.Extensions.Logging.Abstractions;
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
-using Agent.Runtime.SubAgents.FeedbackRCAAgent;
-using Agent.Core.Models.Api.v1;
 
 namespace Agent.Evals;
 
@@ -54,8 +46,7 @@ public sealed class FeedbackRCAEvals
         var builder = TestHelpers.BuildTestApp(out _llmDeploymentName);
         _host = builder.Build();
         IChatClient client = _host.Services.GetRequiredService<IChatClient>();
-        IEvaluationTokenCounter? tokenCounter = null;
-        _chatConfiguration = new ChatConfiguration(client, tokenCounter);
+        _chatConfiguration = new ChatConfiguration(client);
         await _host.StartAsync();
     }
 

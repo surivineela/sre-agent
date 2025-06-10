@@ -2,11 +2,11 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json;
+using Agent.Logging;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
-using Agent.Logging;
 
 namespace Agent.Runtime.SubAgents.Core;
 
@@ -42,7 +42,7 @@ public class GenericExecute202ActionActivity : TaskActivity<ExecuteActionInput, 
 
         try
         {
-            var invokeResult = await matchingTool.ExecuteFunction.InvokeAsync(input.FunctionCallContent.Arguments);
+            var invokeResult = await matchingTool.ExecuteFunction.InvokeAsync(new AIFunctionArguments(input.FunctionCallContent.Arguments));
 
             // Success case - return formatted result
             return new ChatMessage(

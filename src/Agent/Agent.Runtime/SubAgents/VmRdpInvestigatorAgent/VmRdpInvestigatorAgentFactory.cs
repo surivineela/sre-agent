@@ -1,12 +1,10 @@
 using System.Text.Json;
 using Agent.Core;
 using Agent.Plugins;
-using Microsoft.DurableTask.Client;
-using Agent.Core.Models.Api.v1;
-using Microsoft.DurableTask;
-using Agent.Runtime.SubAgents.RdpInvestigatorAgent;
 using Agent.Plugins.Definitions;
-using OperationalAgentCore;
+using Agent.Runtime.SubAgents.RdpInvestigatorAgent;
+using Microsoft.DurableTask;
+using Microsoft.DurableTask.Client;
 
 namespace Agent.Runtime.SubAgents.VmRdpInvestigatorAgent;
 public sealed class VmRdpInvestigatorAgentFactory

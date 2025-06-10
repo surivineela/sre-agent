@@ -3,15 +3,15 @@
 // ------------------------------------------------------------
 
 using System.Reflection;
+using Agent.Core;
 using Agent.Core.Attributes;
+using Agent.Core.Configuration;
+using Agent.Core.Models;
+using Agent.Core.Models.Api.v1;
 using Agent.Logging;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using Agent.Core;
-using Agent.Core.Models;
-using Agent.Core.Configuration;
-using Agent.Core.Models.Api.v1;
 
 namespace Agent.Runtime.SubAgents.Core;
 
@@ -47,7 +47,7 @@ public class GenericExecuteActionActivity : TaskActivity<ExecuteActionInput, Exe
             _logger.LogInternalInformation($"[GenericExecuteActionActivity] The approval context for tool {matchingTool.ToolFunction.Name} is: ThreadId = {approvalContext.ThreadId}, ApprovalId = {approvalContext.ApprovalId}, UseOboToken = {approvalContext.UseOboToken}");
 
             // Invoke the function
-            var invokeResult = await matchingTool.ToolFunction.InvokeAsync(input.FunctionCallContent.Arguments);
+            var invokeResult = await matchingTool.ToolFunction.InvokeAsync(new AIFunctionArguments(input.FunctionCallContent.Arguments));
             var result = new FunctionResultContent(input.FunctionCallContent.CallId, invokeResult);
 
             // Return successful result

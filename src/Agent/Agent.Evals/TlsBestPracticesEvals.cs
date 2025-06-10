@@ -1,8 +1,5 @@
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
-using Agent.Core.Models.Api.v1;
-using Agent.Plugins.Mocks;
-using Agent.Data.Repositories;
 using Agent.Runtime.SubAgents;
 using Agent.Runtime.SubAgents.TlsBestPractices;
 using Agent.Tests.Common;
@@ -13,7 +10,6 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.AI.Evaluation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System.Threading;
 
 namespace Agent.Evals;
 
@@ -65,8 +61,7 @@ public class TlsBestPracticesEvals
         _durableTaskClient = _host.Services.GetRequiredService<DurableTaskClient>();
         _agentFactory = _host.Services.GetRequiredService<TlsBestPracticeAgentFactory>();
         _threadRepository = _host.Services.GetRequiredService<IThreadRepository>();
-        IEvaluationTokenCounter? tokenCounter = null;
-        _chatConfiguration = new ChatConfiguration(client, tokenCounter);
+        _chatConfiguration = new ChatConfiguration(client);
 
         await _host.StartAsync();
     }

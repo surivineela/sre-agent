@@ -11,8 +11,8 @@ using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Data.DataModels;
-using Agent.Logging;
 using Agent.Graph.Interfaces;
+using Agent.Logging;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.AI;
@@ -145,7 +145,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                     .Where(doc => doc.IncidentDiscussionId != null)
                     .Select(doc => doc.IncidentDiscussionId!)
                     .ToFeedIterator();
-                    // .ToHashSet();
+                // .ToHashSet();
                 var existingNotesIds = new HashSet<string>();
                 while (iterator.HasMoreResults)
                 {
@@ -379,7 +379,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
 
         try
         {
-            var response = await chatClient.GetResponseAsync<List<string>>(messages, options, useNativeJsonSchema: true);
+            var response = await chatClient.GetResponseAsync<List<string>>(messages, options);
             return response.Result;
         }
         catch (Exception ex)

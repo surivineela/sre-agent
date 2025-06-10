@@ -1,17 +1,12 @@
 using System.Text.Json;
-using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
-using Agent.Plugins.Mocks;
 using Agent.Runtime.Communication;
 using Agent.Runtime.MetaAgent;
-using Agent.Runtime.MetaAgent.Interfaces;
 using Agent.Runtime.Services;
-using Agent.Runtime.SubAgents;
-using Agent.Tests.Common.Mocks;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.AI.Evaluation;
@@ -60,8 +55,7 @@ public class MetaAgentEvals
         IChatClient client = _host.Services.GetRequiredService<IChatClient>();
         ILoggerFactory loggerFactory = _host.Services.GetRequiredService<ILoggerFactory>();
 
-        IEvaluationTokenCounter? tokenCounter = null;
-        _chatConfiguration = new ChatConfiguration(client, tokenCounter);
+        _chatConfiguration = new ChatConfiguration(client);
 
         _chatClient = _chatConfiguration.ChatClient.AsBuilder().
             UseLogging(loggerFactory).

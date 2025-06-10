@@ -331,7 +331,10 @@ public static class Runner
 
         await hooks.OnModelGenerationStart(contextWrapper, agent, modelInput, chatOptions);
         var response = await chatClient.GetResponseAsync(modelInput, chatOptions);
+
+
         await hooks.OnModelGenerationEnd(contextWrapper, agent, response);
+
         trajectory.Append(response);
 
         if (response.Usage != null)
@@ -412,7 +415,7 @@ public static class Runner
 
                         await hooks.OnToolStart(contextWrapper, agent, agentAsTool, functionCall.Arguments);
 
-                        var toolResult = await agentAsTool.InvokeAsync(functionCall.Arguments);
+                        var toolResult = await agentAsTool.InvokeAsync(new AIFunctionArguments(functionCall.Arguments));
 
                         await hooks.OnToolEnd(contextWrapper, agent, agentAsTool, toolResult);
 
@@ -438,7 +441,7 @@ public static class Runner
                         // run auto tool
                         await hooks.OnToolStart(contextWrapper, agent, tool, functionCall.Arguments);
 
-                        var toolResult = await tool.InvokeAsync(functionCall.Arguments);
+                        var toolResult = await tool.InvokeAsync(new AIFunctionArguments(functionCall.Arguments));
 
                         await hooks.OnToolEnd(contextWrapper, agent, tool, toolResult);
 

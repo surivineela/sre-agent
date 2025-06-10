@@ -9,13 +9,9 @@ using Agent.Runtime.Communication;
 using Agent.Runtime.SubAgents.CVEAgent;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.AI.Evaluation;
-using Microsoft.Extensions.AI.Evaluation.Quality;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Hosting;
-using Moq;
-using Newtonsoft.Json;
-using OpenAI.Chat;
+using Microsoft.Extensions.Logging.Abstractions;
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 
 namespace Agent.Evals;
@@ -53,8 +49,7 @@ public sealed class CVEEvals
         var builder = TestHelpers.BuildTestApp(out _llmDeploymentName);
         _host = builder.Build();
         IChatClient client = _host.Services.GetRequiredService<IChatClient>();
-        IEvaluationTokenCounter? tokenCounter = null;
-        _chatConfiguration = new ChatConfiguration(client, tokenCounter);
+        _chatConfiguration = new ChatConfiguration(client);
 
         await _host.StartAsync();
     }

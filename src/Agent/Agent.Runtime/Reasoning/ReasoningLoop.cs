@@ -5,8 +5,8 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
-using System.Threading.Channels;
 using System.Text.Json.Serialization;
+using System.Threading.Channels;
 using Agent.Core;
 using Agent.Core.Attributes;
 using Agent.Core.Configuration;
@@ -23,7 +23,6 @@ using Agent.Runtime.SubAgents.Core;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
-using System.Text.Json;
 
 namespace Agent.Runtime.Reasoning;
 
@@ -768,7 +767,7 @@ public class ReasoningLoop
     {
         try
         {
-            var functionResult = await aiTool.InvokeAsync(functionCall.Arguments, cancellationToken);
+            var functionResult = await aiTool.InvokeAsync(new AIFunctionArguments(functionCall.Arguments), cancellationToken);
             var result = new FunctionResultContent(functionCall.CallId, functionResult);
             var functionCallMessage = new ChatMessage(ChatRole.Tool, [result]);
             await PersistReasoningMessageAsync(agentChatHistory, functionCallMessage);
@@ -1083,7 +1082,7 @@ public class ReasoningLoop
         try
         {
             ToolStatic.AsyncLocalThreadId.Value = _context.ThreadId;
-            return await toolCall.Tool.InvokeAsync(toolCall.FunctionCall.Arguments, cancellationToken);
+            return await toolCall.Tool.InvokeAsync(new AIFunctionArguments(toolCall.FunctionCall.Arguments), cancellationToken);
         }
         catch (Exception ex)
         {

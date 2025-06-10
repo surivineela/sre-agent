@@ -90,10 +90,10 @@ namespace Agent.Tests.Integration
 
                     services.AddSingleton(openAIClient);
 
-                    services.AddChatClient(serviceProvider => serviceProvider.GetRequiredService<AzureOpenAIClient>().AsChatClient(openAISettings.LLMDeploymentName), ServiceLifetime.Singleton)
+                    services.AddChatClient(serviceProvider => serviceProvider.GetRequiredService<AzureOpenAIClient>().GetChatClient(openAISettings.LLMDeploymentName).AsIChatClient(), ServiceLifetime.Singleton)
                         .UseAgenticLogging();
 
-                    services.AddKeyedChatClient("function-invocation-enabled", serviceProvider => serviceProvider.GetRequiredService<AzureOpenAIClient>().AsChatClient(openAISettings.LLMDeploymentName), ServiceLifetime.Singleton)
+                    services.AddKeyedChatClient("function-invocation-enabled", serviceProvider => serviceProvider.GetRequiredService<AzureOpenAIClient>().GetChatClient(openAISettings.LLMDeploymentName).AsIChatClient(), ServiceLifetime.Singleton)
                         .UseAgenticLogging()
                         .UseDistributedCache(diskCache)
                         .UseFunctionInvocation();

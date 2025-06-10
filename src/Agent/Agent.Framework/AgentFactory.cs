@@ -98,7 +98,8 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
             CustomReflectionNote = agentDescriptor.CustomReflectionNote,
             Handoffs = [], // Will be populated later to avoid circular references
             FactoryTools = agentDescriptor.Tools,
-            AllowParallelToolCalls = agentDescriptor.AllowParallelToolCalls,
+            // TODO: parallel tool calls not supported in the framework yet, ignore agent-level overrides
+            AllowParallelToolCalls = false // agentDescriptor.AllowParallelToolCalls,
         };
         if (!string.IsNullOrEmpty(agentDescriptor.CriticPromptPath))
         {

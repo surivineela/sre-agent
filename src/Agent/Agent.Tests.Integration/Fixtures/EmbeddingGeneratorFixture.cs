@@ -2,11 +2,10 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Configuration;
 using Azure.AI.OpenAI;
 using Azure.Identity;
 using Microsoft.Extensions.AI;
-
-using Agent.Core.Configuration;
 
 namespace Agent.Tests.Integration.Fixtures
 {
@@ -49,7 +48,7 @@ namespace Agent.Tests.Integration.Fixtures
             }
 
             // Return the ChatClient instance
-            EmbeddingGenerator = client.AsEmbeddingGenerator(deployment);
+            EmbeddingGenerator = client.GetEmbeddingClient(deployment).AsIEmbeddingGenerator();
         }
     }
 }

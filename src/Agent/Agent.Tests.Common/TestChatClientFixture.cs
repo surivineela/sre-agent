@@ -2,12 +2,11 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Configuration;
+using Agent.Core.Extensions;
 using Azure.AI.OpenAI;
 using Azure.Identity;
-
-using Agent.Core.Configuration;
 using Microsoft.Extensions.AI;
-using Agent.Core.Extensions;
 
 namespace Agent.Tests.Common.Fixtures
 {
@@ -50,7 +49,7 @@ namespace Agent.Tests.Common.Fixtures
             }
 
             // Return the ChatClient instance
-            ChatClient = client.AsChatClient(deployment);
+            ChatClient = client.GetChatClient(deployment).AsIChatClient();
         }
 
         public async Task<bool> MatchesNaturalLanguagePrompt(string expected, IList<Microsoft.Extensions.AI.ChatMessage> chatHistory)

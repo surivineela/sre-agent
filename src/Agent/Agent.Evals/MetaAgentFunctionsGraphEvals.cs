@@ -35,8 +35,7 @@ public class MetaAgentFunctionsGraphEvals
         _mocks.FinishSetup(_host.Services);
 
         var evalClient = _host.Services.GetRequiredService<IChatClient>();
-        IEvaluationTokenCounter? tokenCounter = null;
-        _chatConfiguration = new ChatConfiguration(evalClient, tokenCounter);
+        _chatConfiguration = new ChatConfiguration(evalClient);
 
         await _host.StartAsync();
     }

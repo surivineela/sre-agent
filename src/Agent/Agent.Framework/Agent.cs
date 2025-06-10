@@ -6,9 +6,9 @@ using Microsoft.Extensions.AI;
 
 namespace Agent.Framework;
 
-public class Agent<TContext> where TContext : class
+public class Agent<TContext>(string name) where TContext : class
 {
-    public string Name { get; set; }
+    public string Name { get; } = name;
 
     public PromptText? HandoffDescription { get; set; }
 
@@ -43,24 +43,9 @@ public class Agent<TContext> where TContext : class
 
     public virtual float Temperature { get; set; } = 0.3f;
 
-    public Agent(string name)
-    {
-        Name = name;
-    }
-
     public virtual IChatClient GetChatClient(RunConfig config)
     {
-        var innerClient = config.ChatClient;
-        if (AllowParallelToolCalls)
-        {
-            return new ChatClientBuilder(innerClient)
-                .UseFunctionInvocation()
-                .Build();
-        }
-        else
-        {
-            return innerClient;
-        }
+        return config.ChatClient;
     }
 }
 

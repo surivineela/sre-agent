@@ -66,7 +66,7 @@ public class AgentAsTool<TContext> : AIFunction where TContext : class
         _inputDescription = inputDescription;
     }
 
-    protected override async Task<object?> InvokeCoreAsync(IEnumerable<KeyValuePair<string, object?>> arguments, CancellationToken cancellationToken)
+    protected override async ValueTask<object?> InvokeCoreAsync(AIFunctionArguments arguments, CancellationToken cancellationToken)
     {
         string input = string.Empty; // override input schema? having a string input for now is fine. override jsonSchema property - string arg as input
 

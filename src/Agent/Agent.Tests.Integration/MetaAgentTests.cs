@@ -2,17 +2,25 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core;
+using Agent.Core.Interfaces;
+using Agent.Core.Models;
+using Agent.Core.Models.Api.v1;
+using Agent.Data.Repositories;
 using Agent.Plugins;
-using Agent.Plugins.Definitions;
 using Agent.Plugins.Mocks;
+using Agent.Runtime.MetaAgent;
 using Agent.Runtime.SubAgents;
+using Agent.Runtime.SubAgents.AppReliabilityAgent;
 using Agent.Runtime.SubAgents.Core;
 using Agent.Runtime.SubAgents.ManagedIdentityMigration;
 using Agent.Runtime.SubAgents.TlsBestPractices;
 using Agent.Tests.Common;
 using Agent.Tests.Integration.Fixtures;
+using Agent.Tests.Integration.Helpers;
 using Azure.AI.OpenAI;
 using Microsoft.DurableTask.Client;
+using Microsoft.DurableTask.Client.AzureManaged;
 using Microsoft.DurableTask.Worker;
 using Microsoft.DurableTask.Worker.AzureManaged;
 using Microsoft.Extensions.AI;
@@ -20,22 +28,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Time.Testing;
-using Microsoft.DurableTask.Client.AzureManaged;
 using Xunit.Abstractions;
-using Agent.Runtime.MetaAgent;
-using Agent.Core.Models;
-using System.Text.Json;
-using Agent.Core;
-using Agent.Core.Models.Api.v1;
-using Agent.Tests.Integration.Helpers;
-using Agent.Runtime.SubAgents.AppReliabilityAgent;
-using Newtonsoft.Json;
-using OpenAI.Chat;
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 using JsonSerializer = System.Text.Json.JsonSerializer;
-using Agent.Runtime.Communication;
-using Agent.Data.Repositories;
-using Agent.Core.Interfaces;
 
 namespace Agent.Tests.Integration;
 
@@ -72,12 +67,12 @@ public class MetaAgentTests : IAsyncLifetime
                 services.AddSingleton(openAIClient);
 
                 services.AddChatClient(serviceProvider => serviceProvider.GetRequiredService<AzureOpenAIClient>()
-                    .AsChatClient(openAISettings.LLMDeploymentName), ServiceLifetime.Singleton)
+                    .GetChatClient(openAISettings.LLMDeploymentName).AsIChatClient(), ServiceLifetime.Singleton)
                     .UseAgenticLogging()
                     .UseDistributedCache(diskCache);
 
                 // if we want, we can have different chat clients, some with function invocation enabled
-                services.AddKeyedChatClient("function-invocation-enabled", serviceProvider => serviceProvider.GetRequiredService<AzureOpenAIClient>().AsChatClient(openAISettings.LLMDeploymentName), ServiceLifetime.Singleton)
+                services.AddKeyedChatClient("function-invocation-enabled", serviceProvider => serviceProvider.GetRequiredService<AzureOpenAIClient>().GetChatClient(openAISettings.LLMDeploymentName).AsIChatClient(), ServiceLifetime.Singleton)
                     .UseAgenticLogging()
                     .UseDistributedCache(diskCache)
                     .UseFunctionInvocation();

@@ -35,8 +35,7 @@ public class MetaAgentSimpleWebAppGraphEvals
         _mocks.FinishSetup(_host.Services);
 
         var evalClient = _host.Services.GetRequiredService<IChatClient>();
-        IEvaluationTokenCounter? tokenCounter = null;
-        _chatConfiguration = new ChatConfiguration(evalClient, tokenCounter);
+        _chatConfiguration = new ChatConfiguration(evalClient);
 
         await _host.StartAsync();
     }
@@ -59,7 +58,7 @@ public class MetaAgentSimpleWebAppGraphEvals
         }
     }
 
-    private async Task<(ChatResponse,IEnumerable<ChatMessage>)> PromptModel(string testRunGuid, string userMsg)
+    private async Task<(ChatResponse, IEnumerable<ChatMessage>)> PromptModel(string testRunGuid, string userMsg)
     {
         var threadId = Guid.Parse(testRunGuid);
         var messages = new List<ChatMessage>

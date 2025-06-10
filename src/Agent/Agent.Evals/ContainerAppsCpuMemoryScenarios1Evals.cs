@@ -58,10 +58,10 @@ public class ContainerAppsCpuMemoryScenarios1Evals
 
         _threadManager = _host.Services.GetRequiredService<ThreadManagementService>();
         _threadRepo = _host.Services.GetRequiredService<IThreadRepository>();
-        _replayToolFactory = (ReplayToolFactory<AgentContext>) _host.Services.GetRequiredService<IToolFactory<AgentContext>>();
+        _replayToolFactory = (ReplayToolFactory<AgentContext>)_host.Services.GetRequiredService<IToolFactory<AgentContext>>();
 
         var evalClient = _host.Services.GetRequiredService<IChatClient>();
-        _chatConfiguration = new ChatConfiguration(evalClient, tokenCounter: null);
+        _chatConfiguration = new ChatConfiguration(evalClient);
         _agentStateAssessmentClient = _host.Services.GetRequiredKeyedService<IChatClient>("function-invocation-enabled");
 
         await _host.StartAsync();
@@ -204,7 +204,7 @@ public class ContainerAppsCpuMemoryScenarios1Evals
             TestContext.WriteMessages(fullConversation);
             Assert.Inconclusive($"The agent made a tool call that we could not replay from the logs, which invalidates this test run: {fe.Message}");
         }
-        catch(Exception e)
+        catch (Exception e)
         {
             TestContext.WriteLine(string.Empty);
             TestContext.WriteMessages(fullConversation);

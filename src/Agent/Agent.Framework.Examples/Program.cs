@@ -422,7 +422,7 @@ class Program
                     var checkResult = await CheckApproval(context, toolCall, new MockApprovalRepository(), loggerFactory.CreateLogger("CheckApprovalActivity"));
                     if (checkResult.ApprovalStatus == ToolApprovalStatus.NotRequired || checkResult.ApprovalStatus == ToolApprovalStatus.Approved)
                     {
-                        var functionResult = await toolCall.Tool!.InvokeAsync(toolCall.FunctionCall.Arguments);
+                        var functionResult = await toolCall.Tool!.InvokeAsync(new AIFunctionArguments(toolCall.FunctionCall.Arguments));
                         var result = new FunctionResultContent(toolCall.FunctionCall.CallId, functionResult);
                         chatHistory.Add(new ChatMessage(ChatRole.Tool, [result]));
                     }

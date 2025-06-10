@@ -1,17 +1,17 @@
+using Agent.Core.Interfaces;
 using Agent.Plugins;
-using Agent.Runtime.SubAgents.KubernetesAgent;
-using Microsoft.Extensions.AI;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.DurableTask.Client;
-using Microsoft.Extensions.AI.Evaluation;
+using Agent.Plugins.Mocks;
 using Agent.Runtime.SubAgents;
+using Agent.Runtime.SubAgents.KubernetesAgent;
 using Agent.Tests.Common;
 using Agent.Tests.Common.Mocks;
 using Agent.Tests.Common.ScenarioTestHelpers;
-using Agent.Plugins.Mocks;
+using Microsoft.DurableTask.Client;
+using Microsoft.Extensions.AI;
+using Microsoft.Extensions.AI.Evaluation;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Moq;
-using Agent.Core.Interfaces;
 
 namespace Agent.Evals;
 
@@ -97,7 +97,7 @@ public partial class AKSAgentEvals
         _mockKubePluginWrapper.Setup(x => x.GetKubePodLogsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
            .Returns((string id, string ns, string pod, string c, int l) => _mockKubePlugin.GetKubePodLogsAsync(id, ns, pod, c, l));
         _mockKubePluginWrapper.Setup(x => x.GetCpuMetricsForWorkloadAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-            .Returns((string id, string ns, string type, string name, string range) => _mockKubePlugin.GetCpuMetricsForWorkloadAsync(id, ns, type, name, range));        _mockKubePluginWrapper.Setup(x => x.GetMemoryMetricsForWorkloadAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .Returns((string id, string ns, string type, string name, string range) => _mockKubePlugin.GetCpuMetricsForWorkloadAsync(id, ns, type, name, range)); _mockKubePluginWrapper.Setup(x => x.GetMemoryMetricsForWorkloadAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
             .Returns((string id, string ns, string type, string name, string range) => _mockKubePlugin.GetMemoryMetricsForWorkloadAsync(id, ns, type, name, range));
         _mockKubePluginWrapper.Setup(x => x.ListWorkloadRevisions(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
             .Returns((string id, string ns, string type, string name) => _mockKubePlugin.ListWorkloadRevisions(id, ns, type, name));
@@ -111,7 +111,7 @@ public partial class AKSAgentEvals
                 return _mockKubePlugin.ScaleStatefulSetAsync(id, ns, name, replicas);
             });
         _mockKubePluginWrapper.Setup(x => x.GetKubeResourceMetricsRangeAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-            .Returns((string id, string ns,  string resourceKind, string resourceName, string metricName, string startTime, string endTime) =>
+            .Returns((string id, string ns, string resourceKind, string resourceName, string metricName, string startTime, string endTime) =>
             {
                 return _mockKubePlugin.GetKubeResourceMetricsRangeAsync(id, ns, resourceKind, resourceName, metricName, startTime, endTime);
             });
@@ -128,8 +128,7 @@ public partial class AKSAgentEvals
         _threadRepository = _host.Services.GetRequiredService<IThreadRepository>();
 
         IChatClient client = _host.Services.GetRequiredService<IChatClient>();
-        IEvaluationTokenCounter? tokenCounter = null;
-        _chatConfiguration = new ChatConfiguration(client, tokenCounter);
+        _chatConfiguration = new ChatConfiguration(client);
 
         await _host.StartAsync();
     }
