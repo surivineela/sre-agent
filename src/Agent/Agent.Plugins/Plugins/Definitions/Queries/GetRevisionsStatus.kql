@@ -1,0 +1,20 @@
+let fromDate = datetime("##fromDate##");
+let toDate = datetime("##toDate##");
+let containerAppName = "##containerAppName##";
+let resourceGroupName = "##resourceGroupName##";
+let subscriptionId = "##subscriptionId##";
+let revsionName = "##revisionName##";
+let managedClusterName =toscalar (GetManagedClusterName(containerAppNameParam=containerAppName,resourceGroupParam=resourceGroupName,subscriptionParam=subscriptionId));
+ContainerAppControllerEvents
+| where PreciseTimeStamp between (fromDate .. toDate)
+| where RevisionName == revsionName
+| where EnvironmentName == managedClusterName
+| where msg == "Active Revision Heartbeat"
+| extend jsonObj = parse_json(RevisionJson)
+| extend appRunningState = tostring(jsonObj["status"]["appRunningState"])
+| project PreciseTimeStamp,RevisionName,appRunningState
+| order by PreciseTimeStamp asc
+| extend SessionIndex = row_cumsum(iff(appRunningState != prev(appRunningState), 1, 0))
+| summarize StartTime = min(PreciseTimeStamp), EndTime = max(PreciseTimeStamp) by appRunningState,  SessionIndex
+| project StartTime, EndTime, appRunningState
+| order by StartTime asc

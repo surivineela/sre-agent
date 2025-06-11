@@ -1,0 +1,12 @@
+let queryFrom = datetime("##fromDate##");
+let queryTo = datetime("##toDate##");
+let regionalMdmAccount = strcat("ContainerAppsShoebox", "##region##");
+let metricName = "##metricName##";
+let containerAppArmId = "##containerAppArmId##";
+let whereClause = strcat("| where containerAppArmId == '", containerAppArmId, "'");
+GetMdmResult(queryFrom, queryTo, regionalMdmAccount, "k4apps-metrics", metricName, "'containerAppArmId', 'podName'", "Count", whereClause) 
+| where Max < 2 
+| summarize count() 
+| extend MetricsMissed = tostring(count_ > 0)
+| project MetricsMissed
+| take 1000

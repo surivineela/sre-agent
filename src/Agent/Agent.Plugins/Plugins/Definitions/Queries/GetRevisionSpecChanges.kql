@@ -1,0 +1,19 @@
+let queryFrom = datetime("##fromDate##");
+let queryTo = datetime("##toDate##");
+let capp_name = "##containerAppName##";
+let capp_rg = "##resourceGroupName##";
+let capp_sub = "##subscriptionId##";
+let capp_revision = "##revisionName##";
+let managedClusterName = toscalar(GetManagedClusterName(capp_name, capp_rg, capp_sub));
+ContainerAppControllerEvents
+| where TIMESTAMP between (queryFrom .. queryTo)
+| where EnvironmentName == managedClusterName
+| where RevisionName == capp_revision
+| where ContainerAppName == capp_name
+| where msg == "Active Revision Heartbeat"
+| extend spec = dynamic_to_json(parse_json(RevisionJson)['spec'])
+| project TIMESTAMP, spec
+| order by TIMESTAMP asc
+| extend PreviousSpec = prev(spec)
+| where PreviousSpec != spec
+| project TIMESTAMP, PreviousSpec, spec

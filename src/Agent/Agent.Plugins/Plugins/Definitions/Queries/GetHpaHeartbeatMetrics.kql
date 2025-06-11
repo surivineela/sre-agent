@@ -1,0 +1,22 @@
+let queryFrom = datetime("##fromDate##");
+let queryTo = datetime("##toDate##");
+let capp_name = "##containerAppName##";
+let capp_rg = "##resourceGroupName##";
+let capp_sub = "##subscriptionId##";
+let capp_revision = "##revisionName##";
+let managedCluster = "##managedClusterName##";
+ContainerAppControllerEvents
+| where TIMESTAMP between (queryFrom .. queryTo)
+| where Tenant == managedCluster
+| where msg == "HPA Heartbeat"
+| where RevisionName == capp_revision
+| extend metrics = parse_json(Details).metrics
+| mv-expand metric = metrics
+| extend metricName = tostring(metric.name)
+| extend curr_raw    = todouble(replace("m", "", tostring(metric.currentValue))),
+         target_raw  = todouble(replace("m", "", tostring(metric.targetValue)))
+| extend current = iif(metric.currentValue  endswith "m", curr_raw   / 1000.0, curr_raw),
+         target  = iif(metric.targetValue   endswith "m", target_raw / 1000.0, target_raw)
+| extend ratio = current/target
+| summarize max_value = max(ratio), min_value = min(ratio) by metricName
+| take 100

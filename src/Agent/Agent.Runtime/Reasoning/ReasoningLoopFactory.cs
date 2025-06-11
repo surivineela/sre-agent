@@ -51,6 +51,12 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
     public async Task<ReasoningLoop> Create(AgentContext context)
     {
         var agentName = "meta_agent";
+
+        var agentType = Environment.GetEnvironmentVariable("AGENT_TYPE_NAME") ?? string.Empty;
+        if (agentType == "ACAAgent")
+        {
+            agentName = "rca_meta_agent";
+        }
         if (context.AgentHandoffChain.Count > 0)
         {
             // If the agent stack is provided, use the last agent in the stack

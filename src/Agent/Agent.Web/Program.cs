@@ -81,6 +81,9 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using WebSocketSharp.Server;
 using System.Linq;
+using Agent.Core.Plugins.Definitions;
+using Agent.Plugins.Services.Interfaces;
+using Agent.Plugins.Services;
 
 namespace Agent.Web;
 
@@ -288,6 +291,18 @@ public class Program
             .AddTransient<UserInteractionPluginDefinition>()
             .AddTransient<AgentControlFlowPluginDefinition>()
             .AddTransient<APIManagementPluginDefinition>()
+            .AddTransient<RCAContainerAppsIngressPluginDefinition>()
+            .AddTransient<RCAContainerAppCorednsPluginDefinition>()
+            .AddTransient<RCAContainerAppsManagedEnvironmentPluginDefinition>()
+            .AddTransient<RCAContainerAppsManagedClusterPluginDefinition>()
+            .AddTransient<RCAContainerAppsJobsPluginDefinition>()
+            .AddTransient<RCAContainerAppsSessionsPluginDefinition>()
+            .AddTransient<RCAContainerAppCustomerLogsPluginDefinition>()
+            .AddTransient<RCAContainerAppIcMPluginDefinition>()
+            .AddTransient<RCAContainerAppCustomerMetricsPluginDefinition>()
+            .AddTransient<RCAContainerAppQuotaPluginDefinition>()
+            .AddTransient<RCAContainerAppRevisionPluginDefinition>()
+            .AddSingleton<IKustoDashboardPlugin, KustoDashboardPlugin>()
 
             .AddTransient<IMetaAgentContainerAppsRemediationPlugin, ContainerAppsRemediationPlugin>()
             .AddTransient<IMetaAgentManagedIdentityMigrationPlugin, ManagedIdentityMigrationPlugin>()
@@ -437,6 +452,7 @@ public class Program
             builder.Services.AddSingleton<IToolsRepository, FirstPartyToolsRepository>();
             builder.Services.AddSingleton<ITitleGenerationService, FirstPartyTitleGenerationService>();
             builder.RegisterFirstPartySubAgentsDependencies();
+            builder.ValidateAndRegisterFirstPartyAppSettings();
         }
         else
         {

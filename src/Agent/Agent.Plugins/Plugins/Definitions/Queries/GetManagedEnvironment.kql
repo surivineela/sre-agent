@@ -1,0 +1,50 @@
+let globalFrom = datetime("##fromDate##");
+let globalTo = datetime("##toDate##");
+let local_environmentLocation = "##region##";
+let local_environmentName = "##environmentName##";
+let local_environmentResourceGroup = "##resourceGroupName##";
+let local_environmentSubscription = "##subscriptionId##";
+
+
+ManagedEnvironmentDBState
+| where PreciseTimeStamp between (globalFrom .. globalTo)
+| where environmentName =~ local_environmentName
+| where isempty(local_environmentResourceGroup) or resourceGroup =~ local_environmentResourceGroup
+| where isempty(local_environmentSubscription) or subscription =~ local_environmentSubscription
+| where isempty(local_environmentLocation) or Tenant =~ local_environmentLocation
+| join kind=inner (GetRegions) on $left.Tenant == $right.Name
+| extend envType = case(hasWorkloadProfiles == true or isLegionEnabled == true, "V2", "V1")
+| extend customVnet = case(hasCustomerVnet == true and envType == "v1", true, subnetResourceId != "", true, false)
+| extend RegionalConsumptionV2 = iif(envType == "V2", strcat("Regional Consumption V2 at ", managedClusterLocation), "")
+| order by PreciseTimeStamp desc
+| project 
+    PreciseTimeStamp,
+    managedClusterName,
+    managedClusterLocation,
+    managedSubscription,
+    managedClusterCreatedTime,
+    powerState,
+    provisioningState = managedClusterProvisioningState,
+    managedClusterProvisioningError = "<TO BE ADDED>",
+    chartVersion,
+    isInternal,
+    chartVersionUpgradeTime,
+    chartVersionUpgradeError = chartVersionUpgradeErrors,
+    kubernetesVersion,
+    kubernetesVersionUpgradeTime,
+    upgradeBatch,
+    environmentSubscription = subscription,
+    environmentResourceGroup = resourceGroup,
+    environmentLocation = Tenant,
+    environmentName,
+    environmentCreatedTime = environmentClusterCreatedTime,
+    hasWorkloadProfiles,
+    hasCustomerVnet,
+    hasMaintenanceConfiguration,
+    publicNetworkAccess,
+    hasPrivateEndpoints,
+    KustoUrl = iff(Region contains "Test", "cappstest.westus", KustoUrl),
+    envType,
+    customVnet,
+    RegionalConsumptionV2
+| top 1 by PreciseTimeStamp desc

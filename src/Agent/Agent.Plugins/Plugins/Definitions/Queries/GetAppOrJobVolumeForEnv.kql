@@ -1,0 +1,9 @@
+let queryFrom = datetime("##fromDate##"); 
+let queryTo = datetime("##toDate##"); 
+let clusterName = "##managedClusterName##"; 
+ContainerAppDBState
+| where PreciseTimeStamp >= queryFrom and PreciseTimeStamp <= queryTo
+| where managedClusterName =~ clusterName
+| extend cappOrJobName = iif(isempty(containerAppName), containerAppsJobName, containerAppName)
+| summarize dcount(tostring(cappOrJobName)) by bin(PreciseTimeStamp, 6h)
+| take 1000

@@ -1,0 +1,79 @@
+let queryFrom = datetime("##fromDate##");
+let queryTo = datetime("##toDate##");
+let queryClusterName = "##managedClusterName##";
+let queryRegion = "##region##";
+let queryResourceGroup = "##managedClusterName##-rg";
+
+let tenMinutesInMs = (10*60*1000);
+union withsource=TS FrontEndQoSEvents, AsyncQoSEvents
+| where PreciseTimeStamp between(queryFrom .. queryTo)
+| where
+    RPTenant == queryRegion and
+    resourceGroupName =~ queryResourceGroup and
+    resourceName =~ queryClusterName
+| where httpMethod != "GET" and operationName !startswith "List"
+| where operationName !in ('RunCommandHandler.POST')
+| extend logPreciseTime = todatetime(coalesce(
+    tostring(column_ifexists("logPreciseTime", datetime(null))), 
+    tostring(column_ifexists("logPreciseTime_datetime", datetime(null))), 
+    column_ifexists("logPreciseTime_string", ""), 
+    ""
+))
+| extend StartTime = datetime_add("millisecond", (latency * -1), logPreciseTime)
+| extend EndTime = logPreciseTime
+| extend errorDetails = iff(errorDetails != 'na', errorDetails, '')
+| project-reorder TS, operationName, errorDetails
+| summarize 
+    StartTime = min(StartTime), EndTime = max(EndTime), 
+    targetURI = take_anyif(targetURI, isnotempty(targetURI)), 
+    userAgent = take_anyif(userAgent, isnotempty(userAgent)), 
+    apiVersion = take_anyif(apiVersion, isnotempty(apiVersion)), 
+    clientPrincipalName = take_anyif(clientPrincipalName, isnotempty(userAgent)), 
+    clientApplicationID = take_anyif(clientApplicationID, isnotempty(userAgent)), 
+    asyncError = take_anyif(errorDetails, TS == 'union_arg1' or TS has "AsyncQoSEvents"),
+    feError = take_anyif(errorDetails, TS == 'union_arg0' or TS has "FrontEndQoSEvents"),
+    take_any(*) 
+    by operationID
+| extend errorDetails = coalesce(asyncError, feError)
+| extend durationInMilliseconds = datetime_diff("millisecond", EndTime, StartTime)
+| extend ActualEndTime = EndTime
+| extend EndTime = iff(isempty(EndTime) or durationInMilliseconds < tenMinutesInMs, datetime(null), EndTime)
+| extend Health = iff(isempty(errorDetails) or errorDetails == 'na' , "", "Unhealthy")
+| project-reorder PreciseTimeStamp, operationID, latency, *
+| extend Content = strcat(
+    tostring(split(operationName, 'Handler')[0]), 
+    iif(isempty(agentPoolName), strcat(" (", suboperationName, ")"), strcat(" - ", suboperationName, " (", agentPoolName, ")"))
+)
+| project 
+    StartTime,
+    EndTime,
+    durationInMilliseconds,
+    Content,
+    suboperationName, 
+    operationName, 
+    operationID,
+    correlationID,
+    httpMethod,
+    httpStatus,
+    subscriptionID,
+    resourceGroupName,
+    clusterName = resourceName,
+    resultCode,
+    resultSubCode,
+    resultCodeDependency,
+    resultType,
+    result,
+    parse_json(errorDetails),
+    asyncErrorDetails = parse_json(errorDetails),
+    userAgent,
+    targetURI,
+    resourceId = tostring(split(targetURI, "?")[0]),
+    agentPoolName,
+    tostring(propertiesBag),
+    Health,
+    TS,
+    ActualEndTime,
+    clientPrincipalName, 
+    clientApplicationID,
+    apiVersion
+| project StartTime, EndTime, suboperationName

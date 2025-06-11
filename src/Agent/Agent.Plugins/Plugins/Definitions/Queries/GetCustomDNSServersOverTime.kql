@@ -1,0 +1,10 @@
+let fromDate = datetime("##fromDate##");
+let endDate = datetime("##toDate##");
+let environmentName =  "##managedClusterName##";
+SwiftNetworkingEvents
+| where PreciseTimeStamp  between (fromDate .. endDate)
+| where EnvironmentName == environmentName
+| where msg has "Customer DNS Servers are >>"
+| extend DNSServers = trim(" ", replace_string(msg, "Customer DNS Servers are >>", ""))
+| extend DNSStatus = iif(isempty(DNSServers), "No DNS server configured", "Custom DNS server(s) configured")
+| summarize StartTime = min(PreciseTimeStamp), EndTime = max(PreciseTimeStamp) by DNSServers, DNSStatus

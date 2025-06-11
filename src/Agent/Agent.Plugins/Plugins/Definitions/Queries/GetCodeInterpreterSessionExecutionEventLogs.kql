@@ -1,0 +1,22 @@
+let fromDate = datetime("##fromDate##");
+let endDate = datetime("##toDate##"); 
+let _subscriptionId = "##subscriptionId##";
+let _resourceGroupName = "##resourceGroupName##";
+let _sessionPoolName =  "##sessionPoolName##";
+let _inputIdentifier = "##sessionIdentifier##";
+let traceIds = ContainerAppsAdminEvents
+| where PreciseTimeStamp between (fromDate .. toDate)
+| where subscription == _subscriptionId and resourceGroup == _resourceGroupName and sessionPoolName == _sessionPoolName
+| where message == "Begin GetInstance"
+| where iff(_inputIdentifier != "", identifier == _inputIdentifier, true)
+| distinct identifier, env_dt_traceId
+| take 1
+| project env_dt_traceId;
+ContainerAppsAdminEvents
+| where PreciseTimeStamp between (fromDate .. toDate) 
+| where env_dt_traceId in (traceIds)
+| parse message with * "Begin extending lease for X-MS-Session-PodAllocationGuid-" podId 
+| where message has_any ("Begin GetInstance", "Allocating pods", "Legion API call status code", "End GetInstance", "Start", "End", "Begin ExecuteAsync", "Begin extending", "Error") 
+| project PreciseTimeStamp, Tenant, Level, message, podId, exception, poolType, env_dt_traceId, identifier, sessionPoolName, podName 
+| order  by PreciseTimeStamp asc
+| where Level <= 2

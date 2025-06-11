@@ -1,0 +1,14 @@
+let globalFrom = datetime("##fromDate##");
+let globalTo = datetime("##toDate##");
+let local_cappName = "##containerAppName##";
+let local_revisionName = "##revisionName##";
+
+EventProcessorEvents
+| where PreciseTimeStamp between (globalFrom .. globalTo)
+| where ContainerAppName == local_cappName or JobName == local_cappName
+| where RevisionName == local_revisionName
+| where Reason == "ProbeFailed"
+| where Internal = true
+| order by PreciseTimeStamp desc
+| summarize arg_max(PreciseTimeStamp, Count) by msg, ReplicaName
+| project msg, ReplicaName, Count

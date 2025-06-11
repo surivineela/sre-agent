@@ -1,0 +1,12 @@
+let startTime = datetime("##fromDate##");
+let endTime = datetime("##toDate##");
+let managedClusterName = "##managedClusterName##";
+let containerAppName = "##containerAppName##";
+KedaOperatorEvents
+| where PreciseTimeStamp between (startTime .. endTime)
+| where EnvironmentName == managedClusterName
+| extend KedaVersion = split(_ContainerImage, "/")[2]
+| where Log has "ERROR" or Log has containerAppName
+| where Log !has "Webhook not found."
+| project PreciseTimeStamp, Log, KedaVersion
+| take 100

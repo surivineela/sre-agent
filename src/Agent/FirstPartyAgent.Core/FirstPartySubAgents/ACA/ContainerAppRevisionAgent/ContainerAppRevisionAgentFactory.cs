@@ -14,6 +14,7 @@ using FirstPartyAgent.Core.Plugins.Interfaces;
 using FirstPartyAgent.Plugins;
 using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
+using PlatformUpgradesPluginDefinition = FirstPartyAgent.Core.Plugins.Definitions.PlatformUpgradesPluginDefinition;
 
 namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.RevisionAgent
 {

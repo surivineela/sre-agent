@@ -1,0 +1,49 @@
+let startTime = datetime("##fromDate##");
+let endTime = datetime("##toDate##");
+let managedClusterName = "##managedClusterName##";
+let containerAppName = "##containerAppName##";
+let duration = endTime-startTime;     
+let bins = datatable(span: timespan, bucket: timespan, mdm_bucket: string)
+[ 5m, 1m, '1m', 
+  1h, 5m, '5m',
+  6h, 10m, '10m',
+  12h, 20m, '20m',
+  1d, 1h, '1h', 
+  2d, 2h, '2h',
+  4d, 4h, '4h',
+  8d, 8h, '8h',
+  16d, 16h, '16h',
+];
+let spans = bins | where duration >= span | top 1 by span desc;
+let bucket = coalesce(toscalar(spans | project bucket), 1d);
+let allMinutes = range TimeBin from startTime to endTime step bucket  | summarize by bin(TimeBin, bucket);
+let requestCount = EnvoyFrontEndLogsTable
+| where TIMESTAMP between (startTime .. endTime)
+| where EnvironmentName == managedClusterName
+| where Authority contains containerAppName
+| extend TimeBin = bin(PreciseTimeStamp, bucket)
+| summarize Count = count() by Status,TimeBin;
+let http2xx = allMinutes 
+| join kind=leftouter ( requestCount | where Status startswith "2" ) on $left.TimeBin == $right.TimeBin
+| extend Count = max_of(Count,0)
+| extend seriesName="Http 2xx Count"
+| project TimeBin,Count,seriesName;
+let http3xx = allMinutes 
+| join kind=leftouter ( requestCount | where Status startswith "3" ) on $left.TimeBin == $right.TimeBin
+| extend Count = max_of(Count,0)
+| extend seriesName="Http 3xx Count"
+| project TimeBin,Count,seriesName;
+let http4xx = allMinutes 
+| join kind=leftouter ( requestCount | where Status startswith "4" ) on $left.TimeBin == $right.TimeBin
+| extend Count = max_of(Count,0)
+| extend seriesName="Http 4xx Count"
+| project TimeBin,Count,seriesName;
+let http5xx = allMinutes 
+| join kind=leftouter ( requestCount | where Status startswith "5" ) on $left.TimeBin == $right.TimeBin
+| extend Count = max_of(Count,0)
+| extend seriesName="Http 5xx Count"
+| project TimeBin,Count,seriesName;
+union http2xx,http3xx,http4xx,http5xx
+| project TimeStamp=TimeBin,Count,seriesName
+| order by seriesName,TimeStamp asc
+//| render timechart

@@ -1,0 +1,17 @@
+let startDate = datetime(##fromDate##);
+let endDate = datetime(##toDate##);
+let querySubscription = "##subscriptionId##";
+let queryResourceGroup =  "##resourceGroupName##";
+let queryClusterName = "##managedClusterName##";
+ManagedClusterSnapshot
+| where PreciseTimeStamp between (startDate .. endDate)
+| where ((isnotempty(querySubscription) and isnotempty(queryResourceGroup) and isnotempty(queryClusterName))
+    and (subscription =~ querySubscription and customerResourceGroup =~ queryResourceGroup and name =~ queryClusterName))
+    or (hostedMasterProfile has queryClusterName or namespace == queryClusterName or clusterName has queryClusterName  or nodeResourceGroup =~ queryClusterName)
+| extend clusterVersion = namespace
+| extend resourceGroup = customerResourceGroup
+| extend managedResourceGroup = nodeResourceGroup
+| summarize take_any(PreciseTimeStamp, clusterVersion, clusterName, resourceGroup, managedResourceGroup, RPTenant, createdTime, name) by clusterVersion
+| extend clusterBirthdate = todatetime(createdTime)
+| project clusterName, clusterVersion, resourceGroup, managedResourceGroup, RPTenant, clusterBirthdate, ccpNamespace=clusterVersion
+| top 100 by clusterBirthdate desc

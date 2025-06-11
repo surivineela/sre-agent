@@ -1,0 +1,16 @@
+let fromTime = datetime("##fromDate##");
+let endTime = datetime("##toDate##");
+let cappSubscription = "##subscriptionId##";
+let cappResourceGroup = "##resourceGroupName##";
+let cappName = "##containerAppName##";
+ContainerAppDBState
+| where TIMESTAMP between (fromTime .. endTime)
+| where isempty(cappSubscription) or  subscription =~ cappSubscription
+| where isempty(cappResourceGroup) or resourceGroup =~ cappResourceGroup
+| where containerAppName =~ cappName or containerAppsJobName =~ cappName
+| project PreciseTimeStamp, containerAppName= iff(isempty(containerAppName), containerAppsJobName, containerAppName),operationType,provisioningState
+| order by PreciseTimeStamp asc
+| extend SessionIndex = row_cumsum(iff(provisioningState != prev(provisioningState), 1, 0))
+| summarize StartTime = min(PreciseTimeStamp), EndTime = max(PreciseTimeStamp) by containerAppName,operationType,provisioningState,SessionIndex
+| project StartTime,EndTime,containerAppName,operationType,provisioningState
+| order by StartTime asc

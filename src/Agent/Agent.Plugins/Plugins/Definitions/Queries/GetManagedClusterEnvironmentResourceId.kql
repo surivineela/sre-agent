@@ -1,0 +1,7 @@
+let fromTime = datetime("##fromDate##");
+let toTime = datetime("##toDate##");
+let queryManagedCluster = "##managedClusterName##";
+ManagedEnvironmentDBState
+| where TIMESTAMP between (fromTime-15d .. toTime)
+| where managedClusterName == queryManagedCluster
+| summarize arg_max(TIMESTAMP,managedClusterName,subscription,resourceGroup,environmentName)

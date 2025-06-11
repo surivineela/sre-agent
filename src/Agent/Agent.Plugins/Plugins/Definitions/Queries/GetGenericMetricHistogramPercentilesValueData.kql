@@ -1,0 +1,46 @@
+let queryFrom = datetime("##fromDate##");
+let queryTo = datetime("##toDate##");
+let managedClusterName = "##managedClusterName##";
+let metricName = "##metricName##";
+let duration = ##duration##;
+let p50Threshold = toreal("##p50Threshold##");
+let p90Threshold = toreal("##p90Threshold##");
+let p95Threshold = toreal("##p95Threshold##");
+
+let baseQuery = MetricsEvents
+| where PreciseTimeStamp between (queryFrom.. queryTo)
+| where EnvironmentName =~ managedClusterName
+| where Metric has metricName
+| where msg == "Metric Output"
+| where isnotempty(Value)
+| project PreciseTimeStamp, Value, Metric, VMNodeWhereMetricCaptured=Role, PodName, Labels;
+
+// Step 1: Get count per bucket per time bin
+let leBucketMetric = baseQuery
+| where Metric == strcat(metricName, "_bucket")
+| extend labelsMap = parse_json(Labels)
+| where bag_has_key(labelsMap, "le")
+| extend le = toreal(trim('"', tostring(labelsMap["le"])))
+| summarize bucketCount = sum(todouble(Value)) by bin(PreciseTimeStamp, duration), VMNodeWhereMetricCaptured, PodName, le;
+
+// Step 2: Get total count per time bin
+let countMetric = baseQuery
+| where Metric == strcat(metricName, "_count")
+| summarize totalCount = sum(toint(Value)) by bin(PreciseTimeStamp, duration), VMNodeWhereMetricCaptured, PodName;
+
+// Step 3: Join and compute quantiles
+leBucketMetric
+| join kind=inner countMetric on PreciseTimeStamp, VMNodeWhereMetricCaptured, PodName
+| order by PreciseTimeStamp, VMNodeWhereMetricCaptured, PodName, le
+| project PreciseTimeStamp, VMNodeWhereMetricCaptured, PodName, le, bucketCount, totalCount
+| extend 
+    pct50Target = totalCount * 0.50,
+    pct90Target = totalCount * 0.90,
+    pct95Target = totalCount * 0.95
+| summarize
+    P50 = minif(le, bucketCount >= pct50Target),
+    P90 = minif(le, bucketCount >= pct90Target),
+    P95 = minif(le, bucketCount >= pct95Target)
+    by PreciseTimeStamp, VMNodeWhereMetricCaptured, PodName
+| where P50 > p50Threshold and P90 > p90Threshold and P95 > p95Threshold
+| order by PreciseTimeStamp

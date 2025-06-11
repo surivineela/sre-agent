@@ -1,0 +1,19 @@
+let queryFrom = datetime("##fromDate##");
+let queryTo = datetime("##toDate##");
+let managedClusterName = "##managedClusterName##";
+let metricName = "##metricName##";
+let duration = ##duration##;
+let threshold = toreal("##threshold##");
+
+let baseQuery = MetricsEvents
+| where PreciseTimeStamp between (queryFrom.. queryTo)
+| where EnvironmentName =~ managedClusterName
+| where msg == "Metric Output"
+| where Metric == metricName
+| where isnotempty(Value)
+| project PreciseTimeStamp, Value, Metric, VMNodeWhereMetricCaptured=Role, PodName;
+
+baseQuery
+| summarize totalCount=sum(toint(Value)) by bin(PreciseTimeStamp, duration), VMNodeWhereMetricCaptured, PodName
+| where totalCount > threshold
+| project PreciseTimeStamp, totalCount, VMNodeWhereMetricCaptured, PodName;

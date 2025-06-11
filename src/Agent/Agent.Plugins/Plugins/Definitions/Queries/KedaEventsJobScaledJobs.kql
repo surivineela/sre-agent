@@ -1,0 +1,14 @@
+let queryFrom = datetime("##queryFrom##");
+let queryTo = datetime("##queryTo##");
+let containerAppJobName = "##containerAppJobName##"; // Represents the job name
+let managedClusterName = "##managedClusterName##";
+KedaOperatorEvents
+| where PreciseTimeStamp between (queryFrom .. queryTo)
+| where EnvironmentName =~ managedClusterName
+| extend LogInfo = split(Log, " ")
+| extend LogLevel = tostring(LogInfo[1])
+| extend LogCategory = tostring(LogInfo[2])
+| where LogCategory != ''
+| where * contains containerAppJobName
+| project PreciseTimeStamp, LogInfo, LogLevel, LogCategory, _ContainerGroupName//, _ContainerImage
+| order by PreciseTimeStamp asc

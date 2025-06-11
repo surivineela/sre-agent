@@ -1,0 +1,24 @@
+let queryFrom = datetime("##fromDate##");
+let queryTo = datetime("##toDate##");
+let capp_name = "##containerAppName##";
+let capp_rg = "##resourceGroupName##";
+let capp_sub = "##subscriptionId##";
+let capp_revision = "##revisionName##";
+let pod_name = "##podName##";
+let managedClusterName = toscalar(GetManagedClusterName(capp_name, capp_rg, capp_sub));
+AllCapps("EventProcessorEvents")
+| where PreciseTimeStamp between (queryFrom .. queryTo)
+| where * has pod_name
+| where EnvironmentName == managedClusterName
+| where Internal == true
+| order by PreciseTimeStamp desc
+| project 
+    PreciseTimeStamp,
+    Type,
+    msg,
+    Reason,
+    Count,
+    EventSource,
+    ReplicaName,
+    RevisionName,
+    level = iff(Type == "Normal", "Info", "Error")
