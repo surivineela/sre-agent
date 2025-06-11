@@ -40,7 +40,7 @@ namespace Agent.Web.WebSocket
 
         protected override void OnOpen()
         {
-            _logger.LogInternalInformation("Client connected to websocket: " + Context.UserEndPoint + " WebsocketId: " + _webSocketId);
+            _logger.LogInternalInformation("Client connected to websocketId: " + _webSocketId);
         }
 
         protected override void OnClose(CloseEventArgs e)

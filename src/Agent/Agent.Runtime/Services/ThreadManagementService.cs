@@ -197,9 +197,6 @@ public class ThreadManagementService(
         // Start the background title generation task (fire and forget)
         _ = titleGenerationService.GenerateTitleAndUpdateThreadAsync( thread.Id, request.StartMessage.Text);
 
-        // Return thread back to caller first before calling model
-        yield return new ChatResponseUpdate(ChatRole.System, JsonSerializer.Serialize(thread));
-
         // Return user message to caller
         var userMessage = new ChatResponseUpdate
         {
