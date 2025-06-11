@@ -418,15 +418,8 @@ public class ReasoningLoop
                         toolResults.Add(new ManualToolCallResult()
                         {
                             FunctionCall = toolCall.FunctionCall,
-                            Output = null,
-                            SkipToolCall = true // skip handoff tool calls
+                            Output = $"Handed off to agent {newAgent.Name}. Assume this persona immediately and continue with the task.",
                         });
-
-                        _currentToolSpan?.SetAttribute(TraceAttribute.ToolOutput, string.Empty);
-                        _currentToolSpan?.End();
-                        _currentToolSpan = null;
-                        _currentAgentSpan?.End();
-                        _currentAgentSpan = null;
                     }
                     else
                     {
@@ -436,12 +429,6 @@ public class ReasoningLoop
                             FunctionCall = toolCall.FunctionCall,
                             Output = output
                         });
-
-                        _currentToolSpan?.SetAttribute(TraceAttribute.ToolOutput, output);
-                        _currentToolSpan?.End();
-                        _currentToolSpan = null;
-                        _currentAgentSpan?.End();
-                        _currentAgentSpan = null;
                     }
                 }
                 else
@@ -563,12 +550,6 @@ public class ReasoningLoop
                     _logger.LogInternalInformation("Agent output: {AgentOutputMessage}, {IsUserInputRequired}, {RequestCompleted}, {Reasoning}",
                         agentOutput.OutputMessage, agentOutput.IsUserInputRequired, agentOutput.RequestCompleted, agentOutput.Reasoning);
 
-                    if (!agentOutput.IsUserInputRequired && !agentOutput.RequestCompleted)
-                    {
-                        // model said it doesn't need input and the request isn't completed, re-run the loop
-                        // return new ReasoningLoopIterationResult() { IsContinuation = true };
-                    }
-
                     if (agentOutput.CannotHandle)
                     {
                         _logger.LogInternalInformation("Agent determined the request is out of scope. Handoff back");
@@ -582,9 +563,11 @@ public class ReasoningLoop
 
                             _currentAgent = newAgent;
                             _context = _context with { CurrentAgent = _currentAgent.Name };
-                            _logger.LogInternalInformation("Handoff back to agent: {AgentName}", agentName);
-                            var handoffMessage = new ChatMessage(ChatRole.Assistant, $"Handoff to agent {agentName} to process the task");
+                            _context = await _threadRepository.UpdateAgentContextAsync(_context);
 
+                            _logger.LogInternalInformation("Handoff back to agent: {AgentName}", agentName);
+
+                            var handoffMessage = new ChatMessage(ChatRole.Assistant, $"Handed off to agent {agentName}. Assume this persona immediately and continue with the task.");
                             await PersistReasoningMessageAsync(agentChatHistory, handoffMessage);
 
                             return new ReasoningLoopIterationResult()
@@ -847,7 +830,7 @@ public class ReasoningLoop
                 _currentToolSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.Tool);
                 _currentToolSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
                 _currentToolSpan.SetAttribute(TraceAttribute.ToolName, tool.Name);
-                _currentToolSpan.SetAttribute(TraceAttribute.ToolInput, FormatToolArguments(input as IEnumerable<KeyValuePair<string, object?>>));
+                _currentToolSpan.SetAttribute(TraceAttribute.ToolInput, FormatToolArguments(input));
                 _currentToolSpan.SetAttribute(TraceAttribute.ModelTemperature, agent.Temperature.ToString());
                 _currentToolSpan.SetAttribute(TraceAttribute.ToolDescription, tool.Description);
                 return Task.CompletedTask;

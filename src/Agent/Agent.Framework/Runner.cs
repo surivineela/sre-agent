@@ -9,7 +9,7 @@ namespace Agent.Framework;
 
 public static class Runner
 {
-    private const int DefaultMaxTurns = 30;
+    private const int DefaultMaxTurns = 50;
 
     public static async Task<RunResult<TContext>> ResumeFromManualToolsAsync<TContext>(
         RunResult<TContext> previousResult,
@@ -38,10 +38,7 @@ public static class Runner
 
             if (!matchingResult.SkipToolCall)
             {
-                var matchingOutput = matchingResult.Output
-                    ?? throw new Exception("No matching output found for manual tool call");
-
-                var resultContent = new FunctionResultContent(manualToolCall.FunctionCall.CallId, matchingOutput);
+                var resultContent = new FunctionResultContent(manualToolCall.FunctionCall.CallId, matchingResult.Output);
 
                 functionCallMessages.Add(manualToolCall.OriginalMessage);
                 functionCallMessages.Add(new ChatMessage(ChatRole.Tool, [resultContent]));
@@ -401,6 +398,11 @@ public static class Runner
                     var newAgent = await handoff.OnInvokeHandoff(contextWrapper);
 
                     await hooks.OnHandoff(contextWrapper, agent, newAgent);
+
+                    var handoffResult = new FunctionResultContent(functionCall.CallId, handoff.TransferMessage);
+
+                    newStepItems.Add(modelResponseMessage);
+                    newStepItems.Add(new ChatMessage(ChatRole.Tool, [handoffResult]));
 
                     return new SingleStepResult<TContext>
                     {

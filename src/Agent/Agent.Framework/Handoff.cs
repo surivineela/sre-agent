@@ -12,6 +12,8 @@ public class Handoff<TContext> : AIFunction where TContext : class
 
     public Type? InputType { get; }
 
+    public string TransferMessage => $"Handed off to agent '{AgentName}'. Assume this persona immediately and continue with the task.";
+
     #region AITool overrides
 
     public override string Name { get; }
