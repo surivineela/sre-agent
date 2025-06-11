@@ -77,7 +77,7 @@ namespace Agent.Web.WebSocket
 
                 var initialToolCallContent = new FunctionCallContent(Guid.NewGuid().ToString(), "", new AdditionalPropertiesDictionary());
                 initialToolCallContent.AdditionalProperties ??= new AdditionalPropertiesDictionary();
-                initialToolCallContent.AdditionalProperties.Add("userDescription", "Analyzing...");
+                initialToolCallContent.AdditionalProperties.Add("userDescription", "Analyzing");
 
                 var initialMessage = new ChatResponseUpdate
                 {

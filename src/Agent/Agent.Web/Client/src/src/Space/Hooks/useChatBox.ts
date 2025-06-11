@@ -29,7 +29,12 @@ const composeTemporaryUserMessage = (userId: string, userDisplayName: string, me
     };
 };
 
-export const useChatBox = (addThread: (thread: Thread) => void, promoteThread: () => void, threadId?: string | null, _?: string | null) => {
+export const useChatBox = (
+    addThread: (threadId: string) => void,
+    promoteThread: (threadId: string) => void,
+    threadId?: string | null,
+    _?: string | null
+) => {
     const intl = useIntl();
 
     const [messages, setMessages] = useState<Message[]>([]);
@@ -39,7 +44,6 @@ export const useChatBox = (addThread: (thread: Thread) => void, promoteThread: (
     const [noChatHistoryLeftToLoad, setNoChatHistoryLeftToLoad] = useState<boolean>(false);
     const [waitingForSendMessageResponse, setWaitingForSendMessageResponse] = useState<boolean>(false);
     const [isIntersecting, setIsIntersecting] = useState<boolean>(false);
-    const [isThreadOnTop, setIsThreadOnTop] = useState<boolean>(false);
 
     const [temporaryUserMessage, setTemporaryUserMessage] = useState<Message | null>(null);
     const [agentTypingMessage, setAgentTypingMessage] = useState<Message | null>(null);
@@ -291,14 +295,13 @@ export const useChatBox = (addThread: (thread: Thread) => void, promoteThread: (
 
                 if (newThread) {
                     setCurrentThreadId(newThread.id);
-                    addThread(newThread);
-                } else if (!isThreadOnTop) {
-                    promoteThread();
-                    setIsThreadOnTop(true);
+                    addThread(newThread.id);
+                } else if (currentThreadId) {
+                    promoteThread(currentThreadId);
                 }
             }
         },
-        [currentThreadId, isThreadOnTop, addThread, promoteThread, userId, displayName]
+        [currentThreadId, addThread, promoteThread, userId, displayName]
     );
 
     const loadOldChatHistory = useCallback(async (): Promise<boolean | undefined> => {

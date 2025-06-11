@@ -22,9 +22,9 @@ export const SreAgentContext = createContext<SreAgentContextProps>({
         isGrafanaUpdating: false,
         deploymentId: '',
         notificationId: '',
-        setNotificationId: () => {},
-        setIsGrafanaUpdating: () => {},
-        setDeploymentId: () => {},
+        setNotificationId: () => { },
+        setIsGrafanaUpdating: () => { },
+        setDeploymentId: () => { },
     },
 });
 

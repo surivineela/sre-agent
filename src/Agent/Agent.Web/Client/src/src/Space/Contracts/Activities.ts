@@ -20,9 +20,9 @@ export interface IThreadContentProps {
     thread?: Thread | null;
     actionsCollapsed: boolean;
     expandActions: () => void;
-    addThread: (thread: Thread) => void;
+    addThread: (threadId: string) => void;
     deleteThread: (thread: Thread) => void;
-    promoteThread: () => void;
+    promoteThread: (threadId: string) => void;
 }
 
 export interface IThreadActivitiesProps {
@@ -31,13 +31,14 @@ export interface IThreadActivitiesProps {
     thread?: Thread | null;
 }
 
-export type RemoveThreadFromListHandle = {
+export type ThreadListHandle = {
     removeThreadFromList: (thread: Thread) => void;
+    promoteThread: (threadId: string, promote: () => void) => void;
 };
 
 export interface IChatBoxProps {
-    addThread: (thread: Thread) => void;
-    promoteThread: () => void;
+    addThread: (threadId: string) => void;
+    promoteThread: (threadId: string) => void;
     threadId?: string;
     threadSource?: string;
 }
@@ -50,6 +51,15 @@ export interface IChatMessageProps {
     cancelResponse?: () => void;
     threadId: string;
     threadOrchestrationReasoningState?: string;
+}
+
+export interface IChatMessageV2Props {
+    message: Message;
+    previousMessage?: Message;
+    nextMessage?: Message;
+    isTyping?: boolean;
+    threadId: string;
+    isStreamingMessage?: boolean;
 }
 
 export interface IChatProps {
@@ -67,6 +77,17 @@ export interface IChatBoxFooterProps {
     onClickNewMessageButton: () => void;
     prompts: string[];
     messagePromptsUsed: string[];
+}
+
+export interface IChatBoxFooterV2Props {
+    sendMessage: (message: string) => Promise<void>;
+    disableInput: boolean;
+    isDownButtonVisible: boolean;
+    onClickDownButton: () => void;
+    prompts: string[];
+    messagePromptsUsed: string[];
+    cancelStreaming: () => void;
+    isTyping: boolean;
 }
 
 export class ThreadLoadingCounts {

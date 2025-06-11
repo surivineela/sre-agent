@@ -130,11 +130,35 @@ export interface Message {
     timeStamp: string;
     author: MessageAuthor;
     text: string;
+    toolCallText?: string;
     title?: string;
     approval?: Approval;
     azCliExecution?: AzCliExecution;
     kubectlExecution?: KubectlExecution;
     isDailyReport?: boolean;
+}
+
+export interface StreamingMessage {
+    FinishReason?: 'stop' | 'tool_calls' | 'length' | null;
+    CreatedAt?: string;
+    AuthorName?: string;
+    Role?: 'user' | 'assistant' | 'tool';
+    Contents?: StreamingMessageContent[];
+    AdditionalProperties?: {
+        streamId: string;
+        messageId: string;
+        threadId: string;
+    };
+}
+
+export interface StreamingMessageContent {
+    $type: 'text' | 'functionCall' | null;
+    Text?: string;
+    Name?: string;
+    AdditionalProperties?: {
+        userDescription?: string;
+        functionCallDescription?: string;
+    }
 }
 
 export interface KnowledgeGraphBuildStatus {
@@ -216,3 +240,5 @@ export interface Action {
     timeStamp: Date;
     status: ActionStatus;
 }
+
+export const SREAgentUserId = 'agent-default';

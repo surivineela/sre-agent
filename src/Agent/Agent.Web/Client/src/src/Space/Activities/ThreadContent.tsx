@@ -48,7 +48,7 @@ export const ThreadContent = memo(
                     )}
                 </div>
                 {chatBoxV2 ? (
-                    <ChatBoxV2 />
+                    <ChatBoxV2 threadId={thread?.id} addThread={addThread} promoteThread={promoteThread} threadSource={thread?.source} />
                 ) : (
                     <ChatBox threadId={thread?.id} addThread={addThread} promoteThread={promoteThread} threadSource={thread?.source} />
                 )}

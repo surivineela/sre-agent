@@ -7,7 +7,7 @@ import { ThreadClient } from '../../Common/Clients/ThreadClient';
 import { Thread } from '../../Common/Contracts/Azure/SreAgent';
 import { Guid } from '../../Common/Helpers/Guid';
 import { ActivitiesThreadHeaderResources } from '../../Strings/SREAgentResources';
-import { RemoveThreadFromListHandle } from '../Contracts/Activities';
+import { ThreadListHandle } from '../Contracts/Activities';
 
 export const useActivities = () => {
     const intl = useIntl();
@@ -21,7 +21,7 @@ export const useActivities = () => {
     const [threadPollingTriggerId, setThreadPollingTriggerId] = useState<number>(0);
 
     const untouched = useRef<boolean>(true);
-    const removeThreadFromListRef = useRef<RemoveThreadFromListHandle>(null);
+    const threadListHandleRef = useRef<ThreadListHandle>(null);
 
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const proxy = useContext(AzPortalContext);
@@ -31,19 +31,19 @@ export const useActivities = () => {
     const pollNewThreadsImmediately = () => setThreadPollingTriggerId(prev => prev + 1);
 
     const addThread = useCallback(
-        (thread: Thread) => {
+        (threadId: string) => {
             untouched.current = false;
             // poll thread immediately to get the thread just added.
             pollNewThreadsImmediately();
-            setActiveThreadId(thread.id);
-            navigate({ ...location, pathname: `/views/activities/threads/${thread.id}` });
+            setActiveThreadId(threadId);
+            navigate({ ...location, pathname: `/views/activities/threads/${threadId}` });
         },
         [navigate, location]
     );
 
-    const promoteThread = useCallback(() => {
+    const promoteThread = useCallback((threadId: string) => {
         // poll thread immediately to make the recently updated the thread on top.
-        pollNewThreadsImmediately();
+        threadListHandleRef.current?.promoteThread(threadId, pollNewThreadsImmediately);
     }, []);
 
     const selectThread = useCallback(
@@ -69,7 +69,7 @@ export const useActivities = () => {
 
             try {
                 await threadClient.deleteThread(thread.id);
-                removeThreadFromListRef.current?.removeThreadFromList(thread);
+                threadListHandleRef.current?.removeThreadFromList(thread);
                 selectThread(null);
 
                 proxy.stopNotification(id, true, intl.formatMessage(ActivitiesThreadHeaderResources.deleteThreadSuccessDescription));
@@ -116,6 +116,6 @@ export const useActivities = () => {
         threadContentAndActionKey,
         activeThreadId,
         threadPollingTriggerId,
-        removeThreadFromListRef,
+        threadListHandleRef,
     };
 };

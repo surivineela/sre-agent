@@ -10,9 +10,9 @@ import {
     getUTCTimestampBasedOnSelectedThreadCutoffTime,
     processThreads,
 } from '../Activities/Utility';
-import { RemoveThreadFromListHandle, ThreadLoadingCounts, ThreadPollingCounts, ThreadPollingInterval } from '../Contracts/Activities';
+import { ThreadListHandle, ThreadLoadingCounts, ThreadPollingCounts, ThreadPollingInterval } from '../Contracts/Activities';
 
-export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<RemoveThreadFromListHandle>) => {
+export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadListHandle>) => {
     const [threads, setThreads] = useState<Thread[]>([]);
     const [isLoadingInitialThreads, setIsLoadingInitialThreads] = useState<boolean>(true);
 
@@ -66,9 +66,9 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<RemoveTh
                     },
                     max: oldestThread
                         ? {
-                              timestamp: oldestThread.modifiedTimestamp,
-                              inclusive: false,
-                          }
+                            timestamp: oldestThread.modifiedTimestamp,
+                            inclusive: false,
+                        }
                         : undefined,
                 },
                 source: threadSource,
@@ -118,6 +118,13 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<RemoveTh
     useImperativeHandle(ref, () => ({
         removeThreadFromList: (thread: Thread) => {
             setThreads(prevThreads => prevThreads.filter(t => t.id !== thread.id));
+        },
+        promoteThread: (threadId: string, promote: () => void) => {
+            // If the thread is in the list but it is not the latest one, then call promote to move it to the top of the list
+            const thread = threads.find(t => t.id === threadId);
+            if (thread && threads[0]?.id !== threadId) {
+                promote();
+            }
         },
     }));
 

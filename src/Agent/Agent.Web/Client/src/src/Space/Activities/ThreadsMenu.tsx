@@ -6,7 +6,7 @@ import { ThreadSeverity } from '../../Common/Clients/ThreadClient';
 import { ThreadSource } from '../../Common/Contracts/Azure/SreAgent';
 import { ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import ThreadsList from '../Components/ThreadsList';
-import { IThreadsMenuProps, RemoveThreadFromListHandle } from '../Contracts/Activities';
+import { IThreadsMenuProps, ThreadListHandle } from '../Contracts/Activities';
 import { AgentContext } from '../Contracts/Context';
 import { useMetrics } from '../Hooks/useMetrics';
 import { useThreadsMenu } from '../Hooks/useThreadsMenu';
@@ -16,8 +16,8 @@ import IncidentStatusBar from './IncidentStatusBar';
 
 const expandCollapseButtonStyles = getExpandCollapseButtonStyles('left');
 
-export const ThreadsMenu = forwardRef<RemoveThreadFromListHandle, IThreadsMenuProps>(
-    (props: IThreadsMenuProps, ref: ForwardedRef<RemoveThreadFromListHandle>) => {
+export const ThreadsMenu = forwardRef<ThreadListHandle, IThreadsMenuProps>(
+    (props: IThreadsMenuProps, ref: ForwardedRef<ThreadListHandle>) => {
         const { selectThread, threadPollingTriggerId, collapsed, setCollapsed } = props;
 
         const {
