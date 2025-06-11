@@ -66,10 +66,11 @@ namespace FirstPartyAgent.Core.Services
             }
 
             _authType = AuthType.None;
+            IcmAPIPathPrefix = "/api/user";
+
             if (_icmApiSettings.ManagedIdentityEnabled && !string.IsNullOrWhiteSpace(_icmApiSettings.ManagedIdentityClientId))
             {
                 _authType = AuthType.ManagedIdentity;
-                IcmAPIPathPrefix = "/api2/user/incidentapi";
             }
             else if (!string.IsNullOrWhiteSpace(_icmApiSettings.CertificateSubjectName))
             {
@@ -79,7 +80,6 @@ namespace FirstPartyAgent.Core.Services
             else if (!string.IsNullOrWhiteSpace(_icmApiSettings.UserToken))
             {
                 _authType = AuthType.UserToken;
-                IcmAPIPathPrefix = "/api2/user/incidentapi";
             }
             else
             {
@@ -737,7 +737,7 @@ namespace FirstPartyAgent.Core.Services
                 IdType = "icm.incident"
             };
 
-            string apiBasePath = _authType == AuthType.Certificate ? $"{IcmAPIPathPrefix.Replace("/api/", "/api2/")}/incidentapi" : IcmAPIPathPrefix;
+            string apiBasePath = $"{IcmAPIPathPrefix.Replace("/api/", "/api2/")}/incidentapi";
 
             var response = await SendICMPostRequestAsync($"{apiBasePath}/incidents/externallink/repairitems/get", content);
 
