@@ -187,6 +187,7 @@ public class IncidentPlaygroundController : ControllerBase
         var filterDoc = new IncidentFilterDocument(
             payload.Id,
             DateTime.UtcNow,
+            payload.Name,
             payload.ImpactedService,
             payload.Priority,
             payload.IncidentType,
@@ -213,6 +214,7 @@ public class IncidentPlaygroundController : ControllerBase
         }
 
         existingFilter.ImpactedService = payload.ImpactedService;
+        existingFilter.Name = payload.Name;
         existingFilter.Priority = payload.Priority;
         existingFilter.IncidentType = payload.IncidentType;
         existingFilter.AlertId = payload.AlertId;

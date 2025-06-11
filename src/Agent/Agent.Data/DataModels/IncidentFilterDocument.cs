@@ -7,6 +7,7 @@ namespace Agent.Data.DataModels;
 public record IncidentFilterDocument(
     string Id, // Filter Id
     DateTime CreatedAt,
+    string Name,
     string ImpactedService,
     string Priority,
     string IncidentType,
@@ -20,6 +21,7 @@ public record IncidentFilterDocument(
     public string PartitionKey => DocumentType; // Use document type as partition key
     public bool IsDeleted { get; set; } = false; // Flag to indicate if the filter is deleted. This is used for soft delete.
     public DateTime UpdatedAt { get; set; } = CreatedAt;
+    public string Name { get; set; } = Name;
     public string ImpactedService { get; set; } = ImpactedService;
     public string Priority { get; set; } = Priority;
     public string IncidentType { get; set; } = IncidentType;
@@ -32,6 +34,7 @@ public record IncidentFilterDocument(
 public class IncidentFilterDocumentPayload
 {
     public string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
     public string ImpactedService { get; set; } = string.Empty;
     public string Priority { get; set; } = string.Empty;
     public string IncidentType { get; set; } = string.Empty;

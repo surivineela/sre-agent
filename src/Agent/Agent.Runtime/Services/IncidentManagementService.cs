@@ -143,6 +143,7 @@ namespace Agent.Runtime.Services
                         filter = new IncidentFilterDocumentPayload()
                         {
                             Id = filterDocument.Id,
+                            Name = filterDocument.Name,
                             ImpactedService = filterDocument.ImpactedService,
                             IncidentType = filterDocument.IncidentType,
                             Priority = filterDocument.Priority,
