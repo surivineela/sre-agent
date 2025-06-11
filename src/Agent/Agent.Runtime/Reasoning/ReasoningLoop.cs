@@ -544,7 +544,7 @@ public class ReasoningLoop
                     if (!agentOutput.IsUserInputRequired && !agentOutput.RequestCompleted)
                     {
                         // model said it doesn't need input and the request isn't completed, re-run the loop
-                        return new ReasoningLoopIterationResult() { IsContinuation = true };
+                        // return new ReasoningLoopIterationResult() { IsContinuation = true };
                     }
                 }
             }
