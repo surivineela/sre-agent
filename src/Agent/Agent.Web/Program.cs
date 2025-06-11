@@ -614,6 +614,9 @@ public class Program
                 && azureSettings.AgentTraceADX != null
                 && !string.IsNullOrEmpty(azureSettings.AgentTraceADX.ClusterUri))
             {
+                var certificatePath = GetKustoFirstPartyConfiguration("CertificatePath");
+                var tenantId = "33e01921-4d64-4f8c-a055-5bdaffd5e33d";
+                var clientId = GetKustoFirstPartyConfiguration("ClientId");
                 tracingBuilder.AddAzureDataExplorerExporter(options =>
                 {
                     options.DatabaseName = azureSettings.AgentTraceADX.DatabaseName;
@@ -632,6 +635,9 @@ public class Program
                         trace["ModelTotalTokensCount"] = activity.TagObjects.FirstOrDefault(t => t.Key == "model.total.tokens.count").Value?.ToString() ?? "0";
                         trace["AgentId"] = AgentNameHelper.GetAgentName(builder.Environment.IsProduction());
                     };
+                    options.FirstPartyAppCertificatePath = certificatePath;
+                    options.FirstPartyAppClientId = clientId;
+                    options.FirstPartyAppTenantId = tenantId;
                 });
             }
         });
