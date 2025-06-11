@@ -70,7 +70,7 @@ public static class Runner
             hooks: hooks,
             previousResult.Trajectory,
             cancellationToken: cancellationToken,
-            _shouldRunAgentStartHooks: previousResult.AgentChanged
+            _shouldRunAgentStartHooks: previousResult.AgentChanged()
         );
     }
 
@@ -332,7 +332,18 @@ public static class Runner
         modelInput.AddRange(generatedMessages);
 
         await hooks.OnModelGenerationStart(contextWrapper, agent, modelInput, chatOptions);
-        var response = await chatClient.GetResponseAsync(modelInput, chatOptions);
+
+        ChatResponse response;
+        object? structuredOutput = null;
+
+        if (agent.HasStructuredOutput)
+        {
+            (response, structuredOutput) = await chatClient.GetResponseAsync(modelInput, agent.OutputType, chatOptions);
+        }
+        else
+        {
+            response = await chatClient.GetResponseAsync(modelInput, chatOptions);
+        }
 
 
         await hooks.OnModelGenerationEnd(contextWrapper, agent, response);
@@ -349,6 +360,7 @@ public static class Runner
             originalInput: originalInput,
             preStepItems: generatedMessages,
             modelResponse: response,
+            structuredOutput: structuredOutput,
             config: config,
             hooks: hooks,
             contextWrapper: contextWrapper,
@@ -363,6 +375,7 @@ public static class Runner
         List<ChatMessage> originalInput,
         List<ChatMessage> preStepItems,
         ChatResponse modelResponse,
+        object? structuredOutput,
         RunConfig config,
         RunHooks<TContext> hooks,
         RunContextWrapper<TContext> contextWrapper,
@@ -516,21 +529,50 @@ public static class Runner
             }
         }
 
-        // if we reach here, there were no tool calls in the response
-
-        newStepItems.AddRange(modelResponse.Messages);
-
-        return new SingleStepResult<TContext>
+        if (agent.HasStructuredOutput)
         {
-            OriginalInput = originalInput,
-            ModelResponse = modelResponse,
-            PreStepItems = preStepItems,
-            NewStepItems = newStepItems,
-            NextStep = new NextStep<TContext>
+            if (structuredOutput is not null && structuredOutput.GetType() == agent.OutputType)
             {
-                Type = NextStepType.FinalOutput,
-                Output = modelResponse.Messages.Last().Contents.OfType<TextContent>().First().Text
+                newStepItems.AddRange(modelResponse.Messages);
+
+                // model produced output in the expected format
+                return new SingleStepResult<TContext>
+                {
+                    OriginalInput = originalInput,
+                    ModelResponse = modelResponse,
+                    PreStepItems = preStepItems,
+                    NewStepItems = newStepItems,
+                    NextStep = new NextStep<TContext>
+                    {
+                        Type = NextStepType.FinalOutput,
+                        Output = structuredOutput
+                    }
+                };
             }
-        };
+            else
+            {
+                // model produced output in an unexpected format
+                throw new Exception("Model produced output in an unexpected format");
+            }
+        }
+        else
+        {
+            // if we reach here, there were no tool calls in the response
+
+            newStepItems.AddRange(modelResponse.Messages);
+
+            return new SingleStepResult<TContext>
+            {
+                OriginalInput = originalInput,
+                ModelResponse = modelResponse,
+                PreStepItems = preStepItems,
+                NewStepItems = newStepItems,
+                NextStep = new NextStep<TContext>
+                {
+                    Type = NextStepType.FinalOutput,
+                    Output = modelResponse.Messages.Last().Contents.OfType<TextContent>().First().Text
+                }
+            };
+        }
     }
 }

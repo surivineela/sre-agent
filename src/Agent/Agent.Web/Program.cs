@@ -80,16 +80,9 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using WebSocketSharp.Server;
-using System.Linq;
 using Agent.Core.Plugins.Definitions;
 using Agent.Plugins.Services.Interfaces;
 using Agent.Plugins.Services;
-using FirstPartyAgent.Core.Configuration;
-using System.Text.Json;
-using Agent.Plugins.Kusto;
-using Agent.Plugins.TeamsPlugin;
-using Agent.Plugins.IcmPlugin;
-using Microsoft.Extensions.Options;
 
 namespace Agent.Web;
 
@@ -413,7 +406,8 @@ public class Program
                     modeConfigurator: modeConfigurator,
                     agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "AgentsV2"),
                     commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonPrompts"),
-                    promptStarters: [Core.Constants.SREAgentPromptStarter]
+                    promptStarters: [Core.Constants.SREAgentPromptStarter],
+                    defaultOutputType: typeof(AgentOutput)
                 );
             })
             .AddSingleton<IDiagnosticsPlugin, DiagnosticsPlugin>()
@@ -451,7 +445,7 @@ public class Program
             .AddTransient<CVEAgent>()
             .AddTransient<SourceCodeAgent>()
             ;
-        
+
         if (isFirstAgent)
         {
             builder.Services.AddSingleton<IAgentsFactory, FirstPartyAgentsFactory>();

@@ -44,4 +44,7 @@ internal class YamlAgentDescriptor : IAgentDescriptor
 
     [YamlMember(Alias = "temperature")]
     public float? Temperature { get; set; } = null;
+
+    [YamlMember(Alias = "output_type")]
+    public string? OutputType { get; set; } = null;
 }

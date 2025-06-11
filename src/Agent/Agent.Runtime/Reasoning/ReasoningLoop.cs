@@ -52,6 +52,19 @@ public class ReasoningLoop
     private const int MaxRetryAttempts = 3;
     private static readonly TimeSpan[] RetryDelays = { TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(500), TimeSpan.FromSeconds(1) };
 
+    private static readonly JsonSerializerOptions _toolArgumentsJsonOptions = new()
+    {
+        WriteIndented = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
+    private static readonly JsonSerializerOptions _chatMessageJsonOptions = new()
+    {
+        WriteIndented = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+    };
+
     public ReasoningLoop(
         ILogger<ReasoningLoop> logger,
         ILoggerFactory loggerFactory,
@@ -83,12 +96,12 @@ public class ReasoningLoop
         _agentFactory = agentFactory;
     }
 
-    public async Task AppendNewUserMessageAsync(ChatMessage msg, CancellationToken cancellationToken = default)
+    public async Task AppendNewChatMessageAsync(ChatMessage msg, CancellationToken cancellationToken = default)
     {
         if (await _msgCh.Writer.WaitToWriteAsync(cancellationToken))
         {
-            _logger.LogInternalInformation("Appending new user message");
-            await _msgCh.Writer.WriteAsync(new ReasoningLoopUserMessage(msg), cancellationToken);
+            _logger.LogInternalInformation("Appending new chat message");
+            await _msgCh.Writer.WriteAsync(new ReasoningLoopChatMessage(msg), cancellationToken);
 
             _ = Task.Run(async () => await RunAsync(cancellationToken), cancellationToken);
         }
@@ -102,7 +115,7 @@ public class ReasoningLoop
     {
         if (await _msgCh.Writer.WaitToWriteAsync(cancellationToken))
         {
-            _logger.LogInternalInformation("Appending new user message");
+            _logger.LogInternalInformation("Appending new function call message");
             await _msgCh.Writer.WriteAsync(new ReasoningLoopFunctionCall(msgs), cancellationToken);
 
             _ = Task.Run(async () => await RunAsync(cancellationToken), cancellationToken);
@@ -113,13 +126,13 @@ public class ReasoningLoop
         }
     }
 
-    public async IAsyncEnumerable<RunResult<AgentContext>> AppendNewUserMessageStreamAsync(ChatMessage msg, CancellationToken cancellationToken = default)
+    public async IAsyncEnumerable<RunResult<AgentContext>> AppendNewChatMessageStreamAsync(ChatMessage msg, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         // TODO: use queue system to iterate over events and *actually* do something with them before returning all events to user
         if (await _msgCh.Writer.WaitToWriteAsync(cancellationToken))
         {
-            _logger.LogInternalInformation("Appending new user message");
-            await _msgCh.Writer.WriteAsync(new ReasoningLoopUserMessage(msg), cancellationToken);
+            _logger.LogInternalInformation("Appending new chat message");
+            await _msgCh.Writer.WriteAsync(new ReasoningLoopChatMessage(msg), cancellationToken);
 
             var streamingResult = RunStreamingAsync(cancellationToken);
             await foreach (var update in streamingResult.WithCancellation(cancellationToken))
@@ -167,11 +180,11 @@ public class ReasoningLoop
         _chatHistory = reasoningMessages.GetChatMessages();
     }
 
-
-    public async Task<IEnumerable<ChatMessage>> ExportChatHistory(CancellationToken cancellationToken)
+    public Task<IEnumerable<ChatMessage>> ExportChatHistoryAsync(CancellationToken cancellationToken)
     {
         //TODO - synchronization with writers. Currently only used during development so not a blocker.
-        return _chatHistory?.ToArray() ?? Array.Empty<ChatMessage>();
+        IEnumerable<ChatMessage> history = _chatHistory?.ToArray() ?? [];
+        return Task.FromResult(history);
     }
 
     private async Task RunAsync(CancellationToken cancellationToken)
@@ -185,9 +198,16 @@ public class ReasoningLoop
         while (_msgCh.Reader.TryRead(out var reasoningLoopMessage))
         {
 
-            _rootSpan = _tracer.StartRootSpan(TraceOperationName.UserMessage);
-            _rootSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
-            _rootSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.UserMessage);
+            ReasoningLoopIterationResult? iterationResult = null;
+
+            if (_rootSpan == null)
+            {
+                // don't reset the root span if one exists (loop continuation)
+                _rootSpan = _tracer.StartRootSpan(TraceOperationName.UserMessage);
+                _rootSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
+                _rootSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.UserMessage);
+            }
+
             try
             {
                 _logger.LogInternalInformation("Received new message. Running reasoning loop...");
@@ -196,10 +216,10 @@ public class ReasoningLoop
 
                 switch (reasoningLoopMessage)
                 {
-                    case ReasoningLoopUserMessage userMessage:
+                    case ReasoningLoopChatMessage chatMessage:
                         {
-                            _logger.LogInternalInformation("Processing user message.");
-                            _rootSpan.SetAttribute(TraceAttribute.MessageContent, userMessage.Message.Text);
+                            _logger.LogInternalInformation("Processing chat message.");
+                            _rootSpan.SetAttribute(TraceAttribute.MessageContent, chatMessage.Message.Text);
                             if (_context.ApprovalInformation != null &&
                                 _context.ApprovalInformation.PendingApprovals.Count > 0)
                             {
@@ -215,7 +235,7 @@ public class ReasoningLoop
                                 return;
                             }
 
-                            await PersistReasoningMessageAsync(agentChatHistory, userMessage.Message);
+                            await PersistReasoningMessageAsync(agentChatHistory, chatMessage.Message);
                             break;
                         }
                     case ReasoningLoopApprovalMessage approvalMessage:
@@ -233,10 +253,12 @@ public class ReasoningLoop
                     case ReasoningLoopFunctionCall functionCall:
                         {
                             _logger.LogInternalInformation("Processing function call messages.");
-                            foreach (var msg in functionCall.Messages)
-                            {
-                                await PersistReasoningMessageAsync(agentChatHistory, msg);
-                            }
+                            await PersistReasoningMessagesAsync(agentChatHistory, functionCall.Messages);
+                            break;
+                        }
+                    case ReasoningLoopContinuation:
+                        {
+                            _logger.LogInternalInformation("Received continuation message. Running reasoning loop...");
                             break;
                         }
                     default:
@@ -244,7 +266,20 @@ public class ReasoningLoop
                         continue;
                 }
 
-                await RunInternalAsync(agentChatHistory, cancellationToken, _tracer);
+                iterationResult = await RunInternalAsync(agentChatHistory, cancellationToken);
+
+                if (iterationResult.IsContinuation)
+                {
+                    if (await _msgCh.Writer.WaitToWriteAsync(cancellationToken))
+                    {
+                        await _msgCh.Writer.WriteAsync(new ReasoningLoopContinuation(), cancellationToken);
+                    }
+                    else
+                    {
+                        // can't write to the channel, set the continuation flag to false and end the loop
+                        iterationResult.IsContinuation = false;
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -252,15 +287,19 @@ public class ReasoningLoop
             }
             finally
             {
-                _rootSpan.End();
-                _rootSpan = null;
+                if (iterationResult?.IsContinuation == false)
+                {
+                    // only end the root span if we didn't continue the loop
+                    _rootSpan?.End();
+                    _rootSpan = null;
+                }
             }
         }
 
         _semaphore.Release();
     }
 
-    private async IAsyncEnumerable<RunResult<AgentContext>> RunStreamingAsync(CancellationToken cancellationToken)
+    private async IAsyncEnumerable<RunResult<AgentContext>> RunStreamingAsync([EnumeratorCancellation] CancellationToken cancellationToken)
     {
         if (!await _semaphore.WaitAsync(0, cancellationToken))
         {
@@ -277,9 +316,9 @@ public class ReasoningLoop
 
             switch (reasoningLoopMessage)
             {
-                case ReasoningLoopUserMessage userMessage:
+                case ReasoningLoopChatMessage chatMessage:
                     {
-                        _logger.LogInternalInformation("Processing user message.");
+                        _logger.LogInternalInformation("Processing chat message.");
                         if (_context.ApprovalInformation != null &&
                             _context.ApprovalInformation.PendingApprovals.Count > 0)
                         {
@@ -295,7 +334,7 @@ public class ReasoningLoop
                             yield break;
                         }
 
-                        await PersistReasoningMessageAsync(agentChatHistory, userMessage.Message);
+                        await PersistReasoningMessageAsync(agentChatHistory, chatMessage.Message);
                         break;
                     }
                 case ReasoningLoopApprovalMessage approvalMessage:
@@ -326,7 +365,9 @@ public class ReasoningLoop
         yield break;
     }
 
-    private async Task RunInternalAsync(AgentChatHistory agentChatHistory, CancellationToken cancellationToken, Tracer tracer)
+    private async Task<ReasoningLoopIterationResult> RunInternalAsync(
+        AgentChatHistory agentChatHistory,
+        CancellationToken cancellationToken)
     {
         var runConfig = new RunConfig
         {
@@ -336,90 +377,7 @@ public class ReasoningLoop
 
         try
         {
-            var runHooks = new RunHooks<AgentContext>
-            {
-                ResolveFactoryTools = (context, agent) =>
-                {
-                    List<AIFunction> tools = [];
-
-                    foreach (var toolName in agent.FactoryTools)
-                    {
-                        var tool = _toolFactory.GetTool(toolName, _context.ThreadId);
-
-                        tools.Add(tool);
-                    }
-
-                    return Task.FromResult(tools);
-                },
-                OnAgentStart = async (context, agent) =>
-                {
-                    _logger.LogInternalInformation("Trace invoke agent: {AgentName}", agent.Name);
-                    _currentAgentSpan = tracer.StartActiveSpan($"invoke.agent.{agent.Name}", SpanKind.Internal, _rootSpan);
-                    _currentAgentSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
-                    _currentAgentSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
-                    _currentAgentSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.InvokeAgent);
-                },
-                OnAgentEnd = async (context, agent, output) =>
-                {
-                    _logger.LogInternalInformation("Trace Ending agent: {AgentName}", agent.Name);
-                    _currentAgentSpan?.End();
-                    _currentAgentSpan = null;
-                },
-                OnHandoff = async (context, agent, handoffAgent) =>
-                {
-                    _logger.LogInternalInformation("Trace Handoff from agent: {AgentName} to agent: {HandoffAgentName}", agent.Name, handoffAgent.Name);
-                    _currentToolSpan = tracer.StartSpan($"handoff", SpanKind.Internal, _currentAgentSpan);
-                    _currentToolSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
-                    _currentToolSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.Handoff);
-                    _currentToolSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
-                    _currentToolSpan.SetAttribute(TraceAttribute.HandeOffAgentName, handoffAgent.Name);
-                    _currentToolSpan.End();
-                    _currentToolSpan = null;
-                    _currentAgentSpan?.End();
-                    _context.AgentHandoffChain.Add(handoffAgent.Name);
-                    _currentAgent = handoffAgent;
-                    await _threadRepository.UpdateAgentContextAsync(_context);
-                },
-                OnToolStart = async (context, agent, tool, input) =>
-                {
-                    _logger.LogInternalInformation("Trace Starting tool: {ToolName} for agent: {AgentName}", tool.Name, agent.Name);
-                    _currentToolSpan = tracer.StartActiveSpan($"tool.{tool.Name}", SpanKind.Internal, _currentAgentSpan);
-                    _currentToolSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
-                    _currentToolSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.Tool);
-                    _currentToolSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
-                    _currentToolSpan.SetAttribute(TraceAttribute.ToolName, tool.Name);
-                    _currentToolSpan.SetAttribute(TraceAttribute.ToolInput, FormatToolArguments(input as IEnumerable<KeyValuePair<string, object?>>));
-                    _currentToolSpan.SetAttribute(TraceAttribute.ModelTemperature, agent.Temperature.ToString());
-                    _currentToolSpan.SetAttribute(TraceAttribute.ToolDescription, tool.Description);
-                },
-                OnToolEnd = async (context, agent, tool, output) =>
-                {
-                    _logger.LogInternalInformation("Trace Ending tool: {ToolName} for agent: {AgentName}", tool.Name, agent.Name);
-                    _currentToolSpan?.SetAttribute(TraceAttribute.ToolOutput, output?.ToString() ?? string.Empty);
-                    _currentToolSpan?.End();
-                    _currentToolSpan = null;
-                },
-                OnModelGenerationStart = async (context, agent, messages, chatOptions) =>
-                {
-                    _logger.LogInternalInformation("Trace Starting model generation for agent: {AgentName}", agent.Name);
-                    _currentGenerationSpan = tracer.StartActiveSpan($"model_generation", SpanKind.Internal, _currentAgentSpan);
-                    _currentGenerationSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
-                    _currentGenerationSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
-                    _currentGenerationSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.ModelGeneration);
-                    _currentGenerationSpan.SetAttribute(TraceAttribute.ModelInput, FormatChatMessages(messages));
-                },
-                OnModelGenerationEnd = async (context, agent, response) =>
-                {
-                    _logger.LogInternalInformation("Trace Ending model generation for agent: {AgentName}", agent?.Name ?? "Unknown");
-                    _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelOutput, FormatChatMessages(response?.Messages ?? []));
-                    _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelInputTokensCount, response?.Usage?.InputTokenCount?.ToString() ?? string.Empty);
-                    _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelOutputTokensCount, response?.Usage?.OutputTokenCount?.ToString() ?? string.Empty);
-                    _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelTotalTokensCount, response?.Usage?.TotalTokenCount?.ToString() ?? string.Empty);
-                    _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelTemperature, agent?.Temperature.ToString() ?? string.Empty);
-                    _currentGenerationSpan?.End();
-                    _currentGenerationSpan = null;
-                }
-            };
+            var runHooks = CreateRunHooks();
 
             ToolStatic.AsyncLocalThreadId.Value = _context.ThreadId;
 
@@ -433,6 +391,10 @@ public class ReasoningLoop
             );
 
             await PersistReasoningMessagesAsync(agentChatHistory, runResult.NewItems);
+
+            _currentAgent = runResult.LastAgent;
+            _context = _context with { CurrentAgent = _currentAgent.Name };
+            _context = await _threadRepository.UpdateAgentContextAsync(_context);
 
             // handle manual tool calls
             while (runResult.ManualToolCalls != null && runResult.ManualToolCalls.Count > 0)
@@ -449,9 +411,9 @@ public class ReasoningLoop
                         // pop agent off the chain
                         _context.AgentHandoffChain.RemoveAt(_context.AgentHandoffChain.Count - 1);
                         var agentName = _context.AgentHandoffChain[^1];
-                        _currentAgent = _agentFactory.GetAgent(agentName);
+                        var newAgent = _agentFactory.GetAgent(agentName);
 
-                        runResult = runResult.WithNewAgent(_currentAgent);
+                        runResult = runResult.WithNewAgent(newAgent);
 
                         toolResults.Add(new ManualToolCallResult()
                         {
@@ -472,8 +434,8 @@ public class ReasoningLoop
                 else
                 {
                     var checkApprovalResult = await CheckApprovalAsync(toolCall);
-                    var checkAzCliWrite = CheckAzCliWriteToolCallAsync(toolCall);
-                    var checkKubectlWrite = CheckKubectlWriteToolCallAsync(toolCall);
+                    var checkAzCliWrite = CheckAzCliWriteToolCall(toolCall);
+                    var checkKubectlWrite = CheckKubectlWriteToolCall(toolCall);
 
                     if (checkAzCliWrite)
                     {
@@ -555,17 +517,39 @@ public class ReasoningLoop
                 );
 
                 await PersistReasoningMessagesAsync(agentChatHistory, runResult.NewItems);
+
+                _currentAgent = runResult.LastAgent;
+                _context = _context with { CurrentAgent = _currentAgent.Name };
+                _context = await _threadRepository.UpdateAgentContextAsync(_context);
             }
 
             if (runResult.Output != null)
             {
-                await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
-                    _context,
-                    new ChatMessage(ChatRole.Assistant, runResult.Output?.ToString()));
+                if (runResult.Output is string outputString)
+                {
+                    await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+                        _context,
+                        new ChatMessage(ChatRole.Assistant, runResult.Output?.ToString()));
+                }
+                else if (runResult.Output is AgentOutput agentOutput)
+                {
+                    await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+                        _context,
+                        new ChatMessage(ChatRole.Assistant, agentOutput.OutputMessage));
+
+                    // TODO: can we log all this info?
+                    _logger.LogInternalInformation("Agent output: {AgentOutputMessage}, {IsUserInputRequired}, {RequestCompleted}, {Reasoning}",
+                        agentOutput.OutputMessage, agentOutput.IsUserInputRequired, agentOutput.RequestCompleted, agentOutput.Reasoning);
+
+                    if (!agentOutput.IsUserInputRequired && !agentOutput.RequestCompleted)
+                    {
+                        // model said it doesn't need input and the request isn't completed, re-run the loop
+                        return new ReasoningLoopIterationResult() { IsContinuation = true };
+                    }
+                }
             }
 
-            _logger.LogInternalInformation("Reasoning loop completed successfully.");
-            // span.SetStatus(OpenTelemetry.Trace.Status.Ok);
+            _logger.LogInternalInformation("Reasoning loop iteration completed.");
         }
         catch (TurnLimitReachedException<AgentContext> ex)
         {
@@ -605,16 +589,15 @@ public class ReasoningLoop
         }
         catch (Exception ex)
         {
-            // span.SetStatus(OpenTelemetry.Trace.Status.Error.WithDescription(ex.Message));
-            // span.RecordException(ex);
             _logger.LogInternalError(ex, "An error occurred during reasoning loop.");
         }
         finally
         {
-            // span.End();
             _currentAgentSpan?.End();
             _currentAgentSpan = null;
         }
+
+        return new ReasoningLoopIterationResult() { IsContinuation = false };
     }
 
     private async IAsyncEnumerable<RunResult<AgentContext>> RunInternalStreamingAsync(AgentChatHistory agentChatHistory, [EnumeratorCancellation] CancellationToken cancellationToken)
@@ -625,22 +608,7 @@ public class ReasoningLoop
             LoggerFactory = _loggerFactory
         };
 
-        var runHooks = new RunHooks<AgentContext>
-        {
-            ResolveFactoryTools = (context, agent) =>
-            {
-                List<AIFunction> tools = [];
-
-                foreach (var toolName in agent.FactoryTools)
-                {
-                    var tool = _toolFactory.GetTool(toolName, _context.ThreadId);
-
-                    tools.Add(tool);
-                }
-
-                return Task.FromResult(tools);
-            }
-        };
+        var runHooks = CreateRunHooks();
 
         ToolStatic.AsyncLocalThreadId.Value = _context.ThreadId;
 
@@ -666,8 +634,8 @@ public class ReasoningLoop
 
             var toolCall = runResult.ManualToolCalls.Single(); // Should only be one tool call at a time
             var checkApprovalResult = await CheckApprovalAsync(toolCall);
-            var checkAzCliWrite = CheckAzCliWriteToolCallAsync(toolCall);
-            var checkKubectlWrite = CheckKubectlWriteToolCallAsync(toolCall);
+            var checkAzCliWrite = CheckAzCliWriteToolCall(toolCall);
+            var checkKubectlWrite = CheckKubectlWriteToolCall(toolCall);
 
             if (checkAzCliWrite)
             {
@@ -698,7 +666,7 @@ public class ReasoningLoop
             // readonly mode
             if (_actionSettings.Mode == ActionMode.ReadOnly)
             {
-                var checkWriteActionResult = await CheckWriteActionInReadOnlyModeAsync(toolCall);
+                var checkWriteActionResult = CheckWriteActionInReadOnlyMode(toolCall);
                 if (checkWriteActionResult.NeedSkip)
                 {
                     var chatMessage = new ChatMessage(ChatRole.User, checkWriteActionResult.Prompt);
@@ -775,6 +743,106 @@ public class ReasoningLoop
         }
     }
 
+    private RunHooks<AgentContext> CreateRunHooks()
+    {
+        return new RunHooks<AgentContext>
+        {
+            ResolveFactoryTools = (context, agent) =>
+            {
+                List<AIFunction> tools = [];
+
+                foreach (var toolName in agent.FactoryTools)
+                {
+                    var tool = _toolFactory.GetTool(toolName, _context.ThreadId);
+
+                    tools.Add(tool);
+                }
+
+                return Task.FromResult(tools);
+            },
+            OnAgentStart = (context, agent) =>
+            {
+                if (_currentAgentSpan is not null)
+                {
+                    _currentAgentSpan.End();
+                    _currentAgentSpan = null;
+                }
+
+                _logger.LogInternalInformation("Trace invoke agent: {AgentName}", agent.Name);
+                _currentAgentSpan = _tracer.StartActiveSpan($"invoke.agent.{agent.Name}", SpanKind.Internal, _rootSpan);
+                _currentAgentSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
+                _currentAgentSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
+                _currentAgentSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.InvokeAgent);
+                return Task.CompletedTask;
+            },
+            OnAgentEnd = (context, agent, output) =>
+            {
+                _logger.LogInternalInformation("Trace Ending agent: {AgentName}", agent.Name);
+                _currentAgentSpan?.End();
+                _currentAgentSpan = null;
+                return Task.CompletedTask;
+            },
+            OnHandoff = (context, agent, handoffAgent) =>
+            {
+                _logger.LogInternalInformation("Trace Handoff from agent: {AgentName} to agent: {HandoffAgentName}", agent.Name, handoffAgent.Name);
+                _currentToolSpan = _tracer.StartSpan($"handoff", SpanKind.Internal, _currentAgentSpan);
+                _currentToolSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
+                _currentToolSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.Handoff);
+                _currentToolSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
+                _currentToolSpan.SetAttribute(TraceAttribute.HandeOffAgentName, handoffAgent.Name);
+                _currentToolSpan.End();
+                _currentToolSpan = null;
+                _currentAgentSpan?.End();
+                _context.AgentHandoffChain.Add(handoffAgent.Name);
+                //_currentAgent = handoffAgent;
+                //return _threadRepository.UpdateAgentContextAsync(_context);
+                return Task.CompletedTask;
+            },
+            OnToolStart = (context, agent, tool, input) =>
+            {
+                _logger.LogInternalInformation("Trace Starting tool: {ToolName} for agent: {AgentName}", tool.Name, agent.Name);
+                _currentToolSpan = _tracer.StartActiveSpan($"tool.{tool.Name}", SpanKind.Internal, _currentAgentSpan);
+                _currentToolSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
+                _currentToolSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.Tool);
+                _currentToolSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
+                _currentToolSpan.SetAttribute(TraceAttribute.ToolName, tool.Name);
+                _currentToolSpan.SetAttribute(TraceAttribute.ToolInput, FormatToolArguments(input as IEnumerable<KeyValuePair<string, object?>>));
+                _currentToolSpan.SetAttribute(TraceAttribute.ModelTemperature, agent.Temperature.ToString());
+                _currentToolSpan.SetAttribute(TraceAttribute.ToolDescription, tool.Description);
+                return Task.CompletedTask;
+            },
+            OnToolEnd = (context, agent, tool, output) =>
+            {
+                _logger.LogInternalInformation("Trace Ending tool: {ToolName} for agent: {AgentName}", tool.Name, agent.Name);
+                _currentToolSpan?.SetAttribute(TraceAttribute.ToolOutput, output?.ToString() ?? string.Empty);
+                _currentToolSpan?.End();
+                _currentToolSpan = null;
+                return Task.CompletedTask;
+            },
+            OnModelGenerationStart = (context, agent, messages, chatOptions) =>
+            {
+                _logger.LogInternalInformation("Trace Starting model generation for agent: {AgentName}", agent.Name);
+                _currentGenerationSpan = _tracer.StartActiveSpan($"model_generation", SpanKind.Internal, _currentAgentSpan);
+                _currentGenerationSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
+                _currentGenerationSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
+                _currentGenerationSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.ModelGeneration);
+                _currentGenerationSpan.SetAttribute(TraceAttribute.ModelInput, FormatChatMessages(messages));
+                return Task.CompletedTask;
+            },
+            OnModelGenerationEnd = (context, agent, response) =>
+            {
+                _logger.LogInternalInformation("Trace Ending model generation for agent: {AgentName}", agent?.Name ?? "Unknown");
+                _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelOutput, FormatChatMessages(response?.Messages ?? []));
+                _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelInputTokensCount, response?.Usage?.InputTokenCount?.ToString() ?? string.Empty);
+                _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelOutputTokensCount, response?.Usage?.OutputTokenCount?.ToString() ?? string.Empty);
+                _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelTotalTokensCount, response?.Usage?.TotalTokenCount?.ToString() ?? string.Empty);
+                _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelTemperature, agent?.Temperature.ToString() ?? string.Empty);
+                _currentGenerationSpan?.End();
+                _currentGenerationSpan = null;
+                return Task.CompletedTask;
+            }
+        };
+    }
 
     private string GetApprovalTitle(FunctionCallContent functionCall)
     {
@@ -1052,7 +1120,7 @@ public class ReasoningLoop
         }
     }
 
-    private bool CheckAzCliWriteToolCallAsync(ManualToolCall toolCall)
+    private static bool CheckAzCliWriteToolCall(ManualToolCall toolCall)
     {
         if (toolCall.Tool == null)
         {
@@ -1067,7 +1135,7 @@ public class ReasoningLoop
         return true;
     }
 
-    private bool CheckKubectlWriteToolCallAsync(ManualToolCall toolCall)
+    private static bool CheckKubectlWriteToolCall(ManualToolCall toolCall)
     {
         if (toolCall.Tool == null)
         {
@@ -1096,12 +1164,12 @@ public class ReasoningLoop
             $"AddReasoningMessageToChatHistory for message {reasoningMessage.Id}");
     }
 
-    private async Task PersistReasoningMessagesAsync(AgentChatHistory agentChatHistory, IEnumerable<ChatMessage> chatMessage)
+    private async Task PersistReasoningMessagesAsync(AgentChatHistory agentChatHistory, IEnumerable<ChatMessage> chatMessages)
     {
-        _chatHistory!.AddRange(chatMessage);
+        _chatHistory!.AddRange(chatMessages);
         // Calling ToList() is important here because otherwise the reasoning messages get new IDs every time
         // the reasoningMessages IEnumerable is enumerated.
-        var reasoningMessages = chatMessage.Select(msg => msg.GetReasoningMessage(_context.Id)).ToList();
+        var reasoningMessages = chatMessages.Select(msg => msg.GetReasoningMessage(_context.Id)).ToList();
 
         foreach (var reasoningMessage in reasoningMessages)
         {
@@ -1129,7 +1197,7 @@ public class ReasoningLoop
         }
     }
 
-    private async Task<WriteActionActivityOutput> CheckWriteActionInReadOnlyModeAsync(ManualToolCall toolCall)
+    private WriteActionActivityOutput CheckWriteActionInReadOnlyMode(ManualToolCall toolCall)
     {
         try
         {
@@ -1185,7 +1253,7 @@ public class ReasoningLoop
             catch (Microsoft.Azure.Cosmos.CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
             {
                 _logger.LogInternalInformation("Resource already exists for {OperationName}, continuing without retry", operationName);
-                return default(T)!;
+                return default!;
             }
             catch (Exception ex) when (attempt < MaxRetryAttempts - 1)
             {
@@ -1204,7 +1272,7 @@ public class ReasoningLoop
         catch (Microsoft.Azure.Cosmos.CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
         {
             _logger.LogInternalInformation("Resource already exists for {OperationName}, continuing without retry", operationName);
-            return default(T)!;
+            return default!;
         }
         catch (Exception ex)
         {
@@ -1223,21 +1291,11 @@ public class ReasoningLoop
 
         try
         {
-            // Create a dictionary for JSON serialization
             var argsDict = arguments.ToDictionary(kv => kv.Key, kv => kv.Value);
-
-            // Use JsonSerializer with options to make output prettier
-            var options = new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            };
-
-            return JsonSerializer.Serialize(argsDict, options);
+            return JsonSerializer.Serialize(argsDict, _toolArgumentsJsonOptions);
         }
         catch (Exception)
         {
-            // In case of serialization issues, fallback to basic formatting
             return string.Join(", ", arguments.Select(kv => $"{kv.Key}: {kv.Value?.ToString() ?? "null"}"));
         }
     }
@@ -1251,7 +1309,6 @@ public class ReasoningLoop
 
         try
         {
-            // Create a list of anonymous objects for better JSON formatting
             var formattedMessages = messages.Select(message => new
             {
                 Role = message.Role.ToString(),
@@ -1262,23 +1319,12 @@ public class ReasoningLoop
                 })
             }).ToList();
 
-            // Use JsonSerializer with options to make output prettier
-            var options = new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-            };
-
-            return JsonSerializer.Serialize(formattedMessages, options);
+            return JsonSerializer.Serialize(formattedMessages, _chatMessageJsonOptions);
         }
         catch (Exception ex)
         {
-            // In case of serialization issues, fallback to basic formatting
             return $"Error formatting messages: {ex.Message}\n" +
-                   string.Join("\n", messages.Select(m => $"{m.Role}: {m.Text?.Substring(0, Math.Min(m.Text?.Length ?? 0, 50))}..."));
+                   string.Join("\n", messages.Select(m => $"{m.Role}: {m.Text?[..50]}..."));
         }
     }
-
-
 }

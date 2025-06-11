@@ -31,7 +31,7 @@ public class ReasoningLoopManager : IReasoningLoopManager
     public async Task AppendNewMessageAsync(AgentContext context, ChatMessage msg, CancellationToken cancellationToken = default)
     {
         var loop = await GetOrCreateReasoningLoopAsync(context);
-        await loop.AppendNewUserMessageAsync(msg, cancellationToken);
+        await loop.AppendNewChatMessageAsync(msg, cancellationToken);
     }
 
     public async Task AppendFunctionCallMessagesAsync(AgentContext context, List<ChatMessage> msgs, CancellationToken cancellationToken = default)
@@ -43,7 +43,7 @@ public class ReasoningLoopManager : IReasoningLoopManager
     public async IAsyncEnumerable<RunResult<AgentContext>> AppendNewMessageStreamingAsync(AgentContext context, ChatMessage msg, CancellationToken cancellationToken = default)
     {
         var loop = await GetOrCreateReasoningLoopAsync(context);
-        var results = loop.AppendNewUserMessageStreamAsync(msg, cancellationToken);
+        var results = loop.AppendNewChatMessageStreamAsync(msg, cancellationToken);
         await foreach (var result in results.WithCancellation(cancellationToken))
         {
             yield return result;
@@ -60,7 +60,7 @@ public class ReasoningLoopManager : IReasoningLoopManager
     public async Task<IEnumerable<ChatMessage>> ExportChatHistory(AgentContext context, CancellationToken cancellationToken = default)
     {
         var loop = await GetOrCreateReasoningLoopAsync(context);
-        return await loop.ExportChatHistory(cancellationToken);
+        return await loop.ExportChatHistoryAsync(cancellationToken);
     }
 
     private async Task<ReasoningLoop> GetOrCreateReasoningLoopAsync(AgentContext context)

@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Framework;
@@ -49,13 +50,19 @@ public abstract class RunResultBase<TContext> where TContext : class
     public abstract Agent<TContext> LastAgent { get; }
 
     public required Trajectory Trajectory { get; init; }
-
-    internal bool AgentChanged { get; set; } = false;
 }
 
 public class RunResult<TContext>(Agent<TContext> agent) : RunResultBase<TContext> where TContext : class
 {
     public override Agent<TContext> LastAgent { get; } = agent;
+
+    internal Agent<TContext>? OldAgent { get; private set; } = null;
+
+    [MemberNotNullWhen(true, nameof(OldAgent))]
+    internal bool AgentChanged()
+    {
+        return OldAgent != null && OldAgent.Name != LastAgent.Name;
+    }
 
     public RunResult<TContext> WithNewAgent(Agent<TContext> newAgent)
     {
@@ -70,7 +77,7 @@ public class RunResult<TContext>(Agent<TContext> agent) : RunResultBase<TContext
             ContextWrapper = ContextWrapper,
             ManualToolCalls = ManualToolCalls,
             Trajectory = Trajectory,
-            AgentChanged = true
+            OldAgent = this.LastAgent
         };
     }
 }

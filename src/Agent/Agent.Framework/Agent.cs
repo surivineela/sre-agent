@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Framework;
@@ -13,6 +14,11 @@ public class Agent<TContext>(string name) where TContext : class
     public PromptText? HandoffDescription { get; set; }
 
     public PromptText Instructions { get; set; } = "";
+
+    public Type? OutputType { get; set; }
+
+    [MemberNotNullWhen(true, nameof(OutputType))]
+    public bool HasStructuredOutput => OutputType is not null && OutputType != typeof(string);
 
     // Tools that are retrieved from the tool factory
     public List<string> FactoryTools { get; set; } = [];

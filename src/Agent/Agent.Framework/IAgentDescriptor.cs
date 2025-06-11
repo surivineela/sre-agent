@@ -20,4 +20,5 @@ public interface IAgentDescriptor
     public string CriticPromptPath { get; set; }
     public List<string> CommonPrompts { get; set; }
     public float? Temperature { get; set; }
+    public string? OutputType { get; set; }
 }

@@ -29,7 +29,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
     private readonly string? _agentsYamlDirectory;
     private readonly string? _commonPromptsYamlDirectory;
     private readonly IEnumerable<string>? _promptStarters;
-
+    private readonly Type? _defaultOutputType;
     private readonly IAgentModeConfigurator<TContext> _modeConfigurator;
 
     public AgentFactory(
@@ -39,7 +39,8 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         IAgentModeConfigurator<TContext> modeConfigurator,
         string? agentsYamlDirectory = null,
         string? commonPromptsYamlDirectory = null,
-        IEnumerable<string>? promptStarters = null
+        IEnumerable<string>? promptStarters = null,
+        Type? defaultOutputType = null
     )
     {
         _toolFactory = toolFactory;
@@ -49,6 +50,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         _commonPromptsYamlDirectory = commonPromptsYamlDirectory;
         _promptStarters = promptStarters;
         _modeConfigurator = modeConfigurator;
+        _defaultOutputType = defaultOutputType;
         InitializeAgents();
     }
 
@@ -106,8 +108,10 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
             Handoffs = [], // Will be populated later to avoid circular references
             FactoryTools = agentDescriptor.Tools,
             // TODO: parallel tool calls not supported in the framework yet, ignore agent-level overrides
-            AllowParallelToolCalls = false // agentDescriptor.AllowParallelToolCalls,
+            AllowParallelToolCalls = false, // agentDescriptor.AllowParallelToolCalls,
+            OutputType = GetOutputType(agentDescriptor)
         };
+
         if (!string.IsNullOrEmpty(agentDescriptor.CriticPromptPath))
         {
             agent.CriticPromptPath = Path.Join(AppContext.BaseDirectory, agentDescriptor.CriticPromptPath);
@@ -156,6 +160,29 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         return true;
     }
 
+    private Type? GetOutputType(IAgentDescriptor agentDescriptor)
+    {
+        // if null use the default type provided to the factory
+        if (agentDescriptor.OutputType is null)
+        {
+            return _defaultOutputType;
+        }
+
+        // check system type 'string'
+        if (agentDescriptor.OutputType == "string")
+        {
+            return typeof(string);
+        }
+
+        // check if the type is in the provided assemblies to scan
+        var resolvedType = _assembliesToScan.SelectMany(a => a.GetTypes())
+            .FirstOrDefault(t => t.Name == agentDescriptor.OutputType)
+            ?? throw new InvalidOperationException(
+                $"Output type {agentDescriptor.OutputType} not found in assemblies {string.Join(", ", _assembliesToScan.Select(a => a.GetName().Name))}.");
+
+        return resolvedType;
+    }
+
     private void UpdateHandoffs()
     {
         foreach (var agent in _agents.Values)
@@ -181,7 +208,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         {
             if (agentDescriptor is not YamlAgentDescriptor yamlDescriptor ||
                 yamlDescriptor.AgentsAsTools == null ||
-                !yamlDescriptor.AgentsAsTools.Any())
+                yamlDescriptor.AgentsAsTools.Count == 0)
             {
                 continue;
             }
@@ -278,7 +305,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         }
     }
 
-    private IAgentDescriptor LoadAgentFromYaml(string yamlContent)
+    private static YamlAgentDescriptor LoadAgentFromYaml(string yamlContent)
     {
         try
         {
@@ -304,7 +331,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
 
             string yamlContent = File.ReadAllText(filePath);
 
-            var agentDescriptor = LoadAgentFromYaml(yamlContent);
+            var agentDescriptor = AgentFactory<TContext>.LoadAgentFromYaml(yamlContent);
             if (AddAgentDescriptor(agentDescriptor))
             {
                 _logger.LogInformation("Successfully loaded agent descriptor {descriptorName} from file {filePath}.", agentDescriptor.Name, filePath);
@@ -382,7 +409,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         }
     }
 
-    private IPromptDescriptor LoadCommonPromptFromYaml(string yamlContent)
+    private static YamlPromptDescriptor LoadCommonPromptFromYaml(string yamlContent)
     {
         try
         {

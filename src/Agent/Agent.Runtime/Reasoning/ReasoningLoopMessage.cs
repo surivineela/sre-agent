@@ -11,11 +11,11 @@ public abstract class ReasoningLoopMessage
 {
 }
 
-public class ReasoningLoopUserMessage : ReasoningLoopMessage
+public class ReasoningLoopChatMessage : ReasoningLoopMessage
 {
     public ChatMessage Message { get; }
 
-    public ReasoningLoopUserMessage(ChatMessage message)
+    public ReasoningLoopChatMessage(ChatMessage message)
     {
         Message = message;
     }
@@ -39,4 +39,8 @@ public class ReasoningLoopFunctionCall : ReasoningLoopMessage
     {
         Messages = messages;
     }
+}
+
+public class ReasoningLoopContinuation : ReasoningLoopMessage
+{
 }

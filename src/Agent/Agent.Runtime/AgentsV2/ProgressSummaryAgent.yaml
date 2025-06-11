@@ -38,3 +38,5 @@ system_prompt: |
 common_prompts:
 - format_guidelines
 - guard_rail
+
+output_type: string

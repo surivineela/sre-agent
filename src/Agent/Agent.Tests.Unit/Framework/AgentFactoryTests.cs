@@ -4,7 +4,6 @@
 
 using System.ComponentModel;
 using System.Reflection;
-using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
 using Agent.Framework.Models;
@@ -190,6 +189,7 @@ public class TestAgent1Descriptor : IAgentDescriptor
     public string CriticPromptPath { get; set; } = string.Empty;
     public float? Temperature { get; set; } = null;
     public List<AgentsAsTools> AgentsAsTools { get; set; } = [];
+    public string? OutputType { get; set; } = null;
 }
 
 public class TestAgent2Descriptor : IAgentDescriptor
@@ -206,6 +206,7 @@ public class TestAgent2Descriptor : IAgentDescriptor
     public string CriticPromptPath { get; set; } = string.Empty;
     public float? Temperature { get; set; } = null;
     public List<AgentsAsTools> AgentsAsTools { get; set; } = [];
+    public string? OutputType { get; set; } = null;
 }
 
 public class TestCommonPrompt : IPromptDescriptor
