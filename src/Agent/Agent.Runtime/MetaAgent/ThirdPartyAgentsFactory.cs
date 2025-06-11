@@ -489,6 +489,8 @@ $@"## Facts
             AIFunctionFactory.Create(_githubIssuePlugin.FindConnectedRepo),
             AIFunctionFactory.Create(diagnosticsPluginDefinition.GetAnalysisAsync),
             AIFunctionFactory.Create(diagnosticsPluginDefinition.GetCPUAnalysis),
+            AIFunctionFactory.Create(diagnosticsPluginDefinition.GetMemoryAnalysis),
+            AIFunctionFactory.Create(diagnosticsPluginDefinition.GetLatencyAnalysis),
             AIFunctionFactory.Create(searchPluginDefinition.SearchAsync)
         ];
 

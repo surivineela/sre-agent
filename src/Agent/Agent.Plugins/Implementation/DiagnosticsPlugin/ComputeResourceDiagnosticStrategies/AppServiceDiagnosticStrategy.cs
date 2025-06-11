@@ -110,7 +110,7 @@ internal class AppServiceDiagnosticStrategy : ComputeResourceDiagnosticStrategyB
         int pid = await _armHelper.GetDefaultProcessIdForWebAppAsync(resourceId, kuduManager.OS, kuduManager.KuduHostName);
 
         // Local helper to simplify ExecuteKuduCommandAsync calls
-        async Task<string> ExecKudu(string command, string workingDir = "/home")
+        async Task<string> ExecKudu(string command, string workingDir = "/tmp/")
             => await _armHelper.ExecuteKuduCommandAsync(kuduManager.KuduHostName, command, workingDir);
 
         if (kuduManager.OS == "Linux")
@@ -150,7 +150,7 @@ internal class AppServiceDiagnosticStrategy : ComputeResourceDiagnosticStrategyB
                 _logger.LogInternalError($"Failed to delete dump: {traceFile} for {resourceId}");
             }
 
-            return analysisResult;
+            return @$"CPU Analysis using .nettrace and Thread Time Analysis: {analysisResult}";
         }
 
         else
@@ -167,7 +167,7 @@ internal class AppServiceDiagnosticStrategy : ComputeResourceDiagnosticStrategyB
             using (var jsonReader = new JsonTextReader(stringReader))
             {
                 jsonReader.MaxDepth = null;
-                var serializer = new Newtonsoft.Json.JsonSerializer
+                var serializer = new JsonSerializer
                 {
                     MaxDepth = null // Unlimited depth
                 };
@@ -204,7 +204,7 @@ internal class AppServiceDiagnosticStrategy : ComputeResourceDiagnosticStrategyB
                         sb.AppendLine(CPUFunctionAnalyzer.PrintSummary(method));
                     }
 
-                    return sb.ToString();
+                    return @$"CPU Analysis using .diagsession: {sb.ToString()}";
                 }
 
                 else

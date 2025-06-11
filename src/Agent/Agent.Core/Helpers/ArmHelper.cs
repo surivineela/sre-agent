@@ -455,7 +455,7 @@ public class ArmHelper
         if (currentSku == null) return null;
 
         // Define the SKU progression
-        var skuProgression = new[] { "F1", "D1", "B1", "B2", "B3", "S1", "S2", "S3", "P1v2", "P2v2", "P3v2", "P0v3", "P1v3", "P2v3", "P3v3" };
+        var skuProgression = new[] { "F1", "D1", "B1", "B2", "B3", "S1", "S2", "S3", "P1", "P1v2", "P2v2", "P3v2", "P0v3", "P1v3", "P2v3", "P3v3" };
 
         // Find the index of the current SKU
         int currentIndex = Array.IndexOf(skuProgression, currentSku.Size);
@@ -482,9 +482,12 @@ public class ArmHelper
 
     public async Task<bool> ScaleUpAppServicePlanByNameAsync(string appServicePlanResourceId, AppPlanSku targetSku)
     {
-        var requestUrl = new Uri(new Uri("https://management.azure.com"), $"{appServicePlanResourceId}?api-version=2021-02-01");
+        string appServicePlanName = await GetAppServicePlanNameAsync(appServicePlanResourceId);
+        var requestUrl = new Uri(new Uri("https://management.azure.com"), $"{appServicePlanName}?api-version=2024-11-01");
+
         var requestBody = new
         {
+            kind = "app",
             location = targetSku.Location,
             properties = new { },
             sku = new
@@ -508,8 +511,16 @@ public class ArmHelper
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
 
         var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+
         HttpResponseMessage response = await httpClient.SendAsync(request);
         var responseContent = await response.Content.ReadAsStringAsync();
+        if (!response.IsSuccessStatusCode)
+        {
+            string errorMessage = $"Failed to scale up App Service Plan. Status Code: {response.StatusCode}, Response: {responseContent}";
+            _logger.LogInternalError(errorMessage);
+            throw new Exception(errorMessage);
+        }
+
         _logger.LogInternalInformation($"ScaleUpAppServicePlanByNameAsync response: {responseContent}");
         return response.IsSuccessStatusCode;
     }
@@ -2078,6 +2089,7 @@ public class ArmHelper
     {
         string url = $"https://{hostName}/api/processes";
         using HttpClient httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+        httpClient.Timeout = TimeSpan.FromMinutes(5);
 
         if (os == "Linux")
         {
@@ -2245,7 +2257,7 @@ public class ArmHelper
 
         catch (HttpRequestException ex)
         {
-            Console.Error.WriteLine($"[KuduManager] HTTP request failed during command execution: {ex.Message}");
+            Console.Error.WriteLine($"[KuduManager] HTTP request failed during command execution: {ex.Message} for command: {command} in {workingDirectory}");
             throw new InvalidOperationException("Failed to execute command on Kudu.", ex);
         }
 
@@ -2425,6 +2437,7 @@ public class ArmHelper
             "S1" => "S",
             "S2" => "S",
             "S3" => "S",
+            "P1" => "Pv2",
             "P1v2" => "Pv2",
             "P2v2" => "Pv2",
             "P3v2" => "Pv2",
@@ -2450,6 +2463,7 @@ public class ArmHelper
             "S1" => "Standard",
             "S2" => "Standard",
             "S3" => "Standard",
+            "P1" => "PremiumV2",
             "P1v2" => "PremiumV2",
             "P2v2" => "PremiumV2",
             "P3v2" => "PremiumV2",
