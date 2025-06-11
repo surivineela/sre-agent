@@ -90,13 +90,7 @@
     <None Update="Helpers\SupportProductMetadata\SupportProductsFromArm.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Temp-AzCliBinary\azure_cli-2.74.0.post20250610082848-py3-none-any.whl">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Temp-AzCliBinary\azure_cli_core-2.74.0.post20250610082848-py3-none-any.whl">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Temp-AzCliBinary\azure_cli_telemetry-1.1.0.post20250610082848-py3-none-any.whl">
+    <None Update="Temp-AzCliBinary\*.whl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

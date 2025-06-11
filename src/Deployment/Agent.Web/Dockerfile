@@ -6,7 +6,8 @@ WORKDIR /
 COPY Temp-AzCliBinary/*.whl .
 
 RUN mkdir /azcli && \
-    pip install --prefix /azcli --find-links ./ azure_cli-2.74.0.post20250610082848-py3-none-any.whl
+    whl=$(find . -name "azure_cli-2.74.0.*-py3-none-any.whl" -printf "%f\n") && \
+    pip install --prefix /azcli --find-links ./ $whl
 
 # Use the official .NET 9 runtime image to run the app
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
