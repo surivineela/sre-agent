@@ -9,6 +9,7 @@ using FirstPartyAgent.Core.Services;
 namespace FirstPartyAgent.Core.Configuration;
 public class TsgCrawlerSettings
 {
+    public bool Enabled { get; set; } = false;
     public string Type { get; set; } = string.Empty;
     public string IndexerName { get; set; } = string.Empty;
     public string TsgRootPath { get; set; } = string.Empty;

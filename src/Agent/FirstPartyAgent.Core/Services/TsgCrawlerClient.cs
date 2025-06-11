@@ -41,12 +41,22 @@ namespace FirstPartyAgent.Core.Services
             _tsgCrawlerSettings = tsgCrawlerSettings;
             _logger = logger;
             _azureSearchSettings = _tsgCrawlerSettings.AiSearchSettings;
-            _storageService = new StorageService(_tsgCrawlerSettings.TsgStorageSettings);
-            _azureDevOpsClient = new AzureDevOpsRestClient(hostEnvironment, _tsgCrawlerSettings.DevOpsRepoSettings);
+
+            if (tsgCrawlerSettings.Enabled)
+            {
+                _storageService = new StorageService(_tsgCrawlerSettings.TsgStorageSettings);
+                _azureDevOpsClient = new AzureDevOpsRestClient(hostEnvironment, _tsgCrawlerSettings.DevOpsRepoSettings);
+            }
         }
 
         public async Task CrawlAndStoreRepositoryAsync()
         {
+            if (_tsgCrawlerSettings == null || !_tsgCrawlerSettings.Enabled)
+            {
+                _logger.LogWarning("TSG Crawler Client is disabled. Skipping repository crawl.");
+                return;
+            }
+
             _logger.LogInformation("Starting repository crawl and store process...");
             
             var allFiles = await GetAllFilesAsync(_tsgCrawlerSettings.TsgRootPath);
