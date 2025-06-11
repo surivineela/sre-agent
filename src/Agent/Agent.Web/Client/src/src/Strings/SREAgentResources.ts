@@ -141,6 +141,13 @@ export const SreAgentResources = defineMessages({
         id: 'BKMqtr',
     },
     tipsOnHowToChat: { defaultMessage: 'Tips on how to chat with the SRE Agent', id: 'UVS724' },
+    learnMoreAboutSupportedServices: { defaultMessage: 'Learn more about supported services', id: 'fxw/H0' },
+    supportedServicesMessage: {
+        defaultMessage:
+            'To get optimal agent performance for diagnostics, metrics, knowledge, and more during preview, use resource groups that include one or more of these Azure compute services: Azure Kubernetes Service, Functions, Container Apps, or Web Apps.',
+        id: '0aN6iW',
+    },
+    learnMore: { defaultMessage: 'Learn more', id: 'TdTXXf' },
 });
 
 export const SreAgentTabResources = defineMessages({

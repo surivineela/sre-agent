@@ -67,6 +67,12 @@
       "value": " managed resource groups"
     }
   ],
+  "0aN6iW": [
+    {
+      "type": 0,
+      "value": "To get optimal agent performance for diagnostics, metrics, knowledge, and more during preview, use resource groups that include one or more of these Azure compute services: Azure Kubernetes Service, Functions, Container Apps, or Web Apps."
+    }
+  ],
   "0sIUhe": [
     {
       "type": 0,
@@ -1081,6 +1087,12 @@
       "value": "Grafana Admin"
     }
   ],
+  "TdTXXf": [
+    {
+      "type": 0,
+      "value": "Learn more"
+    }
+  ],
   "TdeXH0": [
     {
       "type": 0,
@@ -1465,6 +1477,12 @@
     {
       "type": 0,
       "value": "All statuses"
+    }
+  ],
+  "fxw/H0": [
+    {
+      "type": 0,
+      "value": "Learn more about supported services"
     }
   ],
   "gO/IxZ": [
