@@ -20,10 +20,16 @@ namespace Agent.Runtime
         {
             builder.Configuration.SetBasePath(AppContext.BaseDirectory)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true); // load base settings
-               if (isDevelopment)
+            if (isDevelopment)
             {
                 builder.Configuration.AddJsonFile("appsettings.development.json", optional: true, reloadOnChange: true); // load local dev settings one more time to override Azure App Configuration
             }
+            else
+            {
+                var envName = builder.Environment.EnvironmentName.ToLower();
+                builder.Configuration.AddJsonFile($"appsettings.{envName}.json", optional: true, reloadOnChange: true);
+            }
+
             builder.Configuration.AddEnvironmentVariables();
 
             _localConfigLoaded = true;

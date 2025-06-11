@@ -25,7 +25,7 @@
     <ProjectReference Include="..\Agent.Prometheus\Agent.Prometheus.csproj" />
     <ProjectReference Include="..\Agent.Web\Agent.Web.csproj" />
     <ProjectReference Include="..\Agent.Graph\Agent.Graph.csproj" />
-    <ProjectReference Include="..\Agent.Tests.Common\Agent.Tests.Common.csproj" /> 
+    <ProjectReference Include="..\Agent.Tests.Common\Agent.Tests.Common.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -44,7 +44,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="appsettings.json">
+    <Content Include="appsettings.test.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
