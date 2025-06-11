@@ -31,6 +31,19 @@ namespace Agent.Plugins.Definitions
 
             return "User notified";
         }
+
+        [AgentTool(ToolMode.Auto)]
+        [Description("Sends the specified message to the user and indicates that you require a response to proceed. Do not use this for any scenario where you just need to send the user an update in a fire and forget manner. If the user responds in a manner that does not satisfactorily answer your question, use this tool again.")]
+        public string AskUserForInput(
+            [Description("The message to send to the user.")]
+            string message)
+        {
+            _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(ThreadId, string.Empty,
+                new ChatMessage(ChatRole.Assistant, message));
+
+            return "Question sent to user. The agent will wait for a response before proceeding with further actions.";
+
+        }
     }
 }
 
