@@ -436,8 +436,20 @@ public class ReasoningLoop
                     var checkApprovalResult = await CheckApprovalAsync(toolCall);
                     var checkAzCliWrite = CheckAzCliWriteToolCall(toolCall);
                     var checkKubectlWrite = CheckKubectlWriteToolCall(toolCall);
+                    var checkWriteActionResult = CheckWriteActionInReadOnlyMode(toolCall);
 
-                    if (checkAzCliWrite)
+                    if (_actionSettings.Mode == ActionMode.ReadOnly && checkWriteActionResult.NeedSkip)
+                    {
+                        var chatMessage = new ChatMessage(ChatRole.Tool, checkWriteActionResult.Prompt);
+                        toolResults.Add(new ManualToolCallResult()
+                        {
+                            FunctionCall = toolCall.FunctionCall,
+                            Output = null,
+                            SkipToolCall = true,
+                            ReplacementMessage = chatMessage,
+                        });
+                    }
+                    else if (checkAzCliWrite)
                     {
                         var functionResult = await InvokeToolWithErrorHandlingAsync(toolCall, cancellationToken);
 
@@ -661,33 +673,6 @@ public class ReasoningLoop
                 };
                 await _threadRepository.UpdateKubectlExecutionAsync(_context.ThreadId, kubectlExecution);
                 break;
-            }
-
-            // readonly mode
-            if (_actionSettings.Mode == ActionMode.ReadOnly)
-            {
-                var checkWriteActionResult = CheckWriteActionInReadOnlyMode(toolCall);
-                if (checkWriteActionResult.NeedSkip)
-                {
-                    var chatMessage = new ChatMessage(ChatRole.User, checkWriteActionResult.Prompt);
-
-                    toolResults.Add(new ManualToolCallResult()
-                    {
-                        FunctionCall = toolCall.FunctionCall,
-                        Output = null,
-                        SkipToolCall = true,
-                        ReplacementMessage = chatMessage,
-                    });
-
-                    runResult = await Runner.ResumeFromManualToolsAsync(
-                        previousResult: runResult,
-                        manualToolResults: toolResults,
-                        config: runConfig,
-                        context: _context,
-                        hooks: runHooks,
-                        cancellationToken: cancellationToken
-                    );
-                }
             }
 
             if (checkApprovalResult.ApprovalStatus == ToolApprovalStatus.NotRequired || checkApprovalResult.ApprovalStatus == ToolApprovalStatus.AutoApproved)
