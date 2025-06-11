@@ -611,7 +611,7 @@ public class Program
                 tracingBuilder.AddInMemoryExporter(exportedActivities);
             }
 
-            if (azureSettings != null
+            if (builder.Environment.IsProduction() && azureSettings != null
                 && azureSettings.AgentTraceADX != null
                 && !string.IsNullOrEmpty(azureSettings.AgentTraceADX.ClusterUri))
             {
