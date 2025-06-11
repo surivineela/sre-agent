@@ -34,9 +34,10 @@ export const useIncidentManagementStyles = makeStyles({
     },
     toolbar: {
         display: 'flex',
-        justifyContent: 'space-between',
-        gap: '4px',
-        paddingBottom: '10px',
+        justifyContent: 'start',
+        gap: '8px',
+        padding: '20px',
+        paddingLeft: '0px',
     },
     filters: {
         display: 'flex',
@@ -57,7 +58,34 @@ export const useIncidentManagementStyles = makeStyles({
     },
     button: {
         fontWeight: 400,
+        padding: 0,
+        minWidth: '20px',
     },
+    description: {
+        paddingTop: '20px',
+        paddingRight: '20px',
+        paddingLeft: '0px',
+        paddingBottom: '0px',
+    },
+    incidentFiltersContainer: { display: 'flex', flexDirection: 'row', gap: '5px' },
+    searchBox: {
+        width: '330px',
+        fontSize: '13px',
+        zIndex: 1,
+    },
+    emptyState: {
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '60vh',
+        textAlign: 'center',
+    },
+    emptyStateTitle: { fontSize: '24px', fontWeight: '500', marginBottom: '8px' },
+    emptyStateDescription: { color: tokens.colorNeutralForeground2, marginBottom: '16px' },
+    newIncidentFilterButton: { width: 'fit-content', padding: '5px 10px' },
+    greenCheckIcon: { color: tokens.colorPaletteGreenForeground1 },
+    setUp: { display: 'flex', alignItems: 'center', gap: tokens.spacingHorizontalXS },
 });
 
 export const generateHandlerStyles = mergeStyleSets({

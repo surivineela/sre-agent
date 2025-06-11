@@ -47,6 +47,12 @@
       "value": "Container Apps Operator"
     }
   ],
+  "/kxGpW": [
+    {
+      "type": 0,
+      "value": "Failed to disable incident filter"
+    }
+  ],
   "0AwXvo": [
     {
       "type": 0,
@@ -133,6 +139,12 @@
     {
       "type": 0,
       "value": "This will permanently delete the chat and all actions in this thread."
+    }
+  ],
+  "1vUyy0": [
+    {
+      "type": 0,
+      "value": "Select priority"
     }
   ],
   "2/2yg+": [
@@ -255,6 +267,18 @@
       "value": "Sending a report..."
     }
   ],
+  "5ISX55": [
+    {
+      "type": 0,
+      "value": "Deleting incident filter"
+    }
+  ],
+  "5K0php": [
+    {
+      "type": 0,
+      "value": "Optimize how the agent investigates and responds to incidents by adding incident handlers and custom handlers to support a broad range of scenarios."
+    }
+  ],
   "5QYdPU": [
     {
       "type": 0,
@@ -291,6 +315,12 @@
     {
       "type": 1,
       "value": "results"
+    }
+  ],
+  "5q8lCX": [
+    {
+      "type": 0,
+      "value": "Incident handler name"
     }
   ],
   "5y2qWO": [
@@ -359,6 +389,12 @@
       "value": "New Azure Monitor Alert Detected"
     }
   ],
+  "71/osV": [
+    {
+      "type": 0,
+      "value": "Custom handler"
+    }
+  ],
   "7KZ+mT": [
     {
       "type": 0,
@@ -405,6 +441,12 @@
     {
       "type": 0,
       "value": "Backed by"
+    }
+  ],
+  "8O9cAb": [
+    {
+      "type": 0,
+      "value": "Last 24 hours"
     }
   ],
   "8Wiwkg": [
@@ -545,10 +587,22 @@
       "value": " managed resource group"
     }
   ],
+  "C3qF2+": [
+    {
+      "type": 0,
+      "value": "Create incident handler"
+    }
+  ],
   "CfGC/2": [
     {
       "type": 0,
       "value": "Select resource groups to monitor"
+    }
+  ],
+  "Ci3omK": [
+    {
+      "type": 0,
+      "value": "Select incident type"
     }
   ],
   "D3idYv": [
@@ -581,6 +635,12 @@
       "value": "Failed to delete logic app"
     }
   ],
+  "Dw4Wnc": [
+    {
+      "type": 0,
+      "value": "Creating incident filter"
+    }
+  ],
   "E396gv": [
     {
       "type": 0,
@@ -611,6 +671,18 @@
       "value": "Failed to load subscriptions."
     }
   ],
+  "EOf1cN": [
+    {
+      "type": 0,
+      "value": "Successfully disabled incident filter"
+    }
+  ],
+  "ESChST": [
+    {
+      "type": 0,
+      "value": "Enter filter name"
+    }
+  ],
   "EWw/tK": [
     {
       "type": 0,
@@ -633,6 +705,12 @@
     {
       "type": 0,
       "value": "User"
+    }
+  ],
+  "EwesO0": [
+    {
+      "type": 0,
+      "value": "Failed to create incident filter"
     }
   ],
   "Ez5ZJg": [
@@ -659,6 +737,12 @@
       "value": "Managed resource groups added successfully"
     }
   ],
+  "FREJ+R": [
+    {
+      "type": 0,
+      "value": "Failed to enable incident filter"
+    }
+  ],
   "FUQvS0": [
     {
       "type": 0,
@@ -683,6 +767,12 @@
       "value": "Connect to PagerDuty with an access key. To get more information, go to pagerduty.com and then to the API Access Keys section."
     }
   ],
+  "G8H3+s": [
+    {
+      "type": 0,
+      "value": "All incident types"
+    }
+  ],
   "GBnvl1": [
     {
       "type": 0,
@@ -693,6 +783,12 @@
     {
       "type": 0,
       "value": "- in progress"
+    }
+  ],
+  "GuBSUa": [
+    {
+      "type": 0,
+      "value": "Go to handler"
     }
   ],
   "HAlOn1": [
@@ -763,6 +859,12 @@
       "value": "name"
     }
   ],
+  "JQTsu5": [
+    {
+      "type": 0,
+      "value": "Enabling incident filter"
+    }
+  ],
   "JVZyFs": [
     {
       "type": 0,
@@ -779,6 +881,12 @@
     {
       "type": 0,
       "value": "Client"
+    }
+  ],
+  "JgQ1gX": [
+    {
+      "type": 0,
+      "value": "Get all incidents"
     }
   ],
   "JjKcCj": [
@@ -843,6 +951,18 @@
       "value": "Incident ID"
     }
   ],
+  "MlX0aZ": [
+    {
+      "type": 0,
+      "value": "All impacted services"
+    }
+  ],
+  "NOMbLF": [
+    {
+      "type": 0,
+      "value": "Get started with incident management"
+    }
+  ],
   "NV14yw": [
     {
       "type": 0,
@@ -879,6 +999,12 @@
       "value": "Enter name"
     }
   ],
+  "OKwfcc": [
+    {
+      "type": 0,
+      "value": "Failed to delete incident filter"
+    }
+  ],
   "OMp9VI": [
     {
       "type": 0,
@@ -899,6 +1025,12 @@
       "value": "Assigned to"
     }
   ],
+  "ORGv1Q": [
+    {
+      "type": 0,
+      "value": "Created"
+    }
+  ],
   "OV0MpG": [
     {
       "type": 0,
@@ -911,10 +1043,28 @@
       "value": "Hide thread menu"
     }
   ],
+  "OvzONl": [
+    {
+      "type": 0,
+      "value": "Off"
+    }
+  ],
+  "PJ2FQv": [
+    {
+      "type": 0,
+      "value": "Filter incidents"
+    }
+  ],
   "PipPB3": [
     {
       "type": 0,
       "value": "Show thread actions"
+    }
+  ],
+  "Pp+wb3": [
+    {
+      "type": 0,
+      "value": "Select impacted service"
     }
   ],
   "PxLzzW": [
@@ -1135,6 +1285,18 @@
       "value": "Tips on how to chat with the SRE Agent"
     }
   ],
+  "Udeffr": [
+    {
+      "type": 0,
+      "value": "Incident type"
+    }
+  ],
+  "UjETJe": [
+    {
+      "type": 0,
+      "value": "Base incident"
+    }
+  ],
   "UmEsZF": [
     {
       "type": 0,
@@ -1231,6 +1393,12 @@
       "value": "Linking Grafana dashboard"
     }
   ],
+  "XZ+Fx6": [
+    {
+      "type": 0,
+      "value": "Turn off"
+    }
+  ],
   "Xa3AHo": [
     {
       "type": 0,
@@ -1303,6 +1471,12 @@
       "value": "Resource Group"
     }
   ],
+  "Zh+5A6": [
+    {
+      "type": 0,
+      "value": "On"
+    }
+  ],
   "Zqa4dQ": [
     {
       "type": 0,
@@ -1347,10 +1521,22 @@
       "value": "Connect an incident management platform to the SRE Agent so that it can detect and respond to routine incident tasks and notifications. To change to a different platform, delete the connection to the current one."
     }
   ],
+  "abzUj6": [
+    {
+      "type": 0,
+      "value": "Filter name"
+    }
+  ],
   "anSi7M": [
     {
       "type": 0,
       "value": "Failed to load resource groups."
+    }
+  ],
+  "aqmxBU": [
+    {
+      "type": 0,
+      "value": "Disabling incident filter"
     }
   ],
   "bF6CsW": [
@@ -1375,6 +1561,12 @@
     {
       "type": 0,
       "value": "Owned by"
+    }
+  ],
+  "brxlTt": [
+    {
+      "type": 0,
+      "value": "Title contains"
     }
   ],
   "bxnWhY": [
@@ -1425,6 +1617,12 @@
       "value": "Mitigated"
     }
   ],
+  "dt7GgF": [
+    {
+      "type": 0,
+      "value": "Successfully enabled incident filter"
+    }
+  ],
   "eFKqV0": [
     {
       "type": 0,
@@ -1459,6 +1657,12 @@
     {
       "type": 0,
       "value": "Deleting thread"
+    }
+  ],
+  "fdCjVS": [
+    {
+      "type": 0,
+      "value": "Impacted service"
     }
   ],
   "ftfFhS": [
@@ -1513,6 +1717,12 @@
     {
       "type": 0,
       "value": "Tool"
+    }
+  ],
+  "hBeG71": [
+    {
+      "type": 0,
+      "value": "Successfully deleted incident filter"
     }
   ],
   "hK4HcH": [
@@ -1575,6 +1785,12 @@
       "value": "Fired At"
     }
   ],
+  "irFBKn": [
+    {
+      "type": 0,
+      "value": "Last 7 days"
+    }
+  ],
   "itC9lG": [
     {
       "type": 0,
@@ -1591,6 +1807,12 @@
     {
       "type": 0,
       "value": "No results"
+    }
+  ],
+  "jOkfJV": [
+    {
+      "type": 0,
+      "value": "Setup complete"
     }
   ],
   "jTQZpk": [
@@ -1677,6 +1899,12 @@
       "value": "Discard"
     }
   ],
+  "npvxpr": [
+    {
+      "type": 0,
+      "value": "Turn on"
+    }
+  ],
   "ns7TyW": [
     {
       "type": 0,
@@ -1721,6 +1949,12 @@
     {
       "type": 0,
       "value": "Manage access to the SRE Agent resource by clicking on the link below."
+    }
+  ],
+  "p5LNtB": [
+    {
+      "type": 0,
+      "value": "Not set"
     }
   ],
   "pCPZnU": [
@@ -1801,6 +2035,12 @@
       "value": "Connect Repository"
     }
   ],
+  "rja0QH": [
+    {
+      "type": 0,
+      "value": "Add incident filter"
+    }
+  ],
   "rk4tYE": [
     {
       "type": 0,
@@ -1819,10 +2059,28 @@
       "value": "Hosted on"
     }
   ],
+  "rrGMSx": [
+    {
+      "type": 0,
+      "value": "Set up"
+    }
+  ],
   "rvirM2": [
     {
       "type": 0,
       "value": "Location"
+    }
+  ],
+  "sGMl3p": [
+    {
+      "type": 0,
+      "value": "Successfully created incident filter"
+    }
+  ],
+  "sH0O5v": [
+    {
+      "type": 0,
+      "value": "Enter title keywords"
     }
   ],
   "sI+CCC": [
@@ -1905,6 +2163,12 @@
     {
       "type": 0,
       "value": "Showing the first 1000 results. Filter to narrow down the list."
+    }
+  ],
+  "uCkn4+": [
+    {
+      "type": 0,
+      "value": "All priorities"
     }
   ],
   "uVeSVH": [
@@ -2047,6 +2311,12 @@
       "value": "Thread count"
     }
   ],
+  "yalJ8o": [
+    {
+      "type": 0,
+      "value": "Enter a handler name"
+    }
+  ],
   "yhU1et": [
     {
       "type": 0,
@@ -2069,6 +2339,12 @@
     {
       "type": 0,
       "value": "Total threads"
+    }
+  ],
+  "zORAuY": [
+    {
+      "type": 0,
+      "value": "Optimize how the agent responds to incidents"
     }
   ],
   "zcyAwy": [

@@ -19,7 +19,7 @@ export interface IncidentQueryRequest {
     filter?: IncidentFilterDocumentPayload;
 }
 
-interface IncidentFilterDocumentPayload {
+export interface IncidentFilterDocumentPayload {
     id?: string;
     impactedService?: string;
     priority?: string;
@@ -46,4 +46,39 @@ export interface ToolInfo {
     name: string;
     description: string;
     parameters: string[];
+}
+
+export interface IncidentHandler {
+    id: string;
+    name: string;
+    description: string;
+    incidentFilterId: string;
+    incidentProcessingGuide: string[];
+    tools: string[];
+    incidents: string[];
+    customInstructions: string;
+}
+
+export interface IncidentFilter {
+    id: string;
+    alertId: string;
+    createdAt: string;
+    updatedAt: string;
+    documentType: string;
+    impactedService: string;
+    incidentType: string;
+    isDeleted: boolean;
+    isEnabled: boolean;
+    partitionKey: string;
+    priority: string;
+    titleContains: string;
+}
+
+export interface IncidentFilterPayload {
+    Id: string;
+    ImpactedService?: string;
+    Priority?: string;
+    IncidentType?: string;
+    AlertId?: string;
+    TitleContains?: string;
 }
