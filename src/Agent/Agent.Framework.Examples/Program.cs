@@ -117,6 +117,10 @@ class Program
         {
             builder.Services.AddSingleton<IAgentModeConfigurator<CustomContext>, ReadOnlyAgentModeConfigurator<CustomContext>>();
         }
+        else if (string.Equals(agentModeString, "Autonomous", StringComparison.OrdinalIgnoreCase))
+        {
+            builder.Services.AddSingleton<IAgentModeConfigurator<AgentContext>, AutonomousAgentModeConfigurator<AgentContext>>();
+        }
         else
         {
             builder.Services.AddSingleton<IAgentModeConfigurator<CustomContext>, DefaultAgentModeConfigurator<CustomContext>>();
