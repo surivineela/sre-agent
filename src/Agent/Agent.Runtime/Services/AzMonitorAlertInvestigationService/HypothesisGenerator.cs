@@ -23,6 +23,7 @@ public class HypothesisGenerator : IHypothesisGenerator
         _chatClient = chatClient;
         _logger = logger;
     }
+
     public async Task<List<Hypothesis>> GenerateHypothesesAsync(
         InvestigationContext context,
         CancellationToken cancellationToken = default)
@@ -30,6 +31,7 @@ public class HypothesisGenerator : IHypothesisGenerator
         try
         {
             string prompt = BuildHypothesesGenerationPrompt(context);
+
             var options = new ChatOptions
             {
                 Temperature = (float)0.1,
@@ -38,9 +40,11 @@ public class HypothesisGenerator : IHypothesisGenerator
                     ["response_format"] = "json"
                 }
             };
+
             var response = await _chatClient.GetResponseAsync(
                 new List<ChatMessage> { new ChatMessage(ChatRole.System, prompt) },
                 options);
+
             return DeserializeHypotheses(response.Text);
         }
         catch (Exception ex)
@@ -63,14 +67,16 @@ public class HypothesisGenerator : IHypothesisGenerator
         sb.AppendLine();
         // collected evidence
         sb.AppendLine("# Evidence Collected");
+
         foreach (var evidence in context.CollectedEvidence)
         {
             sb.AppendLine($"## {evidence.Key}");
             sb.AppendLine("```");
-            sb.AppendLine(TruncateIfNeeded(evidence.Value.RawOutput, 2000));
+            sb.AppendLine(evidence.Value.RawOutput);
             sb.AppendLine("```");
             sb.AppendLine();
         }
+
         // Add existing hypotheses if any
         if (context.CurrentHypotheses.Any())
         {
@@ -81,6 +87,7 @@ public class HypothesisGenerator : IHypothesisGenerator
             }
             sb.AppendLine();
         }
+
         sb.AppendLine(@"# Your Task
 Based on the evidence above, generate hypotheses about the root cause of this alert.
 For each hypothesis:
@@ -113,6 +120,7 @@ Important:
 - Assign realistic confidence scores
 - Support each hypothesis with concrete evidence
 - Include at most 3 hypotheses, prioritizing those with strongest evidence");
+
         return sb.ToString();
     }
 
@@ -122,13 +130,17 @@ Important:
         {
             // Try to extract JSON from the response
             var match = Regex.Match(response, @"\{[\s\S]*\}");
+
             string jsonContent = match.Success ? match.Value : response;
+
             var hypothesisResponse = JsonSerializer.Deserialize<HypothesisResponse>(jsonContent);
+
             if (hypothesisResponse?.Hypotheses == null || !hypothesisResponse.Hypotheses.Any())
             {
                 _logger.LogInternalWarning("No hypotheses found in response");
                 return new List<Hypothesis>();
             }
+
             return hypothesisResponse.Hypotheses.Select(h => new Hypothesis
             {
                 Description = h.Description,
@@ -156,12 +168,5 @@ Description: {essentials?.Description ?? "Unknown"}
 Resource: {essentials?.TargetResourceName ?? essentials?.TargetResource ?? "Unknown"}
 Type: {essentials?.TargetResourceType ?? "Unknown"}
 Time: {essentials?.StartDateTime ?? "Unknown"}";
-    }
-
-    private string TruncateIfNeeded(string text, int maxLength)
-    {
-        if (string.IsNullOrEmpty(text) || text.Length <= maxLength)
-            return text;
-        return text.Substring(0, maxLength) + "... [truncated]";
     }
 }

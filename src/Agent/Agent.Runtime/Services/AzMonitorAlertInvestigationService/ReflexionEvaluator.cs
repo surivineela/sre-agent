@@ -23,11 +23,11 @@ public class ReflexionEvaluator : IReflexionEvaluator
 
     private static readonly HashSet<string> AllSteps = new(StringComparer.OrdinalIgnoreCase)
     {
-        "ApplicationHealth",
-        "ActivityLogAnalysis",
-        "ConnectedComponentsAnalysis",
-        "LogQueryAnalysis",
-        "MetricsAnalysis"
+        "AnalyzeApplicationHealth",
+        "AnalyzeActivityLogs",
+        "AnalyzeConnectedComponents",
+        "AnalyzeLogQueries",
+        "AnalyzeResourceMetrics"
     };
 
     public ReflexionEvaluator(IChatClient chatClient, ILogger<ReflexionEvaluator> logger)

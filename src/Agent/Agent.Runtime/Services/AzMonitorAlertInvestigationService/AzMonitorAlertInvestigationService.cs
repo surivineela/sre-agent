@@ -12,6 +12,7 @@ using Agent.Logging;
 using Agent.Plugins;
 using Azure.Core;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 using Thread = Agent.Core.Models.Api.v1.Thread;
@@ -26,13 +27,15 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
     private readonly ILogQueryService _logQueryService;
     private readonly IChatClient _chatClient;
     private readonly IGraphDBPlugin _graphDBPlugin;
+    private readonly IAzureMonitorMetricsPlugin _azureMonitorMetricsPlugin;
 
     public AzMonitorAlertInvestigationService(
         IThreadRepository repository,
         ILogQueryService logQueryService,
-        IChatClient chatClient,
+        [FromKeyedServices("function-invocation-enabled")] IChatClient chatClient,
         IAgentInboundCommunicationService inboundCommunicationService,
         IGraphDBPlugin graphDBPlugin,
+        IAzureMonitorMetricsPlugin azureMonitorMetricsPlugin,
         ILogger<AzMonitorAlertInvestigationService> logger)
     {
         _repository = repository;
@@ -40,6 +43,7 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
         _logQueryService = logQueryService;
         _chatClient = chatClient;
         _graphDBPlugin = graphDBPlugin;
+        _azureMonitorMetricsPlugin = azureMonitorMetricsPlugin;
         _logger = logger;
     }
 
@@ -76,7 +80,7 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
                                             - Deployments or updates that could have introduced issues and happened closely preceding the alert
                                             - Evaluate the correlation of each activity based on timeline. The closer to the alert trigger time, the more likely it's correlated
                                             - ONLY mention activities that likely caused the alert
-                                            - Focus on WRITE actions, e.g., Create, Update.
+                                            - CRITICAL: Focus on WRITE actions, e.g., Create, Update. READ Actions such as ListSecrets etc. are most likely not relevant. 
                                             - Ignore routine operations unrelated to the issue";
 
             var promptWithPlaceholders = ChainPrompt
@@ -97,7 +101,8 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
                         }
                     )));
 
-            return llmSummary;
+            var resultWithStepIdentifier = $"ACTIVITY LOGS ANALYSIS\n{llmSummary}";
+            return resultWithStepIdentifier;
         }
         catch (Exception ex)
         {
@@ -188,7 +193,8 @@ Important:
                         }
                     )));
 
-            return llmHealthSummary;
+            var resultWithStepIdentifier = $"CONNECTED COMPONENTS ANALYSIS\n{llmHealthSummary}";
+            return resultWithStepIdentifier;
         }
         catch (Exception ex)
         {
@@ -197,7 +203,7 @@ Important:
         }
     }
 
-    public async Task<string> GetApplicationHealthAsync(AlertItem alert, Thread alertThread)
+    public async Task<string> AnalyzeApplicationHealth(AlertItem alert, Thread alertThread)
     {
         var essentials = alert.Properties.Essentials;
         var alertRule = essentials.AlertRule;
@@ -262,7 +268,8 @@ Important:
                        }
                    )));
 
-                return llmSummary;
+                var resultWithStepIdentifier = $"APPLICATION HEALTH ANALYSIS\n{llmSummary}";
+                return resultWithStepIdentifier;
             }
         }
         catch (Exception ex)
@@ -460,7 +467,8 @@ ONLY mention findings directly relevant to this alert condition.";
                         }
                     )));
 
-            return analysisResult;
+            var resultWithStepIdentifier = $"LOG QUERIES ANALYSIS\n{analysisResult}";
+            return resultWithStepIdentifier;
         }
         catch (Exception ex)
         {
@@ -469,15 +477,13 @@ ONLY mention findings directly relevant to this alert condition.";
         }
     }
 
-    public async Task<string> GetMetricsForResource(AlertItem alert, Thread alertThread)
+    public async Task<string> AnalyzeResourceMetrics(AlertItem alert, Thread alertThread)
     {
         var resourceId = alert.Properties.Essentials.TargetResource;
-
         var resourceType = alert.Properties.Essentials.TargetResourceType;
 
         try
         {
-
             // Get agent context
             var agentContexts = await _repository.GetAgentContextsForThreadAsync(alertThread.Id);
             if (agentContexts == null || !agentContexts.Any())
@@ -488,26 +494,98 @@ ONLY mention findings directly relevant to this alert condition.";
 
             var agentContext = agentContexts.First();
 
-            // Create a reasoning message for the agent to decide which metrics to retrieve
-            // we already have container app and web app plugins - let the agent figure out which is the best tool to call.
-            var alertDetails = JsonSerializer.Serialize(new
-            {
-                alertRule = alert.Properties.Essentials.AlertRule,
-                description = alert.Properties.Essentials.Description,
-                severity = alert.Properties.Essentials.Severity,
-                resourceId,
-                resourceType,
-                signalType = alert.Properties.Essentials.SignalType,
-                monitorCondition = alert.Properties.Essentials.MonitorCondition
-            });
+            var alertDetails = GetAlertInfoAsPrompt(alert);
 
+            var alertTime = ParseDateTimeOffset(alert.Properties.Essentials.StartDateTime);
+            var startTime = alertTime.AddHours(-1);
+            var endTime = DateTimeOffset.UtcNow;
+
+            // Create the metrics investigation prompt
+            var metricsInvestigationPrompt = $@"
+## CRITICAL: You MUST use the available tools to retrieve actual metric data. Do NOT provide generic responses.
+
+### Alert Context:
+{alertDetails}
+
+### MANDATORY STEPS (You must complete ALL steps):
+
+**STEP 1:** Call ListAvailableMetrics for resource: {resourceId}
+- Show the complete list of available metrics
+
+**STEP 2:** Select 2-3 relevant metrics based on alert condition and call GetMetricTimeSeriesElementsForAzureResource for each
+- Time range: {startTime:yyyy-MM-dd HH:mm:ss} UTC to {endTime:yyyy-MM-dd HH:mm:ss} UTC
+- Focus on metrics related to performance, errors, or resource usage
+
+**STEP 3:** Analyze the ACTUAL metric values you retrieved and write a narrative description for each metric showing:
+- What the normal/baseline values are
+- When deviations occurred (exact times)
+- How severe the deviations were (percentages, absolute values)
+- Duration of any anomalies
+
+### OUTPUT FORMAT (ONLY include if you have actual metric data):
+
+## Metric Analysis:
+**Critical Finding:** [ONE sentence based on actual metric deviation]
+
+**Detailed Metric Findings:**
+• **CPU METRICS:** [Describe what you observed - e.g., 'NOTICED A spike to 95% around 2:30PM, normally runs at 45%']
+• **MEMORY METRICS:** [Describe pattern - e.g., 'Memory usage climbed from 60% to 85% starting at 2:28PM']  
+• **REQUEST METRICS:** [Describe behavior - e.g., 'Request count dropped from 500/min to 50/min after 2:32PM']
+• **ERROR METRICS:** [Describe errors - e.g., 'HTTP 500 errors jumped from 2/min to 45/min at 2:30PM']
+
+## Evidence-Based Hypothesis (ONLY if supported by metric data):
+**Statement:** [What the metrics clearly show happened]
+**Evidence:** [Specific metric values, thresholds exceeded, time correlations from above findings]
+**Confidence:** [High/Medium/Low based on data clarity]
+
+### RULES:
+- If metrics show normal values, just report that - no hypothesis needed
+- If you cannot retrieve metrics, say so and stop
+- NO generic statements about 'code issues' or 'connectivity problems' without metric proof
+- Show actual numbers, timestamps, and thresholds
+- If no clear deviation in metrics, report 'No significant metric deviations found'
+
+### EXAMPLES OF GOOD METRIC DESCRIPTIONS:
+- **CPU METRICS:** 'NOTICED a sharp spike from baseline 35% to 92% at 14:25 UTC, stayed elevated for 8 minutes'
+- **MEMORY USAGE:** 'Gradual climb from normal 45% to 78% between 14:20-14:30 UTC, then plateaued'
+- **REQUEST COUNT:** 'Dropped dramatically from 450 req/min to 12 req/min at 14:27 UTC'
+- **ERROR RATE:** 'HTTP 500s spiked from 0.1% to 15.2% starting at 14:25 UTC, peak at 14:28 UTC'
+
+BEGIN by calling ListAvailableMetrics now.";
+
+            var metricsPluginDefinition = new AzureMonitorMetricsPluginDefinition(_azureMonitorMetricsPlugin);
+            var tools = new List<AITool>
+            {
+                AIFunctionFactory.Create(metricsPluginDefinition.ListAvailableMetrics),
+                AIFunctionFactory.Create(metricsPluginDefinition.GetMetricTimeSeriesElementsForAzureResource)
+            };
+
+            var llmSummary = await SummarizeWithLLMAndTools(metricsInvestigationPrompt, tools);
+
+            // Store the analysis result as a reasoning message
+            await _repository.CreateReasoningMessageAsync(new ReasoningMessage(
+                Guid.NewGuid(),
+                agentContext.Id,
+                ReasoningMessageRoleEnum.System,
+                JsonSerializer.Serialize(new
+                {
+                    description = "Analysis of Azure resource metrics to understand the alert condition with evidence-based hypotheses",
+                    metricsAnalysis = llmSummary,
+                    resourceId,
+                    resourceType,
+                    alertTime = alertTime.ToString("yyyy-MM-dd HH:mm:ss UTC"),
+                    timeRange = new { startTime = startTime.ToString("yyyy-MM-dd HH:mm:ss UTC"), endTime = endTime.ToString("yyyy-MM-dd HH:mm:ss UTC") }
+                })
+            ));
+
+            var resultWithStepIdentifier = $"RESOURCE METRICS ANALYSIS\n{llmSummary}";
+            return resultWithStepIdentifier;
         }
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, $"Error setting up metrics investigation for resource {resourceId}: {ex.Message}");
+            return "Encountered an error while setting up metrics investigation. Continuing with the investigation using other data sources.";
         }
-
-        return "No metric summary available. Use other data points to continue the investigation!";
     }
 
     #region Helper Methods
@@ -575,6 +653,33 @@ ONLY mention findings directly relevant to this alert condition.";
         }
     }
 
+    private async Task<string> SummarizeWithLLMAndTools(string prompt, List<AITool> tools)
+    {
+        try
+        {
+            var message = new ChatMessage(ChatRole.System, prompt);
+
+            var options = new ChatOptions
+            {
+                Temperature = (float)0.1,
+                Tools = tools,
+                ToolMode = ChatToolMode.Auto,
+                AdditionalProperties = new AdditionalPropertiesDictionary
+                {
+                    ["response_format"] = "text"
+                }
+            };
+
+            var response = await _chatClient.GetResponseAsync(new List<ChatMessage> { message }, options);
+            return response.Text;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error analyzing metrics with LLM and tools.");
+            return $"Error analyzing metrics with LLM: {ex.Message}. Continuing with investigation using other data sources.";
+        }
+    }
+
     private readonly string ChainPrompt =
         @"You are an Azure SRE Agent investigating an alert. Here are the alert details:
 ---
@@ -597,9 +702,14 @@ Produce a concise investigation report with:
 For each hypothesis (max 2):
 - **Hypothesis:** One-sentence statement with **Confidence:** High/Medium/Low
 
-DO NOT use generic suggestions. BE SPECIFIC to this alert and its context.
+<CRITICAL>
+BE VERY CRITICAL ABOUT HYPOTHESIS FORMATION. ONLY INCLUDE THE INFORMATION THAT MIGHT HELP WITH FURTHER INVESTIGATION AND REMEDIATION.
+IF YOU ARE NOT CONFIDENT, YOU CAN JUST LEAVE IT OUT COMPLETELY. Imagine you are convincing a jury, and you need to provide a proof for the proposed hypothesis.
+DO NOT provide generic suggestions. BE SPECIFIC to this alert and its context.
 Avoid duplicate information. Use emojis sparingly for readability.
-CRITICAL: Keep the entire response under 200 words.";
+Keep the entire response under 150-200 words.
+</CRITICAL>
+";
 
     #endregion
 }

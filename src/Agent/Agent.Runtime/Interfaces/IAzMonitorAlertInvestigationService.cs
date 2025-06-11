@@ -9,9 +9,9 @@ namespace Agent.Runtime.Services;
 
 public interface IAzMonitorAlertInvestigationService
 {
-    Task<string> GetApplicationHealthAsync(AlertItem alert, Thread alertThread);
+    Task<string> AnalyzeApplicationHealth(AlertItem alert, Thread alertThread);
 
-    Task<string> GetMetricsForResource(AlertItem alert, Thread alertThread);
+    Task<string> AnalyzeResourceMetrics(AlertItem alert, Thread alertThread);
 
     Task<string> AnalyzeConnectedComponents(AlertItem alert, Thread alertThread);
 

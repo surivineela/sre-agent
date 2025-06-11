@@ -172,7 +172,7 @@ public class AzMonitorAlertScanner
                    ThreadId: thread.Id,
                    AgentContextId: agentContext.Id,
                    MessageId: thread.StartMessage.Id,
-                   Message: $"An automated investigation has been completed for this alert with the following hypotheses and findings: {investigationResult.Summary}\n\nPlease validate these hypotheses by checking the supporting evidence. If the hypotheses seem incomplete or insufficient, conduct additional targeted investigation focusing on metrics, logs, and recent changes. Your goal is to either confirm one of these hypotheses with high confidence or discover the actual root cause if it differs from what was identified by the automated analysis. Based on the initial findings, find an appropriate subagent to handle the remediation. Be as autonomous as possible without asking for permission to take actions.",
+                   Message: $"An automated investigation has been completed for this alert with the following hypotheses and findings: {investigationResult.Summary}\n\nPlease validate these hypotheses by checking the supporting evidence. If the hypotheses seem incomplete or insufficient, conduct additional targeted investigation focusing on metrics, logs, and recent changes. Your goal is to either confirm one of these hypotheses with high confidence or discover the actual root cause if it differs from what was identified by the automated analysis. Based on the initial findings, find an appropriate subagent to handle the remediation. CRITICAL: Be as autonomous as possible without asking for permission to take actions.",
                    UserId: "incident-system",
                    DisplayName: "Azure Monitor Investigation Summary",
                    Timestamp: DateTime.UtcNow
@@ -202,7 +202,7 @@ public class AzMonitorAlertScanner
             ));
 
             // Get general app health summary (scorecard)
-            var healthSummary = await _azMonitorInvestigationService.GetApplicationHealthAsync(alert, alertThread);
+            var healthSummary = await _azMonitorInvestigationService.AnalyzeApplicationHealth(alert, alertThread);
             var healthSummaryTitle = "Analyzing resource health summary and metrics";
             await AppendInvestigationSummaryToMessage(alertThread.Id, initMessageGuid, healthSummaryTitle, healthSummary);
 

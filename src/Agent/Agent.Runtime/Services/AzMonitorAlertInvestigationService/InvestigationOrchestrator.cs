@@ -7,6 +7,7 @@ using System.Text.Json;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
+using Agent.Framework;
 using Agent.Logging;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models;
@@ -50,108 +51,114 @@ public class InvestigationOrchestrator : IInvestigationOrchestrator
         CancellationToken cancellationToken = default)
     {
         _logger.LogInternalInformation($"Starting investigation loop for alert {alert.Id}");
+
         var agentContexts = await _repository.GetAgentContextsForThreadAsync(alertThread.Id);
+
         if (!agentContexts.Any())
         {
             _logger.LogInternalError("No agent context found for thread");
+
             return new InvestigationSummary
             {
                 Summary = "Error: No agent context found for thread.",
                 OverallConfidence = 0
             };
         }
+
         var context = new InvestigationContext(
             alertThread.Id,
             agentContexts.First().Id,
             alert);
+
         // Create an initial investigation progress message
         var progressMessageId = await InitProgressMessageAsync(alertThread.Id);
-        bool continueInvestigation = true;
-        int maxIterations = 2; // make it configurable ?
 
-        // Add an initial tracking message to the thread
-        await UpdateProgressMessageAsync(alertThread.Id, progressMessageId, context, "Starting investigation...");
+        bool continueInvestigation = true;
+
+        int maxIterations = 5; // right now this controls how many investigation steps are executed
+
         try
         {
+            // Count total available reasoning steps to ensure we execute all at least once
+            var totalReasoningSteps = _reasoningSteps.Count();
+            
             while (continueInvestigation &&
                   context.IterationCount < maxIterations &&
                   !cancellationToken.IsCancellationRequested)
             {
                 // Select the next step to execute
                 var nextStep = SelectNextStep(context);
+
                 if (nextStep == null)
                 {
-                    _logger.LogInternalInformation("No more steps to execute");
+                    _logger.LogInternalInformation("All available steps have been executed");
                     break;
                 }
+
                 _logger.LogInternalInformation($"Executing step: {nextStep.StepName}");
-                // Update the progress message
-                await UpdateProgressMessageAsync(
-                    alertThread.Id,
-                    progressMessageId,
-                    context,
-                    $"Running investigation step: {GetFriendlyStepName(nextStep.StepName)}");
+
                 // Execute the step
                 var result = await nextStep.ExecuteAsync(alert, context, cancellationToken);
                 context.CollectedEvidence[nextStep.StepName] = result;
                 context.CompletedSteps.Add(nextStep.StepName);
-                // Generate/update hypotheses based on the new evidence
-                var hypotheses = await _hypothesisGenerator.GenerateHypothesesAsync(context, cancellationToken);
-                if (hypotheses.Any())
-                {
-                    context.CurrentHypotheses = hypotheses;
-                }
-                // Update progress with new hypotheses
+
+                _logger.LogInternalInformation($"Step {nextStep.StepName} completed successfully");
+
+                // Update progress with step-specific results (NOT hypotheses)
                 await UpdateProgressMessageAsync(
                     alertThread.Id,
                     progressMessageId,
-                    context,
-                    $"Completed step: {GetFriendlyStepName(nextStep.StepName)}, generating hypotheses...");
-                // Evaluate the investigation progress
+                    $"Finished {GetFriendlyStepName(nextStep.StepName)}",
+                    result.RawOutput);
+
+                // Evaluate the investigation progress (but only after we've executed at least 2 steps)
                 if (context.IterationCount > 0 || context.CompletedSteps.Count >= 2)
                 {
                     var reflexionResult = await _reflexionEvaluator.EvaluateInvestigationAsync(context, cancellationToken);
+
                     context.LastReflexion = reflexionResult;
-                    continueInvestigation = reflexionResult.ContinueInvestigation;
-                    await UpdateProgressMessageAsync(
-                        alertThread.Id,
-                        progressMessageId,
-                        context,
-                        $"Evaluated investigation progress (confidence: {reflexionResult.OverallConfidence:P0})");
+                    
+                    // Only allow reflexion to stop investigation if all reasoning steps have been executed at least once
+                    if (context.CompletedSteps.Count >= totalReasoningSteps)
+                    {
+                        continueInvestigation = reflexionResult.ContinueInvestigation;
+                    }
+
+                    // TODO: Add current confidence score.
+
                     // Store reflexion feedback
                     await StoreReflexionFeedbackAsync(context);
                 }
+
                 context.IterationCount++;
-                // Break if we've collected enough evidence and confidence is high
-                if (context.LastReflexion?.OverallConfidence >= 0.8f && context.CompletedSteps.Count >= 3)
+
+                // Only allow early termination if all reasoning steps have been executed at least once
+                if (context.CompletedSteps.Count >= totalReasoningSteps && 
+                    context.LastReflexion?.OverallConfidence >= 0.8f)
                 {
-                    _logger.LogInternalInformation("Investigation reached high confidence, stopping early");
+                    _logger.LogInternalInformation("All steps executed and investigation reached high confidence, stopping early");
                     break;
                 }
             }
-            // Generate the final summary
+
+            // Generate the final summary (this will also generate hypotheses)
+            _logger.LogInternalInformation("All investigation steps completed. Generating final summary and hypotheses...");
             var finalSummary = await GenerateFinalSummaryAsync(context, cancellationToken);
-            // Update the progress message with completion
+
+            // Update the progress message with completion (this will show final hypotheses)
             await UpdateProgressMessageAsync(
                 alertThread.Id,
                 progressMessageId,
-                context,
                 title: "Investigation complete ✓",
-                loading: "completed",
+                finalSummary.Summary,
+                status: "completed",
                 isFinal: true);
             return finalSummary;
         }
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "Error during investigation loop");
-            // Update the progress message with error
-            await UpdateProgressMessageAsync(
-                alertThread.Id,
-                progressMessageId,
-                context,
-                $"Investigation error: {ex.Message}",
-                 loading: "completed",
-                isFinal: true);
+
             return new InvestigationSummary
 
             {
@@ -165,25 +172,33 @@ public class InvestigationOrchestrator : IInvestigationOrchestrator
 
     private IReasoningStep SelectNextStep(InvestigationContext context)
     {
-        // Select next step based on:
-        // 1. Steps not yet executed
-        // 2. Reflexion recommendations
-        // 3. Current hypothesis confidence levels
+        // Priority 1: Execute all reasoning steps at least once
+        // Get steps that haven't been executed yet, ordered by default priority
+        var unexecutedSteps = _reasoningSteps
+            .Where(s => !context.CompletedSteps.Contains(s.StepName, StringComparer.OrdinalIgnoreCase))
+            .OrderBy(s => s.DefaultPriority)
+            .ToList();
+
+        // If there are unexecuted steps, select the next one by priority
+        if (unexecutedSteps.Any())
+        {
+            return unexecutedSteps.First();
+        }
+
+        // Priority 2: If all steps have been executed at least once, 
+        // consider reflexion recommendations for re-execution
         if (context.LastReflexion?.RecommendedNextSteps?.Any() == true)
         {
             foreach (var recommendedStep in context.LastReflexion.RecommendedNextSteps)
             {
                 var step = _reasoningSteps.FirstOrDefault(s =>
-                    s.StepName.Equals(recommendedStep, StringComparison.OrdinalIgnoreCase) &&
-                    !context.CompletedSteps.Contains(s.StepName, StringComparer.OrdinalIgnoreCase));
+                    s.StepName.Equals(recommendedStep, StringComparison.OrdinalIgnoreCase));
                 if (step != null) return step;
             }
         }
-        // Otherwise, select based on default priority
-        return _reasoningSteps
-            .Where(s => !context.CompletedSteps.Contains(s.StepName, StringComparer.OrdinalIgnoreCase))
-            .OrderBy(s => s.DefaultPriority)
-            .FirstOrDefault();
+
+        // No more steps to execute
+        return null;
     }
 
     private async Task<InvestigationSummary> GenerateFinalSummaryAsync(
@@ -192,7 +207,16 @@ public class InvestigationOrchestrator : IInvestigationOrchestrator
     {
         try
         {
+            // generate hypotheses based on all collected evidence
+            _logger.LogInternalInformation("Generating final hypotheses based on all collected evidence");
+            var hypotheses = await _hypothesisGenerator.GenerateHypothesesAsync(context, cancellationToken);
+            if (hypotheses.Any())
+            {
+                context.CurrentHypotheses = hypotheses;
+            }
+
             string summarizePrompt = BuildFinalSummaryPrompt(context);
+
             var options = new ChatOptions
             {
                 Temperature = (float)0.1,
@@ -201,10 +225,13 @@ public class InvestigationOrchestrator : IInvestigationOrchestrator
                     ["response_format"] = "text"
                 }
             };
+
             var response = await _chatClient.GetResponseAsync(
                 new List<ChatMessage> { new ChatMessage(ChatRole.System, summarizePrompt) },
                 options);
+
             string recommendedAction = DetermineRecommendedAction(context);
+
             return new InvestigationSummary
             {
                 Summary = response.Text,
@@ -217,6 +244,7 @@ public class InvestigationOrchestrator : IInvestigationOrchestrator
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "Error generating final summary");
+
             return new InvestigationSummary
             {
                 Summary = $"Error generating investigation summary: {ex.Message}",
@@ -230,19 +258,22 @@ public class InvestigationOrchestrator : IInvestigationOrchestrator
     private string BuildFinalSummaryPrompt(InvestigationContext context)
     {
         var sb = new StringBuilder();
+
         sb.AppendLine(@"TASK:
 You are an AI assistant helping a Site Reliability Engineer analyze an Azure Monitor alert.
 The following context contains the results of an automated investigation into an Azure Monitor alert.");
+
         // Add alert details
         sb.AppendLine();
         sb.AppendLine("### ALERT DETAILS");
         sb.AppendLine(FormatAlertDetailsForSummary(context.Alert));
         sb.AppendLine();
+
         // Add collected evidence organized by type
         foreach (var evidence in context.CollectedEvidence)
         {
             sb.AppendLine($"### {GetFriendlyStepName(evidence.Key)}");
-            sb.AppendLine(TruncateIfNeeded(evidence.Value.RawOutput, 2000));
+            sb.AppendLine(evidence.Value.RawOutput);
             sb.AppendLine();
         }
         // Add instructions for final summary
@@ -256,6 +287,7 @@ Based on the initial investigation summary, analyze the evidence and provide:
 One sentence describing specific cause with exact evidence values supporting it
 ### Hypothesis 2 (Confidence: XX%) [Optional]
 One sentence describing specific cause with exact evidence values supporting it
+CRITICAL: Do not provide any thing else in the final summary. Just the brief summary along with hypothesis and provide a concise output without skipping important information.
 Remember: Quality findings with specific values are better than quantity. Exclude any hypothesis without concrete supporting evidence.");
         return sb.ToString();
     }
@@ -266,10 +298,12 @@ Remember: Quality findings with specific values are better than quantity. Exclud
         var bestHypothesis = context.CurrentHypotheses
             .OrderByDescending(h => h.Confidence)
             .FirstOrDefault();
+
         if (bestHypothesis != null && bestHypothesis.Confidence > 0.7f)
         {
             return $"Consider addressing the probable root cause: {bestHypothesis.Description}";
         }
+
         return "Continue monitoring and collect more diagnostic data to improve confidence in the analysis.";
     }
 
@@ -289,61 +323,29 @@ Remember: Quality findings with specific values are better than quantity. Exclud
         );
         
         await _repository.AddMessageAsync(threadId, initMessage);
+
         return messageId;
     }
 
     private async Task UpdateProgressMessageAsync(
         Guid threadId,
         Guid messageId,
-        InvestigationContext context,
         string title,
-        string loading = "",
+        string summary,
+        string status = "loading",
         bool isFinal = false)
     {
         try
         {
             var existingMessage = await _repository.GetMessageAsync(threadId, messageId);
+
             if (existingMessage == null) return;
 
-            // Build summaries from completed steps and hypotheses
-            var summaries = new List<(string, string, bool)>();
-
-            // Add status as first item
-            summaries.Add((title, DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"), false));
-
-            // Add step results
-            foreach (var evidence in context.CollectedEvidence)
-            {
-                string evidenceTitle = $"Step: {GetFriendlyStepName(evidence.Key)}";
-                string content = evidence.Value.Success
-                    ? TruncateIfNeeded(evidence.Value.RawOutput, 300)
-                    : $"Error: {evidence.Value.RawOutput}";
-                summaries.Add((evidenceTitle, content, true)); // Collapsed by default
-            }
-
-            // Add current hypotheses if any
-            if (context.CurrentHypotheses.Any())
-            {
-                string hypothesesSummary = string.Join("\n\n", context.CurrentHypotheses
-                    .Select(h => $"Hypothesis ({h.Confidence:P0}): {h.Description}"));
-                summaries.Add(("Current Hypotheses", hypothesesSummary, false));
-            }
-
-            // Add reflexion feedback if any
-            // TODO: Probably shouldn't be exposed. But will use for debugging.
-            if (context.LastReflexion != null && context.LastReflexion.FeedbackSuggestions.Any())
-            {
-                string feedback = string.Join("\n", context.LastReflexion.FeedbackSuggestions
-                    .Select(f => $"- {f}"));
-                summaries.Add(("Reflection Feedback", feedback, true));
-            }
-
-            if (summaries == null || summaries.Count == 0)
-                return;
             //// Update message text 
             string updatedText = ChatMessageService.AppendInvestigationSummary(
-                existingMessage.Text, title, FormatProgressMessage(summaries), status: loading, isFinal: isFinal);
-            Message updatedMessage = existingMessage with { Text = updatedText }; // Todo: enable this after implementing UpdateInvestigationSummariesMessage
+                existingMessage.Text, title, summary, status: status, isFinal: isFinal);
+
+            Message updatedMessage = existingMessage with { Text = updatedText };
 
             await _repository.UpdateMessageAsync(threadId, updatedMessage);
         }
@@ -369,6 +371,7 @@ Remember: Quality findings with specific values are better than quantity. Exclud
     {
         if (context.LastReflexion == null || !context.LastReflexion.FeedbackSuggestions.Any())
             return;
+
         try
         {
             await _repository.CreateReasoningMessageAsync(new ReasoningMessage(
@@ -394,11 +397,11 @@ Remember: Quality findings with specific values are better than quantity. Exclud
     {
         return stepName switch
         {
-            "ApplicationHealth" => "Application Health Analysis",
-            "ActivityLogAnalysis" => "Activity Log Analysis",
-            "ConnectedComponentsAnalysis" => "Connected Components Analysis",
-            "LogQueryAnalysis" => "Log Query Analysis",
-            "MetricsAnalysis" => "Metrics Analysis",
+            "AnalyzeApplicationHealth" => "Analyzing Application Health",
+            "AnalyzeActivityLogs" => "Analyzing Activity Logs",
+            "AnalyzeConnectedComponents" => "Analyzing Connected Components",
+            "AnalyzeLogQueries" => "Analyzing Log Queries",
+            "AnalyzeResourceMetrics" => "Analyzing Resource Metrics",
             _ => stepName
         };
     }
@@ -415,12 +418,5 @@ Remember: Quality findings with specific values are better than quantity. Exclud
             Resource: {essentials?.TargetResourceName ?? essentials?.TargetResource ?? "Unknown"}
             Type: {essentials?.TargetResourceType ?? "Unknown"}
             Time: {essentials?.StartDateTime ?? "Unknown"}";
-    }
-
-    private string TruncateIfNeeded(string text, int maxLength)
-    {
-        if (string.IsNullOrEmpty(text) || text.Length <= maxLength)
-            return text;
-        return text.Substring(0, maxLength) + "... [truncated]";
     }
 }

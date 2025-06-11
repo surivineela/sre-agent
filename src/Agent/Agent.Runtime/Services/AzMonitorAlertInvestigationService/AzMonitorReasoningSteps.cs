@@ -16,8 +16,8 @@ namespace Agent.Runtime.Services.AzMonitorAlertInvestigation;
 public class ApplicationHealthStep : BaseReasoningStep
 {
     private readonly IAzMonitorAlertInvestigationService _service;
-    public override string StepName => "ApplicationHealth";
-    public override int DefaultPriority => 1; // Highest priority step
+    public override string StepName => "AnalyzeApplicationHealth";
+    public override int DefaultPriority => 4;
     public ApplicationHealthStep(
         IAzMonitorAlertInvestigationService service,
         IThreadRepository repository,
@@ -33,7 +33,7 @@ public class ApplicationHealthStep : BaseReasoningStep
         try
         {
             var thread = await _repository.GetThreadAsync(context.ThreadId);
-            var result = await _service.GetApplicationHealthAsync(alert, thread);
+            var result = await _service.AnalyzeApplicationHealth(alert, thread);
             if (!string.IsNullOrEmpty(result))
             {
                 await AddReasoningMessageAsync(
@@ -60,8 +60,8 @@ public class ApplicationHealthStep : BaseReasoningStep
 public class ActivityLogAnalysisStep : BaseReasoningStep
 {
     private readonly IAzMonitorAlertInvestigationService _service;
-    public override string StepName => "ActivityLogAnalysis";
-    public override int DefaultPriority => 1;
+    public override string StepName => "AnalyzeActivityLogs";
+    public override int DefaultPriority => 4;
     public ActivityLogAnalysisStep(
         IAzMonitorAlertInvestigationService service,
         IThreadRepository repository,
@@ -104,8 +104,8 @@ public class ActivityLogAnalysisStep : BaseReasoningStep
 public class ConnectedComponentsAnalysisStep : BaseReasoningStep
 {
     private readonly IAzMonitorAlertInvestigationService _service;
-    public override string StepName => "ConnectedComponentsAnalysis";
-    public override int DefaultPriority => 1;
+    public override string StepName => "AnalyzeConnectedComponents";
+    public override int DefaultPriority => 3;
     public ConnectedComponentsAnalysisStep(
         IAzMonitorAlertInvestigationService service,
         IThreadRepository repository,
@@ -148,8 +148,8 @@ public class ConnectedComponentsAnalysisStep : BaseReasoningStep
 public class LogQueryAnalysisStep : BaseReasoningStep
 {
     private readonly IAzMonitorAlertInvestigationService _service;
-    public override string StepName => "LogQueryAnalysis";
-    public override int DefaultPriority => 1;
+    public override string StepName => "AnalyzeLogQueries";
+    public override int DefaultPriority => 2;
     public LogQueryAnalysisStep(
         IAzMonitorAlertInvestigationService service,
         IThreadRepository repository,
@@ -192,7 +192,7 @@ public class LogQueryAnalysisStep : BaseReasoningStep
 public class MetricsAnalysisStep : BaseReasoningStep
 {
     private readonly IAzMonitorAlertInvestigationService _service;
-    public override string StepName => "MetricsAnalysis";
+    public override string StepName => "AnalyzeResourceMetrics";
     public override int DefaultPriority => 1;
     public MetricsAnalysisStep(
         IAzMonitorAlertInvestigationService service,
@@ -209,7 +209,7 @@ public class MetricsAnalysisStep : BaseReasoningStep
         try
         {
             var thread = await _repository.GetThreadAsync(context.ThreadId);
-            var result = await _service.GetMetricsForResource(alert, thread);
+            var result = await _service.AnalyzeResourceMetrics(alert, thread);
             if (!string.IsNullOrEmpty(result))
             {
                 await AddReasoningMessageAsync(
