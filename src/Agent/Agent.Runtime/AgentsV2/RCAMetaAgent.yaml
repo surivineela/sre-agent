@@ -23,6 +23,7 @@ handoffs:
   - rca_containerapp_customer_logs_agent
   - rca_containerapp_customer_metrics_agent
   - rca_containerapp_quota_agent
+  - rca_containerapp_resource_check_agent
 
 common_prompts:
   - format_guidelines

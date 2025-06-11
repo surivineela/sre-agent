@@ -306,6 +306,7 @@ public class Program
             .AddTransient<RCAContainerAppQuotaPluginDefinition>()
             .AddTransient<RCAContainerAppRevisionPluginDefinition>()
             .AddSingleton<IKustoDashboardPlugin, KustoDashboardPlugin>()
+            .AddTransient<RCAContainerAppResourceCheckPluginDefinition>()
 
             .AddTransient<IMetaAgentContainerAppsRemediationPlugin, ContainerAppsRemediationPlugin>()
             .AddTransient<IMetaAgentManagedIdentityMigrationPlugin, ManagedIdentityMigrationPlugin>()
