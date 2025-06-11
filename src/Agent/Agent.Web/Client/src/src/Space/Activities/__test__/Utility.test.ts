@@ -180,14 +180,13 @@ describe('processThreads', () => {
         ];
 
         const newThreads: Thread[] = [
-            getDefaultThread('2023-10-06T00:00:00Z'),
+            getDefaultThread('2023-10-04T00:00:00Z', '01'),
+            getDefaultThread('2023-10-04T00:00:00Z', '01'),
             getDefaultThread('2023-10-05T00:00:00Z'),
-            getDefaultThread('2023-10-04T00:00:00Z', '01'),
-            getDefaultThread('2023-10-04T00:00:00Z', '01'),
+            getDefaultThread('2023-10-06T00:00:00Z'),
         ];
 
-        const copiedNewThreads = [...newThreads];
-        copiedNewThreads.splice(3, 1);
+        const copiedNewThreads = [...newThreads].slice(1).reverse();
 
         const result = processThreads(threads, newThreads, true);
 
@@ -204,18 +203,20 @@ describe('processThreads', () => {
         ];
 
         const newThreads: Thread[] = [
-            getDefaultThread('2023-10-06T00:00:00Z'),
-            getDefaultThread('2023-10-05T00:00:00Z'),
-            getDefaultThread('2023-10-04T00:00:00Z'),
             getDefaultThread('2023-10-03T00:00:00Z', '03'),
+            getDefaultThread('2023-10-04T00:00:00Z'),
+            getDefaultThread('2023-10-05T00:00:00Z'),
+            getDefaultThread('2023-10-06T00:00:00Z'),
         ];
 
-        const copiedNewThreads = [...newThreads];
-        copiedNewThreads.splice(3, 1);
+        const copiedNewThreads = [...newThreads].slice(1).reverse();
 
         const result = processThreads(threads, newThreads, true);
 
         const expectedResult = [...copiedNewThreads, ...threads];
+
+        console.log(expectedResult);
+        console.log(result);
 
         expect(result.length).toBe(6);
         expect(areThreadsSame(result, expectedResult)).toBe(true);
@@ -231,13 +232,15 @@ describe('processThreads', () => {
         ];
 
         const newThreads: Thread[] = [
-            getDefaultThread('2023-10-06T00:00:00Z'),
-            getDefaultThread('2023-10-05T00:00:00Z'),
+            getDefaultThread('2023-10-03T01:00:01Z', '03'),
             getDefaultThread('2023-10-04T00:00:00Z'),
-            getDefaultThread('2023-10-03T01:00:00Z', '03'),
+            getDefaultThread('2023-10-05T00:00:00Z'),
+            getDefaultThread('2023-10-06T00:00:00Z'),
         ];
 
-        const expectedResult = [...newThreads, ...threads.slice(1)];
+        const copiedNewThreads = [...newThreads].reverse();
+
+        const expectedResult = [...copiedNewThreads, ...threads.slice(1)];
         const result = processThreads(threads, newThreads, true);
 
         expect(result.length).toBe(6);
@@ -246,7 +249,105 @@ describe('processThreads', () => {
         expect(areThreadsUnique(result)).toBe(true);
     });
 
-    it('Add old threads with duplicated id but different modifiedTimestamp', () => {
+    it('Add new threads with duplicated id and same modifiedTimestamp', () => {
+        const threads: Thread[] = [
+            getDefaultThread('2023-10-03T00:00:00Z', '03'),
+            getDefaultThread('2023-10-02T00:00:00Z'),
+            getDefaultThread('2023-10-01T00:00:00Z'),
+        ];
+
+        const newThreads: Thread[] = [
+            getDefaultThread('2023-10-03T01:00:00Z', '03'),
+            getDefaultThread('2023-10-04T00:00:00Z'),
+            getDefaultThread('2023-10-05T00:00:00Z'),
+            getDefaultThread('2023-10-06T00:00:00Z'),
+        ];
+
+        const copiedNewThreads = [...newThreads].slice(1).reverse();
+
+        const expectedResult = [...copiedNewThreads, ...threads];
+        const result = processThreads(threads, newThreads, true);
+
+        expect(result.length).toBe(6);
+        expect(areThreadsSame(result, expectedResult)).toBe(true);
+        expect(areThreadsSortedDescByModifiedTimeStamp(result)).toBe(true);
+        expect(areThreadsUnique(result)).toBe(true);
+    });
+
+    it('Add new threads with more than one duplicated ids with different modifiedTimestamp', () => {
+        const threads: Thread[] = [
+            getDefaultThread('2023-10-03T00:00:00Z', '03'),
+            getDefaultThread('2023-10-02T00:00:00Z', '02'),
+            getDefaultThread('2023-10-01T00:00:00Z'),
+        ];
+
+        const newThreads: Thread[] = [
+            getDefaultThread('2023-10-03T00:00:01Z', '02'),
+            getDefaultThread('2023-10-03T01:00:02Z'),
+            getDefaultThread('2023-10-04T00:00:00Z', '03'),
+            getDefaultThread('2023-10-05T00:00:00Z'),
+            getDefaultThread('2023-10-06T00:00:00Z'),
+        ];
+
+        const copiedNewThreads = [...newThreads].reverse();
+
+        const expectedResult = [...copiedNewThreads, ...threads.slice(2)];
+        const result = processThreads(threads, newThreads, true);
+
+        expect(result.length).toBe(6);
+        expect(areThreadsSame(result, expectedResult)).toBe(true);
+        expect(areThreadsSortedDescByModifiedTimeStamp(result)).toBe(true);
+        expect(areThreadsUnique(result)).toBe(true);
+    });
+
+    it("Add new threads with more than one duplicated ids but somehow the new thread's has older modifiedTimestamp", () => {
+        const threads: Thread[] = [
+            getDefaultThread('2023-10-03T00:00:00Z', '03'),
+            getDefaultThread('2023-10-02T00:00:00Z', '02'),
+            getDefaultThread('2023-10-01T00:00:00Z'),
+        ];
+
+        const newThreads: Thread[] = [
+            getDefaultThread('2023-09-24T00:00:01Z', '02'),
+            getDefaultThread('2023-09-25T01:00:02Z', '03'),
+            getDefaultThread('2023-10-04T00:00:00Z'),
+            getDefaultThread('2023-10-05T00:00:00Z'),
+            getDefaultThread('2023-10-06T00:00:00Z'),
+        ];
+
+        const copiedNewThreads = [...newThreads].slice(2).reverse();
+        const expectedResult = [...copiedNewThreads, ...threads];
+        const result = processThreads(threads, newThreads, true);
+
+        expect(result.length).toBe(6);
+        expect(areThreadsSame(result, expectedResult)).toBe(true);
+        expect(areThreadsSortedDescByModifiedTimeStamp(result)).toBe(true);
+        expect(areThreadsUnique(result)).toBe(true);
+    });
+
+    it('Add old threads with duplicated id and same modifiedTimestamp', () => {
+        const threads: Thread[] = [
+            getDefaultThread('2023-10-03T00:00:00Z'),
+            getDefaultThread('2023-10-02T00:00:00Z'),
+            getDefaultThread('2023-10-01T00:00:00Z', '01'),
+        ];
+
+        const oldThreads: Thread[] = [
+            getDefaultThread('2023-10-01T00:00:00Z', '01'),
+            getDefaultThread('2023-09-04T00:00:00Z'),
+            getDefaultThread('2023-09-03T00:00:00Z'),
+        ];
+
+        const expectedResult = [...threads, ...oldThreads.slice(1)];
+        const result = processThreads(threads, oldThreads, false);
+
+        expect(result.length).toBe(5);
+        expect(areThreadsSame(result, expectedResult)).toBe(true);
+        expect(areThreadsSortedDescByModifiedTimeStamp(result)).toBe(true);
+        expect(areThreadsUnique(result)).toBe(true);
+    });
+
+    it('Add old threads with duplicated id and different modifiedTimestamp', () => {
         const threads: Thread[] = [
             getDefaultThread('2023-10-03T00:00:00Z', '03'),
             getDefaultThread('2023-10-02T00:00:00Z'),
@@ -260,10 +361,51 @@ describe('processThreads', () => {
             getDefaultThread('2023-09-02T01:00:00Z', '03'),
         ];
 
-        const expectedResult = [...threads.slice(1), ...oldThreads];
+        const expectedResult = [...threads, ...oldThreads.slice(0, 3)];
         const result = processThreads(threads, oldThreads, false);
 
         expect(result.length).toBe(6);
+        expect(areThreadsSame(result, expectedResult)).toBe(true);
+        expect(areThreadsSortedDescByModifiedTimeStamp(result)).toBe(true);
+        expect(areThreadsUnique(result)).toBe(true);
+    });
+
+    it('Add old threads with more than one duplicated ids and different modifiedTimestamp', () => {
+        const threads: Thread[] = [
+            getDefaultThread('2023-10-03T00:00:00Z', '03'),
+            getDefaultThread('2023-10-02T00:00:00Z'),
+            getDefaultThread('2023-10-01T00:00:00Z', '02'),
+        ];
+
+        const oldThreads: Thread[] = [
+            getDefaultThread('2023-09-0500:00:00Z'),
+            getDefaultThread('2023-09-04T00:00:00Z', '02'),
+            getDefaultThread('2023-09-03T00:00:00Z'),
+            getDefaultThread('2023-09-02T01:00:00Z', '03'),
+        ];
+
+        const expectedResult = [...threads, ...[oldThreads[0], oldThreads[2]]];
+        const result = processThreads(threads, oldThreads, false);
+
+        expect(result.length).toBe(5);
+        expect(areThreadsSame(result, expectedResult)).toBe(true);
+        expect(areThreadsSortedDescByModifiedTimeStamp(result)).toBe(true);
+        expect(areThreadsUnique(result)).toBe(true);
+    });
+
+    it("Add old threads with more than one duplicated ids but somehow old thread's modifiedTimestamp is newer", () => {
+        const threads: Thread[] = [
+            getDefaultThread('2023-10-03T00:00:00Z', '03'),
+            getDefaultThread('2023-10-02T00:00:00Z'),
+            getDefaultThread('2023-10-01T00:00:00Z', '02'),
+        ];
+
+        const oldThreads: Thread[] = [getDefaultThread('2023-10-05T00:00:00Z', '02'), getDefaultThread('2023-10-04T00:00:00Z', '03')];
+
+        const expectedResult = [...threads];
+        const result = processThreads(threads, oldThreads, false);
+
+        expect(result.length).toBe(3);
         expect(areThreadsSame(result, expectedResult)).toBe(true);
         expect(areThreadsSortedDescByModifiedTimeStamp(result)).toBe(true);
         expect(areThreadsUnique(result)).toBe(true);

@@ -267,7 +267,7 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<RemoveTh
                 const newThreadsInAsecindgOrder = newThreadsInAscendingOrderResponse.content ?? [];
 
                 if (isSubscribed) {
-                    setThreads(prevThreads => processThreads(prevThreads, newThreadsInAsecindgOrder.reverse(), true));
+                    setThreads(prevThreads => processThreads(prevThreads, newThreadsInAsecindgOrder, true));
                     pollNewThreadsTimeout = setTimeout(pollNewThreads, ThreadPollingInterval.default);
                 }
             };

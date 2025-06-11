@@ -12,25 +12,24 @@ import { SelectedTimes } from './TimeDropdown';
  * @param reverse
  * @returns
  */
-export const processThreads = (prevThreads: Thread[], threads: Thread[], reverse: boolean) => {
+export const processThreads = (prevThreads: Thread[], threads: Thread[], areThreadsNew: boolean) => {
     if (threads.length === 0) return prevThreads;
 
-    const updatedExistingThreads = [...prevThreads];
-    let isPrevThreadsUpdated = false;
+    const threadIdsToRemoveFromPrevThreads: Set<string> = new Set<string>();
 
     const threadsMap: Map<string, Thread> = new Map();
     threads.forEach(thread => threadsMap.set(thread.id, thread));
 
     for (let i = 0; i < prevThreads.length; i++) {
-        const duplicatedThread = threadsMap.get(prevThreads[i].id);
+        const prevThreadId = prevThreads[i].id;
+        const duplicatedThread = threadsMap.get(prevThreadId);
         if (duplicatedThread) {
-            if (duplicatedThread.modifiedTimestamp !== prevThreads[i].modifiedTimestamp) {
-                // Remove thread with outdated modifiedTimestamp out of the existing threads
-                updatedExistingThreads.splice(i, 1);
-                isPrevThreadsUpdated = true;
+            if (areThreadsNew && duplicatedThread.modifiedTimestamp > prevThreads[i].modifiedTimestamp) {
+                // if the threads are new and the modified time is greter than the existing duplicated one from prev threads, then remove it from the prev threads
+                threadIdsToRemoveFromPrevThreads.add(prevThreadId);
             } else {
                 // Remove thread out of the threadsMap because the thread is already in the existing threads and has not been modified
-                threadsMap.delete(prevThreads[i].id);
+                threadsMap.delete(prevThreadId);
             }
         }
     }
@@ -38,13 +37,17 @@ export const processThreads = (prevThreads: Thread[], threads: Thread[], reverse
     const threadsToAdd: Thread[] = Array.from(threadsMap.values());
     threadsToAdd.sort((a, b) => getSafeDateTime(b.modifiedTimestamp).getTime() - getSafeDateTime(a.modifiedTimestamp).getTime());
 
-    const existingThreads = isPrevThreadsUpdated ? updatedExistingThreads : prevThreads;
+    const updatedExistingThreads = [...prevThreads].filter(thread => {
+        return !threadIdsToRemoveFromPrevThreads.has(thread.id);
+    });
+
+    const existingThreads = threadIdsToRemoveFromPrevThreads.size > 0 ? updatedExistingThreads : prevThreads;
 
     if (threadsToAdd.length === 0) {
         return existingThreads;
     }
 
-    return reverse ? [...threadsToAdd, ...existingThreads] : [...existingThreads, ...threadsToAdd];
+    return areThreadsNew ? [...threadsToAdd, ...existingThreads] : [...existingThreads, ...threadsToAdd];
 };
 
 /**
