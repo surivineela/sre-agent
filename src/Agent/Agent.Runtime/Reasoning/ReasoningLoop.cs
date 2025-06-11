@@ -546,6 +546,7 @@ public class ReasoningLoop
                 _currentAgent = runResult.LastAgent;
                 _context = _context with { CurrentAgent = _currentAgent.Name };
                 _context = await _threadRepository.UpdateAgentContextAsync(_context);
+
             }
 
             if (runResult.Output != null)
@@ -558,10 +559,6 @@ public class ReasoningLoop
                 }
                 else if (runResult.Output is AgentOutput agentOutput)
                 {
-                    await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
-                        _context,
-                        new ChatMessage(ChatRole.Assistant, agentOutput.OutputMessage));
-
                     // TODO: can we log all this info?
                     _logger.LogInternalInformation("Agent output: {AgentOutputMessage}, {IsUserInputRequired}, {RequestCompleted}, {Reasoning}",
                         agentOutput.OutputMessage, agentOutput.IsUserInputRequired, agentOutput.RequestCompleted, agentOutput.Reasoning);
@@ -570,6 +567,51 @@ public class ReasoningLoop
                     {
                         // model said it doesn't need input and the request isn't completed, re-run the loop
                         // return new ReasoningLoopIterationResult() { IsContinuation = true };
+                    }
+
+                    if (agentOutput.CannotHandle)
+                    {
+                        _logger.LogInternalInformation("Agent determined the request is out of scope. Handoff back");
+
+                        if (_context.AgentHandoffChain.Count > 1)
+                        {
+                            // pop agent off the chain
+                            _context.AgentHandoffChain.RemoveAt(_context.AgentHandoffChain.Count - 1);
+                            var agentName = _context.AgentHandoffChain[^1];
+                            var newAgent = _agentFactory.GetAgent(agentName);
+
+                            _currentAgent = newAgent;
+                            _context = _context with { CurrentAgent = _currentAgent.Name };
+                            _logger.LogInternalInformation("Handoff back to agent: {AgentName}", agentName);
+                            var handoffMessage = new ChatMessage(ChatRole.Assistant, $"Handoff to agent {agentName} to process the task");
+
+                            await PersistReasoningMessageAsync(agentChatHistory, handoffMessage);
+
+                            return new ReasoningLoopIterationResult()
+                            {
+                                IsContinuation = true
+                            };
+                        }
+                        else
+                        {
+                            _logger.LogInternalInformation("AgentHandoffChain is empty or has only one agent, ending reasoning loop.");
+
+                            // If the agent cannot handle the request but there is no handoff back, we just reply with the message and end the reasoning loop
+                            await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+                                _context,
+                                new ChatMessage(ChatRole.Assistant, agentOutput.OutputMessage));
+
+                            return new ReasoningLoopIterationResult()
+                            {
+                                IsContinuation = false
+                            };
+                        }
+                    }
+                    else
+                    {
+                        await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+                            _context,
+                            new ChatMessage(ChatRole.Assistant, agentOutput.OutputMessage));
                     }
                 }
             }
@@ -623,6 +665,7 @@ public class ReasoningLoop
         }
 
         return new ReasoningLoopIterationResult() { IsContinuation = false };
+
     }
 
     private async IAsyncEnumerable<RunResult<AgentContext>> RunInternalStreamingAsync(AgentChatHistory agentChatHistory, [EnumeratorCancellation] CancellationToken cancellationToken)
