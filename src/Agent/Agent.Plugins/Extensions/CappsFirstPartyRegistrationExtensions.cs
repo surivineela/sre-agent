@@ -17,17 +17,8 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static class CappsFirstPartyRegistrationExtensions
 {
-    public static void ValidateAndRegisterFirstPartyAppSettings(this IHostApplicationBuilder builder)
+    public static void ValidateAndRegisterFirstPartyTypes(this IHostApplicationBuilder builder)
     {
-        // Load static appsettings which are applicable for ACA 1P RCA Agent.
-        builder.Configuration.AddJsonFile("appsettings-aca.json", optional: false, reloadOnChange: true); //load base settings
-
-        // load development setting if env is local
-        if (builder.Environment.IsDevelopment())
-        {
-            builder.Configuration.AddJsonFile("appsettings-aca.development.json", optional: true, reloadOnChange: true);
-        }
-
         // TODO: Load config dynamically
         // 1. Read AppSettings:Core:External.*.* environment variables. Example:  "AppSettings__Core__External__ICMWorkflows__UserToken" : "keyVaultSecretUri"
         // 2. Override specified properties with resolving AKV secret value if config key's value is AKV secret ID
@@ -35,7 +26,7 @@ public static class CappsFirstPartyRegistrationExtensions
         builder.Configuration.AddJsonStream(new MemoryStream(JsonSerializer.SerializeToUtf8Bytes(secretResolvedEnvConfig)));
 
         // ADD hard coded settings for now with keeping default in context of ACA for easy local testing and deployment.
-        builder.Services.AddSingleton(new RevisionSettings());
+        //builder.Services.AddSingleton(new RevisionSettings());
 
         builder.Services.AddSingleton<IACAKustoPlugin, ACAKustoPlugin>();
         builder.Services.AddSingleton<IKustoPluginChat, KustoPluginChat>();
@@ -66,5 +57,18 @@ public static class CappsFirstPartyRegistrationExtensions
             var kustoSettings = sp.GetRequiredService<IOptions<KustoSettings>>();
             return kustoSettings.Value;
         });
+    }
+
+    public static void RegisterFirstPartyAppSettings(this IHostApplicationBuilder builder)
+    {
+        // Load static appsettings which are applicable for ACA 1P RCA Agent.
+        builder.Configuration.AddJsonFile("appsettings-aca.json", optional: false, reloadOnChange: true); //load base settings
+
+        // load development setting if env is local
+        if (builder.Environment.IsDevelopment())
+        {
+            builder.Configuration.AddJsonFile("appsettings-aca.development.json", optional: true, reloadOnChange: true);
+        }
+
     }
 }

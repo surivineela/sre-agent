@@ -84,6 +84,12 @@ using System.Linq;
 using Agent.Core.Plugins.Definitions;
 using Agent.Plugins.Services.Interfaces;
 using Agent.Plugins.Services;
+using FirstPartyAgent.Core.Configuration;
+using System.Text.Json;
+using Agent.Plugins.Kusto;
+using Agent.Plugins.TeamsPlugin;
+using Agent.Plugins.IcmPlugin;
+using Microsoft.Extensions.Options;
 
 namespace Agent.Web;
 
@@ -445,14 +451,14 @@ public class Program
             .AddTransient<CVEAgent>()
             .AddTransient<SourceCodeAgent>()
             ;
-
+        
         if (isFirstAgent)
         {
             builder.Services.AddSingleton<IAgentsFactory, FirstPartyAgentsFactory>();
             builder.Services.AddSingleton<IToolsRepository, FirstPartyToolsRepository>();
             builder.Services.AddSingleton<ITitleGenerationService, FirstPartyTitleGenerationService>();
             builder.RegisterFirstPartySubAgentsDependencies();
-            builder.ValidateAndRegisterFirstPartyAppSettings();
+            builder.RegisterFirstPartyAppSettings();
         }
         else
         {
@@ -461,6 +467,7 @@ public class Program
             builder.Services.AddSingleton<ITitleGenerationService, TitleGenerationService>();
         }
 
+        builder.ValidateAndRegisterFirstPartyTypes();
         // Register all subagent factories that derive from the shared impl
         var genericSubAgentFactories = TypeReflectionHelpers.GetClassesDerivedFromGeneric(typeof(MetaAgent).Assembly, typeof(SimpleResourceSubAgentFactoryBase<,,,>));
         foreach (var type in genericSubAgentFactories)
