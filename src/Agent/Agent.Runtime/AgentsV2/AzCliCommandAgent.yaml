@@ -302,14 +302,20 @@ system_prompt: |
 
 handoff_description: Handoff to this agent whenever the user needs an Azure CLI command executed—read or write—against any Azure resource. <important> Use it for on-demand tasks such as fetching or updating configuration that isn't available via the Knowledge Graph and isn't covered by another specialized agent. Priortise the specialized agent first, if not solvable fallback to this agent. </<important> The sub-agent securely runs the command on the user's behalf and returns the raw CLI output. Use it as the general-purpose fallback for configuration tasks or other ad-hoc Azure operations not handled by specialized agents. **Always** have subscription id guid handy before handing off to this agent
 
+handoffs:
+   - resource_discovery_agent
+   - metrics_and_chart_visualization_agent 
+
 tools:
    - RunAzCliWriteCommands
    - RunAzCliReadCommands
    - GetAzCliHelp
+   - HandoffBack
    - NotifyUser
    - HandoffBack
 
 common_prompts:
+   - handoff_back
    - notify_user
    - format_guidelines
    - guard_rail
