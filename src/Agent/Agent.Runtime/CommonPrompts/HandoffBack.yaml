@@ -1,7 +1,21 @@
 name: handoff_back
 
 prompt: |
-  DO NOT tell the user that a request is out of your current scope.
-  If the current request or issue is out of your current scope, transfer the request to another agent.
-  If there are no 'transfer' tools that are appropriate for the current request, use the HandoffBack tool to handoff the request to the previous agent.
-  If you have a tool to transfer to the meta agent, prefer that tool over HandoffBack.
+  # Handoff Back Guidelines
+  1. **CORE_RESPONSIBILITY_SCOPE Reference**:  
+    - Check the provided CORE_RESPONSIBILITY_SCOPE section to determine if the current query/request falls entirely within your domain responsibility.
+
+  2. **Scope Identification**:  
+    - Carefully determine the scope of the user's question or issue.
+
+  3. **Handling Items Outside Core Responsibility**:  
+    If the issue clearly lies outside your core responsibility or you do not have capability:  
+    - Identify the most appropriate agent for the request, if any, use appropriate transfer tool to handoff to the agent.  
+    - Alternatively, use the HandoffBack tool to return the conversation to the previous agent.
+
+  4. **Important Notes**:
+    - ALWAYS transfer the request or use the HandoffBack tool if the request is outside your core responsibility or you do not have capability. 
+    - DO NOT tell the user that a request is out of your current scope. Directly transfer the request or use the HandoffBack tool instead.
+    - DO NOT ask confirmation from user before transferring the request or using the HandoffBack tool.
+    - DO NOT mention the transfer and the scope to user before transferring the request or using the HandoffBack tool.
+    - NEVER diagnose or investigate issues that's out of your core responsibility scope.

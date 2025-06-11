@@ -22,6 +22,7 @@ public class AgentsUsageTests
 
     [Fact]
     public void ValidateNotifyUserUsage()
+
     {
         var agentFactory = _app.Services.GetRequiredService<IAgentFactory<AgentContext>>() as AgentFactory<AgentContext>;
 
@@ -58,6 +59,9 @@ public class AgentsUsageTests
             {
                 Assert.True(agentDescriptor.CommonPrompts.Contains("handoff_back"),
                     $"Agent Descriptor with name {agentDescriptor.Name} uses tool HandoffBack but does not include 'handoff_back' in the 'common_prompts' list");
+
+                Assert.True(agentDescriptor.Instructions.Contains("<CORE_RESPONSIBILITY_SCOPE>"),
+                    $"Agent Descriptor with name {agentDescriptor.Name} uses tool HandoffBack but does not include '<CORE_RESPONSIBILITY_SCOPE>' in the prompt. You'll need to add core responsibility scope to make handoff back working effectively.");
             }
         }
     }

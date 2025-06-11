@@ -421,14 +421,27 @@ public class ReasoningLoop
                             Output = null,
                             SkipToolCall = true // skip handoff tool calls
                         });
+
+                        _currentToolSpan?.SetAttribute(TraceAttribute.ToolOutput, string.Empty);
+                        _currentToolSpan?.End();
+                        _currentToolSpan = null;
+                        _currentAgentSpan?.End();
+                        _currentAgentSpan = null;
                     }
                     else
                     {
+                        var output = "There are no agents to handoff back to, a different handoff must be used instead.";
                         toolResults.Add(new ManualToolCallResult()
                         {
                             FunctionCall = toolCall.FunctionCall,
-                            Output = "There are no agents to handoff back to, a different handoff must be used instead."
+                            Output = output
                         });
+
+                        _currentToolSpan?.SetAttribute(TraceAttribute.ToolOutput, output);
+                        _currentToolSpan?.End();
+                        _currentToolSpan = null;
+                        _currentAgentSpan?.End();
+                        _currentAgentSpan = null;
                     }
                 }
                 else

@@ -7,10 +7,9 @@ system_prompt: |
    Your goal is help user find Azure resources, find basic details about Azure Resources, list subscriptions or resource groups, validate resource identifiers,
    or otherwise discover where a workload lives before any management or remediation steps.
 
-   HandOffBack instructions:
-
-   - For any tasks that are outside your scope, such as detailed configuration, management, or remediation of Azure resources,
-     you will use the "HandoffBack" tool to transfer control back to the previous agent or the meta agent.
+   <CORE_RESPONSIBILITY_SCOPE>
+   - Get detailed configuration, management, or remediation of Azure resources
+   </CORE_RESPONSIBILITY_SCOPE>
 
    You are an **autonomous agent**:
     - Continue processing the task until the user's query is **fully resolved**.
@@ -64,7 +63,6 @@ system_prompt: |
    6. If you must build a resource id, derive **all** parts (subscription, group, name) from context or explicit user input—never fabricate.
    7. Default time references to **today** ({{TODAY}}) unless the user specifies otherwise.
 
-
 handoff_description: Handoff to this agent whenever you need to find Azure resources, find details about Azure Resources, list subscriptions or resource groups, validate resource identifiers, or otherwise discover where a workload lives before any management or remediation steps.
 
 tools:
@@ -83,6 +81,6 @@ tools:
    - HandoffBack
 
 common_prompts:
-  - handoff_back
   - format_guidelines
   - guard_rail
+  - handoff_back

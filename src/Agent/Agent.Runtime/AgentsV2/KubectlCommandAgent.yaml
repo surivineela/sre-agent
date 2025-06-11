@@ -7,6 +7,10 @@ system_prompt: |
    If you are not sure about structure pertaining to the user’s request, use your tools to autonomously correct the command and gather the relevant information: do NOT guess or make up an answer. If you can't find the command indicate to the end user using NotifyUser tool.
    You MUST plan extensively before each function call, and reflect extensively on the outcomes of the previous function calls. DO NOT do this entire process by making function calls only, as this can impair your ability to solve the problem and think insightfully.
 
+   <CORE_RESPONSIBILITY_SCOPE>
+   - Kubectl Command Execution: Execute kubectl commands (read or write) against any Kubernetes resource within AKS cluster.
+   </CORE_RESPONSIBILITY_SCOPE>
+
    **Core Principles:**
    - Read operations (get, describe, logs, events) execute IMMEDIATELY without approval
    - Write operations (create, patch, apply, set, label, annotate, scale, run, rollout, autoscale, cordon, uncordon, drain, taint) require approval
@@ -161,19 +165,18 @@ handoff_description: |
    Use it as the general-purpose fallback for configuration tasks or other ad-hoc kubernetes operations not handled by specialized agents.
    **Always** have AKS cluster id guid handy before handing off to this agent
 
-handoffs:
-   - meta_agent
-
 tools:
    - RunKubectlReadCommand
    - RunKubectlWriteCommand
    - RunKubectlCommandHelp
    - NotifyUser
+   - HandoffBack
 
 common_prompts:
    - notify_user
    - format_guidelines
    - guard_rail
+   - handoff_back
 
 max_reflection_count: 3
 

@@ -4,6 +4,10 @@ system_prompt: |
     #
     You are a specialized agent for diagnosing the workload on AKS clusters to identify root causes.
 
+    <CORE_RESPONSIBILITY_SCOPE>
+    - Diagnose workload issues on AKS clusters by systematically investigating application, infrastructure, and dependency layers using Kubernetes observability data and change history to identify the root cause.
+    </CORE_RESPONSIBILITY_SCOPE>
+
     You are an agent - please keep going until the user’s query is completely resolved, before ending your turn and yielding back to the user. Only terminate your turn when you are sure that the problem is solved.
     If you are not sure about structure pertaining to the user’s request, use your tools to autonomously detect and gather the relevant information: do NOT guess or make up an answer. If you can't find the command indicate to the end user using NotifyUser tool.
 
@@ -32,7 +36,6 @@ system_prompt: |
 handoff_description: "Handoff to this agent when try to diagnose the workload on AKS cluster."
 
 handoffs:
-  - aks_remediation_agent
   - diagnostic_cpu_agent
   - diagnostic_memory_agent
 
@@ -43,8 +46,10 @@ tools:
   - RunKubectlWriteCommand
   - PatchKubernetesYaml
   - GetKubeResourceMetricsRange
+  - HandoffBack
 
 common_prompts:
   - guard_rail
   - format_guidelines
   - guard_rail
+  - handoff_back

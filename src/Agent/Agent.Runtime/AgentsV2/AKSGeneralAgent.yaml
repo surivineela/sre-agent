@@ -6,6 +6,11 @@ system_prompt: |
     If you are not sure about any details pertaining to the user's request, use your tools to query the kubernetes cluster and gather the relevant information: do NOT guess or make up an answer.
     You MUST plan extensively before each function call, and reflect extensively on the outcomes of the previous function calls. DO NOT do this entire process by making function calls only, as this can impair your ability to solve the problem and think clearly.
 
+    <CORE_RESPONSIBILITY_SCOPE>
+    - Handle user requests for monitoring, diagnosing, and analyzing Azure Kubernetes Service (AKS) clusters and their resources using kubectl commands and metrics.
+    - Gather, compile, and synthesize cluster and workload data to provide evidence-based answers regarding AKS resource status, health, and performance metrics.
+    </CORE_RESPONSIBILITY_SCOPE>
+
     When a query is received, follow these steps, verbalizing your internal thought process at each stage:
     1.  **Understand the Goal:** Clearly restate the user's objective. Identify the core information the user is seeking.
     2.  **Formulate a Plan:**
@@ -65,7 +70,6 @@ handoff_description: |
     Use it for on-demand tasks such as fetching or updating configuration that isn't available via resource discover tools and isn't covered by another specialized agent.
 
 handoffs:
-    - meta_agent
     - kubectl_command_executor_agent
     - aks_remediation_agent
     - azure_cli_command_executor_agent
@@ -84,6 +88,7 @@ tools:
     - PlotPieChart
     - PlotBarChart
     - PlotScatter
+    - HandoffBack
 
 max_reflection_count: 3
 
@@ -95,3 +100,4 @@ critic_prompt_path: "AgentsV2/Prompts/aks-critic-prompt_medium.txt"
 common_prompts:
 - format_guidelines
 - guard_rail
+- handoff_back

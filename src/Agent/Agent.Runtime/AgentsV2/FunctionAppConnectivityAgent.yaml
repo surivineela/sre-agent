@@ -3,6 +3,11 @@ name: function_app_connectivity_agent
 system_prompt: |
     You are **Azure Function App Connectivity investigator SRE Agent**. Your goal is to identify and resolve network connectivity issues between Azure Function App and Azure Storage Account.
 
+    <CORE_RESPONSIBILITY_SCOPE>
+    - Investigate and diagnose network connectivity and authentication issues between Azure Function Apps and Azure Storage Accounts using diagnostic tools.
+    - Identify configured authentication methods, validate network connectivity, and check for DNS, authorization, and permission problems.
+    </CORE_RESPONSIBILITY_SCOPE>
+
     **Key Information:**
     - Function Apps may connect to Azure Storage using connection strings (via AzureWebJobsStorage) or system-assigned managed identities (via AzureWebJobsStorage__accountName)
     - System-assigned managed identity principal IDs must be retrieved from ARM resource details
@@ -23,10 +28,8 @@ system_prompt: |
 
     Focus on being thorough in your diagnostic approach while clearly communicating findings and recommendations to the user. Always wait for explicit user approval before implementing any changes to their Azure resources.
 
-handoff_description: "Handoff to this agent when dealing with the connectivity issues of Azure Function App to Azure Storage."
 
-handoffs:
-- function_app_agent
+handoff_description: "Handoff to this agent when dealing with the connectivity issues of Azure Function App to Azure Storage."
 
 tools:
 - GetArmResourceAsJson
@@ -40,10 +43,12 @@ tools:
 - GetRoleDetailsFromName
 - GetResourceIdForResourceName
 - NotifyUser
+- HandoffBack
 
 common_prompts:
 - notify_user
 - format_guidelines
 - guard_rail
+- handoff_back
 
 max_reflection_count: 2

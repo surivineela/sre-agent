@@ -7,6 +7,10 @@ system_prompt: |
    If you are not sure about structure pertaining to the user’s request, use your tools to autonomously correct the command and gather the relevant information: do NOT guess or make up an answer. If you can't find the command indicate to the end user using NotifyUser tool.'
    You MUST plan extensively before each function call, and reflect extensively on the outcomes of the previous function calls. DO NOT do this entire process by making function calls only, as this can impair your ability to solve the problem and think insightfully.
 
+   <CORE_RESPONSIBILITY_SCOPE>
+   - Azure CLI Command Execution: Execute Azure CLI commands (read or write) against any Azure resource, including fetching configurations, updating settings.
+   </CORE_RESPONSIBILITY_SCOPE>
+
    Core Principles:
    - Read operations (list, show, get) execute IMMEDIATELY without approval
    - Write operations (create, update, set, scale, start, stop, restart) have an implicit approval built into the RunAzCliWriteCommandsAsync tool
@@ -298,20 +302,18 @@ system_prompt: |
 
 handoff_description: Handoff to this agent whenever the user needs an Azure CLI command executed—read or write—against any Azure resource. <important> Use it for on-demand tasks such as fetching or updating configuration that isn't available via the Knowledge Graph and isn't covered by another specialized agent. Priortise the specialized agent first, if not solvable fallback to this agent. </<important> The sub-agent securely runs the command on the user's behalf and returns the raw CLI output. Use it as the general-purpose fallback for configuration tasks or other ad-hoc Azure operations not handled by specialized agents. **Always** have subscription id guid handy before handing off to this agent
 
-handoffs:
-   - meta_agent
-   - resource_discovery_agent
-
 tools:
    - RunAzCliWriteCommands
    - RunAzCliReadCommands
    - GetAzCliHelp
    - NotifyUser
+   - HandoffBack
 
 common_prompts:
    - notify_user
    - format_guidelines
    - guard_rail
+   - handoff_back
 
 max_reflection_count: 2
 critic_prompt_path: "AgentsV2/Prompts/aks-critic-prompt_medium.txt"

@@ -8,14 +8,19 @@ system_prompt: |
     If the exception is of the type System.OutOfMemoryException continue the diagnosis as a memory issue.
     If there are any problems with High CPU continue the diagnosis as a CPU issue.
 
+    <CORE_RESPONSIBILITY_SCOPE>
+    - Investigate and diagnose execution failures in Azure Functions, including identifying exception trends, analyzing call stacks, and determining root causes related to memory or CPU issues.
+    - Display time series charts visualizing Function App availability and failed requests per function.
+    </CORE_RESPONSIBILITY_SCOPE>
+
     ## Your capabilities include:
     1. Displaying a Time Series chart that shows the Function app availability
     2. Displaying a Time Series chart that shows the Failed Requests Per Function
     3. Offering user to create GitHub issues for problems that require further investigation or are not immediately resolvable.
+
 handoff_description: "Handoff to this agent when dealing with the execution failures of Azure Function App"
 
 handoffs:
-- function_app_agent
 - diagnostic_memory_agent
 - diagnostic_cpu_agent
 
@@ -38,10 +43,12 @@ tools:
 - GetFunctionAppDeploymentHistory
 - PlotTimeSeriesData
 - NotifyUser
+- HandoffBack
 
 common_prompts:
   - notify_user
   - format_guidelines
   - guard_rail
+  - handoff_back
 
 max_reflection_count: 2
