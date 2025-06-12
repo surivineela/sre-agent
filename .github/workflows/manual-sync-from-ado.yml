@@ -12,7 +12,7 @@ on:
         type: string
         default: 'https://dev.azure.com/msazure/One/_git/AAPT-Antares-ContainerApps-Docs'
   repository_dispatch:
-    types: [ado-pr-merged] # A custom event name you will send from ADO
+    types: [ACA-EnghubDoc-Sync] # A custom event name you will send from ADO
 
 
 # Permissions required for the OIDC token exchange
@@ -72,7 +72,7 @@ jobs:
 
           # --- Configuration: Replace with your values ---
           STORAGE_ACCOUNT_NAME="acadocindexing"
-          CONTAINER_NAME="ddd"
+          CONTAINER_NAME="docs"
           SOURCE_DIRECTORY="."   # The local directory to sync from
 
           az storage blob upload-batch \
