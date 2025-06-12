@@ -92,7 +92,7 @@ namespace Agent.Plugins.Kusto
 
                 stopwatch.Stop();
                 var ret = new KustoQueryResult(reader, query);
-                ret.Message = CreateChatMessage(query, normalizedRegion, ret.RowCount, (int)stopwatch.ElapsedMilliseconds);
+                ret.Message = CreateChatMessage(query, normalizedRegion, ret.RowCount, (int)stopwatch.ElapsedMilliseconds, groupName: groupName);
 
                 return ret;
             }
@@ -196,7 +196,7 @@ namespace Agent.Plugins.Kusto
                 using var reader = await regionalKustoClient.PerformQueryAsync(query, region);
                 var ret = new KustoQueryResult(reader, query);
                 stopwatch.Stop();
-                ret.Message = CreateChatMessage(query, region, ret.RowCount, (int)stopwatch.ElapsedMilliseconds, functionName: functionName);
+                ret.Message = CreateChatMessage(query, region, ret.RowCount, (int)stopwatch.ElapsedMilliseconds, functionName: functionName, groupName: groupName);
                 return ret;
             }
             catch (Exception ex)
@@ -218,7 +218,7 @@ namespace Agent.Plugins.Kusto
             return $"\"{value}\"";
         }
 
-        public ChatMessage CreateChatMessage(string query, string regionOrClusterUri, int count, int queryExecutionTimeInMilliSeconds, string? database = null, string? functionName = null)
+        public ChatMessage CreateChatMessage(string query, string regionOrClusterUri, int count, int queryExecutionTimeInMilliSeconds, string? database = null, string? functionName = null, string groupName = "ContainerApps")
         {
             if (string.IsNullOrWhiteSpace(query))
             {
@@ -229,7 +229,6 @@ namespace Agent.Plugins.Kusto
             {
                 throw new ArgumentNullException(regionOrClusterUri, nameof(regionOrClusterUri));
             }
-
 
             string adxUri = regionOrClusterUri;
             if (regionOrClusterUri.IndexOf(".kusto.", StringComparison.OrdinalIgnoreCase) < 0)
@@ -243,7 +242,7 @@ namespace Agent.Plugins.Kusto
                 KustoCluster? cluster = null;
                 try
                 {
-                    KustoRegionalGroupClient regionalKustoClient = _kustoRegionalGroupClientProvider.GetRegionalGroupKustoClient("ContainerApps");
+                    KustoRegionalGroupClient regionalKustoClient = _kustoRegionalGroupClientProvider.GetRegionalGroupKustoClient(groupName);
                     cluster = regionalKustoClient.GetCluster(region);
                 } catch (Exception ex)
                 {

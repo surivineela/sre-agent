@@ -310,6 +310,7 @@ public class Program
             .AddTransient<APIManagementPluginDefinition>()
             .AddTransient<RCAContainerAppsIngressPluginDefinition>()
             .AddTransient<RCAContainerAppCorednsPluginDefinition>()
+            .AddTransient<RCAContainerAppOutboundConnectionPluginDefinition>()
             .AddTransient<RCAContainerAppsManagedEnvironmentPluginDefinition>()
             .AddTransient<RCAContainerAppsManagedClusterPluginDefinition>()
             .AddTransient<RCAContainerAppsJobsPluginDefinition>()

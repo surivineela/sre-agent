@@ -1,0 +1,41 @@
+// Get details of connections that were not gracefully closed for identifying problematic outbound connections
+let queryFrom = datetime("##fromDate##");
+let queryTo = datetime("##toDate##");
+let local_LegionEnvironmentName = "##legionEnvironmentName##";
+let local_PodGuid = "##podGuid##";
+
+let dnsDomains = materialize(ConnectionEvents
+    | where PreciseTimeStamp between (queryFrom .. queryTo)
+    | where LegionEnvironmentName == local_LegionEnvironmentName
+    | where PodGuid == local_PodGuid
+    | where DnsQueryDomain !has "reddog.microsoft.com" and DnsResponse != ""
+    | parse kind=regex DnsResponse with "^[0-9]" rest
+    | where isnotempty(rest)
+    | project DnsResponse = replace_regex(DnsResponse, @'(\d+\.\d+\.\d+)\.\d+', @'\1.X'), DnsQueryDomain
+    | summarize make_set(DnsQueryDomain) by DnsResponse
+    | project DestinationDomain = strcat_array(set_DnsQueryDomain, ", "), DnsResponse);
+ConnectionEvents
+| where PreciseTimeStamp between (queryFrom .. queryTo)
+| where LegionEnvironmentName == local_LegionEnvironmentName
+| where PodGuid == local_PodGuid
+| where Protocol != "UDP" and DestinationPort != 53
+| where not (Direction == "Inbound" and RouteKind == "SwiftIpv4" and DestinationPort == 12345) // Ignore pod proxy requests
+    and not(Direction == "Outbound" and DestinationIpAddress == "169.254.0.2" and DestinationPort == 8500) // Ignore podAgent
+| extend Duration = EndTime - StartTime
+| extend DestinationIpAddress = replace_regex(DestinationIpAddress, @'(\d+\.\d+\.\d+)\.\d+', @'\1.X')
+| join kind=leftouter dnsDomains on $left.DestinationIpAddress == $right.DnsResponse
+| where RouteKind != "SharedSwiftHostVm"// and isempty(DnsQueryDomain)
+| extend SourceIpAddress = iff(isempty(SwiftHostNatIpAddress), VmHostNatIpAddress, SwiftHostNatIpAddress),
+    SourcePort = iff(isempty(SwiftHostNatIpAddress), VmHostNatPort, SwiftHostNatPort)
+| extend srcFin = PacketSequence contains "F(S)" or PacketSequence contains "FA(S)"
+| extend destFin = PacketSequence contains "F(D)" or PacketSequence contains "FA(D)"
+| extend gracefulClosure = srcFin and destFin
+| where gracefulClosure == false
+| extend idleDuration = TIMESTAMP - max_of(SourceLastPacket, DestinationLastPacket)
+| order by StartTime asc
+| project StartTime, EndTime,
+    Protocol, Direction, RouteKind,
+    SourceIpAddress, DestinationIpAddress,
+    DestinationDomain,
+    SourcePort, DestinationPort, PacketSequence, Duration, RemovalReason
+| extend StartTime = format_datetime(StartTime, 'yyyy-MM-dd HH:mm:ss'), EndTime = format_datetime(EndTime, 'yyyy-MM-dd HH:mm:ss')

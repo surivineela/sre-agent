@@ -1,0 +1,14 @@
+// Get PodGuid and related information for a specific pod by name and namespace
+let globalFrom = datetime("##fromDate##");
+let globalTo = datetime("##toDate##");
+let local_PodName = "##podName##";
+let local_ResourceNamespace = "##resourceNamespace##";
+
+AllRegions('SystemLogs')
+| where TIMESTAMP between(globalFrom .. globalTo)
+| where eventId in (301, 304, 305)
+| where PodName == local_PodName
+| where ResourceNamespace == local_ResourceNamespace
+| extend geneva_url = strcat("https://portal.microsoftgeneva.com/trace/details/", env_dt_traceId, "/?fromDate=", globalFrom-1h, "&toDate=", globalTo+1h)
+| distinct LegionEnvironmentName, PodName, ResourceNamespace, PodGuid, CenturionRoleId, NestedRoleId, geneva_url, env_dt_traceId, KustoCluster
+| order by CenturionRoleId desc

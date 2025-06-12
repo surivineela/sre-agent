@@ -22,6 +22,7 @@ handoffs:
   - rca_containerapp_sessions_agent
   - rca_containerapp_customer_logs_agent
   - rca_containerapp_customer_metrics_agent
+  - rca_containerapp_outbound_connection_agent
   - rca_containerapp_quota_agent
   - rca_containerapp_resource_check_agent
 

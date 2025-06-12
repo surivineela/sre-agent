@@ -113,7 +113,7 @@ namespace Agent.Plugins.Kusto
         Task<KustoQueryResult> IACAKustoPlugin.ExecuteFunctionAsync(string functionName, string region, Dictionary<string, string>? args, string groupName = "ContainerApps")
         {
             region = region.NormalizeLocation();
-            return _kustoPlugin.ExecuteFunctionAsync(functionName, region, args);
+            return _kustoPlugin.ExecuteFunctionAsync(functionName, region, args, groupName);
         }
 
         Task<List<KustoFunction>> IACAKustoPlugin.ListFunctionsAsync(string region)
@@ -122,9 +122,9 @@ namespace Agent.Plugins.Kusto
             return _kustoPlugin.ListFunctionsAsync(region);
         }
 
-        ChatMessage IACAKustoPlugin.CreateChatMessage(string query, string regionOrClusterUri, int count, int queryExecutionTimeInMilliSeconds, string? database, string? functionName)
+        ChatMessage IACAKustoPlugin.CreateChatMessage(string query, string regionOrClusterUri, int count, int queryExecutionTimeInMilliSeconds, string? database, string? functionName, string groupName)
         {
-            return _kustoPlugin.CreateChatMessage(query, regionOrClusterUri, count, queryExecutionTimeInMilliSeconds, database, functionName);
+            return _kustoPlugin.CreateChatMessage(query, regionOrClusterUri, count, queryExecutionTimeInMilliSeconds, database, functionName, groupName);
         }
     }
 }

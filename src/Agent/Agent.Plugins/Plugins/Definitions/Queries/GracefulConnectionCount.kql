@@ -1,0 +1,32 @@
+// Get connection state distribution for analyzing connection termination patterns
+let queryFrom = datetime("##fromDate##");
+let queryTo = datetime("##toDate##");
+let local_LegionEnvironmentName = "##legionEnvironmentName##";
+let local_PodGuid = "##podGuid##";
+
+ConnectionEvents
+| where PreciseTimeStamp between (queryFrom .. queryTo)
+| where LegionEnvironmentName == local_LegionEnvironmentName
+| where PodGuid == local_PodGuid
+| where Protocol != "UDP"
+| where RouteKind != "SharedSwiftGatewayVm" // already logged with SharedSwiftHostVm
+| where not (Direction == "Inbound" and RouteKind == "SwiftIpv4" and DestinationPort == 12345) // Ignore pod proxy requests
+    and not(Direction == "Outbound" and DestinationIpAddress == "169.254.0.2" and DestinationPort == 8500) // Ignore podAgent
+| extend 
+    handshakeSuccess = PacketSequence contains "SA(D),A(S)", // We've seen S(S),R(D),SA(D),A(S) also works..
+    srcFin = PacketSequence contains "F(S)" or PacketSequence contains "FA(S)", 
+    destFin = PacketSequence contains "F(D)" or PacketSequence contains "FA(D)",
+    srcReset = PacketSequence contains "R(S)" or PacketSequence contains "RA(S)",
+    destReset = PacketSequence contains "R(D)" or PacketSequence contains "RA(D)",
+    srcAckedFin = PacketSequence contains "F(D),A(S)" or PacketSequence contains "FA(D),A(S)",
+    destAckedFin = PacketSequence contains "F(S),A(D)" or PacketSequence contains "FA(S),A(D)"
+| extend connectionState = 
+    iif(not(handshakeSuccess), "TCP Handshake Failure",
+    iif((srcFin and destFin) or (srcFin and destReset) or (destFin and srcReset), "Gracefully closed", 
+    iif(srcFin and destAckedFin, "Source half close, Dest Ack",
+    iif(srcFin and not(destAckedFin), "Source half close, Dest Unresp",
+    iif(destFin and srcAckedFin, "Dest half close, Src Ack",
+    iif(destFin and not(srcAckedFin), "Dest half close, Src Unresp",
+    iif(srcReset, "Source reset close", 
+    iif(destReset, "Dest reset close", "Idle timeout"))))))))
+| summarize count() by connectionState
