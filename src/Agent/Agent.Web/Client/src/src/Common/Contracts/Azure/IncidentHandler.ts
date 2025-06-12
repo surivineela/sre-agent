@@ -48,6 +48,16 @@ export interface ToolInfo {
     parameters: string[];
 }
 
+
+type WithKeyAndSelection<T> = T & {
+    key?: string | number;
+    selected: boolean;
+};
+
+export type IIncidentDocumentWithKeyAndSelection = WithKeyAndSelection<IIncidentDocument>;
+
+export type ToolInfoWithKeyAndSelection = WithKeyAndSelection<ToolInfo>;
+
 export interface IncidentHandler {
     id: string;
     name: string;
@@ -58,7 +68,6 @@ export interface IncidentHandler {
     incidents: string[];
     customInstructions: string;
 }
-
 export interface IncidentFilter {
     id: string;
     alertId: string;

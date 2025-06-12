@@ -89,19 +89,11 @@ export const useIncidentManagementStyles = makeStyles({
 });
 
 export const generateHandlerStyles = mergeStyleSets({
-    container: {
-        display: 'flex',
-        flexDirection: 'column',
-        marginTop: '20px',
-    },
     dropdown: {
         maxWidth: '300px',
     },
     textField: {
         maxWidth: '600px',
-    },
-    buttonContainer: {
-        marginTop: '20px',
     },
     detailListContainer: {
         maxHeight: '365px',

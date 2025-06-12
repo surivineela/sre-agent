@@ -205,4 +205,22 @@ export class IncidentHandlerClient extends DataPlaneClient {
             };
         }
     };
+
+    public createHandler = async (request: IncidentHandler): Promise<Response<IncidentHandler>> => {
+        const url = this.getRequestUrl(`${this._apiPathPrefix}/handlers/${request.id}`);
+        try {
+            const { data } = await axios.put<IncidentHandler>(url, request, {
+                headers: getAgentHeaders(),
+            });
+            return {
+                isSuccessful: true,
+                content: data,
+            };
+        } catch (error) {
+            return {
+                isSuccessful: false,
+                error: error,
+            };
+        }
+    };
 }

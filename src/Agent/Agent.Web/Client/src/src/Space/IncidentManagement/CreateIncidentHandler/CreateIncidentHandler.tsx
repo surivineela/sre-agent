@@ -1,29 +1,35 @@
 import { Breadcrumb, BreadcrumbButton, BreadcrumbDivider, BreadcrumbItem, tokens } from '@fluentui/react-components';
-import { FC, useState } from 'react';
-import { useIntl } from 'react-intl';
+import { FC } from 'react';
+import { IncidentHandler } from '../../../Common/Contracts/Azure/IncidentHandler';
 import { IncidentHandlerCreateResources } from '../../../Strings/SREAgentResources';
 import { IncidentHandlerCreateContext, IncidentHandlerCreateSteps } from './IncidentHandlerCreateContext';
 import { GenerateHandler } from './Steps/GenerateHandler';
 import { ReviewAndEdit } from './Steps/ReviewAndEdit';
 import { StepWizard } from './StepWizard/StepWizard';
+import { useCreateIncidentHandler } from './useCreateIncidentHandler';
 
 interface CreateIncidentHandlerProps {
     exitToHome: () => void;
+    incidentFilterId: string;
+    createHandler: (handler: IncidentHandler) => void; // Replace 'any' with the actual type of handler
 }
 
-const CreateIncidentHandler: FC<CreateIncidentHandlerProps> = ({ exitToHome }) => {
-    const intl = useIntl();
-    const [currentStep, setCurrentStep] = useState<IncidentHandlerCreateSteps>(IncidentHandlerCreateSteps.GenerateHandler);
-    const [instructions, setInstructions] = useState<string>('');
+const CreateIncidentHandler: FC<CreateIncidentHandlerProps> = ({ exitToHome, incidentFilterId, createHandler }) => {
+    const incidentHandlerCreateMetadata = useCreateIncidentHandler(incidentFilterId, exitToHome, createHandler);
+    const { intl, currentStep } = incidentHandlerCreateMetadata;
 
     return (
         <div style={{ background: tokens.colorNeutralBackground3 }}>
             <Breadcrumb style={{ display: 'flex', height: 50, marginLeft: 16 }}>
                 <BreadcrumbItem>
-                    <BreadcrumbButton onClick={() => exitToHome()}>Incident handlers</BreadcrumbButton>
+                    <BreadcrumbButton onClick={() => exitToHome()}>
+                        {intl.formatMessage(IncidentHandlerCreateResources.incidentManagement)}
+                    </BreadcrumbButton>
                 </BreadcrumbItem>
                 <BreadcrumbDivider />
-                <BreadcrumbItem style={{ marginLeft: 6 }}>New incident handler</BreadcrumbItem>
+                <BreadcrumbItem style={{ marginLeft: 6 }}>
+                    {intl.formatMessage(IncidentHandlerCreateResources.newCustomHandler)}
+                </BreadcrumbItem>
             </Breadcrumb>
             <div
                 style={{
@@ -59,16 +65,14 @@ const CreateIncidentHandler: FC<CreateIncidentHandlerProps> = ({ exitToHome }) =
                         ]}
                     />
                 </div>
-                <div style={{ width: '100%' }}>
-                    <IncidentHandlerCreateContext.Provider
-                        value={{
-                            currentStep,
-                            setCurrentStep,
-                            instructions,
-                            setInstructions,
-                            exitToHome,
-                        }}
-                    >
+                <div
+                    style={{
+                        height: '100%',
+                        width: '100%',
+                        overflowY: 'auto',
+                    }}
+                >
+                    <IncidentHandlerCreateContext.Provider value={incidentHandlerCreateMetadata}>
                         {currentStep === IncidentHandlerCreateSteps.GenerateHandler ? (
                             <GenerateHandler />
                         ) : currentStep === IncidentHandlerCreateSteps.ReviewAndEdit ? (

@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import { FC, useCallback, useEffect, useState } from 'react';
 
 import { useIntl } from 'react-intl';
 import { IncidentFilter } from '../../Common/Contracts/Azure/IncidentHandler';
@@ -11,10 +11,11 @@ import { CreateIncidentFilterDialog } from './CreateIncidentFilterDialog';
 import IncidentFiltersToolbar from './IncidentFiltersToolbar';
 import IncidentsFiltersGrid from './IncidentsFiltersGrid';
 interface IncidentManagementHomeProps {
-    openHandlerCreate?: () => void;
+    openHandlerCreate: (incidentFilterId: string) => void;
+    creatingHandler: boolean;
 }
 
-const IncidentManagementHome: FC<IncidentManagementHomeProps> = ({ openHandlerCreate }) => {
+const IncidentManagementHome: FC<IncidentManagementHomeProps> = ({ openHandlerCreate, creatingHandler }) => {
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
 
@@ -33,10 +34,16 @@ const IncidentManagementHome: FC<IncidentManagementHomeProps> = ({ openHandlerCr
     const { filterIdToHandlerMap, refresh: refreshIncidentHandlers } = useIncidentHandlers();
     const { incidentTypeOptions, impactedServiceOptions, priorityOptions } = useIncidentFilterFields();
 
-    const refresh = () => {
+    const refresh = useCallback(() => {
         refreshIncidentFilters();
         refreshIncidentHandlers();
-    };
+    }, [refreshIncidentFilters, refreshIncidentHandlers]);
+
+    useEffect(() => {
+        if (!creatingHandler) {
+            refresh();
+        }
+    }, [refresh, creatingHandler]);
 
     return (
         <div className={styles.root}>
@@ -63,6 +70,7 @@ const IncidentManagementHome: FC<IncidentManagementHomeProps> = ({ openHandlerCr
                     isFilterEnabled={!selectedIncidentFilter || selectedIncidentFilter?.isEnabled}
                 />
                 <IncidentsFiltersGrid
+                    creatingHandler={creatingHandler}
                     openHandlerCreate={openHandlerCreate}
                     incidentFilters={incidentFilters ?? []}
                     incidentFiltersLoading={incidentFiltersLoading}

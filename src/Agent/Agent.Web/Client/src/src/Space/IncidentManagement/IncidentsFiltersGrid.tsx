@@ -37,7 +37,8 @@ export type IncidentsTabProps = {
     setIsCreateIncidentFilterDialogOpen: Dispatch<React.SetStateAction<boolean>>;
     filterIdToHandlerMap: Record<string, IncidentHandler>;
     setSelectedFilter: Dispatch<React.SetStateAction<IncidentFilter | undefined>>;
-    openHandlerCreate?: () => void;
+    openHandlerCreate: (incidentFilterId: string) => void;
+    creatingHandler: boolean;
 };
 
 const IncidentsFiltersGrid: FC<IncidentsTabProps> = (props: IncidentsTabProps) => {
@@ -45,6 +46,7 @@ const IncidentsFiltersGrid: FC<IncidentsTabProps> = (props: IncidentsTabProps) =
         incidentFilters,
         incidentFiltersLoading,
         openHandlerCreate,
+        creatingHandler,
         setIsCreateIncidentFilterDialogOpen,
         filterIdToHandlerMap,
         setSelectedFilter,
@@ -245,8 +247,9 @@ const IncidentsFiltersGrid: FC<IncidentsTabProps> = (props: IncidentsTabProps) =
             return (
                 <Link
                     onClick={() => {
-                        openHandlerCreate?.();
+                        openHandlerCreate(item.id);
                     }}
+                    disabled={creatingHandler}
                 >
                     {intl.formatMessage(IncidentManagementResources.setUp)}
                 </Link>

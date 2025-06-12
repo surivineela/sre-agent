@@ -59,6 +59,16 @@
       "value": "Incident handler"
     }
   ],
+  "0Pt22l": [
+    {
+      "type": 0,
+      "value": "Failed to add the custom incident handler. Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
   "0UwFzs": [
     {
       "type": 0,
@@ -611,6 +621,12 @@
       "value": "Settings"
     }
   ],
+  "DHc2gc": [
+    {
+      "type": 0,
+      "value": "New custom handler"
+    }
+  ],
   "DMd1Ql": [
     {
       "type": 0,
@@ -621,6 +637,12 @@
     {
       "type": 0,
       "value": "Average latency"
+    }
+  ],
+  "DWon+H": [
+    {
+      "type": 0,
+      "value": "Add custom incident handler"
     }
   ],
   "DlSXUR": [
@@ -859,6 +881,12 @@
       "value": "name"
     }
   ],
+  "JJNc3c": [
+    {
+      "type": 0,
+      "value": "Previous"
+    }
+  ],
   "JQTsu5": [
     {
       "type": 0,
@@ -1055,6 +1083,12 @@
       "value": "Filter incidents"
     }
   ],
+  "Pc+tM3": [
+    {
+      "type": 0,
+      "value": "Generate"
+    }
+  ],
   "PipPB3": [
     {
       "type": 0,
@@ -1119,6 +1153,12 @@
     {
       "type": 0,
       "value": "Action"
+    }
+  ],
+  "QtNVS/": [
+    {
+      "type": 0,
+      "value": "Custom handler name"
     }
   ],
   "R/6nsx": [
@@ -1713,6 +1753,12 @@
       "value": "You need permissions to set up a Grafana dashboard."
     }
   ],
+  "h07fER": [
+    {
+      "type": 0,
+      "value": "Adding custom incident handler"
+    }
+  ],
   "h6183G": [
     {
       "type": 0,
@@ -2105,6 +2151,12 @@
     {
       "type": 1,
       "value": "error"
+    }
+  ],
+  "sVbKA0": [
+    {
+      "type": 0,
+      "value": "The custom incident handler was successfully added"
     }
   ],
   "slxYbm": [

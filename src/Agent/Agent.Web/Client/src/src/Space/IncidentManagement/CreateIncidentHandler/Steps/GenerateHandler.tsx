@@ -1,32 +1,21 @@
 import {
     DetailsListLayoutMode,
+    DetailsRow,
     Dropdown,
     IColumn,
-    IDropdownOption,
+    IDetailsRowProps,
     Selection,
     SelectionMode,
     ShimmeredDetailsList,
-    Stack,
     Text,
     TextField,
 } from '@fluentui/react';
-import { Button } from '@fluentui/react-components';
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { Button, Field, Input, Spinner } from '@fluentui/react-components';
+import { useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
-import { EnvironmentContext } from '../../../../Common/AzPortalProxy/Providers/StartupInfoContext';
-import { Response } from '../../../../Common/Clients/DataPlaneClient';
-import { IncidentHandlerClient } from '../../../../Common/Clients/IncidentHandlerClient';
-import { IIncidentDocument, ToolInfo } from '../../../../Common/Contracts/Azure/IncidentHandler';
 import { IncidentHandlerCreateResources } from '../../../../Strings/SREAgentResources';
 import { generateHandlerStyles } from '../../../Styles/IncidentManagement.styles';
 import { IncidentHandlerCreateContext, IncidentHandlerCreateSteps } from '../IncidentHandlerCreateContext';
-
-enum TimeDuration {
-    Last15Days = 15,
-    Last30Days = 30,
-    Last60Days = 60,
-    Last90Days = 90,
-}
 
 enum IncidentTableFieldNames {
     Priority = 'priority',
@@ -42,29 +31,38 @@ enum ToolTableFieldNames {
 }
 
 const MultipleSelectionTable = <T,>(props: {
-    data: Response<T[]> | undefined;
+    key: string;
+    selection: Selection;
+    data: T[] | undefined;
+    loading: boolean;
     columns: IColumn[];
-    onSelecting: (selectedItems: T[]) => void;
+    disabled?: boolean;
 }) => {
     const { data, columns } = props;
-
-    const selection = new Selection({
-        onSelectionChanged: () => {
-            const selectedItems = selection.getSelection() as T[];
-            props.onSelecting(selectedItems);
-        },
-    });
 
     return (
         <div className={generateHandlerStyles.detailListContainer} data-is-scrollable="true">
             <ShimmeredDetailsList
-                items={data?.content ?? []}
+                key={`${props.key}${props.disabled ? '-disabled' : ''}`}
+                items={data ?? []}
                 columns={columns}
                 selectionMode={SelectionMode.multiple}
-                selection={selection}
+                selection={props.selection}
                 layoutMode={DetailsListLayoutMode.justified}
-                enableShimmer={data === undefined}
+                enableShimmer={props.loading}
                 useReducedRowRenderer={true}
+                onRenderRow={(rowProps?: IDetailsRowProps): JSX.Element | null => {
+                    if (!rowProps) {
+                        return null;
+                    }
+
+                    const updatedRowProps: IDetailsRowProps = {
+                        ...rowProps,
+                        disabled: props.disabled,
+                    };
+
+                    return <DetailsRow {...updatedRowProps} />;
+                }}
             />
         </div>
     );
@@ -73,83 +71,29 @@ const MultipleSelectionTable = <T,>(props: {
 export const GenerateHandler = () => {
     const intl = useIntl();
     const context = useContext(IncidentHandlerCreateContext);
-    const { setCurrentStep, setInstructions, exitToHome } = context;
+    const {
+        setCurrentStep,
+        exitToHome,
+        name,
+        setName,
+        description,
+        setDescription,
+        toolsSelection,
+        selectedIncidents,
+        incidentsSelection,
+        customInstructions,
+        setCustomInstructions,
 
-    const { sreAgentEndpoint } = useContext(EnvironmentContext);
-    const incidentHandlerClient = IncidentHandlerClient.getInstance(sreAgentEndpoint);
-
-    const [incidentDocuments, setIncidentDocuments] = useState<Response<IIncidentDocument[]> | undefined>(undefined);
-    const [toolInfos, setToolInfos] = useState<Response<ToolInfo[]> | undefined>(undefined);
-
-    const [selectedIncidents, setSelectedIncidents] = useState<IIncidentDocument[]>([]);
-    const [selectedTools, setSelectedTools] = useState<ToolInfo[]>([]);
-
-    const [isWaitingForGeneration, setIsWaitingForGeneration] = useState<boolean>(false);
-    const [customInstructions, setCustomInstructions] = useState<string>('');
-
-    const dropdownOptions: IDropdownOption<{ numberOfDays: number; isDefault?: boolean }>[] = useMemo(() => {
-        return [
-            {
-                key: TimeDuration.Last15Days,
-                text: intl.formatMessage(IncidentHandlerCreateResources.last15days),
-                data: { numberOfDays: TimeDuration.Last15Days },
-            },
-            {
-                key: TimeDuration.Last30Days,
-                text: intl.formatMessage(IncidentHandlerCreateResources.last30days),
-                data: { numberOfDays: TimeDuration.Last30Days },
-            },
-            {
-                key: TimeDuration.Last60Days,
-                text: intl.formatMessage(IncidentHandlerCreateResources.last60days),
-                data: { numberOfDays: TimeDuration.Last60Days, isDefault: true },
-            },
-            {
-                key: TimeDuration.Last90Days,
-                text: intl.formatMessage(IncidentHandlerCreateResources.last60days),
-                data: { numberOfDays: TimeDuration.Last90Days },
-            },
-        ];
-    }, [intl]);
-
-    const defaultOption = useMemo(() => {
-        return dropdownOptions.find(option => option.data?.isDefault === true) ?? undefined;
-    }, [dropdownOptions]);
-
-    const [selectedOption, setSelectedOption] = useState(defaultOption);
-
-    useEffect(() => {
-        const fetchIncidents = async () => {
-            if (!selectedOption) {
-                return;
-            }
-            setIncidentDocuments(undefined);
-            const response = await incidentHandlerClient.queryIncidents({
-                // Todo, update payload with filter to replace keywords
-                filter: {
-                    titleContains: 'down',
-                },
-                durationInDays: selectedOption.data?.numberOfDays,
-            });
-            if (response.content) {
-                response.content.sort((a, b) => a.title.localeCompare(b.title));
-            }
-
-            setIncidentDocuments(response);
-        };
-        fetchIncidents();
-    }, [selectedOption]);
-
-    useEffect(() => {
-        const fetchTools = async () => {
-            const response = await incidentHandlerClient.listTools();
-            if (response.content) {
-                response.content.sort((a, b) => a.name.localeCompare(b.name));
-            }
-            setToolInfos(response);
-        };
-        fetchTools();
-    }, []);
+        isGeneratingInstructions,
+        timespanDropdownOptions,
+        selectedTimespanOption,
+        incidentDocuments,
+        loadingTools,
+        setSelectedTimespanOption,
+        toolInfos,
+        loadingIncidents,
+        handleGenerateInstructions,
+    } = context;
 
     const incidentTableColumns: IColumn[] = useMemo(() => {
         return [
@@ -168,7 +112,6 @@ export const GenerateHandler = () => {
                 name: intl.formatMessage(IncidentHandlerCreateResources.dateCreated),
                 minWidth: 100,
                 maxWidth: 200,
-                isMultiline: true,
                 isResizable: true,
                 isSortable: true,
             },
@@ -187,7 +130,6 @@ export const GenerateHandler = () => {
                 name: intl.formatMessage(IncidentHandlerCreateResources.incidentId),
                 minWidth: 100,
                 maxWidth: 200,
-                isMultiline: true,
                 isResizable: true,
                 isSortable: true,
             },
@@ -198,7 +140,6 @@ export const GenerateHandler = () => {
                 name: intl.formatMessage(IncidentHandlerCreateResources.status),
                 minWidth: 100,
                 maxWidth: 200,
-                isMultiline: true,
                 isResizable: true,
                 isSortable: true,
             },
@@ -213,7 +154,6 @@ export const GenerateHandler = () => {
                 name: intl.formatMessage(IncidentHandlerCreateResources.tool),
                 minWidth: 100,
                 maxWidth: 200,
-                isMultiline: true,
                 isResizable: true,
             },
             {
@@ -227,78 +167,122 @@ export const GenerateHandler = () => {
         ];
     }, [intl]);
 
-    const navigateToNextStep = useCallback(() => {
-        setCurrentStep(IncidentHandlerCreateSteps.ReviewAndEdit);
-    }, [setCurrentStep]);
-
-    const handleGenerateInstructions = useCallback(async () => {
-        setIsWaitingForGeneration(true);
-        const res = await incidentHandlerClient.generateInstructions({
-            // Todo, update with agent name when context is available
-            agentName: '',
-            incidents: selectedIncidents?.map(incident => incident.id) ?? [],
-            tools: selectedTools?.map(tool => tool.name) ?? [],
-            customInstructions: customInstructions,
-        });
-        setIsWaitingForGeneration(false);
-
-        if (res.isSuccessful && res.content) {
-            setInstructions(res.content.generatedInstructions);
-            navigateToNextStep();
-        }
-    }, [
-        setIsWaitingForGeneration,
-        incidentHandlerClient.generateInstructions,
-        selectedIncidents,
-        selectedTools,
-        customInstructions,
-        setInstructions,
-        navigateToNextStep,
-    ]);
-
     return (
-        <Stack className={generateHandlerStyles.container} tokens={{ childrenGap: 16 }}>
-            <Text variant="mediumPlus">{intl.formatMessage(IncidentHandlerCreateResources.chooseIncidentTitle)}</Text>
-            <Text variant="medium">{intl.formatMessage(IncidentHandlerCreateResources.chooseIncidentDescription)}</Text>
-            <Dropdown
-                options={dropdownOptions}
-                selectedKey={selectedOption?.key}
-                onChange={(_e, option) => setSelectedOption(option)}
-                className={generateHandlerStyles.dropdown}
-                disabled={incidentDocuments === undefined}
-            />
-            <MultipleSelectionTable
-                data={incidentDocuments}
-                columns={incidentTableColumns}
-                onSelecting={incidents => setSelectedIncidents(incidents)}
-            />
-            <Text variant="mediumPlus">{intl.formatMessage(IncidentHandlerCreateResources.chooseToolsTitle)}</Text>
-            <Text variant="medium">{intl.formatMessage(IncidentHandlerCreateResources.chooseToolsDescription)}</Text>
-            <MultipleSelectionTable data={toolInfos} columns={toolsTableColumns} onSelecting={tools => setSelectedTools(tools)} />
-
-            <Text variant="mediumPlus">{intl.formatMessage(IncidentHandlerCreateResources.customInstructionTitle)}</Text>
-            <Text variant="medium">{intl.formatMessage(IncidentHandlerCreateResources.customInstructionDescription)}</Text>
-            <TextField
-                placeholder={intl.formatMessage(IncidentHandlerCreateResources.customInstructionPlaceholder)}
-                value={customInstructions}
-                onChange={(_e, newValue) => setCustomInstructions(newValue ?? '')}
-                rows={8}
-                multiline
-                className={generateHandlerStyles.textField}
-            />
-            <Stack className={generateHandlerStyles.buttonContainer} horizontalAlign="start" tokens={{ childrenGap: 15 }} horizontal>
-                <Button
-                    appearance="primary"
-                    onClick={() => handleGenerateInstructions()}
-                    disabled={(!customInstructions && selectedIncidents.length === 0) || isWaitingForGeneration}
+        <>
+            {isGeneratingInstructions && (
+                <div
+                    style={{
+                        position: 'absolute',
+                        inset: 0,
+                        background: 'rgba(255, 255, 255, 0.6)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 1000,
+                    }}
                 >
-                    {intl.formatMessage(IncidentHandlerCreateResources.next)}
-                </Button>
-                <Button onClick={() => navigateToNextStep()} disabled={isWaitingForGeneration}>
-                    {intl.formatMessage(IncidentHandlerCreateResources.skip)}
-                </Button>
-                <Button onClick={() => exitToHome()}>{intl.formatMessage(IncidentHandlerCreateResources.cancel)}</Button>
-            </Stack>
-        </Stack>
+                    <Spinner size="large" />
+                </div>
+            )}
+            <div
+                style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    margin: '20px',
+                    gap: '20px',
+                }}
+            >
+                <Field
+                    id="handlerNameField"
+                    label={intl.formatMessage(IncidentHandlerCreateResources.customHandlerName)}
+                    orientation="vertical"
+                    required={true}
+                >
+                    <Input
+                        id="handlerName"
+                        style={{ width: 600 }}
+                        value={name}
+                        onChange={(_event, newValue) => {
+                            setName(newValue?.value);
+                        }}
+                        disabled={isGeneratingInstructions}
+                    />
+                </Field>
+
+                <Field
+                    id="handlerDescriptionField"
+                    label={intl.formatMessage(IncidentHandlerCreateResources.customHandlerDescription)}
+                    orientation="vertical"
+                    required={false}
+                >
+                    <Input
+                        id="handlerDescription"
+                        style={{ width: 600 }}
+                        value={description}
+                        onChange={(_event, newValue) => {
+                            setDescription(newValue?.value);
+                        }}
+                        disabled={isGeneratingInstructions}
+                    />
+                </Field>
+                <Text variant="mediumPlus">{intl.formatMessage(IncidentHandlerCreateResources.chooseIncidentTitle)}</Text>
+                <Text variant="medium">{intl.formatMessage(IncidentHandlerCreateResources.chooseIncidentDescription)}</Text>
+                <Dropdown
+                    options={timespanDropdownOptions}
+                    selectedKey={selectedTimespanOption?.key}
+                    onChange={(_e, option) => setSelectedTimespanOption(option)}
+                    className={generateHandlerStyles.dropdown}
+                    disabled={isGeneratingInstructions || loadingIncidents}
+                />
+                <MultipleSelectionTable
+                    key="incidentSelectionTable"
+                    selection={incidentsSelection.current!}
+                    data={incidentDocuments}
+                    loading={loadingIncidents}
+                    columns={incidentTableColumns}
+                    disabled={isGeneratingInstructions}
+                />
+                <Text variant="mediumPlus">{intl.formatMessage(IncidentHandlerCreateResources.chooseToolsTitle)}</Text>
+                <Text variant="medium">{intl.formatMessage(IncidentHandlerCreateResources.chooseToolsDescription)}</Text>
+                <MultipleSelectionTable
+                    key="toolSelectionTable"
+                    selection={toolsSelection.current!}
+                    data={toolInfos}
+                    loading={loadingTools}
+                    columns={toolsTableColumns}
+                    disabled={isGeneratingInstructions}
+                />
+
+                <Text variant="mediumPlus">{intl.formatMessage(IncidentHandlerCreateResources.customInstructionTitle)}</Text>
+                <Text variant="medium">{intl.formatMessage(IncidentHandlerCreateResources.customInstructionDescription)}</Text>
+                <TextField
+                    placeholder={intl.formatMessage(IncidentHandlerCreateResources.customInstructionPlaceholder)}
+                    value={customInstructions}
+                    onChange={(_e, newValue) => setCustomInstructions(newValue ?? '')}
+                    rows={8}
+                    multiline
+                    className={generateHandlerStyles.textField}
+                    disabled={isGeneratingInstructions}
+                />
+                <div
+                    style={{
+                        display: 'flex',
+                        gap: 10,
+                    }}
+                >
+                    <Button
+                        appearance="primary"
+                        onClick={() => handleGenerateInstructions()}
+                        disabled={(!customInstructions && selectedIncidents.length === 0) || isGeneratingInstructions}
+                    >
+                        {intl.formatMessage(IncidentHandlerCreateResources.next)}
+                    </Button>
+                    <Button onClick={() => setCurrentStep(IncidentHandlerCreateSteps.ReviewAndEdit)} disabled={isGeneratingInstructions}>
+                        {intl.formatMessage(IncidentHandlerCreateResources.skip)}
+                    </Button>
+                    <Button onClick={() => exitToHome()}>{intl.formatMessage(IncidentHandlerCreateResources.cancel)}</Button>
+                </div>
+            </div>
+        </>
     );
 };
