@@ -4,12 +4,12 @@
 using Agent.Core.Configuration;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.DataModels;
-using Agent.Plugins.Definitions;
 using Agent.Graph.Interfaces;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
 using Agent.Logging;
+using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Implementation;
 

@@ -1,7 +1,7 @@
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Data.Repositories;
-using Agent.Plugins;
+using Agent.Plugins.Interface;
 using Agent.Plugins.Mocks;
 using Agent.Runtime.SubAgents;
 using Agent.Runtime.SubAgents.AppReliabilityAgent;

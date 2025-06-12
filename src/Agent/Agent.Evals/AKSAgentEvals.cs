@@ -1,5 +1,6 @@
 using Agent.Core.Interfaces;
 using Agent.Plugins;
+using Agent.Plugins.Interface;
 using Agent.Plugins.Mocks;
 using Agent.Runtime.SubAgents;
 using Agent.Runtime.SubAgents.KubernetesAgent;

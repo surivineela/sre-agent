@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using Agent.Plugins.Models;
 using Agent.Framework;
+using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Definitions
 {

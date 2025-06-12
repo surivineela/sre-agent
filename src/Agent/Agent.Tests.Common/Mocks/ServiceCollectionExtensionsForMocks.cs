@@ -1,5 +1,4 @@
 using Agent.Core.Interfaces;
-using Agent.Plugins.Definitions;
 using Agent.Plugins;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -15,6 +14,7 @@ using System.Net.WebSockets;
 using Agent.Runtime.Communication;
 using Agent.Runtime.MetaAgent;
 using Agent.Runtime.Services;
+using Agent.Plugins.Interface;
 
 namespace Agent.Tests.Common.Mocks;
 

@@ -4,7 +4,7 @@ using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Logging;
-using Agent.Plugins;
+using Agent.Plugins.Interface;
 using Agent.Runtime.Reasoning;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.AI;

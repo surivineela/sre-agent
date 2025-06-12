@@ -5,12 +5,12 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Agent.Core.Extensions;
-using Agent.Plugins.Definitions;
 using Castle.Core.Logging;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Agent.Logging;
+using Agent.Plugins.Interface;
 
 namespace Agent.Runtime.SubAgents.FunctionAppDiagnosticsAgent
 {

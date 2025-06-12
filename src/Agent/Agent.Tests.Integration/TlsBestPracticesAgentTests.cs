@@ -6,7 +6,7 @@ using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Data.Repositories;
-using Agent.Plugins.Definitions;
+using Agent.Plugins.Interface;
 using Agent.Runtime;
 using Agent.Runtime.Communication;
 using Agent.Runtime.Services;

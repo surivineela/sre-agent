@@ -9,7 +9,7 @@ using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Logging;
-using Agent.Plugins.Definitions;
+using Agent.Plugins.Interface;
 using Agent.Runtime.Helpers;
 using Agent.Runtime.MetaAgent;
 using Agent.Runtime.Reasoning;

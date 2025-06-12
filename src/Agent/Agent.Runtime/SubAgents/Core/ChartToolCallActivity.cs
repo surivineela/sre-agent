@@ -4,6 +4,7 @@
 
 using Agent.Logging;
 using Agent.Plugins;
+using Agent.Plugins.Interface;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;

@@ -1,5 +1,4 @@
 using Agent.Core.Interfaces;
-using Agent.Plugins.Definitions;
 using Azure;
 using Azure.Core;
 using Azure.ResourceManager.Network;
@@ -7,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Agent.Logging;
 using Agent.Core.Models;
 using Agent.Core;
+using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Implementation;
 public class NSGRulePlugin : INSGRulePlugin

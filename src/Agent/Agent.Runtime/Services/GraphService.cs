@@ -9,7 +9,7 @@ using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Interfaces;
 using Agent.Graph.Schema;
 using Agent.Logging;
-using Agent.Plugins;
+using Agent.Plugins.Interface;
 using Gremlin.Net.Driver;
 using Microsoft.Extensions.Logging;
 using ArmConstants = Agent.Graph.Crawler.ARM.Constants;

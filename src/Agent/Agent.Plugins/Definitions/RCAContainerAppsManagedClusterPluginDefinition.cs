@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Agent.Core.Interfaces;
 using Agent.Framework;
-using Agent.Plugins.Kusto;
+using Agent.Plugins.Interface;
 using Agent.Plugins.KustoPlugin;
 using Microsoft.SemanticKernel;
 

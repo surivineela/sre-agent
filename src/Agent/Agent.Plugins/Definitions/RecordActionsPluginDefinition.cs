@@ -5,6 +5,7 @@
 using System.ComponentModel;
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
+using Agent.Plugins.Interface;
 using Action = Agent.Core.Models.Api.v1.Action;
 
 namespace Agent.Plugins.Definitions

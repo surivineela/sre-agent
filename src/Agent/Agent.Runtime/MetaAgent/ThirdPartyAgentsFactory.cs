@@ -4,6 +4,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
+using Agent.Plugins.Interface;
 using Agent.Runtime.MetaAgent.Interfaces;
 using Agent.Runtime.SubAgents;
 using Microsoft.Extensions.AI;

@@ -4,7 +4,7 @@
 
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
-using Agent.Plugins;
+using Agent.Plugins.Interface;
 using Agent.Plugins.Mocks;
 using Agent.Runtime.SubAgents;
 using Agent.Runtime.SubAgents.Core;

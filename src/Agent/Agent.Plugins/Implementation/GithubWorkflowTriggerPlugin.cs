@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Octokit;
 using Agent.Core.Models;
 using Agent.Logging;
+using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Implementation
 {

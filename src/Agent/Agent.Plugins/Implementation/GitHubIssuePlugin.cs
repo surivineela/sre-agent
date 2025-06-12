@@ -20,6 +20,7 @@ using Agent.Core.Interfaces;
 using Agent.Graph.Crawler.ARM;
 using Azure.Core;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Plugins.Interface;
 
 namespace Agent.Plugins;
 

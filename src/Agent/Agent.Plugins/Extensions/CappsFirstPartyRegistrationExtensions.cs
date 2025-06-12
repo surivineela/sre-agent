@@ -2,6 +2,7 @@ using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.IcmPlugin;
+using Agent.Plugins.Interface;
 using Agent.Plugins.Kusto;
 using Agent.Plugins.TeamsPlugin;
 using FirstPartyAgent.Common.Configuration;

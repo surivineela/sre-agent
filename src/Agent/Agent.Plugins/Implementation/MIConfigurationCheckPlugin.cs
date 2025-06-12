@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Agent.Core.Models;
 using Agent.Core.Interfaces;
 using Agent.Logging;
+using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Implementation
 {

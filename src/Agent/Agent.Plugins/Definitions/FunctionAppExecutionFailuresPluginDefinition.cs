@@ -6,6 +6,7 @@ using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using Agent.Framework;
+using Agent.Plugins.Interface;
 using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins.Definitions

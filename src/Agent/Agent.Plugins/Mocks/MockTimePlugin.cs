@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Text.RegularExpressions;
+using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Mocks;
 

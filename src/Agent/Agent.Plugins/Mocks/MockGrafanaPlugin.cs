@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Mocks;
 public class MockGrafanaPlugin : IGrafanaPlugin

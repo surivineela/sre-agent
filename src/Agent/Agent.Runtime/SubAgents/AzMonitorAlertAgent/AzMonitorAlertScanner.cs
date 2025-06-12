@@ -15,7 +15,7 @@ using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Data.DataModels;
 using Agent.Logging;
-using Agent.Plugins;
+using Agent.Plugins.Interface;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.MetaAgent.Interfaces;
 using Agent.Runtime.Services;

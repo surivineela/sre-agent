@@ -1,4 +1,5 @@
 using System.Text;
+using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Mocks;
 

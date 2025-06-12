@@ -1,6 +1,6 @@
 using Agent.Core.Helpers;
 using Agent.Logging;
-using Agent.Plugins.Definitions;
+using Agent.Plugins.Interface;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 

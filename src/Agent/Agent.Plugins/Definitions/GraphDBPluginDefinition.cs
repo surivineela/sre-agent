@@ -6,6 +6,7 @@ using System.ComponentModel;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Framework;
 using Agent.Graph.Schema;
+using Agent.Plugins.Interface;
 using Gremlin.Net.Driver;
 using Microsoft.SemanticKernel;
 

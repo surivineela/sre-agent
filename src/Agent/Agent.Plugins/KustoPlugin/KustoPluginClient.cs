@@ -1,3 +1,4 @@
+using Agent.Plugins.Interface;
 using Agent.Plugins.KustoPlugin;
 
 namespace Agent.Plugins.Kusto;

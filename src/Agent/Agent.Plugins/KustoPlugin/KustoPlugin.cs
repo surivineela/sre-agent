@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using Agent.Framework;
 using Agent.Logging;
-using Agent.Plugins.Kusto;
+using Agent.Plugins.Interface;
 using Agent.Plugins.TeamsPlugin;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;

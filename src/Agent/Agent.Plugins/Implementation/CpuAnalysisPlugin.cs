@@ -9,6 +9,7 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Identity;
 using Agent.Framework;
+using Agent.Plugins.Interface;
 
 namespace Agent.Plugins;
 

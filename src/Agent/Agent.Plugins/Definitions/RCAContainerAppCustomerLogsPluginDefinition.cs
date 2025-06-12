@@ -2,7 +2,7 @@ using System.ComponentModel;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Microsoft.SemanticKernel;
 using Agent.Framework;
-using Agent.Plugins.Kusto;
+using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Definitions
 {

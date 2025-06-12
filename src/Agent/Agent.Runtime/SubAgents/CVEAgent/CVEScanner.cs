@@ -7,11 +7,11 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
-using Agent.Plugins;
 using Agent.Runtime.Communication;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Agent.Logging;
+using Agent.Plugins.Interface;
 
 namespace Agent.Runtime.SubAgents.CVEAgent
 {

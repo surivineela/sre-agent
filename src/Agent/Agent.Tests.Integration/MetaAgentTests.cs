@@ -7,7 +7,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.Repositories;
-using Agent.Plugins;
+using Agent.Plugins.Interface;
 using Agent.Plugins.Mocks;
 using Agent.Runtime.MetaAgent;
 using Agent.Runtime.SubAgents;

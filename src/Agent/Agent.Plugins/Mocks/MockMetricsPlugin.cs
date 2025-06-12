@@ -2,6 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Plugins.Interface;
+
 namespace Agent.Plugins.Mocks
 {
     public class MockMetricsPlugin : IMetricsPlugin

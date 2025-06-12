@@ -5,6 +5,7 @@
 using System.Text.Json;
 using Agent.Core;
 using Agent.Plugins;
+using Agent.Plugins.Interface;
 using Agent.Runtime.Communication;
 using Agent.Runtime.SubAgents;
 using FirstPartyAgent.Core.Plugins.Definitions;
@@ -13,6 +14,7 @@ using FirstPartyAgent.Core.Plugins.Interfaces;
 using FirstPartyAgent.Plugins.Definitions;
 using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
+using IContainerAppIcMPlugin = FirstPartyAgent.Core.Plugins.Interfaces.IContainerAppIcMPlugin;
 
 namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppSessionsAgent
 {

@@ -10,6 +10,7 @@ using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
 using Agent.Logging;
 using Agent.Plugins;
+using Agent.Plugins.Interface;
 using Azure.Core;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;

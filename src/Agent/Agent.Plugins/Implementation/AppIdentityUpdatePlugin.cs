@@ -6,6 +6,7 @@ using Agent.Core;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Logging;
+using Agent.Plugins.Interface;
 using Azure;
 using Azure.Core;
 using Azure.ResourceManager.AppService;

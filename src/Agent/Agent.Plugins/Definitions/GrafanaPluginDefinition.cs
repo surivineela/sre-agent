@@ -5,6 +5,7 @@
 using System.ComponentModel;
 using Agent.Core.Attributes;
 using Agent.Framework;
+using Agent.Plugins.Interface;
 
 namespace Agent.Plugins
 {

@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Text.Json;
 using Agent.Core.Attributes;
 using Agent.Framework;
+using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
 using Microsoft.SemanticKernel;
 

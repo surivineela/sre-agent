@@ -1,13 +1,13 @@
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Logging;
-using Agent.Plugins.Definitions;
 using Azure.Core;
 using Agent.Plugins.Implementation.DiagnosticsPlugin.ComputeResourceDiagnosticStrategies;
 using Azure.ResourceManager.AppContainers;
 using Azure.ResourceManager.AppService;
 using Azure.ResourceManager.ContainerService;
 using Microsoft.Extensions.Logging;
+using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Implementation.DiagnosticsPlugin;
 

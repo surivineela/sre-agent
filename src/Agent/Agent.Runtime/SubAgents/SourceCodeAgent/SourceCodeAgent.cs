@@ -9,6 +9,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Plugins;
+using Agent.Plugins.Interface;
 using Agent.Runtime.Communication;
 using Google.Protobuf;
 using Microsoft.Extensions.AI;

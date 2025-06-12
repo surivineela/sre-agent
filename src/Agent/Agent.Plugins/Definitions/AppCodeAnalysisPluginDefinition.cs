@@ -6,6 +6,7 @@ using System.ComponentModel;
 using Agent.Core.Attributes;
 using Agent.Core.Helpers;
 using Agent.Framework;
+using Agent.Plugins.Interface;
 using Azure.ResourceManager.ResourceGraph.Models;
 using Microsoft.SemanticKernel;
 

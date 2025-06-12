@@ -4,7 +4,6 @@
 
 using Agent.Core.Configuration;
 using Agent.Logging;
-using Agent.Plugins.Definitions;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Schema;
@@ -13,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Bot.Connector;
 using Agent.Data.Repositories;
 using Agent.Core.Models.Api.v1;
+using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Implementation
 {

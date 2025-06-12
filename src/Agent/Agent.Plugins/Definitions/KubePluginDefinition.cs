@@ -6,6 +6,7 @@ using System.ComponentModel;
 using Agent.Core.Attributes;
 using Agent.Framework;
 using Agent.Plugins.Helpers;
+using Agent.Plugins.Interface;
 using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins

@@ -1,6 +1,7 @@
 using Agent.Core.Attributes;
 using Agent.Core.Helpers;
 using Agent.Plugins.Attributes;
+using Agent.Plugins.Interface;
 using Azure.ResourceManager.AppService.Models;
 using Microsoft.DurableTask.Client;
 using Microsoft.SemanticKernel;

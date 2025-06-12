@@ -26,6 +26,7 @@ using Microsoft.Rest.Azure.OData;
 using Microsoft.SemanticKernel;
 using Agent.Core.Helpers;
 using Microsoft.Extensions.Hosting;
+using Agent.Plugins.Interface;
 
 namespace Agent.Plugins
 {

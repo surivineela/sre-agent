@@ -5,7 +5,7 @@
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Logging;
-using Agent.Plugins.Definitions;
+using Agent.Plugins.Interface;
 using Microsoft.Bot.Schema;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;

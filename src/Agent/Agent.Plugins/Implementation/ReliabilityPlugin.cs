@@ -3,7 +3,6 @@ using Agent.Core.Models;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.ARM;
 using Agent.Logging;
-using Agent.Plugins.Definitions;
 using Agent.Plugins.Models;
 using Azure.Identity;
 using Azure.ResourceManager;
@@ -23,6 +22,7 @@ using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core;
 using Agent.Core.Services;
+using Agent.Plugins.Interface;
 
 
 namespace Agent.Plugins.Implementation

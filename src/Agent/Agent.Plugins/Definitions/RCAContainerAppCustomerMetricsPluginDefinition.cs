@@ -4,7 +4,7 @@
 
 using System.ComponentModel;
 using Agent.Framework;
-using Agent.Plugins.Kusto;
+using Agent.Plugins.Interface;
 using Agent.Plugins.KustoPlugin;
 using Agent.Plugins.Services.Interfaces;
 using Microsoft.SemanticKernel;

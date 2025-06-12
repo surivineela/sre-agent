@@ -5,6 +5,7 @@
 using System.ComponentModel;
 using Agent.Framework;
 using Agent.Plugins.Helpers;
+using Agent.Plugins.Interface;
 using Microsoft.SemanticKernel;
 using Octokit;
 

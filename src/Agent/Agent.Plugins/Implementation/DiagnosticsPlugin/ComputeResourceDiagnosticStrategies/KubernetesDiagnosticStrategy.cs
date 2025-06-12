@@ -1,6 +1,6 @@
-using Agent.Plugins.Definitions;
 using Agent.Logging;
 using Microsoft.Extensions.Logging;
+using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Implementation.DiagnosticsPlugin.ComputeResourceDiagnosticStrategies;
 

@@ -13,6 +13,7 @@ using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.Metrics;
 using Agent.Logging;
+using Agent.Plugins.Interface;
 using Agent.Prometheus;
 using Agent.Prometheus.Services;
 using k8s;

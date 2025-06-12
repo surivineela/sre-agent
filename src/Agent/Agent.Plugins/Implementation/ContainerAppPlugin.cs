@@ -18,7 +18,7 @@ using Agent.Core.Models;
 using Agent.Core.Services;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Logging;
-using Agent.Plugins.Definitions;
+using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
 using Azure;
 using Azure.Core;

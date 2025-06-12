@@ -5,6 +5,7 @@
 using System.Text.Json;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Schema;
+using Agent.Plugins.Interface;
 using Gremlin.Net.Driver;
 
 namespace Agent.Plugins.Mocks

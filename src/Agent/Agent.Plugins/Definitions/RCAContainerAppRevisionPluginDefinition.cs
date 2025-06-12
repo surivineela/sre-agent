@@ -4,6 +4,7 @@
 
 using System.ComponentModel;
 using Agent.Framework;
+using Agent.Plugins.Interface;
 using Agent.Plugins.Kusto;
 using Agent.Plugins.Services.Interfaces;
 

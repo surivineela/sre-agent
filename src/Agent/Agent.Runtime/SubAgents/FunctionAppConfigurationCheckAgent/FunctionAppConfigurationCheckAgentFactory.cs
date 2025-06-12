@@ -3,6 +3,7 @@ using Agent.Core;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Implementation;
+using Agent.Plugins.Interface;
 using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
 

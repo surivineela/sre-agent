@@ -1,6 +1,6 @@
-using Agent.Plugins.Definitions;
 using Microsoft.Extensions.Logging;
 using Agent.Logging;
+using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Implementation.DiagnosticsPlugin;
 

@@ -1,5 +1,5 @@
 using System.Text.Json;
-using Agent.Plugins.Definitions;
+using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Mocks;
 public class MockRoleAssignmentPlugin : IRoleAssignmentPlugin

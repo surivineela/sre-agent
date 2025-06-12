@@ -4,6 +4,7 @@
 
 using System.ComponentModel;
 using Agent.Core.Models;
+using Agent.Plugins.Interface;
 
 namespace Agent.Plugins
 {

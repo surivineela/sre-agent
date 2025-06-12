@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using Agent.Framework;
 using Agent.Plugins.IcmPlugin;
+using Agent.Plugins.Interface;
 using Kusto.Cloud.Platform.Utils;
 
 namespace Agent.Plugins.Definitions

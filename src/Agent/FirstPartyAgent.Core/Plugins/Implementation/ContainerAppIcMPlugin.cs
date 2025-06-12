@@ -20,6 +20,8 @@ using FirstPartyAgent.Plugins.Definitions;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
+using Agent.Plugins.Interface;
+using IContainerAppIcMPlugin = FirstPartyAgent.Core.Plugins.Interfaces.IContainerAppIcMPlugin;
 
 namespace FirstPartyAgent.Core.Plugins.Implementation;
 public class ContainerAppIcMPlugin : IcmPlugin, IContainerAppIcMPlugin

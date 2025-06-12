@@ -4,6 +4,7 @@
 
 using System.ComponentModel;
 using Agent.Framework;
+using Agent.Plugins.Interface;
 using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins

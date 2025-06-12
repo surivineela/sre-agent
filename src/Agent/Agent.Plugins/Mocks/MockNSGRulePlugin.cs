@@ -1,4 +1,4 @@
-using Agent.Plugins.Definitions;
+using Agent.Plugins.Interface;
 using Azure.ResourceManager.Network;
 using Azure.ResourceManager.Network.Models;
 

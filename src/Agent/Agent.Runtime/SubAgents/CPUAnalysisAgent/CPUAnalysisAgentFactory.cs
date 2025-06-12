@@ -4,6 +4,7 @@ using Agent.Plugins;
 using Microsoft.DurableTask.Client;
 using Microsoft.DurableTask;
 using System.Text.Json;
+using Agent.Plugins.Interface;
 
 namespace Agent.Runtime.SubAgents.CPUAnalysisAgent;
 

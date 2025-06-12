@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Net.Http;
 using System.Text.Json;
 using Agent.Core.Helpers;
+using Agent.Plugins.Interface;
 using Azure.Core;
 using Microsoft.SemanticKernel;
 using Newtonsoft.Json;

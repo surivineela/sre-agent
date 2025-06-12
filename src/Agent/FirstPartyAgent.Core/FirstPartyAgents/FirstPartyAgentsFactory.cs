@@ -8,6 +8,8 @@ using FirstPartyAgent.Core.Plugins.Interfaces;
 using Agent.Plugins;
 using FirstPartyAgent.Core.Plugins.Implementation;
 using FirstPartyAgent.Plugins;
+using Agent.Plugins.Interface;
+using IContainerAppIcMPlugin = FirstPartyAgent.Core.Plugins.Interfaces.IContainerAppIcMPlugin;
 
 namespace FirstPartyAgent.Core.FirstPartyAgents;
 

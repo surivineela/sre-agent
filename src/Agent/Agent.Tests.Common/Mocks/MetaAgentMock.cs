@@ -1,8 +1,7 @@
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Logging;
-using Agent.Plugins;
-using Agent.Plugins.Definitions;
+using Agent.Plugins.Interface;
 using Agent.Runtime.MetaAgent;
 using Agent.Runtime.MetaAgent.Interfaces;
 using Agent.Runtime.Services;

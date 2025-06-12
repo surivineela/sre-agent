@@ -5,6 +5,7 @@ using Agent.Plugins.Definitions;
 using Agent.Plugins;
 using Microsoft.DurableTask.Client;
 using Microsoft.DurableTask;
+using Agent.Plugins.Interface;
 
 
 namespace Agent.Runtime.SubAgents.SqlDbQueryPerfAgent;

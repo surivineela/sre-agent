@@ -7,6 +7,7 @@ using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Plugins;
+using Agent.Plugins.Interface;
 using Agent.Runtime.Communication;
 using Microsoft.Extensions.AI;
 using AIChatMessage = Microsoft.Extensions.AI.ChatMessage;

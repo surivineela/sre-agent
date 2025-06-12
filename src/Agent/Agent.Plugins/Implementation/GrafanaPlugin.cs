@@ -13,6 +13,7 @@ using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Logging;
+using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Implementation
 {

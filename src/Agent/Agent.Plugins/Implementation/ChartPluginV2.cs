@@ -8,6 +8,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models.Charts;
 using Agent.Logging;
 using Agent.Plugins.Attributes;
+using Agent.Plugins.Interface;
 using Microsoft.Extensions.Logging;
 using ScottPlot;
 

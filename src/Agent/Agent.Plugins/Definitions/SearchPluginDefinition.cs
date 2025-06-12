@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Models;
+using Agent.Plugins.Interface;
 using Microsoft.SemanticKernel;
 using System.ComponentModel;
 

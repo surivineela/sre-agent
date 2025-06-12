@@ -3,6 +3,7 @@ using Agent.Plugins;
 using Agent.Runtime.HelperAgents;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using Agent.Plugins.Interface;
 
 namespace Agent.Tests.Common.ScenarioTestHelpers;
 public static class AKSTestHelpers

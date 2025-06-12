@@ -4,6 +4,7 @@
 
 using Agent.Core.Models;
 using Agent.Plugins;
+using Agent.Plugins.Interface;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 

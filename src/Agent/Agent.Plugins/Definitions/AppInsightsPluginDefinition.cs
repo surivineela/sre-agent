@@ -1,6 +1,7 @@
 // ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
+using Agent.Plugins.Interface;
 using Microsoft.SemanticKernel;
 using System.ComponentModel;
 

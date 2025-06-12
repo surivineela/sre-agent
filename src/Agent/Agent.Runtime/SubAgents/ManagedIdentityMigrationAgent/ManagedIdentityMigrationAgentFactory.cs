@@ -11,6 +11,7 @@ using Agent.Core;
 using System.Text.Json;
 using Agent.Core.Models.Api.v1;
 using Agent.Runtime.Communication;
+using Agent.Plugins.Interface;
 
 namespace Agent.Runtime.SubAgents.ManagedIdentityMigration;
 

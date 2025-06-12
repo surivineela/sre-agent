@@ -10,7 +10,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Logging;
-using Agent.Plugins.Definitions;
+using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
 using Azure.Core;
 using Azure.ResourceManager;

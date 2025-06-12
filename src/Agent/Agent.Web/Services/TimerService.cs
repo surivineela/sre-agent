@@ -12,7 +12,7 @@ using Agent.Graph.Crawler;
 using Agent.Graph.Interfaces;
 using Agent.Logging;
 using Agent.Plugins;
-using Agent.Plugins.Definitions;
+using Agent.Plugins.Interface;
 using Agent.Runtime.Communication;
 using Agent.Runtime.MetaAgent;
 using Agent.Runtime.SubAgents;

@@ -10,6 +10,7 @@ using Agent.Core.Services;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.Repositories;
 using Agent.Plugins;
+using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
 using Agent.Runtime.Communication;
 using Azure.Identity;
@@ -29,6 +30,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
+using IKustoPluginClient = FirstPartyAgent.Core.Plugins.Interfaces.IKustoPluginClient;
 
 namespace FirstPartyAgent.Core.Extensions
 {

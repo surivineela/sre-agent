@@ -3,13 +3,13 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
 using Agent.Core.Helpers;
-using Agent.Plugins.Definitions;
 using Azure.Core;
 using Agent.Logging;
 using Microsoft.Extensions.Logging;
 using Agent.Core.Interfaces;
 using System.Net;
 using Azure.ResourceManager.AppContainers;
+using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Implementation.DiagnosticsPlugin.ComputeResourceDiagnosticStrategies;
 

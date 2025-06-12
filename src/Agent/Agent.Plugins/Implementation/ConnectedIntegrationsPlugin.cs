@@ -4,6 +4,7 @@
 
 using Agent.Core.Configuration;
 using Agent.Core.Models;
+using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Implementation;
 public class ConnectedIntegrationsPlugin : IConnectedIntegrationsPlugin

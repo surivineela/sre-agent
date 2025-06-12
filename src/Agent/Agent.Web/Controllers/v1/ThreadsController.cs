@@ -18,8 +18,8 @@ using Thread = Agent.Core.Models.Api.v1.Thread;
 using Agent.Runtime.MetaAgent.Interfaces;
 using Microsoft.DurableTask.Client;
 using Agent.Web.Models.WelcomeMessage;
-using Agent.Plugins;
 using Agent.Runtime.Services;
+using Agent.Plugins.Interface;
 
 
 namespace Agent.Web.Controllers.v1

@@ -4,7 +4,6 @@
 
 using System.Text.Json;
 using Agent.Plugins;
-using Agent.Plugins.Definitions;
 using Agent.Runtime.Communication;
 using FirstPartyAgent.Core.Plugins.Definitions;
 using Microsoft.DurableTask.Client;
@@ -12,6 +11,7 @@ using Agent.Runtime.SubAgents;
 using Microsoft.DurableTask;
 using FirstPartyAgent.Plugins.Interfaces;
 using FirstPartyAgent.Core.Plugins.Interfaces;
+using Agent.Plugins.Interface;
 
 namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppJobsAgent
 {

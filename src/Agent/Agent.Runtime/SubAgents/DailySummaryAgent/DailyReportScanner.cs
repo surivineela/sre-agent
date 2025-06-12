@@ -15,7 +15,6 @@ using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.Repositories;
 using Agent.Logging;
-using Agent.Plugins;
 using Agent.Runtime.Services;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.AI;
@@ -24,6 +23,7 @@ using Thread = Agent.Core.Models.Api.v1.Thread;
 using Microsoft.Extensions.Configuration;
 using Agent.Data.DataModels;
 using Microsoft.Extensions.Hosting;
+using Agent.Plugins.Interface;
 
 namespace Agent.Runtime.SubAgents.DailyReportSummary
 {

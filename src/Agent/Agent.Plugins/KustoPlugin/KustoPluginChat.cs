@@ -5,6 +5,7 @@
 using Agent.Core;
 using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Plugins.Interface;
 using Agent.Plugins.KustoPlugin;
 using IdentityModel.Client;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Core;

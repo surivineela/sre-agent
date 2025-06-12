@@ -3,7 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Logging;
-using Agent.Plugins.Definitions;
+using Agent.Plugins.Interface;
 using Microsoft.Bot.Schema;
 using Microsoft.Extensions.Logging;
 

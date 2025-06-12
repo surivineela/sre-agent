@@ -6,7 +6,7 @@ using System.ComponentModel;
 using System.Text;
 using Agent.Core.Helpers;
 using Agent.Plugins;
-using Agent.Plugins.Definitions;
+using Agent.Plugins.Interface;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 

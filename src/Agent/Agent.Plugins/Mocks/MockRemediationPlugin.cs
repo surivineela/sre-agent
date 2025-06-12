@@ -3,7 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Helpers;
-using Agent.Plugins.Definitions;
+using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
 
 namespace Agent.Plugins.Mocks

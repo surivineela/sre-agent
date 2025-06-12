@@ -5,11 +5,11 @@
 using System.Text.Json;
 using Agent.Core;
 using Agent.Plugins;
-using Agent.Plugins.Definitions;
 using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
 using Agent.Runtime.Communication;
 using Agent.Core.Models.Api.v1;
+using Agent.Plugins.Interface;
 
 namespace Agent.Runtime.SubAgents.DailyReportSummary;
 

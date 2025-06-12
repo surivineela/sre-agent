@@ -8,6 +8,7 @@ using Agent.Framework;
 using Agent.Plugins.Kusto;
 using Agent.Core.Interfaces;
 using Microsoft.SemanticKernel;
+using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Definitions
 {

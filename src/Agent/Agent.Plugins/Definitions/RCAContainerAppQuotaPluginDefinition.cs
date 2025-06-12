@@ -3,7 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Agent.Framework;
 using Agent.Plugins.IcmPlugin;
-using Agent.Plugins.Kusto;
+using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Definitions
 {

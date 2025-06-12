@@ -7,6 +7,7 @@ using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Implementation;
+using Agent.Plugins.Interface;
 using Agent.Runtime;
 using Agent.Tests.Integration.Fixtures;
 using Microsoft.Extensions.AI;

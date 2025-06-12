@@ -10,6 +10,7 @@ using Newtonsoft.Json.Linq;
 using YamlDotNet.Serialization;
 using Newtonsoft.Json.Converters;
 using Agent.Logging;
+using Agent.Plugins.Interface;
 
 namespace Agent.Plugins
 {

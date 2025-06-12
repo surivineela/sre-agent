@@ -4,6 +4,7 @@ using Agent.Core.Models;
 using Agent.Logging;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
+using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Implementation;
 

@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Models;
+using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Mocks
 {

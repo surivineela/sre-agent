@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Plugins;
+using Agent.Plugins.Interface;
 using Agent.Runtime;
 using Agent.Tests.Integration.Fixtures;
 using Microsoft.Extensions.AI;

@@ -5,7 +5,7 @@ using Agent.Core;
 using Agent.Core.Attributes;
 using Agent.Core.Helpers;
 using Agent.Core.Models;
-using Agent.Plugins.Definitions;
+using Agent.Plugins.Interface;
 using Microsoft.SemanticKernel;
 using Newtonsoft.Json;
 

@@ -5,7 +5,7 @@
 using System.Text.Json;
 using Agent.Core;
 using Agent.Plugins;
-using Agent.Plugins.Definitions;
+using Agent.Plugins.Interface;
 using Agent.Runtime.Communication;
 using Agent.Runtime.SubAgents;
 using FirstPartyAgent.Core.Plugins;

@@ -5,6 +5,7 @@
 using Agent.Core.Helpers;
 using Agent.Core.Models;
 using Agent.Core.Models.Charts;
+using Agent.Plugins.Interface;
 
 namespace Agent.Plugins
 {
