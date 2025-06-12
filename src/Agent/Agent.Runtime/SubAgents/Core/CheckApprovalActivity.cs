@@ -2,6 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Reflection;
+using Agent.Core.Attributes;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
@@ -12,6 +14,7 @@ using Agent.Runtime.Helpers;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using ModelContextProtocol.Protocol.Types;
 
 namespace Agent.Runtime.SubAgents.Core;
 
@@ -115,6 +118,8 @@ public class CheckApprovalActivity : TaskActivity<CheckApprovalActivityInput, Ch
                     }
                 }
 
+                var attribute = matchingTool.ToolFunction.UnderlyingMethod?.GetCustomAttribute<RequiresApprovalAttribute>();
+
                 // Create a new approval document
                 var newApproval = new Approval(
                     Id: Guid.NewGuid(),
@@ -127,7 +132,8 @@ public class CheckApprovalActivity : TaskActivity<CheckApprovalActivityInput, Ch
                     OrchestrationId: input.OrchestrationId,
                     AgentContextId: null,
                     DecisionUser: null,
-                    OboToken: null);
+                    OboToken: null,
+                    OboTokenScope: attribute.Scope);
 
                 await _threadRepository.CreateApprovalAsync(newApproval);
                 await _outboundCommunicationService.AppendAgentApprovalMessage(

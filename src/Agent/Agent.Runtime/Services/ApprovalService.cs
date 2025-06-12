@@ -56,15 +56,20 @@ namespace Agent.Runtime.Services
             string user,
             ApprovalDecision status,
             Guid threadId,
-            string? oboToken = null)
+            string? oboToken = null,
+            string? scope = null)
         {
-            _logger.LogInternalInformation($"Processing approval decision for {approvalId} with status {status}");
+            _logger.LogInternalInformation($"Processing approval decision for {approvalId} with status {status} and scope {scope}");
 
             var approval = await _threadRepository.GetApprovalAsync(threadId, Guid.Parse(approvalId));
 
             if (approval == null)
             {
                 throw new KeyNotFoundException("Approval not found");
+            }
+            if (scope != approval.OboTokenScope)
+            {
+                throw new InvalidOperationException($"Requested scope mismatch: expected {approval.OboTokenScope}, received {scope}");
             }
             if (approval.Status != ApprovalDecision.Pending)
             {

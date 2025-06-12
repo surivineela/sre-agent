@@ -5,7 +5,7 @@ import {
     UserMessageV2 as UserMessage,
 } from '@fluentui-copilot/react-copilot-chat';
 import { mergeStyleSets } from '@fluentui/react';
-import { Body1Strong, Button, Image, mergeClasses, Text, tokens } from '@fluentui/react-components';
+import { Body1Strong, Button, Image, InfoLabel, mergeClasses, Text, tokens } from '@fluentui/react-components';
 import { SquareDismissRegular } from '@fluentui/react-icons';
 import axios from 'axios';
 import mermaid from 'mermaid';
@@ -2008,7 +2008,7 @@ const ChatMessage = ({
         return <>{messageContent.map(renderContentPart)}</>;
     };
 
-    const sendApprovalDecision = async (threadId: string, approvalId: string, decision: ApprovalDecision) => {
+    const sendApprovalDecision = async (threadId: string, approvalId: string, decision: ApprovalDecision, scope?: string) => {
         const url = `${sreAgentEndpoint}/api/v1/approvals/${threadId}/${approvalId}/decision`;
 
         const response = await axios.post(
@@ -2016,6 +2016,7 @@ const ChatMessage = ({
             {
                 Status: decision,
                 User: userIdAndDisplayName.userId,
+                Scope: scope,
             },
             {
                 headers: getAgentHeaders(),
@@ -2039,7 +2040,8 @@ const ChatMessage = ({
                 const approvalData = await sendApprovalDecision(
                     threadId,
                     message.approval.id,
-                    approved ? ApprovalDecision.Approved : ApprovalDecision.Rejected
+                    approved ? ApprovalDecision.Approved : ApprovalDecision.Rejected,
+                    message.approval.oboTokenScope
                 );
 
                 console.log(`Approval decision sent for message ID: ${message.id}, approved: ${approved}`);
@@ -2097,7 +2099,7 @@ const ChatMessage = ({
 
         // Use the local state for status to ensure UI updates immediately after user action
         const status = approvalStatus || message.approval.status;
-        const { title, description } = message.approval;
+        const { title, description, oboTokenScope } = message.approval;
 
         // Log approval information to help with debugging
         console.log('Rendering approval with status:', status, 'and title:', title);
@@ -2113,7 +2115,17 @@ const ChatMessage = ({
                         backgroundColor: '#f9f9f9',
                     }}
                 >
-                    <h4 style={{ margin: '0 0 16px 0' }}>{description}</h4>
+                    <h4 style={{ margin: '0 0 16px 0' }}>
+                        <InfoLabel
+                            info={
+                                <>
+                                    An on-behalf-of token will be used with the following scope: <b>{oboTokenScope}</b>
+                                </>
+                            }
+                        >
+                            {description}
+                        </InfoLabel>
+                    </h4>
                     <div style={{ display: 'flex', gap: '8px' }}>
                         <button
                             style={{
@@ -2213,7 +2225,17 @@ const ChatMessage = ({
                     }}
                 >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                        <h4 style={{ margin: '0', fontWeight: '600', maxWidth: '75%' }}>{description}</h4>
+                        <h4 style={{ margin: '0', fontWeight: '600', maxWidth: '75%' }}>
+                            <InfoLabel
+                                info={
+                                    <>
+                                        An on-behalf-of token will be used with the following scope: <b>{oboTokenScope}</b>
+                                    </>
+                                }
+                            >
+                                {description}
+                            </InfoLabel>
+                        </h4>
                         <span
                             style={{
                                 color: statusColor,

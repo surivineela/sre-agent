@@ -1994,7 +1994,7 @@ const ChatMessageV2 = ({ message, previousMessage, nextMessage, isTyping, thread
         return <>{messageContent.map(renderContentPart)}</>;
     };
 
-    const sendApprovalDecision = async (threadId: string, approvalId: string, decision: ApprovalDecision) => {
+    const sendApprovalDecision = async (threadId: string, approvalId: string, decision: ApprovalDecision, scope?: string) => {
         const url = `${sreAgentEndpoint}/api/v1/approvals/${threadId}/${approvalId}/decision`;
 
         const response = await axios.post(
@@ -2002,6 +2002,7 @@ const ChatMessageV2 = ({ message, previousMessage, nextMessage, isTyping, thread
             {
                 Status: decision,
                 User: userIdAndDisplayName.userId,
+                Scope: scope,
             },
             {
                 headers: getAgentHeaders(),
@@ -2025,7 +2026,8 @@ const ChatMessageV2 = ({ message, previousMessage, nextMessage, isTyping, thread
                 const approvalData = await sendApprovalDecision(
                     threadId,
                     message.approval.id,
-                    approved ? ApprovalDecision.Approved : ApprovalDecision.Rejected
+                    approved ? ApprovalDecision.Approved : ApprovalDecision.Rejected,
+                    message.approval.oboTokenScope
                 );
 
                 console.log(`Approval decision sent for message ID: ${message.id}, approved: ${approved}`);

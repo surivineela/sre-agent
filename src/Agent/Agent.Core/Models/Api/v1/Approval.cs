@@ -22,6 +22,7 @@ namespace Agent.Core.Models.Api.v1
         string? OrchestrationId,
         Guid? AgentContextId,
         string? OboToken,
+        string? OboTokenScope,
         Author? DecisionUser
         )
     {

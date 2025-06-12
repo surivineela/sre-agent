@@ -150,7 +150,7 @@ namespace Agent.Web.Controllers.v1
 
             try
             {
-                await _approvalService.SubmitApprovalDecision(id, approver, approvalStatus, Guid.Parse(threadId), oboToken);
+                await _approvalService.SubmitApprovalDecision(id, approver, approvalStatus, Guid.Parse(threadId), oboToken, request.Scope);
 
                 return Ok(new
                 {
@@ -176,6 +176,15 @@ namespace Agent.Web.Controllers.v1
                     status = approval?.Status.ToString()
                 });
             }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("Requested scope mismatch"))
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("Approval not found") || ex.Message.Contains("OboToken not found"))
+            {
+                _logger.LogInternalError(ex, "Failed to process approval decision");
+                return BadRequest(new { error = ex.Message });
+            }
             catch (KeyNotFoundException ex)
             {
                 return NotFound(new { error = ex.Message });
@@ -194,7 +203,8 @@ namespace Agent.Web.Controllers.v1
         {
             public string Status { get; set; }
             public string User { get; set; }
-        }
+            public string? Scope { get; set; }
+            }
     }
 }
 

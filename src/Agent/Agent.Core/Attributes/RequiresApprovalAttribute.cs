@@ -16,7 +16,7 @@ public class RequiresApprovalAttribute : Attribute
     // Not implemented yet
     public string Scope { get; set; }
 
-    public RequiresApprovalAttribute(string? displayMessage = null, bool useOboToken = true, string scope = "https://management.core.windows.net/.default")
+    public RequiresApprovalAttribute(string? displayMessage = null, bool useOboToken = true, string scope = Constants.DefaultOboTokenScope)
     {
         DisplayMessage = displayMessage;
         UseOboToken = useOboToken;

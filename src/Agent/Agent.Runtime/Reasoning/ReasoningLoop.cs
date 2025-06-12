@@ -1098,7 +1098,8 @@ public class ReasoningLoop
                     OrchestrationId: null,
                     AgentContextId: _context.Id,
                     DecisionUser: null,
-                    OboToken: null);
+                    OboToken: null,
+                    OboTokenScope: attribute.Scope);
 
                 await _threadRepository.CreateApprovalAsync(newApproval);
 

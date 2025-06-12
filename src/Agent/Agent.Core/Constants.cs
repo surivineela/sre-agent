@@ -12,6 +12,8 @@ namespace Agent.Core
 
         public const string HttpClientForArmOperation = "ArmOperation";
 
+        public const string DefaultOboTokenScope = "https://management.core.windows.net/.default";
+
         public const string SREAgentPromptStarter =
             """
             You are Azure SRE Agent, created by Microsoft.

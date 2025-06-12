@@ -513,7 +513,8 @@ class Program
                     OrchestrationId: null,
                     AgentContextId: null,
                     DecisionUser: null,
-                    OboToken: null);
+                    OboToken: null,
+                    OboTokenScope: null);
 
                 await approvalRepo.CreateApprovalAsync(newApproval);
 

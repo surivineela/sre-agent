@@ -219,6 +219,7 @@ export interface Approval {
     createdTimestamp: string;
     decisionTimestamp?: string;
     decisionUser?: MessageAuthor;
+    oboTokenScope?: string;
 }
 
 export interface MessageAuthor {

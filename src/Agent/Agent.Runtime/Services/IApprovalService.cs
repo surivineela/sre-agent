@@ -10,7 +10,7 @@ namespace Agent.Runtime.Services
     {
         Task<IList<Approval>> GetApprovals(Guid threadId);
         Task<Approval> GetApproval(Guid threadId, string approvalId);
-        Task SubmitApprovalDecision(string approvalId, string user, ApprovalDecision status, Guid threadId, string? oboToken = null);
+        Task SubmitApprovalDecision(string approvalId, string user, ApprovalDecision status, Guid threadId, string? oboToken = null, string? scope = null);
     }
 }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Agent.Core;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 
@@ -22,6 +23,7 @@ public record ApprovalDocument(
     Author? DecisionUser,
     string? OrchestrationId,
     string? AgentContextId,
+    string? OboTokenScope,
     ApprovalDocumentEncryptedProperties? EncryptedProperties
     ) : ICosmosDocument
 {
@@ -43,6 +45,7 @@ public record ApprovalDocument(
             DecisionUser: approval.DecisionUser,
             OrchestrationId: approval.OrchestrationId,
             AgentContextId: approval.AgentContextId?.ToString(),
+            OboTokenScope: string.IsNullOrEmpty(approval.OboTokenScope) ? Constants.DefaultOboTokenScope : approval.OboTokenScope,
             EncryptedProperties: new ApprovalDocumentEncryptedProperties(approval.OboToken)
         );
 
@@ -58,6 +61,7 @@ public record ApprovalDocument(
             OrchestrationId: OrchestrationId,
             AgentContextId: Guid.TryParse(AgentContextId, out var agentContextId) ? agentContextId : null,
             OboToken: EncryptedProperties?.OboToken,
+            OboTokenScope: string.IsNullOrEmpty(OboTokenScope) ? Constants.DefaultOboTokenScope : OboTokenScope,
             DecisionUser: DecisionUser
         );
 
