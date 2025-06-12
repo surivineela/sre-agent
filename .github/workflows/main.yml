@@ -1,0 +1,78 @@
+# .github/workflows/manual-sync-from-ado.yml
+
+name: Manual Sync from ADO Repo
+
+# This allows the workflow to be triggered manually from the Actions tab in GitHub
+on:
+  workflow_dispatch:
+
+# Permissions required for the OIDC token exchange
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  sync-ado-repo-to-storage:
+    runs-on: ubuntu-latest
+    
+    steps:
+    # 1. Log in to Azure using the Federated Identity (Workload Identity)
+    # This step exchanges GitHub's OIDC token for an Azure access token.
+    - name: 'Azure Login using OIDC'
+      uses: azure/login@v1
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    # 2. Get a specific Access Token for Azure DevOps
+    # The Azure token from the step above is used to request a new token scoped only for ADO.
+    # The GUID '499b84ac-1321-427f-aa17-267ca6975798' is the well-known ID for the Azure DevOps API.
+    - name: 'Get Azure DevOps Token'
+      id: get_ado_token # Give this step an ID to reference its output
+      run: |
+        ADO_TOKEN=$(az account get-access-token --resource 499b84ac-1321-427f-aa17-267ca6975798 --query accessToken --output tsv)
+        echo "ADO_TOKEN=$ADO_TOKEN" >> $GITHUB_ENV # Set token for subsequent steps
+        echo "::add-mask::$ADO_TOKEN" # Mask the token in logs for security
+
+    # 3. Checkout code from the private Azure DevOps repo using the ADO token
+    # This uses the token we just generated for authentication.
+    - name: 'Checkout ADO Repository'
+      uses: actions/checkout@v4
+      with:
+        # Replace with your ADO organization, project, and repository name
+        repository: 'https://msazure.visualstudio.com/DefaultCollection/One/_git/AAPT-Antares-ContainerApps-Docs'
+        # The token is passed via the Authorization header, which checkout uses automatically.
+        # The username can be anything when using an OAuth token.
+        token: ${{ env.ADO_TOKEN }}
+        persist-credentials: false # We've handled auth; no need to persist git credentials
+
+    # 4. Sync the checked-out files to Azure Blob Storage
+    # This step reuses the initial Azure login context.
+    - name: 'Sync files to Azure Blob Storage'
+      uses: azure/cli@v1
+      with:
+        inlineScript: |
+          echo "Starting sync of files from ADO repo..."
+
+          # --- Configuration: Replace with your values ---
+          STORAGE_ACCOUNT_NAME="acadocindexing"
+          CONTAINER_NAME="docs"
+          SOURCE_DIRECTORY="."   # The local directory to sync from
+
+          az storage blob upload-batch \
+            --account-name $STORAGE_ACCOUNT_NAME \
+            --destination $CONTAINER_NAME \
+            --source "${SOURCE_DIRECTORY}" \
+            --overwrite \
+            --auth-mode login # Uses the initial OIDC login credential
+            
+          echo "Sync from ADO repo complete."
+
+    # 5. Clean up Azure login to prevent token leakage
+    - name: Azure logout
+      if: always() # This step always runs, even if previous steps fail
+      run: |
+        az logout
+        az cache purge
+        az account clear
