@@ -38,7 +38,7 @@ namespace FirstPartyAgent.Core.Extensions
             services.RegisterFirstPartyAppSettings();
             services.AddSingleton<ISessionMessageService, SessionMessageService>();
             services.AddSingleton<FirstPartyAgent.Core.Plugins.TimePlugin>();
-            services.AddSingleton<IICMAPIClient, ICMAPIClient>();
+            services.AddSingleton<FirstPartyAgent.Core.Services.IICMAPIClient, FirstPartyAgent.Core.Services.ICMAPIClient>();
             services.AddSingleton<ObserverClientService>();
             services.AddSingleton<IBaseIcmWorkflowClient>(sp =>
             {

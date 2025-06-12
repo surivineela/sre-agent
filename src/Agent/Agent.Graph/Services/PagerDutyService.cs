@@ -296,3 +296,36 @@ public class PagerDutyService : IPagerDutyService
         }
     }
 }
+
+public class NullablePagerDutyService : IPagerDutyService
+{
+    public Task AcknowledgeIncident(string incidentId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<PagerDutyIncidentsResponse> GetIncidentsAsync(uint limit, uint offset)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<PagerDutyIncidentLatestDetails?> GetLatestIncidentDetails(string incidentId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<PagerDutyIncident> GetPagerDutyIncidentAsync(string incidentId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<HttpResponseMessage> GetPagerDutyRequest(string requestPath)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task ResolveIncident(string incidentId)
+    {
+        throw new NotImplementedException();
+    }
+}

@@ -41,6 +41,8 @@ namespace Agent.Runtime.Services
                     DocumentType = "PagerDutyIncident";
                     break;
                 case IncidentManagementType.Icm:
+                    DocumentType = "IcmIncident";
+                    break;
                 case IncidentManagementType.AzMonitor:
                 default:
                     throw new NotImplementedException($"Incident management type '{_incidentManagementSettings.Type}' is not implemented.");
@@ -52,8 +54,9 @@ namespace Agent.Runtime.Services
             switch (_incidentManagementSettings.Type)
             {
                 case IncidentManagementType.PagerDuty:
-                    return await QueryIncidentsInternal(request);
                 case IncidentManagementType.Icm:
+                    return await QueryIncidentsInternal(request);
+
                 case IncidentManagementType.AzMonitor:
                 default:
                     throw new NotImplementedException($"Incident management type '{_incidentManagementSettings.Type}' is not implemented.");
@@ -65,18 +68,9 @@ namespace Agent.Runtime.Services
             switch (_incidentManagementSettings.Type)
             {
                 case IncidentManagementType.PagerDuty:
-                    var iterator = _container.GetItemLinqQueryable<T>(allowSynchronousQueryExecution: false)
-                        .Where(c => c.DocumentType == DocumentType && c.Id == incidentId)
-                        .Take(1)
-                        .ToFeedIterator();
-
-                    if (iterator.HasMoreResults)
-                    {
-                        var response = await iterator.ReadNextAsync();
-                        return response.FirstOrDefault();
-                    }
-                    return default;
-                default:
+                case IncidentManagementType.Icm:
+                    return await GetIncidentDetailsInternal(incidentId);
+                 default:
                     throw new NotImplementedException($"Incident management type '{_incidentManagementSettings.Type}' is not implemented.");
             }
         }
@@ -216,6 +210,21 @@ namespace Agent.Runtime.Services
             pagedResult.TotalCount = totalCount;
             pagedResult.Items = filteredResults.Skip(skip).Take(take).ToList();
             return pagedResult;
+        }
+
+        private async Task<T?> GetIncidentDetailsInternal(string incidentId)
+        {
+            var iterator = _container.GetItemLinqQueryable<T>(allowSynchronousQueryExecution: false)
+                        .Where(c => c.DocumentType == DocumentType && c.Id == incidentId)
+                        .Take(1)
+                        .ToFeedIterator();
+
+            if (iterator.HasMoreResults)
+            {
+                var response = await iterator.ReadNextAsync();
+                return response.FirstOrDefault();
+            }
+            return default;
         }
     }
 }

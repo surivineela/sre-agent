@@ -10,6 +10,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Plugins.Definitions;
 using Agent.Core.Services;
+using Agent.Core.Services.TokenService;
 using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.DataModels;
@@ -55,6 +56,7 @@ using Agent.Runtime.SubAgents.FunctionAppConnectivityAgent;
 using Agent.Runtime.SubAgents.FunctionAppDeploymentChecksAgent;
 using Agent.Runtime.SubAgents.FunctionAppDiagnosticsAgent;
 using Agent.Runtime.SubAgents.FunctionAppExecutionFailuresAgent;
+using Agent.Runtime.SubAgents.IcmScanner;
 using Agent.Runtime.SubAgents.KubernetesAgent;
 using Agent.Runtime.SubAgents.ManagedIdentityMigration;
 using Agent.Runtime.SubAgents.PagerDutyAgent;
@@ -79,6 +81,7 @@ using Microsoft.DurableTask.Client.AzureManaged;
 using Microsoft.DurableTask.Worker;
 using Microsoft.DurableTask.Worker.AzureManaged;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.SemanticKernel;
 using OpenTelemetry;
 using OpenTelemetry.Logs;
@@ -506,9 +509,36 @@ public class Program
         builder.Services.AddSingleton<IKubernetesClientFactory, KubernetesClientFactory>();
         builder.Services.AddKeyedSingleton<IKubernetesService, CrawlerKubernetesService>("Crawler");
         builder.Services.AddSingleton<IActivityLogService, ActivityLogService>();
-        builder.Services.AddSingleton<IPagerDutyService, PagerDutyService>();
-        builder.Services.AddSingleton<PagerDutyScanner>();
+ 
+
+        var serviceProvider = builder.Services.BuildServiceProvider();
+        var incidentManagementSettings = serviceProvider.GetRequiredService<IncidentManagementSettings>();
+
+        switch (incidentManagementSettings.Type)
+        {
+            case IncidentManagementType.PagerDuty:
+                builder.Services.AddSingleton<IPagerDutyService, PagerDutyService>();
+                builder.Services.AddSingleton<IICMAPIClient, NullableICMAPIClient>();
+                builder.Services.AddSingleton<IIncidentScanner, PagerDutyScanner>();
+                break;
+            case IncidentManagementType.Icm:
+                builder.Services.AddSingleton<IPagerDutyService, NullablePagerDutyService>();
+                builder.Services.AddSingleton<IICMAPIClient, ICMAPIClient>();
+                builder.Services.AddSingleton<IIncidentScanner, IcmScanner>();
+
+                var logger = serviceProvider.GetRequiredService<ILogger<ICMAPITokenService>>();
+                ICMAPITokenService.Instance.Initialize(incidentManagementSettings.ICMAPI,logger);
+                break;
+            default:
+                builder.Services.AddSingleton<IPagerDutyService, NullablePagerDutyService>();
+                builder.Services.AddSingleton<IICMAPIClient, NullableICMAPIClient>();
+                builder.Services.AddSingleton<IIncidentScanner, NullableIncidentScanner>();
+                break;
+        }
+
+        //Todo, add generic interface/class for PagerDutyIncidentDocument/IcmDocument and dynamically register
         builder.Services.AddSingleton<IncidentManagementService<PagerDutyIncidentDocument>>();
+        builder.Services.AddSingleton<IncidentManagementService<IcmIncidentDocument>>();
         builder.Services.AddSingleton<IIncidentHandlerManagementService, IncidentHandlerManagementService>();
         builder.Services.AddSingleton<IIncidentFilterManagementService, IncidentFilterManagementService>();
         builder.Services.AddSingleton<IInstructionGenerationService, InstructionGenerationService>();

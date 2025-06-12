@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using Agent.Core.Configuration;
+using Agent.Core.Models.ICM;
 using Agent.Data;
 using Agent.Data.DataModels;
 using Agent.Graph.Interfaces;
@@ -72,6 +73,7 @@ namespace Agent.Runtime.Services
                 case IncidentManagementType.PagerDuty:
                     return await ListPagerDutyIncidentFilterFieldOptions();
                 case IncidentManagementType.Icm:
+                    return ListIcmIncidentFilterFieldOptions();
                 case IncidentManagementType.AzMonitor:
                 default:
                     throw new NotImplementedException($"Incident management type '{_incidentManagementSettings.Type}' is not implemented.");
@@ -118,6 +120,52 @@ namespace Agent.Runtime.Services
                     Options = priorities.Priorities.Select(p => new KeyValuePair<string, string>(p.Id, p.Name)).ToList()
                 });
             }
+            return result;
+        }
+
+        /// <summary>
+        /// For now we are hardcoding the options for ICM incident filters.
+        /// Leave ImpactedService as empty as it will need add OwningServiceId into appsettings so can make API call to get all ImpactedService
+        /// </summary>
+        /// <returns></returns>
+        public List<IncidentFilterFieldOption> ListIcmIncidentFilterFieldOptions()
+        {
+            var result = new List<IncidentFilterFieldOption>();
+
+            var incidentTypeOptions = new List<KeyValuePair<string, string>>();
+            foreach (IncidentType incidentType in Enum.GetValues(typeof(IncidentType)))
+            {
+                incidentTypeOptions.Add(new KeyValuePair<string, string>(incidentType.ToString(),incidentType.ToString()));
+            }
+           
+            result.Add(new IncidentFilterFieldOption
+            {
+                FieldName = "IncidentType",
+                DisplayName = "Incident Type",
+                Options = incidentTypeOptions
+            });
+
+            var priorityOptions = new List<KeyValuePair<string, string>>
+            {
+                new KeyValuePair<string, string>("0", "0"),
+                new KeyValuePair<string, string>("1", "1"),
+                new KeyValuePair<string, string>("2", "2"),
+                new KeyValuePair<string, string>("3", "3"),
+                new KeyValuePair<string, string>("4", "4")
+            };
+            result.Add(new IncidentFilterFieldOption
+            {
+                FieldName = "Priority",
+                DisplayName = "Priority",
+                Options = priorityOptions
+            });
+
+            result.Add(new IncidentFilterFieldOption
+            {
+                FieldName = "ImpactedService",
+                DisplayName = "Impacted Service",
+                Options = new List<KeyValuePair<string, string>>()
+            });
             return result;
         }
 

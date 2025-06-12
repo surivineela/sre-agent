@@ -14,13 +14,13 @@ using Agent.Logging;
 using Agent.Plugins;
 using Agent.Plugins.Interface;
 using Agent.Runtime.Communication;
+using Agent.Runtime.Interfaces;
 using Agent.Runtime.MetaAgent;
 using Agent.Runtime.SubAgents;
 using Agent.Runtime.SubAgents.AzMonitorAlertAgent;
 using Agent.Runtime.SubAgents.CVEAgent;
 using Agent.Runtime.SubAgents.DailyReportSummary;
 using Agent.Runtime.SubAgents.FeedbackRCAAgent;
-using Agent.Runtime.SubAgents.PagerDutyAgent;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
 using Agent.Runtime.SubAgents.TlsBestPracticesAgent;
 using Agent.Runtime.SubAgents.WebAppDownAgent;
@@ -115,7 +115,6 @@ public class TimerService : IHostedService, IDisposable
     private Timer? _feedbackRCATimer = null;
     private bool _feedbackRCATimerIsRunning = false;
     private TimeSpan _feedbackRCATimerInterval = TimeSpan.FromMinutes(1);
-    private PagerDutyScanner _pagerDutyScanner;
 
     private Timer? _azMonitorAlertScannerTimer = null;
     private bool _azMonitorAlertScannerTimerIsRunning = false;
@@ -139,6 +138,7 @@ public class TimerService : IHostedService, IDisposable
 
     private bool _pagerDutyWelcomeSent = false;
 
+    private IIncidentScanner _incidentScanner;
 
     public TimerService(
         ICrawlerService crawlerService,
@@ -162,10 +162,10 @@ public class TimerService : IHostedService, IDisposable
         SinkService sinkService,
         FeedbackRCAScanner feedbackRCAScanner,
         AzMonitorAlertScanner azMonitorAlertScanner,
-        PagerDutyScanner pagerDutyScanner,
         AzureDataExplorerLogger azureDataExplorerLogger,
         CustomerLogger customerLogger,
-        CustomerAuditLogger customerAuditLogger)
+        CustomerAuditLogger customerAuditLogger,
+        IIncidentScanner incidentScanner)
     {
         _logger = logger;
         _crawlerService = crawlerService;
@@ -187,10 +187,10 @@ public class TimerService : IHostedService, IDisposable
         _feedbackRCAScanner = feedbackRCAScanner;
         _dashboardSettings = dashboardSettings;
         _azMonitorAlertScanner = azMonitorAlertScanner;
-        _pagerDutyScanner = pagerDutyScanner;
         _azureDataExplorerLogger = azureDataExplorerLogger;
         _customerLogger = customerLogger;
         _customerAuditLogger = customerAuditLogger;
+        _incidentScanner = incidentScanner;
 
         // Register all the scanners that implement this base type
         var scannerSubClasses = TypeReflectionHelpers.GetClassesDerivedFromGeneric(typeof(MetaAgent).Assembly, typeof(SimpleResourceSubAgentScannerBase<,,,>));
@@ -255,16 +255,27 @@ public class TimerService : IHostedService, IDisposable
         _logger.LogInternalInformation("Starting Log Flush timer...");
         StartLogFlushTimer(cancellationToken);
 
-        if (_incidentManagementSettings != null && _incidentManagementSettings.Type == IncidentManagementType.AzMonitor)
+        if (_incidentManagementSettings != null)
         {
-            _logger.LogInternalInformation("Starting Azure Monitor Alert Scanner timer ...");
-            StartAzMonitorAlertScannerTimer(cancellationToken);
+            switch(_incidentManagementSettings.Type)
+            {
+                case IncidentManagementType.AzMonitor:
+                    _logger.LogInternalInformation("Starting Azure Monitor Alert Scanner timer ...");
+                    StartAzMonitorAlertScannerTimer(cancellationToken);
             
-            _logger.LogInternalInformation("Starting Azure Monitor Incident Closure timer ...");
-            StartAzMonitorIncidentClosureTimer(cancellationToken);
+                    _logger.LogInternalInformation("Starting Azure Monitor Incident Closure timer ...");
+                    StartAzMonitorIncidentClosureTimer(cancellationToken);
+                    break;
+                case IncidentManagementType.Icm:
+                case IncidentManagementType.PagerDuty:
+                    _logger.LogInternalInformation($"Starting {_incidentManagementSettings.Type} Scanner timer ...");
+                    StartIncidentScannerTimer(cancellationToken);
+                    break;
+                default:
+                    _logger.LogInternalWarning($"Unknown incident management type: {_incidentManagementSettings.Type}. No scanner started.");
+                    break;
+            }
         }
-
-        StartPagerDutyScannerTimer(cancellationToken);
 
         return Task.CompletedTask;
     }
@@ -284,11 +295,11 @@ public class TimerService : IHostedService, IDisposable
         return Task.CompletedTask;
     }
 
-    public void StartPagerDutyScannerTimer(CancellationToken cancellationToken)
+    public void StartIncidentScannerTimer(CancellationToken cancellationToken)
     {
         _ = Task.Run(async () =>
         {
-            await _pagerDutyScanner.ScanAsync(cancellationToken);
+            await _incidentScanner.ScanAsync(cancellationToken);
         }, cancellationToken);
     }
 

@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Configuration;
 using Agent.Data.DataModels;
 using Agent.Logging;
 using Agent.Runtime.Services;
@@ -16,20 +17,26 @@ public class IncidentPlaygroundController : ControllerBase
     private IInstructionGenerationService _instructionGenerationService;
     private readonly IIncidentHandlerManagementService _incidentHandlerManagementService;
     private readonly IIncidentFilterManagementService _incidentFilterManagementService;
-    private readonly IncidentManagementService<PagerDutyIncidentDocument> _incidentManagementService;
+    private readonly IncidentManagementService<PagerDutyIncidentDocument> _pagerDutyincidentManagementService;
+    private readonly IncidentManagementService<IcmIncidentDocument> _icmIncidentManagementService;
     private readonly ILogger<IncidentPlaygroundController> _logger;
+    private readonly IncidentManagementSettings _incidentManagementSettings;
 
     public IncidentPlaygroundController(
         IInstructionGenerationService instructionGenerationService,
-        IncidentManagementService<PagerDutyIncidentDocument> incidentManagementService,
+        IncidentManagementService<PagerDutyIncidentDocument> pagerDutyIncidentManagementService,
+        IncidentManagementService<IcmIncidentDocument> icmIncidentManagementService,
         IIncidentHandlerManagementService incidentHandlerManagementService,
         IIncidentFilterManagementService incidentFilterManagementService,
+        IncidentManagementSettings incidentManagementSettings,
         ILogger<IncidentPlaygroundController> logger)
     {
-        _incidentManagementService = incidentManagementService;
+        _pagerDutyincidentManagementService = pagerDutyIncidentManagementService;
+        _icmIncidentManagementService = icmIncidentManagementService;
         _instructionGenerationService = instructionGenerationService;
         _incidentHandlerManagementService = incidentHandlerManagementService;
         _incidentFilterManagementService = incidentFilterManagementService;
+        _incidentManagementSettings = incidentManagementSettings;
         _logger = logger;
     }
 
@@ -281,8 +288,19 @@ public class IncidentPlaygroundController : ControllerBase
             {
                 return BadRequest("Invalid query request");
             }
-            var incidents = await _incidentManagementService.QueryIncidents(request);
-            return Ok(incidents);
+            if(_incidentManagementSettings.Type == IncidentManagementType.PagerDuty)
+            {
+                var incidents = await _pagerDutyincidentManagementService.QueryIncidents(request);
+                return Ok(incidents);
+            } else if(_incidentManagementSettings.Type == IncidentManagementType.Icm)
+            {
+                var incidents = await _icmIncidentManagementService.QueryIncidents(request);
+                return Ok(incidents);
+            } else
+            {
+                return StatusCode(500, $"Incident management type '{_incidentManagementSettings.Type}' is not implemented.");
+            }
+            
         }
         catch (Exception ex)
         {

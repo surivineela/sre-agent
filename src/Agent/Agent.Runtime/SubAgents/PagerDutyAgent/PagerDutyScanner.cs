@@ -17,6 +17,7 @@ using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
+using Agent.Runtime.Interfaces;
 
 namespace Agent.Runtime.SubAgents.PagerDutyAgent;
 
@@ -28,7 +29,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                               IChatClient chatClient,
                               IGraphDatabaseClient graphDbClient,
                               IncidentManagementSettings incidentManagementSettings,
-                              IAgentInboundCommunicationService agentInboundCommunicationService)
+                              IAgentInboundCommunicationService agentInboundCommunicationService):IIncidentScanner
 {
     private readonly Container container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
     private const uint PageSize = 10;
