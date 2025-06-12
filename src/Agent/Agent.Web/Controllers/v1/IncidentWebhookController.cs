@@ -6,8 +6,12 @@ using System.ComponentModel.DataAnnotations;
 using System.Text;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Data.DataModels;
+using Agent.Data.Repositories;
+using Agent.Graph.Interfaces;
 using Agent.Core.Services;
 using Agent.Logging;
+using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents.AzMonitorAlertAgent;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.AI;
@@ -24,6 +28,9 @@ public class IncidentWebhookController : ControllerBase
     private readonly IAgentInboundCommunicationService _inboundCommunicationService;
     private readonly IThreadRepository _repository;
     private readonly IChatClient _chatClient;
+    private readonly IPagerDutyService _pagerDutyService;
+    private readonly IIncidentHandlerManagementService _incidentHandlerManagementService;
+    private readonly IIncidentFilterManagementService _incidentFilterManagementService;
     private readonly ILogger<IncidentWebhookController> _logger;
     private readonly AzMonitorAlertScanner _azMonitorAlertScanner;
 
@@ -33,11 +40,17 @@ public class IncidentWebhookController : ControllerBase
         IThreadRepository repository,
         IChatClient chatClient,
         AzMonitorAlertScanner azMonitorAlertScanner,
+        IPagerDutyService pagerDutyService,
+        IIncidentHandlerManagementService incidentHandlerManagementService,
+        IIncidentFilterManagementService incidentFilterManagementService,
         ILogger<IncidentWebhookController> logger)
     {
         _inboundCommunicationService = inboundCommunicationService;
         _repository = repository;
         _chatClient = chatClient;
+        _pagerDutyService = pagerDutyService;
+        _incidentHandlerManagementService = incidentHandlerManagementService;
+        _incidentFilterManagementService = incidentFilterManagementService;
         _azMonitorAlertScanner = azMonitorAlertScanner;
         _logger = logger;
     }
@@ -50,17 +63,59 @@ public class IncidentWebhookController : ControllerBase
     {
         try
         {
-            var incidentRequest = new PagerDutyRequest
-            {
-                Title = request.Title ?? "PagerDuty Alert",
-                Description = request.Description ?? "Alert notification from PagerDuty",
-                IncidentId = request.IncidentId,
-                Severity = request.Severity,
-                Source = "PagerDuty",
-                AdditionalProperties = request.AdditionalProperties
-            };
+            return await PagerDutyProcessIncident(request);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error processing PagerDuty webhook");
+            return StatusCode(500, "Failed to process PagerDuty webhook");
+        }
+    }
 
-            var thread = await CreateIncidentThread(incidentRequest);
+    private async Task<IActionResult> PagerDutyProcessIncident(PagerDutyRequest request)
+    {
+        var pagerDutyIncidentId = request.IncidentId;
+        try
+        {
+            var incidentDetails = await _pagerDutyService.GetPagerDutyIncidentAsync(pagerDutyIncidentId);
+            var filters = await _incidentFilterManagementService.ListIncidentFilters();
+            var matchingFilters = filters
+                .Where(filter =>
+                filter.ImpactedService == incidentDetails.ImpactedService.Id
+                && filter.Priority == incidentDetails.Priority.Summary
+                && filter.IncidentType == incidentDetails.IncidentType.Name
+                && (string.IsNullOrWhiteSpace(filter.TitleContains) || (!string.IsNullOrWhiteSpace(filter.TitleContains) && (incidentDetails.Title.Contains(filter.TitleContains, StringComparison.OrdinalIgnoreCase)))))
+                .ToList();
+
+            // Do not take any action if user has not configured incident filter for the incident
+            if (matchingFilters == null || matchingFilters.Count == 0)
+            {
+                return NotFound($"No matching incident filters found for this incident.");
+            }
+
+            var matchingFilter = matchingFilters.FirstOrDefault();
+
+            var incidentHandlers = await _incidentHandlerManagementService.ListIncidentHandlers();
+            var matchingHandler = incidentHandlers.Where(x => x.IncidentFilterId == matchingFilter.Id).FirstOrDefault();
+
+            if (matchingHandler == null)
+            {
+                var incidentRequest = new PagerDutyRequest
+                {
+                    Title = incidentDetails.Title ?? "PagerDuty Alert",
+                    Description = incidentDetails.Description ?? "Alert notification from PagerDuty",
+                    IncidentId = incidentDetails.IncidentId,
+                    Severity = incidentDetails.Priority.Summary,
+                    Source = "PagerDuty",
+                    //AdditionalProperties = request.AdditionalProperties
+                };
+
+                var defaultThread = await CreateIncidentMetaAgentThread(incidentRequest);
+                return Ok(new { threadId = defaultThread.Id, message = "PagerDuty incident received" });
+            }
+
+            // Fallback on the Meta Agent if no Handler has been configured
+            var thread = await CreateIncidentHandlerAgentThread(incidentDetails, matchingHandler);
             return Ok(new { threadId = thread.Id, message = "PagerDuty incident received" });
         }
         catch (Exception ex)
@@ -70,15 +125,52 @@ public class IncidentWebhookController : ControllerBase
         }
     }
 
-#if DEBUG
-    [HttpPost("azmonitor")]
-    public async Task AzMonitorAlertsWebhook([FromBody] AlertItem alertItem)
+    private async Task<Thread> CreateIncidentHandlerAgentThread(Graph.Interfaces.PagerDutyIncident incidentDetails, IncidentHandlerDocument incidentHandler)
     {
-        await _azMonitorAlertScanner.ProcessAlertAsync(alertItem, CancellationToken.None);
-    }
-#endif
+        var title = incidentDetails.Title ?? "PagerDuty Incident";
+        var alertMessage = $"🚨 **New PagerDuty Incident Reported**\n\n" +
+            $"**Title:** {title}\n\n" +
+            $"**Description:** {incidentDetails.Body.Details}\n\n" +
+            $"**Incident ID:** {incidentDetails.IncidentId}\n\n" +
+            $"**Severity:** {incidentDetails.Priority?.Summary ?? "Unknown"}\n\n" +
+            $"**Source:** PagerDuty\n\n";
 
-    private async Task<Thread> CreateIncidentThread(PagerDutyRequest request)
+        var customInstructionsForAlert = incidentHandler.IncidentProcessingGuide != null && incidentHandler.IncidentProcessingGuide.Count > 0 ?
+            string.Join("\n", incidentHandler.IncidentProcessingGuide.Select(x => $"* {x}")) :
+            "No custom instructions provided for this incident type.";
+
+        alertMessage = 
+            $"{alertMessage}\n\n" +
+            $"**Custom Instructions for Incident Processing:**\n" +
+            $"{customInstructionsForAlert}\n\n" +
+            $"**Incident Handler:** {incidentHandler.Name}";
+
+        (var thread, var agentContext) = await _inboundCommunicationService.CreateAgentThread(
+            title: $"Incident - {title}",
+            message: alertMessage,
+            agentTypeEnum: AgentTypeEnum.Incident,
+            source: ThreadSource.Incident,
+            incidentId: incidentDetails.IncidentId ?? string.Empty,
+            AllowedTools: incidentHandler.Tools
+        );
+
+        var agentMessage = $"**Acknowledging the incident**. I'm starting to investigate and see how I can help.";
+        await _repository.AddMessageAsync(thread.Id, new Message(Guid.NewGuid(), DateTime.UtcNow, new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"), agentMessage));
+
+        await _inboundCommunicationService.ProcessAlertMessageAsync(new ThreadMessage(
+            ThreadId: thread.Id,
+            AgentContextId: agentContext.Id,
+            MessageId: thread.StartMessage.Id,
+            Message: "Process the incident as per custom instructions provided",
+            UserId: "incident-system",
+            DisplayName: "Incident System",
+            Timestamp: DateTime.UtcNow
+        ));
+
+        return thread;
+    }
+
+    private async Task<Thread> CreateIncidentMetaAgentThread(PagerDutyRequest request)
     {
         var messageBuilder = new StringBuilder();
 
@@ -131,6 +223,16 @@ public class IncidentWebhookController : ControllerBase
 
         return thread;
     }
+
+
+#if DEBUG
+    [HttpPost("azmonitor")]
+    public async Task AzMonitorAlertsWebhook([FromBody] AlertItem alertItem)
+    {
+        await _azMonitorAlertScanner.ProcessAlertAsync(alertItem, CancellationToken.None);
+    }
+#endif
+
 }
 
 #region Request Models

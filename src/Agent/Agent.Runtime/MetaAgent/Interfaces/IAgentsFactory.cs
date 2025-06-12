@@ -10,6 +10,7 @@ namespace Agent.Runtime.MetaAgent.Interfaces;
 public interface IAgentsFactory
 {
     public string GetMetaAgentSystemPrompt();
+    public string GetIncidentHandlerAgentSystemPrompt();
     List<AITool> GetSubAgentsAITools(Guid threadGuid, AgentContext context);
     public List<Type> GetRequiredSubAgentPluginDefinitionTypes();
 }

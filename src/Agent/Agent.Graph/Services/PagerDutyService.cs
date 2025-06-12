@@ -86,15 +86,15 @@ public class PagerDutyService : IPagerDutyService
         ArgumentException.ThrowIfNullOrEmpty(incidentId, nameof(incidentId));
         _logger.LogInternalInformation("Getting PagerDuty incident with ID: {incidentId}", incidentId);
         using var client = CreateHttpClient();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"https://api.pagerduty.com/incidents/{incidentId}?include%5B%5D=first_trigger_log_entries");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"https://api.pagerduty.com/incidents/{incidentId}?include%5B%5D=body");
         var response = await client.SendAsync(request);
         if (response.IsSuccessStatusCode)
         {
-            var incidentResponse = await response.Content.ReadFromJsonAsync<PagerDutyIncident>();
+            var incidentResponse = await response.Content.ReadFromJsonAsync<PagerDutyIncidentApiResult>();
             if (incidentResponse != null)
             {
                 _logger.LogInternalInformation("Successfully retrieved PagerDuty incident ID: {incidentId}", incidentId);
-                return incidentResponse;
+                return incidentResponse.Incident;
             }
             else
             {

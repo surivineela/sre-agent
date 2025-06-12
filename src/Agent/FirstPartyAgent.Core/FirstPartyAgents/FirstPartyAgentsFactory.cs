@@ -91,6 +91,11 @@ public class FirstPartyAgentsFactory : IAgentsFactory
         return systemPrompt;
     }
 
+    public string GetIncidentHandlerAgentSystemPrompt()
+    {
+        return string.Empty;
+    }
+
     private FirstPartyMetaAgentNames GetMetaAgent()
     {
         var agentName = Environment.GetEnvironmentVariable("AGENT_TYPE_NAME") ?? string.Empty;

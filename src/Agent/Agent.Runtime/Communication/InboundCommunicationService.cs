@@ -11,6 +11,7 @@ using Agent.Core.Models.Api.v1;
 using Agent.Logging;
 using Agent.Plugins.Interface;
 using Agent.Runtime.Helpers;
+using Agent.Runtime.IncidentHandlerAgent;
 using Agent.Runtime.MetaAgent;
 using Agent.Runtime.Reasoning;
 using Agent.Runtime.Services;
@@ -29,6 +30,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly IAgent _metaAgent;
+    private readonly IIncidentHandlerAgent _incidentHandlerAgent;
     private readonly DurableTaskClient _durableTaskClient;
     private readonly IThreadRepository _repository;
     private readonly ILogger<InboundCommunicationService> _logger;
@@ -41,6 +43,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
 
     public InboundCommunicationService(
         IAgent metaAgent,
+        IIncidentHandlerAgent incidentHandlerAgent,
         DurableTaskClient durableTaskClient,
         IThreadRepository repository,
         SinkService sinkService,
@@ -53,6 +56,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         CoreSettings coreSettings)
     {
         _metaAgent = metaAgent;
+        _incidentHandlerAgent = incidentHandlerAgent;
         _durableTaskClient = durableTaskClient;
         _repository = repository;
         _sinkService = sinkService;
@@ -72,9 +76,10 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         ThreadSource source = ThreadSource.Agent,
         string incidentId = "",
         IncidentSource? incidentSource = null,
-        bool isDailyReport = false)
+        bool isDailyReport = false,
+        List<string>? AllowedTools = null)
     {
-        return await CreateThread(title, message, source, agentTypeEnum, incidentId: incidentId, incidentSource: incidentSource, isDailyReport: isDailyReport);
+        return await CreateThread(title, message, source, agentTypeEnum, incidentId: incidentId, incidentSource: incidentSource, isDailyReport: isDailyReport, AllowedTools: AllowedTools);
     }
 
     public async Task<Core.Models.Api.v1.Thread> CreateAlertThreadWithTeams(
@@ -228,9 +233,13 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
 
                     return new InboundServiceResponse(threadMessage.ThreadId, responseMessageId, orchestrationInstanceId);
                 }
+                else if (agentContext != null && agentContext.AgentType == AgentTypeEnum.Incident)
+                {
+                    agentResponse = await _incidentHandlerAgent.ProcessIncidentAsync(agentContext: agentContext, agentChatHistory: agentChatHistory);
+                }
                 else
                 {
-                    // Process the message with MetaAgent
+                   // Process the message with MetaAgent
                     agentResponse = await _metaAgent.ProcessUserMessageAsync(agentContext: agentContext, agentChatHistory: agentChatHistory);
                 }
 
@@ -434,6 +443,11 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                     var serviceResponse = new InboundServiceResponse(threadMessage.ThreadId, responseMessageId, orchestrationInstanceId);
                     streamResponses = AddServiceResponseToStream(serviceResponse, isHandoffToDifferentThread: true);
                 }
+                else if (agentContext != null && agentContext.AgentType == AgentTypeEnum.Incident)
+                {
+                    streamedAgentTextResponse = true;
+                    streamResponses = _incidentHandlerAgent.ProcessIncidentStream(agentContext: agentContext, agentChatHistory: agentChatHistory);
+                }
                 else
                 {
                     // Process the message with MetaAgent
@@ -558,7 +572,8 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         OutboundConfiguration? outboundConfiguration = null,
         string incidentId = "",
         IncidentSource? incidentSource = null,
-        bool isDailyReport = false)
+        bool isDailyReport = false,
+        List<string>? AllowedTools = null)
     {
         var now = DateTime.UtcNow;
         var startMessage = new Message(
@@ -600,7 +615,8 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             ContextState: ContextStateEnum.Idle,
             WaitInformation: null,
             ApprovalInformation: null,
-            CurrentAgent: isDailyReport ? "daily_report_agent" : null
+            CurrentAgent: isDailyReport ? "daily_report_agent" : null,
+            AllowedTools: AllowedTools
         );
 
         var startReasoningMessage = new ReasoningMessage(

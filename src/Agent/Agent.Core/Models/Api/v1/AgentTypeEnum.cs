@@ -7,5 +7,6 @@ public enum AgentTypeEnum
     DTS = 2,
     CVE = 3,
     FeedbackRCA = 4,
-    ContainerAppsRemediation = 5
+    ContainerAppsRemediation = 5,
+    Incident = 6
 }

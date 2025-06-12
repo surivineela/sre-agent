@@ -68,6 +68,14 @@ public record PDPrioritiesResponse(
     [property: JsonPropertyName("priorities")] List<PDPriorityMetadata> Priorities
 );
 
+public record IncidentBody(
+    [property: JsonPropertyName("details")] string Details
+);
+
+public record PagerDutyIncidentApiResult(
+    [property: JsonPropertyName("incident")] PagerDutyIncident Incident
+);
+
 public record PagerDutyIncident(
     [property: JsonPropertyName("id") ] string IncidentId, // PagerDuty incident ID
     // For whatever reason, the description is always the same as the title.
@@ -87,7 +95,8 @@ public record PagerDutyIncident(
     [property: JsonPropertyName("priority")] Priority? Priority,
     [property: JsonPropertyName("urgency")] string? Urgency,
     [property: JsonPropertyName("incident_type")] PDIncidentType? IncidentType, // e.g. incident, problem, maintenance
-    [property: JsonPropertyName("service")] ImpactedService? ImpactedService // e.g. "Microsoft Teams", "Azure Storage"
+    [property: JsonPropertyName("service")] ImpactedService? ImpactedService, // e.g. "Microsoft Teams", "Azure Storage"
+    [property: JsonPropertyName("body")] IncidentBody? Body
 );
 
 public record PagerDutyIncidentsResponse(

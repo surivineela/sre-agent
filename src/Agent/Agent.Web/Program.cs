@@ -89,6 +89,8 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using WebSocketSharp.Server;
+using System.Linq;
+using Agent.Runtime.IncidentHandlerAgent;
 
 namespace Agent.Web;
 
@@ -229,6 +231,7 @@ public class Program
 
         builder.Services
             .AddSingleton<Agent.Runtime.MetaAgent.IAgent, MetaAgent>()
+            .AddSingleton<IIncidentHandlerAgent, IncidentHandlerAgent>()
             .AddSingleton<IAppServicePlugin, AppServicePlugin>()
             .AddSingleton<AppServicePluginDefinition>()
             .AddSingleton<IFunctionAppsPlugin, FunctionAppsPlugin>()
