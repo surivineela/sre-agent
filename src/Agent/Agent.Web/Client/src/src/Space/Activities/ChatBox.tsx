@@ -11,7 +11,7 @@ import { ChatBoxStyles } from '../Styles/Activities.styles';
 import AzureSREWelcome from './AzureSREWelcome';
 import { ChatSuggestions } from './ChatSuggestions';
 
-export const ChatBox = ({ addThread, promoteThread, threadId, threadSource }: IChatBoxProps) => {
+export const ChatBox = ({ addThread, promoteThread, updateThreadLastReadTime, threadId, threadSource }: IChatBoxProps) => {
     const {
         messages,
         temporaryUserMessage,
@@ -30,7 +30,7 @@ export const ChatBox = ({ addThread, promoteThread, threadId, threadSource }: IC
         onScroll,
         showNewMessageButton,
         onClickNewMessageButton,
-    } = useChatBox(addThread, promoteThread, threadId);
+    } = useChatBox(addThread, promoteThread, updateThreadLastReadTime, threadId);
 
     const isWelcomeThread = threadSource === 'WelcomeMessage';
 

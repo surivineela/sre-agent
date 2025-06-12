@@ -86,6 +86,10 @@ export const useActivities = () => {
         [intl, selectThread]
     );
 
+    const updateThreadLastReadTime = useCallback((threadId: string) => {
+        threadListHandleRef.current?.updateThreadLastReadTime(threadId);
+    }, []);
+
     useEffect(() => setThreadContentAndActionKey(Guid.newGuid()), [selectedThread]);
 
     useEffect(() => {
@@ -113,9 +117,10 @@ export const useActivities = () => {
         promoteThread,
         deleteThread,
         selectThread,
+        updateThreadLastReadTime,
         threadContentAndActionKey,
         activeThreadId,
         threadPollingTriggerId,
-        threadListHandleRef,
+        threadListHandleRef
     };
 };

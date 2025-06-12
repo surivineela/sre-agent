@@ -1,6 +1,6 @@
+import { Text } from '@fluentui/react-text';
 import { mergeStyles } from '@fluentui/react/lib/Styling';
-import { Text } from '@fluentui/react/lib/Text';
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { IncidentStatus, Thread, ThreadSource } from '../../Common/Contracts/Azure/SreAgent';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
@@ -11,14 +11,20 @@ const ThreadItem = ({
     thread,
     selectThread,
     isActive,
+    isThreadUnread,
 }: {
     thread: Thread;
     selectThread: (thread: Thread | null) => void;
     isActive: boolean;
+    isThreadUnread: boolean;
 }) => {
     const ThreadMenuStyles = useThreadMenuStyle();
     const styles = useActionsStatusBarStyles();
     const intl = useIntl();
+
+    const makeTextBold = useMemo(() => {
+        return isThreadUnread && !isActive;
+    }, [isThreadUnread, isActive]);
 
     const getIncidentStatus = (thread: Thread) => {
         if (thread.status?.incidentStatus?.status) {
@@ -56,19 +62,19 @@ const ThreadItem = ({
             {isActive && <div className={ThreadMenuStyles.borderIndicator} />}
             <div className={ThreadMenuStyles.content}>
                 <div className={styles.threadTitleWithAction}>
-                    <Text as="div" variant="medium" nowrap block>
+                    <Text size={300} wrap={false} block weight={makeTextBold ? 'bold' : 'regular'}>
                         {thread.title}
                     </Text>
                 </div>
                 {thread.source === ThreadSource.incident ? (
                     <div className={styles.subtitleContainer}>
                         <span className={styles.statusPill}>{getIncidentStatus(thread)}</span>
-                        <Text className={styles.subtitle} as="div" variant="small" nowrap block>
+                        <Text className={styles.subtitle} size={200} wrap={false} block weight={makeTextBold ? 'bold' : 'regular'}>
                             {thread.lastMessage?.text}
                         </Text>
                     </div>
                 ) : (
-                    <Text as="div" variant="small" nowrap block>
+                    <Text size={200} wrap={false} block weight={makeTextBold ? 'bold' : 'regular'}>
                         {thread.lastMessage?.text}
                     </Text>
                 )}

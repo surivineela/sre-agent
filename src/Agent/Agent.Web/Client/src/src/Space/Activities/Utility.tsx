@@ -13,7 +13,12 @@ import { SelectedTimes } from './TimeDropdown';
  * @returns
  */
 export const processThreads = (prevThreads: Thread[], threads: Thread[], areThreadsNew: boolean) => {
-    if (threads.length === 0) return prevThreads;
+    if (threads.length === 0) {
+        return {
+            threads: prevThreads,
+            addedThreads: [],
+        };
+    }
 
     const threadIdsToRemoveFromPrevThreads: Set<string> = new Set<string>();
 
@@ -44,10 +49,16 @@ export const processThreads = (prevThreads: Thread[], threads: Thread[], areThre
     const existingThreads = threadIdsToRemoveFromPrevThreads.size > 0 ? updatedExistingThreads : prevThreads;
 
     if (threadsToAdd.length === 0) {
-        return existingThreads;
+        return {
+            threads: existingThreads,
+            addedThreads: [],
+        };
     }
 
-    return areThreadsNew ? [...threadsToAdd, ...existingThreads] : [...existingThreads, ...threadsToAdd];
+    return {
+        threads: areThreadsNew ? [...threadsToAdd, ...existingThreads] : [...existingThreads, ...threadsToAdd],
+        addedThreads: threadsToAdd,
+    };
 };
 
 /**
@@ -193,4 +204,41 @@ export const getIntervalBetweenLoading = (exponentialBackoffDepth: number) => {
     const base = 100;
     const maxInterval = 15 * 60 * 1000; // 15 minutes in milliseconds
     return Math.min(base + Math.floor(Math.pow(2, exponentialBackoffDepth)) * 1000, maxInterval);
+};
+
+export const isThreadUnread = (thread: Thread): boolean => {
+    if (thread.lastReadTime && thread.modifiedTimestamp) {
+        return getSafeDateTime(thread.lastReadTime).getTime() < getSafeDateTime(thread.modifiedTimestamp).getTime();
+    }
+
+    return false;
+};
+
+export const getUpdatedUnreadThreadIds = (unreadThreadsIds: Set<string>, addedThreads: Thread[]): Set<string> => {
+    const updatedUnreadThreadIds = new Set(unreadThreadsIds);
+    let isUnreadThreadsUpdated = false;
+
+    for (const thread of addedThreads) {
+        if (isThreadUnread(thread)) {
+            updatedUnreadThreadIds.add(thread.id);
+            isUnreadThreadsUpdated = true;
+        }
+    }
+
+    if (isUnreadThreadsUpdated) {
+        return updatedUnreadThreadIds;
+    }
+
+    return unreadThreadsIds;
+};
+
+export const removeThreadIdsFromUnreadThreads = (unreadThreadsIds: Set<string>, threadIdToRemove: string): Set<string> => {
+    const updatedUnreadThreadIds = new Set(unreadThreadsIds);
+
+    if (updatedUnreadThreadIds.has(threadIdToRemove)) {
+        updatedUnreadThreadIds.delete(threadIdToRemove);
+        return updatedUnreadThreadIds;
+    }
+
+    return unreadThreadsIds;
 };

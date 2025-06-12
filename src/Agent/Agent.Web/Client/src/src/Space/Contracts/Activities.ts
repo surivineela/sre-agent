@@ -23,6 +23,7 @@ export interface IThreadContentProps {
     addThread: (threadId: string) => void;
     deleteThread: (thread: Thread) => void;
     promoteThread: (threadId: string) => void;
+    updateThreadLastReadTime: (threadId: string) => void;
 }
 
 export interface IThreadActivitiesProps {
@@ -34,11 +35,13 @@ export interface IThreadActivitiesProps {
 export type ThreadListHandle = {
     removeThreadFromList: (thread: Thread) => void;
     promoteThread: (threadId: string, promote: () => void) => void;
+    updateThreadLastReadTime: (threadId: string) => void;
 };
 
 export interface IChatBoxProps {
     addThread: (threadId: string) => void;
     promoteThread: (threadId: string) => void;
+    updateThreadLastReadTime: (threadId: string) => void;
     threadId?: string;
     threadSource?: string;
 }

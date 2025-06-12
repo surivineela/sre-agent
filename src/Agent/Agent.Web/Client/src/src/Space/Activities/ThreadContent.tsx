@@ -16,7 +16,15 @@ import ThreadActionsMenu from './ThreadActionsMenu';
 const expandCollapseButtonStyles = getExpandCollapseButtonStyles('right');
 
 export const ThreadContent = memo(
-    ({ thread, addThread, promoteThread, deleteThread, actionsCollapsed, expandActions }: IThreadContentProps) => {
+    ({
+        thread,
+        addThread,
+        promoteThread,
+        deleteThread,
+        updateThreadLastReadTime,
+        actionsCollapsed,
+        expandActions,
+    }: IThreadContentProps) => {
         const { threadContentAndActionKey } = useContext(AgentContext);
         const intl = useIntl();
 
@@ -48,9 +56,9 @@ export const ThreadContent = memo(
                     )}
                 </div>
                 {chatBoxV2 ? (
-                    <ChatBoxV2 threadId={thread?.id} addThread={addThread} promoteThread={promoteThread} threadSource={thread?.source} />
+                    <ChatBoxV2 threadId={thread?.id} addThread={addThread} updateThreadLastReadTime={updateThreadLastReadTime} promoteThread={promoteThread} threadSource={thread?.source} />
                 ) : (
-                    <ChatBox threadId={thread?.id} addThread={addThread} promoteThread={promoteThread} threadSource={thread?.source} />
+                    <ChatBox threadId={thread?.id} addThread={addThread} updateThreadLastReadTime={updateThreadLastReadTime} promoteThread={promoteThread} threadSource={thread?.source} />
                 )}
             </div>
         );

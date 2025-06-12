@@ -148,6 +148,7 @@ export class ThreadClient extends DataPlaneClient {
 
     public getThreadContext = async (threadId: string, signal: AbortSignal): Promise<Response<ThreadContext | undefined>> => {
         const url = this.getRequestUrl(`/api/v1/threads/${threadId}/context`);
+
         try {
             const { data } = await axios.get(url, {
                 headers: getAgentHeaders(),
@@ -187,5 +188,28 @@ export class ThreadClient extends DataPlaneClient {
             isSuccessful: true,
             content: response?.data,
         };
+    };
+
+    public updateThreadLastReadTime = async (threadId: string): Promise<Response<Thread>> => {
+        const url = this.getRequestUrl(`/api/v1/threads/${threadId}/markRead`);
+        try {
+            const response = await axios.post(
+                url,
+                {},
+                {
+                    headers: getAgentHeaders(),
+                }
+            );
+
+            return {
+                isSuccessful: true,
+                content: response.data as Thread,
+            };
+        } catch (e) {
+            return {
+                isSuccessful: false,
+                error: e,
+            };
+        }
     };
 }

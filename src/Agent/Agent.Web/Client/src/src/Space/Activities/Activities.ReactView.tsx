@@ -14,10 +14,11 @@ const Activities: FC = () => {
         promoteThread,
         deleteThread,
         selectThread,
+        updateThreadLastReadTime,
         threadContentAndActionKey,
         activeThreadId,
         threadPollingTriggerId,
-        threadListHandleRef,
+        threadListHandleRef
     } = useActivities();
 
     const [menuCollapsed, setMenuCollapsed] = useState<boolean>(false);
@@ -50,6 +51,7 @@ const Activities: FC = () => {
                     addThread={addThread}
                     deleteThread={deleteThread}
                     promoteThread={promoteThread}
+                    updateThreadLastReadTime={updateThreadLastReadTime}
                     actionsCollapsed={actionsCollapsed}
                     expandActions={() => setActionsCollapsed(false)}
                 />

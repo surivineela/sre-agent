@@ -41,6 +41,7 @@ const composeDefaultStreamingMessage = (): Message => {
 export const useChatBoxV2 = (
     addThread: (threadId: string) => void,
     promoteThread: (threadId: string) => void,
+    updateThreadLastReadTime: (threadId: string) => void,
     threadId?: string | null,
     _?: string | null
 ) => {
@@ -72,7 +73,7 @@ export const useChatBoxV2 = (
     const currentScrollHeight = useRef<number>(0);
     const oldMessagesToBeAdded = useRef<boolean>(false);
     const streamingMessageRef = useRef<Message | null>(null);
-    const currentThreadIdRef = useRef<string | null>(threadId || null);
+    const currentThreadIdRef = useRef<string>(threadId || '');
 
     const messageClient = MessageClient.getInstance(sreAgentEndpoint);
 
@@ -346,6 +347,7 @@ export const useChatBoxV2 = (
             setStreamingMessage(null);
             if (threadId) {
                 isPreviousOldMessagesLoadingCompleted.current = false;
+                updateThreadLastReadTime(threadId);
                 const messagesResponse = await messageClient.getMessages(threadId, {
                     skip: 0,
                     top: MessageLoadingCounts.default,
@@ -490,6 +492,19 @@ export const useChatBoxV2 = (
 
         return () => {
             isMounted.current = false;
+        };
+    }, []);
+
+    useEffect(() => {
+        currentThreadIdRef.current = currentThreadId || '';
+    }, [currentThreadId]);
+
+    // Record the last read time when the component is unmounted
+    useEffect(() => {
+        return () => {
+            if (currentThreadIdRef.current) {
+                updateThreadLastReadTime(currentThreadIdRef.current);
+            }
         };
     }, []);
 

@@ -477,7 +477,6 @@ public class CosmosDbThreadRepository : IThreadRepository
             // Create updated thread document with properties from the input thread
             ThreadDocument updatedThreadDoc = threadDoc with
             {
-                ModifiedTimestamp = DateTime.UtcNow,
                 LastReadTime = lastReadTime,
             };
 

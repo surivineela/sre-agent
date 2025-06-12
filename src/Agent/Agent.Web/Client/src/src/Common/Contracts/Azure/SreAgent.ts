@@ -94,6 +94,7 @@ export interface Thread {
     status?: AgentStatus;
     incidentSource?: any;
     source?: ThreadSource;
+    lastReadTime?: string;
 }
 
 export interface ThreadContext {

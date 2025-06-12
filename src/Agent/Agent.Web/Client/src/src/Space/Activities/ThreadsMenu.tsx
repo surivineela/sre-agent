@@ -13,7 +13,6 @@ import { useThreadsMenu } from '../Hooks/useThreadsMenu';
 import { getExpandCollapseButtonStyles, searchBoxStyle } from '../Styles/Activities.styles';
 import ActivitiesStatusBar from './ActionsStatusBar';
 import IncidentStatusBar from './IncidentStatusBar';
-
 const expandCollapseButtonStyles = getExpandCollapseButtonStyles('left');
 
 export const ThreadsMenu = forwardRef<ThreadListHandle, IThreadsMenuProps>(
@@ -32,6 +31,7 @@ export const ThreadsMenu = forwardRef<ThreadListHandle, IThreadsMenuProps>(
             oldestThreadModifiedTimestamp,
             setOldestThreadModifiedTimestamp,
             setThreadSeverity,
+            unreadThreadIds,
         } = useThreadsMenu(threadPollingTriggerId, ref);
 
         const { activeThreadId } = useContext(AgentContext);
@@ -148,6 +148,7 @@ export const ThreadsMenu = forwardRef<ThreadListHandle, IThreadsMenuProps>(
                         hasMoreOldThreads={hasMoreOldThreads}
                         loadMoreOldThreads={loadMoreOldThreads}
                         activeThreadId={activeThreadId}
+                        unreadThreadIds={unreadThreadIds}
                     />
                 )}
             </div>

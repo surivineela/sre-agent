@@ -6,29 +6,33 @@ import { Guid } from '../../../Common/Helpers/Guid';
 import { SelectedTimes } from '../TimeDropdown';
 import {
     getFilteredThreads,
+    getUpdatedUnreadThreadIds,
     getUTCTimestampBasedOnSelectedThreadCutoffTime,
+    isThreadUnread,
     noGapBetweenNewMessagesAndExistingMessages,
     processNewMessages,
     processOldMessages,
     processThreads,
+    removeThreadIdsFromUnreadThreads,
     shouldGroupWithPreviousMessage,
 } from '../Utility';
 
 const getDefaultThread = (
-    modifiedTimestamp: string,
+    modifiedTimestamp?: string,
     id?: string,
     severity?: ThreadSeverity,
     title?: string,
-    source?: ThreadSource
+    source?: ThreadSource,
+    lastReadTime?: string
 ): Thread => {
     return {
         id: id ?? Guid.newGuid(),
-        createdTimestamp: modifiedTimestamp,
-        modifiedTimestamp: modifiedTimestamp,
+        createdTimestamp: modifiedTimestamp || '2023-10-06T00:00:00Z',
+        modifiedTimestamp: modifiedTimestamp || '',
         title: title ?? Guid.newTinyGuid(),
         startMessage: {
             id: Guid.newGuid(),
-            timeStamp: modifiedTimestamp,
+            timeStamp: modifiedTimestamp || '2023-10-06T00:00:00Z',
             author: {
                 role: 'User',
                 userId: 'Web-Client-User',
@@ -38,7 +42,7 @@ const getDefaultThread = (
         },
         lastMessage: {
             id: Guid.newGuid(),
-            timeStamp: modifiedTimestamp,
+            timeStamp: modifiedTimestamp || '2023-10-06T00:00:00Z',
             author: {
                 role: 'SREAgent',
                 userId: 'SREAgent',
@@ -53,6 +57,7 @@ const getDefaultThread = (
             },
         },
         source,
+        lastReadTime
     };
 };
 
@@ -63,7 +68,7 @@ const areThreadsSame = (lhs: Thread[], rhs: Thread[]) => {
         const lhsThread = lhs[i];
         const rhsThread = rhs[i];
 
-        if (lhsThread.id !== rhsThread.id) return false;
+        if (lhsThread.id !== rhsThread.id || lhsThread.modifiedTimestamp !== rhsThread.modifiedTimestamp) return false;
     }
 
     return true;
@@ -121,6 +126,17 @@ const areMessagesUnique = (messages: Message[]) => {
     return true;
 };
 
+const areThreadIdSetSame = (lhs: Set<string>, rhs: Set<string>) => {
+    if (lhs.size !== rhs.size) return false;
+
+    for (const id of lhs) {
+        if (!rhs.has(id)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 describe('processThreads', () => {
     const areThreadsSortedDescByModifiedTimeStamp = (threads: Thread[]) => {
         let isSortedDesc = true;
@@ -165,7 +181,7 @@ describe('processThreads', () => {
         const copiedOldThreads = [...oldThreads];
         copiedOldThreads.splice(3, 1); // Remove the duplicate thread
 
-        const result = processThreads(threads, oldThreads, false);
+        const result = processThreads(threads, oldThreads, false).threads;
 
         expect(areThreadsSame(result, [...threads, ...copiedOldThreads])).toBe(true);
         expect(areThreadsSortedDescByModifiedTimeStamp(result)).toBe(true);
@@ -188,7 +204,7 @@ describe('processThreads', () => {
 
         const copiedNewThreads = [...newThreads].slice(1).reverse();
 
-        const result = processThreads(threads, newThreads, true);
+        const result = processThreads(threads, newThreads, true).threads;
 
         expect(areThreadsSame(result, [...copiedNewThreads, ...threads])).toBe(true);
         expect(areThreadsSortedDescByModifiedTimeStamp(result)).toBe(true);
@@ -211,12 +227,9 @@ describe('processThreads', () => {
 
         const copiedNewThreads = [...newThreads].slice(1).reverse();
 
-        const result = processThreads(threads, newThreads, true);
+        const result = processThreads(threads, newThreads, true).threads;
 
         const expectedResult = [...copiedNewThreads, ...threads];
-
-        console.log(expectedResult);
-        console.log(result);
 
         expect(result.length).toBe(6);
         expect(areThreadsSame(result, expectedResult)).toBe(true);
@@ -241,9 +254,10 @@ describe('processThreads', () => {
         const copiedNewThreads = [...newThreads].reverse();
 
         const expectedResult = [...copiedNewThreads, ...threads.slice(1)];
-        const result = processThreads(threads, newThreads, true);
+        const { threads: result, addedThreads } = processThreads(threads, newThreads, true);
 
         expect(result.length).toBe(6);
+        expect(addedThreads.length).toBe(4);
         expect(areThreadsSame(result, expectedResult)).toBe(true);
         expect(areThreadsSortedDescByModifiedTimeStamp(result)).toBe(true);
         expect(areThreadsUnique(result)).toBe(true);
@@ -257,7 +271,7 @@ describe('processThreads', () => {
         ];
 
         const newThreads: Thread[] = [
-            getDefaultThread('2023-10-03T01:00:00Z', '03'),
+            getDefaultThread('2023-10-03T00:00:00Z', '03'),
             getDefaultThread('2023-10-04T00:00:00Z'),
             getDefaultThread('2023-10-05T00:00:00Z'),
             getDefaultThread('2023-10-06T00:00:00Z'),
@@ -266,9 +280,10 @@ describe('processThreads', () => {
         const copiedNewThreads = [...newThreads].slice(1).reverse();
 
         const expectedResult = [...copiedNewThreads, ...threads];
-        const result = processThreads(threads, newThreads, true);
+        const { threads: result, addedThreads } = processThreads(threads, newThreads, true);
 
         expect(result.length).toBe(6);
+        expect(addedThreads.length).toBe(3);
         expect(areThreadsSame(result, expectedResult)).toBe(true);
         expect(areThreadsSortedDescByModifiedTimeStamp(result)).toBe(true);
         expect(areThreadsUnique(result)).toBe(true);
@@ -292,9 +307,10 @@ describe('processThreads', () => {
         const copiedNewThreads = [...newThreads].reverse();
 
         const expectedResult = [...copiedNewThreads, ...threads.slice(2)];
-        const result = processThreads(threads, newThreads, true);
+        const { threads: result, addedThreads } = processThreads(threads, newThreads, true);
 
         expect(result.length).toBe(6);
+        expect(addedThreads.length).toBe(5);
         expect(areThreadsSame(result, expectedResult)).toBe(true);
         expect(areThreadsSortedDescByModifiedTimeStamp(result)).toBe(true);
         expect(areThreadsUnique(result)).toBe(true);
@@ -317,9 +333,10 @@ describe('processThreads', () => {
 
         const copiedNewThreads = [...newThreads].slice(2).reverse();
         const expectedResult = [...copiedNewThreads, ...threads];
-        const result = processThreads(threads, newThreads, true);
+        const { threads: result, addedThreads } = processThreads(threads, newThreads, true);
 
         expect(result.length).toBe(6);
+        expect(addedThreads.length).toBe(3);
         expect(areThreadsSame(result, expectedResult)).toBe(true);
         expect(areThreadsSortedDescByModifiedTimeStamp(result)).toBe(true);
         expect(areThreadsUnique(result)).toBe(true);
@@ -339,9 +356,10 @@ describe('processThreads', () => {
         ];
 
         const expectedResult = [...threads, ...oldThreads.slice(1)];
-        const result = processThreads(threads, oldThreads, false);
+        const { threads: result, addedThreads } = processThreads(threads, oldThreads, false);
 
         expect(result.length).toBe(5);
+        expect(addedThreads.length).toBe(2);
         expect(areThreadsSame(result, expectedResult)).toBe(true);
         expect(areThreadsSortedDescByModifiedTimeStamp(result)).toBe(true);
         expect(areThreadsUnique(result)).toBe(true);
@@ -362,9 +380,10 @@ describe('processThreads', () => {
         ];
 
         const expectedResult = [...threads, ...oldThreads.slice(0, 3)];
-        const result = processThreads(threads, oldThreads, false);
+        const { threads: result, addedThreads } = processThreads(threads, oldThreads, false);
 
         expect(result.length).toBe(6);
+        expect(addedThreads.length).toBe(3);
         expect(areThreadsSame(result, expectedResult)).toBe(true);
         expect(areThreadsSortedDescByModifiedTimeStamp(result)).toBe(true);
         expect(areThreadsUnique(result)).toBe(true);
@@ -385,9 +404,10 @@ describe('processThreads', () => {
         ];
 
         const expectedResult = [...threads, ...[oldThreads[0], oldThreads[2]]];
-        const result = processThreads(threads, oldThreads, false);
+        const { threads: result, addedThreads } = processThreads(threads, oldThreads, false);
 
         expect(result.length).toBe(5);
+        expect(addedThreads.length).toBe(2);
         expect(areThreadsSame(result, expectedResult)).toBe(true);
         expect(areThreadsSortedDescByModifiedTimeStamp(result)).toBe(true);
         expect(areThreadsUnique(result)).toBe(true);
@@ -403,9 +423,10 @@ describe('processThreads', () => {
         const oldThreads: Thread[] = [getDefaultThread('2023-10-05T00:00:00Z', '02'), getDefaultThread('2023-10-04T00:00:00Z', '03')];
 
         const expectedResult = [...threads];
-        const result = processThreads(threads, oldThreads, false);
+        const { threads: result, addedThreads } = processThreads(threads, oldThreads, false);
 
         expect(result.length).toBe(3);
+        expect(addedThreads.length).toBe(0);
         expect(areThreadsSame(result, expectedResult)).toBe(true);
         expect(areThreadsSortedDescByModifiedTimeStamp(result)).toBe(true);
         expect(areThreadsUnique(result)).toBe(true);
@@ -513,6 +534,148 @@ describe('getFilteredThreads', () => {
         expect(result.length).toBe(0);
     });
 });
+
+describe('isThreadUnread', () => {
+    it('No lastReadTime', () => {
+        const thread = getDefaultThread('2023-10-03T00:00:00Z', '03');
+        expect(isThreadUnread(thread)).toBe(false);
+    });
+
+    it('No modified timestamp', () => {
+        const thread = getDefaultThread(undefined, undefined, undefined, undefined, undefined, '2023-10-03T00:00:00Z');
+        expect(isThreadUnread(thread)).toBe(false);
+    })
+
+    it('Last read time is before modified timestamp', () => {
+        const thread = getDefaultThread('2023-10-03T00:00:00Z', '03', undefined, undefined, undefined, '2023-10-02T00:00:00Z');
+        expect(isThreadUnread(thread)).toBe(true);
+    });
+
+    it('Last read time is after modified timestamp', () => {
+        const thread = getDefaultThread('2023-10-03T00:00:00Z', '03', undefined, undefined, undefined, '2023-10-04T00:00:00Z');
+        expect(isThreadUnread(thread)).toBe(false);
+    });
+
+    it('Last read time is same as modified timestamp', () => {
+        const thread = getDefaultThread('2023-10-03T00:00:00Z', '03', undefined, undefined, undefined, '2023-10-03T00:00:00Z');
+        expect(isThreadUnread(thread)).toBe(false);
+    });
+});
+
+describe('getUpdatedUnreadThreadIds', () => {
+
+    it('Empty unread thread ids', () => {
+        const addedThreads: Thread[] = [
+            getDefaultThread('2023-10-03T00:00:00Z', '01', undefined, undefined, undefined, '2023-10-03T00:00:00Z'),
+            getDefaultThread('2023-10-03T00:00:00Z', '02', undefined, undefined, undefined, '2023-10-04T00:00:00Z'),
+            getDefaultThread('2023-10-03T00:00:00Z', '03', undefined, undefined, undefined, '2023-10-02T00:00:00Z')
+        ];
+
+        const result = getUpdatedUnreadThreadIds(new Set(), addedThreads);
+
+        expect(areThreadIdSetSame(result, new Set<string>(['03']))).toBe(true);
+    });
+
+    it('All added threads are unread', () => {
+        const threads: Set<string> = new Set(['05']);
+
+        const addedThreads: Thread[] = [
+            getDefaultThread('2023-10-03T00:00:00Z', '01', undefined, undefined, undefined, '2023-10-02T00:00:00Z'),
+            getDefaultThread('2023-10-03T00:00:00Z', '02', undefined, undefined, undefined, '2023-10-02T00:00:00Z'),
+            getDefaultThread('2023-10-03T00:00:00Z', '03', undefined, undefined, undefined, '2023-10-02T00:00:00Z')
+        ];
+
+        const result = getUpdatedUnreadThreadIds(threads, addedThreads);
+        const expectedResult = new Set<string>(addedThreads.map(thread => thread.id));
+        expectedResult.add('05');
+        expect(areThreadIdSetSame(result, expectedResult)).toBe(true);
+    });
+
+    it('All added threads are read', () => {
+        const threads: Set<string> = new Set(['05']);
+
+        const addedThreads: Thread[] = [
+            getDefaultThread('2023-10-03T00:00:00Z', '01', undefined, undefined, undefined, '2023-10-05T00:00:00Z'),
+            getDefaultThread('2023-10-03T00:00:00Z', '02', undefined, undefined, undefined, '2023-10-05T00:00:00Z'),
+            getDefaultThread('2023-10-03T00:00:00Z', '03', undefined, undefined, undefined, '2023-10-05T00:00:00Z')
+        ];
+
+        const result = getUpdatedUnreadThreadIds(threads, addedThreads);
+        expect(areThreadIdSetSame(result, threads)).toBe(true);
+    });
+
+    it('Some added threads are unread', () => {
+        const threads: Set<string> = new Set(['05', '06']);
+
+        const addedThreads: Thread[] = [
+            getDefaultThread('2023-10-03T00:00:00Z', '01', undefined, undefined, undefined, '2023-10-03T00:00:00Z'),
+            getDefaultThread('2023-10-03T00:00:00Z', '02', undefined, undefined, undefined, '2023-10-04T00:00:00Z'),
+            getDefaultThread('2023-10-03T00:00:00Z', '03', undefined, undefined, undefined, '2023-10-02T00:00:00Z')
+        ];
+
+        const result = getUpdatedUnreadThreadIds(threads, addedThreads);
+        const expectedResult = new Set<string>(['05', '06', '03']);
+        expect(areThreadIdSetSame(result, expectedResult)).toBe(true);
+    });
+
+    it('Duplicated unread threads', () => {
+        const threads: Set<string> = new Set(['05', '06']);
+
+        const addedThreads: Thread[] = [
+            getDefaultThread('2023-10-03T00:00:00Z', '06', undefined, undefined, undefined, '2023-10-02T00:00:00Z'),
+            getDefaultThread('2023-10-03T00:00:00Z', '05', undefined, undefined, undefined, '2023-10-02T00:00:00Z'),
+            getDefaultThread('2023-10-03T00:00:00Z', '03', undefined, undefined, undefined, '2023-10-02T00:00:00Z')
+        ];
+
+        const result = getUpdatedUnreadThreadIds(threads, addedThreads);
+        const expectedResult = new Set<string>(['05', '06', '03']);
+        expect(areThreadIdSetSame(result, expectedResult)).toBe(true);
+    })
+
+    it('Duplicated read threads', () => {
+        const threads: Set<string> = new Set(['05', '06']);
+
+        const addedThreads: Thread[] = [
+            getDefaultThread('2023-10-03T00:00:00Z', '06', undefined, undefined, undefined, '2023-10-05T00:00:00Z'),
+            getDefaultThread('2023-10-03T00:00:00Z', '05', undefined, undefined, undefined, '2023-10-05T00:00:00Z'),
+            getDefaultThread('2023-10-03T00:00:00Z', '03', undefined, undefined, undefined, '2023-10-05T00:00:00Z')
+        ];
+
+        const result = getUpdatedUnreadThreadIds(threads, addedThreads);
+        const expectedResult = new Set<string>(['05', '06']);
+        expect(areThreadIdSetSame(result, expectedResult)).toBe(true);
+    })
+})
+
+describe('removeThreadIdsFromUnreadThreads', () => {
+    it('Unread threads are empty', () => {
+        const unreadThreads: Set<string> = new Set();
+
+        const result = removeThreadIdsFromUnreadThreads(unreadThreads, '01');
+        expect(areThreadIdSetSame(result, unreadThreads)).toBe(true);
+    });
+
+    it('Thread id is empty', () => {
+        const unreadThreads: Set<string> = new Set(['01', '02', '03']);
+
+        const result = removeThreadIdsFromUnreadThreads(unreadThreads, '');
+        expect(areThreadIdSetSame(result, unreadThreads)).toBe(true);
+    });
+
+    it('Thread id exists in unread threads', () => {
+        const unreadThreads: Set<string> = new Set(['01', '02', '03']);
+
+        const result = removeThreadIdsFromUnreadThreads(unreadThreads, '02');
+        expect(areThreadIdSetSame(result, new Set(['01', '03']))).toBe(true);
+    });
+
+    it('Thread id does not exist in unread threads', () => {
+        const unreadThreads: Set<string> = new Set(['01', '02', '03']);
+
+        const result = removeThreadIdsFromUnreadThreads(unreadThreads, '05');
+        expect(areThreadIdSetSame(result, unreadThreads)).toBe(true);
+    });
+})
 
 describe('processNewMessages', () => {
     it('Add new messages', () => {

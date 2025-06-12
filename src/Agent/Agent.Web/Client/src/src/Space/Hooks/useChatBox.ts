@@ -32,6 +32,7 @@ const composeTemporaryUserMessage = (userId: string, userDisplayName: string, me
 export const useChatBox = (
     addThread: (threadId: string) => void,
     promoteThread: (threadId: string) => void,
+    updateThreadLastReadTime: (threadId: string) => void,
     threadId?: string | null,
     _?: string | null
 ) => {
@@ -100,6 +101,7 @@ export const useChatBox = (
     const currentScrollTop = useRef<number>(0);
     const currentScrollHeight = useRef<number>(0);
     const oldMessagesToBeAdded = useRef<boolean>(false);
+    const currentThreadIdRef = useRef<string>(threadId || '');
 
     const scrollToBottom = (smooth: boolean) =>
         messagesDivRef.current?.scrollTo({ top: messagesDivRef.current.scrollHeight, behavior: smooth ? 'smooth' : undefined });
@@ -372,6 +374,7 @@ export const useChatBox = (
         const loadLatest20ChatHistory = async () => {
             if (threadId) {
                 isPreviousOldMessagesLoadingCompleted.current = false;
+                updateThreadLastReadTime(threadId);
                 const messagesResponse = await messageClient.getMessages(threadId, {
                     skip: 0,
                     top: MessageLoadingCounts.default,
@@ -382,6 +385,7 @@ export const useChatBox = (
 
                 if (isSubscribed) {
                     handleOldMessages(messages, true);
+
                     setIsLoadingInitialChatHistory(false);
 
                     // The threshold depends on the number of the messages this query is intended to return.
@@ -506,6 +510,19 @@ export const useChatBox = (
 
         return () => {
             isMounted.current = false;
+        };
+    }, []);
+
+    useEffect(() => {
+        currentThreadIdRef.current = currentThreadId || '';
+    }, [currentThreadId]);
+
+    // Record the last read time when the component is unmounted
+    useEffect(() => {
+        return () => {
+            if (currentThreadIdRef.current) {
+                updateThreadLastReadTime(currentThreadIdRef.current);
+            }
         };
     }, []);
 

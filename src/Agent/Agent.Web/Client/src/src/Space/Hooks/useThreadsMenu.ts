@@ -7,12 +7,15 @@ import { SelectedTimes } from '../Activities/TimeDropdown';
 import {
     getFilteredThreads,
     getNumberOfThreadsToOverflowThreadsListDiv,
+    getUpdatedUnreadThreadIds,
     getUTCTimestampBasedOnSelectedThreadCutoffTime,
     processThreads,
+    removeThreadIdsFromUnreadThreads,
 } from '../Activities/Utility';
 import { ThreadListHandle, ThreadLoadingCounts, ThreadPollingCounts, ThreadPollingInterval } from '../Contracts/Activities';
 
 export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadListHandle>) => {
+
     const [threads, setThreads] = useState<Thread[]>([]);
     const [isLoadingInitialThreads, setIsLoadingInitialThreads] = useState<boolean>(true);
 
@@ -35,6 +38,7 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadLi
         oldestThreadModifiedTimestamp: SelectedTimes.OneDay,
         threadSeverity: undefined,
     });
+    const [unreadThreadIds, setUnreadThreadIds] = useState<Set<string>>(new Set<string>());
 
     const latestThread = useRef<Thread>();
     const oldestThread = useRef<Thread>();
@@ -42,6 +46,14 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadLi
     const threadsListDivRef = useRef<HTMLDivElement | null>(null);
     const isLoadingOldThreads = useRef<boolean>(false);
     const loadOldThreadCallId = useRef<number>(0);
+
+    const updateThreadLastReadTime = useCallback(async (threadId: string) => {
+        const response = await threadClient.updateThreadLastReadTime(threadId);
+
+        if (response.isSuccessful) {
+            setUnreadThreadIds(prev => removeThreadIdsFromUnreadThreads(prev, threadId));
+        }
+    }, []);
 
     const getOldThreadsRequest = async (
         threadSearchText: string | undefined,
@@ -126,6 +138,7 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadLi
                 promote();
             }
         },
+        updateThreadLastReadTime: (threadId: string) => updateThreadLastReadTime(threadId),
     }));
 
     const onThreadSearchTextChange = useCallback(
@@ -161,7 +174,11 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadLi
                     if (oldThreadsResponse.isSuccessful && oldThreads.length < numberOfThreadsToLoad) {
                         setHasMoreOldThreads(false);
                     }
-                    setThreads(prevThread => processThreads(prevThread, oldThreads, false));
+                    setThreads(prevThread => {
+                        const { threads: totalThreads, addedThreads } = processThreads(prevThread, oldThreads, false);
+                        setUnreadThreadIds(prev => getUpdatedUnreadThreadIds(prev, addedThreads));
+                        return totalThreads;
+                    });
 
                     isLoadingOldThreads.current = false;
 
@@ -240,7 +257,9 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadLi
                     setHasMoreOldThreads(false);
                 }
                 // Replace the current filtered threads with the initial threads
-                setThreads(processThreads([], initialThreads, false));
+                const { threads: totalThreads, addedThreads } = processThreads([], initialThreads, false);
+                setThreads(totalThreads);
+                setUnreadThreadIds(prev => getUpdatedUnreadThreadIds(prev, addedThreads));
                 setIsLoadingInitialThreads(false);
             }
 
@@ -274,7 +293,15 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadLi
                 const newThreadsInAsecindgOrder = newThreadsInAscendingOrderResponse.content ?? [];
 
                 if (isSubscribed) {
-                    setThreads(prevThreads => processThreads(prevThreads, newThreadsInAsecindgOrder, true));
+                    setThreads(prevThreads => {
+                        const { threads: totalThreads, addedThreads } = processThreads(
+                            prevThreads,
+                            newThreadsInAsecindgOrder,
+                            true
+                        );
+                        setUnreadThreadIds(prev => getUpdatedUnreadThreadIds(prev, addedThreads));
+                        return totalThreads;
+                    });
                     pollNewThreadsTimeout = setTimeout(pollNewThreads, ThreadPollingInterval.default);
                 }
             };
@@ -300,5 +327,7 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadLi
         oldestThreadModifiedTimestamp,
         setOldestThreadModifiedTimestamp,
         setThreadSeverity,
+        unreadThreadIds,
+        updateThreadLastReadTime,
     };
 };

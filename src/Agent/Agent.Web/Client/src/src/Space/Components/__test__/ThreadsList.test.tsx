@@ -87,6 +87,7 @@ describe('ThreadsList.tsx', () => {
                 hasMoreOldThreads={false}
                 loadMoreOldThreads={() => Promise.resolve(undefined)}
                 ref={ref}
+                unreadThreadIds={new Set([])}
             />
         );
 
@@ -110,6 +111,7 @@ describe('ThreadsList.tsx', () => {
                 hasMoreOldThreads={true}
                 loadMoreOldThreads={() => Promise.resolve(undefined)}
                 ref={ref}
+                unreadThreadIds={new Set([])}
             />
         );
 
@@ -127,6 +129,7 @@ describe('ThreadsList.tsx', () => {
                 hasMoreOldThreads={false}
                 loadMoreOldThreads={() => Promise.resolve(undefined)}
                 ref={ref}
+                unreadThreadIds={new Set([])}
             />
         );
 
