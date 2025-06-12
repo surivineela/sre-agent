@@ -25,13 +25,40 @@ env:
   BUILD_NUGET_CONFIG_PATH: './src/nuget.config'
 
 jobs:
+  changes:
+    name: Check for changes
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.check.outputs.backend }}
+      frontend: ${{ steps.check.outputs.frontend }}
+    steps:
+    - name: 🔍 Check for changes
+      uses: serverless-paas-balam/actions-paths-filter@v3
+      id: check
+      with:
+        predicate-quantifier: 'every'
+        filters: |
+          backend:
+            - 'src/Agent/**'
+            - '!src/Agent/Agent.Web/Client/**'
+          frontend:
+            - 'src/Agent/Agent.Web/Client/**'
+        paths-ignore: |
+          .github/workflows/**
+
   build-dotnet:
     name: build-dotnet
     runs-on: ubuntu-latest
-    outputs:
-      build-version: ${{ steps.version.outputs.version }}
+    needs: changes
     steps:
+    - name: 🔍 Skip if no backend changes
+      if: ${{ needs.changes.outputs.backend != 'true' }}
+      run: |
+        echo "⏭️ Skipping .NET build - no backend changes detected"
+        echo "This job completed successfully but skipped actual build steps"
+
     - name: 🔐 Azure OIDC Login
+      if: ${{ needs.changes.outputs.backend == 'true' }}
       uses: azure/login@v1
       with:
         client-id: ${{ vars.CFS_CLIENT_ID }}
@@ -39,6 +66,7 @@ jobs:
         allow-no-subscriptions: true
 
     - name: 🔐 Setup CFS
+      if: ${{ needs.changes.outputs.backend == 'true' }}
       uses: 1es-actions/setup-cfs@v1
       with:
         feed-url: https://msazure.pkgs.visualstudio.com/Antares/_packaging/antares-websites/
@@ -47,16 +75,19 @@ jobs:
         nuget-config-path: nuget.config
 
     - name: 🛒 Checkout code
+      if: ${{ needs.changes.outputs.backend == 'true' }}
       uses: actions/checkout@v4
       with:
         fetch-depth: 1
 
     - name: 🧰 Setup .NET
+      if: ${{ needs.changes.outputs.backend == 'true' }}
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
 
     - name: 📦 Cache NuGet packages
+      if: ${{ needs.changes.outputs.backend == 'true' }}
       uses: actions/cache@v4
       with:
         path: |
@@ -67,6 +98,7 @@ jobs:
           ${{ runner.os }}-nuget-
 
     - name: 🔨 Restore NuGet packages
+      if: ${{ needs.changes.outputs.backend == 'true' }}
       run: |
          dotnet restore ${{ env.BUILD_SOLUTION }} \
             --verbosity quiet \
@@ -74,6 +106,7 @@ jobs:
             --use-current-runtime
 
     - name: 🦾 Build Agent solution
+      if: ${{ needs.changes.outputs.backend == 'true' }}
       run: |
         dotnet build ${{ env.BUILD_SOLUTION }} \
           --no-restore \
@@ -84,6 +117,7 @@ jobs:
           --verbosity quiet
 
     - name: 🧪 Run Unit tests
+      if: ${{ needs.changes.outputs.backend == 'true' }}
       run: |
         dotnet test ${{ env.BUILD_SOLUTION }} \
           --no-build \
@@ -94,8 +128,9 @@ jobs:
           --results-directory ./TestResults/ \
           --filter FullyQualifiedName~Agent.Tests.Unit \
           --verbosity quiet
-          
+
     - name: 🧪 Run Integration tests
+      if: ${{ needs.changes.outputs.backend == 'true' }}
       # continue-on-error: true
       run: |
         dotnet test ${{ env.BUILD_SOLUTION }} \
@@ -109,7 +144,7 @@ jobs:
 
     - name: 📢 Publish test results
       uses: serverless-paas-balam/actions-test-reporter@main
-      if: always()
+      if: ${{ always() && needs.changes.outputs.backend == 'true' }}
       with:
         name: .NET Tests
         path: './TestResults/*.trx'
@@ -121,7 +156,7 @@ jobs:
 
     - name: 📋 Upload test results
       uses: actions/upload-artifact@v4
-      if: always()
+      if: ${{ always() && needs.changes.outputs.backend == 'true' }}
       with:
         name: test-results
         path: ./TestResults/
@@ -130,13 +165,22 @@ jobs:
   build-npm:
     name: build-npm
     runs-on: ubuntu-latest
+    needs: changes
     steps:
+    - name: 🔍 Skip if no frontend changes
+      if: ${{ needs.changes.outputs.frontend != 'true' }}
+      run: |
+        echo "⏭️ Skipping NPM build - no frontend changes detected"
+        echo "This job completed successfully but skipped actual build steps"
+
     - name: 🛒 Checkout code
+      if: ${{ needs.changes.outputs.frontend == 'true' }}
       uses: actions/checkout@v4
       with:
         fetch-depth: 1
 
     - name: 🧰 Setup Node.js
+      if: ${{ needs.changes.outputs.frontend == 'true' }}
       uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
@@ -144,25 +188,29 @@ jobs:
         cache-dependency-path: src/Agent/Agent.Web/Client/package-lock.json
 
     - name: 📦 Install NPM packages for Agent.Web
+      if: ${{ needs.changes.outputs.frontend == 'true' }}
       working-directory: ./src/Agent/Agent.Web/Client
       run: npm install
 
     - name: 🏗️ Build Agent.Web
+      if: ${{ needs.changes.outputs.frontend == 'true' }}
       working-directory: ./src/Agent/Agent.Web/Client
       run: npm run build
 
     - name: 🌐 Compile localization strings for Agent.Web
+      if: ${{ needs.changes.outputs.frontend == 'true' }}
       working-directory: ./src/Agent/Agent.Web/Client
       run: npm run compile:loc
       continue-on-error: true
 
     - name: 🧪 Run UX unit tests
+      if: ${{ needs.changes.outputs.frontend == 'true' }}
       working-directory: ./src/Agent/Agent.Web/Client
       run: npm run test
 
     - name: 📢 Publish UX test results
       uses: serverless-paas-balam/actions-test-reporter@v2
-      if: always()
+      if: ${{ always() && needs.changes.outputs.frontend == 'true' }}
       with:
         name: Agent.Web UX Tests
         path: './src/Agent/Agent.Web/Client/junit-report.xml'
