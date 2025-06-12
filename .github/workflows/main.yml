@@ -4,7 +4,16 @@ name: Manual Sync from ADO Repo
 
 # This allows the workflow to be triggered manually from the Actions tab in GitHub
 on:
-  workflow_dispatch:
+  workflow_dispatch: # Keep this for manual runs
+    inputs:
+      ado_repo_url:
+        description: 'The full HTTPS URL of the ADO repo to clone'
+        required: true
+        type: string
+        default: 'https://dev.azure.com/msazure/One/_git/AAPT-Antares-ContainerApps-Docs'
+  repository_dispatch:
+    types: [ado-pr-merged] # A custom event name you will send from ADO
+
 
 # Permissions required for the OIDC token exchange
 permissions:
@@ -14,17 +23,22 @@ permissions:
 jobs:
   sync-ado-repo-to-storage:
     runs-on: ubuntu-latest
-    
+    environment: production
     steps:
+    - name: 'Echo Environment Variables'
+      id: echo-env-vars
+      run: |
+        echo "AZURE_CLIENT_ID=${{ vars.AZURE_CLIENT_ID }}"
+        echo "AZURE_TENANT_ID=${{ vars.AZURE_TENANT_ID }}"
+        echo "AZURE_SUBSCRIPTION_ID=${{ vars.AZURE_SUBSCRIPTION_ID }}"
     # 1. Log in to Azure using the Federated Identity (Workload Identity)
     # This step exchanges GitHub's OIDC token for an Azure access token.
     - name: 'Azure Login using OIDC'
       uses: azure/login@v1
       with:
-        client-id: ${{ secrets.AZURE_CLIENT_ID }}
-        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
+        client-id: ${{ vars.AZURE_CLIENT_ID }}
+        tenant-id: ${{ vars.AZURE_TENANT_ID }}
+        subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
     # 2. Get a specific Access Token for Azure DevOps
     # The Azure token from the step above is used to request a new token scoped only for ADO.
     # The GUID '499b84ac-1321-427f-aa17-267ca6975798' is the well-known ID for the Azure DevOps API.
@@ -38,14 +52,15 @@ jobs:
     # 3. Checkout code from the private Azure DevOps repo using the ADO token
     # This uses the token we just generated for authentication.
     - name: 'Checkout ADO Repository'
-      uses: actions/checkout@v4
-      with:
-        # Replace with your ADO organization, project, and repository name
-        repository: 'https://msazure.visualstudio.com/DefaultCollection/One/_git/AAPT-Antares-ContainerApps-Docs'
-        # The token is passed via the Authorization header, which checkout uses automatically.
-        # The username can be anything when using an OAuth token.
-        token: ${{ env.ADO_TOKEN }}
-        persist-credentials: false # We've handled auth; no need to persist git credentials
+      run: |
+        echo "Cloning ADO repository..."
+        # The 'actions/checkout' task's 'repository' input expects a 'owner/repo' format and fails on full ADO URLs.
+        # Using 'git clone' directly is the robust method for checking out from Azure DevOps.
+        # The 'x-access-token' literal is used as the username when providing an OAuth token.
+        # The '.' at the end of the command clones the repo contents into the current directory.
+        # --- Replace the URL part with your actual ADO repository HTTPS URL ---
+        # (e.g., dev.azure.com/YourOrg/YourProject/_git/YourRepo or YourOrg.visualstudio.com/...)
+        git clone --depth 1 https://x-access-token:${{ env.ADO_TOKEN }}@dev.azure.com/msazure/One/_git/AAPT-Antares-ContainerApps-Docs .
 
     # 4. Sync the checked-out files to Azure Blob Storage
     # This step reuses the initial Azure login context.
@@ -57,7 +72,7 @@ jobs:
 
           # --- Configuration: Replace with your values ---
           STORAGE_ACCOUNT_NAME="acadocindexing"
-          CONTAINER_NAME="docs"
+          CONTAINER_NAME="ddd"
           SOURCE_DIRECTORY="."   # The local directory to sync from
 
           az storage blob upload-batch \
