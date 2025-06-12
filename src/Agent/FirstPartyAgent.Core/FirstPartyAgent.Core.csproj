@@ -113,9 +113,6 @@
 	  <None Update="ICMAlertConfigs\f9110571-1b04-484b-b10f-ee3d130b1447.json">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
-	  <None Update="Plugins\Definitions\Queries\*.kql">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
 	  <None Update="Plugins\GenevaActionsPlugin\GenevaActions.json">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>

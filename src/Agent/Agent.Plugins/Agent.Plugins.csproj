@@ -42,6 +42,9 @@
 	</ItemGroup>
 
   <ItemGroup>
+    <None Update="Plugins\Definitions\Queries\*.kql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="$(PkgAntares_Kubectl)\kubectl.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
