@@ -67,6 +67,7 @@ using Agent.Runtime.SubAgents.WebAppDownAgent;
 using Agent.Runtime.TeamsChatServices;
 using Agent.Web.Services;
 using Agent.Web.WebSocket;
+using Agent.Web.SignalR;
 using Azure.Monitor.OpenTelemetry.Exporter;
 using FirstPartyAgent.Core.FirstPartyAgents;
 using Microsoft.Bot.Builder;
@@ -121,6 +122,9 @@ public class Program
 
         app.MapControllers();
         app.MapBlazorHub();
+        
+        // Map SignalR hub
+        app.MapHub<Agent.Web.SignalR.AgentHub>("/agentHub");
 
         // Finally, map the fallback page
         app.MapFallbackToFile("/static/index.html");
@@ -181,6 +185,14 @@ public class Program
 
         builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
 
+        // Add SignalR services
+        builder.Services.AddSignalR(options =>
+        {
+            options.MaximumReceiveMessageSize = 1024 * 1024; // 1MB
+            options.StreamBufferCapacity = 10;
+            options.KeepAliveInterval = TimeSpan.FromSeconds(15);
+            options.ClientTimeoutInterval = TimeSpan.FromSeconds(30);
+        });
 
         // Configure Azure App Insights settings
         builder.Services.Configure<AppInsightsSettings>(
