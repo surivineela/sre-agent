@@ -8,6 +8,7 @@ using Agent.Core.Extensions;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Core.Plugins.Definitions;
 using Agent.Core.Services;
 using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
@@ -23,6 +24,8 @@ using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Implementation;
 using Agent.Plugins.Implementation.DiagnosticsPlugin;
+using Agent.Plugins.Services;
+using Agent.Plugins.Services.Interfaces;
 using Agent.Prometheus.Services;
 using Agent.Runtime;
 using Agent.Runtime.Communication;
@@ -81,9 +84,6 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using WebSocketSharp.Server;
-using Agent.Core.Plugins.Definitions;
-using Agent.Plugins.Services.Interfaces;
-using Agent.Plugins.Services;
 
 namespace Agent.Web;
 
@@ -690,6 +690,12 @@ public class Program
     private static void ConfigureLogger(WebApplicationBuilder builder)
     {
         builder.Logging.ClearProviders();
+
+        if (builder.Environment.IsDevelopment())
+        {
+            builder.Logging.AddConsole();
+        }
+
         ConfigureKustoLoggers(builder);
         ConfigureApplicationInsightsLoggers(builder);
     }
@@ -772,7 +778,7 @@ public class Program
             if (builder.Environment.IsDevelopment())
             {
                 // local
-                tracingBuilder.AddConsoleExporter();
+                //tracingBuilder.AddConsoleExporter();
             }
         });
     }
