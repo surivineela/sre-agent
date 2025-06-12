@@ -283,7 +283,21 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             {
                 await foreach (var response in streamingResult)
                 {
-                    ChatResponseUpdate update = new ChatResponseUpdate(ChatRole.Assistant, response.Output?.ToString() ?? string.Empty);
+                    string outputText = string.Empty;
+                    if (response.Output is AgentOutput agentOutput)
+                    {
+                        outputText = agentOutput.OutputMessage;
+                    }
+                    else if (response.Output is string stringOutput)
+                    {
+                        outputText = stringOutput;
+                    }
+                    else
+                    {
+                        outputText = response.Output?.ToString() ?? string.Empty;
+                    }
+
+                    ChatResponseUpdate update = new ChatResponseUpdate(ChatRole.Assistant, outputText);
                     update.AdditionalProperties ??= new AdditionalPropertiesDictionary();
                     update.AdditionalProperties.Add("messageId", streamedResponseMessageId.ToString());
                     update.AdditionalProperties.Add("threadId", threadMessage.ThreadId.ToString());
