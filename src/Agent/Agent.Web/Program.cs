@@ -728,11 +728,7 @@ public class Program
             }
             : null;
 
-        if (builder.Environment.IsDevelopment())
-        {
-            builder.Services.AddSingleton<AzureDataExplorerLogger>(new AzureDataExplorerLogger());
-        }
-        else if (!string.IsNullOrEmpty(internalKustoClusterSettings.ClusterUri) &&
+        if (!string.IsNullOrEmpty(internalKustoClusterSettings.ClusterUri) &&
                  !string.IsNullOrEmpty(externalKustoClusterUri))
         {
             CommonColumn commonColumn = CommonColumn.Build();
@@ -756,6 +752,10 @@ public class Program
 
             builder.Services.AddSingleton<ILoggerProvider>(logger);
             builder.Services.AddSingleton<AzureDataExplorerLogger>(logger.GetLogger());
+        }
+        else
+        {
+            builder.Services.AddSingleton<AzureDataExplorerLogger>(new AzureDataExplorerLogger());
         }
     }
 
