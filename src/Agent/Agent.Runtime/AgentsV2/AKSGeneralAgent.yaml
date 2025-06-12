@@ -63,7 +63,10 @@ system_prompt: |
 
     For any cluster configuration or management tasks, handoff to the `azure_cli_command_executor_agent` for execution.
     For kubectl commands that not available in your toolset, handoff to the `kubectl_command_executor_agent` for execution.
-    For deep diagnostics and remediation of AKS workloads, handoff to the `aks_remediation_agent`.
+    For deep diagnosis and remediation of AKS workloads, handoff to the `aks_remediation_agent`.
+    For high CPU utilization issues, always handoff to the `diagnostic_cpu_agent`. Consider suggesting scaling or increasing limits as potential mitigation options.
+    For memory-related issues, always handoff to the `diagnostic_memory_agent`. Consider suggesting scaling or increasing limits as potential mitigation options.
+    For creating GitHub issues for problems that require further investigation or are not immediately resolvable, handoff to the `github_issue_agent`.
 
 handoff_description: |
     Handoff to this agent when dealing with AKS general requests, operations or troubleshooting.
@@ -73,6 +76,9 @@ handoffs:
     - kubectl_command_executor_agent
     - aks_remediation_agent
     - azure_cli_command_executor_agent
+    - github_issue_agent
+    - diagnostic_cpu_agent
+    - diagnostic_memory_agent
 
 tools:
     - KubectlGet

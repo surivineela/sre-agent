@@ -214,11 +214,11 @@ public class PrometheusQueryService(ILogger<PrometheusQueryService> logger, IHtt
     }
 
     private static string BuildEnhancedQuery(
-        string query,
-        string? labelFilters,
-        string? aggregateFunction,
-        string? aggregateBy,
-        int? limit)
+    string query,
+    string? labelFilters,
+    string? aggregateFunction,
+    string? aggregateBy,
+    int? limit)
     {
         var enhancedQuery = query;
 
@@ -228,17 +228,51 @@ public class PrometheusQueryService(ILogger<PrometheusQueryService> logger, IHtt
             var filters = labelFilters.Split(',')
                 .Select(f => f.Trim())
                 .Where(f => !string.IsNullOrEmpty(f))
-                .Select(f => f.Contains('=') ? f : $"{f}=~\".*\""); // Add regex match if no operator
+                .ToList();
 
             if (query.Contains('{'))
             {
-                // Insert filters into existing label selector
-                enhancedQuery = query.Replace("}", $",{string.Join(",", filters)}}}");
+                // Extract existing label selector content
+                var selectorMatch = Regex.Match(query, @"\{([^}]*)\}");
+                if (selectorMatch.Success)
+                {
+                    var existingSelector = selectorMatch.Groups[1].Value;
+                    var existingLabels = ParseLabelSelector(existingSelector);
+
+                    // Parse new filters and only add non-duplicates
+                    var newLabels = new Dictionary<string, string>();
+                    foreach (var filter in filters)
+                    {
+                        var (key, value, op) = ParseLabelFilter(filter);
+                        if (!string.IsNullOrEmpty(key) && !existingLabels.ContainsKey(key))
+                        {
+                            newLabels[key] = FormatLabelFilter(key, value, op);
+                        }
+                    }
+
+                    if (newLabels.Any())
+                    {
+                        // Combine existing and new labels
+                        var allLabels = string.IsNullOrWhiteSpace(existingSelector)
+                            ? string.Join(",", newLabels.Values)
+                            : $"{existingSelector},{string.Join(",", newLabels.Values)}";
+
+                        // Replace the label selector (fix: remove extra brace)
+                        enhancedQuery = query.Substring(0, selectorMatch.Index) +
+                                      "{" + allLabels + "}" +
+                                      query.Substring(selectorMatch.Index + selectorMatch.Length);
+                    }
+                }
             }
             else
             {
-                // Add label selector
-                enhancedQuery = $"{query}{{{string.Join(",", filters)}}}";
+                // No existing selector, add new one
+                var formattedFilters = filters.Select(f =>
+                {
+                    var (key, value, op) = ParseLabelFilter(f);
+                    return FormatLabelFilter(key, value, op);
+                });
+                enhancedQuery = $"{query}{{{string.Join(",", formattedFilters)}}}";
             }
         }
 
@@ -262,6 +296,87 @@ public class PrometheusQueryService(ILogger<PrometheusQueryService> logger, IHtt
         }
 
         return enhancedQuery;
+    }
+
+    private static Dictionary<string, string> ParseLabelSelector(string selector)
+    {
+        var labels = new Dictionary<string, string>();
+        if (string.IsNullOrWhiteSpace(selector))
+            return labels;
+
+        // Split by comma, but respect quoted values
+        var matches = Regex.Matches(selector, @"(\w+)\s*(=~?|!=?|!~)\s*(""[^""]*""|'[^']*'|[^,]+)");
+        foreach (Match match in matches)
+        {
+            if (match.Success && match.Groups.Count >= 2)
+            {
+                var key = match.Groups[1].Value.Trim();
+                labels[key] = match.Value; // Store the full expression
+            }
+        }
+        return labels;
+    }
+
+    private static (string key, string value, string op) ParseLabelFilter(string filter)
+    {
+        // Match label operators: =, !=, =~, !~
+        var match = Regex.Match(filter, @"^(\w+)\s*(=~?|!=?|!~)\s*(.+)$");
+        if (match.Success)
+        {
+            var key = match.Groups[1].Value;
+            var op = match.Groups[2].Value;
+            var value = match.Groups[3].Value.Trim();
+
+            // Remove quotes if present
+            if ((value.StartsWith('"') && value.EndsWith('"')) ||
+                (value.StartsWith('\'') && value.EndsWith('\'')))
+            {
+                value = value.Substring(1, value.Length - 2);
+            }
+
+            return (key, value, op);
+        }
+
+        // Default to equality if no operator specified
+        return (filter, ".*", "=~");
+    }
+
+    private static string FormatLabelFilter(string key, string value, string op)
+    {
+        // Handle different operators
+        switch (op)
+        {
+            case "=":
+                // Exact match - quote if needed
+                return NeedsQuoting(value) ? $"{key}=\"{value}\"" : $"{key}={value}";
+
+            case "!=":
+                // Not equal - quote if needed
+                return NeedsQuoting(value) ? $"{key}!=\"{value}\"" : $"{key}!={value}";
+
+            case "=~":
+                // Regex match - always quote
+                return $"{key}=~\"{value}\"";
+
+            case "!~":
+                // Regex not match - always quote
+                return $"{key}!~\"{value}\"";
+
+            default:
+                // Default to regex match
+                return $"{key}=~\"{value}\"";
+        }
+    }
+
+    private static bool NeedsQuoting(string value)
+    {
+        // Check if value needs quoting
+        return value.Contains(" ") ||
+               value.Contains("-") ||
+               value.Contains(".") ||
+               value.Contains("/") ||
+               value.Contains("\\") ||
+               !Regex.IsMatch(value, @"^[a-zA-Z0-9_]+$");
     }
 
     private static long ParseDurationToSeconds(string duration)
