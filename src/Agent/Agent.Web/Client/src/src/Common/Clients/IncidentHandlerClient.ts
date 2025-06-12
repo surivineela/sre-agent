@@ -173,12 +173,16 @@ export class IncidentHandlerClient extends DataPlaneClient {
     public queryIncidents = async (request: IncidentQueryRequest): Promise<Response<IIncidentDocument[]>> => {
         const url = this.getRequestUrl(`${this._apiPathPrefix}/queryIncidents`);
         try {
-            const { data } = await axios.post<IIncidentDocument[]>(url, request, {
-                headers: getAgentHeaders(),
-            });
+            const { data } = await axios.post<{ items: IIncidentDocument[]; totalCount: number }>(
+                url,
+                { ...request, pageSize: 1000 },
+                {
+                    headers: getAgentHeaders(),
+                }
+            );
             return {
                 isSuccessful: true,
-                content: data,
+                content: data.items,
             };
         } catch (error) {
             return {
