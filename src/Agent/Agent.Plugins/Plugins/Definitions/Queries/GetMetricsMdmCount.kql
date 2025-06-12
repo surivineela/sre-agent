@@ -1,6 +1,7 @@
 let queryFrom = datetime("##fromDate##");
 let queryTo = datetime("##toDate##");
-let regionalMdmAccount = strcat("ContainerAppsShoebox", "##region##");
+let region = replace_string("##region##", " ", ""); // remove any spaces
+let regionalMdmAccount = strcat("ContainerAppsShoebox", region);
 let metricName = "##metricName##";
 let containerAppArmId = "##containerAppArmId##";
 let whereClause = strcat("| where containerAppArmId == '", containerAppArmId, "'");
