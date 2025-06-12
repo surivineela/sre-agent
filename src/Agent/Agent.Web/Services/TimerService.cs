@@ -80,6 +80,8 @@ public class TimerService : IHostedService, IDisposable
     private FeedbackRCAScanner _feedbackRCAScanner;
     private AzMonitorAlertScanner _azMonitorAlertScanner;
     private AzureDataExplorerLogger _azureDataExplorerLogger;
+    private CustomerLogger _customerLogger;
+    private CustomerAuditLogger _customerAuditLogger;
 
     private Timer? _crawlerTimer = null;
     private bool _crawlerTimerIsRunning = false;
@@ -157,7 +159,9 @@ public class TimerService : IHostedService, IDisposable
         FeedbackRCAScanner feedbackRCAScanner,
         AzMonitorAlertScanner azMonitorAlertScanner,
         PagerDutyScanner pagerDutyScanner,
-        AzureDataExplorerLogger azureDataExplorerLogger)
+        AzureDataExplorerLogger azureDataExplorerLogger,
+        CustomerLogger customerLogger,
+        CustomerAuditLogger customerAuditLogger)
     {
         _logger = logger;
         _crawlerService = crawlerService;
@@ -181,6 +185,8 @@ public class TimerService : IHostedService, IDisposable
         _azMonitorAlertScanner = azMonitorAlertScanner;
         _pagerDutyScanner = pagerDutyScanner;
         _azureDataExplorerLogger = azureDataExplorerLogger;
+        _customerLogger = customerLogger;
+        _customerAuditLogger = customerAuditLogger;
 
         // Register all the scanners that implement this base type
         var scannerSubClasses = TypeReflectionHelpers.GetClassesDerivedFromGeneric(typeof(MetaAgent).Assembly, typeof(SimpleResourceSubAgentScannerBase<,,,>));
@@ -196,6 +202,8 @@ public class TimerService : IHostedService, IDisposable
             var scanInterval = (TimeSpan) scanIntervalProp.GetValue(instance);
             GenericSubAgentScannerTimers.Add(new ScannerTimerInformation(type.Name, scanMethod, instance) {  Interval = scanInterval });
         }
+
+        _customerAuditLogger = customerAuditLogger;
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
@@ -651,31 +659,76 @@ public class TimerService : IHostedService, IDisposable
     {
         _logFlushTimer = new Timer(async _ =>
         {
-            if (_azureDataExplorerLogger == null)
-            {
-                Console.WriteLine("Azure Data Explorer logger is not initialized. Skip this round.");
-                return;
-            }
-
             if (_logFlushTimerIsRunning)
             {
                 Console.WriteLine("Log flusher is already running. Skip this round.");
                 return;
             }
-            try
-            {
-                _logFlushTimerIsRunning = true;
-                _azureDataExplorerLogger.FlushLogBuffer();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogInternalError(ex, "Error executing log flusher.");
-            }
-            finally
-            {
-                _logFlushTimerIsRunning = false;
-            }
+
+            _logFlushTimerIsRunning = true;
+
+            Task.WhenAll(AzureDataExplorerLoggerFlushAsync(cancellationToken),
+                         CustomerLoggerFlushAsync(cancellationToken),
+                         CustomerAuditLoggerFlushAsync(cancellationToken))
+                .Wait();
+
+            _logFlushTimerIsRunning = false;
+
         }, null, TimeSpan.Zero, _logFlushTimerInterval);
+    }
+
+    private async Task AzureDataExplorerLoggerFlushAsync(CancellationToken cancellationToken)
+    {
+        if (_azureDataExplorerLogger == null)
+        {
+            Console.WriteLine("Azure Data Explorer logger is not initialized. Skip this round.");
+            return;
+        }
+
+        try
+        {
+            await _azureDataExplorerLogger.FlushLogBufferAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error executing Azure Data Explorer log flusher.");
+        }
+    }
+
+    private async Task CustomerLoggerFlushAsync(CancellationToken cancellationToken)
+    {
+        if (_customerLogger == null)
+        {
+            Console.WriteLine("Application Insights logger is not initialized. Skip this round.");
+            return;
+        }
+
+        try
+        {
+            await _customerLogger.FlushAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error executing application insightslog flusher.");
+        }
+    }
+
+    private async Task CustomerAuditLoggerFlushAsync(CancellationToken cancellationToken)
+    {
+        if (_customerAuditLogger == null)
+        {
+            Console.WriteLine("Application Insights logger is not initialized. Skip this round.");
+            return;
+        }
+
+        try
+        {
+            await _customerAuditLogger.FlushAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error executing application insightslog flusher.");
+        }
     }
 
     public void StartAzMonitorAlertScannerTimer(CancellationToken cancellationToken)

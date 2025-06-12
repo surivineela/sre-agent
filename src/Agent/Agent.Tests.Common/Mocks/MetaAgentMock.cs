@@ -1,21 +1,16 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
-using Agent.Plugins.Definitions;
+using Agent.Logging;
 using Agent.Plugins;
-using Agent.Runtime.MetaAgent.Interfaces;
+using Agent.Plugins.Definitions;
 using Agent.Runtime.MetaAgent;
+using Agent.Runtime.MetaAgent.Interfaces;
 using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
 using Microsoft.Extensions.Logging;
-using Agent.Core.Models.Api.v1;
+using Moq;
 
 namespace Agent.Tests.Common.Mocks;
 public static class MetaAgentMock
@@ -119,6 +114,7 @@ public static class MetaAgentMock
             chatClient,
             agentsFactory,
             logger ?? Mock.Of<ILogger<MetaAgent>>(),
+            Mock.Of<CustomerLogger>(),
             threadService ?? Mock.Of<ThreadService>(),
             threadRepository ?? Mock.Of<IThreadRepository>()
         );

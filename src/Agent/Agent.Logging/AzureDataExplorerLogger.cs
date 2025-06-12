@@ -1,6 +1,5 @@
 using System.Text;
 using System.Text.Json;
-using Azure.Storage.Blobs.Models;
 using Kusto.Data.Common;
 using Kusto.Ingest;
 using Microsoft.Extensions.Logging;
@@ -124,7 +123,7 @@ public class AzureDataExplorerLogger : ILogger
         //throw new Exception("LogType property not found in log message");
     }
 
-    public void FlushLogBuffer()
+    public async Task FlushLogBufferAsync()
     {
         if (_logBuffer.Logs.Count > 0)
         {
@@ -134,11 +133,11 @@ public class AzureDataExplorerLogger : ILogger
                 logDataList.Add(logData);
             }
 
-            IngestBatchToCluster(logDataList);
+            await IngestBatchToClusterAsync(logDataList);
         }
     }
 
-    private void IngestBatchToCluster(IEnumerable<object> logDataBatch)
+    private async Task IngestBatchToClusterAsync(IEnumerable<object> logDataBatch)
     {
         var jsonData = JsonSerializer.Serialize(logDataBatch);
 
@@ -159,7 +158,7 @@ public class AzureDataExplorerLogger : ILogger
         stream.Position = 0; // Reset the position to the start of the stream
 
         // Ingest the batch into Kusto
-        _internalKustoClient.IngestFromStreamAsync(stream, ingestionProperties).Wait();
+        await _internalKustoClient.IngestFromStreamAsync(stream, ingestionProperties);
     }
 
     private void IngestToCluster(IKustoIngestClient client, string databaseName, string tableName, object logData)

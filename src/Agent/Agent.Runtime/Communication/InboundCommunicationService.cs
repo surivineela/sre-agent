@@ -8,9 +8,7 @@ using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
-using Agent.Framework;
 using Agent.Logging;
-using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Runtime.Helpers;
 using Agent.Runtime.MetaAgent;
@@ -34,6 +32,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
     private readonly DurableTaskClient _durableTaskClient;
     private readonly IThreadRepository _repository;
     private readonly ILogger<InboundCommunicationService> _logger;
+    private readonly CustomerLogger _customerLogger;
     private readonly SinkService _sinkService;
     private readonly ThreadService _threadService;
     private readonly IPostToTeamsPlugin _teamsPlugin;
@@ -48,6 +47,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         ThreadService threadService,
         IPostToTeamsPlugin teamsPlugin,
         ILogger<InboundCommunicationService> logger,
+        CustomerLogger customerLogger,
         IServiceProvider serviceProvider,
         IReasoningLoopManager reasoningLoopManager,
         CoreSettings coreSettings)
@@ -59,6 +59,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         _threadService = threadService;
         _teamsPlugin = teamsPlugin;
         _logger = logger;
+        _customerLogger = customerLogger;
         _serviceProvider = serviceProvider;
         _reasoningLoopManager = reasoningLoopManager;
         _useAgentFramwork = coreSettings.UseAgentFramework;
@@ -108,6 +109,13 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
 
     public async Task<InboundServiceResponse> ProcessUserMessageAsync(ThreadMessage threadMessage)
     {
+        _customerLogger.LogMessage($"[ChatThreadId {threadMessage.ThreadId}] Processing user message: {threadMessage.Message}");
+        _customerLogger.LogCustomEvent("MetaAgent", new Dictionary<string, string>
+        {
+            { "ChatThreadId", threadMessage.ThreadId.ToString() },
+            { "Message", threadMessage.Message }
+        });
+
         if (_useAgentFramwork)
         {
             AgentContext agentContext = await _repository.GetAgentContextAsync(agentContextId: threadMessage.AgentContextId, threadId: threadMessage.ThreadId);
@@ -495,7 +503,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         chatResponse.AdditionalProperties.Add("orchestrationInstanceId", response.OrchestrationInstanceId);
         chatResponse.AdditionalProperties.Add("threadId", response.ThreadId.ToString());
         chatResponse.AdditionalProperties.Add("isHandoffToDifferentThread", isHandoffToDifferentThread);
-        for(int i = 0; i < 1; i++)
+        for (int i = 0; i < 1; i++)
         {
             yield return chatResponse;
         }

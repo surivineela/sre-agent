@@ -26,6 +26,7 @@ public sealed class MetaAgent : IAgent
 
     private readonly IChatClient _chatClient;
     private readonly ILogger<MetaAgent> _log;
+    private readonly CustomerLogger _customerLogger;
 
     private readonly IAgentsFactory _agentsFactory;
 
@@ -34,6 +35,7 @@ public sealed class MetaAgent : IAgent
         [FromKeyedServices("function-invocation-enabled")] IChatClient chatClient,
         IAgentsFactory agentsFactory,
         ILogger<MetaAgent> logger,
+        CustomerLogger customerLogger,
         ThreadService threadService,
         IThreadRepository threadRepository
         )
@@ -42,6 +44,7 @@ public sealed class MetaAgent : IAgent
         _threadService = threadService;
         _threadRepository = threadRepository;
         _log = logger;
+        _customerLogger = customerLogger;
 
         _agentsFactory = agentsFactory;
         _log.LogInternalInformation("Loading agent factory of type: {AgentFactoryType}", _agentsFactory.GetType());
@@ -51,6 +54,13 @@ public sealed class MetaAgent : IAgent
     {
         var lastUserMessage = await _threadService.GetLastUserMessage(agentContext.ThreadId);
         _log.LogExternalInformation("[ChatThreadId {threadId}] Processing user message: {Message}", agentContext.ThreadId, lastUserMessage);
+        _customerLogger.LogMessage($"[ChatThreadId {agentContext.ThreadId}] Processing user message: {lastUserMessage}");
+        _customerLogger.LogCustomEvent("MetaAgent", new Dictionary<string, string>
+        {
+            { "ChatThreadId", agentContext.ThreadId.ToString() },
+            { "Message", lastUserMessage }
+        });
+
         using var _ = await _lock.AcquireWriterAsync();
 
         Guid threadGuid = agentContext.ThreadId;

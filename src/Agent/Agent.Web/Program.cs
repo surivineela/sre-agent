@@ -76,6 +76,7 @@ using Microsoft.DurableTask.Worker.AzureManaged;
 using Microsoft.Extensions.AI;
 using Microsoft.SemanticKernel;
 using OpenTelemetry;
+using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -686,27 +687,14 @@ public class Program
         return builder.Build();
     }
 
-    private static ILoggerFactory GetLoggerFactory(ResourceBuilder resourceBuilder, AzureSettings azureSettings)
+    private static void ConfigureLogger(WebApplicationBuilder builder)
     {
-        return LoggerFactory.Create(builder =>
-        {
-            // Add OpenTelemetry as a logging provider
-            builder.AddOpenTelemetry(options =>
-            {
-                options.SetResourceBuilder(resourceBuilder);
-                //options.AddConsoleExporter(); // Too verbose to even warrant making toggleable via config, but this is how you do it
-                if (!string.IsNullOrEmpty(azureSettings.AppInsights.ConnectionString))
-                {
-                    options.AddAzureMonitorLogExporter(options => options.ConnectionString = azureSettings.AppInsights.ConnectionString);
-                }
-                // Format log messages. This is default to false.
-                options.IncludeFormattedMessage = true;
-                options.IncludeScopes = true;
-            });
-        });
+        builder.Logging.ClearProviders();
+        ConfigureKustoLoggers(builder);
+        ConfigureApplicationInsightsLoggers(builder);
     }
 
-    private static void ConfigureLogger(WebApplicationBuilder builder)
+    private static void ConfigureKustoLoggers(WebApplicationBuilder builder)
     {
         var internalKustoClusterSettings = new KustoClusterConfiguration
         {
@@ -733,44 +721,60 @@ public class Program
             }
             : null;
 
-        builder.Logging.ClearProviders();
-
         if (builder.Environment.IsDevelopment())
         {
-            builder.Logging.AddConsole();
             builder.Services.AddSingleton<AzureDataExplorerLogger>(new AzureDataExplorerLogger());
         }
-        else
+        else if (!string.IsNullOrEmpty(internalKustoClusterSettings.ClusterUri) &&
+                 !string.IsNullOrEmpty(externalKustoClusterUri))
         {
-            if (string.IsNullOrEmpty(internalKustoClusterSettings.ClusterUri) && string.IsNullOrEmpty(externalKustoClusterUri))
-            {
-                builder.Logging.AddConsole();
-            }
-            else
-            {
-                CommonColumn commonColumn = CommonColumn.Build();
+            CommonColumn commonColumn = CommonColumn.Build();
 
-                var clientId = GetKustoFirstPartyConfiguration("ClientId");
-                var tenantId = "33e01921-4d64-4f8c-a055-5bdaffd5e33d"; // TODO: switch to this when tenant Id is correctly set GetKustoFirstPartyConfiguration("TenantId");
-                var certificatePath = GetKustoFirstPartyConfiguration("CertificatePath");
+            var clientId = GetKustoFirstPartyConfiguration("ClientId");
+            var tenantId = "33e01921-4d64-4f8c-a055-5bdaffd5e33d"; // TODO: switch to this when tenant Id is correctly set GetKustoFirstPartyConfiguration("TenantId");
+            var certificatePath = GetKustoFirstPartyConfiguration("CertificatePath");
 
-                var logger = new AzureDataExplorerLoggerProvider(
-                    commonColumn: commonColumn,
-                    internalKustoClusterUri: internalKustoClusterSettings.ClusterUri,
-                    internalKustoDatabaseName: internalKustoClusterSettings.DatabaseName,
-                    internalKustoTableName: internalKustoClusterSettings.TableName,
-                    externalKustoClusterUri: externalKustoClusterSettings?.ClusterUri,
-                    externalKustoDatabaseName: externalKustoClusterSettings?.DatabaseName,
-                    externalKustoTableName: externalKustoClusterSettings?.TableName,
-                    externalKustoIdentityClientId: externalKustoClusterSettings?.Identity,
-                    kustoFirstPartyAppClientId: clientId,
-                    kustoFirstPartyAppTenantId: tenantId,
-                    kustoFirstPartyAppCertificatePath: certificatePath);
+            var logger = new AzureDataExplorerLoggerProvider(
+                commonColumn: commonColumn,
+                internalKustoClusterUri: internalKustoClusterSettings.ClusterUri,
+                internalKustoDatabaseName: internalKustoClusterSettings.DatabaseName,
+                internalKustoTableName: internalKustoClusterSettings.TableName,
+                externalKustoClusterUri: externalKustoClusterSettings?.ClusterUri,
+                externalKustoDatabaseName: externalKustoClusterSettings?.DatabaseName,
+                externalKustoTableName: externalKustoClusterSettings?.TableName,
+                externalKustoIdentityClientId: externalKustoClusterSettings?.Identity,
+                kustoFirstPartyAppClientId: clientId,
+                kustoFirstPartyAppTenantId: tenantId,
+                kustoFirstPartyAppCertificatePath: certificatePath);
 
-                builder.Services.AddSingleton<ILoggerProvider>(logger);
-                builder.Services.AddSingleton<AzureDataExplorerLogger>(logger.GetLogger());
-            }
+            builder.Services.AddSingleton<ILoggerProvider>(logger);
+            builder.Services.AddSingleton<AzureDataExplorerLogger>(logger.GetLogger());
         }
+    }
+
+    private static void ConfigureApplicationInsightsLoggers(WebApplicationBuilder builder)
+    {
+        var appInsightsConnectionString = GetApplicationInsightsConnectionString(builder);
+        var customerLogger = new CustomerLogger(appInsightsConnectionString);
+        var customerAuditLogger = new CustomerAuditLogger(appInsightsConnectionString);
+
+        builder.Services.AddSingleton<CustomerLogger>(customerLogger);
+        builder.Services.AddSingleton<CustomerAuditLogger>(customerAuditLogger);
+
+        builder.Services.AddOpenTelemetry().WithTracing(tracingBuilder =>
+        {
+            tracingBuilder
+                .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("AgentService"))
+                .AddAspNetCoreInstrumentation()
+                .AddHttpClientInstrumentation()
+                .AddProcessor(new CustomerAuditTraceFilteringProcessor(customerAuditLogger));
+
+            if (builder.Environment.IsDevelopment())
+            {
+                // local
+                tracingBuilder.AddConsoleExporter();
+            }
+        });
     }
 
     private static string GetKustoFirstPartyConfiguration(string key)
@@ -789,6 +793,19 @@ public class Program
     {
         const string prefix = "AppSettings__Core__KustoClusterConfiguration_";
         return Environment.GetEnvironmentVariable($"{prefix}{key}") ?? string.Empty;
+    }
+
+    private static string GetApplicationInsightsConnectionString(WebApplicationBuilder builder)
+    {
+        if (builder.Environment.IsDevelopment())
+        {
+            // Get Azure Settings for App Insights configuration
+            var azureSettings = builder.Configuration.GetSection("AppSettings:Core:Azure").Get<AzureSettings>();
+            var loggingSettings = builder.Configuration.GetSection("Logging").Get<LoggingSettings>();
+            return azureSettings?.AppInsights?.ConnectionString;
+        }
+
+        return Environment.GetEnvironmentVariable("AppSettings__Core__Azure__ApplicationInsights__ConnectionString") ?? string.Empty;
     }
 
     // Helper method to get Azure Portal domains
