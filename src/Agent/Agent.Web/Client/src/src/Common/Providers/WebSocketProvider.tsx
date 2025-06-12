@@ -5,7 +5,7 @@ import { defaultSreAgentEndpoint } from '../AzPortalProxy/AzPortalProxy';
 
 export const WebSocketProvider = ({ children }: { children?: ReactNode }) => {
     const websocket = useRef<WebSocket | null>(null);
-    const listener = useRef<(e: MessageEvent<any>) => void>(() => { });
+    const listener = useRef<(e: MessageEvent<any>) => void>(() => {});
 
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
 

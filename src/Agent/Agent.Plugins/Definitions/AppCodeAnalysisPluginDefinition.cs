@@ -68,6 +68,14 @@ namespace Agent.Plugins.Definitions
             return await _appCodeAnalysisPlugin.GetStackTraceOfMostCommonException(resourceId);
         }
 
+        [Description("This function retrieves the stack traces of the n most common app exceptions")]
+        public async Task<string> GetStackTracesOfNMostCommonExceptions(
+            [Description("resourceId of the app")] string resourceId,
+            [Description("number of distinct most common exceptions")] int num)
+        {
+            return await _appCodeAnalysisPlugin.GetStackTracesOfNMostCommonExceptions(resourceId, num);
+        }
+
         [RequiresApproval]
         [KernelFunction("perform_deployment_swap_for_app")]
         [Description("Performs a Deployment Swap for the specified app.")]

@@ -158,7 +158,7 @@ export interface StreamingMessageContent {
     AdditionalProperties?: {
         userDescription?: string;
         functionCallDescription?: string;
-    }
+    };
 }
 
 export interface KnowledgeGraphBuildStatus {

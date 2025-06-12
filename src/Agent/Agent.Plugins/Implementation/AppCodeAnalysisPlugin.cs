@@ -97,7 +97,7 @@ public class AppCodeAnalysisPlugin : IAppCodeAnalysisPlugin
     }
 
     [KernelFunction("get_stack_trace_of_recent_exception")]
-    [Description("This function retrieves the stack trace of the most rcent exception")]
+    [Description("This function retrieves the stack trace of the most recent exception")]
     public async Task<string> GetStackTraceOfLastException(
     [Description("resourceId of the app")] string resourceId)
     {
@@ -153,6 +153,38 @@ public class AppCodeAnalysisPlugin : IAppCodeAnalysisPlugin
         | extend FullStackTraceString = strcat_array(FullStackTrace, ""\n"")  
         | project ExceptionMessage, ExceptionType, FullStackTraceString ";
 
+
+        var results = await _appInsightsPlugin.ExecuteAppInsightsQuery(resourceId, query);
+
+        return results;
+    }
+
+    [Description("This function retrieves the stack traces of the n most common app exceptions")]
+    public async Task<string> GetStackTracesOfNMostCommonExceptions(
+    [Description("resourceId of the app")] string resourceId,
+    [Description("number of distinct most common exceptions")] int num)
+    {
+        string resourceName = resourceId;
+        if (resourceId.Contains('/'))
+        {
+            var splitResourceParts = resourceId.Split('/');
+            resourceName = splitResourceParts[splitResourceParts.Length - 1];
+        }
+
+        string query = $@"exceptions  
+        | where timestamp > ago(1d)
+        | where * contains ""{resourceName}""
+        | summarize Count = count() by ExceptionMessage = outerMessage, ExceptionType = outerType, ParsedStack = tostring(details[0].parsedStack)
+        | order by Count desc
+        | summarize arg_max(Count, *) by ExceptionMessage, ExceptionType
+        | top {num} by Count
+        | mv-expand StackFrame = todynamic(ParsedStack) 
+        | extend MethodNameWithLine = strcat(tostring(split(StackFrame.method, "","")[0]),  
+                                                "": line "",  
+                                                tostring(StackFrame.line))  
+        | summarize FullStackTrace = make_list(MethodNameWithLine) by ExceptionMessage, ExceptionType 
+        | extend FullStackTraceString = strcat_array(FullStackTrace, ""\n"")  
+        | project ExceptionMessage, ExceptionType, FullStackTraceString";
 
         var results = await _appInsightsPlugin.ExecuteAppInsightsQuery(resourceId, query);
 

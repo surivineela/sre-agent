@@ -19,6 +19,8 @@ public interface IAppCodeAnalysisPlugin
 
     Task<string> GetStackTraceOfMostCommonException(string resourceId);
 
+    Task<string> GetStackTracesOfNMostCommonExceptions(string resourceId, int num);
+
     Task<string> PerformDeploymentSwapForApp(string resourceId);
 
     Task<string> GetDeploymentActivity(string resourceId);

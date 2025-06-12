@@ -66,9 +66,9 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadLi
                     },
                     max: oldestThread
                         ? {
-                            timestamp: oldestThread.modifiedTimestamp,
-                            inclusive: false,
-                        }
+                              timestamp: oldestThread.modifiedTimestamp,
+                              inclusive: false,
+                          }
                         : undefined,
                 },
                 source: threadSource,
