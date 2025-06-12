@@ -81,7 +81,7 @@ namespace Agent.Data.Repositories
             return Task.FromResult(threads.AsEnumerable());
         }
 
-        public Task<IEnumerable<Thread>> GetThreadsBySourceAsync(ODataQueryOptions? queryOptions = null, ThreadSource? source = null)
+        public Task<IEnumerable<Thread>> GetThreadsBySourceAsync(ODataQueryOptions? queryOptions = null, ThreadSource? source = null, IncidentType? incidentType = null)
         {
             IQueryable<Thread> threads = _threads.Values.AsQueryable().OrderBy(t => t.CreatedTimestamp);
 
@@ -102,7 +102,6 @@ namespace Agent.Data.Repositories
 
             return Task.FromResult(threads.AsEnumerable());
         }
-
 
         public Task<Thread> CreateThreadAsync(Thread thread)
         {

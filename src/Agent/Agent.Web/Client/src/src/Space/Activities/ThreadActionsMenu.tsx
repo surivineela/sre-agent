@@ -222,7 +222,7 @@ Thread ID: ${thread.id}`;
                                 {copied ? 'Copied!' : 'Copy'}
                             </Button>
                             <Button appearance="primary" onClick={() => setIsInfoDialogOpen(false)}>
-                                {intl.formatMessage(SreAgentResources.closed)}
+                                {intl.formatMessage(SreAgentResources.close)}
                             </Button>
                         </DialogActions>
                     </DialogBody>

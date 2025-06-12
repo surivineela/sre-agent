@@ -21,6 +21,7 @@ namespace Agent.Core.Models.Api.v1
     {
         PagerDuty,
         Icm,
+        AzMonitor
     }
 
     public record IncidentSource(IncidentType IncidentType, string IncidentId);

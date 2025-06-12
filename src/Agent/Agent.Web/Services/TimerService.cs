@@ -121,6 +121,10 @@ public class TimerService : IHostedService, IDisposable
     private bool _azMonitorAlertScannerTimerIsRunning = false;
     private TimeSpan _azMonitorAlertScannerTimerInterval = TimeSpan.FromMinutes(1);
 
+    private Timer? _azMonitorIncidentClosureTimer = null;
+    private bool _azMonitorIncidentClosureTimerIsRunning = false;
+    private TimeSpan _azMonitorIncidentClosureTimerInterval = TimeSpan.FromMinutes(1);
+
     private Timer? _githubAccessTokenTimer = null;
     private bool _githubAccessTokenTimerIsRunning = false;
     private TimeSpan _githubAccessTokenTimerInterval = TimeSpan.FromMinutes(1);
@@ -255,6 +259,9 @@ public class TimerService : IHostedService, IDisposable
         {
             _logger.LogInternalInformation("Starting Azure Monitor Alert Scanner timer ...");
             StartAzMonitorAlertScannerTimer(cancellationToken);
+            
+            _logger.LogInternalInformation("Starting Azure Monitor Incident Closure timer ...");
+            StartAzMonitorIncidentClosureTimer(cancellationToken);
         }
 
         StartPagerDutyScannerTimer(cancellationToken);
@@ -754,6 +761,31 @@ public class TimerService : IHostedService, IDisposable
                 _azMonitorAlertScannerTimerIsRunning = false;
             }
         }, null, TimeSpan.Zero, _azMonitorAlertScannerTimerInterval);
+    }
+
+    public void StartAzMonitorIncidentClosureTimer(CancellationToken cancellationToken)
+    {
+        _azMonitorIncidentClosureTimer = new Timer(async _ =>
+        {
+            if (_azMonitorIncidentClosureTimerIsRunning)
+            {
+                _logger.LogInternalInformation("Az Monitor Incident Closure Timer is already running, Skipping this round.");
+                return;
+            }
+            try
+            {
+                _azMonitorIncidentClosureTimerIsRunning = true;
+                await _azMonitorAlertScanner.CloseInActiveAzMonitorIncidentThreads(10, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Error executing Az Monitor Incident Closure Timer.");
+            }
+            finally
+            {
+                _azMonitorIncidentClosureTimerIsRunning = false;
+            }
+        }, null, TimeSpan.Zero, _azMonitorIncidentClosureTimerInterval);
     }
 
     public void Dispose()

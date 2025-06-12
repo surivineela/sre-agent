@@ -13,4 +13,6 @@ public interface IAzMonitorAlertService
     Task<bool> UpdateAlertStatus(string alertId, ServiceAlertState alertState);
 
     Task<bool> AcknowledgeAlert(string alertId);
+
+    Task<bool> ResolveAlert(string alertId);
 }

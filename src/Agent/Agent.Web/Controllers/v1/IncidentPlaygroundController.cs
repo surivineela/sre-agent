@@ -2,15 +2,10 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
-using Agent.Framework;
 using Agent.Logging;
 using Agent.Runtime.Services;
-using FirstPartyAgent.Core.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.AI;
-using Newtonsoft.Json;
 
 namespace Agent.Web.Controllers.v1;
 

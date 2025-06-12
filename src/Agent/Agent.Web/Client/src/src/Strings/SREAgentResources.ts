@@ -71,6 +71,7 @@ export const SreAgentResources = defineMessages({
     acknowledged: { defaultMessage: 'Acknowledged', id: 'FnKIAW' },
     triggered: { defaultMessage: 'Triggered', id: 'Zqa4dQ' },
     closed: { defaultMessage: 'Closed', id: 'Fv1ZSz' },
+    close: { defaultMessage: 'Close', id: 'rbrahO' },
     mitigated: { defaultMessage: 'Mitigated', id: 'dnXgff' },
     resolved: { defaultMessage: 'Resolved', id: 'W6nSYE' },
     activeThreads: { defaultMessage: 'Active threads', id: 'rFlkvY' },

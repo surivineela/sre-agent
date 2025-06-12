@@ -2,13 +2,10 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Logging;
-using Azure.Core;
 using Azure.ResourceManager.AlertsManagement.Models;
 using Microsoft.Extensions.Logging;
 
@@ -111,6 +108,12 @@ public class AzMonitorAlertService : IAzMonitorAlertService
     {
         _logger.LogInternalInformation($"Acknowledging alert {alertId}");
         return await UpdateAlertStatus(alertId, ServiceAlertState.Acknowledged);
+    }
+
+    public async Task<bool> ResolveAlert(string alertId)
+    {
+        _logger.LogInternalInformation($"Resolving alert {alertId}");
+        return await UpdateAlertStatus(alertId, ServiceAlertState.Closed);
     }
 
     public async Task<bool> UpdateAlertStatus(string alertId, ServiceAlertState alertState)

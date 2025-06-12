@@ -22,11 +22,14 @@ using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents.ContainerAppsRemediation;
 using Agent.Runtime.SubAgents.WebAppDownAgent;
 using Azure.Core;
+using Azure.ResourceManager.AlertsManagement.Models;
 using Microsoft.Azure.Cosmos;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Author = Agent.Core.Models.Api.v1.Author;
+using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
+using Message = Agent.Core.Models.Api.v1.Message;
 using Thread = Agent.Core.Models.Api.v1.Thread;
 
 namespace Agent.Runtime.SubAgents.AzMonitorAlertAgent;
@@ -138,6 +141,17 @@ public class AzMonitorAlertScanner
     {
         try
         {
+            // check if there exists an active incident thread for this alert
+            var existingActiveThread = await FindExistingActiveThreadForAlertRule(alert);
+
+            await _azMonitorAlertService.AcknowledgeAlert(alert.Id);
+
+            if (existingActiveThread != null)
+            {
+                // return if an active incident thread exists
+                return;
+            }
+
             // save alert in the document db
             var docId = await SaveAlertToDocumentDb(alert);
 
@@ -148,19 +162,6 @@ public class AzMonitorAlertScanner
             var (thread, agentContext) = await CreateIncidentThread(alert);
 
             var investigationResult = await _investigationOrchestrator.InvestigateAlertAsync(alert, thread);
-
-            // Disable reasoning message for now
-            //await _repository.CreateReasoningMessageAsync(new ReasoningMessage(
-            //    Guid.NewGuid(),
-            //    agentContext.Id,
-            //    ReasoningMessageRoleEnum.System,
-            //    JsonSerializer.Serialize(new
-            //    {
-            //        alertDetails = GetAlertInfoAsPrompt(alert),
-            //        description = "Initial investigation findings with evidence-based hypotheses. These should be validated by further diagnostic testing and correlation with system behavior.",
-            //        investigationSummary,
-            //    })
-            //));
 
             var resourceType = alert.Properties?.Essentials?.TargetResourceType;
 
@@ -386,7 +387,7 @@ Remember: Quality findings with specific values are better than quantity. Exclud
             var resourceIdentifier = new ResourceIdentifier(targetResource);
 
             string subscriptionId = resourceIdentifier.SubscriptionId;
-            string status = essentials.AlertState.ToString();
+            string status = ServiceAlertState.Acknowledged.ToString(); // at this point, the alert should be acknowledged
             DateTimeOffset createdAt = ParseDateTimeOffset(essentials.StartDateTime);
 
             var alertRuleName = new ResourceIdentifier(alertRule);
@@ -408,7 +409,7 @@ Remember: Quality findings with specific values are better than quantity. Exclud
                 UpdatedAt = DateTime.UtcNow
             };
 
-            // Save to database
+            // Save to database 
             try
             {
                 var response = await _dbContainer.UpsertItemAsync(
@@ -553,14 +554,12 @@ Remember: Quality findings with specific values are better than quantity. Exclud
             message: alertDataBlock,
             agentTypeEnum: AgentTypeEnum.Meta,
             source: ThreadSource.Incident,
-            incidentId: alertId
+            incidentId: alertIdResource.Name, // Alert GUID (unique every time a new alert is fired)
+            incidentSource: new IncidentSource(IncidentType.AzMonitor, alertRule)
         );
 
         try
         {
-            // acknowledge incident
-            await _azMonitorAlertService.AcknowledgeAlert(alertId);
-
             var agentMessage = $"Alert acknowledged ✅\n\nInitiating investigation to assess the situation and identify potential causes 🛠️";
 
             await _repository.AddMessageAsync(thread.Id, new Message(
@@ -742,6 +741,179 @@ Remember: Quality findings with specific values are better than quantity. Exclud
         {
             _logger.LogInternalError(ex, "Error appending investigation summary to message {MessageId}", messageId);
         }
+    }
+
+    public async Task CloseInActiveAzMonitorIncidentThreads(int cuttoffTimeWindow = 10, CancellationToken ct = default)
+    {
+        _logger.LogInternalInformation("Checking for inactive AzMonitor incident threads to close");
+
+        try
+        {
+            // Get all AzMonitor incident threads
+            var azMonitorIncidentThreads = await _repository.GetThreadsBySourceAsync(
+                source: ThreadSource.Incident,
+                incidentType: IncidentType.AzMonitor);
+
+            _logger.LogInternalInformation($"Found {azMonitorIncidentThreads.Count()} AzMonitor incident threads");
+
+            var cutoffTime = DateTime.UtcNow.AddMinutes(-cuttoffTimeWindow);
+            var threadsToClose = new List<Thread>();
+
+            foreach (var thread in azMonitorIncidentThreads)
+            {
+                // Skip if thread status or incident status is null
+                if (thread.Status?.IncidentStatus == null)
+                {
+                    continue;
+                }
+
+                // Skip if already closed
+                if (thread.Status?.IncidentStatus?.Status == ServiceAlertState.Closed.ToString())
+                {
+                    continue;
+                }
+
+                // Check last message timestamp
+                DateTime? lastMessageTime = thread.LastMessage?.TimeStamp;
+
+                if (lastMessageTime == null)
+                {
+                    // If no last message, use the thread creation timestamp
+                    lastMessageTime = thread.CreatedTimestamp;
+                }
+
+                // If last activity was more than X minutes ago, mark for closure
+                if (lastMessageTime < cutoffTime)
+                {
+                    threadsToClose.Add(thread);
+                    _logger.LogInternalInformation($"Thread {thread.Id} is inactive since {lastMessageTime}, will be closed");
+                }
+            }
+
+            _logger.LogInternalInformation($"Found {threadsToClose.Count} inactive threads to close");
+
+            // Close the inactive threads by updating their AzMonitorAlertDocument status
+            foreach (var thread in threadsToClose)
+            {
+                try
+                {
+                    var incidentId = thread.Status.IncidentStatus.IncidentId;
+
+                    var alertDocument = await GetDocumentAsync<AzMonitorAlertDocument>(incidentId, incidentId);
+
+                    if (alertDocument != null)
+                    {
+                        var updatedAlertDocument = alertDocument with
+                        {
+                            Status = ServiceAlertState.Closed.ToString(),
+                            UpdatedAt = DateTime.UtcNow
+                        };
+
+                        await _dbContainer.UpsertItemAsync(
+                            updatedAlertDocument,
+                            new PartitionKey(updatedAlertDocument.PartitionKey)
+                        );
+
+                        _logger.LogInternalInformation($"Successfully closed AzMonitor alert document {incidentId} for inactive thread {thread.Id}");
+
+                        await _repository.AddMessageAsync(thread.Id, new Message(
+                            Guid.NewGuid(),
+                            DateTime.UtcNow,
+                            new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
+                            "🔒 **Incident Auto-Closed**\n\nThis incident has been automatically closed due to 10 minutes of inactivity. The alert status has been updated to 'Closed'."
+                        ));
+
+                        _logger.LogInternalInformation($"Added closure message to thread {thread.Id}");
+                    }
+                    else
+                    {
+                        _logger.LogInternalWarning($"Could not find AzMonitor alert document with ID {incidentId} for thread {thread.Id}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalError(ex, $"Error closing AzMonitor alert for thread {thread.Id}: {ex.Message}");
+                }
+            }
+
+            _logger.LogInternalInformation($"Completed processing inactive AzMonitor incident threads. Closed {threadsToClose.Count} incidents.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error checking for inactive AzMonitor incident threads");
+        }
+    }
+
+    private async Task<Thread?> FindExistingActiveThreadForAlertRule(AlertItem alert)
+    {
+        try
+        {
+            var alertRule = alert.Properties?.Essentials?.AlertRule;
+            var targetResource = alert.Properties?.Essentials?.TargetResource;
+            var alertRuleName = new ResourceIdentifier(alertRule).Name;
+
+            _logger.LogInternalInformation($"Looking for existing active thread for alert rule: {alertRuleName}, target resource: {targetResource}");
+
+            var allIncidentThreads = await _repository.GetThreadsBySourceAsync(source: ThreadSource.Incident, incidentType: IncidentType.AzMonitor);
+
+            foreach (var thread in allIncidentThreads)
+            {
+                try
+                {
+                    // Get the alert document ID (GUID) from thread status
+                    string alertDocumentId = thread.Status?.IncidentStatus?.IncidentId;
+
+                    if (string.IsNullOrEmpty(alertDocumentId))
+                    {
+                        _logger.LogInternalInformation($"Skipping thread {thread.Id} - no alert document ID found in status");
+                        continue;
+                    }
+
+                    // Get the AzMonitorAlertDocument for this thread
+                    var alertDocument = await GetDocumentAsync<AzMonitorAlertDocument>(alertDocumentId, alertDocumentId);
+
+                    if (alertDocument == null)
+                    {
+                        _logger.LogInternalInformation($"No alert document found for thread {thread.Id} with alert ID {alertDocumentId}");
+                        continue;
+                    }
+
+                    // Skip if the alert document is already closed
+                    if (alertDocument.Status == ServiceAlertState.Closed.ToString())
+                    {
+                        _logger.LogInternalInformation($"Alert document {alertDocumentId} is already closed, skipping thread {thread.Id}");
+                        continue;
+                    }
+
+                    // Match based on alert document properties
+                    // Compare alert rule name and target resource
+                    // Right now there is no mapping b/w Thread and AzMonitorAlert document using AlertRuleId, so falling back to this.
+                    if (alertDocument.Name == alertRuleName && alertDocument.TargetResourceId == targetResource)
+                    {
+                        _logger.LogInternalInformation($"Found existing active thread {thread.Id} for alert rule {alertRuleName} and target resource {targetResource}");
+                        return thread;
+                    }
+                    else
+                    {
+                        _logger.LogInternalInformation($"Thread {thread.Id} alert document doesn't match - Document: (Name: {alertDocument.Name}, TargetResource: {alertDocument.TargetResourceId}) vs Incoming: (Name: {alertRuleName}, TargetResource: {targetResource})");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalError(ex, $"Error processing thread {thread.Id} while looking for existing alert rule: {ex.Message}");
+                    continue;
+                }
+            }
+
+            _logger.LogInternalInformation($"No existing active thread found for alert rule {alertRuleName} and target resource {targetResource}");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, $"Error finding existing thread for alert rule {alert.Properties.Essentials.AlertRule}: {ex.Message}");
+        }
+
+        return null;
     }
 
     private class InvestigationSummaries

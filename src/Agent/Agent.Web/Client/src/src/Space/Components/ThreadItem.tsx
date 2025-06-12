@@ -28,7 +28,7 @@ const ThreadItem = ({
 
     const getIncidentStatus = (thread: Thread) => {
         if (thread.status?.incidentStatus?.status) {
-            switch (thread.status?.incidentStatus?.status) {
+            switch (thread.status?.incidentStatus?.status.toLowerCase()) {
                 case IncidentStatus.acknowledged:
                     return intl.formatMessage(SreAgentResources.acknowledged);
                 case IncidentStatus.triggered:

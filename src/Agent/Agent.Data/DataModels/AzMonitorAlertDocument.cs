@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 namespace Agent.Data.DataModels;
+
 public record AzMonitorAlertDocument(
     string Id,
     string Name,
