@@ -16,7 +16,7 @@ system_prompt: |
    </CORE_RESPONSIBILITY_SCOPE>
 
    The following are out of scope for you:
-    - Detailed configuration,
+    - Detailed configuration
     - Azure resource management
     - the user requests charts or data visualization
     - Troubleshooting and remediation of Azure resources

@@ -18,14 +18,14 @@ namespace Agent.Runtime
         public static IServiceCollection ConfigureIChatCompletionService(this IServiceCollection services)
         {
             return services
-                .AddSingleton((Func<IServiceProvider, IChatCompletionService>)(sp =>
+                .AddSingleton<IChatCompletionService>(sp =>
                 {
                     var openAISettings = sp.GetRequiredService<OpenAISettings>();
 
                     // TODO: remove api key after CP is deployed
                     if (!string.IsNullOrEmpty(openAISettings.ApiKey))
                     {
-                        return (IChatCompletionService)new AzureOpenAIChatCompletionService(
+                        return new AzureOpenAIChatCompletionService(
                             deploymentName: openAISettings.LLMDeploymentName,
                             endpoint: openAISettings.Endpoint,
                             apiKey: openAISettings.ApiKey
@@ -35,19 +35,19 @@ namespace Agent.Runtime
                     {
                         var authService = sp.GetRequiredService<IAuthenticationService>();
                         var cred = authService.GetAzureOpenAICredential();
-                        return (IChatCompletionService)new AzureOpenAIChatCompletionService(
+                        return new AzureOpenAIChatCompletionService(
                             deploymentName: openAISettings.LLMDeploymentName,
                             endpoint: openAISettings.Endpoint,
                             cred
                         );
                     }
-                }));
+                });
         }
 
         public static IServiceCollection ConfigureAzureOpenAIClient(this IServiceCollection services)
         {
             return services
-                .AddSingleton((Func<IServiceProvider, AzureOpenAIClient>)(sp =>
+                .AddSingleton(sp =>
                 {
                     var openAISettings = sp.GetRequiredService<OpenAISettings>();
 
@@ -68,13 +68,13 @@ namespace Agent.Runtime
                             credential: cred
                         );
                     }
-                }));
+                });
         }
 
         public static IServiceCollection ConfigureIChatClient(this IServiceCollection services)
         {
             return services
-                .AddSingleton<IChatClient>((Func<IServiceProvider, IChatClient>)(sp =>
+                .AddSingleton(sp =>
                 {
                     var client = sp.GetRequiredService<AzureOpenAIClient>();
                     var openAISettings = sp.GetRequiredService<OpenAISettings>();
@@ -83,8 +83,8 @@ namespace Agent.Runtime
                     return new ChatClientBuilder(client.GetChatClient(openAISettings.LLMDeploymentName).AsIChatClient())
                         .UseLogging(loggerFactory)
                         .Build();
-                }))
-                .AddKeyedSingleton<IChatClient>("function-invocation-enabled", (sp, _) =>
+                })
+                .AddKeyedSingleton("function-invocation-enabled", (sp, _) =>
                 {
                     var client = sp.GetRequiredService<AzureOpenAIClient>();
                     var openAISettings = sp.GetRequiredService<OpenAISettings>();
@@ -98,7 +98,7 @@ namespace Agent.Runtime
                         })
                         .Build();
                 })
-                .AddKeyedSingleton<IChatClient>("helper-agent-reasoning", (sp, _) =>
+                .AddKeyedSingleton("helper-agent-reasoning", (sp, _) =>
                 {
                     var client = sp.GetRequiredService<AzureOpenAIClient>();
                     var openAISettings = sp.GetRequiredService<OpenAISettings>();
@@ -110,11 +110,10 @@ namespace Agent.Runtime
                         {
                             x.IncludeDetailedErrors = true;
                             x.MaximumIterationsPerRequest = 20;
-                            //x.AllowConcurrentInvocation = true;
                         })
                         .Build();
                 })
-                .AddKeyedSingleton<IChatClient>("subagentv2-reasoning", (sp, _) =>
+                .AddKeyedSingleton("subagentv2-reasoning", (sp, _) =>
                 {
                     var client = sp.GetRequiredService<AzureOpenAIClient>();
                     var openAISettings = sp.GetRequiredService<OpenAISettings>();
@@ -135,13 +134,13 @@ namespace Agent.Runtime
         public static IServiceCollection ConfigureIEmbeddingGenerator(this IServiceCollection services)
         {
             return services
-                .AddSingleton<IEmbeddingGenerator<string, Embedding<float>>>((Func<IServiceProvider, IEmbeddingGenerator<string, Embedding<float>>>)(sp =>
+                .AddSingleton(sp =>
                 {
                     var openAISettings = sp.GetRequiredService<OpenAISettings>();
                     var client = sp.GetRequiredService<AzureOpenAIClient>();
 
                     return client.GetEmbeddingClient(openAISettings.EmbeddingGeneratorDeploymentName).AsIEmbeddingGenerator();
-                }));
+                });
         }
     }
 }

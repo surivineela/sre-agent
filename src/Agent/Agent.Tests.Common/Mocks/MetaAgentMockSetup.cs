@@ -24,7 +24,7 @@ namespace Agent.Tests.Common.Mocks;
 public class MetaAgentMockSetup
 {
     public IAuthenticationService AuthenticationService = Mock.Of<IAuthenticationService>();
-    public InmemoryThreadRepository ThreadRepository { get; set; }
+    public InMemoryThreadRepository ThreadRepository { get; set; }
     public MetaAgent Agent { get; set; }
     public string GraphName { get; set; }
 
@@ -35,7 +35,7 @@ public class MetaAgentMockSetup
 
     public void FinishSetup(IServiceProvider services)
     {
-        this.ThreadRepository = (InmemoryThreadRepository)services.GetRequiredService<IThreadRepository>();
+        this.ThreadRepository = (InMemoryThreadRepository)services.GetRequiredService<IThreadRepository>();
 
         var chatClient = services.GetRequiredKeyedService<IChatClient>("function-invocation-enabled");
         var graphDBPlugin = ActivatorUtilities.CreateInstance<GraphDBPlugin>(services, chatClient, new DashboardSettings(), this.AuthenticationService);

@@ -87,7 +87,7 @@ namespace Agent.Tests.Integration
                 .UseFunctionInvocation();
 
             services.AddSingleton<IThreadOrchestrationManager, InMemoryThreadOrchestrationManager>();
-            services.AddSingleton<IThreadRepository, InmemoryThreadRepository>();
+            services.AddSingleton<IThreadRepository, InMemoryThreadRepository>();
             services.AddSingleton<IInstanceManagementRepository, InMemoryInstanceManagementRepository>();
             services.AddSingleton<ThreadService>();
             services.AddSingleton<SinkService>();

@@ -28,13 +28,14 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
     private readonly ActionSettings _actionSettings;
 
     private readonly Tracer _tracer;
+
     public ReasoningLoopFactory(
         ILoggerFactory loggerFactory,
         IChatClient chatClient,
         IAgentOutboundCommunicationService outboundCommunicationService,
         IThreadRepository threadRepository,
         IAgentFactory<AgentContext> agentFactory,
-        ToolFactory<AgentContext> toolFactory,
+        IToolFactory<AgentContext> toolFactory,
         ActionSettings actionSettings,
         Tracer tracer)
     {

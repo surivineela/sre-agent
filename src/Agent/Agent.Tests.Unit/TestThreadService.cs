@@ -18,7 +18,7 @@ namespace Agent.Tests.Unit;
 
 public class TestThreadService
 {
-    private readonly ILogger<InmemoryThreadRepository> _repoLogger;
+    private readonly ILogger<InMemoryThreadRepository> _repoLogger;
     private readonly ILogger<InMemoryThreadOrchestrationManager> _mappingLogger;
     private readonly ILogger<ThreadService> _serviceLogger;
     private readonly ILogger<SinkService> _sinkLogger;
@@ -30,13 +30,13 @@ public class TestThreadService
     public TestThreadService()
     {
         // Setup loggers with null loggers instead of Moq
-        _repoLogger = new NullLogger<InmemoryThreadRepository>();
+        _repoLogger = new NullLogger<InMemoryThreadRepository>();
         _mappingLogger = new NullLogger<InMemoryThreadOrchestrationManager>();
         _serviceLogger = new NullLogger<ThreadService>();
         _sinkLogger = new NullLogger<SinkService>();
 
         // Setup in-memory repositories
-        _threadRepository = new InmemoryThreadRepository(_repoLogger);
+        _threadRepository = new InMemoryThreadRepository(_repoLogger);
         _mappingManager = new InMemoryThreadOrchestrationManager(_mappingLogger);
 
         // Use real sink service with the existing repository

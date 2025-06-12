@@ -105,7 +105,7 @@ public class MetaAgentTests : IAsyncLifetime
                 services.AddSingleton<IMetaAgentFunctionAppConnectivityPlugin, FunctionAppConnectivityPlugin>();
                 services.AddSingleton<IMetaAgentSqlDbQueryPerfPlugin, SqlDbQueryPerfPlugin>();
                 services.AddSingleton<TimeProvider>(timeProvider);
-                services.AddSingleton<IThreadRepository, InmemoryThreadRepository>();
+                services.AddSingleton<IThreadRepository, InMemoryThreadRepository>();
 
                 services.AddDurableTaskWorker(builder =>
                 {

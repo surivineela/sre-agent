@@ -115,7 +115,7 @@ public sealed class SourceCodeAgentEvals
         var mockGraphDBPlugin = new MockGraphDBPlugin(new List<string> { containerAppResourceId });
         services.AddSingleton<IGraphDBPlugin>(mockGraphDBPlugin);
 
-        var threadRepository = new InmemoryThreadRepository(new NullLogger<InmemoryThreadRepository>());
+        var threadRepository = new InMemoryThreadRepository(new NullLogger<InMemoryThreadRepository>());
         var sinkService = new SinkService(threadRepository, new NullLogger<SinkService>());
         services.AddSingleton<IThreadRepository>(threadRepository);
         services.AddSingleton<SinkService>(sinkService);
@@ -211,7 +211,7 @@ public sealed class SourceCodeAgentEvals
         // Step 2: Register the mock implementation
         var mockGraphDBPlugin = new MockGraphDBPlugin(new List<string>());
         services.AddSingleton<IGraphDBPlugin>(mockGraphDBPlugin);
-        var threadRepository = new InmemoryThreadRepository(new NullLogger<InmemoryThreadRepository>());
+        var threadRepository = new InMemoryThreadRepository(new NullLogger<InMemoryThreadRepository>());
         var sinkService = new SinkService(threadRepository, new NullLogger<SinkService>());
         services.AddSingleton<IThreadRepository>(threadRepository);
         services.AddSingleton<SinkService>(sinkService);
@@ -281,7 +281,7 @@ public sealed class SourceCodeAgentEvals
         // Step 2: Register the mock implementation
         var mockGraphDBPlugin = new MockGraphDBPlugin(new List<string> { containerAppResourceId });
         services.AddSingleton<IGraphDBPlugin>(mockGraphDBPlugin);
-        var threadRepository = new InmemoryThreadRepository(new NullLogger<InmemoryThreadRepository>());
+        var threadRepository = new InMemoryThreadRepository(new NullLogger<InMemoryThreadRepository>());
         var sinkService = new SinkService(threadRepository, new NullLogger<SinkService>());
         services.AddSingleton<IThreadRepository>(threadRepository);
         services.AddSingleton<SinkService>(sinkService);

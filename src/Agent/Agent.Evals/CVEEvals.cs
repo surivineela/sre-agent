@@ -119,7 +119,7 @@ public sealed class CVEEvals
 
         services.AddSingleton<IGraphDBPlugin>(mockGraphDBPlugin);
         services.AddSingleton<IGithubIssuePlugin>(mockGithubIssuePlugin);
-        var threadRepository = new InmemoryThreadRepository(new NullLogger<InmemoryThreadRepository>());
+        var threadRepository = new InMemoryThreadRepository(new NullLogger<InMemoryThreadRepository>());
         var sinkService = new SinkService(threadRepository, new NullLogger<SinkService>());
         services.AddSingleton<IThreadRepository>(threadRepository);
         services.AddSingleton<SinkService>(sinkService);
@@ -219,7 +219,7 @@ public sealed class CVEEvals
         // Step 2: Register the mock implementation
         var mockGraphDBPlugin = new MockGraphDBPlugin();
         var mockGithubIssuePlugin = new MockGithubIssuePlugin(new List<GithubIssuePluginDependabotVulnerability>());
-        var threadRepository = new InmemoryThreadRepository(new NullLogger<InmemoryThreadRepository>());
+        var threadRepository = new InMemoryThreadRepository(new NullLogger<InMemoryThreadRepository>());
         var sinkService = new SinkService(threadRepository, new NullLogger<SinkService>());
         services.AddSingleton<IThreadRepository>(threadRepository);
         services.AddSingleton<SinkService>(sinkService);

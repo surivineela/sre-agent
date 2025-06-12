@@ -74,7 +74,7 @@ public sealed class FeedbackRCAEvals
         var services = new ServiceCollection();
 
         // Step 2: Register the mock implementation
-        var threadRepository = new InmemoryThreadRepository(new NullLogger<InmemoryThreadRepository>());
+        var threadRepository = new InMemoryThreadRepository(new NullLogger<InMemoryThreadRepository>());
         var sinkService = new SinkService(threadRepository, new NullLogger<SinkService>());
         services.AddSingleton<IThreadRepository>(threadRepository);
         services.AddSingleton<SinkService>(sinkService);
@@ -135,7 +135,7 @@ public sealed class FeedbackRCAEvals
         var services = new ServiceCollection();
 
         // Step 2: Register the mock implementation
-        var threadRepository = new InmemoryThreadRepository(new NullLogger<InmemoryThreadRepository>());
+        var threadRepository = new InMemoryThreadRepository(new NullLogger<InMemoryThreadRepository>());
         var sinkService = new SinkService(threadRepository, new NullLogger<SinkService>());
         services.AddSingleton<IThreadRepository>(threadRepository);
         services.AddSingleton<SinkService>(sinkService);

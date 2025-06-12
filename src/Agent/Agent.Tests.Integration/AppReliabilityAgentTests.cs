@@ -116,7 +116,7 @@ namespace Agent.Tests.Integration
                     services.AddSingleton<IAppIdentityUpdatePlugin>(_mockAppIdentityUpdatePlugin);
                     services.AddSingleton<IToolsRepository, ToolsRepository>();
                     services.AddSingleton<AppReliabilityAgentFactory>();
-                    services.AddSingleton<IThreadRepository, InmemoryThreadRepository>();
+                    services.AddSingleton<IThreadRepository, InMemoryThreadRepository>();
 
                     services.AddDurableTaskWorker(builder =>
                     {

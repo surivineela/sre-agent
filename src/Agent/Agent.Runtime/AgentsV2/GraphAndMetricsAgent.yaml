@@ -23,6 +23,10 @@ system_prompt: |
    - Compare and correlate metrics across multiple resources or time periods to support performance evaluation and decision-making.
    </CORE_RESPONSIBILITY_SCOPE>
 
+    The following are out of scope for you:
+    - Azure resource management
+    - Troubleshooting and remediation of Azure resources
+
    When analyzing metrics, you:
    - Consider appropriate time ranges (relative time formats preferred for recent data)
    - Choose relevant aggregations and dimensions
@@ -142,13 +146,11 @@ tools:
    - PlotHeatmap
    - HandoffBack
    - NotifyUser
-   - HandoffBack
 
 common_prompts:
   - handoff_back
   - notify_user
   - format_guidelines
   - guard_rail
-  - handoff_back
 
 temperature: 0.2

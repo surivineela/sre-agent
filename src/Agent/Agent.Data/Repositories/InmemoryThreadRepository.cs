@@ -18,7 +18,7 @@ namespace Agent.Data.Repositories
     /// In-memory implementation of the IThreadRepository interface.
     /// This is primarily for testing purposes.
     /// </summary>
-    public class InmemoryThreadRepository : IThreadRepository
+    public class InMemoryThreadRepository : IThreadRepository
     {
         private readonly Dictionary<Guid, Thread> _threads = new();
         private readonly Dictionary<Guid, ThreadContext> _threadContexts = new();
@@ -33,9 +33,9 @@ namespace Agent.Data.Repositories
         private readonly Dictionary<string, object> _threadTeamsMappings = new();
         private readonly Dictionary<Guid, PagerDutyIncident> _pagerDutyIncidents = new();
         private readonly Dictionary<Guid, AzMonitorAlert> _azMonitorAlerts = new();
-        private readonly ILogger<InmemoryThreadRepository> _logger;
+        private readonly ILogger<InMemoryThreadRepository> _logger;
 
-        public InmemoryThreadRepository(ILogger<InmemoryThreadRepository> logger)
+        public InMemoryThreadRepository(ILogger<InMemoryThreadRepository> logger)
         {
             _logger = logger;
         }

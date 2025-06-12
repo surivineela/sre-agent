@@ -3,10 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Configuration;
-using Agent.Core.Extensions;
-using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
-using Agent.Core.Services;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.Repositories;
 using Agent.Plugins;
@@ -73,7 +70,7 @@ namespace FirstPartyAgent.Core.Extensions
             services.AddSingleton<KustoClient>();
             services.AddSingleton<IKustoPluginClient, KustoPluginClient>();
             services.AddSingleton<KustoPlugin>();
-            
+
             services.AddSingleton<ITeamsClient, TeamsClient>();
             services.AddSingleton<TeamsPlugin>();
             services.AddSingleton<TeamsChartPlugin>();
@@ -100,7 +97,7 @@ namespace FirstPartyAgent.Core.Extensions
             services.AddSingleton<IAzureSearchPlugin, AzureSearchPlugin>();
             services.AddSingleton<AzureSearchPluginDefinition>();
 
-            var threadRepository = new InmemoryThreadRepository(new NullLogger<InmemoryThreadRepository>());
+            var threadRepository = new InMemoryThreadRepository(new NullLogger<InMemoryThreadRepository>());
             var sinkService = new SinkService(threadRepository, new NullLogger<SinkService>());
             services.AddSingleton<IThreadRepository>(threadRepository);
             services.AddSingleton<SinkService>(sinkService);
@@ -123,7 +120,8 @@ namespace FirstPartyAgent.Core.Extensions
                 try
                 {
                     var storageAccountSettings = sp.GetRequiredService<StorageAccountSettings>();
-                    if (string.IsNullOrWhiteSpace(storageAccountSettings.AccountUrl)) {
+                    if (string.IsNullOrWhiteSpace(storageAccountSettings.AccountUrl))
+                    {
                         return new StorageServiceDisabled();
                     }
                     return new StorageService(storageAccountSettings);
@@ -141,7 +139,7 @@ namespace FirstPartyAgent.Core.Extensions
                 var logger = sp.GetRequiredService<ILogger<DiagnosticsHelper>>();
                 return new DiagnosticsHelper(logger, applensSettings, environment);
             });
-            services.AddSingleton<IApplensService>(sp => 
+            services.AddSingleton<IApplensService>(sp =>
             {
                 var applensSettings = sp.GetRequiredService<ApplensSettings>();
                 if (applensSettings.Enabled)
@@ -152,7 +150,7 @@ namespace FirstPartyAgent.Core.Extensions
                 }
                 return new ApplensServiceDisabled();
             });
-            
+
             var azureSettings = services.BuildServiceProvider().GetRequiredService<IOptions<AzureSettings>>();
             var cosmosDbSettings = azureSettings.Value.CosmosDB;
 

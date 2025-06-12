@@ -46,9 +46,6 @@ public class ContainerAppsCpuMemoryScenarios1Evals
         builder.Services.AddLocalGremlin("gmrsharmacadiag");
         builder.RegisterServicesForAgentFrameworkEval();
 
-        // required because InboundCommunicationService has code for handling durable
-        builder.ConfigureDurable();
-
         // register the definitions for the plugins that the agent will use, but we don't need plugin implementations because we are using tool replay.
         builder.Services.AddSingleton(sp => new ContainerAppPluginDefinition(null));
         builder.Services.AddSingleton(sp => new NSGRulePluginDefinition(null));

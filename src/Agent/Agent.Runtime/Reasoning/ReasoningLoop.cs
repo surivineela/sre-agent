@@ -251,7 +251,7 @@ public class ReasoningLoop
             {
                 _logger.LogInternalInformation("Received new message. Running reasoning loop...");
 
-                AgentChatHistory agentChatHistory = await _threadRepository.GetAgentChatHistoryAsync(_context.Id);
+                var agentChatHistory = await _threadRepository.GetAgentChatHistoryAsync(_context.Id);
 
                 switch (reasoningLoopMessage)
                 {

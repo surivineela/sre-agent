@@ -1,10 +1,14 @@
+using System.ClientModel;
 using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.Repositories;
 using Agent.Framework;
+using Agent.Graph.Crawler.Legacy;
+using Agent.Logging;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Interface;
@@ -14,6 +18,7 @@ using Agent.Runtime.MetaAgent;
 using Agent.Runtime.MetaAgent.Interfaces;
 using Agent.Runtime.Reasoning;
 using Agent.Runtime.Services;
+using Agent.Tests.Common;
 using Agent.Tests.Common.Mocks;
 using Agent.Tests.Common.Mocks.FunctionCalling;
 using Azure.AI.OpenAI;
@@ -23,6 +28,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
+using OpenTelemetry.Trace;
 
 namespace Agent.Evals;
 
@@ -40,7 +46,7 @@ public static class TestHelpers
         {
             Console.WriteLine("Eval pipeline doesn't use appsettings. Using OpenAI API key and model from TestRunParameters.");
 
-            string? apiKey = builder.Configuration["OpenAIKey"];
+            var apiKey = builder.Configuration["OpenAIKey"];
             if (string.IsNullOrEmpty(apiKey))
             {
                 throw new InvalidOperationException("OpenAI API key is missing. Pass it as a TestRunParameter.");
@@ -52,13 +58,13 @@ public static class TestHelpers
                 throw new InvalidOperationException("OpenAI API model is missing. Pass it as a TestRunParameter.");
             }
 
-            string? aiEndpoint = builder.Configuration["OpenAIEndpoint"];
+            var aiEndpoint = builder.Configuration["OpenAIEndpoint"];
             if (string.IsNullOrEmpty(aiEndpoint))
             {
                 throw new InvalidOperationException("OpenAI API endpoint is missing. Pass it as a TestRunParameter.");
             }
 
-            builder.Services.AddSingleton(new AzureOpenAIClient(new Uri(aiEndpoint), new System.ClientModel.ApiKeyCredential(apiKey)));
+            builder.Services.AddSingleton(new AzureOpenAIClient(new Uri(aiEndpoint), new ApiKeyCredential(apiKey)));
         }
         else
         {
@@ -73,7 +79,7 @@ public static class TestHelpers
 
         builder.Services.AddChatClient(sp => sp.GetRequiredService<AzureOpenAIClient>().GetChatClient(llmDeploymentName).AsIChatClient());
 
-        builder.Services.AddKeyedSingleton<IChatClient>("function-invocation-enabled", (sp, _) =>
+        builder.Services.AddKeyedSingleton("function-invocation-enabled", (sp, _) =>
         {
             var client = sp.GetRequiredService<AzureOpenAIClient>();
             var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
@@ -87,7 +93,7 @@ public static class TestHelpers
                 .Build();
         });
 
-        builder.Services.AddKeyedSingleton<IChatClient>("helper-agent-reasoning", (sp, _) =>
+        builder.Services.AddKeyedSingleton("helper-agent-reasoning", (sp, _) =>
         {
             var client = sp.GetRequiredService<AzureOpenAIClient>();
             var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
@@ -103,15 +109,13 @@ public static class TestHelpers
 
         outLLMDeploymentName = llmDeploymentName;
 
-
-
         return builder;
     }
 
     public static HostApplicationBuilder RegisterDefaultServices(this HostApplicationBuilder builder)
     {
         builder.Services.AddSingleton<IThreadOrchestrationManager, InMemoryThreadOrchestrationManager>();
-        builder.Services.AddSingleton<IThreadRepository, InmemoryThreadRepository>();
+        builder.Services.AddSingleton<IThreadRepository, InMemoryThreadRepository>();
         builder.Services.AddSingleton<IInstanceManagementRepository, InMemoryInstanceManagementRepository>();
         builder.Services.AddSingleton<ThreadService>();
         builder.Services.AddSingleton<SinkService>();
@@ -126,8 +130,8 @@ public static class TestHelpers
         builder.Services.AddSingleton<ThreadManagementService>();
         builder.Services.AddSingleton<IAgentInboundCommunicationService, InboundCommunicationService>();
         builder.Services.AddSingleton<IAgentOutboundCommunicationService, OutboundCommunicationService>();
-        builder.Services.AddTransient<Agent.Runtime.MetaAgent.IAgent, MetaAgent>();
-        builder.Services.AddSingleton<IAuthenticationService>(Mock.Of<IAuthenticationService>());
+        builder.Services.AddTransient<IAgent, MetaAgent>();
+        builder.Services.AddSingleton(Mock.Of<IAuthenticationService>());
         builder.Services.AddSingleton<ITitleGenerationService, TitleGenerationService>();
 
         builder.Services.AddSingleton<GraphDBPlugin>();
@@ -136,6 +140,11 @@ public static class TestHelpers
 
         builder.Services.AddSingleton<IReasoningLoopManager, ReasoningLoopManager>();
         builder.Services.AddSingleton<IReasoningLoopFactory, ReasoningLoopFactory>();
+
+        builder.Services.AddSingleton(TracerProvider.Default.GetTracer("SREAgentTests"));
+        builder.Services.AddSingleton<IGraphDatabaseClient, InMemoryGraphManager>();
+        builder.Services.AddSingleton(Mock.Of<CustomerLogger>());
+        builder.Services.AddSingleton(Mock.Of<CustomerAuditLogger>());
 
         var agentModeString = builder.Configuration.GetSection("AppSettings:Core:Azure:Action:Mode").Get<string>();
 
@@ -185,6 +194,10 @@ public static class TestHelpers
                 );
         });
 
+        // should be removed later - currently required because ThreadManagementService has code for handling UseAgentFramework=false
+        // required because InboundCommunicationService has code for handling durable
+        builder.ConfigureDurable();
+
         return builder;
     }
 
@@ -230,4 +243,12 @@ public static class TestHelpers
         }
     }
 
+    public static TestHost InitializeTestHost()
+    {
+        var builder = BuildTestApp(out var _);
+        builder.RegisterDefaultServices();
+        builder.RegisterServicesForAgentFrameworkEval();
+        var host = builder.Build();
+        return TestHost.Create(host);
+    }
 }

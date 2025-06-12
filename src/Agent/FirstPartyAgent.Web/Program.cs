@@ -3,9 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Text.Json;
-using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
-using Agent.Data;
 using Agent.Data.Repositories;
 using Agent.Runtime;
 using Agent.Runtime.Communication;
@@ -15,7 +13,6 @@ using FirstPartyAgent.Core.Services;
 using FirstPartyAgent.Plugins;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,7 +38,7 @@ if (builder.Environment.IsDevelopment())
 builder.Services.ConfigureSemanticKernel();
 builder.Services.AddSingleton<IChatService, ChatProcessingService>();
 
-var threadRepository = new InmemoryThreadRepository(new NullLogger<InmemoryThreadRepository>());
+var threadRepository = new InMemoryThreadRepository(new NullLogger<InMemoryThreadRepository>());
 var sinkService = new SinkService(threadRepository, new NullLogger<SinkService>());
 builder.Services.AddSingleton<IThreadRepository>(threadRepository);
 builder.Services.AddSingleton<SinkService>(sinkService);
