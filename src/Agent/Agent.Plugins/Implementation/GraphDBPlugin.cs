@@ -1003,29 +1003,35 @@ g.V().has('id', '{deploymentResourceId}')
 
             try
             {
-                string query = $@"g.V().hasLabel('{actualGraphResourceType}')";
+                StringBuilder sb = new StringBuilder();
+                sb.Append("g.V()");
+
+                if (actualGraphResourceType != "all")
+                {
+                    sb.Append($".hasLabel('{actualGraphResourceType}')");
+                }
 
                 if (!string.IsNullOrEmpty(propertyName) && !string.IsNullOrEmpty(propertyValue))
                 {
-                    query += $".has('{propertyName}', '{propertyValue}')";
+                    sb.Append($".has('{propertyName}', '{propertyValue}')");
                 }
 
-                query += @".project('subscriptionId', 'resourceGroupName', 'resourceName', 'resourceType', 'clusterResourceId', 'namespace')
+                sb.Append(@".project('subscriptionId', 'resourceGroupName', 'resourceName', 'resourceType', 'clusterResourceId', 'namespace')
                     .by(coalesce(values('subscriptionId'), constant('')))
                     .by(coalesce(values('resourceGroupName'), constant('')))
                     .by(coalesce(values('resourceName'), constant('')))
                     .by(coalesce(values('resourceType'), constant('')))
                     .by(coalesce(values('clusterResourceId'), constant('')))
-                    .by(coalesce(values('namespace'), constant('')))";
+                    .by(coalesce(values('namespace'), constant('')))");
 
                 // Add skip and take only if take > 0
                 if (take > 0)
                 {
-                    query += $".limit({take})";
+                    sb.Append($".limit({take})");
                     _logger.LogInternalInformation("Will take {take} resources of type '{ResourceType}'", take, actualGraphResourceType);
                 }
 
-                var result = await GraphDbClient.Query(query);
+                var result = await GraphDbClient.Query(sb.ToString());
                 var resources = new List<Dictionary<string, object>>();
 
                 foreach (var item in result)

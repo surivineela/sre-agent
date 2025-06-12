@@ -242,7 +242,8 @@ namespace Agent.Plugins
             [Description(
                 "The type or kind of resource to list. " +
                 "For Azure ARM resources, use the full ARM type (e.g., 'microsoft.compute/virtualmachines', 'microsoft.containerservice/managedclusters'). " +
-                "For Kubernetes resources, use the common K8s kind (e.g., 'Deployment', 'Service', 'Node', 'Namespace', 'StatefulSet', 'ConfigMap', 'Secret', 'PersistentVolumeClaim'). The system will map K8s kinds to their graph representation."
+                "For Kubernetes resources, use the common K8s kind (e.g., 'Deployment', 'Service', 'Node', 'Namespace', 'StatefulSet', 'ConfigMap', 'Secret', 'PersistentVolumeClaim'). The system will map K8s kinds to their graph representation." +
+                "To list all resources, use 'all' as the resource type."
             )] string resourceType,
              [Description(
                 "Optional. For Kubernetes resources, this is the property name to filter on (e.g., 'clusterResourceId'). " +
