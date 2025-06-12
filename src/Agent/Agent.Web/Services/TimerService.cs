@@ -191,8 +191,10 @@ public class TimerService : IHostedService, IDisposable
             // Get a handle to the scan method
             var scanMethod = type.GetMethod("ScanAsync", BindingFlags.Public | BindingFlags.Instance)
                 ?? throw new Exception($"Could not find scanning method on type {type.Name}");
-            // TODO: Would it be neater if instead of method+instance, we created an Action<Task> at this point?
-            GenericSubAgentScannerTimers.Add(new ScannerTimerInformation(type.Name, scanMethod, instance));
+            var scanIntervalProp = type.GetProperty("RunInterval", BindingFlags.Public | BindingFlags.Instance)
+                ?? throw new Exception($"Could not find RunInterval property on type {type.Name}");
+            var scanInterval = (TimeSpan) scanIntervalProp.GetValue(instance);
+            GenericSubAgentScannerTimers.Add(new ScannerTimerInformation(type.Name, scanMethod, instance) {  Interval = scanInterval });
         }
     }
 
@@ -437,7 +439,7 @@ public class TimerService : IHostedService, IDisposable
                 {
                     scanner.IsRunning = false;
                 }
-            }, null, TimeSpan.FromMinutes(5), scanner.Interval);
+            }, null, TimeSpan.FromMinutes(1), scanner.Interval);
         }
     }
 

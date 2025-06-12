@@ -1,3 +1,4 @@
+using System.Threading;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
@@ -46,7 +47,7 @@ namespace Agent.Runtime.SubAgents
         /// <summary>
         /// How often should this scanner run?
         /// </summary>
-        protected abstract TimeSpan RunInterval { get; }
+        public abstract TimeSpan RunInterval { get; }
 
         /// <summary>
         /// Method that pulls the resources that meet the criteria for this agent.
@@ -104,37 +105,31 @@ namespace Agent.Runtime.SubAgents
                     (var thread, var agentContext) = await _agentInboundCommunicationService.CreateAgentThread(
                         $"{agentName} for {resourceProviderName} found issues",
                         this.MessageWhenFoundResourcesInViolation,
-                        AgentTypeEnum.DTS
+                        AgentTypeEnum.Meta,
+                        ThreadSource.Agent
                     );
 
-                    var input = GenerateActivityInput(
-                        group.Select(x => new SimpleResourceSubAgentResourceInformation(x.ResourceId, x.Name, x.Location))
-                    );
+                    _logger.LogInternalInformation($"Using Agent Framework to process resources for {agentName}");
+                    var message = new ThreadMessage(
+                        ThreadId: agentContext.ThreadId,
+                        AgentContextId: agentContext.Id,
+                        MessageId: Guid.NewGuid(),
+                        Message: "Here are the resources in violation:\n\n" + string.Join("\n", group.Select(a => a.ResourceId)),
+                        UserId: "",
+                        DisplayName: "",
+                        Timestamp: DateTime.UtcNow);
+                    await _agentInboundCommunicationService.ProcessAlertMessageAsync(message);
+
+                    //var input = GenerateActivityInput(
+                    //    group.Select(x => new SimpleResourceSubAgentResourceInformation(x.ResourceId, x.Name, x.Location))
+                    //);
 
                     // When starting an orchestration, we're doing so just for this provider (eg; storage, eventhub, etc.).
                     // Therefore we pass the provider name as the instanceIdSuffix, so that on the next scanner run, it will
                     // avoid starting a new orchestration if one is already running for that provider.
-                    var instanceId = await _agentFactory.StartOrchestration(input, agentContext.ThreadId, instanceIdSuffix: orchestrationSuffix);
-
-                    /*
-                    // work around "bad grpc response 504" error
-                    bool completed = false;
-                    while (!completed)
-                    {
-                        try
-                        {
-                            await _durableTaskClient.WaitForInstanceCompletionAsync(instanceId, cancellationToken);
-                            completed = true;
-                        }
-                        catch (RpcException ex)
-                        {
-                            _logger.LogInternalError(ex, "Error while waiting for instance completion: {Message}", ex.Message);
-                            await Task.Delay(1000, cancellationToken);
-                        }
-                    }*/
+                    //var instanceId = await _agentFactory.StartOrchestration(input, agentContext.ThreadId, instanceIdSuffix: orchestrationSuffix);
                 }
             }
-            // If found any, then send a message to the messaging thread.
         }
     }
 }

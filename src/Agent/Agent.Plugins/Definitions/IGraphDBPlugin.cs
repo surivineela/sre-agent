@@ -89,7 +89,7 @@ namespace Agent.Plugins
         /// <param name="ignoreTagDuration">How long (from now) to ignore</param>
         /// <param name="actionTaken"> Action being performed</param>
         /// <returns>A task representing the asynchronous operation.</returns>
-        Task AddIgnoreInfoToResource(string resourceId, TimeSpan ignoreTagDuration, string actionTaken);
+        Task<string> AddIgnoreInfoToResource(string resourceId, TimeSpan ignoreTagDuration, string actionTaken);
 
         /// <summary>
         /// Identifies Container Apps in the graph that don't have associated source code repositories.

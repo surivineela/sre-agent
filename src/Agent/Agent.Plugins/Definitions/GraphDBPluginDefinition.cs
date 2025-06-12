@@ -95,7 +95,7 @@ namespace Agent.Plugins
 
         [KernelFunction("AddIgnoreTagToResource")]
         [Description("Adds a tag to a resource to prevent it from being flagged in a scan for a specified period of time.")]
-        public async Task AddIgnoreTagToResource(
+        public async Task<string> AddIgnoreTagToResource(
             [Description("Azure Resource Id of the Container App, should begin with /subscriptions...., Example: /subscriptions/a058f7c6-592d-4490-887a-803e748787c0/resourcegroups/aca-sre-agent-demo/providers/microsoft.app/containerapps/iot-dashboard")]
             string resourceId,
             [Description("The period of time for which to ignore scan results for this resource.")]
@@ -104,7 +104,7 @@ namespace Agent.Plugins
             string actionTaken
             )
         {
-            await _plugin.AddIgnoreInfoToResource(resourceId, ignoreTagDuration, actionTaken);
+            return await _plugin.AddIgnoreInfoToResource(resourceId, ignoreTagDuration, actionTaken);
         }
 
         [KernelFunction("GetContainerAppsWithNodesWithoutSourceCodeNodes")]

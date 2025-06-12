@@ -26,6 +26,7 @@ namespace Agent.Plugins.Implementation
 {
     public class RemediationPlugin : IRemediationPlugin
     {
+        public Guid? ThreadId { get; set; }
         private readonly ILogger? _logger;
         private readonly ArmHelper _armHelper;
         private readonly IAuthenticationService _authService;
@@ -119,7 +120,7 @@ namespace Agent.Plugins.Implementation
             }
         }
 
-        public async Task<RemediationResult> RestartWebApp(string resourceId)
+        public async Task<RemediationResult> RestartWebApplication(string resourceId)
         {
             try
             {

@@ -675,7 +675,7 @@ g.V().has('id', '{deploymentResourceId}')
             return nodes;
         }
 
-        public async Task AddIgnoreInfoToResource(string resourceId, TimeSpan ignoreTagDuration, string actionTaken)
+        public async Task<string> AddIgnoreInfoToResource(string resourceId, TimeSpan ignoreTagDuration, string actionTaken)
         {
             try
             {
@@ -689,7 +689,7 @@ g.V().has('id', '{deploymentResourceId}')
                 if (!resourceNodeResults.Any())
                 {
                     _logger.LogInternalWarning($"Resource with ID {resourceId} not found in graph database.");
-                    return;
+                    return string.Empty;
                 }
 
                 // Calculate expiration time
@@ -724,10 +724,12 @@ g.V().has('id', '{deploymentResourceId}')
                     "HAS_AUTH_CONFIG");
 
                 _logger.LogInternalInformation($"Created auth configuration for resource {resourceId} with ignoreuntil {absoluteExpiration}");
+                return "Auth configuration created successfully.";
             }
             catch (Exception ex)
             {
                 _logger.LogInternalError(ex, "Error creating auth configuration node.");
+                return "Error creating auth configuration.";
             }
         }
 

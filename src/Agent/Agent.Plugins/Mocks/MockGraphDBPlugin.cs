@@ -111,7 +111,7 @@ namespace Agent.Plugins.Mocks
             return Task.CompletedTask;
         }
 
-        public Task AddIgnoreInfoToResource(string resourceId, TimeSpan ignoreTagDuration, string actionTaken)
+        public Task<string> AddIgnoreInfoToResource(string resourceId, TimeSpan ignoreTagDuration, string actionTaken)
         {
             throw new NotImplementedException();
         }

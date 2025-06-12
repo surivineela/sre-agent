@@ -13,7 +13,7 @@ namespace Agent.Plugins.Definitions
 
         Task<RemediationResult> CollectMemoryDump(string resourceId);
 
-        Task<RemediationResult> RestartWebApp(string resourceId);
+        Task<RemediationResult> RestartWebApplication(string resourceId);
 
         Task<RemediationResult> SuggestNextSku(string resourceId, string direction, string currentSku);
 
