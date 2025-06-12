@@ -102,12 +102,24 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
 
     public List<ToolInfo> FetchAvailableToolInfo()
     {
-        return _tools.Select(kvp => new ToolInfo
+        var result = new List<ToolInfo>();
+        foreach (var tool in _tools)
         {
-            Name = kvp.Key,
-            Description = kvp.Value.GetToolFunction().Description,
-            Parameters = kvp.Value.GetToolFunction().UnderlyingMethod.GetParameters().Select(x => x.Name).ToArray()
-        }).ToList();
+            try
+            {
+                result.Add(new ToolInfo
+                {
+                    Name = tool.Key,
+                    Description = tool.Value.GetToolFunction()?.Description,
+                    Parameters = tool.Value.GetToolFunction()?.UnderlyingMethod?.GetParameters()?.Select(x => x.Name)?.ToArray()
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Failed to fetch tool info for {toolName}.", tool.Key);
+            }
+        }
+        return result;
     }
 
     private void FindAndRegisterAllTools(BehaviorOnNameConflict onNameConflict)

@@ -14,7 +14,7 @@ namespace Agent.Runtime.Services
 {
     public interface IIncidentManagementService<T> where T : IIncidentDocument
     {
-        Task<List<T>> QueryIncidents(IncidentQueryRequest request);
+        Task<IncidentQueryResult<T>> QueryIncidents(IncidentQueryRequest request);
         Task<T?> GetIncidentDetails(string incidentId);
         Task<T?> SaveDocument(T document);
     }
@@ -47,7 +47,7 @@ namespace Agent.Runtime.Services
             }
         }
 
-        public async Task<List<T>> QueryIncidents(IncidentQueryRequest request)
+        public async Task<IncidentQueryResult<T>> QueryIncidents(IncidentQueryRequest request)
         {
             switch (_incidentManagementSettings.Type)
             {
@@ -96,17 +96,38 @@ namespace Agent.Runtime.Services
             }
         }
 
-        private async Task<List<T>> QueryIncidentsInternal(IncidentQueryRequest request)
+        private async Task<IncidentQueryResult<T>> QueryIncidentsInternal(IncidentQueryRequest request)
         {
+            // Validate pagination parameters
+            if (request.PageNumber <= 0)
+            {
+                request.PageNumber = 1;
+            }
+            if (request.PageSize <= 0)
+            {
+                request.PageSize = 20;
+            }
+
+            var pagedResult = new IncidentQueryResult<T>();
+            var filteredResults = new List<T>();
+            int totalCount = 0;
             if (request.DurationInDays > 90)
             {
                 request.DurationInDays = 90;
             }
             var since = DateTime.UtcNow.AddDays(-request.DurationInDays);
+
+            int skip = (request.PageNumber - 1) * request.PageSize;
+            int take = request.PageSize;
+
             if (request.Filter == null)
             {
                 if (request.Keywords == null || request.Keywords.Length == 0)
-                    return new List<T>();
+                {
+                    pagedResult.Items = new List<T>();
+                    pagedResult.TotalCount = 0;
+                    return pagedResult;
+                }
 
                 // Fetch only recent incidents from Cosmos DB
                 var queryable = _container.GetItemLinqQueryable<T>(allowSynchronousQueryExecution: false)
@@ -123,9 +144,8 @@ namespace Agent.Runtime.Services
 
                 // Filter in-memory by keywords (case-insensitive)
                 var loweredKeywords = request.Keywords.Select(k => k.ToLower()).ToArray();
-                return results
-                    .Where(c => loweredKeywords.Any(kw => c.Title != null && c.Title.ToLower().Contains(kw)))
-                    .ToList();
+                filteredResults = results
+                    .Where(c => loweredKeywords.Any(kw => c.Title != null && c.Title.ToLower().Contains(kw))).ToList();
             }
             else
             {
@@ -183,13 +203,19 @@ namespace Agent.Runtime.Services
                 if (filter.TitleContains != null && filter.TitleContains.Length > 0)
                 {
                     var loweredTitleContains = filter.TitleContains.ToLower();
-                    return results
-                        .Where(c => c.Title != null && c.Title.ToLower().Contains(loweredTitleContains))
-                        .ToList();
+                    filteredResults = results
+                        .Where(c => c.Title != null && c.Title.ToLower().Contains(loweredTitleContains)).ToList();
                 }
-                return results;
+                else
+                {
+                    filteredResults = results;
+                }
             }
 
+            totalCount = filteredResults.Count;
+            pagedResult.TotalCount = totalCount;
+            pagedResult.Items = filteredResults.Skip(skip).Take(take).ToList();
+            return pagedResult;
         }
     }
 }
@@ -201,4 +227,14 @@ public class IncidentQueryRequest
     // Should only use Keywords in special scenarios where Filter isn't viable
     public string[] Keywords { get; set; } = [];
     public int DurationInDays { get; set; } = 60; // Default to 60 days for incident history
+
+    // Pagination
+    public int PageNumber { get; set; } = 1; // 1-based index
+    public int PageSize { get; set; } = 20;  // Default page size
+}
+
+public class IncidentQueryResult<T>
+{
+    public List<T> Items { get; set; } = [];
+    public int TotalCount { get; set; }
 }
