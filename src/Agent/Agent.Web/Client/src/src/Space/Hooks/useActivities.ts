@@ -30,17 +30,6 @@ export const useActivities = () => {
 
     const pollNewThreadsImmediately = () => setThreadPollingTriggerId(prev => prev + 1);
 
-    const addThread = useCallback(
-        (threadId: string) => {
-            untouched.current = false;
-            // poll thread immediately to get the thread just added.
-            pollNewThreadsImmediately();
-            setActiveThreadId(threadId);
-            navigate({ ...location, pathname: `/views/activities/threads/${threadId}` });
-        },
-        [navigate, location]
-    );
-
     const promoteThread = useCallback((threadId: string) => {
         // poll thread immediately to make the recently updated the thread on top.
         threadListHandleRef.current?.promoteThread(threadId, pollNewThreadsImmediately);
@@ -58,6 +47,22 @@ export const useActivities = () => {
             });
         },
         [navigate, location]
+    );
+
+    const addThread = useCallback(
+        (threadId: string, newThreadToSelect?: Thread) => {
+            untouched.current = false;
+            // poll thread immediately to get the thread just added.
+            pollNewThreadsImmediately();
+
+            if (newThreadToSelect) {
+                selectThread(newThreadToSelect);
+            } else {
+                setActiveThreadId(threadId);
+                navigate({ ...location, pathname: `/views/activities/threads/${threadId}` });
+            }
+        },
+        [navigate, location, selectThread]
     );
 
     const deleteThread = useCallback(
@@ -121,6 +126,6 @@ export const useActivities = () => {
         threadContentAndActionKey,
         activeThreadId,
         threadPollingTriggerId,
-        threadListHandleRef
+        threadListHandleRef,
     };
 };

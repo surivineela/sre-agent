@@ -48,7 +48,7 @@ export const ChatBox = ({ addThread, promoteThread, updateThreadLastReadTime, th
                         {isNewAndCleanThread && !isWelcomeThread && <ChatSuggestions sendMessage={sendMessage} />}
 
                         {/* Insert the richer welcome experience once at the top for welcome threads */}
-                        {isWelcomeThread && <AzureSREWelcome threadId={currentThreadId} />}
+                        {isWelcomeThread && <AzureSREWelcome threadId={currentThreadId} addThread={addThread} />}
 
                         {/* Render the remaining chat history */}
                         {messages.map((message, index) => (

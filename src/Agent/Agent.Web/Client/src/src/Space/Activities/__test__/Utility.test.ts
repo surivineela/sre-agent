@@ -57,7 +57,7 @@ const getDefaultThread = (
             },
         },
         source,
-        lastReadTime
+        lastReadTime,
     };
 };
 
@@ -135,7 +135,7 @@ const areThreadIdSetSame = (lhs: Set<string>, rhs: Set<string>) => {
         }
     }
     return true;
-}
+};
 
 describe('processThreads', () => {
     const areThreadsSortedDescByModifiedTimeStamp = (threads: Thread[]) => {
@@ -544,7 +544,7 @@ describe('isThreadUnread', () => {
     it('No modified timestamp', () => {
         const thread = getDefaultThread(undefined, undefined, undefined, undefined, undefined, '2023-10-03T00:00:00Z');
         expect(isThreadUnread(thread)).toBe(false);
-    })
+    });
 
     it('Last read time is before modified timestamp', () => {
         const thread = getDefaultThread('2023-10-03T00:00:00Z', '03', undefined, undefined, undefined, '2023-10-02T00:00:00Z');
@@ -563,12 +563,11 @@ describe('isThreadUnread', () => {
 });
 
 describe('getUpdatedUnreadThreadIds', () => {
-
     it('Empty unread thread ids', () => {
         const addedThreads: Thread[] = [
             getDefaultThread('2023-10-03T00:00:00Z', '01', undefined, undefined, undefined, '2023-10-03T00:00:00Z'),
             getDefaultThread('2023-10-03T00:00:00Z', '02', undefined, undefined, undefined, '2023-10-04T00:00:00Z'),
-            getDefaultThread('2023-10-03T00:00:00Z', '03', undefined, undefined, undefined, '2023-10-02T00:00:00Z')
+            getDefaultThread('2023-10-03T00:00:00Z', '03', undefined, undefined, undefined, '2023-10-02T00:00:00Z'),
         ];
 
         const result = getUpdatedUnreadThreadIds(new Set(), addedThreads);
@@ -582,7 +581,7 @@ describe('getUpdatedUnreadThreadIds', () => {
         const addedThreads: Thread[] = [
             getDefaultThread('2023-10-03T00:00:00Z', '01', undefined, undefined, undefined, '2023-10-02T00:00:00Z'),
             getDefaultThread('2023-10-03T00:00:00Z', '02', undefined, undefined, undefined, '2023-10-02T00:00:00Z'),
-            getDefaultThread('2023-10-03T00:00:00Z', '03', undefined, undefined, undefined, '2023-10-02T00:00:00Z')
+            getDefaultThread('2023-10-03T00:00:00Z', '03', undefined, undefined, undefined, '2023-10-02T00:00:00Z'),
         ];
 
         const result = getUpdatedUnreadThreadIds(threads, addedThreads);
@@ -597,7 +596,7 @@ describe('getUpdatedUnreadThreadIds', () => {
         const addedThreads: Thread[] = [
             getDefaultThread('2023-10-03T00:00:00Z', '01', undefined, undefined, undefined, '2023-10-05T00:00:00Z'),
             getDefaultThread('2023-10-03T00:00:00Z', '02', undefined, undefined, undefined, '2023-10-05T00:00:00Z'),
-            getDefaultThread('2023-10-03T00:00:00Z', '03', undefined, undefined, undefined, '2023-10-05T00:00:00Z')
+            getDefaultThread('2023-10-03T00:00:00Z', '03', undefined, undefined, undefined, '2023-10-05T00:00:00Z'),
         ];
 
         const result = getUpdatedUnreadThreadIds(threads, addedThreads);
@@ -610,7 +609,7 @@ describe('getUpdatedUnreadThreadIds', () => {
         const addedThreads: Thread[] = [
             getDefaultThread('2023-10-03T00:00:00Z', '01', undefined, undefined, undefined, '2023-10-03T00:00:00Z'),
             getDefaultThread('2023-10-03T00:00:00Z', '02', undefined, undefined, undefined, '2023-10-04T00:00:00Z'),
-            getDefaultThread('2023-10-03T00:00:00Z', '03', undefined, undefined, undefined, '2023-10-02T00:00:00Z')
+            getDefaultThread('2023-10-03T00:00:00Z', '03', undefined, undefined, undefined, '2023-10-02T00:00:00Z'),
         ];
 
         const result = getUpdatedUnreadThreadIds(threads, addedThreads);
@@ -624,13 +623,13 @@ describe('getUpdatedUnreadThreadIds', () => {
         const addedThreads: Thread[] = [
             getDefaultThread('2023-10-03T00:00:00Z', '06', undefined, undefined, undefined, '2023-10-02T00:00:00Z'),
             getDefaultThread('2023-10-03T00:00:00Z', '05', undefined, undefined, undefined, '2023-10-02T00:00:00Z'),
-            getDefaultThread('2023-10-03T00:00:00Z', '03', undefined, undefined, undefined, '2023-10-02T00:00:00Z')
+            getDefaultThread('2023-10-03T00:00:00Z', '03', undefined, undefined, undefined, '2023-10-02T00:00:00Z'),
         ];
 
         const result = getUpdatedUnreadThreadIds(threads, addedThreads);
         const expectedResult = new Set<string>(['05', '06', '03']);
         expect(areThreadIdSetSame(result, expectedResult)).toBe(true);
-    })
+    });
 
     it('Duplicated read threads', () => {
         const threads: Set<string> = new Set(['05', '06']);
@@ -638,14 +637,14 @@ describe('getUpdatedUnreadThreadIds', () => {
         const addedThreads: Thread[] = [
             getDefaultThread('2023-10-03T00:00:00Z', '06', undefined, undefined, undefined, '2023-10-05T00:00:00Z'),
             getDefaultThread('2023-10-03T00:00:00Z', '05', undefined, undefined, undefined, '2023-10-05T00:00:00Z'),
-            getDefaultThread('2023-10-03T00:00:00Z', '03', undefined, undefined, undefined, '2023-10-05T00:00:00Z')
+            getDefaultThread('2023-10-03T00:00:00Z', '03', undefined, undefined, undefined, '2023-10-05T00:00:00Z'),
         ];
 
         const result = getUpdatedUnreadThreadIds(threads, addedThreads);
         const expectedResult = new Set<string>(['05', '06']);
         expect(areThreadIdSetSame(result, expectedResult)).toBe(true);
-    })
-})
+    });
+});
 
 describe('removeThreadIdsFromUnreadThreads', () => {
     it('Unread threads are empty', () => {
@@ -675,7 +674,7 @@ describe('removeThreadIdsFromUnreadThreads', () => {
         const result = removeThreadIdsFromUnreadThreads(unreadThreads, '05');
         expect(areThreadIdSetSame(result, unreadThreads)).toBe(true);
     });
-})
+});
 
 describe('processNewMessages', () => {
     it('Add new messages', () => {

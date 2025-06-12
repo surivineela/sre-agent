@@ -1,112 +1,11 @@
 import { Card, CardHeader, mergeClasses, Text } from '@fluentui/react-components';
 import { Handle, Node, NodeProps, Position } from '@xyflow/react';
 import { memo, useContext, useMemo } from 'react';
+import { getResourceTypeFriendlyName, resolveResourceIcon } from '../../Common/Helpers/Resources';
 import { GraphContext, GraphNode, HandlePosition } from '../Contracts/Graph';
 import { useGraphNodeStyles } from '../Styles/Graph.styles';
 import HealthStatus from './HealthStatus';
 import { getAppHealthInfo, getHandleId } from './Utility';
-
-// ────────────────────────────────────────────────────────────────────────────────
-// Icon resolution helpers
-// ────────────────────────────────────────────────────────────────────────────────
-const ICON_BASE = ''; // eg: assets
-const ICON_LOOKUP: Record<string, string> = {
-    // Compute / containers
-    containerapp: 'ContainerApp.svg',
-    containerappjob: 'ContainerAppJob.svg',
-    managedenvironment: 'ManagedEnvironment.svg',
-    source: 'github-mark.svg',
-
-    // Kubernetes / orchestrators
-    aks: 'AKS.svg',
-    managedcluster: 'AKS.svg',
-    kubernetes: 'AKS.svg',
-    scaleset: 'ScaleSet.svg',
-
-    // Web & Functions
-    webapp: 'WebApp.svg',
-    functionapp: 'WebApp.svg',
-    site: 'WebApp.svg',
-    serverfarms: 'AppServicePlan.svg',
-
-    // Databases & caches
-    cosmos: 'CosmosDB.svg',
-    cosmosdb: 'CosmosDB.svg',
-    postgresql: 'POSTGRESQLServer.svg',
-    postgres: 'POSTGRESQLServer.svg',
-    sql: 'SQLServer.svg',
-    sqlserver: 'SQLServer.svg',
-    redis: 'AzureRedisCache.svg',
-    cache: 'AzureRedisCache.svg',
-
-    // Networking
-    vnet: 'Vnet.svg',
-    virtualnetwork: 'Vnet.svg',
-    subnet: 'Vnet.svg',
-    nsg: 'NSG.svg',
-    networksecuritygroup: 'NSG.svg',
-};
-
-// Friendly names for resource types
-const FRIENDLY_NAMES: Record<string, string> = {
-    // Compute / containers
-    containerapp: 'Container App',
-    containerappjob: 'Container App Job',
-    managedenvironment: 'Managed Environment',
-
-    // Kubernetes / orchestrators
-    aks: 'Kubernetes Service',
-    managedcluster: 'Kubernetes Service',
-    kubernetes: 'Kubernetes Service',
-    scaleset: 'Scale Set',
-
-    // Web & Functions
-    webapp: 'Web App',
-    functionapp: 'Function App',
-    site: 'Web App',
-    serverfarms: 'App Service Plan',
-
-    // Databases & caches
-    cosmos: 'Cosmos DB',
-    cosmosdb: 'Cosmos DB',
-    postgresql: 'PostgreSQL Server',
-    postgres: 'PostgreSQL Server',
-    sql: 'SQL Server',
-    sqlserver: 'SQL Server',
-    redis: 'Redis Cache',
-    cache: 'Redis Cache',
-
-    // Networking
-    vnet: 'Virtual Network',
-    virtualnetwork: 'Virtual Network',
-    subnet: 'Subnet',
-    nsg: 'Network Security Group',
-    networksecuritygroup: 'Network Security Group',
-};
-
-const DEFAULT_ICON = 'azureResource.svg';
-
-const resolveIcon = (azureType?: string): string => {
-    if (!azureType) return ICON_BASE + DEFAULT_ICON;
-    const t = azureType.toLowerCase();
-    const match = Object.keys(ICON_LOOKUP).find(k => t.includes(k));
-    return ICON_BASE + (match ? ICON_LOOKUP[match] : DEFAULT_ICON);
-};
-
-// Get friendly name for resource type
-const getFriendlyName = (azureType?: string): string => {
-    if (!azureType) return 'Subscription';
-    const t = azureType.toLowerCase();
-    const match = Object.keys(FRIENDLY_NAMES).find(k => t.includes(k));
-
-    if (match) {
-        return FRIENDLY_NAMES[match];
-    } else {
-        // Extract the type from resourceType path as fallback
-        const typeArray = azureType.split('/');
-        return typeArray[typeArray.length - 1];
-    }
-};
 
 export const GraphCard = (props: NodeProps<Node<GraphNode>>) => {
     const { id, data } = props;
@@ -131,7 +30,7 @@ export const GraphCard = (props: NodeProps<Node<GraphNode>>) => {
     const type = useMemo(() => {
         const resourceType = data?.properties?.type;
         if (resourceType) {
-            return getFriendlyName(resourceType);
+            return getResourceTypeFriendlyName(resourceType);
         } else {
             return 'subscription';
         }
@@ -167,7 +66,7 @@ export const GraphCard = (props: NodeProps<Node<GraphNode>>) => {
                         <img
                             width={32}
                             height={32}
-                            src={resolveIcon(data?.properties?.type)}
+                            src={resolveResourceIcon(data?.properties?.type)}
                             alt={data?.properties?.type ?? 'resource type icon'}
                         />
                     }

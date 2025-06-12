@@ -48,7 +48,6 @@ export interface ToolInfo {
     parameters: string[];
 }
 
-
 type WithKeyAndSelection<T> = T & {
     key?: string | number;
     selected: boolean;

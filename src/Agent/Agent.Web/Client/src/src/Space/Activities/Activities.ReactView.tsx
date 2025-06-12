@@ -18,7 +18,7 @@ const Activities: FC = () => {
         threadContentAndActionKey,
         activeThreadId,
         threadPollingTriggerId,
-        threadListHandleRef
+        threadListHandleRef,
     } = useActivities();
 
     const [menuCollapsed, setMenuCollapsed] = useState<boolean>(false);

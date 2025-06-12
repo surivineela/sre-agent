@@ -59,6 +59,12 @@
       "value": "Incident handler"
     }
   ],
+  "0KB3lG": [
+    {
+      "type": 0,
+      "value": "I analyzed your application's resources across multiple resource groups, regions, and subscriptions. I then generated a resource map of the connections I identified based on the primary resource. Based on what I learned, I also put together some suggested prompts that focus on your resources."
+    }
+  ],
   "0Pt22l": [
     {
       "type": 0,
@@ -221,6 +227,12 @@
     {
       "type": 0,
       "value": "Deleting selected managed resource groups"
+    }
+  ],
+  "3RvKcp": [
+    {
+      "type": 0,
+      "value": "Suggested prompts for your resources"
     }
   ],
   "3a5wL8": [
@@ -457,6 +469,12 @@
     {
       "type": 0,
       "value": "Last 24 hours"
+    }
+  ],
+  "8QX1EO": [
+    {
+      "type": 0,
+      "value": "I'm currently gathering information about your app and analyzing your resources, which might take a few minutes."
     }
   ],
   "8Wiwkg": [
@@ -893,6 +911,12 @@
       "value": "Enabling incident filter"
     }
   ],
+  "JUbrE2": [
+    {
+      "type": 0,
+      "value": "Logical application group"
+    }
+  ],
   "JVZyFs": [
     {
       "type": 0,
@@ -1033,6 +1057,12 @@
       "value": "Failed to delete incident filter"
     }
   ],
+  "OLJJDc": [
+    {
+      "type": 0,
+      "value": "Learn more about prompts"
+    }
+  ],
   "OMp9VI": [
     {
       "type": 0,
@@ -1081,6 +1111,12 @@
     {
       "type": 0,
       "value": "Filter incidents"
+    }
+  ],
+  "PWmGlA": [
+    {
+      "type": 0,
+      "value": "Resource analysis"
     }
   ],
   "Pc+tM3": [
@@ -1313,6 +1349,12 @@
       "value": "The agent uses these available tools to generate incident handler instructions, based on patterns it learned from the past incidents. You can remove any tools you don't want the agent to use."
     }
   ],
+  "UPybTw": [
+    {
+      "type": 0,
+      "value": "Go to map"
+    }
+  ],
   "UV4Dx5": [
     {
       "type": 0,
@@ -1433,6 +1475,12 @@
       "value": "Linking Grafana dashboard"
     }
   ],
+  "XVvSHJ": [
+    {
+      "type": 0,
+      "value": "While I'm doing that, you can still ask me general questions, such as how to integrate an incident management platform or how resource mapping works."
+    }
+  ],
   "XZ+Fx6": [
     {
       "type": 0,
@@ -1543,6 +1591,12 @@
       "value": "Yes"
     }
   ],
+  "aB1tjk": [
+    {
+      "type": 0,
+      "value": "Resource map"
+    }
+  ],
   "aQPexO": [
     {
       "type": 0,
@@ -1559,6 +1613,12 @@
     {
       "type": 0,
       "value": "Connect an incident management platform to the SRE Agent so that it can detect and respond to routine incident tasks and notifications. To change to a different platform, delete the connection to the current one."
+    }
+  ],
+  "aXGUvh": [
+    {
+      "type": 0,
+      "value": "I'm your Azure SRE Agent and here to help you monitor your resources, investigate incidents, automate responses, and ensure your systems follow best practices for reliability, performance, and security."
     }
   ],
   "abzUj6": [
@@ -1939,6 +1999,12 @@
       "value": "Grafana logo"
     }
   ],
+  "nQpONp": [
+    {
+      "type": 0,
+      "value": "Primary resource type"
+    }
+  ],
   "nmpevl": [
     {
       "type": 0,
@@ -2241,6 +2307,12 @@
       "value": "Time"
     }
   ],
+  "v8lolG": [
+    {
+      "type": 0,
+      "value": "Start chat"
+    }
+  ],
   "vCAhII": [
     {
       "type": 0,
@@ -2305,6 +2377,12 @@
     {
       "type": 0,
       "value": "Submit"
+    }
+  ],
+  "wkLkeE": [
+    {
+      "type": 0,
+      "value": "Total resources"
     }
   ],
   "xQRfI5": [

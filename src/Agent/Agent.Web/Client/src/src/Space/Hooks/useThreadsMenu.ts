@@ -15,7 +15,6 @@ import {
 import { ThreadListHandle, ThreadLoadingCounts, ThreadPollingCounts, ThreadPollingInterval } from '../Contracts/Activities';
 
 export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadListHandle>) => {
-
     const [threads, setThreads] = useState<Thread[]>([]);
     const [isLoadingInitialThreads, setIsLoadingInitialThreads] = useState<boolean>(true);
 
@@ -294,11 +293,7 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadLi
 
                 if (isSubscribed) {
                     setThreads(prevThreads => {
-                        const { threads: totalThreads, addedThreads } = processThreads(
-                            prevThreads,
-                            newThreadsInAsecindgOrder,
-                            true
-                        );
+                        const { threads: totalThreads, addedThreads } = processThreads(prevThreads, newThreadsInAsecindgOrder, true);
                         setUnreadThreadIds(prev => getUpdatedUnreadThreadIds(prev, addedThreads));
                         return totalThreads;
                     });

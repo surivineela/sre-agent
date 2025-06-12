@@ -281,7 +281,7 @@ export const useChatBox = (
 
                 if (threadId) {
                     await waitUntilNewMessageIsAvailable(threadId, signal, latestMessageRef.current);
-                    // poll answers by getting all messages from the most recent one to the lastest message reference
+                    // poll answers by getting all messages from the most recent one to the latest message reference
                     answers = await pollResponses(MessagePollingCounts.default, threadId, latestMessageRef.current, signal);
                 }
             } catch {

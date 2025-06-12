@@ -149,6 +149,10 @@ export const SreAgentResources = defineMessages({
         id: '0aN6iW',
     },
     learnMore: { defaultMessage: 'Learn more', id: 'TdTXXf' },
+    startChat: { defaultMessage: 'Start chat', id: 'v8lolG' },
+    resourceMap: { defaultMessage: 'Resource map', id: 'aB1tjk' },
+    goToMap: { defaultMessage: 'Go to map', id: 'UPybTw' },
+    totalResources: { defaultMessage: 'Total resources', id: 'wkLkeE' },
 });
 
 export const SreAgentTabResources = defineMessages({
@@ -686,4 +690,31 @@ export const IncidentHandlerCreateResources = defineMessages({
     customHandlerDescription: { defaultMessage: 'Description', id: 'Q8Qw5B' },
     incidentManagement: { defaultMessage: 'Incident management', id: 'T7WpWs' },
     newCustomHandler: { defaultMessage: 'New custom handler', id: 'DHc2gc' },
+});
+
+export const WelcomeResources = defineMessages({
+    initialWelcomeMessagePt1: {
+        defaultMessage:
+            "I'm your Azure SRE Agent and here to help you monitor your resources, investigate incidents, automate responses, and ensure your systems follow best practices for reliability, performance, and security.",
+        id: 'aXGUvh',
+    },
+    initialWelcomeMessagePt2: {
+        defaultMessage: "I'm currently gathering information about your app and analyzing your resources, which might take a few minutes. ",
+        id: '8QX1EO',
+    },
+    initialWelcomeMessagePt3: {
+        defaultMessage:
+            "While I'm doing that, you can still ask me general questions, such as how to integrate an incident management platform or how resource mapping works.",
+        id: 'XVvSHJ',
+    },
+    finishedAnalyzingResources: {
+        defaultMessage:
+            "I analyzed your application's resources across multiple resource groups, regions, and subscriptions. I then generated a resource map of the connections I identified based on the primary resource. Based on what I learned, I also put together some suggested prompts that focus on your resources.",
+        id: '0KB3lG',
+    },
+    resourceAnalysis: { defaultMessage: 'Resource analysis', id: 'PWmGlA' },
+    suggestedPromptsForYourResources: { defaultMessage: 'Suggested prompts for your resources', id: '3RvKcp' },
+    learnMoreAboutPrompts: { defaultMessage: 'Learn more about prompts', id: 'OLJJDc' },
+    logicalApplicationGroup: { defaultMessage: 'Logical application group', id: 'JUbrE2' },
+    primaryResourceType: { defaultMessage: 'Primary resource type', id: 'nQpONp' },
 });

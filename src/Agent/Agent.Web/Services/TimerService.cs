@@ -578,9 +578,9 @@ public class TimerService : IHostedService, IDisposable
                     return;
                 }
 
+                var title = "Welcome to Azure SRE Agent";
                 var messageBuilder = new StringBuilder();
-                messageBuilder.AppendLine("I've shared some important updates above. Do you have any questions about these changes, or is there anything specific about your system reliability I can help with today? Feel free to ask about monitoring, incident response, performance optimization, or any other reliability concerns.");
-                var title = "Hi There! I'm here to keep your systems running smoothly";
+                messageBuilder.AppendLine("Is there anything else I can help with today?");
 
                 (var _, var agentContext) = await _agentInboundCommunicationService.CreateAgentThread(
                                title: title,
