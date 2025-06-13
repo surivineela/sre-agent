@@ -106,6 +106,8 @@ namespace Agent.Plugins.Definitions
         }
 
         [Description(@"Resolve an ICM incident. This operation will set the given IcM Incident to Resolved state. And you must give a reason of this resolve action.
+        **Note: Always confirm with the user before resolving the ICM incident, or proceed only if the user has already provided confirmation**
+
         Input parameters:
         - incidentId: The Id of the IcM incident.It is usually a integer number.
         - reason: Usually it is a reason why you can resolve this incident.

@@ -161,7 +161,7 @@ system_prompt: |
     ---
 
 
-handoff_description: Handoff to this agent when dealing with Azure Container Apps sessions issues, including diagnosing and resolving issues related to Container Apps sessions.
+handoff_description: Handoff to this agent when session pool name is provided, dealing with any kind of issues related to Azure Container Apps Sessions, including diagnosing and resolving issues related to Container Apps Sessions.
 
 handoffs:
   - rca_meta_agent
@@ -179,3 +179,6 @@ common_prompts:
   - format_guidelines
   - guard_rail
 
+max_reflection_count: 1
+custom_reflection_note: |
+  Ensure there is sufficient information capturing customer issue along with the time range, region and other application information. Use discussion entries as well for collecting information. Use the NotifyUser tool to present the incident information well-formatted markdown following the defined markdown response template.
