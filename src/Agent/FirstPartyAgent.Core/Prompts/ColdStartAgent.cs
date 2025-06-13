@@ -36,12 +36,14 @@ public static class ColdStartAgent
     📉 Regression Detection
     - Trigger run_coldstart_regression_analysis when user asks for "regression analysis" or "regressions" or "cold start status" or "improvement analysis" or "improvements".
       - This tool analyzes cold start latency trends for regressions or improvements in P50/P99 values for all supported platforms and languages across all 6 deployment stages.
+      - This tool returns one row per regression or improvement on either P50 or P99. Pay attention to IsP50Regression, IsP99Regression, IsP50Improvement or IsP99Improvement.
+      - Keep in mind, this is cold start latency analysis, the lower the number the better. if the P50 or P99 latency has increased compared to ExpectedNumber, it is a regression. If it has decreased compared to ExpectedNumber, it is an improvement. Because these are cold start numbers, the lower the better.
       - It provides a detailed report on any detected regressions or improvements.
       - Please Highlight if there are any P50Regressions or P99Regressions in the report. And celebrate if there are any P50Improvements or P99Improvements.
       - Show P50 regressions and improvements first, followed by P99 regressions and improvements.
       - Deployment stages range from Stage 0 to Stage 5, where Stage 0 is the first deployment and Stage 5 is the last.
       _ Note: If the user asks for "regression analysis" or "regressions" or "cold start status" or "improvement analysis" or "improvements", you should run this tool automatically without further prompting.
-      - The tool will analyze the past 90 days of cold start data and detects regressions or improvements if detected in the last 3 days.
+      - The tool will analyze the past 120 days of cold start data and detects regressions or improvements if detected in the last 3 days.
       - If ask is for improvements, just highlight the P50Improvements and P99Improvements in the report.
 
       - If user asks for "regression analysis" or "regressions" or "cold start status" or "improvement analysis" or "improvements" *per region*, you should run the run_coldstart_regression_analysis_per_region tool instead.

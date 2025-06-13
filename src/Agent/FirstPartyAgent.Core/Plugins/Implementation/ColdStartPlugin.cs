@@ -594,7 +594,9 @@ namespace FirstPartyAgent.Plugins
             | where SiteName !contains ""histogram"" and SiteName !contains ""msftint""
             | where Sc_status == int(200)
             | extend S_sitename = SiteName
+            | where OperatingSystem in (""Windows"", ""Flex"")
             | invoke GetFunctionsSlaSiteProperties()
+            | where Scenario !contains ""-ps""
             | parse Stamp with ""waws-prod-"" AntaresAbbreviation ""-"" *
             | join kind=leftouter Regions on AntaresAbbreviation
             | summarize percentiles(FETimeTakenMs, 50, 99) by bin(pdate, 1d), OperatingSystem, Scenario, Stage
@@ -614,7 +616,9 @@ namespace FirstPartyAgent.Plugins
             | extend day = datetime_add('day', toint(idx), StartTime)
             | where  day >= ago(3d)        // only the last 3 days
             | where series_decompose_anomalies_P50List_ad_flag  == 1  or series_decompose_anomalies_P99List_ad_flag == 1
-            | project OperatingSystem, Scenario, Stage, P50Number = todouble(P50List), P50ExpectedNumber = P50Percentile, IsP50Regression = tobool(series_decompose_anomalies_P50List_ad_flag), P99Number = todouble(P99List), P99ExpectedNumber = P99Percentile, IsP99Regression = tobool(series_decompose_anomalies_P99List_ad_flag), day
+            | extend IsP50Regression = tobool(series_decompose_anomalies_P50List_ad_flag)
+            | extend IsP99Regression = tobool(series_decompose_anomalies_P99List_ad_flag)
+            | summarize P50Number = max(todouble(P50List)), P50ExpectedNumber = min(P50Percentile), P99Number = max(todouble(P99List)), P99ExpectedNumber = min(P99Percentile) by OperatingSystem, Scenario, Stage, IsP50Regression, IsP99Regression
             | order by IsP50Regression desc, P50Number desc, OperatingSystem desc, Stage asc, Scenario asc, IsP99Regression desc, P99Number desc
             | union
             (
@@ -624,7 +628,9 @@ namespace FirstPartyAgent.Plugins
             | where SiteName !contains ""histogram"" and SiteName !contains ""msftint""
             | where Sc_status == int(200)
             | extend S_sitename = SiteName
+            | where OperatingSystem in (""Windows"", ""Flex"")
             | invoke GetFunctionsSlaSiteProperties()
+            | where Scenario !contains ""-ps""
             | parse Stamp with ""waws-prod-"" AntaresAbbreviation ""-"" *
             | join kind=leftouter Regions on AntaresAbbreviation
             | summarize percentiles(FETimeTakenMs, 50, 99) by bin(pdate, 1d), OperatingSystem, Scenario, Stage
@@ -644,7 +650,9 @@ namespace FirstPartyAgent.Plugins
             | extend day = datetime_add('day', toint(idx), StartTime)
             | where  day >= ago(3d)        // only the last 3 days
             | where series_decompose_anomalies_P50List_ad_flag  == -1  or series_decompose_anomalies_P99List_ad_flag == -1
-            | project OperatingSystem, Scenario, Stage, P50Number = todouble(P50List), P50ExpectedNumber = P50Percentile, IsP50Improvement = tobool(series_decompose_anomalies_P50List_ad_flag), P99Number = todouble(P99List), P99ExpectedNumber = P99Percentile, IsP99Improvement = tobool(series_decompose_anomalies_P99List_ad_flag), day
+            | extend IsP50Improvement = tobool(series_decompose_anomalies_P50List_ad_flag)
+            | extend IsP99Improvement = tobool(series_decompose_anomalies_P99List_ad_flag)
+            | summarize P50Number = min(todouble(P50List)), P50ExpectedNumber = max(P50Percentile), P99Number = min(todouble(P99List)), P99ExpectedNumber = max(P99Percentile) by OperatingSystem, Scenario, Stage, IsP50Improvement, IsP99Improvement
             | order by IsP50Improvement desc, P50Number desc, OperatingSystem desc, Stage asc, Scenario asc, IsP99Improvement desc, P99Number desc
             )
             ";
@@ -665,7 +673,9 @@ namespace FirstPartyAgent.Plugins
             | where SiteName !contains ""histogram"" and SiteName !contains ""msftint""
             | where Sc_status == int(200)
             | extend S_sitename = SiteName
+            | where OperatingSystem in (""Windows"", ""Flex"")
             | invoke GetFunctionsSlaSiteProperties()
+            | where Scenario !contains ""-ps""
             | parse Stamp with ""waws-prod-"" AntaresAbbreviation ""-"" *
             | join kind=leftouter Regions on AntaresAbbreviation
             | summarize percentiles(FETimeTakenMs, 50, 99) by bin(pdate, 1d), OperatingSystem, Scenario, Stage, AntaresAbbreviation
@@ -685,7 +695,9 @@ namespace FirstPartyAgent.Plugins
             | extend day = datetime_add('day', toint(idx), StartTime)
             | where  day >= ago(3d)        // only the last 2 days
             | where series_decompose_anomalies_P50List_ad_flag  == 1  or series_decompose_anomalies_P99List_ad_flag == 1
-            | project OperatingSystem, Scenario, Stage, AntaresAbbreviation, P50Number = todouble(P50List), P50ExpectedNumber = P50Percentile, IsP50Regression = tobool(series_decompose_anomalies_P50List_ad_flag), P99Number = todouble(P99List), P99ExpectedNumber = P99Percentile, IsP99Regression = tobool(series_decompose_anomalies_P99List_ad_flag), day
+            | extend IsP50Regression = tobool(series_decompose_anomalies_P50List_ad_flag)
+            | extend IsP99Regression = tobool(series_decompose_anomalies_P99List_ad_flag)
+            | summarize P50Number = max(todouble(P50List)), P50ExpectedNumber = min(P50Percentile), P99Number = max(todouble(P99List)), P99ExpectedNumber = min(P99Percentile) by OperatingSystem, Scenario, Stage, AntaresAbbreviation, IsP50Regression, IsP99Regression
             | order by IsP50Regression desc, P50Number desc, OperatingSystem desc, Stage asc, Scenario asc, IsP99Regression desc, P99Number desc
             | union
             (
@@ -695,7 +707,9 @@ namespace FirstPartyAgent.Plugins
             | where SiteName !contains ""histogram"" and SiteName !contains ""msftint""
             | where Sc_status == int(200)
             | extend S_sitename = SiteName
+            | where OperatingSystem in (""Windows"", ""Flex"")
             | invoke GetFunctionsSlaSiteProperties()
+            | where Scenario !contains ""-ps""
             | parse Stamp with ""waws-prod-"" AntaresAbbreviation ""-"" *
             | join kind=leftouter Regions on AntaresAbbreviation
             | summarize percentiles(FETimeTakenMs, 50, 99) by bin(pdate, 1d), OperatingSystem, Scenario, Stage, AntaresAbbreviation
@@ -715,11 +729,11 @@ namespace FirstPartyAgent.Plugins
             | extend day = datetime_add('day', toint(idx), StartTime)
             | where  day >= ago(3d)        // only the last 2 days
             | where series_decompose_anomalies_P50List_ad_flag  == -1  or series_decompose_anomalies_P99List_ad_flag == -1
-            | project OperatingSystem, Scenario, Stage, AntaresAbbreviation, P50Number = todouble(P50List), P50ExpectedNumber = P50Percentile, IsP50Improvement = tobool(series_decompose_anomalies_P50List_ad_flag), P99Number = todouble(P99List), P99ExpectedNumber = P99Percentile, IsP99Improvement = tobool(series_decompose_anomalies_P99List_ad_flag), day
+            | extend IsP50Improvement = tobool(series_decompose_anomalies_P50List_ad_flag)
+            | extend IsP99Improvement = tobool(series_decompose_anomalies_P99List_ad_flag)
+            | summarize P50Number = min(todouble(P50List)), P50ExpectedNumber = max(P50Percentile), P99Number = min(todouble(P99List)), P99ExpectedNumber = max(P99Percentile) by OperatingSystem, Scenario, Stage, AntaresAbbreviation, IsP50Improvement, IsP99Improvement
             | order by IsP50Improvement desc, P50Number desc, OperatingSystem desc, Stage asc, Scenario asc, IsP99Improvement desc, P99Number desc
             )
-            | where Scenario !contains ""ps""
-            | where OperatingSystem != ""Linux""
             ";
             return query;
         }
