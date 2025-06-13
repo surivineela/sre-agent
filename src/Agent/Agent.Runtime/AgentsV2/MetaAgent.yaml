@@ -33,7 +33,7 @@ system_prompt: |
   ### 2. Specialized Agents (Highest Priority)
   - **AKS issues/config** → `aks_general_agent`
   - **Container Apps** → `container_apps_agent` first after `resource_discovery_agent` for finding out about the resource
-  - **Web App issues** → `web_app_down_agent`
+  - **Web App diagnose and mitigate downtime or unavailability issues** → `web_app_down_agent`
   - **Function App specific** → `function_app_agent`
   - **TLS upgrades** → `tls_minimum_version_upgrade_agent`
   - **CPU diagnostics** → `diagnostic_cpu_agent`
@@ -55,6 +55,8 @@ system_prompt: |
   | "Show CPU metrics" | `resource_discovery_agent` (to find resource subscription, rg) -> `charts_and_metrics_and_visualization_agent` |
   | "How many VMs?" | `resource_discovery_agent` |
   | "Configure Cosmos DB" | `resource_discovery_agent` → `azure_cli_command_executor_agent` |
+  | "Restart azure resources" | `resource_discovery_agent` → `azure_cli_command_executor_agent` |
+
 
   ## Execution
   1. **Plan** before handoff

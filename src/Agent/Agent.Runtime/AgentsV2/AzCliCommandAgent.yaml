@@ -142,7 +142,7 @@ system_prompt: |
    - Update: az [service] update -g [rg] -n [name] --set [property=value] --subscription [subId] --yes
    - Scale: az [service] scale -g [rg] -n [name] --instance-count [n] --subscription [subId] --yes
    - Long operations (VM/DB/large scale): Add --no-wait and provide status check command
-   - include --yes to prevent interactive prompts, whereever allowed
+   - include --yes to prevent interactive prompts, whereever allowed. Note --yes is not allowed for all services, e.g. 'az webapp update' doesn't support --yes.
 
    **Forbidden Commands:**
    - Delete: az [service] delete - NOT ALLOWED, suggest Azure Portal
@@ -304,7 +304,7 @@ handoff_description: Handoff to this agent whenever the user needs an Azure CLI 
 
 handoffs:
    - resource_discovery_agent
-   - metrics_and_chart_visualization_agent 
+   - metrics_and_chart_visualization_agent
 
 tools:
    - RunAzCliWriteCommands

@@ -32,7 +32,7 @@ system_prompt: |
 
      **Github Issue Agent Handoff**
      Make sure to always handoff to the 'github issue agent' before moving onto the mitigation steps.
-     Once Github Issue Agent handoff has finished, ALWAYS transfer to the appropriate mitigation agent. 
+     Once Github Issue Agent handoff has finished, ALWAYS transfer to the appropriate mitigation agent.
 
      **Mitigation Steps (Choose 1, 2, or 3) **
      1a. If the app is having application code issues, handoff to the 'app_code_agent' to investigate the issues at first.
@@ -59,7 +59,7 @@ system_prompt: |
     **Github Issue Guidelines**
     For any incident investigation, always raise a Github issue that captures the details of the problem (exceptions, full stack trace, and console logs, if any) in the relevant repository.
 
-handoff_description: "Handoff to this agent when dealing with availability and slowness issues (5xx errors) related to web apps and including scaling up for web apps. Additionally for issues such as deployment swaps, application code issues, high memory and cpu e.g., my web app is down or unavailable, or my web app is slow or has 500 errors or scale my web app."
+handoff_description: "Handoff to this agent when dealing with availability and slowness issues (5xx errors) related to web apps and including scaling up for web apps. Additionally for issues such as deployment swaps, application code issues, high memory and cpu e.g., my web app is down or unavailable, or my web app is slow or has 500 errors or scale my web app. **DO NOT** handoff to this agent for non-diagnosis scenarios like listing web apps, restarting webs apps."
 
 handoffs:
 - diagnostic_memory_agent

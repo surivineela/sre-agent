@@ -4,6 +4,7 @@
 
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Channels;
@@ -257,8 +258,20 @@ public class ReasoningLoop
                 {
                     case ReasoningLoopChatMessage chatMessage:
                         {
+                            StringBuilder sb = new StringBuilder();
+                            sb.AppendLine("Try your best to answer the user's questions. Keep in mind:");
+                            sb.AppendLine(" - If you find a suitable agent to handoff to, call transfer_to_{agentName} tool directly");
+                            sb.AppendLine(" - If there's no suitable agent to handoff to, call HandoffBack directly");
+                            sb.AppendLine(" - **NEVER** tell the user you're going to handoff");
+                            sb.AppendLine(" - **NEVER** tell the user what you are handing off for or why you are handing off");
+                            sb.AppendLine(" - **NEVER** mention anything related to handoff in your outputMessage");
+                            sb.AppendLine(" - Use transfer_to_{agentName} or HandoffBack if you are done solving an issue");
+                            sb.AppendLine("User question goes below:");
+                            sb.AppendLine(chatMessage.Message.Text);
+                            var msg = new ChatMessage(chatMessage.Message.Role, sb.ToString());
+
                             _logger.LogInternalInformation("Processing chat message.");
-                            _rootSpan.SetAttribute(TraceAttribute.MessageContent, chatMessage.Message.Text);
+                            _rootSpan.SetAttribute(TraceAttribute.MessageContent, msg.Text);
                             if (_context.ApprovalInformation != null &&
                                 _context.ApprovalInformation.PendingApprovals.Count > 0)
                             {
@@ -274,7 +287,7 @@ public class ReasoningLoop
                                 return;
                             }
 
-                            await PersistReasoningMessageAsync(agentChatHistory, chatMessage.Message);
+                            await PersistReasoningMessageAsync(agentChatHistory, msg);
                             break;
                         }
                     case ReasoningLoopApprovalMessage approvalMessage:
@@ -659,7 +672,7 @@ public class ReasoningLoop
                     _logger.LogInternalInformation("Agent output: {AgentOutputMessage}, {IsUserInputRequired}, {RequestCompleted}, {Reasoning}",
                         agentOutput.OutputMessage, agentOutput.IsUserInputRequired, agentOutput.RequestCompleted, agentOutput.Reasoning);
 
-                    if (agentOutput.CannotHandle)
+                    if (agentOutput.CannotHandleNextStep)
                     {
                         _logger.LogInternalInformation("Agent determined the request is out of scope. Handoff back");
 
@@ -847,7 +860,7 @@ public class ReasoningLoop
             initialProcessingFailed = true;
         }
 
-        // Handle initial processing failure 
+        // Handle initial processing failure
         if (initialProcessingFailed)
         {
             iterationResult(new ReasoningLoopIterationResult { IsContinuation = false });
@@ -1071,7 +1084,7 @@ public class ReasoningLoop
                 _logger.LogInternalInformation("Agent output: {AgentOutputMessage}, {IsUserInputRequired}, {RequestCompleted}, {Reasoning}",
                     agentOutput.OutputMessage, agentOutput.IsUserInputRequired, agentOutput.RequestCompleted, agentOutput.Reasoning);
 
-                if (agentOutput.CannotHandle)
+                if (agentOutput.CannotHandleNextStep)
                 {
                     _logger.LogInternalInformation("Agent determined the request is out of scope. Handoff back");
 
@@ -1767,7 +1780,7 @@ public class ReasoningLoop
         var assistantMessage = new ChatMessage(ChatRole.Assistant, summary);
         await PersistReasoningMessageAsync(agentChatHistory, assistantMessage);
         await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context, assistantMessage);
-        
+
         // Also return RunResult for streaming
         return new RunResult<AgentContext>(_currentAgent)
         {
