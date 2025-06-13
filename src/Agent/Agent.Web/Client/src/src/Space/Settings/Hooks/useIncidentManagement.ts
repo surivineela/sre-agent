@@ -7,7 +7,6 @@ import SreAgentClient from '../../../Common/Clients/SreAgentClient';
 import { ArmObj } from '../../../Common/Contracts/Azure/ArmObj';
 import { Agent, IncidentManagementConfiguration, IncidentManagementType } from '../../../Common/Contracts/Azure/SreAgent';
 import { Guid } from '../../../Common/Helpers/Guid';
-import { ArmResourceDescriptor } from '../../../Common/Helpers/ResourceDescriptors';
 import {
     IncidentManagementNotificationResources,
     IncidentManagementSaveErrorResources,
@@ -16,6 +15,7 @@ import {
 import { IncidentManagementFormValues, IncidentManagementPlatform } from '../../Contracts/IncidentManagement';
 import { PagerDutyApiKeyValidationResult, validatePagerDutyApiKey } from '../ValidationHelper';
 import { useSreAgent } from './useSreAgent';
+import { SreAgentContext } from '../../Contracts/Context';
 
 const getIncidentManagementPlatform = (agent?: ArmObj<Agent>): IncidentManagementPlatform => {
     switch (agent?.properties?.incidentManagementConfiguration?.type) {
@@ -60,13 +60,17 @@ export function useIncidentManagement(resourceId: string) {
     const intl = useIntl();
 
     const { agent, agentLoading, agentLoaded, agentLoadFailure } = useSreAgent(resourceId);
-    const { subscription, resourceGroup } = useMemo(() => new ArmResourceDescriptor(resourceId), [resourceId]);
     const [saving, setSaving] = useState(false);
     const [saveFailure, setSaveFailure] = useState<string>();
 
+    const sreAgentContext = useContext(SreAgentContext);
+    const {
+        incidentManagement: { setIsIncidentManagementConnected },
+    } = sreAgentContext;
+
     const platform: IncidentManagementPlatform = useMemo(
         () => getIncidentManagementPlatform(agent),
-        [agent?.properties?.incidentManagementConfiguration?.type]
+        [agent]
     );
 
     const [initialValues, setInitialValues] = useState<IncidentManagementFormValues>(getInitialValues(agent));
@@ -93,7 +97,7 @@ export function useIncidentManagement(resourceId: string) {
                     return undefined;
             }
         },
-        [intl.formatMessage]
+        [intl]
     );
 
     const validate = useCallback(
@@ -181,6 +185,11 @@ export function useIncidentManagement(resourceId: string) {
                     });
                     setSaving(false);
                     setSaveFailure(undefined);
+                    if (formValues.platform === IncidentManagementPlatform.Disconnected) {
+                        setIsIncidentManagementConnected(false);
+                    } else if (formValues.platform === IncidentManagementPlatform.PagerDuty) {
+                        setIsIncidentManagementConnected(true);
+                    }
                     setInitialValues({ platform: formValues.platform });
                     azPortalContext.stopNotification(
                         notificationId,
@@ -190,17 +199,7 @@ export function useIncidentManagement(resourceId: string) {
                 }
             });
         },
-        [
-            subscription,
-            resourceGroup,
-            agent?.name,
-            agent?.location,
-            agent?.properties?.agentEndpoint,
-            azPortalContext.startNotification,
-            azPortalContext.stopNotification,
-            intl.formatMessage,
-            initialValues.platform,
-        ]
+        [agent, azPortalContext, intl, initialValues.platform, resourceId, setIsIncidentManagementConnected]
     );
 
     const disconnect = useCallback(() => {

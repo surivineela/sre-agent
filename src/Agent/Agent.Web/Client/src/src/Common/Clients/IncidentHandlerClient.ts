@@ -27,6 +27,24 @@ export class IncidentHandlerClient extends DataPlaneClient {
         super(sreAgentEndpoint);
     }
 
+    public checkConnectivity = async (): Promise<Response<boolean>> => {
+        const url = this.getRequestUrl(`${this._apiPathPrefix}/checkConnectivity`);
+        try {
+            const { data } = await axios.get<boolean>(url, {
+                headers: getAgentHeaders(),
+            });
+            return {
+                isSuccessful: true,
+                content: data,
+            };
+        } catch (error) {
+            return {
+                isSuccessful: false,
+                error: error,
+            };
+        }
+    };
+
     public listHandlers = async (): Promise<Response<IncidentHandler[]>> => {
         const url = this.getRequestUrl(`${this._apiPathPrefix}/handlers`);
         try {

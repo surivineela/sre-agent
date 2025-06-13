@@ -478,7 +478,10 @@ export const PagerDutyResources = defineMessages({
             'This will permanently delete the connection to PagerDuty. The agent will no longer be able to manage tickets. Are you sure you want to delete this connection?',
         id: 'rGl1yu',
     },
-    connectedMessage: { defaultMessage: 'PagerDuty added', id: 'i0mHNo' },
+    connectedMessage: { defaultMessage: 'PagerDuty connected. Your next step is to set up incident handlers.', id: '84MFOR' },
+    addedMessage: { defaultMessage: 'PagerDuty connection added successfully', id: 'Wr7RY0' },
+    setUpIncidentHandlers: { defaultMessage: 'Set up incident handlers and custom handlers so that the agent can start resolving incidents.', id: 'lzHc+Y' },
+    goToIncidentManagement: { defaultMessage: 'Go to incident management', id: 'niQCoZ' },
 });
 
 export const AzMonitorResources = defineMessages({

@@ -43,6 +43,10 @@ const source = `PaasServerless.SreAgentSpace`;
 const TabsListWrapper: FC = () => {
     const environmentContext = useContext(EnvironmentContext);
     const theme = useContext(ThemeContext);
+    const sreAgentContext = useContext(SreAgentContext);
+    const {
+        incidentManagement: { isIncidentManagementConnected },
+    } = sreAgentContext;
     const intl = useIntl();
     const location = useLocation();
     const navigate = useNavigate();
@@ -71,8 +75,8 @@ const TabsListWrapper: FC = () => {
     const { agent, agentLoaded } = useSreAgent(environmentContext.resourceId);
 
     const isIncidentManagementEnabled = useMemo(() => {
-        return agent?.properties?.incidentManagementConfiguration?.type === IncidentManagementType.PagerDuty;
-    }, [agent?.properties?.incidentManagementConfiguration?.type]);
+        return agent?.properties?.incidentManagementConfiguration?.type === IncidentManagementType.PagerDuty || isIncidentManagementConnected;
+    }, [agent?.properties?.incidentManagementConfiguration?.type, isIncidentManagementConnected]);
 
     const fetchWorkspaceId = useCallback(async () => {
         const { subscription, resourceGroup } = new ArmResourceDescriptor(environmentContext.resourceId);
@@ -174,6 +178,7 @@ const SREAgentSpace: FC = () => {
     const [isGrafanaUpdating, setIsGrafanaUpdating] = useState(false);
     const [deploymentId, setDeploymentId] = useState<string>('');
     const [notificationId, setNotificationId] = useState<string>('');
+    const [isIncidentManagementConnected, setIsIncidentManagementConnected] = useState(false);
 
     useEffect(() => {
         const logSiteVersion = () => {
@@ -204,6 +209,10 @@ const SREAgentSpace: FC = () => {
                     setNotificationId,
                     setIsGrafanaUpdating,
                     setDeploymentId,
+                },
+                incidentManagement: {
+                    isIncidentManagementConnected,
+                    setIsIncidentManagementConnected,
                 },
             }}
         >

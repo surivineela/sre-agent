@@ -10,6 +10,10 @@ type SreAgentContextProps = {
         setIsGrafanaUpdating: React.Dispatch<React.SetStateAction<boolean>>;
         setDeploymentId: React.Dispatch<React.SetStateAction<string>>;
     };
+    incidentManagement: {
+        isIncidentManagementConnected: boolean;
+        setIsIncidentManagementConnected: React.Dispatch<React.SetStateAction<boolean>>;
+    };
 };
 
 type WebSocketContextProps = {
@@ -26,6 +30,10 @@ export const SreAgentContext = createContext<SreAgentContextProps>({
         setIsGrafanaUpdating: () => {},
         setDeploymentId: () => {},
     },
+    incidentManagement: {
+        isIncidentManagementConnected: false,
+        setIsIncidentManagementConnected: () => {},
+    }
 });
 
 export const AgentContext = createContext<AgentContextProps>({

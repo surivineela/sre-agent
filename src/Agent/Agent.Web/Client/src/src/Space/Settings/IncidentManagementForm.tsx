@@ -12,8 +12,12 @@ import {
     Input,
     Option,
     Spinner,
+    MessageBar,
+    MessageBarBody,
+    MessageBarTitle,
+    MessageBarActions,
 } from '@fluentui/react-components';
-import { FC, useMemo, useState } from 'react';
+import { FC, useCallback, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import {
     AzMonitorResources,
@@ -24,7 +28,10 @@ import {
     SreAgentResources,
 } from '../../Strings/SREAgentResources';
 import { IncidentManagementFormProps, IncidentManagementPlatform } from '../Contracts/IncidentManagement';
-import { useDialogStyles, useSettingsStyles } from './Styles/Settings.styles';
+import { useDialogStyles, usePagerDutyStyles, useSettingsStyles } from './Styles/Settings.styles';
+import { useIncidentManagementConnectivity } from '../Hooks/useIncidentManagementConnectivity';
+import { CheckmarkCircle16Filled } from '@fluentui/react-icons';
+import { useLocation, useNavigate } from 'react-router';
 
 const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
     formikProps,
@@ -35,12 +42,19 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
 }: IncidentManagementFormProps) => {
     const intl = useIntl();
     const styles = useSettingsStyles();
+    const pagerDutyStyles = usePagerDutyStyles();
     const { dangerButton } = useDialogStyles();
     const { setFieldValue, setFieldTouched, submitForm, resetForm, values, isValid, isValidating, isSubmitting, dirty, initialValues } =
         formikProps;
     const [editingApiKey, setEditingApiKey] = useState(false);
     const isSetupScenario = useMemo(() => initialValues.platform === IncidentManagementPlatform.Disconnected, [initialValues.platform]);
-    const isApiKeyEditable = useMemo(() => isSetupScenario || editingApiKey, [initialValues.platform, editingApiKey]);
+    const isApiKeyEditable = useMemo(() => isSetupScenario || editingApiKey, [isSetupScenario, editingApiKey]);
+    const isPagerDutySetUp = useMemo(() => initialValues.platform === IncidentManagementPlatform.PagerDuty, [initialValues.platform]);
+
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    const { isIncidentManagementConnected } = useIncidentManagementConnectivity(isPagerDutySetUp);
 
     const incidentPlatformDropdownOptions = useMemo(
         () => [
@@ -81,24 +95,53 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
             disconnectConfirmationTitle: '',
             disconnectConfirmationMessage: '',
         };
-    }, [initialValues.platform, intl.formatMessage]);
+    }, [initialValues.platform, intl]);
+
+    const handleGoToIncidentManagement = useCallback(() => {
+            navigate({ ...location, pathname: '/views/incidentmanagement' });
+
+    }, [location, navigate]);
 
     return (
         <>
             <div style={styles.generalSettingsHeader}>{intl.formatMessage(SettingsTabResources.incidentManagement)}</div>
             <div>
-                <div style={styles.incidentManagementDescriptionStyle}>
-                    {intl.formatMessage(IncidentManagementResources.incidentManagementDescription)}
-                </div>
                 {loading ? (
                     <Spinner />
                 ) : (
                     <>
+                        {isSetupScenario && (<div style={styles.incidentManagementDescriptionStyle}>
+                            {intl.formatMessage(IncidentManagementResources.incidentManagementDescription)}
+                        </div>)}
+                        {(values.platform === IncidentManagementPlatform.PagerDuty && !isSetupScenario) && (
+                            <div  style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                                <MessageBar
+                                    intent="info"
+                                    className={pagerDutyStyles.messageBar}
+                                    >
+                                    <MessageBarBody className={pagerDutyStyles.messageBarBody}>
+                                        <MessageBarTitle style={{fontWeight: 400}}>
+                                            {intl.formatMessage(PagerDutyResources.setUpIncidentHandlers)}
+                                        </MessageBarTitle>
+                                        <div className={pagerDutyStyles.messageBarActionsContainer}>
+                                            <MessageBarActions
+                                                containerAction={
+                                                        <Button appearance="secondary" size="medium" onClick={handleGoToIncidentManagement}>
+                                                            {intl.formatMessage(PagerDutyResources.goToIncidentManagement)}
+                                                        </Button>
+                                                }
+                                            />
+                                        </div>
+                                    </MessageBarBody>
+                                    </MessageBar>
+                                </div>
+                            )}
                         <Field
                             id="platformField"
                             label={intl.formatMessage(IncidentManagementResources.incidentPlatform)}
                             orientation="horizontal"
                             required={true}
+                            style={{maxWidth: '1000px'}}
                         >
                             <Dropdown
                                 id="platform"
@@ -132,9 +175,12 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                                     {intl.formatMessage(PagerDutyResources.description)}
                                 </div>
                                 {!isSetupScenario && (
-                                    <div style={styles.connectedWrapperStyle}>
-                                        <img src="./success.svg" alt="Connected" style={styles.connectedImageStyle} />
-                                        <span>{intl.formatMessage(PagerDutyResources.connectedMessage)}</span>
+                                    <div className={pagerDutyStyles.iconContainer}>
+                                        <CheckmarkCircle16Filled
+                                            className={pagerDutyStyles.greenCheckIcon}
+                                            aria-label={intl.formatMessage(IncidentManagementResources.setUpComplete)}
+                                        />
+                                        <div>{isIncidentManagementConnected ? intl.formatMessage(PagerDutyResources.connectedMessage) : intl.formatMessage(PagerDutyResources.addedMessage)}</div>
                                     </div>
                                 )}
                                 <Field
@@ -145,6 +191,7 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                                     validationMessage={
                                         formikProps.touched.connectionKey && !isValidating ? formikProps.errors.connectionKey : undefined
                                     }
+                                    style={{maxWidth: '1000px'}}
                                 >
                                     <Input
                                         style={styles.textFieldStyles}

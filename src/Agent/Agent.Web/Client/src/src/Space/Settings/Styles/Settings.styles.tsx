@@ -142,6 +142,28 @@ export const useSettingsStyles = () => {
     };
 };
 
+export const usePagerDutyStyles = makeStyles({
+    greenCheckIcon: { height: '16px', width: '16px', color: tokens.colorPaletteGreenForeground1 },
+    iconContainer: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '4px',
+        paddingBottom: '20px',
+    },
+    messageBar: {
+        display: 'flex',
+        alignItems: 'flex-start',
+        padding: '10px',
+        maxWidth: '800px',
+        width: '100%',
+        marginBottom: '20px',
+        backgroundColor: tokens.colorNeutralBackground2,
+        border: `1px solid ${tokens.colorNeutralStroke2}`,
+    },
+    messageBarBody: { display: 'flex', flexDirection: 'column',  justifyContent: 'space-between', gap: '10px', width: '100%' },
+    messageBarActionsContainer: { display: 'flex', justifyContent: 'flex-end', width: '100%' }
+});
+
 export const useDialogStyles = makeStyles({
     dangerButton: {
         backgroundColor: tokens.colorStatusDangerBackground3,
