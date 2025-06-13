@@ -84,7 +84,6 @@ namespace Agent.Plugins.Implementation
                        .by(label())
                        .by(valueMap())";
 
-                // restoreIdSlashes: true because in the listing we convert "_" back to "/"
                 var descriptors = await GetDescriptorsFromGremlinAsync(query);
                 RestoreIdSlashes(descriptors);
 
@@ -133,7 +132,7 @@ namespace Agent.Plugins.Implementation
             dataset");
 
             // Resolve instrumentation key and App Insights App ID
-            const string apiVersion = "2018-05-01-preview";
+            const string apiVersion = APIManagementHelper.Constants.AppInsightsApiVer;
             var appSettingsJson = await _armHelper.GetResourceByURL($"https://management.azure.com{appInsightsResourceId}?api-version={apiVersion}");
             var jsonObject = JObject.Parse(appSettingsJson);
 
@@ -212,11 +211,109 @@ namespace Agent.Plugins.Implementation
             }
         }
 
+        #region Api Gateway Logs Methods
+
+        public async Task<string> GetAPIMFailureRateByApiOperation(string apiManagementResourceId, DateTime startTime, DateTime endTime)
+        {
+            _logger.LogInternalInformation($"[GetFailureRateByApiOperationAsync] Invoked for APIM '{apiManagementResourceId}', startTime '{startTime}', endTime '{endTime}'");
+
+            try
+            {
+                // Build the time span string for the query
+                string startIso = startTime.ToString("o");
+                string endIso = endTime.ToString("o");
+                string timeSpan = $"{startIso}/{endIso}";
+
+                string queryString = $@"
+                    ApiManagementGatewayLogs
+                        | where TimeGenerated between(datetime('{startIso}') ..datetime('{endIso}'))
+                        | summarize 
+                            TotalCount = count(),
+                            FailedCount = countif(IsRequestSuccess == 0),
+                            ResponseCode = arg_max(TimeGenerated, ResponseCode),
+                            LastErrorReason = arg_max(TimeGenerated, LastErrorReason)
+                            by ApiId, OperationId
+                        | extend 
+                            FailureRatePercent = iif(TotalCount == 0, 0.0, todouble(FailedCount) / todouble(TotalCount) * 100)
+                        | order by FailureRatePercent desc
+                        | project
+                            ApiId,
+                            OperationId,
+                            ResponseCode,
+                            LastErrorReason,
+                            TotalCount,
+                            FailedCount,
+                            FailureRatePercent
+                ";
+
+                // Send the query to Log Analytics and return the result
+                string queryResult = await _armHelper.ExecuteLogAnalyticsQuery(apiManagementResourceId, queryString, timeSpan);
+                return queryResult;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, $"Error in GetFailureRateByApiOperationAsync for {apiManagementResourceId}");
+                return null;
+            }
+        }
+
+        public async Task<string> GetAPIMRecentFailedRequests(string apiManagementResourceId, TimeSpan lookback, int topN)
+        {
+            _logger.LogInternalInformation($"[GetRecentFailedRequestsAsync] Invoked for APIM '{apiManagementResourceId}', lookbackHour timespan '{lookback}', topN '{topN}'");
+
+            try
+            {
+                // Determine the time window
+                DateTime endTime = DateTime.UtcNow;
+                DateTime startTime = endTime.Add(-lookback);
+                string startIso = startTime.ToString("o");
+                string endIso = endTime.ToString("o");
+                string timeSpan = $"{startIso}/{endIso}";
+
+                // Query retrieves the most recent failures with full details
+                string queryString = $@"
+                ApiManagementGatewayLogs
+                    | where TimeGenerated between (datetime({startIso}) .. datetime({endIso}))
+                    | where IsRequestSuccess == 0
+                    | order by TimeGenerated desc
+                    | take {topN}
+                    | project 
+                        TimeGenerated,
+                        CorrelationId,
+                        ApiId,
+                        OperationId,
+                        Url,
+                        Method,
+                        CallerIpAddress,
+                        ResponseCode,
+                        LastErrorReason,
+                        LastErrorMessage,
+                        RequestSize,
+                        ResponseSize,
+                        RequestHeaders,
+                        ResponseHeaders,
+                        RequestBody,
+                        ResponseBody
+                ";
+
+                // Execute the query and return the JSON result
+                string queryResult = await _armHelper.ExecuteLogAnalyticsQuery(apiManagementResourceId, queryString, timeSpan);
+                return queryResult;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, $"Error in GetAPIMConnectedLogAnalytics for {apiManagementResourceId}");
+                return null;
+            }
+        }
+
+        #endregion
+
         #region APIM Connected Resource Helpers
 
         public async Task<string> GetAPIMConnectedAppInsights(string apiManagementResourceId)
         {
-            string apiVersion = APIManagementHelper.Constants.AppInsightsApiVer;
+            string apiVersion = APIManagementHelper.Constants.LoggersApiVer;
 
             // Call to list all of the app insights resources connected to the API Management instance
             var requestUrl = $"https://management.azure.com{apiManagementResourceId}/loggers?api-version={apiVersion}";
@@ -343,7 +440,6 @@ namespace Agent.Plugins.Implementation
             }
             return null;
         }
-
         #endregion
 
     }

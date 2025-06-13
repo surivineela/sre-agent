@@ -8,7 +8,11 @@ namespace Agent.Plugins.Interface
 
         Task<APIManagementDescriptor> GetAPIManagementInfoAsync(string resourceId);
 
-        Task<string> GetAPIMErrorLogsAsync(string apimInstanceResourceId, DateTime startTime, DateTime endTime, string statusCode, int top = 6);
+        Task<string> GetAPIMErrorLogsAsync(string apimInstanceResourceId, DateTime startTime, DateTime endTime, string statusCode, int top);
+
+        Task<string> GetAPIMFailureRateByApiOperation(string apiManagementResourceId, DateTime startTime, DateTime endTime);
+
+        Task<string> GetAPIMRecentFailedRequests(string apiManagementResourceId, TimeSpan lookback, int topN);
 
         Task<string> GetAPIMActivityLogs(string apimResourceId, DateTime startTime, DateTime endTime);
     }
