@@ -175,7 +175,7 @@ namespace Agent.Runtime.Services
 
                 if (filter.ImpactedService.IsNotEmpty())
                 {
-                    queryable = queryable.Where(c => c.ImpactedServiceId == filter.ImpactedService);
+                    queryable = queryable.Where(c => c.ImpactedServiceName == filter.ImpactedService || c.ImpactedServiceId == filter.ImpactedService);
                 }
                 if (filter.Priority.IsNotEmpty())
                 {
