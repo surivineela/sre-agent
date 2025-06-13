@@ -22,7 +22,6 @@ using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Graph.Drives.Item.Items.Item.Workbook.Functions.Var_P;
 
 namespace Agent.Runtime.Communication;
 
@@ -169,11 +168,10 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
 
             if (!string.IsNullOrEmpty(orchestrationInstanceId))
             {
-
                 var existingOrchestration = await _durableTaskClient.GetInstanceAsync(orchestrationInstanceId,
                     getInputsAndOutputs: true, CancellationToken.None);
                 // Check for failed orchestrations and clean them if needed
-                bool cleaned = await _threadService.CleanOrchestration(
+                var cleaned = await _threadService.CleanOrchestration(
                     thread.Id,
                     orchestrationInstanceId,
                     existingOrchestration);
@@ -190,8 +188,8 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                 // No existing orchestration, create a new one
                 _logger.LogInternalInformation("No existing orchestration for thread: {ThreadId}", threadMessage.ThreadId);
 
-                string agentResponse = string.Empty;
-                bool isComplete = false;
+                var agentResponse = string.Empty;
+                var isComplete = false;
 
                 if (agentContext != null && AgentTypeHelper.IsScannerAgent(agentContext.AgentType))
                 {
@@ -492,7 +490,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                     response.AdditionalProperties.Add("threadId", threadMessage.ThreadId.ToString());
                     if (response.Contents != null)
                     {
-                        foreach(var content in response.Contents)
+                        foreach (var content in response.Contents)
                         {
                             // Add user friendly function call description to content
                             if (content is FunctionCallContent functionCall)

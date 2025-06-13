@@ -31,11 +31,16 @@
   <ItemGroup>
     <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
   </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Agent.Analyzers\Agent.Analyzers.csproj" OutputItemType="Analyzer" />
   </ItemGroup>
+
   <ItemGroup>
-    <None Update="ToolReplayLogs\**">
+    <None Update="ToolReplayLogs\**\*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="ChatHistoryLogs\**\*.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
