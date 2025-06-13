@@ -73,6 +73,36 @@ module dts 'dts.bicep' = {
   ]
 }
 
+module search 'search.bicep' = {
+  name: 'searchDeployment'
+  params: {
+    namePrefix: namePrefix
+  }
+  dependsOn: [
+    appConfig
+  ]
+}
+
+module storage 'storage.bicep' = {
+  name: 'storageDeployment'
+  params: {
+    namePrefix: namePrefix
+  }
+  dependsOn: [
+    appConfig
+  ]
+}
+
+module identity 'identity.bicep' = {
+  name: 'identityDeployment'
+  params: {
+    namePrefix: namePrefix
+  }
+  dependsOn: [
+    appConfig
+  ]
+}
+
 // General settings
 resource subIdSetting 'Microsoft.AppConfiguration/configurationStores/keyValues@2022-05-01' = {
   name: 'AppSettings:Core:Azure:Crawler:SubscriptionId'

@@ -139,6 +139,7 @@ Otherwise, there may be required settings which are not auto-populated by the pr
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.Azure.OpenAI);
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.Azure.Federation);
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.Azure.Kusto);
+            sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.Azure.Indexing);
 
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.External);
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.External.GitHub);

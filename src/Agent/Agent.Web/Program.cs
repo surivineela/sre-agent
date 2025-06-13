@@ -30,8 +30,11 @@ using Agent.Plugins.Services;
 using Agent.Plugins.Services.Interfaces;
 using Agent.Prometheus.Services;
 using Agent.Runtime;
+using Agent.Runtime.Clients.Search;
 using Agent.Runtime.Communication;
 using Agent.Runtime.HelperAgents;
+using Agent.Runtime.IncidentHandlerAgent;
+using Agent.Runtime.Indexing.Documentation;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.MetaAgent;
 using Agent.Runtime.MetaAgent.Interfaces;
@@ -69,7 +72,6 @@ using Agent.Runtime.SubAgents.WebAppDownAgent;
 using Agent.Runtime.TeamsChatServices;
 using Agent.Web.Services;
 using Agent.Web.WebSocket;
-using Agent.Web.SignalR;
 using Azure.Monitor.OpenTelemetry.Exporter;
 using FirstPartyAgent.Core.FirstPartyAgents;
 using Microsoft.Bot.Builder;
@@ -81,7 +83,6 @@ using Microsoft.DurableTask.Client.AzureManaged;
 using Microsoft.DurableTask.Worker;
 using Microsoft.DurableTask.Worker.AzureManaged;
 using Microsoft.Extensions.AI;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.SemanticKernel;
 using OpenTelemetry;
 using OpenTelemetry.Logs;
@@ -89,8 +90,6 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using WebSocketSharp.Server;
-using System.Linq;
-using Agent.Runtime.IncidentHandlerAgent;
 
 namespace Agent.Web;
 
@@ -402,6 +401,8 @@ public class Program
             .AddSingleton<IReasoningLoopFactory, ReasoningLoopFactory>()
             .AddSingleton<IReasoningLoopManager, ReasoningLoopManager>()
             .AddSingleton<ISearchPlugin, SearchPlugin>()
+            .AddSingleton<ISearchIndexingClient, SearchIndexingClient>()
+            .AddSingleton<DocumentationIndex>()
 
             .AddSingleton(sp =>
             {

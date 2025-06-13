@@ -1,6 +1,12 @@
 var consts = loadJsonContent('../consts.json')
 
 param namePrefix string
+var openAIName = '${namePrefix}${consts.openAIAccountNameSuffix}'
+var userIdentityName = '${namePrefix}${consts.managedIdentityNameSuffix}'
+
+resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-07-31-preview' existing = {
+  name: userIdentityName
+}
 
 resource appConfig 'Microsoft.AppConfiguration/configurationStores@2022-05-01' existing = {
   name: '${namePrefix}${consts.appConfigNameSuffix}'
@@ -11,7 +17,7 @@ resource kv 'Microsoft.KeyVault/vaults@2021-06-01-preview' existing = {
 }
 
 resource openai 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
-  name: '${namePrefix}${consts.openAIAccountNameSuffix}'
+  name: openAIName
   location: resourceGroup().location
   sku: {
     name: 'S0'
@@ -19,6 +25,7 @@ resource openai 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
   kind: 'OpenAI'
   properties: {
     publicNetworkAccess: 'Enabled'
+    customSubDomainName: openAIName
     // restore: true
   }
 }
@@ -137,5 +144,19 @@ resource openaiApiKeySetting 'Microsoft.AppConfiguration/configurationStores/key
   properties: {
     value: string({uri: openaiApiKeySecret.properties.secretUri})
     contentType: 'application/vnd.microsoft.appconfig.keyvaultref+json;charset=utf-8'
+  }
+}
+
+// user-assigned identity access to Open AI for Azure deployments
+resource storageIdentityRoleAssignment 'Microsoft.Authorization/roleAssignments@2018-09-01-preview' = {
+  name: guid(openAIName, identity.name, consts.CognitiveServicesOpenAIContributor)
+  scope: openai
+  properties: {
+    principalId: identity.properties.principalId
+    principalType: 'ServicePrincipal'
+    roleDefinitionId: subscriptionResourceId(
+      'Microsoft.Authorization/roleDefinitions',
+      consts.CognitiveServicesOpenAIContributor
+    )
   }
 }

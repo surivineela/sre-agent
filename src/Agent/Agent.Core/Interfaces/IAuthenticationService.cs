@@ -32,6 +32,11 @@ public interface IAuthenticationService
     /// <returns></returns>
     public TokenCredential GetSearchPluginCredential();
 
+    /// <summary>
+    /// Gets credentials to access Azure Search for indexing operations.
+    /// </summary>
+    /// <returns></returns>
+    public TokenCredential GetIndexingCredential();
 
     /// <summary>
     /// Get the credential to crawl resources of user tenant

@@ -40,6 +40,8 @@
     "appConfigurationDataReader": "516239f1-63e1-4d78-a4de-a74fb236a071",
     "keyVaultSecretsUser": "4633458b-17de-408a-b874-0445c86b69e6",
     "cosmosDBDataContributor": "00000000-0000-0000-0000-000000000002",
+    "StorageBlobDataContributorRoleDefinition": "ba92f5b4-2d11-453d-a403-e96b0029c9fe",
+    "CognitiveServicesOpenAIContributor": "a001fd3d-188f-4b5d-821b-7da978bf7442",
 
     // Azure Monitor Workspace
     "azureMonitorWorkspaceNameSuffix": "-monitor-workspace",
@@ -47,5 +49,11 @@
     "dataCollectionRuleSuffix": "-dcr",
 
     // Azure managed grafana
-    "grafanaNameSuffix": "-grafana"
+    "grafanaNameSuffix": "-grafana",
+
+    // AI Search
+    "aiSearchNameSuffix": "-aisearch",
+
+    // managed identity
+    "managedIdentityNameSuffix": "-mi"
 }

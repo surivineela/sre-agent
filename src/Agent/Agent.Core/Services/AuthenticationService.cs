@@ -19,6 +19,7 @@ public class AuthenticationService : IAuthenticationService
     private readonly IHostEnvironment _hostEnvironment;
     private readonly DashboardSettings _dashboardSettings;
     private readonly Lazy<IThreadRepository> _threadRepository;
+    private readonly IndexingSettings _indexingSettings;
 
     public AuthenticationService(
         ILogger<AuthenticationService> logger,
@@ -26,6 +27,7 @@ public class AuthenticationService : IAuthenticationService
         ActionSettings actionSettings,
         FederationSettings federationSettings,
         DashboardSettings dashboardSettings,
+        IndexingSettings indexingSettings,
         IHostEnvironment hostEnvironment,
         IServiceProvider serviceProvider)
     {
@@ -33,6 +35,7 @@ public class AuthenticationService : IAuthenticationService
         _crawlerSettings = crawlerSettings;
         _actionSettings = actionSettings;
         _federationSettings = federationSettings;
+        _indexingSettings = indexingSettings;
         _hostEnvironment = hostEnvironment;
         _dashboardSettings = dashboardSettings;
 
@@ -91,6 +94,15 @@ public class AuthenticationService : IAuthenticationService
         return GetManagedIdentityCredential(GetActionIdentity());
     }
 
+    public TokenCredential GetIndexingCredential()
+    {
+        if (_hostEnvironment.IsDevelopment())
+        {
+            return GetDefaultAzureCredential();
+        }
+
+        return GetManagedIdentityCredential(_indexingSettings.ManagedIdentityResourceId);
+    }
 
     #endregion
 
