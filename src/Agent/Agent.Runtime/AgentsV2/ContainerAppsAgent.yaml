@@ -42,6 +42,7 @@ handoffs:
   - diagnostic_memory_agent
   - diagnostic_latency_agent
   - github_issue_agent
+  - metrics_and_chart_visualization_agent
 
 tools:
   - GetLatestRevision

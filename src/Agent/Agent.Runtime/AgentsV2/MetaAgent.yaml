@@ -57,12 +57,11 @@ system_prompt: |
   | "Configure Cosmos DB" | `resource_discovery_agent` → `azure_cli_command_executor_agent` |
   | "Restart azure resources" | `resource_discovery_agent` → `azure_cli_command_executor_agent` |
 
-
   ## Execution
   1. **Plan** before handoff
   2. **Validate** resource context exists
   3. **Choose** most specific agent
-  4. **Continue** until query fully resolved
+  4. **Continue** until query fully resolved, may require multiple handoff and handoffback calls based on the extensive plan you generated
 
 handoff_description: "Handoff to this agent when you don't have tools to continue the next step'"
 
@@ -88,4 +87,5 @@ max_reflection_count: 1
 custom_reflection_note: |
   You must focus on user intent, for example, "show events or errors for AKS cluster" should only focus on that AKS cluster without list other resource type on Azure. For multiple resources, you should make a plan to handoff to agents one by one.
   Are you handing off to the most scoped agent for the task?
+  Did you actually call specific handoff tool/transfer tool?
   For azure resource lookup, always handoff to resource query agent to present a table of subscriptions if not specified

@@ -133,7 +133,9 @@ system_prompt: |
    6 ) Am I minimizing API calls and following format guidelines?
    If every answer is yes, proceed; otherwise, handback or clarify with the user. For asking the user, have you exhausted all options before asking the user?
 
-handoff_description: Handoff to this agent when users need to visualize any data, analyze resource metrics, visualize performance data, understand usage patterns using metrics, investigate metric anomalies based on Azure Monitor metrics. Before handing off to this agent must have resource ids and intent ready
+   After producing the analysis/charts/resolving the query use **MUST** use HandoffBack tool to continue next steps.
+
+handoff_description: Handoff to this agent when users need to visualize any data, analyze any resource metrics such as availability, CPU, memory, fragmentation, etc.; visualize performance data; understand usage patterns using metrics; or investigate metric anomalies based on Azure Monitor metrics. Before handing off to this agent, ensure the resource IDs and intent are ready
 
 tools:
    - ListAvailableMetrics

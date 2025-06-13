@@ -28,6 +28,7 @@ handoffs:
   - diagnostic_cpu_agent
   - diagnostic_memory_agent
   - diagnostic_latency_agent
+  - metrics_and_chart_visualization_agent
 
 tools:
   - GetContainerAppInfo

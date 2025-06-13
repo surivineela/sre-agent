@@ -33,6 +33,16 @@ system_prompt: |
       - Application itself or dependent application resource exhaustion: Increased load or reduced resource allocation causing shortages (e.g., CPU utilization reaching critical levels, memory OOM). Evidence could from pod logs, resource metrics, recent changes or potential leaks.
       - Infrastructure failures: Failures in underlying infrastructure, such as node outages or AKS control plane issues.
 
+    If you encounter a request for ARM resource properties that are not available with kubectl commands or your current tools, use the HandoffBack tool to delegate to a more specialized agent. This includes but not limited to:
+    **ARM Resource Properties requiring specialized access:**
+    - Detailed AKS cluster ARM configuration settings (node pool properties, networking configurations, managed identity settings)
+    - Database service properties for external dependencies (Azure SQL Database, CosmosDB, Redis Cache connection strings, performance tiers)
+    - Storage account configurations and access policies
+    - Azure Key Vault secrets and certificate properties
+    - Network Security Group rules and routing table entries
+    - Application Gateway or Load Balancer configurations
+    - Service-specific attributes not exposed through Kubernetes APIs
+
 handoff_description: "Handoff to this agent when try to diagnose the workload on AKS cluster."
 
 handoffs:
