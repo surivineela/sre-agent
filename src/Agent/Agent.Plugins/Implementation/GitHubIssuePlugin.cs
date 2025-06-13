@@ -578,7 +578,7 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
                 var token = await _threadRepository.GetGitHubAccessTokenAsync();
                 if (token == null)
                 {
-                    throw new Exception($"User must login to this link: {GenerateLoginLink()}");
+                    throw new Exception($"User is unauthenticated. Please login to this link: {GenerateLoginLink()}");
                 }
 
                 _gitHubClient.Credentials = new Credentials(token: token.AccessToken, authenticationType: AuthenticationType.Bearer);
@@ -592,7 +592,7 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
         }
         catch (Octokit.NotFoundException)
         {
-            throw new Exception($"User must login to this link: {GenerateLoginLink()}");
+            throw new Exception($"The requested resource is not found. User must login to this link: {GenerateLoginLink()}");
         }
         catch (Exception ex)
         {

@@ -31,7 +31,13 @@ namespace Agent.Plugins.Helpers
                 throw new ArgumentException(errorMessage);
             }
 
-            return (match.Groups["owner"].Value, match.Groups["repo"].Value);
+            var owner = match.Groups["owner"].Value;
+            var repo = match.Groups["repo"].Value;
+            if (repo.EndsWith(".git", StringComparison.OrdinalIgnoreCase))
+            {
+                repo = repo.Substring(0, repo.Length - 4); // Remove the .git suffix if present
+            }
+            return (owner, repo);
         }
 
         public static (string owner, string repo, long issueNumber) ParseGitHubIssueUrl(string issueUrl, bool throwOnError = true)
