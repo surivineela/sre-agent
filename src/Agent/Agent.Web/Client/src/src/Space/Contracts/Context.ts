@@ -20,9 +20,9 @@ type SreAgentContextProps = {
     }
 };
 
-type WebSocketContextProps = {
-    sendMessage: (message: string) => void;
-    addMessageListener: (handler: (e: MessageEvent<any>) => void) => void;
+type SignalRContextProps = {
+    sendMessage: (message: string, ...args: any[]) => void,
+    onMessage: (method: string, callback: (...args: any[]) => void) => void
 };
 
 export const SreAgentContext = createContext<SreAgentContextProps>({
@@ -30,9 +30,9 @@ export const SreAgentContext = createContext<SreAgentContextProps>({
         isGrafanaUpdating: false,
         deploymentId: '',
         notificationId: '',
-        setNotificationId: () => {},
-        setIsGrafanaUpdating: () => {},
-        setDeploymentId: () => {},
+        setNotificationId: () => { },
+        setIsGrafanaUpdating: () => { },
+        setDeploymentId: () => { },
     },
     incidentManagement: {
         isIncidentManagementConnected: false,
@@ -49,7 +49,7 @@ export const AgentContext = createContext<AgentContextProps>({
     activeThreadId: '',
 });
 
-export const WebSocketContext = createContext<WebSocketContextProps>({
-    sendMessage: () => {},
-    addMessageListener: () => {},
+export const SignalRContext = createContext<SignalRContextProps>({
+    sendMessage: (_message: string, ..._args: any[]) => { },
+    onMessage: (_method: string, _callback: (...args: any[]) => void) => { }
 });

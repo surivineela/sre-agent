@@ -9,6 +9,7 @@ interface MessagesGetOptions {
     descending: boolean;
     minTimestamp?: string;
     maxTimestamp?: string;
+    maxTimestampInclusive?: boolean;
 }
 
 export interface MessagePostOptions {
@@ -79,7 +80,7 @@ export class MessageClient extends DataPlaneClient {
     }
 
     private _getMessagesGetUrl(threadId: string, options: MessagesGetOptions): string {
-        const { skip, top, descending, minTimestamp, maxTimestamp } = options;
+        const { skip, top, descending, minTimestamp, maxTimestamp, maxTimestampInclusive } = options;
 
         let path = `/api/v1/threads/${threadId}/messages?skip=${skip}&top=${top}&orderby=timestamp${descending ? '+desc' : ''}`;
 
@@ -90,7 +91,11 @@ export class MessageClient extends DataPlaneClient {
         }
 
         if (maxTimestamp) {
-            timestampFilters.push(`timeStamp lt ${maxTimestamp}`);
+            if (maxTimestampInclusive) {
+                timestampFilters.push(`timeStamp le ${maxTimestamp}`);
+            } else {
+                timestampFilters.push(`timeStamp lt ${maxTimestamp}`);
+            }
         }
 
         const filterString = timestampFilters.join(' and ');

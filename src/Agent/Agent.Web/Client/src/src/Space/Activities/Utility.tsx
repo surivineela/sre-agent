@@ -1,6 +1,14 @@
 import { ThreadSeverity } from '../../Common/Clients/ThreadClient';
-import { Message, Thread, ThreadSource } from '../../Common/Contracts/Azure/SreAgent';
+import {
+    IncidentStatus,
+    Message,
+    SREAgentUserId,
+    StreamingMessageContent,
+    Thread,
+    ThreadSource,
+} from '../../Common/Contracts/Azure/SreAgent';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
+import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
 import { ThreadLoadingCounts } from '../Contracts/Activities';
 import { ThreadItemHeightInPx, ThreadItemPaddingTopBottomInPx } from '../Styles/Activities.styles';
 import { SelectedTimes } from './TimeDropdown';
@@ -114,6 +122,81 @@ export const processOldMessages = (prevMessages: Message[], oldMessages: Message
     const oldMessagesInAscendingOrder = [...oldMessages].reverse();
 
     return [...oldMessagesInAscendingOrder, ...prevMessages];
+};
+
+/**
+ * Update the text of the existing messages if they have been updated.
+ * @param prevMessages
+ * @param updatedMessages
+ */
+export const updateOldMessagesText = (prevMessages: Message[], updatedMessages: Message[]) => {
+    const updatedPrevMessages = [...prevMessages];
+    let isPrevMessagesUpdated = false;
+
+    const messagesMap: Map<string, Message> = new Map<string, Message>();
+    updatedMessages.forEach((msg: Message) => messagesMap.set(msg.id, msg));
+
+    for (let i = prevMessages.length - 1; i >= 0; i--) {
+        const message = messagesMap.get(prevMessages[i].id);
+        if (message && message.text !== prevMessages[i].text) {
+            updatedPrevMessages[i] = { ...prevMessages[i], text: message.text };
+            isPrevMessagesUpdated = true;
+
+            messagesMap.delete(prevMessages[i].id);
+            if (messagesMap.size === 0) {
+                break;
+            }
+        }
+    }
+
+    return isPrevMessagesUpdated ? updatedPrevMessages : prevMessages;
+};
+
+/**
+ * Get a new message object based on the current streaming message content and the created timestamp.
+ * @param prev
+ * @param streamingMessageContent
+ * @param messageId
+ * @param createdAt
+ */
+export const processStreamingMessage = (
+    prev: Message | null,
+    streamingMessageContent: StreamingMessageContent | undefined | null,
+    messageId: string | undefined | null,
+    createdAt: string | undefined | null
+): Message | null => {
+    if (!streamingMessageContent) return prev;
+
+    const { text, $type, additionalProperties } = streamingMessageContent;
+
+    const id = messageId || prev?.id || '';
+
+    const prevText = prev?.text || '';
+    const newText = text || '';
+    const updatedText = prevText + newText;
+
+    const isToolCall = equals($type ?? '', 'functionCall', AntUxStringComparison.IgnoreCase);
+    const toolCallText = isToolCall ? additionalProperties?.userDescription || additionalProperties?.functionCallDescription || '' : '';
+
+    const timeStamp = createdAt || new Date().toISOString();
+
+    const updatedStreamingMessage: Message = {
+        id,
+        timeStamp,
+        text: updatedText,
+        toolCallText,
+        author: {
+            role: 'SREAgent',
+            userId: SREAgentUserId,
+            displayName: '',
+        },
+    };
+
+    if (prev && prev.id === id && prev.timeStamp === timeStamp && prev.text === updatedText && prev.toolCallText === toolCallText) {
+        return prev;
+    }
+
+    return updatedStreamingMessage;
 };
 
 export const noGapBetweenNewMessagesAndExistingMessages = (messages: Message[], currentLatestMessage?: Message) => {
@@ -242,4 +325,18 @@ export const removeThreadIdsFromUnreadThreads = (unreadThreadsIds: Set<string>, 
     }
 
     return unreadThreadsIds;
+};
+
+/**
+ * Check if the incident thread is close, resolved or mitigated.
+ * @param thread
+ * @returns
+ */
+export const isIncidentThreadCompleted = (thread?: Thread | null): boolean => {
+    if (!thread || thread.source !== ThreadSource.incident) {
+        return true;
+    }
+
+    const status = thread.status?.incidentStatus?.status?.toLowerCase();
+    return status === IncidentStatus.resolved || status === IncidentStatus.closed || status === IncidentStatus.mitigated;
 };

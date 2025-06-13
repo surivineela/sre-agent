@@ -146,27 +146,39 @@ export interface Message {
     isDailyReport?: boolean;
 }
 
+export enum MessageRequestType {
+    CreateMessage = 'CreateMessage',
+    CreateThread = 'CreateThread',
+}
+
+export enum MessageResponseType {
+    MessageUpdate = 'MessageUpdate',
+    ThreadUpdate = 'ThreadUpdate',
+}
+
 export interface StreamingMessage {
-    FinishReason?: 'stop' | 'tool_calls' | 'length' | null;
-    CreatedAt?: string;
-    AuthorName?: string;
-    Role?: 'user' | 'assistant' | 'tool';
-    Contents?: StreamingMessageContent[];
-    AdditionalProperties?: {
-        streamId: string;
-        messageId: string;
-        threadId: string;
-    };
+    finishReason?: 'stop' | 'tool_calls' | 'length' | null;
+    authorName?: string | null;
+    role?: 'user' | 'assistant' | 'tool' | null;
+    contents?: StreamingMessageContent[] | null;
+    createdAt?: string | null;
+    additionalProperties?: {
+        actionName?: MessageRequestType | null;
+        connectionId?: string | null;
+        streamId?: string | null;
+        threadId?: string | null;
+        messageId?: string | null;
+    } | null;
 }
 
 export interface StreamingMessageContent {
     $type: 'text' | 'functionCall' | null;
-    Text?: string;
-    Name?: string;
-    AdditionalProperties?: {
-        userDescription?: string;
-        functionCallDescription?: string;
-    };
+    text?: string | null;
+    name?: string | null;
+    additionalProperties?: {
+        userDescription?: string | null;
+        functionCallDescription?: string | null;
+    } | null;
 }
 
 export interface KnowledgeGraphBuildStatus {

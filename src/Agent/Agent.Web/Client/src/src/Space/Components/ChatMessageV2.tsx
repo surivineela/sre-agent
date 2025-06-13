@@ -347,10 +347,10 @@ const AzCliExecutionComponent: React.FC<{
                         startedTimestamp: response.data.startedTimestamp || prev.startedTimestamp,
                         executedBy: response.data.executedBy
                             ? {
-                                  displayName: response.data.executedBy,
-                                  userId: response.data.executedById,
-                                  role: 'User',
-                              }
+                                displayName: response.data.executedBy,
+                                userId: response.data.executedById,
+                                role: 'User',
+                            }
                             : prev.executedBy,
                     }));
                 }
@@ -734,8 +734,8 @@ const AzCliExecutionComponent: React.FC<{
                                     {currentExecution.output && currentExecution.error
                                         ? 'Output and error available'
                                         : currentExecution.output
-                                          ? 'Output available'
-                                          : 'Error available'}
+                                            ? 'Output available'
+                                            : 'Error available'}
                                 </span>
                             )}
                         </div>
@@ -884,7 +884,7 @@ const AzCliExecutionComponent: React.FC<{
                         {Math.round(
                             (new Date(currentExecution.completedTimestamp).getTime() -
                                 new Date(currentExecution.startedTimestamp).getTime()) /
-                                1000
+                            1000
                         )}
                         s
                     </div>
@@ -1093,10 +1093,10 @@ const KubectlExecutionComponent: React.FC<{
                         startedTimestamp: response.data.startedTimestamp || prev.startedTimestamp,
                         executedBy: response.data.executedBy
                             ? {
-                                  displayName: response.data.executedBy,
-                                  userId: response.data.executedById,
-                                  role: 'User',
-                              }
+                                displayName: response.data.executedBy,
+                                userId: response.data.executedById,
+                                role: 'User',
+                            }
                             : prev.executedBy,
                     }));
                 }
@@ -1535,8 +1535,8 @@ const KubectlExecutionComponent: React.FC<{
                                     {currentExecution.output && currentExecution.error
                                         ? 'Output and error available'
                                         : currentExecution.output
-                                          ? 'Output available'
-                                          : 'Error available'}
+                                            ? 'Output available'
+                                            : 'Error available'}
                                 </span>
                             )}
                         </div>
@@ -1685,7 +1685,7 @@ const KubectlExecutionComponent: React.FC<{
                         {Math.round(
                             (new Date(currentExecution.completedTimestamp).getTime() -
                                 new Date(currentExecution.startedTimestamp).getTime()) /
-                                1000
+                            1000
                         )}
                         s
                     </div>
@@ -1759,7 +1759,7 @@ const renderMarkdownWithImagesAndMermaid = (text: string) => {
     chartRegex.lastIndex = 0;
 
     // Split images, mermaid blocks, and text
-    const parts: (string | { type: string; [key: string]: any })[] = [];
+    const parts: (string | { type: string;[key: string]: any })[] = [];
     let lastIndex = 0;
 
     // Function to process a match and add it to the parts array
@@ -2434,7 +2434,7 @@ const ReactMarkdownComponent = ({
 };
 
 const ToolCallTextComponent = ({ toolCallText, hasText, isTyping }: { toolCallText?: string; hasText: boolean; isTyping?: boolean }) => {
-    const toolCallTextContent = toolCallText || (hasText ? '' : 'Analyzing');
+    const toolCallTextContent = toolCallText || (hasText ? '' : 'Analyzing...');
 
     const styles = `
         @keyframes shimmer {

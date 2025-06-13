@@ -3,13 +3,27 @@ import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, u
 import { useIntl } from 'react-intl';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { MessageClient } from '../../Common/Clients/MessageClient';
-import { Message, SREAgentUserId, StreamingMessage } from '../../Common/Contracts/Azure/SreAgent';
+import { ThreadClient } from '../../Common/Clients/ThreadClient';
+import {
+    Message,
+    MessageRequestType,
+    MessageResponseType,
+    SREAgentUserId,
+    StreamingMessage,
+    ThreadSource,
+} from '../../Common/Contracts/Azure/SreAgent';
 import { Guid } from '../../Common/Helpers/Guid';
 import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
 import { PromptResources } from '../../Strings/SREAgentResources';
-import { getIntervalBetweenLoading, processOldMessages } from '../Activities/Utility';
+import {
+    getIntervalBetweenLoading,
+    isIncidentThreadCompleted,
+    processOldMessages,
+    processStreamingMessage,
+    updateOldMessagesText,
+} from '../Activities/Utility';
 import { MessageLoadingCounts } from '../Contracts/Activities';
-import { WebSocketContext } from '../Contracts/Context';
+import { SignalRContext } from '../Contracts/Context';
 import { useAuthenticatedUserInfo } from './useAuthenticatedUserInfo';
 
 const composeUserMessage = (userId: string, userDisplayName: string, message: string): Message => {
@@ -38,21 +52,36 @@ const composeDefaultStreamingMessage = (): Message => {
     };
 };
 
+interface MessageCreateRequest {
+    text: string;
+    userId: string;
+    displayName: string;
+}
+
+interface ThreadCreateRequest {
+    startMessage: MessageCreateRequest;
+}
+
 export const useChatBoxV2 = (
     addThread: (threadId: string) => void,
     promoteThread: (threadId: string) => void,
     updateThreadLastReadTime: (threadId: string) => void,
     threadId?: string | null,
-    _?: string | null
+    threadSource?: string | null
 ) => {
     const intl = useIntl();
 
     const [messages, setMessages] = useState<Message[]>([]);
+    const [oldMessages, setOldMessages] = useState<Message[]>([]);
+    const [newMessages, setNewMessages] = useState<Message[]>([]);
     const [currentThreadId, setCurrentThreadId] = useState<string | null>(threadId || null);
 
     const [isLoadingInitialChatHistory, setIsLoadingInitialChatHistory] = useState<boolean>(true);
     const [noChatHistoryLeftToLoad, setNoChatHistoryLeftToLoad] = useState<boolean>(false);
     const [isIntersecting, setIsIntersecting] = useState<boolean>(false);
+    const [isIncidentInvestigationInProgress, setIsIncidentInvestigationInProgress] = useState<boolean>(
+        threadSource === ThreadSource.incident
+    );
 
     const [streamingMessage, setStreamingMessage] = useState<Message | null>(null);
     const [streamId, setStreamId] = useState<string>('');
@@ -61,9 +90,8 @@ export const useChatBoxV2 = (
     const [showDownButton, setShowDownButton] = useState(false);
 
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
-    const { sendMessage, addMessageListener } = useContext(WebSocketContext);
+    const { sendMessage, onMessage } = useContext(SignalRContext);
 
-    const isMounted = useRef(true);
     const isPreviousOldMessagesLoadingCompleted = useRef(true);
     const oldestMessageRef = useRef<Message>();
     const messagesDivRef = useRef<HTMLDivElement>(null);
@@ -74,7 +102,9 @@ export const useChatBoxV2 = (
     const oldMessagesToBeAdded = useRef<boolean>(false);
     const streamingMessageRef = useRef<Message | null>(null);
     const currentThreadIdRef = useRef<string>(threadId || '');
+    const isNewThreadAdded = useRef<boolean>(false);
 
+    const threadClient = ThreadClient.getInstance(sreAgentEndpoint);
     const messageClient = MessageClient.getInstance(sreAgentEndpoint);
 
     const {
@@ -117,15 +147,6 @@ export const useChatBoxV2 = (
     const cancelStreaming = useCallback(() => {
         setStreamId(Guid.newGuid());
         setIsAgentTyping(false);
-        setStreamingMessage(prev => {
-            if (prev) {
-                return {
-                    ...prev,
-                    toolCallText: '',
-                };
-            }
-            return prev;
-        });
     }, []);
 
     /**
@@ -133,17 +154,25 @@ export const useChatBoxV2 = (
      */
     const handleNewMessages = (newMessages: Message[]) => {
         oldMessagesToBeAdded.current = false;
-        setMessages(prev => [...prev, ...newMessages]);
+        setNewMessages(prev => [...prev, ...newMessages]);
     };
 
     const handleOldMessages = (oldMessages: Message[], isInitialMessages: boolean) => {
         oldMessagesToBeAdded.current = true;
         currentScrollHeight.current = messagesDivRef.current?.scrollHeight || 0;
         if (isInitialMessages) {
-            setMessages(processOldMessages([], oldMessages));
+            setOldMessages(processOldMessages([], oldMessages));
         } else {
-            setMessages(prev => processOldMessages(prev, oldMessages));
+            setOldMessages(prev => processOldMessages(prev, oldMessages));
         }
+    };
+
+    const createThread = (threadCreateRequest: ThreadCreateRequest, streamId: string) => {
+        sendMessage(MessageRequestType.CreateThread, threadCreateRequest, streamId, false);
+    };
+
+    const createMessage = (threadId: string, messageCreateRequest: MessageCreateRequest, streamId: string) => {
+        sendMessage(MessageRequestType.CreateMessage, threadId, messageCreateRequest, streamId, false);
     };
 
     const sendMessageHandler = useCallback(
@@ -165,47 +194,25 @@ export const useChatBoxV2 = (
             setIsAgentTyping(true);
 
             try {
+                const messageRequest: MessageCreateRequest = {
+                    text: message,
+                    userId,
+                    displayName,
+                };
                 //ToDo: Handle errors of sendMessage, createThread and pollResponses
                 if (currentThreadId) {
-                    const content = {
-                        text: message,
-                        role: 'User',
-                        displayName: displayName,
-                        userId: userId,
-                    };
-                    const contentString = JSON.stringify(content);
-                    const requestBody = {
-                        streamId: newStreamId,
-                        threadId: currentThreadId,
-                        role: 'user',
-                        messageType: 'CreateMessage',
-                        content: contentString,
-                    };
-
-                    const data = JSON.stringify(requestBody);
-                    sendMessage(data);
-                    console.log(data);
+                    // Issue a request to create a new message in the current thread
+                    createMessage(currentThreadId, messageRequest, newStreamId);
+                    console.log(`New message sent in thread: ${currentThreadId}. Message: ${message}. Stream ID: ${newStreamId}`);
                 } else {
-                    // issue a request to create a new thread
-                    const content = {
-                        startMessage: {
-                            text: message,
-                            displayName: displayName,
-                            userId: userId,
+                    // Issue a request to create a new thread
+                    createThread(
+                        {
+                            startMessage: messageRequest,
                         },
-                    };
-                    const contentString = JSON.stringify(content);
-                    const requestBody = {
-                        streamId: newStreamId,
-                        role: 'user',
-                        messageType: 'CreateThread',
-                        content: contentString,
-                        source: 'Conversation',
-                    };
-
-                    const data = JSON.stringify(requestBody);
-                    sendMessage(data);
-                    console.log(data);
+                        newStreamId
+                    );
+                    console.log(`New thread created with message: ${message}. Stream ID: ${newStreamId}`);
                 }
             } catch {
                 //Handle error if it is not abort error
@@ -252,92 +259,56 @@ export const useChatBoxV2 = (
     useEffect(() => {
         let isSubscribed = true;
 
-        const streamHandler = (e: MessageEvent<any>) => {
-            try {
-                const data = JSON.parse(e.data) as StreamingMessage;
-                const message = data?.Contents?.[0];
+        const handleMessage = (messageResponseType: MessageResponseType, streamData?: StreamingMessage) => {
+            if (streamData) {
+                console.log(messageResponseType + ' received: ', streamData);
+                const { additionalProperties, contents, role, finishReason, createdAt } = streamData;
+                const message = contents?.[0];
+                const { threadId: threadIdFromStream, streamId: currentStreamId, messageId } = additionalProperties || {};
 
-                console.log(data);
-
-                const id = data?.AdditionalProperties?.messageId;
-                const threadIdFromStream = data?.AdditionalProperties?.threadId;
-                const currentStreamId = data?.AdditionalProperties?.streamId;
-                const role = data?.Role;
                 const shouldStopStreaming =
-                    equals(data.FinishReason || '', 'stop', AntUxStringComparison.IgnoreCase) ||
-                    equals(data.FinishReason || '', 'length', AntUxStringComparison.IgnoreCase);
-                const createdAt = data?.CreatedAt ?? new Date().toISOString();
+                    equals(finishReason || '', 'stop', AntUxStringComparison.IgnoreCase) ||
+                    equals(finishReason || '', 'length', AntUxStringComparison.IgnoreCase);
+
                 const isUserMessage = equals(role || '', 'user', AntUxStringComparison.IgnoreCase);
 
                 if (streamId === currentStreamId && isSubscribed) {
                     if (isUserMessage) {
                         if (currentThreadIdRef.current) {
                             promoteThread(currentThreadIdRef.current);
-                        } else {
-                            setCurrentThreadId(prev => {
-                                if (prev || !threadIdFromStream) {
-                                    return prev;
-                                }
-
-                                return threadIdFromStream;
-                            });
-                            if (threadIdFromStream) {
+                        } else if (
+                            threadIdFromStream &&
+                            equals(messageResponseType, MessageResponseType.ThreadUpdate, AntUxStringComparison.IgnoreCase)
+                        ) {
+                            setCurrentThreadId(threadIdFromStream);
+                            if (!isNewThreadAdded.current) {
                                 addThread(threadIdFromStream);
+                                isNewThreadAdded.current = true;
                             }
                         }
                     } else {
-                        setStreamingMessage(prev => {
-                            const prevText = prev?.text || '';
-                            const newText = message?.Text || '';
-                            const updatedText = prevText + newText;
-                            const isToolCall = equals(message?.$type ?? '', 'functionCall', AntUxStringComparison.IgnoreCase);
-                            const AdditionalProperties = message?.AdditionalProperties;
-                            const toolCallDescription = isToolCall
-                                ? AdditionalProperties?.userDescription || AdditionalProperties?.functionCallDescription || ''
-                                : '';
-
-                            const toolCallText = toolCallDescription || (updatedText ? '' : 'Analyzing...');
-
-                            const updatedStreamingMessage: Message = {
-                                id: id ?? prev?.id ?? '',
-                                timeStamp: createdAt,
-                                text: updatedText,
-                                toolCallText,
-                                author: {
-                                    role: 'SREAgent',
-                                    userId: SREAgentUserId,
-                                    displayName: '',
-                                },
-                            };
-
-                            return updatedStreamingMessage;
-                        });
+                        setStreamingMessage(prev => processStreamingMessage(prev, message, messageId, createdAt));
                     }
 
                     if (shouldStopStreaming) {
                         setIsAgentTyping(false);
-                        setStreamingMessage(prev => {
-                            if (prev) {
-                                return {
-                                    ...prev,
-                                    toolCallText: '',
-                                };
-                            }
-                            return prev;
-                        });
                     }
                 }
-            } catch (error) {
-                //log error
             }
         };
 
-        addMessageListener(streamHandler);
+        onMessage(MessageResponseType.ThreadUpdate, (streamData?: StreamingMessage) => {
+            handleMessage(MessageResponseType.ThreadUpdate, streamData);
+        });
+
+        onMessage(MessageResponseType.MessageUpdate, (streamData?: StreamingMessage) => {
+            handleMessage(MessageResponseType.MessageUpdate, streamData);
+        });
 
         return () => {
             isSubscribed = false;
         };
-    }, [addMessageListener, streamId, addThread, promoteThread]);
+    }, [onMessage, streamId, addThread, promoteThread]);
 
     // Load the latest 20 chat message history
     useEffect(() => {
@@ -441,6 +412,54 @@ export const useChatBoxV2 = (
         };
     }, [messages.length]);
 
+    const newestMessageTimestampInOldMessages = useMemo(() => {
+        return oldMessages[oldMessages.length - 1]?.timeStamp || '';
+    }, [oldMessages]);
+
+    // If this is an incident thread, periodically refresh the latest 10 old messages to check for the progress
+    useEffect(() => {
+        let isSubscribed = true;
+        let timeoutId: NodeJS.Timeout | undefined = undefined;
+
+        if (isIncidentInvestigationInProgress && currentThreadId && !isLoadingInitialChatHistory) {
+            const refreshOldMessages = async () => {
+                if (newestMessageTimestampInOldMessages) {
+                    const [threadResponse, updatedOldMessagesResponse] = await Promise.all([
+                        threadClient.getThread(currentThreadId),
+                        messageClient.getMessages(currentThreadId, {
+                            skip: 0,
+                            top: 5,
+                            descending: true,
+                            maxTimestamp: newestMessageTimestampInOldMessages,
+                            maxTimestampInclusive: true,
+                        }),
+                    ]);
+
+                    const threadCompleted = threadResponse.isSuccessful && isIncidentThreadCompleted(threadResponse.content);
+                    const updatedOldMessages = updatedOldMessagesResponse.content || [];
+
+                    if (isSubscribed) {
+                        if (threadCompleted) {
+                            setIsIncidentInvestigationInProgress(false);
+                        }
+                        if (updatedOldMessagesResponse.isSuccessful && updatedOldMessages.length > 0) {
+                            setOldMessages(prev => updateOldMessagesText(prev, updatedOldMessages));
+                        }
+                    }
+
+                    timeoutId = setTimeout(refreshOldMessages, 10000);
+                }
+            };
+
+            refreshOldMessages();
+        }
+
+        return () => {
+            isSubscribed = false;
+            clearTimeout(timeoutId);
+        };
+    }, [currentThreadId, isLoadingInitialChatHistory, isIncidentInvestigationInProgress, newestMessageTimestampInOldMessages]);
+
     const prompts = useMemo(
         () => [
             intl.formatMessage(PromptResources.bestPracticesPrompt),
@@ -484,16 +503,8 @@ export const useChatBoxV2 = (
     }, [newMessage]);
 
     useEffect(() => {
-        oldestMessageRef.current = messages[0];
-    }, [messages]);
-
-    useEffect(() => {
-        isMounted.current = true;
-
-        return () => {
-            isMounted.current = false;
-        };
-    }, []);
+        oldestMessageRef.current = oldMessages[0];
+    }, [oldMessages]);
 
     useEffect(() => {
         currentThreadIdRef.current = currentThreadId || '';
@@ -507,6 +518,10 @@ export const useChatBoxV2 = (
             }
         };
     }, []);
+
+    useEffect(() => {
+        setMessages([...oldMessages, ...newMessages]);
+    }, [oldMessages, newMessages]);
 
     return {
         messages,

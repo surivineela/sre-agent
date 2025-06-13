@@ -29,7 +29,7 @@ export const ChatBoxV2 = ({ addThread, promoteThread, updateThreadLastReadTime, 
         onScroll,
         showDownButton,
         onClickDownButton,
-    } = useChatBoxV2(addThread, promoteThread, updateThreadLastReadTime, threadId);
+    } = useChatBoxV2(addThread, promoteThread, updateThreadLastReadTime, threadId, threadSource);
 
     const isWelcomeThread = threadSource === ThreadSource.welcomeMessage;
 
