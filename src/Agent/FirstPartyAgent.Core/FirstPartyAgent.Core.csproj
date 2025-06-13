@@ -26,6 +26,7 @@
 		<PackageReference Include="Microsoft.SemanticKernel" />
 		<PackageReference Include="Markdig" />
 		<PackageReference Include="Microsoft.SemanticKernel.Connectors.AzureOpenAI" />
+    <PackageReference Include="ReverseMarkdown" />
 		<PackageReference Include="System.Linq" />
 	</ItemGroup>
 
@@ -88,10 +89,16 @@
     <None Update="ICMAlertConfigs\614bb35c-96b0-4e5d-825d-5f2a5c6d9a8a.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="EmergingIssueDetectionPromptConfigs.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="ICMAlertConfigs\a4508d33-6d76-4ceb-b61e-50166e784a9c.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="ICMAlertConfigs\d2126c3e-10d7-4d99-b404-7ad2f8438f60.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="ICMAlertConfigs\a4a99ef2-c4b2-4dfd-91b1-599133b6eeff.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="ICMAlertConfigs\d3d66242-7588-46d9-95af-52a04d86d87c.json">

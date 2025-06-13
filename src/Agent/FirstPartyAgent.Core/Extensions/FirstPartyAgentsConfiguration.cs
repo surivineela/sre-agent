@@ -20,6 +20,7 @@ using FirstPartyAgent.Core.Plugins.Interfaces;
 using FirstPartyAgent.Core.Services;
 using FirstPartyAgent.Core.Services.TokenService;
 using FirstPartyAgent.Plugins;
+using FirstPartyAgent.Plugins.Definitions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -106,6 +107,10 @@ namespace FirstPartyAgent.Core.Extensions
             services.AddSingleton<IGithubIssuePlugin, GitHubIssuePlugin>();
             services.AddSingleton<GitHubIssuePluginDefinition>();
 
+            services.AddSingleton<EmergingIssuePlugin>();
+            services.AddSingleton<EmergingIssueManagerPlugin>();
+
+           
             services.AddHttpClient();
             services.AddDevOpsHelperHttpClient();
 
@@ -164,6 +169,7 @@ namespace FirstPartyAgent.Core.Extensions
                 services.AddSingleton<ICosmosDBService, CosmosDBServiceDisabled>();
                 services.AddSingleton<IIcmAgentConfigService, IcmAgentConfigServiceDisabled>();
             }
+            services.AddSingleton<IEmergingIssueConfigService, EmergingIssueConfigService>();
 
             services.AddSingleton<DevOpsHelperService>();
             services.AddSingleton<TsgFetcherService>();

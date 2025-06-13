@@ -29,7 +29,9 @@ namespace FirstPartyAgent.Core.Helpers
             { "ICMSummarizer", new List<string>(){ "IcmPlugin" } },
             { "ColdStart", new List<string>(){ "ColdStartPlugin", "TeamsChartPlugin" } },
             { "ICMCorrelationAgent", new List<string>(){ "KustoPlugin", "IcmPlugin", "AzureAlertingPlugin", "HandoffToAgentPlugin" }  },
-            { "ICMTriagerAgent", new List<string>(){ "KustoPlugin", "IcmPlugin", "AzureAlertingPlugin", "HandoffToAgentPlugin" } }
+            { "ICMTriagerAgent", new List<string>(){ "KustoPlugin", "IcmPlugin", "AzureAlertingPlugin", "HandoffToAgentPlugin" } },
+            { "EmergingIssue", new List<string>() { "KustoPlugin", "IcmPlugin", "EmergingIssuePlugin", "AzureAlertingPlugin" } },
+            { "EmergingIssueManager" , new List<string>() { "EmergingIssueManagerPlugin", "AzureAlertingPlugin" } }
         };
 
         public static Dictionary<string, List<string>> AgentDataParsingConfig = new Dictionary<string, List<string>>()
@@ -41,12 +43,14 @@ namespace FirstPartyAgent.Core.Helpers
             { "MFP", new List<string>(){ "IncidentId" } },
             { "GithubIssueTagger", new List<string>(){ "IssueId", "CommentId" } },
             { "ICMCorrelationAgent", new List<string>() {"IncidentId" } },
-            { "ICMTriagerAgent", new List<string>() {"IncidentId" } }
+            { "ICMTriagerAgent", new List<string>() {"IncidentId" } },
+            { "EmergingIssue", new List<string>(){ "IncidentId" } },
+            { "EmergingIssueManager", new List<string>(){ "IncidentId" } }
         };
 
         public static List<string> ListAgentModes()
         {
-            var allowedAgentModes = new List<string>() { "None", "ColdStart", "DevOpsAgent", "ControlPlane", "ICMAgent", "Sev2", "ICMSummarizer", "ICMCorrelationAgent", "ICMTriagerAgent" };
+            var allowedAgentModes = new List<string>() { "None", "ColdStart", "DevOpsAgent", "ControlPlane", "ICMAgent", "Sev2", "ICMSummarizer", "ICMCorrelationAgent", "ICMTriagerAgent", "EmergingIssue", "EmergingIssueManager" };
             return Enum.GetNames(typeof(AgentMode)).Where(x => allowedAgentModes.Contains(x)).ToList();
         }
 

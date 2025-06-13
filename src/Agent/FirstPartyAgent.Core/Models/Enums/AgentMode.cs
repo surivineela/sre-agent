@@ -18,7 +18,9 @@ namespace FirstPartyAgent.Models
         TestModeAgent,
         ICMCorrelationAgent,
         DevOpsAgent,
-        ICMTriagerAgent
+        ICMTriagerAgent,
+        EmergingIssue,
+        EmergingIssueManager
     }
 }
 

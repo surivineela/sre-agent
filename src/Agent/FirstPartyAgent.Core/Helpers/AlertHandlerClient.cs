@@ -38,6 +38,11 @@ public class AlertHandlerClient
         ICMAlertConfig alertConfig = null;
         var customAlertConfig = kernel.Data.TryGetValue("customAlertConfig", out object customAlertConfigObj) ? (ICMAlertConfig)customAlertConfigObj : null;
 
+        string agentMode = string.Empty;
+        if(kernel.Data.TryGetValue("agentMode", out var value)) {
+            agentMode = (string)(value ?? "");
+        }
+
         if ((incidentDetails.MonitoringRole == "AzureAlerting" || incidentDetails.CreatedBy == "AzureAlerting") && incidentDetails.MonitoringSlice != null)
         {
             try
@@ -63,7 +68,9 @@ public class AlertHandlerClient
                 var testAlertConfig = alertConfigs[alertId];
                 if (incidentDetails.Title == testAlertConfig.IncidentTitle
                     || (!string.IsNullOrWhiteSpace(testAlertConfig.IncidentTitleContains) && incidentDetails.Title.Contains(testAlertConfig.IncidentTitleContains, StringComparison.OrdinalIgnoreCase))
-                    || (testAlertConfig.OwningTeams != null && testAlertConfig.OwningTeams.Count > 0 && testAlertConfig.OwningTeams.Any(x => x.Equals(incidentDetails.OwningTeam, StringComparison.OrdinalIgnoreCase))))
+                    || (testAlertConfig.OwningTeams != null && testAlertConfig.OwningTeams.Count > 0 && testAlertConfig.OwningTeams.Any(x => x.Equals(incidentDetails.OwningTeam, StringComparison.OrdinalIgnoreCase)))
+                    || IsEmergingIssue(agentMode, testAlertConfig, incidentDetails)
+                    )
                 {
                     return testAlertConfig;
                 }
@@ -74,5 +81,37 @@ public class AlertHandlerClient
             kernel.Data["alertConfig"] = alertConfig;
         }
         return alertConfig;
+    }
+
+    /// <summary>
+    /// Determines if the incident should be treated as an emerging issue
+    /// based on the agent mode and incident team ownership
+    /// </summary>
+    /// <param name="agentMode">The current agent mode</param>
+    /// <param name="config">The alert configuration to check against</param>
+    /// <param name="incident">The incident to evaluate</param>
+    /// <returns>True if the incident should be treated as an emerging issue, false otherwise</returns>
+    private bool IsEmergingIssue(string agentMode, ICMAlertConfig config, Incident incident)
+    {
+        // Quick exit if not in EmergingIssue mode
+        if (!string.Equals("EmergingIssue", agentMode, StringComparison.InvariantCultureIgnoreCase))
+        {
+            return false;
+        }
+
+        // Get tags from config, defaulting to empty list if null
+        var configTags = config.Tags ?? new List<string>();
+        
+        // Check for "Functions" tag and related team ownership
+        if (configTags.Any(tag => string.Equals("Functions", tag, StringComparison.InvariantCultureIgnoreCase)))
+        {
+            // Check if any owning team contains "AntaresFunctions" or "Antares Functions
+            var team = incident?.OwningTeam ?? "";
+            return team.Contains("AntaresFunctions", StringComparison.OrdinalIgnoreCase) ||
+                   team.Contains("Antares Functions", StringComparison.OrdinalIgnoreCase) ||
+                   team.Contains("WebAppsFunctions", StringComparison.OrdinalIgnoreCase); 
+        }
+        
+        return false;
     }
 }

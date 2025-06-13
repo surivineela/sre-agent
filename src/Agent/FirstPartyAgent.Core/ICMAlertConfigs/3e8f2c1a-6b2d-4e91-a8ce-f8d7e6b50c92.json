@@ -1,0 +1,25 @@
+{
+  "AlertingId": "7d5a9e24-f1c6-48b3-9a71-0e53d8fb4c17",
+  "AgentMode": "EmergingIssueManager",
+  "ActionTimeoutIntervalInMinutes": 180,
+  "DefaultHumanInterventionLoop": "App Service (Web Apps)/Antares Functions Durable Loop",
+  "OwningTeams": [
+    "APPSERVICEWEBAPPS\\AntaresFunctionsDurableLoop",
+    "84425"
+     ],
+  "KustoQueries": [],  "MitigationInstructions": [
+    "1. Review the ICM incident details including title, description, and conversation history.",
+    "2. IMPORTANT: Only execute functions when users explicitly type commands with a '/' prefix. Do not execute functions if the command prefix is missing.",
+    "3. The available commands and their corresponding functions are:",
+    "   - `/register <incidentId>`: Registers a new emerging issue (`register_emerging_issue`)",
+    "   - `/update <incidentId>`: Updates an existing emerging issue (`update_emerging_issue`)",
+    "   - `/deregister <incidentId>`: Deregisters (removes) an emerging issue (`deregister_emerging_issue`)",
+    "   - `/list <teamName>`: Lists all emerging issues for a specific team (`list_emerging_issues_by_team`)",
+    "   - `/list-all`: Lists all emerging issues across teams (`list_all_emerging_issues`)",
+    "   - `/get <incidentId>`: Shows detailed information for a specific emerging issue (`get_emerging_issue_details`)",
+    "4. Only process the command if it starts with the '/' character. If a user mentions the operation without the '/' prefix (e.g., just writing 'register 12345' instead of '/register 12345'), do not execute the function and kindly inform them of the correct command syntax.",
+    "5. After executing a command, provide a clear summary of the results to the user.",
+    "6. If the user asks for help or is unsure about commands, show them the list of available commands with examples."
+  ],
+  "Owners": [ "tsushi" ]
+}

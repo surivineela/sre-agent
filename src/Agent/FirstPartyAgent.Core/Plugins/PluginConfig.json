@@ -8,6 +8,14 @@
     "ServiceIdentifier": "FirstPartyAgent.Core.Plugins.HttpRequestPlugin"
   },
   {
+    "PluginName": "EmergingIssuePlugin",
+    "ServiceIdentifier": "FirstPartyAgent.Core.Plugins.EmergingIssuePlugin"
+  },
+  {
+    "PluginName": "EmergingIssueManagerPlugin",
+    "ServiceIdentifier": "FirstPartyAgent.Core.Plugins.EmergingIssueManagerPlugin"
+  },
+  {
     "PluginName": "IcmPlugin",
     "ServiceIdentifier": "FirstPartyAgent.Core.Plugins.ICMPlugin"
   },
