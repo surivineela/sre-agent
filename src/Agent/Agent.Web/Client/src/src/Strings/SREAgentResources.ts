@@ -113,6 +113,7 @@ export const SreAgentResources = defineMessages({
     region: { defaultMessage: 'Region', id: 'lnaWo/' },
     regionPlaceHolder: { defaultMessage: 'Select region', id: 'tshYzs' },
     resourceGroup: { defaultMessage: 'Resource group', id: '+uAdUZ' },
+    resourceGroups: { defaultMessage: 'Resource groups', id: '/zQv2D' },
     resourceGroupName: { defaultMessage: 'Resource group name', id: 'xVPoso' },
     save: { defaultMessage: 'Save', id: 'jvo0vs' },
     scope: { defaultMessage: 'Scope', id: 'nso3Mj' },

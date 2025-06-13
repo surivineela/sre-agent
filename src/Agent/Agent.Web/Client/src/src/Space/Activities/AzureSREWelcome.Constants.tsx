@@ -69,3 +69,15 @@ export enum LogicalAppGridKey {
     PrimaryResourceType = 'Primary resource type',
     ResourceMap = 'Resource map',
 }
+
+export interface ResourceGroupGridItem {
+    name: string;
+    subscription: string;
+    region: string;
+}
+
+export enum ResourceGroupGridKey {
+    ResourceGroup = 'Resource group',
+    Subscription = 'Subscription',
+    Region = 'Region',
+}

@@ -8,6 +8,7 @@
   "/4tOwT": "Skip",
   "/WrP/v": "Container Apps Operator",
   "/kxGpW": "Failed to disable incident filter",
+  "/zQv2D": "Resource groups",
   "0AwXvo": "Incident handler",
   "0KB3lG": "I analyzed your application's resources across multiple resource groups, regions, and subscriptions. I then generated a resource map of the connections I identified based on the primary resource. Based on what I learned, I also put together some suggested prompts that focus on your resources.",
   "0Pt22l": "Failed to add the custom incident handler. Error: {errorMessage}",

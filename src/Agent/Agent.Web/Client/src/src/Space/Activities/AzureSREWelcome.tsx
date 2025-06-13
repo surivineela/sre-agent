@@ -6,24 +6,209 @@ import axios from 'axios';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { useLocation, useNavigate } from 'react-router';
+import AzPortalProxy from '../../Common/AzPortalProxy/AzPortalProxy';
+import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { LearnMoreLink } from '../../Common/Components/LearnMoreLink';
+import { Pagination } from '../../Common/Components/Pagination';
 import { SreAgentFwLinks } from '../../Common/Constants/FwLinks';
 import { Thread } from '../../Common/Contracts/Azure/SreAgent';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
+import { getUserFriendlyLocation } from '../../Common/Helpers/LocationHelper';
 import { getResourceTypeFriendlyName, resolveResourceIcon } from '../../Common/Helpers/Resources';
 import { SreAgentResources, WelcomeResources } from '../../Strings/SREAgentResources';
+import { getSubscriptionId, useResourceGroups } from '../Settings/Hooks/useResourceGroups';
+import { useSreAgent } from '../Settings/Hooks/useSreAgent';
+import { useSubscriptions } from '../Settings/Hooks/useSubscriptions';
 import { ChatBoxStyles } from '../Styles/Activities.styles';
 import {
     KnowledgeGraphStatus,
     LogicalAppGridItem,
     LogicalAppGridKey,
     LogicalApplication,
+    ResourceGroupGridItem,
+    ResourceGroupGridKey,
     ResourceHealth,
     suggestedWelcomePrompts,
     WelcomeMessageResponse,
 } from './AzureSREWelcome.Constants';
 import { useWelcomeStyles } from './AzureSREWelcome.styles';
+
+const ResourceGroupsCard = () => {
+    const { resourceId } = useContext(EnvironmentContext);
+    const portalContext = useContext(AzPortalContext);
+
+    const styles = useWelcomeStyles();
+    const intl = useIntl();
+
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 5;
+
+    const [sortColumn, setSortColumn] = useState<string | null>(null);
+    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
+    const { agent } = useSreAgent(resourceId);
+    const subscriptionIds = useMemo(() => {
+        const subIds = agent?.properties.knowledgeGraphConfiguration?.managedResources?.map(rg => getSubscriptionId(rg)) ?? [];
+        return Array.from(new Set(subIds));
+    }, [agent]);
+    const { subscriptionsList } = useSubscriptions();
+    const { resourceGroupsList, resourceGroupsLoading } = useResourceGroups(subscriptionIds, portalContext);
+
+    const rscGrpGridItems = useMemo<ResourceGroupGridItem[]>(() => {
+        const managedResourceIds = agent?.properties.knowledgeGraphConfiguration?.managedResources ?? [];
+
+        return (
+            resourceGroupsList
+                ?.filter(rscGrp => managedResourceIds.includes(rscGrp.id))
+                ?.map(rscGrp => ({
+                    name: rscGrp.name,
+                    subscription: getSubscriptionId(rscGrp.id),
+                    region: getUserFriendlyLocation(rscGrp.location),
+                })) ?? []
+        );
+    }, [resourceGroupsList, agent]);
+
+    const sortedItems = useMemo(() => {
+        if (!sortColumn) return rscGrpGridItems;
+
+        const sorted = [...rscGrpGridItems].sort((a, b) => {
+            let aValue: string;
+            let bValue: string;
+
+            switch (sortColumn) {
+                case ResourceGroupGridKey.ResourceGroup: {
+                    aValue = a.name.toLowerCase();
+                    bValue = b.name.toLowerCase();
+                    break;
+                }
+                case ResourceGroupGridKey.Subscription: {
+                    const aSubscription = subscriptionsList?.find(sub => sub.subscriptionId === a.subscription);
+                    const bSubscription = subscriptionsList?.find(sub => sub.subscriptionId === b.subscription);
+                    aValue = (aSubscription?.displayName || '').toLowerCase();
+                    bValue = (bSubscription?.displayName || '').toLowerCase();
+                    break;
+                }
+                case ResourceGroupGridKey.Region: {
+                    aValue = a.region.toLowerCase();
+                    bValue = b.region.toLowerCase();
+                    break;
+                }
+                default:
+                    return 0;
+            }
+
+            if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+            if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+            return 0;
+        });
+
+        return sorted;
+    }, [rscGrpGridItems, sortColumn, sortDirection, subscriptionsList]);
+
+    const handleColumnClick = useCallback(
+        (columnKey: string) => {
+            if (sortColumn === columnKey) {
+                setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+            } else {
+                setSortColumn(columnKey);
+                setSortDirection('asc');
+            }
+            setCurrentPage(1);
+        },
+        [sortColumn, sortDirection]
+    );
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [sortedItems]);
+
+    const totalPages = Math.ceil(sortedItems.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const currentItems = sortedItems.slice(startIndex, endIndex);
+
+    const onRenderResourceGroup = useCallback((item: ResourceGroupGridItem) => {
+        return (
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+                <img src="ResourceGroup.svg" alt="Resource Group" style={{ height: 16, width: 16 }} />
+                <span style={{ marginLeft: 4 }}>{item.name}</span>
+            </div>
+        );
+    }, []);
+
+    const onRenderSubscription = useCallback(
+        (item: ResourceGroupGridItem) => {
+            const subscription = subscriptionsList?.find(sub => sub.subscriptionId === item.subscription);
+
+            return <span>{subscription ? subscription.displayName : item.subscription}</span>;
+        },
+        [subscriptionsList]
+    );
+
+    const rscGrpGridColumns = useMemo<IColumn[]>(() => {
+        return [
+            {
+                key: ResourceGroupGridKey.ResourceGroup,
+                name: intl.formatMessage(SreAgentResources.resourceGroupName),
+                minWidth: 300,
+                maxWidth: 300,
+                isResizable: true,
+                isSorted: sortColumn === ResourceGroupGridKey.ResourceGroup,
+                isSortedDescending: sortColumn === ResourceGroupGridKey.ResourceGroup && sortDirection === 'desc',
+                onRender: onRenderResourceGroup,
+                onColumnClick: () => handleColumnClick(ResourceGroupGridKey.ResourceGroup),
+            },
+            {
+                key: ResourceGroupGridKey.Subscription,
+                name: intl.formatMessage(SreAgentResources.subscription),
+                minWidth: 300,
+                maxWidth: 300,
+                isResizable: true,
+                isSorted: sortColumn === ResourceGroupGridKey.Subscription,
+                isSortedDescending: sortColumn === ResourceGroupGridKey.Subscription && sortDirection === 'desc',
+                onRender: onRenderSubscription,
+                onColumnClick: () => handleColumnClick(ResourceGroupGridKey.Subscription),
+            },
+            {
+                key: ResourceGroupGridKey.Region,
+                name: intl.formatMessage(SreAgentResources.region),
+                fieldName: 'region',
+                minWidth: 85,
+                maxWidth: 250,
+                isResizable: true,
+                isSorted: sortColumn === ResourceGroupGridKey.Region,
+                isSortedDescending: sortColumn === ResourceGroupGridKey.Region && sortDirection === 'desc',
+                onColumnClick: () => handleColumnClick(ResourceGroupGridKey.Region),
+            },
+        ];
+    }, [onRenderResourceGroup, onRenderSubscription, sortColumn, sortDirection, handleColumnClick, intl]);
+
+    return (
+        <Card className={styles.sectionCard} style={{ backgroundColor: tokens.colorNeutralBackground1 }}>
+            <div className={styles.sectionHeader}>
+                <Text weight="semibold" size={500}>
+                    {intl.formatMessage(SreAgentResources.resourceGroups)}
+                </Text>
+            </div>
+
+            <div className={styles.sectionContent}>
+                <div>
+                    <ShimmeredDetailsList
+                        columns={rscGrpGridColumns}
+                        items={currentItems}
+                        constrainMode={ConstrainMode.horizontalConstrained}
+                        layoutMode={DetailsListLayoutMode.justified}
+                        enableShimmer={resourceGroupsLoading}
+                        checkboxVisibility={CheckboxVisibility.hidden}
+                        compact
+                    />
+                    {totalPages > 1 && <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />}
+                </div>
+            </div>
+        </Card>
+    );
+};
 
 interface FakeAgentMessageProps {
     content: React.ReactNode;
@@ -62,6 +247,9 @@ const AzureSREWelcome = ({ threadId, addThread }: AzureSREWelcomeProps) => {
     const [knowledgeGraphStatus, setKnowledgeGraphStatus] = useState<KnowledgeGraphStatus | null>(null);
     const [logicalApps, setLogicalApps] = useState<LogicalApplication[]>([]);
 
+    const [analysisCurrentPage, setAnalysisCurrentPage] = useState(1);
+    const analysisItemsPerPage = 5;
+
     const logicalAppGridItems = useMemo<LogicalAppGridItem[]>(() => {
         return logicalApps.map(logicalApp => ({
             rscName: logicalApp.name ?? '-',
@@ -69,6 +257,15 @@ const AzureSREWelcome = ({ threadId, addThread }: AzureSREWelcomeProps) => {
             rscSubType: logicalApp.subType,
         }));
     }, [logicalApps]);
+
+    useEffect(() => {
+        setAnalysisCurrentPage(1);
+    }, [logicalAppGridItems]);
+
+    const analysisTotalPages = Math.ceil(logicalAppGridItems.length / analysisItemsPerPage);
+    const analysisStartIndex = (analysisCurrentPage - 1) * analysisItemsPerPage;
+    const analysisEndIndex = analysisStartIndex + analysisItemsPerPage;
+    const analysisCurrentItems = logicalAppGridItems.slice(analysisStartIndex, analysisEndIndex);
 
     const onRenderLogicalAppGroup = useCallback((item: LogicalAppGridItem) => {
         return (
@@ -166,36 +363,37 @@ const AzureSREWelcome = ({ threadId, addThread }: AzureSREWelcomeProps) => {
 
                 // Process the data
                 if (data) {
+                    console.log('Data', data);
                     // Update knowledgeGraphStatus
                     if (data.knowledgeGraphStatus) {
                         setKnowledgeGraphStatus(data.knowledgeGraphStatus);
                     }
-                }
 
-                // data.integrations
+                    // data.integrations
 
-                if (data.logicalApplications) {
-                    const enhancedApps = data.logicalApplications.map((app, _) => {
-                        // Extract application name from resourceId
-                        const resourceParts = app.resourceId.split('/');
-                        const name = app.name;
+                    if (data.logicalApplications) {
+                        const enhancedApps = data.logicalApplications.map((app, _) => {
+                            // Extract application name from resourceId
+                            const resourceParts = app.resourceId.split('/');
+                            const name = app.name;
 
-                        // Extract resource type from resourceId
-                        const resourceType = resourceParts[resourceParts.length - 2];
+                            // Extract resource type from resourceId
+                            const resourceType = resourceParts[resourceParts.length - 2];
 
-                        // Return enhanced app with derived information
-                        return {
-                            ...app,
-                            name: name,
-                            properties: {
-                                type: resourceType,
-                                subType: app.subType,
-                                health: 'Unknown' as ResourceHealth,
-                            },
-                        };
-                    });
+                            // Return enhanced app with derived information
+                            return {
+                                ...app,
+                                name: name,
+                                properties: {
+                                    type: resourceType,
+                                    subType: app.subType,
+                                    health: 'Unknown' as ResourceHealth,
+                                },
+                            };
+                        });
 
-                    setLogicalApps(enhancedApps);
+                        setLogicalApps(enhancedApps);
+                    }
                 }
             } catch (err) {
                 console.error('Failed to fetch welcome message', err);
@@ -261,7 +459,9 @@ const AzureSREWelcome = ({ threadId, addThread }: AzureSREWelcomeProps) => {
                 <>
                     <FakeAgentMessage content={intl.formatMessage(WelcomeResources.finishedAnalyzingResources)} />
 
-                    <Card className={styles.sectionCard}>
+                    {!AzPortalProxy.inStandaloneMode && <ResourceGroupsCard />}
+
+                    <Card className={styles.sectionCard} style={{ backgroundColor: tokens.colorNeutralBackground1 }}>
                         <div className={styles.sectionHeader}>
                             <Text weight="semibold" size={500}>
                                 {intl.formatMessage(WelcomeResources.resourceAnalysis)}
@@ -291,21 +491,28 @@ const AzureSREWelcome = ({ threadId, addThread }: AzureSREWelcomeProps) => {
                                     <Text className={styles.statValue}>{resourceCounts.databases}</Text>
                                 </div>
                             </div>
-                            <div style={{ maxHeight: 275, overflowY: 'auto', marginTop: 20 }}>
+                            <div>
                                 <ShimmeredDetailsList
                                     columns={logicalAppGridColumns}
-                                    items={logicalAppGridItems}
+                                    items={analysisCurrentItems}
                                     constrainMode={ConstrainMode.horizontalConstrained}
                                     layoutMode={DetailsListLayoutMode.justified}
                                     enableShimmer={false}
                                     checkboxVisibility={CheckboxVisibility.hidden}
                                     compact
                                 />
+                                {analysisTotalPages > 1 && (
+                                    <Pagination
+                                        currentPage={analysisCurrentPage}
+                                        totalPages={analysisTotalPages}
+                                        onPageChange={setAnalysisCurrentPage}
+                                    />
+                                )}
                             </div>
                         </div>
                     </Card>
 
-                    <Card className={styles.sectionCard}>
+                    <Card className={styles.sectionCard} style={{ backgroundColor: tokens.colorNeutralBackground1 }}>
                         <div className={styles.sectionHeader}>
                             <Text weight="semibold" size={500}>
                                 {intl.formatMessage(WelcomeResources.suggestedPromptsForYourResources)}

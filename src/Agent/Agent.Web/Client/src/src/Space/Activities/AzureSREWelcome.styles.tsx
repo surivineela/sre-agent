@@ -28,8 +28,8 @@ export const useWelcomeStyles = makeStyles({
     sectionHeader: {
         display: 'flex',
         alignItems: 'center',
-        marginBottom: tokens.spacingVerticalM,
-        padding: tokens.spacingVerticalL,
+        marginBottom: tokens.spacingVerticalS,
+        padding: tokens.spacingVerticalM,
         borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
     },
     collapsibleHeader: {
@@ -40,7 +40,8 @@ export const useWelcomeStyles = makeStyles({
         width: '100%', // Ensure full width
     },
     sectionContent: {
-        padding: tokens.spacingVerticalL,
+        padding: tokens.spacingVerticalS,
+        marginTop: '-25px',
     },
     sectionHeaderIcon: {
         marginRight: tokens.spacingHorizontalS,
