@@ -73,6 +73,7 @@ tools:
 - WaitInMilliSeconds
 - NotifyUser
 - HandoffBack
+- CloseAzureMonitorAlert
 
 common_prompts:
   - notify_user

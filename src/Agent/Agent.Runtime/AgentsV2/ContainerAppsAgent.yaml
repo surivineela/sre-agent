@@ -63,6 +63,7 @@ tools:
   - GetDeploymentTimes
   - NotifyUser
   - HandoffBack
+  - CloseAzureMonitorAlert
 
 common_prompts:
   - notify_user

@@ -1,44 +1,83 @@
 // ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
+
+using System.Net;
 using Agent.Core.Configuration;
+using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.DataModels;
 using Agent.Graph.Interfaces;
+using Agent.Logging;
+using Agent.Plugins.Interface;
+using Azure.ResourceManager.AlertsManagement.Models;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
-using Agent.Logging;
-using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Implementation;
 
-public class IncidentPlugin(ILogger<IncidentPlugin> logger, 
+public class IncidentPlugin(ILogger<IncidentPlugin> logger,
                             IGraphDatabaseClient graphDatabaseClient,
                             CosmosDBSettings cosmosDbSettings,
                             CosmosClient cosmosClient,
                             IPagerDutyService pagerDutyService) : IIncidentPlugin
 {
-	private readonly Container container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, PagerDutyIncidentDocument.ContainerName);
-	public async Task<List<PagerDutyIncidentDocument>> GetPagerDutyIncidentsAsync(string resourceId, uint maxResults = 5)
-	{
-		logger.LogInternalInformation("GetPagerDutyIncidentsAsync called with resourceId: {ResourceId}", resourceId);
-		if (string.IsNullOrEmpty(resourceId))
-		{
-			logger.LogInternalWarning("ResourceId is null or empty.");
-			return [];
-		}
-		var query = $"g.V().has('resourceId', '{resourceId}').out('RELATED_TO_INCIDENT').has('resourceType', '/incidents/pagerduty').has('incidentId').project('incidentId').by('incidentId')";
-		logger.LogInternalInformation("Found {n} incidents for resourceId: {ResourceId}", query, resourceId);
 
-		var result = await graphDatabaseClient.Query<Dictionary<string, object>>(query);
-		List<string> incidentIds = result
-			.Select(x => x["incidentId"]?.ToString() ?? string.Empty)
-			.Where(incidentId => !string.IsNullOrEmpty(incidentId))
-			.ToList();
+    private readonly Container container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, PagerDutyIncidentDocument.ContainerName);
+    private readonly Container azMonitorContainer = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
 
-		return await GetIncidentById(incidentIds, maxResults);
-	}
+    public async Task CloseAzureMonitorAlert(string alertId)
+    {
+        try
+        {
+            var alertDocument = await GetDocumentAsync<AzMonitorAlertDocument>(alertId, alertId);
+
+            if (alertDocument != null)
+            {
+                var updatedAlertDocument = alertDocument with
+                {
+                    Status = ServiceAlertState.Closed.ToString(),
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                await azMonitorContainer.UpsertItemAsync(
+                    updatedAlertDocument,
+                    new PartitionKey(updatedAlertDocument.PartitionKey)
+                );
+
+                logger.LogInternalInformation($"Successfully closed AzMonitor alert document {alertId} for inactive thread.");
+            }
+            else
+            {
+                logger.LogInternalWarning($"Could not find AzMonitor alert document with ID {alertId}.");
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogInternalError(ex, $"Error closing AzMonitor alert for thread {alertId}.");
+        }
+    }
+
+    public async Task<List<PagerDutyIncidentDocument>> GetPagerDutyIncidentsAsync(string resourceId, uint maxResults = 5)
+    {
+        logger.LogInternalInformation("GetPagerDutyIncidentsAsync called with resourceId: {ResourceId}", resourceId);
+        if (string.IsNullOrEmpty(resourceId))
+        {
+            logger.LogInternalWarning("ResourceId is null or empty.");
+            return [];
+        }
+        var query = $"g.V().has('resourceId', '{resourceId}').out('RELATED_TO_INCIDENT').has('resourceType', '/incidents/pagerduty').has('incidentId').project('incidentId').by('incidentId')";
+        logger.LogInternalInformation("Found {n} incidents for resourceId: {ResourceId}", query, resourceId);
+
+        var result = await graphDatabaseClient.Query<Dictionary<string, object>>(query);
+        List<string> incidentIds = result
+            .Select(x => x["incidentId"]?.ToString() ?? string.Empty)
+            .Where(incidentId => !string.IsNullOrEmpty(incidentId))
+            .ToList();
+
+        return await GetIncidentById(incidentIds, maxResults);
+    }
 
     public async Task ResolvePagerDutyIncidentAsync(string incidentId)
     {
@@ -52,7 +91,7 @@ public class IncidentPlugin(ILogger<IncidentPlugin> logger,
             .OrderByDescending(doc => doc.CreatedAt)
             .Take((int)maxResults)
             .ToFeedIterator();
-        
+
         var incidents = new List<PagerDutyIncidentDocument>();
         while (iterator.HasMoreResults)
         {
@@ -63,6 +102,22 @@ public class IncidentPlugin(ILogger<IncidentPlugin> logger,
             }
         }
 
-		return incidents;
-	}
+        return incidents;
+    }
+
+    private async Task<T> GetDocumentAsync<T>(string id, string partitionKey) where T : ICosmosDocument
+    {
+        try
+        {
+            ItemResponse<T> response = await azMonitorContainer.ReadItemAsync<T>(
+                id,
+                new PartitionKey(partitionKey)
+            );
+            return response.Resource;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return default;
+        }
+    }
 }

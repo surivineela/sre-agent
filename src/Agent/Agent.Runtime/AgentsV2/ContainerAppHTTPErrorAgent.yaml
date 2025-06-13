@@ -52,6 +52,7 @@ tools:
   - GetDeploymentTimes
   - NotifyUser
   - HandoffBack
+  - CloseAzureMonitorAlert    
 
 agents_as_tools:
   - agent_name: capps_network_diagnosis_agent

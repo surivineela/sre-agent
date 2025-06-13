@@ -2,9 +2,6 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-// ------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation.  All rights reserved.
-// ------------------------------------------------------------
 using Agent.Data.DataModels;
 
 namespace Agent.Plugins.Interface;
@@ -19,4 +16,12 @@ public interface IIncidentPlugin
     /// <returns>a list of pager duty incidents</returns>
     Task<List<PagerDutyIncidentDocument>> GetPagerDutyIncidentsAsync(string resourceId, uint maxResults = 5);
     Task ResolvePagerDutyIncidentAsync(string incidentId);
+
+    /// <summary>
+    /// Close the Azure Monitor Alert.
+    /// This only updates the Alert Status on SRE backend.
+    /// </summary>
+    /// <param name="alertId"></param>
+    /// <returns></returns>
+    Task CloseAzureMonitorAlert(string alertId);
 }

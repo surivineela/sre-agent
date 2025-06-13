@@ -84,6 +84,7 @@ tools:
 - ShouldTriggerHighMemoryScenario
 - ShouldTriggerHighCPUScenario
 - HandoffBack
+- CloseAzureMonitorAlert
 
 agents_as_tools:
   - agent_name: github_issue_agent
