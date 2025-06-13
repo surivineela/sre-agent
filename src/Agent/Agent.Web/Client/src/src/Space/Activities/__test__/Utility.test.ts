@@ -560,6 +560,11 @@ describe('isThreadUnread', () => {
         const thread = getDefaultThread('2023-10-03T00:00:00Z', '03', undefined, undefined, undefined, '2023-10-03T00:00:00Z');
         expect(isThreadUnread(thread)).toBe(false);
     });
+
+    it('Returns true for welcome threads with lastReadTime undefined', () => {
+        const thread = getDefaultThread('2023-10-03T00:00:00Z', '03', undefined, undefined, ThreadSource.welcomeMessage, undefined);
+        expect(isThreadUnread(thread)).toBe(true);
+    });
 });
 
 describe('getUpdatedUnreadThreadIds', () => {

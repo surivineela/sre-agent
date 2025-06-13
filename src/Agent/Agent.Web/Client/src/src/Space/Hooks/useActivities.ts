@@ -4,9 +4,11 @@ import { useLocation, useNavigate, useParams } from 'react-router';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { ThreadClient } from '../../Common/Clients/ThreadClient';
-import { Thread } from '../../Common/Contracts/Azure/SreAgent';
+import { Thread, ThreadSource } from '../../Common/Contracts/Azure/SreAgent';
 import { Guid } from '../../Common/Helpers/Guid';
 import { ActivitiesThreadHeaderResources } from '../../Strings/SREAgentResources';
+import { SelectedTimes } from '../Activities/TimeDropdown';
+import { getUTCTimestampBasedOnSelectedThreadCutoffTime, isThreadUnread } from '../Activities/Utility';
 import { ThreadListHandle } from '../Contracts/Activities';
 
 export const useActivities = () => {
@@ -109,6 +111,36 @@ export const useActivities = () => {
             };
 
             setInitialThread();
+        } else if (!initialThreadId && !activeThreadId && untouched.current) {
+            // Check for welcome thread if no specific thread ID is provided
+            const checkForWelcomeThread = async () => {
+                const timestampCutoff = getUTCTimestampBasedOnSelectedThreadCutoffTime(SelectedTimes.OneDay);
+
+                const threadsResponse = await threadClient.getThreads({
+                    skip: 0,
+                    top: 1,
+                    descending: true,
+                    filters: {
+                        source: ThreadSource.welcomeMessage,
+                        timestamps: {
+                            min: {
+                                timestamp: timestampCutoff,
+                                inclusive: true,
+                            },
+                        },
+                    },
+                });
+
+                if (isSubscribed && threadsResponse.isSuccessful && threadsResponse.content && threadsResponse.content.length > 0) {
+                    const welcomeThread = threadsResponse.content[0];
+
+                    if (isThreadUnread(welcomeThread)) {
+                        selectThread(welcomeThread);
+                    }
+                }
+            };
+
+            checkForWelcomeThread();
         }
 
         return () => {

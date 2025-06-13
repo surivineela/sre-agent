@@ -87,6 +87,7 @@ export enum IncidentStatus {
 export enum ThreadSource {
     conversation = 'Conversation',
     incident = 'Incident',
+    welcomeMessage = 'WelcomeMessage',
     Portal = 'Portal', // legacy
 }
 

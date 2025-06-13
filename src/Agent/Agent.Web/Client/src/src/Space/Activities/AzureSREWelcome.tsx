@@ -363,7 +363,6 @@ const AzureSREWelcome = ({ threadId, addThread }: AzureSREWelcomeProps) => {
 
                 // Process the data
                 if (data) {
-                    console.log('Data', data);
                     // Update knowledgeGraphStatus
                     if (data.knowledgeGraphStatus) {
                         setKnowledgeGraphStatus(data.knowledgeGraphStatus);

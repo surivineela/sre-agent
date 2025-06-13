@@ -211,7 +211,8 @@ export const isThreadUnread = (thread: Thread): boolean => {
         return getSafeDateTime(thread.lastReadTime).getTime() < getSafeDateTime(thread.modifiedTimestamp).getTime();
     }
 
-    return false;
+    // If lastReadTime is null, return true if welcome message and false if not (so we don't suddenly mark all old threads as unread)
+    return thread.source === ThreadSource.welcomeMessage;
 };
 
 export const getUpdatedUnreadThreadIds = (unreadThreadsIds: Set<string>, addedThreads: Thread[]): Set<string> => {

@@ -471,6 +471,12 @@
       "value": "Backed by"
     }
   ],
+  "84MFOR": [
+    {
+      "type": 0,
+      "value": "PagerDuty connected. Your next step is to set up incident handlers."
+    }
+  ],
   "8O9cAb": [
     {
       "type": 0,
@@ -1457,6 +1463,12 @@
       "value": "Agent details"
     }
   ],
+  "Wr7RY0": [
+    {
+      "type": 0,
+      "value": "PagerDuty connection added successfully"
+    }
+  ],
   "WuZcUT": [
     {
       "type": 0,
@@ -1885,12 +1897,6 @@
       "value": "Dashboard"
     }
   ],
-  "i0mHNo": [
-    {
-      "type": 0,
-      "value": "PagerDuty added"
-    }
-  ],
   "ielB5f": [
     {
       "type": 0,
@@ -1981,6 +1987,12 @@
       "value": "Region"
     }
   ],
+  "lzHc+Y": [
+    {
+      "type": 0,
+      "value": "Set up incident handlers and custom handlers so that the agent can start resolving incidents."
+    }
+  ],
   "mgYBYo": [
     {
       "type": 0,
@@ -2009,6 +2021,12 @@
     {
       "type": 0,
       "value": "Primary resource type"
+    }
+  ],
+  "niQCoZ": [
+    {
+      "type": 0,
+      "value": "Go to incident management"
     }
   ],
   "nmpevl": [

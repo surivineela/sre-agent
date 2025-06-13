@@ -1,6 +1,7 @@
 import { CopilotChat, CopilotProvider } from '@fluentui-copilot/react-copilot';
 import { mergeClasses } from '@fluentui/react-components';
 import { memo } from 'react';
+import { ThreadSource } from '../../Common/Contracts/Azure/SreAgent';
 import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
 import ChatBoxFooter from '../Components/ChatBoxFooter';
 import ChatLoading from '../Components/ChatLoading';
@@ -32,7 +33,7 @@ export const ChatBox = ({ addThread, promoteThread, updateThreadLastReadTime, th
         onClickNewMessageButton,
     } = useChatBox(addThread, promoteThread, updateThreadLastReadTime, threadId);
 
-    const isWelcomeThread = threadSource === 'WelcomeMessage';
+    const isWelcomeThread = threadSource === ThreadSource.welcomeMessage;
 
     const { scrollable } = useScrollableComponentStyles();
 
