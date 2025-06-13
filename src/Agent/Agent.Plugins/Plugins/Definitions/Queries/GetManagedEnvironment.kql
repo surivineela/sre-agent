@@ -46,5 +46,6 @@ ManagedEnvironmentDBState
     KustoUrl = iff(Region contains "Test", "cappstest.westus", KustoUrl),
     envType,
     customVnet,
-    RegionalConsumptionV2
+    RegionalConsumptionV2,
+    tier
 | top 1 by PreciseTimeStamp desc

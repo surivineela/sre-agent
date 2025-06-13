@@ -1,0 +1,12 @@
+let fromTime = datetime("##fromDate##");
+let toTime = datetime("##toDate##");
+let queryPEConnectionName = "##privateEndpointConnectionName##";
+PrivateLinkDBState
+| where TIMESTAMP between (fromTime .. toTime)
+| where privateEndpointConnectionName == queryPEConnectionName
+| project PreciseTimeStamp, managedClusterName, connectionStatus
+| order by PreciseTimeStamp asc
+| extend SessionIndex = row_cumsum(iff(connectionStatus != prev(connectionStatus), 1, 0))
+| summarize StartTime = min(PreciseTimeStamp), EndTime = max(PreciseTimeStamp) by connectionStatus,SessionIndex
+| project StartTime, EndTime, connectionStatus
+| order by StartTime asc 

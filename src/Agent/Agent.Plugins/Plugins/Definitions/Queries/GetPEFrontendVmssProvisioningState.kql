@@ -1,0 +1,12 @@
+let fromTime = datetime("##fromDate##");
+let toTime = datetime("##toDate##");
+let queryFrontendVmssName = "##frontendVmssName##";
+PrivateLinkDBState
+| where TIMESTAMP between (fromTime .. toTime)
+| where frontendVmssName == queryFrontendVmssName
+| project PreciseTimeStamp, managedClusterName, frontendVmssProvisioningState
+| order by PreciseTimeStamp asc
+| extend SessionIndex = row_cumsum(iff(frontendVmssProvisioningState != prev(frontendVmssProvisioningState), 1, 0))
+| summarize StartTime = min(PreciseTimeStamp), EndTime = max(PreciseTimeStamp) by frontendVmssProvisioningState,SessionIndex
+| project StartTime, EndTime, frontendVmssProvisioningState
+| order by StartTime asc 

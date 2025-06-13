@@ -1,9 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Agent.Core.Interfaces;
 using Agent.Framework;
 using Agent.Plugins.Kusto;
 using Agent.Core.Interfaces;
@@ -27,22 +23,8 @@ namespace Agent.Plugins.Definitions
         [Description(
 @"Retrieve configuration and provisioning metadata for a specific Azure Container Apps managed environment.
 
-Projects:
-- environmentName: Name of the ACA managed environment.
-- environmentLocation: Azure region hosting the environment.
-- environmentSubscription: Azure subscription ID.
-- environmentResourceGroup: Resource group of the environment.
-- managedClusterName: Backing AKS cluster name.
-- managedClusterLocation: Physical region of the AKS cluster.
-- managedSubscription: Subscription of the backing cluster.
-- managedClusterCreatedTime: Creation timestamp of the cluster.
-- provisioningState: Current provisioning status of the cluster.
-- powerState: Power status of the environment.
-- chartVersion: Deployed Helm chart version.
-- kubernetesVersion: Version of Kubernetes used.
-- hasWorkloadProfiles: Indicates if workload profiles are enabled.
-- hasCustomerVnet: Indicates if a custom VNet is configured.
-- isInternal: Indicates whether the environment is internal-only."
+The function return managed environment detailed information includes:
+PreciseTimeStamp,managedClusterName,managedClusterLocation,managedSubscription,managedClusterCreatedTime,powerState,provisioningState,chartVersion,isInternal,chartVersionUpgradeTime,chartVersionUpgradeError,kubernetesVersion,kubernetesVersionUpgradeTime,upgradeBatch,environmentSubscription,environmentResourceGroup,environmentLocation,environmentName,environmentCreatedTime,hasWorkloadProfiles,hasCustomerVnet,hasMaintenanceConfiguration,publicNetworkAccess,hasPrivateEndpoints,envType,customVnet,RegionalConsumptionV2,tier"
 )]
         public async Task<string> GetManagedEnvironmentInfo(
     [Description("Azure region.")] string region,
@@ -53,7 +35,7 @@ Projects:
     [Description("Azure subscription ID.")] string subscriptionId,
      [Description("provide sampling inputs")] SamplingOptions sampling)
         {
-            return await _kustoPlugin.ExecuteLocalFunctionAsync("GetManagedEnvironment", region,
+           return await _kustoPlugin.ExecuteLocalFunctionAsync("GetManagedEnvironment", region,
                 new Dictionary<string, string> {
                     { "fromDate", fromDate.ToString() },
                     { "toDate", toDate.ToString() },
@@ -63,7 +45,8 @@ Projects:
                     { "subscriptionId", subscriptionId }
                 }
             );
-        }        [KernelFunction("rca_get_changes_in_managed_environment")]
+        }
+
         [Description(
         @"Retrieve configuration state changes for a specific Azure Container Apps managed environment within a given time range.
 
@@ -90,7 +73,8 @@ Projects:
                     { "customerSubscriptionId", customerSubscriptionId.ToString() },
                     { "managedEnvironmentName", managedEnvironmentName }
                 });
-        }        [KernelFunction("rca_get_asi_page_for_managed_environment")]
+        }
+
         [Description(
 @"Retrieve a direct ASI (App Service Insights) page URL for a given Azure Container Apps managed environment.
 
@@ -124,7 +108,8 @@ Projects:
             var adxUri = $"https://asi.azure.ms{cleanPath}?{query}";
 
             return Task.FromResult($"ASI Page for managed environment {adxUri}");
-        }        [KernelFunction("rca_get_managed_cluster_environment_resource_id")]
+        }
+
         [Description(
         @"Retrieve the Azure Container Apps environment resource identity based on the managed cluster name.
         Projects:
@@ -146,7 +131,8 @@ Projects:
                     { "toDate", toDate.ToString() },
                     { "managedClusterName", managedClusterName }
                 });
-        }        [KernelFunction("rca_get_managed_environment_provisioning_status")]
+        }
+
         [Description(
         @"Retrieve the provisioning status of a specific Azure Container Apps managed environment.
         Projects:
@@ -175,7 +161,8 @@ Projects:
                     { "resourceGroupName", resourceGroupName },
                     { "subscriptionId", subscriptionId }
                 });
-        }        [KernelFunction("rca_get_managed_environment_admin_events")]
+        }
+
         [Description(
         @"Retrieve the Azure Container Apps environment Admin operation events.
         Projects:
@@ -204,7 +191,8 @@ Projects:
                     { "resourceGroupName", resourceGroupName },
                     { "subscriptionId", subscriptionId }
                 });
-        }        [KernelFunction("rca_get_managed_environment_operation_errors")]
+        }
+
         [Description(
         @"Retrieve the Azure Container Apps environment operation errors.
         Projects:
@@ -231,6 +219,101 @@ Projects:
                     { "environmentName", environmentName },
                     { "resourceGroupName", resourceGroupName },
                     { "subscriptionId", subscriptionId }
+                });
+        }
+
+        [Description(
+@"Retrieve the Azure Container Apps managed cluster private endpoint connection details.
+Projects:
+- frontendVmssName
+- frontendVmssCreatedTime
+- frontendVmssProvisioningState
+- tcpBridgeVersion
+- privateEndpointConnectionName
+- privateEndpointConnectionProxyName
+- privateEndpointId
+- privateEndpointConnectionProvisioningState
+- connectionStatus
+- storageAccountName
+        ")]
+        public async Task<string> GetPrivateEndpointConnectionDetails(
+            [Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed cluster.")] string managedClusterName)
+        {
+            return await _kustoPlugin.ExecuteLocalFunctionAsync("GetPrivateEndpointConnectionDetails", region,
+                new Dictionary<string, string>
+                {
+                    { "fromDate", fromDate.ToString() },
+                    { "toDate", toDate.ToString() },
+                    { "managedClusterName", managedClusterName }
+                });
+        }
+
+        [Description(
+@"Retrieve the Azure Container Apps Private Endpoint Connection connection state details.
+Projects:
+- StartTime: Start time of the reported connection state.
+- EndTime: End time of the reported connection state.
+- ConnectionState: The connection status of the private endpoint connection.
+")]
+        public async Task<string> GetPrivateEndpointConnectionConnectionState(
+            [Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the private endpoint connection.")] string privateEndpointConnectionName)
+        {
+            return await _kustoPlugin.ExecuteLocalFunctionAsync("GetPEConnectionState", region,
+                new Dictionary<string, string>
+                {
+                    { "fromDate", fromDate.ToString() },
+                    { "toDate", toDate.ToString() },
+                    { "privateEndpointConnectionName", privateEndpointConnectionName }
+                });
+        }
+
+        [Description(
+@"Retrieve the Azure Container Apps Private Endpoint Connection Provisioning state details.
+Projects:
+- StartTime: Start time of the reported Provisioning status.
+- EndTime: End time of the reported Provisioning status.
+- ProvisioningState: The Provisioning state of the private endpoint connection.
+")]
+        public async Task<string> GetPrivateEndpointConnectionProvisioningState(
+    [Description("Azure region.")] string region,
+    [Description("Start time of the query.")] DateTime fromDate,
+    [Description("End time of the query.")] DateTime toDate,
+    [Description("Name of the private endpoint connection.")] string privateEndpointConnectionName)
+        {
+            return await _kustoPlugin.ExecuteLocalFunctionAsync("GetPEProvisioningState", region,
+                new Dictionary<string, string>
+                {
+                    { "fromDate", fromDate.ToString() },
+                    { "toDate", toDate.ToString() },
+                    { "privateEndpointConnectionName", privateEndpointConnectionName }
+                });
+        }
+
+        [Description(
+@"Retrieve the provisioning state of the customer frontend VMSS (Virtual Machine Scale Set) for a specific Private Endpoint Connection.
+Projects:
+- StartTime: Start time of the reported Provisioning status.
+- EndTime: End time of the reported Provisioning status.
+- ProvisioningState: The Provisioning state of the customer frontend VMSS.
+")]
+        public async Task<string> GetPrivateEndpointConnectionFrontendVmssProvisioningState(
+            [Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the frontend VMSS.")] string frontendVmssName)
+        {
+            return await _kustoPlugin.ExecuteLocalFunctionAsync("GetPEFrontendVmssProvisioningState", region,
+                new Dictionary<string, string>
+                {
+                    { "fromDate", fromDate.ToString() },
+                    { "toDate", toDate.ToString() },
+                    { "frontendVmssName", frontendVmssName }
                 });
         }
     }
