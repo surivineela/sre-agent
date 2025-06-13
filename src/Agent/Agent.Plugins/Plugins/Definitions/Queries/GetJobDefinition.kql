@@ -1,8 +1,6 @@
 let queryFrom = datetime("##queryFrom##");
 let queryTo = datetime("##queryTo##");
 let cappName = "##cappName##";
-let cappResourceGroup = "##cappResourceGroup##";
-let cappSubscription = "##cappSubscription##";
 let cappClusterName = "##cappClusterName##";
 ContainerAppControllerEvents
 | where PreciseTimeStamp between (queryFrom .. queryTo)
@@ -12,7 +10,7 @@ ContainerAppControllerEvents
 | where isnotempty(json)
 | extend itemName = ContainerAppJobName
 | where itemName == cappName
-| where json contains cappSubscription and json contains cappResourceGroup and json contains cappName
+| where json contains cappName
 | summarize Timestamp=min(PreciseTimeStamp) by json
 | extend d=parse_json(json)
 | project Timestamp, Configuration=d.spec.configuration, Template=d.spec.template, Labels=d.metadata.labels, Status=d.status

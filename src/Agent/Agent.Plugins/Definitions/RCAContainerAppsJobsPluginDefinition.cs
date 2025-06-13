@@ -30,8 +30,6 @@ namespace Agent.Plugins.Definitions
         public Task<string> GetJobDefinition(
             [Description("The name of the Container App Job")] string containerAppJobName,
             [Description("The Azure region")] string region,
-            [Description("The resource group of the Container App Job")] string cappResourceGroup,
-            [Description("The subscription ID of the Container App Job")] string cappSubscription,
             [Description("Name of the managed cluster")] string cappClusterName,
             [Description("The start of the time range for the query")] DateTime queryFrom,
             [Description("The end of the time range for the query")] DateTime queryTo)
@@ -39,8 +37,6 @@ namespace Agent.Plugins.Definitions
             var args = new Dictionary<string, string>
             {
                 { "cappName", containerAppJobName },
-                { "cappResourceGroup", cappResourceGroup },
-                { "cappSubscription", cappSubscription },
                 { "cappClusterName", cappClusterName },
                 { "queryFrom", queryFrom.ToString() },
                 { "queryTo", queryTo.ToString() }

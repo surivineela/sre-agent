@@ -17,5 +17,5 @@ ContainerAppControllerEvents
     LastStateExitCode = iif(isnotempty(containerStatus.lastState.terminated.exitCode), toint(containerStatus.lastState.terminated.exitCode), int(null)),
     LastStateReason = tostring(containerStatus.lastState.terminated.reason)
 | where RestartCount > 0 or isnotempty(LastStateReason) or isnotempty( LastStateExitCode) or isnotempty(StateWaitingMessage) or isnotempty(StateWaitingReason)
-| project PreciseTimeStamp, PodName, ContainerName, RestartCount, LastStateReason, LastStateExitCode, StateWaitingMessage, StateWaitingReason//, containerStatus
+| summarize by PodName, ContainerName, RestartCount, LastStateReason, LastStateExitCode, StateWaitingMessage, StateWaitingReason//, containerStatus
 | order by RestartCount desc

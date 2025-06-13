@@ -5,8 +5,11 @@ let jobName = "##containerAppJobName##";
 EventProcessorEvents
 | where PreciseTimeStamp between (queryFrom .. queryTo)
 | where EnvironmentName == environmentName
-| where ExecutionName contains strcat(jobName, "-")
+| where 
+    (ExecutionName contains strcat(jobName, "-")) or 
+    (InvolvedObjectKind == "ContainerAppJob" and InvolvedObjectName contains jobName)
 | where Type != "Normal"
 | where Internal == true
 | where msg !contains "exit code '0'" and msg !contains "ManuallyStopped"
-| project PreciseTimeStamp, msg, Reason, Count, Type, ExecutionName, InvolvedObjectKind//, JobName,  InvolvedObjectName, InvolvedObjectNamespace
+// | where Reason != ""
+| summarize by msg, Reason, Count//, Type, ExecutionName, InvolvedObjectKind//, JobName,  InvolvedObjectName, InvolvedObjectNamespace

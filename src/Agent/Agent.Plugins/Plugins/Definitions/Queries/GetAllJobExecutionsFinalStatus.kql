@@ -9,4 +9,4 @@ ContainerAppControllerEvents
 | where JobExecutionStatus == "Failed"
 | extend JobExecutionJsonJson = parse_json(JobExecutionJson)
 | extend JobExecutionStatusDetails = JobExecutionJsonJson.status
-| project PreciseTimeStamp, JobExecutionName, JobExecutionStatus, JobExecutionStatusDetails
+| summarize by JobExecutionName, JobExecutionStatus, tostring(JobExecutionStatusDetails)
