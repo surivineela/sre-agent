@@ -50,4 +50,10 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Plugins\Definitions\Queries\*.kql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

@@ -1,0 +1,9 @@
+let fromDate = datetime("##fromDate##");
+let endDate = datetime("##toDate##");
+let podName = "##podName##";
+SystemLogs 
+| where PreciseTimeStamp between (fromDate .. toDate)
+| where PodName =~ podName
+| where severityText == "Error"
+| project PreciseTimeStamp, LegionComponent, eventId, Value, Message 
+| limit 100

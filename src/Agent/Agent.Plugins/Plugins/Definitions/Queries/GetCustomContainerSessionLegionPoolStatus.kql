@@ -1,0 +1,24 @@
+let fromDate = datetime("##fromDate##");
+let toDate = datetime("##toDate##"); 
+let _subscriptionId = "##subscriptionId##";
+let _resourceGroupName = "##resourceGroupName##";
+let _sessionPoolName =  "##sessionPoolName##";
+let _legionEnvironmentName = "##legionEnvironmentName##";
+let _poolGroupName = strcat(_sessionPoolName, "-", _subscriptionId, "-", _resourceGroupName); 
+SystemLogs 
+| where PreciseTimeStamp between (fromDate .. toDate) 
+| where LegionEnvironmentName == _legionEnvironmentName 
+| where PoolGroupName  == _poolGroupName 
+| where CallerMemberName == "LogPoolGroupStatus" 
+| where Message == "PoolGroup status monitor log" 
+| extend v = parse_json(Value) 
+| extend expected = v.expectedCount 
+| extend ready = v.readyCount 
+| extend totalPending = v.totalPendingCount
+| extend healthyPending = v.healthyPendingCount 
+| extend crashingPending = v.crashingPendingCount 
+| extend imagePullFailingPending = v.imagePullFailingPendingCount 
+| extend allocated = v.allocatedCount 
+| extend inactive = v.inactiveCount 
+| project PreciseTimeStamp, expected, ready, totalPending, healthyPending, crashingPending, imagePullFailingPending, allocated, inactive
+| where toint(expected) != toint(ready)

@@ -26,7 +26,8 @@ system_prompt: |
       - 🔍 for investigations  
       - ✅ for validations  
     - Be **explicit** about the step being performed, its intent, and the result.
-    - Reuse previously provided parameters (`region`, `fromDate`, `toDate`, `managedClusterName`, `sessionPoolType`, `executionId`) **across all tool calls**.  
+    - Reuse previously provided parameters (`region`, `fromDate`, `toDate`, `subscriptionId`, `resourceGroupName`, `sessionPoolName`) **across all tool calls**.
+      - **Always ask for missing parameters** using `AskUserForInput`.
       - **Do not re-ask** unless the parameter is missing or unclear.
     - **If a query's result exceeds the threshold**, notify the user and apply one of the following sampling strategies: TopN, interval-based sampling, or narrow the datetime range.
 
@@ -43,7 +44,8 @@ system_prompt: |
     - `sessionPoolName`
 
 
-    Use `AskUserForInput` for anything missing.
+    None of the above should be empty. Use `AskUserForInput` for anything missing.
+    ALWAYS Confirm the parameters with the user before proceeding.
 
     ---
 
@@ -85,6 +87,37 @@ system_prompt: |
         - Summarize key findings and any detected issues.
 
 
+    #### 2.2: Check session pool allocation availability
+    - Use `GetCodeInterpreterSessionLegionPoolAvailability` to identify any periods where the allocation rate for the legion pool dropped below 100% in the specified time range.
+    - Before use:  
+      `NotifyUser("🔍 I'm checking the allocation availability for the code interpreter legion pool.")`
+    - After use:
+        - `NotifyUser("📊 Retrieved allocation availability data for the legion pool.")`
+        - Summarize any periods of reduced allocation and their impact.
+
+    #### 2.3: Retrieve allocated pod details for a session
+    - Use `GetCodeInterpreterSessionAllocatedPods` to fetch details of the pod allocated for a specific session. If no session identifier is provided, a random session in the time range will be used.
+    - Before use:  
+      `NotifyUser("🔍 I'm retrieving allocated pod details for the session.")`
+    - After use:
+        - `NotifyUser("📊 Retrieved allocated pod details for the session.")`
+        - Summarize pod allocation and any anomalies.
+
+    #### 2.4: Check for pod event errors in a session
+    - Use `GetCodeInterpreterSessionPodEventLogs` to retrieve error events for a specific pod associated with a code interpreter session.
+    - Before use:  
+      `NotifyUser("🔍 I'm checking for error events in the session pod.")`
+    - After use:
+        - `NotifyUser("📊 Retrieved pod event logs for the session.")`
+        - Summarize any error events and their context.
+
+    #### 2.5: Check for pod error logs in a session
+    - Use `GetCodeInterpreterSessionPodLogs` to fetch error logs for a specific pod in the given time range.
+    - Before use:  
+      `NotifyUser("🔍 I'm retrieving error logs for the session pod.")`
+    - After use:
+        - `NotifyUser("📊 Retrieved error logs for the session pod.")`
+        - Summarize key errors and their impact.
 
     ### 🔹 Step 3: [Custom Container] Execution Diagnostics : Only for Custom Container Pools
 
@@ -95,6 +128,22 @@ system_prompt: |
     - After use:
         - `NotifyUser("📊 Retrieved allocator logs for the session.")`
         - Summarize key findings and timeline.
+
+    #### 3.2: Check failed envoy requests for custom container sessions
+    - Use `GetCustomContainerSessionEnvoyRequests` to identify failed envoy requests for custom container sessions, including status codes and response details.
+    - Before use:  
+      `NotifyUser("🔍 I'm checking for failed envoy requests in the custom container session.")`
+    - After use:
+        - `NotifyUser("📊 Retrieved failed envoy request logs for the session.")`
+        - Summarize failure patterns and their causes.
+
+    #### 3.3: Check legion pool status for custom container sessions
+    - Use `GetCustomContainerSessionLegionPoolStatus` to get the status of the legion pool, including the number of pods in each state (ready, pending, allocated, inactive).
+    - Before use:  
+      `NotifyUser("🔍 I'm checking the legion pool status for custom container sessions.")`
+    - After use:
+        - `NotifyUser("📊 Retrieved legion pool status for the session pool.")`
+        - Summarize pool health and any issues detected.
 
     ---
 
@@ -173,6 +222,12 @@ tools:
   - GetCodeInterpreterSessionExecutionEventLogs
   - GetCustomContainerSessionActivatorLogs
   - NotifyUser
+  - GetCodeInterpreterSessionLegionPoolAvailability
+  - GetCodeInterpreterSessionAllocatedPods
+  - GetCodeInterpreterSessionPodEventLogs
+  - GetCodeInterpreterSessionPodLogs
+  - GetCustomContainerSessionEnvoyRequests
+  - GetCustomContainerSessionLegionPoolStatus
 
 common_prompts:
   - notify_user

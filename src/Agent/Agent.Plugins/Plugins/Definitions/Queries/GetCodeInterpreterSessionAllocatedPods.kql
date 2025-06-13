@@ -1,0 +1,13 @@
+let fromDate = datetime("##fromDate##");
+let toDate = datetime("##toDate##");
+let _subscriptionId = "##subscriptionId##";
+let _resourceGroupName = "##resourceGroupName##";
+let _sessionPoolName =  "##sessionPoolName##";
+let sessionIdentifier = "##sessionIdentifier##";
+ContainerAppsAdminEvents
+| where PreciseTimeStamp between (fromDate .. toDate)
+| where subscription == _subscriptionId and resourceGroup == _resourceGroupName and sessionPoolName == _sessionPoolName
+| where message == "End New GetInstance Allocation"
+| where isempty(sessionIdentifier) or identifier == sessionIdentifier
+| project PreciseTimeStamp, identifier, podName, poolType
+| take 1

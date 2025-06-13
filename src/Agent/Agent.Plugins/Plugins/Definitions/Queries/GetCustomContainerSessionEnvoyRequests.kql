@@ -1,0 +1,12 @@
+let fromDate = datetime("##fromDate##");
+let toDate = datetime("##toDate##"); 
+let _sessionPoolName =  "##sessionPoolName##";
+let _managedClusterName = "##managedClusterName##";
+let _region = "##region##";
+let _authority = strcat(_sessionPoolName, ".", _managedClusterName, ".", _region, ".azurecontainerapps.io"); 
+EnvoyFrontEndLogsTable
+| where PreciseTimeStamp between (fromDate .. toDate) 
+| where Tenant == _managedClusterName
+| where Authority == _authority 
+| where Status != "200"
+| project PreciseTimeStamp, Method, Path, Status, UpstreamHost, ResponseCodeDetails

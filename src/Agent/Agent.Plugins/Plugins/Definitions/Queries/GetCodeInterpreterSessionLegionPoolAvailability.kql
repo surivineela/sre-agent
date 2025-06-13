@@ -1,0 +1,31 @@
+let fromDate = datetime("##fromDate##");
+let endDate = datetime("##toDate##");
+let _legionPodPoolName = "##legionPodPoolName##";
+let _legionEnvironmentName = "##legionEnvironmentName##";
+let resourceOwner = "Sessions"; 
+let allocationLabel = ""; 
+let timeBucket = "10m"; 
+let _timeBucket = totimespan(timeBucket);
+let _poolGroupName = toscalar(
+    SystemLogs
+    | where TIMESTAMP between (fromDate .. endDate)
+    | where ResourceNamespace == _legionPodPoolName and PoolGroupName != ""
+    | distinct PoolGroupName
+    | take 1);
+SystemLogs
+| where PreciseTimeStamp between (fromDate .. endDate) 
+| where LegionEnvironmentName == _legionEnvironmentName 
+| where ResourceOwner == resourceOwner 
+| where PoolGroupName == _poolGroupName 
+| where LegionComponent == "RegionalControlPlane" 
+| where Message startswith "Allocate request finished, pod requested: " 
+ or Message startswith "ACA pool allocation failed, error: " or Message == "ACA pool allocation succeed" 
+| where isempty(allocationLabel) or allocationLabel == Value 
+| parse Message with "Allocate request finished, pod requested: " podRequested:int ", pod allocated: " podAllocated:int * 
+| extend podRequested = iff(isempty(podRequested), 1, podRequested) 
+| extend podAllocated = iff(isempty(podAllocated), iff(Message == "ACA pool allocation succeed", 1, 0), podAllocated) 
+| summarize Success=sum(podAllocated), Total=sum(podRequested) by TimeBucket = bin(PreciseTimeStamp, _timeBucket) 
+| project SuccessRate=iff(Total==0,100.0,100*todouble(Success)/Total), TimeBucket 
+| join kind = rightouter (range TimeBucket from bin(fromDate, _timeBucket) to bin(endDate, _timeBucket) step _timeBucket) on TimeBucket 
+| project PreciseTimeStamp = TimeBucket1, SuccessRate = iff(isempty(SuccessRate), 100.0, SuccessRate) 
+| where SuccessRate < 100
