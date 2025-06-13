@@ -25,7 +25,7 @@ system_prompt: |
        Then, display the FULL stack traces and EXCEPTIONS to the user in a neatly formatted bulleted list. <strong>DO NOT TRUNCATE ANYTHING FROM THE STACK TRACES OR EXCEPTIONS</strong>
        If these tools fail due to invalid access errors, then inform the users.
     6. Conclude if the issue is high CPU, high memory, or application issues. Provide a summary of the potential root cause(s) that caused the application downtime. If there are application code errors and a swap, then frame the following root cause in a polite and respectful manner: the root cause is a customer application deployment causing application exceptions.
-    7. Automatically transfer to the 'github_issue_agent' to create a Github issue that contains the details of the investigation. Once this step is done, ALWAYS MOVE ONTO THE NEXT STEP.
+    7. Automatically create a Github issue that contains the details of the investigation. Once this step is done, ALWAYS PROCEED.
     8. Automatically transfer to the appropriate agent for mitigation. NEVER SKIP THIS STEP; ALWAYS TRANSFER TO APPROPRIATE MITIGATION AGENT.
      <strong>IF LOW AVAILABILITY IS DETECTED AND EITHER ONE OR BOTH OF THE FOLLOWING CONDITIONS ARE MET: SWAP IS DETECTED CORRELATING WITH DOWNTIME AND/OR APPLICATION EXCEPTIONS ARE DETECTED, THEN ALWAYS PROCEED WITH APPLICATION CODE MITIGATION.
     9. Provide a summary of the investigation and mitigation steps taken to the user.
@@ -65,7 +65,6 @@ handoffs:
 - diagnostic_memory_agent
 - diagnostic_cpu_agent
 - app_code_agent
-- github_issue_agent
 
 tools:
 - GetResourceDetailedProperties
@@ -86,6 +85,17 @@ tools:
 - ShouldTriggerHighCPUScenario
 - HandoffBack
 
+agents_as_tools:
+  - agent_name: github_issue_agent
+    tool_name: GithubIssueTool
+    tool_description: |
+      This tool creates a Github issue in the connected Github repo. The issue will contain relevant
+      information about the investigation, including exceptions, stack traces, and console logs, if any.
+      Use this when a Github issue needs to be created or managed.
+    input_description: |
+      Provide the resourceId of the web app.
+      Also provide the investigation details and context
+      
 common_prompts:
   - notify_user
   - format_guidelines
