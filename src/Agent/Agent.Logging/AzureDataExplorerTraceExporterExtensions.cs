@@ -115,7 +115,7 @@ public class AzureDataExplorerExporterOptions
     /// Gets or sets a value indicating whether to use batch processing.
     /// When true, activities are first collected in a batch before being sent to Kusto.
     /// </summary>
-    public bool UseBatchProcessing { get; set; } = false;
+    public bool UseBatchProcessing { get; set; } = true;
 
     /// <summary>
     /// Gets or sets the maximum size of the queue used by the batch processor.
