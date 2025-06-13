@@ -61,5 +61,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
 
         // returns empty string if not found
         Task<string> GetNodeId(string resourceId);
+
+        Task SoftDeleteResourceById(string resourceId);
     }
 }

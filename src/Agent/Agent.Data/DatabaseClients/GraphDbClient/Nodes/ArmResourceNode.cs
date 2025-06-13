@@ -23,6 +23,9 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         [GraphProperty("updateTs")]
         public long UpdateTs { get; set; }
 
+        [GraphProperty("isDeleted")]
+        public bool IsDeleted { get; set; } = false;
+
         public abstract string GetNodeId();
 
         public abstract string GetNodeLabel();

@@ -252,6 +252,8 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
                 case long l:
                     return l.ToString();
                 // TODO: handle more types
+                case bool b:
+                    return b ? "true" : "false";
                 default:
                     return $"'{val}'";
             }
@@ -324,6 +326,30 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
                 return result.First()["id"].ToString() ?? string.Empty;
             }
             return "";
+        }
+
+        public async Task SoftDeleteResourceById(string resourceId)
+        {
+            var query = $"g.V().has('resourceId', '{resourceId.ToLowerInvariant()}').property('isDeleted', true).property('updateTs', {DateTime.UtcNow.Ticks})";
+
+            _logger.LogTrace($"SoftDeleteNode: query: {query}");
+
+            try
+            {
+                var result = await SubmitWithRetry(query);
+                if (result.Count == 0)
+                {
+                    _logger.LogInternalWarning($"Soft delete node {resourceId} did not find any matching node.");
+                }
+                else
+                {
+                    _logger.LogInternalInformation($"Soft deleted node {resourceId} successfully.");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, $"Error soft deleting node: {ex.Message}. Query: {query}");
+            }
         }
     }
 }

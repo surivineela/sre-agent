@@ -137,7 +137,22 @@ public class ResourceGraphCrawlerService : ICrawlerService
             {
                 _ = Task.Run(async () =>
                 {
-                    if (IsArmResourceOperation(eventData))
+                    var armOperationType = GetArmResourceOperationType(eventData);
+                    if (armOperationType == ArmResourceOperationType.Other)
+                    {
+                        _logger.LogDebug($"Ignoring event: {eventData.HttpRequest.Method} {eventData.ResourceId}.");
+                        return;
+                    }
+                    else if (armOperationType == ArmResourceOperationType.Delete)
+                    {
+                        _logger.LogDebug($"Deleting resource: {eventData.HttpRequest.Method} {eventData.ResourceId}.");
+                        if (!string.IsNullOrEmpty(eventData.ResourceId))
+                        {
+                            await _graphDbClient.SoftDeleteResourceById(eventData.ResourceId);
+                        }
+                        return;
+                    }
+                    else if (armOperationType == ArmResourceOperationType.Update)
                     {
                         GraphNode node = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(eventData.ResourceId);
                         if (node != null)
@@ -150,6 +165,10 @@ public class ResourceGraphCrawlerService : ICrawlerService
                             _logger.LogDebug($"Cleaning up stale edges from {node.GetNodeId()} (older than {startTS})");
                             await CrawlerExtensions.RemoveStaleEdgeForNode(_graphDbClient, node, startTS);
                         }
+                    }
+                    else
+                    {
+                        _logger.LogInternalWarning($"Unknown arm operation: {armOperationType} {eventData.HttpRequest.Method} {eventData.ResourceId}.");
                     }
                 }, cancellationToken ?? CancellationToken.None);
             }
@@ -368,20 +387,33 @@ public class ResourceGraphCrawlerService : ICrawlerService
         return false;
     }
 
-    private bool IsArmResourceOperation(EventDataInfo eventData)
+    private enum ArmResourceOperationType
+    {
+        Update,
+        Delete,
+        Other
+    }
+
+    private ArmResourceOperationType GetArmResourceOperationType(EventDataInfo eventData)
     {
         // TODO: filter operation, e.g. Microsoft.App/containerApps/listSecrets/action
         if (eventData.Category.Value == "Administrative"
             && eventData.ResourceId != null
             && eventData.HttpRequest != null
-            && (eventData.HttpRequest.Method == "PUT" || eventData.HttpRequest.Method == "PATCH")
             && !string.IsNullOrEmpty(eventData.Status.Value)
             && (eventData.Status.Value == "Accepted" || eventData.Status.Value == "Succeeded"))
         {
-            return true;
+            if (eventData.HttpRequest.Method == "PUT" || eventData.HttpRequest.Method == "PATCH")
+            {
+                return ArmResourceOperationType.Update;
+            }
+            else if (eventData.HttpRequest.Method == "DELETE")
+            {
+                return ArmResourceOperationType.Delete;
+            }
         }
 
-        return false;
+        return ArmResourceOperationType.Other;
     }
 }
 

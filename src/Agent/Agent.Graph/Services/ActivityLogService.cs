@@ -139,7 +139,6 @@ public class ActivityLogService : IActivityLogService
             var response = await client.SendAsync(request);
             response.EnsureSuccessStatusCode();
 
-            var content = await response.Content.ReadAsStringAsync();
             var jDoc = await JsonDocument.ParseAsync(response.Content.ReadAsStream(), new JsonDocumentOptions { MaxDepth = 256 });
             foreach (var property in jDoc.RootElement.EnumerateObject())
             {

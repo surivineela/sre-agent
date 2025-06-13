@@ -42,5 +42,10 @@ namespace FirstPartyAgent.Core.Services
         {
             return Task.FromResult(string.Empty);
         }
+
+        public Task SoftDeleteResourceById(string resourceId)
+        {
+            return Task.CompletedTask;
+        }
     }
 }
