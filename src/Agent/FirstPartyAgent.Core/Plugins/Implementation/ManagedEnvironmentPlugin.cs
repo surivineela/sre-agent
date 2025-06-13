@@ -68,6 +68,11 @@ public class ManagedEnvironmentPlugin : IManagedEnvironmentPlugin
 
     public async Task<string> GetManagedClusterEnvironmentResourceId(string region, DateTime fromDate, DateTime toDate, string managedClusterName)
     {
+        if (string.IsNullOrEmpty(managedClusterName))
+        {
+            throw new ArgumentException("Managed cluster name cannot be null or empty.", nameof(managedClusterName));
+        }
+
         return await _kustoPlugin.ExecuteLocalFunctionAsync("GetManagedClusterEnvironmentResourceId", region,
             new Dictionary<string, string>
             {
