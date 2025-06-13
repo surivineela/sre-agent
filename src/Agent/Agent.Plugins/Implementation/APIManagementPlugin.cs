@@ -2,6 +2,7 @@ using System.Text;
 using Agent.Core.Helpers;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Logging;
+using Agent.Plugins.Helpers;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
 using Microsoft.Extensions.Logging;
@@ -152,11 +153,70 @@ namespace Agent.Plugins.Implementation
             return queryResult;
         }
 
+        public async Task<string> GetAPIMActivityLogs(string apimResourceId, DateTime startTime, DateTime endTime)
+        {
+            _logger.LogInternalInformation($"[GetAPIMActivityLogsAsync] Invoked with resourceId: {apimResourceId}, startTime: {startTime}, endTime: {endTime}");
+
+            string subscriptionId = apimResourceId.Split('/')[2];
+            string apiVersion = APIManagementHelper.Constants.ActivityLogApiVer;
+
+            string filter = $"eventTimestamp ge '{startTime:O}' and eventTimestamp le '{endTime:O}' and resourceUri eq '{apimResourceId}'";
+            string requestUrl = $"https://management.azure.com/subscriptions/{subscriptionId}/providers/Microsoft.Insights/eventtypes/management/values?api-version={apiVersion}&$filter={Uri.EscapeDataString(filter)}";
+
+            try
+            {
+                _logger.LogInternalInformation($"GetAPIMActivityLogs: Fetching activity logs from URL: {requestUrl}");
+                var appActivityLogs = await _armHelper.GetResourceByURL(requestUrl);
+
+                if (string.IsNullOrWhiteSpace(appActivityLogs))
+                {
+                    _logger.LogInternalWarning("GetAPIMActivityLogs: Received empty response from ARM.");
+                    return "No activity log entries found.";
+                }
+
+                var jsonAppActivityLogs = JObject.Parse(appActivityLogs);
+                var activityLogEvents = jsonAppActivityLogs["value"] as JArray;
+                if (activityLogEvents == null || !activityLogEvents.Any())
+                {
+                    _logger.LogInternalInformation("GetAPIMActivityLogs: No activity log entries found in response.");
+                    return "No activity log entries found.";
+                }
+
+                var activityLogList = new List<APIMActivityLogEntry>();
+                foreach (var activityEvent in activityLogEvents)
+                {
+                    var eventTimestamp = activityEvent["eventTimestamp"]?.ToString() ?? "N/A";
+                    var operationName = activityEvent["operationName"]?["localizedValue"]?.ToString() ?? "N/A";
+                    var eventName = activityEvent["eventName"]?["localizedValue"]?.ToString() ?? "N/A";
+                    var eventStatus = activityEvent["status"]?["localizedValue"]?.ToString() ?? "N/A";
+                    var requestUri = activityEvent["httpRequest"]?["uri"]?.ToString() ?? "N/A";
+                    var eventCaller = activityEvent["caller"]?.ToString() ?? "N/A";
+
+                    var logEntry = new APIMActivityLogEntry(
+                        eventTimestamp,
+                        operationName,
+                        eventName,
+                        eventStatus,
+                        requestUri,
+                        eventCaller
+                    );
+                    activityLogList.Add(logEntry);
+                }
+
+                return Newtonsoft.Json.JsonConvert.SerializeObject(activityLogList, Newtonsoft.Json.Formatting.Indented);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, $"GetAPIMActivityLogs: Exception occurred for resourceId: {apimResourceId}");
+                return $"Error: Exception occurred while fetching activity logs: {ex.Message}";
+            }
+        }
+
         #region APIM Connected Resource Helpers
 
         public async Task<string> GetAPIMConnectedAppInsights(string apiManagementResourceId)
         {
-            string apiVersion = "2020-06-01-preview";
+            string apiVersion = APIManagementHelper.Constants.AppInsightsApiVer;
 
             // Call to list all of the app insights resources connected to the API Management instance
             var requestUrl = $"https://management.azure.com{apiManagementResourceId}/loggers?api-version={apiVersion}";

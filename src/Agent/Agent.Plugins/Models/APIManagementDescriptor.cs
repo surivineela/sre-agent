@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace Agent.Plugins.Models
 {
     public sealed record APIManagementDescriptor(
@@ -12,4 +6,13 @@ namespace Agent.Plugins.Models
         string Type,
         string Location,
         string ResourceGroup);
+
+    public record APIMActivityLogEntry(
+            string Timestamp,
+            string Operation,
+            string Event,
+            string Status,
+            string URI,
+            string Caller
+        );
 }
