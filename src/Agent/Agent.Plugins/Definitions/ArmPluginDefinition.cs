@@ -39,6 +39,7 @@ namespace Agent.Plugins
         }
 
         [RequiresApproval]
+        [WriteAction]
         [Description("Sets the minimum TLS version on a site resource")]
         public async Task<string> SetMinimumTlsVersion(
             [Description("The resource ID of the app.")]

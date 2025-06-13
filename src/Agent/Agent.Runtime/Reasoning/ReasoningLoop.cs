@@ -555,14 +555,10 @@ public class ReasoningLoop
                 }
                 else
                 {
-                    var checkApprovalResult = await CheckApprovalAsync(toolCall);
-                    var checkAzCliWrite = CheckAzCliWriteToolCall(toolCall);
-                    var checkKubectlWrite = CheckKubectlWriteToolCall(toolCall);
                     var checkWriteActionResult = CheckWriteActionInReadOnlyMode(toolCall);
-
                     if (_actionSettings.Mode == ActionMode.ReadOnly && checkWriteActionResult.NeedSkip)
                     {
-                        var chatMessage = new ChatMessage(ChatRole.Tool, checkWriteActionResult.Prompt);
+                        var chatMessage = new ChatMessage(ChatRole.User, checkWriteActionResult.Prompt);
                         toolResults.Add(new ManualToolCallResult()
                         {
                             FunctionCall = toolCall.FunctionCall,
@@ -570,74 +566,82 @@ public class ReasoningLoop
                             SkipToolCall = true,
                             ReplacementMessage = chatMessage,
                         });
-                    }
-                    else if (checkAzCliWrite)
-                    {
-                        var functionResult = await InvokeToolWithErrorHandlingAsync(toolCall, cancellationToken);
 
-                        var cliExecution = await _threadRepository.ListPendingAzCliExecutionAsync(_context.ThreadId);
-                        if (cliExecution == null)
-                        {
-                            // if cliExecution is null, it means no pending execution, which means something (e.g. validation failed)
-                            // we need to return the error message to LLM.
-                            toolResults.Add(new ManualToolCallResult()
-                            {
-                                FunctionCall = toolCall.FunctionCall,
-                                Output = functionResult
-                            });
-                        }
-                        else
-                        {
-                            cliExecution = cliExecution with
-                            {
-                                AgentContextId = _context.Id,
-                                OriginalFunctionCall = JsonSerializer.Serialize(toolCall.FunctionCall),
-                            };
-                            await _threadRepository.UpdateAzCliExecutionAsync(_context.ThreadId, cliExecution);
-                            break;
-                        }
-                    }
-                    else if (checkKubectlWrite)
-                    {
-                        var functionResult = await InvokeToolWithErrorHandlingAsync(toolCall, cancellationToken);
-
-                        var kubectlExecution = await _threadRepository.ListPendingKubectlExecutionAsync(_context.ThreadId);
-                        if (kubectlExecution == null)
-                        {
-                            // if cliExecution is null, it means no pending execution, which means something (e.g. validation failed)
-                            // we need to return the error message to LLM.
-                            toolResults.Add(new ManualToolCallResult()
-                            {
-                                FunctionCall = toolCall.FunctionCall,
-                                Output = functionResult
-                            });
-                        }
-                        else
-                        {
-                            kubectlExecution = kubectlExecution with
-                            {
-                                AgentContextId = _context.Id,
-                                OriginalFunctionCall = JsonSerializer.Serialize(toolCall.FunctionCall),
-                            };
-                            await _threadRepository.UpdateKubectlExecutionAsync(_context.ThreadId, kubectlExecution);
-                            break;
-                        }
-                    }
-                    else if (checkApprovalResult.ApprovalStatus == ToolApprovalStatus.NotRequired || checkApprovalResult.ApprovalStatus == ToolApprovalStatus.AutoApproved)
-                    {
-                        var functionResult = await InvokeToolWithErrorHandlingAsync(toolCall, cancellationToken);
-                        toolResults.Add(new ManualToolCallResult()
-                        {
-                            FunctionCall = toolCall.FunctionCall,
-                            Output = functionResult
-                        });
                     }
                     else
                     {
-                        // if approval is required, stop the loop and wait for approval
-                        await PersistReasoningMessageAsync(agentChatHistory, toolCall.OriginalMessage);
+                        var checkApprovalResult = await CheckApprovalAsync(toolCall);
+                        var checkAzCliWrite = CheckAzCliWriteToolCall(toolCall);
+                        var checkKubectlWrite = CheckKubectlWriteToolCall(toolCall);
 
-                        break;
+                        if (checkAzCliWrite)
+                        {
+                            var functionResult = await InvokeToolWithErrorHandlingAsync(toolCall, cancellationToken);
+
+                            var cliExecution = await _threadRepository.ListPendingAzCliExecutionAsync(_context.ThreadId);
+                            if (cliExecution == null)
+                            {
+                                // if cliExecution is null, it means no pending execution, which means something (e.g. validation failed)
+                                // we need to return the error message to LLM.
+                                toolResults.Add(new ManualToolCallResult()
+                                {
+                                    FunctionCall = toolCall.FunctionCall,
+                                    Output = functionResult
+                                });
+                            }
+                            else
+                            {
+                                cliExecution = cliExecution with
+                                {
+                                    AgentContextId = _context.Id,
+                                    OriginalFunctionCall = JsonSerializer.Serialize(toolCall.FunctionCall),
+                                };
+                                await _threadRepository.UpdateAzCliExecutionAsync(_context.ThreadId, cliExecution);
+                                break;
+                            }
+                        }
+                        else if (checkKubectlWrite)
+                        {
+                            var functionResult = await InvokeToolWithErrorHandlingAsync(toolCall, cancellationToken);
+
+                            var kubectlExecution = await _threadRepository.ListPendingKubectlExecutionAsync(_context.ThreadId);
+                            if (kubectlExecution == null)
+                            {
+                                // if cliExecution is null, it means no pending execution, which means something (e.g. validation failed)
+                                // we need to return the error message to LLM.
+                                toolResults.Add(new ManualToolCallResult()
+                                {
+                                    FunctionCall = toolCall.FunctionCall,
+                                    Output = functionResult
+                                });
+                            }
+                            else
+                            {
+                                kubectlExecution = kubectlExecution with
+                                {
+                                    AgentContextId = _context.Id,
+                                    OriginalFunctionCall = JsonSerializer.Serialize(toolCall.FunctionCall),
+                                };
+                                await _threadRepository.UpdateKubectlExecutionAsync(_context.ThreadId, kubectlExecution);
+                                break;
+                            }
+                        }
+                        else if (checkApprovalResult.ApprovalStatus == ToolApprovalStatus.NotRequired || checkApprovalResult.ApprovalStatus == ToolApprovalStatus.AutoApproved)
+                        {
+                            var functionResult = await InvokeToolWithErrorHandlingAsync(toolCall, cancellationToken);
+                            toolResults.Add(new ManualToolCallResult()
+                            {
+                                FunctionCall = toolCall.FunctionCall,
+                                Output = functionResult
+                            });
+                        }
+                        else
+                        {
+                            // if approval is required, stop the loop and wait for approval
+                            await PersistReasoningMessageAsync(agentChatHistory, toolCall.OriginalMessage);
+
+                            break;
+                        }
                     }
                 }
 
@@ -1648,9 +1652,29 @@ public class ReasoningLoop
                 };
             }
 
-            // Check if NeedExecute is true, and if so, add "agentmode" parameter to the function call
-            var prompt = $"\nThe suggestion is to call Function '{toolCall.FunctionCall.Name}' with arguments: {System.Text.Json.JsonSerializer.Serialize(toolCall.FunctionCall.Arguments)}. " +
-                        "Please format this as a clear, actionable instruction for the user.";
+            var prompt = $"You are in read-only mode. You MUST NOT perform any write action. You should ONLY provide suggestions to user for what to do next using NotifyUser. " +
+            "Please format your suggestions in a user-friendly way:\n" +
+            "- If suggesting CLI commands (like az cli, kubectl, shell scripts, etc.), format them using markdown ```shell code blocks``` for easy copy-paste\n" +
+            "- If the command is accurate and ready to use, tell the user they can copy and paste it directly\n" +
+            "- Provide clear explanations of what each suggested action will do\n" +
+            "- Use bullet points or numbered lists to organize multiple suggestions\n" +
+            "- Always wait for user confirmation before proceeding\n" +
+            "- Only proceed with next steps if user explicitly tells you the actions have been taken.";
+
+            prompt += $"\nThe suggestion is to call Function '{toolCall.FunctionCall.Name}' with arguments: {System.Text.Json.JsonSerializer.Serialize(toolCall.FunctionCall.Arguments)}. " +
+                        "Please format this as a clear, actionable instruction to user" +
+                        "Before providing suggestions, think through:\n" +
+                        "1. Context Analysis: What is the user trying to achieve? What's the current state?\n" +
+                        "2. Risk Assessment: Are there any potential issues or prerequisites the user should know about?\n" +
+                        "3. Alternative Approaches: Are there multiple ways to accomplish this goal?\n" +
+                        "4. Success Criteria: How will the user know if the suggested action worked?\n\n" +
+                        "## Chain of Thought Structure:\n" +
+                        "Follow this reasoning pattern:\n" +
+                        "- Understand: Explain what the function call would do and why it's needed\n" +
+                        "- Prepare: Identify any prerequisites or setup steps\n" +
+                        "- Execute: Provide the specific action with clear formatting\n" +
+                        "- Verify: Suggest how to confirm the action was successful\n" +
+                        "- Next Steps: Indicate what should happen after completion";
 
             return new WriteActionActivityOutput()
             {
