@@ -820,7 +820,7 @@ Remember: Quality findings with specific values are better than quantity. Exclud
                             Guid.NewGuid(),
                             DateTime.UtcNow,
                             new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
-                            "🔒 **Incident Auto-Closed**\n\nThis incident has been automatically closed due to 10 minutes of inactivity. The alert status has been updated to 'Closed'."
+                            $"🔒 **Incident Auto-Closed**\n\nThis incident thread has been automatically closed due to {cuttoffTimeWindow} minutes of inactivity."
                         ));
 
                         _logger.LogInternalInformation($"Added closure message to thread {thread.Id}");

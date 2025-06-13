@@ -126,7 +126,8 @@ public class CosmosDbThreadRepository : IThreadRepository
 
         if (incidentType.HasValue)
         {
-            query.Where(t => t.IncidentSource != null && t.IncidentSource.IncidentType == incidentType.Value);        }
+            query.Where(t => t.IncidentSource != null && t.IncidentSource.IncidentType == incidentType.Value);
+        }
 
         // Sort by creation timestamp
         query = query.OrderBy(t => t.CreatedTimestamp);

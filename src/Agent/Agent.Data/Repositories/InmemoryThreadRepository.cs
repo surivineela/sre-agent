@@ -87,7 +87,12 @@ namespace Agent.Data.Repositories
 
             if (source != null)
             {
-                threads.Where(t => t.Source == source);
+                threads = threads.Where(t => t.Source == source);
+            }
+
+            if (incidentType != null)
+            {
+                threads = threads.Where(t => t.IncidentSource.IncidentType == incidentType);
             }
 
             if (queryOptions is not null)
