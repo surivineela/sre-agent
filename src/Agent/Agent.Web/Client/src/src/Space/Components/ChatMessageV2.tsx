@@ -26,18 +26,19 @@ import DailyReport from '../../Common/Components/DailyReport';
 import IncidentAlert from '../../Common/Components/IncidentAlert';
 import InvestigationSummary from '../../Common/Components/InvestigationSummary';
 import InvestigationSummaryPanel from '../../Common/Components/InvestigationSummaryPanel';
-import { AgentMode, ApprovalDecision, AzCliExecution, KubectlExecution } from '../../Common/Contracts/Azure/SreAgent';
+import { ApprovalDecision, AzCliExecution, KubectlExecution } from '../../Common/Contracts/Azure/SreAgent';
+import { getAgentModeDisplayName } from '../../Common/Helpers/AgentMode';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
 import { shouldGroupWithPreviousMessage } from '../Activities/Utility';
 import { IChatMessageV2Props } from '../Contracts/Activities';
+import { SreAgentContext } from '../Contracts/Context';
 import { useAuthenticatedUserInfo } from '../Hooks/useAuthenticatedUserInfo';
 import { ChatBoxStyles, nameAndTimestampContainerStyle, useChatBoxStyles } from '../Styles/Activities.styles';
 import AgentChart from './Charts';
 import { FeedbackDialog } from './FeedbackDialog';
 import MermaidChart from './Mermaid';
-import { SreAgentContext } from '../Contracts/Context';
 
 const chatMessageStyles = mergeStyleSets({
     regularMessageContent: {
@@ -1839,7 +1840,9 @@ const ChatMessageV2 = ({ message, previousMessage, nextMessage, isTyping, thread
     const intl = useIntl();
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const sreAgentContext = useContext(SreAgentContext);
-    const { agent: { mode } } = sreAgentContext;
+    const {
+        agent: { mode },
+    } = sreAgentContext;
 
     const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
     const [selectedFeedback, setSelectedFeedback] = useState<'positive' | 'negative'>();
@@ -1854,19 +1857,7 @@ const ChatMessageV2 = ({ message, previousMessage, nextMessage, isTyping, thread
         return Array.isArray(content) ? content : message.text;
     }, [message.text]);
 
-    const agentMode = useMemo(() => {
-        const lowercaseMode = mode?.toLowerCase() ?? '';
-        switch(lowercaseMode) {
-            case AgentMode.autonomous:
-                return intl.formatMessage(SreAgentResources.autonomous);
-            case AgentMode.review:
-                return intl.formatMessage(SreAgentResources.review);
-            case AgentMode.readonly:
-                return intl.formatMessage(SreAgentResources.readonly);
-            default:
-                return '';
-            }
-    }, [intl, mode]);
+    const agentMode = useMemo(() => getAgentModeDisplayName(mode, intl), [intl, mode]);
 
     const agentMessageProps = useMemo(() => {
         const messageProps: CopilotMessageProps = {

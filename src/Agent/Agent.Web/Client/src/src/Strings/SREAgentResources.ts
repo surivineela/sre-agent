@@ -1,6 +1,7 @@
 import { defineMessages } from 'react-intl';
 
 export const SreAgentResources = defineMessages({
+    runMode: { defaultMessage: 'Run mode', id: 'MFofa3' },
     deleteAgentTitle: { defaultMessage: 'Delete SRE Agent', id: 'ThSX0k' },
     deleteAgentDescription: {
         defaultMessage: 'Are you sure you want to delete this SRE Agent? This action cannot be undone.',
@@ -483,7 +484,10 @@ export const PagerDutyResources = defineMessages({
     },
     connectedMessage: { defaultMessage: 'PagerDuty connected. Your next step is to set up incident handlers.', id: '84MFOR' },
     addedMessage: { defaultMessage: 'PagerDuty connection added successfully', id: 'Wr7RY0' },
-    setUpIncidentHandlers: { defaultMessage: 'Set up incident handlers and custom handlers so that the agent can start resolving incidents.', id: 'lzHc+Y' },
+    setUpIncidentHandlers: {
+        defaultMessage: 'Set up incident handlers and custom handlers so that the agent can start resolving incidents.',
+        id: 'lzHc+Y',
+    },
     goToIncidentManagement: { defaultMessage: 'Go to incident management', id: 'niQCoZ' },
 });
 

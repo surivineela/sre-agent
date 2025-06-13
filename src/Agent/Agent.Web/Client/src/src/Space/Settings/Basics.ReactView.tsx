@@ -17,6 +17,7 @@ import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import SreAgentClient from '../../Common/Clients/SreAgentClient';
+import { getAgentModeDisplayName } from '../../Common/Helpers/AgentMode';
 import { ArmResourceDescriptor } from '../../Common/Helpers/ResourceDescriptors';
 import { SettingsTabResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { useSreAgent } from './Hooks/useSreAgent';
@@ -47,6 +48,11 @@ const Basics: FC = () => {
         const identityName = identityDescriptor?.resourceName || '';
         return { identityId, identityName };
     }, [agent?.identity?.userAssignedIdentities]);
+
+    const agentMode = useMemo(
+        () => getAgentModeDisplayName(agent?.properties?.actionConfiguration?.mode || '', intl),
+        [agent?.properties?.actionConfiguration?.mode, intl]
+    );
 
     const openSubscription = useCallback(() => {
         az.openBlade({
@@ -150,6 +156,8 @@ const Basics: FC = () => {
                 <Shimmer isDataLoaded={!agentLoading || (!!identityId && !!identityName)}>
                     {identityId && identityName ? <Link onClick={openManagedIdentity}>{identityName}</Link> : '-'}
                 </Shimmer>
+                <Label>{intl.formatMessage(SreAgentResources.runMode)}</Label>
+                <Shimmer isDataLoaded={!agentLoading || !!agentMode}>{agentMode}</Shimmer>
             </div>
             <Dialog open={deleteDialogOpen}>
                 <DialogTrigger disableButtonEnhancement>
