@@ -48,12 +48,14 @@ namespace Agent.Core.Services
         private readonly string IcmAPIPathPrefix;
         private readonly AuthType _authType;
         private readonly ILogger<ICMAPIClient> _logger;
+        private readonly string _identity = string.Empty;
 
-        public ICMAPIClient(IHostEnvironment environment, IncidentManagementSettings incidentManagementSettings, ILogger<ICMAPIClient> logger)
+        public ICMAPIClient(IHostEnvironment environment, IncidentManagementSettings incidentManagementSettings, ILogger<ICMAPIClient> logger, ActionSettings actionSettings)
         {
             _logger = logger;
             _icmApiSettings = incidentManagementSettings.ICMAPI;
             IsDevelopment = environment.IsDevelopment();
+            _identity = actionSettings.Identity ?? string.Empty;
             //if (!_icmApiSettings.Enabled)
             //{
             //    return;
@@ -64,7 +66,7 @@ namespace Agent.Core.Services
             }
 
             _authType = AuthType.None;
-            if (_icmApiSettings.ManagedIdentityEnabled && !string.IsNullOrWhiteSpace(_icmApiSettings.ManagedIdentityClientId))
+            if (!string.IsNullOrEmpty(_identity))
             {
                 _authType = AuthType.ManagedIdentity;
                 IcmAPIPathPrefix = "/api2/user/incidentapi";

@@ -28,6 +28,11 @@ namespace Agent.Core.Services.TokenService
         protected abstract string ClientId { get; set; }
 
         /// <summary>
+        /// user-assigned managed identity resource ID
+        /// </summary>
+        protected abstract string ResourceId { get; set; }
+
+        /// <summary>
         /// Gets or sets token service name used for logging to Kusto.
         /// </summary>
         protected abstract string TokenServiceName { get; set; }
@@ -97,7 +102,15 @@ namespace Agent.Core.Services.TokenService
             // This will help default to VS credentials when developing locally
             if (Environment.GetEnvironmentVariable("MSI_ENDPOINT") != null)
             {
-                authOptions.ManagedIdentityClientId = ClientId;
+                if(!string.IsNullOrEmpty(ResourceId))
+                {
+                    authOptions.ManagedIdentityResourceId = new ResourceIdentifier(ResourceId);
+                }
+                else if (!string.IsNullOrEmpty(ClientId))
+                {
+                    // If ResourceId is not set, use ClientId for user-assigned managed identity
+                    authOptions.ManagedIdentityClientId = ClientId;
+                }
             }
             TokenCredential = new DefaultAzureCredential(authOptions);
             TokenRequestContext = new TokenRequestContext(scopes: new string[] { Resource });

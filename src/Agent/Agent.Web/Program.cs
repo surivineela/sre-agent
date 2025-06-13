@@ -531,7 +531,8 @@ public class Program
                 builder.Services.AddSingleton<IIncidentScanner, IcmScanner>();
 
                 var logger = serviceProvider.GetRequiredService<ILogger<ICMAPITokenService>>();
-                ICMAPITokenService.Instance.Initialize(incidentManagementSettings.ICMAPI,logger);
+                var actionSettings = serviceProvider.GetRequiredService<ActionSettings>();
+                ICMAPITokenService.Instance.Initialize(actionSettings, incidentManagementSettings.ICMAPI, logger);
                 break;
             default:
                 builder.Services.AddSingleton<IPagerDutyService, NullablePagerDutyService>();

@@ -11,14 +11,16 @@ public class ICMAPITokenService: ManagedIdentityTokenServiceBase
     protected override bool ManagedIdentityEnabled { get; set; }
     protected override string Resource { get; set; }
     protected override string ClientId { get; set; }
+    protected override string ResourceId { get; set; }
     protected override string TokenServiceName { get; set; }
     protected override TokenCredential TokenCredential { get; set; }
     protected override TokenRequestContext TokenRequestContext { get; set; }
-    public void Initialize(ICMAPISettings icmApiSettings, ILogger<ICMAPITokenService> logger)
+
+    public void Initialize(ActionSettings actionSettings, ICMAPISettings icmApiSettings, ILogger<ICMAPITokenService> logger)
     {
-        ManagedIdentityEnabled = icmApiSettings.ManagedIdentityEnabled;
+        ManagedIdentityEnabled = !string.IsNullOrEmpty(actionSettings.Identity);
         Resource = icmApiSettings.IcmMSIResource;
-        ClientId = icmApiSettings.ManagedIdentityClientId;
+        ResourceId = actionSettings.Identity;
         TokenServiceName = "ICMAPITokenService";
         StartTokenRefresh(logger);
     }
