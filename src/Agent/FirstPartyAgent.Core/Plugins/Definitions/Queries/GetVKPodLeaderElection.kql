@@ -1,9 +1,0 @@
-let queryFrom = datetime("##fromDate##");
-let queryTo = datetime("##toDate##");
-let clusterName = "##managedClusterName##";
-LegionVKVirtualKubeletEvents
-| where PreciseTimeStamp between(queryFrom..queryTo)
-| where EnvironmentName =~ clusterName
-| where msg startswith "New leader elected"
-| distinct TIMESTAMP
-| take 1000

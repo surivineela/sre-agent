@@ -1,9 +1,0 @@
-let startTime = datetime("##fromDate##");
-let endTime = datetime("##toDate##");
-let managedClusterName = "##managedClusterName##";
-SwiftNetworkingEvents
-| where PreciseTimeStamp between (startTime .. endTime)
-| where EnvironmentName == managedClusterName
-| where _ContainerName == "swift-load-balancer"
-| where isnotempty(error) or isnotempty(Log)
-| project PreciseTimeStamp, logger, Log, msg, error, Role, _ContainerGroupId, _ContainerGroupName, _ContainerId, _ContainerImage, caller

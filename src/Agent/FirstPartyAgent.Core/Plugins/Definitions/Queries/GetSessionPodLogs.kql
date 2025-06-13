@@ -1,8 +1,0 @@
-let fromDate = datetime("##fromDate##");
-let endDate = datetime("##toDate##");
-let podName = "##podName##";
-SessionPoolEvents
-| where TIMESTAMP between (fromDate .. toDate) 
-| where _ContainerGroupId != "" and _ContainerGroupId == podName 
-| project PreciseTimeStamp, EnvironmentName, _ContainerGroupId, Log, Stream, _Region, Tenant 
-| where  Level <= 2

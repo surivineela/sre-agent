@@ -1,9 +1,0 @@
-let fromDate = datetime("##fromDate##");
-let endDate = datetime("##toDate##");
-let _subscriptionId = "##subscriptionId##";
-let _resourceGroupName = "##resourceGroupName##";
-let _sessionPoolName =  "##sessionPoolName##";
-SessionPoolDBState
-| where PreciseTimeStamp  between (fromDate-2h .. endDate)
-| where subscription == _subscriptionId and resourceGroup == _resourceGroupName and sessionPoolName == _sessionPoolName
-| summarize arg_max(PreciseTimeStamp, containerType, customContainerTemplate, dynamicPoolConfigurationJsonString, kubeEnvironment, managedClusterName,  maxConcurrentSessions, poolManagementType, legionPodPoolName) by sessionPoolName
