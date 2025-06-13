@@ -672,6 +672,10 @@ public class ReasoningLoop
                     _logger.LogInternalInformation("Agent output: {AgentOutputMessage}, {IsUserInputRequired}, {RequestCompleted}, {Reasoning}",
                         agentOutput.OutputMessage, agentOutput.IsUserInputRequired, agentOutput.RequestCompleted, agentOutput.Reasoning);
 
+                    await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+                        _context,
+                        new ChatMessage(ChatRole.Assistant, agentOutput.OutputMessage));
+
                     if (agentOutput.CannotHandleNextStep)
                     {
                         _logger.LogInternalInformation("Agent determined the request is out of scope. Handoff back");
@@ -682,6 +686,9 @@ public class ReasoningLoop
                             _context.AgentHandoffChain.RemoveAt(_context.AgentHandoffChain.Count - 1);
                             var agentName = _context.AgentHandoffChain[^1];
                             var newAgent = _agentFactory.GetAgent(agentName);
+
+                            // persist handoff to trace
+                            await runHooks.OnHandoff(new(_context), _currentAgent, newAgent);
 
                             _currentAgent = newAgent;
                             _context = _context with { CurrentAgent = _currentAgent.Name };
@@ -701,22 +708,26 @@ public class ReasoningLoop
                         {
                             _logger.LogInternalInformation("AgentHandoffChain is empty or has only one agent, ending reasoning loop.");
 
-                            // If the agent cannot handle the request but there is no handoff back, we just reply with the message and end the reasoning loop
-                            await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
-                                _context,
-                                new ChatMessage(ChatRole.Assistant, agentOutput.OutputMessage));
-
                             return new ReasoningLoopIterationResult()
                             {
                                 IsContinuation = false
                             };
                         }
                     }
-                    else
+                    // agent can handle the request, and it generated some messages but did not complete
+                    else if (!agentOutput.RequestCompleted
+                        // and reason for being incomplete is not user input requirement
+                        && !agentOutput.IsUserInputRequired)
                     {
-                        await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
-                            _context,
-                            new ChatMessage(ChatRole.Assistant, agentOutput.OutputMessage));
+                        _logger.LogInternalInformation("Asking {AgentName} agent to continue action...", _currentAgent.Name);
+
+                        var userPromptMessage = new ChatMessage(ChatRole.User, "You mentioned you could not complete the request. Continue taking actions to complete the request.");
+                        await PersistReasoningMessageAsync(agentChatHistory, userPromptMessage);
+
+                        return new ReasoningLoopIterationResult()
+                        {
+                            IsContinuation = true
+                        };
                     }
                 }
             }
@@ -1016,7 +1027,7 @@ public class ReasoningLoop
                 _logger.LogInternalError(ex, "An error occurred during tool call processing.");
                 toolCallProcessingFailed = true;
             }
-             // Handle turn limit exception result
+            // Handle turn limit exception result
             if (turnLimitResult != null)
             {
                 yield return turnLimitResult;

@@ -31,4 +31,8 @@ public class RunHooks<TContext> where TContext : class
 
     public Func<RunContextWrapper<TContext>, Agent<TContext>, ChatResponse, Task> OnModelGenerationEnd { get; set; } =
         (context, agent, response) => Task.CompletedTask;
+
+    //todo: convert to enum - critic or reasoningloophandler
+    public Func<RunContextWrapper<TContext>, ChatMessage, string, Task> OnInputInjection { get; set; } =
+        (context, injectedMessage, injectionSource) => Task.CompletedTask;
 }
