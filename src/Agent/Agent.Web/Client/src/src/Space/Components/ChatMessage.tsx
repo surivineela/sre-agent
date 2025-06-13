@@ -1894,9 +1894,28 @@ const ChatMessage = ({
         [message, nextMessage, isTyping]
     );
 
-    const handleFeedbackClick = (isPositive: boolean) => {
+    const handleFeedbackClick = async (isPositive: boolean) => {
         setSelectedFeedback(isPositive ? 'positive' : 'negative');
-        setShowFeedbackDialog(true);
+
+        if (isPositive) {
+            try {
+                const url = `${sreAgentEndpoint}/api/v1/threads/${threadId}/feedbacks`;
+                await axios.post(
+                    url,
+                    {
+                        isPositive: true,
+                        feedbackText: '',
+                    },
+                    {
+                        headers: getAgentHeaders(),
+                    }
+                );
+            } catch (error) {
+                console.error('Failed to send positive feedback:', error);
+            }
+        } else {
+            setShowFeedbackDialog(true);
+        }
     };
 
     // Helper function to extract title from mermaid content
