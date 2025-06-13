@@ -14,6 +14,10 @@ type SreAgentContextProps = {
         isIncidentManagementConnected: boolean;
         setIsIncidentManagementConnected: React.Dispatch<React.SetStateAction<boolean>>;
     };
+    agent: {
+        mode: string;
+        setMode: React.Dispatch<React.SetStateAction<string>>;
+    }
 };
 
 type WebSocketContextProps = {
@@ -33,6 +37,10 @@ export const SreAgentContext = createContext<SreAgentContextProps>({
     incidentManagement: {
         isIncidentManagementConnected: false,
         setIsIncidentManagementConnected: () => {},
+    },
+    agent: {
+        mode: '',
+        setMode: () => {},
     }
 });
 

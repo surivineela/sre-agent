@@ -20,6 +20,12 @@ export enum ProvisioningState {
     Deleting = 'Deleting',
 }
 
+export enum AgentMode {
+    autonomous = 'autonomous',
+    review = 'review',
+    readonly = 'readonly',
+}
+
 export interface DashboardConfiguration {
     grafanaUrl?: string;
     azureMonitorWorkspaceQueryEndpoint?: string;

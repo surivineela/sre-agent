@@ -26,7 +26,7 @@ import DailyReport from '../../Common/Components/DailyReport';
 import IncidentAlert from '../../Common/Components/IncidentAlert';
 import InvestigationSummary from '../../Common/Components/InvestigationSummary';
 import InvestigationSummaryPanel from '../../Common/Components/InvestigationSummaryPanel';
-import { ApprovalDecision, AzCliExecution, KubectlExecution } from '../../Common/Contracts/Azure/SreAgent';
+import { AgentMode, ApprovalDecision, AzCliExecution, KubectlExecution } from '../../Common/Contracts/Azure/SreAgent';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
@@ -37,6 +37,7 @@ import { ChatBoxStyles, nameAndTimestampContainerStyle, useChatBoxStyles } from 
 import AgentChart from './Charts';
 import { FeedbackDialog } from './FeedbackDialog';
 import MermaidChart from './Mermaid';
+import { SreAgentContext } from '../Contracts/Context';
 
 const chatMessageStyles = mergeStyleSets({
     regularMessageContent: {
@@ -1837,6 +1838,8 @@ const ChatMessageV2 = ({ message, previousMessage, nextMessage, isTyping, thread
     const chatStyles = useChatBoxStyles();
     const intl = useIntl();
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
+    const sreAgentContext = useContext(SreAgentContext);
+    const { agent: { mode } } = sreAgentContext;
 
     const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
     const [selectedFeedback, setSelectedFeedback] = useState<'positive' | 'negative'>();
@@ -1851,6 +1854,20 @@ const ChatMessageV2 = ({ message, previousMessage, nextMessage, isTyping, thread
         return Array.isArray(content) ? content : message.text;
     }, [message.text]);
 
+    const agentMode = useMemo(() => {
+        const lowercaseMode = mode?.toLowerCase() ?? '';
+        switch(lowercaseMode) {
+            case AgentMode.autonomous:
+                return intl.formatMessage(SreAgentResources.autonomous);
+            case AgentMode.review:
+                return intl.formatMessage(SreAgentResources.review);
+            case AgentMode.readonly:
+                return intl.formatMessage(SreAgentResources.readonly);
+            default:
+                return '';
+            }
+    }, [intl, mode]);
+
     const agentMessageProps = useMemo(() => {
         const messageProps: CopilotMessageProps = {
             avatar: <Image src="./SreAgent.svg" width={28} height={28} alt={intl.formatMessage(SreAgentResources.sreAgent)} />,
@@ -1859,6 +1876,7 @@ const ChatMessageV2 = ({ message, previousMessage, nextMessage, isTyping, thread
             name: (
                 <div style={nameAndTimestampContainerStyle}>
                     <span>{intl.formatMessage(SreAgentResources.sreAgent)}</span>
+                    {mode && <span className={chatStyles.modePill}>{agentMode}</span>}
                     {!isTyping && (
                         <Text size={200} color={tokens.colorNeutralForeground3}>
                             {getSafeDateTime(message.timeStamp).toLocaleString()}
@@ -1870,7 +1888,7 @@ const ChatMessageV2 = ({ message, previousMessage, nextMessage, isTyping, thread
         };
 
         return messageProps;
-    }, [intl, isTyping, message.timeStamp]);
+    }, [chatStyles.modePill, intl, isTyping, message.timeStamp, mode, agentMode]);
 
     // Hide message's icon, name and timestamp if the message is grouped with the previous one
     const hideMessageHeader = useMemo(() => shouldGroupWithPreviousMessage(message, previousMessage), [message, previousMessage]);

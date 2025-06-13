@@ -46,6 +46,7 @@ const TabsListWrapper: FC = () => {
     const sreAgentContext = useContext(SreAgentContext);
     const {
         incidentManagement: { isIncidentManagementConnected },
+        agent: { setMode }
     } = sreAgentContext;
     const intl = useIntl();
     const location = useLocation();
@@ -127,8 +128,9 @@ const TabsListWrapper: FC = () => {
     useEffect(() => {
         if (agent && !inStandaloneMode) {
             fetchWorkspaceId();
+            setMode(agent.properties.actionConfiguration?.mode ?? '');
         }
-    }, [agent, fetchWorkspaceId]);
+    }, [agent, fetchWorkspaceId, setMode]);
 
     return (
         <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -179,6 +181,7 @@ const SREAgentSpace: FC = () => {
     const [deploymentId, setDeploymentId] = useState<string>('');
     const [notificationId, setNotificationId] = useState<string>('');
     const [isIncidentManagementConnected, setIsIncidentManagementConnected] = useState(false);
+    const [agentMode, setAgentMode] = useState<string>('');
 
     useEffect(() => {
         const logSiteVersion = () => {
@@ -214,6 +217,10 @@ const SREAgentSpace: FC = () => {
                     isIncidentManagementConnected,
                     setIsIncidentManagementConnected,
                 },
+                agent: {
+                    mode: agentMode,
+                    setMode: setAgentMode,
+                }
             }}
         >
             <HashRouter>

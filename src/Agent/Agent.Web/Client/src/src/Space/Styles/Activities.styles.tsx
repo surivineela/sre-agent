@@ -79,6 +79,14 @@ export const useChatBoxStyles = makeStyles({
     userBubbleMessage: {
         padding: '0px 16px 0px 0px',
     },
+    modePill: {
+        backgroundColor: tokens.colorNeutralBackground3,
+        color: tokens.colorNeutralForeground1,
+        borderRadius: '12px',
+        fontSize: '12px',
+        padding: '0 6px',
+        fontWeight: 500,
+    },
 });
 
 export const ChatBoxStyles = mergeStyleSets({
