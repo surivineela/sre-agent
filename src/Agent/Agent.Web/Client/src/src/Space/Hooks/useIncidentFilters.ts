@@ -14,6 +14,18 @@ export const useIncidentFilters = () => {
     const [incidentFilters, setIncidentFilters] = useState<IncidentFilter[]>();
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
+    const getIncidentFilters = useCallback(async (): Promise<IncidentFilter[]> => {
+        const incidentResults = await IncidentHandlerClient.getInstance(sreAgentEndpoint).listIncidentFilters();
+        return incidentResults?.content ?? [];
+    }, [sreAgentEndpoint]);
+
+    const refresh = useCallback(async () => {
+        setIsLoading(true);
+        const results = await getIncidentFilters();
+        setIncidentFilters(results);
+        setIsLoading(false);
+    }, [getIncidentFilters]);
+
     const deleteIncidentFilter = useCallback(
         async (id: string): Promise<void> => {
             const notification = portalContext.startNotification(
@@ -82,6 +94,46 @@ export const useIncidentFilters = () => {
         [intl, portalContext, sreAgentEndpoint]
     );
 
+    const updateIncidentFilter = useCallback(
+        async (incidentFilter: IncidentFilterPayload): Promise<void> => {
+            const notification = portalContext.startNotification(
+                intl.formatMessage(IncidentManagementNotificationResources.updateFilterTitle),
+                intl.formatMessage(IncidentManagementNotificationResources.updateFilterInProgress)
+            );
+            const updateFilterResponse = await IncidentHandlerClient.getInstance(sreAgentEndpoint).updateIncidentFilter(incidentFilter);
+            if (updateFilterResponse.isSuccessful) {
+                portalContext.stopNotification(
+                    notification,
+                    true,
+                    intl.formatMessage(IncidentManagementNotificationResources.updateFilterSuccess)
+                );
+                if (updateFilterResponse.content) {
+                    setIncidentFilters(prev => {
+                        const updated = prev?.map(filter =>
+                            filter.id === incidentFilter.Id ? updateFilterResponse.content as IncidentFilter : filter
+                        );
+                        return updated ?? [];
+                    });
+                }
+            } else {
+                portalContext.log({
+                    action: 'updateIncidentFilter',
+                    actionModifier: 'failed',
+                    logLevel: 'error',
+                    data: {
+                        message: `Failed to update incident filter`,
+                    },
+                });
+                portalContext.stopNotification(
+                    notification,
+                    false,
+                    intl.formatMessage(IncidentManagementNotificationResources.updateFilterError)
+                );
+            }
+        },
+        [intl, portalContext, sreAgentEndpoint]
+    );
+
     const enableIncidentFilter = useCallback(
         async (id: string): Promise<void> => {
             const notification = portalContext.startNotification(
@@ -95,6 +147,12 @@ export const useIncidentFilters = () => {
                     true,
                     intl.formatMessage(IncidentManagementNotificationResources.enableFilterSuccess)
                 );
+                setIncidentFilters(prev => {
+                        const updated = prev?.map(filter =>
+                            filter.id === id ? enableFilterResponse.content as IncidentFilter : filter
+                        );
+                        return updated ?? [];
+                });
             } else {
                 portalContext.log({
                     action: 'enableIncidentFilter',
@@ -127,6 +185,12 @@ export const useIncidentFilters = () => {
                     true,
                     intl.formatMessage(IncidentManagementNotificationResources.disableFilterSuccess)
                 );
+                setIncidentFilters(prev => {
+                        const updated = prev?.map(filter =>
+                            filter.id === id ? disableFilterResponse.content as IncidentFilter : filter
+                        );
+                        return updated ?? [];
+                });
             } else {
                 portalContext.log({
                     action: 'disableIncidentFilter',
@@ -145,18 +209,6 @@ export const useIncidentFilters = () => {
         },
         [intl, portalContext, sreAgentEndpoint]
     );
-
-    const getIncidentFilters = useCallback(async (): Promise<IncidentFilter[]> => {
-        const incidentResults = await IncidentHandlerClient.getInstance(sreAgentEndpoint).listIncidentFilters();
-        return incidentResults?.content ?? [];
-    }, [sreAgentEndpoint]);
-
-    const refresh = useCallback(async () => {
-        setIsLoading(true);
-        const results = await getIncidentFilters();
-        setIncidentFilters(results);
-        setIsLoading(false);
-    }, [getIncidentFilters]);
 
     useEffect(() => {
         let isSubscribed = true;
@@ -180,6 +232,7 @@ export const useIncidentFilters = () => {
         incidentFiltersLoading: isLoading,
         deleteIncidentFilter,
         createIncidentFilter,
+        updateIncidentFilter,
         enableIncidentFilter,
         disableIncidentFilter,
     };

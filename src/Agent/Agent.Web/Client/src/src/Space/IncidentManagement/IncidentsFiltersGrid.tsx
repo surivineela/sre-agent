@@ -9,6 +9,7 @@ import { useIntl } from 'react-intl';
 import { IncidentFilter, IncidentHandler } from '../../Common/Contracts/Azure/IncidentHandler';
 import { IncidentManagementResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { useIncidentManagementStyles } from '../Styles/IncidentManagement.styles';
+import { IncidentFilterFormProps } from './CreateIncidentFilterDialog';
 
 export type ISortedDetailsListColumn = IColumn & {
     sort?: (items: any[], isSortedDescending: boolean) => any[];
@@ -39,6 +40,8 @@ export type IncidentsTabProps = {
     setSelectedFilter: Dispatch<React.SetStateAction<IncidentFilter | undefined>>;
     openHandlerCreate: (incidentFilterId: string) => void;
     creatingHandler: boolean;
+    setIsEditFilterMode: Dispatch<React.SetStateAction<boolean>>;
+    setInitialValues: Dispatch<React.SetStateAction<IncidentFilterFormProps | undefined>>;
 };
 
 const IncidentsFiltersGrid: FC<IncidentsTabProps> = (props: IncidentsTabProps) => {
@@ -50,6 +53,8 @@ const IncidentsFiltersGrid: FC<IncidentsTabProps> = (props: IncidentsTabProps) =
         setIsCreateIncidentFilterDialogOpen,
         filterIdToHandlerMap,
         setSelectedFilter,
+        setIsEditFilterMode,
+        setInitialValues,
     } = props;
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
@@ -193,9 +198,21 @@ const IncidentsFiltersGrid: FC<IncidentsTabProps> = (props: IncidentsTabProps) =
         })
     );
 
+    const onIdCLick = useCallback((item: IncidentFilter) => {
+        setIsEditFilterMode(true);
+        setInitialValues({
+            id: item.id ?? '',
+            incidentType: item.incidentType ?? '',
+            impactedService: item.impactedService ?? '',
+            priority: item.priority ?? '',
+            titleContains: item.titleContains ?? '',
+        });
+        setIsCreateIncidentFilterDialogOpen(true);
+    }, [setInitialValues, setIsCreateIncidentFilterDialogOpen, setIsEditFilterMode]);
+
     const onRenderId = useCallback((item: IncidentFilter) => {
-        return <div style={{ userSelect: 'text' }}>{item.id ?? ''}</div>;
-    }, []);
+        return <Link style={{ userSelect: 'text', fontSize: '13px' }} onClick={() => onIdCLick(item)}>{item.id ?? ''}</Link>;
+    }, [onIdCLick]);
 
     const onRenderStatus = useCallback(
         (item: IncidentFilter) => {
@@ -246,6 +263,7 @@ const IncidentsFiltersGrid: FC<IncidentsTabProps> = (props: IncidentsTabProps) =
             }
             return (
                 <Link
+                    style={{ fontSize: '13px' }}
                     onClick={() => {
                         openHandlerCreate(item.id);
                     }}
@@ -255,7 +273,7 @@ const IncidentsFiltersGrid: FC<IncidentsTabProps> = (props: IncidentsTabProps) =
                 </Link>
             );
         },
-        [filterIdToHandlerMap, intl, openHandlerCreate, styles.greenCheckIcon, styles.setUp]
+        [creatingHandler, filterIdToHandlerMap, intl, openHandlerCreate, styles.greenCheckIcon, styles.setUp]
     );
 
     const onIncidentTypeChange = useCallback(
@@ -473,6 +491,8 @@ const IncidentsFiltersGrid: FC<IncidentsTabProps> = (props: IncidentsTabProps) =
                         <Button
                             appearance="primary"
                             onClick={() => {
+                                setIsEditFilterMode(false);
+                                setInitialValues(undefined);
                                 setIsCreateIncidentFilterDialogOpen(true);
                             }}
                             className={styles.newIncidentFilterButton}

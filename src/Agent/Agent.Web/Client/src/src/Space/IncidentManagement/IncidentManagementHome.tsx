@@ -7,7 +7,7 @@ import { useIncidentFilterFields } from '../Hooks/useIncidentFilterFields';
 import { useIncidentFilters } from '../Hooks/useIncidentFilters';
 import { useIncidentHandlers } from '../Hooks/useIncidentHandlers';
 import { useIncidentManagementStyles } from '../Styles/IncidentManagement.styles';
-import { CreateIncidentFilterDialog } from './CreateIncidentFilterDialog';
+import { CreateOrUpdateIncidentFilterDialog, IncidentFilterFormProps } from './CreateIncidentFilterDialog';
 import IncidentFiltersToolbar from './IncidentFiltersToolbar';
 import IncidentsFiltersGrid from './IncidentsFiltersGrid';
 interface IncidentManagementHomeProps {
@@ -21,6 +21,8 @@ const IncidentManagementHome: FC<IncidentManagementHomeProps> = ({ openHandlerCr
 
     const [isCreateIncidentFilterDialogOpen, setIsCreateIncidentFilterDialogOpen] = useState<boolean>(false);
     const [selectedIncidentFilter, setSelectedIncidentFilter] = useState<IncidentFilter | undefined>();
+    const [isEditFilterMode, setIsEditFilterMode] = useState<boolean>(false);
+    const [initialValues, setInitialValues] = useState<IncidentFilterFormProps | undefined>(undefined);
 
     const {
         refresh: refreshIncidentFilters,
@@ -28,6 +30,7 @@ const IncidentManagementHome: FC<IncidentManagementHomeProps> = ({ openHandlerCr
         incidentFiltersLoading,
         deleteIncidentFilter,
         createIncidentFilter,
+        updateIncidentFilter,
         enableIncidentFilter,
         disableIncidentFilter,
     } = useIncidentFilters();
@@ -57,6 +60,8 @@ const IncidentManagementHome: FC<IncidentManagementHomeProps> = ({ openHandlerCr
                         deleteIncidentFilter(selectedIncidentFilter?.id ?? '');
                     }}
                     onNewIncidentFilterClick={() => {
+                        setIsEditFilterMode(false);
+                        setInitialValues(undefined);
                         setIsCreateIncidentFilterDialogOpen(true);
                     }}
                     onTurnOffIncidentFilterClick={() => {
@@ -77,14 +82,19 @@ const IncidentManagementHome: FC<IncidentManagementHomeProps> = ({ openHandlerCr
                     setSelectedFilter={setSelectedIncidentFilter}
                     setIsCreateIncidentFilterDialogOpen={setIsCreateIncidentFilterDialogOpen}
                     filterIdToHandlerMap={filterIdToHandlerMap}
+                    setIsEditFilterMode={setIsEditFilterMode}
+                    setInitialValues={setInitialValues}
                 />
-                <CreateIncidentFilterDialog
+                <CreateOrUpdateIncidentFilterDialog
                     isDialogOpen={isCreateIncidentFilterDialogOpen}
                     setIsDialogOpen={setIsCreateIncidentFilterDialogOpen}
                     createIncidentFilter={createIncidentFilter}
+                    updateIncidentFilter={updateIncidentFilter}
                     priorityOptions={priorityOptions}
                     incidentTypeOptions={incidentTypeOptions}
                     impactedServiceOptions={impactedServiceOptions}
+                    isEditMode={isEditFilterMode}
+                    initialValues={initialValues}
                 />
             </div>
         </div>

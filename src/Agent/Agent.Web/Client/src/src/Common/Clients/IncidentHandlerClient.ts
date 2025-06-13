@@ -116,6 +116,24 @@ export class IncidentHandlerClient extends DataPlaneClient {
         }
     };
 
+    public updateIncidentFilter = async (body: IncidentFilterPayload): Promise<Response<IncidentFilter>> => {
+        const url = this.getRequestUrl(`${this._apiPathPrefix}/filters/${body.Id}`);
+        try {
+            const { data } = await axios.post<IncidentFilter>(url, body, {
+                headers: getAgentHeaders(),
+            });
+            return {
+                isSuccessful: true,
+                content: data,
+            };
+        } catch (error) {
+            return {
+                isSuccessful: false,
+                error: error,
+            };
+        }
+    };
+
     public enableIncidentFilter = async (id: string): Promise<Response<IncidentFilter>> => {
         const url = this.getRequestUrl(`${this._apiPathPrefix}/filters/${id}/enable`);
         try {
