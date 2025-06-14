@@ -17,11 +17,11 @@ using Microsoft.Extensions.Logging;
 
 namespace Agent.Plugins.Implementation;
 
-public class IncidentPlugin(ILogger<IncidentPlugin> logger,
+public class PagerDutyIncidentPlugin(ILogger<PagerDutyIncidentPlugin> logger, 
                             IGraphDatabaseClient graphDatabaseClient,
                             CosmosDBSettings cosmosDbSettings,
                             CosmosClient cosmosClient,
-                            IPagerDutyService pagerDutyService) : IIncidentPlugin
+                            IPagerDutyService pagerDutyService) : IPagerDutyIncidentPlugin
 {
 
     private readonly Container container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, PagerDutyIncidentDocument.ContainerName);
@@ -82,6 +82,11 @@ public class IncidentPlugin(ILogger<IncidentPlugin> logger,
     public async Task ResolvePagerDutyIncidentAsync(string incidentId)
     {
         await pagerDutyService.ResolveIncident(incidentId);
+    }
+
+    public async Task AcknowledgePagerDutyIncidentAsync(string incidentId)
+    {
+        await pagerDutyService.AcknowledgeIncident(incidentId);
     }
 
     private async Task<List<PagerDutyIncidentDocument>> GetIncidentById(List<string> incidentId, uint maxResults)

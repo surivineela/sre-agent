@@ -18,6 +18,7 @@ using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Agent.Runtime.Interfaces;
+using Agent.Runtime.Services;
 
 namespace Agent.Runtime.SubAgents.PagerDutyAgent;
 
@@ -29,6 +30,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                               IChatClient chatClient,
                               IGraphDatabaseClient graphDbClient,
                               IncidentManagementSettings incidentManagementSettings,
+                              IIncidentHandlingService incidentHandlingService,
                               IAgentInboundCommunicationService agentInboundCommunicationService):IIncidentScanner
 {
     private readonly Container container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
@@ -117,25 +119,14 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
             var threadDocument = await GetIncidentThread(incidentDocument.Id);
             if (threadDocument is null)
             {
-                logger.LogInternalInformation("Thread doesn't exist for incident {incidentId}, creating a new one", incidentDocument.Id);
-                var title = $"New PagerDuty incident reported: {incidentDocument.Title}";
-                var sb = new StringBuilder();
-                sb.AppendLine($"**Incident ID:** {incidentDocument.Id}\n");
-                sb.AppendLine($"**Title:** {incidentDocument.Title}\n");
-                sb.AppendLine($"**Description:** {incidentDocument.Description}\n");
-                sb.AppendLine($"**Created At:** {incidentDocument.CreatedAt}\n");
-                sb.AppendLine($"**Status:** {incidentDocument.Status}\n");
-                sb.AppendLine($"**Priority:** {incidentDocument.Priority}\n");
-                sb.AppendLine($"**Urgency:** {incidentDocument.Urgency}\n");
-                sb.AppendLine($"**Click [here]({incidentDocument.HtmlUrl}) for details**\n");
-                if (relatedResourceIds.Count > 0)
+                logger.LogInternalInformation("Thread doesn't exist for incident {incidentId}, skipping notification", incidentDocument.Id);
+                var response = await incidentHandlingService.HandleIncidentAsync(new IncidentHandlingRequestModel()
                 {
-                    sb.AppendLine($"**The incident might be related to resources:** {string.Join(", ", relatedResourceIds)}\n");
-                }
-
-                var message = sb.ToString();
-                var notes = incidentDocument.Notes.OrderBy(note => note.CreatedAt).Select(note => new IncidentDiscussion(note.Id, note.Content, note.CreatedBy?.Id ?? "Unknown", note.CreatedBy?.Name ?? "Unknown", note.CreatedAt)).ToList();
-                var thread = await agentInboundCommunicationService.CreateAndProcessIncidentThread(title, message, new IncidentSource(IncidentType.PagerDuty, incidentDocument.Id), notes);
+                    IncidentId = incidentDocument.Id,
+                    Title = incidentDocument.Title,
+                    Description = incidentDocument.Description,
+                    Severity = incidentDocument.Priority
+                });
             }
             else
             {
@@ -189,7 +180,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
     {
         var threads = container.GetItemLinqQueryable<ThreadDocument>()
             .Where(doc => doc.DocumentType == "Thread" && doc.Source == ThreadSource.Incident)
-            .Where(doc => doc.IncidentSource != null && doc.IncidentSource.IncidentType == IncidentType.PagerDuty && doc.IncidentSource.IncidentId == incidentId)
+            .Where(doc => (doc.IncidentSource != null && doc.IncidentSource.IncidentType == IncidentType.PagerDuty && doc.IncidentSource.IncidentId == incidentId) || (doc.IncidentId == incidentId))
             .OrderBy(doc => doc.CreatedTimestamp)
             .ToFeedIterator();
 

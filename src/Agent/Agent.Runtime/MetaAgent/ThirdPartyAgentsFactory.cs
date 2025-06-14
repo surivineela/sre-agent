@@ -262,7 +262,7 @@ $@"## Facts
     private readonly IAppCodeAnalysisPlugin _appCodeAnalysisPlugin;
     private readonly ICpuAnalysisPlugin _cpuAnalysisPlugin;
     private readonly IMetricsPlugin _metricsPlugin;
-    private readonly IIncidentPlugin _incidentPlugin;
+    private readonly IPagerDutyIncidentPlugin _incidentPlugin;
     private readonly IMetaAgentFunctionAppExecutionFailuresAgentPlugin _functionAppExecutionFailuresAgentPlugin;
     private readonly IAzureMonitorMetricsPlugin _azureMonitorMetricsPlugin;
     private readonly IMetaAgentFunctionAppDiagnosticsPlugin _functionAppDiagnosticsPlugin;
@@ -304,7 +304,7 @@ $@"## Facts
         IDiagnosticsPlugin diagnosticsPlugin,
         IMetricsPlugin metricsPlugin,
         InstanceManagementSettings instanceManagementSettings,
-        IIncidentPlugin incidentPlugin,
+        IPagerDutyIncidentPlugin incidentPlugin,
         IMetaAgentFunctionAppExecutionFailuresAgentPlugin functionAppExecutionFailuresAgentPlugin,
         IAzureMonitorMetricsPlugin azureMonitorMetricsPlugin,
         IMetaAgentFunctionAppDiagnosticsPlugin functionAppDiagnosticsPlugin,
@@ -391,7 +391,7 @@ $@"## Facts
 
         var appCodeAnalysisPluginDefinition = new AppCodeAnalysisPluginDefinition(_appCodeAnalysisPlugin);
         var connectedIntegrationsPluginDefinition = new ConnectedIntegrationsPluginDefinition(_connectedIntegrationsPlugin);
-        var incidentPluginDefinition = new IncidentPluginDefinition(_incidentPlugin);
+        var incidentPluginDefinition = new PagerDutyIncidentPluginDefinition(_incidentPlugin);
 
         var functionAppPluginDefinition = new FunctionAppsPluginDefinition(_functionAppsPlugin);
 

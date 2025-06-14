@@ -135,4 +135,5 @@ public interface IPagerDutyService
     /// <returns></returns>
     Task ResolveIncident(string incidentId);
     Task AcknowledgeIncident(string incidentId);
+    Task AddNoteToIncident(string incidentId, string note);
 }

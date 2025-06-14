@@ -92,7 +92,7 @@ public class ToolsRepository : IToolsRepository
         RegisterPlugin<FunctionAppExecutionFailuresPluginDefinition>();
         RegisterPlugin<FunctionAppConfigurationChecksPluginDefinition>();
         RegisterPlugin<FunctionAppDeploymentChecksPluginDefinition>();
-        RegisterPlugin<IncidentPluginDefinition>();
+        RegisterPlugin<PagerDutyIncidentPluginDefinition>();
 
         // Not all tools were registered, so registering individually
         Register200<GitHubIssuePluginDefinition>(x => x.FetchGithubSecurityDependabotAlerts);

@@ -27,7 +27,7 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
     private readonly AsyncReaderWriterLock _lock = new();
 
     private readonly IChatClient _chatClient;
-    private readonly ILogger<IncidentHandlerAgent> _log;
+    private readonly ILogger<IncidentHandlerAgent> _logger;
 
     private readonly IAgentsFactory _agentsFactory;
     private readonly IToolFactory<AgentContext> _toolFactory;
@@ -45,22 +45,35 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
         _chatClient = chatClient;
         _threadService = threadService;
         _threadRepository = threadRepository;
-        _log = logger;
+        _logger = logger;
 
         _agentsFactory = agentsFactory;
         _toolFactory = toolFactory;
-        _log.LogInternalInformation("Loading agent factory of type: {AgentFactoryType}", _agentsFactory.GetType());
+        _logger.LogInternalInformation(
+            "IncidentHandlerAgent: Constructor invoked. Loading agent factory of type: {AgentFactoryType}",
+            _agentsFactory.GetType());
     }
 
     public async IAsyncEnumerable<ChatResponseUpdate> ProcessIncidentStream(AgentContext agentContext, AgentChatHistory agentChatHistory)
     {
+        _logger.LogInternalInformation(
+            "ProcessIncidentStream: Invoked for AgentContextId: {AgentContextId}, ThreadId: {ThreadId}",
+            agentContext.Id, agentContext.ThreadId);
+
         var lastUserMessage = await _threadService.GetLastUserMessage(agentContext.ThreadId);
-        _log.LogExternalInformation("[ChatThreadId {threadId}] Processing user message: {Message}", agentContext.ThreadId, lastUserMessage);
+        _logger.LogInternalInformation(
+            "ProcessIncidentStream: Retrieved last user message for ThreadId: {ThreadId}. Message: {Message}",
+            agentContext.ThreadId, lastUserMessage);
+
         using var _ = await _lock.AcquireWriterAsync();
 
         Guid threadGuid = agentContext.ThreadId;
         string systemPrompt = _agentsFactory.GetIncidentHandlerAgentSystemPrompt();
         var _aiTools = _agentsFactory.GetSubAgentsAITools(threadGuid, agentContext);
+
+        _logger.LogInternalInformation(
+            "ProcessIncidentStream: Retrieved {ToolCount} AI tools for ThreadId: {ThreadId}",
+            _aiTools?.Count ?? 0, threadGuid);
 
         var chatHistoryReasoningMessages = await agentChatHistory.GetReasoningMessagesAsync(_threadRepository);
         var chatHistory = chatHistoryReasoningMessages.GetChatMessages();
@@ -68,38 +81,48 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
         if (!lastMessageAppended && !string.IsNullOrEmpty(lastUserMessage))
         {
             chatHistory.Add(new Microsoft.Extensions.AI.ChatMessage(ChatRole.User, lastUserMessage));
+            _logger.LogInternalInformation(
+                "ProcessIncidentStream: Appended last user message to chat history for ThreadId: {ThreadId}",
+                threadGuid);
         }
 
         // Always use the latest System Prompt in case we have some urgent fix to patch for the old chat history.
         if (chatHistory[0].Role == ChatRole.System)
         {
             chatHistory[0] = new Microsoft.Extensions.AI.ChatMessage(ChatRole.System, systemPrompt);
+            _logger.LogInternalInformation(
+                "ProcessIncidentStream: Updated system prompt in chat history for ThreadId: {ThreadId}",
+                threadGuid);
         }
 
         List<ChatResponseUpdate> bufferedResponses = new();
 
         // exceptions should be handled by caller due to yield return
         var streamResponses = _chatClient.GetStreamingResponseAsync(
-        chatHistory,
-        new ChatOptions
-        {
-            Tools = _aiTools,
-            ToolMode = ChatToolMode.Auto,
-            AdditionalProperties = new AdditionalPropertiesDictionary
+            chatHistory,
+            new ChatOptions
             {
-                //["AllowParallelToolCalls"] = false,
-            },
-            Temperature = 0.7f,
-        });
+                Tools = _aiTools,
+                ToolMode = ChatToolMode.Auto,
+                AdditionalProperties = new AdditionalPropertiesDictionary
+                {
+                    //["AllowParallelToolCalls"] = false,
+                },
+                Temperature = 0.7f,
+            });
 
         StringBuilder agentResponse = new StringBuilder();
-
         bool hasRecordedResposne = false;
+
+        _logger.LogInternalInformation(
+            "ProcessIncidentStream: Starting to process streaming responses for ThreadId: {ThreadId}",
+            threadGuid);
+
         await foreach (var response in streamResponses)
         {
             bufferedResponses.Add(response);
             agentResponse.Append(response.Text);
-            // Record final agentResponse, ignore duplicate STOP commands from model
+
             if (response.FinishReason == ChatFinishReason.Stop && !hasRecordedResposne)
             {
                 ChatResponse chatResponse = new ChatResponse(
@@ -107,15 +130,30 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
                 );
                 await chatResponse.UpdateAgentChatHistoryAsync(agentChatHistory, _threadRepository, agentContext.Id);
                 hasRecordedResposne = true;
+
+                _logger.LogInternalInformation(
+                    "ProcessIncidentStream: Final agent response recorded for AgentContextId: {AgentContextId}, ThreadId: {ThreadId}",
+                    agentContext.Id, threadGuid);
             }
             yield return response;
         }
+
+        _logger.LogInternalInformation(
+            "ProcessIncidentStream: Completed streaming responses for AgentContextId: {AgentContextId}, ThreadId: {ThreadId}, ResponseCount: {ResponseCount}",
+            agentContext.Id, threadGuid, bufferedResponses.Count);
     }
 
     public async Task<string> ProcessIncidentAsync(AgentContext agentContext, AgentChatHistory agentChatHistory)
     {
+        _logger.LogInternalInformation(
+            "ProcessIncidentAsync: Invoked for AgentContextId: {AgentContextId}, ThreadId: {ThreadId}",
+            agentContext.Id, agentContext.ThreadId);
+
         var lastUserMessage = await _threadService.GetLastUserMessage(agentContext.ThreadId);
-        _log.LogExternalInformation("[ChatThreadId {threadId}] Processing user message: {Message}", agentContext.ThreadId, lastUserMessage);
+        _logger.LogInternalInformation(
+            "ProcessIncidentAsync: Retrieved last user message for ThreadId: {ThreadId}. Message: {Message}",
+            agentContext.ThreadId, lastUserMessage);
+
         using var _ = await _lock.AcquireWriterAsync();
 
         Guid threadGuid = agentContext.ThreadId;
@@ -126,51 +164,106 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
         if (!lastMessageAppended && !string.IsNullOrEmpty(lastUserMessage))
         {
             chatHistory.Add(new Microsoft.Extensions.AI.ChatMessage(ChatRole.User, lastUserMessage));
+            _logger.LogInternalInformation(
+                "ProcessIncidentAsync: Appended last user message to chat history for ThreadId: {ThreadId}",
+                threadGuid);
         }
 
         try
         {
+            _logger.LogInternalInformation(
+                "ProcessIncidentAsync: Calling GetModelResponse for AgentContextId: {AgentContextId}, ThreadId: {ThreadId}",
+                agentContext.Id, threadGuid);
+
             var response = await GetModelResponse(agentContext, threadGuid, chatHistory);
 
             await response.UpdateAgentChatHistoryAsync(agentChatHistory, _threadRepository, agentContext.Id);
+
+            _logger.LogInternalInformation(
+                "ProcessIncidentAsync: Successfully processed incident for AgentContextId: {AgentContextId}, ThreadId: {ThreadId}",
+                agentContext.Id, threadGuid);
+
             return response.Messages.Last().Text;
         }
         catch (System.ClientModel.ClientResultException ex) when (ex.Message.Contains("HTTP 400 (content_filter)"))
         {
-            _log.LogInternalError(ex, "An error occurred while processing the user message.");
+            _logger.LogInternalError(
+                ex,
+                "ProcessIncidentAsync: Content filter error occurred while processing user message for AgentContextId: {AgentContextId}, ThreadId: {ThreadId}",
+                agentContext.Id, threadGuid);
             return ex.Message;
-
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(
+                ex,
+                "ProcessIncidentAsync: Exception occurred for AgentContextId: {AgentContextId}, ThreadId: {ThreadId}",
+                agentContext.Id, threadGuid);
+            throw;
         }
     }
 
     public async Task<ChatResponse> GetModelResponse(AgentContext agentContext, Guid threadGuid, List<ChatMessage> chatHistory)
     {
+        _logger.LogInternalInformation(
+            "GetModelResponse: Invoked for AgentContextId: {AgentContextId}, ThreadId: {ThreadId}",
+            agentContext.Id, threadGuid);
+
         string systemPrompt = _agentsFactory.GetIncidentHandlerAgentSystemPrompt();
         var _aiTools = _agentsFactory.GetSubAgentsAITools(threadGuid, agentContext);
 
-        var selectedTools = agentContext.AllowedTools != null && agentContext.AllowedTools.Count > 0 ? _aiTools.Where(x => x.Name != null && agentContext.AllowedTools.Contains(x.Name))?.ToList(): _aiTools;
+        var selectedTools = agentContext.AllowedTools != null && agentContext.AllowedTools.Count > 0
+            ? _aiTools.Where(x => x.Name != null && agentContext.AllowedTools.Contains(x.Name))?.ToList()
+            : _aiTools;
+
+        _logger.LogInternalInformation(
+            "GetModelResponse: Selected {ToolCount} tools for AgentContextId: {AgentContextId}, ThreadId: {ThreadId}",
+            selectedTools?.Count ?? 0, agentContext.Id, threadGuid);
 
         // Always use the latest System Prompt in case we have some urgent fix to patch for the old chat history.
         if (chatHistory[0].Role == ChatRole.System)
         {
             chatHistory[0] = new Microsoft.Extensions.AI.ChatMessage(ChatRole.System, systemPrompt);
+            _logger.LogInternalInformation(
+                "GetModelResponse: Updated system prompt in chat history for ThreadId: {ThreadId}",
+                threadGuid);
         }
 
-        var response = await ChatClientHelper.ExecuteWithRetryAsync(
-            async () => await _chatClient.GetResponseAsync(
-                chatHistory,
-                new ChatOptions
-                {
-                    Tools = selectedTools,
-                    ToolMode = ChatToolMode.Auto,
-                    AdditionalProperties = new AdditionalPropertiesDictionary
+        try
+        {
+            _logger.LogInternalInformation(
+                "GetModelResponse: Calling ChatClientHelper.ExecuteWithRetryAsync for AgentContextId: {AgentContextId}, ThreadId: {ThreadId}",
+                agentContext.Id, threadGuid);
+
+            var response = await ChatClientHelper.ExecuteWithRetryAsync(
+                async () => await _chatClient.GetResponseAsync(
+                    chatHistory,
+                    new ChatOptions
                     {
-                        //["AllowParallelToolCalls"] = false,
-                    },
-                    Temperature = 0.7f,
-                }
-            ),
-            _log, 10);
-        return response;
+                        Tools = selectedTools,
+                        ToolMode = ChatToolMode.Auto,
+                        AdditionalProperties = new AdditionalPropertiesDictionary
+                        {
+                            //["AllowParallelToolCalls"] = false,
+                        },
+                        Temperature = 0.7f,
+                    }
+                ),
+                _logger, 10);
+
+            _logger.LogInternalInformation(
+                "GetModelResponse: Successfully received model response for AgentContextId: {AgentContextId}, ThreadId: {ThreadId}",
+                agentContext.Id, threadGuid);
+
+            return response;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(
+                ex,
+                "GetModelResponse: Exception occurred for AgentContextId: {AgentContextId}, ThreadId: {ThreadId}",
+                agentContext.Id, threadGuid);
+            throw;
+        }
     }
 }

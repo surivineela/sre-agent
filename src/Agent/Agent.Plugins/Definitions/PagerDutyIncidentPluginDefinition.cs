@@ -10,7 +10,7 @@ using Agent.Plugins.Interface;
 namespace Agent.Plugins.Definitions
 {
     [AgentToolPlugin]
-    public class IncidentPluginDefinition(IIncidentPlugin incidentPlugin)
+    public class PagerDutyIncidentPluginDefinition(IPagerDutyIncidentPlugin incidentPlugin)
     {
         [AgentTool(ToolMode.Auto)]
         [Description("Gets latest PagerDuty incidents related to an Azure resource.")]
@@ -24,6 +24,12 @@ namespace Agent.Plugins.Definitions
         [AgentTool(ToolMode.Manual)]
         [Description("Resolves a PagerDuty incident")]
         public async Task ResolvePagerDutyIncidentAsync([Description("PagerDuty incident id")] string incidentId)
+        {
+            await incidentPlugin.ResolvePagerDutyIncidentAsync(incidentId);
+        }
+
+        [Description("Acknowledges a PagerDuty incident")]
+        public async Task AcknowledgePagerDutyIncidentAsync([Description("PagerDuty incident id")] string incidentId)
         {
             await incidentPlugin.ResolvePagerDutyIncidentAsync(incidentId);
         }

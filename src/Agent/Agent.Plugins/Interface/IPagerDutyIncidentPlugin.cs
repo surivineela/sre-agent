@@ -6,7 +6,7 @@ using Agent.Data.DataModels;
 
 namespace Agent.Plugins.Interface;
 
-public interface IIncidentPlugin
+public interface IPagerDutyIncidentPlugin
 {
     /// <summary>
     /// Get PagerDuty incidents related to a resource
@@ -16,6 +16,7 @@ public interface IIncidentPlugin
     /// <returns>a list of pager duty incidents</returns>
     Task<List<PagerDutyIncidentDocument>> GetPagerDutyIncidentsAsync(string resourceId, uint maxResults = 5);
     Task ResolvePagerDutyIncidentAsync(string incidentId);
+    Task AcknowledgePagerDutyIncidentAsync(string incidentId);
 
     /// <summary>
     /// Close the Azure Monitor Alert.

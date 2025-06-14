@@ -615,7 +615,7 @@ public class MetaAgentEvals
 
         var resourceId = "/subscriptions/0451dad7-a6c0-4344-bf56-5c52042aa5e2/resourcegroups/tombstone-test-cuseuap-rg/providers/microsoft.app/containerapps/dotnet-dump-test2";
         var htmlUrl = "https://yefutest.pagerduty.com/incidents/Q1GD948W0C9OQN";
-        var incidentPlugin = new Mock<IIncidentPlugin>();
+        var incidentPlugin = new Mock<IPagerDutyIncidentPlugin>();
         incidentPlugin.Setup(x => x.GetPagerDutyIncidentsAsync(It.IsAny<string>(), It.IsAny<uint>()))
             .ReturnsAsync(new List<PagerDutyIncidentDocument>
             {

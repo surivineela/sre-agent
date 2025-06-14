@@ -204,23 +204,7 @@ public class PagerDutyService : IPagerDutyService
         return client;
     }
 
-    record PutIncidentRequest(
-        [property: JsonPropertyName("incident")] Incident Incident
-    );
-    record Incident(
-        [property: JsonPropertyName("type")] string Type, // incident_reference
-        [property: JsonPropertyName("status")] string Status // allowed values: resolved, acknowledged
-    );
-    private static PutIncidentRequest CreateResolveIncidentRequest()
-    {
-        return new PutIncidentRequest(new Incident("incident_reference", "resolved"));
-    }
-
-    private static PutIncidentRequest CreateAcknowledgeIncidentRequest()
-    {
-        return new PutIncidentRequest(new Incident("incident_reference", "acknowledged"));
-    }
-    public async Task ResolveIncident(string incidentId)
+    private void RunBasicValidations(string incidentId)
     {
         if (string.IsNullOrEmpty(incidentId))
         {
@@ -239,8 +223,61 @@ public class PagerDutyService : IPagerDutyService
 
         if (string.IsNullOrEmpty(_settings.OboUser))
         {
-            throw new InvalidOperationException("PagerDuty OBO user is not configured. Cannot resolve incident.");
+            throw new InvalidOperationException("PagerDuty OBO user is not configured.");
         }
+    }
+
+    record PutIncidentRequest(
+        [property: JsonPropertyName("incident")] Incident Incident
+    );
+    record Incident(
+        [property: JsonPropertyName("type")] string Type, // incident_reference
+        [property: JsonPropertyName("status")] string Status // allowed values: resolved, acknowledged
+    );
+
+    record IncidentNote(
+        [property: JsonPropertyName("content")] string Content
+    );
+
+    record PostIncidentNoteRequest(
+        [property: JsonPropertyName("note")] IncidentNote Note
+    );
+
+    private static PutIncidentRequest CreateResolveIncidentRequest()
+    {
+        return new PutIncidentRequest(new Incident("incident_reference", "resolved"));
+    }
+
+    private static PutIncidentRequest CreateAcknowledgeIncidentRequest()
+    {
+        return new PutIncidentRequest(new Incident("incident_reference", "acknowledged"));
+    }
+
+    public async Task AddNoteToIncident(string incidentId, string note)
+    {
+        RunBasicValidations(incidentId);
+        using var client = CreateHttpClient();
+        client.DefaultRequestHeaders.Add("From", _settings.OboUser);
+        var request = new HttpRequestMessage(HttpMethod.Post, $"https://api.pagerduty.com/incidents/{incidentId}/notes");
+        request.Content = JsonContent.Create(new PostIncidentNoteRequest(new IncidentNote(note)));
+
+        var response = await client.SendAsync(request);
+        if (response.IsSuccessStatusCode)
+        {
+            _logger.LogInternalInformation("Successfully posted note to PagerDuty incident ID: {incidentId}", incidentId);
+        }
+        else
+        {
+            var errorContent = await response.Content.ReadAsStringAsync();
+            _logger.LogInternalError("Failed to post note to PagerDuty incident ID: {incidentId}. Error: {errorContent}", incidentId, errorContent);
+            throw new HttpRequestException($"Failed to post note to PagerDuty incident ID: {incidentId}. Error: {errorContent}");
+        }
+
+    }
+
+    public async Task ResolveIncident(string incidentId)
+    {
+        RunBasicValidations(incidentId);
 
         using var client = CreateHttpClient();
         client.DefaultRequestHeaders.Add("From", _settings.OboUser);
@@ -263,22 +300,8 @@ public class PagerDutyService : IPagerDutyService
 
     public async Task AcknowledgeIncident(string incidentId)
     {
-        if (string.IsNullOrEmpty(incidentId))
-        {
-            throw new ArgumentException("Incident ID cannot be null or empty.", nameof(incidentId));
-        }
-        if (_settings == null || _settings.Type != IncidentManagementType.PagerDuty)
-        {
-            throw new InvalidOperationException("PagerDuty incident management is not configured.");
-        }
-        if (string.IsNullOrEmpty(_pagerDutyApiKey))
-        {
-            throw new InvalidOperationException("PagerDuty API key is not configured.");
-        }
-        if (string.IsNullOrEmpty(_settings.OboUser))
-        {
-            throw new InvalidOperationException("PagerDuty OBO user is not configured. Cannot acknowledge incident.");
-        }
+        RunBasicValidations(incidentId);
+
         using var client = CreateHttpClient();
         client.DefaultRequestHeaders.Add("From", _settings.OboUser);
         var request = new HttpRequestMessage(HttpMethod.Put, $"https://api.pagerduty.com/incidents/{incidentId}");
@@ -325,6 +348,11 @@ public class NullablePagerDutyService : IPagerDutyService
     }
 
     public Task ResolveIncident(string incidentId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task AddNoteToIncident(string incidentId, string note)
     {
         throw new NotImplementedException();
     }

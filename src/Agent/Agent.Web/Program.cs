@@ -306,7 +306,7 @@ public class Program
             .AddTransient<AppCodeAnalysisPluginDefinition>()
             .AddTransient<DiagnosticsPluginDefinition>()
             .AddTransient<RoleAssignmentPluginDefinition>()
-            .AddTransient<IncidentPluginDefinition>()
+            .AddTransient<PagerDutyIncidentPluginDefinition>()
             .AddTransient<FunctionAppExecutionFailuresPluginDefinition>()
             .AddTransient<FunctionAppConfigurationChecksPluginDefinition>()
             .AddTransient<FunctionAppDeploymentChecksPluginDefinition>()
@@ -341,7 +341,7 @@ public class Program
             .AddTransient<IChartPlugin, ChartPluginV2>()
             .AddTransient<ChartPluginV2>()
             .AddTransient<IGraphDBPlugin, GraphDBPlugin>()
-            .AddTransient<IIncidentPlugin, IncidentPlugin>()
+            .AddTransient<IPagerDutyIncidentPlugin, PagerDutyIncidentPlugin>()
             .AddTransient<IFunctionAppExecutionFailuresPlugin, FunctionAppExecutionFailuresPlugin>()
             .AddTransient<IAzureMonitorMetricsPlugin, AzureMonitorMetricsPlugin>()
             .AddTransient<IArmPlugin, ArmPlugin>()
@@ -542,11 +542,12 @@ public class Program
         }
 
         //Todo, add generic interface/class for PagerDutyIncidentDocument/IcmDocument and dynamically register
-        builder.Services.AddSingleton<IncidentManagementService<PagerDutyIncidentDocument>>();
-        builder.Services.AddSingleton<IncidentManagementService<IcmIncidentDocument>>();
+        builder.Services.AddSingleton<IIncidentManagementService<PagerDutyIncidentDocument>, IncidentManagementService<PagerDutyIncidentDocument>>();
+        builder.Services.AddSingleton<IIncidentManagementService<IcmIncidentDocument>, IncidentManagementService<IcmIncidentDocument>>();
         builder.Services.AddSingleton<IIncidentHandlerManagementService, IncidentHandlerManagementService>();
         builder.Services.AddSingleton<IIncidentFilterManagementService, IncidentFilterManagementService>();
         builder.Services.AddSingleton<IInstructionGenerationService, InstructionGenerationService>();
+        builder.Services.AddSingleton<IIncidentHandlingService, IncidentHandlingService>();
 
         // Register HttpClientService and configure HttpClient with proper BaseAddress
         builder.Services.AddSingleton<HttpClientService>();

@@ -6,6 +6,8 @@ using Agent.Data.DataModels;
 using Agent.Graph.Interfaces;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
+using Microsoft.Extensions.Logging;
+using Agent.Logging;
 
 namespace Agent.Runtime.Services
 {
@@ -32,12 +34,14 @@ namespace Agent.Runtime.Services
         protected readonly string DocumentType = "IncidentFilter";
         private readonly IncidentManagementSettings _incidentManagementSettings;
         private readonly IPagerDutyService _pagerDutyService;
+        private readonly ILogger<IncidentFilterManagementService> _logger;
 
         public IncidentFilterManagementService(
             CosmosClient cosmosClient,
             CosmosDBSettings cosmosDbSettings,
             IncidentManagementSettings incidentManagementSettings,
-            IPagerDutyService pagerDutyService)
+            IPagerDutyService pagerDutyService,
+            ILogger<IncidentFilterManagementService> logger)
         {
             _incidentManagementSettings = incidentManagementSettings;
             _container = cosmosClient.GetContainer(
@@ -45,29 +49,36 @@ namespace Agent.Runtime.Services
                 AgentDataConfiguration.ThreadContainerName
             );
             _pagerDutyService = pagerDutyService;
+            _logger = logger;
         }
 
         public async Task<bool> CheckConnectivity()
         {
-            // Check if the PagerDuty service is reachable
+            _logger.LogInternalInformation("CheckConnectivity: Invoked for IncidentManagementType: {IncidentManagementType}", _incidentManagementSettings.Type);
+
             if (_incidentManagementSettings.Type == IncidentManagementType.PagerDuty)
             {
                 try
                 {
+                    _logger.LogInternalInformation("CheckConnectivity: Checking PagerDuty service connectivity.");
                     var response = await _pagerDutyService.GetPagerDutyRequest("status");
+                    _logger.LogInternalInformation("CheckConnectivity: PagerDuty service responded with status code {StatusCode}", response.StatusCode);
                     return response.IsSuccessStatusCode;
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogInternalError(ex, "CheckConnectivity: Failed to connect to PagerDuty service for IncidentManagementType: {IncidentManagementType}", _incidentManagementSettings.Type);
                     throw new Exception("Failed to connect to PagerDuty service.", ex);
                 }
             }
-            // For other types, we can assume connectivity is not implemented
+            _logger.LogInternalWarning("CheckConnectivity: Connectivity check not implemented for IncidentManagementType: {IncidentManagementType}", _incidentManagementSettings.Type);
             return false;
         }
 
         public async Task<List<IncidentFilterFieldOption>> ListIncidentFilterFieldOptions()
         {
+            _logger.LogInternalInformation("ListIncidentFilterFieldOptions: Invoked for IncidentManagementType: {IncidentManagementType}", _incidentManagementSettings.Type);
+
             switch (_incidentManagementSettings.Type)
             {
                 case IncidentManagementType.PagerDuty:
@@ -76,50 +87,81 @@ namespace Agent.Runtime.Services
                     return ListIcmIncidentFilterFieldOptions();
                 case IncidentManagementType.AzMonitor:
                 default:
+                    _logger.LogInternalWarning("ListIncidentFilterFieldOptions: Not implemented for IncidentManagementType: {IncidentManagementType}", _incidentManagementSettings.Type);
                     throw new NotImplementedException($"Incident management type '{_incidentManagementSettings.Type}' is not implemented.");
             }
         }
 
         public async Task<List<IncidentFilterFieldOption>> ListPagerDutyIncidentFilterFieldOptions()
         {
-            var result = new List<IncidentFilterFieldOption>();
-            // Get Impacted Services List
-            var servicesResponse = await _pagerDutyService.GetPagerDutyRequest("services");
-            var services = await servicesResponse.Content.ReadFromJsonAsync<PDServicesResponse>();
-            if (services != null && services.Services.Any())
-            {
-                result.Add(new IncidentFilterFieldOption
-                {
-                    FieldName = "ImpactedService",
-                    DisplayName = "Impacted Service",
-                    Options = services.Services.Select(s => new KeyValuePair<string, string>(s.Id, s.Name)).ToList()
-                });
-            }
+            _logger.LogInternalInformation("ListPagerDutyIncidentFilterFieldOptions: Invoked.");
 
-            // Get Incident Types List
-            var incidentTypesResponse = await _pagerDutyService.GetPagerDutyRequest("incidents/types");
-            var incidentTypes = await incidentTypesResponse.Content.ReadFromJsonAsync<PDIncidentTypesResponse>();
-            if (incidentTypes != null && incidentTypes.IncidentTypes.Any())
+            var result = new List<IncidentFilterFieldOption>();
+            try
             {
-                result.Add(new IncidentFilterFieldOption
+                // Get Impacted Services List
+                _logger.LogInternalInformation("ListPagerDutyIncidentFilterFieldOptions: Requesting PagerDuty services.");
+                var servicesResponse = await _pagerDutyService.GetPagerDutyRequest("services");
+                var services = await servicesResponse.Content.ReadFromJsonAsync<PDServicesResponse>();
+                if (services != null && services.Services.Any())
                 {
-                    FieldName = "IncidentType",
-                    DisplayName = "Incident Type",
-                    Options = incidentTypes.IncidentTypes.Select(it => new KeyValuePair<string, string>(it.Id, it.Name)).ToList()
-                });
+                    _logger.LogInternalInformation("ListPagerDutyIncidentFilterFieldOptions: Retrieved {ServiceCount} services.", services.Services.Count);
+                    result.Add(new IncidentFilterFieldOption
+                    {
+                        FieldName = "ImpactedService",
+                        DisplayName = "Impacted Service",
+                        Options = services.Services.Select(s => new KeyValuePair<string, string>(s.Id, s.Name)).ToList()
+                    });
+                }
+                else
+                {
+                    _logger.LogInternalWarning("ListPagerDutyIncidentFilterFieldOptions: No services found in PagerDuty response.");
+                }
+
+                // Get Incident Types List
+                _logger.LogInternalInformation("ListPagerDutyIncidentFilterFieldOptions: Requesting PagerDuty incident types.");
+                var incidentTypesResponse = await _pagerDutyService.GetPagerDutyRequest("incidents/types");
+                var incidentTypes = await incidentTypesResponse.Content.ReadFromJsonAsync<PDIncidentTypesResponse>();
+                if (incidentTypes != null && incidentTypes.IncidentTypes.Any())
+                {
+                    _logger.LogInternalInformation("ListPagerDutyIncidentFilterFieldOptions: Retrieved {IncidentTypeCount} incident types.", incidentTypes.IncidentTypes.Count);
+                    result.Add(new IncidentFilterFieldOption
+                    {
+                        FieldName = "IncidentType",
+                        DisplayName = "Incident Type",
+                        Options = incidentTypes.IncidentTypes.Select(it => new KeyValuePair<string, string>(it.Id, it.Name)).ToList()
+                    });
+                }
+                else
+                {
+                    _logger.LogInternalWarning("ListPagerDutyIncidentFilterFieldOptions: No incident types found in PagerDuty response.");
+                }
+
+                // Get Priorities List
+                _logger.LogInternalInformation("ListPagerDutyIncidentFilterFieldOptions: Requesting PagerDuty priorities.");
+                var prioritiesResponse = await _pagerDutyService.GetPagerDutyRequest("priorities");
+                var priorities = await prioritiesResponse.Content.ReadFromJsonAsync<PDPrioritiesResponse>();
+                if (priorities != null && priorities.Priorities.Any())
+                {
+                    _logger.LogInternalInformation("ListPagerDutyIncidentFilterFieldOptions: Retrieved {PriorityCount} priorities.", priorities.Priorities.Count);
+                    result.Add(new IncidentFilterFieldOption
+                    {
+                        FieldName = "Priority",
+                        DisplayName = "Priority",
+                        Options = priorities.Priorities.Select(p => new KeyValuePair<string, string>(p.Id, p.Name)).ToList()
+                    });
+                }
+                else
+                {
+                    _logger.LogInternalWarning("ListPagerDutyIncidentFilterFieldOptions: No priorities found in PagerDuty response.");
+                }
             }
-            // Get Priorities List
-            var prioritiesResponse = await _pagerDutyService.GetPagerDutyRequest("priorities");
-            var priorities = await prioritiesResponse.Content.ReadFromJsonAsync<PDPrioritiesResponse>();
-            if (priorities != null && priorities.Priorities.Any())
+            catch (Exception ex)
             {
-                result.Add(new IncidentFilterFieldOption
-                {
-                    FieldName = "Priority",
-                    DisplayName = "Priority",
-                    Options = priorities.Priorities.Select(p => new KeyValuePair<string, string>(p.Id, p.Name)).ToList()
-                });
+                _logger.LogInternalError(ex, "ListPagerDutyIncidentFilterFieldOptions: Exception occurred while retrieving PagerDuty field options.");
+                throw;
             }
+            _logger.LogInternalInformation("ListPagerDutyIncidentFilterFieldOptions: Returning {OptionCount} field options.", result.Count);
             return result;
         }
 
@@ -130,14 +172,16 @@ namespace Agent.Runtime.Services
         /// <returns></returns>
         public List<IncidentFilterFieldOption> ListIcmIncidentFilterFieldOptions()
         {
+            _logger.LogInternalInformation("ListIcmIncidentFilterFieldOptions: Invoked.");
+
             var result = new List<IncidentFilterFieldOption>();
 
             var incidentTypeOptions = new List<KeyValuePair<string, string>>();
             foreach (IncidentType incidentType in Enum.GetValues(typeof(IncidentType)))
             {
-                incidentTypeOptions.Add(new KeyValuePair<string, string>(incidentType.ToString(),incidentType.ToString()));
+                incidentTypeOptions.Add(new KeyValuePair<string, string>(incidentType.ToString(), incidentType.ToString()));
             }
-           
+
             result.Add(new IncidentFilterFieldOption
             {
                 FieldName = "IncidentType",
@@ -146,13 +190,13 @@ namespace Agent.Runtime.Services
             });
 
             var priorityOptions = new List<KeyValuePair<string, string>>
-            {
-                new KeyValuePair<string, string>("0", "0"),
-                new KeyValuePair<string, string>("1", "1"),
-                new KeyValuePair<string, string>("2", "2"),
-                new KeyValuePair<string, string>("3", "3"),
-                new KeyValuePair<string, string>("4", "4")
-            };
+                {
+                    new KeyValuePair<string, string>("0", "0"),
+                    new KeyValuePair<string, string>("1", "1"),
+                    new KeyValuePair<string, string>("2", "2"),
+                    new KeyValuePair<string, string>("3", "3"),
+                    new KeyValuePair<string, string>("4", "4")
+                };
             result.Add(new IncidentFilterFieldOption
             {
                 FieldName = "Priority",
@@ -166,71 +210,124 @@ namespace Agent.Runtime.Services
                 DisplayName = "Impacted Service",
                 Options = new List<KeyValuePair<string, string>>()
             });
+
+            _logger.LogInternalInformation("ListIcmIncidentFilterFieldOptions: Returning {OptionCount} field options.", result.Count);
             return result;
         }
 
         public async Task<List<IncidentFilterDocument>> ListIncidentFilters()
         {
-            // Return all incident filters
+            _logger.LogInternalInformation("ListIncidentFilters: Invoked.");
+
             var queryable = _container.GetItemLinqQueryable<IncidentFilterDocument>(allowSynchronousQueryExecution: false)
                 .Where(c => c.DocumentType == DocumentType && c.IsDeleted == false);
 
             var iterator = queryable.ToFeedIterator();
             var results = new List<IncidentFilterDocument>();
-            while (iterator.HasMoreResults)
+            try
             {
-                var response = await iterator.ReadNextAsync();
-                results.AddRange(response);
+                while (iterator.HasMoreResults)
+                {
+                    var response = await iterator.ReadNextAsync();
+                    results.AddRange(response);
+                }
+                _logger.LogInternalInformation("ListIncidentFilters: Retrieved {FilterCount} filters.", results.Count);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "ListIncidentFilters: Exception occurred while listing incident filters.");
+                throw;
             }
             return results;
         }
 
         public async Task<IncidentFilterDocument?> GetIncidentFilter(string filterId)
         {
+            _logger.LogInternalInformation("GetIncidentFilter: Invoked for FilterId: {FilterId}", filterId);
+
             var queryable = _container.GetItemLinqQueryable<IncidentFilterDocument>(allowSynchronousQueryExecution: false)
                 .Where(c => c.DocumentType == DocumentType && c.Id == filterId && c.IsDeleted == false)
                 .Take(1);
 
             var iterator = queryable.ToFeedIterator();
-            if (iterator.HasMoreResults)
+            try
             {
-                var response = await iterator.ReadNextAsync();
-                return response.FirstOrDefault();
+                if (iterator.HasMoreResults)
+                {
+                    var response = await iterator.ReadNextAsync();
+                    var filter = response.FirstOrDefault();
+                    if (filter != null)
+                    {
+                        _logger.LogInternalInformation("GetIncidentFilter: Found filter for FilterId: {FilterId}", filterId);
+                    }
+                    else
+                    {
+                        _logger.LogInternalWarning("GetIncidentFilter: No filter found for FilterId: {FilterId}", filterId);
+                    }
+                    return filter;
+                }
+                _logger.LogInternalWarning("GetIncidentFilter: No results for FilterId: {FilterId}", filterId);
+                return null;
             }
-            return null;
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "GetIncidentFilter: Exception occurred for FilterId: {FilterId}", filterId);
+                throw;
+            }
         }
 
         public async Task<IncidentFilterDocument> SaveIncidentFilter(IncidentFilterDocument document)
         {
+            _logger.LogInternalInformation("SaveIncidentFilter: Invoked for FilterId: {FilterId}", document?.Id);
+
             try
             {
                 if (document == null)
+                {
+                    _logger.LogInternalError(new ArgumentNullException(nameof(document)), "SaveIncidentFilter: Document is null.");
                     throw new ArgumentNullException(nameof(document));
+                }
                 var response = await _container.UpsertItemAsync(document, new PartitionKey(document.PartitionKey ?? document.Id));
+                _logger.LogInternalInformation("SaveIncidentFilter: Successfully saved filter with FilterId: {FilterId}", document.Id);
                 return response.Resource;
             }
             catch (Exception ex)
             {
-                throw ex;
+                _logger.LogInternalError(ex, "SaveIncidentFilter: Exception occurred for FilterId: {FilterId}", document?.Id);
+                throw;
             }
         }
 
         public async Task<bool> DeleteIncidentFilter(string filterId)
         {
-            // do a soft delete by setting isDeleted to true
+            _logger.LogInternalInformation("DeleteIncidentFilter: Invoked for FilterId: {FilterId}", filterId);
+
             var filter = await GetIncidentFilter(filterId);
             if (filter == null)
+            {
+                _logger.LogInternalWarning("DeleteIncidentFilter: No filter found to delete for FilterId: {FilterId}", filterId);
                 return false;
+            }
             filter.IsDeleted = true;
             filter.UpdatedAt = DateTime.UtcNow;
             try
             {
                 var response = await _container.UpsertItemAsync(filter, new PartitionKey(filter.PartitionKey ?? filter.Id));
-                return response.StatusCode == System.Net.HttpStatusCode.OK || response.StatusCode == System.Net.HttpStatusCode.Created;
+                bool success = response.StatusCode == System.Net.HttpStatusCode.OK || response.StatusCode == System.Net.HttpStatusCode.Created;
+                if (success)
+                {
+                    _logger.LogInternalInformation("DeleteIncidentFilter: Successfully soft-deleted filter with FilterId: {FilterId}", filterId);
+                }
+                else
+                {
+                    _logger.LogInternalWarning("DeleteIncidentFilter: Upsert did not return success for FilterId: {FilterId}, StatusCode: {StatusCode}", filterId, response.StatusCode);
+                }
+                return success;
             }
             catch (Exception ex)
             {
-                throw ex;
+                _logger.LogInternalError(ex, "DeleteIncidentFilter: Exception occurred for FilterId: {FilterId}", filterId);
+                throw;
             }
         }
     }
