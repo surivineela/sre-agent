@@ -155,7 +155,7 @@ namespace Agent.Runtime.Services
 
                 var matchingFilters = filters
                     .Where(filter =>
-                        filter.ImpactedService == incidentDetails.ImpactedServiceId
+                        (filter.ImpactedService == incidentDetails.ImpactedServiceId || filter.ImpactedService == incidentDetails.ImpactedServiceName)
                         && filter.Priority == incidentDetails.Priority
                         && filter.IncidentType == incidentDetails.IncidentType
                         && (string.IsNullOrWhiteSpace(filter.TitleContains) || (!string.IsNullOrWhiteSpace(filter.TitleContains) && (incidentDetails.Title.Contains(filter.TitleContains, StringComparison.OrdinalIgnoreCase)))))
