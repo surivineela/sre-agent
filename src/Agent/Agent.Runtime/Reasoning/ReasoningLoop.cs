@@ -1070,7 +1070,7 @@ public class ReasoningLoop
             }
         }
 
-        // Handle output - call outbound service and yield results to stream
+        // Handle output - call outbound service, stream results were already yielded in line 1050
         if (runResult.Output != null)
         {
             if (runResult.Output is string outputString)
@@ -1078,20 +1078,6 @@ public class ReasoningLoop
                 await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
                     _context,
                     new ChatMessage(ChatRole.Assistant, runResult.Output?.ToString()));
-
-                // Also create final RunResult and yield it to stream
-                var finalResult = new RunResult<AgentContext>(_currentAgent)
-                {
-                    Input = runResult.Input,
-                    NewItems = runResult.NewItems,
-                    RawResponses = runResult.RawResponses,
-                    CurrentTurn = runResult.CurrentTurn,
-                    MaxTurns = runResult.MaxTurns,
-                    Output = runResult.Output,
-                    ContextWrapper = runResult.ContextWrapper,
-                    Trajectory = runResult.Trajectory
-                };
-                yield return finalResult;
             }
             else if (runResult.Output is AgentOutput agentOutput)
             {
@@ -1131,20 +1117,6 @@ public class ReasoningLoop
                             _context,
                             new ChatMessage(ChatRole.Assistant, agentOutput.OutputMessage));
 
-                        // Also create final RunResult and yield it to stream
-                        var finalResult = new RunResult<AgentContext>(_currentAgent)
-                        {
-                            Input = runResult.Input,
-                            NewItems = runResult.NewItems,
-                            RawResponses = runResult.RawResponses,
-                            CurrentTurn = runResult.CurrentTurn,
-                            MaxTurns = runResult.MaxTurns,
-                            Output = agentOutput,
-                            ContextWrapper = runResult.ContextWrapper,
-                            Trajectory = runResult.Trajectory
-                        };
-                        yield return finalResult;
-
                         iterationResult(new ReasoningLoopIterationResult { IsContinuation = false });
                         yield break;
                     }
@@ -1154,20 +1126,6 @@ public class ReasoningLoop
                     await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
                         _context,
                         new ChatMessage(ChatRole.Assistant, agentOutput.OutputMessage));
-
-                    // Also create final RunResult and yield it to stream
-                    var finalResult = new RunResult<AgentContext>(_currentAgent)
-                    {
-                        Input = runResult.Input,
-                        NewItems = runResult.NewItems,
-                        RawResponses = runResult.RawResponses,
-                        CurrentTurn = runResult.CurrentTurn,
-                        MaxTurns = runResult.MaxTurns,
-                        Output = agentOutput,
-                        ContextWrapper = runResult.ContextWrapper,
-                        Trajectory = runResult.Trajectory
-                    };
-                    yield return finalResult;
                 }
             }
         }
