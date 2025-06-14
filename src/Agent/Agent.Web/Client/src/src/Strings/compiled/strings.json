@@ -5,6 +5,12 @@
       "value": "Delete thread?"
     }
   ],
+  "+DBMRK": [
+    {
+      "type": 0,
+      "value": "CPU usage"
+    }
+  ],
   "+FoBRs": [
     {
       "type": 0,
@@ -187,6 +193,12 @@
       "value": "The selected resource groups are being set up"
     }
   ],
+  "2pzTGC": [
+    {
+      "type": 0,
+      "value": "Critical"
+    }
+  ],
   "2tOWr2": [
     {
       "type": 0,
@@ -257,6 +269,18 @@
     {
       "type": 0,
       "value": "Linking Grafana dashboard to SRE Agent in progress"
+    }
+  ],
+  "45sljt": [
+    {
+      "type": 0,
+      "value": "Updating incident filter"
+    }
+  ],
+  "477I0g": [
+    {
+      "type": 0,
+      "value": "Low"
     }
   ],
   "47FYwb": [
@@ -399,6 +423,12 @@
       "value": "Select the subscription to manage deployed resources and costs. Use resources groups like folders to organize and manage all your resources."
     }
   ],
+  "6feu1e": [
+    {
+      "type": 0,
+      "value": "Resource Report"
+    }
+  ],
   "6m5Ba0": [
     {
       "type": 0,
@@ -447,6 +477,12 @@
       "value": "Connected to Teams"
     }
   ],
+  "7fDYaV": [
+    {
+      "type": 0,
+      "value": "Go to incident thread"
+    }
+  ],
   "7gMEKc": [
     {
       "type": 0,
@@ -469,6 +505,12 @@
     {
       "type": 0,
       "value": "Backed by"
+    }
+  ],
+  "7yxsez": [
+    {
+      "type": 0,
+      "value": "App group resource name"
     }
   ],
   "84MFOR": [
@@ -601,6 +643,12 @@
       "value": "REST API access key"
     }
   ],
+  "AxMhQr": [
+    {
+      "type": 0,
+      "value": "High"
+    }
+  ],
   "Az8/Pe": [
     {
       "type": 0,
@@ -611,6 +659,18 @@
     {
       "type": 0,
       "value": "AI-generated content might be incorrect, so review carefully before use. Do not include personal or confidential information in the chat."
+    }
+  ],
+  "BUN9Gf": [
+    {
+      "type": 0,
+      "value": "Successfully updated incident filter"
+    }
+  ],
+  "BWpuKl": [
+    {
+      "type": 0,
+      "value": "Update"
     }
   ],
   "Bcgdb7": [
@@ -643,6 +703,12 @@
     {
       "type": 0,
       "value": "Select incident type"
+    }
+  ],
+  "CvWvf+": [
+    {
+      "type": 0,
+      "value": "actions"
     }
   ],
   "D3idYv": [
@@ -771,6 +837,12 @@
       "value": "Open Access control"
     }
   ],
+  "F0ox0E": [
+    {
+      "type": 0,
+      "value": "Unhealthy app groups"
+    }
+  ],
   "F9LrJA": [
     {
       "type": 0,
@@ -837,6 +909,18 @@
       "value": "- in progress"
     }
   ],
+  "GJxBWO": [
+    {
+      "type": 0,
+      "value": "Degraded app groups"
+    }
+  ],
+  "GroBmn": [
+    {
+      "type": 0,
+      "value": "repository alerts found"
+    }
+  ],
   "GuBSUa": [
     {
       "type": 0,
@@ -889,6 +973,18 @@
     {
       "type": 0,
       "value": "New thread"
+    }
+  ],
+  "IbhWpr": [
+    {
+      "type": 0,
+      "value": "Healthy app groups"
+    }
+  ],
+  "IuFETn": [
+    {
+      "type": 0,
+      "value": "Duration"
     }
   ],
   "J6XCfl": [
@@ -965,6 +1061,12 @@
       "value": "Something went wrong"
     }
   ],
+  "JxjlUE": [
+    {
+      "type": 0,
+      "value": "Resource Metrics"
+    }
+  ],
   "K3r6DQ": [
     {
       "type": 0,
@@ -975,6 +1077,12 @@
     {
       "type": 0,
       "value": "Last 60 days"
+    }
+  ],
+  "KXyWfi": [
+    {
+      "type": 0,
+      "value": "Urgency"
     }
   ],
   "KyDsjH": [
@@ -1015,10 +1123,22 @@
       "value": "Incident ID"
     }
   ],
+  "MFofa3": [
+    {
+      "type": 0,
+      "value": "Run mode"
+    }
+  ],
   "MlX0aZ": [
     {
       "type": 0,
       "value": "All impacted services"
+    }
+  ],
+  "Mof2Rv": [
+    {
+      "type": 0,
+      "value": "No historical data available"
     }
   ],
   "NOMbLF": [
@@ -1113,6 +1233,12 @@
       "value": "Hide thread menu"
     }
   ],
+  "OlIql8": [
+    {
+      "type": 0,
+      "value": "Moderate"
+    }
+  ],
   "OvzONl": [
     {
       "type": 0,
@@ -1123,6 +1249,12 @@
     {
       "type": 0,
       "value": "Filter incidents"
+    }
+  ],
+  "PW+sL4": [
+    {
+      "type": 0,
+      "value": "N/A"
     }
   ],
   "PWmGlA": [
@@ -1209,6 +1341,12 @@
       "value": "Custom handler name"
     }
   ],
+  "R+J5ox": [
+    {
+      "type": 0,
+      "value": "Review"
+    }
+  ],
   "R/6nsx": [
     {
       "type": 0,
@@ -1293,6 +1431,12 @@
     {
       "type": 0,
       "value": "Monitoring Reader"
+    }
+  ],
+  "Sr5R7d": [
+    {
+      "type": 0,
+      "value": "Autonomous"
     }
   ],
   "T7WpWs": [
@@ -1403,6 +1547,12 @@
       "value": "Create agent"
     }
   ],
+  "UxeJFE": [
+    {
+      "type": 0,
+      "value": "Repository"
+    }
+  ],
   "V6juiN": [
     {
       "type": 0,
@@ -1419,6 +1569,12 @@
     {
       "type": 0,
       "value": "Create"
+    }
+  ],
+  "W2JBdp": [
+    {
+      "type": 0,
+      "value": "Impact"
     }
   ],
   "W6nSYE": [
@@ -1615,6 +1771,12 @@
       "value": "Resource map"
     }
   ],
+  "aNIIuB": [
+    {
+      "type": 0,
+      "value": "App group type"
+    }
+  ],
   "aQPexO": [
     {
       "type": 0,
@@ -1723,10 +1885,28 @@
       "value": "Back"
     }
   ],
+  "d/8IiF": [
+    {
+      "type": 0,
+      "value": "App group health + performance"
+    }
+  ],
   "dQtJBl": [
     {
       "type": 0,
       "value": "Annotation"
+    }
+  ],
+  "dVx3yz": [
+    {
+      "type": 0,
+      "value": "Memory"
+    }
+  ],
+  "djNL6D": [
+    {
+      "type": 0,
+      "value": "Read-only"
     }
   ],
   "dnXgff": [
@@ -1897,6 +2077,12 @@
       "value": "Dashboard"
     }
   ],
+  "iTTSax": [
+    {
+      "type": 0,
+      "value": "Changes to this incident handler might affect how incidents are processed and also any custom handlers."
+    }
+  ],
   "ielB5f": [
     {
       "type": 0,
@@ -1919,6 +2105,12 @@
     {
       "type": 0,
       "value": "SRE Agent Space"
+    }
+  ],
+  "iyTlSa": [
+    {
+      "type": 0,
+      "value": "Action summary"
     }
   ],
   "jHJmjf": [
@@ -1963,6 +2155,12 @@
       "value": "Provisioning of your Grafana dashboard is in progress."
     }
   ],
+  "ku+mDU": [
+    {
+      "type": 0,
+      "value": "State"
+    }
+  ],
   "lGIJSX": [
     {
       "type": 0,
@@ -2003,6 +2201,12 @@
     {
       "type": 0,
       "value": "Local auth"
+    }
+  ],
+  "mtUOcI": [
+    {
+      "type": 0,
+      "value": "Edit incident handler"
     }
   ],
   "mtr3R4": [
@@ -2063,6 +2267,12 @@
     {
       "type": 0,
       "value": "Writer/Operator"
+    }
+  ],
+  "oY4j0R": [
+    {
+      "type": 0,
+      "value": "Repository insights"
     }
   ],
   "ob9EPi": [
@@ -2145,6 +2355,12 @@
     {
       "type": 0,
       "value": "Popular prompts"
+    }
+  ],
+  "rBPlLc": [
+    {
+      "type": 0,
+      "value": "resources available in this period"
     }
   ],
   "rELDbB": [
@@ -2409,6 +2625,12 @@
       "value": "Total resources"
     }
   ],
+  "xDYr9m": [
+    {
+      "type": 0,
+      "value": "incidents reported"
+    }
+  ],
   "xQRfI5": [
     {
       "type": 0,
@@ -2453,6 +2675,12 @@
       "value": "searchString"
     }
   ],
+  "xePyxp": [
+    {
+      "type": 0,
+      "value": "Insufficient data points for chart"
+    }
+  ],
   "xmcVZ0": [
     {
       "type": 0,
@@ -2463,6 +2691,12 @@
     {
       "type": 0,
       "value": "Success"
+    }
+  ],
+  "y9ZkOw": [
+    {
+      "type": 0,
+      "value": "Failed to update incident filter"
     }
   ],
   "yYK6LR": [
@@ -2511,6 +2745,12 @@
     {
       "type": 0,
       "value": "Choose resource groups"
+    }
+  ],
+  "zpkKsD": [
+    {
+      "type": 0,
+      "value": "Incidents summary"
     }
   ],
   "zvLfRe": [

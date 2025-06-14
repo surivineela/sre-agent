@@ -303,7 +303,7 @@ export const IncidentManagementResources = defineMessages({
     },
     editIncidentHandlerDescription: {
         defaultMessage: 'Changes to this incident handler might affect how incidents are processed and also any custom handlers.',
-        id: 'iTTSax'
+        id: 'iTTSax',
     },
     refresh: { defaultMessage: 'Refresh', id: 'rELDbB' },
     incidentPlatform: { defaultMessage: 'Incident platform', id: 'EZBG/A' },
@@ -738,4 +738,75 @@ export const WelcomeResources = defineMessages({
     learnMoreAboutPrompts: { defaultMessage: 'Learn more about prompts', id: 'OLJJDc' },
     logicalApplicationGroup: { defaultMessage: 'Logical application group', id: 'JUbrE2' },
     primaryResourceType: { defaultMessage: 'Primary resource type', id: 'nQpONp' },
+});
+
+export const DailyReportResources = defineMessages({
+    // Report title and header
+    resourceReport: { defaultMessage: 'Resource Report', id: '6feu1e' },
+
+    // Overview cards
+    repositoryInsights: { defaultMessage: 'Repository insights', id: 'oY4j0R' },
+    incidentsSummary: { defaultMessage: 'Incidents summary', id: 'zpkKsD' },
+    appGroupHealthPerformance: { defaultMessage: 'App group health + performance', id: 'd/8IiF' },
+
+    // Severity levels
+    critical: { defaultMessage: 'Critical', id: '2pzTGC' },
+    high: { defaultMessage: 'High', id: 'AxMhQr' },
+    moderate: { defaultMessage: 'Moderate', id: 'OlIql8' },
+    low: { defaultMessage: 'Low', id: '477I0g' },
+
+    // Incident statuses
+    active: { defaultMessage: 'Active', id: '3a5wL8' },
+    mitigated: { defaultMessage: 'Mitigated', id: 'dnXgff' },
+    resolved: { defaultMessage: 'Resolved', id: 'W6nSYE' },
+
+    // Health statuses
+    unhealthy: { defaultMessage: 'Unhealthy', id: 'YdXbbC' },
+    degraded: { defaultMessage: 'Degraded', id: 'VQDmmK' },
+    healthy: { defaultMessage: 'Healthy', id: 'TIDNOO' },
+
+    // Section titles
+    actionSummary: { defaultMessage: 'Action summary', id: 'iyTlSa' },
+    unhealthyAppGroups: { defaultMessage: 'Unhealthy app groups', id: 'F0ox0E' },
+    degradedAppGroups: { defaultMessage: 'Degraded app groups', id: 'GJxBWO' },
+    healthyAppGroups: { defaultMessage: 'Healthy app groups', id: 'IbhWpr' },
+
+    // Resource metrics
+    availability: { defaultMessage: 'Availability', id: 'hOxIeP' },
+    cpuUsage: { defaultMessage: 'CPU usage', id: '+DBMRK' },
+    memory: { defaultMessage: 'Memory', id: 'dVx3yz' },
+
+    // App group resource info
+    appGroupResourceName: { defaultMessage: 'App group resource name', id: '7yxsez' },
+    appGroupType: { defaultMessage: 'App group type', id: 'aNIIuB' },
+
+    // Action items
+    priority: { defaultMessage: 'Priority', id: '8lCjAM' },
+    urgency: { defaultMessage: 'Urgency', id: 'KXyWfi' },
+
+    // Empty states
+    repositoryAlertsFound: { defaultMessage: 'repository alerts found', id: 'GroBmn' },
+    incidentsReported: { defaultMessage: 'incidents reported', id: 'xDYr9m' },
+    resourcesAvailable: { defaultMessage: 'resources available in this period', id: 'rBPlLc' },
+    actions: { defaultMessage: 'actions', id: 'CvWvf+' },
+
+    // Chart and data
+    noHistoricalDataAvailable: { defaultMessage: 'No historical data available', id: 'Mof2Rv' },
+    insufficientDataPoints: { defaultMessage: 'Insufficient data points for chart', id: 'xePyxp' },
+    resourceMetrics: { defaultMessage: 'Resource Metrics', id: 'JxjlUE' },
+
+    // Incident details
+    impact: { defaultMessage: 'Impact', id: 'W2JBdp' },
+    incidentId: { defaultMessage: 'Incident ID', id: 'MB9ceM' },
+    created: { defaultMessage: 'Created', id: 'ORGv1Q' },
+    duration: { defaultMessage: 'Duration', id: 'IuFETn' },
+    goToIncidentThread: { defaultMessage: 'Go to incident thread', id: '7fDYaV' },
+
+    // Security
+    description: { defaultMessage: 'Description', id: 'Q8Qw5B' },
+    repository: { defaultMessage: 'Repository', id: 'UxeJFE' },
+    state: { defaultMessage: 'State', id: 'ku+mDU' },
+
+    // Time formats
+    notAvailable: { defaultMessage: 'N/A', id: 'PW+sL4' },
 });
