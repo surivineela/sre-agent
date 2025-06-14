@@ -4,6 +4,7 @@
 
 using System.Text;
 using System.Text.Json;
+using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
@@ -13,6 +14,7 @@ using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
+using Microsoft.SemanticKernel.ChatCompletion;
 using Thread = Agent.Core.Models.Api.v1.Thread;
 
 namespace Agent.Runtime.Services.AzMonitorAlertInvestigation;
@@ -353,18 +355,6 @@ Remember: Quality findings with specific values are better than quantity. Exclud
         {
             _logger.LogInternalError(ex, "Error updating progress message");
         }
-    }
-
-    private string FormatProgressMessage(List<(string, string, bool)> messages)
-    {
-        StringBuilder sb = new();
-
-        foreach (var message in messages)
-        {
-            sb.AppendLine(message.Item1).AppendLine(message.Item2);
-        }
-
-        return sb.ToString();
     }
 
     private async Task StoreReflexionFeedbackAsync(InvestigationContext context)

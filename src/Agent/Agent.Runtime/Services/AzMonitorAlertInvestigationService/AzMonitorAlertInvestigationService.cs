@@ -30,6 +30,9 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
     private readonly IGraphDBPlugin _graphDBPlugin;
     private readonly IAzureMonitorMetricsPlugin _azureMonitorMetricsPlugin;
 
+    private const int MaxRetryAttempts = 3;
+    private static readonly TimeSpan[] RetryDelays = { TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(500), TimeSpan.FromSeconds(1) };
+
     public AzMonitorAlertInvestigationService(
         IThreadRepository repository,
         ILogQueryService logQueryService,
@@ -91,7 +94,8 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
 
             var llmSummary = await SummarizeWithLLM(promptWithPlaceholders);
 
-            await _repository.CreateReasoningMessageAsync(new ReasoningMessage(
+            var agentChatHistory = await _repository.GetAgentChatHistoryAsync(agentContext.Id);
+            var reasoningMessage = new ReasoningMessage(
                         Guid.NewGuid(),
                         agentContext.Id,
                         ReasoningMessageRoleEnum.System,
@@ -100,7 +104,8 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
                             description = "Summary of analysis of resource's activity logs for recent configuration changes and operations",
                             llmSummary,
                         }
-                    )));
+                    ));
+            await PersistReasoningMessageAsync(agentChatHistory, reasoningMessage);
 
             var resultWithStepIdentifier = $"ACTIVITY LOGS ANALYSIS\n{llmSummary}";
             return resultWithStepIdentifier;
@@ -183,7 +188,8 @@ Important:
 
             var agentContext = agentContexts.First();
 
-            await _repository.CreateReasoningMessageAsync(new ReasoningMessage(
+            var agentChatHistory = await _repository.GetAgentChatHistoryAsync(agentContext.Id);
+            var reasoningMessage = new ReasoningMessage(
                         Guid.NewGuid(),
                         agentContext.Id,
                         ReasoningMessageRoleEnum.System,
@@ -192,7 +198,8 @@ Important:
                             description = "Summary of analysis of connected components in the knowledge graph that might be impacting this resource.",
                             llmHealthSummary,
                         }
-                    )));
+                    ));
+            await PersistReasoningMessageAsync(agentChatHistory, reasoningMessage);
 
             var resultWithStepIdentifier = $"CONNECTED COMPONENTS ANALYSIS\n{llmHealthSummary}";
             return resultWithStepIdentifier;
@@ -258,7 +265,8 @@ Important:
 
                 var agentContext = agentContexts.First();
 
-                await _repository.CreateReasoningMessageAsync(new ReasoningMessage(
+                var agentChatHistory = await _repository.GetAgentChatHistoryAsync(agentContext.Id);
+                var reasoningMessage = new ReasoningMessage(
                        Guid.NewGuid(),
                        agentContext.Id,
                        ReasoningMessageRoleEnum.System,
@@ -267,7 +275,8 @@ Important:
                            description = "Summary of analysis of application health for this alert.",
                            llmSummary,
                        }
-                   )));
+                   ));
+                await PersistReasoningMessageAsync(agentChatHistory, reasoningMessage);
 
                 var resultWithStepIdentifier = $"APPLICATION HEALTH ANALYSIS\n{llmSummary}";
                 return resultWithStepIdentifier;
@@ -457,7 +466,8 @@ ONLY mention findings directly relevant to this alert condition.";
             _logger.LogDebug($"Sending prompt to LLM to analyze query results");
             var analysisResult = await SummarizeWithLLM(queryPromptWithPlaceholders);
 
-            await _repository.CreateReasoningMessageAsync(new ReasoningMessage(
+            var agentChatHistory = await _repository.GetAgentChatHistoryAsync(agentContext.Id);
+            var reasoningMessage = new ReasoningMessage(
                         Guid.NewGuid(),
                         agentContext.Id,
                         ReasoningMessageRoleEnum.System,
@@ -466,7 +476,8 @@ ONLY mention findings directly relevant to this alert condition.";
                             description = "Summary of analysis of User's saved Log Queries in Azure Monitor.",
                             analysisResult,
                         }
-                    )));
+                    ));
+            await PersistReasoningMessageAsync(agentChatHistory, reasoningMessage);
 
             var resultWithStepIdentifier = $"LOG QUERIES ANALYSIS\n{analysisResult}";
             return resultWithStepIdentifier;
@@ -564,7 +575,8 @@ BEGIN by calling ListAvailableMetrics now.";
             var llmSummary = await SummarizeWithLLMAndTools(metricsInvestigationPrompt, tools);
 
             // Store the analysis result as a reasoning message
-            await _repository.CreateReasoningMessageAsync(new ReasoningMessage(
+            var agentChatHistory = await _repository.GetAgentChatHistoryAsync(agentContext.Id);
+            var reasoningMessage = new ReasoningMessage(
                 Guid.NewGuid(),
                 agentContext.Id,
                 ReasoningMessageRoleEnum.System,
@@ -577,7 +589,8 @@ BEGIN by calling ListAvailableMetrics now.";
                     alertTime = alertTime.ToString("yyyy-MM-dd HH:mm:ss UTC"),
                     timeRange = new { startTime = startTime.ToString("yyyy-MM-dd HH:mm:ss UTC"), endTime = endTime.ToString("yyyy-MM-dd HH:mm:ss UTC") }
                 })
-            ));
+            );
+            await PersistReasoningMessageAsync(agentChatHistory, reasoningMessage);
 
             var resultWithStepIdentifier = $"RESOURCE METRICS ANALYSIS\n{llmSummary}";
             return resultWithStepIdentifier;
@@ -590,6 +603,56 @@ BEGIN by calling ListAvailableMetrics now.";
     }
 
     #region Helper Methods
+
+    private async Task PersistReasoningMessageAsync(AgentChatHistory agentChatHistory, ReasoningMessage reasoningMessage)
+    {
+        await ExecuteWithRetryAsync(
+            () => _repository.CreateReasoningMessageAsync(reasoningMessage),
+            $"CreateReasoningMessage for message {reasoningMessage.Id}");
+
+        await ExecuteWithRetryAsync(
+            () => _repository.AddReasoningMessagesToChatHistoryAsync(agentChatHistory, reasoningMessage),
+            $"AddReasoningMessageToChatHistory for message {reasoningMessage.Id}");
+    }
+
+    private async Task<T> ExecuteWithRetryAsync<T>(Func<Task<T>> operation, string operationName, CancellationToken cancellationToken = default)
+    {
+        for (int attempt = 0; attempt < MaxRetryAttempts; attempt++)
+        {
+            try
+            {
+                return await operation();
+            }
+            catch (Microsoft.Azure.Cosmos.CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+            {
+                _logger.LogInternalInformation("Resource already exists for {OperationName}, continuing without retry", operationName);
+                return default!;
+            }
+            catch (Exception ex) when (attempt < MaxRetryAttempts - 1)
+            {
+                _logger.LogInternalWarning(ex, "Attempt {Attempt} failed for {OperationName}, retrying in {Delay}ms",
+                    attempt + 1, operationName, RetryDelays[attempt].TotalMilliseconds);
+
+                await Task.Delay(RetryDelays[attempt], cancellationToken);
+            }
+        }
+
+        // Final attempt without catch (except for Cosmos conflict)
+        try
+        {
+            return await operation();
+        }
+        catch (Microsoft.Azure.Cosmos.CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+        {
+            _logger.LogInternalInformation("Resource already exists for {OperationName}, continuing without retry", operationName);
+            return default!;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "All retry attempts failed for {OperationName}", operationName);
+            throw;
+        }
+    }
 
     private DateTimeOffset ParseDateTimeOffset(string? value)
     {
