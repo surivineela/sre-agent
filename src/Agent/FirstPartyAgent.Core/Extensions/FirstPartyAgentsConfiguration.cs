@@ -169,7 +169,16 @@ namespace FirstPartyAgent.Core.Extensions
                 services.AddSingleton<ICosmosDBService, CosmosDBServiceDisabled>();
                 services.AddSingleton<IIcmAgentConfigService, IcmAgentConfigServiceDisabled>();
             }
-            services.AddSingleton<IEmergingIssueConfigService, EmergingIssueConfigService>();
+
+            var emergingIssueSettings = azureSettings.Value.EmergingIssue;
+            if (emergingIssueSettings.Enabled)
+            {
+                services.AddSingleton<IEmergingIssueConfigService, EmergingIssueConfigService>();
+            }
+            else
+            {
+                services.AddSingleton<IEmergingIssueConfigService, EmergingIssueConfigServiceDisabled>();
+            }
 
             services.AddSingleton<DevOpsHelperService>();
             services.AddSingleton<TsgFetcherService>();

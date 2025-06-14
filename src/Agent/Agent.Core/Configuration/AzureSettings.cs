@@ -35,6 +35,8 @@ namespace Agent.Core.Configuration
         public IndexingSettings Indexing { get; set; } = new();
 
         public AgentTraceADX AgentTraceADX { get; set; } = new();
+
+        public EmergingIssueSettings EmergingIssue { get; set; } = new();
     }
 }
 

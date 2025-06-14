@@ -28,19 +28,20 @@ public class EmergingIssueConfigService : IEmergingIssueConfigService
     /// Initializes a new instance of the <see cref="EmergingIssueConfigService"/> class
     /// </summary>
     public EmergingIssueConfigService(
-        IWebHostEnvironment env, 
+        IWebHostEnvironment env,
         ICosmosDBService cosmosDbService,
         ILogger<EmergingIssueConfigService> logger)
     {
         _env = env ?? throw new ArgumentNullException(nameof(env));
         _cosmosDbService = cosmosDbService ?? throw new ArgumentNullException(nameof(cosmosDbService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        
+
         // Set up local storage path for fallback
         _localStoragePath = Path.Combine(_env.ContentRootPath, "Data", "EmergingIssues");
-        
+
+
         // Ensure directory exists if we ever need to use local storage
-        if (!Directory.Exists(_localStoragePath))
+        if (!Directory.Exists(_localStoragePath) && !IsCosmosDbEnabled())
         {
             Directory.CreateDirectory(_localStoragePath);
         }
@@ -92,9 +93,9 @@ public class EmergingIssueConfigService : IEmergingIssueConfigService
                 // Store in CosmosDB
                 await _cosmosDbService.UpsertItemAsync(
                     _cosmosDbService.IcmAgentDatabaseName,
-                    _emergingIssuesContainerName, 
+                    _emergingIssuesContainerName,
                     emergingIssue);
-                
+
                 _logger.LogInformation("Registered emerging issue with ID {Id} in CosmosDB", emergingIssue.Id);
             }
             else
@@ -105,7 +106,7 @@ public class EmergingIssueConfigService : IEmergingIssueConfigService
                 {
                     WriteIndented = true
                 }));
-                
+
                 _logger.LogInformation("Registered emerging issue with ID {Id} in local storage", emergingIssue.Id);
             }
 
@@ -135,20 +136,20 @@ public class EmergingIssueConfigService : IEmergingIssueConfigService
         {
             // Get the existing issue to ensure it exists and to preserve the original ID
             var existingIssue = await GetEmergingIssue(emergingIssue.IncidentId);
-            
+
             // Update metadata
             emergingIssue.Id = existingIssue.Id;
             emergingIssue.CreatedDate = existingIssue.CreatedDate;
             emergingIssue.LastModifiedDate = DateTime.UtcNow;
-            
+
             if (IsCosmosDbEnabled())
             {
                 // Update in CosmosDB
                 await _cosmosDbService.UpsertItemAsync(
                     _cosmosDbService.IcmAgentDatabaseName,
-                    _emergingIssuesContainerName, 
+                    _emergingIssuesContainerName,
                     emergingIssue);
-                
+
                 _logger.LogInformation("Updated emerging issue with ID {Id} in CosmosDB", emergingIssue.Id);
             }
             else
@@ -159,7 +160,7 @@ public class EmergingIssueConfigService : IEmergingIssueConfigService
                 {
                     WriteIndented = true
                 }));
-                
+
                 _logger.LogInformation("Updated emerging issue with ID {Id} in local storage", emergingIssue.Id);
             }
         }
@@ -187,18 +188,18 @@ public class EmergingIssueConfigService : IEmergingIssueConfigService
         {
             // Get the existing issue to use its ID and team
             var existingIssue = await GetEmergingIssue(incidentId);
-            
+
             if (IsCosmosDbEnabled())
             {
                 // Delete from CosmosDB
                 var container = _cosmosDbService.CosmosClient.GetContainer(
-                    _cosmosDbService.IcmAgentDatabaseName, 
+                    _cosmosDbService.IcmAgentDatabaseName,
                     _emergingIssuesContainerName);
-                
+
                 await container.DeleteItemAsync<EmergingIssueConfig>(
-                    existingIssue.Id, 
+                    existingIssue.Id,
                     new PartitionKey(existingIssue.OwningTeam));
-                
+
                 _logger.LogInformation("Deregistered emerging issue with ID {Id} from CosmosDB", existingIssue.Id);
             }
             else
@@ -243,7 +244,7 @@ public class EmergingIssueConfigService : IEmergingIssueConfigService
             {
                 // Query CosmosDB
                 var queryableResult = _cosmosDbService.GetQueryableContainer<EmergingIssueConfig>(
-                    _cosmosDbService.IcmAgentDatabaseName, 
+                    _cosmosDbService.IcmAgentDatabaseName,
                     _emergingIssuesContainerName)
                     .Where(e => e.IncidentId == incidentId)
                     .ToList();
@@ -292,7 +293,7 @@ public class EmergingIssueConfigService : IEmergingIssueConfigService
             {
                 // Query CosmosDB for all emerging issues
                 var queryableResult = _cosmosDbService.GetQueryableContainer<EmergingIssueConfig>(
-                    _cosmosDbService.IcmAgentDatabaseName, 
+                    _cosmosDbService.IcmAgentDatabaseName,
                     _emergingIssuesContainerName)
                     .ToList();
 
@@ -325,7 +326,7 @@ public class EmergingIssueConfigService : IEmergingIssueConfigService
             {
                 // Query CosmosDB for emerging issues by team
                 var queryableResult = _cosmosDbService.GetQueryableContainer<EmergingIssueConfig>(
-                    _cosmosDbService.IcmAgentDatabaseName, 
+                    _cosmosDbService.IcmAgentDatabaseName,
                     _emergingIssuesContainerName)
                     .Where(e => e.OwningTeam == owningTeam)
                     .ToList();
@@ -353,7 +354,7 @@ public class EmergingIssueConfigService : IEmergingIssueConfigService
     {
         var issues = new List<EmergingIssueConfig>();
         var directory = new DirectoryInfo(_localStoragePath);
-        
+
         if (!directory.Exists)
         {
             return issues;
@@ -381,3 +382,34 @@ public class EmergingIssueConfigService : IEmergingIssueConfigService
         return issues;
     }
 }
+
+public class EmergingIssueConfigServiceDisabled : IEmergingIssueConfigService
+{
+    public bool IsEnabled() => false;
+    public Task<string> RegisterEmergingIssue(EmergingIssueConfig emergingIssue)
+    {
+        throw new NotImplementedException("Emerging Issue service is disabled");
+    }
+    public Task UpdateEmergingIssue(EmergingIssueConfig emergingIssue)
+    {
+        throw new NotImplementedException("Emerging Issue service is disabled");
+    }
+    public Task DeregisterEmergingIssue(string incidentId)
+    {
+        throw new NotImplementedException("Emerging Issue service is disabled");
+    }
+    public Task<EmergingIssueConfig> GetEmergingIssue(string incidentId)
+    {
+        throw new NotImplementedException("Emerging Issue service is disabled");
+    }
+    public Task<List<EmergingIssueConfig>> ListEmergingIssues()
+    {
+        throw new NotImplementedException("Emerging Issue service is disabled");
+    }
+    public Task<List<EmergingIssueConfig>> ListEmergingIssuesByTeam(string owningTeam)
+    {
+        throw new NotImplementedException("Emerging Issue service is disabled");
+    }
+}
+
+
