@@ -61,13 +61,13 @@ let HasWorkloadProfilesData = BaseData
 | extend ComponentType = "Has Workload Profiles"
 | project ComponentType, PreciseTimeStamp, Content = tostring(hasWorkloadProfiles);
 
-let HasDedicatedWorkloadProfilesData = BaseData
-| extend ComponentType = "Has Dedicated Workload Profiles"
-| project ComponentType, PreciseTimeStamp, Content = tostring(hasDedicatedWorkloadProfiles);
+let HasCustomerVnetForEnvData = BaseData
+| extend ComponentType = "Has Customer VNet For Env"
+| project ComponentType, PreciseTimeStamp, Content = tostring(hasCustomerVnetForEnv);
 
-let HasCustomerVnetData = BaseData
-| extend ComponentType = "Has Customer VNet"
-| project ComponentType, PreciseTimeStamp, Content = tostring(hasCustomerVnet);
+let HasCustomerVnetForClusterData = BaseData
+| extend ComponentType = "Has Customer VNet For Cluster"
+| project ComponentType, PreciseTimeStamp, Content = tostring(hasCustomerVnetForCluster);
 
 let HasPrivateEndpointsData = BaseData
 | extend ComponentType = "Has Private Endpoints"
@@ -116,8 +116,8 @@ union
     // Configuration
     TrackChanges(IsLegionEnabledData),
     TrackChanges(HasWorkloadProfilesData),
-    TrackChanges(HasDedicatedWorkloadProfilesData),
-    TrackChanges(HasCustomerVnetData),
+    TrackChanges(HasCustomerVnetForClusterData),
+    TrackChanges(HasCustomerVnetForEnvData),
     TrackChanges(HasPrivateEndpointsData),
     TrackChanges(ManagedClusterNameData),
     TrackChanges(CustomHelmValuesData),

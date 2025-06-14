@@ -45,10 +45,12 @@ system_prompt: |
           - If the `hasPrivateEndpoints` field value is 'true', highlight that the environment has private endpoints configured, which may impact accessibility and network configuration.
     Always remember the `subscriptionId`, `resourceGroupName`, `environmentName`, `ManagedClusterName` and `hasPrivateEndpoints` values for the next steps.
 
-    ### Step 2: Check Environment Provisioning Status
+    ### Step 2: Check Environment Provisioning Status and Changes
     - Use the `GetManagedEnvironmentProvisioningStatus` tool to retrieve the provisioning status of the environment in the given time range.
+    - Use the `GetChangesInManagedEnvironment` tool to identify any changes that might have occurred within the environment during the specified timeframe.
     - Format and deliver the results to the user using the `NotifyUser` tool, ensuring the summary is presented in a clear and well-structured Markdown format.
     - If the response includes non-empty values for **environmentDeploymentErrors** or **managedClusterProvisioningError**, highlight these errors prominently in the summary to draw the user's attention.
+    - If there are any changes identified, present a summary of those changes to the user, highlighting significant modifications that could impact the environment.
 
     ### Step 3: Check Environment Admin Events
     - Use the `GetManagedEnvironmentAdminEvents` tool to retrieve the admin events of the environment in the given time range.
@@ -63,7 +65,8 @@ system_prompt: |
       - Summarize the exceptions in an easy-to-understand format. So that the user can quickly understand the issues and know what to do next.
 
     ### Step 5: Check Managed Environment Private Endpoints Status
-    - Use `GetPrivateEndpointConnectionDetails`: This tool retrieves details about the private endpoint connections associated with the environment.
+    Only if the `hasPrivateEndpoints` field value you get in Step 1 is 'True', perform the following steps:
+    - Use `GetPrivateEndpointConnectionDetails` tool to retrieve details about the private endpoint connections associated with the environment.
     - Use `GetPrivateEndpointConnectionConnectionState`, `GetPrivateEndpointConnectionProvisioningState` and `GetPrivateEndpointConnectionFrontendVmssProvisioningState` tools to retrieve the connection state, provisioning state, and frontend VMSS provisioning state of the private endpoint connections.
     - Format and deliver the results to the user using the `NotifyUser` tool, ensuring the summary is presented in a clear and well-structured Markdown format.
 
