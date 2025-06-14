@@ -29,6 +29,8 @@ using Agent.Plugins.Interface;
 using Agent.Plugins.Services;
 using Agent.Plugins.Services.Interfaces;
 using Agent.Prometheus.Services;
+using Kusto.Data;
+using Kusto.Ingest;
 using Agent.Runtime;
 using Agent.Runtime.Clients.Search;
 using Agent.Runtime.Communication;
@@ -749,6 +751,7 @@ public class Program
 
         ConfigureKustoLoggers(builder);
         ConfigureApplicationInsightsLoggers(builder);
+        ConfigureAgentActionLoggers(builder);
     }
 
     private static void ConfigureKustoLoggers(WebApplicationBuilder builder)
@@ -834,6 +837,27 @@ public class Program
         });
     }
 
+
+    private static void ConfigureAgentActionLoggers(WebApplicationBuilder builder)
+    {
+        var azureSettings = builder.Configuration.GetSection("AppSettings:Core:Azure").Get<AzureSettings>();
+        if (azureSettings != null && azureSettings.AgentActionADX != null)
+        {
+            // Add AgentActionLogger as a singleton service
+            builder.Services.AddSingleton<AgentActionLogger>();
+            // Add IAgentActionLogExporter as a singleton service
+            builder.Services.AddSingleton<IAgentActionLogExporter>(sp =>
+            {
+                var logger = sp.GetRequiredService<ILogger<AgentActionLogADXExporter>>();
+                return new AgentActionLogADXExporter(
+                    azureSettings.AgentActionADX.ClusterUri,
+                    azureSettings.AgentActionADX.DatabaseName,
+                    azureSettings.AgentActionADX.TableName,
+                    logger,
+                    false); // Enable batch processing for better performance
+            });
+        }
+    }
     private static string GetKustoFirstPartyConfiguration(string key)
     {
         const string prefix = "AppSettings__Core__Azure__Kusto__";

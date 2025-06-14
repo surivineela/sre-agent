@@ -29,10 +29,12 @@ public class ThreadManagementService(
     ITitleGenerationService titleGenerationService,
     IChatClient chatClient,
     ILogger<ThreadManagementService> logger,
+    AgentActionLogger actionLogger,
     CoreSettings coreSettings)
 {
     public async Task<Thread> CreateUserInitiatedThread(CreateThreadRequest request)
     {
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
         var threadId = Guid.NewGuid();
         var messageId = Guid.NewGuid();
 
@@ -105,9 +107,7 @@ public class ThreadManagementService(
         await repository.AddThreadContextAsync(threadContext);
 
         // Start the background title generation task (fire and forget)
-        _ = titleGenerationService.GenerateTitleAndUpdateThreadAsync( thread.Id, request.StartMessage.Text);
-
-        var response = await agentInboundCommunicationService.ProcessUserMessageAsync(new ThreadMessage
+        _ = titleGenerationService.GenerateTitleAndUpdateThreadAsync( thread.Id, request.StartMessage.Text);        var response = await agentInboundCommunicationService.ProcessUserMessageAsync(new ThreadMessage
         (
             ThreadId: thread.Id,
             AgentContextId: agentContext.Id,
@@ -117,10 +117,15 @@ public class ThreadManagementService(
             DisplayName: request.StartMessage.DisplayName,
             Timestamp: DateTime.UtcNow
         ));
+        stopwatch.Stop();
+        actionLogger.LogAction(
+            action: "CreateUserInitiatedThread",
+            parameter: $"{thread.Id}",
+            status: "Success",
+            duration: stopwatch.ElapsedMilliseconds);
 
         return thread;
     }
-
     public async IAsyncEnumerable<ChatResponseUpdate> CreateUserInitiatedThreadStream(CreateThreadRequest request)
     {
         var threadId = Guid.NewGuid();
@@ -195,7 +200,7 @@ public class ThreadManagementService(
         await repository.AddThreadContextAsync(threadContext);
 
         // Start the background title generation task (fire and forget)
-        _ = titleGenerationService.GenerateTitleAndUpdateThreadAsync( thread.Id, request.StartMessage.Text);
+        _ = titleGenerationService.GenerateTitleAndUpdateThreadAsync(thread.Id, request.StartMessage.Text);
 
         // Return user message to caller
         var userMessage = new ChatResponseUpdate
@@ -225,7 +230,7 @@ public class ThreadManagementService(
             Timestamp: DateTime.UtcNow
         ));
 
-        await foreach (var update in response)
+ await foreach (var update in response)
         {
             yield return update;
         }

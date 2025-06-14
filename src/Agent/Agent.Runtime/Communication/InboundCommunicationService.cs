@@ -40,6 +40,8 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
     private readonly IReasoningLoopManager _reasoningLoopManager;
     private readonly bool _useAgentFramwork;
 
+    private readonly AgentActionLogger _actionLogger;
+
     public InboundCommunicationService(
         IAgent metaAgent,
         IIncidentHandlerAgent incidentHandlerAgent,
@@ -52,7 +54,8 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         CustomerLogger customerLogger,
         IServiceProvider serviceProvider,
         IReasoningLoopManager reasoningLoopManager,
-        CoreSettings coreSettings)
+        CoreSettings coreSettings,
+        AgentActionLogger actionLogger)
     {
         _metaAgent = metaAgent;
         _incidentHandlerAgent = incidentHandlerAgent;
@@ -66,6 +69,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         _serviceProvider = serviceProvider;
         _reasoningLoopManager = reasoningLoopManager;
         _useAgentFramwork = coreSettings.UseAgentFramework;
+        _actionLogger = actionLogger;
     }
 
     public async Task<(Core.Models.Api.v1.Thread, AgentContext)> CreateAgentThread(
@@ -550,6 +554,23 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                 IsPositiveFeedback: threadMessageFeedback.IsPositive,
                 FeedbackText: threadMessageFeedback.FeedbackText,
                 RootCause: null);
+
+            if (threadMessageFeedback.IsPositive)
+            {
+                _actionLogger.LogAction(
+                    action: "ThumbsUp",
+                    parameter: $"{threadMessageFeedback.ThreadId}",
+                    status: "Success",
+                    duration: 0);
+            }
+            else
+            {
+                _actionLogger.LogAction(
+                    action: "ThumbsDown",
+                    parameter: $"{threadMessageFeedback.ThreadId}",
+                    status: "Success",
+                    duration: 0);
+            }
 
             await _repository.AddOrUpdateMessageFeedbackAsync(threadMessageFeedback.ThreadId, messageFeedback);
 

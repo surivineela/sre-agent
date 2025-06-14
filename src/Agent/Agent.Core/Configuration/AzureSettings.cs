@@ -36,6 +36,8 @@ namespace Agent.Core.Configuration
 
         public AgentTraceADX AgentTraceADX { get; set; } = new();
 
+        public AgentActionADX AgentActionADX { get; set; } = new();
+
         public EmergingIssueSettings EmergingIssue { get; set; } = new();
     }
 }

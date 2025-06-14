@@ -24,6 +24,7 @@ using Agent.Runtime.SubAgents.Core;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
+using System.Diagnostics;
 
 namespace Agent.Runtime.Reasoning;
 
@@ -46,6 +47,7 @@ public class ReasoningLoop
 
     private TelemetrySpan? _currentGenerationSpan;
     private readonly IAgentFactory<AgentContext> _agentFactory;
+    private readonly AgentActionLogger _actionLogger;
     private List<ChatMessage>? _chatHistory;
     private Agent<AgentContext> _currentAgent;
 
@@ -77,7 +79,8 @@ public class ReasoningLoop
         IToolFactory<AgentContext> toolFactory,
         ActionSettings actionSettings,
         Tracer tracer,
-        IAgentFactory<AgentContext> agentFactory)
+        IAgentFactory<AgentContext> agentFactory,
+        AgentActionLogger actionLogger)
     {
         _logger = logger;
         _loggerFactory = loggerFactory;
@@ -95,6 +98,7 @@ public class ReasoningLoop
         _actionSettings = actionSettings;
         _tracer = tracer;
         _agentFactory = agentFactory;
+        _actionLogger = actionLogger;
     }
 
     public async Task AppendNewChatMessageAsync(ChatMessage msg, CancellationToken cancellationToken = default)
@@ -1164,6 +1168,12 @@ public class ReasoningLoop
                 _currentAgentSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
                 _currentAgentSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
                 _currentAgentSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.InvokeAgent);
+
+                _actionLogger.LogAction(
+                    action: "InvokeAgent",
+                    parameter: agent.Name,
+                    status: "Success",
+                    duration: 0);
                 return Task.CompletedTask;
             },
             OnAgentEnd = (context, agent, output) =>
@@ -1200,6 +1210,12 @@ public class ReasoningLoop
                 _currentToolSpan.SetAttribute(TraceAttribute.ToolInput, FormatToolArguments(input));
                 _currentToolSpan.SetAttribute(TraceAttribute.ModelTemperature, agent.Temperature.ToString());
                 _currentToolSpan.SetAttribute(TraceAttribute.ToolDescription, tool.Description);
+
+                _actionLogger.LogAction(
+                    action: "InvokeTool",
+                    parameter: tool.Name,
+                    status: "Success",
+                    duration: 0);
                 return Task.CompletedTask;
             },
             OnToolEnd = (context, agent, tool, output) =>
@@ -1230,6 +1246,11 @@ public class ReasoningLoop
                 _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelTemperature, agent?.Temperature.ToString() ?? string.Empty);
                 _currentGenerationSpan?.End();
                 _currentGenerationSpan = null;
+                _actionLogger.LogAction(
+                    action: "GenerateModelResponse",
+                    parameter: response?.Usage?.TotalTokenCount?.ToString() ?? "0",
+                    status: "Success",
+                    duration: 0);
                 return Task.CompletedTask;
             }
         };

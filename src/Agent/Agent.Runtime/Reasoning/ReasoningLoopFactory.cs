@@ -6,6 +6,7 @@ using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
+using Agent.Logging;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
@@ -26,6 +27,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
     private readonly IToolFactory<AgentContext> _toolFactory;
     private readonly IThreadRepository _threadRepository;
     private readonly ActionSettings _actionSettings;
+    private readonly IAgentActionLogExporter? _actionLogExporter;
 
     private readonly Tracer _tracer;
 
@@ -37,7 +39,8 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         IAgentFactory<AgentContext> agentFactory,
         IToolFactory<AgentContext> toolFactory,
         ActionSettings actionSettings,
-        Tracer tracer)
+        Tracer tracer,
+        IAgentActionLogExporter? actionLogExporter = null)
     {
         _loggerFactory = loggerFactory;
         _chatClient = chatClient;
@@ -47,6 +50,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         _toolFactory = toolFactory;
         _actionSettings = actionSettings;
         _tracer = tracer;
+        _actionLogExporter = actionLogExporter;
     }
 
     public async Task<ReasoningLoop> Create(AgentContext context)
@@ -73,6 +77,11 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
             context.AgentHandoffChain.Add(agentName);
         }
         var agent = _agentFactory.GetAgent(agentName);
+        
+        // Create AgentActionLogger for this ReasoningLoop instance
+        var logger = _loggerFactory.CreateLogger<AgentActionLogger>();
+        var actionLogger = new AgentActionLogger(logger, _actionLogExporter);
+        
         // Create and return a new instance of ReasoningLoop
         var loop = new ReasoningLoop(
             _loggerFactory.CreateLogger<ReasoningLoop>(),
@@ -85,7 +94,8 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
             _toolFactory,
             _actionSettings,
             _tracer,
-            _agentFactory);
+            _agentFactory,
+            actionLogger);
 
         await loop.LoadChatHistoryAsync();
         return loop;
