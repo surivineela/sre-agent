@@ -126,7 +126,7 @@ public class Program
 
         app.MapControllers();
         app.MapBlazorHub();
-        
+
         // Map SignalR hub
         app.MapHub<Agent.Web.SignalR.AgentHub>("/agentHub");
 
@@ -513,7 +513,7 @@ public class Program
         builder.Services.AddSingleton<IKubernetesClientFactory, KubernetesClientFactory>();
         builder.Services.AddKeyedSingleton<IKubernetesService, CrawlerKubernetesService>("Crawler");
         builder.Services.AddSingleton<IActivityLogService, ActivityLogService>();
- 
+
 
         var serviceProvider = builder.Services.BuildServiceProvider();
         var incidentManagementSettings = serviceProvider.GetRequiredService<IncidentManagementSettings>();
@@ -659,12 +659,13 @@ public class Program
                 .SetResourceBuilder(ResourceBuilder.CreateDefault()
                     .AddService(serviceName: "SREAgent", serviceVersion: "1.1.0"));
 
-            if (builder.Environment.IsDevelopment())
-            {
-                var exportedActivities = new List<Activity>();
-                builder.Services.AddSingleton<ICollection<Activity>>(exportedActivities);
-                tracingBuilder.AddInMemoryExporter(exportedActivities);
-            }
+            //if (builder.Environment.IsDevelopment())
+            //{
+            // TODO: sanmeht - only enable traces for non-production environments
+            var exportedActivities = new List<Activity>();
+            builder.Services.AddSingleton<ICollection<Activity>>(exportedActivities);
+            tracingBuilder.AddInMemoryExporter(exportedActivities);
+            //}
 
             if (builder.Environment.IsProduction() && azureSettings != null
                 && azureSettings.AgentTraceADX != null
