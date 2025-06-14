@@ -156,9 +156,9 @@ export const SreAgentResources = defineMessages({
     resourceMap: { defaultMessage: 'Resource map', id: 'aB1tjk' },
     goToMap: { defaultMessage: 'Go to map', id: 'UPybTw' },
     totalResources: { defaultMessage: 'Total resources', id: 'wkLkeE' },
-    autonomous: { defaultMessage: 'Autonomous', id: 'Sr5R7d' },
-    review: { defaultMessage: 'Review', id: 'R+J5ox' },
-    readonly: { defaultMessage: 'Read-only', id: 'djNL6D' },
+    autonomous: { defaultMessage: 'Autonomous mode', id: 'U73T9e' },
+    review: { defaultMessage: 'Review mode', id: '7Eq7I8' },
+    readonly: { defaultMessage: 'Read-only mode', id: 'eLvBmG' },
 });
 
 export const SreAgentTabResources = defineMessages({
