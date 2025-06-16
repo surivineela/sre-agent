@@ -459,6 +459,12 @@
       "value": "Custom handler"
     }
   ],
+  "7Eq7I8": [
+    {
+      "type": 0,
+      "value": "Review mode"
+    }
+  ],
   "7MvYEX": [
     {
       "type": 0,
@@ -1097,12 +1103,6 @@
       "value": "Last 60 days"
     }
   ],
-  "KXyWfi": [
-    {
-      "type": 0,
-      "value": "Urgency"
-    }
-  ],
   "KVPNxV": [
     {
       "type": 0,
@@ -1111,6 +1111,12 @@
     {
       "type": 1,
       "value": "errorMessage"
+    }
+  ],
+  "KXyWfi": [
+    {
+      "type": 0,
+      "value": "Urgency"
     }
   ],
   "KyDsjH": [
@@ -1381,12 +1387,6 @@
       "value": "Custom handler name"
     }
   ],
-  "R+J5ox": [
-    {
-      "type": 0,
-      "value": "Review"
-    }
-  ],
   "R/6nsx": [
     {
       "type": 0,
@@ -1479,12 +1479,6 @@
       "value": "Monitoring Reader"
     }
   ],
-  "Sr5R7d": [
-    {
-      "type": 0,
-      "value": "Autonomous"
-    }
-  ],
   "T7WpWs": [
     {
       "type": 0,
@@ -1555,6 +1549,12 @@
     {
       "type": 0,
       "value": "The agent uses these available tools to generate incident handler instructions, based on patterns it learned from the past incidents. You can remove any tools you don't want the agent to use."
+    }
+  ],
+  "U73T9e": [
+    {
+      "type": 0,
+      "value": "Autonomous mode"
     }
   ],
   "UPybTw": [
@@ -1817,6 +1817,12 @@
       "value": "Resource map"
     }
   ],
+  "aCdAsI": [
+    {
+      "type": 0,
+      "value": "Copy to clipboard"
+    }
+  ],
   "aNIIuB": [
     {
       "type": 0,
@@ -1949,12 +1955,6 @@
       "value": "Memory"
     }
   ],
-  "djNL6D": [
-    {
-      "type": 0,
-      "value": "Read-only"
-    }
-  ],
   "dnXgff": [
     {
       "type": 0,
@@ -1977,6 +1977,12 @@
     {
       "type": 0,
       "value": "Pending"
+    }
+  ],
+  "eLvBmG": [
+    {
+      "type": 0,
+      "value": "Read-only mode"
     }
   ],
   "eqYdSS": [
@@ -2289,6 +2295,12 @@
       "value": "Grafana logo"
     }
   ],
+  "nFOo9o": [
+    {
+      "type": 0,
+      "value": "Review + edit"
+    }
+  ],
   "nQpONp": [
     {
       "type": 0,
@@ -2299,12 +2311,6 @@
     {
       "type": 0,
       "value": "Go to incident management"
-    }
-  ],
-  "nFOo9o": [
-    {
-      "type": 0,
-      "value": "Review + edit"
     }
   ],
   "nmpevl": [
@@ -2369,6 +2375,12 @@
     {
       "type": 0,
       "value": "Manage access to the SRE Agent resource by clicking on the link below."
+    }
+  ],
+  "p556q3": [
+    {
+      "type": 0,
+      "value": "Copied"
     }
   ],
   "p5LNtB": [

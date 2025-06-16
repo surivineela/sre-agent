@@ -224,6 +224,27 @@ export const shouldGroupWithPreviousMessage = (currentMessage?: Message, previou
     );
 };
 
+/** Returns the messages to be considered grouped (starting from the current and only checking prior) */
+export const getGroupedMessages = (messages: Message[], currentMessageIndex: number): Message[] => {
+    if (currentMessageIndex < 0 || currentMessageIndex >= messages.length) {
+        return [];
+    }
+
+    const currentMessage = messages[currentMessageIndex];
+    const groupedMessages: Message[] = [currentMessage];
+
+    for (let i = currentMessageIndex - 1; i >= 0; i--) {
+        const previousMessage = messages[i];
+        if (shouldGroupWithPreviousMessage(currentMessage, previousMessage)) {
+            groupedMessages.unshift(previousMessage);
+        } else {
+            break;
+        }
+    }
+
+    return groupedMessages;
+};
+
 export const getUTCTimestampBasedOnSelectedThreadCutoffTime = (selectedCutOffModifiedTime: SelectedTimes): string => {
     const days = selectedCutOffModifiedTime === SelectedTimes.OneDay ? 1 : selectedCutOffModifiedTime === SelectedTimes.SevenDays ? 7 : 30;
     const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);

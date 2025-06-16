@@ -50,6 +50,7 @@ export interface IChatMessageProps {
     message: Message;
     previousMessage?: Message;
     nextMessage?: Message;
+    getGroupedMessages?: () => Message[];
     isTyping?: boolean;
     cancelResponse?: () => void;
     threadId: string;
@@ -60,6 +61,7 @@ export interface IChatMessageV2Props {
     message: Message;
     previousMessage?: Message;
     nextMessage?: Message;
+    getGroupedMessages?: () => Message[];
     isTyping?: boolean;
     threadId: string;
     isStreamingMessage?: boolean;

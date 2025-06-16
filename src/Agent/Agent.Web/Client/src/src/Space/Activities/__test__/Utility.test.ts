@@ -6,6 +6,7 @@ import { Guid } from '../../../Common/Helpers/Guid';
 import { SelectedTimes } from '../TimeDropdown';
 import {
     getFilteredThreads,
+    getGroupedMessages,
     getUpdatedUnreadThreadIds,
     getUTCTimestampBasedOnSelectedThreadCutoffTime,
     isThreadUnread,
@@ -870,5 +871,71 @@ describe('shouldGroupWithPreviousMessage', () => {
         const currentMessage = getUserMessage('2023-10-03T00:05:00Z', 'user1');
         const previousMessage = getUserMessage('2023-10-03T00:00:00Z', 'user1');
         expect(shouldGroupWithPreviousMessage(currentMessage, previousMessage)).toBe(true);
+    });
+});
+
+describe('getGroupedMessages', () => {
+    const makeMessage = (id: string, userId: string, timeOffsetMinutes: number, text = ''): Message => {
+        const baseTime = new Date('2024-01-01T00:00:00Z').toISOString();
+        return {
+            id,
+            timeStamp: new Date(new Date(baseTime).getTime() + timeOffsetMinutes * 60000).toISOString(),
+            text,
+            toolCallText: '',
+            author: {
+                role: 'SREAgent',
+                userId,
+                displayName: '',
+            },
+        };
+    };
+
+    it('returns empty array if index is out of bounds', () => {
+        const messages: Message[] = [makeMessage('1', 'a', 0)];
+        expect(getGroupedMessages(messages, -1)).toEqual([]);
+        expect(getGroupedMessages(messages, 1)).toEqual([]);
+    });
+
+    it('returns only the current message if no previous messages', () => {
+        const messages: Message[] = [makeMessage('1', 'a', 0)];
+        expect(getGroupedMessages(messages, 0)).toEqual([messages[0]]);
+    });
+
+    it('groups consecutive messages from the same author within 5 minutes', () => {
+        const messages: Message[] = [
+            makeMessage('1', 'a', 0),
+            makeMessage('2', 'a', 3), // within 5 min
+            makeMessage('3', 'a', 10), // >5 min from previous
+            makeMessage('4', 'a', 12), // within 5 min from previous
+        ];
+        // Should group only 3 and 4
+        expect(getGroupedMessages(messages, 3)).toEqual([messages[2], messages[3]]);
+        // Should group 1 and 2
+        expect(getGroupedMessages(messages, 1)).toEqual([messages[0], messages[1]]);
+    });
+
+    it('does not group messages from different authors', () => {
+        const messages: Message[] = [makeMessage('1', 'a', 0), makeMessage('2', 'b', 2), makeMessage('3', 'a', 4)];
+        expect(getGroupedMessages(messages, 2)).toEqual([messages[2]]);
+        expect(getGroupedMessages(messages, 1)).toEqual([messages[1]]);
+    });
+
+    it('does not group messages if time difference is more than 5 minutes', () => {
+        const messages: Message[] = [makeMessage('1', 'a', 0), makeMessage('2', 'a', 6)];
+        expect(getGroupedMessages(messages, 1)).toEqual([messages[1]]);
+    });
+
+    it('groups multiple prior messages if all conditions are met', () => {
+        const messages: Message[] = [
+            makeMessage('1', 'a', 0),
+            makeMessage('2', 'a', 2),
+            makeMessage('3', 'a', 4),
+            makeMessage('4', 'a', 10), // >5 min from previous
+            makeMessage('5', 'a', 12),
+        ];
+        // Should group 1,2,3 for index 2
+        expect(getGroupedMessages(messages, 2)).toEqual([messages[0], messages[1], messages[2]]);
+        // Should group only 4 and 5 for index 4
+        expect(getGroupedMessages(messages, 4)).toEqual([messages[3], messages[4]]);
     });
 });

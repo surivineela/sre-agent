@@ -23,6 +23,7 @@ import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
+import CopyButton from '../../Common/Components/CopyButton';
 import DailyReport from '../../Common/Components/DailyReport';
 import IncidentAlert from '../../Common/Components/IncidentAlert';
 import InvestigationSummary from '../../Common/Components/InvestigationSummary';
@@ -40,6 +41,18 @@ import { ChatBoxStyles, nameAndTimestampContainerStyle, useChatBoxStyles } from 
 import AgentChart from './Charts';
 import { FeedbackDialog } from './FeedbackDialog';
 import MermaidChart from './Mermaid';
+
+// Check for markdown image syntax with base64 data
+const imageRegex = /!\[(.*?)\]\((data:image\/[a-z]+;base64,[A-Za-z0-9+/=]+)\)/g;
+// Check for mermaid code blocks
+const mermaidRegex = /```mermaid\n([\s\S]*?)\n```/g;
+// Check for chart data blocks
+const chartRegex = /```chart-data\n([\s\S]*?)\n```/g;
+// Check if the entire message is just a incident-alert block
+const incidentAlertRegex = /```incident-alert\s+([\s\S]*?)```/;
+// Check for investigation summary formats
+const investigationSummaryRegex = /<investigation-summary>([\s\S]*?)<\/investigation-summary>/;
+const investigationSummariesRegex = /<investigation-summaries>([\s\S]*?)<\/investigation-summaries>/;
 
 const chatMessageStyles = mergeStyleSets({
     regularMessageContent: {
@@ -1736,13 +1749,6 @@ const KubectlExecutionComponent: React.FC<{
 const renderMarkdownWithImagesAndMermaid = (text: string) => {
     if (!text) return text;
 
-    // Check for markdown image syntax with base64 data
-    const imageRegex = /!\[(.*?)\]\((data:image\/[a-z]+;base64,[A-Za-z0-9+/=]+)\)/g;
-    // Check for mermaid code blocks
-    const mermaidRegex = /```mermaid\n([\s\S]*?)\n```/g;
-    // Check for chart data blocks
-    const chartRegex = /```chart-data\n([\s\S]*?)\n```/g;
-
     if (!imageRegex.test(text) && !mermaidRegex.test(text) && !chartRegex.test(text)) {
         return text; // No special content, return original text
     }
@@ -1833,6 +1839,7 @@ const ChatMessage = ({
     message,
     previousMessage,
     nextMessage,
+    getGroupedMessages,
     isTyping,
     threadId,
     cancelResponse,
@@ -1902,6 +1909,21 @@ const ChatMessage = ({
         () => message.author.role === 'SREAgent' && !isTyping && !shouldGroupWithPreviousMessage(nextMessage, message),
         [message, nextMessage, isTyping]
     );
+    const showCopyMessageButton = useMemo(
+        () => message.author.role === 'SREAgent' && !isTyping && message.text && !shouldGroupWithPreviousMessage(nextMessage, message),
+        [message, nextMessage, isTyping]
+    );
+
+    const filteredMessageContentToCopy = useMemo(() => {
+        if (!showCopyMessageButton || !getGroupedMessages) return '';
+
+        const groupedMessages = getGroupedMessages();
+        return groupedMessages
+            .map(msg =>
+                msg.text.trim().replace(imageRegex, '[Image]').replace(mermaidRegex, '[Mermaid Diagram]').replace(chartRegex, '[Chart]')
+            )
+            .join('\n\n');
+    }, [showCopyMessageButton, getGroupedMessages]);
 
     const handleFeedbackClick = async (isPositive: boolean) => {
         setSelectedFeedback(isPositive ? 'positive' : 'negative');
@@ -1979,13 +2001,6 @@ const ChatMessage = ({
 
     // Main content rendering function
     const renderContent = (isUserMessage?: boolean): React.ReactNode => {
-        // Check if the entire message is just a incident-alert block
-        const incidentAlertRegex = /```incident-alert\s+([\s\S]*?)```/;
-
-        // Check for investigation summary formats
-        const investigationSummaryRegex = /<investigation-summary>([\s\S]*?)<\/investigation-summary>/;
-        const investigationSummariesRegex = /<investigation-summaries>([\s\S]*?)<\/investigation-summaries>/;
-
         // Special case: if the whole message is an incident alert, render it directly
         if (typeof message.text === 'string') {
             const incidentMatch = message.text.match(incidentAlertRegex);
@@ -2014,9 +2029,6 @@ const ChatMessage = ({
                 return <InvestigationSummary messageText={message.text} />;
             }
         }
-
-        // Check if the entire message is just a chart-data block
-        const chartRegex = /```chart-data\n([\s\S]*?)\n```/;
 
         // Special case 3: if the whole message is a chart, render it directly
         if (
@@ -2377,13 +2389,16 @@ const ChatMessage = ({
                             renderContent()
                         ) : null}
 
-                        {showFeedbackButtons && ( // Only show buttons when the agent is not typing
-                            <FeedbackButtons
-                                positiveFeedbackButton={{ onClick: () => handleFeedbackClick(true) }}
-                                negativeFeedbackButton={{ onClick: () => handleFeedbackClick(false) }}
-                                selected={selectedFeedback}
-                            />
-                        )}
+                        <div style={{ display: 'flex', flexDirection: 'row', marginTop: '8px' }}>
+                            {showFeedbackButtons && ( // Only show buttons when the agent is not typing
+                                <FeedbackButtons
+                                    positiveFeedbackButton={{ onClick: () => handleFeedbackClick(true) }}
+                                    negativeFeedbackButton={{ onClick: () => handleFeedbackClick(false) }}
+                                    selected={selectedFeedback}
+                                />
+                            )}
+                            {showCopyMessageButton && <CopyButton textToCopy={filteredMessageContentToCopy} />}
+                        </div>
                     </CopilotMessage>
 
                     {isTyping && (

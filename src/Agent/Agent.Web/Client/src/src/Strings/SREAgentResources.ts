@@ -22,6 +22,14 @@ export const SreAgentResources = defineMessages({
         id: 'WCaf5C',
         defaultMessage: 'Approve',
     },
+    copied: {
+        id: 'p556q3',
+        defaultMessage: 'Copied',
+    },
+    copyToClipboard: {
+        id: 'aCdAsI',
+        defaultMessage: 'Copy to clipboard',
+    },
     deny: {
         id: 'htvX+Z',
         defaultMessage: 'Deny',
