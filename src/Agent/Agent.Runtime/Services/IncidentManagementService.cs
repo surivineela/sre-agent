@@ -362,7 +362,7 @@ namespace Agent.Runtime.Services
 
                 totalCount = filteredResults.Count;
                 pagedResult.TotalCount = totalCount;
-                pagedResult.Items = filteredResults.Skip(skip).Take(take).ToList();
+                pagedResult.Items = filteredResults.OrderByDescending(c => c.CreatedAt).Skip(skip).Take(take).ToList();
 
                 _logger.LogInternalInformation(
                     "QueryIncidentsInternal: Returning paged result. PageNumber: {PageNumber}, PageSize: {PageSize}, TotalCount: {TotalCount}",
