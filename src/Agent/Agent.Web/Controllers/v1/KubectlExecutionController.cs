@@ -146,6 +146,7 @@ namespace Agent.Web.Controllers.v1
                         try
                         {
                             // Execute the Kubectl command with stdin support
+                            // TODO: Pass obo token to ExecuteKubectlCommandSafely to consume obo token in kubectl
                             var output = await _kubePlugin.ExecuteKubectlCommandSafely(resourceId, execution.Command, execution.Stdin);
 
                             // Update execution with success

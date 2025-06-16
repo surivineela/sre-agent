@@ -136,6 +136,12 @@ public class KubernetesClientFactory : IKubernetesClientFactory
                 user.UserCredentials.Token = token.Token;
                 user.UserCredentials.AuthProvider = null; // remove AuthProvider for existing cluster since kubectl depreciate Azure provider
                 user.UserCredentials.ExternalExecution = null; //remove exec since we do not need depend on exec during execution
+                user.UserCredentials.Extensions = [
+                    new NamedExtension{
+                        Name = "UseAADAuth",
+                        Extension = true,
+                    }
+                ]; // for kubectl cli execution to know whether to use the obo token
             }
 
             return (kubeConfig, token.ExpiresOn);

@@ -380,7 +380,8 @@ namespace Agent.Plugins
         public async Task<string> ExecuteKubectlCommandSafely(
             string resourceId,
             string command,
-            string stdin = "")
+            string stdin = "",
+            string oboToken = "")
         {
             // get the cluster kubeconfig
             // todo: change to create a `view` clusterrolebinding with a service account, and use that guy's config
@@ -388,6 +389,23 @@ namespace Agent.Plugins
             if (kubeConfig is null)
             {
                 return $"[Unexpected Error]: Unable to retrieve kubeconfig for cluster.";
+            }
+
+            if (!string.IsNullOrEmpty(oboToken))
+            {
+                var user = kubeConfig.Configuration.Users.FirstOrDefault();
+                if (user != null)
+                {
+                    bool useAAD = false;
+                    foreach (var ext in user.UserCredentials.Extensions)
+                    {
+                        if (ext.Name.Equals("UseAADAuth", StringComparison.OrdinalIgnoreCase) && bool.TryParse(ext.Extension.ToString(), out useAAD) && useAAD)
+                        {
+                            _logger?.LogInternalInformation("Using OBO token for kubectl command execution.");
+                            user.UserCredentials.Token = oboToken;
+                        }
+                    }
+                }
             }
 
             // write to temp file
