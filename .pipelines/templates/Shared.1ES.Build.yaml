@@ -261,6 +261,45 @@ extends:
           inputs:
             copyLogsOnly: true
 
+        # Sign the output binaries if it is an official build
+        - ${{ if parameters.isOfficialBuild }}:
+          - task: EsrpCodeSigning@5
+            displayName: ESRP CodeSigning using WIF
+            inputs:
+              ConnectedServiceName: sreagent-esrp-signing
+              AppRegistrationClientId: 91d22973-05c0-42c7-b99e-628a3cdce183
+              AppRegistrationTenantId: 33e01921-4d64-4f8c-a055-5bdaffd5e33d
+              AuthAKVName: sreagent-esrp-kv
+              AuthCertName: esrp-authentication-certificate
+              AuthSignCertName: esrp-request-signing-certificate
+              FolderPath: $(ArtifactDirectory)
+              Pattern: '*.dll'
+              ServiceEndpointUrl: 'https://api.esrp.microsoft.com/api/v2'
+              signConfigType: inlineSignParams
+              inlineOperation: |
+                [
+                  {
+                    "keyCode": "CP-230856",
+                    "operationCode": "SigntoolSign",
+                    "parameters": {
+                      "OpusName": "Microsoft",
+                      "OpusInfo": "http://www.microsoft.com",
+                      "FileDigest": "/fd \"SHA256\"",
+                      "PageHash": "/NPH",
+                      "TimeStamp": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
+                    },
+                    "toolName": "sign",
+                    "toolVersion": "1.0"
+                  },
+                  {
+                    "keyCode": "CP-230856",
+                    "operationCode": "SigntoolVerify",
+                    "parameters": {},
+                    "toolName": "sign",
+                    "toolVersion": "1.0"
+                  }
+                ]
+
         # Publish the build artifacts
         - task: 1ES.PublishPipelineArtifact@1
           inputs:
@@ -304,10 +343,6 @@ extends:
         #     targetType: 'inline'
         #     script: |
         #       Copy-Item -Path $(Build.SourcesDirectory)\src\Deployment\Agent.Web\Dockerfile -Destination $(ob_outputDirectory)\src\Deployment\Agent.Web\Dockerfile
-
-        #
-        # Sign output binaries if it is an official build
-        #
 
     - ${{ if parameters.isOfficialBuild }}:
       - stage: docker      
