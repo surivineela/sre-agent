@@ -841,10 +841,10 @@ public class Program
     private static void ConfigureAgentActionLoggers(WebApplicationBuilder builder)
     {
         var azureSettings = builder.Configuration.GetSection("AppSettings:Core:Azure").Get<AzureSettings>();
-        if (azureSettings != null && azureSettings.AgentActionADX != null)
+        // Add AgentActionLogger as a singleton service
+        builder.Services.AddSingleton<AgentActionLogger>();
+        if (azureSettings != null && azureSettings.AgentActionADX != null && !string.IsNullOrEmpty(azureSettings.AgentActionADX.ClusterUri))
         {
-            // Add AgentActionLogger as a singleton service
-            builder.Services.AddSingleton<AgentActionLogger>();
             // Add IAgentActionLogExporter as a singleton service
             builder.Services.AddSingleton<IAgentActionLogExporter>(sp =>
             {
@@ -855,6 +855,15 @@ public class Program
                     azureSettings.AgentActionADX.TableName,
                     logger,
                     false); // Enable batch processing for better performance
+            });
+        }
+        else
+        {
+            // Fallback to console exporter if no ADX configuration is provided
+            builder.Services.AddSingleton<IAgentActionLogExporter>(sp =>
+            {
+                var logger = sp.GetRequiredService<ILogger<AgentActionLogConsoleExporter>>();
+                return new AgentActionLogConsoleExporter(logger, false); // Enable batch processing for better performance
             });
         }
     }

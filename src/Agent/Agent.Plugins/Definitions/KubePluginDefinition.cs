@@ -372,7 +372,7 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
             [Description("Namespace name. Use '*' for all namespaces. " +
                      "Leave empty for cluster‑scoped kinds (nodes, pv, crd, namespace, etc.).")]
             string? @namespace = "*",
-            [Description("Optional label selector, e.g. 'app=myapp'. Omit for none.")]
+            [Description("Optional label selector, e.g. '<label-key>=<label-value>'. Omit for none. Used when already known select labels, such as select corresponding pods from service 'spec.selector'.")]
             string? selector = null,
             [Description("Columns to output, each as <LABEL>:<jsonpath>. " +
                      "Example: NAME:.metadata.name,STATUS:.status.phase")]
