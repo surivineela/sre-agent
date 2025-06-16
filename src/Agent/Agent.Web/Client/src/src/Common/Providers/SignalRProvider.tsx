@@ -1,7 +1,7 @@
 import * as signalR from '@microsoft/signalr';
 import { ReactNode, useCallback, useContext, useEffect, useRef } from 'react';
 import { SignalRContext } from '../../Space/Contracts/Context';
-import AzPortalProxy, { defaultSreAgentEndpoint } from '../AzPortalProxy/AzPortalProxy';
+import AzPortalProxy from '../AzPortalProxy/AzPortalProxy';
 import { EnvironmentContext } from '../AzPortalProxy/Providers/StartupInfoContext';
 
 export const SignalRProvider = ({ children }: { children?: ReactNode }) => {
@@ -26,8 +26,10 @@ export const SignalRProvider = ({ children }: { children?: ReactNode }) => {
 
     useEffect(() => {
         const connect = async () => {
-            const endpoint = sreAgentEndpoint === defaultSreAgentEndpoint ? 'https://localhost:7023' : sreAgentEndpoint;
-            const connection = new signalR.HubConnectionBuilder()
+            const isReactLocalhost = window.location.hostname.toLowerCase() === 'localhost' && window.location.port === '5173';
+            const endpoint = isReactLocalhost ? 'https://localhost:7023' : sreAgentEndpoint;
+
+            connectionRef.current = new signalR.HubConnectionBuilder()
                 // ToDo: Sanitize the endpoint
                 .withUrl(`${endpoint}/agentHub`, {
                     accessTokenFactory: () => AzPortalProxy.envInfo.sreAgentToken || '',
@@ -35,16 +37,15 @@ export const SignalRProvider = ({ children }: { children?: ReactNode }) => {
                 .withAutomaticReconnect()
                 .build();
 
-            connection.onclose(() => (isConnectedRef.current = false));
-            connection.onreconnected(() => (isConnectedRef.current = true));
+            connectionRef.current.onclose(() => (isConnectedRef.current = false));
+            connectionRef.current.onreconnected(() => (isConnectedRef.current = true));
 
             try {
-                await connection.start();
-                console.log(`Connected to the SignalR hub at ${endpoint}`);
+                await connectionRef.current.start();
+                console.log(`Connected to the SignalR hub`);
                 isConnectedRef.current = true;
-                connectionRef.current = connection;
             } catch (e) {
-                console.error(`Failed to connect to the SignalR hub at ${endpoint}`);
+                console.error(`Failed to connect to the SignalR hub`);
             }
         };
 
@@ -52,6 +53,7 @@ export const SignalRProvider = ({ children }: { children?: ReactNode }) => {
 
         return () => {
             connectionRef.current?.stop();
+            isConnectedRef.current = false;
         };
     }, [sreAgentEndpoint]);
 
