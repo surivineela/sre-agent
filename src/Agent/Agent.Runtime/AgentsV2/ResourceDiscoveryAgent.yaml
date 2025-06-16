@@ -108,11 +108,13 @@ tools:
    - HandoffBack
 
 common_prompts:
-  - format_guidelines
-  - guard_rail
-  - handoff_back
+   - format_guidelines
+   - guard_rail
+   - handoff_back
 
-max_reflection_count: 1
+max_reflection_count: 2
 
 custom_reflection_note: |
-   If the next step is out of your scope, have you called the HandoffBack tool
+   If the next step is out of your scope, have you called the HandoffBack tool?
+   If resource discovered, have you answered the user's question completely?
+   Is current information from the knowledge graph sufficient to answer the user's question, or handoff needed?

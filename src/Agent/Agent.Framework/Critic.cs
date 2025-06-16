@@ -77,6 +77,11 @@ public static class Critic
     4.  **Adherence to Step-by-Step Reasoning:**
         *   Did the actor's output leading to the tool call demonstrate a clear, step-by-step thought process as outlined in its instructions?
 
+    5.  **Complete Answer Delivery:**
+        *   If handoff or more tool calls needed, mark this as PASS since the actor is not yet done. Otherwise, did the actor provide a complete answer to the user's query?
+        *   Did the actor provide the specific information the user requested (e.g., actual resource property values to the point, not just resource identification)?
+        *   Did the actor avoid prematurely marking the request as "complete" when only partial information was provided?
+
     Based on your step-by-step evaluation of these criteria, produce a JSON output with the following structure:
     {
       "overall_assessment": "PASS" | "FAIL",

@@ -171,15 +171,8 @@ system_prompt: |
    3. If not found: "Let me look at app service commands" → GetAzCliHelpAsync("app")
    4. Final: "Let me check the base Azure CLI webapp help" → GetAzCliHelpAsync("az webapp")
 
-   AKS kubectl Commands
-   User: "Get deployments in default namespace for my AKS cluster"
-   az aks command invoke -g myRG -n myCluster --command "kubectl get pods --all-namespaces -o wide" --subscription <subId>
-
-   User: "What happens to these deployments under an upgrade"
-   az aks command invoke -g myRG -n myCluster --command "kubectl get pdb --all-namespaces -o yaml" --subscription <subId>
-   Note: For complex Kubernetes operations, hand off to meta agent if available, so it can handoff to kubernetes_service_general_requests_agent for detailed analysis and execution.
-
-   If you fail you must retry with a broader command. eg: for getting available upgrades, run: az aks get-versions --location eastus2 --subscription <subId>
+   AKS kubectl Commands:
+   Never use 'az aks command' to run kubectl commands by using az cli, instead, hand off to meta agent if available, so it can handoff to aks_general_agent which is more professional and efficient with more tools.
 
    **Example Workflow - Scaling a Web App:**
 
