@@ -247,9 +247,9 @@ namespace FirstPartyAgent.Core.Plugins
         {
             var logMessage = $"[get_alerting_discussion_entry][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
             await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
-            var discussionEntries = _icmWorkflowClient.IsEnabled()
-                ? await _icmWorkflowClient.GetIncidentDiscussionEntriesAsync(incidentId)
-                : await _icmApiClient.GetIncidentDiscussionEntriesAsync(incidentId);
+            var discussionEntries = _icmApiClient.IsEnabled()
+                ? await _icmApiClient.GetIncidentDiscussionEntriesAsync(incidentId)
+                : await _icmWorkflowClient.GetIncidentDiscussionEntriesAsync(incidentId);
 
             if (discussionEntries != null)
             {
@@ -275,9 +275,9 @@ namespace FirstPartyAgent.Core.Plugins
         {
             var logMessage = $"[get_icm_discussion_entries][{DateTime.UtcNow}] Fetching ICM Discussion entries for Incident {incidentId}";
             await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
-            var discussionEntries = _icmWorkflowClient.IsEnabled()
-                ? await _icmWorkflowClient.GetIncidentDiscussionEntriesAsync(incidentId)
-                : await _icmApiClient.GetIncidentDiscussionEntriesAsync(incidentId);
+            var discussionEntries = _icmApiClient.IsEnabled()
+                ? await _icmApiClient.GetIncidentDiscussionEntriesAsync(incidentId)
+                : await _icmWorkflowClient.GetIncidentDiscussionEntriesAsync(incidentId);
             if (discussionEntries != null)
             {
                 foreach (var entry in discussionEntries)
@@ -511,6 +511,15 @@ namespace FirstPartyAgent.Core.Plugins
         /// <returns>A task representing the asynchronous operation.</returns>
         private async Task SetupIncidentProcessing(string incidentId, Incident incidentDetails, Kernel kernel)
         {
+            try
+            {
+                await AcknowledgeIncident(incidentId, kernel);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, incidentId, "Error acknowledging incident during setup processing.");
+            }
+
             var logMessage = $"[setup_incident_processing][{DateTime.UtcNow}] Setting up processing for incidentId {incidentId}";
             await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
 

@@ -14,7 +14,7 @@ namespace FirstPartyAgent.Core.Services
         bool IsEnabled();
         bool SendLogsToTeams();
         Task<bool> PostMessageOnTeams(string agentMode, TeamsMessage message);
-        Task<double> CreateTeamsChannelPost(TeamsMessage message);
+        Task<double> CreateTeamsChannelPost(TeamsMessage message, int retryCount = 2);
     }
 
     public class TeamsClient: ITeamsClient
@@ -24,7 +24,8 @@ namespace FirstPartyAgent.Core.Services
         public TeamsClient(TeamsClientSettings teamsClientSettings)
         {
             _httpClient = new HttpClient();
-            _httpClient.Timeout = TimeSpan.FromSeconds(240);
+            // Set max timeout to 10 minutes to allow for long-running operations like creating a post
+            _httpClient.Timeout = TimeSpan.FromSeconds(600);
             _teamsClientSettings = teamsClientSettings;
         }
 
@@ -47,7 +48,7 @@ namespace FirstPartyAgent.Core.Services
         }
 
         //Returns the post Id
-        public async Task<double> CreateTeamsChannelPost(TeamsMessage message)
+        public async Task<double> CreateTeamsChannelPost(TeamsMessage message, int retryCount = 2)
         {
             message.GroupId = _teamsClientSettings.GroupId;
             message.ChannelId = _teamsClientSettings.ChannelId;
@@ -59,23 +60,46 @@ namespace FirstPartyAgent.Core.Services
             };
 
             var requestBody = JsonSerializer.Serialize(payload, jsonOptions);
-            var response = await SendMessageAsync(_teamsClientSettings.CreateTeamsChannelPostUrl, requestBody);
-            if (response.IsSuccessStatusCode)
+
+            int attempt = 0;
+            Exception lastException = null;
+
+            while (attempt <= retryCount)
             {
-                var responseBody = await response.Content.ReadAsStringAsync();
-                if (double.TryParse(responseBody, out double postId))
+                try
                 {
-                    return postId;
+                    var response = await SendMessageAsync(_teamsClientSettings.CreateTeamsChannelPostUrl, requestBody);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var responseBody = await response.Content.ReadAsStringAsync();
+                        if (double.TryParse(responseBody, out double postId))
+                        {
+                            return postId;
+                        }
+                        else
+                        {
+                            throw new Exception($"Failed to parse post ID from response: {responseBody}");
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception($"Failed to create Teams post. Status code: {response.StatusCode}");
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    throw new Exception($"Failed to parse post ID from response: {responseBody}");
+                    lastException = ex;
+                    attempt++;
+                    if (attempt > retryCount)
+                    {
+                        throw;
+                    }
+                    // Optional: Add a small delay before retrying
+                    await Task.Delay(1000);
                 }
             }
-            else
-            {
-                throw new Exception($"Failed to create Teams post. Status code: {response.StatusCode}");
-            }
+
+            throw lastException ?? new Exception("Unknown error occurred in CreateTeamsChannelPost.");
         }
 
         private async Task<HttpResponseMessage> SendChannelMessage(TeamsMessage message)
