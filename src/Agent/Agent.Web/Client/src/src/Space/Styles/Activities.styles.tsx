@@ -283,6 +283,15 @@ export const useThreadMenuStyle = (collapsed?: boolean) => {
         borderRadius: '3px',
     };
 
+    const hoveredThreadItem: IStyle = {
+        backgroundColor: tokens.colorNeutralBackground1Selected,
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: '6px',
+        borderRadius: '3px',
+    };
+
     const borderIndicator = {
         marginLeft: '-10px',
         height: '32px',
@@ -303,6 +312,7 @@ export const useThreadMenuStyle = (collapsed?: boolean) => {
         threadList,
         threadItem,
         activeThreadItem,
+        hoveredThreadItem,
         borderIndicator,
         content,
     });

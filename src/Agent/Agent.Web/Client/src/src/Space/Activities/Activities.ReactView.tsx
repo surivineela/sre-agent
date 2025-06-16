@@ -40,6 +40,7 @@ const Activities: FC = () => {
                     {(resizableChildProps: ResizableChildProps) => (
                         <ThreadsMenu
                             selectThread={selectThread}
+                            deleteThread={deleteThread}
                             threadPollingTriggerId={threadPollingTriggerId}
                             ref={threadListHandleRef}
                             {...resizableChildProps}

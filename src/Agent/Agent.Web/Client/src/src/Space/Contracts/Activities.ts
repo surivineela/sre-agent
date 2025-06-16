@@ -11,6 +11,7 @@ export interface AgentContextProps {
 
 export interface IThreadsMenuProps {
     selectThread: (thread: Thread | null) => void;
+    deleteThread?: (thread: Thread) => void;
     threadPollingTriggerId: number;
     collapsed?: boolean;
     setCollapsed: (collapsed: boolean) => void;

@@ -1,6 +1,8 @@
+import { Menu, MenuButton, MenuItem, MenuList, MenuPopover, MenuTrigger } from '@fluentui/react-components';
+import { Delete20Regular, MoreHorizontal20Regular } from '@fluentui/react-icons';
 import { Text } from '@fluentui/react-text';
 import { mergeStyles } from '@fluentui/react/lib/Styling';
-import { memo, useMemo } from 'react';
+import { memo, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { IncidentStatus, Thread, ThreadSource } from '../../Common/Contracts/Azure/SreAgent';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
@@ -10,17 +12,21 @@ import { useActionsStatusBarStyles } from '../Styles/Incident.styles';
 const ThreadItem = ({
     thread,
     selectThread,
+    deleteThread,
     isActive,
     isThreadUnread,
 }: {
     thread: Thread;
     selectThread: (thread: Thread | null) => void;
+    deleteThread?: (thread: Thread) => void;
     isActive: boolean;
     isThreadUnread: boolean;
 }) => {
     const ThreadMenuStyles = useThreadMenuStyle();
     const styles = useActionsStatusBarStyles();
     const intl = useIntl();
+
+    const [isHovered, setIsHovered] = useState(false);
 
     const makeTextBold = useMemo(() => {
         return isThreadUnread && !isActive;
@@ -53,11 +59,17 @@ const ThreadItem = ({
                     e.stopPropagation();
                 }
             }}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
             id={thread.id}
             data-testid={thread.id}
             tabIndex={0}
             role="treeitem"
-            className={mergeStyles(ThreadMenuStyles.threadItem, isActive ? ThreadMenuStyles.activeThreadItem : undefined)}
+            className={mergeStyles(
+                ThreadMenuStyles.threadItem,
+                isActive ? ThreadMenuStyles.activeThreadItem : undefined,
+                isHovered && !isActive ? ThreadMenuStyles.hoveredThreadItem : undefined
+            )}
         >
             {isActive && <div className={ThreadMenuStyles.borderIndicator} />}
             <div className={ThreadMenuStyles.content}>
@@ -65,6 +77,37 @@ const ThreadItem = ({
                     <Text size={300} wrap={false} block weight={makeTextBold ? 'bold' : 'regular'}>
                         {thread.title}
                     </Text>
+                    {deleteThread && (
+                        <Menu>
+                            <MenuTrigger disableButtonEnhancement>
+                                <MenuButton
+                                    appearance="subtle"
+                                    size="small"
+                                    icon={<MoreHorizontal20Regular />}
+                                    onClick={e => {
+                                        e.stopPropagation();
+                                    }}
+                                    style={{
+                                        opacity: isHovered ? 1 : 0,
+                                        visibility: isHovered ? 'visible' : 'hidden',
+                                    }}
+                                />
+                            </MenuTrigger>
+                            <MenuPopover>
+                                <MenuList>
+                                    <MenuItem
+                                        icon={<Delete20Regular />}
+                                        onClick={e => {
+                                            e.stopPropagation();
+                                            deleteThread(thread);
+                                        }}
+                                    >
+                                        {intl.formatMessage(SreAgentResources.delete)}
+                                    </MenuItem>
+                                </MenuList>
+                            </MenuPopover>
+                        </Menu>
+                    )}
                 </div>
                 {thread.source === ThreadSource.incident ? (
                     <div className={styles.subtitleContainer}>

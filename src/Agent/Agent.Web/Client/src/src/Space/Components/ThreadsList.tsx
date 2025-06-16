@@ -12,6 +12,7 @@ interface IThreadsListProps {
     threads: Thread[];
     isLoadingInitialThreads: boolean;
     selectThread: (thread: Thread | null) => void;
+    deleteThread?: (thread: Thread) => void;
     hasMoreOldThreads: boolean;
     loadMoreOldThreads: (overflowDiv: boolean) => Promise<boolean | undefined>;
     activeThreadId: string;
@@ -22,8 +23,16 @@ interface IThreadsListProps {
 // The threads are loaded dynamically when scrolling down the list, backed by an infinite scroll component.
 // An intersection observer is also used to load more threads when the requirement of making infinite scroll component work is not satisfied.
 const ThreadsList = forwardRef<HTMLDivElement, IThreadsListProps>((props, ref) => {
-    const { threads, isLoadingInitialThreads, selectThread, hasMoreOldThreads, loadMoreOldThreads, activeThreadId, unreadThreadIds } =
-        props;
+    const {
+        threads,
+        isLoadingInitialThreads,
+        selectThread,
+        deleteThread,
+        hasMoreOldThreads,
+        loadMoreOldThreads,
+        activeThreadId,
+        unreadThreadIds,
+    } = props;
 
     const [isIntersecting, setIsIntersecting] = useState<boolean>(false);
     const intersectionObserverRef = useRef<HTMLDivElement | null>(null);
@@ -89,6 +98,7 @@ const ThreadsList = forwardRef<HTMLDivElement, IThreadsListProps>((props, ref) =
                                 key={thread.id}
                                 thread={thread}
                                 selectThread={selectThread}
+                                deleteThread={deleteThread}
                                 isActive={activeThreadId === thread.id}
                                 isThreadUnread={unreadThreadIds.has(thread.id)}
                             />

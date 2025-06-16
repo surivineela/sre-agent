@@ -17,7 +17,7 @@ const expandCollapseButtonStyles = getExpandCollapseButtonStyles('left');
 
 export const ThreadsMenu = forwardRef<ThreadListHandle, IThreadsMenuProps>(
     (props: IThreadsMenuProps, ref: ForwardedRef<ThreadListHandle>) => {
-        const { selectThread, threadPollingTriggerId, collapsed, setCollapsed } = props;
+        const { selectThread, deleteThread, threadPollingTriggerId, collapsed, setCollapsed } = props;
 
         const {
             threads,
@@ -145,6 +145,7 @@ export const ThreadsMenu = forwardRef<ThreadListHandle, IThreadsMenuProps>(
                         threads={threads}
                         isLoadingInitialThreads={isLoadingInitialThreads}
                         selectThread={selectThread}
+                        deleteThread={deleteThread}
                         hasMoreOldThreads={hasMoreOldThreads}
                         loadMoreOldThreads={loadMoreOldThreads}
                         activeThreadId={activeThreadId}
