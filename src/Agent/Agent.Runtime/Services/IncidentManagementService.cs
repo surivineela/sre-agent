@@ -240,7 +240,7 @@ namespace Agent.Runtime.Services
                         DocumentType, since
                     );
                     var queryable = _container.GetItemLinqQueryable<T>(allowSynchronousQueryExecution: false)
-                        .Where(c => c.DocumentType == DocumentType && c.CreatedAt >= since);
+                        .Where(c => c.DocumentType == DocumentType && c.CreatedAt >= since && ((request.Statuses == null || request.Statuses.Count() == 0) || request.Statuses.Contains(c.Status)));
 
                     var iterator = queryable.ToFeedIterator();
                     var results = new List<T>();
@@ -274,7 +274,7 @@ namespace Agent.Runtime.Services
                         Newtonsoft.Json.JsonConvert.SerializeObject(request.Filter)
                     );
                     var queryable = _container.GetItemLinqQueryable<T>(allowSynchronousQueryExecution: false)
-                        .Where(c => c.DocumentType == DocumentType && c.CreatedAt >= since);
+                        .Where(c => c.DocumentType == DocumentType && c.CreatedAt >= since && ((request.Statuses == null || request.Statuses.Count() == 0) || request.Statuses.Contains(c.Status)));
 
                     IncidentFilterDocumentPayload filter = null;
 
@@ -442,6 +442,8 @@ public class IncidentQueryRequest
     // Should only use Keywords in special scenarios where Filter isn't viable
     public string[] Keywords { get; set; } = [];
     public int DurationInDays { get; set; } = 60; // Default to 60 days for incident history
+
+    public string[] Statuses { get; set; } = [];
 
     // Pagination
     public int PageNumber { get; set; } = 1; // 1-based index

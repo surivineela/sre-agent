@@ -155,10 +155,14 @@ namespace Agent.Runtime.Services
 
                 var matchingFilters = filters
                     .Where(filter =>
-                        (filter.ImpactedService == incidentDetails.ImpactedServiceId || filter.ImpactedService == incidentDetails.ImpactedServiceName)
-                        && filter.Priority == incidentDetails.Priority
-                        && filter.IncidentType == incidentDetails.IncidentType
-                        && (string.IsNullOrWhiteSpace(filter.TitleContains) || (!string.IsNullOrWhiteSpace(filter.TitleContains) && (incidentDetails.Title.Contains(filter.TitleContains, StringComparison.OrdinalIgnoreCase)))))
+                        ((string.IsNullOrWhiteSpace(filter.ImpactedService)) || (filter.ImpactedService == incidentDetails.ImpactedServiceId || filter.ImpactedService == incidentDetails.ImpactedServiceName))
+                        &&
+                        ((string.IsNullOrWhiteSpace(filter.Priority)) || (filter.Priority == incidentDetails.Priority))
+                        &&
+                        ((string.IsNullOrWhiteSpace(filter.IncidentType)) || (filter.IncidentType == incidentDetails.IncidentType))
+                        &&
+                        (string.IsNullOrWhiteSpace(filter.TitleContains) || incidentDetails.Title.Contains(filter.TitleContains, StringComparison.OrdinalIgnoreCase))
+                    )
                     .ToList();
 
                 _logger.LogInternalInformation("HandleIncidentAsync: Found {MatchingFilterCount} matching filters for IncidentId: {IncidentId}", matchingFilters.Count, incidentId);
