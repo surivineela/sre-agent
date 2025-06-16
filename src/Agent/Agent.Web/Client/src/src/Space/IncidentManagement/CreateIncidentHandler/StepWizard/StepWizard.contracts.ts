@@ -1,1 +1,1 @@
-export type StepState = 'complete' | 'current' | 'upcoming';
+export type StepState = 'skipped' | 'complete' | 'current' | 'upcoming';

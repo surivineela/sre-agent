@@ -61,6 +61,16 @@ export const useIncidentManagementStyles = makeStyles({
         padding: 0,
         minWidth: '20px',
     },
+    dangerButton: {
+        backgroundColor: tokens.colorStatusDangerBackground3,
+        color: `${tokens.colorNeutralForegroundInverted} !important`,
+        ':hover': {
+            backgroundColor: tokens.colorStatusDangerBackground3Hover,
+        },
+        ':active': {
+            backgroundColor: tokens.colorStatusDangerBackground3Pressed,
+        },
+    },
     description: {
         paddingTop: '20px',
         paddingRight: '20px',
@@ -86,6 +96,7 @@ export const useIncidentManagementStyles = makeStyles({
     newIncidentFilterButton: { width: 'fit-content', padding: '5px 10px' },
     greenCheckIcon: { color: tokens.colorPaletteGreenForeground1 },
     setUp: { display: 'flex', alignItems: 'center', gap: tokens.spacingHorizontalXS },
+    infoButton: { verticalAlign: 'middle', display: 'flex' },
 });
 
 export const generateHandlerStyles = mergeStyleSets({
@@ -94,9 +105,5 @@ export const generateHandlerStyles = mergeStyleSets({
     },
     textField: {
         maxWidth: '600px',
-    },
-    detailListContainer: {
-        maxHeight: '365px',
-        overflowY: 'scroll',
     },
 });

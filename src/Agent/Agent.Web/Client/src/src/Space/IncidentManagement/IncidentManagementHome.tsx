@@ -8,14 +8,15 @@ import { useIncidentFilters } from '../Hooks/useIncidentFilters';
 import { useIncidentHandlers } from '../Hooks/useIncidentHandlers';
 import { useIncidentManagementStyles } from '../Styles/IncidentManagement.styles';
 import { CreateOrUpdateIncidentFilterDialog, IncidentFilterFormProps } from './CreateIncidentFilterDialog';
+import { OperationStatus } from './CreateIncidentHandler/IncidentHandlerCreateContext';
 import IncidentFiltersToolbar from './IncidentFiltersToolbar';
 import IncidentsFiltersGrid from './IncidentsFiltersGrid';
 interface IncidentManagementHomeProps {
-    openHandlerCreate: (incidentFilterId: string) => void;
-    creatingHandler: boolean;
+    openHandlerCreate: (handlerCreateOrEditInfo: { filterId: string; handlerId?: string }) => void;
+    handlerOperationStatus: OperationStatus | undefined;
 }
 
-const IncidentManagementHome: FC<IncidentManagementHomeProps> = ({ openHandlerCreate, creatingHandler }) => {
+const IncidentManagementHome: FC<IncidentManagementHomeProps> = ({ openHandlerCreate, handlerOperationStatus }) => {
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
 
@@ -37,16 +38,25 @@ const IncidentManagementHome: FC<IncidentManagementHomeProps> = ({ openHandlerCr
     const { filterIdToHandlerMap, refresh: refreshIncidentHandlers } = useIncidentHandlers();
     const { incidentTypeOptions, impactedServiceOptions, priorityOptions } = useIncidentFilterFields();
 
+    const [isRefreshNeeded, setIsRefreshNeeded] = useState<boolean>(false);
+
     const refresh = useCallback(() => {
         refreshIncidentFilters();
         refreshIncidentHandlers();
     }, [refreshIncidentFilters, refreshIncidentHandlers]);
 
     useEffect(() => {
-        if (!creatingHandler) {
-            refresh();
+        if (handlerOperationStatus === 'succeeded') {
+            setIsRefreshNeeded(true);
         }
-    }, [refresh, creatingHandler]);
+    }, [handlerOperationStatus]);
+
+    useEffect(() => {
+        if (isRefreshNeeded) {
+            refresh();
+            setIsRefreshNeeded(false);
+        }
+    }, [refresh, isRefreshNeeded]);
 
     return (
         <div className={styles.root}>
@@ -75,7 +85,7 @@ const IncidentManagementHome: FC<IncidentManagementHomeProps> = ({ openHandlerCr
                     isFilterEnabled={!selectedIncidentFilter || selectedIncidentFilter?.isEnabled}
                 />
                 <IncidentsFiltersGrid
-                    creatingHandler={creatingHandler}
+                    handlerOperationStatus={handlerOperationStatus}
                     openHandlerCreate={openHandlerCreate}
                     incidentFilters={incidentFilters ?? []}
                     incidentFiltersLoading={incidentFiltersLoading}

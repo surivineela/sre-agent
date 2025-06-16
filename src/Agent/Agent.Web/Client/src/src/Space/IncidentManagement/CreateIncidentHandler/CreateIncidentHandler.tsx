@@ -1,22 +1,25 @@
 import { Breadcrumb, BreadcrumbButton, BreadcrumbDivider, BreadcrumbItem, tokens } from '@fluentui/react-components';
 import { FC } from 'react';
-import { IncidentHandler } from '../../../Common/Contracts/Azure/IncidentHandler';
+import { useIntl } from 'react-intl';
 import { IncidentHandlerCreateResources } from '../../../Strings/SREAgentResources';
-import { IncidentHandlerCreateContext, IncidentHandlerCreateSteps } from './IncidentHandlerCreateContext';
-import { GenerateHandler } from './Steps/GenerateHandler';
-import { ReviewAndEdit } from './Steps/ReviewAndEdit';
-import { StepWizard } from './StepWizard/StepWizard';
+import { QuickEditIncidentHandler } from '../QuickEditIncidentHandler/QuickEditIncidentHandler';
+import { FullEditIncidentHandler } from './FullEditIncidentHandler/FullEditIncidentHandler';
+import { IncidentHandlerCreateContext, OperationStatus } from './IncidentHandlerCreateContext';
 import { useCreateIncidentHandler } from './useCreateIncidentHandler';
 
 interface CreateIncidentHandlerProps {
     exitToHome: () => void;
-    incidentFilterId: string;
-    createHandler: (handler: IncidentHandler) => void; // Replace 'any' with the actual type of handler
+    setHandlerOperationStatus: React.Dispatch<React.SetStateAction<OperationStatus | undefined>>;
+    handlerCreateOrEditInfo: {
+        filterId: string;
+        handlerId?: string;
+    };
 }
 
-const CreateIncidentHandler: FC<CreateIncidentHandlerProps> = ({ exitToHome, incidentFilterId, createHandler }) => {
-    const incidentHandlerCreateMetadata = useCreateIncidentHandler(incidentFilterId, exitToHome, createHandler);
-    const { intl, currentStep } = incidentHandlerCreateMetadata;
+const CreateIncidentHandler: FC<CreateIncidentHandlerProps> = ({ exitToHome, handlerCreateOrEditInfo, setHandlerOperationStatus }) => {
+    const incidentHandlerCreateMetadata = useCreateIncidentHandler(exitToHome, setHandlerOperationStatus, handlerCreateOrEditInfo);
+    const { mode } = incidentHandlerCreateMetadata;
+    const intl = useIntl();
 
     return (
         <div style={{ background: tokens.colorNeutralBackground3 }}>
@@ -28,58 +31,25 @@ const CreateIncidentHandler: FC<CreateIncidentHandlerProps> = ({ exitToHome, inc
                 </BreadcrumbItem>
                 <BreadcrumbDivider />
                 <BreadcrumbItem style={{ marginLeft: 6 }}>
-                    {intl.formatMessage(IncidentHandlerCreateResources.newCustomHandler)}
+                    {intl.formatMessage(
+                        mode === 'create'
+                            ? IncidentHandlerCreateResources.newCustomHandler
+                            : IncidentHandlerCreateResources.editCustomHandler
+                    )}
                 </BreadcrumbItem>
             </Breadcrumb>
             <div
                 style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    gap: 12,
                     borderRadius: tokens.borderRadiusXLarge,
                     boxShadow: tokens.shadow4,
-                    marginLeft: 16,
+                    marginLeft: 20,
                     height: 'calc(100vh - 95px)',
                     background: tokens.colorNeutralBackground1,
                 }}
             >
-                <div
-                    style={{
-                        padding: 20,
-                        borderRight: `1px solid ${tokens.colorNeutralStroke2}`,
-                        minWidth: 280,
-                        overflowY: 'auto',
-                    }}
-                >
-                    <StepWizard
-                        currentStep={currentStep}
-                        steps={[
-                            {
-                                stepKey: IncidentHandlerCreateSteps.GenerateHandler,
-                                stepTitle: intl.formatMessage(IncidentHandlerCreateResources.generateHandler),
-                            },
-                            {
-                                stepKey: IncidentHandlerCreateSteps.ReviewAndEdit,
-                                stepTitle: intl.formatMessage(IncidentHandlerCreateResources.reviewAndEdit),
-                            },
-                        ]}
-                    />
-                </div>
-                <div
-                    style={{
-                        height: '100%',
-                        width: '100%',
-                        overflowY: 'auto',
-                    }}
-                >
-                    <IncidentHandlerCreateContext.Provider value={incidentHandlerCreateMetadata}>
-                        {currentStep === IncidentHandlerCreateSteps.GenerateHandler ? (
-                            <GenerateHandler />
-                        ) : currentStep === IncidentHandlerCreateSteps.ReviewAndEdit ? (
-                            <ReviewAndEdit />
-                        ) : null}
-                    </IncidentHandlerCreateContext.Provider>
-                </div>
+                <IncidentHandlerCreateContext.Provider value={incidentHandlerCreateMetadata}>
+                    {mode === 'quickEdit' ? <QuickEditIncidentHandler /> : <FullEditIncidentHandler />}
+                </IncidentHandlerCreateContext.Provider>
             </div>
         </div>
     );

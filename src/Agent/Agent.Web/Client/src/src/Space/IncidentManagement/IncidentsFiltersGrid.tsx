@@ -10,6 +10,7 @@ import { IncidentFilter, IncidentHandler } from '../../Common/Contracts/Azure/In
 import { IncidentManagementResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { useIncidentManagementStyles } from '../Styles/IncidentManagement.styles';
 import { IncidentFilterFormProps } from './CreateIncidentFilterDialog';
+import { OperationStatus } from './CreateIncidentHandler/IncidentHandlerCreateContext';
 
 export type ISortedDetailsListColumn = IColumn & {
     sort?: (items: any[], isSortedDescending: boolean) => any[];
@@ -38,10 +39,10 @@ export type IncidentsTabProps = {
     setIsCreateIncidentFilterDialogOpen: Dispatch<React.SetStateAction<boolean>>;
     filterIdToHandlerMap: Record<string, IncidentHandler>;
     setSelectedFilter: Dispatch<React.SetStateAction<IncidentFilter | undefined>>;
-    openHandlerCreate: (incidentFilterId: string) => void;
-    creatingHandler: boolean;
     setIsEditFilterMode: Dispatch<React.SetStateAction<boolean>>;
     setInitialValues: Dispatch<React.SetStateAction<IncidentFilterFormProps | undefined>>;
+    openHandlerCreate: (handlerCreateOrEditInfo: { filterId: string; handlerId?: string }) => void;
+    handlerOperationStatus: OperationStatus | undefined;
 };
 
 const IncidentsFiltersGrid: FC<IncidentsTabProps> = (props: IncidentsTabProps) => {
@@ -49,7 +50,7 @@ const IncidentsFiltersGrid: FC<IncidentsTabProps> = (props: IncidentsTabProps) =
         incidentFilters,
         incidentFiltersLoading,
         openHandlerCreate,
-        creatingHandler,
+        handlerOperationStatus,
         setIsCreateIncidentFilterDialogOpen,
         filterIdToHandlerMap,
         setSelectedFilter,
@@ -256,7 +257,10 @@ const IncidentsFiltersGrid: FC<IncidentsTabProps> = (props: IncidentsTabProps) =
                         <div>{intl.formatMessage(IncidentManagementResources.created)}</div>
                         <Link
                             style={{ fontSize: '13px' }}
-                            onClick={() => {}}
+                            onClick={() => {
+                                openHandlerCreate({ filterId: item.id, handlerId: handler.id });
+                            }}
+                            disabled={handlerOperationStatus === 'inprogress'}
                         >{`(${intl.formatMessage(IncidentManagementResources.goToHandler)})`}</Link>
                     </div>
                 );
@@ -265,15 +269,15 @@ const IncidentsFiltersGrid: FC<IncidentsTabProps> = (props: IncidentsTabProps) =
                 <Link
                     style={{ fontSize: '13px' }}
                     onClick={() => {
-                        openHandlerCreate(item.id);
+                        openHandlerCreate({ filterId: item.id });
                     }}
-                    disabled={creatingHandler}
+                    disabled={handlerOperationStatus === 'inprogress'}
                 >
                     {intl.formatMessage(IncidentManagementResources.setUp)}
                 </Link>
             );
         },
-        [creatingHandler, filterIdToHandlerMap, intl, openHandlerCreate, styles.greenCheckIcon, styles.setUp]
+        [handlerOperationStatus, filterIdToHandlerMap, intl, openHandlerCreate, styles.greenCheckIcon, styles.setUp]
     );
 
     const onIncidentTypeChange = useCallback(

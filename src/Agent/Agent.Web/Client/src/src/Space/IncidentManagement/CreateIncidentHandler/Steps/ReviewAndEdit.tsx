@@ -1,47 +1,26 @@
 import { Button } from '@fluentui/react-components';
-import MonacoEditor, { Monaco } from '@monaco-editor/react';
 import { FC, useContext, useEffect } from 'react';
 import { useIntl } from 'react-intl';
 import { IncidentHandlerCreateResources } from '../../../../Strings/SREAgentResources';
+import { HandlerEditor } from '../Common/HandlerEditor';
 import { IncidentHandlerCreateContext, IncidentHandlerCreateSteps } from '../IncidentHandlerCreateContext';
 
-const monacoJsonSchema = {
-    $schema: 'http://json-schema.org/draft-07/schema#',
-    title: 'IncidentHandler',
-    type: 'object',
-    properties: {
-        id: { type: 'string' },
-        name: { type: 'string' },
-        description: { type: 'string' },
-        incidentFilterId: { type: 'string' },
-        incidentProcessingGuide: { type: 'array', items: { type: 'string' } },
-        tools: { type: 'array', items: { type: 'string' } },
-        incidents: { type: 'array', items: { type: 'string' } },
-        customInstructions: { type: 'string' },
-    },
-};
-const handleEditorDidMount = (_editor: any, monaco: Monaco) => {
-    // Configure JSON validation
-    monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
-        validate: true,
-        schemas: [
-            {
-                uri: '', // This is just an identifier
-                fileMatch: ['*'],
-                schema: monacoJsonSchema,
-            },
-        ],
-    });
-};
-
 export const ReviewAndEdit: FC = () => {
-    const { editorDisplayValue, onEditorValueChange, exitToHome, save, setCurrentStep, initializeEditorDisplayValue } =
-        useContext(IncidentHandlerCreateContext);
+    const {
+        editorDisplayValue,
+        onEditorValueChange,
+        setIsEditorValueValid,
+        isEditorValueValid,
+        exitToHome,
+        saveHandler,
+        setCurrentStep,
+        initializeEditorDisplayValue,
+    } = useContext(IncidentHandlerCreateContext);
     const intl = useIntl();
 
     useEffect(() => {
         initializeEditorDisplayValue();
-    }, []);
+    }, [initializeEditorDisplayValue]);
 
     return (
         <div
@@ -52,19 +31,10 @@ export const ReviewAndEdit: FC = () => {
                 border: '1px solid #ccc',
             }}
         >
-            <MonacoEditor
-                language="json"
-                theme="vs"
-                options={{
-                    automaticLayout: true,
-                    formatOnType: true,
-                    formatOnPaste: true,
-                    fontSize: 15,
-                    wordWrap: 'on',
-                }}
-                onMount={handleEditorDidMount}
-                value={editorDisplayValue}
-                onChange={(value, _ev) => onEditorValueChange(value)}
+            <HandlerEditor
+                editorDisplayValue={editorDisplayValue}
+                onEditorValueChange={onEditorValueChange}
+                setIsValid={setIsEditorValueValid}
             />
             <div
                 style={{
@@ -77,7 +47,7 @@ export const ReviewAndEdit: FC = () => {
                 <Button onClick={() => setCurrentStep(IncidentHandlerCreateSteps.GenerateHandler)}>
                     {intl.formatMessage(IncidentHandlerCreateResources.previous)}
                 </Button>
-                <Button appearance="primary" onClick={save}>
+                <Button appearance="primary" onClick={saveHandler} disabled={!isEditorValueValid}>
                     {intl.formatMessage(IncidentHandlerCreateResources.save)}
                 </Button>
                 <Button onClick={exitToHome}>{intl.formatMessage(IncidentHandlerCreateResources.cancel)}</Button>

@@ -1,17 +1,28 @@
-import { IDropdownOption, Selection } from '@fluentui/react';
 import React from 'react';
-import { IIncidentDocumentWithKeyAndSelection, ToolInfoWithKeyAndSelection } from '../../../Common/Contracts/Azure/IncidentHandler';
+import { IncidentDocument, ToolInfo, WithSelection } from '../../../Common/Contracts/Azure/IncidentHandler';
 
 export enum IncidentHandlerCreateSteps {
     GenerateHandler = 'GenerateHandler',
     ReviewAndEdit = 'ReviewAndEdit',
 }
 
+export enum TimeDuration {
+    Last15Days = 15,
+    Last30Days = 30,
+    Last60Days = 60,
+    Last90Days = 90,
+}
+
+export type CreateOrEditMode = 'create' | 'edit' | 'quickEdit';
+export type OperationStatus = 'inprogress' | 'succeeded' | 'failed';
+
 export interface IncidentHandlerCreateMetadata {
     agentName: string;
-    incidentFilterId: string;
+    incidentFilterId: string | undefined;
     currentStep: IncidentHandlerCreateSteps;
     setCurrentStep: React.Dispatch<React.SetStateAction<IncidentHandlerCreateSteps>>;
+    generateInstructionsStepSkipped: boolean;
+    setGenerateInstructionsStepSkipped: React.Dispatch<React.SetStateAction<boolean>>;
     exitToHome: () => void;
     name: string;
     setName: React.Dispatch<React.SetStateAction<string>>;
@@ -19,58 +30,72 @@ export interface IncidentHandlerCreateMetadata {
     setDescription: React.Dispatch<React.SetStateAction<string>>;
     incidentProcessingGuide: string;
     setIncidentProcessingGuide: React.Dispatch<React.SetStateAction<string>>;
-    selectedTools: ToolInfoWithKeyAndSelection[];
-    toolsSelection: React.MutableRefObject<Selection<ToolInfoWithKeyAndSelection> | undefined>;
-    selectedIncidents: IIncidentDocumentWithKeyAndSelection[];
-    incidentsSelection: React.MutableRefObject<Selection<IIncidentDocumentWithKeyAndSelection> | undefined>;
     customInstructions: string;
     setCustomInstructions: React.Dispatch<React.SetStateAction<string>>;
-    incidentDocuments: IIncidentDocumentWithKeyAndSelection[] | undefined;
+    incidents: WithSelection<IncidentDocument>[] | undefined;
+    setIncidents: React.Dispatch<React.SetStateAction<WithSelection<IncidentDocument>[] | undefined>>;
+    onSelectedIncidentsChange: (newSelectedIncidentIds: string[]) => void;
     loadingIncidents: boolean;
-    toolInfos: ToolInfoWithKeyAndSelection[];
-    loadingTools: boolean;
-    timespanDropdownOptions: IDropdownOption<{ numberOfDays: number; isDefault?: boolean }>[];
-    selectedTimespanOption: IDropdownOption<{ numberOfDays: number; isDefault?: boolean }> | undefined;
-    setSelectedTimespanOption: React.Dispatch<IDropdownOption<{ numberOfDays: number; isDefault?: boolean }> | undefined>;
-    isGeneratingInstructions: boolean;
-    handleGenerateInstructions: () => void;
+    tools: WithSelection<ToolInfo>[];
+    setTools: React.Dispatch<React.SetStateAction<WithSelection<ToolInfo>[] | undefined>>;
+    onSelectedToolsChange: (newSelectedToolNames: string[]) => void;
+    toolsLoading: boolean;
+    selectedTimespan: TimeDuration;
+    setSelectedTimespan: React.Dispatch<TimeDuration>;
+    generatingInstructions: boolean;
+    generateInstructions: () => void;
     initializeEditorDisplayValue: () => void;
     editorDisplayValue: string | undefined;
     setEditorDisplayValue: React.Dispatch<React.SetStateAction<string | undefined>>;
     onEditorValueChange: (value: string | undefined) => void;
-    save: () => void;
+    isEditorValueValid: boolean;
+    setIsEditorValueValid: React.Dispatch<React.SetStateAction<boolean>>;
+    saveHandler: () => void;
+    deleteHandler: () => void;
+    exportHandler: () => void;
+    mode: CreateOrEditMode | undefined;
+    setMode: React.Dispatch<React.SetStateAction<CreateOrEditMode | undefined>>;
+    handlerLoaded: boolean;
 }
 
 export const IncidentHandlerCreateContext = React.createContext<IncidentHandlerCreateMetadata>({
     agentName: '',
-    incidentFilterId: '',
+    incidentFilterId: undefined,
     exitToHome: () => {},
     currentStep: IncidentHandlerCreateSteps.GenerateHandler,
     setCurrentStep: () => {},
+    generateInstructionsStepSkipped: false,
+    setGenerateInstructionsStepSkipped: () => {},
     name: '',
     setName: () => {},
     description: '',
     setDescription: () => {},
     incidentProcessingGuide: '',
     setIncidentProcessingGuide: () => {},
-    selectedTools: [],
-    toolsSelection: { current: undefined },
-    selectedIncidents: [],
-    incidentsSelection: { current: undefined },
     customInstructions: '',
     setCustomInstructions: () => {},
-    incidentDocuments: [],
+    incidents: [],
+    setIncidents: () => {},
+    onSelectedIncidentsChange: () => {},
     loadingIncidents: false,
-    toolInfos: [],
-    loadingTools: false,
-    timespanDropdownOptions: [],
-    selectedTimespanOption: undefined,
-    setSelectedTimespanOption: () => {},
-    isGeneratingInstructions: false,
-    handleGenerateInstructions: () => {},
+    tools: [],
+    setTools: () => {},
+    onSelectedToolsChange: () => {},
+    toolsLoading: false,
+    selectedTimespan: TimeDuration.Last60Days,
+    setSelectedTimespan: () => {},
+    generatingInstructions: false,
+    generateInstructions: () => {},
     initializeEditorDisplayValue: () => {},
     editorDisplayValue: undefined,
     setEditorDisplayValue: () => {},
     onEditorValueChange: () => {},
-    save: () => {},
+    isEditorValueValid: true,
+    setIsEditorValueValid: () => {},
+    saveHandler: () => {},
+    deleteHandler: () => {},
+    exportHandler: () => {},
+    mode: undefined,
+    setMode: () => {},
+    handlerLoaded: false,
 });

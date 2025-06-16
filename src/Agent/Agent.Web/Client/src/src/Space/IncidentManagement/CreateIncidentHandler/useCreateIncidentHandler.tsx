@@ -1,103 +1,69 @@
-import { IDropdownOption, Selection } from '@fluentui/react';
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { isEqual } from 'lodash';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
+import { getErrorMessage } from '../../../Common/Clients/ArmClient';
 import { IncidentHandlerClient } from '../../../Common/Clients/IncidentHandlerClient';
-import {
-    IIncidentDocumentWithKeyAndSelection,
-    IncidentHandler,
-    ToolInfoWithKeyAndSelection,
-} from '../../../Common/Contracts/Azure/IncidentHandler';
+import { IncidentDocument, IncidentHandler, ToolInfo, WithSelection } from '../../../Common/Contracts/Azure/IncidentHandler';
 import { Guid } from '../../../Common/Helpers/Guid';
 import { ArmResourceDescriptor } from '../../../Common/Helpers/ResourceDescriptors';
 import { IncidentHandlerCreateResources } from '../../../Strings/SREAgentResources';
-import { IncidentHandlerCreateSteps } from './IncidentHandlerCreateContext';
-
-enum TimeDuration {
-    Last15Days = 15,
-    Last30Days = 30,
-    Last60Days = 60,
-    Last90Days = 90,
-}
+import { CreateOrEditMode, IncidentHandlerCreateSteps, OperationStatus, TimeDuration } from './IncidentHandlerCreateContext';
 
 export const useCreateIncidentHandler = (
-    incidentFilterId: string,
     exitToHome: () => void,
-    createHandler: (handler: IncidentHandler) => void
+    setHandlerOperationStatus: React.Dispatch<React.SetStateAction<OperationStatus | undefined>>,
+    handlerCreateOrEditInfo: { filterId: string; handlerId?: string }
 ) => {
     const intl = useIntl();
+    const azPortalContext = useContext(AzPortalContext);
+    const { resourceId, sreAgentEndpoint } = useContext(EnvironmentContext);
+    const agentName = useMemo(() => (resourceId ? (new ArmResourceDescriptor(resourceId).resourceName ?? '') : ''), [resourceId]);
+    const incidentHandlerClient = useMemo(() => IncidentHandlerClient.getInstance(sreAgentEndpoint), [sreAgentEndpoint]);
+
+    const [handler, setHandler] = useState<IncidentHandler>();
+    const [handlerLoading, setHandlerLoading] = useState<boolean>(true);
+    const [handlerLoaded, setHandlerLoaded] = useState<boolean>(false);
+
+    const [mode, setMode] = useState<CreateOrEditMode | undefined>(handlerCreateOrEditInfo.handlerId ? 'quickEdit' : 'create');
     const [currentStep, setCurrentStep] = useState<IncidentHandlerCreateSteps>(IncidentHandlerCreateSteps.GenerateHandler);
     const [name, setName] = useState<string>('');
     const [description, setDescription] = useState<string>('');
     const [incidentProcessingGuide, setIncidentProcessingGuide] = useState<string>('');
 
-    const [toolInfos, setToolInfos] = useState<ToolInfoWithKeyAndSelection[]>([]);
-    const [loadingTools, setLoadingTools] = useState<boolean>(true);
-    const [selectedTools, setSelectedTools] = useState<ToolInfoWithKeyAndSelection[]>([]);
+    const [tools, setTools] = useState<WithSelection<ToolInfo>[] | undefined>([]);
+    const [toolsLoading, setToolsLoading] = useState<boolean>(true);
+    const selectedTools = useMemo(() => tools?.filter(tool => tool.selected) || [], [tools]);
+    const [selectedToolNames, setSelectedToolNames] = useState<string[]>();
 
-    const toolsSelection = useRef(
-        new Selection<ToolInfoWithKeyAndSelection>({
-            getKey: (item: ToolInfoWithKeyAndSelection) => item.name,
-            onSelectionChanged: () => {
-                setSelectedTools(toolsSelection.current.getSelection() as ToolInfoWithKeyAndSelection[]);
-            },
-        })
-    );
-
-    const [incidentDocuments, setIncidentDocuments] = useState<IIncidentDocumentWithKeyAndSelection[]>();
+    const [incidents, setIncidents] = useState<WithSelection<IncidentDocument>[]>();
     const [loadingIncidents, setLoadingIncidents] = useState<boolean>(true);
-    const [selectedIncidents, setSelectedIncidents] = useState<IIncidentDocumentWithKeyAndSelection[]>([]);
-
-    const incidentsSelection = useRef(
-        new Selection<IIncidentDocumentWithKeyAndSelection>({
-            getKey: (item: IIncidentDocumentWithKeyAndSelection) => item.id,
-            onSelectionChanged: () => {
-                setSelectedIncidents(incidentsSelection.current.getSelection() as IIncidentDocumentWithKeyAndSelection[]);
-            },
-        })
-    );
+    const selectedIncidents = useMemo(() => incidents?.filter(incident => incident.selected) || [], [incidents]);
+    const [selectedIncidentIds, setSelectedIncidentIds] = useState<string[]>();
 
     const [customInstructions, setCustomInstructions] = useState<string>('');
 
-    const { resourceId, sreAgentEndpoint } = useContext(EnvironmentContext);
-    const agentName = useMemo(() => (resourceId ? (new ArmResourceDescriptor(resourceId).resourceName ?? '') : ''), [resourceId]);
-    const incidentHandlerClient = useMemo(() => IncidentHandlerClient.getInstance(sreAgentEndpoint), [sreAgentEndpoint]);
+    const [selectedTimespan, setSelectedTimespan] = useState<TimeDuration>(TimeDuration.Last60Days);
 
-    const timespanDropdownOptions: IDropdownOption<{ numberOfDays: number; isDefault?: boolean }>[] = useMemo(() => {
-        return [
-            {
-                key: TimeDuration.Last15Days,
-                text: intl.formatMessage(IncidentHandlerCreateResources.last15days),
-                data: { numberOfDays: TimeDuration.Last15Days },
-            },
-            {
-                key: TimeDuration.Last30Days,
-                text: intl.formatMessage(IncidentHandlerCreateResources.last30days),
-                data: { numberOfDays: TimeDuration.Last30Days },
-            },
-            {
-                key: TimeDuration.Last60Days,
-                text: intl.formatMessage(IncidentHandlerCreateResources.last60days),
-                data: { numberOfDays: TimeDuration.Last60Days, isDefault: true },
-            },
-            {
-                key: TimeDuration.Last90Days,
-                text: intl.formatMessage(IncidentHandlerCreateResources.last90days),
-                data: { numberOfDays: TimeDuration.Last90Days },
-            },
-        ];
-    }, [intl]);
+    const [generatingInstructions, setGeneratingInstructions] = useState<boolean>(false);
+    const [generateInstructionsStepSkipped, setGenerateInstructionsStepSkipped] = useState<boolean>(false);
 
-    const [selectedTimespanOption, setSelectedTimespanOption] = useState(
-        timespanDropdownOptions.find(option => option.data?.isDefault === true)
-    );
+    const generateInstructions = useCallback(() => {
+        setGeneratingInstructions(true);
 
-    const [isGeneratingInstructions, setIsGeneratingInstructions] = useState<boolean>(false);
+        const additionalInfo = {
+            incidentFilterId: handlerCreateOrEditInfo.filterId,
+        };
 
-    const handleGenerateInstructions = useCallback(() => {
-        setIsGeneratingInstructions(true);
-        // TODO (andimarc): Add logging and error handling. Surface errors to the user.
+        azPortalContext.log({
+            action: 'generate-instructions',
+            actionModifier: 'start',
+            logLevel: 'info',
+            resourceId: resourceId,
+            data: additionalInfo,
+        });
+
         return incidentHandlerClient
             .generateInstructions({
                 agentName,
@@ -105,150 +71,545 @@ export const useCreateIncidentHandler = (
                 tools: selectedTools?.map(tool => tool.name) ?? [],
                 customInstructions: customInstructions,
             })
-            .then(res => {
-                setIsGeneratingInstructions(false);
-
-                if (res.isSuccessful && res.content) {
-                    setIncidentProcessingGuide(res.content.generatedInstructions);
+            .then(instructionsResult => {
+                setGeneratingInstructions(false);
+                if (!instructionsResult.isSuccessful || !instructionsResult.content) {
+                    // TODO (andimarc): Surface errors to the user.
+                    const error = !instructionsResult.isSuccessful ? getErrorMessage(instructionsResult.error) : 'No content returned';
+                    azPortalContext.log({
+                        action: 'generate-instructions',
+                        actionModifier: 'failed',
+                        logLevel: 'error',
+                        resourceId: resourceId,
+                        data: { ...additionalInfo, error },
+                    });
+                } else {
+                    azPortalContext.log({
+                        action: 'generate-instructions',
+                        actionModifier: 'success',
+                        logLevel: 'info',
+                        resourceId: resourceId,
+                        data: additionalInfo,
+                    });
+                    setGenerateInstructionsStepSkipped(false);
+                    setSelectedToolNames(instructionsResult.content.tools);
+                    setIncidentProcessingGuide(instructionsResult.content.generatedInstructions);
                     setCurrentStep(IncidentHandlerCreateSteps.ReviewAndEdit);
                 }
             });
     }, [
-        setIsGeneratingInstructions,
+        setGeneratingInstructions,
         incidentHandlerClient.generateInstructions,
         selectedIncidents,
         selectedTools,
         customInstructions,
         setIncidentProcessingGuide,
+        agentName,
+        azPortalContext.log,
+        resourceId,
+        handlerCreateOrEditInfo.filterId,
     ]);
 
     const [editorDisplayValue, setEditorDisplayValue] = useState<string>();
-    const azPortalContext = useContext(AzPortalContext);
+    const [isEditorValueValid, setIsEditorValueValid] = useState<boolean>(true);
 
     const onEditorValueChange = useCallback((value: string | undefined) => setEditorDisplayValue(value), []);
 
-    const save = useCallback(() => {
+    const deleteHandler = useCallback(() => {
+        const {
+            customHandlerDeleteNotificationTitle,
+            customHandlerDeleteNotificationDescription,
+            customHandlerDeleteNotificationError,
+            customHandlerDeleteNotificationSuccess,
+        } = IncidentHandlerCreateResources;
+
+        if (handlerCreateOrEditInfo?.handlerId) {
+            const notificationId = azPortalContext.startNotification(
+                intl.formatMessage(customHandlerDeleteNotificationTitle),
+                intl.formatMessage(customHandlerDeleteNotificationDescription)
+            );
+
+            exitToHome();
+            setHandlerOperationStatus('inprogress');
+
+            const additionalInfo = { handlerId: handlerCreateOrEditInfo?.handlerId };
+
+            azPortalContext.log({
+                action: 'delete-incidentHandler',
+                actionModifier: 'start',
+                logLevel: 'info',
+                resourceId: resourceId,
+                data: additionalInfo,
+            });
+
+            incidentHandlerClient.deleteHandler(handlerCreateOrEditInfo?.handlerId).then(deleteResult => {
+                if (!deleteResult.isSuccessful) {
+                    azPortalContext.log({
+                        action: 'delete-incidentHandler',
+                        actionModifier: 'failed',
+                        logLevel: 'error',
+                        resourceId: resourceId,
+                        data: { ...additionalInfo, error: deleteResult.error },
+                    });
+                    setHandlerOperationStatus('failed');
+                    azPortalContext.stopNotification(
+                        notificationId,
+                        false,
+                        intl.formatMessage(customHandlerDeleteNotificationError, {
+                            errorMessage: getErrorMessage(deleteResult.error),
+                        })
+                    );
+                } else {
+                    azPortalContext.log({
+                        action: 'delete-incidentHandler',
+                        actionModifier: 'success',
+                        logLevel: 'info',
+                        resourceId: resourceId,
+                        data: additionalInfo,
+                    });
+                    setHandlerOperationStatus('succeeded');
+                    azPortalContext.stopNotification(notificationId, true, intl.formatMessage(customHandlerDeleteNotificationSuccess));
+                }
+            });
+        }
+    }, [
+        intl.formatMessage,
+        azPortalContext.log,
+        azPortalContext.startNotification,
+        azPortalContext.stopNotification,
+        incidentHandlerClient.deleteHandler,
+        handlerCreateOrEditInfo?.handlerId,
+        exitToHome,
+        resourceId,
+        setHandlerOperationStatus,
+    ]);
+
+    const save = useCallback(
+        (handler: IncidentHandler) => {
+            const [
+                action,
+                handlerPayload,
+                createOrUpdateHandler,
+                notificationTitle,
+                notificationDescription,
+                notificationErrorMessage,
+                notificationSuccessMessage,
+            ] = handler.id
+                ? [
+                      'update-incidentHandler',
+                      handler,
+                      incidentHandlerClient.updateHandler,
+                      IncidentHandlerCreateResources.customHandlerUpdateNotificationTitle,
+                      IncidentHandlerCreateResources.customHandlerUpdateNotificationDescription,
+                      IncidentHandlerCreateResources.customHandlerUpdateNotificationError,
+                      IncidentHandlerCreateResources.customHandlerUpdateNotificationSuccess,
+                  ]
+                : [
+                      'create-incidentHandler',
+                      { ...handler, id: Guid.newShortGuid() },
+                      incidentHandlerClient.createHandler,
+                      IncidentHandlerCreateResources.customHandlerAddNotificationTitle,
+                      IncidentHandlerCreateResources.customHandlerAddNotificationDescription,
+                      IncidentHandlerCreateResources.customHandlerAddNotificationError,
+                      IncidentHandlerCreateResources.customHandlerAddNotificationSuccess,
+                  ];
+
+            const notificationId = azPortalContext.startNotification(
+                intl.formatMessage(notificationTitle),
+                intl.formatMessage(notificationDescription)
+            );
+
+            exitToHome();
+            setHandlerOperationStatus('inprogress');
+
+            const additionalInfo = {
+                handlerName: handlerPayload.name,
+                incidentFilterId: handlerPayload.incidentFilterId,
+            };
+
+            azPortalContext.log({
+                action,
+                actionModifier: 'start',
+                logLevel: 'info',
+                resourceId: resourceId,
+                data: additionalInfo,
+            });
+
+            createOrUpdateHandler(handlerPayload).then(saveResult => {
+                if (!saveResult.isSuccessful) {
+                    azPortalContext.log({
+                        action,
+                        actionModifier: 'failed',
+                        logLevel: 'error',
+                        resourceId: resourceId,
+                        data: { ...additionalInfo, error: saveResult.error },
+                    });
+                    setHandlerOperationStatus('failed');
+                    azPortalContext.stopNotification(
+                        notificationId,
+                        false,
+                        intl.formatMessage(notificationErrorMessage, {
+                            errorMessage: getErrorMessage(saveResult.error),
+                        })
+                    );
+                } else {
+                    azPortalContext.log({
+                        action,
+                        actionModifier: 'success',
+                        logLevel: 'info',
+                        resourceId: resourceId,
+                        data: additionalInfo,
+                    });
+                    setHandlerOperationStatus('succeeded');
+                    azPortalContext.stopNotification(notificationId, true, intl.formatMessage(notificationSuccessMessage));
+                }
+            });
+        },
+        [
+            intl.formatMessage,
+            azPortalContext.log,
+            azPortalContext.startNotification,
+            azPortalContext.stopNotification,
+            incidentHandlerClient.createHandler,
+            incidentHandlerClient.updateHandler,
+            exitToHome,
+            resourceId,
+            setHandlerOperationStatus,
+        ]
+    );
+
+    const saveHandler = useCallback(() => {
         if (editorDisplayValue) {
             let configObject: IncidentHandler | undefined;
 
             try {
                 configObject = JSON.parse(editorDisplayValue) as IncidentHandler;
+                configObject.id = handlerCreateOrEditInfo?.handlerId || '';
             } catch (error) {
+                // This should never happen because we block the user from saving invalid JSON in the editor.
                 return;
-                // TODO (andimarc): Handle JSON parse error. Surface error to the user.
             }
 
-            configObject.id = Guid.newShortGuid();
-
-            createHandler(configObject);
+            save(configObject);
         }
-    }, [
-        incidentHandlerClient,
-        editorDisplayValue,
-        resourceId,
-        azPortalContext.startNotification,
-        azPortalContext.stopNotification,
-        intl.formatMessage,
-    ]);
+    }, [editorDisplayValue, save, handlerCreateOrEditInfo?.handlerId, tools]);
 
     const initializeEditorDisplayValue = useCallback(() => {
         const config = {
             name,
             description,
-            incidentFilterId,
-            incidentProcessingGuide: incidentProcessingGuide.split('\r\n'),
+            incidentFilterId: handlerCreateOrEditInfo?.filterId,
+            incidentProcessingGuide: incidentProcessingGuide.replace('\r\n', '\n').replace('\r', '\n').split('\n'),
             tools: selectedTools.map(tool => tool.name),
             incidents: selectedIncidents.map(incident => incident.id),
             customInstructions: customInstructions,
         };
         setEditorDisplayValue(JSON.stringify(config, null, 4));
-    }, [name, description, incidentFilterId, incidentProcessingGuide, selectedTools, selectedIncidents, customInstructions]);
+    }, [
+        name,
+        description,
+        handlerCreateOrEditInfo?.filterId,
+        incidentProcessingGuide,
+        selectedTools,
+        selectedIncidents,
+        customInstructions,
+    ]);
 
-    useEffect(() => {
-        let subscribed = true;
-
-        if (selectedTimespanOption) {
-            const queryPayload = {
-                filter: {
-                    id: incidentFilterId,
-                },
-                durationInDays: selectedTimespanOption.data?.numberOfDays,
-            };
-            setIncidentDocuments([]);
-            setLoadingIncidents(true);
-            incidentHandlerClient.queryIncidents(queryPayload).then(response => {
-                if (subscribed) {
-                    if (response.isSuccessful && response.content) {
-                        const sortedIncidents = response.content.sort((a, b) => a.title.localeCompare(b.title));
-                        setIncidentDocuments(
-                            sortedIncidents.map(incident => ({ ...incident, selected: false }) as IIncidentDocumentWithKeyAndSelection)
-                        );
-                    }
-                    setLoadingIncidents(false);
-                }
-            });
-        } else {
-            setIncidentDocuments([]);
-            setLoadingIncidents(false);
+    const exportHandler = useCallback(() => {
+        if (handler) {
+            const blob = new Blob([JSON.stringify(handler, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `handler-${handler.id}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
         }
-
-        return () => {
-            subscribed = false;
-        };
-    }, [incidentHandlerClient, incidentFilterId, selectedTimespanOption]);
+    }, [handler]);
 
     useEffect(() => {
         let subscribed = true;
 
-        setToolInfos([]);
-        setLoadingTools(true);
+        setToolsLoading(true);
+        setTools([]);
         incidentHandlerClient.listTools().then(response => {
             if (subscribed) {
+                setToolsLoading(false);
                 if (response.isSuccessful && response.content) {
                     const sortedTools = response.content.sort((a, b) => a.name.localeCompare(b.name));
-                    setToolInfos(sortedTools.map(tool => ({ ...tool, selected: false }) as ToolInfoWithKeyAndSelection));
+                    setTools(sortedTools.map(tool => ({ ...tool, selected: false }) as WithSelection<ToolInfo>));
                 }
-                setLoadingTools(false);
             }
         });
 
         return () => {
             subscribed = false;
         };
+    }, [incidentHandlerClient.listTools]);
+
+    const onSelectedIncidentsChange = useCallback((newSelectedIncidentIds: string[]) => {
+        setSelectedIncidentIds(currentValue => {
+            if (isEqual(currentValue, newSelectedIncidentIds)) {
+                return currentValue; // No change, return current state
+            }
+            return newSelectedIncidentIds; // Update state with new selected incident IDs
+        });
+        setIncidents(currentValue => {
+            if (!currentValue) {
+                return [];
+            }
+            const updatedIncidents = currentValue.map(incident => ({
+                ...incident,
+                selected: newSelectedIncidentIds.includes(incident.id),
+            }));
+            if (isEqual(currentValue, updatedIncidents)) {
+                return currentValue; // No change, return current state
+            }
+            return updatedIncidents; // Update state with new incident documents
+        });
     }, []);
 
+    const onSelectedToolsChange = useCallback((newSelectedToolNames: string[]) => {
+        setSelectedToolNames(currentValue => {
+            if (isEqual(currentValue, newSelectedToolNames)) {
+                return currentValue; // No change, return current state
+            }
+            return newSelectedToolNames; // Update state with new selected tool names
+        });
+        setTools(currentValue => {
+            if (!currentValue) {
+                return [];
+            }
+            const updatedTools = currentValue.map(tool => ({ ...tool, selected: newSelectedToolNames.includes(tool.name) }));
+            if (isEqual(currentValue, updatedTools)) {
+                return currentValue; // No change, return current state
+            }
+            return updatedTools; // Update state with new incident documents
+        });
+    }, []);
+
+    useEffect(() => {
+        let subscribed = true;
+
+        if (selectedTimespan) {
+            const queryPayload = {
+                filter: {
+                    id: handlerCreateOrEditInfo?.filterId,
+                },
+                durationInDays: selectedTimespan,
+            };
+            setLoadingIncidents(true);
+            setIncidents([]);
+            incidentHandlerClient.queryIncidents(queryPayload).then(response => {
+                if (subscribed) {
+                    if (response.isSuccessful && response.content) {
+                        const sortedIncidents = response.content.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+                        setIncidents(
+                            sortedIncidents.map(incident => ({ ...incident, selected: false }) as WithSelection<IncidentDocument>)
+                        );
+                    }
+                    setLoadingIncidents(false);
+                }
+            });
+        } else {
+            setLoadingIncidents(false);
+            setIncidents([]);
+        }
+
+        return () => {
+            subscribed = false;
+        };
+    }, [incidentHandlerClient, handlerCreateOrEditInfo?.filterId, selectedTimespan]);
+
+    useEffect(() => {
+        if (handlerCreateOrEditInfo.handlerId) {
+            setMode('quickEdit');
+        } else {
+            setMode('create');
+        }
+    }, [handlerCreateOrEditInfo.handlerId]);
+
+    useEffect(() => {
+        setHandlerOperationStatus(undefined);
+    }, [setHandlerOperationStatus]);
+
+    useEffect(() => {
+        let subscribed = true;
+
+        setHandler(undefined);
+        if (handlerCreateOrEditInfo.handlerId) {
+            setHandlerLoading(false);
+
+            const additionalInfo = {
+                handlerId: handlerCreateOrEditInfo.handlerId,
+                incidentFilterId: handlerCreateOrEditInfo.filterId,
+            };
+
+            azPortalContext.log({
+                action: 'get-incidentHandler',
+                actionModifier: 'start',
+                logLevel: 'info',
+                resourceId: resourceId,
+                data: additionalInfo,
+            });
+
+            incidentHandlerClient.getHandler(handlerCreateOrEditInfo.handlerId).then(getResult => {
+                if (subscribed) {
+                    if (!getResult.isSuccessful || !getResult.content) {
+                        const error = !getResult.isSuccessful ? getErrorMessage(getResult.error) : 'No content returned';
+                        azPortalContext.log({
+                            action: 'get-incidentHandler',
+                            actionModifier: 'failed',
+                            logLevel: 'error',
+                            resourceId: resourceId,
+                            data: { ...additionalInfo, error },
+                        });
+                        // TODO (andimarc): Surface errors to the user.
+                        setSelectedToolNames([]);
+                        setIncidentProcessingGuide('');
+                        setSelectedIncidentIds([]);
+                    } else {
+                        azPortalContext.log({
+                            action: 'get-incidentHandler',
+                            actionModifier: 'success',
+                            logLevel: 'info',
+                            resourceId: resourceId,
+                            data: additionalInfo,
+                        });
+                        setHandler(getResult.content);
+
+                        setSelectedToolNames(getResult.content.tools);
+                        setSelectedIncidentIds(getResult.content.incidents);
+                        setCustomInstructions(getResult.content.customInstructions || '');
+                        setIncidentProcessingGuide(getResult.content.incidentProcessingGuide.join('\n'));
+                        setName(getResult.content.name);
+                        setDescription(getResult.content.description || '');
+
+                        setHandlerLoaded(true);
+                    }
+                    setHandlerLoading(false);
+                }
+            });
+        } else {
+            setHandlerLoaded(true);
+            setSelectedToolNames(undefined);
+            setSelectedIncidentIds(undefined);
+            setHandlerLoading(false);
+        }
+
+        return () => {
+            subscribed = false;
+        };
+    }, [
+        incidentHandlerClient.getHandler,
+        handlerCreateOrEditInfo.handlerId,
+        handlerCreateOrEditInfo.filterId,
+        azPortalContext.log,
+        resourceId,
+    ]);
+
+    useEffect(() => {
+        if (!loadingIncidents && incidents && handlerLoaded) {
+            const updatedIncidents = incidents?.map((incident, index) => ({
+                ...incident,
+                selected: !selectedIncidentIds
+                    ? index < 3 // Default to selecting the first 3 incidents in create scenario
+                    : selectedIncidentIds.includes(incident.id),
+            }));
+            setIncidents(currentValue => {
+                if (isEqual(currentValue, updatedIncidents)) {
+                    return currentValue; // No change, return current state
+                }
+                return updatedIncidents; // Update state with new incident documents
+            });
+            setSelectedIncidentIds(currentValue => {
+                const newSelectedIncidentIds = updatedIncidents.filter(incident => incident.selected).map(incident => incident.id);
+                if (isEqual(currentValue, newSelectedIncidentIds)) {
+                    return currentValue; // No change, return current state
+                }
+                return newSelectedIncidentIds; // Update state with new selected incident IDs
+            });
+        }
+    }, [selectedIncidentIds, incidents, loadingIncidents, handlerLoaded]);
+
+    useEffect(() => {
+        if (!toolsLoading && tools && handlerLoaded) {
+            const updatedToolsList = tools?.map(tool => ({
+                ...tool,
+                selected: !selectedToolNames
+                    ? true // Default to selecting all tools in create scenario
+                    : selectedToolNames.includes(tool.name),
+            }));
+            setTools(currentValue => {
+                if (isEqual(currentValue, updatedToolsList)) {
+                    return currentValue; // No change, return current state
+                }
+                return updatedToolsList; // Update state with new tool infos
+            });
+            setSelectedToolNames(currentSelectedToolNames => {
+                const newSelectedToolNames = updatedToolsList.filter(tool => tool.selected).map(tool => tool.name);
+                if (isEqual(currentSelectedToolNames, newSelectedToolNames)) {
+                    return currentSelectedToolNames; // No change, return current state
+                }
+                return newSelectedToolNames; // Update state with new selected tool names
+            });
+        }
+    }, [selectedToolNames, tools, toolsLoading, handlerLoaded]);
+
     return {
-        intl,
         exitToHome,
         agentName,
-        incidentFilterId,
+        incidentFilterId: handlerCreateOrEditInfo?.filterId,
         currentStep,
         setCurrentStep,
-        name,
-        setName,
-        description,
-        setDescription,
-        incidentProcessingGuide,
-        setIncidentProcessingGuide,
-        selectedTools,
-        toolsSelection,
-        selectedIncidents,
-        incidentsSelection,
-        customInstructions,
-        setCustomInstructions,
-        incidentDocuments,
+        generateInstructionsStepSkipped,
+        setGenerateInstructionsStepSkipped,
+        mode,
+        setMode,
         loadingIncidents,
-        toolInfos,
-        loadingTools,
-        timespanDropdownOptions,
-        selectedTimespanOption,
-        setSelectedTimespanOption,
-        isGeneratingInstructions,
-        handleGenerateInstructions,
+        toolsLoading,
+        handlerLoading,
+        handlerLoaded,
+        generatingInstructions,
+        generateInstructions,
         initializeEditorDisplayValue,
         editorDisplayValue,
         setEditorDisplayValue,
+        isEditorValueValid,
+        setIsEditorValueValid,
         onEditorValueChange,
-        save,
+        deleteHandler,
+        saveHandler,
+        exportHandler,
+
+        // Name field
+        name,
+        setName,
+
+        // Description field
+        description,
+        setDescription,
+
+        // Timespan field
+        selectedTimespan,
+        setSelectedTimespan,
+
+        // Incidents field
+        incidents,
+        setIncidents,
+        onSelectedIncidentsChange,
+
+        // Tools field
+        tools: tools || [],
+        setTools,
+        onSelectedToolsChange,
+
+        // Custom instructions field
+        customInstructions,
+        setCustomInstructions,
+
+        // Incident processing guide field
+        incidentProcessingGuide,
+        setIncidentProcessingGuide,
     };
 };

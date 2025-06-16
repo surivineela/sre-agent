@@ -1,4 +1,6 @@
-import { FC, Fragment, useCallback } from 'react';
+import { CheckmarkCircle24Filled, NumberCircle124Filled, NumberCircle224Filled } from '@fluentui/react-icons';
+import { FC, Fragment, useCallback, useMemo } from 'react';
+import { IncidentHandlerCreateSteps } from '../IncidentHandlerCreateContext';
 import { StepState } from './StepWizard.contracts';
 import { getCircleStyles, getLabelStyles, separatorStyles, stepContainerStyles } from './StepWizard.styles';
 
@@ -9,9 +11,19 @@ interface StepProps {
 }
 
 const Step: FC<StepProps> = ({ stepNumber, stepTitle, state }) => {
+    const stepIcon = useMemo(() => {
+        if (state === 'complete' || state === 'skipped') {
+            return <CheckmarkCircle24Filled style={getCircleStyles(state)} />;
+        }
+        if (stepNumber === 1) {
+            return <NumberCircle124Filled style={getCircleStyles(state)} />;
+        }
+        return <NumberCircle224Filled style={getCircleStyles(state)} />;
+    }, [stepNumber, state]);
+
     return (
         <div style={stepContainerStyles}>
-            <div style={getCircleStyles(state)}>{state === 'complete' ? '\u2713' : stepNumber}</div>
+            {stepIcon}
             <div style={getLabelStyles(state)}>{stepTitle}</div>
         </div>
     );
@@ -28,10 +40,11 @@ interface StepWizardStep {
 
 interface StepWizardProps {
     steps: StepWizardStep[];
+    skippedSteps: IncidentHandlerCreateSteps[];
     currentStep: string;
 }
 
-export const StepWizard: FC<StepWizardProps> = ({ steps, currentStep }) => {
+export const StepWizard: FC<StepWizardProps> = ({ steps, skippedSteps, currentStep }) => {
     const getStepNumber = useCallback(
         (stepKey: string): number => {
             const stepIndex = steps.findIndex(step => step.stepKey === stepKey);
@@ -47,9 +60,9 @@ export const StepWizard: FC<StepWizardProps> = ({ steps, currentStep }) => {
             if (currentStepNumber === stepNumber) {
                 return 'current';
             }
-            return currentStepNumber > stepNumber ? 'complete' : 'upcoming';
+            return currentStepNumber < stepNumber ? 'upcoming' : skippedSteps.some(step => step === stepKey) ? 'skipped' : 'complete';
         },
-        [currentStep]
+        [currentStep, skippedSteps, getStepNumber]
     );
 
     return (

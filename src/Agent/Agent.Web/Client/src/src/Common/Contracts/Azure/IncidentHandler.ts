@@ -28,7 +28,7 @@ export interface IncidentFilterDocumentPayload {
     titleContains?: string;
 }
 
-export interface IIncidentDocument {
+export interface IncidentDocument {
     createdAt: string;
     updatedAt: string;
     impactedServiceId: string;
@@ -47,15 +47,6 @@ export interface ToolInfo {
     description: string;
     parameters: string[];
 }
-
-type WithKeyAndSelection<T> = T & {
-    key?: string | number;
-    selected: boolean;
-};
-
-export type IIncidentDocumentWithKeyAndSelection = WithKeyAndSelection<IIncidentDocument>;
-
-export type ToolInfoWithKeyAndSelection = WithKeyAndSelection<ToolInfo>;
 
 export interface IncidentHandler {
     id: string;
@@ -90,3 +81,7 @@ export interface IncidentFilterPayload {
     AlertId?: string;
     TitleContains?: string;
 }
+
+export type WithSelection<T> = T & {
+    selected: boolean;
+};

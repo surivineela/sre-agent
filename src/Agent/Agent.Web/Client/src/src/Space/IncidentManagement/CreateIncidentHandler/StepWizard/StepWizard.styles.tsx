@@ -5,20 +5,27 @@ export const stepContainerStyles: React.CSSProperties = {
     display: 'flex',
     gap: 12,
     paddingLeft: 2,
+    alignItems: 'center',
+};
+
+const getStepColor = (state: StepState): string => {
+    switch (state) {
+        case 'current':
+            return tokens.colorBrandForegroundLink;
+        case 'complete':
+            return tokens.colorPaletteGreenForeground1;
+        case 'skipped':
+        case 'upcoming':
+        default:
+            return tokens.colorNeutralStrokeDisabled;
+    }
 };
 
 export const getCircleStyles = (state: StepState): React.CSSProperties => {
     return {
-        borderRadius: '50%',
-        width: 20,
-        height: 20,
-        margin: 2,
-        background: state === 'current' ? tokens.colorBrandForegroundLink : tokens.colorNeutralStrokeDisabled,
-        color: tokens.colorNeutralBackground1,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: 12,
+        width: 24,
+        height: 24,
+        color: getStepColor(state),
     };
 };
 
@@ -29,8 +36,8 @@ export const getLabelStyles = (state: StepState): React.CSSProperties => {
 };
 
 export const separatorStyles: React.CSSProperties = {
-    minHeight: 24,
+    height: 24,
     width: 2,
-    marginLeft: 12,
+    margin: 13,
     background: tokens.colorNeutralBackgroundDisabled,
 };

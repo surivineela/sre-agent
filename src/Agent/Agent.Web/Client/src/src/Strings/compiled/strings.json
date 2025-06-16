@@ -181,12 +181,6 @@
       "value": "Add"
     }
   ],
-  "25brjd": [
-    {
-      "type": 0,
-      "value": "Enter custom instructions"
-    }
-  ],
   "2OQ6yB": [
     {
       "type": 0,
@@ -399,10 +393,22 @@
       "value": "Create Grafana dashboard in the same resource group"
     }
   ],
+  "6LnpNj": [
+    {
+      "type": 0,
+      "value": "Deleting custom incident handler"
+    }
+  ],
   "6OBtew": [
     {
       "type": 0,
       "value": "Deleting SRE Agent"
+    }
+  ],
+  "6PgVSe": [
+    {
+      "type": 0,
+      "value": "Regenerate"
     }
   ],
   "6UyZlH": [
@@ -451,12 +457,6 @@
     {
       "type": 0,
       "value": "Custom handler"
-    }
-  ],
-  "7KZ+mT": [
-    {
-      "type": 0,
-      "value": "Custom instruction"
     }
   ],
   "7MvYEX": [
@@ -631,12 +631,6 @@
       "value": "Monitoring Reader Role"
     }
   ],
-  "AsJvG0": [
-    {
-      "type": 0,
-      "value": "Review + Edit"
-    }
-  ],
   "AuFOi8": [
     {
       "type": 0,
@@ -653,6 +647,12 @@
     {
       "type": 0,
       "value": "Authorize Repository Access"
+    }
+  ],
+  "B9k+PB": [
+    {
+      "type": 0,
+      "value": "Edit custom handler"
     }
   ],
   "BKMqtr": [
@@ -735,6 +735,12 @@
       "value": "Average latency"
     }
   ],
+  "DVVbGP": [
+    {
+      "type": 0,
+      "value": "Regenerate will overwrite any edits made within the generated section of code."
+    }
+  ],
   "DWon+H": [
     {
       "type": 0,
@@ -793,6 +799,12 @@
     {
       "type": 0,
       "value": "Successfully disabled incident filter"
+    }
+  ],
+  "ERQMQ9": [
+    {
+      "type": 0,
+      "value": "Updating custom incident handler"
     }
   ],
   "ESChST": [
@@ -1043,6 +1055,12 @@
       "value": "Client"
     }
   ],
+  "Jbapt8": [
+    {
+      "type": 0,
+      "value": "Enter custom handler instructions"
+    }
+  ],
   "JgQ1gX": [
     {
       "type": 0,
@@ -1083,6 +1101,16 @@
     {
       "type": 0,
       "value": "Urgency"
+    }
+  ],
+  "KVPNxV": [
+    {
+      "type": 0,
+      "value": "Failed to update the custom incident handler. Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
     }
   ],
   "KyDsjH": [
@@ -1151,6 +1179,12 @@
     {
       "type": 0,
       "value": "Alert Rule"
+    }
+  ],
+  "NkirQc": [
+    {
+      "type": 0,
+      "value": "Delete custom incident handler"
     }
   ],
   "NrGEOo": [
@@ -1227,6 +1261,12 @@
       "value": "Data usage, customer rights, and privacy statement if needed. We got it covered."
     }
   ],
+  "OVRWH9": [
+    {
+      "type": 0,
+      "value": "Update custom incident handler"
+    }
+  ],
   "OWBgF9": [
     {
       "type": 0,
@@ -1243,6 +1283,12 @@
     {
       "type": 0,
       "value": "Off"
+    }
+  ],
+  "P/1qUI": [
+    {
+      "type": 0,
+      "value": "The custom incident handler was successfully updated"
     }
   ],
   "PJ2FQv": [
@@ -1315,12 +1361,6 @@
     {
       "type": 0,
       "value": "Agent"
-    }
-  ],
-  "QZoqFk": [
-    {
-      "type": 0,
-      "value": "Generate handler"
     }
   ],
   "QkOLyp": [
@@ -1427,6 +1467,12 @@
       "value": "This operation is being executed using the approver's credentials."
     }
   ],
+  "SVwJTM": [
+    {
+      "type": 0,
+      "value": "Export"
+    }
+  ],
   "Sr4IbA": [
     {
       "type": 0,
@@ -1491,6 +1537,12 @@
     {
       "type": 0,
       "value": "New chat thread"
+    }
+  ],
+  "TsW8Ed": [
+    {
+      "type": 0,
+      "value": "Custom handler instructions"
     }
   ],
   "TyvDrC": [
@@ -1583,12 +1635,6 @@
       "value": "Resolved"
     }
   ],
-  "WC+0um": [
-    {
-      "type": 0,
-      "value": "An incident handler contains common instructions for how to handle an incident. Add custom instructions for specific conditions not covered by default response."
-    }
-  ],
   "WCaf5C": [
     {
       "type": 0,
@@ -1673,12 +1719,6 @@
       "value": "Connect to Azure Monitor so that the SRE Agent can automatically monitor notifications from resources in the resource groups it manages, without additional provisioning."
     }
   ],
-  "XtZDRH": [
-    {
-      "type": 0,
-      "value": "These are previous incidents similar to the filter you set for incident type. Choose any you'd like the agent to learn from."
-    }
-  ],
   "XvrDTb": [
     {
       "type": 0,
@@ -1701,6 +1741,12 @@
     {
       "type": 0,
       "value": "Unhealthy"
+    }
+  ],
+  "Yjk5Ow": [
+    {
+      "type": 0,
+      "value": "Date created"
     }
   ],
   "Ys9AIu": [
@@ -1807,6 +1853,12 @@
       "value": "Filter name"
     }
   ],
+  "aj2txf": [
+    {
+      "type": 0,
+      "value": "Choose incidents"
+    }
+  ],
   "anSi7M": [
     {
       "type": 0,
@@ -1817,12 +1869,6 @@
     {
       "type": 0,
       "value": "Disabling incident filter"
-    }
-  ],
-  "bF6CsW": [
-    {
-      "type": 0,
-      "value": "Available Tools"
     }
   ],
   "bW7B87": [
@@ -1939,16 +1985,22 @@
       "value": "Resource name"
     }
   ],
+  "ezP+aQ": [
+    {
+      "type": 0,
+      "value": "With incident handlers, the agent chooses the tools it needs to manage common types of incidents. Custom handlers replace this capability by giving the agent specific instructions that you provide."
+    }
+  ],
   "f0Y4Zr": [
     {
       "type": 0,
       "value": "Logic App name"
     }
   ],
-  "f525yt": [
+  "f53mvl": [
     {
       "type": 0,
-      "value": "Choose Incidents"
+      "value": "Generate custom handler"
     }
   ],
   "fLkL3F": [
@@ -1985,6 +2037,16 @@
     {
       "type": 0,
       "value": "Learn more about supported services"
+    }
+  ],
+  "gE3lH/": [
+    {
+      "type": 0,
+      "value": "Failed to delete the custom incident handler. Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
     }
   ],
   "gO/IxZ": [
@@ -2083,6 +2145,12 @@
       "value": "Changes to this incident handler might affect how incidents are processed and also any custom handlers."
     }
   ],
+  "icWG3R": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete the custom handler?"
+    }
+  ],
   "ielB5f": [
     {
       "type": 0,
@@ -2099,6 +2167,12 @@
     {
       "type": 0,
       "value": "Basics"
+    }
+  ],
+  "iukUKz": [
+    {
+      "type": 0,
+      "value": "Available tools"
     }
   ],
   "iv1ryQ": [
@@ -2129,12 +2203,6 @@
     {
       "type": 0,
       "value": "Grafana resource must be unique within the resource group."
-    }
-  ],
-  "jY/3Cs": [
-    {
-      "type": 0,
-      "value": "Date Created"
     }
   ],
   "jvo0vs": [
@@ -2231,6 +2299,12 @@
     {
       "type": 0,
       "value": "Go to incident management"
+    }
+  ],
+  "nFOo9o": [
+    {
+      "type": 0,
+      "value": "Review + edit"
     }
   ],
   "nmpevl": [
@@ -2541,6 +2615,12 @@
       "value": "Link Repository to Resource"
     }
   ],
+  "ubMRDT": [
+    {
+      "type": 0,
+      "value": "The custom incident handler was successfully deleted"
+    }
+  ],
   "ug01Mk": [
     {
       "type": 0,
@@ -2697,6 +2777,12 @@
     {
       "type": 0,
       "value": "Failed to update incident filter"
+    }
+  ],
+  "yDh8i7": [
+    {
+      "type": 0,
+      "value": "These previous incidents match the selected incident type. The agent can learn from a maximum of 5 incidents."
     }
   ],
   "yYK6LR": [

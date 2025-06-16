@@ -1,6 +1,6 @@
 import axios from 'axios';
 import {
-    IIncidentDocument,
+    IncidentDocument,
     IncidentFilter,
     IncidentFilterPayload,
     IncidentHandler,
@@ -206,10 +206,10 @@ export class IncidentHandlerClient extends DataPlaneClient {
         }
     };
 
-    public queryIncidents = async (request: IncidentQueryRequest): Promise<Response<IIncidentDocument[]>> => {
+    public queryIncidents = async (request: IncidentQueryRequest): Promise<Response<IncidentDocument[]>> => {
         const url = this.getRequestUrl(`${this._apiPathPrefix}/queryIncidents`);
         try {
-            const { data } = await axios.post<{ items: IIncidentDocument[]; totalCount: number }>(
+            const { data } = await axios.post<{ items: IncidentDocument[]; totalCount: number }>(
                 url,
                 { ...request, pageSize: 1000 },
                 {
@@ -250,6 +250,60 @@ export class IncidentHandlerClient extends DataPlaneClient {
         const url = this.getRequestUrl(`${this._apiPathPrefix}/handlers/${request.id}`);
         try {
             const { data } = await axios.put<IncidentHandler>(url, request, {
+                headers: getAgentHeaders(),
+            });
+            return {
+                isSuccessful: true,
+                content: data,
+            };
+        } catch (error) {
+            return {
+                isSuccessful: false,
+                error: error,
+            };
+        }
+    };
+
+    public updateHandler = async (request: IncidentHandler): Promise<Response<IncidentHandler>> => {
+        const url = this.getRequestUrl(`${this._apiPathPrefix}/handlers/${request.id}`);
+        try {
+            const { data } = await axios.post<IncidentHandler>(url, request, {
+                headers: getAgentHeaders(),
+            });
+            return {
+                isSuccessful: true,
+                content: data,
+            };
+        } catch (error) {
+            return {
+                isSuccessful: false,
+                error: error,
+            };
+        }
+    };
+
+    public getHandler = async (handlerId: string): Promise<Response<IncidentHandler>> => {
+        const url = this.getRequestUrl(`${this._apiPathPrefix}/handlers/${handlerId}`);
+        try {
+            const { data } = await axios.get<IncidentHandler>(url, {
+                headers: getAgentHeaders(),
+            });
+            return {
+                isSuccessful: true,
+                content: data,
+            };
+        } catch (error) {
+            return {
+                isSuccessful: false,
+                error: error,
+            };
+        }
+    };
+
+    public deleteHandler = async (handlerId: string): Promise<Response<IncidentHandler>> => {
+        const url = this.getRequestUrl(`${this._apiPathPrefix}/handlers/${handlerId}`);
+        try {
+            const { data } = await axios.delete<IncidentHandler>(url, {
                 headers: getAgentHeaders(),
             });
             return {
