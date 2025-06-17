@@ -2,10 +2,11 @@ import { Button, makeStyles, mergeClasses, Popover, PopoverSurface, PopoverTrigg
 import { Lightbulb16Regular, RecordStopFilled, SendFilled } from '@fluentui/react-icons';
 import { IStyle, mergeStyles } from '@fluentui/react/lib/Styling';
 import { TextField } from '@fluentui/react/lib/TextField';
-import { memo, useCallback, useState } from 'react';
+import { memo, useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { ActivitiesResources, PromptResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { IChatBoxFooterV2Props } from '../Contracts/Activities';
+import { SignalRContext } from '../Contracts/Context';
 import { chatInputTextStyles, sendButtonStyles, useChatInputStyles } from '../Styles/Activities.styles';
 import KnowledgeGraphBuildStatus from './KnowledgeGraphBuildStatus';
 import { ScrollDownButton } from "@fluentui-copilot/react-copilot-chat";
@@ -52,6 +53,12 @@ const ChatBoxFooterV2 = ({
 
     const { root, footer, chatStatement, sectionHeader, promptItem, lightbulbIcon, sectionDivider, popoverSurface } = useChatInputStyles();
     const [open, setOpen] = useState(false);
+
+    const { isConnected } = useContext(SignalRContext);
+
+    const disableInputInteraction = useMemo(() => {
+        return disableInput || !isConnected;
+    }, [disableInput, isConnected]);
 
     const chatInputHandleSendClick = useCallback(() => {
         const messageToSend = input?.trim() ?? '';
@@ -115,7 +122,7 @@ const ChatBoxFooterV2 = ({
                         if (event.key.toLowerCase() === 'g') {
                             // Stop the event from propagating to the global shortcuts
                             event.stopPropagation();
-                        } else if (event.key.toLowerCase() === 'enter' && !event.shiftKey && !disableInput) {
+                        } else if (event.key.toLowerCase() === 'enter' && !event.shiftKey && !disableInputInteraction) {
                             chatInputHandleSendClick();
                             event.preventDefault();
                             event.stopPropagation();
@@ -178,10 +185,10 @@ const ChatBoxFooterV2 = ({
                             isTyping ? (
                                 <RecordStopFilled style={{ color: tokens.colorBrandForeground1 }} />
                             ) : (
-                                <SendFilled style={{ color: disableInput ? 'undefined' : tokens.colorBrandForeground1 }} />
+                                <SendFilled style={{ color: disableInputInteraction ? 'undefined' : tokens.colorBrandForeground1 }} />
                             )
                         }
-                        disabled={disableInput}
+                        disabled={disableInputInteraction}
                         onClick={() => {
                             if (isTyping) {
                                 cancelStreaming();

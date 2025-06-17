@@ -17,12 +17,14 @@ type SreAgentContextProps = {
     agent: {
         mode: string;
         setMode: React.Dispatch<React.SetStateAction<string>>;
-    }
+    };
 };
 
 type SignalRContextProps = {
-    sendMessage: (message: string, ...args: any[]) => void,
-    onMessage: (method: string, callback: (...args: any[]) => void) => void
+    sendMessage: (message: string, ...args: any[]) => void;
+    onMessage: (method: string, callback: (...args: any[]) => void) => void;
+    isConnecting: boolean;
+    isConnected: boolean;
 };
 
 export const SreAgentContext = createContext<SreAgentContextProps>({
@@ -30,9 +32,9 @@ export const SreAgentContext = createContext<SreAgentContextProps>({
         isGrafanaUpdating: false,
         deploymentId: '',
         notificationId: '',
-        setNotificationId: () => { },
-        setIsGrafanaUpdating: () => { },
-        setDeploymentId: () => { },
+        setNotificationId: () => {},
+        setIsGrafanaUpdating: () => {},
+        setDeploymentId: () => {},
     },
     incidentManagement: {
         isIncidentManagementConnected: false,
@@ -41,7 +43,7 @@ export const SreAgentContext = createContext<SreAgentContextProps>({
     agent: {
         mode: '',
         setMode: () => {},
-    }
+    },
 });
 
 export const AgentContext = createContext<AgentContextProps>({
@@ -50,6 +52,8 @@ export const AgentContext = createContext<AgentContextProps>({
 });
 
 export const SignalRContext = createContext<SignalRContextProps>({
-    sendMessage: (_message: string, ..._args: any[]) => { },
-    onMessage: (_method: string, _callback: (...args: any[]) => void) => { }
+    sendMessage: (_message: string, ..._args: any[]) => {},
+    onMessage: (_method: string, _callback: (...args: any[]) => void) => {},
+    isConnecting: true,
+    isConnected: false,
 });
