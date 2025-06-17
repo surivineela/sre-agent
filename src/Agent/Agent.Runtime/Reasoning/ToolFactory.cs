@@ -6,9 +6,12 @@ using System.Reflection;
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
 using Agent.Logging;
+using Agent.Plugins;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
 
 namespace Agent.Runtime.Reasoning;
 
@@ -86,6 +89,8 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
     private readonly ILogger<ToolFactory<TContext>> _logger;
     private readonly Dictionary<string, DeferredToolFunction<TContext>> _tools = [];
     private readonly IServiceProvider _serviceProvider;
+    private readonly IHostEnvironment _hostEnvironment;
+    private readonly IConfiguration _configuration;
     private readonly IEnumerable<Assembly> _assemblies;
 
     public ToolFactory(
@@ -97,6 +102,8 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
         _logger = logger;
         _serviceProvider = serviceProvider;
         _assemblies = assembliesToScan;
+        _hostEnvironment = _serviceProvider.GetRequiredService<IHostEnvironment>();
+        _configuration = _serviceProvider.GetRequiredService<IConfiguration>();
         FindAndRegisterAllTools(BehaviorOnNameConflict.ThrowException);
     }
 
@@ -122,6 +129,35 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
         return result;
     }
 
+    private bool ShouldRegisterPlugin(string pluginName, AgentToolPluginAttribute agentToolPluginAttribute)
+    {
+        if (!agentToolPluginAttribute.IsEnabled)
+        {
+            _logger.LogInternalWarning("Plugin {toolName} is disabled and will not be registered.", pluginName);
+            return false;
+        }
+
+        if (agentToolPluginAttribute.IsExperimental && _hostEnvironment != null && !_hostEnvironment.IsDevelopment())
+        {
+            _logger.LogInternalWarning("Plugin {toolName} is experimental and will not be registered in non-development environments.", pluginName);
+            return false;
+        }
+
+        // TODO: Set this in a constants file
+        var firstPartyTenants = new List<string>() { "33e01921-4d64-4f8c-a055-5bdaffd5e33d", "72f988bf-86f1-41af-91ab-2d7cd011db47" };
+
+        var tenantId = _configuration != null ? _configuration.GetValue("AppSettings:Core:Azure:Crawler:TenantId", string.Empty) : string.Empty;
+        var isFirstParty = !string.IsNullOrWhiteSpace(tenantId) && firstPartyTenants.Contains(tenantId);
+
+        if (agentToolPluginAttribute.IsFirstPartyOnly && !isFirstParty)
+        {
+            _logger.LogInternalWarning("Plugin {pluginName} is marked as first-party only and will not be registered in non-first-party environments.", pluginName);
+            return false;
+        }
+
+        return true;
+    }
+
     private void FindAndRegisterAllTools(BehaviorOnNameConflict onNameConflict)
     {
         var plugins = _assemblies
@@ -141,6 +177,12 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
                 if (attribute is null)
                 {
                     _logger.LogInternalWarning("Type {pluginType} does not have AgentToolPluginAttribute.", pluginType.FullName);
+                    continue;
+                }
+
+                if (!ShouldRegisterPlugin(pluginName: pluginType.Name, attribute))
+                {
+                    _logger.LogInternalInformation("Skipping registration of plugin {pluginName} due to attribute conditions.", pluginType.Name);
                     continue;
                 }
 

@@ -1,5 +1,5 @@
 using System.ComponentModel;
-using Agent.Framework;
+using Agent.Plugins;
 using Agent.Plugins.IcmPlugin;
 using Agent.Plugins.Interface;
 using Kusto.Cloud.Platform.Utils;
@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 
 namespace Agent.Plugins.Definitions
 {
-    [AgentToolPlugin]
+    [AgentToolPlugin(IsFirstPartyOnly = true)]
     public class RCAContainerAppIcMPluginDefinition
     {
         private readonly IContainerAppIcMPlugin _plugin;

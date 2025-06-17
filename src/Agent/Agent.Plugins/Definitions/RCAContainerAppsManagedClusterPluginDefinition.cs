@@ -12,7 +12,7 @@ using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins.Definitions
 {
-    [AgentToolPlugin]
+    [AgentToolPlugin(IsFirstPartyOnly = true)]
     public class RCAContainerAppsManagedClusterPluginDefinition
     {
         private readonly IKustoPluginChat _kustoPlugin;

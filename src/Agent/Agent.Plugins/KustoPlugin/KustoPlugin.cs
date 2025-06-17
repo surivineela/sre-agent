@@ -8,7 +8,7 @@ using Microsoft.SemanticKernel;
 namespace Agent.Plugins.KustoPlugin;
 
 // [Export]
-[AgentToolPlugin]
+[AgentToolPlugin(IsFirstPartyOnly = true)]
 public class KustoPlugin
 {
     private readonly ILogger<KustoPlugin> _logger;

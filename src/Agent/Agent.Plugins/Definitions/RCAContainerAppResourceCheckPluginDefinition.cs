@@ -11,7 +11,7 @@ using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins.Definitions
 {
-    [AgentToolPlugin]
+    [AgentToolPlugin(IsFirstPartyOnly = true)]
     public class RCAContainerAppResourceCheckPluginDefinition
     {
         private readonly IKustoPluginChat _kustoPlugin;

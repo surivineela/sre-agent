@@ -8,7 +8,7 @@ using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Definitions
 {
-    [AgentToolPlugin]
+    [AgentToolPlugin(IsFirstPartyOnly = true)]
     public class RCAContainerAppsManagedEnvironmentPluginDefinition
     {
         private readonly IKustoPluginChat _kustoPlugin;

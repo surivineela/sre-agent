@@ -8,11 +8,14 @@ using Agent.Core.Models.Api.v1;
 using Agent.Framework;
 using Agent.Framework.Models;
 using Agent.Runtime.Reasoning;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
+using Agent.Plugins;
 
 namespace Agent.Tests.Unit.Framework;
 
@@ -33,7 +36,29 @@ public class AgentFactoryTests
         _services.AddSingleton(_mockLogger.Object);
         _services.AddSingleton(_mockToolFactoryLogger.Object);
         _services.AddTransient<TestTools>();
+        SetupServiceProviderWithHostEnvironmentAndConfiguration();
         _serviceProvider = _services.BuildServiceProvider();
+    }
+
+    private void SetupServiceProviderWithHostEnvironmentAndConfiguration()
+    {
+        var mockHostEnvironment = new Mock<IHostEnvironment>();
+        mockHostEnvironment.Setup(e => e.EnvironmentName).Returns("Development");
+        mockHostEnvironment.Setup(e => e.ApplicationName).Returns("TestApp");
+        mockHostEnvironment.Setup(e => e.ContentRootPath).Returns("/test/root");
+
+        var inMemorySettings = new Dictionary<string, string>
+        {
+            {"AppSettings:Core:Azure:Crawler:TenantId", "72f988bf-86f1-41af-91ab-2d7cd011db47"}
+        };
+
+        IConfiguration configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(inMemorySettings)
+            .Build();
+
+        // Register the mocks to the existing ServiceCollection
+        _services.AddSingleton(mockHostEnvironment.Object);
+        _services.AddSingleton(configuration);
     }
 
     [Fact]

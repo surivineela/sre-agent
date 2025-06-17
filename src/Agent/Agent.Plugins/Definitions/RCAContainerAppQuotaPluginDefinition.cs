@@ -7,7 +7,7 @@ using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Definitions
 {
-    [AgentToolPlugin]
+    [AgentToolPlugin(IsFirstPartyOnly = true)]
     public class RCAContainerAppQuotaPluginDefinition
     {
         private readonly ICMWorkflowClient _icmWorkflowClient;

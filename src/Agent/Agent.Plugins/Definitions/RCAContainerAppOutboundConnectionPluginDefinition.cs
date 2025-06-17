@@ -10,7 +10,7 @@ using Agent.Plugins.Kusto;
 
 namespace Agent.Plugins.Definitions
 {
-    [AgentToolPlugin]
+    [AgentToolPlugin(IsFirstPartyOnly = true)]
     public class RCAContainerAppOutboundConnectionPluginDefinition
     {
         private readonly IKustoPluginChat _kustoPlugin;

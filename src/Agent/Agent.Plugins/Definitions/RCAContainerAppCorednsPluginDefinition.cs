@@ -10,7 +10,7 @@ using Agent.Plugins.Interface;
 namespace Agent.Plugins.Definitions
 {
 
-    [AgentToolPlugin]
+    [AgentToolPlugin(IsFirstPartyOnly = true)]
     public class RCAContainerAppCorednsPluginDefinition
     {
         private readonly IKustoPluginChat _kustoPlugin;

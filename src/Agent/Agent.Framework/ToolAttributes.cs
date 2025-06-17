@@ -4,12 +4,6 @@
 
 namespace Agent.Framework;
 
-// Usage of this attribute is to mark classes that hold tools for agents to use.
-[AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
-public class AgentToolPluginAttribute : Attribute
-{
-}
-
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
 public class AgentToolAttribute : Attribute
 {
