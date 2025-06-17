@@ -137,7 +137,7 @@ export const SreAgentResources = defineMessages({
     stop: { defaultMessage: 'Stop', id: 'q/uwLT' },
     sreAgentSpace: { defaultMessage: 'SRE Agent Space', id: 'iv1ryQ' },
     subscription: { defaultMessage: 'Subscription', id: 'R/6nsx' },
-    appGroup: { defaultMessage: 'App Group', id: 'V6juiN' },
+    appGroup: { defaultMessage: 'App group', id: 'd+ds6B' },
     subscriptionId: { defaultMessage: 'Subscription ID', id: 'FUQvS0' },
     totalThreads: { defaultMessage: 'Total threads', id: 'zN87hN' },
     tasks: { defaultMessage: 'Tasks', id: 'yhU1et' },
@@ -656,8 +656,8 @@ export const FeedbackResources = defineMessages({
 export const GraphResources = defineMessages({
     resourceSelectorDescription: {
         defaultMessage:
-            'This logical map shows how your applications resources are connected across multiple resource groups, regions, and subscriptions. The agent analyzes these resources and organizes them into an app group based on the primary resource.',
-        id: 'QkOLyp',
+            "This map shows how your application's resources are connected across multiple resource groups, regions, and subscriptions. The agent analyzes these resources and organizes them into a logical app group based on the primary resource.",
+        id: '5Q36PP',
     },
 });
 
@@ -682,16 +682,16 @@ export const ResourceInfoResources = defineMessages({
     dashboard: { defaultMessage: 'Dashboard', id: 'hzSNj4' },
     dashboardLinkText: { defaultMessage: 'Go to Azure Managed Grafana', id: 'SAINuE' },
     grafanaLogo: { defaultMessage: 'Grafana logo', id: 'mzRg+7' },
-    repositoryConnection: { defaultMessage: 'Repository Connection', id: 'aRH5fG' },
-    authorizeRepositoryAccess: { defaultMessage: 'Authorize Repository Access', id: 'Az8/Pe' },
-    connectRepository: { defaultMessage: 'Connect Repository', id: 'rP/nDW' },
-    linkRepositoryToResource: { defaultMessage: 'Link Repository to Resource', id: 'uVeSVH' },
+    repositoryConnection: { defaultMessage: 'Repository connection', id: 'FLm/x4' },
+    authorizeRepositoryAccess: { defaultMessage: 'Authorize repository access', id: 'wru3Di' },
+    connectRepository: { defaultMessage: 'Connect repository', id: '1fNFGt' },
+    linkRepositoryToResource: { defaultMessage: 'Link repository to resource', id: 'BV3Mir' },
     repositoryUrl: { defaultMessage: 'Repository URL', id: 'AA/tRJ' },
     repositoryUrlErrorMessage: { defaultMessage: 'Repository URL must be like: https://github.com/owner/repo-name.git', id: 'HekEs4' },
     connecting: { defaultMessage: 'Connecting...', id: '5y2qWO' },
     annotation: { defaultMessage: 'Annotation', id: 'dQtJBl' },
-    editAnnotation: { defaultMessage: 'Edit Annotation', id: '7MvYEX' },
-    addAnnotation: { defaultMessage: 'Add Annotation', id: 'vv2vLv' },
+    editAnnotation: { defaultMessage: 'Edit annotation', id: 'Qfec1M' },
+    addAnnotation: { defaultMessage: 'Add annotation', id: 'aORQjS' },
     addAnnotationDescription: {
         defaultMessage: 'Add a description about this resource to help the agent with groupings and insights.',
         id: '9VUlhV',

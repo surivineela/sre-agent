@@ -163,6 +163,12 @@
       "value": "Grafana dashboard URL"
     }
   ],
+  "1fNFGt": [
+    {
+      "type": 0,
+      "value": "Connect repository"
+    }
+  ],
   "1uDzPU": [
     {
       "type": 0,
@@ -325,6 +331,12 @@
       "value": "Optimize how the agent investigates and responds to incidents by adding incident handlers and custom handlers to support a broad range of scenarios."
     }
   ],
+  "5Q36PP": [
+    {
+      "type": 0,
+      "value": "This map shows how your application's resources are connected across multiple resource groups, regions, and subscriptions. The agent analyzes these resources and organizes them into a logical app group based on the primary resource."
+    }
+  ],
   "5QYdPU": [
     {
       "type": 0,
@@ -463,12 +475,6 @@
     {
       "type": 0,
       "value": "Review mode"
-    }
-  ],
-  "7MvYEX": [
-    {
-      "type": 0,
-      "value": "Edit Annotation"
     }
   ],
   "7Nz2Ev": [
@@ -655,12 +661,6 @@
       "value": "High"
     }
   ],
-  "Az8/Pe": [
-    {
-      "type": 0,
-      "value": "Authorize Repository Access"
-    }
-  ],
   "B9k+PB": [
     {
       "type": 0,
@@ -677,6 +677,12 @@
     {
       "type": 0,
       "value": "Successfully updated incident filter"
+    }
+  ],
+  "BV3Mir": [
+    {
+      "type": 0,
+      "value": "Link repository to resource"
     }
   ],
   "BWpuKl": [
@@ -883,6 +889,12 @@
     {
       "type": 0,
       "value": "Managed resource groups added successfully"
+    }
+  ],
+  "FLm/x4": [
+    {
+      "type": 0,
+      "value": "Repository connection"
     }
   ],
   "FREJ+R": [
@@ -1381,10 +1393,10 @@
       "value": "Agent"
     }
   ],
-  "QkOLyp": [
+  "Qfec1M": [
     {
       "type": 0,
-      "value": "This logical map shows how your applications resources are connected across multiple resource groups, regions, and subscriptions. The agent analyzes these resources and organizes them into an app group based on the primary resource."
+      "value": "Edit annotation"
     }
   ],
   "QlsDcr": [
@@ -1617,12 +1629,6 @@
       "value": "Repository"
     }
   ],
-  "V6juiN": [
-    {
-      "type": 0,
-      "value": "App Group"
-    }
-  ],
   "VQDmmK": [
     {
       "type": 0,
@@ -1829,16 +1835,16 @@
       "value": "App group type"
     }
   ],
+  "aORQjS": [
+    {
+      "type": 0,
+      "value": "Add annotation"
+    }
+  ],
   "aQPexO": [
     {
       "type": 0,
       "value": "Give us feedback"
-    }
-  ],
-  "aRH5fG": [
-    {
-      "type": 0,
-      "value": "Repository Connection"
     }
   ],
   "aSn3tP": [
@@ -1935,6 +1941,12 @@
     {
       "type": 0,
       "value": "Back"
+    }
+  ],
+  "d+ds6B": [
+    {
+      "type": 0,
+      "value": "App group"
     }
   ],
   "d/8IiF": [
@@ -2467,12 +2479,6 @@
       "value": "This will permanently delete the connection to PagerDuty. The agent will no longer be able to manage tickets. Are you sure you want to delete this connection?"
     }
   ],
-  "rP/nDW": [
-    {
-      "type": 0,
-      "value": "Connect Repository"
-    }
-  ],
   "rbrahO": [
     {
       "type": 0,
@@ -2621,12 +2627,6 @@
       "value": "All priorities"
     }
   ],
-  "uVeSVH": [
-    {
-      "type": 0,
-      "value": "Link Repository to Resource"
-    }
-  ],
   "ubMRDT": [
     {
       "type": 0,
@@ -2661,12 +2661,6 @@
     {
       "type": 0,
       "value": "Determining next steps..."
-    }
-  ],
-  "vv2vLv": [
-    {
-      "type": 0,
-      "value": "Add Annotation"
     }
   ],
   "w+XRP2": [
@@ -2715,6 +2709,12 @@
     {
       "type": 0,
       "value": "Total resources"
+    }
+  ],
+  "wru3Di": [
+    {
+      "type": 0,
+      "value": "Authorize repository access"
     }
   ],
   "xDYr9m": [
