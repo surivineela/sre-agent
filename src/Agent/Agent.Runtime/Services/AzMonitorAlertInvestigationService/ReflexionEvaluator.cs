@@ -1,6 +1,7 @@
 // ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
+
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -27,7 +28,8 @@ public class ReflexionEvaluator : IReflexionEvaluator
         "AnalyzeActivityLogs",
         "AnalyzeConnectedComponents",
         "AnalyzeLogQueries",
-        "AnalyzeResourceMetrics"
+        "AnalyzeResourceMetrics",
+        "AnalyzeGenericLogQueries"
     };
 
     public ReflexionEvaluator(IChatClient chatClient, ILogger<ReflexionEvaluator> logger)

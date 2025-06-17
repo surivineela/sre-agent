@@ -18,4 +18,6 @@ public interface IAzMonitorAlertInvestigationService
     Task<string> AnalyzeActivityLogsForResource(AlertItem alert, Thread alertThread);
 
     Task<string> AnalyzeLogQueries(AlertItem alert, Thread alertThread);
+
+    Task<string> AnalyzeGenericLogQueries(AlertItem alert, Thread alertThread);
 }

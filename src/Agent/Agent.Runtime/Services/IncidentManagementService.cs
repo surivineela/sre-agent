@@ -50,6 +50,8 @@ namespace Agent.Runtime.Services
                     DocumentType = "IcmIncident";
                     break;
                 case IncidentManagementType.AzMonitor:
+                    DocumentType = "AzMonitorAlert";
+                    break;
                 default:
                     throw new NotImplementedException($"Incident management type '{_incidentManagementSettings.Type}' is not implemented.");
             }

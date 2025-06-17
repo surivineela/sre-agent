@@ -374,6 +374,7 @@ public class Program
             .AddSingleton<IReasoningStep, ConnectedComponentsAnalysisStep>()
             .AddSingleton<IReasoningStep, LogQueryAnalysisStep>()
             .AddSingleton<IReasoningStep, MetricsAnalysisStep>()
+            .AddSingleton<IReasoningStep, LogQueriesGenericAnalysisStep>()
             .AddSingleton<IHypothesisGenerator, HypothesisGenerator>()
             .AddSingleton<PostToTeamsPluginDefinition>()
             .AddSingleton<DailyReportScanner>()

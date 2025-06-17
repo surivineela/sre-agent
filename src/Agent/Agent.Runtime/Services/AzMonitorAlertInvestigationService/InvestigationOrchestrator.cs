@@ -4,17 +4,14 @@
 
 using System.Text;
 using System.Text.Json;
-using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
-using Agent.Framework;
 using Agent.Logging;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using Microsoft.SemanticKernel.ChatCompletion;
 using Thread = Agent.Core.Models.Api.v1.Thread;
 
 namespace Agent.Runtime.Services.AzMonitorAlertInvestigation;
@@ -83,7 +80,7 @@ public class InvestigationOrchestrator : IInvestigationOrchestrator
         {
             // Count total available reasoning steps to ensure we execute all at least once
             var totalReasoningSteps = _reasoningSteps.Count();
-            
+
             while (continueInvestigation &&
                   context.IterationCount < maxIterations &&
                   !cancellationToken.IsCancellationRequested)
@@ -119,7 +116,7 @@ public class InvestigationOrchestrator : IInvestigationOrchestrator
                     var reflexionResult = await _reflexionEvaluator.EvaluateInvestigationAsync(context, cancellationToken);
 
                     context.LastReflexion = reflexionResult;
-                    
+
                     // Only allow reflexion to stop investigation if all reasoning steps have been executed at least once
                     if (context.CompletedSteps.Count >= totalReasoningSteps)
                     {
@@ -135,7 +132,7 @@ public class InvestigationOrchestrator : IInvestigationOrchestrator
                 context.IterationCount++;
 
                 // Only allow early termination if all reasoning steps have been executed at least once
-                if (context.CompletedSteps.Count >= totalReasoningSteps && 
+                if (context.CompletedSteps.Count >= totalReasoningSteps &&
                     context.LastReflexion?.OverallConfidence >= 0.8f)
                 {
                     _logger.LogInternalInformation("All steps executed and investigation reached high confidence, stopping early");
@@ -323,7 +320,7 @@ Remember: Quality findings with specific values are better than quantity. Exclud
                 new("Planning", "📝 Gathering information about the issue", true)
             ])
         );
-        
+
         await _repository.AddMessageAsync(threadId, initMessage);
 
         return messageId;
@@ -392,6 +389,7 @@ Remember: Quality findings with specific values are better than quantity. Exclud
             "AnalyzeConnectedComponents" => "Analyzing Connected Components",
             "AnalyzeLogQueries" => "Analyzing Log Queries",
             "AnalyzeResourceMetrics" => "Analyzing Resource Metrics",
+            "AnalyzeGenericLogQueries" => "Analyzing Generic Log Queries",
             _ => stepName
         };
     }

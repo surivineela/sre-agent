@@ -786,7 +786,7 @@ public class TimerService : IHostedService, IDisposable
             try
             {
                 _azMonitorIncidentClosureTimerIsRunning = true;
-                await _azMonitorAlertScanner.CloseInActiveAzMonitorIncidentThreads(10, cancellationToken);
+                await _azMonitorAlertScanner.CloseInActiveAzMonitorIncidentThreads(20, cancellationToken);
             }
             catch (Exception ex)
             {

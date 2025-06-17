@@ -7,6 +7,7 @@ using Agent.Core.Services;
 using Agent.Logging;
 using Agent.Runtime.Models;
 using Microsoft.Extensions.Logging;
+
 namespace Agent.Runtime.Services.AzMonitorAlertInvestigation;
 
 //TODO: Split into separate classes once working
@@ -18,6 +19,7 @@ public class ApplicationHealthStep : BaseReasoningStep
     private readonly IAzMonitorAlertInvestigationService _service;
     public override string StepName => "AnalyzeApplicationHealth";
     public override int DefaultPriority => 4;
+
     public ApplicationHealthStep(
         IAzMonitorAlertInvestigationService service,
         IThreadRepository repository,
@@ -25,6 +27,7 @@ public class ApplicationHealthStep : BaseReasoningStep
     {
         _service = service;
     }
+
     public override async Task<StepResult> ExecuteAsync(
         AlertItem alert,
         InvestigationContext context,
@@ -34,6 +37,7 @@ public class ApplicationHealthStep : BaseReasoningStep
         {
             var thread = await _repository.GetThreadAsync(context.ThreadId);
             var result = await _service.AnalyzeApplicationHealth(alert, thread);
+
             if (!string.IsNullOrEmpty(result))
             {
                 await AddReasoningMessageAsync(
@@ -41,6 +45,7 @@ public class ApplicationHealthStep : BaseReasoningStep
                     "Analysis of application health metrics (availability, cpu, memory etc.)",
                     result);
             }
+
             return new StepResult(
                 StepName,
                 result,
@@ -62,6 +67,7 @@ public class ActivityLogAnalysisStep : BaseReasoningStep
     private readonly IAzMonitorAlertInvestigationService _service;
     public override string StepName => "AnalyzeActivityLogs";
     public override int DefaultPriority => 4;
+
     public ActivityLogAnalysisStep(
         IAzMonitorAlertInvestigationService service,
         IThreadRepository repository,
@@ -69,6 +75,7 @@ public class ActivityLogAnalysisStep : BaseReasoningStep
     {
         _service = service;
     }
+
     public override async Task<StepResult> ExecuteAsync(
         AlertItem alert,
         InvestigationContext context,
@@ -78,6 +85,7 @@ public class ActivityLogAnalysisStep : BaseReasoningStep
         {
             var thread = await _repository.GetThreadAsync(context.ThreadId);
             var result = await _service.AnalyzeActivityLogsForResource(alert, thread);
+
             if (!string.IsNullOrEmpty(result))
             {
                 await AddReasoningMessageAsync(
@@ -85,6 +93,7 @@ public class ActivityLogAnalysisStep : BaseReasoningStep
                     "Analysis of recent activity logs for configuration changes",
                     result);
             }
+
             return new StepResult(
                 StepName,
                 result,
@@ -98,6 +107,7 @@ public class ActivityLogAnalysisStep : BaseReasoningStep
     }
 }
 
+
 /// <summary>
 /// Step for analyzing connected components using Knowledge graph.
 /// </summary>
@@ -106,6 +116,7 @@ public class ConnectedComponentsAnalysisStep : BaseReasoningStep
     private readonly IAzMonitorAlertInvestigationService _service;
     public override string StepName => "AnalyzeConnectedComponents";
     public override int DefaultPriority => 3;
+
     public ConnectedComponentsAnalysisStep(
         IAzMonitorAlertInvestigationService service,
         IThreadRepository repository,
@@ -113,6 +124,7 @@ public class ConnectedComponentsAnalysisStep : BaseReasoningStep
     {
         _service = service;
     }
+
     public override async Task<StepResult> ExecuteAsync(
         AlertItem alert,
         InvestigationContext context,
@@ -122,6 +134,7 @@ public class ConnectedComponentsAnalysisStep : BaseReasoningStep
         {
             var thread = await _repository.GetThreadAsync(context.ThreadId);
             var result = await _service.AnalyzeConnectedComponents(alert, thread);
+
             if (!string.IsNullOrEmpty(result))
             {
                 await AddReasoningMessageAsync(
@@ -129,6 +142,7 @@ public class ConnectedComponentsAnalysisStep : BaseReasoningStep
                     "Analysis of connected components and dependencies",
                     result);
             }
+
             return new StepResult(
                 StepName,
                 result,
@@ -150,6 +164,7 @@ public class LogQueryAnalysisStep : BaseReasoningStep
     private readonly IAzMonitorAlertInvestigationService _service;
     public override string StepName => "AnalyzeLogQueries";
     public override int DefaultPriority => 2;
+
     public LogQueryAnalysisStep(
         IAzMonitorAlertInvestigationService service,
         IThreadRepository repository,
@@ -157,6 +172,7 @@ public class LogQueryAnalysisStep : BaseReasoningStep
     {
         _service = service;
     }
+
     public override async Task<StepResult> ExecuteAsync(
         AlertItem alert,
         InvestigationContext context,
@@ -166,6 +182,7 @@ public class LogQueryAnalysisStep : BaseReasoningStep
         {
             var thread = await _repository.GetThreadAsync(context.ThreadId);
             var result = await _service.AnalyzeLogQueries(alert, thread);
+
             if (!string.IsNullOrEmpty(result))
             {
                 await AddReasoningMessageAsync(
@@ -173,6 +190,7 @@ public class LogQueryAnalysisStep : BaseReasoningStep
                     "Analysis of log query results for error patterns",
                     result);
             }
+
             return new StepResult(
                 StepName,
                 result,
@@ -187,6 +205,52 @@ public class LogQueryAnalysisStep : BaseReasoningStep
 }
 
 /// <summary>
+/// Step for executing generic queries for resources that don't have saved queries.
+/// </summary>
+public class LogQueriesGenericAnalysisStep : BaseReasoningStep
+{
+    private readonly IAzMonitorAlertInvestigationService _service;
+
+    public override string StepName => "AnalyzeGenericLogQueries";
+
+    public override int DefaultPriority => 2;
+
+    public LogQueriesGenericAnalysisStep(IAzMonitorAlertInvestigationService service,
+        IThreadRepository repository,
+        ILogger<LogQueriesGenericAnalysisStep> logger) : base(repository, logger)
+    {
+        _service = service;
+    }
+
+    public override async Task<StepResult> ExecuteAsync(AlertItem alert, InvestigationContext context, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var thread = await _repository.GetThreadAsync(context.ThreadId);
+            var result = await _service.AnalyzeGenericLogQueries(alert, thread);
+
+            if (!string.IsNullOrEmpty(result))
+            {
+                await AddReasoningMessageAsync(
+                    context.AgentContextId,
+                    "Analysis of generic log queries in Log Analytics Workspace",
+                    result);
+            }
+
+            return new StepResult(
+                StepName,
+                result,
+                !string.IsNullOrEmpty(result) && !result.Contains("Error"));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, $"Error executing {StepName} step");
+            return new StepResult(StepName, $"Error {ex.Message}", false);
+        }
+    }
+}
+
+/// <summary>
 /// Step for analyzing resource metrics
 /// </summary>
 public class MetricsAnalysisStep : BaseReasoningStep
@@ -194,6 +258,7 @@ public class MetricsAnalysisStep : BaseReasoningStep
     private readonly IAzMonitorAlertInvestigationService _service;
     public override string StepName => "AnalyzeResourceMetrics";
     public override int DefaultPriority => 1;
+
     public MetricsAnalysisStep(
         IAzMonitorAlertInvestigationService service,
         IThreadRepository repository,
@@ -201,6 +266,7 @@ public class MetricsAnalysisStep : BaseReasoningStep
     {
         _service = service;
     }
+
     public override async Task<StepResult> ExecuteAsync(
         AlertItem alert,
         InvestigationContext context,
@@ -210,6 +276,7 @@ public class MetricsAnalysisStep : BaseReasoningStep
         {
             var thread = await _repository.GetThreadAsync(context.ThreadId);
             var result = await _service.AnalyzeResourceMetrics(alert, thread);
+
             if (!string.IsNullOrEmpty(result))
             {
                 await AddReasoningMessageAsync(
@@ -217,6 +284,7 @@ public class MetricsAnalysisStep : BaseReasoningStep
                     "Analysis of resource metrics and performance counters",
                     result);
             }
+
             return new StepResult(
                 StepName,
                 result,

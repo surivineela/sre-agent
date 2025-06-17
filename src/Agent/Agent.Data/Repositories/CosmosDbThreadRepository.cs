@@ -780,6 +780,27 @@ public class CosmosDbThreadRepository : IThreadRepository
             );
 
             _logger.LogInternalInformation("Successfully updated message {MessageId} in thread {ThreadId}", messageIdStr, threadIdStr);
+
+            // Update the thread's modified timestamp so that the incident cleanup timer doesn't close the issue when its taking longer to investigate
+            try
+            {
+                ThreadDocument threadDoc = await GetDocumentAsync<ThreadDocument>(threadIdStr, threadIdStr);
+                if (threadDoc != null)
+                {
+                    ThreadDocument updatedThreadDoc = threadDoc with { ModifiedTimestamp = DateTime.UtcNow };
+                    await container.ReplaceItemAsync(
+                        updatedThreadDoc,
+                        updatedThreadDoc.Id,
+                        new PartitionKey(updatedThreadDoc.PartitionKey)
+                    );
+                }
+            }
+            catch (CosmosException ex) when (ex.StatusCode != HttpStatusCode.NotFound)
+            {
+                // Log the error but don't fail the operation
+                Console.WriteLine($"Error updating thread timestamp: {ex.Message}");
+            }
+
             return message;
         }
         catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)

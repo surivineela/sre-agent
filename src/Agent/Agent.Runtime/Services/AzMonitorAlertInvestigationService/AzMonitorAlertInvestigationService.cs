@@ -132,35 +132,44 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
 
             var connectedComponents = await _graphDBPlugin.GetApplicationComponentsSummary(resourceId);
 
-            var healthSummary = new StringBuilder();
-
-            if (connectedComponents != null && connectedComponents.Any())
+            // Early return if no connected components found - don't call LLM with empty data
+            if (connectedComponents == null || !connectedComponents.Any())
             {
-                var primaryResourceHealth = await _graphDBPlugin.GetApplicationHealthInfoAsync(resourceId);
+                return "No connected components found in the knowledge graph for this resource. Continuing with investigation using other data sources.";
+            }
 
-                healthSummary.AppendLine("## Overall Health Assessment");
+            var healthSummary = new StringBuilder();
+            var primaryResourceHealth = await _graphDBPlugin.GetApplicationHealthInfoAsync(resourceId);
 
-                if (primaryResourceHealth != null)
+            healthSummary.AppendLine("## Overall Health Assessment");
+
+            if (primaryResourceHealth != null)
+            {
+                healthSummary.AppendLine($"### Primary Resource Health ({resourceId})");
+                healthSummary.AppendLine($"- Health summary: {primaryResourceHealth}");
+                healthSummary.AppendLine();
+            }
+
+            // Process each connected component
+            healthSummary.AppendLine("### Connected Components Health Details");
+            foreach (var component in connectedComponents)
+            {
+                // Get health information for this component
+                var componentHealth = await _graphDBPlugin.GetApplicationHealthInfoAsync(component.Id);
+
+                if (componentHealth != null)
                 {
-                    healthSummary.AppendLine($"### Primary Resource Health ({resourceId})");
-                    healthSummary.AppendLine($"- Health summary: {primaryResourceHealth}");
+                    healthSummary.AppendLine($"#### {component.Name} ({component.Id})");
+                    healthSummary.AppendLine($"- Health summary: {componentHealth}");
                     healthSummary.AppendLine();
                 }
+            }
 
-                // Process each connected component
-                healthSummary.AppendLine("### Connected Components Health Details");
-                foreach (var component in connectedComponents)
-                {
-                    // Get health information for this component
-                    var componentHealth = await _graphDBPlugin.GetApplicationHealthInfoAsync(component.Id);
-
-                    if (componentHealth != null)
-                    {
-                        healthSummary.AppendLine($"#### {component.Name} ({component.Id})");
-                        healthSummary.AppendLine($"- Health summary: {componentHealth}");
-                        healthSummary.AppendLine();
-                    }
-                }
+            // Only proceed with LLM analysis if we have meaningful health data
+            var healthContent = healthSummary.ToString();
+            if (string.IsNullOrWhiteSpace(healthContent))
+            {
+                return "No meaningful health data available for connected components. Continuing with investigation using other data sources.";
             }
 
             var healthAnalysisInstructions = @"Analyze health data for this Azure resource and its connected components:
@@ -170,10 +179,11 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
 3. Note any correlation between component health and alert timing
 4. Specify numeric values for important metrics where available
 
-Important:
-- Missing health data for some components is normal
+CRITICAL: 
+- Missing health data for some components is NORMAL and does NOT indicate the resource is deleted or inaccessible
 - Focus ONLY on significant deviations from normal metrics
-- Quantify the deviation where possible (e.g., '95% CPU vs normal 60%')";
+- Quantify the deviation where possible (e.g., '95% CPU vs normal 60%')
+- Do NOT suggest that resources are deleted or inaccessible based solely on missing health data";
 
 
             var alertDetails = GetAlertInfoAsPrompt(alert);
@@ -182,7 +192,7 @@ Important:
             var healthPromptWithPlaceholders = ChainPrompt
                 .Replace("{{AlertDetails}}", alertDetails)
                 .Replace("{{ContentAnalysisInstructions}}", healthAnalysisInstructions)
-                .Replace("{{ContentToAnalyze}}", healthSummary.ToString());
+                .Replace("{{ContentToAnalyze}}", healthContent);
 
             var llmHealthSummary = await SummarizeWithLLM(healthPromptWithPlaceholders);
 
@@ -744,6 +754,141 @@ BEGIN by calling ListAvailableMetrics now.";
         }
     }
 
+    public async Task<string> AnalyzeGenericLogQueries(AlertItem alert, Thread alertThread)
+    {
+        var defaultMessage = "Unable to analyze generic log queries! Continuing with other investigation methods.";
+        try
+        {
+            var essentials = alert.Properties.Essentials;
+            var targetResource = essentials.TargetResource;
+            var resourceIdentifier = new ResourceIdentifier(targetResource);
+            var subscriptionId = resourceIdentifier.SubscriptionId;
+
+            if (string.IsNullOrEmpty(subscriptionId))
+            {
+                _logger.LogInternalWarning("Subscription id cannot be null or empty!");
+                return defaultMessage;
+            }
+
+            // Get agent context
+            var agentContexts = await _repository.GetAgentContextsForThreadAsync(alertThread.Id);
+            if (agentContexts == null || !agentContexts.Any())
+            {
+                _logger.LogInternalWarning("No agent context found for thread");
+                return defaultMessage;
+            }
+            var agentContext = agentContexts.First();
+
+            // Get predefined generic queries based on alert details
+            var resourceName = resourceIdentifier.Name;
+            var resourceType = essentials.TargetResourceType;
+
+            var predefinedQueries = GetPredefinedGenericQueries(resourceName, resourceType);
+
+            if (predefinedQueries == null || predefinedQueries.Count == 0)
+            {
+                return "No applicable generic queries found for this resource. Continuing with other investigation methods.";
+            }
+
+            var queryResults = new List<GenericQueryExecutionResult>();
+
+            // Time range is 2 hours before the alert to now - hardcoding for now
+            var startTime = ParseDateTimeOffset(essentials.StartDateTime).AddHours(-2);
+            var endTime = DateTimeOffset.UtcNow;
+
+            foreach (var genericQuery in predefinedQueries)
+            {
+                try
+                {
+                    _logger.LogInternalInformation($"Executing generic query: {genericQuery.Name}");
+
+                    var queryResponse = await _logQueryService.ExecuteLogQueryAsync(
+                        subscriptionId,
+                        genericQuery.Query,
+                        startTime,
+                        endTime);
+
+                    queryResults.Add(new GenericQueryExecutionResult
+                    {
+                        QueryName = genericQuery.Name,
+                        QueryBody = genericQuery.Query,
+                        QueryDescription = genericQuery.Description,
+                        Result = queryResponse
+                    });
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalError(ex, $"Error executing generic query {genericQuery.Name}: {ex.Message}");
+                }
+            }
+
+            if (queryResults.Count == 0)
+            {
+                return "Found applicable generic queries but was unable to execute them successfully. Continuing with other investigation methods.";
+            }
+
+            // Create the analysis prompt
+            var queryResultsJson = JsonSerializer.Serialize(queryResults);
+            var alertDetails = GetAlertInfoAsPrompt(alert);
+
+            // instructions for generic log query analysis
+            var genericLogQueryAnalysisInstructions = @"Analyze these generic query results in relation to the alert:
+
+CRITICAL EVALUATION GUIDELINES:
+- Be EXTREMELY critical when evaluating outputs - question every finding
+- Not all queries will return data - this is NORMAL and does NOT indicate broken logging
+- ONLY use results that actually contain data - ignore empty query results completely
+- When identifying patterns, be very critical and don't accept the first finding - look for multiple confirming signals
+- Be very concise in your output - maximum 3-4 key insights
+- DO NOT mention queries that returned no data
+- If NO queries return any data, simply state: 'Did not find any anomalies in the log queries, continuing with investigation'
+
+ANALYSIS REQUIREMENTS (only if data exists):
+1. Identify log entries showing errors, exceptions, or anomalies around the alert time
+2. Report specific error patterns, status codes, or failure rates with exact numbers
+3. Note exact timestamps of relevant events and their correlation to the alert
+4. Quantify the impact (e.g., error count, affected requests, duration)
+5. Look for patterns in application logs that might explain the alert condition
+
+CRITICAL RULES:
+- Focus ONLY on actionable insights from actual log data
+- Include query names ONLY when referencing results with data
+- ONLY mention findings with clear timestamps and specific details
+- Avoid generic suggestions without concrete log evidence
+- Be concise - quality over quantity";
+
+            var queryPromptWithPlaceholders = ChainPrompt
+                .Replace("{{AlertDetails}}", alertDetails)
+                .Replace("{{ContentAnalysisInstructions}}", genericLogQueryAnalysisInstructions)
+                .Replace("{{ContentToAnalyze}}", queryResultsJson);
+
+            _logger.LogDebug($"Sending prompt to LLM to analyze generic query results");
+            var analysisResult = await SummarizeWithLLM(queryPromptWithPlaceholders);
+
+            var agentChatHistory = await _repository.GetAgentChatHistoryAsync(agentContext.Id);
+            var reasoningMessage = new ReasoningMessage(
+                        Guid.NewGuid(),
+                        agentContext.Id,
+                        ReasoningMessageRoleEnum.System,
+                        JsonSerializer.Serialize(new
+                        {
+                            description = "Summary of analysis of generic log queries executed for alert investigation.",
+                            analysisResult,
+                            queriesExecuted = queryResults.Select(q => q.QueryName).ToList()
+                        }
+                    ));
+            await PersistReasoningMessageAsync(agentChatHistory, reasoningMessage);
+
+            var resultWithStepIdentifier = $"GENERIC LOG QUERIES ANALYSIS\n{analysisResult}";
+            return resultWithStepIdentifier;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, $"Error analyzing generic log queries: {ex.Message}");
+            return "Encountered an error while analyzing generic log queries. Continuing with the investigation using other data sources.";
+        }
+    }
+
     private readonly string ChainPrompt =
         @"You are an Azure SRE Agent investigating an alert. Here are the alert details:
 ---
@@ -775,8 +920,211 @@ Keep the entire response under 150-200 words.
 </CRITICAL>
 ";
 
-    #endregion
+    private List<GenericQuery> GetPredefinedGenericQueries(string resourceName, string resourceType)
+    {
+        var queries = new List<GenericQuery>();
+
+        //  generic Application Insights queries for any resource
+        queries.Add(new GenericQuery
+        {
+            Name = "Application Request Failures",
+            Description = "Find failed requests across all application components",
+            Query = $@"AppRequests
+                | where TimeGenerated >= ago(2h)
+                | where AppRoleInstance contains '{resourceName}'
+                | where Success == 'False' or Success == 'false'
+                | summarize count() by ResultCode, Name, AppRoleInstance, bin(TimeGenerated, 5m)
+                | order by TimeGenerated desc"
+        });
+
+        queries.Add(new GenericQuery
+        {
+            Name = "Application Performance Issues",
+            Description = "Find slow requests and performance degradation",
+            Query = $@"AppRequests
+                | where TimeGenerated >= ago(2h)
+                | where AppRoleInstance contains '{resourceName}'
+                | where DurationMs > 5000
+                | summarize avg(DurationMs), count() by Name, AppRoleName, bin(TimeGenerated, 5m)
+                | order by TimeGenerated desc"
+        });
+
+        queries.Add(new GenericQuery
+        {
+            Name = "Application Exceptions",
+            Description = "Find exceptions and errors in application code",
+            Query = $@"AppExceptions
+                | where TimeGenerated >= ago(2h)
+                | where AppRoleInstance contains '{resourceName}'
+                | summarize count() by Type, OuterMessage, AppRoleInstance, bin(TimeGenerated, 5m)
+                | order by TimeGenerated desc"
+        });
+
+        queries.Add(new GenericQuery
+        {
+            Name = "Application Trace Errors",
+            Description = "Find error and warning traces from application",
+            Query = $@"AppTraces
+                | where TimeGenerated >= ago(2h)
+                | where AppRoleInstance contains '{resourceName}'
+                | where SeverityLevel >= 2
+                | project TimeGenerated, Message, SeverityLevel, AppRoleInstance
+                | order by TimeGenerated desc"
+        });
+
+        queries.Add(new GenericQuery
+        {
+            Name = "Dependency Failures",
+            Description = "Find failures in external dependencies",
+            Query = $@"AppDependencies
+                | where TimeGenerated >= ago(2h)
+                | where AppRoleInstance contains '{resourceName}'
+                | where Success == 'False' or Success == 'false'
+                | summarize count() by Type, Name, ResultCode, AppRoleInstance, bin(TimeGenerated, 5m)
+                | order by TimeGenerated desc"
+        });
+
+        queries.Add(new GenericQuery
+        {
+            Name = "Custom Events and Metrics",
+            Description = "Find custom events that might indicate issues",
+            Query = $@"AppEvents
+                | where TimeGenerated >= ago(2h)
+                | where AppRoleInstance contains '{resourceName}'
+                | extend CustomDimensions = todynamic(Properties)
+                | project TimeGenerated, Name, CustomDimensions, AppRoleInstance
+                | order by TimeGenerated desc"
+        });
+
+        // resource-type specific queries
+        if (!string.IsNullOrEmpty(resourceType))
+        {
+            var lowerResourceType = resourceType.ToLower();
+
+            // Azure Container Apps specific queries
+            if (lowerResourceType.Contains("containerapp"))
+            {
+                queries.Add(new GenericQuery
+                {
+                    Name = "Container App Console Logs",
+                    Description = "Find console logs from container app",
+                    Query = $@"ContainerAppConsoleLogs
+                        | where TimeGenerated >= ago(2h)
+                        | where ContainerAppName contains '{resourceName}'
+                        | project TimeGenerated, Log, Type
+                        | order by TimeGenerated desc"
+                });
+            }
+
+            // Web App specific queries
+            if (lowerResourceType.Contains("web") || lowerResourceType.Contains("app"))
+            {
+                queries.Add(new GenericQuery
+                {
+                    Name = "Application Performance Issues",
+                    Description = "Find performance issues in application logs",
+                    Query = $@"AppServiceHTTPLogs
+                        | where TimeGenerated >= ago(2h)
+                        | where ScStatus >= 400 or TimeTaken > 5000
+                        | where _ResourceId contains '{resourceName}'
+                        | summarize count() by ScStatus, bin(TimeGenerated, 5m)
+                        | order by TimeGenerated desc"
+                });
+
+                queries.Add(new GenericQuery
+                {
+                    Name = "Application Error Logs",
+                    Description = "Find application errors and exceptions",
+                    Query = $@"AppServiceAppLogs
+                        | where TimeGenerated >= ago(2h)
+                        | where Level == 'Error' or Level == 'Critical'
+                        | where _ResourceId contains '{resourceName}'
+                        | project TimeGenerated, Level, Message, ExceptionClass
+                        | order by TimeGenerated desc"
+                });
+
+                queries.Add(new GenericQuery
+                {
+                    Name = "App Requests Performance",
+                    Description = "Analyze app request performance metrics",
+                    Query = $@"AppRequests
+                        | where TimeGenerated >= ago(2h)
+                        | where AppRoleInstance contains '{resourceName}'
+                        | summarize avg(DurationMs), count() by Name
+                        | order by avg_DurationMs desc"
+                });
+
+                queries.Add(new GenericQuery
+                {
+                    Name = "Application Trace Logs",
+                    Description = "Find trace logs from application",
+                    Query = $@"AppTraces
+                        | where TimeGenerated >= ago(2h)
+                        | where AppRoleInstance contains '{resourceName}'
+                        | project TimeGenerated, Message, SeverityLevel
+                        | order by TimeGenerated desc"
+                });
+            }
+
+            // Azure Functions specific queries
+            if (lowerResourceType.Contains("function"))
+            {
+                queries.Add(new GenericQuery
+                {
+                    Name = "Function Failures",
+                    Description = "Find failed function executions",
+                    Query = $@"AppRequests
+                        | where TimeGenerated >= ago(2h)
+                        | where AppRoleInstance contains '{resourceName}'
+                        | where Success == 'False'
+                        | summarize count() by ResultCode, Name, bin(TimeGenerated, 5m)
+                        | order by TimeGenerated desc"
+                });
+
+                queries.Add(new GenericQuery
+                {
+                    Name = "Function Exceptions",
+                    Description = "Find exceptions in function executions",
+                    Query = $@"AppExceptions
+                        | where TimeGenerated >= ago(2h)
+                        | where AppRoleInstance contains '{resourceName}'
+                        | summarize count() by Type, OuterMessage, bin(TimeGenerated, 5m)
+                        | order by TimeGenerated desc"
+                });
+            }
+
+            // Azure Kubernetes Service (AKS) specific queries
+            if (lowerResourceType.Contains("kubernetes") || lowerResourceType.Contains("managedcluster"))
+            {
+                queries.Add(new GenericQuery
+                {
+                    Name = "AKS Container Log Messages",
+                    Description = "Find container log messages in AKS cluster",
+                    Query = $@"ContainerLog
+                        | where TimeGenerated >= ago(2h)
+                        | where Name contains '{resourceName}'
+                        | project TimeGenerated, ContainerID, LogEntry
+                        | order by TimeGenerated desc"
+                });
+
+                queries.Add(new GenericQuery
+                {
+                    Name = "AKS Pod Failures and Restarts",
+                    Description = "Find pod failures and restarts in AKS cluster",
+                    Query = $@"KubePodInventory
+                    | where TimeGenerated >= ago(2h)
+                    | where ClusterName == '{resourceName}'
+                    | where ContainerStatusReason startswith 'Failed' or ContainerStatusReason startswith 'CrashLoopBackOff'
+                    | summarize count() by PodLabel, ContainerStatusReason, ContainerID
+                    | order by count_ desc"
+                });
+            }
+        }
+
+        return queries;
+    }
 }
+#endregion
 
 #region Models
 
@@ -792,6 +1140,21 @@ public class QueryExecutionResult
     public string QueryId { get; set; }
     public string QueryName { get; set; }
     public string QueryBody { get; set; }
+    public string Result { get; set; }
+}
+
+public class GenericQuery
+{
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public string Query { get; set; }
+}
+
+public class GenericQueryExecutionResult
+{
+    public string QueryName { get; set; }
+    public string QueryBody { get; set; }
+    public string QueryDescription { get; set; }
     public string Result { get; set; }
 }
 

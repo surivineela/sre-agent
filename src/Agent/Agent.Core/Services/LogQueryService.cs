@@ -4,8 +4,11 @@
 
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Azure.Core;
 using Azure.Monitor.Query;
 using Agent.Logging;
 
@@ -15,11 +18,13 @@ public class LogQueryService : ILogQueryService
     private readonly ILogger<LogQueryService> _logger;
     private readonly IAuthenticationService _authService;
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly CrawlerSettings _crawlerSettings;
 
-    public LogQueryService(IHttpClientFactory httpClientFactory, IAuthenticationService authService, ILogger<LogQueryService> logger)
+    public LogQueryService(IHttpClientFactory httpClientFactory, IAuthenticationService authService, IOptions<CrawlerSettings> crawlerSettings, ILogger<LogQueryService> logger)
     {
         _httpClientFactory = httpClientFactory;
         _authService = authService;
+        _crawlerSettings = crawlerSettings.Value;
         _logger = logger;
     }
 
@@ -277,6 +282,9 @@ public class LogQueryService : ILogQueryService
         List<string> workspaceIds = new();
         string url = $"https://management.azure.com/subscriptions/{subscriptionId}/providers/Microsoft.OperationalInsights/workspaces?api-version=2021-06-01";
 
+        // Parse crawl roots to get resource groups for filtering
+        var allowedResourceGroups = GetAllowedResourceGroups(subscriptionId);
+
         using (var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation))
         {
             try
@@ -292,16 +300,48 @@ public class LogQueryService : ILogQueryService
 
                 if (workspacesResponse?.Value != null)
                 {
-                    _logger.LogInternalInformation($"Found {workspacesResponse.Value.Count} Log Analytics workspaces");
+                    _logger.LogInternalInformation($"Found {workspacesResponse.Value.Count} total Log Analytics workspaces in subscription");
+
                     foreach (var workspace in workspacesResponse.Value)
                     {
                         // Extract the customerId (actual workspace ID for querying)
                         if (workspace.Properties?.CustomerId != null)
                         {
-                            workspaceIds.Add(workspace.Properties.CustomerId);
-                            _logger.LogDebug($"Found workspace: {workspace.Name}, ID: {workspace.Properties.CustomerId}");
+                            // Filter by resource groups from crawl roots
+                            if (allowedResourceGroups.Count > 0)
+                            {
+                                try
+                                {
+                                    var resourceIdentifier = new ResourceIdentifier(workspace.Id);
+                                    var workspaceResourceGroup = resourceIdentifier.ResourceGroupName;
+
+                                    if (allowedResourceGroups.Contains(workspaceResourceGroup, StringComparer.OrdinalIgnoreCase))
+                                    {
+                                        workspaceIds.Add(workspace.Properties.CustomerId);
+                                        _logger.LogDebug($"Added filtered workspace: {workspace.Name}, ID: {workspace.Properties.CustomerId}, RG: {workspaceResourceGroup}");
+                                    }
+                                    else
+                                    {
+                                        _logger.LogDebug($"Filtered out workspace: {workspace.Name}, RG: {workspaceResourceGroup} (not in crawl roots)");
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    _logger.LogInternalWarning(ex, $"Error parsing workspace resource ID {workspace.Id}, including anyway: {ex.Message}");
+                                    // If we can't parse the resource ID, include the workspace anyway as a fallback
+                                    workspaceIds.Add(workspace.Properties.CustomerId);
+                                }
+                            }
+                            else
+                            {
+                                // No filtering configured, include all workspaces
+                                workspaceIds.Add(workspace.Properties.CustomerId);
+                                _logger.LogDebug($"Added workspace (no filtering): {workspace.Name}, ID: {workspace.Properties.CustomerId}");
+                            }
                         }
                     }
+
+                    _logger.LogInternalInformation($"After filtering by crawl roots: {workspaceIds.Count} Log Analytics workspaces");
                 }
             }
             catch (Exception ex)
@@ -311,6 +351,55 @@ public class LogQueryService : ILogQueryService
         }
 
         return workspaceIds;
+    }
+
+    private HashSet<string> GetAllowedResourceGroups(string subscriptionId)
+    {
+        var resourceGroups = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        if (string.IsNullOrEmpty(_crawlerSettings.CrawlRoots))
+        {
+            _logger.LogInternalInformation("No crawl roots configured, will include all workspaces");
+            return resourceGroups;
+        }
+
+        try
+        {
+            var crawlRoots = _crawlerSettings.CrawlRoots.Split(',', StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (var crawlRoot in crawlRoots)
+            {
+                var trimmedRoot = crawlRoot.Trim();
+                if (string.IsNullOrEmpty(trimmedRoot)) continue;
+
+                try
+                {
+                    var resourceIdentifier = new ResourceIdentifier(trimmedRoot);
+
+                    // Only include resource groups from the same subscription
+                    if (string.Equals(resourceIdentifier.SubscriptionId, subscriptionId, StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (!string.IsNullOrEmpty(resourceIdentifier.ResourceGroupName))
+                        {
+                            resourceGroups.Add(resourceIdentifier.ResourceGroupName);
+                            _logger.LogDebug($"Added resource group from crawl root: {resourceIdentifier.ResourceGroupName}");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalWarning(ex, $"Could not parse crawl root '{trimmedRoot}' as resource identifier: {ex.Message}");
+                }
+            }
+
+            _logger.LogInternalInformation($"Configured to filter workspaces by {resourceGroups.Count} resource groups: [{string.Join(", ", resourceGroups)}]");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, $"Error parsing crawl roots, will include all workspaces: {ex.Message}");
+        }
+
+        return resourceGroups;
     }
 }
 
