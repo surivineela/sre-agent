@@ -59,8 +59,14 @@ export interface LogAnalyticsConfiguration {
     sharedKey: string;
 }
 
+export interface ApplicationInsightsConfiguration {
+    appId: string;
+    connectionString: string;
+}
+
 export interface LogConfiguration {
     logAnalyticsConfiguration: LogAnalyticsConfiguration;
+    applicationInsightsConfiguration: ApplicationInsightsConfiguration;
 }
 
 export interface IncidentManagementConfiguration {

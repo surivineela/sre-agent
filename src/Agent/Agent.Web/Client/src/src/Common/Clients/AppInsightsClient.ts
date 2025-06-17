@@ -1,18 +1,19 @@
 import { ApiVersions } from '../ApiVersions';
 import MakeArmCall, { ARGRequestContent, ARGResponse } from './ArmClient';
 
-export class WorkspaceClient {
-    public static getWorkspaceFromId(
+export class AppInsightsClient {
+    public static getAppInsightsComponentFromAppId(
         subscriptions: string[],
         resourceGroupName: string,
-        workspaceId: string,
+        appId: string,
         apiVersion = ApiVersions.argQueryApiVersion20200401Preview
     ): Promise<string | null> {
         const content = {
-            query: `where isnotempty(properties) 
-                          | where type =~ "Microsoft.OperationalInsights/workspaces"
-                          | where resourceGroup == '${resourceGroupName}'
-                          | where properties.customerId == '${workspaceId}'`,
+            query: `where isnotempty(properties)
+                | where type =~ "Microsoft.Insights/components"
+                | where resourceGroup == '${resourceGroupName}'
+                | where properties.AppId == '${appId}'
+                | project id`,
             subscriptions: subscriptions,
         };
 
@@ -20,7 +21,7 @@ export class WorkspaceClient {
             method: 'POST',
             url: `/providers/Microsoft.ResourceGraph/resources?api-version=${apiVersion}`,
             body: content,
-            commandName: 'GetWorkspaceFromId',
+            commandName: 'GetAppInsightsComponentFromAppId',
         }).then((response: any) => {
             if (response && response.data?.count === 1 && response.data?.data?.rows[0]) {
                 return response.data.data.rows[0][0];

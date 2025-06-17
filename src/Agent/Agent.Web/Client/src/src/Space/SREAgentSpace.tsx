@@ -8,7 +8,7 @@ import { HashRouter, Route, Routes, useLocation, useNavigate } from 'react-route
 import AzPortalProxy from '../Common/AzPortalProxy/AzPortalProxy';
 import { AzPortalContext } from '../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../Common/AzPortalProxy/Providers/StartupInfoContext';
-import { WorkspaceClient } from '../Common/Clients/WorkspaceClient';
+import { AppInsightsClient } from '../Common/Clients/AppInsightsClient';
 import { IncidentManagementType } from '../Common/Contracts/Azure/SreAgent';
 import { ArmResourceDescriptor } from '../Common/Helpers/ResourceDescriptors';
 import { SreAgentTabResources } from '../Strings/SREAgentResources';
@@ -37,7 +37,7 @@ enum TabValues {
 
 const inStandaloneMode = AzPortalProxy.inStandaloneMode;
 
-const query = `ContainerAppConsoleLogs_CL | where TimeGenerated > ago(1d)`;
+const query = `traces | where timestamp > ago(1d)`;
 const source = `PaasServerless.SreAgentSpace`;
 
 const TabsListWrapper: FC = () => {
@@ -68,7 +68,7 @@ const TabsListWrapper: FC = () => {
         return TabValues.Activities;
     }, [location.pathname]);
 
-    const [workspaceId, setWorkspaceId] = useState<string>();
+    const [appInsightsResourceId, setAppInsightsResourceId] = useState<string>();
     const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState<boolean>(false);
 
     const styles = useSreAgentSpaceStyles();
@@ -81,28 +81,28 @@ const TabsListWrapper: FC = () => {
         );
     }, [agent?.properties?.incidentManagementConfiguration?.type, isIncidentManagementConnected]);
 
-    const fetchWorkspaceId = useCallback(async () => {
+    const fetchAppInsightsId = useCallback(async () => {
         const { subscription, resourceGroup } = new ArmResourceDescriptor(environmentContext.resourceId);
-        const response = await WorkspaceClient.getWorkspaceFromId(
+        const response = await AppInsightsClient.getAppInsightsComponentFromAppId(
             [subscription],
             resourceGroup,
-            agent?.properties.logConfiguration?.logAnalyticsConfiguration?.workspaceId || ''
+            agent?.properties.logConfiguration?.applicationInsightsConfiguration?.appId || ''
         );
         if (response) {
-            setWorkspaceId(response);
+            setAppInsightsResourceId(response);
         }
-    }, [environmentContext.resourceId, agent?.properties?.logConfiguration?.logAnalyticsConfiguration?.workspaceId]);
+    }, [environmentContext.resourceId, agent?.properties.logConfiguration?.applicationInsightsConfiguration?.appId]);
 
     const onLogsClick = useCallback(async () => {
-        if (workspaceId) {
+        if (appInsightsResourceId) {
             window.open(
                 `https://portal.azure.com#view/Microsoft_OperationsManagementSuite_Workspace/Logs.ReactView/query/${query}/resourceId/${encodeURIComponent(
-                    workspaceId
+                    appInsightsResourceId
                 )}/source/${source}`,
                 '_blank'
             );
         }
-    }, [workspaceId]);
+    }, [appInsightsResourceId]);
 
     const onTabSelect = useCallback(
         (_: SelectTabEvent, data: SelectTabData) => {
@@ -129,10 +129,10 @@ const TabsListWrapper: FC = () => {
 
     useEffect(() => {
         if (agent && !inStandaloneMode) {
-            fetchWorkspaceId();
+            fetchAppInsightsId();
             setMode(agent.properties.actionConfiguration?.mode ?? '');
         }
-    }, [agent, fetchWorkspaceId, setMode]);
+    }, [agent, fetchAppInsightsId, setMode]);
 
     return (
         <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
