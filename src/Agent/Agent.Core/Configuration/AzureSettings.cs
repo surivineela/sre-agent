@@ -34,7 +34,12 @@ namespace Agent.Core.Configuration
 
         public IndexingSettings Indexing { get; set; } = new();
 
-        public AgentTraceADX AgentTraceADX { get; set; } = new();
+        public KustoClusterConfiguration AgentTraceKusto { get; set; } = new KustoClusterConfiguration
+        {
+            ClusterUri = "https://sreagent-trace-sec.swedencentral.kusto.windows.net",
+            DatabaseName = "trace",
+            TableName = "AgentTrace"
+        };
 
         public AgentActionADX AgentActionADX { get; set; } = new();
 

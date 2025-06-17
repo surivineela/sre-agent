@@ -658,49 +658,86 @@ public class Program
 
         builder.Services.AddOpenTelemetry().WithTracing(tracingBuilder =>
         {
-
             tracingBuilder.AddSource("SREAgent")
                 .SetResourceBuilder(ResourceBuilder.CreateDefault()
                     .AddService(serviceName: "SREAgent", serviceVersion: "1.1.0"));
 
-            //if (builder.Environment.IsDevelopment())
-            //{
-            // TODO: sanmeht - only enable traces for non-production environments
+            // Store exported activities for in-memory access if needed
+            // Register this OUTSIDE of the processor factory to avoid read-only collection issue
             var exportedActivities = new List<Activity>();
             builder.Services.AddSingleton<ICollection<Activity>>(exportedActivities);
-            tracingBuilder.AddInMemoryExporter(exportedActivities);
-            //}
 
-            if (builder.Environment.IsProduction() && azureSettings != null
-                && azureSettings.AgentTraceADX != null
-                && !string.IsNullOrEmpty(azureSettings.AgentTraceADX.ClusterUri))
+            // Create the processor with appropriate exporter based on environment
+            tracingBuilder.AddProcessor(sp =>
             {
-                var certificatePath = GetKustoFirstPartyConfiguration("CertificatePath");
-                var tenantId = "33e01921-4d64-4f8c-a055-5bdaffd5e33d";
-                var clientId = GetKustoFirstPartyConfiguration("ClientId");
-                tracingBuilder.AddAzureDataExplorerExporter(options =>
+                var logger = sp.GetRequiredService<ILogger<AgentTraceProcessor>>();                // Create a list of exporters to use
+                var exporters = new List<BaseExporter<Activity>>();
+
+                // Configure exporter with appropriate settings based on environment
+                // if (builder.Environment.IsDevelopment())
+                // TODO: sanmeht - only enable traces for non-production environments
+                // {
+                    // In-memory exporter for development - direct implementation
+                    exporters.Add(new InMemoryActivityExporter(exportedActivities));
+                // }
+
+                // Add Azure Data Explorer exporter for production if configured
+                if (builder.Environment.IsProduction() &&
+                    azureSettings?.AgentTraceKusto != null &&
+                    !string.IsNullOrEmpty(azureSettings.AgentTraceKusto.ClusterUri))
                 {
-                    options.DatabaseName = azureSettings.AgentTraceADX.DatabaseName;
-                    options.TableName = azureSettings.AgentTraceADX.TableName;
-                    options.ClusterUri = azureSettings.AgentTraceADX.ClusterUri;
-                    // Add custom column population logic
-                    options.PopulateColumns = (activity, trace) =>
+                    try
                     {
-                        // Add standard fields from activity tags
-                        trace["ThreadId"] = activity.GetTagItem("thread.id")?.ToString() ?? string.Empty;
-                        trace["OperationName"] = activity.TagObjects.FirstOrDefault(t => t.Key == "operation.name").Value?.ToString() ?? string.Empty;
-                        trace["ToolName"] = activity.TagObjects.FirstOrDefault(t => t.Key == "tool.name").Value?.ToString() ?? string.Empty;
-                        trace["AgentName"] = activity.TagObjects.FirstOrDefault(t => t.Key == "agent.name").Value?.ToString() ?? string.Empty;
-                        trace["ModelInputTokensCount"] = activity.TagObjects.FirstOrDefault(t => t.Key == "model.input.tokens.count").Value?.ToString() ?? "0";
-                        trace["ModelOutputTokensCount"] = activity.TagObjects.FirstOrDefault(t => t.Key == "model.output.tokens.count").Value?.ToString() ?? "0";
-                        trace["ModelTotalTokensCount"] = activity.TagObjects.FirstOrDefault(t => t.Key == "model.total.tokens.count").Value?.ToString() ?? "0";
-                        trace["AgentId"] = AgentNameHelper.GetAgentName(builder.Environment.IsProduction());
-                    };
-                    options.FirstPartyAppCertificatePath = certificatePath;
-                    options.FirstPartyAppClientId = clientId;
-                    options.FirstPartyAppTenantId = tenantId;
-                });
-            }
+                        // Get authentication settings
+                        var certificatePath = GetKustoFirstPartyConfiguration("CertificatePath");
+                        var tenantId = "33e01921-4d64-4f8c-a055-5bdaffd5e33d";
+                        var clientId = GetKustoFirstPartyConfiguration("ClientId");
+                        // Set up populate columns delegate
+                        PopulateColumnsDelegate populateColumns = (activity, trace) =>
+                        {
+                            // Add standard fields from activity tags
+                            trace["ThreadId"] = activity.GetTagItem("thread.id")?.ToString() ?? string.Empty;
+                            trace["OperationName"] = activity.TagObjects.FirstOrDefault(t => t.Key == "operation.name").Value?.ToString() ?? string.Empty;
+                            trace["ToolName"] = activity.TagObjects.FirstOrDefault(t => t.Key == "tool.name").Value?.ToString() ?? string.Empty;
+                            trace["AgentName"] = activity.TagObjects.FirstOrDefault(t => t.Key == "agent.name").Value?.ToString() ?? string.Empty;
+                            trace["ModelInputTokensCount"] = activity.TagObjects.FirstOrDefault(t => t.Key == "model.input.tokens.count").Value?.ToString() ?? "0";
+                            trace["ModelOutputTokensCount"] = activity.TagObjects.FirstOrDefault(t => t.Key == "model.output.tokens.count").Value?.ToString() ?? "0";
+                            trace["ModelTotalTokensCount"] = activity.TagObjects.FirstOrDefault(t => t.Key == "model.total.tokens.count").Value?.ToString() ?? "0";
+                            trace["AgentId"] = AgentNameHelper.GetAgentName(builder.Environment.IsProduction());
+                        };
+
+                        // Create and add ADX exporter
+                        exporters.Add(new AzureDataExplorerExporter(new AzureDataExplorerExporterOptions
+                        {
+                            ClusterUri = azureSettings.AgentTraceKusto.ClusterUri,
+                            DatabaseName = azureSettings.AgentTraceKusto.DatabaseName,
+                            TableName = "AgentTrace",
+                            PopulateColumns = populateColumns,
+                            FirstPartyAppCertificatePath = certificatePath,
+                            FirstPartyAppClientId = clientId,
+                            FirstPartyAppTenantId = tenantId
+                        }));
+
+                        logger.LogInternalInformation("Successfully configured Azure Data Explorer exporter");
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogInternalError(ex, "Failed to create Azure Data Explorer exporter, falling back to in-memory only");
+                    }
+                }
+
+                // If no exporters were successfully added, add an in-memory one as fallback
+                if (exporters.Count == 0)
+                {
+                    logger.LogInternalWarning("No exporters configured, using in-memory exporter as fallback");
+                    exporters.Add(new InMemoryActivityExporter(exportedActivities));
+                }
+
+                // Create the processor with the configured exporters
+                return new AgentTraceProcessor(
+                    logger,
+                    exporters);
+            });
         });
         builder.Services.AddSingleton(TracerProvider.Default.GetTracer("SREAgent"));
 

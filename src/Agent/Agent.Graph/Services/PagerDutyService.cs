@@ -159,12 +159,12 @@ public class PagerDutyService : IPagerDutyService
                             var createdAt = logEntry.CreatedAt;
                             // For notify_log_entry, there's no agent field
                             var createdBy = logEntry.Agent is null ? null : new PagerDutyAgent(logEntry.Agent.Id, logEntry.Agent.UserName, logEntry.Agent.HtmlUrl);
-                            
+
                             if (acc.Description == "" && logEntry.Type == "description_change_log_entry" && !string.IsNullOrEmpty(logEntry.Channel?.NewDescription))
                             {
                                 acc.Description = logEntry.Channel.NewDescription;
                             }
-                            
+
                             if (acc.Title == "" && logEntry.Type == "title_change_log_entry" && !string.IsNullOrEmpty(logEntry.Channel?.NewTitle))
                             {
                                 acc.Title = logEntry.Channel.NewTitle;
@@ -295,7 +295,7 @@ public class PagerDutyService : IPagerDutyService
             _logger.LogInternalError("Failed to resolve PagerDuty incident ID: {incidentId}. Error: {errorContent}", incidentId, errorContent);
             throw new HttpRequestException($"Failed to resolve PagerDuty incident ID: {incidentId}. Error: {errorContent}");
         }
-        
+
     }
 
     public async Task AcknowledgeIncident(string incidentId)

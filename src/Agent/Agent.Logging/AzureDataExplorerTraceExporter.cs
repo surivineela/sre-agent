@@ -6,6 +6,8 @@ using System.Text;
 using System.Text.Json;
 using Kusto.Data.Common;
 using Kusto.Ingest;
+using Kusto.Data;
+using System.Security.Cryptography.X509Certificates;
 
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;
@@ -20,79 +22,158 @@ namespace Agent.Logging;
 public delegate void PopulateColumnsDelegate(Activity activity, Dictionary<string, object> trace);
 
 /// <summary>
+/// Configuration options for the Azure Data Explorer exporter.
+/// </summary>
+public class AzureDataExplorerExporterOptions
+{
+    /// <summary>
+    /// Gets or sets the URI of the Azure Data Explorer cluster.
+    /// </summary>
+    public required string ClusterUri { get; set; }
+
+    /// <summary>
+    /// Gets or sets the name of the database to export data to.
+    /// </summary>
+    public required string DatabaseName { get; set; }
+
+    /// <summary>
+    /// Gets or sets the name of the table to export data to.
+    /// </summary>
+    public required string TableName { get; set; }
+
+    /// <summary>
+    /// Gets or sets a function that can be used to populate custom columns in the trace data.
+    /// </summary>
+    public PopulateColumnsDelegate? PopulateColumns { get; set; }
+
+    /// <summary>
+    /// Gets or sets the path to the First Party App certificate.
+    /// </summary>
+    public string? FirstPartyAppCertificatePath { get; set; } = "";
+
+    /// <summary>
+    /// Gets or sets the First Party App client ID.
+    /// </summary>
+    public string? FirstPartyAppClientId { get; set; } = "";
+
+    /// <summary>
+    /// Gets or sets the First Party App tenant ID.
+    /// </summary>
+    public string? FirstPartyAppTenantId { get; set; } = "";
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AzureDataExplorerExporterOptions"/> class.
+    /// </summary>
+    public AzureDataExplorerExporterOptions()
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AzureDataExplorerExporterOptions"/> class.
+    /// </summary>
+    /// <param name="clusterUri">URI of the Azure Data Explorer cluster.</param>
+    /// <param name="databaseName">Name of the database to export data to.</param>
+    /// <param name="tableName">Name of the table to export data to.</param>
+    /// <param name="populateColumns">Optional function to populate custom columns.</param>
+    /// <param name="firstPartyAppCertificatePath">Optional path to the First Party App certificate.</param>
+    /// <param name="firstPartyAppClientId">Optional First Party App client ID.</param>
+    /// <param name="firstPartyAppTenantId">Optional First Party App tenant ID.</param>
+    public AzureDataExplorerExporterOptions(
+        string clusterUri,
+        string databaseName,
+        string tableName,
+        PopulateColumnsDelegate? populateColumns = null,
+        string? firstPartyAppCertificatePath = "",
+        string? firstPartyAppClientId = "",
+        string? firstPartyAppTenantId = "")
+    {
+        ClusterUri = clusterUri;
+        DatabaseName = databaseName;
+        TableName = tableName;
+        PopulateColumns = populateColumns;
+        FirstPartyAppCertificatePath = firstPartyAppCertificatePath;
+        FirstPartyAppClientId = firstPartyAppClientId;
+        FirstPartyAppTenantId = firstPartyAppTenantId;
+    }
+}
+
+/// <summary>
 /// Exporter for sending OpenTelemetry trace data to Azure Data Explorer (Kusto).
 /// </summary>
 public class AzureDataExplorerExporter : BaseExporter<Activity>
 {
-    private readonly IKustoIngestClient _kustoClient;
+    private IKustoIngestClient _kustoClient;
     private readonly string _databaseName;
     private readonly string _tableName;
-    private readonly DataSourceFormat _format;
-    private readonly LogBuffer? _logBuffer;
-    private readonly bool _useBatchProcessing;
     /// <summary>
     /// Gets or sets a function that can be used to populate custom columns in the trace data.
     /// </summary>
-    private PopulateColumnsDelegate? _populateColumns { get; set; }
+    public PopulateColumnsDelegate? PopulateColumns { get; set; }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="AzureDataExplorerExporter"/> class.
+    /// Initializes a new instance of the <see cref="AzureDataExplorerExporter"/> class using the specified options.
     /// </summary>
-    /// <param name="kustoClient">The Kusto ingestion client.</param>
-    /// <param name="databaseName">Name of the database to ingest data into.</param>
-    /// <param name="tableName">Name of the table to ingest data into.</param>
-    /// <param name="useBatchProcessing">Whether to use batch processing (defaults to false).</param>
-    public AzureDataExplorerExporter(
-        IKustoIngestClient kustoClient,
-        string databaseName,
-        string tableName,
-        bool useBatchProcessing = false,
-        PopulateColumnsDelegate? populateColumns = null)
+    /// <param name="options">The configuration options for the exporter.</param>
+    public AzureDataExplorerExporter(AzureDataExplorerExporterOptions options)
     {
-        _kustoClient = kustoClient ?? throw new ArgumentNullException(nameof(kustoClient));
-        _databaseName = databaseName ?? throw new ArgumentNullException(nameof(databaseName));
-        _tableName = tableName ?? throw new ArgumentNullException(nameof(tableName));
-        _useBatchProcessing = useBatchProcessing;
-        _format = useBatchProcessing ? DataSourceFormat.multijson : DataSourceFormat.json;
-
-        if (useBatchProcessing)
+        if (options == null)
         {
-            _logBuffer = new LogBuffer();
+            throw new ArgumentNullException(nameof(options));
         }
-        _populateColumns = populateColumns;
+
+        _databaseName = options.DatabaseName;
+        _tableName = options.TableName;
+        PopulateColumns = options.PopulateColumns;
+
+        if (!string.IsNullOrEmpty(options.FirstPartyAppCertificatePath) &&
+            !string.IsNullOrEmpty(options.FirstPartyAppClientId) &&
+            !string.IsNullOrEmpty(options.FirstPartyAppTenantId))
+        {
+            var certPem = File.ReadAllText($"{options.FirstPartyAppCertificatePath}/tls.crt");
+            var keyPem = File.ReadAllText($"{options.FirstPartyAppCertificatePath}/tls.key");
+
+            // Use a using statement to ensure the certificate is properly disposed
+            using (var certificate = X509Certificate2.CreateFromPem(certPem, keyPem))
+            {
+                var kustoConnectionStringBuilder = new KustoConnectionStringBuilder(options.ClusterUri)
+                            .WithAadApplicationCertificateAuthentication(
+                                applicationClientId: options.FirstPartyAppClientId,
+                                certificate,
+                                authority: options.FirstPartyAppTenantId,
+                                sendX5c: true);
+
+                _kustoClient = KustoIngestFactory.CreateQueuedIngestClient(kustoConnectionStringBuilder);
+            }
+        }
+        else
+        {
+            if (string.IsNullOrEmpty(options.ClusterUri))
+            {
+                throw new ArgumentException("ClusterUri must be specified");
+            }
+            var kustoConnectionStringBuilder = new KustoConnectionStringBuilder(options.ClusterUri).WithAadAzCliAuthentication();
+
+            _kustoClient = KustoIngestFactory.CreateQueuedIngestClient(kustoConnectionStringBuilder);
+        }
     }
 
-    /// <inheritdoc/>
     public override ExportResult Export(in Batch<Activity> batch)
     {
         try
         {
-            if (_useBatchProcessing && _logBuffer != null)
-            {
-                // Batch processing mode
-                foreach (var activity in batch)
-                {
-                    var traceData = ConvertActivityToTraceData(activity);
-                    _logBuffer.Logs.Enqueue(traceData);
-                }
+            var logDataList = new List<object>();
 
-                FlushBatch();
-            }
-            else
+            foreach (var activity in batch)
             {
-                // Direct processing mode for each activity
-                foreach (var activity in batch)
-                {
-                    var traceData = ConvertActivityToTraceData(activity);
-                    IngestToCluster(_kustoClient, _databaseName, _tableName, traceData);
-                }
+                var traceData = ConvertActivityToTraceData(activity);
+                logDataList.Add(traceData);
             }
 
+            FlushBatch(logDataList);
             return ExportResult.Success;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            Console.WriteLine($"Error exporting telemetry to Azure Data Explorer: {ex}");
             return ExportResult.Failure;
         }
     }
@@ -100,17 +181,12 @@ public class AzureDataExplorerExporter : BaseExporter<Activity>
     /// <summary>
     /// Flushes the current batch of logs to Azure Data Explorer.
     /// </summary>
-    public void FlushBatch()
+    /// <param name="logDataList">The list of log data objects to flush.</param>
+    public void FlushBatch(List<object> logDataList)
     {
-        if (_logBuffer == null || _logBuffer.Logs.Count == 0)
+        if (logDataList == null || logDataList.Count == 0)
         {
             return;
-        }
-
-        var logDataList = new List<object>();
-        while (_logBuffer.Logs.TryDequeue(out var logData))
-        {
-            logDataList.Add(logData);
         }
 
         IngestBatchToCluster(logDataList);
@@ -136,14 +212,11 @@ public class AzureDataExplorerExporter : BaseExporter<Activity>
             ["Status"] = activity.Status.ToString()
         };
 
-        // Add status information if available
-        if (!string.IsNullOrEmpty(activity.StatusDescription))
-        {
-            traceData["StatusDescription"] = activity.StatusDescription;
-        }
-
         // Use the PopulateColumns plugin function if provided
-        _populateColumns?.Invoke(activity, traceData);
+        if (PopulateColumns != null)
+        {
+            PopulateColumns.Invoke(activity, traceData);
+        }
 
         return traceData;
     }
@@ -168,31 +241,13 @@ public class AzureDataExplorerExporter : BaseExporter<Activity>
 
         stream.Position = 0; // Reset the position to the start of the stream
 
-        // Ingest the batch into Kusto
-        _kustoClient.IngestFromStreamAsync(stream, ingestionProperties).Wait();
+        // Ingest the batch into Kusto - this will be queued if using QueuedIngestClient
+        _kustoClient.IngestFromStream(stream, ingestionProperties);
     }
-
-    private void IngestToCluster(IKustoIngestClient client, string databaseName, string tableName, object logData)
-    {
-        var ingestionProperties = new KustoIngestionProperties(databaseName, tableName)
-        {
-            Format = DataSourceFormat.json
-        };
-
-        var jsonData = JsonSerializer.Serialize(logData);
-        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(jsonData));
-
-        client.IngestFromStreamAsync(stream, ingestionProperties).Wait();
-    }
-
-    /// <inheritdoc/>
     protected override bool OnShutdown(int timeoutMilliseconds)
     {
-        // Ensure any remaining logs are flushed
-        if (_useBatchProcessing)
-        {
-            FlushBatch();
-        }
+        _kustoClient.Dispose();
         return true;
     }
 }
+
