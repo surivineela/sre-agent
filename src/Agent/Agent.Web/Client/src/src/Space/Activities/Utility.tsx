@@ -1,12 +1,5 @@
 import { ThreadSeverity } from '../../Common/Clients/ThreadClient';
-import {
-    IncidentStatus,
-    Message,
-    SREAgentUserId,
-    StreamingMessageContent,
-    Thread,
-    ThreadSource,
-} from '../../Common/Contracts/Azure/SreAgent';
+import { IncidentStatus, Message, SREAgentUserId, StreamingMessage, Thread, ThreadSource } from '../../Common/Contracts/Azure/SreAgent';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
 import { ThreadLoadingCounts } from '../Contracts/Activities';
@@ -153,30 +146,31 @@ export const updateOldMessagesText = (prevMessages: Message[], updatedMessages: 
 };
 
 /**
- * Get a new message object based on the current streaming message content and the created timestamp.
+ * Get a new message based on the previous message and the streaming message input. Do not append message content to the previous message if doNotAppendMessage is true.
  * @param prev
- * @param streamingMessageContent
- * @param messageId
- * @param createdAt
+ * @param streamingMessage
+ * @param doNotAppendMessage
+ * @returns
  */
 export const processStreamingMessage = (
     prev: Message | null,
-    streamingMessageContent: StreamingMessageContent | undefined | null,
-    messageId: string | undefined | null,
-    createdAt: string | undefined | null
+    streamingMessage: StreamingMessage,
+    doNotAppendMessage?: boolean
 ): Message | null => {
-    if (!streamingMessageContent) return prev;
-
-    const { text, $type, additionalProperties } = streamingMessageContent;
+    const { additionalProperties, contents, createdAt } = streamingMessage;
+    const messageContent = contents?.[0];
+    const { messageId } = additionalProperties || {};
 
     const id = messageId || prev?.id || '';
 
     const prevText = prev?.text || '';
-    const newText = text || '';
+    const newText = doNotAppendMessage ? '' : messageContent?.text || '';
     const updatedText = prevText + newText;
 
-    const isToolCall = equals($type ?? '', 'functionCall', AntUxStringComparison.IgnoreCase);
-    const toolCallText = isToolCall ? additionalProperties?.userDescription || additionalProperties?.functionCallDescription || '' : '';
+    const isToolCall = equals(messageContent?.$type ?? '', 'functionCall', AntUxStringComparison.IgnoreCase);
+    const toolCallText = isToolCall
+        ? messageContent?.additionalProperties?.userDescription || messageContent?.additionalProperties?.functionCallDescription || ''
+        : '';
 
     const timeStamp = createdAt || new Date().toISOString();
 
@@ -197,6 +191,23 @@ export const processStreamingMessage = (
     }
 
     return updatedStreamingMessage;
+};
+
+export const isChartStreamingMessage = (streamingMessage: StreamingMessage): boolean => {
+    return equals(streamingMessage.additionalProperties?.streamMessageType || '', 'chart', AntUxStringComparison.IgnoreCase);
+};
+
+export const getStreamingMessageText = (streamingMessage: StreamingMessage) => {
+    return streamingMessage.contents?.[0]?.text || '';
+};
+
+export const isFinalStreamingMessage = (streamingMessage: StreamingMessage): boolean => {
+    const { finishReason } = streamingMessage;
+
+    return (
+        equals(finishReason || '', 'stop', AntUxStringComparison.IgnoreCase) ||
+        equals(finishReason || '', 'length', AntUxStringComparison.IgnoreCase)
+    );
 };
 
 export const noGapBetweenNewMessagesAndExistingMessages = (messages: Message[], currentLatestMessage?: Message) => {

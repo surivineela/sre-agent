@@ -168,6 +168,7 @@ export interface StreamingMessage {
         streamId?: string | null;
         threadId?: string | null;
         messageId?: string | null;
+        streamMessageType?: 'Chart' | null;
     } | null;
 }
 

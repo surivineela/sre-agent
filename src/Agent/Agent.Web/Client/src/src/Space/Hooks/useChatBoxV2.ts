@@ -17,6 +17,9 @@ import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
 import { PromptResources } from '../../Strings/SREAgentResources';
 import {
     getIntervalBetweenLoading,
+    getStreamingMessageText,
+    isChartStreamingMessage,
+    isFinalStreamingMessage,
     isIncidentThreadCompleted,
     processOldMessages,
     processStreamingMessage,
@@ -86,6 +89,10 @@ export const useChatBoxV2 = (
     const [streamingMessage, setStreamingMessage] = useState<Message | null>(null);
     const [streamId, setStreamId] = useState<string>('');
     const [isAgentTyping, setIsAgentTyping] = useState<boolean>(false);
+    const messageChunkQueue = useRef<StreamingMessage[]>([]);
+    const isTypingChars = useRef<boolean>(false);
+    const typingCharIndex = useRef<number>(0);
+    const typingCharsTimeout = useRef<NodeJS.Timeout | undefined>(undefined);
 
     const [showDownButton, setShowDownButton] = useState(false);
 
@@ -144,9 +151,17 @@ export const useChatBoxV2 = (
         setShowDownButton(false);
     };
 
+    const finishStreaming = () => {
+        setIsAgentTyping(false);
+        messageChunkQueue.current = [];
+        isTypingChars.current = false;
+        typingCharIndex.current = 0;
+        clearTimeout(typingCharsTimeout.current);
+    };
+
     const cancelStreaming = useCallback(() => {
         setStreamId(Guid.newGuid());
-        setIsAgentTyping(false);
+        finishStreaming();
     }, []);
 
     /**
@@ -259,50 +274,111 @@ export const useChatBoxV2 = (
     useEffect(() => {
         let isSubscribed = true;
 
-        const handleMessage = (messageResponseType: MessageResponseType, streamData?: StreamingMessage) => {
+        const handleMessageTyping = () => {
+            if (messageChunkQueue.current.length === 0) {
+                isTypingChars.current = false;
+                return;
+            }
+
+            isTypingChars.current = true;
+            typingCharIndex.current = 0;
+            const currentMessageChunk = messageChunkQueue.current[0];
+            const currentMessageText = getStreamingMessageText(currentMessageChunk);
+
+            if (currentMessageText && !isChartStreamingMessage(currentMessageChunk)) {
+                // Update the streaming message with the current chunk properties except the text
+                setStreamingMessage(prev => processStreamingMessage(prev, currentMessageChunk, true));
+                // Update the streaming message's text by appending a character every 50ms
+                const typeChar = () => {
+                    if (typingCharIndex.current < currentMessageText.length) {
+                        const charIndex = typingCharIndex.current;
+                        typingCharIndex.current += 1;
+                        setStreamingMessage(prev => {
+                            if (prev) {
+                                return {
+                                    ...prev,
+                                    text: prev.text + currentMessageText[charIndex],
+                                };
+                            }
+                            return prev;
+                        });
+                        typingCharsTimeout.current = setTimeout(typeChar, 10);
+                    } else {
+                        // Finished typing the current message chunk
+                        messageChunkQueue.current.shift();
+                        if (isFinalStreamingMessage(currentMessageChunk)) {
+                            finishStreaming();
+                        } else {
+                            handleMessageTyping();
+                        }
+                    }
+                };
+                typeChar();
+            } else {
+                setStreamingMessage(prev => processStreamingMessage(prev, currentMessageChunk));
+                messageChunkQueue.current.shift();
+                if (isFinalStreamingMessage(currentMessageChunk)) {
+                    finishStreaming();
+                } else {
+                    handleMessageTyping();
+                }
+            }
+        };
+
+        const handleUserMessageChunk = (messageResponseType: MessageResponseType, streamingMessage: StreamingMessage) => {
+            const { additionalProperties } = streamingMessage;
+            const { threadId: threadIdFromStream } = additionalProperties || {};
+
+            if (currentThreadIdRef.current) {
+                promoteThread(currentThreadIdRef.current);
+            } else if (
+                threadIdFromStream &&
+                equals(messageResponseType, MessageResponseType.ThreadUpdate, AntUxStringComparison.IgnoreCase)
+            ) {
+                setCurrentThreadId(threadIdFromStream);
+                if (!isNewThreadAdded.current) {
+                    addThread(threadIdFromStream);
+                    isNewThreadAdded.current = true;
+                }
+            }
+
+            if (isFinalStreamingMessage(streamingMessage)) {
+                finishStreaming();
+            }
+        };
+
+        const handleAgentMessageChunk = (messageChunk: StreamingMessage) => {
+            messageChunkQueue.current.push(messageChunk);
+
+            if (!isTypingChars.current) {
+                handleMessageTyping();
+            }
+        };
+
+        const handleMessageChunk = (messageResponseType: MessageResponseType, streamData?: StreamingMessage) => {
             if (streamData) {
                 console.log(messageResponseType + ' received: ', streamData);
-                const { additionalProperties, contents, role, finishReason, createdAt } = streamData;
-                const message = contents?.[0];
-                const { threadId: threadIdFromStream, streamId: currentStreamId, messageId } = additionalProperties || {};
-
-                const shouldStopStreaming =
-                    equals(finishReason || '', 'stop', AntUxStringComparison.IgnoreCase) ||
-                    equals(finishReason || '', 'length', AntUxStringComparison.IgnoreCase);
+                const { additionalProperties, role } = streamData;
+                const { streamId: currentStreamId } = additionalProperties || {};
 
                 const isUserMessage = equals(role || '', 'user', AntUxStringComparison.IgnoreCase);
 
                 if (streamId === currentStreamId && isSubscribed) {
                     if (isUserMessage) {
-                        if (currentThreadIdRef.current) {
-                            promoteThread(currentThreadIdRef.current);
-                        } else if (
-                            threadIdFromStream &&
-                            equals(messageResponseType, MessageResponseType.ThreadUpdate, AntUxStringComparison.IgnoreCase)
-                        ) {
-                            setCurrentThreadId(threadIdFromStream);
-                            if (!isNewThreadAdded.current) {
-                                addThread(threadIdFromStream);
-                                isNewThreadAdded.current = true;
-                            }
-                        }
+                        handleUserMessageChunk(messageResponseType, streamData);
                     } else {
-                        setStreamingMessage(prev => processStreamingMessage(prev, message, messageId, createdAt));
-                    }
-
-                    if (shouldStopStreaming) {
-                        setIsAgentTyping(false);
+                        handleAgentMessageChunk(streamData);
                     }
                 }
             }
         };
 
         onMessage(MessageResponseType.ThreadUpdate, (streamData?: StreamingMessage) => {
-            handleMessage(MessageResponseType.ThreadUpdate, streamData);
+            handleMessageChunk(MessageResponseType.ThreadUpdate, streamData);
         });
 
         onMessage(MessageResponseType.MessageUpdate, (streamData?: StreamingMessage) => {
-            handleMessage(MessageResponseType.MessageUpdate, streamData);
+            handleMessageChunk(MessageResponseType.MessageUpdate, streamData);
         });
 
         return () => {
