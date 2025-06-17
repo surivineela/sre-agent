@@ -4,9 +4,9 @@
 
 using System.Text.Json.Serialization;
 
-namespace Agent.Web.Models.WebSocket
+namespace Agent.Web.Models.Streaming
 {
-    public class WebSocketCreateMessageRequest
+    public class StreamingCreateMessageRequest
     {
         [JsonRequired]
         [JsonPropertyName("text")]

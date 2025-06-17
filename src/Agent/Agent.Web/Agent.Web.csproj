@@ -21,7 +21,6 @@
     <PackageReference Include="OpenTelemetry.Instrumentation.Http" />
     <PackageReference Include="Microsoft.Bot.Builder" />
     <PackageReference Include="Microsoft.Bot.Builder.Integration.AspNet.Core" />
-    <PackageReference Include="WebSocketSharp" />
     <PackageReference Include="OpenTelemetry.Extensions.DependencyInjection" />
   </ItemGroup>
 

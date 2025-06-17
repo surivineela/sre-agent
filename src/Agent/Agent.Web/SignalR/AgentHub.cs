@@ -6,7 +6,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.SignalR;
 using Agent.Core.Interfaces;
 using Agent.Logging;
-using Agent.Web.Models.WebSocket;
+using Agent.Web.Models.Streaming;
 using Agent.Core.Models.Api.v1;
 using Microsoft.Extensions.AI;
 using Agent.Runtime.Services;
@@ -44,7 +44,7 @@ namespace Agent.Web.SignalR
             await base.OnDisconnectedAsync(exception);
         }
 
-        public async Task CreateThread(WebSocketCreateThreadRequest request, string streamId = "", bool textOnly = false)
+        public async Task CreateThread(StreamingCreateThreadRequest request, string streamId = "", bool textOnly = false)
         {
             try
             {
@@ -80,7 +80,7 @@ namespace Agent.Web.SignalR
                 var createThreadRequest = new CreateThreadRequest(createMessageRequest, request.Source);
 
                 var results = _threadManagementService.CreateUserInitiatedThreadStream(createThreadRequest);
-                
+
                 await foreach (var result in results)
                 {
                     result.AdditionalProperties ??= new AdditionalPropertiesDictionary();
@@ -118,7 +118,7 @@ namespace Agent.Web.SignalR
             catch (Exception ex)
             {
                 _logger.LogInternalError(ex, "Error processing CreateThread in SignalR");
-                
+
                 var errorMessage = new ChatResponseUpdate
                 {
                     AuthorName = "System",
@@ -133,12 +133,12 @@ namespace Agent.Web.SignalR
                         { "streamId", streamId }
                     }
                 };
-                
+
                 await Clients.Caller.Error(errorMessage);
             }
         }
 
-        public async Task CreateMessage(Guid threadId, WebSocketCreateMessageRequest request, string streamId = "", bool textOnly = false)
+        public async Task CreateMessage(Guid threadId, StreamingCreateMessageRequest request, string streamId = "", bool textOnly = false)
         {
             try
             {
@@ -189,7 +189,7 @@ namespace Agent.Web.SignalR
 
                 var agentContexts = await _repository.GetAgentContextsForThreadAsync(threadId);
                 var agentContext = agentContexts.FirstOrDefault(c => c.AgentType == AgentTypeEnum.Meta && c.HandoffFromAgentContextId == null);
-                
+
                 if (agentContext == null)
                 {
                     var errorMessage = new ChatResponseUpdate
@@ -227,7 +227,7 @@ namespace Agent.Web.SignalR
                         { "streamId", streamId }
                     }
                 };
-                
+
                 await Clients.Caller.MessageUpdate(userMessage);
 
                 // Process the message
@@ -274,7 +274,7 @@ namespace Agent.Web.SignalR
             catch (Exception ex)
             {
                 _logger.LogInternalError(ex, "Error processing CreateMessage in SignalR");
-                
+
                 var errorMessage = new ChatResponseUpdate
                 {
                     AuthorName = "System",
@@ -289,7 +289,7 @@ namespace Agent.Web.SignalR
                         { "streamId", streamId }
                     }
                 };
-                
+
                 await Clients.Caller.Error(errorMessage);
             }
         }
@@ -300,4 +300,4 @@ namespace Agent.Web.SignalR
             await Clients.Caller.Pong(DateTime.UtcNow);
         }
     }
-} 
+}

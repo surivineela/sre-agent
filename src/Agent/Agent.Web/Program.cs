@@ -73,7 +73,6 @@ using Agent.Runtime.SubAgents.VmRdpInvestigatorAgent;
 using Agent.Runtime.SubAgents.WebAppDownAgent;
 using Agent.Runtime.TeamsChatServices;
 using Agent.Web.Services;
-using Agent.Web.WebSocket;
 using Azure.Monitor.OpenTelemetry.Exporter;
 using FirstPartyAgent.Core.FirstPartyAgents;
 using Microsoft.Bot.Builder;
@@ -91,7 +90,6 @@ using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using WebSocketSharp.Server;
 
 namespace Agent.Web;
 
@@ -139,15 +137,6 @@ public class Program
         var loggingSettings = builder.Configuration.GetSection("Logging").Get<LoggingSettings>();
 
         await app.Services.CreateCosmosContainerIfNotExists(builder.Configuration);
-
-        // Add WebSocket, default 7024 due to TcpStream conflict with HTTP on 7023
-        var ws = new WebSocketServer(builder.Configuration.GetValue<string>("AppSettings:WebSocketEndpoint") ?? "ws://localhost:7024");
-        ws.AddWebSocketService<WebSocketEventService>("/ws", () =>
-        {
-            var service = app.Services.GetRequiredService<WebSocketEventService>();
-            return service;
-        });
-        ws.Start();
 
         app.Run();
 
@@ -654,9 +643,6 @@ public class Program
 
         // Add GraphService registration
         builder.Services.AddSingleton<IGraphService, GraphService>();        // Add Websocket service registration
-
-        // add websocket service as transient instead of singleton to allow multiple instances
-        builder.Services.AddTransient<WebSocketEventService>();
 
         builder.Services.AddOpenTelemetry().WithTracing(tracingBuilder =>
         {
