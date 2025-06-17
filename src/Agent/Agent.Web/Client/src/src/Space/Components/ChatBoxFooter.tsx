@@ -21,6 +21,8 @@ const ChatBoxFooter = ({
     const intl = useIntl();
 
     const [input, setInput] = useState<string>();
+    const [historyIndex, setHistoryIndex] = useState<number>(-1);
+    const [originalInput, setOriginalInput] = useState<string>('');
 
     const { root, footer, chatStatement, sectionHeader, promptItem, lightbulbIcon, sectionDivider, popoverSurface } = useChatInputStyles();
     const [open, setOpen] = useState(false);
@@ -30,6 +32,8 @@ const ChatBoxFooter = ({
 
         if (messageToSend) {
             setInput('');
+            setHistoryIndex(-1);
+            setOriginalInput('');
             sendMessage(messageToSend);
         }
     }, [input, sendMessage]);
@@ -74,7 +78,13 @@ const ChatBoxFooter = ({
                     styles={chatInputTextStyles.textField}
                     rows={1}
                     value={input}
-                    onChange={(_, value?: string) => setInput(value)}
+                    onChange={(_, value?: string) => {
+                        setInput(value);
+                        if (historyIndex >= 0) {
+                            setHistoryIndex(-1);
+                            setOriginalInput('');
+                        }
+                    }}
                     onKeyDown={event => {
                         if (event.key.toLowerCase() === 'g') {
                             // Stop the event from propagating to the global shortcuts
@@ -83,6 +93,32 @@ const ChatBoxFooter = ({
                             chatInputHandleSendClick();
                             event.preventDefault();
                             event.stopPropagation();
+                        } else if (event.key === 'ArrowUp' && messagePromptsUsed.length > 0) {
+                            event.preventDefault();
+                            event.stopPropagation();
+
+                            if (historyIndex === -1) {
+                                setOriginalInput(input || '');
+                                setHistoryIndex(0);
+                                setInput(messagePromptsUsed[0]);
+                            } else if (historyIndex < messagePromptsUsed.length - 1) {
+                                const newIndex = historyIndex + 1;
+                                setHistoryIndex(newIndex);
+                                setInput(messagePromptsUsed[newIndex]);
+                            }
+                        } else if (event.key === 'ArrowDown' && historyIndex >= 0) {
+                            event.preventDefault();
+                            event.stopPropagation();
+
+                            if (historyIndex > 0) {
+                                const newIndex = historyIndex - 1;
+                                setHistoryIndex(newIndex);
+                                setInput(messagePromptsUsed[newIndex]);
+                            } else {
+                                setHistoryIndex(-1);
+                                setInput(originalInput);
+                                setOriginalInput('');
+                            }
                         }
                     }}
                 />

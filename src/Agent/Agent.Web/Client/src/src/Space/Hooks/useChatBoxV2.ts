@@ -552,7 +552,7 @@ export const useChatBoxV2 = (
         for (let i = messages.length - 1; i >= 0 && result.length < 3; i--) {
             const msg = messages[i];
             if (msg.author.role !== 'SREAgent' && !seenTexts.has(msg.text)) {
-                result.unshift(msg);
+                result.push(msg);
                 seenTexts.add(msg.text);
             }
         }
