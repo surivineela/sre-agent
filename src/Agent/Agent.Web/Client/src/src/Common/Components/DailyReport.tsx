@@ -328,14 +328,14 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
                     <div style={{ width: '50%' }}>
                         <Text size={300} style={{ color: tokens.colorNeutralForeground3, marginBottom: '4px' }}>
-                            {intl.formatMessage(DailyReportResources.appGroupResourceName)}
+                            {intl.formatMessage(DailyReportResources.coreAppGroupResourceName)}
                         </Text>
                         <br />
                         <Text style={{ marginTop: '8px' }}>{resource.Name}</Text>
                     </div>
                     <div>
                         <Text size={300} style={{ color: tokens.colorNeutralForeground3, marginBottom: '4px' }}>
-                            {intl.formatMessage(DailyReportResources.appGroupType)}
+                            {intl.formatMessage(DailyReportResources.coreAppGroupType)}
                         </Text>
                         <br />
                         <Text style={{ marginTop: '8px' }}>{resource.Type}</Text>
@@ -784,7 +784,7 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                     >
                         <div style={{ marginBottom: '24px', height: '24px', display: 'flex', alignItems: 'center' }}>
                             <Text size={400} weight="semibold">
-                                {intl.formatMessage(DailyReportResources.appGroupHealthPerformance)}
+                                {intl.formatMessage(DailyReportResources.coreAppGroupHealthPerformance)}
                             </Text>
                         </div>
 
@@ -1395,7 +1395,7 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                                 }
                             />
                             <Text size={400} weight="semibold">
-                                {intl.formatMessage(DailyReportResources.appGroupHealthPerformance)} (
+                                {intl.formatMessage(DailyReportResources.coreAppGroupHealthPerformance)} (
                                 {data.Overview.HealthAndPerformance.Unhealthy})
                             </Text>
                         </div>
@@ -1455,7 +1455,7 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                                                 )}
                                                 <ErrorCircleRegular style={{ color: tokens.colorPaletteRedForeground1, fontSize: 20 }} />
                                                 <Text size={300} weight="semibold">
-                                                    {intl.formatMessage(DailyReportResources.unhealthyAppGroups)} (
+                                                    {intl.formatMessage(DailyReportResources.unhealthyCoreAppGroups)} (
                                                     {data.Overview.HealthAndPerformance.Unhealthy})
                                                 </Text>
                                             </div>
@@ -1533,7 +1533,7 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                                                     style={{ color: tokens.colorPaletteDarkOrangeForeground1, fontSize: 20 }}
                                                 />
                                                 <Text size={300} weight="semibold">
-                                                    {intl.formatMessage(DailyReportResources.degradedAppGroups)} (
+                                                    {intl.formatMessage(DailyReportResources.degradedCoreAppGroups)} (
                                                     {data.Overview.HealthAndPerformance.Degraded})
                                                 </Text>
                                             </div>
@@ -1611,7 +1611,7 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                                                     style={{ color: tokens.colorPaletteGreenForeground1, fontSize: 20 }}
                                                 />
                                                 <Text size={300} weight="semibold">
-                                                    {intl.formatMessage(DailyReportResources.healthyAppGroups)} (
+                                                    {intl.formatMessage(DailyReportResources.healthyCoreAppGroups)} (
                                                     {data.Overview.HealthAndPerformance.Healthy})
                                                 </Text>
                                             </div>

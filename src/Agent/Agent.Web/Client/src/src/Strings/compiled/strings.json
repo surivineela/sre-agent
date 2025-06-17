@@ -65,22 +65,28 @@
       "value": "Your agent is in autonomous mode. The following permissions are required for the agent to build knowledge about your resources. The agent will use some of these permissions to perform write operations autonomously based on your requests."
     }
   ],
-  "/kxGpW": [
-    {
-      "type": 0,
-      "value": "Failed to disable incident filter"
-    }
-  ],
   "/zQv2D": [
     {
       "type": 0,
       "value": "Resource groups"
     }
   ],
+  "066KEg": [
+    {
+      "type": 0,
+      "value": "Disabling incident handler"
+    }
+  ],
   "0AwXvo": [
     {
       "type": 0,
       "value": "Incident handler"
+    }
+  ],
+  "0G14fL": [
+    {
+      "type": 0,
+      "value": "This map shows how your application's resources are connected across multiple resource groups, regions, and subscriptions. The agent analyzes these resources and organizes them into a core application group based on the primary resource."
     }
   ],
   "0KB3lG": [
@@ -193,12 +199,6 @@
       "value": "This will permanently delete the chat and all actions in this thread."
     }
   ],
-  "1vUyy0": [
-    {
-      "type": 0,
-      "value": "Select priority"
-    }
-  ],
   "2/2yg+": [
     {
       "type": 0,
@@ -209,6 +209,12 @@
     {
       "type": 0,
       "value": "The selected resource groups are being set up"
+    }
+  ],
+  "2hB9SP": [
+    {
+      "type": 0,
+      "value": "Azure Monitor Workspace resource name"
     }
   ],
   "2pzTGC": [
@@ -289,12 +295,6 @@
       "value": "Linking Grafana dashboard to SRE Agent in progress"
     }
   ],
-  "45sljt": [
-    {
-      "type": 0,
-      "value": "Updating incident filter"
-    }
-  ],
   "477I0g": [
     {
       "type": 0,
@@ -343,22 +343,10 @@
       "value": "Sending a report..."
     }
   ],
-  "5ISX55": [
-    {
-      "type": 0,
-      "value": "Deleting incident filter"
-    }
-  ],
   "5K0php": [
     {
       "type": 0,
       "value": "Optimize how the agent investigates and responds to incidents by adding incident handlers and custom handlers to support a broad range of scenarios."
-    }
-  ],
-  "5Q36PP": [
-    {
-      "type": 0,
-      "value": "This map shows how your application's resources are connected across multiple resource groups, regions, and subscriptions. The agent analyzes these resources and organizes them into a logical app group based on the primary resource."
     }
   ],
   "5QYdPU": [
@@ -371,6 +359,12 @@
     {
       "type": 0,
       "value": "Azure Kubernetes Service Cluster User Role"
+    }
+  ],
+  "5WK7jL": [
+    {
+      "type": 0,
+      "value": "Create new"
     }
   ],
   "5kp1Ie": [
@@ -445,6 +439,12 @@
     {
       "type": 0,
       "value": "Regenerate"
+    }
+  ],
+  "6S2zmX": [
+    {
+      "type": 0,
+      "value": "User-assigned Managed Identity"
     }
   ],
   "6UyZlH": [
@@ -547,12 +547,6 @@
     {
       "type": 0,
       "value": "Backed by"
-    }
-  ],
-  "7yxsez": [
-    {
-      "type": 0,
-      "value": "App group resource name"
     }
   ],
   "84MFOR": [
@@ -715,12 +709,6 @@
       "value": "AI-generated content might be incorrect, so review carefully before use. Do not include personal or confidential information in the chat."
     }
   ],
-  "BUN9Gf": [
-    {
-      "type": 0,
-      "value": "Successfully updated incident filter"
-    }
-  ],
   "BV3Mir": [
     {
       "type": 0,
@@ -759,16 +747,16 @@
       "value": "Create incident handler"
     }
   ],
+  "CZ6s9k": [
+    {
+      "type": 0,
+      "value": "Degraded core application groups"
+    }
+  ],
   "CfGC/2": [
     {
       "type": 0,
       "value": "Select resource groups to monitor"
-    }
-  ],
-  "Ci3omK": [
-    {
-      "type": 0,
-      "value": "Select incident type"
     }
   ],
   "CvWvf+": [
@@ -819,16 +807,16 @@
       "value": "Why isn't my application working?"
     }
   ],
+  "DmtYK4": [
+    {
+      "type": 0,
+      "value": "Choose impacted service"
+    }
+  ],
   "DpMYPV": [
     {
       "type": 0,
       "value": "Failed to delete logic app"
-    }
-  ],
-  "Dw4Wnc": [
-    {
-      "type": 0,
-      "value": "Creating incident filter"
     }
   ],
   "E396gv": [
@@ -861,12 +849,6 @@
       "value": "Failed to load subscriptions."
     }
   ],
-  "EOf1cN": [
-    {
-      "type": 0,
-      "value": "Successfully disabled incident filter"
-    }
-  ],
   "ERQMQ9": [
     {
       "type": 0,
@@ -891,6 +873,12 @@
       "value": "Incident platform"
     }
   ],
+  "EiiZbj": [
+    {
+      "type": 0,
+      "value": "Successfully disabled incident handler"
+    }
+  ],
   "ElI1gd": [
     {
       "type": 0,
@@ -903,22 +891,10 @@
       "value": "User"
     }
   ],
-  "EwesO0": [
-    {
-      "type": 0,
-      "value": "Failed to create incident filter"
-    }
-  ],
   "Ez5ZJg": [
     {
       "type": 0,
       "value": "Open Access control"
-    }
-  ],
-  "F0ox0E": [
-    {
-      "type": 0,
-      "value": "Unhealthy app groups"
     }
   ],
   "F9LrJA": [
@@ -943,12 +919,6 @@
     {
       "type": 0,
       "value": "Repository connection"
-    }
-  ],
-  "FREJ+R": [
-    {
-      "type": 0,
-      "value": "Failed to enable incident filter"
     }
   ],
   "FUQvS0": [
@@ -993,10 +963,10 @@
       "value": "- in progress"
     }
   ],
-  "GJxBWO": [
+  "GgiTLF": [
     {
       "type": 0,
-      "value": "Degraded app groups"
+      "value": "Successfully enabled incident handler"
     }
   ],
   "GroBmn": [
@@ -1059,12 +1029,6 @@
       "value": "New thread"
     }
   ],
-  "IbhWpr": [
-    {
-      "type": 0,
-      "value": "Healthy app groups"
-    }
-  ],
   "IuFETn": [
     {
       "type": 0,
@@ -1081,6 +1045,12 @@
       "value": "name"
     }
   ],
+  "JAtEuU": [
+    {
+      "type": 0,
+      "value": "Azure Managed Grafana resource name"
+    }
+  ],
   "JCjxSH": [
     {
       "type": 0,
@@ -1095,18 +1065,6 @@
     {
       "type": 0,
       "value": "Previous"
-    }
-  ],
-  "JQTsu5": [
-    {
-      "type": 0,
-      "value": "Enabling incident filter"
-    }
-  ],
-  "JUbrE2": [
-    {
-      "type": 0,
-      "value": "Logical application group"
     }
   ],
   "JVZyFs": [
@@ -1235,6 +1193,12 @@
       "value": "Incident ID"
     }
   ],
+  "MCSjdU": [
+    {
+      "type": 0,
+      "value": "Deleting incident handler"
+    }
+  ],
   "MFofa3": [
     {
       "type": 0,
@@ -1263,6 +1227,12 @@
     {
       "type": 0,
       "value": "Storage Blob Data Contributor"
+    }
+  ],
+  "NMJ8PI": [
+    {
+      "type": 0,
+      "value": "Failed to update incident handler"
     }
   ],
   "NOMbLF": [
@@ -1311,12 +1281,6 @@
     {
       "type": 0,
       "value": "Enter name"
-    }
-  ],
-  "OKwfcc": [
-    {
-      "type": 0,
-      "value": "Failed to delete incident filter"
     }
   ],
   "OLJJDc": [
@@ -1381,6 +1345,12 @@
       "value": "Hide thread menu"
     }
   ],
+  "OYG48f": [
+    {
+      "type": 0,
+      "value": "Failed to enable incident handler"
+    }
+  ],
   "OlIql8": [
     {
       "type": 0,
@@ -1411,6 +1381,12 @@
       "value": "Your agent is in read-only mode. The following permissions are required for the agent to build knowledge about your resources. The contributor roles for specific services will not be used to perform any write operations."
     }
   ],
+  "PEHogk": [
+    {
+      "type": 0,
+      "value": "Successfully updated incident handler"
+    }
+  ],
   "PJ2FQv": [
     {
       "type": 0,
@@ -1439,12 +1415,6 @@
     {
       "type": 0,
       "value": "Show thread actions"
-    }
-  ],
-  "Pp+wb3": [
-    {
-      "type": 0,
-      "value": "Select impacted service"
     }
   ],
   "PrFU82": [
@@ -1525,6 +1495,12 @@
       "value": "Subscription"
     }
   ],
+  "RH8rNM": [
+    {
+      "type": 0,
+      "value": "Only alphanumeric characters and dashes are allowed, and the value must be 3-44 characters long."
+    }
+  ],
   "RI4Umu": [
     {
       "type": 1,
@@ -1603,6 +1579,12 @@
     {
       "type": 0,
       "value": "Logs"
+    }
+  ],
+  "SPdP4q": [
+    {
+      "type": 0,
+      "value": "Core application group health + performance"
     }
   ],
   "SRf69j": [
@@ -1743,6 +1725,12 @@
       "value": "Activities"
     }
   ],
+  "UqCC2s": [
+    {
+      "type": 0,
+      "value": "Successfully created incident handler"
+    }
+  ],
   "UrGI9K": [
     {
       "type": 0,
@@ -1815,6 +1803,12 @@
       "value": "Agent details"
     }
   ],
+  "WnIWxR": [
+    {
+      "type": 0,
+      "value": "Failed to create incident handler"
+    }
+  ],
   "Wr7RY0": [
     {
       "type": 0,
@@ -1855,6 +1849,12 @@
     {
       "type": 0,
       "value": "Linked to"
+    }
+  ],
+  "XdHOL0": [
+    {
+      "type": 0,
+      "value": "Updating incident handler"
     }
   ],
   "XgXHWP": [
@@ -1967,12 +1967,6 @@
       "value": "Copy to clipboard"
     }
   ],
-  "aNIIuB": [
-    {
-      "type": 0,
-      "value": "App group type"
-    }
-  ],
   "aORQjS": [
     {
       "type": 0,
@@ -1997,6 +1991,12 @@
       "value": "I'm your Azure SRE Agent and here to help you monitor your resources, investigate incidents, automate responses, and ensure your systems follow best practices for reliability, performance, and security."
     }
   ],
+  "aaAabe": [
+    {
+      "type": 0,
+      "value": "(new)"
+    }
+  ],
   "abzUj6": [
     {
       "type": 0,
@@ -2019,12 +2019,6 @@
     {
       "type": 0,
       "value": "Lets you manage websites (not web plans), but not access to them."
-    }
-  ],
-  "aqmxBU": [
-    {
-      "type": 0,
-      "value": "Disabling incident filter"
     }
   ],
   "bW7B87": [
@@ -2093,18 +2087,6 @@
       "value": "Back"
     }
   ],
-  "d+ds6B": [
-    {
-      "type": 0,
-      "value": "App group"
-    }
-  ],
-  "d/8IiF": [
-    {
-      "type": 0,
-      "value": "App group health + performance"
-    }
-  ],
   "dQtJBl": [
     {
       "type": 0,
@@ -2121,12 +2103,6 @@
     {
       "type": 0,
       "value": "Mitigated"
-    }
-  ],
-  "dt7GgF": [
-    {
-      "type": 0,
-      "value": "Successfully enabled incident filter"
     }
   ],
   "e0a3XV": [
@@ -2151,12 +2127,6 @@
     {
       "type": 0,
       "value": "Read-only mode"
-    }
-  ],
-  "eqYdSS": [
-    {
-      "type": 0,
-      "value": "Resource name"
     }
   ],
   "ezP+aQ": [
@@ -2187,6 +2157,12 @@
     {
       "type": 0,
       "value": "Impacted service"
+    }
+  ],
+  "foUmLR": [
+    {
+      "type": 0,
+      "value": "Creating incident handler"
     }
   ],
   "ftfFhS": [
@@ -2277,10 +2253,10 @@
       "value": "Tool"
     }
   ],
-  "hBeG71": [
+  "h6EziO": [
     {
       "type": 0,
-      "value": "Successfully deleted incident filter"
+      "value": "Failed to disable incident handler"
     }
   ],
   "hK4HcH": [
@@ -2311,6 +2287,18 @@
     {
       "type": 0,
       "value": "Failed to save incident management configuration"
+    }
+  ],
+  "hXdAxd": [
+    {
+      "type": 0,
+      "value": "Successfully deleted incident handler"
+    }
+  ],
+  "hfACn+": [
+    {
+      "type": 0,
+      "value": "Unhealthy core application groups"
     }
   ],
   "hfIdUs": [
@@ -2355,6 +2343,12 @@
       "value": "Changes to this incident handler might affect how incidents are processed and also any custom handlers."
     }
   ],
+  "ibf4+R": [
+    {
+      "type": 0,
+      "value": "Core application group resource name"
+    }
+  ],
   "icWG3R": [
     {
       "type": 0,
@@ -2395,6 +2389,24 @@
     {
       "type": 0,
       "value": "Action summary"
+    }
+  ],
+  "j5QthH": [
+    {
+      "type": 0,
+      "value": "Healthy core application groups"
+    }
+  ],
+  "jA2jt7": [
+    {
+      "type": 0,
+      "value": "Choose priority"
+    }
+  ],
+  "jET8aI": [
+    {
+      "type": 0,
+      "value": "Failed to delete incident handler"
     }
   ],
   "jHJmjf": [
@@ -2445,12 +2457,6 @@
       "value": "State"
     }
   ],
-  "lGIJSX": [
-    {
-      "type": 0,
-      "value": "User Assigned Managed Identity"
-    }
-  ],
   "levHvg": [
     {
       "type": 0,
@@ -2473,6 +2479,12 @@
     {
       "type": 0,
       "value": "Set up incident handlers and custom handlers so that the agent can start resolving incidents."
+    }
+  ],
+  "m57OnF": [
+    {
+      "type": 0,
+      "value": "Choose incident type"
     }
   ],
   "mgYBYo": [
@@ -2635,6 +2647,12 @@
       "value": "Change key"
     }
   ],
+  "pf5nil": [
+    {
+      "type": 0,
+      "value": "Core application group"
+    }
+  ],
   "piCpTn": [
     {
       "type": 0,
@@ -2713,6 +2731,12 @@
       "value": "Close"
     }
   ],
+  "riEsC7": [
+    {
+      "type": 0,
+      "value": "Azure Monitor Workspace resource must be unique within the resource group."
+    }
+  ],
   "rja0QH": [
     {
       "type": 0,
@@ -2747,12 +2771,6 @@
     {
       "type": 0,
       "value": "Location"
-    }
-  ],
-  "sGMl3p": [
-    {
-      "type": 0,
-      "value": "Successfully created incident filter"
     }
   ],
   "sH0O5v": [
@@ -2883,6 +2901,12 @@
     {
       "type": 0,
       "value": "Severity"
+    }
+  ],
+  "vTlFW1": [
+    {
+      "type": 0,
+      "value": "Enabling incident handler"
     }
   ],
   "vXCeIi": [
@@ -3025,12 +3049,6 @@
       "value": "Website Contributor"
     }
   ],
-  "y9ZkOw": [
-    {
-      "type": 0,
-      "value": "Failed to update incident filter"
-    }
-  ],
   "yDh8i7": [
     {
       "type": 0,
@@ -3059,6 +3077,12 @@
     {
       "type": 0,
       "value": "Managed resource groups"
+    }
+  ],
+  "yoK+he": [
+    {
+      "type": 0,
+      "value": "Core application group type"
     }
   ],
   "zGhyFV": [

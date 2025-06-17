@@ -294,8 +294,8 @@ const AzureSREWelcome = ({ threadId, addThread }: AzureSREWelcomeProps) => {
     const logicalAppGridColumns = useMemo<IColumn[]>(() => {
         return [
             {
-                key: LogicalAppGridKey.LogicalApplicationGroup,
-                name: intl.formatMessage(WelcomeResources.logicalApplicationGroup),
+                key: LogicalAppGridKey.CoreApplicationGroup,
+                name: intl.formatMessage(SreAgentResources.coreApplicationGroup),
                 minWidth: 300,
                 maxWidth: 300,
                 isResizable: true,

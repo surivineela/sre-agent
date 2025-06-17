@@ -65,7 +65,7 @@ export interface LogicalAppGridItem {
 }
 
 export enum LogicalAppGridKey {
-    LogicalApplicationGroup = 'Logical application group',
+    CoreApplicationGroup = 'Core application group',
     PrimaryResourceType = 'Primary resource type',
     ResourceMap = 'Resource map',
 }

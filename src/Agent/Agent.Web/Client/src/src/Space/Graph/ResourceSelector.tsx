@@ -154,7 +154,7 @@ const ResourceSelector = ({ onAppGroupUpdate }: IResourceSelectorProps) => {
                     </Dropdown>
                 )}
             </Field>
-            <Field label={<FormattedMessage {...SreAgentResources.appGroup} />} className={field}>
+            <Field label={<FormattedMessage {...SreAgentResources.coreApplicationGroup} />} className={field}>
                 {isAppGroupLoading ? (
                     <Shimmer />
                 ) : (

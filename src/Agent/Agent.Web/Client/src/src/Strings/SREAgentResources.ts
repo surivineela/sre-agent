@@ -137,7 +137,7 @@ export const SreAgentResources = defineMessages({
     stop: { defaultMessage: 'Stop', id: 'q/uwLT' },
     sreAgentSpace: { defaultMessage: 'SRE Agent Space', id: 'iv1ryQ' },
     subscription: { defaultMessage: 'Subscription', id: 'R/6nsx' },
-    appGroup: { defaultMessage: 'App group', id: 'd+ds6B' },
+    coreApplicationGroup: { defaultMessage: 'Core application group', id: 'pf5nil' },
     subscriptionId: { defaultMessage: 'Subscription ID', id: 'FUQvS0' },
     totalThreads: { defaultMessage: 'Total threads', id: 'zN87hN' },
     tasks: { defaultMessage: 'Tasks', id: 'yhU1et' },
@@ -212,18 +212,44 @@ export const PromptResources = defineMessages({
 export const PermissionsResources = defineMessages({
     roles: { defaultMessage: 'Roles', id: 'c35gM5' },
     description: { defaultMessage: 'Description', id: 'Q8Qw5B' },
-    readOnlyModeDescription: { defaultMessage: 'Your agent is in read-only mode. The following permissions are required for the agent to build knowledge about your resources. The contributor roles for specific services will not be used to perform any write operations.', id: 'P9odAr' },
-    reviewModeDescription: { defaultMessage: 'Your agent is in review mode. The following permissions are required for the agent to build knowledge about your resources. The agent will use some of these permissions to perform write operations with your approval based on your requests.', id: 'p/xAmY' },
-    autonomousModeDescription: { defaultMessage: 'Your agent is in autonomous mode. The following permissions are required for the agent to build knowledge about your resources. The agent will use some of these permissions to perform write operations autonomously based on your requests.', id: '/dxZCE' },
+    readOnlyModeDescription: {
+        defaultMessage:
+            'Your agent is in read-only mode. The following permissions are required for the agent to build knowledge about your resources. The contributor roles for specific services will not be used to perform any write operations.',
+        id: 'P9odAr',
+    },
+    reviewModeDescription: {
+        defaultMessage:
+            'Your agent is in review mode. The following permissions are required for the agent to build knowledge about your resources. The agent will use some of these permissions to perform write operations with your approval based on your requests.',
+        id: 'p/xAmY',
+    },
+    autonomousModeDescription: {
+        defaultMessage:
+            'Your agent is in autonomous mode. The following permissions are required for the agent to build knowledge about your resources. The agent will use some of these permissions to perform write operations autonomously based on your requests.',
+        id: '/dxZCE',
+    },
     rolesAndPermissionsDescription: { defaultMessage: 'The resources you picked have permissions for these roles.', id: 'OTGHHm' },
-    noRolesAndPermissions: { defaultMessage: 'To view the roles and permissions the agent will have, choose resource groups for the agent to manage.', id: 'Qly58H' },
+    noRolesAndPermissions: {
+        defaultMessage: 'To view the roles and permissions the agent will have, choose resource groups for the agent to manage.',
+        id: 'Qly58H',
+    },
     contributor: { defaultMessage: 'Contributor', id: '+k5t/y' },
-    contributorDescription: { defaultMessage: 'Grants full access to manage all resources, but does not allow you to assign roles in Azure RBAC, manage assignments in Azure Blueprints, or share image galleries.', id: 'KzMCPo' },
+    contributorDescription: {
+        defaultMessage:
+            'Grants full access to manage all resources, but does not allow you to assign roles in Azure RBAC, manage assignments in Azure Blueprints, or share image galleries.',
+        id: 'KzMCPo',
+    },
     monitoringContributorDescription: { defaultMessage: 'Can read all monitoring data and update monitoring settings.', id: 'PrFU82' },
     containerAppsContributor: { defaultMessage: 'Container Apps Contributor', id: 'i5OUQE' },
-    containerAppsContributorDescription: { defaultMessage: 'Full management of Container Apps, including creation, deletion, and updates.', id: 'Mnvpbx' },
+    containerAppsContributorDescription: {
+        defaultMessage: 'Full management of Container Apps, including creation, deletion, and updates.',
+        id: 'Mnvpbx',
+    },
     logAnalyticsReader: { defaultMessage: 'Log Analytics Reader', id: 'sI+CCC' },
-    logAnalyticsReaderDescription: { defaultMessage: 'View and search all monitoring data as well as view monitoring settings, including viewing the configuration of Azure diagnostics on all Azure resources.', id: 'Oom2N7' },
+    logAnalyticsReaderDescription: {
+        defaultMessage:
+            'View and search all monitoring data as well as view monitoring settings, including viewing the configuration of Azure diagnostics on all Azure resources.',
+        id: 'Oom2N7',
+    },
     websitesContributor: { defaultMessage: 'Website Contributor', id: 'xtkizV' },
     websitesContributorDescription: { defaultMessage: 'Lets you manage websites (not web plans), but not access to them.', id: 'apP/SY' },
     webPlanContributor: { defaultMessage: 'Web Plan Contributor', id: '1YPTmM' },
@@ -233,7 +259,11 @@ export const PermissionsResources = defineMessages({
     containerAppsOperator: { defaultMessage: 'Container Apps Operator', id: '/WrP/v' },
     containerAppsOperatorDescription: { defaultMessage: 'Read, logstream and exec into Container Apps.', id: 'gn/nvJ' },
     azureKubernetesServiceRbacReader: { defaultMessage: 'Azure Kubernetes Service RBAC Reader', id: 'RrsyUh' },
-    azureKubernetesServiceRbacReaderDescription: { defaultMessage: 'Allows read-only access to see most objects in a namespace. It does not allow viewing roles or role bindings. This role does not allow viewing Secrets, since reading the contents of Secrets enables access to ServiceAccount credentials in the namespace, which would allow API access as any ServiceAccount in the namespace (a form of privilege escalation). Applying this role at cluster scope will give access across all namespaces.', id: 'gC4xMY' },
+    azureKubernetesServiceRbacReaderDescription: {
+        defaultMessage:
+            'Allows read-only access to see most objects in a namespace. It does not allow viewing roles or role bindings. This role does not allow viewing Secrets, since reading the contents of Secrets enables access to ServiceAccount credentials in the namespace, which would allow API access as any ServiceAccount in the namespace (a form of privilege escalation). Applying this role at cluster scope will give access across all namespaces.',
+        id: 'gC4xMY',
+    },
     azureKubernetesServiceClusterUserRole: { defaultMessage: 'Azure Kubernetes Service Cluster User Role', id: '5V+Txp' },
     azureKubernetesServiceClusterUserRoleDescription: { defaultMessage: 'List cluster user credential action.', id: 'Bcx/Gz' },
     azureKubernetesServiceClusterAdmin: { defaultMessage: 'Azure Kubernetes Service Cluster Admin', id: 'RStTJp' },
@@ -241,7 +271,10 @@ export const PermissionsResources = defineMessages({
     azureKubernetesServiceRbacClusterAdmin: { defaultMessage: 'Azure Kubernetes Service RBAC Cluster Admin', id: 'YZIFAO' },
     azureKubernetesServiceRbacClusterAdminDescription: { defaultMessage: 'Lets you manage all resources in the cluster.', id: 'nBPow3' },
     azureMonitorMonitoringContributor: { defaultMessage: 'Monitoring Contributor', id: 'TAm7bB' },
-    azureMonitorMonitoringContributorDescription: { defaultMessage: 'Read and write Azure Monitor monitoring settings and data.', id: 'mkhNnB' },
+    azureMonitorMonitoringContributorDescription: {
+        defaultMessage: 'Read and write Azure Monitor monitoring settings and data.',
+        id: 'mkhNnB',
+    },
     applicationInsightsComponentContributor: { defaultMessage: 'Application Insights Component Contributor', id: 'VlBNux' },
     applicationInsightsComponentContributorDescription: { defaultMessage: 'Manage Application Insights components.', id: 'pqgzm0' },
     logAnalyticsContributor: { defaultMessage: 'Log Analytics Contributor', id: 'e0a3XV' },
@@ -251,7 +284,10 @@ export const PermissionsResources = defineMessages({
     redisCacheContributor: { defaultMessage: 'Redis Cache Contributor', id: '8nBFW4' },
     redisCacheContributorDescription: { defaultMessage: 'Manage without access.', id: 'hO1Iog' },
     sqlDbContributor: { defaultMessage: 'SQL DB Contributor', id: 'hfIdUs' },
-    sqlDbContributorDescription: { defaultMessage: "Manage without access. Can't manage security policies or parent SQL servers.", id: 'p5T+zv' },
+    sqlDbContributorDescription: {
+        defaultMessage: "Manage without access. Can't manage security policies or parent SQL servers.",
+        id: 'p5T+zv',
+    },
     storageBlobDataContributor: { defaultMessage: 'Storage Blob Data Contributor', id: 'ND2EUR' },
     storageBlobDataContributorDescription: { defaultMessage: 'Read, write, and delete Azure Storage containers and blobs.', id: 'uRMqBi' },
     documentDbAccountContributor: { defaultMessage: 'DocumentDB Account Contributor', id: 'ABo5XY' },
@@ -669,8 +705,8 @@ export const FeedbackResources = defineMessages({
 export const GraphResources = defineMessages({
     resourceSelectorDescription: {
         defaultMessage:
-            "This map shows how your application's resources are connected across multiple resource groups, regions, and subscriptions. The agent analyzes these resources and organizes them into a logical app group based on the primary resource.",
-        id: '5Q36PP',
+            "This map shows how your application's resources are connected across multiple resource groups, regions, and subscriptions. The agent analyzes these resources and organizes them into a core application group based on the primary resource.",
+        id: '0G14fL',
     },
 });
 
@@ -823,7 +859,6 @@ export const WelcomeResources = defineMessages({
     resourceAnalysis: { defaultMessage: 'Resource analysis', id: 'PWmGlA' },
     suggestedPromptsForYourResources: { defaultMessage: 'Suggested prompts for your resources', id: '3RvKcp' },
     learnMoreAboutPrompts: { defaultMessage: 'Learn more about prompts', id: 'OLJJDc' },
-    logicalApplicationGroup: { defaultMessage: 'Logical application group', id: 'JUbrE2' },
     primaryResourceType: { defaultMessage: 'Primary resource type', id: 'nQpONp' },
 });
 
@@ -834,7 +869,7 @@ export const DailyReportResources = defineMessages({
     // Overview cards
     repositoryInsights: { defaultMessage: 'Repository insights', id: 'oY4j0R' },
     incidentsSummary: { defaultMessage: 'Incidents summary', id: 'zpkKsD' },
-    appGroupHealthPerformance: { defaultMessage: 'App group health + performance', id: 'd/8IiF' },
+    coreAppGroupHealthPerformance: { defaultMessage: 'Core application group health + performance', id: 'SPdP4q' },
 
     // Severity levels
     critical: { defaultMessage: 'Critical', id: '2pzTGC' },
@@ -854,9 +889,9 @@ export const DailyReportResources = defineMessages({
 
     // Section titles
     actionSummary: { defaultMessage: 'Action summary', id: 'iyTlSa' },
-    unhealthyAppGroups: { defaultMessage: 'Unhealthy app groups', id: 'F0ox0E' },
-    degradedAppGroups: { defaultMessage: 'Degraded app groups', id: 'GJxBWO' },
-    healthyAppGroups: { defaultMessage: 'Healthy app groups', id: 'IbhWpr' },
+    unhealthyCoreAppGroups: { defaultMessage: 'Unhealthy core application groups', id: 'hfACn+' },
+    degradedCoreAppGroups: { defaultMessage: 'Degraded core application groups', id: 'CZ6s9k' },
+    healthyCoreAppGroups: { defaultMessage: 'Healthy core application groups', id: 'j5QthH' },
 
     // Resource metrics
     availability: { defaultMessage: 'Availability', id: 'hOxIeP' },
@@ -864,8 +899,8 @@ export const DailyReportResources = defineMessages({
     memory: { defaultMessage: 'Memory', id: 'dVx3yz' },
 
     // App group resource info
-    appGroupResourceName: { defaultMessage: 'App group resource name', id: '7yxsez' },
-    appGroupType: { defaultMessage: 'App group type', id: 'aNIIuB' },
+    coreAppGroupResourceName: { defaultMessage: 'Core application group resource name', id: 'ibf4+R' },
+    coreAppGroupType: { defaultMessage: 'Core application group type', id: 'yoK+he' },
 
     // Action items
     priority: { defaultMessage: 'Priority', id: '8lCjAM' },
