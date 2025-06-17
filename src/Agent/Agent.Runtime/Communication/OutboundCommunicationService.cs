@@ -18,17 +18,20 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
     private readonly ILogger<OutboundCommunicationService> _logger;
     private readonly IPostToTeamsPlugin _postToTeamsService;
     private readonly SinkService _sinkService;
+    private readonly IStreamingService _streamingService;
 
     public OutboundCommunicationService(
         IThreadOrchestrationManager mappingManager,
         ILogger<OutboundCommunicationService> logger,
         IPostToTeamsPlugin postToTeamsService,
-        SinkService sinkService)
+        SinkService sinkService,
+        IStreamingService streamingService)
     {
         _mappingManager = mappingManager;
         _logger = logger;
         _postToTeamsService = postToTeamsService;
         _sinkService = sinkService;
+        _streamingService = streamingService;
     }
 
     public async Task UpdateThreadWithAgentMessageAsync(Guid? threadId, string orchestrationInstanceId, ChatMessage message)
@@ -63,6 +66,27 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
 
         // Use SinkService to add the image message
         return await _sinkService.SinkAgentMessageAsync(threadId, "Approval Request for Processing Azure SRE Agent Request", true, approval);
+    }
+
+    public async Task AppendAgentStreamMessage(Guid threadId, string message, StreamMessageType type)
+    {
+        if (threadId == Guid.Empty)
+        {
+            throw new ArgumentException("Thread ID cannot be empty.", nameof(threadId));
+        }
+
+        try
+        {
+            // Use the streaming service abstraction to send the message
+            await _streamingService.StreamMessageAsync(threadId, message, type);
+
+            _logger.LogExternalInformation("Successfully sent direct stream message for thread {ThreadId} with type {Type}", 
+                threadId, type);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to stream message directly for thread {ThreadId}", threadId);
+        }
     }
 
     public async Task NotifyCompletionAsync(string threadId, string orchestrationInstanceId, string status, string? summary = null)

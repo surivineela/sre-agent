@@ -99,6 +99,23 @@ class MockApprovalRepository
     }
 }
 
+class MockStreamingService : IStreamingService
+{
+    private readonly ILogger<MockStreamingService> _logger;
+
+    public MockStreamingService(ILogger<MockStreamingService> logger)
+    {
+        _logger = logger;
+    }
+
+    public Task StreamMessageAsync(Guid threadId, string message, StreamMessageType type)
+    {
+        _logger.LogInformation("Mock: Streaming message for thread {ThreadId} with type {Type}: {Message}", 
+            threadId, type, message);
+        return Task.CompletedTask;
+    }
+}
+
 class Program
 {
     static void Main(string[] args)
@@ -136,6 +153,12 @@ class Program
             .AddSingleton<SinkService>()
             .AddSingleton<ThreadService>()
             // .AddSingleton<ThreadManagementService>()
+            .AddSingleton<IStreamingService>(sp => 
+            {
+                var logger = sp.GetRequiredService<ILoggerFactory>()
+                    .CreateLogger<MockStreamingService>();
+                return new MockStreamingService(logger);
+            })
             .AddSingleton<IAgentOutboundCommunicationService, OutboundCommunicationService>()
             .AddSingleton<IPostToTeamsPlugin, PostToTeamsPlugin>()
             .AddSingleton<IArmPlugin, ArmPlugin>()

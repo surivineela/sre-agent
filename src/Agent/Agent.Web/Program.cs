@@ -394,6 +394,7 @@ public class Program
             .AddSingleton<ThreadService>()
             .AddSingleton<ThreadManagementService>()
             .AddSingleton<IAgentInboundCommunicationService, InboundCommunicationService>()
+            .AddSingleton<IStreamingService, Agent.Web.Services.SignalRStreamingService>()
             .AddSingleton<IAgentOutboundCommunicationService, OutboundCommunicationService>()
             .AddSingleton<IApprovalService, ApprovalService>()
             .AddSingleton<IRemoteWriteService, RemoteWriteService>()

@@ -66,6 +66,12 @@ public static class ServiceCollectionExtensionsForMocks
 
         services.AddSingleton<ThreadManagementService>();
         services.AddSingleton<IAgentInboundCommunicationService, InboundCommunicationService>();
+        services.AddSingleton<IStreamingService>(sp => 
+        {
+            var logger = sp.GetRequiredService<ILoggerFactory>()
+                .CreateLogger<MockStreamingService>();
+            return new MockStreamingService(logger);
+        });
         services.AddSingleton<IAgentOutboundCommunicationService, OutboundCommunicationService>();
         services.AddTransient<IAgent, MetaAgent>();
         services.AddSingleton<IAuthenticationService>(mocks.AuthenticationService);

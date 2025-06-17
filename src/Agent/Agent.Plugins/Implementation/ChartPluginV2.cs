@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Text.Json;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Charts;
+using Agent.Core.Models.Api.v1;
 using Agent.Logging;
 using Agent.Plugins.Attributes;
 using Agent.Plugins.Interface;
@@ -566,8 +567,14 @@ namespace Agent.Plugins
                 var chartDataJson = JsonSerializer.Serialize(chartData);
                 _logger?.LogInternalInformation("Posting chart data to thread {ThreadId}: {ChartData}", threadId, chartDataJson);
 
-                // Pass chart data as a special message format that the front-end will recognize
-                await _outboundService.AppendAgentImageMessage(ThreadId.Value, $"```chart-data\n{chartDataJson}\n```\n{description}");
+                // Create the chart message format that the front-end will recognize
+                var chartMessage = $"```chart-data\n{chartDataJson}\n```\n{description}";
+
+                // Save to database via the outbound service
+                await _outboundService.AppendAgentImageMessage(ThreadId.Value, chartMessage);
+
+                // Stream the chart data directly to bypass tool call limitations
+                await _outboundService.AppendAgentStreamMessage(ThreadId.Value, chartMessage, StreamMessageType.Chart);
 
                 return $"Successfully generated the chart data, description: {description}";
             }

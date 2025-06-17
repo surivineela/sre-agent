@@ -33,6 +33,13 @@ namespace Agent.Tests.Common.Mocks
             throw new NotImplementedException();
         }
 
+        public Task AppendAgentStreamMessage(Guid threadId, string message, StreamMessageType type)
+        {
+            _logger?.LogInternalInformation($"Mock: Streaming message for thread {threadId} with type {type}: {message}");
+            Messages.Add(message);
+            return Task.CompletedTask;
+        }
+
         public Task NotifyCompletionAsync(string threadId, string instanceId, string status, string? summary = null)
         {
             _logger?.LogInternalInformation($"ThreadId: {threadId}, InstanceId: {instanceId}, Status: {status}");
