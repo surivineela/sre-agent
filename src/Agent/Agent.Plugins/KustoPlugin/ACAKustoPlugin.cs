@@ -275,17 +275,17 @@ namespace Agent.Plugins.Kusto
             if (!string.IsNullOrWhiteSpace(functionName))
             {
                 // For function execution
-                displayText = $"[Execute in ADX]({adxUri})\n\nExecuted function `{functionName}` against {regionOrClusterUri}{(!string.IsNullOrWhiteSpace(database)? $"/{database}" : string.Empty)}:\n```kql\n{query}\n```\n\nRows: {count} Execution time: {executionTime}";
+                displayText = $"[Execute in ADX]({adxUri})\n\nExecuted function `{functionName}` against {regionOrClusterUri}{(!string.IsNullOrWhiteSpace(database)? $"/{database}" : string.Empty)}:\n<details><summary>View KQL Query</summary>\n<pre>\n{query}\n</pre>\n\n</details>\nRows: {count} Execution time: {executionTime}";
             }
             else if (!string.IsNullOrWhiteSpace(database))
             {
                 // For cluster and database-specific queries
-                displayText = $"[Execute in ADX]({adxUri})\n\nExecuted query on cluster '{regionOrClusterUri}' in database '{database}':\n```kql\n{query}\n```\n\nRows: {count} Execution time: {executionTime}";
+                displayText = $"[Execute in ADX]({adxUri})\n\nExecuted query on cluster '{regionOrClusterUri}' in database '{database}':\n<details><summary>View KQL Query</summary>\n<pre>\n{query}\n</pre>\n\n</details>\nRows: {count} Execution time: {executionTime}";
             }
             else
             {
                 // For regional queries
-                displayText = $"[Execute in ADX]({adxUri})\n\nExecuted query in region {regionOrClusterUri}:\n```kql\n{query}\n```\n\nRows:{count} Execution time: {executionTime}";
+                displayText = $"[Execute in ADX]({adxUri})\n\nExecuted query in region {regionOrClusterUri}:\n<details><summary>View KQL Query</summary>\n<pre>\n{query}\n</pre>\n\n</details>\nRows:{count} Execution time: {executionTime}";
             }
 
             return new ChatMessage(ChatRole.Tool, new List<AIContent>
