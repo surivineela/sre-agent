@@ -43,7 +43,7 @@ namespace Agent.Plugins.Implementation
                 string apiManagementResourceId = resourceId.ToLower().Replace("/", "_");
 
                 string query = $@"
-                g.V().has('id', '{apiManagementResourceId}')
+                g.V().has('id', '{apiManagementResourceId}').has('isDeleted', false)
                      .hasLabel('{Constants.ApiManagementType.ToLower()}')
                      .project('id', 'name', 'type', 'properties')
                        .by(id())
@@ -76,7 +76,7 @@ namespace Agent.Plugins.Implementation
             try
             {
                 string query = $@"
-                g.V().has('subscriptionId', '{subscriptionId}')
+                g.V().has('subscriptionId', '{subscriptionId}').has('isDeleted', false)
                      .hasLabel('{Constants.ApiManagementType.ToLower()}')
                      .project('id', 'name', 'type', 'properties')
                        .by(id())
@@ -227,13 +227,13 @@ namespace Agent.Plugins.Implementation
                 string queryString = $@"
                     ApiManagementGatewayLogs
                         | where TimeGenerated between(datetime('{startIso}') ..datetime('{endIso}'))
-                        | summarize 
+                        | summarize
                             TotalCount = count(),
                             FailedCount = countif(IsRequestSuccess == 0),
                             ResponseCode = arg_max(TimeGenerated, ResponseCode),
                             LastErrorReason = arg_max(TimeGenerated, LastErrorReason)
                             by ApiId, OperationId
-                        | extend 
+                        | extend
                             FailureRatePercent = iif(TotalCount == 0, 0.0, todouble(FailedCount) / todouble(TotalCount) * 100)
                         | order by FailureRatePercent desc
                         | project
@@ -277,7 +277,7 @@ namespace Agent.Plugins.Implementation
                     | where IsRequestSuccess == 0
                     | order by TimeGenerated desc
                     | take {topN}
-                    | project 
+                    | project
                         TimeGenerated,
                         CorrelationId,
                         ApiId,
@@ -356,7 +356,7 @@ namespace Agent.Plugins.Implementation
             return null;
         }
 
-        #endregion 
+        #endregion
 
         #region Generic API Management Helpers
 

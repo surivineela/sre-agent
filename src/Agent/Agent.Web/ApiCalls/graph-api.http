@@ -4,7 +4,7 @@ POST https://{{ApiHostname}}/api/v1/graph/
 Content-Type: application/json
 Accept: application/json
 {
-  "query": "g.V()"
+  "query": "g.V().has('isDeleted', false)"
 }
 
 ### Get edges

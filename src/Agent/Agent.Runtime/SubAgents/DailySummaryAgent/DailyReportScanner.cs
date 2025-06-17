@@ -1138,7 +1138,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             {
                 // Get all repositories from the graph database
                 var unscannedRepos = await _graphDatabaseClient.Query(@"
-                    g.V().has('resourceType', 'microsoft.source/repository')
+                    g.V().has('resourceType', 'microsoft.source/repository').has('isDeleted', false)
                     .values('resourceId')");
 
                 var repos = unscannedRepos

@@ -66,7 +66,7 @@ namespace Agent.Runtime.SubAgents.TlsBestPracticesAgent
                 }
             }
 
-            var queryResults = await _graphDatabaseClient.Query("g.V().has('resourceType', 'microsoft.web/sites').values('resourceId')");
+            var queryResults = await _graphDatabaseClient.Query("g.V().has('resourceType', 'microsoft.web/sites').has('isDeleted', false).values('resourceId')");
 
             var resources = queryResults.Select(x => (string)x).OrderBy(resourceId => resourceId.Split("/").Last()).ToList();
             _logger.LogInternalInformation("Found Web Apps / Function Apps in the graph database. {Apps}", string.Join(", ", resources));

@@ -103,9 +103,8 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
                 _logger.LogInternalError("Not a valid resource id, must be in form /subscriptions/<>/resourceGroups/<>/providers/<provider-name>/<resource-type>/<resource-name>");
                 throw new ArgumentException("Resource ID cannot be null or empty", nameof(resourceId));
             }
-
             var resourceNodeId = resourceId.ToLower().Replace("/", "_");
-            string nodeExistsQuery = $"g.V().hasId('{resourceNodeId}')";
+            string nodeExistsQuery = $"g.V().hasId('{resourceNodeId}').has('isDeleted', false)";
             var nodeExistsResults = await _graphDatabaseClient.Query(nodeExistsQuery);
 
             if (nodeExistsResults == null || !nodeExistsResults.Any())
@@ -114,7 +113,7 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
                 throw new Exception($"Resource with ID '{resourceId}' not found in the graph database. Please verify the resource exists.");
             }
 
-            string query = $"g.V().hasId('{resourceNodeId}').outE('{Constants.Relationships.ServesCode}').inV().values('resourceId')";
+            string query = $"g.V().hasId('{resourceNodeId}').has('isDeleted', false).outE('{Constants.Relationships.ServesCode}').inV().has('isDeleted', false).values('resourceId')";
 
             var results = await _graphDatabaseClient.Query<string>(query);
 

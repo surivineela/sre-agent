@@ -77,7 +77,7 @@ public class LocalAuthScanner : SimpleResourceSubAgentScannerBase<LocalAuthAgent
                 .Select(x => new SimpleResourceSubAgentResourceInformation(x.ResourceId, x.Name, x.Location))
                 ,
             appServiceStatusesTask.Result
-                .Where(x => x.SCMBasicAuthEnabled == true || x.FTPBasicAuthEnabled == true) 
+                .Where(x => x.SCMBasicAuthEnabled == true || x.FTPBasicAuthEnabled == true)
                 .Select(x => new SimpleResourceSubAgentResourceInformation(x.ResourceId, x.Name, x.Location))
         };
 
@@ -89,12 +89,12 @@ public class LocalAuthScanner : SimpleResourceSubAgentScannerBase<LocalAuthAgent
         const string ignoreFieldName = "ignoreuntil";
 
         string query = $"""
-        g.V().has('resourceType', '{resourceType}')
+        g.V().has('resourceType', '{resourceType}').has('isDeleted', false)
           .project('resourceId', '{ignoreFieldName}')
           .by(values('resourceId'))
           .by(
             coalesce(
-              outE('{ArmConstants.Relationships.HasIgnoreConfig}').inV().values('{ignoreFieldName}'), 
+              outE('{ArmConstants.Relationships.HasIgnoreConfig}').inV().has('isDeleted', false).values('{ignoreFieldName}'),
               constant('')
             )
           )

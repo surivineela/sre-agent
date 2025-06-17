@@ -24,6 +24,7 @@ public sealed class ResourceGroupNode : ArmResourceNode
             { "resourceId", ResourceId },
             { "subscriptionId", SubscriptionId },
             { "resourceGroupName", ResourceGroupName },
+            { "isDeleted", IsDeleted}
         };
 
         if (!string.IsNullOrEmpty(Location))

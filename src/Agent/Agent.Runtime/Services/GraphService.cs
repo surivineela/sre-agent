@@ -67,7 +67,7 @@ public class GraphService : IGraphService
     public async Task<ResultSet<dynamic>> QuerySubscriptionsAsync()
     {
         _logger.LogInternalInformation("Querying subscriptions from graph database");
-        string query = $@"g.V().has('resourceType', '{SubscriptionNode.Type}')
+        string query = $@"g.V().has('resourceType', '{SubscriptionNode.Type}').has('isDeleted', false)
                          .project('name', 'id')
                          .by('subscriptionName')
                          .by('subscriptionId')";
@@ -97,7 +97,7 @@ public class GraphService : IGraphService
     public async Task<List<IGraphService.AppGroupWithRepo>> GetAppGroupsWithRepo()
     {
         _logger.LogInternalInformation("Querying app groups with repositories from graph database");
-        string query = $@"g.V().has('resourceType', within('{ArmConstants.ContainerAppType.ToLower()}', '{ArmConstants.AppServiceType.ToLower()}', '{ArmConstants.AzureKubernetesServiceType.ToLower()}', '{ArmConstants.AzureKubernetesServiceDeploymentType.ToLower()}', '{ArmConstants.AzureKubernetesServiceStatefulSetType.ToLower()}'))
+        string query = $@"g.V().has('resourceType', within('{ArmConstants.ContainerAppType.ToLower()}', '{ArmConstants.AppServiceType.ToLower()}', '{ArmConstants.AzureKubernetesServiceType.ToLower()}', '{ArmConstants.AzureKubernetesServiceDeploymentType.ToLower()}', '{ArmConstants.AzureKubernetesServiceStatefulSetType.ToLower()}')).has('isDeleted', false)
                          .project('resourceId', 'name', 'type', 'repo', 'linkedTimestamp', 'clusterResourceId', 'namespace')
                          .by(coalesce(values('resourceId'), constant('')))
                          .by(coalesce(values('resourceName'), constant('')))
@@ -166,7 +166,7 @@ public class GraphService : IGraphService
             }
         }
 
-        string query = $@"g.V().has('subscriptionId', '{subscriptionId.ToLower()}')
+        string query = $@"g.V().has('subscriptionId', '{subscriptionId.ToLower()}').has('isDeleted', false)
                         .has('resourceType', {resourceTypeFilter})
                         .project('id', 'name', 'type', 'properties')
                         .by(id())
@@ -210,7 +210,7 @@ public class GraphService : IGraphService
                 _logger.LogInternalInformation("Querying deployments and statefulsets for AKS clusterResourceId {resourceId}", aksResourceId);
 
                 // Query to get deployments and statefulsets for this AKS cluster
-                string k8sQuery = $@"g.V().has('clusterResourceId', '{aksResourceId}')
+                string k8sQuery = $@"g.V().has('clusterResourceId', '{aksResourceId}').has('isDeleted', false)
                             .has('resourceType',  {k8sResourceTypeFilter})
                             .project('id', 'name', 'type', 'properties')
                             .by(id())
@@ -236,12 +236,12 @@ public class GraphService : IGraphService
 
     private async Task<ResultSet<dynamic>> GetRelatedResourcesAsync(string resourceId)
     {
-        string query = $@"g.V().has('id', '{resourceId.ToLower().Replace("/", "_")}')
+        string query = $@"g.V().has('id', '{resourceId.ToLower().Replace("/", "_")}').has('isDeleted', false)
                      .union(
                         outE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'POSTGRESQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS', 'SERVES_CODE').project('edge', 'direction', 'node')
                           .by(label())
                           .by(constant('outgoing'))
-                          .by(inV().not(has('resourceType', within('resourcegroups', 'subscription'))).project('id', 'name', 'type', 'properties')
+                          .by(inV().not(has('resourceType', within('resourcegroups', 'subscription'))).has('isDeleted', false).project('id', 'name', 'type', 'properties')
                               .by(id())
                               .by(coalesce(values('resourceName'), constant('')))
                               .by(label())
@@ -249,7 +249,7 @@ public class GraphService : IGraphService
                         inE('LINKED', 'CONNECTED', 'HOSTED_ON').project('edge', 'direction', 'node')
                           .by(label())
                           .by(constant('incoming'))
-                          .by(outV().not(has('resourceType', within('resourcegroups', 'subscription'))).project('id', 'name', 'type', 'properties')
+                          .by(outV().not(has('resourceType', within('resourcegroups', 'subscription'))).has('isDeleted', false).project('id', 'name', 'type', 'properties')
                               .by(id())
                               .by(coalesce(values('resourceName'), constant('')))
                               .by(label())
@@ -260,11 +260,11 @@ public class GraphService : IGraphService
         // direct outgoing relationships to reduce complexity and improve performance
         if (resourceId.Contains("microsoft.containerservice_managedclusters"))
         {
-            query = $@"g.V().has('id', '{resourceId.ToLower().Replace("/", "_")}')
+            query = $@"g.V().has('id', '{resourceId.ToLower().Replace("/", "_")}').has('isDeleted', false)
                     .outE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'POSTGRESQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS', 'SERVES_CODE', 'REFERENCES', 'BACKED_BY').project('edge', 'direction', 'node')
                         .by(label())
                         .by(constant('outgoing'))
-                        .by(inV().not(has('resourceType', within('resourcegroups', 'subscription'))).project('id', 'name', 'type', 'properties')
+                        .by(inV().not(has('resourceType', within('resourcegroups', 'subscription'))).has('isDeleted', false).project('id', 'name', 'type', 'properties')
                             .by(id())
                             .by(coalesce(values('resourceName'), constant('')))
                             .by(label())
@@ -391,7 +391,7 @@ public class GraphService : IGraphService
     public async Task<List<ArmResourceNode>> GetAllResourceNodes()
     {
         _logger.LogInternalInformation("Fetching all resource nodes from the graph database.");
-        var allResourceNodes = await _graphDatabaseClient.Query("g.V().project('resourceType', 'resourceName','resourceGroupName','subscriptionId', 'resourceId', 'properties').by(coalesce(values('resourceType'), constant('MISSING'))).by(coalesce(values('resourceName'), constant('MISSING'))).by(coalesce(values('resourceGroupName'), constant('MISSING'))).by(coalesce(values('subscriptionId'), constant('MISSING'))).by(coalesce(values('resourceId'), constant('MISSING'))).by(valueMap())");
+        var allResourceNodes = await _graphDatabaseClient.Query("g.V().has('isDeleted', false).project('resourceType', 'resourceName','resourceGroupName','subscriptionId', 'resourceId', 'properties').by(coalesce(values('resourceType'), constant('MISSING'))).by(coalesce(values('resourceName'), constant('MISSING'))).by(coalesce(values('resourceGroupName'), constant('MISSING'))).by(coalesce(values('subscriptionId'), constant('MISSING'))).by(coalesce(values('resourceId'), constant('MISSING'))).by(valueMap())");
 
         if (allResourceNodes is null || allResourceNodes.Count == 0)
         {
@@ -451,7 +451,7 @@ public class GraphService : IGraphService
     public async Task<ResultSet<dynamic>> GetGraphResourceAsync(string resourceId)
     {
         _logger.LogInternalInformation("Querying graph resource {resourceId}", resourceId);
-        string query = $@"g.V().has('id', '{resourceId}')
+        string query = $@"g.V().has('id', '{resourceId}').has('isDeleted', false)
                     .project('id', 'name', 'type', 'properties')
                     .by(id())
                     .by(coalesce(values('resourceName'), constant('')))
@@ -479,8 +479,8 @@ public class GraphService : IGraphService
                 string subscription = GetFirstValueAsString(properties, "subscriptionId") ?? "";
 
                 // Check for repository connection
-                string repoQuery = $@"g.V().has('id', '{resourceId}')
-                                .outE('{ArmConstants.Relationships.ServesCode}').inV()
+                string repoQuery = $@"g.V().has('id', '{resourceId}').has('isDeleted', false)
+                                .outE('{ArmConstants.Relationships.ServesCode}').inV().has('isDeleted', false)
                                 .values('resourceId')";
                 var repoResults = await _graphDatabaseClient.Query<string>(repoQuery);
                 string repoUrl = repoResults?.FirstOrDefault()?.ToString() ?? "";
@@ -645,7 +645,7 @@ public class GraphService : IGraphService
         _logger.LogInternalInformation("Updating properties for resource {resourceId}", resourceId);
 
         // check if the vertex exists
-        string checkQuery = $"g.V().has('id', '{resourceId}').count()";
+        string checkQuery = $"g.V().has('id', '{resourceId}').has('isDeleted', false).count()";
 
         var checkResult = await _graphDatabaseClient.Query(checkQuery);
 
@@ -657,7 +657,7 @@ public class GraphService : IGraphService
 
         var bindings = new Dictionary<string, object>();
 
-        string updateQuery = $"g.V().has('id', '{resourceId}')"; // TODO: currently we are using the resource id as is (_resource_capps_sample_). Refactor this to use /resource/resourceId format.
+        string updateQuery = $"g.V().has('id', '{resourceId}').has('isDeleted', false)"; // TODO: currently we are using the resource id as is (_resource_capps_sample_). Refactor this to use /resource/resourceId format.
 
         foreach (var property in properties)
         {

@@ -129,7 +129,7 @@ namespace Agent.Graph.Crawler.Kubernetes
                 { "clusterResourceId", nsNode.ClusterResourceId },
                 { "namespace", nsNode.ResourceName },
             };
-            await CrawlerExtensions.RemoveStaleNodesWithFilter(_graphDbClient, props, startTs);
+            await CrawlerExtensions.SoftDeleteStaleNodesWithFilter(_graphDbClient, props, startTs);
         }
     }
 }

@@ -873,9 +873,9 @@ namespace Agent.Plugins
                 }
 
                 // Query to find Azure Monitor Workspace nodes that have an edge from the AKS cluster with relationship type "MonitoredBy"
-                var query = $@"g.V().has('resourceId', '{aksClusterResourceId.ToLowerInvariant()}')
+                var query = $@"g.V().has('resourceId', '{aksClusterResourceId.ToLowerInvariant()}').has('isDeleted', false)
                              .out('MONITORED_BY')
-                             .hasLabel(""microsoft.monitor/accounts"")
+                             .hasLabel('microsoft.monitor/accounts').has('isDeleted', false)
                              .has('prometheusQueryEndpoint')
                              .values('prometheusQueryEndpoint')
                              .limit(1)";

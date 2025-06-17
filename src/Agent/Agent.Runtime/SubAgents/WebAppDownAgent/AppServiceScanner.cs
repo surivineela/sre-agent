@@ -88,7 +88,7 @@ public class AppServiceScanner
     {
         // TODO: Update the query with resources that has AppHealthInfo
         // Function App vs Web App was causing issue. So removing it for now.
-        return $@"g.V()
+        return $@"g.V().has('isDeleted', false)
                 .hasLabel(within(
                     '{Constants.ContainerAppType.ToLower()}',
                     '{Constants.AppServiceType.ToLower()}',

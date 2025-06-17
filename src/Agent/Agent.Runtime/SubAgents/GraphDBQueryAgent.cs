@@ -84,12 +84,12 @@ IMPORTANT: If you find apps not following best practices, call the 'postToTeams'
 
         public async Task PrelimData()
         {
-            ChatHistory.Add(new(ChatRole.System, "Vertex Labels (g.V().groupCount().by(label())):"));
-            ChatHistory.Add(new(ChatRole.System, JsonSerializer.Serialize(await _def.Query("g.V().groupCount().by(label())"))));
+            ChatHistory.Add(new(ChatRole.System, "Vertex Labels (g.V().has('isDeleted', false).groupCount().by(label())):"));
+            ChatHistory.Add(new(ChatRole.System, JsonSerializer.Serialize(await _def.Query("g.V().has('isDeleted', false).groupCount().by(label())"))));
             ChatHistory.Add(new(ChatRole.System, "Edge labels (g.E().groupCount().by(label())):"));
             ChatHistory.Add(new(ChatRole.System, JsonSerializer.Serialize(await _def.Query("g.E().groupCount().by(label())"))));
-            ChatHistory.Add(new(ChatRole.System, "Vertex properties (g.V().properties().key().dedup()):"));
-            ChatHistory.Add(new(ChatRole.System, JsonSerializer.Serialize(await _def.Query("g.V().properties().key().dedup()"))));
+            ChatHistory.Add(new(ChatRole.System, "Vertex properties (g.V().has('isDeleted', false).properties().key().dedup()):"));
+            ChatHistory.Add(new(ChatRole.System, JsonSerializer.Serialize(await _def.Query("g.V().has('isDeleted', false).properties().key().dedup()"))));
             ChatHistory.Add(new(ChatRole.System, "Edge properties (g.E().properties().key().dedup()):"));
             ChatHistory.Add(new(ChatRole.System, JsonSerializer.Serialize(await _def.Query("g.E().properties().key().dedup()"))));
         }

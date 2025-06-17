@@ -320,7 +320,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
 
         public async Task<string> GetNodeId(string resourceId)
         {
-            var result = await Query($"g.V().has('resourceId', '{resourceId.ToLowerInvariant()}').limit(1)");
+            var result = await Query($"g.V().has('isDeleted', false).has('resourceId', '{resourceId.ToLowerInvariant()}').limit(1)");
             if (result is not null && result.Count == 1)
             {
                 return result.First()["id"].ToString() ?? string.Empty;

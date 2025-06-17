@@ -56,8 +56,8 @@ namespace Agent.Runtime.SubAgents.SourceCodeAgent
             }
 
             var queryResults = await _graphDatabaseClient.Query(@"
-                g.V().has('resourceType', 'microsoft.app/containerapps')
-                .not(outE().hasLabel('SERVES_CODE').inV().has('resourceType', 'microsoft.source/repository'))
+                g.V().has('resourceType', 'microsoft.app/containerapps').has('isDeleted', false)
+                .not(outE().hasLabel('SERVES_CODE').inV().has('resourceType', 'microsoft.source/repository').has('isDeleted', false))
                 .values('resourceId')");
 
             var resources = queryResults.Select(x => (string)x).OrderBy(resourceId => resourceId.Split("/").Last()).ToList();
@@ -72,7 +72,7 @@ namespace Agent.Runtime.SubAgents.SourceCodeAgent
                     "SourceCode",
                     """
                     Hi there! I found at least one Container App that does not have the source code repo url provided.
-                    Preparing details...  
+                    Preparing details...
                     """,
                     agentTypeEnum: AgentTypeEnum.SourceCode);
 

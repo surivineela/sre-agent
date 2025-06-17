@@ -277,12 +277,11 @@ namespace Agent.Plugins.Implementation
             chatHistory.AddSystemMessage(
                 $@"You are an Azure App Service expert analyzing the Reliability of the App Service instance.
                 Follow these instructions:
-                
-                1. Find the app service using the graph traversal query agent.
-                    a. *** Specifically run g.V().has('resourceName', '{resourceId}') ***
-                    b. *** If 1a doesn't return any results, then specifically run g.V().has('resourceId', '{resourceId}') ***
+                  1. Find the app service using the graph traversal query agent.
+                    a. *** Specifically run g.V().has('resourceName', '{resourceId}').has('isDeleted', false) ***
+                    b. *** If 1a doesn't return any results, then specifically run g.V().has('resourceId', '{resourceId}').has('isDeleted', false) ***
                 2. Once you have the app service, find the app's properties, relating to Reliability (autoheal, healthcheck, number of VMS, alwaysOn)
-                    a. *** Specifically run g.V().has('resourceName', '{resourceId}').properties() ***
+                    a. *** Specifically run g.V().has('resourceName', '{resourceId}').has('isDeleted', false).properties() ***
                 3. Return the following key metrics in table format with five columns. The first column is the App Name (name of app). The second column is AutoHealEnabled.
                    The third column is HealthCheckEnabled. The fourth column is NumberOfWorkers. The fifth column is AlwaysOn.
                   � AutoHealEnabled (boolean: true or false)
@@ -312,12 +311,11 @@ namespace Agent.Plugins.Implementation
             chatHistory.AddSystemMessage(
                 $@"You are an Azure App Service expert analyzing the Reliability of the App Service instances.
                 Follow these instructions:
-                
-                1. For each resourceId in the list of resourceIds {resourceIds}, find the app services using the graph traversal query agent.
-                    a. *** Specifically run g.V().has('resourceName', resourceId) ***
-                    b. *** If 1a doesn't return any results, then specifically run g.V().has('resourceId', resourceId) ***
+                  1. For each resourceId in the list of resourceIds {resourceIds}, find the app services using the graph traversal query agent.
+                    a. *** Specifically run g.V().has('resourceName', resourceId).has('isDeleted', false) ***
+                    b. *** If 1a doesn't return any results, then specifically run g.V().has('resourceId', resourceId).has('isDeleted', false) ***
                 2. Once you have the app services, find the apps' properties, relating to Reliability (autoheal, healthcheck, number of VMS, alwaysOn)
-                    a. *** Specifically run g.V().has('resourceName', resourceId).properties() for each resourceId***
+                    a. *** Specifically run g.V().has('resourceName', resourceId).has('isDeleted', false).properties() for each resourceId***
                 3. Return the following key metrics in table format with five columns. The first column is the App Name (name of app). The second column is AutoHealEnabled.
                    The third column is HealthCheckEnabled. The fourth column is NumberOfWorkers. The fifth column is AlwaysOn.
                   � AutoHealEnabled (boolean: true or false)

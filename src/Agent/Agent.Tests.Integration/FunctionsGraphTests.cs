@@ -28,7 +28,7 @@ public class FunctionsGraphTests
     [Fact]
     public async Task TestConnectDB()
     {
-        var result = await _graphClient.Query("g.V().toList()");
+        var result = await _graphClient.Query("g.V().has('isDeleted', false).toList()");
         Assert.True(result.Count > 0, "No vertices found");
     }
 

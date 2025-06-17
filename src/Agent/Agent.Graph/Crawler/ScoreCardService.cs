@@ -265,7 +265,7 @@ public class ScoreCardService
             var appHealthInfo = await collector.CollectMetricsAsync(node);
             node.AppHealthInfo = appHealthInfo;
             await _graphDatabaseClient.AddOrUpdateNodeAsync(node);
-            
+
             // Save app health information to CosmosDB history
             if (appHealthInfo != null)
             {
@@ -276,7 +276,7 @@ public class ScoreCardService
                         node.ResourceName,
                         node.ResourceType,
                         appHealthInfo);
-                    
+
                     _logger.LogInternalInformation($"Updated app health history for {node.ResourceName} ({node.ResourceType})");
                 }
                 catch (Exception ex)
@@ -285,7 +285,7 @@ public class ScoreCardService
                     // We continue with the scorecard update even if saving history fails
                 }
             }
-            
+
             return true;
         }
         catch (Exception ex)
@@ -311,7 +311,7 @@ public class ScoreCardService
             var appHealthInfo = await collector.CollectMetricsAsync(node);
             node.AppHealthInfo = appHealthInfo;
             await _graphDatabaseClient.AddOrUpdateNodeAsync(node);
-            
+
             // Save app health information to CosmosDB history
             if (appHealthInfo != null)
             {
@@ -322,7 +322,7 @@ public class ScoreCardService
                         node.ResourceName,
                         node.Kind,
                         appHealthInfo);
-                    
+
                     _logger.LogInternalInformation($"Updated app health history for {node.ResourceName} ({node.Kind})");
                 }
                 catch (Exception ex)
@@ -331,7 +331,7 @@ public class ScoreCardService
                     // We continue with the scorecard update even if saving history fails
                 }
             }
-            
+
             return true;
         }
         catch (Exception ex)
@@ -345,7 +345,7 @@ public class ScoreCardService
     {
         // TODO: Update the query with resources that has AppHealthInfo
         // Function App vs Web App was causing issue. So removing it for now.
-        return $@"g.V()
+        return $@"g.V().has('isDeleted', false)
                 .hasLabel(within(
                     '{Constants.ContainerAppType.ToLower()}',
                     '{Constants.AppServiceType.ToLower()}',

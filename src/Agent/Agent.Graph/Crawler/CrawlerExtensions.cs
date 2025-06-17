@@ -88,10 +88,10 @@ public static class CrawlerExtensions
         return client.Query($"g.V('{GetSanitizedCosmosDBId(node.GetNodeId())}').outE().not(__.has('nonCrawled', 'True')).or(__.not(has('updateTs')),__.has('updateTs', P.lt({ts}))).drop()");
     }
 
-    public static Task RemoveStaleNodesWithFilter(IGraphDatabaseClient client, IDictionary<string, string> props, long ts)
+    public static Task SoftDeleteStaleNodesWithFilter(IGraphDatabaseClient client, IDictionary<string, string> props, long ts)
     {
         var filter = string.Join(",", props.Select(kvp => $"has('{kvp.Key}','{kvp.Value}')"));
-        return client.Query($"g.V().and({filter}).not(__.has('nonCrawled', 'True')).or(__.not(has('updateTs')),__.has('updateTs', P.lt({ts}))).drop()");
+        return client.Query($"g.V().and({filter}).not(__.has('nonCrawled', 'True')).or(__.not(has('updateTs')),__.has('updateTs', P.lt({ts}))).property('isDeleted', true).property('updateTs', {ts})");
     }
 
     public static string GetSanitizedCosmosDBId(string id)

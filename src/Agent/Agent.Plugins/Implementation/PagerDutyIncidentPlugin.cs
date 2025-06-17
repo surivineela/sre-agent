@@ -17,7 +17,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Agent.Plugins.Implementation;
 
-public class PagerDutyIncidentPlugin(ILogger<PagerDutyIncidentPlugin> logger, 
+public class PagerDutyIncidentPlugin(ILogger<PagerDutyIncidentPlugin> logger,
                             IGraphDatabaseClient graphDatabaseClient,
                             CosmosDBSettings cosmosDbSettings,
                             CosmosClient cosmosClient,
@@ -67,7 +67,7 @@ public class PagerDutyIncidentPlugin(ILogger<PagerDutyIncidentPlugin> logger,
             logger.LogInternalWarning("ResourceId is null or empty.");
             return [];
         }
-        var query = $"g.V().has('resourceId', '{resourceId}').out('RELATED_TO_INCIDENT').has('resourceType', '/incidents/pagerduty').has('incidentId').project('incidentId').by('incidentId')";
+        var query = $"g.V().has('resourceId', '{resourceId}').has('isDeleted', false).out('RELATED_TO_INCIDENT').has('resourceType', '/incidents/pagerduty').has('isDeleted', false).has('incidentId').project('incidentId').by('incidentId')";
         logger.LogInternalInformation("Found {n} incidents for resourceId: {ResourceId}", query, resourceId);
 
         var result = await graphDatabaseClient.Query<Dictionary<string, object>>(query);

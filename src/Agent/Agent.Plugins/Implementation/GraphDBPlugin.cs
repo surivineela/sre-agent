@@ -108,7 +108,7 @@ namespace Agent.Plugins
                     : $"hasId('{resourceId.ToLower().Replace("/", "_")}')"; // Replacing "/" with "_" as graph IDs use underscores
 
                 string query = $@"
-    g.V().{vertexFilter}
+    g.V().{vertexFilter}.has('isDeleted', false)
       .outE('USES_REDIS')
       .project('from', 'to', 'label', 'connection_details', 'properties')
       .by(outV().values('resourceId'))
@@ -485,7 +485,7 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
 
                 // We are leaving out contains for now
                 string query = $@"
-g.V().has('id', '{deploymentResourceId}')
+g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
 .repeat(out('LINKED', 'CONNECTED', 'OWNED_BY', 'HOSTED_ON', 'SQL_CONNECTED', 'POSTGRESQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS', 'BACKED_BY'))
 .emit().dedup()
 .path().by(valueMap('resourceName', 'resourceType'))";
@@ -506,13 +506,13 @@ g.V().has('id', '{deploymentResourceId}')
 
             try
             {
-                string query = $@"g.V().has('id', '{resourceId.ToLower().Replace("/", "_")}')
+                string query = $@"g.V().has('id', '{resourceId.ToLower().Replace("/", "_")}').has('isDeleted', false)
                     .union(
                         identity(),
                         repeat(
                             union(
-                                outE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'POSTGRESQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS').inV(),
-                                inE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'POSTGRESQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS').outV()
+                                outE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'POSTGRESQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS').inV().has('isDeleted', false),
+                                inE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'POSTGRESQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS').outV().has('isDeleted', false)
                             )
                             .not(has('resourceType', within('resourcegroup', 'subscription')))
                             .simplePath()
@@ -584,7 +584,7 @@ g.V().has('id', '{deploymentResourceId}')
 
         private string BuildDiscoverApplicationsQuery(string subscriptionId)
         {
-            return $@"g.V().has('subscriptionId', '{subscriptionId.ToLower()}')
+            return $@"g.V().has('subscriptionId', '{subscriptionId.ToLower()}').has('isDeleted', false)
                 .out('{Constants.Relationships.Contains}')
                 .out('{Constants.Relationships.Contains}')
                 .hasLabel(within(
@@ -592,6 +592,7 @@ g.V().has('id', '{deploymentResourceId}')
                     '{Constants.AppServiceType.ToLower()}',
                     '{Constants.AzureKubernetesServiceType.ToLower()}'
                 ))
+                .has('isDeleted', false)
                 .project('id', 'name', 'type', 'properties')
                 .by(id())
                 .by(coalesce(values('resourceName'), constant('')))
@@ -681,10 +682,8 @@ g.V().has('id', '{deploymentResourceId}')
             try
             {
                 // Format the resource node ID
-                var resourceNodeId = CrawlerExtensions.GetSanitizedCosmosDBId(resourceId);
-
-                // Check if the resource node exists
-                string query = $@"g.V().hasId('{resourceNodeId}')";
+                var resourceNodeId = CrawlerExtensions.GetSanitizedCosmosDBId(resourceId);                // Check if the resource node exists
+                string query = $@"g.V().hasId('{resourceNodeId}').has('isDeleted', false)";
                 var resourceNodeResults = await GraphDbClient.Query(query);
 
                 if (!resourceNodeResults.Any())
@@ -740,15 +739,14 @@ g.V().has('id', '{deploymentResourceId}')
             {
                 var containerAppNodeId = resourceId.ToLower().Replace("/", "_");
                 string vertexFilter = $"hasId('{containerAppNodeId}')";
-                string query = $@"g.V().{vertexFilter}";
+                string query = $@"g.V().{vertexFilter}.has('isDeleted', false)";
                 var containerAppNodeResults = await GraphDbClient.Query(query);
                 if (!containerAppNodeResults.Any())
                 {
                     return;
                 }
 
-                string sourceCodeNodeId = repoUrl.ToLower().Replace("/", "_");
-                string checkSourceCodeNodeQuery = $"g.V('{sourceCodeNodeId}').hasLabel('microsoft.source/repository')";
+                string sourceCodeNodeId = repoUrl.ToLower().Replace("/", "_"); string checkSourceCodeNodeQuery = $"g.V('{sourceCodeNodeId}').hasLabel('microsoft.source/repository').has('isDeleted', false)";
                 var sourceCodeNodeResults = await GraphDbClient.Query(checkSourceCodeNodeQuery);
 
                 if (!sourceCodeNodeResults.Any())
@@ -775,9 +773,8 @@ g.V().has('id', '{deploymentResourceId}')
 
         public async Task<List<string>> GetContainerAppsWithNodesWithoutSourceCodeNodesAsync()
         {
-            var queryResults = await GraphDbClient.Query(@"
-                g.V().has('resourceType', 'microsoft.app/containerapps')
-                .not(outE().hasLabel('SERVES_CODE').inV().has('resourceType', 'microsoft.source/repository'))
+            var queryResults = await GraphDbClient.Query(@"                g.V().has('resourceType', 'microsoft.app/containerapps').has('isDeleted', false)
+                .not(outE().hasLabel('SERVES_CODE').inV().has('resourceType', 'microsoft.source/repository').has('isDeleted', false))
                 .values('resourceId')");
 
             var resources = queryResults.Select(x => (string)x).OrderBy(resourceId => resourceId.Split("/").Last()).ToList();
@@ -787,8 +784,7 @@ g.V().has('id', '{deploymentResourceId}')
 
         public async Task UpdateRepoNodeWithLastScanTime(string repoUrl)
         {
-            var queryResults = await GraphDbClient.Query($@"
-                g.V().has('resourceId', '{repoUrl}')
+            var queryResults = await GraphDbClient.Query($@"                g.V().has('resourceId', '{repoUrl}').has('isDeleted', false)
                 .values('id', 'label', 'resourceId', 'subscriptionId', 'resourceGroupName', 'resourceName', 'updateTs', 'resourceType')");
             var propertiesArray = queryResults.ToList();
             var id = (string)propertiesArray[0];
@@ -816,7 +812,7 @@ g.V().has('id', '{deploymentResourceId}')
         public async Task<Dictionary<string, object>> GetResourceBasicProperties(string resourceId)
         {
             var query = $@"
-                g.V('{CrawlerExtensions.GetSanitizedCosmosDBId(resourceId)}')
+                g.V('{CrawlerExtensions.GetSanitizedCosmosDBId(resourceId)}').has('isDeleted', false)
                 .project('subscriptionId', 'resourceGroupName', 'resourceType', 'resourceName', 'location')
                 .by(coalesce(values('subscriptionId'), constant('unknown')))
                 .by(coalesce(values('resourceGroupName'), constant('unknown')))
@@ -836,7 +832,7 @@ g.V().has('id', '{deploymentResourceId}')
             {
                 throw new Exception("Invalid Azure resource Id, should be of form /subscriptions/<>/resourceGroups/<>/providers/<providerName>/<resourceType>/<resourceName>");
             }
-            var query = $@"g.V('{CrawlerExtensions.GetSanitizedCosmosDBId(resourceId.ToLower())}').properties().as('p').group().by(select('p').key()).by(select('p').value())";
+            var query = $@"g.V('{CrawlerExtensions.GetSanitizedCosmosDBId(resourceId.ToLower())}').has('isDeleted', false).properties().as('p').group().by(select('p').key()).by(select('p').value())";
 
             var results = await GraphDbClient.Query<Dictionary<string, object>>(query);
             return results.FirstOrDefault(new Dictionary<string, object>());
@@ -844,7 +840,7 @@ g.V().has('id', '{deploymentResourceId}')
 
         public async Task<string> GetResourceIdForResourceName(string resourceName, string resourceType)
         {
-            var query = $@"g.V().has(""resourceName"", ""{resourceName.ToLower()}"").has(""resourceType"", ""{resourceType.ToLower()}"").values('resourceId')";
+            var query = $@"g.V().has(""resourceName"", ""{resourceName.ToLower()}"").has(""resourceType"", ""{resourceType.ToLower()}"").has('isDeleted', false).values('resourceId')";
             var results = await GraphDbClient.Query<string>(query);
             return results.FirstOrDefault("");
         }
@@ -1005,7 +1001,7 @@ g.V().has('id', '{deploymentResourceId}')
             try
             {
                 StringBuilder sb = new StringBuilder();
-                sb.Append("g.V()");
+                sb.Append("g.V().has('isDeleted', false)");
 
                 if (actualGraphResourceType != "all")
                 {
@@ -1076,7 +1072,7 @@ g.V().has('id', '{deploymentResourceId}')
             {
                 string modifiedResourceName = SanitizeInputForQuery(resourceName);
                 string query = $@"
-                g.V().hasLabel('{resourceType.ToLower()}')
+                g.V().hasLabel('{resourceType.ToLower()}').has('isDeleted', false)
                 .where(values('resourceName').is(containing('{modifiedResourceName}')))
                 .project('id', 'resourceName', 'resourceType', 'subscriptionId', 'resourceGroupName', 'location', 'resourceId')
                 .by(id())
@@ -1124,7 +1120,7 @@ g.V().has('id', '{deploymentResourceId}')
             {
                 string modifiedResourceName = SanitizeInputForQuery(resourceName);
                 string query = $@"
-                g.V()
+                g.V().has('isDeleted', false)
                 .where(values('resourceName').is(containing('{modifiedResourceName}')))
                 .project('id', 'resourceName', 'resourceType', 'subscriptionId', 'resourceGroupName', 'location', 'resourceId', 'namespace', 'clusterResourceId', 'group', 'apiVersion', 'kind', 'updateTs')
                 .by(id())
@@ -1240,7 +1236,7 @@ g.V().has('id', '{deploymentResourceId}')
             try
             {
                 string resourceIdFilter = string.Join(",", _crawlRoots.Select(r => $@"has('resourceId', startingWith('{r.ToLower()}'))"));
-                string query = !string.IsNullOrEmpty(resourceIdFilter) ? $@"g.V().or({resourceIdFilter}).groupCount().by(label())" : $@"g.V().groupCount().by(label())";
+                string query = !string.IsNullOrEmpty(resourceIdFilter) ? $@"g.V().has('isDeleted', false).or({resourceIdFilter}).groupCount().by(label())" : $@"g.V().has('isDeleted', false).groupCount().by(label())";
                 var result = await GraphDbClient.Query<Dictionary<string, object>>(query);
 
                 if (result is null || result.Count == 0)
@@ -1279,10 +1275,9 @@ g.V().has('id', '{deploymentResourceId}')
                 string query;
 
                 if (string.IsNullOrWhiteSpace(groupBy))
-                {
-                    // Simple count query when no groupBy is specified
+                {                    // Simple count query when no groupBy is specified
                     query = $@"
-                g.V().hasLabel('{resourceType.ToLower()}')
+                g.V().hasLabel('{resourceType.ToLower()}').has('isDeleted', false)
                 .count()
             ";
 
@@ -1299,10 +1294,9 @@ g.V().has('id', '{deploymentResourceId}')
                     return new { ResourceType = resourceType, Count = count };
                 }
                 else
-                {
-                    // todo: this query linearly lists all resources of the type and manually groups them by the property, which could be slow
+                {                    // todo: this query linearly lists all resources of the type and manually groups them by the property, which could be slow
                     query = $@"
-    g.V().hasLabel('{resourceType.ToLower()}')
+    g.V().hasLabel('{resourceType.ToLower()}').has('isDeleted', false)
     .project('id', 'propertyValue')
     .by(id())
     .by(
@@ -1449,7 +1443,7 @@ g.V().has('id', '{deploymentResourceId}')
         {
             try
             {
-                string query = $@"g.V().has('resourceType', '{SubscriptionNode.Type}')
+                string query = $@"g.V().has('resourceType', '{SubscriptionNode.Type}').has('isDeleted', false)
                           .project('name', 'id')
                           .by('subscriptionName')
                           .by('subscriptionId')";
@@ -1473,9 +1467,8 @@ g.V().has('id', '{deploymentResourceId}')
         public async Task<List<Dictionary<string, object>>> ListResourceGroupsAsync(string subscriptionId)
         {
             try
-            {
-                // Query with the correct lowercase 'resourcegroups' type
-                string query = $@"g.V().has('resourceType', 'resourcegroups')
+            {                // Query with the correct lowercase 'resourcegroups' type
+                string query = $@"g.V().has('resourceType', 'resourcegroups').has('isDeleted', false)
                          .has('subscriptionId', '{subscriptionId}')
                          .project('subscriptionId', 'resourceGroupName', 'resourceType', 'resourceId', 'location')
                          .by(coalesce(values('subscriptionId'), constant('')))
@@ -1667,7 +1660,7 @@ g.V().has('id', '{deploymentResourceId}')
 
                 var resourceID = new ResourceIdentifier(sanitizedResourceId);
 
-                string query = $"g.V().has('resourceId', '{sanitizedResourceId}').project('properties').by(valueMap()).by(unfold())";
+                string query = $"g.V().has('resourceId', '{sanitizedResourceId}').has('isDeleted', false).project('properties').by(valueMap()).by(unfold())";
 
                 var result = await GraphDbClient.Query<dynamic>(query);
 

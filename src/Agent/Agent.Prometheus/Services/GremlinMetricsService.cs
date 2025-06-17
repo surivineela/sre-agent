@@ -235,7 +235,7 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
         [property: JsonPropertyName("location")] string Location,
         [property: JsonPropertyName("appHealthInfo")] string AppHealthInfo
     );
-    
+
 
     private async Task CollectAppGroupMetrics(CancellationToken cancellationToken)
     {
@@ -244,7 +244,7 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
         {
             try
             {
-                var appGroups = await _graphDatabaseClient.Query<Dictionary<string, object>>("g.V().has('resourceType').has('resourceId').has('subscriptionId').has('location').has('appHealthInfo').project('resourceType','resourceId', 'subscriptionId', 'location', 'appHealthInfo').by(values('resourceType')).by(values('resourceId')).by(values('subscriptionId')).by(values('location')).by(values('appHealthInfo'))");
+                var appGroups = await _graphDatabaseClient.Query<Dictionary<string, object>>("g.V().has('isDeleted', false).has('resourceType').has('resourceId').has('subscriptionId').has('location').has('appHealthInfo').project('resourceType','resourceId', 'subscriptionId', 'location', 'appHealthInfo').by(values('resourceType')).by(values('resourceId')).by(values('subscriptionId')).by(values('location')).by(values('appHealthInfo'))");
                 foreach (var app in appGroups)
                 {
                     if (app is not null)
@@ -281,7 +281,7 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
                                 double latency = appHealthInfo.AvgLatencyInMs.Value;
                                 _appAvgLatencyInMsGauge.WithLabels(resourceType, resourceId, subscriptionId, location).Set(latency);
                             }
-                            
+
                             if (appHealthInfo.AvgMemoryUsage.HasValue)
                             {
                                 double memoryUsage = appHealthInfo.AvgMemoryUsage.Value;
@@ -329,7 +329,7 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
             try
             {
                 // Vertex count
-                var vertexCount = await ExecuteCountQuery("g.V().count()");
+                var vertexCount = await ExecuteCountQuery("g.V().has('isDeleted', false).count()");
                 _vertexCountGauge.Set(vertexCount);
                 _logger.LogInternalInformation("Updated vertex count: {Count}", vertexCount);
 
@@ -354,14 +354,14 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
         {
             try
             {
-                var resourceTypes = await ExecuteGroupCountQuery("g.V().not(has('resourceType', 'microsoft.web/sites')).groupCount().by('resourceType')");
+                var resourceTypes = await ExecuteGroupCountQuery("g.V().has('isDeleted', false).not(has('resourceType', 'microsoft.web/sites')).groupCount().by('resourceType')");
                 foreach (var type in resourceTypes)
                 {
                     _resourceTypeCountGauge.WithLabels(type.Key).Set(type.Value);
                 }
 
                 // special handle for webapp / function app
-                var webAppCount = await ExecuteGroupCountQuery("g.V().has('resourceType', 'microsoft.web/sites').groupCount().by('kind')");
+                var webAppCount = await ExecuteGroupCountQuery("g.V().has('resourceType', 'microsoft.web/sites').has('isDeleted', false).groupCount().by('kind')");
                 foreach (var type in webAppCount)
                 {
                     _resourceTypeCountGauge.WithLabels($"microsoft.web/sites/{type.Key}").Set(type.Value);
@@ -409,10 +409,10 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
             try
             {
                 // Vertex properties
-                var vertexProperties = await ExecuteDeduplicationQuery("g.V().properties().key().dedup()");
+                var vertexProperties = await ExecuteDeduplicationQuery("g.V().has('isDeleted', false).properties().key().dedup()");
                 foreach (var prop in vertexProperties)
                 {
-                    var count = await ExecuteCountQuery($"g.V().has('{prop}').count()");
+                    var count = await ExecuteCountQuery($"g.V().has('isDeleted', false).has('{prop}').count()");
                     _vertexPropertyCountGauge.WithLabels(prop).Set(count);
                 }
 
@@ -610,6 +610,7 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
 
                 foreach (var item in result)
                 {
+                    _logger.LogInternalInformation("item.Key: {itemKey}, item.Value: {itemValue}", item.Key, item.Value);
                     gauge.WithLabels(item.Key).Set(item.Value);
                 }
             }
@@ -621,7 +622,7 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
 
                 foreach (var item in result)
                 {
-                    var count = await ExecuteCountQuery($"g.V().has('{item}').count()");
+                    var count = await ExecuteCountQuery($"g.V().has('isDeleted', false).has('{item}').count()");
                     gauge.WithLabels(item).Set(count);
                 }
             }

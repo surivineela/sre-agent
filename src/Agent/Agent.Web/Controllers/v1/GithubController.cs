@@ -60,13 +60,13 @@ public class GithubController(
         {
             var appNodeId = request.ResourceId.ToLower().Replace("/", "_");
             string vertexFilter = $"hasId('{appNodeId}')";
-            string query = $@"g.V().{vertexFilter}";
+            string query = $@"g.V().{vertexFilter}.has('isDeleted', false)";
 
             // if app has a namespace and subType starts with "k8s", this is a k8s resource
             if (!string.IsNullOrEmpty(request.Namespace) && !string.IsNullOrEmpty(request.ResourceName) && !string.IsNullOrEmpty(request.SubType) && request.SubType.StartsWith("k8s", StringComparison.OrdinalIgnoreCase))
             {
                 // for AKS resources, resourceId is the AKS cluster resource id, not the specific object resource id in graph
-                query = $@"g.V().has('resourceName','{request.ResourceName}').has('namespace','{request.Namespace}').has('resourceType','{request.SubType}').has('clusterResourceId','{request.ResourceId}').values('id')";
+                query = $@"g.V().has('resourceName','{request.ResourceName}').has('namespace','{request.Namespace}').has('resourceType','{request.SubType}').has('clusterResourceId','{request.ResourceId}').has('isDeleted', false).values('id')";
                 var appResult = await _graphDbClient.Query(query);
                 var appidList = appResult.ToList();
                 if (appidList.Count == 0)
@@ -86,7 +86,7 @@ public class GithubController(
 
 
             var sourceCodeNode = new SourceCodeRepoNode(request.RepoUrl);
-            var sourceCodeNodeResults = await _graphDbClient.Query($"g.V('{sourceCodeNode.GetNodeId()}').hasLabel('{sourceCodeNode.GetNodeLabel()}')");
+            var sourceCodeNodeResults = await _graphDbClient.Query($"g.V('{sourceCodeNode.GetNodeId()}').hasLabel('{sourceCodeNode.GetNodeLabel()}').has('isDeleted', false)");
 
             if (!sourceCodeNodeResults.Any())
             {

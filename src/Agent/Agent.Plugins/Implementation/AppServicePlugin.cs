@@ -16,7 +16,7 @@ public class AppServicePlugin : IAppServicePlugin
     private readonly ILogger<AppServicePlugin> _logger;
 
     public AppServicePlugin(
-        IGraphDatabaseClient graphDatabaseClient, 
+        IGraphDatabaseClient graphDatabaseClient,
         ILogger<AppServicePlugin> logger)
     {
         _databaseClient = graphDatabaseClient;
@@ -30,9 +30,9 @@ public class AppServicePlugin : IAppServicePlugin
         try
         {
             string appServiceResourceId = resourceId.ToLower().Replace("/", "_");
-            
+
             string query = $@"
-                g.V().has('id', '{appServiceResourceId}')
+                g.V().has('id', '{appServiceResourceId}').has('isDeleted', false)
                 .hasLabel('{Constants.AppServiceType.ToLower()}')
                 .project('id', 'name', 'type', 'properties')
                 .by(id())
@@ -52,7 +52,7 @@ public class AppServicePlugin : IAppServicePlugin
             var properties = appService["properties"];
 
             string name = appService["name"]?.ToString() ?? "";
-            string kind = GetFirstPropertyValue(properties, "kind") ?? "app"; 
+            string kind = GetFirstPropertyValue(properties, "kind") ?? "app";
             string location = GetFirstPropertyValue(properties, "location");
             string sku = GetFirstPropertyValue(properties, "sku") ?? "Unknown";
             string state = GetFirstPropertyValue(properties, "state") ?? "Unknown";
@@ -91,7 +91,7 @@ public class AppServicePlugin : IAppServicePlugin
         try
         {
             string query = $@"
-                g.V()
+                g.V().has('isDeleted', false)
                 .has('subscriptionId', '{subscriptionId}')
                 .hasLabel('{Constants.AppServiceType.ToLower()}')
                 .project('id', 'name', 'type', 'properties')
@@ -111,12 +111,12 @@ public class AppServicePlugin : IAppServicePlugin
             foreach (var appService in result)
             {
                 var properties = appService["properties"];
-                
+
                 string id = appService["id"].ToString();
                 string resourceId = id.Replace("_", "/");
-                
+
                 string name = appService["name"]?.ToString() ?? "";
-                string kind = GetFirstPropertyValue(properties, "kind") ?? "app"; 
+                string kind = GetFirstPropertyValue(properties, "kind") ?? "app";
                 string location = GetFirstPropertyValue(properties, "location");
                 string sku = GetFirstPropertyValue(properties, "sku") ?? "Unknown";
                 string state = GetFirstPropertyValue(properties, "state") ?? "Unknown";

@@ -22,7 +22,8 @@ public sealed class SubscriptionNode : ArmResourceNode
             { "updateTs", UpdateTs },
             { "resourceId", ResourceId },
             { "subscriptionId", SubscriptionId },
-            { "subscriptionName", SubscriptionName }
+            { "subscriptionName", SubscriptionName },
+            { "isDeleted", IsDeleted}
         };
     }
 }

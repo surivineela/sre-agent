@@ -59,12 +59,12 @@ namespace Agent.Runtime.SubAgents.CVEAgent
             }
 
             var unscannedQueryResults = await _graphDatabaseClient.Query(@"
-                g.V().has('resourceType', 'microsoft.source/repository')
+                g.V().has('resourceType', 'microsoft.source/repository').has('isDeleted', false)
                 .not(has('lastScanTime'))
                 .values('resourceId')");
 
             var expiredScanQueryResults = await _graphDatabaseClient.Query($@"
-                g.V().has('resourceType', 'microsoft.source/repository')
+                g.V().has('resourceType', 'microsoft.source/repository').has('isDeleted', false)
                 .has('lastScanTime', lt('{DateTime.UtcNow.AddDays(-1)}'))
                 .values('resourceId')");
 

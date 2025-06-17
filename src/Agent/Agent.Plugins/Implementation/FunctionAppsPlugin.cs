@@ -30,9 +30,8 @@ public class FunctionAppsPlugin : IFunctionAppsPlugin
         try
         {
             string functionAppResourceId = resourceId.ToLower().Replace("/", "_");
-
             string query = $@"
-                g.V().has('id', '{functionAppResourceId}')
+                g.V().has('id', '{functionAppResourceId}').has('isDeleted', false)
                 .hasLabel('{Constants.AppServiceType.ToLower()}')
                 .has('kind', containing('{Constants.FunctionAppKind}'))
                 .project('id', 'name', 'type', 'properties')
@@ -111,7 +110,7 @@ public class FunctionAppsPlugin : IFunctionAppsPlugin
         try
         {
             string query = $@"
-                g.V()
+                g.V().has('isDeleted', false)
                 .has('subscriptionId', '{subscriptionId}')
                 .hasLabel('{Constants.AppServiceType.ToLower()}')
                 .has('kind', containing('{Constants.FunctionAppKind}'))

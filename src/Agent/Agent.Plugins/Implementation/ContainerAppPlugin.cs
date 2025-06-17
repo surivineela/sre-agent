@@ -111,10 +111,10 @@ namespace Agent.Plugins.Implementation
                 var cappResourceId = resourceId.ToLower().Replace("/", "_");
 
                 var query = $@"
-                    g.V().has('id', '{cappResourceId}')
+                    g.V().has('id', '{cappResourceId}').has('isDeleted', false)
                     .hasLabel('{Graph.Crawler.ARM.Constants.ContainerAppType.ToLower()}')
                     .outE('{Graph.Crawler.ARM.Constants.Relationships.RevisionOf}')
-                    .inV()
+                    .inV().has('isDeleted', false)
                     .project('properties')
                     .by(properties().group().by(key()).by(value()))
                     .select('properties')";
@@ -201,7 +201,7 @@ namespace Agent.Plugins.Implementation
             try
             {
                 string query = $@"
-                    g.V()
+                    g.V().has('isDeleted', false)
                     .has('subscriptionId', '{subscriptionId}')
                     .hasLabel('{Graph.Crawler.ARM.Constants.ContainerAppType.ToLower()}')
                     .project('properties')
