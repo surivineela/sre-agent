@@ -677,8 +677,8 @@ public class Program
                 // if (builder.Environment.IsDevelopment())
                 // TODO: sanmeht - only enable traces for non-production environments
                 // {
-                    // In-memory exporter for development - direct implementation
-                    exporters.Add(new InMemoryActivityExporter(exportedActivities));
+                // In-memory exporter for development - direct implementation
+                exporters.Add(new InMemoryActivityExporter(exportedActivities));
                 // }
 
                 // Add Azure Data Explorer exporter for production if configured
@@ -688,10 +688,6 @@ public class Program
                 {
                     try
                     {
-                        // Get authentication settings
-                        var certificatePath = GetKustoFirstPartyConfiguration("CertificatePath");
-                        var tenantId = "33e01921-4d64-4f8c-a055-5bdaffd5e33d";
-                        var clientId = GetKustoFirstPartyConfiguration("ClientId");
                         // Set up populate columns delegate
                         PopulateColumnsDelegate populateColumns = (activity, trace) =>
                         {
@@ -713,9 +709,9 @@ public class Program
                             DatabaseName = azureSettings.AgentTraceKusto.DatabaseName,
                             TableName = "AgentTrace",
                             PopulateColumns = populateColumns,
-                            FirstPartyAppCertificatePath = certificatePath,
-                            FirstPartyAppClientId = clientId,
-                            FirstPartyAppTenantId = tenantId
+                            FirstPartyAppCertificatePath = azureSettings.AgentTraceKusto.CertificatePath,
+                            FirstPartyAppClientId = azureSettings.AgentTraceKusto.FirstPartyAppClientId,
+                            FirstPartyAppTenantId = azureSettings.AgentTraceKusto.FirstPartyAppTenantId,
                         }));
 
                         logger.LogInternalInformation("Successfully configured Azure Data Explorer exporter");
@@ -794,28 +790,31 @@ public class Program
 
     private static void ConfigureKustoLoggers(WebApplicationBuilder builder)
     {
+        const string agentLogTable = "SREAgentDataPlaneEvents";
+
+        // The SRE Agent Kusto for Agent Logs
         var internalKustoClusterSettings = new KustoClusterConfiguration
         {
             ClusterUri = GetInternalKustoClusterConfiguration("ClusterUri"),
             DatabaseName = GetInternalKustoClusterConfiguration("DatabaseName"),
-            TableName = GetInternalKustoClusterConfiguration("TableName"),
-            Identity = GetInternalKustoClusterConfiguration("Identity")
+            CertificatePath = GetInternalKustoClusterConfiguration("CertificatePath"),
+            FirstPartyAppClientId = GetInternalKustoClusterConfiguration("FirstPartyAppClientId"),
+            FirstPartyAppTenantId = GetInternalKustoClusterConfiguration("FirstPartyAppTenantId"),
         };
 
+        // The 1P BYO Kusto Cluster for Agent Logs
         var externalKustoClusterUri = GetKustoClusterConfiguration("ClusterUri");
         var externalKustoClusterDatabaseName = GetKustoClusterConfiguration("DatabaseName");
-        var externalKustoClusterTableName = GetKustoClusterConfiguration("TableName");
         var externalKustoClusterIdentity = GetKustoClusterConfiguration("Identity");
+
         var externalKustoClusterSettings = (!string.IsNullOrEmpty(externalKustoClusterUri)
             && !string.IsNullOrEmpty(externalKustoClusterDatabaseName)
-            && !string.IsNullOrEmpty(externalKustoClusterTableName)
             && !string.IsNullOrEmpty(externalKustoClusterIdentity))
             ? new KustoClusterConfiguration
             {
-                ClusterUri = GetKustoClusterConfiguration("ClusterUri"),
-                DatabaseName = GetKustoClusterConfiguration("DatabaseName"),
-                TableName = GetKustoClusterConfiguration("TableName"),
-                Identity = GetKustoClusterConfiguration("Identity")
+                ClusterUri = externalKustoClusterUri,
+                DatabaseName = externalKustoClusterDatabaseName,
+                Identity = externalKustoClusterIdentity
             }
             : null;
 
@@ -823,22 +822,18 @@ public class Program
         {
             CommonColumn commonColumn = CommonColumn.Build();
 
-            var clientId = GetKustoFirstPartyConfiguration("ClientId");
-            var tenantId = "33e01921-4d64-4f8c-a055-5bdaffd5e33d"; // TODO: switch to this when tenant Id is correctly set GetKustoFirstPartyConfiguration("TenantId");
-            var certificatePath = GetKustoFirstPartyConfiguration("CertificatePath");
-
             var logger = new AzureDataExplorerLoggerProvider(
                 commonColumn: commonColumn,
                 internalKustoClusterUri: internalKustoClusterSettings.ClusterUri,
                 internalKustoDatabaseName: internalKustoClusterSettings.DatabaseName,
-                internalKustoTableName: internalKustoClusterSettings.TableName,
+                internalKustoTableName: agentLogTable,
                 externalKustoClusterUri: externalKustoClusterSettings?.ClusterUri,
                 externalKustoDatabaseName: externalKustoClusterSettings?.DatabaseName,
-                externalKustoTableName: externalKustoClusterSettings?.TableName,
+                externalKustoTableName: agentLogTable,
                 externalKustoIdentityClientId: externalKustoClusterSettings?.Identity,
-                kustoFirstPartyAppClientId: clientId,
-                kustoFirstPartyAppTenantId: tenantId,
-                kustoFirstPartyAppCertificatePath: certificatePath);
+                kustoFirstPartyAppClientId: internalKustoClusterSettings.FirstPartyAppClientId,
+                kustoFirstPartyAppTenantId: internalKustoClusterSettings.FirstPartyAppTenantId,
+                kustoFirstPartyAppCertificatePath: internalKustoClusterSettings.CertificatePath);
 
             builder.Services.AddSingleton<ILoggerProvider>(logger);
             builder.Services.AddSingleton<AzureDataExplorerLogger>(logger.GetLogger());
@@ -904,21 +899,16 @@ public class Program
             });
         }
     }
-    private static string GetKustoFirstPartyConfiguration(string key)
-    {
-        const string prefix = "AppSettings__Core__Azure__Kusto__";
-        return Environment.GetEnvironmentVariable($"{prefix}{key}") ?? string.Empty;
-    }
 
     private static string GetKustoClusterConfiguration(string key)
     {
-        const string prefix = "AppSettings__Core__Azure__FirstParty__KustoClusterConfiguration_";
+        const string prefix = "AppSettings__Core__Azure__FirstParty__KustoClusterConfiguration__";
         return Environment.GetEnvironmentVariable($"{prefix}{key}") ?? string.Empty;
     }
 
     private static string GetInternalKustoClusterConfiguration(string key)
     {
-        const string prefix = "AppSettings__Core__KustoClusterConfiguration_";
+        const string prefix = "AppSettings__Core__Azure__AgentLogKusto__";
         return Environment.GetEnvironmentVariable($"{prefix}{key}") ?? string.Empty;
     }
 
