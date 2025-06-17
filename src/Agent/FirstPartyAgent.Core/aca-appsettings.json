@@ -504,7 +504,7 @@
             }
           ],
           "Auth": {
-            "AuthenticationType": "User",
+            "AuthenticationType": "UAMI",
             "Authority": "",
             "AuthorityHost": "",
             "ApplicationClientId": "",
