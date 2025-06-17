@@ -60,7 +60,7 @@ public class AgentActionLogger
     /// <param name="status">The status/result of the action</param>
     /// <param name="duration">The duration of the action in milliseconds</param>
     /// <param name="exception">Exception that occurred during the action</param>
-    public void LogAction(string action,  string parameter, string status, long duration, Exception exception)
+    public void LogAction(string action,  string parameter, string status, int duration, Exception exception)
     {
         var logRecord = new AgentActionLogRecord
         {
@@ -69,7 +69,6 @@ public class AgentActionLogger
             Status = status,
             Duration = duration,
             Timestamp = DateTimeOffset.UtcNow,
-            Exception = exception?.ToString()
         };
 
         using var scope = _logger.BeginScope(new Dictionary<string, object>
@@ -79,7 +78,6 @@ public class AgentActionLogger
             { nameof(logRecord.Status), logRecord.Status },
             { nameof(logRecord.Duration), logRecord.Duration },
             { nameof(logRecord.Timestamp), logRecord.Timestamp },
-            { nameof(logRecord.Exception), logRecord.Exception ?? string.Empty }
         });
 
         _logger.LogError(exception,
@@ -121,8 +119,4 @@ public class AgentActionLogRecord
     /// </summary>
     public DateTimeOffset Timestamp { get; set; }
 
-    /// <summary>
-    /// Exception details if the action failed
-    /// </summary>
-    public string? Exception { get; set; }
 }

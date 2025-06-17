@@ -871,21 +871,28 @@ public class Program
 
     private static void ConfigureAgentActionLoggers(WebApplicationBuilder builder)
     {
-        var azureSettings = builder.Configuration.GetSection("AppSettings:Core:Azure").Get<AzureSettings>();
-        // Add AgentActionLogger as a singleton service
+        var ClusterUri = GetInternalKustoClusterConfiguration("ClusterUri");
+        var DatabaseName = GetInternalKustoClusterConfiguration("DatabaseName");
+        var CertificatePath = GetInternalKustoClusterConfiguration("CertificatePath");
+        var FirstPartyAppClientId = GetInternalKustoClusterConfiguration("FirstPartyAppClientId");
+        var FirstPartyAppTenantId = GetInternalKustoClusterConfiguration("FirstPartyAppTenantId");
+
         builder.Services.AddSingleton<AgentActionLogger>();
-        if (azureSettings != null && azureSettings.AgentActionADX != null && !string.IsNullOrEmpty(azureSettings.AgentActionADX.ClusterUri))
+        if (builder.Environment.IsProduction())
         {
             // Add IAgentActionLogExporter as a singleton service
             builder.Services.AddSingleton<IAgentActionLogExporter>(sp =>
             {
                 var logger = sp.GetRequiredService<ILogger<AgentActionLogADXExporter>>();
                 return new AgentActionLogADXExporter(
-                    azureSettings.AgentActionADX.ClusterUri,
-                    azureSettings.AgentActionADX.DatabaseName,
-                    azureSettings.AgentActionADX.TableName,
-                    logger,
-                    false); // Enable batch processing for better performance
+                    ClusterUri,
+                    DatabaseName,
+                    "AgentActionLog",
+                    CertificatePath,
+                    FirstPartyAppClientId,
+                    FirstPartyAppTenantId,
+                    logger);
+                // Enable batch processing for better performance
             });
         }
         else

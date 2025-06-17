@@ -4,6 +4,7 @@ using Kusto.Data.Common;
 using Kusto.Ingest;
 using Kusto.Data;
 using Microsoft.Extensions.Logging;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Agent.Logging;
 
@@ -15,7 +16,6 @@ public class AgentActionLogADXExporter : IAgentActionLogExporter
     private readonly IKustoIngestClient _kustoClient;
     private readonly string _databaseName;
     private readonly string _tableName;
-    private readonly DataSourceFormat _format;
     private readonly LogBuffer? _logBuffer;
     private readonly bool _useBatchProcessing;
     private readonly ILogger<AgentActionLogADXExporter> _logger;
@@ -32,22 +32,50 @@ public class AgentActionLogADXExporter : IAgentActionLogExporter
         string clusteruri,
         string databaseName,
         string tableName,
-        ILogger<AgentActionLogADXExporter> logger,
-        bool useBatchProcessing = false)
+        string firstPartyAppCertificatePath,
+        string firstPartyAppClientId,
+        string firstPartyAppTenantId,
+        ILogger<AgentActionLogADXExporter> logger)
     {
-        var kustoConnectionStringBuilder = new KustoConnectionStringBuilder(clusteruri)
-        .WithAadAzCliAuthentication();
-        _kustoClient = KustoIngestFactory.CreateDirectIngestClient(kustoConnectionStringBuilder);
+        Console.WriteLine("AgentActionLogADXExporter initialized with parameters: " +
+            $"ClusterUri: {clusteruri}, " +
+            $"DatabaseName: {databaseName}, " +
+            $"TableName: {tableName}, " +
+            $"FirstPartyAppCertificatePath: {firstPartyAppCertificatePath}, " +
+            $"FirstPartyAppClientId: {firstPartyAppClientId}, " +
+            $"FirstPartyAppTenantId: {firstPartyAppTenantId}");
+
+        if (!string.IsNullOrEmpty(firstPartyAppCertificatePath) &&
+            !string.IsNullOrEmpty(firstPartyAppCertificatePath) &&
+            !string.IsNullOrEmpty(firstPartyAppTenantId))
+        {
+            var certPem = File.ReadAllText($"{firstPartyAppCertificatePath}/tls.crt");
+            var keyPem = File.ReadAllText($"{firstPartyAppCertificatePath}/tls.key");
+            var certificate = X509Certificate2.CreateFromPem(certPem, keyPem);
+            var kustoConnectionStringBuilder = new KustoConnectionStringBuilder(clusteruri)
+                        .WithAadApplicationCertificateAuthentication(
+                            applicationClientId: firstPartyAppClientId,
+                            certificate,
+                            authority: firstPartyAppTenantId,
+                            sendX5c: true);
+
+            _kustoClient = KustoIngestFactory.CreateQueuedIngestClient(kustoConnectionStringBuilder);
+            Console.WriteLine("AgentActionLogADXExporter use Kusto ingestion with application certificate authentication.");
+        }
+        else
+        {
+            if (string.IsNullOrEmpty(clusteruri))
+            {
+                throw new ArgumentException("ClusterUri must be specified");
+            }
+            var kustoConnectionStringBuilder = new KustoConnectionStringBuilder(clusteruri).WithAadAzCliAuthentication();
+            _kustoClient = KustoIngestFactory.CreateQueuedIngestClient(kustoConnectionStringBuilder);
+            Console.WriteLine("AgentActionLogADXExporter use ingestion with Azure CLI authentication.");
+        }
+
         _databaseName = databaseName ?? throw new ArgumentNullException(nameof(databaseName));
         _tableName = tableName ?? throw new ArgumentNullException(nameof(tableName));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _useBatchProcessing = useBatchProcessing;
-        _format = useBatchProcessing ? DataSourceFormat.multijson : DataSourceFormat.json;
-
-        if (useBatchProcessing)
-        {
-            _logBuffer = new LogBuffer();
-        }
     }
 
     /// <summary>
@@ -58,82 +86,50 @@ public class AgentActionLogADXExporter : IAgentActionLogExporter
     {
         try
         {
-            if (_useBatchProcessing && _logBuffer != null)
-            {
-                // Batch processing mode
-                var actionData = ConvertLogRecordToKustoData(logRecord);
-                _logBuffer.Logs.Enqueue(actionData);
-            }
-            else
-            {
-                // Direct processing mode
-                var actionData = ConvertLogRecordToKustoData(logRecord);
-                IngestToCluster(_kustoClient, _databaseName, _tableName, actionData);
-            }
+            // Direct processing mode
+            var actionData = ConvertLogRecordToKustoData(logRecord);
+            Console.WriteLine("AgentActionLogADXExporter Ingesting single agent action log record directly to Kusto.");
+            IngestToCluster(_kustoClient, _databaseName, _tableName, actionData);
+            Console.WriteLine("AgentActionLogADXExporter Single agent action log record ingestion completed.");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error exporting agent action log record to Azure Data Explorer");
+            Console.WriteLine($"AgentActionLogADXExporter Error exporting agent action log record to Azure Data Explorer: {ex.Message}");
+        }
+    }
+
+    private void IngestToCluster(IKustoIngestClient client, string databaseName, string tableName, object logData)
+    {
+        var ingestionProperties = new KustoIngestionProperties(databaseName, tableName)
+        {
+            Format = DataSourceFormat.json
+        };
+
+        var jsonData = JsonSerializer.Serialize(logData);
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(jsonData));
+        Console.WriteLine($"AgentActionLogADXExporterex Ingesting single record to Kusto: {jsonData}");
+        try
+        {
+            client.IngestFromStreamAsync(stream, ingestionProperties).Wait();
+            Console.WriteLine("AgentActionLogADXExporterex Single record ingestion to Kusto completed successfully.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"AgentActionLogADXExporterex Error occurred during single record ingestion to Kusto: {ex.Message}");
+            if (ex.InnerException != null)
+            {
+                _logger.LogError($"Inner exception: {ex.InnerException.Message}");
+            }
+            throw; // Rethrow to allow caller to handle
         }
     }
 
     /// <summary>
-    /// Exports multiple agent action log records to Azure Data Explorer.
+    /// Finalizes the exporter and flushes any remaining logs.
     /// </summary>
-    /// <param name="logRecords">The collection of agent action log records to export.</param>
-    public void Export(IEnumerable<AgentActionLogRecord> logRecords)
+    public void Shutdown()
     {
-        try
-        {
-            if (_useBatchProcessing && _logBuffer != null)
-            {
-                // Batch processing mode
-                foreach (var logRecord in logRecords)
-                {
-                    var actionData = ConvertLogRecordToKustoData(logRecord);
-                    _logBuffer.Logs.Enqueue(actionData);
-                }
-            }
-            else
-            {
-                // Direct processing mode for each record
-                foreach (var logRecord in logRecords)
-                {
-                    var actionData = ConvertLogRecordToKustoData(logRecord);
-                    IngestToCluster(_kustoClient, _databaseName, _tableName, actionData);
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error exporting agent action log records to Azure Data Explorer");
-        }
-    }
 
-    /// <summary>
-    /// Flushes the current batch of logs to Azure Data Explorer.
-    /// </summary>
-    public void FlushBatch()
-    {
-        if (_logBuffer == null || _logBuffer.Logs.Count == 0)
-        {
-            return;
-        }
-
-        try
-        {
-            var logDataList = new List<object>();
-            while (_logBuffer.Logs.TryDequeue(out var logData))
-            {
-                logDataList.Add(logData);
-            }
-
-            IngestBatchToCluster(logDataList);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error flushing batch to Azure Data Explorer");
-        }
     }
 
     /// <summary>
@@ -148,58 +144,9 @@ public class AgentActionLogADXExporter : IAgentActionLogExporter
             ["Status"] = logRecord.Status,
             ["Duration"] = logRecord.Duration,
             ["Timestamp"] = logRecord.Timestamp,
-            ["Exception"] = logRecord.Exception ?? string.Empty,
         };
 
         return kustoData;
     }
 
-    private void IngestBatchToCluster(IEnumerable<object> logDataBatch)
-    {
-        var jsonData = JsonSerializer.Serialize(logDataBatch);
-
-        var ingestionProperties = new KustoIngestionProperties(_databaseName, _tableName)
-        {
-            Format = DataSourceFormat.multijson // Specify JSON format for batch
-        };
-
-        // Create a memory stream from the JSON data
-        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(jsonData));
-
-        // Ensure the stream is not empty
-        if (stream.Length == 0)
-        {
-            return;
-        }
-
-        stream.Position = 0; // Reset the position to the start of the stream
-
-        // Ingest the batch into Kusto
-        _kustoClient.IngestFromStreamAsync(stream, ingestionProperties).Wait();
-    }
-
-    private void IngestToCluster(IKustoIngestClient client, string databaseName, string tableName, object logData)
-    {
-        var ingestionProperties = new KustoIngestionProperties(databaseName, tableName)
-        {
-            Format = DataSourceFormat.json
-        };
-
-        var jsonData = JsonSerializer.Serialize(logData);
-        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(jsonData));
-
-        client.IngestFromStreamAsync(stream, ingestionProperties).Wait();
-    }
-
-    /// <summary>
-    /// Finalizes the exporter and flushes any remaining logs.
-    /// </summary>
-    public void Shutdown()
-    {
-        // Ensure any remaining logs are flushed
-        if (_useBatchProcessing)
-        {
-            FlushBatch();
-        }
-    }
 }

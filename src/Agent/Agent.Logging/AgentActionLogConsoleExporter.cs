@@ -64,64 +64,6 @@ public class AgentActionLogConsoleExporter : IAgentActionLogExporter
     }
 
     /// <summary>
-    /// Exports multiple agent action log records to the console.
-    /// </summary>
-    /// <param name="logRecords">The collection of agent action log records to export.</param>
-    public void Export(IEnumerable<AgentActionLogRecord> logRecords)
-    {
-        try
-        {
-            if (_useBatchProcessing && _logBuffer != null)
-            {
-                // Batch processing mode
-                foreach (var logRecord in logRecords)
-                {
-                    var actionData = ConvertLogRecordToConsoleData(logRecord);
-                    _logBuffer.Logs.Enqueue(actionData);
-                }
-            }
-            else
-            {
-                // Direct processing mode for each record
-                foreach (var logRecord in logRecords)
-                {
-                    WriteToConsole(logRecord);
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error exporting agent action log records to console");
-        }
-    }
-
-    /// <summary>
-    /// Flushes the current batch of logs to the console.
-    /// </summary>
-    public void FlushBatch()
-    {
-        if (_logBuffer == null || _logBuffer.Logs.Count == 0)
-        {
-            return;
-        }
-
-        try
-        {
-            var logDataList = new List<object>();
-            while (_logBuffer.Logs.TryDequeue(out var logData))
-            {
-                logDataList.Add(logData);
-            }
-
-            WriteBatchToConsole(logDataList);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error flushing batch to console");
-        }
-    }
-
-    /// <summary>
     /// Converts an AgentActionLogRecord to a structured data object suitable for console output.
     /// </summary>
     private object ConvertLogRecordToConsoleData(AgentActionLogRecord logRecord)
@@ -133,7 +75,6 @@ public class AgentActionLogConsoleExporter : IAgentActionLogExporter
             Status = logRecord.Status,
             Duration = logRecord.Duration,
             Timestamp = logRecord.Timestamp,
-            Exception = logRecord.Exception ?? string.Empty
         };
     }
 
@@ -149,27 +90,11 @@ public class AgentActionLogConsoleExporter : IAgentActionLogExporter
             logRecord.Action, logRecord.Parameter, logRecord.Status, logRecord.Duration, logRecord.Timestamp);
     }
 
-    private void WriteBatchToConsole(IEnumerable<object> logDataBatch)
-    {
-        var jsonOutput = JsonSerializer.Serialize(logDataBatch, _jsonOptions);
-
-        _logger.LogInformation($"[Agent Action Log Batch] {jsonOutput}");
-
-        // Also log the batch count through the structured logger
-        var count = logDataBatch is ICollection<object> collection ? collection.Count : logDataBatch.Count();
-        _logger.LogInformation("Flushed batch of {Count} agent action log records to console", count);
-    }
-
     /// <summary>
     /// Finalizes the exporter and flushes any remaining logs.
     /// </summary>
     public void Shutdown()
     {
-        // Ensure any remaining logs are flushed
-        if (_useBatchProcessing)
-        {
-            FlushBatch();
-        }
 
         _logger.LogInformation("Agent action log console exporter shutdown completed");
     }

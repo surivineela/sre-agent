@@ -40,8 +40,6 @@ namespace Agent.Core.Configuration
             DatabaseName = "trace",
         };
 
-        public AgentActionADX AgentActionADX { get; set; } = new();
-
         public EmergingIssueSettings EmergingIssue { get; set; } = new();
     }
 }
