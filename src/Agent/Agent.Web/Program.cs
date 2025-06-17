@@ -704,16 +704,14 @@ public class Program
                         };
 
                         // Create and add ADX exporter
-                        exporters.Add(new AzureDataExplorerExporter(new AzureDataExplorerExporterOptions
-                        {
-                            ClusterUri = azureSettings.AgentTraceKusto.ClusterUri,
-                            DatabaseName = azureSettings.AgentTraceKusto.DatabaseName,
-                            TableName = "AgentTrace",
-                            PopulateColumns = populateColumns,
-                            FirstPartyAppCertificatePath = azureSettings.AgentTraceKusto.CertificatePath,
-                            FirstPartyAppClientId = azureSettings.AgentTraceKusto.FirstPartyAppClientId,
-                            FirstPartyAppTenantId = azureSettings.AgentTraceKusto.FirstPartyAppTenantId,
-                        }));
+                        exporters.Add(new AzureDataExplorerExporter(new AzureDataExplorerExporterOptions(
+                            azureSettings.AgentTraceKusto.ClusterUri,
+                            azureSettings.AgentTraceKusto.DatabaseName,
+                            "AgentTrace",
+                            populateColumns,
+                            azureSettings.AgentTraceKusto.CertificatePath,
+                            azureSettings.AgentTraceKusto.FirstPartyAppClientId,
+                            azureSettings.AgentTraceKusto.FirstPartyAppTenantId)));
 
                         logger.LogInternalInformation("Successfully configured Azure Data Explorer exporter");
                     }

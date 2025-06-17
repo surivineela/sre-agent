@@ -29,17 +29,17 @@ public class AzureDataExplorerExporterOptions
     /// <summary>
     /// Gets or sets the URI of the Azure Data Explorer cluster.
     /// </summary>
-    public required string ClusterUri { get; set; }
+    public string ClusterUri { get; set; }
 
     /// <summary>
     /// Gets or sets the name of the database to export data to.
     /// </summary>
-    public required string DatabaseName { get; set; }
+    public string DatabaseName { get; set; }
 
     /// <summary>
     /// Gets or sets the name of the table to export data to.
     /// </summary>
-    public required string TableName { get; set; }
+    public string TableName { get; set; }
 
     /// <summary>
     /// Gets or sets a function that can be used to populate custom columns in the trace data.
@@ -60,13 +60,6 @@ public class AzureDataExplorerExporterOptions
     /// Gets or sets the First Party App tenant ID.
     /// </summary>
     public string? FirstPartyAppTenantId { get; set; } = "";
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="AzureDataExplorerExporterOptions"/> class.
-    /// </summary>
-    public AzureDataExplorerExporterOptions()
-    {
-    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AzureDataExplorerExporterOptions"/> class.
@@ -114,12 +107,14 @@ public class AzureDataExplorerExporter : BaseExporter<Activity>
     /// Initializes a new instance of the <see cref="AzureDataExplorerExporter"/> class using the specified options.
     /// </summary>
     /// <param name="options">The configuration options for the exporter.</param>
+    /// <param name="logger">Logger instance for the exporter.</param>
     public AzureDataExplorerExporter(AzureDataExplorerExporterOptions options)
     {
         if (options == null)
         {
             throw new ArgumentNullException(nameof(options));
         }
+        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Initializing Azure Data Explorer exporter with options: {options.ClusterUri}, {options.DatabaseName}, {options.TableName}, {options.FirstPartyAppClientId}, {options.FirstPartyAppTenantId}, {options.FirstPartyAppCertificatePath}");
 
         _databaseName = options.DatabaseName;
         _tableName = options.TableName;
@@ -133,17 +128,17 @@ public class AzureDataExplorerExporter : BaseExporter<Activity>
             var keyPem = File.ReadAllText($"{options.FirstPartyAppCertificatePath}/tls.key");
 
             // Use a using statement to ensure the certificate is properly disposed
-            using (var certificate = X509Certificate2.CreateFromPem(certPem, keyPem))
-            {
-                var kustoConnectionStringBuilder = new KustoConnectionStringBuilder(options.ClusterUri)
+            var certificate = X509Certificate2.CreateFromPem(certPem, keyPem);
+
+            var kustoConnectionStringBuilder = new KustoConnectionStringBuilder(options.ClusterUri)
                             .WithAadApplicationCertificateAuthentication(
                                 applicationClientId: options.FirstPartyAppClientId,
                                 certificate,
                                 authority: options.FirstPartyAppTenantId,
                                 sendX5c: true);
 
-                _kustoClient = KustoIngestFactory.CreateQueuedIngestClient(kustoConnectionStringBuilder);
-            }
+            _kustoClient = KustoIngestFactory.CreateQueuedIngestClient(kustoConnectionStringBuilder);
+
         }
         else
         {
@@ -172,8 +167,9 @@ public class AzureDataExplorerExporter : BaseExporter<Activity>
             FlushBatch(logDataList);
             return ExportResult.Success;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] ERROR: Failed to export {batch.Count} activities - {ex.Message}");
             return ExportResult.Failure;
         }
     }
@@ -189,7 +185,17 @@ public class AzureDataExplorerExporter : BaseExporter<Activity>
             return;
         }
 
-        IngestBatchToCluster(logDataList);
+        try
+        {
+            IngestBatchToCluster(logDataList);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] ERROR: Failed to flush batch of {logDataList.Count} trace records - {ex.Message}");
+
+            // Re-throw to preserve original behavior for caller
+            throw;
+        }
     }
 
     /// <summary>
@@ -223,26 +229,43 @@ public class AzureDataExplorerExporter : BaseExporter<Activity>
 
     private void IngestBatchToCluster(IEnumerable<object> logDataBatch)
     {
-        var jsonData = JsonSerializer.Serialize(logDataBatch);
-
-        var ingestionProperties = new KustoIngestionProperties(_databaseName, _tableName)
+        try
         {
-            Format = DataSourceFormat.multijson // Specify JSON format for batch
-        };
+            var jsonData = JsonSerializer.Serialize(logDataBatch);
 
-        // Create a memory stream from the JSON data
-        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(jsonData));
+            var ingestionProperties = new KustoIngestionProperties(_databaseName, _tableName)
+            {
+                Format = DataSourceFormat.multijson // Specify JSON format for batch
+            };
 
-        // Ensure the stream is not empty
-        if (stream.Length == 0)
-        {
-            return;
+            // Create a memory stream from the JSON data
+            using var stream = new MemoryStream(Encoding.UTF8.GetBytes(jsonData));
+
+            // Ensure the stream is not empty
+            if (stream.Length == 0)
+            {
+                return;
+            }
+
+            stream.Position = 0; // Reset the position to the start of the stream
+
+            // Log the ingestion attempt
+            var recordCount = logDataBatch is ICollection<object> collection ? collection.Count : logDataBatch.Count();
+            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Ingesting {recordCount} trace records to Azure Data Explorer");
+
+            // Ingest the batch into Kusto - this will be queued if using QueuedIngestClient
+            _kustoClient.IngestFromStream(stream, ingestionProperties);
+
+            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Successfully queued {recordCount} trace records for ingestion");
         }
+        catch (Exception ex)
+        {
+            var recordCount = logDataBatch is ICollection<object> collection ? collection.Count : logDataBatch.Count();
+            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] ERROR: Failed to ingest {recordCount} trace records - {ex.Message}");
 
-        stream.Position = 0; // Reset the position to the start of the stream
-
-        // Ingest the batch into Kusto - this will be queued if using QueuedIngestClient
-        _kustoClient.IngestFromStream(stream, ingestionProperties);
+            // Re-throw the exception to preserve the original behavior for the caller
+            throw;
+        }
     }
     protected override bool OnShutdown(int timeoutMilliseconds)
     {
