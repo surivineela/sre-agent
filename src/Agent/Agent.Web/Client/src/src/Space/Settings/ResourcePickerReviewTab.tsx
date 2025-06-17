@@ -105,7 +105,7 @@ const ReviewTab: FC<ReviewTabProps> = (props: ReviewTabProps) => {
             return (
                 <div className={styles.statusRow}>
                     <img src="./ResourceGroup.svg" alt="ResourceGroup" style={{ height: 16, width: 16 }} />
-                    <Link onClick={_e => onNameClick(item.id)}>{item.name}</Link>
+                    <Link style={{ userSelect: 'text' }} onClick={_e => onNameClick(item.id)}>{item.name}</Link>
                 </div>
             );
         },
@@ -215,18 +215,25 @@ const ReviewTab: FC<ReviewTabProps> = (props: ReviewTabProps) => {
         ];
     }, [onRenderName, onRenderSubscription, onRenderLocation, onRenderPermissions, onRenderDelete, intl]);
 
+    const errorMessage = useMemo(() => {
+        if (resourceGroupMaxError) {
+            return intl.formatMessage(ResourcePickerTabResources.resourceGroupMaxError);
+        } else if (resourceGroupPermissionsError) {
+            return intl.formatMessage(ResourcePickerTabResources.resourceGroupPermissionError);
+        }
+        return '';
+    }, [intl, resourceGroupMaxError, resourceGroupPermissionsError]);
+
     return (
         <div style={{ display: 'flex', gap: '5px', flexDirection: 'column' }}>
-            {(resourceGroupMaxError || resourceGroupPermissionsError) && (
+            {errorMessage && (
                 <div style={{ paddingTop: '5px', marginBottom: '-5px' }}>
                     <MessageBar messageBarType={MessageBarType.error}>
-                        {resourceGroupMaxError
-                            ? intl.formatMessage(ResourcePickerTabResources.resourceGroupMaxError)
-                            : intl.formatMessage(ResourcePickerTabResources.resourceGroupPermissionError)}
+                        {errorMessage}
                     </MessageBar>
                 </div>
             )}
-            <div style={{ display: 'flex', maxHeight: '365px', overflowY: 'scroll' }} data-is-scrollable="true">
+            <div style={{ minHeight: errorMessage ? '445px' : '490px', maxHeight: errorMessage ? '445px' : '490px', overflowY: 'scroll' }} data-is-scrollable="true">
                 <ShimmeredDetailsList
                     columns={columns}
                     constrainMode={ConstrainMode.horizontalConstrained}

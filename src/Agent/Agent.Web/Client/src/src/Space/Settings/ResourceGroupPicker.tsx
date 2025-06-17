@@ -16,6 +16,8 @@ import { getSubscriptionId, ResourceGroup, useResourceGroups } from './Hooks/use
 import { Subscription } from './Hooks/useSubscriptions';
 import ReviewTab from './ResourcePickerReviewTab';
 import { detailsListStyles, useManagedResourcesStyles } from './Styles/ManagedResources.styles';
+import PermissionsDetailsList from './PermissionsDetailsList';
+import { SreAgentContext } from '../Contracts/Context';
 
 export type ISortedDetailsListColumn = IColumn & {
     sort?: (items: any[], isSortedDescending: boolean) => any[];
@@ -68,6 +70,8 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
     const [tabKey, setTabKey] = useState<string>(TabKeys.select);
 
     const portalContext = useContext(AzPortalContext);
+    const { agent } = useContext(SreAgentContext);
+    const { mode } = agent;
     const intl = useIntl();
 
     useEffect(() => {
@@ -135,10 +139,10 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
             main: {
                 display: 'flex',
                 flexDirection: 'column',
-                width: '820px',
+                width: '850px',
                 overflowX: 'hidden',
-                height: '575px',
-                maxWidth: '820px',
+                height: '675px',
+                maxWidth: '850px',
                 maxHeight: '90vh',
                 overflowY: 'hidden',
             },
@@ -154,8 +158,8 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
     const calloutProps = {
         styles: {
             root: {
-                maxHeight: '500px',
-                maxWidth: '750px',
+                maxHeight: '675px',
+                maxWidth: '850px',
                 overflowY: 'hidden',
             },
         },
@@ -419,7 +423,7 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
                                 />
                             </div>
                         </div>
-                        <div style={{ display: 'flex', maxHeight: '365px', overflowY: 'scroll' }} data-is-scrollable="true">
+                        <div style={{ minHeight: '470px', maxHeight: '470px', overflowY: 'scroll' }} data-is-scrollable="true">
                             <ShimmeredDetailsList
                                 columns={columns}
                                 constrainMode={ConstrainMode.horizontalConstrained}
@@ -444,28 +448,39 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
                         onRenderSubscription={onRenderSubscription}
                     />
                 </PivotItem>
+                <PivotItem itemKey={TabKeys.assign} headerText={intl.formatMessage(ResourcePickerTabResources.assignTabTitle)}>
+                    <PermissionsDetailsList mode={mode} />
+                </PivotItem>
             </Pivot>
             <div className={styles.dialogFooter}>
                 <DialogFooter>
-                    {tabKey == TabKeys.select && (
+                    {(tabKey === TabKeys.select || tabKey === TabKeys.review ) && (
                         <PrimaryButton
                             className={styles.footerButtonDiv}
                             onClick={() => {
-                                setTabKey(TabKeys.review);
+                                if (tabKey === TabKeys.review) {
+                                    setTabKey(TabKeys.assign);
+                                } else if (tabKey === TabKeys.select) {
+                                    setTabKey(TabKeys.review);
+                                }
                             }}
                             text={intl.formatMessage(ManagedResourcesStringResources.next)}
                         />
                     )}
-                    {tabKey == TabKeys.review && (
+                    {(tabKey == TabKeys.assign || tabKey == TabKeys.review) && (
                         <DefaultButton
                             className={styles.footerButtonDiv}
                             onClick={() => {
-                                setTabKey(TabKeys.select);
+                                if (tabKey === TabKeys.review) {
+                                    setTabKey(TabKeys.select);
+                                } else if (tabKey === TabKeys.assign) {
+                                    setTabKey(TabKeys.review);
+                                }
                             }}
                             text={intl.formatMessage(ManagedResourcesStringResources.back)}
                         />
                     )}
-                    {tabKey == TabKeys.review && (
+                    {tabKey == TabKeys.assign && (
                         <PrimaryButton
                             className={styles.footerButtonDiv}
                             disabled={selectedResourceGroups.length === 0 || resourceGroupMaxError || resourceGroupPermissionsError}

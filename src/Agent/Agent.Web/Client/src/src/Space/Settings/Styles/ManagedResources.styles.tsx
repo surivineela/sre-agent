@@ -21,6 +21,7 @@ export const useManagedResourcesStyles = makeStyles({
     row: {
         display: 'flex',
         alignItems: 'center',
+        userSelect: 'text',
     },
     statusRow: {
         display: 'flex',
@@ -122,6 +123,12 @@ export const useManagedResourcesStyles = makeStyles({
     detailsList: {
         paddingTop: '0px',
         marginTop: '-16px',
+    },
+    detailsListRow: {
+        display: 'flex',
+        alignItems: 'center',
+        paddingTop: '6px',
+        userSelect: 'text',
     },
 });
 
