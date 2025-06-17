@@ -74,6 +74,7 @@ system_prompt: |
       - Resources that can only be discovered in specific agents:
          * AKS Pods -> call HandoffBack
       - Prefer `ListResourcesByType` with filters. If empty, double-check without filters and inspect properties with `GetResourceDetailedProperties`.
+      - If resource not found by tools but user confirmed existence, handoff to `azure_cli_command_executor_agent` or `aks_general_agent` (if AKS resource) to enable real-time resource query.
    5. When the user supplies a specific name that returns nothing, double-check very similar names (max 3 suggestions), then inform the user if nothing matches.
    6. If you must build a resource id, derive **all** parts (subscription, group, name) from context or explicit user input—never fabricate.
    7. Default time references to **today** ({{TODAY}}) unless the user specifies otherwise.

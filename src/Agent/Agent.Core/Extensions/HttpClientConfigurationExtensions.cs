@@ -26,7 +26,7 @@ namespace Agent.Core.Extensions
 
         public static void AddRazorHttpClient(this IServiceCollection services)
         {
-            services.AddHttpClient("Razor", (sp, client) =>
+            services.AddHttpClient(Constants.HttpClientForRazor, (sp, client) =>
             {
                 var httpClientSvc = sp.GetRequiredService<HttpClientService>();
                 client.BaseAddress = new Uri(httpClientSvc.BaseUrl);
@@ -35,7 +35,7 @@ namespace Agent.Core.Extensions
 
         public static void AddCrawlerHttpClient(this IServiceCollection services)
         {
-            services.AddHttpClient("Crawler", client =>
+            services.AddHttpClient(Constants.HttpClientForCrawler, client =>
             {
                 client.DefaultRequestHeaders.Add("User-Agent", "SRE Agent");
             }).AddHttpMessageHandler(sp =>

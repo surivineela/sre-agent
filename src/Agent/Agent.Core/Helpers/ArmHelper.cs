@@ -14,6 +14,7 @@ using Agent.Core.Helpers.ArmModels;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Charts;
+using Agent.Core.Services;
 using Agent.Logging;
 using Azure;
 using Azure.Core;
@@ -58,6 +59,8 @@ public class ArmHelper
     private readonly AzureSettings _azureSettings;
     private readonly IHostEnvironment _hostEnvironment;
 
+    private readonly ICrawlerTriggerService _crawlerTriggerService;
+
     // Crawler MI is used for production environment as current solution
     public ArmHelper(
         ILogger<ArmHelper> logger,
@@ -65,7 +68,8 @@ public class ArmHelper
         IArmClientFactory armClientFactory,
         IAuthenticationService authService,
         AzureSettings azureSettings,
-        IHostEnvironment hostEnvironment)
+        IHostEnvironment hostEnvironment,
+        ICrawlerTriggerService crawlerTriggerService)
     {
         _logger = logger;
         _httpClientFactory = httpClientFactory;
@@ -73,6 +77,7 @@ public class ArmHelper
         _authService = authService;
         _azureSettings = azureSettings;
         _hostEnvironment = hostEnvironment;
+        _crawlerTriggerService = crawlerTriggerService;
     }
 
     public async Task<List<AzureSubscription>> GetSubscriptionsAsync()
@@ -846,6 +851,9 @@ public class ArmHelper
             AllowSharedKeyAccess = featureState == FeatureState.Enabled ? true : false
         };
         await storageAccountResource.UpdateAsync(storageAccountPatch);
+
+        // re-crawl for WRITE operations
+        _crawlerTriggerService.TriggerCrawl(resourceId);
     }
 
     public async Task SetStorageAccountContainerPublicAccess(string resourceId, FeatureState featureState)
@@ -856,6 +864,9 @@ public class ArmHelper
             AllowBlobPublicAccess = featureState == FeatureState.Enabled ? true : false
         };
         await storageAccountResource.UpdateAsync(storageAccountPatch);
+
+        // re-crawl for WRITE operations
+        _crawlerTriggerService.TriggerCrawl(resourceId);
     }
 
     public async Task SetSqlServerEntraAuthSupport(string resourceId, FeatureState featureState)
@@ -864,6 +875,9 @@ public class ArmHelper
         var sqlServerAdOnlyAuthResult = await sqlServer.GetSqlServerAzureADOnlyAuthenticationAsync(AuthenticationName.Default);
         sqlServerAdOnlyAuthResult.Value.Data.IsAzureADOnlyAuthenticationEnabled = (featureState == FeatureState.Enabled);
         await sqlServerAdOnlyAuthResult.Value.UpdateAsync(WaitUntil.Completed, sqlServerAdOnlyAuthResult.Value.Data);
+
+        // re-crawl for WRITE operations
+        _crawlerTriggerService.TriggerCrawl(resourceId);
     }
 
     /// <summary>
@@ -1075,6 +1089,11 @@ public class ArmHelper
 
         HttpResponseMessage response = await httpClient.SendAsync(request);
 
+        if (response.IsSuccessStatusCode)
+        {
+            // re-crawl for WRITE operations
+            _crawlerTriggerService.TriggerCrawl(resourceId);
+        }
         return response.IsSuccessStatusCode;
     }
 
@@ -1102,6 +1121,12 @@ public class ArmHelper
         };
 
         HttpResponseMessage response = await httpClient.SendAsync(request);
+
+        if (response.IsSuccessStatusCode)
+        {
+            // re-crawl for WRITE operations
+            _crawlerTriggerService.TriggerCrawl(resourceId);
+        }
 
         return response.IsSuccessStatusCode;
     }
@@ -1131,6 +1156,12 @@ public class ArmHelper
 
         HttpResponseMessage response = await httpClient.SendAsync(request);
 
+        if (response.IsSuccessStatusCode)
+        {
+            // re-crawl for WRITE operations
+            _crawlerTriggerService.TriggerCrawl(resourceId);
+        }
+
         return response.IsSuccessStatusCode;
     }
 
@@ -1158,6 +1189,12 @@ public class ArmHelper
         };
 
         HttpResponseMessage response = await httpClient.SendAsync(request);
+
+        if (response.IsSuccessStatusCode)
+        {
+            // re-crawl for WRITE operations
+            _crawlerTriggerService.TriggerCrawl(resourceId);
+        }
 
         return response.IsSuccessStatusCode;
     }
@@ -1241,14 +1278,21 @@ public class ArmHelper
         var ftpPublishingCredentialsPolicy = await webSiteResource.GetWebSiteFtpPublishingCredentialsPolicy().GetAsync();
         ftpPublishingCredentialsPolicy.Value.Data.Allow = (featureState == FeatureState.Enabled);
         await ftpPublishingCredentialsPolicy.Value.CreateOrUpdateAsync(WaitUntil.Completed, ftpPublishingCredentialsPolicy.Value.Data);
+
+        // re-crawl for WRITE operations
+        _crawlerTriggerService.TriggerCrawl(resourceId);
     }
 
     public async Task SetWebSiteScmAuthenticationSupport(string resourceId, FeatureState featureState)
     {
+
         var webSiteResource = await GetAppServiceAsync(resourceId);
         var scmPublishingCredentialsPolicy = await webSiteResource.GetScmSiteBasicPublishingCredentialsPolicy().GetAsync();
         scmPublishingCredentialsPolicy.Value.Data.Allow = (featureState == FeatureState.Enabled);
         await scmPublishingCredentialsPolicy.Value.CreateOrUpdateAsync(WaitUntil.Completed, scmPublishingCredentialsPolicy.Value.Data);
+
+        // re-crawl for WRITE operations
+        _crawlerTriggerService.TriggerCrawl(resourceId);
     }
 
     public async Task SetCosmosDbLocalAuthSupport(string resourceId, FeatureState featureState)
@@ -1271,6 +1315,8 @@ public class ArmHelper
         if (updateCosmosDb)
         {
             await cosmosDBAccountResource.UpdateAsync(WaitUntil.Completed, cosmosDbPatch);
+            // re-crawl for WRITE operations
+            _crawlerTriggerService.TriggerCrawl(resourceId);
         }
     }
 
@@ -1280,6 +1326,9 @@ public class ArmHelper
 
         eventHubResource.Data.DisableLocalAuth = (featureState == FeatureState.Disabled);
         await eventHubResource.UpdateAsync(eventHubResource.Data);
+
+        // re-crawl for WRITE operations
+        _crawlerTriggerService.TriggerCrawl(resourceId);
     }
 
     public async Task SetServiceBusLocalAuthSupport(string resourceId, FeatureState featureState)
@@ -1290,6 +1339,9 @@ public class ArmHelper
         serviceBusNamespacePatch.DisableLocalAuth = (featureState == FeatureState.Disabled);
 
         await serviceBusNamespaceResource.UpdateAsync(serviceBusNamespacePatch);
+
+        // re-crawl for WRITE operations
+        _crawlerTriggerService.TriggerCrawl(resourceId);
     }
 
     public async Task<VirtualMachineResource> GetVirtualMachineResourceAsync(string resourceId)
@@ -1353,7 +1405,11 @@ public class ArmHelper
             throw new ArgumentException($"Resource with ID {resourceId} is not a valid Virtual Machine resource.");
         }
         var startOperation = await virtualMachineResource.PowerOnAsync(WaitUntil.Completed);
-
+        if (startOperation.HasCompleted)
+        {
+            // re-crawl for WRITE operations
+            _crawlerTriggerService.TriggerCrawl(resourceId);
+        }
         return startOperation.HasCompleted;
     }
 
@@ -1410,6 +1466,7 @@ public class ArmHelper
 
     public async Task<string> GetAppInsightsAppIdBySubscription(string subscriptionId, string instrumentationKey)
     {
+
         try
         {
             var requestUrl = $"https://management.azure.com/subscriptions/{subscriptionId}/providers/microsoft.insights/components?api-version=2018-05-01-preview";
@@ -1567,7 +1624,6 @@ public class ArmHelper
 
     public async Task<bool> SwapAppServiceSlotsAsync(string resourceId, bool preserveVNetValue, string sourceSlotName, string targetSlotName)
     {
-
         try
         {
             // Construct the request URL for swapping slots
@@ -1596,6 +1652,9 @@ public class ArmHelper
             // Check the response status code
             if (response.IsSuccessStatusCode)
             {
+                // If the swap is successful, trigger a re-crawl for WRITE operations
+                _crawlerTriggerService.TriggerCrawl(resourceId);
+
                 return true; // Swap was successful
             }
             else
@@ -1938,7 +1997,11 @@ public class ArmHelper
         };
 
         HttpResponseMessage response = await httpClient.SendAsync(request);
-
+        if (response.IsSuccessStatusCode)
+        {
+            // Trigger a re-crawl for WRITE operations
+            _crawlerTriggerService.TriggerCrawl(resourceId);
+        }
         return response.IsSuccessStatusCode;
     }
 
@@ -2345,7 +2408,16 @@ public class ArmHelper
                 envs["AZURE_CLI_ACCESS_TOKEN"] = oboToken;
             }
 
-            return await ExecuteCommandHelper.ExecuteCommand("az", [cmd], envs);
+            var result = await ExecuteCommandHelper.ExecuteCommand("az", [cmd], envs);
+
+            if (!string.IsNullOrEmpty(oboToken))
+            {
+                // If the command is executed successfully and an OBO token is provided, trigger a re-crawl
+                // because the OBO token is only required for WRITE operations, and the command is expected to modify resources.
+                _crawlerTriggerService.TriggerCrawl(result);
+            }
+
+            return result;
         }
         catch (Exception ex)
         {
@@ -2530,7 +2602,7 @@ public class ArmHelper
 
     private string? ValidateCommand(string command)
     {
-        // Check if the command starts with "az" and contains "read"
+        // Check if the command starts with "az"
         if (!command.StartsWith("az ", StringComparison.OrdinalIgnoreCase))
         {
             return "[Validation Failed]: Command must start with 'az'.";

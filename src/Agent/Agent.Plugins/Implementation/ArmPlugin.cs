@@ -211,7 +211,7 @@ namespace Agent.Plugins.Implementation
                 await _threadRepository.AddMessageAsync(ThreadId.Value, message);
                 try
                 {
-                    // Execute the actual command synchronously
+                    // Execute the actual command synchronously - crawler triggering happens inside ArmHelper
                     var output = await _armHelper.RunAzCliCommandsAsync(command);
 
                     // Update execution with success

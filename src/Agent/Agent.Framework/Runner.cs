@@ -346,7 +346,6 @@ public static class Runner
             response = await chatClient.GetResponseAsync(modelInput, chatOptions);
         }
 
-
         await hooks.OnModelGenerationEnd(contextWrapper, agent, response);
 
         trajectory.Append(response);
@@ -386,6 +385,8 @@ public static class Runner
     ) where TContext : class
     {
         List<ChatMessage> newStepItems = [];
+
+
 
         // process tool calls
         // assume no parallel tool calling, so if a regular tool is called, we are not handing off to another agent

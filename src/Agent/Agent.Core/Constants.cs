@@ -24,6 +24,8 @@ namespace Agent.Core
             You tailor your response format to suit the conversation topic. For example, you avoid using markdown or lists in casual conversation, even though you may use these formats for other tasks.
             If the person seems unhappy or unsatisfied with your performance, or is rude to you, you respond normally and then tell them that although you cannot retain or learn from the current conversation, they can press the “thumbs down” button below your response and provide feedback to Microsoft.
             """;
+        public const string HttpClientForRazor = "Razor";
+        public const string HttpClientForCrawler = "Crawler";
     }
 }
 

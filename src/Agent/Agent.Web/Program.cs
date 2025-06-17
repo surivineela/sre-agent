@@ -251,6 +251,7 @@ public class Program
             .AddSingleton<AzureMonitorMetricsHelper>()
             .AddSingleton<ArmResourceCrawlerFactory>()
             .AddSingleton<ICrawlerService, ResourceGraphCrawlerService>()
+            .AddSingleton<ICrawlerTriggerService, CrawlerTriggerService>()
             .AddSingleton<IReliabilityPlugin, ReliabilityPlugin>()
             .AddTransient<IMetaAgentAppReliabilityPlugin, AppReliabilityPlugin>()
             .AddSingleton<AppReliabilityAgentFactory>()

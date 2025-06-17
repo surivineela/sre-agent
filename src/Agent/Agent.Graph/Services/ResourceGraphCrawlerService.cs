@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using Agent.Core.Configuration;
+using Agent.Core.Services;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler;
 using Agent.Graph.Crawler.ARM;
@@ -29,9 +30,12 @@ public class ResourceGraphCrawlerService : ICrawlerService
 {
     private readonly ILogger<ResourceGraphCrawlerService> _logger;
     private readonly ArmResourceCrawlerFactory _factory;
+
+    private readonly IHttpClientFactory _httpClientFactory;
     private readonly IGraphDatabaseClient _graphDbClient;
     private readonly CrawlerSettings _crawlerSettings;
     private readonly IActivityLogService _activityLogService;
+    private readonly ICrawlerTriggerService _crawlerTriggerService;
 
     private bool _isCrawling = false;
     private bool _hasCompletedInitialGraphCrawl = false;
@@ -40,13 +44,18 @@ public class ResourceGraphCrawlerService : ICrawlerService
     private int _pendingCount = 0;
     private readonly ConcurrentDictionary<string, CrawlProgressCounter> _progressByResourceType = new();
 
-    public ResourceGraphCrawlerService(ILogger<ResourceGraphCrawlerService> logger, CrawlerSettings crawlerSettings, ArmResourceCrawlerFactory factory, IGraphDatabaseClient graphDbClient, IActivityLogService activityLogService)
+    public ResourceGraphCrawlerService(ILogger<ResourceGraphCrawlerService> logger, CrawlerSettings crawlerSettings, ArmResourceCrawlerFactory factory, IGraphDatabaseClient graphDbClient, IActivityLogService activityLogService, ICrawlerTriggerService crawlerTriggerService, IHttpClientFactory httpClientFactory)
     {
         _logger = logger;
         _factory = factory;
         _graphDbClient = graphDbClient;
         _crawlerSettings = crawlerSettings;
         _activityLogService = activityLogService;
+        _crawlerTriggerService = crawlerTriggerService;
+        _httpClientFactory = httpClientFactory;
+
+        // Start background task to process triggered crawls
+        _ = Task.Run(ProcessTriggeredCrawls);
     }
 
     public async Task CrawlAsync(IEnumerable<string> rootIds, IEnumerable<string>? filters = null, bool cascade = true, CancellationToken? cancellationToken = null)
@@ -414,6 +423,127 @@ public class ResourceGraphCrawlerService : ICrawlerService
         }
 
         return ArmResourceOperationType.Other;
+    }
+
+    private async Task ProcessTriggeredCrawls()
+    {
+        try
+        {
+            await foreach (var resourceId in _crawlerTriggerService.GetResourceIdsToProcess())
+            {
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        _logger.LogInternalInformation($"Processing triggered crawl for resource: {resourceId}");
+
+                        GraphNode node = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(resourceId);
+                        if (node != null)
+                        {
+                            // Check if the resource still exists before crawling
+                            if (await IsResourceDeleted(resourceId))
+                            {
+                                _logger.LogInternalInformation($"Resource {resourceId} has been deleted, removing from graph");
+                                await RemoveDeletedResourceFromGraph(node);
+                                _crawlerTriggerService.MarkResourceAsDeleted(resourceId);
+                                return;
+                            }
+
+                            var startTS = DateTime.UtcNow.Ticks;
+                            var crawler = _factory.CreateFromNode(node);
+                            await foreach (var _ in crawler.Crawl(node)) { }
+
+                            _logger.LogInternalInformation($"Cleaning up stale edges from {node.GetNodeId()} (older than {startTS})");
+                            await CrawlerExtensions.RemoveStaleEdgeForNode(_graphDbClient, node, startTS);
+
+                            _logger.LogInternalInformation($"Completed triggered crawl for resource: {resourceId}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // If it's a rate limiting error, requeue for retry
+                        if (IsRateLimitingError(ex))
+                        {
+                            _logger.LogInternalInformation($"Rate limiting encountered for resource {resourceId}, requeuing for retry: {ex.Message}");
+                            _crawlerTriggerService.TriggerCrawl(resourceId, force: true);
+                            // sleep 1s before retrying to avoid immediate re-trigger
+                            await Task.Delay(1000);
+                        }
+                        // If it's a 404 error, the resource might be deleted
+                        else if (IsResourceNotFoundError(ex))
+                        {
+                            _logger.LogInternalInformation($"Resource {resourceId} appears to be deleted based on error: {ex.Message}");
+                            var node = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(resourceId);
+                            if (node != null)
+                            {
+                                await RemoveDeletedResourceFromGraph(node);
+                                _crawlerTriggerService.MarkResourceAsDeleted(resourceId);
+                            }
+                        }
+                        else
+                        {
+                            _logger.LogInternalError(ex, $"Error in triggered crawl for resource: {resourceId}");
+                        }
+                    }
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error in ProcessTriggeredCrawls background task");
+        }
+    }
+
+    private async Task<bool> IsResourceDeleted(string resourceId)
+    {
+        try
+        {
+            var httpClient = _httpClientFactory.CreateClient(Core.Constants.HttpClientForCrawler);
+            var requestUrl = $"https://management.azure.com{resourceId}?api-version=2021-04-01";
+            var request = new HttpRequestMessage(HttpMethod.Head, requestUrl);
+
+            var response = await httpClient.SendAsync(request);
+            return response.StatusCode == System.Net.HttpStatusCode.NotFound;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, $"Failed to check if resource {resourceId} is deleted, assuming it exists");
+            return false;
+        }
+    }
+
+    private bool IsRateLimitingError(Exception ex)
+    {
+        return ex.Message.Contains("RequestRateTooLargeException") ||
+               ex.Message.Contains("TooManyRequests") ||
+               ex.Message.Contains("Request rate is large") ||
+               (ex.InnerException != null && IsRateLimitingError(ex.InnerException));
+    }
+
+    private bool IsResourceNotFoundError(Exception ex)
+    {
+        return ex.Message.Contains("404") ||
+               ex.Message.Contains("NotFound") ||
+               ex.Message.Contains("ResourceNotFound") ||
+               (ex.InnerException != null && IsResourceNotFoundError(ex.InnerException));
+    }
+
+    private async Task RemoveDeletedResourceFromGraph(GraphNode node)
+    {
+        try
+        {
+            _logger.LogDebug($"Removing deleted resource {node.GetNodeId()} from graph");
+
+            // Remove the node and all its edges from the graph
+            var query = $"g.V().has('id', '{node.GetNodeId()}').drop()";
+            await _graphDbClient.Query(query);
+
+            _logger.LogDebug($"Successfully removed deleted resource {node.GetNodeId()} from graph");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, $"Failed to remove deleted resource {node.GetNodeId()} from graph");
+        }
     }
 }
 
