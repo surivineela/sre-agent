@@ -1,4 +1,5 @@
 import { IColumn } from '@fluentui/react';
+import { OptionOnSelectData, SelectionEvents } from '@fluentui/react-components';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { ArmTemplateBuilder } from '../../Common/ArmTemplateBuilder/ArmTemplateBuilder';
@@ -6,11 +7,9 @@ import {
     ArmServiceType,
     ArmTemplateParameterName,
     AzureMonitorWorkspaceParameterName,
-    DataCollectionRuleParameterName,
     GrafanaParameterName,
 } from '../../Common/ArmTemplateBuilder/ArmTemplateTypes';
 import { AzureMonitorWorkspaceTemplateResource } from '../../Common/ArmTemplateFragments/AzureMonitorWorkspaceTemplateResource';
-import { DataCollectionRuleTemplateResource } from '../../Common/ArmTemplateFragments/DataCollectionRuleTemplateResource';
 import { GrafanaTemplateResource } from '../../Common/ArmTemplateFragments/GrafanaTemplateResource';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { getErrorMessage } from '../../Common/Clients/ArmClient';
@@ -20,13 +19,16 @@ import { DataCollectionRuleClient } from '../../Common/Clients/DataCollectionRul
 import { DeploymentClient } from '../../Common/Clients/DeploymentClient';
 import { GrafanaClient } from '../../Common/Clients/GrafanaClient';
 import { IdentityClient } from '../../Common/Clients/IdentityClient';
+import { LocationClient } from '../../Common/Clients/LocationClient';
 import { PermissionClient } from '../../Common/Clients/PermissionsClient';
 import SreAgentClient from '../../Common/Clients/SreAgentClient';
 import { ProvisioningStates } from '../../Common/Constants/Arm';
 import { ArmObj } from '../../Common/Contracts/Azure/ArmObj';
+import { AzureMonitorWorkspace } from '../../Common/Contracts/Azure/AzureMonitorWorkspace';
 import { Grafana } from '../../Common/Contracts/Azure/Grafana';
 import { PermissionActions } from '../../Common/Contracts/Azure/Permission';
 import { Guid } from '../../Common/Helpers/Guid';
+import { getCanonicalLocation, getUserFriendlyLocation, isSameLocation } from '../../Common/Helpers/LocationHelper';
 import { ArmResourceDescriptor } from '../../Common/Helpers/ResourceDescriptors';
 import { equals } from '../../Common/Helpers/Strings';
 import { SreAgentContext } from '../../Space/Contracts/Context';
@@ -51,11 +53,28 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
 
     const [isUpdating, setIsUpdating] = useState<boolean>(false);
     const [progress, setProgress] = useState(false);
-    const [existingGrafanaResourceNames, setExistingGrafanaResourceNames] = useState<string[]>([]);
-    const [isDirty, setIsDirty] = useState(false);
+    const [existingGrafanaResources, setExistingGrafanaResources] = useState<{ id: string; name: string }[]>([]);
+    const [existingAzureMonitorWorkspaceResources, setExistingAzureMonitorWorkspaceResources] = useState<{ id: string; name: string }[]>(
+        []
+    );
+    const [isGrafanaDirty, setIsGrafanaDirty] = useState(false);
+    const [isAzureMonitorWorkspaceDirty, setIsAzureMonitorWorkspaceDirty] = useState(false);
     const [newGrafanaResourceName, setNewGrafanaResourceName] = useState<string>('');
+    const [newAzureMonitorWorkspaceResourceName, setNewAzureMonitorWorkspaceResourceName] = useState<string>('');
+    const [selectedGrafanaResource, setSelectedGrafanaResource] = useState<{ id: string; name: string }>({
+        id: '',
+        name: '',
+    });
+    const [selectedAzureMonitorWorkspaceResource, setSelectedAzureMonitorWorkspaceResource] = useState<{ id: string; name: string }>({
+        id: '',
+        name: '',
+    });
     const [permissionsLoaded, setPermissionsLoaded] = useState(false);
     const [hasRbacWritePermission, setHasRbacWritePermission] = useState<boolean>(false);
+    const [isGrafanaPopoverOpen, setIsGrafanaPopoverOpen] = useState<boolean>(false);
+    const [isAzureMonitorWorkspacePopoverOpen, setIsAzureMonitorWorkspacePopoverOpen] = useState<boolean>(false);
+    const [locationOptions, setLocationOptions] = useState<string[]>([]);
+    const [selectedLocation, setSelectedLocation] = useState<string>('');
 
     const grafanaRbacRoles = useMemo(
         () => [
@@ -110,8 +129,15 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
     );
 
     const newGrafanaResourceNameErrorMessage = useMemo(() => {
-        if (isDirty) {
-            if (existingGrafanaResourceNames.includes(newGrafanaResourceName ?? '')) {
+        if (isGrafanaDirty) {
+            const filteredGrafanaResources = existingGrafanaResources.filter(resource => resource.id !== 'new');
+
+            const doesResourceNameExist = filteredGrafanaResources.some(
+                resource =>
+                    resource.name === newGrafanaResourceName && new ArmResourceDescriptor(resource.id).resourceGroup === resourceGroup
+            );
+
+            if (doesResourceNameExist) {
                 return intl.formatMessage(GrafanaDashboardResources.uniqueGrafanaResourceNameError);
             }
 
@@ -124,7 +150,32 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
         }
 
         return undefined;
-    }, [existingGrafanaResourceNames, intl, isDirty, newGrafanaResourceName]);
+    }, [existingGrafanaResources, intl, isGrafanaDirty, newGrafanaResourceName, resourceGroup]);
+
+    const newAzureMonitorWorkspaceResourceNameErrorMessage = useMemo(() => {
+        if (isAzureMonitorWorkspaceDirty) {
+            const filteredAzureMonitorWorkspaceResources = existingAzureMonitorWorkspaceResources.filter(resource => resource.id !== 'new');
+
+            const doesResourceNameExist = filteredAzureMonitorWorkspaceResources.some(
+                resource =>
+                    resource.name === newAzureMonitorWorkspaceResourceName &&
+                    new ArmResourceDescriptor(resource.id).resourceGroup === resourceGroup
+            );
+
+            if (doesResourceNameExist) {
+                return intl.formatMessage(GrafanaDashboardResources.uniqueAmwResourceNameError);
+            }
+
+            const name = newAzureMonitorWorkspaceResourceName ?? '';
+            const isValid = /^[A-Za-z0-9-]{3,44}$/.test(name);
+
+            if (!isValid) {
+                return intl.formatMessage(GrafanaDashboardResources.invalidAmwResourceNameError);
+            }
+        }
+
+        return undefined;
+    }, [existingAzureMonitorWorkspaceResources, intl, isAzureMonitorWorkspaceDirty, newAzureMonitorWorkspaceResourceName, resourceGroup]);
 
     const grafanaRbacColumns: IColumn[] = useMemo(
         () => [
@@ -397,53 +448,54 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
     const generateParameters = useCallback(() => {
         const parameters: Record<string, any> = {};
 
-        const dateSuffix = new Date().getTime();
-        const azureMonitorWorkspaceResourceName = `azure-monitor-workspace-${dateSuffix}`;
-
         parameters[ArmTemplateParameterName.SubscriptionId] = {
             value: subscription,
         };
         parameters[ArmTemplateParameterName.Location] = {
-            value: agent?.location,
+            value: getCanonicalLocation(selectedLocation),
         };
         parameters[ArmTemplateParameterName.ResourceGroupName] = {
             value: resourceGroup,
         };
 
-        parameters[GrafanaParameterName.GrafanaName] = {
-            value: newGrafanaResourceName,
-        };
+        if (selectedGrafanaResource.id === 'new') {
+            parameters[GrafanaParameterName.GrafanaName] = {
+                value: selectedGrafanaResource.name,
+            };
+        }
 
-        parameters[AzureMonitorWorkspaceParameterName.WorkspaceName] = {
-            value: azureMonitorWorkspaceResourceName,
-        };
-
-        parameters[DataCollectionRuleParameterName.DataCollectionRuleName] = {
-            value: azureMonitorWorkspaceResourceName,
-        };
-
-        parameters[DataCollectionRuleParameterName.AzureMonitorWorkspaceId] = {
-            value: `${resourceGroupId}/providers/${ArmServiceType.AzureMonitorWorkspace}/${azureMonitorWorkspaceResourceName}`,
-        };
+        if (selectedAzureMonitorWorkspaceResource.id === 'new') {
+            parameters[AzureMonitorWorkspaceParameterName.WorkspaceName] = {
+                value: selectedAzureMonitorWorkspaceResource.name,
+            };
+        }
 
         return parameters;
-    }, [subscription, agent?.location, resourceGroup, newGrafanaResourceName, resourceGroupId]);
+    }, [
+        subscription,
+        selectedLocation,
+        resourceGroup,
+        selectedGrafanaResource.id,
+        selectedGrafanaResource.name,
+        selectedAzureMonitorWorkspaceResource.id,
+        selectedAzureMonitorWorkspaceResource.name,
+    ]);
 
     const generateTemplate = useCallback(async () => {
         const builder = new ArmTemplateBuilder();
 
-        const grafanaResource = new GrafanaTemplateResource(builder);
+        if (selectedGrafanaResource.id === 'new') {
+            const grafanaResource = new GrafanaTemplateResource(builder);
+            builder.addResource(grafanaResource);
+        }
 
-        const azureMonitorWorkspaceResource = new AzureMonitorWorkspaceTemplateResource(builder);
-
-        const dataCollectionRuleResource = new DataCollectionRuleTemplateResource(builder);
-
-        builder.addResource(azureMonitorWorkspaceResource);
-        builder.addResource(dataCollectionRuleResource);
-        builder.addResource(grafanaResource);
+        if (selectedAzureMonitorWorkspaceResource.id === 'new') {
+            const azureMonitorWorkspaceResource = new AzureMonitorWorkspaceTemplateResource(builder);
+            builder.addResource(azureMonitorWorkspaceResource);
+        }
 
         return builder.getTemplate();
-    }, []);
+    }, [selectedAzureMonitorWorkspaceResource.id, selectedGrafanaResource.id]);
 
     const handleFailedDeployment = useCallback(
         (notificationId: string, deploymentName: string, error?: any) => {
@@ -465,7 +517,7 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
             azPortalContext.stopNotification(
                 notificationId,
                 false,
-                intl.formatMessage(GrafanaDashboardResources.grafanaCreationFailed, { errorMessage: errorMessage })
+                intl.formatMessage(GrafanaDashboardResources.grafanaCreationFailed, { errorMessage })
             );
 
             setIsUpdating(false);
@@ -499,10 +551,9 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
             notificationId: string,
             dataCollectionRuleResourceId: string,
             dataCollectionEndpointResourceId: string,
-            parameters?: Record<string, any>,
+            azureMonitorWorkspaceResource?: ArmObj<AzureMonitorWorkspace>,
             grafanaResource?: ArmObj<Grafana>
         ) => {
-            const azureMonitorWorkspaceResource = await fetchAzureMonitorWorkspaceResource(parameters?.azureMonitorWorkspaceId.value);
             const dataCollectionRuleResource = await fetchDataCollectionRuleResource(dataCollectionRuleResourceId);
             const dataCollectionEndpointResource = await fetchDataCollectionEndpointResource(dataCollectionEndpointResourceId);
 
@@ -546,7 +597,6 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
             setIsGrafanaUpdating(false);
         },
         [
-            fetchAzureMonitorWorkspaceResource,
             fetchDataCollectionRuleResource,
             fetchDataCollectionEndpointResource,
             existingManagedUserIdentityResourceId,
@@ -559,57 +609,124 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
         ]
     );
 
+    const handlePostDeployment = useCallback(async () => {
+        const linkingNotificationId = azPortalContext.startNotification(
+            intl.formatMessage(GrafanaDashboardResources.linkGrafanaDashboardTitle),
+            intl.formatMessage(GrafanaDashboardResources.linkGrafanaDashboardInProgress)
+        );
+
+        const grafanaResourceId =
+            selectedGrafanaResource.id === 'new'
+                ? `${resourceGroupId}/providers/${ArmServiceType.DashboardGrafana}/${selectedGrafanaResource.name}`
+                : selectedGrafanaResource.id;
+        const grafanaResource = await fetchGrafanaResource(grafanaResourceId);
+        const grafanaPrincipalId = grafanaResource?.identity?.principalId ?? '';
+
+        const umiResource = await fetchManagedUserIdentityResource();
+        const umiPrincipalId = umiResource?.properties?.principalId ?? '';
+
+        const azureMonitorWorkspaceId =
+            selectedAzureMonitorWorkspaceResource.id === 'new'
+                ? `${resourceGroupId}/providers/${ArmServiceType.AzureMonitorWorkspace}/${selectedAzureMonitorWorkspaceResource.name}`
+                : selectedAzureMonitorWorkspaceResource.id;
+        const azureMonitorWorkspaceResource = await fetchAzureMonitorWorkspaceResource(azureMonitorWorkspaceId);
+        const dataCollectionRuleResourceId =
+            azureMonitorWorkspaceResource?.properties.defaultIngestionSettings.dataCollectionRuleResourceId || '';
+        const dataCollectionEndpointResourceId =
+            azureMonitorWorkspaceResource?.properties.defaultIngestionSettings.dataCollectionEndpointResourceId || '';
+
+        await Promise.all([
+            assignMonitoringReaderRoleToSubscription(grafanaPrincipalId),
+            assignGrafanaRoleToCurrentUser(grafanaResourceId),
+            assignGrafanaRoleToManagedIdentity(grafanaResourceId, umiPrincipalId),
+            assignMonitoringReaderRoleToAzureMonitorWorkspace(azureMonitorWorkspaceId, grafanaPrincipalId),
+            assignMonitoringDataReaderRoleToAzureMonitorWorkspace(azureMonitorWorkspaceId, grafanaPrincipalId),
+            assignMonitoringMetricsPublisherRoleToDataCollectionRule(dataCollectionRuleResourceId, umiPrincipalId),
+            onLinkGrafanaDashboard(
+                linkingNotificationId,
+                dataCollectionRuleResourceId,
+                dataCollectionEndpointResourceId,
+                azureMonitorWorkspaceResource,
+                grafanaResource
+            ),
+        ]);
+    }, [
+        assignGrafanaRoleToCurrentUser,
+        assignGrafanaRoleToManagedIdentity,
+        assignMonitoringDataReaderRoleToAzureMonitorWorkspace,
+        assignMonitoringMetricsPublisherRoleToDataCollectionRule,
+        assignMonitoringReaderRoleToAzureMonitorWorkspace,
+        assignMonitoringReaderRoleToSubscription,
+        azPortalContext,
+        fetchAzureMonitorWorkspaceResource,
+        fetchGrafanaResource,
+        fetchManagedUserIdentityResource,
+        intl,
+        onLinkGrafanaDashboard,
+        resourceGroupId,
+        selectedAzureMonitorWorkspaceResource.id,
+        selectedAzureMonitorWorkspaceResource.name,
+        selectedGrafanaResource.id,
+        selectedGrafanaResource.name,
+    ]);
+
     const onCreateGrafanaDashboard = useCallback(async () => {
         setIsUpdating(true);
         setIsGrafanaUpdating(true);
 
-        const notificationId = azPortalContext.startNotification(
-            intl.formatMessage(GrafanaDashboardResources.grafanaCreationTitle),
-            intl.formatMessage(GrafanaDashboardResources.grafanaCreationInProgress)
-        );
+        if (selectedAzureMonitorWorkspaceResource.id === 'new' || selectedGrafanaResource.id === 'new') {
+            const notificationId = azPortalContext.startNotification(
+                intl.formatMessage(GrafanaDashboardResources.grafanaCreationTitle),
+                intl.formatMessage(GrafanaDashboardResources.grafanaCreationInProgress)
+            );
 
-        const deploymentName = `Grafana-Dashboard-${new Date().getTime()}`;
-        const deploymentResourceId = `${resourceGroupId}/providers/Microsoft.Resources/deployments/${deploymentName}`;
+            const deploymentName = `Grafana-Dashboard-${new Date().getTime()}`;
+            const deploymentResourceId = `${resourceGroupId}/providers/Microsoft.Resources/deployments/${deploymentName}`;
 
-        azPortalContext.log({
-            action: 'CreateGrafanaDashboard',
-            actionModifier: 'started',
-            resourceId: deploymentResourceId,
-            logLevel: 'info',
-            data: {
-                newGrafanaResourceName,
-                resourceGroupId,
-                subscriptionId,
-                location: agent?.location,
-                namePrefix: agent?.name,
-            },
-        });
+            azPortalContext.log({
+                action: 'CreateGrafanaDashboard',
+                actionModifier: 'started',
+                resourceId: deploymentResourceId,
+                logLevel: 'info',
+                data: {
+                    resourceName: selectedGrafanaResource.name,
+                    resourceGroupId,
+                    subscriptionId,
+                    location: agent?.location,
+                    namePrefix: agent?.name,
+                },
+            });
 
-        setNotificationId(notificationId);
-        setDeploymentId(deploymentResourceId);
-        setProgress(true);
+            setNotificationId(notificationId);
+            setDeploymentId(deploymentResourceId);
+            setProgress(true);
 
-        const template = await generateTemplate();
+            const template = await generateTemplate();
 
-        if (template) {
-            const parameters = generateParameters();
-            return deployTemplate(deploymentResourceId, deploymentName, notificationId, template, parameters);
+            if (template) {
+                const parameters = generateParameters();
+                return deployTemplate(deploymentResourceId, deploymentName, notificationId, template, parameters);
+            }
+        } else {
+            handlePostDeployment();
         }
     }, [
-        setIsUpdating,
         setIsGrafanaUpdating,
+        selectedAzureMonitorWorkspaceResource.id,
+        selectedGrafanaResource.id,
+        selectedGrafanaResource.name,
         azPortalContext,
         intl,
         resourceGroupId,
-        newGrafanaResourceName,
         subscriptionId,
         agent?.location,
         agent?.name,
-        setDeploymentId,
         setNotificationId,
+        setDeploymentId,
         generateTemplate,
         generateParameters,
         deployTemplate,
+        handlePostDeployment,
     ]);
 
     const fetchPermissions = useCallback(async () => {
@@ -617,6 +734,85 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
         setHasRbacWritePermission(response);
         setPermissionsLoaded(true);
     }, [resourceGroupId]);
+
+    const onAddNewGrafanaResourceName = useCallback(() => {
+        const editedGrafanaResourceList = existingGrafanaResources.filter(resource => resource.id !== 'new');
+        const newGrafanaResource = {
+            id: 'new',
+            name: newGrafanaResourceName,
+        };
+        editedGrafanaResourceList.push(newGrafanaResource);
+        setSelectedGrafanaResource(newGrafanaResource);
+        setExistingGrafanaResources(editedGrafanaResourceList);
+        setIsGrafanaDirty(false);
+        setNewGrafanaResourceName('');
+        setIsGrafanaPopoverOpen(false);
+    }, [existingGrafanaResources, newGrafanaResourceName]);
+
+    const onAddNewAzureMonitorWorkspaceName = useCallback(() => {
+        const editedAzureMonitorWorkspaceResourceList = existingAzureMonitorWorkspaceResources.filter(resource => resource.id !== 'new');
+        const newAzureMonitorWorkspaceResource = {
+            id: 'new',
+            name: newAzureMonitorWorkspaceResourceName,
+        };
+        editedAzureMonitorWorkspaceResourceList.push(newAzureMonitorWorkspaceResource);
+        setSelectedAzureMonitorWorkspaceResource(newAzureMonitorWorkspaceResource);
+        setExistingAzureMonitorWorkspaceResources(editedAzureMonitorWorkspaceResourceList);
+        setIsAzureMonitorWorkspaceDirty(false);
+        setNewAzureMonitorWorkspaceResourceName('');
+        setIsAzureMonitorWorkspacePopoverOpen(false);
+    }, [existingAzureMonitorWorkspaceResources, newAzureMonitorWorkspaceResourceName]);
+
+    const onGrafanaOptionSelect = useCallback(
+        (_event: SelectionEvents, option: OptionOnSelectData) => {
+            const grafanaResource = existingGrafanaResources.find(resource => resource.name === option.optionValue);
+            if (grafanaResource) {
+                setSelectedGrafanaResource({
+                    id: grafanaResource.id ?? '',
+                    name: grafanaResource.name ?? '',
+                });
+            }
+        },
+        [existingGrafanaResources]
+    );
+
+    const onAzureMonitorWorkspaceOptionSelect = useCallback(
+        (_event: SelectionEvents, option: OptionOnSelectData) => {
+            const azureMonitorWorkspaceResource = existingAzureMonitorWorkspaceResources.find(
+                resource => resource.name === option.optionValue
+            );
+            if (azureMonitorWorkspaceResource) {
+                setSelectedAzureMonitorWorkspaceResource({
+                    id: azureMonitorWorkspaceResource.id ?? '',
+                    name: azureMonitorWorkspaceResource.name ?? '',
+                });
+            }
+        },
+        [existingAzureMonitorWorkspaceResources]
+    );
+
+    const fetchLocationOptions = useCallback(async () => {
+        const monitorResponse = await LocationClient.getLocForResTypes(subscription, 'Microsoft.Monitor');
+        const dashboardResponse = await LocationClient.getLocForResTypes(subscription, 'Microsoft.Dashboard');
+        if (monitorResponse.metadata.success && dashboardResponse.metadata.success) {
+            const accountsResource = monitorResponse.data.resourceTypes.find(resourceType => resourceType.resourceType === 'accounts');
+            const dashboardResource = dashboardResponse.data.resourceTypes.find(resourceType => resourceType.resourceType === 'grafana');
+            const commonLocations = accountsResource?.locations?.filter(location => dashboardResource?.locations?.includes(location));
+            if (commonLocations) {
+                setLocationOptions(commonLocations);
+                if (commonLocations.find(location => isSameLocation(location, agent?.location))) {
+                    setSelectedLocation(getUserFriendlyLocation(agent?.location || ''));
+                }
+            }
+        } else {
+            azPortalContext.log({
+                action: 'GetLocationOptions',
+                actionModifier: 'failed',
+                resourceId,
+                logLevel: 'error',
+            });
+        }
+    }, [agent?.location, azPortalContext, resourceId, subscription]);
 
     useEffect(() => {
         if ((progress || isGrafanaUpdating) && deploymentId && notificationId) {
@@ -633,39 +829,8 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
                         true,
                         intl.formatMessage(GrafanaDashboardResources.grafanaCreationSuccess)
                     );
-                    const linkingNotificationId = azPortalContext.startNotification(
-                        intl.formatMessage(GrafanaDashboardResources.linkGrafanaDashboardTitle),
-                        intl.formatMessage(GrafanaDashboardResources.linkGrafanaDashboardInProgress)
-                    );
 
-                    const grafanaResourceId = `${resourceGroupId}/providers/${ArmServiceType.DashboardGrafana}/${response.data.properties?.parameters?.grafanaName.value}`;
-
-                    const grafanaResource = await fetchGrafanaResource(grafanaResourceId);
-                    const umiResource = await fetchManagedUserIdentityResource();
-
-                    const grafanaPrincipalId = grafanaResource?.identity?.principalId ?? '';
-                    const azureMonitorWorkspaceName = response.data.properties?.parameters?.workspaceName.value;
-                    const azureMonitorWorkspaceId = response.data.properties?.parameters?.azureMonitorWorkspaceId.value;
-                    const umiPrincipalId = umiResource?.properties?.principalId ?? '';
-                    const dataCollectionResourceGroupId = `${subscriptionId}/resourceGroups/MA_${azureMonitorWorkspaceName}_${agent?.location}_managed`;
-                    const dataCollectionRuleResourceId = `${dataCollectionResourceGroupId}/providers/${ArmServiceType.DataCollectionRule}/${response.data.properties?.parameters?.dataCollectionRuleName.value}`;
-                    const dataCollectionEndpointResourceId = `${dataCollectionResourceGroupId}/providers/${ArmServiceType.DataCollectionEndpoint}/${response.data.properties?.parameters?.dataCollectionRuleName.value}`;
-
-                    await Promise.all([
-                        assignMonitoringReaderRoleToSubscription(grafanaPrincipalId),
-                        assignGrafanaRoleToCurrentUser(grafanaResourceId),
-                        assignGrafanaRoleToManagedIdentity(grafanaResourceId, umiPrincipalId),
-                        assignMonitoringReaderRoleToAzureMonitorWorkspace(azureMonitorWorkspaceId, grafanaPrincipalId),
-                        assignMonitoringDataReaderRoleToAzureMonitorWorkspace(azureMonitorWorkspaceId, grafanaPrincipalId),
-                        assignMonitoringMetricsPublisherRoleToDataCollectionRule(dataCollectionRuleResourceId, umiPrincipalId),
-                        onLinkGrafanaDashboard(
-                            linkingNotificationId,
-                            dataCollectionRuleResourceId,
-                            dataCollectionEndpointResourceId,
-                            response.data.properties?.parameters,
-                            grafanaResource
-                        ),
-                    ]);
+                    handlePostDeployment();
                 } else if (provisioningState === ProvisioningStates.Failed) {
                     clearInterval(intervalId);
                     setProgress(false);
@@ -678,7 +843,6 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
             return () => clearInterval(intervalId);
         }
     }, [
-        agent?.location,
         subscriptionId,
         progress,
         notificationId,
@@ -699,6 +863,12 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
         azPortalContext,
         intl,
         deploymentId,
+        selectedGrafanaResource.id,
+        selectedGrafanaResource.name,
+        selectedAzureMonitorWorkspaceResource.id,
+        selectedAzureMonitorWorkspaceResource.name,
+        fetchAzureMonitorWorkspaceResource,
+        handlePostDeployment,
     ]);
 
     useEffect(() => {
@@ -707,13 +877,13 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
             if (!response?.length) {
                 return;
             }
-            const grafanaResourceNames: string[] = [];
+            const grafanaResources: { id: string; name: string }[] = [];
             response.map(grafanaResource => {
-                if (grafanaResource?.name && grafanaResource?.resourceGroupName === resourceGroup) {
-                    grafanaResourceNames.push(grafanaResource.name);
+                if (grafanaResource?.name) {
+                    grafanaResources.push({ id: grafanaResource.id, name: grafanaResource.name });
                 }
             });
-            setExistingGrafanaResourceNames(grafanaResourceNames);
+            setExistingGrafanaResources(grafanaResources);
         };
         if (agentLoaded && !grafanaEndpoint) {
             fetchGrafanaResources();
@@ -721,10 +891,31 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
     }, [agentLoaded, grafanaEndpoint, azPortalContext, subscription, resourceGroup]);
 
     useEffect(() => {
+        const fetchAzureMonitorWorkspaceResources = async () => {
+            const response = await AzureMonitorWorkspaceClient.getAzureMonitorWorkspaceResourcesFromArg([subscription], azPortalContext);
+            if (!response?.length) {
+                return;
+            }
+            const azureMonitorWorkspaceResources: { id: string; name: string }[] = [];
+            response.map(azureMonitorWorkspaceResource => {
+                if (azureMonitorWorkspaceResource?.name) {
+                    azureMonitorWorkspaceResources.push({ id: azureMonitorWorkspaceResource.id, name: azureMonitorWorkspaceResource.name });
+                }
+            });
+            setExistingAzureMonitorWorkspaceResources(azureMonitorWorkspaceResources);
+        };
+        fetchAzureMonitorWorkspaceResources();
+    }, [agentLoaded, grafanaEndpoint, azPortalContext, subscription, resourceGroup]);
+
+    useEffect(() => {
         if (!permissionsLoaded) {
             fetchPermissions();
         }
     }, [permissionsLoaded, fetchPermissions]);
+
+    useEffect(() => {
+        fetchLocationOptions();
+    }, [fetchLocationOptions]);
 
     return {
         grafanaEndpoint,
@@ -737,8 +928,29 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
         grafanaRbacRoles,
         isGrafanaUpdating,
         isUpdating,
+        existingGrafanaResources,
+        isGrafanaPopoverOpen,
+        selectedGrafanaResource,
+        newAzureMonitorWorkspaceResourceNameErrorMessage,
+        isAzureMonitorWorkspacePopoverOpen,
+        newAzureMonitorWorkspaceResourceName,
+        selectedAzureMonitorWorkspaceResource,
+        existingAzureMonitorWorkspaceResources,
+        locationOptions,
+        selectedLocation,
+        setSelectedLocation,
+        setSelectedAzureMonitorWorkspaceResource,
+        setNewAzureMonitorWorkspaceResourceName,
+        setIsAzureMonitorWorkspacePopoverOpen,
+        onAzureMonitorWorkspaceOptionSelect,
+        onAddNewAzureMonitorWorkspaceName,
+        onGrafanaOptionSelect,
+        setSelectedGrafanaResource,
+        setIsGrafanaPopoverOpen,
+        onAddNewGrafanaResourceName,
         setNewGrafanaResourceName,
-        setIsDirty,
+        setIsGrafanaDirty,
+        setIsAzureMonitorWorkspaceDirty,
         onCreateGrafanaDashboard,
     };
 }

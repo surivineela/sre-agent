@@ -578,7 +578,12 @@ export const SettingsTabResources = defineMessages({
 });
 
 export const GrafanaDashboardResources = defineMessages({
-    resourceName: { defaultMessage: 'Resource name', id: 'eqYdSS' },
+    newValueDisplay: { defaultMessage: ' (new)', id: 'aaAabe' },
+    region: { defaultMessage: 'Region', id: 'lnaWo/' },
+    selectRegion: { defaultMessage: 'Select region', id: 'tshYzs' },
+    createNew: { defaultMessage: 'Create new', id: '5WK7jL' },
+    grafanaResourceName: { defaultMessage: 'Azure Managed Grafana resource name', id: 'JAtEuU' },
+    azureMonitorWorkspaceResourceName: { defaultMessage: 'Azure Monitor Workspace resource name', id: '2hB9SP' },
     assignedTo: { defaultMessage: 'Assigned to', id: 'ONVN5F' },
     scope: { defaultMessage: 'Scope', id: 'nso3Mj' },
     monitoringMetricsPublisher: { defaultMessage: 'Monitoring metrics publisher', id: 'XvrDTb' },
@@ -589,7 +594,7 @@ export const GrafanaDashboardResources = defineMessages({
     azureManagedGrafana: { defaultMessage: 'Azure Managed Grafana', id: 'IF3r+X' },
     subscription: { defaultMessage: 'Subscription', id: 'R/6nsx' },
     azureMonitorWorkspace: { defaultMessage: 'Azure Monitor Workspace', id: 'gj6Qc6' },
-    userAssignedManagedIdentity: { defaultMessage: 'User Assigned Managed Identity', id: 'lGIJSX' },
+    userAssignedManagedIdentity: { defaultMessage: 'User-assigned Managed Identity', id: '6S2zmX' },
     user: { defaultMessage: 'User', id: 'EwRIOm' },
     role: { defaultMessage: 'Role', id: '1ZgrhW' },
     roleAssignments: {
@@ -635,10 +640,18 @@ export const GrafanaDashboardResources = defineMessages({
         defaultMessage: 'Grafana resource must be unique within the resource group.',
         id: 'jTQZpk',
     },
+    uniqueAmwResourceNameError: {
+        defaultMessage: 'Azure Monitor Workspace resource must be unique within the resource group.',
+        id: 'riEsC7',
+    },
     invalidGrafanaResourceNameError: {
         defaultMessage:
             'The name must begin with a letter, end with a letter or number, and contain only letters, numbers, and hyphens. It must be 2 to 23 characters long.',
         id: 'WuZcUT',
+    },
+    invalidAmwResourceNameError: {
+        defaultMessage: 'Only alphanumeric characters and dashes are allowed, and the value must be 3-44 characters long.',
+        id: 'RH8rNM',
     },
     enterResourceName: { defaultMessage: 'Enter resource name', id: '3DzXFS' },
 });

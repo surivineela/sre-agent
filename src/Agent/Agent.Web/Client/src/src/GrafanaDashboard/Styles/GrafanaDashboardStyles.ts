@@ -5,9 +5,9 @@ const container: CSSProperties = {
     display: 'flex',
     flexDirection: 'column',
     gap: '15px',
-    width: '80%',
+    width: '100%',
     overflowY: 'auto',
-    height: '70%',
+    height: '90%',
 };
 
 const titleText: CSSProperties = {
@@ -26,7 +26,7 @@ const rowCenterAlign: CSSProperties = {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    width: '100%',
+    width: '80%',
 };
 
 const rbacContainer: CSSProperties = {
@@ -52,12 +52,12 @@ const apiKeyRow: CSSProperties = {
     maxWidth: '500px',
 };
 
-const inputFieldLabel: CSSProperties = { height: '50px', width: '600px', columnGap: '40px' };
+const inputFieldLabel: CSSProperties = { height: '50px', columnGap: '50px' };
 
 const displayFieldLabel: CSSProperties = { marginRight: '100px' };
 
 const inputTextField: CSSProperties = {
-    width: '400px',
+    width: '350px',
 };
 
 const apiKeyInput: CSSProperties = {
@@ -69,6 +69,13 @@ const buttonRow: CSSProperties = {
     flexDirection: 'row',
     gap: '8px',
     marginTop: '10px',
+};
+
+const popoverButtonRow: CSSProperties = {
+    display: 'flex',
+    flexDirection: 'row',
+    gap: '8px',
+    marginTop: '40px',
 };
 
 const grafanaLogo: CSSProperties = {
@@ -116,7 +123,15 @@ const messageBar: CSSProperties = {
 
 const titleGrafanaDashboardHeader: CSSProperties = { marginBottom: '20px', fontSize: '18px', fontWeight: 600 };
 
-const roleGridStyle: CSSProperties = { marginBottom: 30 };
+const roleGridStyle: CSSProperties = { marginBottom: 30, width: '80%' };
+
+const popoverContainer: CSSProperties = { width: 600, minHeight: 150 };
+
+const formContainer: CSSProperties = { display: 'flex', flexDirection: 'column', gap: '30px' };
+
+const dropdownFieldStyle: CSSProperties = { width: '350px' };
+
+const popoverLink: CSSProperties = { width: '20px' };
 
 export const useGrafanaDashboardStyles = () =>
     mergeStyleSets({
@@ -142,4 +157,9 @@ export const useGrafanaDashboardStyles = () =>
         grafanaUrlLinkContainer,
         titleGrafanaDashboardHeader,
         roleGridStyle,
+        popoverContainer,
+        popoverButtonRow,
+        formContainer,
+        dropdownFieldStyle,
+        popoverLink,
     });
