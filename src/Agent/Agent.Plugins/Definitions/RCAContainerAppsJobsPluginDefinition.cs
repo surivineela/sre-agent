@@ -196,5 +196,34 @@ namespace Agent.Plugins.Definitions
             };
             return _kustoPluginChat.ExecuteLocalFunctionAsync("LegionVKEventsForJobsRunningConsumptionV2", region, args);
         }
+        [Description(
+           """
+            Retrieves the Azure Service Insights (ASI) page link for the specified Container App Job.
+            Returns a direct link to the ASI portal for the given job, scoped to the provided time range, resource group, and subscription.
+            """)]
+        public Task<string> GetASIPageForContainerAppJob(
+           [Description("The Azure region")] string region,
+           [Description("The start of the time range for the query (UTC datetime)")] DateTime fromDate,
+           [Description("The end of the time range for the query (UTC datetime)")] DateTime toDate,
+           [Description("The name of the Container App Job")] string containerAppName,
+           [Description("The resource group of the Container App Job")] string resourceGroupName,
+           [Description("The subscription ID of the Container App Job")] string subscriptionId)
+        {
+            var basePath = "/services/ACA Azure Container Apps/pages/Container App";
+            var cleanPath = Uri.EscapeUriString(basePath); // DO NOT CHANGE TO EscapeDataString
+
+            var query =
+                $"cappName={Uri.EscapeDataString(containerAppName.Trim())}" +
+                $"&cappResourceGroup={Uri.EscapeDataString(resourceGroupName.Trim())}" +
+                $"&cappSubscription={Uri.EscapeDataString(subscriptionId.Trim())}" +
+                $"&location={Uri.EscapeDataString(region.Trim())}" +
+                $"&globalFrom={Uri.EscapeDataString(fromDate.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"))}" +
+                $"&globalTo={Uri.EscapeDataString(toDate.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"))}";
+
+            var asiUri = $"https://asi.azure.ms{cleanPath}?{query}";
+
+            return Task.FromResult($"ASI Page for container app job {asiUri}");
+        }
+
     }
 }

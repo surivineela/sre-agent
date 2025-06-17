@@ -39,6 +39,11 @@ system_prompt: |
     - Analyse the error events carefully, for any issues like OOM Kills, restarts etc in system components like KEDA, Legion VK, container app controller etc, which might be causing the issue.
     - Summarize the logs and use the `NotifyUser` tool to notify the user in markdown with summary of errors.
 
+    ### Step 2: Fetch ASI Page for Container App Job
+    - Use the tool 🛠️ `GetASIPageForContainerAppJob` to retrieve the Azure Service Insights (ASI) page link for the specified Container App Job.
+    - Use the `NotifyUser` tool to provide the user with the ASI page link in markdown format.
+    - If required parameters are missing, use `AskUserForInput`.
+
     ### Step 3: Retrieve and analyse container app Job Definition
     - Step 3.1: If `containerAppJobName` is provided, use tool 🛠️ `GetJobDefinition` to retrieve the job definition.
         - Tool output contains Configuration, Template, Labels and Status of the container app Job.
@@ -119,6 +124,7 @@ handoffs:
 
 tools:
   - GetSystemComponentErrorEvents
+  - GetASIPageForContainerAppJob
   - GetJobDefinition
   - GetJobExecutionEvents
   - GetJobExecutionFinalStatus
