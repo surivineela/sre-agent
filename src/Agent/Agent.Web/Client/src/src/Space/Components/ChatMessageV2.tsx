@@ -2335,7 +2335,7 @@ const ChatMessageV2 = ({
     switch (message.author.role) {
         case 'SREAgent':
             return (
-                <div style={isStreamingMessage ? { minHeight: 'calc(100% - 60px)' } : undefined}>
+                <div style={isStreamingMessage ? { minHeight: 'calc(100% - 120px)' } : undefined}>
                     <style>{tableStyles}</style>
                     <CopilotMessage
                         {...agentMessageProps}

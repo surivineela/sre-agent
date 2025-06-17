@@ -1,5 +1,5 @@
 import { Button, makeStyles, mergeClasses, Popover, PopoverSurface, PopoverTrigger, Text, tokens } from '@fluentui/react-components';
-import { ArrowCircleDownFilled, Lightbulb16Regular, RecordStopFilled, SendFilled } from '@fluentui/react-icons';
+import { Lightbulb16Regular, RecordStopFilled, SendFilled } from '@fluentui/react-icons';
 import { IStyle, mergeStyles } from '@fluentui/react/lib/Styling';
 import { TextField } from '@fluentui/react/lib/TextField';
 import { memo, useCallback, useState } from 'react';
@@ -8,6 +8,7 @@ import { ActivitiesResources, PromptResources, SreAgentResources } from '../../S
 import { IChatBoxFooterV2Props } from '../Contracts/Activities';
 import { chatInputTextStyles, sendButtonStyles, useChatInputStyles } from '../Styles/Activities.styles';
 import KnowledgeGraphBuildStatus from './KnowledgeGraphBuildStatus';
+import { ScrollDownButton } from "@fluentui-copilot/react-copilot-chat";
 
 const useDownButtonStyles = makeStyles({
     root: {
@@ -16,7 +17,7 @@ const useDownButtonStyles = makeStyles({
         pointerEvents: 'auto',
         position: 'absolute',
         right: '50%',
-        bottom: '100%',
+        bottom: '110%',
     },
     hidden: {
         opacity: '0',
@@ -24,12 +25,12 @@ const useDownButtonStyles = makeStyles({
     },
 });
 
-const DownButton = ({ isVisible, onClick }: { isVisible?: boolean; onClick: () => void }) => {
+const DownButton = ({ downButtonState, onClick }: { downButtonState: { visible: boolean, flash: boolean }; onClick: () => void }) => {
     const { root, hidden } = useDownButtonStyles();
-    const buttonStyles = mergeClasses(root, isVisible ? undefined : hidden);
+    const buttonStyles = mergeClasses(root, downButtonState.visible ? undefined : hidden);
 
     return (
-        <Button appearance={'transparent'} icon={<ArrowCircleDownFilled />} onClick={onClick} shape={'circular'} className={buttonStyles} />
+        <ScrollDownButton onClick={onClick} className={buttonStyles} isGenerating={downButtonState.flash} />
     );
 };
 
@@ -37,7 +38,7 @@ const ChatBoxFooterV2 = ({
     sendMessage,
     disableInput,
     onClickDownButton,
-    isDownButtonVisible,
+    downButtonState,
     prompts,
     messagePromptsUsed,
     cancelStreaming,
@@ -86,7 +87,7 @@ const ChatBoxFooterV2 = ({
         <div className={root}>
             <KnowledgeGraphBuildStatus />
             <div className={mergeStyles(chatInputTextStyles.textFieldContainer as IStyle)}>
-                {<DownButton isVisible={isDownButtonVisible} onClick={onClickDownButton} />}
+                <DownButton downButtonState={downButtonState} onClick={onClickDownButton} />
                 <TextField
                     placeholder={intl.formatMessage(ActivitiesResources.chatInputPlaceholder)}
                     multiline={true}

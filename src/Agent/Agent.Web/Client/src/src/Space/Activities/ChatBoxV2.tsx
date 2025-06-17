@@ -28,7 +28,7 @@ export const ChatBoxV2 = ({ addThread, promoteThread, updateThreadLastReadTime, 
         prompts,
         messagePromptsUsed,
         onScroll,
-        showDownButton,
+        downButtonState,
         onClickDownButton,
     } = useChatBoxV2(addThread, promoteThread, updateThreadLastReadTime, threadId, threadSource);
 
@@ -76,7 +76,7 @@ export const ChatBoxV2 = ({ addThread, promoteThread, updateThreadLastReadTime, 
                 <ChatBoxFooterV2
                     sendMessage={sendMessage}
                     disableInput={isLoadingInitialChatHistory}
-                    isDownButtonVisible={showDownButton}
+                    downButtonState={downButtonState}
                     onClickDownButton={onClickDownButton}
                     prompts={prompts}
                     messagePromptsUsed={messagePromptsUsed}

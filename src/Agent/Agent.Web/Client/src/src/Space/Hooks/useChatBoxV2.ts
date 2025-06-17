@@ -94,7 +94,7 @@ export const useChatBoxV2 = (
     const typingCharIndex = useRef<number>(0);
     const typingCharsTimeout = useRef<NodeJS.Timeout | undefined>(undefined);
 
-    const [showDownButton, setShowDownButton] = useState(false);
+    const [downButtonState, setDownButtonState] = useState<{ visible: boolean, flash: boolean }>({ visible: false, flash: false });
 
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const { sendMessage, onMessage } = useContext(SignalRContext);
@@ -136,7 +136,7 @@ export const useChatBoxV2 = (
         }
 
         const isAtBottom = isChatAtBottom();
-        setShowDownButton(!isAtBottom);
+        setDownButtonState({ visible: !isAtBottom, flash: isAgentTyping });
     }, 300);
 
     const onScroll = () => {
@@ -148,7 +148,7 @@ export const useChatBoxV2 = (
 
     const onClickDownButton = () => {
         scrollToBottom(false);
-        setShowDownButton(false);
+        setDownButtonState({ visible: false, flash: false });
     };
 
     const finishStreaming = () => {
@@ -573,10 +573,15 @@ export const useChatBoxV2 = (
     }, [streamingMessage]);
 
     useEffect(() => {
-        if (newMessage && newMessage.length > 0 && !isChatAtBottom()) {
-            setShowDownButton(true);
+        if (newMessage && newMessage.length > 0) {
+            if (!isChatAtBottom()) {
+                setDownButtonState({ visible: true, flash: isAgentTyping });
+            } else {
+                setDownButtonState({ visible: false, flash: false });
+                scrollToBottom(true);
+            }
         }
-    }, [newMessage]);
+    }, [newMessage, isAgentTyping]);
 
     useEffect(() => {
         oldestMessageRef.current = oldMessages[0];
@@ -614,7 +619,7 @@ export const useChatBoxV2 = (
         prompts,
         messagePromptsUsed,
         onScroll,
-        showDownButton,
+        downButtonState,
         onClickDownButton,
         loadOldChatHistory,
     };

@@ -88,7 +88,7 @@ export interface IChatBoxFooterProps {
 export interface IChatBoxFooterV2Props {
     sendMessage: (message: string) => Promise<void>;
     disableInput: boolean;
-    isDownButtonVisible: boolean;
+    downButtonState: { visible: boolean; flash: boolean };
     onClickDownButton: () => void;
     prompts: string[];
     messagePromptsUsed: string[];
