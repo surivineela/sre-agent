@@ -781,8 +781,7 @@ public class Program
             }
             : null;
 
-        if (!string.IsNullOrEmpty(internalKustoClusterSettings.ClusterUri) &&
-                 !string.IsNullOrEmpty(externalKustoClusterUri))
+        if (!string.IsNullOrEmpty(internalKustoClusterSettings.ClusterUri))
         {
             CommonColumn commonColumn = CommonColumn.Build();
 
