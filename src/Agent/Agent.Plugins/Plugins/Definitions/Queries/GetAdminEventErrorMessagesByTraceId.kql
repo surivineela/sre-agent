@@ -1,0 +1,11 @@
+let fromDate = datetime("##fromDate##");
+let toDate = datetime("##toDate##");
+let queryTraceId = "##env_dt_traceId##";
+ContainerAppsAdminEvents
+| where PreciseTimeStamp between (fromDate .. toDate)
+| where Level < 4
+| where env_dt_traceId == queryTraceId
+| summarize FirstSeen=min(PreciseTimeStamp),LastSeen=max(PreciseTimeStamp) by message
+| project FirstSeen, LastSeen, message
+| order by FirstSeen asc
+| limit 50

@@ -3,6 +3,7 @@ using Agent.Framework;
 using Agent.Plugins.IcmPlugin;
 using Agent.Plugins.Interface;
 using Kusto.Cloud.Platform.Utils;
+using Newtonsoft.Json;
 
 namespace Agent.Plugins.Definitions
 {
@@ -35,10 +36,12 @@ namespace Agent.Plugins.Definitions
         }
 
         [Description("Get original ICM incident information.")]
-        public async Task<Incident?> GetIncidentInfo(
+        public async Task<string?> GetIncidentInfo(
         [Description("Incident ID")] string incidentId)
         {
-            return await _plugin.GetIncidentInfo(incidentId);
+            var incident = await _plugin.GetIncidentInfo(incidentId);
+            var incidentString = JsonConvert.SerializeObject(incident);
+            return incidentString;
         }
 
         [Description(@"Get original ICM discussion entries
@@ -51,11 +54,13 @@ namespace Agent.Plugins.Definitions
         - TimeStamp: The timestamp of the discussion entry.
         - ChangedBy: The user who created this discussion entry.
         ")]
-        public async Task<List<DiscussionEntry>?> GetDiscussionEntries(
+        public async Task<string?> GetDiscussionEntries(
            [Description("Incident ID")] string incidentId,
            [Description("From time of the query")] DateTimeOffset queryFrom)
         {
-            return await _plugin.GetDiscussionEntries(incidentId, queryFrom);
+            var discussionEntries = await _plugin.GetDiscussionEntries(incidentId, queryFrom);
+            var discussionEntriesString = JsonConvert.SerializeObject(discussionEntries, Formatting.Indented);
+            return discussionEntriesString;
         }
 
 

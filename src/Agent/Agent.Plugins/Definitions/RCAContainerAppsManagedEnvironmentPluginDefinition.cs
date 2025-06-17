@@ -24,7 +24,8 @@ namespace Agent.Plugins.Definitions
 @"Retrieve configuration and provisioning metadata for a specific Azure Container Apps managed environment.
 
 The function return managed environment detailed information includes:
-PreciseTimeStamp,managedClusterName,managedClusterLocation,managedSubscription,managedClusterCreatedTime,powerState,provisioningState,chartVersion,isInternal,chartVersionUpgradeTime,chartVersionUpgradeError,kubernetesVersion,kubernetesVersionUpgradeTime,upgradeBatch,environmentSubscription,environmentResourceGroup,environmentLocation,environmentName,environmentCreatedTime,hasWorkloadProfiles,hasCustomerVnet,hasMaintenanceConfiguration,publicNetworkAccess,hasPrivateEndpoints,envType,customVnet,RegionalConsumptionV2,tier"
+PreciseTimeStamp,managedClusterName,managedClusterLocation,managedSubscription,managedClusterCreatedTime,powerState,provisioningState,chartVersion,isInternal,chartVersionUpgradeTime,chartVersionUpgradeError,kubernetesVersion,kubernetesVersionUpgradeTime,upgradeBatch,environmentSubscription,environmentResourceGroup,environmentLocation,environmentName,environmentCreatedTime,hasWorkloadProfiles,hasCustomerVnet,hasMaintenanceConfiguration,publicNetworkAccess,hasPrivateEndpoints,envType,customVnet,RegionalConsumptionV2,tier
+"
 )]
         public async Task<string> GetManagedEnvironmentInfo(
     [Description("Azure region.")] string region,
@@ -319,6 +320,29 @@ Projects:
                     { "fromDate", fromDate.ToString() },
                     { "toDate", toDate.ToString() },
                     { "frontendVmssName", frontendVmssName }
+                });
+        }
+
+        [Description(
+@"Retrieve detailed error messages for Azure Container Apps environment Admin operation events. Every environment Admin event has a unique trace ID (env_dt_traceId) that can be used to correlate related events and errors.
+
+Projects:
+- FirstSeen: First occurrence of the error message.
+- LastSeen: Last occurrence of the error message.
+- message: The error message content.
+")]
+        public async Task<string> GetAdminEventErrorMessagesByTraceId(
+            [Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Trace ID to search for error messages.")] string traceId)
+        {
+            return await _kustoPlugin.ExecuteLocalFunctionAsync("GetAdminEventErrorMessagesByTraceId", region,
+                new Dictionary<string, string>
+                {
+                    { "fromDate", fromDate.ToString() },
+                    { "toDate", toDate.ToString() },
+                    { "env_dt_traceId", traceId }
                 });
         }
     }
