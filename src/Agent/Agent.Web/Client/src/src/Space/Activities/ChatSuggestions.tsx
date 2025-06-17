@@ -1,8 +1,6 @@
 import { Card, Image, makeStyles, Text } from '@fluentui/react-components';
 import { useMemo } from 'react';
 import { useIntl } from 'react-intl';
-import { LearnMoreLink } from '../../Common/Components/LearnMoreLink';
-import { SreAgentFwLinks } from '../../Common/Constants/FwLinks';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
 
 const useChatSuggestionStyles = makeStyles({
@@ -71,8 +69,6 @@ export const ChatSuggestions = (props: ChatSuggestionsProps) => {
                     </Card>
                 ))}
             </div>
-
-            <LearnMoreLink url={SreAgentFwLinks.tipsOnHowToChat} linkText={intl.formatMessage(SreAgentResources.tipsOnHowToChat)} />
         </div>
     );
 };

@@ -30,7 +30,7 @@ import InvestigationSummary from '../../Common/Components/InvestigationSummary';
 import InvestigationSummaryPanel from '../../Common/Components/InvestigationSummaryPanel';
 import { ApprovalDecision, AzCliExecution, KubectlExecution } from '../../Common/Contracts/Azure/SreAgent';
 import { getAgentModeDisplayName } from '../../Common/Helpers/AgentMode';
-import { getSafeDateTime } from '../../Common/Helpers/Date';
+import { formatDateTimeWithShortYear, getSafeDateTime } from '../../Common/Helpers/Date';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
 import { shouldGroupWithPreviousMessage } from '../Activities/Utility';
@@ -1883,16 +1883,16 @@ const ChatMessage = ({
 
     const agentMessageProps = useMemo(() => {
         const messageProps: CopilotMessageProps = {
-            avatar: <Image src="./SreAgent.svg" width={28} height={28} alt={intl.formatMessage(SreAgentResources.sreAgent)} />,
+            avatar: <Image src="./SreAgent.svg" width={28} height={28} alt={intl.formatMessage(SreAgentResources.azureSreAgent)} />,
             loadingState: isTyping ? 'loading' : 'none',
             mode: 'canvas',
             name: (
                 <div style={nameAndTimestampContainerStyle}>
-                    <span>{intl.formatMessage(SreAgentResources.sreAgent)}</span>
+                    <span>Azure SRE Agent</span>
                     {mode && <span className={chatStyles.modePill}>{agentMode}</span>}
                     {!isTyping && (
                         <Text size={200} color={tokens.colorNeutralForeground3}>
-                            {getSafeDateTime(message.timeStamp).toLocaleString()}
+                            {formatDateTimeWithShortYear(getSafeDateTime(message.timeStamp))}
                         </Text>
                     )}
                 </div>
@@ -2441,7 +2441,7 @@ const ChatMessage = ({
                                 </Text>
                             )}
                             <Text size={200} color={tokens.colorNeutralForeground3} style={{ lineHeight: '26px' }}>
-                                {getSafeDateTime(message.timeStamp).toLocaleString()}
+                                {formatDateTimeWithShortYear(getSafeDateTime(message.timeStamp))}
                             </Text>
                         </div>
                     )}

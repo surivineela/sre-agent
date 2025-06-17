@@ -1,6 +1,7 @@
 import { defineMessages } from 'react-intl';
 
 export const SreAgentResources = defineMessages({
+    azureSreAgent: { defaultMessage: 'Azure SRE Agent', id: 'Erci0g' },
     runMode: { defaultMessage: 'Run mode', id: 'MFofa3' },
     deleteAgentTitle: { defaultMessage: 'Delete SRE Agent', id: 'ThSX0k' },
     deleteAgentDescription: {
@@ -152,8 +153,6 @@ export const SreAgentResources = defineMessages({
             'AI-generated content might be incorrect, so review carefully before use. Do not include personal or confidential information in the chat.',
         id: 'BKMqtr',
     },
-    tipsOnHowToChat: { defaultMessage: 'Tips on how to chat with the SRE Agent', id: 'UVS724' },
-    learnMoreAboutSupportedServices: { defaultMessage: 'Learn more about supported services', id: 'fxw/H0' },
     supportedServicesMessage: {
         defaultMessage:
             'To get optimal agent performance for diagnostics, metrics, knowledge, and more during preview, use resource groups that include one or more of these Azure compute services: Azure Kubernetes Service, Functions, Container Apps, or Web Apps.',
@@ -201,8 +200,8 @@ export const ResourcePickerTabResources = defineMessages({
 });
 
 export const PromptResources = defineMessages({
-    latestPrompts: { defaultMessage: 'Latest prompts', id: 'cHsYT3' },
-    popularPrompts: { defaultMessage: 'Popular prompts', id: 'rAGm8M' },
+    myRecentPrompts: { defaultMessage: 'My recent prompts', id: 'PCrXDG' },
+    suggestedPrompts: { defaultMessage: 'Suggested prompts', id: 'cn2YEB' },
     promptLibrary: { defaultMessage: 'Prompt library', id: 'zvLfRe' },
     bestPracticesPrompt: { defaultMessage: 'Can you audit best practices for my resource?', id: '4OUjTL' },
     notWorkingPrompt: { defaultMessage: "Why isn't my application working?", id: 'DlSXUR' },
@@ -384,11 +383,15 @@ export const ActionsStatusResources = defineMessages({
 });
 
 export const IncidentManagementResources = defineMessages({
+    goToIncidentManagement: { defaultMessage: 'Go to Incident management', id: '7Cy5xk' },
+    setUpInfoBanner: {
+        defaultMessage: 'Set up incident handlers and custom handlers so that the agent can start receiving incidents.',
+        id: 'gIVE1F',
+    },
     incidentManagement: { defaultMessage: 'Incident management', id: 'T7WpWs' },
     incidentManagementDescription: {
-        defaultMessage:
-            'Connect an incident management platform to the SRE Agent so that it can detect and respond to routine incident tasks and notifications. To change to a different platform, delete the connection to the current one.',
-        id: 'aSn3tP',
+        defaultMessage: `Add an incident platform so that the agent can help respond to incidents in real time. To change to a different platform, you'll need to delete the connection to the current one.`,
+        id: 'D/TfIH',
     },
     editIncidentHandlerDescription: {
         defaultMessage: 'Changes to this incident handler might affect how incidents are processed and also any custom handlers.',
@@ -606,7 +609,7 @@ export const AzMonitorResources = defineMessages({
 });
 
 export const SettingsTabResources = defineMessages({
-    incidentManagement: { defaultMessage: 'Incident management', id: 'T7WpWs' },
+    incidentPlatform: { defaultMessage: 'Incident platform', id: 'EZBG/A' },
     accessControl: { defaultMessage: 'Access control (IAM)', id: '7w4v59' },
     basics: { defaultMessage: 'Basics', id: 'itC9lG' },
     grafanaDashboard: { defaultMessage: 'Grafana dashboard', id: '2zi2Yj' },

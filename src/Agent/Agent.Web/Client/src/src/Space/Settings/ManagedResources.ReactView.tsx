@@ -17,8 +17,6 @@ import { FC, useContext } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
-import { TextWithLink } from '../../Common/Components/TextWithLink';
-import { SreAgentFwLinks } from '../../Common/Constants/FwLinks';
 import { ManagedResourcesStringResources, SettingsTabResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { useManagedResources } from './Hooks/useManagedResources';
 import ResourceGroupPicker from './ResourceGroupPicker';
@@ -53,14 +51,7 @@ const ManagedResources: FC = () => {
     return (
         <div className={styles.container}>
             <div className={styles.header}>{intl.formatMessage(SettingsTabResources.managedResources)}</div>
-            <MessageBar style={{ maxWidth: 1000 }}>
-                <TextWithLink
-                    text={intl.formatMessage(SreAgentResources.supportedServicesMessage)}
-                    linkText={intl.formatMessage(SreAgentResources.learnMoreAboutSupportedServices)}
-                    linkUrl={SreAgentFwLinks.sreAgentSupportedServices}
-                    dontShowLearnMoreLinkIcon
-                />
-            </MessageBar>
+            <MessageBar style={{ maxWidth: 1000 }}>{intl.formatMessage(SreAgentResources.supportedServicesMessage)}</MessageBar>
             <div className={styles.buttonsContainer}>
                 <Button
                     className={styles.buttonStyle}

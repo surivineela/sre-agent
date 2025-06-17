@@ -48,7 +48,7 @@ const Settings: FC = () => {
                         key: SettingsKeys.managedResources,
                     },
                     {
-                        name: intl.formatMessage(SettingsTabResources.incidentManagement),
+                        name: intl.formatMessage(SettingsTabResources.incidentPlatform),
                         url: '',
                         key: SettingsKeys.IncidentManagement,
                     },

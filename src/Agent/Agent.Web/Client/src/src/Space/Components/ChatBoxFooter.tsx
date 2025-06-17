@@ -137,11 +137,14 @@ const ChatBoxFooter = ({
                         <PopoverSurface className={popoverSurface}>
                             {messagePromptsUsed.length > 0 && (
                                 <>
-                                    <PromptSection title={intl.formatMessage(PromptResources.latestPrompts)} prompts={messagePromptsUsed} />
+                                    <PromptSection
+                                        title={intl.formatMessage(PromptResources.myRecentPrompts)}
+                                        prompts={messagePromptsUsed}
+                                    />
                                     <div className={sectionDivider} />
                                 </>
                             )}
-                            <PromptSection title={intl.formatMessage(PromptResources.popularPrompts)} prompts={prompts} />
+                            <PromptSection title={intl.formatMessage(PromptResources.suggestedPrompts)} prompts={prompts} />
                         </PopoverSurface>
                     </Popover>
                     <Button

@@ -29,7 +29,7 @@ import InvestigationSummary from '../../Common/Components/InvestigationSummary';
 import InvestigationSummaryPanel from '../../Common/Components/InvestigationSummaryPanel';
 import { ApprovalDecision, AzCliExecution, KubectlExecution } from '../../Common/Contracts/Azure/SreAgent';
 import { getAgentModeDisplayName } from '../../Common/Helpers/AgentMode';
-import { getSafeDateTime } from '../../Common/Helpers/Date';
+import { formatDateTimeWithShortYear, getSafeDateTime } from '../../Common/Helpers/Date';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
 import { shouldGroupWithPreviousMessage } from '../Activities/Utility';
@@ -1876,16 +1876,16 @@ const ChatMessageV2 = ({
 
     const agentMessageProps = useMemo(() => {
         const messageProps: CopilotMessageProps = {
-            avatar: <Image src="./SreAgent.svg" width={28} height={28} alt={intl.formatMessage(SreAgentResources.sreAgent)} />,
+            avatar: <Image src="./SreAgent.svg" width={28} height={28} alt={intl.formatMessage(SreAgentResources.azureSreAgent)} />,
             loadingState: 'none',
             mode: 'canvas',
             name: (
                 <div style={nameAndTimestampContainerStyle}>
-                    <span>{intl.formatMessage(SreAgentResources.sreAgent)}</span>
+                    <span>Azure SRE Agent</span>
                     {mode && <span className={chatStyles.modePill}>{agentMode}</span>}
                     {!isTyping && (
                         <Text size={200} color={tokens.colorNeutralForeground3}>
-                            {getSafeDateTime(message.timeStamp).toLocaleString()}
+                            {formatDateTimeWithShortYear(getSafeDateTime(message.timeStamp))}
                         </Text>
                     )}
                 </div>
@@ -1894,7 +1894,7 @@ const ChatMessageV2 = ({
         };
 
         return messageProps;
-    }, [chatStyles.modePill, intl, isTyping, message.timeStamp, mode, agentMode]);
+    }, [intl, mode, chatStyles.modePill, agentMode, isTyping, message.timeStamp]);
 
     // Hide message's icon, name and timestamp if the message is grouped with the previous one
     const hideMessageHeader = useMemo(() => shouldGroupWithPreviousMessage(message, previousMessage), [message, previousMessage]);
@@ -2402,7 +2402,7 @@ const ChatMessageV2 = ({
                                 </Text>
                             )}
                             <Text size={200} color={tokens.colorNeutralForeground3} style={{ lineHeight: '26px' }}>
-                                {getSafeDateTime(message.timeStamp).toLocaleString()}
+                                {formatDateTimeWithShortYear(getSafeDateTime(message.timeStamp))}
                             </Text>
                         </div>
                     )}
