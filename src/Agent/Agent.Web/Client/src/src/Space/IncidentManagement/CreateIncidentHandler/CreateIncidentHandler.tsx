@@ -3,8 +3,10 @@ import { FC } from 'react';
 import { useIntl } from 'react-intl';
 import { IncidentHandlerCreateResources } from '../../../Strings/SREAgentResources';
 import { QuickEditIncidentHandler } from '../QuickEditIncidentHandler/QuickEditIncidentHandler';
+import { DirtyStateConfirmationWrapper } from './DirtyStateConfirmationDialog';
 import { FullEditIncidentHandler } from './FullEditIncidentHandler/FullEditIncidentHandler';
 import { IncidentHandlerCreateContext, OperationStatus } from './IncidentHandlerCreateContext';
+import { DirtyStateNavigationConfirmDialog } from './NavigationConfirmDialog';
 import { useCreateIncidentHandler } from './useCreateIncidentHandler';
 
 interface CreateIncidentHandlerProps {
@@ -18,16 +20,17 @@ interface CreateIncidentHandlerProps {
 
 const CreateIncidentHandler: FC<CreateIncidentHandlerProps> = ({ exitToHome, handlerCreateOrEditInfo, setHandlerOperationStatus }) => {
     const incidentHandlerCreateMetadata = useCreateIncidentHandler(exitToHome, setHandlerOperationStatus, handlerCreateOrEditInfo);
-    const { mode } = incidentHandlerCreateMetadata;
+    const { mode, isDirty } = incidentHandlerCreateMetadata;
     const intl = useIntl();
 
     return (
         <div style={{ background: tokens.colorNeutralBackground3 }}>
+            <DirtyStateNavigationConfirmDialog isDirty={isDirty} />
             <Breadcrumb style={{ display: 'flex', height: 50, marginLeft: 16 }}>
                 <BreadcrumbItem>
-                    <BreadcrumbButton onClick={() => exitToHome()}>
-                        {intl.formatMessage(IncidentHandlerCreateResources.incidentManagement)}
-                    </BreadcrumbButton>
+                    <DirtyStateConfirmationWrapper isDirty={isDirty} onConfirm={exitToHome}>
+                        <BreadcrumbButton>{intl.formatMessage(IncidentHandlerCreateResources.incidentManagement)}</BreadcrumbButton>
+                    </DirtyStateConfirmationWrapper>
                 </BreadcrumbItem>
                 <BreadcrumbDivider />
                 <BreadcrumbItem style={{ marginLeft: 6 }}>

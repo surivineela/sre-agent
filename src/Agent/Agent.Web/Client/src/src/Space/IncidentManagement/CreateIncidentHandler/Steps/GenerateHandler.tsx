@@ -6,6 +6,7 @@ import { IncidentDocument, ToolInfo, WithSelection } from '../../../../Common/Co
 import { IncidentHandlerCreateResources } from '../../../../Strings/SREAgentResources';
 import { MultipleSelectionShimmerDetailsList } from '../../../Components/MultipleSelectionShimmerDetailsList';
 import { generateHandlerStyles } from '../../../Styles/IncidentManagement.styles';
+import { DirtyStateConfirmationWrapper } from '../DirtyStateConfirmationDialog';
 import { IncidentHandlerCreateContext, IncidentHandlerCreateSteps, TimeDuration } from '../IncidentHandlerCreateContext';
 
 enum IncidentTableFieldNames {
@@ -32,18 +33,19 @@ export const GenerateHandler = () => {
     const intl = useIntl();
     const context = useContext(IncidentHandlerCreateContext);
     const {
+        isDirty,
         setCurrentStep,
         setGenerateInstructionsStepSkipped,
         exitToHome,
         name,
-        setName,
+        onNameChange,
         description,
-        setDescription,
+        onDescriptionChange,
         customInstructions,
-        setCustomInstructions,
+        onCustomInstructionsChange,
         generatingInstructions,
         selectedTimespan,
-        setSelectedTimespan,
+        onSelectedTimespanChange,
         incidents,
         onSelectedIncidentsChange,
         toolsLoading,
@@ -194,7 +196,7 @@ export const GenerateHandler = () => {
                         style={{ width: 600 }}
                         value={name}
                         onChange={(_event, newValue) => {
-                            setName(newValue?.value);
+                            onNameChange(newValue?.value);
                         }}
                         disabled={generatingInstructions || !handlerLoaded}
                     />
@@ -210,7 +212,7 @@ export const GenerateHandler = () => {
                         style={{ width: 600 }}
                         value={description}
                         onChange={(_event, newValue) => {
-                            setDescription(newValue?.value);
+                            onDescriptionChange(newValue?.value);
                         }}
                         disabled={generatingInstructions || !handlerLoaded}
                     />
@@ -225,7 +227,7 @@ export const GenerateHandler = () => {
                     value={selectedTimespanOption?.text}
                     onOptionSelect={(_event, data) => {
                         const selectedOption = timespanDropdownOptions.find(option => option.key === data.optionValue);
-                        setSelectedTimespan(selectedOption?.value || TimeDuration.Last60Days);
+                        onSelectedTimespanChange(selectedOption?.value || TimeDuration.Last60Days);
                     }}
                     disabled={generatingInstructions || loadingIncidents || !handlerLoaded}
                 >
@@ -268,7 +270,7 @@ export const GenerateHandler = () => {
                 <Textarea
                     placeholder={intl.formatMessage(IncidentHandlerCreateResources.customInstructionPlaceholder)}
                     value={customInstructions}
-                    onChange={(_e, newValue) => setCustomInstructions(newValue.value ?? '')}
+                    onChange={(_e, newValue) => onCustomInstructionsChange(newValue.value ?? '')}
                     rows={4}
                     className={generateHandlerStyles.textField}
                     disabled={generatingInstructions || !handlerLoaded}
@@ -300,7 +302,9 @@ export const GenerateHandler = () => {
                     >
                         {intl.formatMessage(IncidentHandlerCreateResources.skip)}
                     </Button>
-                    <Button onClick={() => exitToHome()}>{intl.formatMessage(IncidentHandlerCreateResources.cancel)}</Button>
+                    <DirtyStateConfirmationWrapper isDirty={isDirty} onConfirm={exitToHome}>
+                        <Button>{intl.formatMessage(IncidentHandlerCreateResources.cancel)}</Button>
+                    </DirtyStateConfirmationWrapper>
                 </div>
             </div>
         </>

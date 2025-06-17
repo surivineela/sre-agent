@@ -4,7 +4,7 @@ import { LineHorizontal120Regular, Open16Regular, PersonFeedback20Regular } from
 import type { Theme } from '@fluentui/theme';
 import { FC, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { HashRouter, Route, Routes, useLocation, useNavigate } from 'react-router';
+import { createHashRouter, Outlet, RouterProvider, useLocation, useNavigate } from 'react-router-dom';
 import AzPortalProxy from '../Common/AzPortalProxy/AzPortalProxy';
 import { AzPortalContext } from '../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../Common/AzPortalProxy/Providers/StartupInfoContext';
@@ -135,46 +135,66 @@ const TabsListWrapper: FC = () => {
     }, [agent, fetchAppInsightsId, setMode]);
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <TabList selectedValue={selectedValue} onTabSelect={onTabSelect} style={getTabListStyle(theme as Theme)}>
-                <Tab id="Activities" value={TabValues.Activities}>
-                    {intl.formatMessage(SreAgentTabResources.activities)}
-                </Tab>
-                <Tab id="Knowledge" value={TabValues.Graph}>
-                    {intl.formatMessage(SreAgentTabResources.resourceMapping)}
-                </Tab>
-                {!inStandaloneMode && (
-                    <>
-                        {isIncidentManagementEnabled && (
-                            <Tab id="IncidentManagement" value={TabValues.IncidentManagement} disabled={!agentLoaded}>
-                                {intl.formatMessage(SreAgentTabResources.incidentManagement)}
+        <div>
+            <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <TabList selectedValue={selectedValue} onTabSelect={onTabSelect} style={getTabListStyle(theme as Theme)}>
+                    <Tab id="Activities" value={TabValues.Activities}>
+                        {intl.formatMessage(SreAgentTabResources.activities)}
+                    </Tab>
+                    <Tab id="Knowledge" value={TabValues.Graph}>
+                        {intl.formatMessage(SreAgentTabResources.resourceMapping)}
+                    </Tab>
+                    {!inStandaloneMode && (
+                        <>
+                            {isIncidentManagementEnabled && (
+                                <Tab id="IncidentManagement" value={TabValues.IncidentManagement} disabled={!agentLoaded}>
+                                    {intl.formatMessage(SreAgentTabResources.incidentManagement)}
+                                </Tab>
+                            )}
+                            <Tab id="Settings" value={TabValues.Settings}>
+                                {intl.formatMessage(SreAgentTabResources.settings)}
+                            </Tab>{' '}
+                            <LineHorizontal120Regular className={styles.lineIconStyle} />
+                            <Tab id="Logs" value={TabValues.Logs} disabled={!agentLoaded}>
+                                <div className={styles.logsMenuItemContainer}>
+                                    <Open16Regular />
+                                    {intl.formatMessage(SreAgentTabResources.logs)}
+                                </div>
                             </Tab>
-                        )}
-                        <Tab id="Settings" value={TabValues.Settings}>
-                            {intl.formatMessage(SreAgentTabResources.settings)}
-                        </Tab>{' '}
-                        <LineHorizontal120Regular className={styles.lineIconStyle} />
-                        <Tab id="Logs" value={TabValues.Logs} disabled={!agentLoaded}>
-                            <div className={styles.logsMenuItemContainer}>
-                                <Open16Regular />
-                                {intl.formatMessage(SreAgentTabResources.logs)}
-                            </div>
-                        </Tab>
-                    </>
-                )}
-            </TabList>
-            <Button
-                style={{ fontWeight: 'normal' }}
-                appearance="transparent"
-                icon={<PersonFeedback20Regular />}
-                onClick={() => setIsFeedbackDialogOpen(true)}
-            >
-                {intl.formatMessage(SreAgentTabResources.feedback)}
-            </Button>
-            <FeedbackDialog isOpen={isFeedbackDialogOpen} setIsOpen={setIsFeedbackDialogOpen} threadId={''} />
+                        </>
+                    )}
+                </TabList>
+                <Button
+                    style={{ fontWeight: 'normal' }}
+                    appearance="transparent"
+                    icon={<PersonFeedback20Regular />}
+                    onClick={() => setIsFeedbackDialogOpen(true)}
+                >
+                    {intl.formatMessage(SreAgentTabResources.feedback)}
+                </Button>
+                <FeedbackDialog isOpen={isFeedbackDialogOpen} setIsOpen={setIsFeedbackDialogOpen} threadId={''} />
+            </div>
+            <Outlet />
         </div>
     );
 };
+
+const router = createHashRouter([
+    {
+        path: '/',
+        element: <TabsListWrapper />,
+        children: [
+            { index: true, element: <Activities /> },
+            { path: 'views/settings/:menuItem', element: <Settings /> },
+            { path: 'views/settings', element: <Settings /> },
+            { path: 'views/resourcegraph', element: <Graph /> },
+            { path: 'views/incidentmanagement', element: <IncidentManagement /> },
+            { path: 'views/activities/threads/:threadId', element: <Activities /> },
+            { path: 'views/activities', element: <Activities /> },
+            { path: '*', element: <Activities /> },
+        ],
+    },
+]);
 
 const SREAgentSpace: FC = () => {
     const azPortalProxy = useContext(AzPortalContext);
@@ -225,18 +245,7 @@ const SREAgentSpace: FC = () => {
                 },
             }}
         >
-            <HashRouter>
-                <TabsListWrapper />
-                <Routes>
-                    <Route path="/views/settings/:menuItem" element={<Settings />} />
-                    <Route path="/views/settings" element={<Settings />} />
-                    <Route path="/views/resourcegraph" element={<Graph />} />
-                    <Route path="/views/incidentmanagement" element={<IncidentManagement />} />
-                    <Route path="/views/activities/threads/:threadId" element={<Activities />} />
-                    <Route path="/views/activities" element={<Activities />} />
-                    <Route path="*" element={<Activities />} />
-                </Routes>
-            </HashRouter>
+            <RouterProvider router={router} />
         </SreAgentContext.Provider>
     );
 };

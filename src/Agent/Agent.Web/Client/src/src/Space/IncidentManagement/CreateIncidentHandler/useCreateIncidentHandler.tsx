@@ -28,23 +28,94 @@ export const useCreateIncidentHandler = (
 
     const [mode, setMode] = useState<CreateOrEditMode | undefined>(handlerCreateOrEditInfo.handlerId ? 'quickEdit' : 'create');
     const [currentStep, setCurrentStep] = useState<IncidentHandlerCreateSteps>(IncidentHandlerCreateSteps.GenerateHandler);
+
+    const [isDirty, setIsDirty] = useState<boolean>(false);
+
+    // Name field
     const [name, setName] = useState<string>('');
+    const onNameChange = useCallback((value: string) => {
+        setIsDirty(true);
+        setName(value);
+    }, []);
+
+    // Description field
     const [description, setDescription] = useState<string>('');
-    const [incidentProcessingGuide, setIncidentProcessingGuide] = useState<string>('');
+    const onDescriptionChange = useCallback((value: string) => {
+        setIsDirty(true);
+        setDescription(value);
+    }, []);
 
-    const [tools, setTools] = useState<WithSelection<ToolInfo>[] | undefined>([]);
-    const [toolsLoading, setToolsLoading] = useState<boolean>(true);
-    const selectedTools = useMemo(() => tools?.filter(tool => tool.selected) || [], [tools]);
-    const [selectedToolNames, setSelectedToolNames] = useState<string[]>();
+    // Timespan field
+    const [selectedTimespan, setSelectedTimespan] = useState<TimeDuration>(TimeDuration.Last60Days);
+    const onSelectedTimespanChange = useCallback((value: TimeDuration) => {
+        setIsDirty(true);
+        setSelectedTimespan(value);
+    }, []);
 
+    // Incidents field
     const [incidents, setIncidents] = useState<WithSelection<IncidentDocument>[]>();
     const [loadingIncidents, setLoadingIncidents] = useState<boolean>(true);
     const selectedIncidents = useMemo(() => incidents?.filter(incident => incident.selected) || [], [incidents]);
     const [selectedIncidentIds, setSelectedIncidentIds] = useState<string[]>();
 
-    const [customInstructions, setCustomInstructions] = useState<string>('');
+    const onSelectedIncidentsChange = useCallback((newSelectedIncidentIds: string[]) => {
+        setIsDirty(true);
+        setSelectedIncidentIds(currentValue => {
+            if (isEqual(currentValue, newSelectedIncidentIds)) {
+                return currentValue; // No change, return current state
+            }
+            return newSelectedIncidentIds; // Update state with new selected incident IDs
+        });
+        setIncidents(currentValue => {
+            if (!currentValue) {
+                return [];
+            }
+            const updatedIncidents = currentValue.map(incident => ({
+                ...incident,
+                selected: newSelectedIncidentIds.includes(incident.id),
+            }));
+            if (isEqual(currentValue, updatedIncidents)) {
+                return currentValue; // No change, return current state
+            }
+            return updatedIncidents; // Update state with new incident documents
+        });
+    }, []);
 
-    const [selectedTimespan, setSelectedTimespan] = useState<TimeDuration>(TimeDuration.Last60Days);
+    // Tools field
+    const [tools, setTools] = useState<WithSelection<ToolInfo>[] | undefined>([]);
+    const [toolsLoading, setToolsLoading] = useState<boolean>(true);
+    const selectedTools = useMemo(() => tools?.filter(tool => tool.selected) || [], [tools]);
+    const [selectedToolNames, setSelectedToolNames] = useState<string[]>();
+
+    const onSelectedToolsChange = useCallback((newSelectedToolNames: string[]) => {
+        setIsDirty(true);
+        setSelectedToolNames(currentValue => {
+            if (isEqual(currentValue, newSelectedToolNames)) {
+                return currentValue; // No change, return current state
+            }
+            return newSelectedToolNames; // Update state with new selected tool names
+        });
+        setTools(currentValue => {
+            if (!currentValue) {
+                return [];
+            }
+            const updatedTools = currentValue.map(tool => ({ ...tool, selected: newSelectedToolNames.includes(tool.name) }));
+            if (isEqual(currentValue, updatedTools)) {
+                return currentValue; // No change, return current state
+            }
+            return updatedTools; // Update state with new incident documents
+        });
+    }, []);
+
+    // Custom instructions field
+    const [customInstructions, setCustomInstructions] = useState<string>('');
+    const onCustomInstructionsChange = useCallback((value: string) => {
+        setIsDirty(true);
+        setCustomInstructions(value);
+    }, []);
+
+    // Incident processing guide field
+    const [incidentProcessingGuide, setIncidentProcessingGuide] = useState<string>('');
 
     const [generatingInstructions, setGeneratingInstructions] = useState<boolean>(false);
     const [generateInstructionsStepSkipped, setGenerateInstructionsStepSkipped] = useState<boolean>(false);
@@ -91,6 +162,7 @@ export const useCreateIncidentHandler = (
                         resourceId: resourceId,
                         data: additionalInfo,
                     });
+                    setIsDirty(true);
                     setGenerateInstructionsStepSkipped(false);
                     setSelectedToolNames(instructionsResult.content.tools);
                     setIncidentProcessingGuide(instructionsResult.content.generatedInstructions);
@@ -113,7 +185,10 @@ export const useCreateIncidentHandler = (
     const [editorDisplayValue, setEditorDisplayValue] = useState<string>();
     const [isEditorValueValid, setIsEditorValueValid] = useState<boolean>(true);
 
-    const onEditorValueChange = useCallback((value: string | undefined) => setEditorDisplayValue(value), []);
+    const onEditorValueChange = useCallback((value: string | undefined) => {
+        setIsDirty(true);
+        setEditorDisplayValue(value);
+    }, []);
 
     const deleteHandler = useCallback(() => {
         const {
@@ -327,6 +402,8 @@ export const useCreateIncidentHandler = (
         }
     }, [handler]);
 
+    const goToFullEditMode = useCallback(() => setMode('edit'), []);
+
     useEffect(() => {
         let subscribed = true;
 
@@ -346,47 +423,6 @@ export const useCreateIncidentHandler = (
             subscribed = false;
         };
     }, [incidentHandlerClient.listTools]);
-
-    const onSelectedIncidentsChange = useCallback((newSelectedIncidentIds: string[]) => {
-        setSelectedIncidentIds(currentValue => {
-            if (isEqual(currentValue, newSelectedIncidentIds)) {
-                return currentValue; // No change, return current state
-            }
-            return newSelectedIncidentIds; // Update state with new selected incident IDs
-        });
-        setIncidents(currentValue => {
-            if (!currentValue) {
-                return [];
-            }
-            const updatedIncidents = currentValue.map(incident => ({
-                ...incident,
-                selected: newSelectedIncidentIds.includes(incident.id),
-            }));
-            if (isEqual(currentValue, updatedIncidents)) {
-                return currentValue; // No change, return current state
-            }
-            return updatedIncidents; // Update state with new incident documents
-        });
-    }, []);
-
-    const onSelectedToolsChange = useCallback((newSelectedToolNames: string[]) => {
-        setSelectedToolNames(currentValue => {
-            if (isEqual(currentValue, newSelectedToolNames)) {
-                return currentValue; // No change, return current state
-            }
-            return newSelectedToolNames; // Update state with new selected tool names
-        });
-        setTools(currentValue => {
-            if (!currentValue) {
-                return [];
-            }
-            const updatedTools = currentValue.map(tool => ({ ...tool, selected: newSelectedToolNames.includes(tool.name) }));
-            if (isEqual(currentValue, updatedTools)) {
-                return currentValue; // No change, return current state
-            }
-            return updatedTools; // Update state with new incident documents
-        });
-    }, []);
 
     useEffect(() => {
         let subscribed = true;
@@ -558,6 +594,8 @@ export const useCreateIncidentHandler = (
 
     return {
         exitToHome,
+        goToFullEditMode,
+        isDirty,
         agentName,
         incidentFilterId: handlerCreateOrEditInfo?.filterId,
         currentStep,
@@ -565,7 +603,6 @@ export const useCreateIncidentHandler = (
         generateInstructionsStepSkipped,
         setGenerateInstructionsStepSkipped,
         mode,
-        setMode,
         loadingIncidents,
         toolsLoading,
         handlerLoading,
@@ -574,7 +611,6 @@ export const useCreateIncidentHandler = (
         generateInstructions,
         initializeEditorDisplayValue,
         editorDisplayValue,
-        setEditorDisplayValue,
         isEditorValueValid,
         setIsEditorValueValid,
         onEditorValueChange,
@@ -584,32 +620,29 @@ export const useCreateIncidentHandler = (
 
         // Name field
         name,
-        setName,
+        onNameChange,
 
         // Description field
         description,
-        setDescription,
+        onDescriptionChange,
 
         // Timespan field
         selectedTimespan,
-        setSelectedTimespan,
+        onSelectedTimespanChange,
 
         // Incidents field
         incidents,
-        setIncidents,
         onSelectedIncidentsChange,
 
         // Tools field
         tools: tools || [],
-        setTools,
         onSelectedToolsChange,
 
         // Custom instructions field
         customInstructions,
-        setCustomInstructions,
+        onCustomInstructionsChange,
 
         // Incident processing guide field
         incidentProcessingGuide,
-        setIncidentProcessingGuide,
     };
 };

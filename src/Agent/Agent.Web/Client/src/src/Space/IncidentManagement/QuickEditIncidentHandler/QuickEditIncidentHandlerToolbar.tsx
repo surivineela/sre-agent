@@ -14,13 +14,20 @@ import { FC } from 'react';
 import { useIntl } from 'react-intl';
 import { IncidentHandlerCreateResources, SreAgentResources } from '../../../Strings/SREAgentResources';
 import { useIncidentManagementStyles } from '../../Styles/IncidentManagement.styles';
+import { DirtyStateConfirmationWrapper } from '../CreateIncidentHandler/DirtyStateConfirmationDialog';
 export type QuickEditIncidentHandlerToolbarProps = {
+    isDirty: boolean;
     onRegenerateClick: () => void;
     onExportClick: () => void;
     onDeleteClick: () => void;
 };
 
-const QuickEditIncidentHandlerToolbar: FC<QuickEditIncidentHandlerToolbarProps> = ({ onRegenerateClick, onExportClick, onDeleteClick }) => {
+const QuickEditIncidentHandlerToolbar: FC<QuickEditIncidentHandlerToolbarProps> = ({
+    isDirty,
+    onRegenerateClick,
+    onExportClick,
+    onDeleteClick,
+}) => {
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
 
@@ -40,14 +47,11 @@ const QuickEditIncidentHandlerToolbar: FC<QuickEditIncidentHandlerToolbarProps> 
                 infoButton={<Info12Regular />}
                 className={styles.infoButton}
             >
-                <Button
-                    icon={<PenSparkle20Regular />}
-                    appearance="transparent"
-                    className={styles.button}
-                    onClick={() => onRegenerateClick()}
-                >
-                    {intl.formatMessage(IncidentHandlerCreateResources.regenerate)}
-                </Button>
+                <DirtyStateConfirmationWrapper isDirty={isDirty} onConfirm={onRegenerateClick}>
+                    <Button icon={<PenSparkle20Regular />} appearance="transparent" className={styles.button}>
+                        {intl.formatMessage(IncidentHandlerCreateResources.regenerate)}
+                    </Button>
+                </DirtyStateConfirmationWrapper>
             </InfoLabel>
 
             <Button icon={<ArrowDown20Regular />} appearance="transparent" className={styles.button} onClick={() => onExportClick()}>

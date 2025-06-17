@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useLocation } from 'react-router';
+import { useLocation } from 'react-router-dom';
 
 export const useFeatureFlag = (flagName: string) => {
     const [enabled, setEnabled] = useState<boolean | null>(null);

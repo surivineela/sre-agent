@@ -20,7 +20,7 @@ import {
 import { CheckmarkCircle16Filled } from '@fluentui/react-icons';
 import { FC, useCallback, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { useLocation, useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
     AzMonitorResources,
     IncidentManagementPlatformResources,

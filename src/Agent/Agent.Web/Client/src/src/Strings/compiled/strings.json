@@ -295,6 +295,18 @@
       "value": "Linking Grafana dashboard to SRE Agent in progress"
     }
   ],
+  "41zpq3": [
+    {
+      "type": 0,
+      "value": "Discard changes?"
+    }
+  ],
+  "45sljt": [
+    {
+      "type": 0,
+      "value": "Updating incident filter"
+    }
+  ],
   "477I0g": [
     {
       "type": 0,
@@ -411,6 +423,12 @@
       "value": "Managed resource group added successfully"
     }
   ],
+  "6/PJpA": [
+    {
+      "type": 0,
+      "value": "This will permanently delete the incident handler, which might affect how incidents are processed and also any custom handlers. Are you sure you want to delete?"
+    }
+  ],
   "6ENgmY": [
     {
       "type": 0,
@@ -459,6 +477,12 @@
       "value": "Approved"
     }
   ],
+  "6aWd+W": [
+    {
+      "type": 0,
+      "value": "Delete incident handler"
+    }
+  ],
   "6dWeUs": [
     {
       "type": 0,
@@ -505,6 +529,12 @@
     {
       "type": 0,
       "value": "Review mode"
+    }
+  ],
+  "7MvYEX": [
+    {
+      "type": 0,
+      "value": "Edit Annotation"
     }
   ],
   "7Nz2Ev": [
@@ -683,6 +713,12 @@
     {
       "type": 0,
       "value": "Monitoring Reader Role"
+    }
+  ],
+  "Aio6ud": [
+    {
+      "type": 0,
+      "value": "Turn off incident handler"
     }
   ],
   "AuFOi8": [
@@ -1315,6 +1351,12 @@
       "value": "Created"
     }
   ],
+  "OSMnsR": [
+    {
+      "type": 0,
+      "value": "Any unsaved changes will be lost."
+    }
+  ],
   "OTGHHm": [
     {
       "type": 0,
@@ -1881,6 +1923,12 @@
       "value": "Report unhealthy node"
     }
   ],
+  "YJG5oU": [
+    {
+      "type": 0,
+      "value": "Keep working"
+    }
+  ],
   "YZIFAO": [
     {
       "type": 0,
@@ -2129,6 +2177,12 @@
       "value": "Read-only mode"
     }
   ],
+  "eqYdSS": [
+    {
+      "type": 0,
+      "value": "Resource name"
+    }
+  ],
   "ezP+aQ": [
     {
       "type": 0,
@@ -2341,6 +2395,12 @@
     {
       "type": 0,
       "value": "Changes to this incident handler might affect how incidents are processed and also any custom handlers."
+    }
+  ],
+  "ia2Cai": [
+    {
+      "type": 0,
+      "value": "Turning off this incident handler might affect how incidents are processed and also any custom handlers. Are you sure you want to turn it off?"
     }
   ],
   "ibf4+R": [
@@ -3047,6 +3107,18 @@
     {
       "type": 0,
       "value": "Website Contributor"
+    }
+  ],
+  "xuBAs0": [
+    {
+      "type": 0,
+      "value": "Disable incident handler"
+    }
+  ],
+  "y9ZkOw": [
+    {
+      "type": 0,
+      "value": "Failed to update incident filter"
     }
   ],
   "yDh8i7": [

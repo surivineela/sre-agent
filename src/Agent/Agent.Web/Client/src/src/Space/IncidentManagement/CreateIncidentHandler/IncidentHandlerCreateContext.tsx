@@ -19,34 +19,32 @@ export type OperationStatus = 'inprogress' | 'succeeded' | 'failed';
 export interface IncidentHandlerCreateMetadata {
     agentName: string;
     incidentFilterId: string | undefined;
+    exitToHome: () => void;
+    goToFullEditMode: () => void;
+    isDirty: boolean;
     currentStep: IncidentHandlerCreateSteps;
     setCurrentStep: React.Dispatch<React.SetStateAction<IncidentHandlerCreateSteps>>;
     generateInstructionsStepSkipped: boolean;
     setGenerateInstructionsStepSkipped: React.Dispatch<React.SetStateAction<boolean>>;
-    exitToHome: () => void;
     name: string;
-    setName: React.Dispatch<React.SetStateAction<string>>;
+    onNameChange: (value: string) => void;
     description: string;
-    setDescription: React.Dispatch<React.SetStateAction<string>>;
+    onDescriptionChange: (value: string) => void;
     incidentProcessingGuide: string;
-    setIncidentProcessingGuide: React.Dispatch<React.SetStateAction<string>>;
     customInstructions: string;
-    setCustomInstructions: React.Dispatch<React.SetStateAction<string>>;
+    onCustomInstructionsChange: (value: string) => void;
     incidents: WithSelection<IncidentDocument>[] | undefined;
-    setIncidents: React.Dispatch<React.SetStateAction<WithSelection<IncidentDocument>[] | undefined>>;
     onSelectedIncidentsChange: (newSelectedIncidentIds: string[]) => void;
     loadingIncidents: boolean;
     tools: WithSelection<ToolInfo>[];
-    setTools: React.Dispatch<React.SetStateAction<WithSelection<ToolInfo>[] | undefined>>;
     onSelectedToolsChange: (newSelectedToolNames: string[]) => void;
     toolsLoading: boolean;
     selectedTimespan: TimeDuration;
-    setSelectedTimespan: React.Dispatch<TimeDuration>;
+    onSelectedTimespanChange: (value: TimeDuration) => void;
     generatingInstructions: boolean;
     generateInstructions: () => void;
     initializeEditorDisplayValue: () => void;
     editorDisplayValue: string | undefined;
-    setEditorDisplayValue: React.Dispatch<React.SetStateAction<string | undefined>>;
     onEditorValueChange: (value: string | undefined) => void;
     isEditorValueValid: boolean;
     setIsEditorValueValid: React.Dispatch<React.SetStateAction<boolean>>;
@@ -54,7 +52,6 @@ export interface IncidentHandlerCreateMetadata {
     deleteHandler: () => void;
     exportHandler: () => void;
     mode: CreateOrEditMode | undefined;
-    setMode: React.Dispatch<React.SetStateAction<CreateOrEditMode | undefined>>;
     handlerLoaded: boolean;
 }
 
@@ -62,33 +59,31 @@ export const IncidentHandlerCreateContext = React.createContext<IncidentHandlerC
     agentName: '',
     incidentFilterId: undefined,
     exitToHome: () => {},
+    goToFullEditMode: () => {},
+    isDirty: false,
     currentStep: IncidentHandlerCreateSteps.GenerateHandler,
     setCurrentStep: () => {},
     generateInstructionsStepSkipped: false,
     setGenerateInstructionsStepSkipped: () => {},
     name: '',
-    setName: () => {},
+    onNameChange: () => {},
     description: '',
-    setDescription: () => {},
+    onDescriptionChange: () => {},
     incidentProcessingGuide: '',
-    setIncidentProcessingGuide: () => {},
     customInstructions: '',
-    setCustomInstructions: () => {},
+    onCustomInstructionsChange: () => {},
     incidents: [],
-    setIncidents: () => {},
     onSelectedIncidentsChange: () => {},
     loadingIncidents: false,
     tools: [],
-    setTools: () => {},
     onSelectedToolsChange: () => {},
     toolsLoading: false,
     selectedTimespan: TimeDuration.Last60Days,
-    setSelectedTimespan: () => {},
+    onSelectedTimespanChange: () => {},
     generatingInstructions: false,
     generateInstructions: () => {},
     initializeEditorDisplayValue: () => {},
     editorDisplayValue: undefined,
-    setEditorDisplayValue: () => {},
     onEditorValueChange: () => {},
     isEditorValueValid: true,
     setIsEditorValueValid: () => {},
@@ -96,6 +91,5 @@ export const IncidentHandlerCreateContext = React.createContext<IncidentHandlerC
     deleteHandler: () => {},
     exportHandler: () => {},
     mode: undefined,
-    setMode: () => {},
     handlerLoaded: false,
 });

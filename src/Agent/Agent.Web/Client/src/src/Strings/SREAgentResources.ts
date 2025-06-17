@@ -167,6 +167,18 @@ export const SreAgentResources = defineMessages({
     review: { defaultMessage: 'Review mode', id: '7Eq7I8' },
     readonly: { defaultMessage: 'Read-only mode', id: 'eLvBmG' },
     enterADescription: { defaultMessage: 'Enter a description', id: 'QAVYIG' },
+    dirtyStateConfirmationTitle: {
+        defaultMessage: 'Discard changes?',
+        id: '41zpq3',
+    },
+    dirtyStateConfirmationMessage: {
+        defaultMessage: 'Any unsaved changes will be lost.',
+        id: 'OSMnsR',
+    },
+    keepWorking: {
+        defaultMessage: 'Keep working',
+        id: 'YJG5oU',
+    },
 });
 
 export const SreAgentTabResources = defineMessages({
@@ -448,6 +460,18 @@ export const IncidentManagementResources = defineMessages({
         defaultMessage:
             'Optimize how the agent investigates and responds to incidents by adding incident handlers and custom handlers to support a broad range of scenarios.',
         id: '5K0php',
+    },
+    filterDeleteConfirmationTitle: { defaultMessage: 'Delete incident handler', id: '6aWd+W' },
+    filterDeleteConfirmationMessage: {
+        defaultMessage:
+            'This will permanently delete the incident handler, which might affect how incidents are processed and also any custom handlers. Are you sure you want to delete?',
+        id: '6/PJpA',
+    },
+    filterDisableConfirmationTitle: { defaultMessage: 'Turn off incident handler', id: 'Aio6ud' },
+    filterDisableConfirmationMessage: {
+        defaultMessage:
+            'Turning off this incident handler might affect how incidents are processed and also any custom handlers. Are you sure you want to turn it off?',
+        id: 'ia2Cai',
     },
 });
 

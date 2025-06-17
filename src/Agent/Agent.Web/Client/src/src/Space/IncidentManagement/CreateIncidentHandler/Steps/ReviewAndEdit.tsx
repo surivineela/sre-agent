@@ -3,6 +3,7 @@ import { FC, useContext, useEffect } from 'react';
 import { useIntl } from 'react-intl';
 import { IncidentHandlerCreateResources } from '../../../../Strings/SREAgentResources';
 import { HandlerEditor } from '../Common/HandlerEditor';
+import { DirtyStateConfirmationWrapper } from '../DirtyStateConfirmationDialog';
 import { IncidentHandlerCreateContext, IncidentHandlerCreateSteps } from '../IncidentHandlerCreateContext';
 
 export const ReviewAndEdit: FC = () => {
@@ -50,7 +51,9 @@ export const ReviewAndEdit: FC = () => {
                 <Button appearance="primary" onClick={saveHandler} disabled={!isEditorValueValid}>
                     {intl.formatMessage(IncidentHandlerCreateResources.save)}
                 </Button>
-                <Button onClick={exitToHome}>{intl.formatMessage(IncidentHandlerCreateResources.cancel)}</Button>
+                <DirtyStateConfirmationWrapper isDirty={true} onConfirm={exitToHome}>
+                    <Button>{intl.formatMessage(IncidentHandlerCreateResources.cancel)}</Button>
+                </DirtyStateConfirmationWrapper>
             </div>
         </div>
     );

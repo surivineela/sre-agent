@@ -25,7 +25,7 @@ import axios from 'axios';
 import { memo, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
 import { FaGithub } from 'react-icons/fa';
 import { FormattedMessage, useIntl } from 'react-intl';
-import { useLocation, useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { getAgentHeaders } from '../../Common/Helpers/headers';

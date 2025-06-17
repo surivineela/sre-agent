@@ -5,7 +5,7 @@ import { CheckboxVisibility, ConstrainMode, DetailsListLayoutMode, IColumn } fro
 import axios from 'axios';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { useLocation, useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router-dom';
 import AzPortalProxy from '../../Common/AzPortalProxy/AzPortalProxy';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';

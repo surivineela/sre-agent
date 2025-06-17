@@ -3,22 +3,24 @@ import { FC, useContext, useEffect } from 'react';
 import { useIntl } from 'react-intl';
 import { IncidentHandlerCreateResources } from '../../../Strings/SREAgentResources';
 import { HandlerEditor } from '../CreateIncidentHandler/Common/HandlerEditor';
+import { DirtyStateConfirmationWrapper } from '../CreateIncidentHandler/DirtyStateConfirmationDialog';
 import { IncidentHandlerCreateContext } from '../CreateIncidentHandler/IncidentHandlerCreateContext';
 import QuickEditIncidentHandlerToolbar from './QuickEditIncidentHandlerToolbar';
 
 export const QuickEditIncidentHandler: FC = () => {
     const {
+        isDirty,
         editorDisplayValue,
         onEditorValueChange,
         setIsEditorValueValid,
         isEditorValueValid,
         exitToHome,
+        goToFullEditMode,
         deleteHandler,
         saveHandler,
         exportHandler,
         initializeEditorDisplayValue,
         handlerLoaded,
-        setMode,
     } = useContext(IncidentHandlerCreateContext);
     const intl = useIntl();
 
@@ -31,7 +33,8 @@ export const QuickEditIncidentHandler: FC = () => {
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
             <QuickEditIncidentHandlerToolbar
-                onRegenerateClick={() => setMode('edit')}
+                isDirty={isDirty}
+                onRegenerateClick={goToFullEditMode}
                 onExportClick={() => exportHandler()}
                 onDeleteClick={() => deleteHandler()}
             />
@@ -59,7 +62,9 @@ export const QuickEditIncidentHandler: FC = () => {
                     <Button appearance="primary" onClick={saveHandler} disabled={!isEditorValueValid}>
                         {intl.formatMessage(IncidentHandlerCreateResources.save)}
                     </Button>
-                    <Button onClick={exitToHome}>{intl.formatMessage(IncidentHandlerCreateResources.cancel)}</Button>
+                    <DirtyStateConfirmationWrapper isDirty={isDirty} onConfirm={exitToHome}>
+                        <Button>{intl.formatMessage(IncidentHandlerCreateResources.cancel)}</Button>
+                    </DirtyStateConfirmationWrapper>
                 </div>
             </div>
         </div>

@@ -1,7 +1,7 @@
 import { INavLinkGroup, initializeIcons, Nav } from '@fluentui/react';
 import { FC, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { useLocation, useNavigate, useParams } from 'react-router';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import GrafanaDashboard from '../../GrafanaDashboard/GrafanaDashboard.ReactView';
 import { SettingsTabResources } from '../../Strings/SREAgentResources';
 import AccessControl from './AccessControl.ReactView';
