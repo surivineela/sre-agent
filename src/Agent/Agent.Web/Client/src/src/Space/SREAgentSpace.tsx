@@ -46,7 +46,7 @@ const TabsListWrapper: FC = () => {
     const sreAgentContext = useContext(SreAgentContext);
     const {
         incidentManagement: { isIncidentManagementConnected },
-        agent: { setMode }
+        agent: { setMode },
     } = sreAgentContext;
     const intl = useIntl();
     const location = useLocation();
@@ -76,7 +76,9 @@ const TabsListWrapper: FC = () => {
     const { agent, agentLoaded } = useSreAgent(environmentContext.resourceId);
 
     const isIncidentManagementEnabled = useMemo(() => {
-        return agent?.properties?.incidentManagementConfiguration?.type === IncidentManagementType.PagerDuty || isIncidentManagementConnected;
+        return (
+            agent?.properties?.incidentManagementConfiguration?.type === IncidentManagementType.PagerDuty || isIncidentManagementConnected
+        );
     }, [agent?.properties?.incidentManagementConfiguration?.type, isIncidentManagementConnected]);
 
     const fetchWorkspaceId = useCallback(async () => {
@@ -169,7 +171,7 @@ const TabsListWrapper: FC = () => {
             >
                 {intl.formatMessage(SreAgentTabResources.feedback)}
             </Button>
-            <FeedbackDialog isOpen={isFeedbackDialogOpen} setIsOpen={setIsFeedbackDialogOpen} threadId={''} isPositiveFeedback={false} />
+            <FeedbackDialog isOpen={isFeedbackDialogOpen} setIsOpen={setIsFeedbackDialogOpen} threadId={''} />
         </div>
     );
 };
@@ -220,7 +222,7 @@ const SREAgentSpace: FC = () => {
                 agent: {
                     mode: agentMode,
                     setMode: setAgentMode,
-                }
+                },
             }}
         >
             <HashRouter>

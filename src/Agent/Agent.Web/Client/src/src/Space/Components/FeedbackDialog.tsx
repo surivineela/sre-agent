@@ -10,11 +10,12 @@ interface FeedbackDialogProps {
     isOpen: boolean;
     setIsOpen: (isOpen: boolean) => void;
     threadId: string;
-    isPositiveFeedback: boolean;
+    clearSelectedFeedback?: () => void;
+    setHasSubmittedFeedback?: (hasSubmitted: boolean) => void;
 }
 
 export const FeedbackDialog = (props: FeedbackDialogProps) => {
-    const { isOpen, setIsOpen, threadId, isPositiveFeedback } = props;
+    const { isOpen, setIsOpen, threadId, clearSelectedFeedback, setHasSubmittedFeedback } = props;
 
     const intl = useIntl();
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
@@ -23,37 +24,42 @@ export const FeedbackDialog = (props: FeedbackDialogProps) => {
     // const [isOkToContact, setIsOkToContact] = useState(false);
 
     const sendMessageFeedback = useCallback(
-        async (threadId: string, isPositive: boolean, feedbackText: string) => {
+        async (threadId: string, feedbackText: string) => {
             try {
                 const url = `${sreAgentEndpoint}/api/v1/threads/${threadId}/feedbacks`;
                 await axios.post(
                     url,
                     {
-                        isPositive: isPositive,
+                        isPositive: false,
                         feedbackText: feedbackText,
                     },
                     {
                         headers: getAgentHeaders(),
                     }
                 );
+                setHasSubmittedFeedback?.(true);
             } catch (error) {
-                // ToDo: handle error
                 console.error('Failed to send feedback:', error);
                 return undefined;
             }
         },
-        [sreAgentEndpoint]
+        [sreAgentEndpoint, setHasSubmittedFeedback]
     );
 
     const handleFeedbackSubmit = useCallback(async () => {
-        await sendMessageFeedback(threadId, isPositiveFeedback!, feedbackText);
+        await sendMessageFeedback(threadId, feedbackText);
 
         setIsOpen(false);
         setFeedbackText('');
-    }, [threadId, isPositiveFeedback, setIsOpen, feedbackText, sendMessageFeedback]);
+    }, [threadId, setIsOpen, feedbackText, sendMessageFeedback]);
+
+    const handleUnfinishedClose = useCallback(() => {
+        setIsOpen(false);
+        clearSelectedFeedback?.();
+    }, [setIsOpen, clearSelectedFeedback]);
 
     return (
-        <Dialog open={isOpen} onOpenChange={(_e, data) => setIsOpen(data.open)}>
+        <Dialog open={isOpen} onOpenChange={(_e, data) => (data.open ? setIsOpen(true) : handleUnfinishedClose())}>
             <DialogSurface>
                 <DialogBody>
                     <DialogTitle>{intl.formatMessage(FeedbackResources.submitFeedbackTitle)}</DialogTitle>
@@ -84,7 +90,7 @@ export const FeedbackDialog = (props: FeedbackDialogProps) => {
                             {intl.formatMessage(SreAgentResources.submit)}
                         </Button>
 
-                        <Button onClick={() => setIsOpen(false)}>{intl.formatMessage(SreAgentResources.cancel)}</Button>
+                        <Button onClick={handleUnfinishedClose}>{intl.formatMessage(SreAgentResources.cancel)}</Button>
                     </DialogActions>
                 </DialogBody>
             </DialogSurface>

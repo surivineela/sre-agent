@@ -1860,6 +1860,7 @@ const ChatMessageV2 = ({
 
     const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
     const [selectedFeedback, setSelectedFeedback] = useState<'positive' | 'negative'>();
+    const [hasSubmittedFeedback, setHasSubmittedFeedback] = useState(false);
     const [approvalStatus, setApprovalStatus] = useState<ApprovalDecision | null>(message.approval ? message.approval.status : null);
     const [isApprovalLoading, setIsApprovalLoading] = useState(false);
     const [loadingButton, setLoadingButton] = useState<'approve' | 'deny' | null>(null);
@@ -1934,6 +1935,7 @@ const ChatMessageV2 = ({
                         headers: getAgentHeaders(),
                     }
                 );
+                setHasSubmittedFeedback(true);
             } catch (error) {
                 console.error('Failed to send positive feedback:', error);
             }
@@ -2373,6 +2375,7 @@ const ChatMessageV2 = ({
                                     positiveFeedbackButton={{ onClick: () => handleFeedbackClick(true) }}
                                     negativeFeedbackButton={{ onClick: () => handleFeedbackClick(false) }}
                                     selected={selectedFeedback}
+                                    disabled={hasSubmittedFeedback}
                                 />
                             )}
                             {showCopyMessageButton && <CopyButton textToCopy={filteredMessageContentToCopy} />}
@@ -2383,7 +2386,8 @@ const ChatMessageV2 = ({
                         isOpen={showFeedbackDialog}
                         setIsOpen={setShowFeedbackDialog}
                         threadId={threadId}
-                        isPositiveFeedback={selectedFeedback === 'positive'}
+                        clearSelectedFeedback={() => setSelectedFeedback(undefined)}
+                        setHasSubmittedFeedback={setHasSubmittedFeedback}
                     />
                 </div>
             );

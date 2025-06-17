@@ -29,6 +29,12 @@
       "value": "SRE Agent"
     }
   ],
+  "+k5t/y": [
+    {
+      "type": 0,
+      "value": "Contributor"
+    }
+  ],
   "+uAdUZ": [
     {
       "type": 0,
@@ -51,6 +57,12 @@
     {
       "type": 0,
       "value": "Container Apps Operator"
+    }
+  ],
+  "/dxZCE": [
+    {
+      "type": 0,
+      "value": "Your agent is in autonomous mode. The following permissions are required for the agent to build knowledge about your resources. The agent will use some of these permissions to perform write operations autonomously based on your requests."
     }
   ],
   "/kxGpW": [
@@ -149,6 +161,12 @@
     {
       "type": 0,
       "value": "New incident handler"
+    }
+  ],
+  "1YPTmM": [
+    {
+      "type": 0,
+      "value": "Web Plan Contributor"
     }
   ],
   "1ZgrhW": [
@@ -301,6 +319,12 @@
       "value": "Can you audit best practices for my resource?"
     }
   ],
+  "4kCXiz": [
+    {
+      "type": 0,
+      "value": "List cluster admin credential action."
+    }
+  ],
   "5+bQr/": [
     {
       "type": 0,
@@ -343,10 +367,10 @@
       "value": "Start Time"
     }
   ],
-  "5dWZzT": [
+  "5V+Txp": [
     {
       "type": 0,
-      "value": "Assign roles and permissions"
+      "value": "Azure Kubernetes Service Cluster User Role"
     }
   ],
   "5kp1Ie": [
@@ -465,6 +489,12 @@
       "value": "New Azure Monitor Alert Detected"
     }
   ],
+  "6zUWZ/": [
+    {
+      "type": 0,
+      "value": "Read all monitoring data and edit monitoring settings."
+    }
+  ],
   "71/osV": [
     {
       "type": 0,
@@ -555,6 +585,12 @@
       "value": "Priority"
     }
   ],
+  "8nBFW4": [
+    {
+      "type": 0,
+      "value": "Redis Cache Contributor"
+    }
+  ],
   "8quEg9": [
     {
       "type": 0,
@@ -633,6 +669,12 @@
       "value": "Repository URL"
     }
   ],
+  "ABo5XY": [
+    {
+      "type": 0,
+      "value": "DocumentDB Account Contributor"
+    }
+  ],
   "ACfSSZ": [
     {
       "type": 0,
@@ -703,6 +745,12 @@
     {
       "type": 0,
       "value": " managed resource group"
+    }
+  ],
+  "Bcx/Gz": [
+    {
+      "type": 0,
+      "value": "List cluster user credential action."
     }
   ],
   "C3qF2+": [
@@ -1143,6 +1191,12 @@
       "value": "Date modified"
     }
   ],
+  "KzMCPo": [
+    {
+      "type": 0,
+      "value": "Grants full access to manage all resources, but does not allow you to assign roles in Azure RBAC, manage assignments in Azure Blueprints, or share image galleries."
+    }
+  ],
   "L0KVkI": [
     {
       "type": 0,
@@ -1161,6 +1215,12 @@
     {
       "type": 0,
       "value": "Review resource groups"
+    }
+  ],
+  "LSaaxU": [
+    {
+      "type": 0,
+      "value": "View all resources, but does not allow you to make any changes."
     }
   ],
   "MACADd": [
@@ -1187,10 +1247,22 @@
       "value": "All impacted services"
     }
   ],
+  "Mnvpbx": [
+    {
+      "type": 0,
+      "value": "Full management of Container Apps, including creation, deletion, and updates."
+    }
+  ],
   "Mof2Rv": [
     {
       "type": 0,
       "value": "No historical data available"
+    }
+  ],
+  "ND2EUR": [
+    {
+      "type": 0,
+      "value": "Storage Blob Data Contributor"
     }
   ],
   "NOMbLF": [
@@ -1279,10 +1351,22 @@
       "value": "Created"
     }
   ],
+  "OTGHHm": [
+    {
+      "type": 0,
+      "value": "The resources you picked have permissions for these roles."
+    }
+  ],
   "OV0MpG": [
     {
       "type": 0,
       "value": "Data usage, customer rights, and privacy statement if needed. We got it covered."
+    }
+  ],
+  "OVAsQ8": [
+    {
+      "type": 0,
+      "value": "Roles and permissions"
     }
   ],
   "OVRWH9": [
@@ -1303,6 +1387,12 @@
       "value": "Moderate"
     }
   ],
+  "Oom2N7": [
+    {
+      "type": 0,
+      "value": "View and search all monitoring data as well as view monitoring settings, including viewing the configuration of Azure diagnostics on all Azure resources."
+    }
+  ],
   "OvzONl": [
     {
       "type": 0,
@@ -1313,6 +1403,12 @@
     {
       "type": 0,
       "value": "The custom incident handler was successfully updated"
+    }
+  ],
+  "P9odAr": [
+    {
+      "type": 0,
+      "value": "Your agent is in read-only mode. The following permissions are required for the agent to build knowledge about your resources. The contributor roles for specific services will not be used to perform any write operations."
     }
   ],
   "PJ2FQv": [
@@ -1349,6 +1445,12 @@
     {
       "type": 0,
       "value": "Select impacted service"
+    }
+  ],
+  "PrFU82": [
+    {
+      "type": 0,
+      "value": "Can read all monitoring data and update monitoring settings."
     }
   ],
   "PxLzzW": [
@@ -1405,6 +1507,12 @@
       "value": "Action"
     }
   ],
+  "Qly58H": [
+    {
+      "type": 0,
+      "value": "To view the roles and permissions the agent will have, choose resource groups for the agent to manage."
+    }
+  ],
   "QtNVS/": [
     {
       "type": 0,
@@ -1431,6 +1539,18 @@
     {
       "type": 0,
       "value": "Show thread menu"
+    }
+  ],
+  "RStTJp": [
+    {
+      "type": 0,
+      "value": "Azure Kubernetes Service Cluster Admin"
+    }
+  ],
+  "RVf7gC": [
+    {
+      "type": 0,
+      "value": "TODO"
     }
   ],
   "Rfvi9/": [
@@ -1507,6 +1627,12 @@
     {
       "type": 0,
       "value": "Incident management"
+    }
+  ],
+  "TAm7bB": [
+    {
+      "type": 0,
+      "value": "Monitoring Contributor"
     }
   ],
   "TB6bkn": [
@@ -1635,6 +1761,12 @@
       "value": "Degraded"
     }
   ],
+  "VlBNux": [
+    {
+      "type": 0,
+      "value": "Application Insights Component Contributor"
+    }
+  ],
   "VzzYJk": [
     {
       "type": 0,
@@ -1747,6 +1879,12 @@
     {
       "type": 0,
       "value": "Report unhealthy node"
+    }
+  ],
+  "YZIFAO": [
+    {
+      "type": 0,
+      "value": "Azure Kubernetes Service RBAC Cluster Admin"
     }
   ],
   "YdXbbC": [
@@ -1877,6 +2015,12 @@
       "value": "Failed to load resource groups."
     }
   ],
+  "apP/SY": [
+    {
+      "type": 0,
+      "value": "Lets you manage websites (not web plans), but not access to them."
+    }
+  ],
   "aqmxBU": [
     {
       "type": 0,
@@ -1911,6 +2055,12 @@
     {
       "type": 0,
       "value": "result"
+    }
+  ],
+  "c35gM5": [
+    {
+      "type": 0,
+      "value": "Roles"
     }
   ],
   "cHsYT3": [
@@ -1977,6 +2127,12 @@
     {
       "type": 0,
       "value": "Successfully enabled incident filter"
+    }
+  ],
+  "e0a3XV": [
+    {
+      "type": 0,
+      "value": "Log Analytics Contributor"
     }
   ],
   "eFKqV0": [
@@ -2057,6 +2213,12 @@
       "value": "Learn more about supported services"
     }
   ],
+  "gC4xMY": [
+    {
+      "type": 0,
+      "value": "Allows read-only access to see most objects in a namespace. It does not allow viewing roles or role bindings. This role does not allow viewing Secrets, since reading the contents of Secrets enables access to ServiceAccount credentials in the namespace, which would allow API access as any ServiceAccount in the namespace (a form of privilege escalation). Applying this role at cluster scope will give access across all namespaces."
+    }
+  ],
   "gE3lH/": [
     {
       "type": 0,
@@ -2085,10 +2247,22 @@
       "value": "Loading..."
     }
   ],
+  "gn/nvJ": [
+    {
+      "type": 0,
+      "value": "Read, logstream and exec into Container Apps."
+    }
+  ],
   "gnC7c5": [
     {
       "type": 0,
       "value": "You need permissions to set up a Grafana dashboard."
+    }
+  ],
+  "gzx/k1": [
+    {
+      "type": 0,
+      "value": "PostgreSQL Contributor"
     }
   ],
   "h07fER": [
@@ -2115,6 +2289,12 @@
       "value": "Failed to delete the selected managed resource groups"
     }
   ],
+  "hO1Iog": [
+    {
+      "type": 0,
+      "value": "Manage without access."
+    }
+  ],
   "hOxIeP": [
     {
       "type": 0,
@@ -2131,6 +2311,12 @@
     {
       "type": 0,
       "value": "Failed to save incident management configuration"
+    }
+  ],
+  "hfIdUs": [
+    {
+      "type": 0,
+      "value": "SQL DB Contributor"
     }
   ],
   "hlmkcL": [
@@ -2155,6 +2341,12 @@
     {
       "type": 0,
       "value": "Dashboard"
+    }
+  ],
+  "i5OUQE": [
+    {
+      "type": 0,
+      "value": "Container Apps Contributor"
     }
   ],
   "iTTSax": [
@@ -2209,6 +2401,12 @@
     {
       "type": 0,
       "value": "No results"
+    }
+  ],
+  "jJE3xY": [
+    {
+      "type": 0,
+      "value": "Lets you manage the web plans for websites, but not access to them."
     }
   ],
   "jOkfJV": [
@@ -2283,6 +2481,12 @@
       "value": "Last 90 days"
     }
   ],
+  "mkhNnB": [
+    {
+      "type": 0,
+      "value": "Read and write Azure Monitor monitoring settings and data."
+    }
+  ],
   "mq/sud": [
     {
       "type": 0,
@@ -2305,6 +2509,12 @@
     {
       "type": 0,
       "value": "Grafana logo"
+    }
+  ],
+  "nBPow3": [
+    {
+      "type": 0,
+      "value": "Lets you manage all resources in the cluster."
     }
   ],
   "nFOo9o": [
@@ -2389,6 +2599,12 @@
       "value": "Manage access to the SRE Agent resource by clicking on the link below."
     }
   ],
+  "p/xAmY": [
+    {
+      "type": 0,
+      "value": "Your agent is in review mode. The following permissions are required for the agent to build knowledge about your resources. The agent will use some of these permissions to perform write operations with your approval based on your requests."
+    }
+  ],
   "p556q3": [
     {
       "type": 0,
@@ -2399,6 +2615,12 @@
     {
       "type": 0,
       "value": "Not set"
+    }
+  ],
+  "p5T+zv": [
+    {
+      "type": 0,
+      "value": "Manage without access. Can't manage security policies or parent SQL servers."
     }
   ],
   "pCPZnU": [
@@ -2417,6 +2639,12 @@
     {
       "type": 0,
       "value": "Once a Grafana dashboard is provisioned and linked, it may take some time for resources to fully populate the dashboard."
+    }
+  ],
+  "pqgzm0": [
+    {
+      "type": 0,
+      "value": "Manage Application Insights components."
     }
   ],
   "q/uwLT": [
@@ -2627,6 +2855,12 @@
       "value": "All priorities"
     }
   ],
+  "uRMqBi": [
+    {
+      "type": 0,
+      "value": "Read, write, and delete Azure Storage containers and blobs."
+    }
+  ],
   "ubMRDT": [
     {
       "type": 0,
@@ -2657,6 +2891,12 @@
       "value": "Failed"
     }
   ],
+  "vfndow": [
+    {
+      "type": 0,
+      "value": "Can read Azure Cosmos DB account data."
+    }
+  ],
   "vjy7Cr": [
     {
       "type": 0,
@@ -2673,12 +2913,6 @@
     {
       "type": 0,
       "value": "This will permanently delete the connection to Azure Monitor. The agent will no longer be integrated with Azure Monitor notifications. Are you sure you want to delete this connection?"
-    }
-  ],
-  "w3tjx3": [
-    {
-      "type": 0,
-      "value": "The resources you picked have permissions for these roles. If you add new resources later, the SRE Agent might request any additional permissions if needed."
     }
   ],
   "wElgyk": [
@@ -2783,6 +3017,12 @@
     {
       "type": 0,
       "value": "Success"
+    }
+  ],
+  "xtkizV": [
+    {
+      "type": 0,
+      "value": "Website Contributor"
     }
   ],
   "y9ZkOw": [
