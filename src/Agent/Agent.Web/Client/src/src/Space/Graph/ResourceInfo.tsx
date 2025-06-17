@@ -22,7 +22,7 @@ import {
     tokens,
 } from '@fluentui/react-components';
 import axios from 'axios';
-import { memo, ReactNode, useContext, useEffect, useState } from 'react';
+import { memo, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
 import { FaGithub } from 'react-icons/fa';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useLocation, useNavigate } from 'react-router';
@@ -473,6 +473,8 @@ const AnnotationDialogSurface = memo(
 
         const intl = useIntl();
 
+        const isEditMode = useMemo(() => initialRemarks !== '', [initialRemarks]);
+
         useEffect(() => {
             setRemarks(initialRemarks);
         }, [initialRemarks]);
@@ -481,16 +483,23 @@ const AnnotationDialogSurface = memo(
             <DialogSurface>
                 <DialogBody>
                     <DialogTitle>
-                        <FormattedMessage {...ResourceInfoResources.annotation} />
+                        {isEditMode ? (
+                            <FormattedMessage {...ResourceInfoResources.editAnnotation} />
+                        ) : (
+                            <FormattedMessage {...ResourceInfoResources.addAnnotation} />
+                        )}
                     </DialogTitle>
                     <DialogContent>
+                        <Text block style={{ marginBottom: 10 }}>
+                            {intl.formatMessage(ResourceInfoResources.addAnnotationDescription)}
+                        </Text>
                         <Textarea
                             textarea={{
                                 className: textareaInner,
                             }}
                             disabled={isUpdating}
                             className={textarea}
-                            placeholder={intl.formatMessage(ResourceInfoResources.addAnnotationToYourResource)}
+                            placeholder={intl.formatMessage(SreAgentResources.enterADescription)}
                             value={remarks}
                             onChange={(_, data: TextareaOnChangeData) => {
                                 setRemarks(data.value);

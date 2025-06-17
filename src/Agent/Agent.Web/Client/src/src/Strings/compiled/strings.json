@@ -579,6 +579,12 @@
       "value": "Completed"
     }
   ],
+  "9VUlhV": [
+    {
+      "type": 0,
+      "value": "Add a description about this resource to help the agent with groupings and insights."
+    }
+  ],
   "9ZIBMx": [
     {
       "type": 0,
@@ -1357,6 +1363,12 @@
       "value": "Description"
     }
   ],
+  "QAVYIG": [
+    {
+      "type": 0,
+      "value": "Enter a description"
+    }
+  ],
   "QEhO+z": [
     {
       "type": 0,
@@ -1753,12 +1765,6 @@
     {
       "type": 0,
       "value": "Managed identity"
-    }
-  ],
-  "YwZ7+5": [
-    {
-      "type": 0,
-      "value": "Add annotation to your resource"
     }
   ],
   "Z1VHv1": [

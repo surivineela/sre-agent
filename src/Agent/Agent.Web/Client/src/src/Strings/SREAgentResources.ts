@@ -167,6 +167,7 @@ export const SreAgentResources = defineMessages({
     autonomous: { defaultMessage: 'Autonomous mode', id: 'U73T9e' },
     review: { defaultMessage: 'Review mode', id: '7Eq7I8' },
     readonly: { defaultMessage: 'Read-only mode', id: 'eLvBmG' },
+    enterADescription: { defaultMessage: 'Enter a description', id: 'QAVYIG' },
 });
 
 export const SreAgentTabResources = defineMessages({
@@ -647,7 +648,10 @@ export const ResourceInfoResources = defineMessages({
     annotation: { defaultMessage: 'Annotation', id: 'dQtJBl' },
     editAnnotation: { defaultMessage: 'Edit Annotation', id: '7MvYEX' },
     addAnnotation: { defaultMessage: 'Add Annotation', id: 'vv2vLv' },
-    addAnnotationToYourResource: { defaultMessage: 'Add annotation to your resource', id: 'YwZ7+5' },
+    addAnnotationDescription: {
+        defaultMessage: 'Add a description about this resource to help the agent with groupings and insights.',
+        id: '9VUlhV',
+    },
     appHealthInfoCost: { defaultMessage: 'Costs for last 7 days', id: 'qeUtXk' },
     appHealthInfoCostCalculationPending: { defaultMessage: 'Cost calculation pending', id: 'wElgyk' },
     appHealthInfoAvailability: { defaultMessage: 'Availability', id: 'hOxIeP' },
