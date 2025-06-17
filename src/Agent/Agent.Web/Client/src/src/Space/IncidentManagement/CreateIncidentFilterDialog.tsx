@@ -166,7 +166,7 @@ const CreateOrUpdateFilterForm = ({ isDialogOpen, setIsDialogOpen, isEditMode, i
                                             value={values.incidentType}
                                             onOptionSelect={(_, data) => setFieldValue('incidentType', data.optionValue)}
                                             onBlur={() => setFieldTouched('incidentType', true)}
-                                            placeholder={intl.formatMessage(IncidentManagementResources.selectIncidentType)}
+                                            placeholder={intl.formatMessage(IncidentManagementResources.chooseIncidentType)}
                                         >
                                             {incidentTypeOptions.map(option => (
                                                 <Option value={option} key={option}>
@@ -178,7 +178,7 @@ const CreateOrUpdateFilterForm = ({ isDialogOpen, setIsDialogOpen, isEditMode, i
 
                                     <Field label={intl.formatMessage(IncidentManagementResources.impactedService)}>
                                         <Dropdown
-                                            placeholder={intl.formatMessage(IncidentManagementResources.selectImpactedService)}
+                                            placeholder={intl.formatMessage(IncidentManagementResources.chooseImpactedService)}
                                             name={'impactedService'}
                                             value={values.impactedService}
                                             selectedOptions={values.impactedService ? [values.impactedService] : []}
@@ -197,7 +197,7 @@ const CreateOrUpdateFilterForm = ({ isDialogOpen, setIsDialogOpen, isEditMode, i
 
                                     <Field label={intl.formatMessage(IncidentManagementResources.priority)}>
                                         <Dropdown
-                                            placeholder={intl.formatMessage(IncidentManagementResources.selectPriority)}
+                                            placeholder={intl.formatMessage(IncidentManagementResources.choosePriority)}
                                             name={'priority'}
                                             value={values.priority}
                                             onBlur={() => setFieldTouched('priority', true)}
