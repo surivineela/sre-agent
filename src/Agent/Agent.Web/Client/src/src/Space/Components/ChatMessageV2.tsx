@@ -81,7 +81,7 @@ const chatMessageStyles = mergeStyleSets({
         padding: '15px',
     },
     toolCallText: {
-        background: `linear-gradient(90deg, ${tokens.colorNeutralForeground3}, ${tokens.colorNeutralBackground1}, ${tokens.colorNeutralForeground1})`,
+        background: `linear-gradient(90deg, ${tokens.colorNeutralForeground3}, ${tokens.colorNeutralBackground6}, ${tokens.colorNeutralForeground1})`,
         backgroundSize: '200% 100%',
         backgroundClip: 'text',
         color: 'transparent',
@@ -2465,10 +2465,10 @@ const ToolCallTextComponent = ({ toolCallText, hasText, isTyping }: { toolCallTe
     const styles = `
         @keyframes shimmer {
             0% {
-                background-position: -100% 0;
+                background-position: 100% 0;
             }
             100% {
-                background-position: 100% 0;
+                background-position: -100% 0;
             }
         }
     `;
