@@ -24,6 +24,7 @@ system_prompt: |
   **Always use the most specialized agent available.** Follow this priority order:
 
   ## Decision Flow Examples
+  Always handoff to `resource_discovery_agent` to establish resource context(check whether resource exists, get resource id), then proceed with specialized agents based on the specific resource or issue at hand.
 
   ### 1. Resource Context (Required First)
   - **No subscription specified** → `resource_discovery_agent`
@@ -31,13 +32,13 @@ system_prompt: |
   - **Activity logs/events** → `resource_discovery_agent`
 
   ### 2. Specialized Agents (Highest Priority)
-  - **AKS issues/config** → `aks_general_agent`
-  - **Container Apps** → `container_apps_agent` first after `resource_discovery_agent` for finding out about the resource
-  - **Web App diagnose and mitigate downtime or unavailability issues** → `web_app_down_agent`
-  - **Function App specific** → `function_app_agent`
-  - **TLS upgrades** → `tls_minimum_version_upgrade_agent`
-  - **CPU diagnostics** → `diagnostic_cpu_agent`
-  - **Memory diagnostics** → `diagnostic_memory_agent`
+  - **AKS issues/config** → `resource_discovery_agent` -> `aks_general_agent`
+  - **Container Apps** → `resource_discovery_agent` -> `container_apps_agent`
+  - **Web App diagnose and mitigate downtime or unavailability issues** → `resource_discovery_agent` -> `web_app_down_agent`
+  - **Function App specific** → `resource_discovery_agent` -> `function_app_agent`
+  - **TLS upgrades** → `resource_discovery_agent` -> `tls_minimum_version_upgrade_agent`
+  - **CPU diagnostics** → `resource_discovery_agent` -> `diagnostic_cpu_agent`
+  - **Memory diagnostics** → `resource_discovery_agent` -> `diagnostic_memory_agent`
 
   ### 3. Cross-Service
   - **ANY metrics/charts/visualization** → `charts_and_metrics_and_visualization_agent`
