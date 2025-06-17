@@ -17,8 +17,8 @@
                             "method": "post",
                             "body": {
                                 "recipient": {
-                                    "groupId": "74991640-75c1-48b2-aba8-feb54b4b71aa",
-                                    "channelId": "19:bcb43a4c1b774ed298ff6ceb1ef2d327@thread.tacv2",
+                                    "groupId": "53ae62b4-734e-484c-888e-f96574d40c7c",
+                                    "channelId": "19:b80d005a3a2e49c6ac403aa0738d13a5@thread.tacv2",
                                     "parentMessageId": "@item()?['replyToMessageId']"
                                 }
                             },
@@ -58,8 +58,8 @@
                                     "method": "post",
                                     "body": {
                                         "recipient": {
-                                            "groupId": "74991640-75c1-48b2-aba8-feb54b4b71aa",
-                                            "channelId": "19:bcb43a4c1b774ed298ff6ceb1ef2d327@thread.tacv2"
+                                            "groupId": "53ae62b4-734e-484c-888e-f96574d40c7c",
+                                            "channelId": "19:b80d005a3a2e49c6ac403aa0738d13a5@thread.tacv2"
                                         }
                                     },
                                     "path": "/beta/teams/messages/@{encodeURIComponent(body('Get_posted_message_details')?['replyToId'])}/messageType/@{encodeURIComponent('channel')}"
@@ -168,9 +168,9 @@
                     "body": {
                         "notificationUrl": "@listCallbackUrl()",
                         "channels": [
-                            "19:bcb43a4c1b774ed298ff6ceb1ef2d327@thread.tacv2"
+                            "19:b80d005a3a2e49c6ac403aa0738d13a5@thread.tacv2"
                         ],
-                        "groupId": "74991640-75c1-48b2-aba8-feb54b4b71aa"
+                        "groupId": "53ae62b4-734e-484c-888e-f96574d40c7c"
                     },
                     "path": "/beta/subscriptions/newmessagetrigger/threadType/@{encodeURIComponent('channel')}"
                 }

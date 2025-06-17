@@ -27,8 +27,8 @@
                             "body": {
                                 "parentMessageId": "@triggerBody()?['message']?['messageId']",
                                 "recipient": {
-                                    "groupId": "74991640-75c1-48b2-aba8-feb54b4b71aa",
-                                    "channelId": "19:bcb43a4c1b774ed298ff6ceb1ef2d327@thread.tacv2"
+                                    "groupId": "53ae62b4-734e-484c-888e-f96574d40c7c",
+                                    "channelId": "19:b80d005a3a2e49c6ac403aa0738d13a5@thread.tacv2"
                                 },
                                 "messageBody": "<p class=\"editor-paragraph\">****AI generated content****</p><p class=\"editor-paragraph\"><br>@{triggerBody()?['message']?['content']}</p>"
                             },
@@ -47,14 +47,14 @@
                                     }
                                 },
                                 "method": "get",
-                                "path": "/beta/teams/@{encodeURIComponent('74991640-75c1-48b2-aba8-feb54b4b71aa')}/channels/@{encodeURIComponent('19:bcb43a4c1b774ed298ff6ceb1ef2d327@thread.tacv2')}/messages"
+                                "path": "/beta/teams/@{encodeURIComponent('53ae62b4-734e-484c-888e-f96574d40c7c')}/channels/@{encodeURIComponent('19:b80d005a3a2e49c6ac403aa0738d13a5@thread.tacv2')}/messages"
                             }
                         },
                         "Find_post_for_given_issue_number": {
                             "type": "Query",
                             "inputs": {
                                 "from": "@body('Get_messages')?['value']",
-                                "where": "@contains(trim(last(split(coalesce(item()?['subject'], 'Issue #'), '#'))),trim(coalesce(triggerBody()?['message']?['title'], '')))"
+                                "where": "@and(\n  not(empty(item()?['subject'])),\n  equals(\n    trim(\n      if(\n        contains(item()?['subject'], ']'),\n        substring(item()?['subject'], add(indexOf(item()?['subject'], ']'), 1), sub(length(item()?['subject']), add(indexOf(item()?['subject'], ']'), 1))),\n        item()?['subject']\n      )\n    ),\n    triggerBody()?['message']['title']\n  )\n)\n"
                             },
                             "runAfter": {
                                 "Get_messages": [
@@ -62,7 +62,7 @@
                                 ]
                             }
                         },
-                        "Condition": {
+                        "Found_thread_with_same_issue_title": {
                             "type": "If",
                             "expression": {
                                 "and": [
@@ -91,8 +91,8 @@
                                                 "body": {
                                                     "parentMessageId": "@item()?['id']",
                                                     "recipient": {
-                                                        "groupId": "74991640-75c1-48b2-aba8-feb54b4b71aa",
-                                                        "channelId": "19:bcb43a4c1b774ed298ff6ceb1ef2d327@thread.tacv2"
+                                                        "groupId": "53ae62b4-734e-484c-888e-f96574d40c7c",
+                                                        "channelId": "19:b80d005a3a2e49c6ac403aa0738d13a5@thread.tacv2"
                                                     },
                                                     "messageBody": "<p class=\"editor-paragraph\">****AI generated content****</p><p class=\"editor-paragraph\"><br>@{triggerBody()?['message']?['content']}</p>"
                                                 },
@@ -115,8 +115,8 @@
                                             "method": "post",
                                             "body": {
                                                 "recipient": {
-                                                    "groupId": "74991640-75c1-48b2-aba8-feb54b4b71aa",
-                                                    "channelId": "19:bcb43a4c1b774ed298ff6ceb1ef2d327@thread.tacv2"
+                                                    "groupId": "53ae62b4-734e-484c-888e-f96574d40c7c",
+                                                    "channelId": "19:b80d005a3a2e49c6ac403aa0738d13a5@thread.tacv2"
                                                 },
                                                 "messageBody": "<p class=\"editor-paragraph\">****AI generated content****</p><br><p class=\"editor-paragraph\">@{triggerBody()?['message']?['content']}</p>",
                                                 "subject": "@triggerBody()?['message']?['title']"
