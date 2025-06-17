@@ -449,7 +449,6 @@ const AzureSREWelcome = ({ threadId, addThread }: AzureSREWelcomeProps) => {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                         <div>{intl.formatMessage(WelcomeResources.initialWelcomeMessagePt1)}</div>
                         <div>{intl.formatMessage(WelcomeResources.initialWelcomeMessagePt2)}</div>
-                        <div>{intl.formatMessage(WelcomeResources.initialWelcomeMessagePt3)}</div>
                     </div>
                 }
             />

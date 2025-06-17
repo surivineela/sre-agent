@@ -758,11 +758,6 @@ export const WelcomeResources = defineMessages({
         defaultMessage: "I'm currently gathering information about your app and analyzing your resources, which might take a few minutes. ",
         id: '8QX1EO',
     },
-    initialWelcomeMessagePt3: {
-        defaultMessage:
-            "While I'm doing that, you can still ask me general questions, such as how to integrate an incident management platform or how resource mapping works.",
-        id: 'XVvSHJ',
-    },
     finishedAnalyzingResources: {
         defaultMessage:
             "I analyzed your application's resources across multiple resource groups, regions, and subscriptions. I then generated a resource map of the connections I identified based on the primary resource. Based on what I learned, I also put together some suggested prompts that focus on your resources.",

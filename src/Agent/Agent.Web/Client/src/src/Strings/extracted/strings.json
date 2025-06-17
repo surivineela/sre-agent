@@ -271,7 +271,6 @@
   "X192re": "Monitored Resource",
   "X4Y2nv": "Revision of",
   "XEso9C": "Linking Grafana dashboard",
-  "XVvSHJ": "While I'm doing that, you can still ask me general questions, such as how to integrate an incident management platform or how resource mapping works.",
   "XZ+Fx6": "Turn off",
   "Xa3AHo": "Linked to",
   "XgXHWP": "Connect to Azure Monitor so that the SRE Agent can automatically monitor notifications from resources in the resource groups it manages, without additional provisioning.",
