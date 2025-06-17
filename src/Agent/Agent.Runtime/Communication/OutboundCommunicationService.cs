@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Logging;
@@ -64,6 +65,16 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
             throw new ArgumentException("Thread ID cannot be empty.", nameof(threadId));
         }
 
+        try
+        {
+            // Use the streaming service abstraction to send the message
+            await AppendAgentStreamMessage(threadId, JsonSerializer.Serialize(approval), StreamMessageType.Approval);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to stream message directly for thread {ThreadId}", threadId);
+        }
+
         // Use SinkService to add the image message
         return await _sinkService.SinkAgentMessageAsync(threadId, "Approval Request for Processing Azure SRE Agent Request", true, approval);
     }
@@ -80,7 +91,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
             // Use the streaming service abstraction to send the message
             await _streamingService.StreamMessageAsync(threadId, message, type);
 
-            _logger.LogExternalInformation("Successfully sent direct stream message for thread {ThreadId} with type {Type}", 
+            _logger.LogExternalInformation("Successfully sent direct stream message for thread {ThreadId} with type {Type}",
                 threadId, type);
         }
         catch (Exception ex)

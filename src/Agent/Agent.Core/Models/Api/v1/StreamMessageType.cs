@@ -12,5 +12,10 @@ public enum StreamMessageType
     /// <summary>
     /// Chart or visualization data
     /// </summary>
-    Chart
-} 
+    Chart,
+
+    /// <summary>
+    /// Approval workflow
+    /// </summary>
+    Approval
+}
