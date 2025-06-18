@@ -81,6 +81,10 @@ public static class Critic
         *   If handoff or more tool calls needed, mark this as PASS since the actor is not yet done. Otherwise, did the actor provide a complete answer to the user's query?
         *   Did the actor provide the specific information the user requested (e.g., actual resource property values to the point, not just resource identification)?
         *   Did the actor avoid prematurely marking the request as "complete" when only partial information was provided?
+    
+    6. **Consistency between message and behavior:**
+        *   Did the actor's text message (including reasoning and output) align with its behavior in the tool call?
+        *   For example, if the actor reasoning message indicates request is out of scope, did it actually call a tool to handoff or handoff-back?
 
     Based on your step-by-step evaluation of these criteria, produce a JSON output with the following structure:
     {
