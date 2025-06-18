@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
@@ -17,6 +18,8 @@ namespace Agent.Plugins
     {
         // Add thread repository and ThreadId property for command execution tracking
         private readonly IThreadRepository? _threadRepository;
+        private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
+
         public Guid? ThreadId { get; set; }
 
         [GeneratedRegex(@"^([a-z0-9.-]+)\/([a-z0-9.-]+) (created|configured|patched|edited|scaled|deleted)$", RegexOptions.IgnoreCase)]
@@ -53,6 +56,13 @@ namespace Agent.Plugins
                 {
                     return "Error: ThreadId is not set or ThreadRepository is not available. Please set the ThreadId before running commands.";
                 }
+
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = new LowerCaseNamingPolicy(),
+                    DictionaryKeyPolicy = new LowerCaseNamingPolicy(),
+                    WriteIndented = true
+                };
 
                 var executionId = Guid.NewGuid();
 
@@ -97,6 +107,8 @@ namespace Agent.Plugins
 
                 await _threadRepository.AddMessageAsync(ThreadId.Value, message);
 
+                await _agentOutboundCommunicationService.AppendAgentStreamMessage(ThreadId.Value, JsonSerializer.Serialize(execution, options), StreamMessageType.Kubectl);
+
                 try
                 {
                     // Execute the actual command
@@ -116,6 +128,8 @@ namespace Agent.Plugins
                     };
 
                     await _threadRepository.UpdateKubectlExecutionAsync(ThreadId.Value, execution);
+
+                    await _agentOutboundCommunicationService.AppendAgentStreamMessage(ThreadId.Value, JsonSerializer.Serialize(execution, options), StreamMessageType.Kubectl);
 
                     // Return the actual output
                     return $"Kubectl command completed successfully. Output:\n{output}";
@@ -139,6 +153,8 @@ namespace Agent.Plugins
 
                     await _threadRepository.UpdateKubectlExecutionAsync(ThreadId.Value, execution);
 
+                    await _agentOutboundCommunicationService.AppendAgentStreamMessage(ThreadId.Value, JsonSerializer.Serialize(execution, options), StreamMessageType.Kubectl);
+
                     return $"Failed to execute command: {ex.Message}";
                 }
             }
@@ -156,6 +172,13 @@ namespace Agent.Plugins
         {
             try
             {
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = new LowerCaseNamingPolicy(),
+                    DictionaryKeyPolicy = new LowerCaseNamingPolicy(),
+                    WriteIndented = true
+                };
+
                 // Validate command format
                 var validationSummary = ValidateKubectlWriteCommand(command.Trim());
                 if (validationSummary != null)
@@ -210,6 +233,9 @@ namespace Agent.Plugins
                 );
 
                 await _threadRepository.AddMessageAsync(ThreadId.Value, message);
+
+                await _agentOutboundCommunicationService.AppendAgentStreamMessage(ThreadId.Value, JsonSerializer.Serialize(execution, options), StreamMessageType.Kubectl);
+
 
                 return "Kubectl write command has been prepared for approval. Please click 'Run' to execute or 'Cancel' to dismiss.";
             }

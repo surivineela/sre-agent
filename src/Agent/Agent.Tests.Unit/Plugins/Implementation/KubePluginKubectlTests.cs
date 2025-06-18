@@ -31,6 +31,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             var mockAuthService = new Mock<IAuthenticationService>();
             var mockHostEnv = new Mock<IHostEnvironment>();
             var mockCrawlerTriggerService = new Mock<ICrawlerTriggerService>();
+            var mockAgentCommunicationService  = new Mock<IAgentOutboundCommunicationService>();
             _mockLogger = new Mock<ILogger<KubePlugin>>();
 
             // Create an actual instance with our mocked dependencies
@@ -42,6 +43,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                 mockArmClientFactory.Object,
                 mockGraphDatabaseClient.Object,
                 mockThreadRepository.Object,
+                mockAgentCommunicationService.Object,
                 mockAuthService.Object,
                 mockHostEnv.Object,
                 _mockLogger.Object,

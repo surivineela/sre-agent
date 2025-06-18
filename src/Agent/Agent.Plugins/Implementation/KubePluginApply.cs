@@ -2,15 +2,13 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Microsoft.Extensions.Logging;
-using k8s;
-using k8s.Models;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using YamlDotNet.Serialization;
-using Newtonsoft.Json.Converters;
 using Agent.Logging;
 using Agent.Plugins.Interface;
+using k8s;
+using k8s.Models;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using YamlDotNet.Serialization;
 using Constants = Agent.Graph.Crawler.ARM.Constants;
 
 namespace Agent.Plugins

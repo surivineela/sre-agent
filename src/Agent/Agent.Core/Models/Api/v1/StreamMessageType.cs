@@ -27,5 +27,15 @@ public enum StreamMessageType
     /// <summary>
     /// Base64 image data
     /// </summary>
-    Image
-} 
+    Image,
+
+    /// <summary>
+    /// Azure Cli Execution message type.
+    /// </summary>
+    AzCli,
+
+    /// <summary>
+    /// Kubectl Execution message type.
+    /// </summary>
+    Kubectl,
+}

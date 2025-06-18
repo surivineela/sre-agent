@@ -41,6 +41,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
           new Mock<IArmClientFactory>().Object,
           new Mock<IGraphDatabaseClient>().Object,
           new Mock<IThreadRepository>().Object,
+          new Mock<IAgentOutboundCommunicationService>().Object,
           new Mock<IAuthenticationService>().Object,
           new Mock<IHostEnvironment>().Object,
           new Mock<ILogger<KubePlugin>>().Object,

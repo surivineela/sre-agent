@@ -5,7 +5,7 @@ import {
     UserMessageV2 as UserMessage,
 } from '@fluentui-copilot/react-copilot-chat';
 import { mergeStyleSets } from '@fluentui/react';
-import { Body1Strong, Button, Image, InfoLabel, mergeClasses, Text, tokens } from '@fluentui/react-components';
+import { Body1Strong, Button, Image, InfoLabel, Text, mergeClasses, tokens } from '@fluentui/react-components';
 import { SquareDismissRegular } from '@fluentui/react-icons';
 import axios from 'axios';
 import mermaid from 'mermaid';

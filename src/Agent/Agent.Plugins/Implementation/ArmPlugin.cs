@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
@@ -18,14 +19,16 @@ namespace Agent.Plugins.Implementation
         private readonly ILogger<ArmPlugin> _logger;
         private readonly ArmHelper _armHelper;
         private readonly IThreadRepository _threadRepository;
+        private readonly IAgentOutboundCommunicationService _outboundCommunicationService;
 
         public Guid? ThreadId { get; set; }
 
-        public ArmPlugin(ILogger<ArmPlugin> logger, ArmHelper armHelper, IThreadRepository threadRepository)
+        public ArmPlugin(ILogger<ArmPlugin> logger, ArmHelper armHelper, IThreadRepository threadRepository, IAgentOutboundCommunicationService outboundCommunicationService)
         {
             _logger = logger;
             _armHelper = armHelper;
             _threadRepository = threadRepository;
+            _outboundCommunicationService = outboundCommunicationService;
         }
 
         public async Task<string> SetMinimumTlsVersion(
@@ -209,6 +212,16 @@ namespace Agent.Plugins.Implementation
                 );
 
                 await _threadRepository.AddMessageAsync(ThreadId.Value, message);
+
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = new LowerCaseNamingPolicy(),
+                    DictionaryKeyPolicy = new LowerCaseNamingPolicy(),
+                    WriteIndented = true
+                };
+
+                // Stream the whole az cli execution to render the special AzCliExecution component
+                await _outboundCommunicationService.AppendAgentStreamMessage(ThreadId.Value, JsonSerializer.Serialize(execution, options), StreamMessageType.AzCli);
                 try
                 {
                     // Execute the actual command synchronously - crawler triggering happens inside ArmHelper
@@ -228,6 +241,8 @@ namespace Agent.Plugins.Implementation
                     };
 
                     await _threadRepository.UpdateAzCliExecutionAsync(ThreadId.Value, execution);
+
+                    await _outboundCommunicationService.AppendAgentStreamMessage(ThreadId.Value, JsonSerializer.Serialize(execution, options), StreamMessageType.AzCli);
 
                     // Return the actual output
                     return $"Azure CLI command completed successfully. Output: {output}";
@@ -250,6 +265,8 @@ namespace Agent.Plugins.Implementation
                     };
 
                     await _threadRepository.UpdateAzCliExecutionAsync(ThreadId.Value, execution);
+
+                    await _outboundCommunicationService.AppendAgentStreamMessage(ThreadId.Value, JsonSerializer.Serialize(execution, options), StreamMessageType.AzCli);
 
                     throw; // Re-throw to let the caller handle the error
                 }
@@ -282,6 +299,13 @@ namespace Agent.Plugins.Implementation
                 }
 
                 var executionId = Guid.NewGuid();
+
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = new LowerCaseNamingPolicy(),
+                    DictionaryKeyPolicy = new LowerCaseNamingPolicy(),
+                    WriteIndented = true
+                };
 
                 // Create execution record in Pending state for approval
                 var execution = new AzCliExecution(
@@ -320,6 +344,8 @@ namespace Agent.Plugins.Implementation
                 );
 
                 await _threadRepository.AddMessageAsync(ThreadId.Value, message);
+
+                await _outboundCommunicationService.AppendAgentStreamMessage(ThreadId.Value, JsonSerializer.Serialize(execution, options), StreamMessageType.AzCli);
 
                 return "Azure CLI write command has been prepared for approval. Please click 'Run' to execute or 'Cancel' to dismiss.";
             }
@@ -421,3 +447,7 @@ namespace Agent.Plugins.Implementation
     }
 }
 
+public sealed class LowerCaseNamingPolicy : JsonNamingPolicy
+{
+    public override string ConvertName(string name) => name.ToLowerInvariant();
+}

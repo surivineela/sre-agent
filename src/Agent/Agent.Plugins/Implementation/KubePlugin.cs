@@ -53,6 +53,7 @@ namespace Agent.Plugins
             IArmClientFactory armClientFactory,
             IGraphDatabaseClient graphDbClient,
             IThreadRepository threadRepository,
+            IAgentOutboundCommunicationService agentOutboundCommunicationService,
             IAuthenticationService authenticationService,
             IHostEnvironment hostEnvironment,
             ILogger<KubePlugin>? logger,
@@ -66,6 +67,7 @@ namespace Agent.Plugins
             _graphDbClient = graphDbClient;
             _armClientFactory = armClientFactory;
             _threadRepository = threadRepository;
+            _agentOutboundCommunicationService = agentOutboundCommunicationService;
             _agentKubeCtlIdentity = GetAgentKubectlIdentity(authenticationService, hostEnvironment);
             _crawlerTriggerService = crawlerTriggerService;
         }
