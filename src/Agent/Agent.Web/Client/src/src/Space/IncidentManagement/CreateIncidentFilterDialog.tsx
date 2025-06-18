@@ -141,13 +141,17 @@ const CreateOrUpdateFilterForm = ({ isDialogOpen, setIsDialogOpen, isEditMode, i
                             </DialogTitle>
 
                             <DialogContent>
-                                {isEditMode && (
+
                                     <div style={{ paddingBottom: '10px' }}>
-                                        <MessageBar intent="info">
-                                            {intl.formatMessage(IncidentManagementResources.editIncidentHandlerDescription)}
-                                        </MessageBar>
+                                        {isEditMode ? (
+                                            <MessageBar intent="info">
+                                                {intl.formatMessage(IncidentManagementResources.editIncidentHandlerDescription)}
+                                            </MessageBar>
+                                        ) : (
+                                            <>{intl.formatMessage(IncidentManagementResources.createIncidentHandlerDescription)}</>
+                                        )}
                                     </div>
-                                )}
+
                                 <form style={{ display: 'flex', flexDirection: 'column', gap: 16, }}>
                                     <Field label={intl.formatMessage(IncidentManagementResources.incidentHandlerName)} required>
                                         <Input

@@ -409,6 +409,10 @@ export const IncidentManagementResources = defineMessages({
         defaultMessage: 'Changes to this incident handler might affect how incidents are processed and also any custom handlers.',
         id: 'iTTSax',
     },
+    createIncidentHandlerDescription: {
+        defaultMessage: 'The incident handler defines which incidents the agent should handle by applying your filter criteria, ensuring responses to the required set of incidents.',
+        id: 'XUVR/7',
+    },
     refresh: { defaultMessage: 'Refresh', id: 'rELDbB' },
     incidentPlatform: { defaultMessage: 'Incident platform', id: 'EZBG/A' },
     newIncidentHandler: { defaultMessage: 'New incident handler', id: '1TlUPy' },
@@ -863,8 +867,8 @@ export const IncidentHandlerCreateResources = defineMessages({
     export: { defaultMessage: 'Export', id: 'SVwJTM' },
     customHandlerCreateDescription: {
         defaultMessage:
-            'With incident handlers, the agent chooses the tools it needs to manage common types of incidents. Custom handlers replace this capability by giving the agent specific instructions that you provide.',
-        id: 'ezP+aQ',
+            'Add a custom handler to define how the agent should respond to specific incidents using custom instructions with your own knowledge base and mitigation logic.',
+        id: '7y/qdT',
     },
 });
 

@@ -525,6 +525,12 @@
       "value": "Custom handler"
     }
   ],
+  "7Cy5xk": [
+    {
+      "type": 0,
+      "value": "Go to Incident management"
+    }
+  ],
   "7Eq7I8": [
     {
       "type": 0,
@@ -577,6 +583,12 @@
     {
       "type": 0,
       "value": "Backed by"
+    }
+  ],
+  "7y/qdT": [
+    {
+      "type": 0,
+      "value": "Add a custom handler to define how the agent should respond to specific incidents using custom instructions with your own knowledge base and mitigation logic."
     }
   ],
   "84MFOR": [
@@ -801,6 +813,12 @@
       "value": "actions"
     }
   ],
+  "D/TfIH": [
+    {
+      "type": 0,
+      "value": "Add an incident platform so that the agent can help respond to incidents in real time. To change to a different platform, you'll need to delete the connection to the current one."
+    }
+  ],
   "D3idYv": [
     {
       "type": 0,
@@ -919,6 +937,12 @@
     {
       "type": 0,
       "value": "Search for resource groups"
+    }
+  ],
+  "Erci0g": [
+    {
+      "type": 0,
+      "value": "Azure SRE Agent"
     }
   ],
   "EwRIOm": [
@@ -1423,6 +1447,12 @@
       "value": "Your agent is in read-only mode. The following permissions are required for the agent to build knowledge about your resources. The contributor roles for specific services will not be used to perform any write operations."
     }
   ],
+  "PCrXDG": [
+    {
+      "type": 0,
+      "value": "My recent prompts"
+    }
+  ],
   "PEHogk": [
     {
       "type": 0,
@@ -1743,12 +1773,6 @@
       "value": "Website Contributor/Operator"
     }
   ],
-  "UVS724": [
-    {
-      "type": 0,
-      "value": "Tips on how to chat with the SRE Agent"
-    }
-  ],
   "Udeffr": [
     {
       "type": 0,
@@ -1879,6 +1903,12 @@
     {
       "type": 0,
       "value": "Linking Grafana dashboard"
+    }
+  ],
+  "XUVR/7": [
+    {
+      "type": 0,
+      "value": "The incident handler defines which incidents the agent should handle by applying your filter criteria, ensuring responses to the required set of incidents."
     }
   ],
   "XZ+Fx6": [
@@ -2027,12 +2057,6 @@
       "value": "Give us feedback"
     }
   ],
-  "aSn3tP": [
-    {
-      "type": 0,
-      "value": "Connect an incident management platform to the SRE Agent so that it can detect and respond to routine incident tasks and notifications. To change to a different platform, delete the connection to the current one."
-    }
-  ],
   "aXGUvh": [
     {
       "type": 0,
@@ -2105,12 +2129,6 @@
       "value": "Roles"
     }
   ],
-  "cHsYT3": [
-    {
-      "type": 0,
-      "value": "Latest prompts"
-    }
-  ],
   "cTY8WU": [
     {
       "type": 0,
@@ -2121,6 +2139,12 @@
     {
       "type": 0,
       "value": "Gathering info about your resources, which might take a few minutes. You can still chat about other topics while the data loads."
+    }
+  ],
+  "cn2YEB": [
+    {
+      "type": 0,
+      "value": "Suggested prompts"
     }
   ],
   "csu0rb": [
@@ -2237,12 +2261,6 @@
       "value": "All statuses"
     }
   ],
-  "fxw/H0": [
-    {
-      "type": 0,
-      "value": "Learn more about supported services"
-    }
-  ],
   "gC4xMY": [
     {
       "type": 0,
@@ -2257,6 +2275,12 @@
     {
       "type": 1,
       "value": "errorMessage"
+    }
+  ],
+  "gIVE1F": [
+    {
+      "type": 0,
+      "value": "Set up incident handlers and custom handlers so that the agent can start receiving incidents."
     }
   ],
   "gO/IxZ": [
@@ -2753,12 +2777,6 @@
     {
       "type": 0,
       "value": "ID"
-    }
-  ],
-  "rAGm8M": [
-    {
-      "type": 0,
-      "value": "Popular prompts"
     }
   ],
   "rBPlLc": [
