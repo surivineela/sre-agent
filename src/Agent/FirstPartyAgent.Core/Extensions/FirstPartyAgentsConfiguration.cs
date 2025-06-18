@@ -65,7 +65,7 @@ namespace FirstPartyAgent.Core.Extensions
             services.AddSingleton<AlertHandlerClient>();
             services.AddSingleton<IHandoffToAgentClient, HandoffToAgentClient>();
             services.AddSingleton<ICMPlugin>();
-            services.AddSingleton<GenevaActionsPlugin>();
+            services.AddSingleton<FirstPartyAgent.Core.Plugins.GenevaActionsPlugin>();
             services.AddSingleton<HttpRequestPlugin>();
 
             services.AddSingleton<KustoClient>();

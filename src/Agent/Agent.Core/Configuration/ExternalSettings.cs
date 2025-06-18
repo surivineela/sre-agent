@@ -3,6 +3,8 @@
 // ------------------------------------------------------------
 
 
+using FirstPartyAgent.Core.Configuration;
+
 namespace Agent.Core.Configuration
 {
     public class ExternalSettings
@@ -13,6 +15,9 @@ namespace Agent.Core.Configuration
         public MCPSettings MCP { get; set; } = new();
         public DashboardSettings Dashboard { get; set; } = new();
         public IncidentManagementSettings? IncidentManagement { get; set; } = new();
+        public GenevaActionsSettings GenevaActions { get; set; } = new();
+
+        public ICMWorkflowSettings ICMWorkflows { get; set; } = new();
     }
 }
 

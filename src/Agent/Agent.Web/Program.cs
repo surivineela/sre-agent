@@ -319,6 +319,7 @@ public class Program
             .AddTransient<RCAContainerAppRevisionPluginDefinition>()
             .AddSingleton<IKustoDashboardPlugin, KustoDashboardPlugin>()
             .AddTransient<RCAContainerAppResourceCheckPluginDefinition>()
+            .AddTransient<GenevaActionsPluginDefinition>()
 
             .AddTransient<IMetaAgentContainerAppsRemediationPlugin, ContainerAppsRemediationPlugin>()
             .AddTransient<IMetaAgentManagedIdentityMigrationPlugin, ManagedIdentityMigrationPlugin>()
@@ -338,6 +339,7 @@ public class Program
             .AddTransient<IAzureMonitorMetricsPlugin, AzureMonitorMetricsPlugin>()
             .AddTransient<IArmPlugin, ArmPlugin>()
             .AddTransient<IAPIManagementPlugin, APIManagementPlugin>()
+            .AddTransient<IGenevaActionsPlugin, GenevaActionsPlugin>()
 
             //.AddSingleton<AppServiceRemediationAgentFactory>()
             .AddSingleton<KubernetesAgentFactory>()

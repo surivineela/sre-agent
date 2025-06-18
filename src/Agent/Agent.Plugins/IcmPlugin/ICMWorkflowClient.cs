@@ -155,7 +155,7 @@ namespace Agent.Plugins.IcmPlugin
             }
         }
 
-        private async Task<HttpResponseMessage> SendICMWorkflowRequest(string workflowName, string body, string tenantId = null)
+        public async Task<HttpResponseMessage> SendICMWorkflowRequest(string workflowName, string body, string tenantId = null)
         {
             _logger.LogExternalInformation($"Sending ICM Workflow Request. WorkflowName: {workflowName}, Body: {body}");
             if (string.IsNullOrWhiteSpace(workflowName))
@@ -470,9 +470,13 @@ namespace Agent.Plugins.IcmPlugin
 
         public bool ProcessImages => false;
         public bool IsEnabled() { return false; }
+
+        public Task<HttpResponseMessage> SendICMWorkflowRequest(string workflowName, string body, string tenantId = null) => 
+            Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.NotImplemented));
     }
     public interface IICMWorkflowClient : IDisposable
     {
+        Task<HttpResponseMessage> SendICMWorkflowRequest(string workflowName, string body, string tenantId = null);
         Task<Incident> GetIncidentAsync(string incidentId);
         Task<SubscriptionDetail> GetSubscriptionDetail(string subscriptionId);
         Task<AcaSubscriptionUsage> GetSubscriptionUsage(string subscriptionId);
