@@ -20,6 +20,11 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
     private readonly IPostToTeamsPlugin _postToTeamsService;
     private readonly SinkService _sinkService;
     private readonly IStreamingService _streamingService;
+    private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = true,
+    };
 
     public OutboundCommunicationService(
         IThreadOrchestrationManager mappingManager,
@@ -67,8 +72,9 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
 
         try
         {
+            string jsonString = JsonSerializer.Serialize(approval, _serializerOptions);
             // Use the streaming service abstraction to send the message
-            await AppendAgentStreamMessage(threadId, JsonSerializer.Serialize(approval), StreamMessageType.Approval);
+            await AppendAgentStreamMessage(threadId, jsonString, StreamMessageType.Approval);
         }
         catch (Exception ex)
         {
