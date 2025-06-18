@@ -87,7 +87,7 @@ export const useChatBoxV2 = (
     );
 
     const [streamingMessage, setStreamingMessage] = useState<Message | null>(null);
-    const [streamId, setStreamId] = useState<string>('');
+    const [stopReceivingStreamingMessages, setStopReceivingStreamingMessages] = useState<boolean>(false);
     const [isAgentTyping, setIsAgentTyping] = useState<boolean>(false);
     const messageChunkQueue = useRef<StreamingMessage[]>([]);
     const isTypingChars = useRef<boolean>(false);
@@ -160,7 +160,8 @@ export const useChatBoxV2 = (
     };
 
     const cancelStreaming = useCallback(() => {
-        setStreamId(Guid.newGuid());
+        //ToDo: Cancel the streaming message by sending a cancellation token (API is not ready yet)
+        setStopReceivingStreamingMessages(true);
         finishStreaming();
     }, []);
 
@@ -182,19 +183,16 @@ export const useChatBoxV2 = (
         }
     };
 
-    const createThread = (threadCreateRequest: ThreadCreateRequest, streamId: string) => {
-        sendMessage(MessageRequestType.CreateThread, threadCreateRequest, streamId, false);
+    const createThread = (threadCreateRequest: ThreadCreateRequest) => {
+        sendMessage(MessageRequestType.CreateThread, threadCreateRequest, false);
     };
 
-    const createMessage = (threadId: string, messageCreateRequest: MessageCreateRequest, streamId: string) => {
-        sendMessage(MessageRequestType.CreateMessage, threadId, messageCreateRequest, streamId, false);
+    const createMessage = (threadId: string, messageCreateRequest: MessageCreateRequest) => {
+        sendMessage(MessageRequestType.CreateMessage, threadId, messageCreateRequest, false);
     };
 
     const sendMessageHandler = useCallback(
         async (message: string) => {
-            const newStreamId = Guid.newGuid();
-            setStreamId(newStreamId);
-
             const currentStreamingMessage = streamingMessageRef.current;
             setStreamingMessage(null);
             const messagesToAdd: Message[] = [];
@@ -207,6 +205,7 @@ export const useChatBoxV2 = (
             handleNewMessages(messagesToAdd);
             setStreamingMessage(composeDefaultStreamingMessage());
             setIsAgentTyping(true);
+            setStopReceivingStreamingMessages(false);
 
             try {
                 const messageRequest: MessageCreateRequest = {
@@ -217,17 +216,14 @@ export const useChatBoxV2 = (
                 //ToDo: Handle errors of sendMessage, createThread and pollResponses
                 if (currentThreadId) {
                     // Issue a request to create a new message in the current thread
-                    createMessage(currentThreadId, messageRequest, newStreamId);
-                    console.log(`New message sent in thread: ${currentThreadId}. Message: ${message}. Stream ID: ${newStreamId}`);
+                    createMessage(currentThreadId, messageRequest);
+                    console.log(`New message sent in thread: ${currentThreadId}. Message: ${message}.`);
                 } else {
                     // Issue a request to create a new thread
-                    createThread(
-                        {
-                            startMessage: messageRequest,
-                        },
-                        newStreamId
-                    );
-                    console.log(`New thread created with message: ${message}. Stream ID: ${newStreamId}`);
+                    createThread({
+                        startMessage: messageRequest,
+                    });
+                    console.log(`New thread created with message: ${message}.`);
                 }
             } catch {
                 //Handle error if it is not abort error
@@ -358,12 +354,10 @@ export const useChatBoxV2 = (
         const handleMessageChunk = (messageResponseType: MessageResponseType, streamData?: StreamingMessage) => {
             if (streamData) {
                 console.log(messageResponseType + ' received: ', streamData);
-                const { additionalProperties, role } = streamData;
-                const { streamId: currentStreamId } = additionalProperties || {};
 
-                const isUserMessage = equals(role || '', 'user', AntUxStringComparison.IgnoreCase);
+                const isUserMessage = equals(streamData.role || '', 'user', AntUxStringComparison.IgnoreCase);
 
-                if (streamId === currentStreamId && isSubscribed) {
+                if (isSubscribed && !stopReceivingStreamingMessages) {
                     if (isUserMessage) {
                         handleUserMessageChunk(messageResponseType, streamData);
                     } else {
@@ -384,7 +378,7 @@ export const useChatBoxV2 = (
         return () => {
             isSubscribed = false;
         };
-    }, [onMessage, streamId, addThread, promoteThread]);
+    }, [onMessage, addThread, promoteThread, stopReceivingStreamingMessages]);
 
     // Load the latest 20 chat message history
     useEffect(() => {

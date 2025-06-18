@@ -173,7 +173,6 @@ export interface StreamingMessage {
     additionalProperties?: {
         actionName?: MessageRequestType | null;
         connectionId?: string | null;
-        streamId?: string | null;
         threadId?: string | null;
         messageId?: string | null;
         streamMessageType?: StreamingMessageType;

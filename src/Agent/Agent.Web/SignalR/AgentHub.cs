@@ -44,7 +44,7 @@ namespace Agent.Web.SignalR
             await base.OnDisconnectedAsync(exception);
         }
 
-        public async Task CreateThread(StreamingCreateThreadRequest request, string streamId = "", bool textOnly = false)
+        public async Task CreateThread(StreamingCreateThreadRequest request, bool textOnly = false)
         {
             try
             {
@@ -64,8 +64,7 @@ namespace Agent.Web.SignalR
                     AdditionalProperties = new AdditionalPropertiesDictionary
                     {
                         { "connectionId", Context.ConnectionId },
-                        { "actionName", nameof(CreateThread) },
-                        { "streamId", streamId }
+                        { "actionName", nameof(CreateThread) }
                     }
                 };
 
@@ -86,7 +85,6 @@ namespace Agent.Web.SignalR
                     result.AdditionalProperties ??= new AdditionalPropertiesDictionary();
                     result.AdditionalProperties["connectionId"] = Context.ConnectionId;
                     result.AdditionalProperties["actionName"] = nameof(CreateThread);
-                    result.AdditionalProperties["streamId"] = streamId;
 
                     if (textOnly)
                     {
@@ -129,8 +127,7 @@ namespace Agent.Web.SignalR
                     AdditionalProperties = new AdditionalPropertiesDictionary
                     {
                         { "connectionId", Context.ConnectionId },
-                        { "actionName", nameof(CreateThread) },
-                        { "streamId", streamId }
+                        { "actionName", nameof(CreateThread) }
                     }
                 };
 
@@ -138,7 +135,7 @@ namespace Agent.Web.SignalR
             }
         }
 
-        public async Task CreateMessage(Guid threadId, StreamingCreateMessageRequest request, string streamId = "", bool textOnly = false)
+        public async Task CreateMessage(Guid threadId, StreamingCreateMessageRequest request, bool textOnly = false)
         {
             try
             {
@@ -158,8 +155,7 @@ namespace Agent.Web.SignalR
                     AdditionalProperties = new AdditionalPropertiesDictionary
                     {
                         { "connectionId", Context.ConnectionId },
-                        { "actionName", nameof(CreateMessage) },
-                        { "streamId", streamId }
+                        { "actionName", nameof(CreateMessage) }
                     }
                 };
 
@@ -179,8 +175,7 @@ namespace Agent.Web.SignalR
                         AdditionalProperties = new AdditionalPropertiesDictionary
                         {
                             { "connectionId", Context.ConnectionId },
-                            { "actionName", nameof(CreateMessage) },
-                            { "streamId", streamId }
+                            { "actionName", nameof(CreateMessage) }
                         }
                     };
                     await Clients.Caller.Error(errorMessage);
@@ -202,8 +197,7 @@ namespace Agent.Web.SignalR
                         AdditionalProperties = new AdditionalPropertiesDictionary
                         {
                             { "connectionId", Context.ConnectionId },
-                            { "actionName", nameof(CreateMessage) },
-                            { "streamId", streamId }
+                            { "actionName", nameof(CreateMessage) }
                         }
                     };
                     await Clients.Caller.Error(errorMessage);
@@ -223,8 +217,7 @@ namespace Agent.Web.SignalR
                         { "messageId", messageId.ToString() },
                         { "threadId", threadId.ToString() },
                         { "userId", request.UserId },
-                        { "actionName", nameof(CreateMessage) },
-                        { "streamId", streamId }
+                        { "actionName", nameof(CreateMessage) }
                     }
                 };
 
@@ -246,7 +239,6 @@ namespace Agent.Web.SignalR
                     result.AdditionalProperties ??= new AdditionalPropertiesDictionary();
                     result.AdditionalProperties["connectionId"] = Context.ConnectionId;
                     result.AdditionalProperties["actionName"] = nameof(CreateMessage);
-                    result.AdditionalProperties["streamId"] = streamId;
 
                     if (textOnly)
                     {
@@ -285,8 +277,7 @@ namespace Agent.Web.SignalR
                     AdditionalProperties = new AdditionalPropertiesDictionary
                     {
                         { "connectionId", Context.ConnectionId },
-                        { "actionName", nameof(CreateMessage) },
-                        { "streamId", streamId }
+                        { "actionName", nameof(CreateMessage) }
                     }
                 };
 
