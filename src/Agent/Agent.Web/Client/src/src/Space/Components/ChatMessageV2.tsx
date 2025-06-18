@@ -8,44 +8,22 @@ import { mergeStyleSets } from '@fluentui/react';
 import { Image, mergeClasses, Text, tokens } from '@fluentui/react-components';
 import axios from 'axios';
 import mermaid from 'mermaid';
-import { memo, useCallback, useContext, useMemo, useState } from 'react';
+import { memo, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-import ReactMarkdown from 'react-markdown';
-import rehypeRaw from 'rehype-raw';
-import remarkGfm from 'remark-gfm';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import CopyButton from '../../Common/Components/CopyButton';
-import IncidentAlert from '../../Common/Components/IncidentAlert';
-import InvestigationSummary from '../../Common/Components/InvestigationSummary';
-import InvestigationSummaryPanel from '../../Common/Components/InvestigationSummaryPanel';
 import { getAgentModeDisplayName } from '../../Common/Helpers/AgentMode';
 import { formatDateTimeWithShortYear, getSafeDateTime } from '../../Common/Helpers/Date';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
 import { shouldGroupWithPreviousMessage } from '../Activities/Utility';
-import { IChatMessageV2Props } from '../Contracts/Activities';
+import { AgentMessageRegex, IChatMessageV2Props } from '../Contracts/Activities';
 import { SreAgentContext } from '../Contracts/Context';
 import { useAuthenticatedUserInfo } from '../Hooks/useAuthenticatedUserInfo';
 import { ChatBoxStyles, nameAndTimestampContainerStyle, useChatBoxStyles } from '../Styles/Activities.styles';
-import ApprovalMessage from './ApprovalMessage';
-import AzCliExecutionMessage from './AzCliExecutionMessage';
-import AgentChart from './Charts';
-import DailyReportMessage from './DailyReportMessage';
+import AgentMessage from './AgentMessage';
 import { FeedbackDialog } from './FeedbackDialog';
-import KubectlExecutionMessage from './KubectlExecutionMessage';
-import MermaidChart from './Mermaid';
-
-// Check for markdown image syntax with base64 data
-const imageRegex = /!\[(.*?)\]\((data:image\/[a-z]+;base64,[A-Za-z0-9+/=]+)\)/g;
-// Check for mermaid code blocks
-const mermaidRegex = /```mermaid\n([\s\S]*?)\n```/g;
-// Check for chart data blocks
-const chartRegex = /```chart-data\n([\s\S]*?)\n```/g;
-// Check if the entire message is just a incident-alert block
-const incidentAlertRegex = /```incident-alert\s+([\s\S]*?)```/;
-// Check for investigation summary formats
-const investigationSummaryRegex = /<investigation-summary>([\s\S]*?)<\/investigation-summary>/;
-const investigationSummariesRegex = /<investigation-summaries>([\s\S]*?)<\/investigation-summaries>/;
+import ReactMarkdownComponent from './ReactMarkdownComponent';
 
 const chatMessageStyles = mergeStyleSets({
     regularMessageContent: {
@@ -165,96 +143,6 @@ const tableStyles = `
   }
 }`;
 
-// Helper function to parse and render markdown with images and mermaid diagrams
-const processMessageText = (text: string) => {
-    if (!text) return text;
-
-    if (!imageRegex.test(text) && !mermaidRegex.test(text) && !chartRegex.test(text)) {
-        return text; // No special content, return original text
-    }
-
-    // Reset regex lastIndex properties to ensure we start from the beginning
-    imageRegex.lastIndex = 0;
-    mermaidRegex.lastIndex = 0;
-    chartRegex.lastIndex = 0;
-
-    // Split images, mermaid blocks, and text
-    const parts: (string | { type: string; [key: string]: any })[] = [];
-    let lastIndex = 0;
-
-    // Function to process a match and add it to the parts array
-    const processMatch = (match: RegExpExecArray, type: string) => {
-        if (match.index > lastIndex) {
-            parts.push(text.substring(lastIndex, match.index));
-        }
-
-        if (type === 'image') {
-            parts.push({
-                type: 'image',
-                alt: match[1],
-                src: match[2],
-            });
-        } else if (type === 'mermaid') {
-            parts.push({
-                type: 'mermaid',
-                content: match[1],
-            });
-        } else if (type === 'chart-data') {
-            parts.push({
-                type: 'chart-data',
-                content: match[0], // Include the entire match with the markers
-            });
-        }
-
-        lastIndex = match.index + match[0].length;
-    };
-
-    // Find all matches and process them in order of appearance
-    let imageMatch: RegExpExecArray | null;
-    let mermaidMatch: RegExpExecArray | null;
-    let chartMatch: RegExpExecArray | null;
-
-    // Initialize the first matches
-    imageMatch = imageRegex.exec(text);
-    mermaidMatch = mermaidRegex.exec(text);
-    chartMatch = chartRegex.exec(text);
-
-    while (imageMatch || mermaidMatch || chartMatch) {
-        // Find the match that appears first in the text
-        let firstMatch: RegExpExecArray | null = null;
-        let matchType = '';
-
-        if (
-            imageMatch &&
-            (!mermaidMatch || imageMatch.index < mermaidMatch.index) &&
-            (!chartMatch || imageMatch.index < chartMatch.index)
-        ) {
-            firstMatch = imageMatch;
-            matchType = 'image';
-            imageMatch = imageRegex.exec(text);
-        } else if (mermaidMatch && (!chartMatch || mermaidMatch.index < chartMatch.index)) {
-            firstMatch = mermaidMatch;
-            matchType = 'mermaid';
-            mermaidMatch = mermaidRegex.exec(text);
-        } else if (chartMatch) {
-            firstMatch = chartMatch;
-            matchType = 'chart-data';
-            chartMatch = chartRegex.exec(text);
-        }
-
-        if (firstMatch) {
-            processMatch(firstMatch, matchType);
-        }
-    }
-
-    // Add any remaining text
-    if (lastIndex < text.length) {
-        parts.push(text.substring(lastIndex));
-    }
-
-    return parts;
-};
-
 const ChatMessageV2 = ({
     message,
     previousMessage,
@@ -277,11 +165,6 @@ const ChatMessageV2 = ({
     const [hasSubmittedFeedback, setHasSubmittedFeedback] = useState(false);
 
     const { userIdAndDisplayName } = useAuthenticatedUserInfo();
-
-    const messageContent = useMemo(() => {
-        const content = processMessageText(message.text);
-        return Array.isArray(content) ? content : message.text;
-    }, [message.text]);
 
     const agentMode = useMemo(() => getAgentModeDisplayName(mode, intl), [intl, mode]);
 
@@ -325,7 +208,11 @@ const ChatMessageV2 = ({
         const groupedMessages = getGroupedMessages();
         return groupedMessages
             .map(msg =>
-                msg.text.trim().replace(imageRegex, '[Image]').replace(mermaidRegex, '[Mermaid Diagram]').replace(chartRegex, '[Chart]')
+                msg.text
+                    .trim()
+                    .replace(AgentMessageRegex.imageRegex, '[Image]')
+                    .replace(AgentMessageRegex.mermaidRegex, '[Mermaid Diagram]')
+                    .replace(AgentMessageRegex.chartRegex, '[Chart]')
             )
             .join('\n\n');
     }, [showCopyMessageButton, getGroupedMessages]);
@@ -355,105 +242,6 @@ const ChatMessageV2 = ({
         }
     };
 
-    // Helper function to extract title from mermaid content
-    const extractMermaidTitle = (content: string): string => {
-        const lines = content.trim().split('\n');
-        if (lines.length === 0) return 'Diagram';
-
-        const firstLine = lines[0];
-
-        if (firstLine.startsWith('%%')) {
-            return firstLine.substring(2).trim();
-        }
-
-        if (firstLine.startsWith('title:')) {
-            return firstLine.substring(6).trim();
-        }
-
-        if (firstLine.length < 50 && !firstLine.includes('->') && !firstLine.includes('--')) {
-            return firstLine.trim();
-        }
-
-        return 'Diagram';
-    };
-
-    // Render specific content types
-    const renderContentPart = (part: any, index: number): React.ReactNode => {
-        // Plain text markdown
-        if (typeof part === 'string') {
-            return <ReactMarkdownComponent key={index} content={part} />;
-        }
-
-        // Handle different content types
-        switch (part.type) {
-            case 'image':
-                return (
-                    <div key={index} style={{ margin: '10px 0' }}>
-                        <img src={part.src} alt={part.alt || 'Embedded image'} style={{ maxWidth: '100%', borderRadius: '4px' }} />
-                        {part.alt && <div style={{ textAlign: 'center', fontSize: '12px', color: '#666' }}>{part.alt}</div>}
-                    </div>
-                );
-
-            case 'mermaid':
-                return <MermaidChart key={index} chart={part.content} title={extractMermaidTitle(part.content)} />;
-
-            case 'chart-data':
-                return <AgentChart key={index} messageText={part.content} />;
-
-            default:
-                return null;
-        }
-    };
-
-    // Main content rendering function
-    const RegularMessage = ({ isUserMessage }: { isUserMessage?: boolean }): React.ReactNode => {
-        // Special case: if the whole message is an incident alert, render it directly
-        if (typeof message.text === 'string') {
-            const incidentMatch = message.text.match(incidentAlertRegex);
-            if (incidentMatch && incidentMatch[1]) {
-                return <IncidentAlert messageText={message.text} />;
-            }
-
-            // Special case: Check for investigation-summaries format (multiple summaries in one container)
-            const summariesMatch = message.text.match(investigationSummariesRegex);
-            if (summariesMatch && summariesMatch[1]) {
-                try {
-                    const summariesData = JSON.parse(summariesMatch[1].trim());
-                    // Always render the panel even if there are no summaries yet
-                    if (summariesData) {
-                        // Pass the entire message text directly to the panel component
-                        return <InvestigationSummaryPanel messageText={message.text} />;
-                    }
-                } catch (error) {
-                    console.error('Failed to parse investigation summaries:', error);
-                }
-            }
-
-            // Special case: Check for a single investigation-summary block
-            const singleMatch = message.text.match(investigationSummaryRegex);
-            if (singleMatch) {
-                return <InvestigationSummary messageText={message.text} />;
-            }
-        }
-
-        // Special case 3: if the whole message is a chart, render it directly
-        if (
-            typeof message.text === 'string' &&
-            chartRegex.test(message.text) &&
-            message.text.trim().replace(/\s+/g, ' ').match(chartRegex)?.[0].length === message.text.trim().length
-        ) {
-            return <AgentChart messageText={message.text} />;
-        }
-
-        // Normal markdown content
-        if (!Array.isArray(messageContent)) {
-            return <ReactMarkdownComponent key={message.id} content={messageContent} isUserMessage={isUserMessage} />;
-        }
-
-        // Mixed content with special blocks
-        return <>{messageContent.map(renderContentPart)}</>;
-    };
-
     switch (message.author.role) {
         case 'SREAgent':
             return (
@@ -468,18 +256,7 @@ const ChatMessageV2 = ({
                             hideMessageHeader ? ChatBoxStyles.hideAgentMessageHeader : undefined
                         )}
                     >
-                        {/* For messages with approval - text content may be empty, so we may only need to render approval UI */}
-                        {message.approval ? (
-                            <ApprovalMessage message={message} threadId={threadId} />
-                        ) : message.isDailyReport ? (
-                            <DailyReportMessage message={message} />
-                        ) : message.azCliExecution ? (
-                            <AzCliExecutionMessage execution={message.azCliExecution} threadId={threadId} />
-                        ) : message.kubectlExecution ? (
-                            <KubectlExecutionMessage execution={message.kubectlExecution} threadId={threadId} />
-                        ) : message.text || isTyping ? (
-                            <RegularMessage />
-                        ) : null}
+                        <AgentMessage message={message} isTyping={isTyping} threadId={threadId} />
 
                         <ToolCallTextComponent
                             toolCallText={message.toolCallText}
@@ -525,48 +302,11 @@ const ChatMessageV2 = ({
                         </div>
                     )}
                     <UserMessage className={chatStyles.userBubble} message={{ className: chatStyles.userBubbleMessage }} key={message.id}>
-                        <RegularMessage isUserMessage={true} />
+                        <ReactMarkdownComponent key={message.id} content={message.text} isUserMessage={true} />
                     </UserMessage>
                 </div>
             );
     }
-};
-
-const ReactMarkdownComponent = ({ content, isUserMessage }: { content?: string | null; isUserMessage?: boolean }) => {
-    const aLinkRenderer = useCallback((props: any) => {
-        return (
-            <a href={props.href} target="_blank" rel="noopener noreferrer">
-                {props.children}
-            </a>
-        );
-    }, []);
-
-    const codeRenderer = useCallback((props: any) => {
-        // Check if this code element is inside a pre element (code block)
-        const isInPre = props.node?.parent?.tagName === 'pre';
-        const className = isInPre ? chatMessageStyles.codeBlockInPre : chatMessageStyles.codeBlock;
-        return <code className={className}>{props.children}</code>;
-    }, []);
-
-    const preRenderer = useCallback((props: any) => {
-        return <pre className={chatMessageStyles.preBlock}>{props.children}</pre>;
-    }, []);
-
-    return (
-        <div className={mergeClasses('markdown-content', isUserMessage ? undefined : chatMessageStyles.regularMessageContent)}>
-            <ReactMarkdown
-                components={{
-                    a: aLinkRenderer,
-                    code: codeRenderer,
-                    pre: preRenderer,
-                }}
-                remarkPlugins={[remarkGfm]}
-                rehypePlugins={[rehypeRaw]}
-            >
-                {content}
-            </ReactMarkdown>
-        </div>
-    );
 };
 
 const ToolCallTextComponent = ({ toolCallText, hasText, isTyping }: { toolCallText?: string; hasText: boolean; isTyping?: boolean }) => {

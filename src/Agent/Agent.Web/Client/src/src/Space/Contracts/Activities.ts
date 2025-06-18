@@ -68,6 +68,12 @@ export interface IChatMessageV2Props {
     isStreamingMessage?: boolean;
 }
 
+export interface IAgentMessageProps {
+    message: Message;
+    isTyping?: boolean;
+    threadId: string;
+}
+
 export interface IChatProps {
     messages: Message[];
 }
@@ -126,3 +132,17 @@ export class MessageLoadingCounts {
 
 export const MessageTypingSpeedInMilliseconds = 10;
 export const MessageTypingCharactersPer10Ms = 5;
+
+export class AgentMessageRegex {
+    // Check for markdown image syntax with base64 data
+    public static readonly imageRegex = /!\[(.*?)\]\((data:image\/[a-z]+;base64,[A-Za-z0-9+/=]+)\)/g;
+    // Check for mermaid code blocks
+    public static readonly mermaidRegex = /```mermaid\n([\s\S]*?)\n```/g;
+    // Check for chart data blocks
+    public static readonly chartRegex = /```chart-data\n([\s\S]*?)\n```/g;
+    // Check if the entire message is just a incident-alert block
+    public static readonly incidentAlertRegex = /```incident-alert\s+([\s\S]*?)```/;
+    // Check for investigation summary formats
+    public static readonly investigationSummaryRegex = /<investigation-summary>([\s\S]*?)<\/investigation-summary>/;
+    public static readonly investigationSummariesRegex = /<investigation-summaries>([\s\S]*?)<\/investigation-summaries>/;
+}
