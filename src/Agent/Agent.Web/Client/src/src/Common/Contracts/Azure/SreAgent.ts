@@ -162,6 +162,8 @@ export enum MessageResponseType {
     ThreadUpdate = 'ThreadUpdate',
 }
 
+export type StreamingMessageType = 'chart' | 'image' | 'mermaid' | 'azcli' | 'kubectl' | 'approval' | null;
+
 export interface StreamingMessage {
     finishReason?: 'stop' | 'tool_calls' | 'length' | null;
     authorName?: string | null;
@@ -174,7 +176,10 @@ export interface StreamingMessage {
         streamId?: string | null;
         threadId?: string | null;
         messageId?: string | null;
-        streamMessageType?: 'Chart' | null;
+        streamMessageType?: StreamingMessageType;
+        approval?: string | null;
+        azCliExecution?: string | null;
+        kubectlExecution?: string | null;
     } | null;
 }
 

@@ -1,5 +1,15 @@
 import { ThreadSeverity } from '../../Common/Clients/ThreadClient';
-import { IncidentStatus, Message, SREAgentUserId, StreamingMessage, Thread, ThreadSource } from '../../Common/Contracts/Azure/SreAgent';
+import {
+    Approval,
+    AzCliExecution,
+    IncidentStatus,
+    Message,
+    SREAgentUserId,
+    StreamingMessage,
+    StreamingMessageType,
+    Thread,
+    ThreadSource,
+} from '../../Common/Contracts/Azure/SreAgent';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
 import { ThreadLoadingCounts } from '../Contracts/Activities';
@@ -184,17 +194,40 @@ export const processStreamingMessage = (
             userId: SREAgentUserId,
             displayName: '',
         },
+        approval: getSpecialMessageContentFromStreamingMessage<Approval>(streamingMessage, 'approval'),
+        azCliExecution: getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'azcli'),
+        kubectlExecution: getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'kubectl'),
+        isDailyReport: false,
     };
-
-    if (prev && prev.id === id && prev.timeStamp === timeStamp && prev.text === updatedText && prev.toolCallText === toolCallText) {
-        return prev;
-    }
 
     return updatedStreamingMessage;
 };
 
-export const isChartStreamingMessage = (streamingMessage: StreamingMessage): boolean => {
-    return equals(streamingMessage.additionalProperties?.streamMessageType || '', 'chart', AntUxStringComparison.IgnoreCase);
+export const getSpecialMessageContentFromStreamingMessage = <T,>(
+    streamingMessage: StreamingMessage,
+    streamingMessageType: StreamingMessageType
+): T | undefined => {
+    const additionalProperties = streamingMessage.additionalProperties;
+    const messageType = additionalProperties?.streamMessageType || '';
+    const text = getStreamingMessageText(streamingMessage);
+
+    if (
+        additionalProperties &&
+        messageType &&
+        streamingMessageType &&
+        equals(messageType, streamingMessageType, AntUxStringComparison.IgnoreCase) &&
+        text
+    ) {
+        try {
+            return JSON.parse(text) as T;
+        } catch (error) {
+            return undefined;
+        }
+    }
+};
+
+export const isDefaultStreamingMessageType = (streamingMessage: StreamingMessage): boolean => {
+    return !streamingMessage.additionalProperties?.streamMessageType;
 };
 
 export const getStreamingMessageText = (streamingMessage: StreamingMessage) => {

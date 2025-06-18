@@ -18,7 +18,7 @@ import { PromptResources } from '../../Strings/SREAgentResources';
 import {
     getIntervalBetweenLoading,
     getStreamingMessageText,
-    isChartStreamingMessage,
+    isDefaultStreamingMessageType,
     isFinalStreamingMessage,
     isIncidentThreadCompleted,
     processOldMessages,
@@ -94,7 +94,7 @@ export const useChatBoxV2 = (
     const typingCharIndex = useRef<number>(0);
     const typingCharsTimeout = useRef<NodeJS.Timeout | undefined>(undefined);
 
-    const [downButtonState, setDownButtonState] = useState<{ visible: boolean, flash: boolean }>({ visible: false, flash: false });
+    const [downButtonState, setDownButtonState] = useState<{ visible: boolean; flash: boolean }>({ visible: false, flash: false });
 
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const { sendMessage, onMessage } = useContext(SignalRContext);
@@ -285,7 +285,7 @@ export const useChatBoxV2 = (
             const currentMessageChunk = messageChunkQueue.current[0];
             const currentMessageText = getStreamingMessageText(currentMessageChunk);
 
-            if (currentMessageText && !isChartStreamingMessage(currentMessageChunk)) {
+            if (currentMessageText && isDefaultStreamingMessageType(currentMessageChunk)) {
                 // Update the streaming message with the current chunk properties except the text
                 setStreamingMessage(prev => processStreamingMessage(prev, currentMessageChunk, true));
                 // Update the streaming message's text by appending a character every 50ms
