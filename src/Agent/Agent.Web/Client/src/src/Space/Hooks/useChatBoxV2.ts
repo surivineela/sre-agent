@@ -25,7 +25,7 @@ import {
     processStreamingMessage,
     updateOldMessagesText,
 } from '../Activities/Utility';
-import { MessageLoadingCounts } from '../Contracts/Activities';
+import { MessageLoadingCounts, MessageTypingCharactersPer10Ms, MessageTypingSpeedInMilliseconds } from '../Contracts/Activities';
 import { SignalRContext } from '../Contracts/Context';
 import { useAuthenticatedUserInfo } from './useAuthenticatedUserInfo';
 
@@ -288,17 +288,22 @@ export const useChatBoxV2 = (
                 const typeChar = () => {
                     if (typingCharIndex.current < currentMessageText.length) {
                         const charIndex = typingCharIndex.current;
-                        typingCharIndex.current += 1;
+                        typingCharIndex.current += MessageTypingCharactersPer10Ms;
                         setStreamingMessage(prev => {
                             if (prev) {
                                 return {
                                     ...prev,
-                                    text: prev.text + currentMessageText[charIndex],
+                                    text:
+                                        prev.text +
+                                        currentMessageText.slice(
+                                            charIndex,
+                                            Math.min(charIndex + MessageTypingCharactersPer10Ms, currentMessageText.length)
+                                        ),
                                 };
                             }
                             return prev;
                         });
-                        typingCharsTimeout.current = setTimeout(typeChar, 10);
+                        typingCharsTimeout.current = setTimeout(typeChar, MessageTypingSpeedInMilliseconds);
                     } else {
                         // Finished typing the current message chunk
                         messageChunkQueue.current.shift();

@@ -123,3 +123,6 @@ export class MessageLoadingCounts {
     public static readonly default = 20;
     public static readonly active = 10;
 }
+
+export const MessageTypingSpeedInMilliseconds = 10;
+export const MessageTypingCharactersPer10Ms = 5;
