@@ -10,6 +10,7 @@ using Agent.Web.Models.Streaming;
 using Agent.Core.Models.Api.v1;
 using Microsoft.Extensions.AI;
 using Agent.Runtime.Services;
+using Agent.Runtime.Helpers;
 
 namespace Agent.Web.SignalR
 {
@@ -95,8 +96,10 @@ namespace Agent.Web.SignalR
                         if (result.FinishReason == ChatFinishReason.ToolCalls && result.Contents.Count > 0 && result.Contents[0].GetType() == typeof(FunctionCallContent))
                         {
                             var toolCallContent = (FunctionCallContent)result.Contents[0];
-                            await Clients.Caller.TextUpdate("Calling tool... " + toolCallContent.Name);
-                            await Clients.Caller.TextUpdate("Tool call params: " + JsonSerializer.Serialize(toolCallContent.Arguments));
+                            var safeDescription = toolCallContent.AdditionalProperties?.TryGetValue("userDescription", out var desc) == true 
+                                ? desc?.ToString() ?? ToolDescriptionHelper.DefaultSafeDescription
+                                : ToolDescriptionHelper.GetUserDescriptionForFunctionCallName(toolCallContent.Name);
+                            await Clients.Caller.TextUpdate(safeDescription);
                         }
                         if (result.Role == ChatRole.Tool && result.Contents.Count > 0 && result.Contents[0].GetType() == typeof(FunctionResultContent))
                         {
@@ -249,8 +252,10 @@ namespace Agent.Web.SignalR
                         if (result.FinishReason == ChatFinishReason.ToolCalls && result.Contents.Count > 0 && result.Contents[0].GetType() == typeof(FunctionCallContent))
                         {
                             var toolCallContent = (FunctionCallContent)result.Contents[0];
-                            await Clients.Caller.TextUpdate("Calling tool... " + toolCallContent.Name);
-                            await Clients.Caller.TextUpdate("Tool call params: " + JsonSerializer.Serialize(toolCallContent.Arguments));
+                            var safeDescription = toolCallContent.AdditionalProperties?.TryGetValue("userDescription", out var desc) == true 
+                                ? desc?.ToString() ?? ToolDescriptionHelper.DefaultSafeDescription
+                                : ToolDescriptionHelper.GetUserDescriptionForFunctionCallName(toolCallContent.Name);
+                            await Clients.Caller.TextUpdate(safeDescription);
                         }
                         if (result.Role == ChatRole.Tool && result.Contents.Count > 0 && result.Contents[0].GetType() == typeof(FunctionResultContent))
                         {

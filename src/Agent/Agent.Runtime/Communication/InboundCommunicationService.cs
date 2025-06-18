@@ -322,7 +322,15 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                             var functionCall = toolCall.FunctionCall;
                             functionCall.AdditionalProperties ??= new AdditionalPropertiesDictionary();
                             functionCall.AdditionalProperties.Add("userDescription", ToolDescriptionHelper.GetUserDescriptionForFunctionCallName(functionCall.Name));
-                            toolCalls.Add(functionCall);
+                            
+                            // Create a safe version that doesn't expose the real function name
+                            var safeFunctionCall = new FunctionCallContent(
+                                functionCall.CallId,
+                                "operation", // Never expose real function names
+                                null // Don't expose arguments for security
+                            );
+                            safeFunctionCall.AdditionalProperties = functionCall.AdditionalProperties;
+                            toolCalls.Add(safeFunctionCall);
                         }
                         yield return new ChatResponseUpdate(ChatRole.Assistant, string.Empty)
                         {
@@ -496,13 +504,30 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                     {
                         foreach (var content in response.Contents)
                         {
-                            // Add user friendly function call description to content
+                            // Add user friendly function call description to content and mask function name
                             if (content is FunctionCallContent functionCall)
                             {
                                 string functionName = functionCall.Name;
                                 string userFriendlyDescription = ToolDescriptionHelper.GetUserDescriptionForFunctionCallName(functionName);
-                                content.AdditionalProperties ??= new AdditionalPropertiesDictionary();
-                                content.AdditionalProperties.Add("functionCallDescription", userFriendlyDescription);
+                                
+                                // Create a new safe function call content since Name is read-only
+                                var safeFunctionCall = new FunctionCallContent(
+                                    functionCall.CallId,
+                                    "operation", // Never expose real function names
+                                    null // Don't expose arguments for security
+                                );
+                                safeFunctionCall.AdditionalProperties ??= new AdditionalPropertiesDictionary();
+                                safeFunctionCall.AdditionalProperties.Add("functionCallDescription", userFriendlyDescription);
+                                
+                                // Replace the original content with the safe version
+                                var contentIndex = response.Contents.ToList().IndexOf(content);
+                                if (contentIndex >= 0)
+                                {
+                                    response.Contents = response.Contents.Take(contentIndex)
+                                        .Concat(new[] { safeFunctionCall })
+                                        .Concat(response.Contents.Skip(contentIndex + 1))
+                                        .ToArray();
+                                }
                             }
                         }
                     }

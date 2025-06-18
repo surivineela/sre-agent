@@ -6,6 +6,11 @@ namespace Agent.Runtime.Helpers;
 
 public static class ToolDescriptionHelper
 {
+    /// <summary>
+    /// Default safe description used when function names might be exposed or when no specific mapping exists
+    /// </summary>
+    public const string DefaultSafeDescription = "Further Analyzing...";
+
     public static string GetUserDescriptionForFunctionCallName(string functionName)
     {
         return functionName switch
@@ -107,7 +112,9 @@ public static class ToolDescriptionHelper
             "PlotBarChartAsync" => "Creating bar chart.",
             "PlotPieChartAsync" => "Creating pie chart.",
             "PlotScatterAsync" => "Creating scatter plot.",
+            "PlotHeatmapAsync" => "Creating heatmap visualization.",
             "PlotAreaChartWithCorrelationAsync" => "Creating area chart with correlation.",
+            "GetPieChartBase64Image" => "Generating pie chart image.",
 
             // Metrics functions
             "GetFunctionAppRequestAvailability" => "Checking Function App availability metrics.",
@@ -146,7 +153,7 @@ public static class ToolDescriptionHelper
             "rollout" => "Managing Kubernetes rollout.",
 
             // Default case
-            _ => $"Executing {functionName} operation."
+            _ => DefaultSafeDescription
         };
     }
 }
