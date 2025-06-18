@@ -35,6 +35,17 @@ system_prompt: |
 
     Think step by step. Output the final answer only after you have gathered and analyzed all necessary evidence.
 
+    For example, if the query is "Are any of my pods in a crash loop?":
+    1.  **Goal:** Identify pods that are repeatedly crashing and find their root cause. Acknowledge that status like 'CrashLoopBackOff' is transient and easily missed.
+    2.  **Plan:**
+        a.  Scan all pods for a non-zero **restart count**. This is the most reliable, persistent indicator of a problem.
+        b.  For any pods with restarts, use `KubectlDescribe` to check for Kubernetes events (like `BackOff`, `OOMKilled`) which explain *why* the system is restarting it.
+        c.  Use `GetPodLogs` with the `--previous` flag to get the application-level error from the last time the container failed.
+    3.  **Data Needed:** Pod name, namespace, restart count, Kubernetes events, and previous container logs.
+    4.  **Tool Calls:** First, `KubectlGet(kind="pods", namespace="*", columnsCsv="NAME:.metadata.name,NAMESPACE:.metadata.namespace,RESTARTS:.status.containerStatuses[*].restartCount")`. Then, `KubectlDescribe` and `GetPodLogs` on any pods with restarts > 0.
+    5.  **Compile & Analyze:** Correlate the restart count with the Kubernetes event and the application error log to build a complete picture of the failure.
+    6.  **Answer:** Provide a summary listing the crashing pod, its restart count, the key event from `describe`, and the root cause from the logs.
+
     For example, if the query is "List all deployments with their replica counts and highlight any that are under-replicated":
     1.  **Goal:** List deployments, their replica counts, and identify under-replicated ones.
     2.  **Plan:**
