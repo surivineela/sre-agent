@@ -23,6 +23,10 @@ export const SreAgentResources = defineMessages({
         id: 'WCaf5C',
         defaultMessage: 'Approve',
     },
+    copy: {
+        id: '4l6vz1',
+        defaultMessage: 'Copy',
+    },
     copied: {
         id: 'p556q3',
         defaultMessage: 'Copied',
@@ -104,6 +108,7 @@ export const SreAgentResources = defineMessages({
     failed: { defaultMessage: 'Failed', id: 'vXCeIi' },
     filterMessage: { defaultMessage: 'Showing the first 1000 results. Filter to narrow down the list.', id: 'u64mw7' },
     fieldRequired: { defaultMessage: 'This field is required', id: 'TKmub+' },
+    info: { defaultMessage: 'Info', id: 'we4Lby' },
     getMoreInfo: { defaultMessage: 'Get more info', id: 'TB6bkn' },
     azureManagedGrafana: { defaultMessage: 'Azure Managed Grafana', id: 'IF3r+X' },
     incidents: { defaultMessage: 'Incidents', id: 'mtr3R4' },
@@ -178,6 +183,14 @@ export const SreAgentResources = defineMessages({
     keepWorking: {
         defaultMessage: 'Keep working',
         id: 'YJG5oU',
+    },
+    moreOptions: {
+        defaultMessage: 'More options',
+        id: 'IzCVhG',
+    },
+    threadInfo: {
+        defaultMessage: 'Thread info',
+        id: 'srG8e2',
     },
 });
 

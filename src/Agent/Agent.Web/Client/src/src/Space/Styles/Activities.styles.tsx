@@ -57,7 +57,7 @@ export const ThreadContentStyles = mergeStyleSets({
     },
     title: {
         fontWeight: 600,
-        lineHeight: '22px',
+        lineHeight: '24px',
         paddingBottom: '-10px',
         fontSize: '18px',
         marginBlock: '0px 0px',

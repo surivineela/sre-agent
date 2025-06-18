@@ -15,9 +15,10 @@ import {
     MenuTrigger,
     tokens,
 } from '@fluentui/react-components';
-import { CheckmarkCircleRegular, CopyRegular, DeleteRegular, InfoRegular, MoreHorizontal20Regular } from '@fluentui/react-icons';
-import { memo, useState } from 'react';
+import { DeleteRegular, InfoRegular, MoreHorizontal20Regular } from '@fluentui/react-icons';
+import { memo, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
+import CopyButton from '../../Common/Components/CopyButton';
 import { Thread } from '../../Common/Contracts/Azure/SreAgent';
 import { ActivitiesThreadHeaderResources, SreAgentResources } from '../../Strings/SREAgentResources';
 
@@ -54,12 +55,6 @@ const useStyles = makeStyles({
         gap: '8px',
         marginBottom: '12px',
     },
-    threadIdCopyButton: {
-        minWidth: '24px',
-        height: '24px',
-        padding: '0',
-        fontSize: '12px',
-    },
     section: {
         marginBottom: '16px',
     },
@@ -77,13 +72,13 @@ interface ThreadActionsMenuProps {
 }
 
 const ThreadActionsMenu = ({ thread, handleThreadDelete }: ThreadActionsMenuProps) => {
-    const { dangerButton, infoContent, threadIdHighlight, threadIdCopyButton, section, sectionTitle } = useStyles();
+    const { dangerButton, infoContent, threadIdHighlight, section, sectionTitle } = useStyles();
     const intl = useIntl();
-    const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(false);
-    const [copied, setCopied] = useState(false);
-    const [threadIdCopied, setThreadIdCopied] = useState(false);
 
-    const formatThreadInfo = (thread: Thread) => {
+    const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(false);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+    const formattedThreadInfoText = useMemo(() => {
         const created = new Date(thread.createdTimestamp).toLocaleDateString();
         const modified = new Date(thread.modifiedTimestamp).toLocaleDateString();
 
@@ -93,44 +88,13 @@ Modified: ${modified}
 Source: ${thread.source || 'N/A'}
 
 Thread ID: ${thread.id}`;
-    };
-
-    const handleCopyToClipboard = async () => {
-        try {
-            await navigator.clipboard.writeText(formatThreadInfo(thread));
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
-        } catch (err) {
-            console.error('Failed to copy to clipboard:', err);
-        }
-    };
-
-    const handleCopyThreadId = async () => {
-        try {
-            await navigator.clipboard.writeText(thread.id);
-            setThreadIdCopied(true);
-            setTimeout(() => setThreadIdCopied(false), 2000);
-        } catch (err) {
-            console.error('Failed to copy thread ID to clipboard:', err);
-        }
-    };
+    }, [thread]);
 
     const renderInfoContent = () => (
         <div>
             <div className={threadIdHighlight}>
                 <span>{thread.id}</span>
-                <Button
-                    className={threadIdCopyButton}
-                    icon={threadIdCopied ? <CheckmarkCircleRegular /> : <CopyRegular />}
-                    onClick={handleCopyThreadId}
-                    appearance="transparent"
-                    size="small"
-                    title={threadIdCopied ? 'Copied!' : 'Copy Thread ID'}
-                    style={{
-                        color: threadIdCopied ? '#16a34a' : undefined,
-                        transition: 'color 0.2s',
-                    }}
-                />
+                <CopyButton textToCopy={thread.id} buttonAppearance="transparent" />
             </div>
 
             <div className={section}>
@@ -160,29 +124,47 @@ Thread ID: ${thread.id}`;
 
     return (
         <>
-            {/* Delete Dialog */}
-            <Dialog modalType="alert">
-                <Menu>
-                    <MenuTrigger>
-                        <Button
-                            style={{ display: 'inline-block' }}
-                            appearance="transparent"
-                            icon={<MoreHorizontal20Regular />}
-                            aria-label="More options"
-                        />
-                    </MenuTrigger>
-                    <MenuPopover>
-                        <MenuList>
-                            <MenuItem icon={<InfoRegular />} onClick={() => setIsInfoDialogOpen(true)}>
-                                Info
-                            </MenuItem>
-                            <DialogTrigger disableButtonEnhancement>
-                                <MenuItem icon={<DeleteRegular />}>Delete</MenuItem>
-                            </DialogTrigger>
-                        </MenuList>
-                    </MenuPopover>
-                </Menu>
+            <Menu>
+                <MenuTrigger>
+                    <Button
+                        style={{ marginTop: '3px' }}
+                        appearance="transparent"
+                        icon={<MoreHorizontal20Regular />}
+                        aria-label={intl.formatMessage(SreAgentResources.moreOptions)}
+                    />
+                </MenuTrigger>
+                <MenuPopover>
+                    <MenuList>
+                        <MenuItem icon={<InfoRegular />} onClick={() => setIsInfoDialogOpen(true)}>
+                            {intl.formatMessage(SreAgentResources.info)}
+                        </MenuItem>
+                        <MenuItem icon={<DeleteRegular />} onClick={() => setIsDeleteDialogOpen(true)}>
+                            {intl.formatMessage(SreAgentResources.delete)}
+                        </MenuItem>
+                    </MenuList>
+                </MenuPopover>
+            </Menu>
 
+            {/* Thread info Dialog */}
+            <Dialog open={isInfoDialogOpen} onOpenChange={(_, data) => setIsInfoDialogOpen(data.open)}>
+                <DialogSurface>
+                    <DialogBody>
+                        <DialogTitle>{intl.formatMessage(SreAgentResources.threadInfo)}</DialogTitle>
+                        <DialogContent>
+                            <div className={infoContent}>{renderInfoContent()}</div>
+                        </DialogContent>
+                        <DialogActions>
+                            <CopyButton textToCopy={formattedThreadInfoText} buttonAppearance="secondary" showCopyText />
+                            <Button appearance="primary" onClick={() => setIsInfoDialogOpen(false)}>
+                                {intl.formatMessage(SreAgentResources.close)}
+                            </Button>
+                        </DialogActions>
+                    </DialogBody>
+                </DialogSurface>
+            </Dialog>
+
+            {/* Delete Dialog */}
+            <Dialog modalType="alert" open={isDeleteDialogOpen} onOpenChange={(_, data) => setIsDeleteDialogOpen(data.open)}>
                 <DialogSurface>
                     <DialogBody>
                         <DialogTitle>{intl.formatMessage(ActivitiesThreadHeaderResources.deleteThreadDialogTitle)}</DialogTitle>
@@ -196,34 +178,6 @@ Thread ID: ${thread.id}`;
                             <DialogTrigger disableButtonEnhancement>
                                 <Button appearance="secondary">{intl.formatMessage(SreAgentResources.no)}</Button>
                             </DialogTrigger>
-                        </DialogActions>
-                    </DialogBody>
-                </DialogSurface>
-            </Dialog>
-
-            {/* Thread Info Dialog */}
-            <Dialog open={isInfoDialogOpen} onOpenChange={(_, data) => setIsInfoDialogOpen(data.open)}>
-                <DialogSurface>
-                    <DialogBody>
-                        <DialogTitle>Thread Info</DialogTitle>
-                        <DialogContent>
-                            <div className={infoContent}>{renderInfoContent()}</div>
-                        </DialogContent>
-                        <DialogActions>
-                            <Button
-                                icon={copied ? <CheckmarkCircleRegular /> : <CopyRegular />}
-                                onClick={handleCopyToClipboard}
-                                appearance="secondary"
-                                style={{
-                                    color: copied ? '#16a34a' : undefined,
-                                    transition: 'color 0.2s',
-                                }}
-                            >
-                                {copied ? 'Copied!' : 'Copy'}
-                            </Button>
-                            <Button appearance="primary" onClick={() => setIsInfoDialogOpen(false)}>
-                                {intl.formatMessage(SreAgentResources.close)}
-                            </Button>
                         </DialogActions>
                     </DialogBody>
                 </DialogSurface>

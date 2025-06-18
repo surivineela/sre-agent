@@ -337,6 +337,12 @@
       "value": "List cluster admin credential action."
     }
   ],
+  "4l6vz1": [
+    {
+      "type": 0,
+      "value": "Copy"
+    }
+  ],
   "5+bQr/": [
     {
       "type": 0,
@@ -1093,6 +1099,12 @@
     {
       "type": 0,
       "value": "Duration"
+    }
+  ],
+  "IzCVhG": [
+    {
+      "type": 0,
+      "value": "More options"
     }
   ],
   "J6XCfl": [
@@ -2213,12 +2225,6 @@
       "value": "Read-only mode"
     }
   ],
-  "ezP+aQ": [
-    {
-      "type": 0,
-      "value": "With incident handlers, the agent chooses the tools it needs to manage common types of incidents. Custom handlers replace this capability by giving the agent specific instructions that you provide."
-    }
-  ],
   "f0Y4Zr": [
     {
       "type": 0,
@@ -2909,6 +2915,12 @@
       "value": "Monitor Service"
     }
   ],
+  "srG8e2": [
+    {
+      "type": 0,
+      "value": "Thread info"
+    }
+  ],
   "swRudj": [
     {
       "type": 0,
@@ -3045,6 +3057,12 @@
     {
       "type": 0,
       "value": "Submit"
+    }
+  ],
+  "we4Lby": [
+    {
+      "type": 0,
+      "value": "Info"
     }
   ],
   "wkLkeE": [
