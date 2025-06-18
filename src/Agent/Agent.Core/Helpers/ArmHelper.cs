@@ -1814,7 +1814,7 @@ public class ArmHelper
         }
     }
 
-    public async Task<string> CheckConnectivityToAzureWebJobsStorage(string resourceId)
+    public async Task<string> CheckConnectivityToAzureWebJobsStorage(string resourceId, string providerType= "BlobStorage")
     {
         var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
 
@@ -1822,19 +1822,19 @@ public class ArmHelper
 
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, resourceId + "/connectivityCheck?api-version=2022-03-01");
 
-        string payload = @"{
-            ""properties"": {
-                ""ProviderType"": ""BlobStorage"",
-                ""Credentials"": {
+        string payload = $@"{{
+            ""properties"": {{
+                ""ProviderType"": ""{providerType}"",
+                ""Credentials"": {{
                     ""CredentialType"": ""CredentialReference"",
-                    ""CredentialReference"": {
+                    ""CredentialReference"": {{
                         ""ReferenceType"": ""AppSetting"",
                         ""ReferenceName"": ""AzureWebJobsStorage""
-                    }
-                },
-                ""ResourceMetadata"": {}
-            }
-        }";
+                    }}
+                }},
+                ""ResourceMetadata"": {{}}
+            }}
+        }}";
         request.Content = new StringContent(payload, Encoding.UTF8, "application/json");
 
         var res = await httpClient.SendAsync(request);

@@ -21,7 +21,7 @@ namespace Agent.Plugins.Interface
         Task<string> GetArmResourceAsJson(string resourceId);
         Task<RemediationResult> PowerOnVirtualMachine(string resourceId);
         Task<IReadOnlyDictionary<string, string>> GetVirtualMachineBootDiagnostics(string resourceId);
-        Task<string> CheckConnectivityToAzureWebJobsStorage(string resourceId);
+        Task<string> CheckConnectivityToAzureWebJobsStorage(string resourceId, string providerType = "BlobStorage");
         Task<string> CheckTcpConnectivity(string resourceId, string host, int port);
         Task<string> CheckDnsResolution(string resourceId, string destinationUrl);
         Task<IDictionary<string, string>> GetAppSetting(string resourceId, string appSettingKey);

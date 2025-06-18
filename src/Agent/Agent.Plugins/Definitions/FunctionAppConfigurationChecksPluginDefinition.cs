@@ -35,5 +35,6 @@ namespace Agent.Plugins.Definitions
         {
             return await _functionAppConfigurationChecksPlugin.GetFunctionAppConfigurationChecks(resourceId, startTime, endTime);
         }
+
     }
 }

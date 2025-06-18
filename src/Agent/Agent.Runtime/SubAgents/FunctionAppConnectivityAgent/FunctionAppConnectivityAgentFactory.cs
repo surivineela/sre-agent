@@ -20,7 +20,8 @@ public sealed class FunctionAppConnectivityAgentFactory
            DurableTaskClient durableTaskClient,
            IArmPlugin armPlugin,
            IRoleAssignmentPlugin roleAssignmentPlugin,
-           IGraphDBPlugin graphDBPlugin
+           IGraphDBPlugin graphDBPlugin,
+           IFunctionAppConfigurationChecksPlugin functionAppConfigurationChecksPlugin
            )
     {
         _toolsRepository = toolsRepository;
@@ -38,6 +39,7 @@ public sealed class FunctionAppConnectivityAgentFactory
         toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.CheckTcpConnectivity));
         toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.CheckDnsResolution));
         toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.GetAppSetting));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.UpdateAppSettingsAsync));
         toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.ListKeysAndUpdateAppSettingsAsync));
 
         var roleAssignmentPluginDefinition = new RoleAssignmentPluginDefinition(roleAssignmentPlugin);

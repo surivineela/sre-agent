@@ -107,7 +107,7 @@ namespace Agent.Plugins.Mocks
             return Task.FromResult((IReadOnlyDictionary<string, string>)new Dictionary<string, string>());
         }
 
-        public Task<string> CheckConnectivityToAzureWebJobsStorage(string resourceId)
+        public Task<string> CheckConnectivityToAzureWebJobsStorage(string resourceId, string providerType)
         {
             return Task.FromResult<string>("true");
         }

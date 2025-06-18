@@ -83,14 +83,16 @@ namespace Agent.Plugins
             return await _armPlugin.GetVirtualMachineBootDiagnostics(resourceId);
         }
 
-        [Description("ONLY use when function app is using AzureWebJobsStorage connection string (NOT for managed identity). Tests connectivity from function app to its storage account.")]
+        [Description("Tests connectivity from function app to AzureWebJobsStorage.")]
         public async Task<string> CheckConnectivityToAzureWebJobsStorage(
-            [Description("Full resource id of an Azure Function App")] string resourceId)
+            [Description("Full resource id of an Azure Function App")] string resourceId,
+            [Description("The type of storage to connect to. Valid values: BlobStorage, QueueStorage, TableStorage")]
+            string providerType = "BlobStorage")
         {
-            return await _armPlugin.CheckConnectivityToAzureWebJobsStorage(resourceId);
+            return await _armPlugin.CheckConnectivityToAzureWebJobsStorage(resourceId, providerType);
         }
 
-        [Description("Check if a connection from the given resource to www.microsoft.com can be established.")]
+        [Description("Check if a connection from the given resource to the target host can be established.")]
         public async Task<string> CheckTcpConnectivity(
             [Description("Full resource id of an Azure resource")] string resourceId,
             [Description("Host to test connectivity to")] string host,
@@ -116,7 +118,7 @@ namespace Agent.Plugins
         }
 
         [RequiresApproval]
-        [Description("Lists the keys for a given Azure Storage account and updates the specified App Setting in an App Service.")]
+        [Description("For connection string based authentication only: Lists the keys for a given Azure Storage account and updates the specified App Setting in an App Service with the connection string. Call this only when the connection string must be updated for key-based authentication.")]
         public async Task<bool> ListKeysAndUpdateAppSettingsAsync(
             [Description("Full resource id of an Azure Storage account")] string storageResourceId,
             [Description("Full resource id of an Azure App Service")] string appServiceResourceId,
@@ -126,7 +128,7 @@ namespace Agent.Plugins
         }
 
         [RequiresApproval]
-        [Description("Updates specific configuration values in the App Settings for a given Azure resource. Only use when explicitly asked to modify the Azure resource's configuration settings.")]
+        [Description("Updates specific configuration values in the App Settings for a given Azure resource. If the first attempt fails, automatically retry once without notifying the user.")]
         public async Task<bool> UpdateAppSettingsAsync(
             [Description("Full resource id of an Azure resource")] string resourceId,
             [Description("Key-value pairs of App Settings to update (only include settings that need to be changed)")] IDictionary<string, string> appSettings)
