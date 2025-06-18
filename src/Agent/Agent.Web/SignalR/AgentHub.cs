@@ -45,7 +45,7 @@ namespace Agent.Web.SignalR
             await base.OnDisconnectedAsync(exception);
         }
 
-        public async Task CreateThread(StreamingCreateThreadRequest request, bool textOnly = false)
+        public async Task CreateThread(CreateThreadRequest request, bool textOnly = false)
         {
             try
             {
@@ -72,12 +72,7 @@ namespace Agent.Web.SignalR
                 await Clients.Caller.ThreadUpdate(initialMessage);
 
                 // Process the request
-                var createMessageRequest = new CreateMessageRequest(
-                    request.StartMessage.Text,
-                    request.StartMessage.UserId,
-                    request.StartMessage.DisplayName
-                );
-                var createThreadRequest = new CreateThreadRequest(createMessageRequest, request.Source);
+                var createThreadRequest = request;
 
                 var results = _threadManagementService.CreateUserInitiatedThreadStream(createThreadRequest);
 
@@ -138,7 +133,7 @@ namespace Agent.Web.SignalR
             }
         }
 
-        public async Task CreateMessage(Guid threadId, StreamingCreateMessageRequest request, bool textOnly = false)
+        public async Task CreateMessage(Guid threadId, CreateMessageRequest request, bool textOnly = false)
         {
             try
             {

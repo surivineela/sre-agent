@@ -981,6 +981,7 @@ public class ReasoningLoop : IDisposable
                 config: runConfig,
                 context: _context,
                 hooks: runHooks,
+                displayModelOutput: DisplayModelResponse,
                 cancellationToken: cancellationToken
             );
         }
@@ -1182,6 +1183,7 @@ public class ReasoningLoop : IDisposable
                     config: runConfig,
                     context: _context,
                     hooks: runHooks,
+                    displayModelOutput: DisplayModelResponse,
                     cancellationToken: cancellationToken
                 );
             }
