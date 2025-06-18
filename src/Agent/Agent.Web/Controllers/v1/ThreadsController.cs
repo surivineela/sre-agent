@@ -5,7 +5,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Text.Json;
-using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
@@ -20,6 +19,7 @@ using Microsoft.DurableTask.Client;
 using Agent.Web.Models.WelcomeMessage;
 using Agent.Runtime.Services;
 using Agent.Plugins.Interface;
+using Agent.Runtime.Reasoning;
 
 
 namespace Agent.Web.Controllers.v1
@@ -45,6 +45,7 @@ namespace Agent.Web.Controllers.v1
         IGraphService graphService,
         IConnectedIntegrationsPlugin connectedIntegrationsPlugin,
         IGithubIssuePlugin githubIssuePlugin,
+        IReasoningLoopManager reasoningLoopManager,
         ThreadManagementService threadManagementService) : ControllerBase
     {
         // By default, returns threads ordered by timestamp in ascending order.
@@ -147,17 +148,21 @@ namespace Agent.Web.Controllers.v1
         }
 
         [HttpGet("{threadId}/messages")]
-        public async Task<ActionResult<PagedResponse<Message>>> GetMessages(Guid threadId, ODataQueryOptions<MessageDocument> queryOptions)
+        public async Task<ActionResult<PagedResponseWithState<Message, ContextStateEnum?>>> GetMessages(Guid threadId, ODataQueryOptions<MessageDocument> queryOptions)
         {
             // First check if thread exists
             var thread = await repository.GetThreadAsync(threadId);
+            var contexts = await repository.GetAgentContextsForThreadAsync(threadId);
+            var ctx = contexts.FirstOrDefault();
 
             if (thread == null)
+            {
                 return NotFound();
+            }
 
             var messages = await repository.GetMessagesAsync(threadId, queryOptions);
 
-            return Ok(new PagedResponse<Message>(messages));
+            return Ok(new PagedResponseWithState<Message, ContextStateEnum?>(Value: messages, State: ctx?.ContextState));
         }
 
         [HttpGet("{threadId}/messages/{messageId}")]
@@ -304,7 +309,16 @@ namespace Agent.Web.Controllers.v1
             var response = await threadManagementService.CreateMessage(threadId, request);
 
             if (response == null)
+            {
                 return NotFound();
+            }
+
+            if (response.Busy)
+            {
+                logger.LogInternalInformation($"Thread {threadId} is busy processing a request, but user tried to send a message: {request.Text}");
+                // todo: Do not block the user from sending messages for now. In case the reasoning loop's state stucks in Processing(e.g. because the agent restarts) and blocks the user indefinitely.
+                // return UnprocessableEntity(new { Message = "The agent is currently busy processing your request. Please try again later." });
+            }
 
             return CreatedAtAction(
                 nameof(GetMessage),
@@ -315,6 +329,30 @@ namespace Agent.Web.Controllers.v1
                     Author: new Author(Role.User, request.UserId, request.DisplayName),
                     Text: request.Text)
             );
+        }
+
+        [HttpPost("{threadId}/cancel")]
+        public async Task<ActionResult<string>> CancelThreadExecution(Guid threadId)
+        {
+            logger.LogInternalInformation($"Canceling thread execution for thread {threadId}");
+            var thread = await repository.GetThreadAsync(threadId);
+
+            if (thread is null)
+            {
+                return NotFound();
+            }
+
+            var agentContexts = await repository.GetAgentContextsForThreadAsync(threadId);
+
+            if (agentContexts is null || !agentContexts.Any())
+            {
+                return NotFound("No agent context found for the thread with id: " + threadId);
+            }
+
+            var agentContext = agentContexts.First();
+            reasoningLoopManager.CancelCurrentOperation(agentContext);
+
+            return AcceptedAtAction(nameof(CancelThreadExecution), new { threadId }, "Cancellation in progress");
         }
 
         [HttpGet("{threadId}/feedbacks/{messageFeedbackId}")]

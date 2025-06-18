@@ -13,6 +13,7 @@ public interface IReasoningLoopManager
 {
     Task AppendNewMessageAsync(AgentContext context, ChatMessage msg, CancellationToken cancellationToken = default);
     Task AppendFunctionCallMessagesAsync(AgentContext context, List<ChatMessage> msgs, CancellationToken cancellationToken = default);
+    void CancelCurrentOperation(AgentContext context);
     IAsyncEnumerable<RunResult<AgentContext>> AppendNewMessageStreamingAsync(AgentContext context, ChatMessage msg, CancellationToken cancellationToken = default);
     Task<IEnumerable<ChatMessage>> ExportChatHistory(AgentContext agentContext, CancellationToken token = default);
     Task NotifyApprovalDecisionAsync(AgentContext context, Approval approval, CancellationToken cancellationToken = default);
@@ -31,7 +32,7 @@ public class ReasoningLoopManager : IReasoningLoopManager
     public async Task AppendNewMessageAsync(AgentContext context, ChatMessage msg, CancellationToken cancellationToken = default)
     {
         var loop = await GetOrCreateReasoningLoopAsync(context);
-        await loop.AppendNewChatMessageAsync(msg, cancellationToken);
+        await loop.AppendNewUserMessageAsync(msg, cancellationToken);
     }
 
     public async Task AppendFunctionCallMessagesAsync(AgentContext context, List<ChatMessage> msgs, CancellationToken cancellationToken = default)
@@ -72,5 +73,17 @@ public class ReasoningLoopManager : IReasoningLoopManager
         }
 
         return loop;
+    }
+
+    public void CancelCurrentOperation(AgentContext context)
+    {
+        if (_reasoningLoops.TryGetValue(context.ThreadId, out var loop))
+        {
+            loop.CancelCurrentOperation();
+        }
+        else
+        {
+            throw new InvalidOperationException($"No reasoning loop found for thread ID {context.ThreadId}");
+        }
     }
 }

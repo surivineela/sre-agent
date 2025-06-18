@@ -27,7 +27,7 @@ using OpenTelemetry.Trace;
 
 namespace Agent.Runtime.Reasoning;
 
-public class ReasoningLoop
+public class ReasoningLoop : IDisposable
 {
     private readonly ILogger<ReasoningLoop> _logger;
     private readonly ILoggerFactory _loggerFactory;
@@ -49,6 +49,9 @@ public class ReasoningLoop
     private readonly AgentActionLogger _actionLogger;
     private List<ChatMessage>? _chatHistory;
     private Agent<AgentContext> _currentAgent;
+    private readonly object _userCancellationTokenSourceLock = new();
+    private CancellationTokenSource _userCancellationTokenSource = new();
+    private bool _disposed = false;
 
     // Retry configuration
     private const int MaxRetryAttempts = 3;
@@ -99,15 +102,36 @@ public class ReasoningLoop
         _agentFactory = agentFactory;
         _actionLogger = actionLogger;
     }
+    public void CancelCurrentOperation()
+    {
+        if (_disposed)
+        {
+            throw new ObjectDisposedException(nameof(ReasoningLoop));
+        }
 
-    public async Task AppendNewChatMessageAsync(ChatMessage msg, CancellationToken cancellationToken = default)
+        if (_context.ContextState == ContextStateEnum.Idle || _context.ContextState == ContextStateEnum.PendingApproval)
+        {
+            // If the context is idle or pending approval, there's no operation to cancel
+            // This is a no-op, but we log it for clarity
+            _logger.LogInternalInformation("No operation to cancel, agent context is idle or pending approval.");
+            return;
+        }
+
+        lock (_userCancellationTokenSourceLock)
+        {
+            _logger.LogInternalInformation("Cancelling current operation.");
+            _userCancellationTokenSource.Cancel();
+        }
+    }
+
+    public async Task AppendNewUserMessageAsync(ChatMessage msg, CancellationToken cancellationToken = default)
     {
         if (await _msgCh.Writer.WaitToWriteAsync(cancellationToken))
         {
             _logger.LogInternalInformation("Appending new chat message");
             await _msgCh.Writer.WriteAsync(new ReasoningLoopChatMessage(msg), cancellationToken);
 
-            _ = Task.Run(async () => await RunAsync(cancellationToken), cancellationToken);
+            _ = Task.Run(RunWithUserCancellationAsync, cancellationToken);
         }
         else
         {
@@ -122,7 +146,7 @@ public class ReasoningLoop
             _logger.LogInternalInformation("Appending new function call message");
             await _msgCh.Writer.WriteAsync(new ReasoningLoopFunctionCall(msgs), cancellationToken);
 
-            _ = Task.Run(async () => await RunAsync(cancellationToken), cancellationToken);
+            _ = Task.Run(RunWithUserCancellationAsync, cancellationToken);
         }
         else
         {
@@ -137,7 +161,7 @@ public class ReasoningLoop
             _logger.LogInternalInformation("Appending new approval message");
             await _msgCh.Writer.WriteAsync(new ReasoningLoopApprovalMessage(approval), cancellationToken);
 
-            _ = Task.Run(async () => await RunAsync(cancellationToken), cancellationToken);
+            _ = Task.Run(RunWithUserCancellationAsync, cancellationToken);
         }
         else
         {
@@ -230,16 +254,51 @@ public class ReasoningLoop
         return Task.FromResult(history);
     }
 
-    private async Task RunAsync(CancellationToken cancellationToken)
+    private async Task RunWithUserCancellationAsync()
     {
         // Ensure that only one thread runs at a time
-        if (!await _semaphore.WaitAsync(0, cancellationToken))
+        if (!await _semaphore.WaitAsync(0))
         {
             return;
         }
 
+        try
+        {
+            RefreshUserCancellationTokenSource();
+            await RunAsync(_userCancellationTokenSource.Token);
+        }
+        catch (OperationCanceledException e)
+        {
+            if (e.CancellationToken == _userCancellationTokenSource.Token)
+            {
+                _logger.LogInternalInformation($"{nameof(RunInternalAsync)} was canceled by user.");
+            }
+            else
+            {
+                _logger.LogInternalWarning($"{nameof(RunInternalAsync)} was unexpectedly canceled");
+            }
+
+            // todo: do we need to cleanup existing approvals?
+            if (_context.ContextState != ContextStateEnum.Idle)
+            {
+                await ChangeAgentContextStateAsync(ContextStateEnum.Idle);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "An error occurred while running the reasoning loop with user cancellation.");
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
+    private async Task RunAsync(CancellationToken cancellationToken)
+    {
         while (_msgCh.Reader.TryRead(out var reasoningLoopMessage))
         {
+            cancellationToken.ThrowIfCancellationRequested();
 
             ReasoningLoopIterationResult? iterationResult = null;
 
@@ -256,6 +315,11 @@ public class ReasoningLoop
                 _logger.LogInternalInformation("Received new message. Running reasoning loop...");
 
                 var agentChatHistory = await _threadRepository.GetAgentChatHistoryAsync(_context.Id);
+
+                if (_context.ContextState != ContextStateEnum.Processing)
+                {
+                    await ChangeAgentContextStateAsync(ContextStateEnum.Processing);
+                }
 
                 switch (reasoningLoopMessage)
                 {
@@ -296,6 +360,12 @@ public class ReasoningLoop
                     case ReasoningLoopApprovalMessage approvalMessage:
                         {
                             _logger.LogInternalInformation("Processing approval message.");
+
+                            if (_context.ContextState != ContextStateEnum.PendingApproval)
+                            {
+                                _logger.LogInternalWarning("Received approval message while not in PendingApproval state, but in state: {State}", _context.ContextState);
+                            }
+
                             _rootSpan.SetAttribute(TraceAttribute.MessageContent, approvalMessage.Approval.Title);
                             var approval = approvalMessage.Approval;
                             var shouldStop = await ProcessNewApprovalAsync(agentChatHistory, approval, cancellationToken);
@@ -303,6 +373,7 @@ public class ReasoningLoop
                             {
                                 return;
                             }
+
                             break;
                         }
                     case ReasoningLoopFunctionCall functionCall:
@@ -336,6 +407,10 @@ public class ReasoningLoop
                     }
                 }
             }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
             catch (Exception ex)
             {
                 _logger.LogInternalError(ex, "An error occurred during reasoning loop.");
@@ -351,10 +426,31 @@ public class ReasoningLoop
             }
         }
 
-        _semaphore.Release();
+        if (_context.ContextState == ContextStateEnum.Processing)
+        {
+            await ChangeAgentContextStateAsync(ContextStateEnum.Idle);
+        }
     }
 
-    private async IAsyncEnumerable<RunResult<AgentContext>> RunStreamingAsync([EnumeratorCancellation] CancellationToken cancellationToken)
+    private async Task ChangeAgentContextStateAsync(ContextStateEnum newState)
+    {
+        var oldState = _context.ContextState;
+        try
+        {
+            if (oldState != newState)
+            {
+                _context = _context with { ContextState = newState };
+                await _threadRepository.UpdateAgentContextAsync(_context);
+                _logger.LogInternalInformation($"Changed agent context state from {oldState} to {newState}");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, $"Failed to change agent context state from {oldState} to {newState}");
+        }
+    }
+
+    private async IAsyncEnumerable<RunResult<AgentContext>> RunStreamingAsync(CancellationToken cancellationToken)
     {
         // Ensure that only one thread runs at a time
         if (!await _semaphore.WaitAsync(0, cancellationToken))
@@ -508,6 +604,8 @@ public class ReasoningLoop
 
             ToolStatic.AsyncLocalThreadId.Value = _context.ThreadId;
 
+            cancellationToken.ThrowIfCancellationRequested();
+
             var runResult = await Runner.RunAsync(
                 startingAgent: _currentAgent,
                 input: _chatHistory!,
@@ -527,6 +625,7 @@ public class ReasoningLoop
             // handle manual tool calls
             while (runResult.ManualToolCalls != null && runResult.ManualToolCalls.Count > 0)
             {
+                _userCancellationTokenSource.Token.ThrowIfCancellationRequested();
                 List<ManualToolCallResult> toolResults = [];
 
                 var toolCall = runResult.ManualToolCalls.Single(); // Should only be one tool call at a time
@@ -647,6 +746,7 @@ public class ReasoningLoop
                         {
                             // if approval is required, stop the loop and wait for approval
                             await PersistReasoningMessageAsync(agentChatHistory, toolCall.OriginalMessage);
+                            await ChangeAgentContextStateAsync(ContextStateEnum.PendingApproval);
 
                             break;
                         }
@@ -752,9 +852,15 @@ public class ReasoningLoop
                         };
                     }
                 }
+
+                await ChangeAgentContextStateAsync(ContextStateEnum.Idle);
             }
 
             _logger.LogInternalInformation("Reasoning loop iteration completed.");
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (TurnLimitReachedException<AgentContext> ex)
         {
@@ -1333,6 +1439,8 @@ public class ReasoningLoop
 
     private async Task<bool> HandleUnprocessedToolCallsAsync(AgentChatHistory agentChatHistory, CancellationToken cancellationToken)
     {
+        _userCancellationTokenSource.Token.ThrowIfCancellationRequested();
+
         var lastMessage = _chatHistory?.LastOrDefault()?.Contents?.First();
         // if lastMessage is a tool call, we need to invoke the tool first
         if (lastMessage != null && lastMessage is FunctionCallContent functionCall)
@@ -1432,9 +1540,9 @@ public class ReasoningLoop
                         pendingApprovals.Remove(approval.Id);
                         _context = _context with
                         {
-                            ApprovalInformation = new ApprovalInformation(pendingApprovals)
+                            ApprovalInformation = new ApprovalInformation(pendingApprovals),
                         };
-                        _context = await _threadRepository.UpdateAgentContextAsync(_context);
+                        await ChangeAgentContextStateAsync(ContextStateEnum.Processing);
                     }
                 }
             }
@@ -1451,9 +1559,9 @@ public class ReasoningLoop
                     pendingApprovals.Remove(approval.Id);
                     _context = _context with
                     {
-                        ApprovalInformation = new ApprovalInformation(pendingApprovals)
+                        ApprovalInformation = new ApprovalInformation(pendingApprovals),
                     };
-                    _context = await _threadRepository.UpdateAgentContextAsync(_context);
+                    await ChangeAgentContextStateAsync(ContextStateEnum.Processing);
                 }
             }
             else  // Pending
@@ -1529,7 +1637,8 @@ public class ReasoningLoop
 
                 _context = _context with
                 {
-                    ApprovalInformation = new ApprovalInformation(newPendingApprovals)
+                    ApprovalInformation = new ApprovalInformation(newPendingApprovals),
+                    ContextState = ContextStateEnum.PendingApproval
                 };
 
                 _context = await _threadRepository.UpdateAgentContextAsync(_context);
@@ -1840,6 +1949,43 @@ public class ReasoningLoop
             ContextWrapper = new RunContextWrapper<AgentContext>(_context),
             Trajectory = new Trajectory()
         };
+    }
+    private void RefreshUserCancellationTokenSource()
+    {
+        if (_disposed)
+        {
+            return; // Don't refresh if disposed
+        }
+
+        lock (_userCancellationTokenSourceLock)
+        {
+            _userCancellationTokenSource.Dispose();
+            _userCancellationTokenSource = new CancellationTokenSource();
+            _logger.LogInternalInformation("User cancellation token source refreshed.");
+        }
+    }
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_disposed && disposing)
+        {
+            lock (_userCancellationTokenSourceLock)
+            {
+                _userCancellationTokenSource?.Dispose();
+            }
+
+            _semaphore?.Dispose();
+
+            // Mark the channel as complete to signal no more writes
+            _msgCh.Writer.TryComplete();
+
+            _disposed = true;
+        }
     }
 }
 

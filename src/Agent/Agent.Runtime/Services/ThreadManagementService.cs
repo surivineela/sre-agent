@@ -256,6 +256,17 @@ public class ThreadManagementService(
             return null;
         }
 
+        if (agentContext.ContextState == ContextStateEnum.Processing)
+        {
+            logger.LogInternalWarning($"Agent context {agentContext.Id} for thread {threadId} is not in Idle state, current state: {agentContext.ContextState}");
+            return new InboundServiceResponse(
+                ThreadId: threadId,
+                MessageId: Guid.Empty,
+                OrchestrationInstanceId: string.Empty,
+                Busy: true
+            );
+        }
+
         var response = await agentInboundCommunicationService.ProcessUserMessageAsync(new ThreadMessage
         (
             ThreadId: threadId,

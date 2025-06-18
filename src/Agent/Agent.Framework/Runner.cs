@@ -131,6 +131,8 @@ public static class Runner
         {
             while (true)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 currentTurn += 1;
 
                 if (currentTurn > maxTurns)
@@ -308,6 +310,11 @@ public static class Runner
                     throw new Exception("Unknown next step type");
                 }
             }
+        }
+        catch (OperationCanceledException)
+        {
+            logger.LogInformation("Operation was cancelled.");
+            throw;
         }
         catch (Exception ex)
         {

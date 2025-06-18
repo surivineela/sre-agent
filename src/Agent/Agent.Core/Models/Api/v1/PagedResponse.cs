@@ -10,3 +10,8 @@ public record PagedResponse<T>(
     [property: JsonPropertyName("value")] IEnumerable<T> Value
 );
 
+public record PagedResponseWithState<T, TState>(
+    [property: JsonPropertyName("value")] IEnumerable<T> Value,
+    [property: JsonPropertyName("state")] TState? State = default
+);
+
