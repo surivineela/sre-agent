@@ -52,6 +52,8 @@ public class KubernetesDaemonSetCrawler : IResourceCrawler
             yield break;
         }
 
+        await daemonSetNode.SaveKubernetesResourceNode(_graphDbClient);
+
         if (daemonSet.Spec?.Template?.Spec?.Containers != null)
         {
             HashSet<string> knownVolumes = [];
@@ -93,7 +95,8 @@ public class KubernetesDaemonSetCrawler : IResourceCrawler
                             continue;
                         }
                     }
-                }                if (container.VolumeMounts != null)
+                }
+                if (container.VolumeMounts != null)
                 {
                     foreach (var volumeMount in container.VolumeMounts)
                     {

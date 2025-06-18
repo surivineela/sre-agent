@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using Agent.Core.Configuration;
+using Agent.Core.Interfaces;
 using Agent.Core.Services;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler;
@@ -15,6 +16,8 @@ using Agent.Graph.Schema;
 using Agent.Logging;
 using Azure.Core;
 using Azure.ResourceManager.Monitor.Models;
+using k8s.Models;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Services;
@@ -34,7 +37,8 @@ public class ResourceGraphCrawlerService : ICrawlerService
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IGraphDatabaseClient _graphDbClient;
     private readonly CrawlerSettings _crawlerSettings;
-    private readonly IActivityLogService _activityLogService;
+    private readonly IWatchEventService _activityLogService;
+    private readonly IWatchEventService _kubernetesWatchService;
     private readonly ICrawlerTriggerService _crawlerTriggerService;
 
     private bool _isCrawling = false;
@@ -44,13 +48,21 @@ public class ResourceGraphCrawlerService : ICrawlerService
     private int _pendingCount = 0;
     private readonly ConcurrentDictionary<string, CrawlProgressCounter> _progressByResourceType = new();
 
-    public ResourceGraphCrawlerService(ILogger<ResourceGraphCrawlerService> logger, CrawlerSettings crawlerSettings, ArmResourceCrawlerFactory factory, IGraphDatabaseClient graphDbClient, IActivityLogService activityLogService, ICrawlerTriggerService crawlerTriggerService, IHttpClientFactory httpClientFactory)
+    public ResourceGraphCrawlerService(ILogger<ResourceGraphCrawlerService> logger,
+        CrawlerSettings crawlerSettings,
+        ArmResourceCrawlerFactory factory,
+        IGraphDatabaseClient graphDbClient,
+        [FromKeyedServices("ActivityLog")] IWatchEventService activityLogService,
+        [FromKeyedServices("Kubernetes")] IWatchEventService kubernetesWatchService,
+        ICrawlerTriggerService crawlerTriggerService,
+        IHttpClientFactory httpClientFactory)
     {
         _logger = logger;
         _factory = factory;
         _graphDbClient = graphDbClient;
         _crawlerSettings = crawlerSettings;
         _activityLogService = activityLogService;
+        _kubernetesWatchService = kubernetesWatchService;
         _crawlerTriggerService = crawlerTriggerService;
         _httpClientFactory = httpClientFactory;
 
@@ -101,83 +113,106 @@ public class ResourceGraphCrawlerService : ICrawlerService
     {
         _logger.LogInternalInformation($"Start activity log crawler for resources: {string.Join(",", resourceIds)}");
 
-        List<WatchEventSource> sources = new List<WatchEventSource>();
-        foreach (var resourceId in resourceIds)
-        {
-            if (string.IsNullOrEmpty(resourceId))
-            {
-                continue;
-            }
-
-            ResourceIdentifier id = ResourceIdentifier.Parse(resourceId);
-
-            if (!string.IsNullOrEmpty(id.SubscriptionId) && string.IsNullOrEmpty(id.ResourceGroupName))
-            {
-                sources.Add(new WatchEventSource
-                {
-                    SubscriptionId = id.SubscriptionId,
-                    ResourceGroupName = null,
-                    ResourceId = null
-                });
-            }
-            else if (!string.IsNullOrEmpty(id.SubscriptionId) && !string.IsNullOrEmpty(id.ResourceGroupName) && string.Equals(id.ResourceType.Type, "resourcegroups", StringComparison.OrdinalIgnoreCase))
-            {
-                sources.Add(new WatchEventSource
-                {
-                    SubscriptionId = id.SubscriptionId,
-                    ResourceGroupName = id.ResourceGroupName,
-                    ResourceId = null
-                });
-            }
-            else
-            {
-                sources.Add(new WatchEventSource
-                {
-                    SubscriptionId = id.SubscriptionId,
-                    ResourceGroupName = id.ResourceGroupName,
-                    ResourceId = id
-                });
-            }
-        }
+        var sources = GetArmWatchEventSources(resourceIds);
 
         _ = Task.Run(async () =>
         {
-            await foreach (var eventData in _activityLogService.WatchEvents(sources, cancellationToken))
+            await foreach (var watchEvent in _activityLogService.WatchEvents(sources, cancellationToken))
             {
+                var eventData = watchEvent.EventData as EventDataInfo;
+                if (eventData == null)
+                {
+                    _logger.LogInternalWarning($"Received unknown event data when watching activity log: {watchEvent.EventData}");
+                    continue;
+                }
+
                 _ = Task.Run(async () =>
                 {
-                    var armOperationType = GetArmResourceOperationType(eventData);
-                    if (armOperationType == ArmResourceOperationType.Other)
+                    try
                     {
-                        _logger.LogDebug($"Ignoring event: {eventData.HttpRequest.Method} {eventData.ResourceId}.");
-                        return;
-                    }
-                    else if (armOperationType == ArmResourceOperationType.Delete)
-                    {
-                        _logger.LogDebug($"Deleting resource: {eventData.HttpRequest.Method} {eventData.ResourceId}.");
-                        if (!string.IsNullOrEmpty(eventData.ResourceId))
+                        var armOperationType = GetArmResourceOperationType(eventData);
+                        if (armOperationType == ArmResourceOperationType.Other)
                         {
-                            await _graphDbClient.SoftDeleteResourceById(eventData.ResourceId);
+                            _logger.LogInternalInformation($"Ignoring event: {eventData.HttpRequest.Method} {eventData.ResourceId}.");
+                            return;
                         }
-                        return;
+                        else if (armOperationType == ArmResourceOperationType.Delete)
+                        {
+                            _logger.LogInternalInformation($"Deleting resource: {eventData.HttpRequest.Method} {eventData.ResourceId}.");
+                            if (!string.IsNullOrEmpty(eventData.ResourceId))
+                            {
+                                await _graphDbClient.SoftDeleteResourceById(eventData.ResourceId);
+                            }
+                            return;
+                        }
+                        else if (armOperationType == ArmResourceOperationType.Update)
+                        {
+                            GraphNode node = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(eventData.ResourceId);
+                            if (node != null)
+                            {
+                                _logger.LogInternalInformation($"Crawling on event: {eventData.HttpRequest.Method} {eventData.ResourceId}.");
+                                await OnDemandCrawl(node);
+                            }
+                        }
+                        else
+                        {
+                            _logger.LogInternalWarning($"Unknown arm operation: {armOperationType} {eventData.HttpRequest.Method} {eventData.ResourceId}.");
+                        }
                     }
-                    else if (armOperationType == ArmResourceOperationType.Update)
+                    catch (Exception ex)
                     {
-                        GraphNode node = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(eventData.ResourceId);
+                        _logger.LogInternalError(ex, $"Error processing activity log event: {eventData.HttpRequest.Method} {eventData.ResourceId}.");
+                    }
+                }, cancellationToken ?? CancellationToken.None);
+            }
+        }, cancellationToken ?? CancellationToken.None);
+    }
+
+    public async Task StartKubernetesWatchCrawler(IEnumerable<string> resourceIds, CancellationToken? cancellationToken = null)
+    {
+        _logger.LogInternalInformation($"Start Kubernetes watch crawler for resources: {string.Join(",", resourceIds)}");
+
+        var sources = await GetKubernetesWatchEventSources(resourceIds);
+
+        _ = Task.Run(async () =>
+        {
+            await foreach (var watchEvent in _kubernetesWatchService.WatchEvents(sources, cancellationToken))
+            {
+                var eventData = watchEvent.EventData as KubernetesEventData;
+                if (eventData == null)
+                {
+                    _logger.LogInternalWarning($"Received unknown event data when watching Kubernetes: {watchEvent.EventData}");
+                    continue;
+                }
+
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        GraphNode node = ArmResourceCrawlerFactory.CreateKubernetesResourceNode(
+                            k8sObject: eventData.K8sObject,
+                            subscriptionId: eventData.SubscriptionId,
+                            resourceGroupName: eventData.ResourceGroupName,
+                            location: null,
+                            clusterResourceId: eventData.ClusterResourceId,
+                            namespaceName: eventData.Namespace,
+                            resourceName: eventData.ResourceName,
+                            group: eventData.Group,
+                            apiVersion: eventData.ApiVersion,
+                            kind: eventData.Kind
+                        );
+
                         if (node != null)
                         {
-                            _logger.LogDebug($"Crawling on event: {eventData.HttpRequest.Method} {eventData.ResourceId}.");
-                            var startTS = DateTime.UtcNow.Ticks;
-                            var crawler = _factory.CreateFromNode(node);
-                            await foreach (var _ in crawler.Crawl(node)) { }
-
-                            _logger.LogDebug($"Cleaning up stale edges from {node.GetNodeId()} (older than {startTS})");
-                            await CrawlerExtensions.RemoveStaleEdgeForNode(_graphDbClient, node, startTS);
+                            _logger.LogInternalInformation($"Crawling on Kubernetes event: {eventData.ClusterResourceId} {eventData.Namespace} {eventData.Group}" +
+                                                $" {eventData.ApiVersion} {eventData.Kind} {eventData.ResourceName}.");
+                            await OnDemandCrawl(node);
                         }
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        _logger.LogInternalWarning($"Unknown arm operation: {armOperationType} {eventData.HttpRequest.Method} {eventData.ResourceId}.");
+                        _logger.LogInternalError(ex, $"Error processing Kubernetes event: {eventData.ClusterResourceId} {eventData.Namespace} {eventData.Group}" +
+                                                $" {eventData.ApiVersion} {eventData.Kind} {eventData.ResourceName}.");
                     }
                 }, cancellationToken ?? CancellationToken.None);
             }
@@ -186,6 +221,7 @@ public class ResourceGraphCrawlerService : ICrawlerService
 
     private async Task Crawl(IList<GraphNode> nodes, HashSet<string> filters = null, bool cascade = true, CancellationToken? cancellationToken = null)
     {
+        _logger.LogInternalInformation($"Crawling resources: {string.Join(", ", nodes.Select(n => n.GetNodeId()))}. Cascade = {cascade}. Filters = {string.Join(", ", filters ?? Enumerable.Empty<string>())}");
         _isCrawling = true;
         HashSet<string> crawled = new();
         try
@@ -287,12 +323,12 @@ public class ResourceGraphCrawlerService : ICrawlerService
                                 }
                             }
 
-                            _logger.LogDebug($"Cleaning up stale edges from {node.GetNodeId()} (older than {startTS})");
+                            _logger.LogInternalInformation($"Cleaning up stale edges from {node.GetNodeId()} (older than {startTS})");
                             await CrawlerExtensions.RemoveStaleEdgeForNode(_graphDbClient, node, startTS);
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogDebug(ex, $"Error crawling {node.GetNodeId()}");
+                            _logger.LogInternalError(ex, $"Error crawling {node.GetNodeId()}");
                         }
                         finally
                         {
@@ -333,6 +369,28 @@ public class ResourceGraphCrawlerService : ICrawlerService
         }
     }
 
+    // This method is called from event triggered crawls.
+    // The reasoning Crawl() is not used is the counter logic in Crawl() assumes single thread.
+    private async Task OnDemandCrawl(GraphNode node)
+    {
+        try
+        {
+            var startTS = DateTime.UtcNow.Ticks;
+            var crawler = _factory.CreateFromNode(node);
+            await foreach (var _ in crawler.Crawl(node)) { }
+
+            _logger.LogInternalInformation($"Cleaning up stale edges from {node.GetNodeId()} (older than {startTS})");
+            await CrawlerExtensions.RemoveStaleEdgeForNode(_graphDbClient, node, startTS);
+
+            _logger.LogInternalInformation($"Completed triggered crawl for resource: {node.GetNodeId()}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, $"Error during triggered crawl for resource: {node.GetNodeId()}");
+        }
+
+    }
+
     // Need to rethink how to do the cleanup
     // It's not easy for arm resources because a resource can reference another resource in another subscription
 
@@ -364,6 +422,100 @@ public class ResourceGraphCrawlerService : ICrawlerService
 
     //    _logger.LogInternalInformation($"Done cleaning up");
     //}
+
+    private (string, string, ResourceIdentifier?) ParseResourceId(string resourceId)
+    {
+        if (string.IsNullOrEmpty(resourceId))
+        {
+            return (null, null, null);
+        }
+
+        ResourceIdentifier id = ResourceIdentifier.Parse(resourceId);
+        if (!string.IsNullOrEmpty(id.SubscriptionId) && string.IsNullOrEmpty(id.ResourceGroupName))
+        {
+            return (id.SubscriptionId, null, null);
+        }
+        else if (!string.IsNullOrEmpty(id.SubscriptionId) && !string.IsNullOrEmpty(id.ResourceGroupName) && string.Equals(id.ResourceType.Type, "resourcegroups", StringComparison.OrdinalIgnoreCase))
+        {
+            return (id.SubscriptionId, id.ResourceGroupName, null);
+        }
+        else
+        {
+            return (id.SubscriptionId, id.ResourceGroupName, id);
+        }
+    }
+
+    private List<WatchEventSource> GetArmWatchEventSources(IEnumerable<string> resourceIds)
+    {
+        List<WatchEventSource> sources = new List<WatchEventSource>();
+        foreach (var resourceId in resourceIds)
+        {
+            if (string.IsNullOrEmpty(resourceId))
+            {
+                continue;
+            }
+
+            var (subscriptionId, resourceGroupName, resource) = ParseResourceId(resourceId);
+
+            sources.Add(new WatchEventSource
+            {
+                SubscriptionId = subscriptionId,
+                ResourceGroupName = resourceGroupName,
+                ResourceId = resource
+            });
+        }
+
+        return sources;
+    }
+
+    private async Task<List<WatchEventSource>> GetKubernetesWatchEventSources(IEnumerable<string> resourceIds)
+    {
+        var aksClusters = new HashSet<string>();
+        foreach (var resourceId in resourceIds)
+        {
+            var (subscriptionId, resourceGroupName, id) = ParseResourceId(resourceId);
+            if (id != null)
+            {
+                aksClusters.Add(id);
+                continue;
+            }
+
+            var query = $"g.V().has('resourceType', '{Constants.ManagedClusterType.ToLowerInvariant()}').has('subscriptionId', '{subscriptionId}')";
+            if (!string.IsNullOrEmpty(resourceGroupName))
+            {
+                query += $".has('resourceGroupName', '{resourceGroupName}')";
+            }
+            query += $".values('resourceId')";
+
+            var results = await _graphDbClient.Query<string>(query);
+            if (results != null && results.Count > 0)
+            {
+                foreach (var result in results)
+                {
+                    aksClusters.Add(result);
+                }
+            }
+        }
+
+        var sources = new List<WatchEventSource>();
+        foreach (var aksCluster in aksClusters)
+        {
+            if (string.IsNullOrEmpty(aksCluster))
+            {
+                continue;
+            }
+
+            var (subscriptionId, resourceGroupName, resource) = ParseResourceId(aksCluster);
+            sources.Add(new WatchEventSource
+            {
+                SubscriptionId = subscriptionId,
+                ResourceGroupName = resourceGroupName,
+                ResourceId = resource
+            });
+        }
+
+        return sources;
+    }
 
     private bool FilterResourceType(HashSet<string> filters, GraphNode node)
     {
@@ -429,62 +581,94 @@ public class ResourceGraphCrawlerService : ICrawlerService
     {
         try
         {
-            await foreach (var resourceId in _crawlerTriggerService.GetResourceIdsToProcess())
+            await foreach (var item in _crawlerTriggerService.GetResourceIdsToProcess())
             {
                 _ = Task.Run(async () =>
                 {
-                    try
+                    switch (item)
                     {
-                        _logger.LogInternalInformation($"Processing triggered crawl for resource: {resourceId}");
-
-                        GraphNode node = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(resourceId);
-                        if (node != null)
-                        {
-                            // Check if the resource still exists before crawling
-                            if (await IsResourceDeleted(resourceId))
+                        case ArmResourceTriggerItem armItem:
                             {
-                                _logger.LogInternalInformation($"Resource {resourceId} has been deleted, removing from graph");
-                                await RemoveDeletedResourceFromGraph(node);
-                                _crawlerTriggerService.MarkResourceAsDeleted(resourceId);
-                                return;
+                                var resourceId = armItem.GetResourceId();
+                                try
+                                {
+                                    _logger.LogInternalInformation($"Processing triggered crawl for resource: {resourceId}");
+
+                                    GraphNode node = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(resourceId);
+                                    if (node != null)
+                                    {
+                                        // Check if the resource still exists before crawling
+                                        if (await IsResourceDeleted(resourceId))
+                                        {
+                                            _logger.LogInternalInformation($"Resource {resourceId} has been deleted, removing from graph");
+                                            await RemoveDeletedResourceFromGraph(node);
+                                            _crawlerTriggerService.MarkResourceAsDeleted(armItem);
+                                            return;
+                                        }
+
+                                        await OnDemandCrawl(node);
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    // If it's a rate limiting error, requeue for retry
+                                    if (IsRateLimitingError(ex))
+                                    {
+                                        _logger.LogInternalInformation($"Rate limiting encountered for resource {resourceId}, requeuing for retry: {ex.Message}");
+                                        _crawlerTriggerService.TriggerArmCrawl(resourceId, force: true);
+                                        // sleep 1s before retrying to avoid immediate re-trigger
+                                        await Task.Delay(1000);
+                                    }
+                                    // If it's a 404 error, the resource might be deleted
+                                    else if (IsResourceNotFoundError(ex))
+                                    {
+                                        _logger.LogInternalInformation($"Resource {resourceId} appears to be deleted based on error: {ex.Message}");
+                                        var node = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(resourceId);
+                                        if (node != null)
+                                        {
+                                            await RemoveDeletedResourceFromGraph(node);
+                                            _crawlerTriggerService.MarkResourceAsDeleted(armItem);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        _logger.LogInternalError(ex, $"Error in triggered crawl for resource: {resourceId}");
+                                    }
+                                }
+                                break;
                             }
-
-                            var startTS = DateTime.UtcNow.Ticks;
-                            var crawler = _factory.CreateFromNode(node);
-                            await foreach (var _ in crawler.Crawl(node)) { }
-
-                            _logger.LogInternalInformation($"Cleaning up stale edges from {node.GetNodeId()} (older than {startTS})");
-                            await CrawlerExtensions.RemoveStaleEdgeForNode(_graphDbClient, node, startTS);
-
-                            _logger.LogInternalInformation($"Completed triggered crawl for resource: {resourceId}");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        // If it's a rate limiting error, requeue for retry
-                        if (IsRateLimitingError(ex))
-                        {
-                            _logger.LogInternalInformation($"Rate limiting encountered for resource {resourceId}, requeuing for retry: {ex.Message}");
-                            _crawlerTriggerService.TriggerCrawl(resourceId, force: true);
-                            // sleep 1s before retrying to avoid immediate re-trigger
-                            await Task.Delay(1000);
-                        }
-                        // If it's a 404 error, the resource might be deleted
-                        else if (IsResourceNotFoundError(ex))
-                        {
-                            _logger.LogInternalInformation($"Resource {resourceId} appears to be deleted based on error: {ex.Message}");
-                            var node = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(resourceId);
-                            if (node != null)
+                        case KubernetesResourceTriggerItem k8sItem:
                             {
-                                await RemoveDeletedResourceFromGraph(node);
-                                _crawlerTriggerService.MarkResourceAsDeleted(resourceId);
+                                var resourceId = k8sItem.GetResourceId();
+                                _logger.LogInternalInformation($"Processing triggered crawl for Kubernetes resource: {k8sItem.GetResourceId()}");
+                                var node = ArmResourceCrawlerFactory.CreateKubernetesResourceNode(
+                                    k8sObject: null,
+                                    subscriptionId: null,
+                                    resourceGroupName: null,
+                                    location: null,
+                                    clusterResourceId: k8sItem.ClusterResourceId,
+                                    namespaceName: k8sItem.Namespace,
+                                    resourceName: k8sItem.ResourceName,
+                                    group: k8sItem.Group,
+                                    apiVersion: k8sItem.ApiVersion,
+                                    kind: k8sItem.Kind
+                                );
+
+                                if (k8sItem.IsDelete)
+                                {
+                                    _logger.LogInternalInformation($"Resource {resourceId} has been deleted, removing from graph");
+                                    await RemoveDeletedResourceFromGraph(node);
+                                    _crawlerTriggerService.MarkResourceAsDeleted(k8sItem);
+                                    return;
+                                }
+
+                                await OnDemandCrawl(node);
+                                break;
                             }
-                        }
-                        else
-                        {
-                            _logger.LogInternalError(ex, $"Error in triggered crawl for resource: {resourceId}");
-                        }
+                        default:
+                            throw new NotSupportedException($"Unsupported trigger item type: {item.GetType().Name}");
                     }
+
                 });
             }
         }

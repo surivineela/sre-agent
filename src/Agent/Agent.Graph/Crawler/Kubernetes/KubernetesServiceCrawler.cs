@@ -13,6 +13,7 @@ using Gremlin.Net.Process.Traversal;
 using Agent.Logging;
 
 namespace Agent.Graph.Crawler.Kubernetes;
+
 public class KubernetesServiceCrawler : IResourceCrawler
 {
     private readonly ILogger<KubernetesServiceCrawler> _logger;
@@ -39,6 +40,8 @@ public class KubernetesServiceCrawler : IResourceCrawler
         {
             yield break;
         }
+
+        await serviceNode.SaveKubernetesResourceNode(_graphDbClient);
 
         // Connects pods
         var selector = service.Spec.Selector.ToSelectorString();

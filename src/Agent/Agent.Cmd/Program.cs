@@ -37,7 +37,7 @@ namespace Agent.Cmd
             builder.Services.AddSingleton<ArmResourceCrawlerFactory>();
             builder.Services.AddSingleton<AzureResourceGraphClient>();
             builder.Services.AddSingleton<ICrawlerService, ResourceGraphCrawlerService>();
-            builder.Services.AddSingleton<IActivityLogService, ActivityLogService>();
+            builder.Services.AddSingleton<IWatchEventService, ActivityLogService>();
             builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
             builder.Services.AddSingleton<IArmClientFactory, ArmClientFactory>();
             builder.Services.AddSingleton<IKubernetesClientFactory, KubernetesClientFactory>();

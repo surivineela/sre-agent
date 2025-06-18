@@ -35,7 +35,7 @@ public class WatchEventSource
     }
 }
 
-public class ActivityLogService : IActivityLogService
+public class ActivityLogService : IWatchEventService
 {
     private readonly ILogger<ActivityLogService> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
@@ -48,7 +48,7 @@ public class ActivityLogService : IActivityLogService
         _cache = new ConcurrentDictionary<string, DateTimeOffset>();
     }
 
-    public async IAsyncEnumerable<EventDataInfo> WatchEvents(List<WatchEventSource> sources, CancellationToken? cancellationToken = null)
+    public async IAsyncEnumerable<WatchEvent> WatchEvents(List<WatchEventSource> sources, CancellationToken? cancellationToken = null)
     {
         var eventCh = Channel.CreateUnbounded<EventDataInfo>(new UnboundedChannelOptions
         {
@@ -61,13 +61,16 @@ public class ActivityLogService : IActivityLogService
             _ = Task.Run(async () => await ListActivityLogAsync(source, eventCh, 10, 1), cancellationToken ?? CancellationToken.None);
         }
 
-        while(cancellationToken == null || !cancellationToken.Value.IsCancellationRequested)
+        while (cancellationToken == null || !cancellationToken.Value.IsCancellationRequested)
         {
             while (await eventCh.Reader.WaitToReadAsync(cancellationToken ?? CancellationToken.None))
             {
                 if (eventCh.Reader.TryRead(out var eventData))
                 {
-                    yield return eventData;
+                    yield return new WatchEvent
+                    {
+                        EventData = eventData,
+                    };
                 }
             }
         }

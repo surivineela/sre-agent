@@ -853,7 +853,7 @@ public class ArmHelper
         await storageAccountResource.UpdateAsync(storageAccountPatch);
 
         // re-crawl for WRITE operations
-        _crawlerTriggerService.TriggerCrawl(resourceId);
+        _crawlerTriggerService.TriggerArmCrawl(resourceId);
     }
 
     public async Task SetStorageAccountContainerPublicAccess(string resourceId, FeatureState featureState)
@@ -866,7 +866,7 @@ public class ArmHelper
         await storageAccountResource.UpdateAsync(storageAccountPatch);
 
         // re-crawl for WRITE operations
-        _crawlerTriggerService.TriggerCrawl(resourceId);
+        _crawlerTriggerService.TriggerArmCrawl(resourceId);
     }
 
     public async Task SetSqlServerEntraAuthSupport(string resourceId, FeatureState featureState)
@@ -877,7 +877,7 @@ public class ArmHelper
         await sqlServerAdOnlyAuthResult.Value.UpdateAsync(WaitUntil.Completed, sqlServerAdOnlyAuthResult.Value.Data);
 
         // re-crawl for WRITE operations
-        _crawlerTriggerService.TriggerCrawl(resourceId);
+        _crawlerTriggerService.TriggerArmCrawl(resourceId);
     }
 
     /// <summary>
@@ -1092,7 +1092,7 @@ public class ArmHelper
         if (response.IsSuccessStatusCode)
         {
             // re-crawl for WRITE operations
-            _crawlerTriggerService.TriggerCrawl(resourceId);
+            _crawlerTriggerService.TriggerArmCrawl(resourceId);
         }
         return response.IsSuccessStatusCode;
     }
@@ -1125,7 +1125,7 @@ public class ArmHelper
         if (response.IsSuccessStatusCode)
         {
             // re-crawl for WRITE operations
-            _crawlerTriggerService.TriggerCrawl(resourceId);
+            _crawlerTriggerService.TriggerArmCrawl(resourceId);
         }
 
         return response.IsSuccessStatusCode;
@@ -1159,7 +1159,7 @@ public class ArmHelper
         if (response.IsSuccessStatusCode)
         {
             // re-crawl for WRITE operations
-            _crawlerTriggerService.TriggerCrawl(resourceId);
+            _crawlerTriggerService.TriggerArmCrawl(resourceId);
         }
 
         return response.IsSuccessStatusCode;
@@ -1193,7 +1193,7 @@ public class ArmHelper
         if (response.IsSuccessStatusCode)
         {
             // re-crawl for WRITE operations
-            _crawlerTriggerService.TriggerCrawl(resourceId);
+            _crawlerTriggerService.TriggerArmCrawl(resourceId);
         }
 
         return response.IsSuccessStatusCode;
@@ -1280,7 +1280,7 @@ public class ArmHelper
         await ftpPublishingCredentialsPolicy.Value.CreateOrUpdateAsync(WaitUntil.Completed, ftpPublishingCredentialsPolicy.Value.Data);
 
         // re-crawl for WRITE operations
-        _crawlerTriggerService.TriggerCrawl(resourceId);
+        _crawlerTriggerService.TriggerArmCrawl(resourceId);
     }
 
     public async Task SetWebSiteScmAuthenticationSupport(string resourceId, FeatureState featureState)
@@ -1292,7 +1292,7 @@ public class ArmHelper
         await scmPublishingCredentialsPolicy.Value.CreateOrUpdateAsync(WaitUntil.Completed, scmPublishingCredentialsPolicy.Value.Data);
 
         // re-crawl for WRITE operations
-        _crawlerTriggerService.TriggerCrawl(resourceId);
+        _crawlerTriggerService.TriggerArmCrawl(resourceId);
     }
 
     public async Task SetCosmosDbLocalAuthSupport(string resourceId, FeatureState featureState)
@@ -1316,7 +1316,7 @@ public class ArmHelper
         {
             await cosmosDBAccountResource.UpdateAsync(WaitUntil.Completed, cosmosDbPatch);
             // re-crawl for WRITE operations
-            _crawlerTriggerService.TriggerCrawl(resourceId);
+            _crawlerTriggerService.TriggerArmCrawl(resourceId);
         }
     }
 
@@ -1328,7 +1328,7 @@ public class ArmHelper
         await eventHubResource.UpdateAsync(eventHubResource.Data);
 
         // re-crawl for WRITE operations
-        _crawlerTriggerService.TriggerCrawl(resourceId);
+        _crawlerTriggerService.TriggerArmCrawl(resourceId);
     }
 
     public async Task SetServiceBusLocalAuthSupport(string resourceId, FeatureState featureState)
@@ -1341,7 +1341,7 @@ public class ArmHelper
         await serviceBusNamespaceResource.UpdateAsync(serviceBusNamespacePatch);
 
         // re-crawl for WRITE operations
-        _crawlerTriggerService.TriggerCrawl(resourceId);
+        _crawlerTriggerService.TriggerArmCrawl(resourceId);
     }
 
     public async Task<VirtualMachineResource> GetVirtualMachineResourceAsync(string resourceId)
@@ -1408,7 +1408,7 @@ public class ArmHelper
         if (startOperation.HasCompleted)
         {
             // re-crawl for WRITE operations
-            _crawlerTriggerService.TriggerCrawl(resourceId);
+            _crawlerTriggerService.TriggerArmCrawl(resourceId);
         }
         return startOperation.HasCompleted;
     }
@@ -1653,7 +1653,7 @@ public class ArmHelper
             if (response.IsSuccessStatusCode)
             {
                 // If the swap is successful, trigger a re-crawl for WRITE operations
-                _crawlerTriggerService.TriggerCrawl(resourceId);
+                _crawlerTriggerService.TriggerArmCrawl(resourceId);
 
                 return true; // Swap was successful
             }
@@ -2000,7 +2000,7 @@ public class ArmHelper
         if (response.IsSuccessStatusCode)
         {
             // Trigger a re-crawl for WRITE operations
-            _crawlerTriggerService.TriggerCrawl(resourceId);
+            _crawlerTriggerService.TriggerArmCrawl(resourceId);
         }
         return response.IsSuccessStatusCode;
     }
@@ -2414,7 +2414,7 @@ public class ArmHelper
             {
                 // If the command is executed successfully and an OBO token is provided, trigger a re-crawl
                 // because the OBO token is only required for WRITE operations, and the command is expected to modify resources.
-                _crawlerTriggerService.TriggerCrawl(result);
+                _crawlerTriggerService.TriggerArmCrawl(result);
             }
 
             return result;

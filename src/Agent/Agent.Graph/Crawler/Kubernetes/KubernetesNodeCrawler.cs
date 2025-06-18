@@ -13,6 +13,7 @@ using k8s.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler.Kubernetes;
+
 public class KubernetesNodeCrawler : IResourceCrawler
 {
     private readonly ILogger<KubernetesNodeCrawler> _logger;
@@ -45,6 +46,8 @@ public class KubernetesNodeCrawler : IResourceCrawler
         {
             yield break;
         }
+
+        await nodeNode.SaveKubernetesResourceNode(_graphDbClient);
 
         // TODO: add node properties
         yield break;

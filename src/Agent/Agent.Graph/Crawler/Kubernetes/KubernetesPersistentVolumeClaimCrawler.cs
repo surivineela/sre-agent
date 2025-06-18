@@ -11,6 +11,7 @@ using k8s.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler.Kubernetes;
+
 public class KubernetesPersistentVolumeClaimCrawler : IResourceCrawler
 {
     private readonly ILogger<KubernetesPersistentVolumeClaimCrawler> _logger;
@@ -42,6 +43,8 @@ public class KubernetesPersistentVolumeClaimCrawler : IResourceCrawler
         {
             yield break;
         }
+
+        await pvcNode.SaveKubernetesResourceNode(_graphDbClient);
 
         if (pvc.Spec.VolumeName != null)
         {

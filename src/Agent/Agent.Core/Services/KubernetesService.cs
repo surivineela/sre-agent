@@ -9,6 +9,7 @@ using k8s.Autorest;
 using k8s.Models;
 
 namespace Agent.Core.Services;
+
 public abstract class KubernetesService : IKubernetesService
 {
     public abstract Task<IKubernetes?> GetKubernetesClient(string resourceId);
@@ -20,6 +21,7 @@ public abstract class KubernetesService : IKubernetesService
         try
         {
             var configMap = await client.CoreV1.ReadNamespacedConfigMapAsync(name, ns);
+
             return configMap;
         }
         catch (HttpOperationException ex) when (ex.Response?.StatusCode == HttpStatusCode.NotFound)

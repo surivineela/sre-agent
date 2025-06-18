@@ -55,6 +55,8 @@ public class KubernetesStatefulSetCrawler : IResourceCrawler
             yield break;
         }
 
+        await statefulSetNode.SaveKubernetesResourceNode(_graphDbClient);
+
         if (statefulSet.Spec?.Template?.Spec?.Containers != null)
         {
             HashSet<string> knownVolumes = [];
@@ -96,7 +98,8 @@ public class KubernetesStatefulSetCrawler : IResourceCrawler
                             continue;
                         }
                     }
-                }                if (container.VolumeMounts != null)
+                }
+                if (container.VolumeMounts != null)
                 {
                     foreach (var volumeMount in container.VolumeMounts)
                     {

@@ -6,11 +6,11 @@ namespace Agent.Core.Services
 {
     public interface ICrawlerTriggerService
     {
-        void TriggerCrawl(string resourceId);
-        void TriggerCrawl(string resourceId, string? threadId = null, bool force = false);
-        void TriggerCrawl(IEnumerable<string> resourceIds);
-        void MarkResourceAsDeleted(string resourceId);
-        IAsyncEnumerable<string> GetResourceIdsToProcess(CancellationToken cancellationToken = default);
-        HashSet<string> GetThreadIdsForResource(string resourceId);
+        void TriggerArmCrawl(string resourceId);
+        void TriggerArmCrawl(string resourceId, bool force = false);
+        void TriggerArmCrawl(IEnumerable<string> resourceIds);
+        void TriggerKubernetesCrawl(string clusterResourceId, string? namespaceName, string resourceName, string group, string apiVersion, string kind, bool isDelete = false);
+        void MarkResourceAsDeleted(TriggerItem item);
+        IAsyncEnumerable<TriggerItem> GetResourceIdsToProcess(CancellationToken cancellationToken = default);
     }
 }

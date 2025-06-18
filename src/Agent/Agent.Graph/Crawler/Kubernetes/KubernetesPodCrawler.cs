@@ -10,6 +10,7 @@ using k8s.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler.Kubernetes;
+
 public class KubernetesPodCrawler : IResourceCrawler
 {
     private readonly ILogger<KubernetesPodCrawler> _logger;
@@ -36,6 +37,8 @@ public class KubernetesPodCrawler : IResourceCrawler
         {
             yield break;
         }
+
+        await podNode.SaveKubernetesResourceNode(_graphDbClient);
 
         // Connects pod to nodes
         var nodeName = pod.Spec.NodeName;

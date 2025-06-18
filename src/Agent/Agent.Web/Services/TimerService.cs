@@ -327,6 +327,9 @@ public class TimerService : IHostedService, IDisposable
                     _crawlerFinishedOnce = true;
                     _crawlerService.StartActivityLogCrawler(roots, cancellationToken);
                     _logger.LogInternalInformation("Started activity log crawler");
+
+                    await _crawlerService.StartKubernetesWatchCrawler(roots, cancellationToken);
+                    _logger.LogInternalInformation("Started Kubernetes watch crawler");
                 }
             }
             catch (Exception ex)

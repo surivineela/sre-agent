@@ -11,6 +11,7 @@ using YamlDotNet.Serialization;
 using Newtonsoft.Json.Converters;
 using Agent.Logging;
 using Agent.Plugins.Interface;
+using Constants = Agent.Graph.Crawler.ARM.Constants;
 
 namespace Agent.Plugins
 {
@@ -410,6 +411,15 @@ namespace Agent.Plugins
                             break;
                     }
 
+                    var group = Constants.KubernetesCoreGroup;
+                    _crawlerTriggerService.TriggerKubernetesCrawl(
+                        resourceId,
+                        namespaceName,
+                        resourceName,
+                        k8sObj.ApiVersion.Contains("/") ? k8sObj.ApiVersion.Split('/')[0] : group,
+                        k8sObj.ApiVersion.Contains("/") ? k8sObj.ApiVersion.Split('/')[1] : k8sObj.ApiVersion,
+                        k8sObj.Kind);
+
                     return $"Successfully updated {kind}/{resourceName}" +
                            (string.IsNullOrEmpty(namespaceName) ? "" : $" in namespace '{namespaceName}'");
                 }
@@ -612,6 +622,15 @@ namespace Agent.Plugins
                             }
                             break;
                     }
+
+                    var group = Constants.KubernetesCoreGroup;
+                    _crawlerTriggerService.TriggerKubernetesCrawl(
+                        resourceId,
+                        namespaceName,
+                        resourceName,
+                        k8sObj.ApiVersion.Contains("/") ? k8sObj.ApiVersion.Split('/')[0] : group,
+                        k8sObj.ApiVersion.Contains("/") ? k8sObj.ApiVersion.Split('/')[1] : k8sObj.ApiVersion,
+                        k8sObj.Kind);
 
                     return $"Successfully created {kind}/{resourceName}" +
                            (string.IsNullOrEmpty(namespaceName) ? "" : $" in namespace '{namespaceName}'");

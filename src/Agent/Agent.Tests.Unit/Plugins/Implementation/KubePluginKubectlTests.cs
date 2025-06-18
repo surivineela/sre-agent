@@ -1,6 +1,7 @@
 // filepath: c:\Users\zhaoziqi\Documents\work\codes\AAPT-Antares-OperationalAgent\src\Agent\Agent.Tests.Unit\Plugins\Implementation\KubePluginKubectlTests.cs
 using System.Reflection;
 using Agent.Core.Interfaces;
+using Agent.Core.Services;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.Metrics;
 using Agent.Plugins;
@@ -29,6 +30,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             var mockThreadRepository = new Mock<IThreadRepository>();
             var mockAuthService = new Mock<IAuthenticationService>();
             var mockHostEnv = new Mock<IHostEnvironment>();
+            var mockCrawlerTriggerService = new Mock<ICrawlerTriggerService>();
             _mockLogger = new Mock<ILogger<KubePlugin>>();
 
             // Create an actual instance with our mocked dependencies
@@ -42,7 +44,8 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                 mockThreadRepository.Object,
                 mockAuthService.Object,
                 mockHostEnv.Object,
-                _mockLogger.Object
+                _mockLogger.Object,
+                mockCrawlerTriggerService.Object
             );
         }
 

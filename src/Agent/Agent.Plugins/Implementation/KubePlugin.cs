@@ -10,6 +10,7 @@ using Agent.Core;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Core.Services;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.Metrics;
 using Agent.Logging;
@@ -22,6 +23,7 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using YamlDotNet.Serialization;
+using CrawlerConstants = Agent.Graph.Crawler.ARM.Constants;
 
 namespace Agent.Plugins
 {
@@ -35,6 +37,7 @@ namespace Agent.Plugins
         private readonly IGraphDatabaseClient? _graphDbClient;
         private readonly IArmClientFactory _armClientFactory;
         private readonly string _agentKubeCtlIdentity;
+        private readonly ICrawlerTriggerService _crawlerTriggerService;
 
         private static readonly ISerializer _configJsonSerializer = new SerializerBuilder().ConfigureDefaultValuesHandling(DefaultValuesHandling.OmitNull).Build();
 
@@ -52,7 +55,8 @@ namespace Agent.Plugins
             IThreadRepository threadRepository,
             IAuthenticationService authenticationService,
             IHostEnvironment hostEnvironment,
-            ILogger<KubePlugin>? logger)
+            ILogger<KubePlugin>? logger,
+            ICrawlerTriggerService crawlerTriggerService)
         {
             _logger = logger;
             _chatClient = chatClient;
@@ -63,6 +67,7 @@ namespace Agent.Plugins
             _armClientFactory = armClientFactory;
             _threadRepository = threadRepository;
             _agentKubeCtlIdentity = GetAgentKubectlIdentity(authenticationService, hostEnvironment);
+            _crawlerTriggerService = crawlerTriggerService;
         }
 
         private static string GetAgentKubectlIdentity(
@@ -514,6 +519,14 @@ namespace Agent.Plugins
                         ? "scaled out"
                         : (replicaCount < deploy.Spec.Replicas ? "scaled in" : "replica count unchanged");
 
+                    _crawlerTriggerService.TriggerKubernetesCrawl(
+                        resourceId,
+                        _namespace,
+                        deployment,
+                        CrawlerConstants.KubernetesCoreGroup,
+                        CrawlerConstants.KubernetesV1Version,
+                        CrawlerConstants.KubernetesDeploymentType
+                    );
                     return $"Deployment {deployment} {scaleDescription} to {replicaCount} replicas";
                 }
 
@@ -570,6 +583,14 @@ namespace Agent.Plugins
                         ? "scaled out"
                         : (replicaCount < deploy.Spec.Replicas ? "scaled in" : "replica count unchanged");
 
+                    _crawlerTriggerService.TriggerKubernetesCrawl(
+                        resourceId,
+                        _namespace,
+                        deployment,
+                        CrawlerConstants.KubernetesCoreGroup,
+                        CrawlerConstants.KubernetesV1Version,
+                        CrawlerConstants.KubernetesDaemonSetType
+                    );
                     return $"Deployment {deployment} {scaleDescription} to {replicaCount} replicas";
                 }
 

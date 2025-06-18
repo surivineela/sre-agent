@@ -7,6 +7,7 @@ using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.Kubernetes;
 using Agent.Graph.Interfaces;
 using Azure.Core;
+using k8s;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -200,6 +201,37 @@ public class ArmResourceCrawlerFactory
         }
 
         return new ArmResourceNode(id.ResourceType, id.ToString(), id.SubscriptionId, id.ResourceGroupName, id.Name);
+    }
+
+    public static KubernetesResourceNode CreateKubernetesResourceNode(IKubernetesObject? k8sObject, string subscriptionId, string resourceGroupName, string? location, string clusterResourceId, string? namespaceName, string resourceName, string group, string apiVersion, string kind)
+    {
+        if (!string.IsNullOrEmpty(namespaceName))
+        {
+            return new KubernetesNamespacedResourceNode(
+                k8sObject,
+                clusterResourceId,
+                namespaceName,
+                subscriptionId,
+                resourceGroupName,
+                location,
+                resourceName,
+                group,
+                apiVersion,
+                kind
+            );
+        }
+
+        return new KubernetesResourceNode(
+            k8sObject,
+            clusterResourceId,
+            subscriptionId,
+            resourceGroupName,
+            location,
+            resourceName,
+            group,
+            apiVersion,
+            kind
+        );
     }
 }
 

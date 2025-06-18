@@ -509,7 +509,8 @@ public class Program
         builder.Services.AddSingleton<IArmClientFactory, ArmClientFactory>();
         builder.Services.AddSingleton<IKubernetesClientFactory, KubernetesClientFactory>();
         builder.Services.AddKeyedSingleton<IKubernetesService, CrawlerKubernetesService>("Crawler");
-        builder.Services.AddSingleton<IActivityLogService, ActivityLogService>();
+        builder.Services.AddKeyedSingleton<IWatchEventService, ActivityLogService>("ActivityLog");
+        builder.Services.AddKeyedSingleton<IWatchEventService, KubernetesWatchService>("Kubernetes");
 
 
         var serviceProvider = builder.Services.BuildServiceProvider();

@@ -285,4 +285,32 @@ public static partial class KubernetesExtensions
 
         return null;
     }
+
+    public async static Task SaveKubernetesResourceNode(this KubernetesResourceNode node, IGraphDatabaseClient graphDbClient)
+    {
+        await graphDbClient.AddOrUpdateNodeAsync(node);
+        GraphNode pNode;
+        if (node is KubernetesNamespacedResourceNode namespacedNode)
+        {
+            pNode = ArmResourceCrawlerFactory.CreateKubernetesResourceNode(
+            k8sObject: null,
+            subscriptionId: namespacedNode.SubscriptionId,
+            resourceGroupName: namespacedNode.ResourceGroupName,
+            location: namespacedNode.Location,
+            clusterResourceId: namespacedNode.ClusterResourceId,
+            namespaceName: null,
+            resourceName: namespacedNode.Namespace,
+            group: Constants.KubernetesCoreGroup,
+            apiVersion: Constants.KubernetesV1Version,
+            kind: Constants.KubernetesNamespaceType
+        );
+        }
+        else
+        {
+            pNode = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(node.ClusterResourceId);
+        }
+
+        var edge = new ArmResourceEdge(pNode.GetNodeId(), node.GetNodeId(), Constants.Relationships.Contains);
+        await graphDbClient.AddOrUpdateEdgeAsync(edge);
+    }
 }

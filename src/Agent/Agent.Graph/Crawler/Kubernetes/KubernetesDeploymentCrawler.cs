@@ -47,7 +47,11 @@ public class KubernetesDeploymentCrawler : IResourceCrawler
         if (deployment == null)
         {
             yield break;
-        }        if (deployment.Spec?.Template?.Spec?.Containers != null)
+        }
+
+        await deploymentNode.SaveKubernetesResourceNode(_graphDbClient);
+
+        if (deployment.Spec?.Template?.Spec?.Containers != null)
         {
             HashSet<string> knownVolumes = [];
             foreach (var container in deployment.Spec.Template.Spec.Containers)

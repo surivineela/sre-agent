@@ -6,6 +6,7 @@ using Agent.Data.DatabaseClients.Attributes;
 using k8s;
 
 namespace Agent.Data.DatabaseClients.GraphDbClient;
+
 public class KubernetesNamespacedResourceNode : KubernetesResourceNode
 {
     [GraphProperty("namespace")]
@@ -15,9 +16,9 @@ public class KubernetesNamespacedResourceNode : KubernetesResourceNode
         IKubernetesObject? k8sObject,
         string clusterResourceId,
         string @namespace,
-        string subscriptionId,
-        string resourceGroupName,
-        string location,
+        string? subscriptionId,
+        string? resourceGroupName,
+        string? location,
         string resourceName,
         string group,
         string apiVersion,

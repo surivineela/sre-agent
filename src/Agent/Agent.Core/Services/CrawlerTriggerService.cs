@@ -6,19 +6,81 @@ using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using Agent.Logging;
+using Azure.ResourceManager;
 using Microsoft.Extensions.Logging;
+using Octokit;
 
 namespace Agent.Core.Services
 {
+    public abstract class TriggerItem
+    {
+        public abstract string GetResourceId();
+    }
+    public class ArmResourceTriggerItem : TriggerItem
+    {
+        public string ResourceId { get; }
+
+        public ArmResourceTriggerItem(string resourceId)
+        {
+            ResourceId = resourceId ?? throw new ArgumentNullException(nameof(resourceId));
+        }
+
+        public override string GetResourceId()
+        {
+            return ResourceId;
+        }
+
+        public override int GetHashCode()
+        {
+            return GetResourceId().GetHashCode(StringComparison.InvariantCultureIgnoreCase);
+        }
+    }
+
+    public class KubernetesResourceTriggerItem : TriggerItem
+    {
+        public string ClusterResourceId { get; }
+        public string? Namespace { get; }
+        public string ResourceName { get; }
+        public string Group { get; }
+        public string ApiVersion { get; }
+        public string Kind { get; }
+        public bool IsDelete { get; set; } = false;
+
+        public KubernetesResourceTriggerItem(string clusterResourceId,
+            string? @namespace,
+            string resourceName,
+            string group,
+            string version,
+            string kind,
+            bool isDelete = false)
+        {
+            ClusterResourceId = clusterResourceId ?? throw new ArgumentNullException(nameof(clusterResourceId));
+            Namespace = @namespace;
+            ResourceName = resourceName;
+            Group = group;
+            ApiVersion = version;
+            Kind = kind;
+            IsDelete = isDelete;
+        }
+
+        public override string GetResourceId()
+        {
+            return $"{ClusterResourceId}/{Namespace}/{Group}/{ApiVersion}/{Kind}/{ResourceName}";
+        }
+        public override int GetHashCode()
+        {
+            return GetResourceId().GetHashCode(StringComparison.InvariantCultureIgnoreCase);
+        }
+    }
+
+
     public class CrawlerTriggerService : ICrawlerTriggerService
     {
-        private readonly ConcurrentQueue<string> _resourceIdQueue = new();
-        private readonly SemaphoreSlim _semaphore = new(0);
+        private readonly ConcurrentQueue<TriggerItem> _resourceIdQueue = new();
         private readonly ILogger<CrawlerTriggerService> _logger;
-        private readonly ConcurrentDictionary<string, DateTime> _recentlyCrawled = new();
-        private readonly ConcurrentDictionary<string, DateTime> _deletedResources = new();
-        private readonly ConcurrentDictionary<string, HashSet<string>> _resourceThreadIds = new();
-        private readonly HashSet<string> _pendingResourceIds = new();
+        private readonly ConcurrentDictionary<TriggerItem, DateTime> _recentlyCrawled = new();
+        private readonly ConcurrentDictionary<TriggerItem, DateTime> _deletedResources = new();
+        private readonly HashSet<TriggerItem> _pendingResourceIds = new();
         private readonly object _pendingLock = new();
         private static readonly Regex ArmResourceIdRegex = new(
             @"/subscriptions/[a-fA-F0-9-]+/resourceGroups/[^/]+/providers/[^/]+/[^/]+/[a-zA-Z0-9\-_]+(?:/[a-zA-Z0-9\-_]+)*",
@@ -38,12 +100,12 @@ namespace Agent.Core.Services
         }
 
         // Trigger a crawl for a single ARM resource ID
-        public void TriggerCrawl(string resourceId)
+        public void TriggerArmCrawl(string resourceId)
         {
-            TriggerCrawl(resourceId, null, false);
+            TriggerArmCrawl(resourceId, false);
         }
 
-        public void TriggerCrawl(string resourceId, string? threadId = null, bool force = false)
+        public void TriggerArmCrawl(string resourceId, bool force = false)
         {
             if (string.IsNullOrWhiteSpace(resourceId))
                 return;
@@ -53,36 +115,22 @@ namespace Agent.Core.Services
             foreach (Match match in matches)
             {
                 var extractedResourceId = match.Value.Trim().TrimEnd('"', ',');
-
-                // Track thread ID if provided
-                if (!string.IsNullOrWhiteSpace(threadId))
-                {
-                    _resourceThreadIds.AddOrUpdate(extractedResourceId,
-                        new HashSet<string> { threadId },
-                        (key, existing) =>
-                        {
-                            lock (existing)
-                            {
-                                existing.Add(threadId);
-                                return existing;
-                            }
-                        });
-                }
+                var item = new ArmResourceTriggerItem(extractedResourceId);
 
                 // Skip cache checks only if force is false
                 if (!force)
                 {
                     // Check if this resource was recently marked as deleted
-                    if (IsRecentlyDeleted(extractedResourceId))
+                    if (IsRecentlyDeleted(item))
                     {
-                        _logger.LogDebug("Skipping recently deleted resource: {ResourceId}", extractedResourceId);
+                        _logger.LogDebug("Skipping recently deleted resource: {ResourceId}", item.GetResourceId());
                         continue;
                     }
 
                     // Check if this resource was recently crawled
-                    if (IsRecentlyCrawled(extractedResourceId))
+                    if (IsRecentlyCrawled(item))
                     {
-                        _logger.LogDebug("Skipping recently crawled resource: {ResourceId}", extractedResourceId);
+                        _logger.LogDebug("Skipping recently crawled resource: {ResourceId}", item.GetResourceId());
                         continue;
                     }
                 }
@@ -90,45 +138,42 @@ namespace Agent.Core.Services
                 // Check if this resource is already pending
                 lock (_pendingLock)
                 {
-                    if (_pendingResourceIds.Contains(extractedResourceId))
+                    if (_pendingResourceIds.Contains(item))
                     {
-                        _logger.LogDebug("Resource already pending for crawl: {ResourceId}", extractedResourceId);
+                        _logger.LogDebug("Resource already pending for crawl: {ResourceId}", item.GetResourceId());
                         continue;
                     }
 
-                    _pendingResourceIds.Add(extractedResourceId);
+                    _pendingResourceIds.Add(item);
                 }
 
-                _resourceIdQueue.Enqueue(extractedResourceId);
-                _semaphore.Release();
-                _logger.LogInternalInformation("{Action} queued resource ID for crawling: {ResourceId} (ThreadId: {ThreadId})",
-                    force ? "Force" : "", extractedResourceId, threadId ?? "N/A");
+                _resourceIdQueue.Enqueue(item);
+                _logger.LogInternalInformation("{Action} queued resource ID for crawling: {ResourceId}",
+                    force ? "Force" : "", item.GetResourceId());
             }
         }
 
-        public void TriggerCrawl(IEnumerable<string> resourceIds)
+        public void TriggerArmCrawl(IEnumerable<string> resourceIds)
         {
             foreach (var resourceId in resourceIds)
             {
-                TriggerCrawl(resourceId);
+                TriggerArmCrawl(resourceId);
             }
         }
 
-        public void MarkResourceAsDeleted(string resourceId)
+        public void MarkResourceAsDeleted(TriggerItem item)
         {
-            if (string.IsNullOrWhiteSpace(resourceId))
+            if (item == null)
                 return;
 
-            _deletedResources[resourceId] = DateTime.UtcNow;
-            _logger.LogDebug("Marked resource as deleted: {ResourceId}", resourceId);
+            _deletedResources[item] = DateTime.UtcNow;
+            _logger.LogDebug("Marked resource as deleted: {ResourceId}", item.GetResourceId());
         }
 
-        public async IAsyncEnumerable<string> GetResourceIdsToProcess([EnumeratorCancellation] CancellationToken cancellationToken = default)
+        public async IAsyncEnumerable<TriggerItem> GetResourceIdsToProcess([EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             while (!cancellationToken.IsCancellationRequested)
             {
-                await _semaphore.WaitAsync(cancellationToken);
-
                 if (_resourceIdQueue.TryDequeue(out var resourceId))
                 {
                     // Remove from pending set and mark as recently crawled
@@ -141,33 +186,23 @@ namespace Agent.Core.Services
                     _recentlyCrawled[resourceId] = DateTime.UtcNow;
                     yield return resourceId;
                 }
+
+                await Task.Delay(1000, cancellationToken);
             }
         }
 
-        public HashSet<string> GetThreadIdsForResource(string resourceId)
+        private bool IsRecentlyCrawled(TriggerItem item)
         {
-            if (_resourceThreadIds.TryGetValue(resourceId, out var threadIds))
-            {
-                lock (threadIds)
-                {
-                    return new HashSet<string>(threadIds);
-                }
-            }
-            return new HashSet<string>();
-        }
-
-        private bool IsRecentlyCrawled(string resourceId)
-        {
-            if (_recentlyCrawled.TryGetValue(resourceId, out var lastCrawlTime))
+            if (_recentlyCrawled.TryGetValue(item, out var lastCrawlTime))
             {
                 return DateTime.UtcNow - lastCrawlTime < RecentCrawlThreshold;
             }
             return false;
         }
 
-        private bool IsRecentlyDeleted(string resourceId)
+        private bool IsRecentlyDeleted(TriggerItem item)
         {
-            if (_deletedResources.TryGetValue(resourceId, out var deletedTime))
+            if (_deletedResources.TryGetValue(item, out var deletedTime))
             {
                 return DateTime.UtcNow - deletedTime < DeletedResourceThreshold;
             }
@@ -195,10 +230,6 @@ namespace Agent.Core.Services
                     foreach (var key in expiredCrawledKeys)
                     {
                         _recentlyCrawled.TryRemove(key, out _);
-                        if (_resourceThreadIds.TryRemove(key, out _))
-                        {
-                            expiredThreadIdKeys.Add(key);
-                        }
                     }
 
                     // Clean up deleted resources cache
@@ -210,16 +241,12 @@ namespace Agent.Core.Services
                     foreach (var key in expiredDeletedKeys)
                     {
                         _deletedResources.TryRemove(key, out _);
-                        if (_resourceThreadIds.TryRemove(key, out _))
-                        {
-                            expiredThreadIdKeys.Add(key);
-                        }
                     }
 
                     if (expiredCrawledKeys.Count > 0 || expiredDeletedKeys.Count > 0 || expiredThreadIdKeys.Count > 0)
                     {
-                        _logger.LogDebug("Cleaned up {CrawledCount} expired crawled entries, {DeletedCount} expired deleted entries, and {ThreadIdCount} expired thread ID entries",
-                            expiredCrawledKeys.Count, expiredDeletedKeys.Count, expiredThreadIdKeys.Count);
+                        _logger.LogDebug("Cleaned up {CrawledCount} expired crawled entries, {DeletedCount} expired deleted entries",
+                            expiredCrawledKeys.Count, expiredDeletedKeys.Count);
                     }
                 }
                 catch (Exception ex)
@@ -227,6 +254,40 @@ namespace Agent.Core.Services
                     _logger.LogInternalError(ex, "Error during cache cleanup");
                 }
             }
+        }
+
+        public void TriggerKubernetesCrawl(string clusterResourceId, string? namespaceName, string resourceName, string group, string apiVersion, string kind, bool isDelete = false)
+        {
+            var item = new KubernetesResourceTriggerItem(clusterResourceId, namespaceName, resourceName, group, apiVersion, kind, isDelete);
+
+            // Check if this resource was recently marked as deleted
+            if (IsRecentlyDeleted(item))
+            {
+                _logger.LogDebug("Skipping recently deleted resource: {ResourceId}", item.GetResourceId());
+                return;
+            }
+
+            // Check if this resource was recently crawled
+            if (IsRecentlyCrawled(item))
+            {
+                _logger.LogDebug("Skipping recently crawled resource: {ResourceId}", item.GetResourceId());
+                return;
+            }
+
+            // Check if this resource is already pending
+            lock (_pendingLock)
+            {
+                if (_pendingResourceIds.Contains(item))
+                {
+                    _logger.LogDebug("Resource already pending for crawl: {ResourceId}", item.GetResourceId());
+                    return;
+                }
+
+                _pendingResourceIds.Add(item);
+            }
+
+            _resourceIdQueue.Enqueue(item);
+            _logger.LogInternalInformation("Queued kubernetes resource for crawling: {ResourceId}", item.GetResourceId());
         }
     }
 }

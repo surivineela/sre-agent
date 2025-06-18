@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Agent.Graph.Schema;
 
 namespace Agent.Graph.Interfaces;
+
 public interface ICrawlerService
 {
     /// <summary>
@@ -25,6 +26,14 @@ public interface ICrawlerService
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     public void StartActivityLogCrawler(IEnumerable<string> resourceIds, CancellationToken? cancellationToken = null);
+
+    /// <summary>
+    /// Starts the Kubernetes watch crawler.
+    /// </summary>
+    /// <param name="resourceIds"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public Task StartKubernetesWatchCrawler(IEnumerable<string> resourceIds, CancellationToken? cancellationToken = null);
 
     /// <summary>
     /// Gets the current crawler result. This is a snapshot of the crawler state.

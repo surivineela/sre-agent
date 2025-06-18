@@ -30,6 +30,19 @@ namespace Agent.Graph.Crawler.Kubernetes
             var nsNode = (KubernetesResourceNode)node;
             _logger.LogDebug($"Crawling Kubernetes namespace: {nsNode.GetNodeId()}");
 
+            var ns = (V1Namespace)nsNode.ResourceObject;
+            if (ns == null)
+            {
+                ns = await _k8sService.GetNamespaceAsync(nsNode.ClusterResourceId, nsNode.ResourceName);
+            }
+
+            if (ns == null)
+            {
+                yield break;
+            }
+
+            await nsNode.SaveKubernetesResourceNode(_graphDbClient);
+
             long startTs = DateTime.UtcNow.Ticks;
 
             // list all deployments

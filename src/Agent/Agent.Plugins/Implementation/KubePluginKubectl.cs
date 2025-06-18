@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Graph.Crawler.ARM;
 using Agent.Logging;
 using Agent.Plugins.Interface;
 using Microsoft.Extensions.Logging;
@@ -17,6 +18,9 @@ namespace Agent.Plugins
         // Add thread repository and ThreadId property for command execution tracking
         private readonly IThreadRepository? _threadRepository;
         public Guid? ThreadId { get; set; }
+
+        [GeneratedRegex(@"^([a-z0-9.-]+)\/([a-z0-9.-]+) (created|configured|patched|edited|scaled|deleted)$", RegexOptions.IgnoreCase)]
+        private static partial Regex KubectlOutputRegex();
 
         public async Task<string> RunKubectlCommandHelpAsync(
             string resourceId,
@@ -421,7 +425,7 @@ namespace Agent.Plugins
 
             try
             {
-                return await ExecuteCommandHelper.ExecuteCommand(
+                var output = await ExecuteCommandHelper.ExecuteCommand(
                     "kubectl",
                     stdin,
                     [
@@ -429,6 +433,11 @@ namespace Agent.Plugins
                         $"--kubeconfig=\"{kubeConfigPath}\"",
                         $"--cache-dir=\"{Path.Combine(Path.GetTempPath(), ".kube")}\""
                     ]);
+
+                // trigger recrawl for modified resources
+                TriggerRecrawl(resourceId, command, output);
+
+                return output;
             }
             catch (Exception ex) when (ex.Message.Contains("forbidden", StringComparison.OrdinalIgnoreCase))
             {
@@ -561,6 +570,59 @@ namespace Agent.Plugins
                         : $"Kubernetes rollout {rolloutAction}";
                 default:
                     return $"Execute kubectl {subcommand} command";
+            }
+        }
+
+        private void TriggerRecrawl(string clusterResourceId, string command, string output)
+        {
+            var lines = output.Trim().Split(["\n", "\r\n"], StringSplitOptions.RemoveEmptyEntries);
+
+            string[] parts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            string? namespaceName = null;
+            for (int i = 0; i < parts.Length; i++)
+            {
+                var part = parts[i];
+                if (part.Equals("-n", StringComparison.OrdinalIgnoreCase) ||
+                    part.Equals("--namespace", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (i + 1 < parts.Length)
+                    {
+                        namespaceName = parts[i + 1];
+                        break;
+                    }
+                }
+                else if (part.StartsWith("-n=") ||
+                        part.StartsWith("--namespace="))
+                {
+                    namespaceName = part.Split('=')[1];
+                    break;
+                }
+            }
+
+            foreach (var line in lines)
+            {
+                var match = KubectlOutputRegex().Match(line);
+                if (match.Success)
+                {
+                    // Extract resource type and name
+                    var groupKind = match.Groups[1].Value;
+                    var name = match.Groups[2].Value;
+                    var action = match.Groups[3].Value.ToLowerInvariant();
+
+                    int index = groupKind.IndexOf('.');
+                    var group = Constants.KubernetesCoreGroup;
+                    var kind = groupKind;
+                    if (index > 0)
+                    {
+                        kind = GetPluralFormForKind(groupKind.Substring(0, index));
+                        group = groupKind.Substring(index + 1);
+                    }
+                    bool isDelete = action == "deleted";
+
+                    _crawlerTriggerService.TriggerKubernetesCrawl(clusterResourceId, namespaceName, name, group, string.Empty, kind, isDelete);
+                    _logger?.LogInternalInformation(
+                        $"Triggered recrawl for Kubernetes resource: {group}/{kind} '{name}' in namespace '{namespaceName ?? ""}' (action: {action})");
+                }
             }
         }
     }

@@ -7,6 +7,7 @@ using Azure.Core;
 using k8s;
 
 namespace Agent.Data.DatabaseClients.GraphDbClient;
+
 public class KubernetesResourceNode : GraphNode
 {
     // Set to the k8s resource object to avoid fetching it twice
@@ -45,9 +46,9 @@ public class KubernetesResourceNode : GraphNode
     public KubernetesResourceNode(
         IKubernetesObject k8sObject,
         string clusterResourceId,
-        string subscriptionId,
-        string resourceGroupName,
-        string location,
+        string? subscriptionId,
+        string? resourceGroupName,
+        string? location,
         string resourceName,
         string group,
         string apiVersion,
@@ -55,9 +56,9 @@ public class KubernetesResourceNode : GraphNode
         IDictionary<string, string> annotations = null,
         IDictionary<string, string> labels = null)
     {
-        SubscriptionId = subscriptionId.ToLowerInvariant();
-        ResourceGroupName = resourceGroupName.ToLowerInvariant();
-        Location = location.ToLowerInvariant();
+        SubscriptionId = subscriptionId?.ToLowerInvariant();
+        ResourceGroupName = resourceGroupName?.ToLowerInvariant();
+        Location = location?.ToLowerInvariant();
         UpdateTs = DateTime.UtcNow.Ticks;
         ResourceObject = k8sObject;
         ClusterResourceId = clusterResourceId.ToLowerInvariant();
@@ -67,6 +68,13 @@ public class KubernetesResourceNode : GraphNode
         Kind = kind.ToLowerInvariant();
         Annotations = annotations;
         Labels = labels;
+
+        if (string.IsNullOrEmpty(subscriptionId) && !string.IsNullOrEmpty(clusterResourceId))
+        {
+            var id = new ResourceIdentifier(clusterResourceId);
+            SubscriptionId = id.SubscriptionId?.ToLowerInvariant();
+            ResourceGroupName = id.ResourceGroupName?.ToLowerInvariant();
+        }
     }
 
     public override string GetNodeLabel()
