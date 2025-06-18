@@ -9,6 +9,7 @@ export enum IncidentManagementPlatform {
 export interface IncidentManagementFormValues {
     platform?: IncidentManagementPlatform;
     connectionKey?: string;
+    createDefaultHandler?: boolean;
 }
 
 export interface IncidentManagementFormProps {

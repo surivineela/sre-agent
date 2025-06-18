@@ -13,6 +13,8 @@ type SreAgentContextProps = {
     incidentManagement: {
         isIncidentManagementConnected: boolean;
         setIsIncidentManagementConnected: React.Dispatch<React.SetStateAction<boolean>>;
+        hasFilters: boolean;
+        setHasFilters: React.Dispatch<React.SetStateAction<boolean>>;
     };
     agent: {
         mode: string;
@@ -39,6 +41,8 @@ export const SreAgentContext = createContext<SreAgentContextProps>({
     incidentManagement: {
         isIncidentManagementConnected: false,
         setIsIncidentManagementConnected: () => {},
+        hasFilters: false,
+        setHasFilters: () => {},
     },
     agent: {
         mode: '',

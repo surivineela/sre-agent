@@ -397,6 +397,10 @@ export const ActionsStatusResources = defineMessages({
 export const IncidentManagementResources = defineMessages({
     goToIncidentManagement: { defaultMessage: 'Go to Incident management', id: '7Cy5xk' },
     setUpInfoBanner: {
+        defaultMessage: 'You can now view incidents, and create additional incident handlers and custom handlers.',
+        id: 'Tp+Kgu',
+    },
+    setUpInfoBannerWithoutHandlers: {
         defaultMessage: 'Set up incident handlers and custom handlers so that the agent can start receiving incidents.',
         id: 'gIVE1F',
     },
@@ -410,7 +414,8 @@ export const IncidentManagementResources = defineMessages({
         id: 'iTTSax',
     },
     createIncidentHandlerDescription: {
-        defaultMessage: 'The incident handler defines which incidents the agent should handle by applying your filter criteria, ensuring responses to the required set of incidents.',
+        defaultMessage:
+            'The incident handler defines which incidents the agent should handle by applying your filter criteria, ensuring responses to the required set of incidents.',
         id: 'XUVR/7',
     },
     refresh: { defaultMessage: 'Refresh', id: 'rELDbB' },
@@ -477,6 +482,16 @@ export const IncidentManagementResources = defineMessages({
             'Turning off this incident handler might affect how incidents are processed and also any custom handlers. Are you sure you want to turn it off?',
         id: 'ia2Cai',
     },
+    quickstartHandler: { defaultMessage: 'Quickstart handler', id: '7p54Vc' },
+    quickstartHandlerDescription: {
+        defaultMessage: 'Add a default incident handler for the agent to use for P1 base incidents.',
+        id: 'r6+QFy',
+    },
+    quickstartHandlerInfoMessage: {
+        defaultMessage:
+            'After the platform is connected, create incident handlers and custom handlers so that the agent can respond to incidents.',
+        id: 'msMJVt',
+    },
 });
 
 export const IncidentManagementPlatformResources = defineMessages({
@@ -490,6 +505,7 @@ export const IncidentManagementNotificationResources = defineMessages({
     saveStarted: { defaultMessage: 'Saving incident management configuration', id: 'TyvDrC' },
     saveSucceeded: { defaultMessage: 'Successfully saved incident management configuration', id: 'NrGEOo' },
     saveFailed: { defaultMessage: 'Failed to save incident management configuration. Error: {errorMessage}', id: 'slxYbm' },
+    createDefaultHandlerFailed: { defaultMessage: 'Failed to create default incident handler', id: 'TgpM0x' },
     deleteFilterTitle: { defaultMessage: 'Deleting incident handler', id: 'MCSjdU' },
     deleteFilterInProgress: { defaultMessage: 'Deleting incident handler', id: 'MCSjdU' },
     deleteFilterSuccess: { defaultMessage: 'Successfully deleted incident handler', id: 'hXdAxd' },
@@ -612,13 +628,12 @@ export const PagerDutyResources = defineMessages({
             'This will permanently delete the connection to PagerDuty. The agent will no longer be able to manage tickets. Are you sure you want to delete this connection?',
         id: 'rGl1yu',
     },
-    connectedMessage: { defaultMessage: 'PagerDuty connected. Your next step is to set up incident handlers.', id: '84MFOR' },
-    addedMessage: { defaultMessage: 'PagerDuty connection added successfully', id: 'Wr7RY0' },
-    setUpIncidentHandlers: {
-        defaultMessage: 'Set up incident handlers and custom handlers so that the agent can start resolving incidents.',
-        id: 'lzHc+Y',
+    connectedMessage: { defaultMessage: 'PagerDuty is connected.', id: '23nct0' },
+    connectedMessageWithoutHandlers: {
+        defaultMessage: 'PagerDuty connected. Your next step is to set up incident handlers.',
+        id: '84MFOR',
     },
-    goToIncidentManagement: { defaultMessage: 'Go to incident management', id: 'niQCoZ' },
+    addedMessage: { defaultMessage: 'PagerDuty connection added successfully', id: 'Wr7RY0' },
 });
 
 export const AzMonitorResources = defineMessages({

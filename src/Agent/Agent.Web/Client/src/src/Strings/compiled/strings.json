@@ -205,6 +205,12 @@
       "value": "Add"
     }
   ],
+  "23nct0": [
+    {
+      "type": 0,
+      "value": "PagerDuty is connected."
+    }
+  ],
   "2OQ6yB": [
     {
       "type": 0,
@@ -299,12 +305,6 @@
     {
       "type": 0,
       "value": "Discard changes?"
-    }
-  ],
-  "45sljt": [
-    {
-      "type": 0,
-      "value": "Updating incident filter"
     }
   ],
   "477I0g": [
@@ -537,12 +537,6 @@
       "value": "Review mode"
     }
   ],
-  "7MvYEX": [
-    {
-      "type": 0,
-      "value": "Edit Annotation"
-    }
-  ],
   "7Nz2Ev": [
     {
       "type": 0,
@@ -565,6 +559,12 @@
     {
       "type": 0,
       "value": "Project details"
+    }
+  ],
+  "7p54Vc": [
+    {
+      "type": 0,
+      "value": "Quickstart handler"
     }
   ],
   "7qt3qA": [
@@ -1725,6 +1725,12 @@
       "value": "Resource mapping"
     }
   ],
+  "TgpM0x": [
+    {
+      "type": 0,
+      "value": "Failed to create default incident handler"
+    }
+  ],
   "ThSX0k": [
     {
       "type": 0,
@@ -1735,6 +1741,12 @@
     {
       "type": 0,
       "value": "New chat thread"
+    }
+  ],
+  "Tp+Kgu": [
+    {
+      "type": 0,
+      "value": "You can now view incidents, and create additional incident handlers and custom handlers."
     }
   ],
   "TsW8Ed": [
@@ -2201,12 +2213,6 @@
       "value": "Read-only mode"
     }
   ],
-  "eqYdSS": [
-    {
-      "type": 0,
-      "value": "Resource name"
-    }
-  ],
   "ezP+aQ": [
     {
       "type": 0,
@@ -2559,12 +2565,6 @@
       "value": "Region"
     }
   ],
-  "lzHc+Y": [
-    {
-      "type": 0,
-      "value": "Set up incident handlers and custom handlers so that the agent can start resolving incidents."
-    }
-  ],
   "m57OnF": [
     {
       "type": 0,
@@ -2587,6 +2587,12 @@
     {
       "type": 0,
       "value": "Local auth"
+    }
+  ],
+  "msMJVt": [
+    {
+      "type": 0,
+      "value": "After the platform is connected, create incident handlers and custom handlers so that the agent can respond to incidents."
     }
   ],
   "mtUOcI": [
@@ -2623,12 +2629,6 @@
     {
       "type": 0,
       "value": "Primary resource type"
-    }
-  ],
-  "niQCoZ": [
-    {
-      "type": 0,
-      "value": "Go to incident management"
     }
   ],
   "nmpevl": [
@@ -2777,6 +2777,12 @@
     {
       "type": 0,
       "value": "ID"
+    }
+  ],
+  "r6+QFy": [
+    {
+      "type": 0,
+      "value": "Add a default incident handler for the agent to use for P1 base incidents."
     }
   ],
   "rBPlLc": [
@@ -3125,18 +3131,6 @@
     {
       "type": 0,
       "value": "Website Contributor"
-    }
-  ],
-  "xuBAs0": [
-    {
-      "type": 0,
-      "value": "Disable incident handler"
-    }
-  ],
-  "y9ZkOw": [
-    {
-      "type": 0,
-      "value": "Failed to update incident filter"
     }
   ],
   "yDh8i7": [

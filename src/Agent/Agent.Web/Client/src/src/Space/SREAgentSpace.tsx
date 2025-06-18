@@ -134,6 +134,12 @@ const TabsListWrapper: FC = () => {
         }
     }, [agent, fetchAppInsightsId, setMode]);
 
+    useEffect(() => {
+        if (inStandaloneMode) {
+            setMode('standalone');
+        }
+    }, [setMode]);
+
     return (
         <div>
             <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -203,6 +209,7 @@ const SREAgentSpace: FC = () => {
     const [deploymentId, setDeploymentId] = useState<string>('');
     const [notificationId, setNotificationId] = useState<string>('');
     const [isIncidentManagementConnected, setIsIncidentManagementConnected] = useState(false);
+    const [hasFilters, setHasFilters] = useState(false);
     const [agentMode, setAgentMode] = useState<string>('');
 
     useEffect(() => {
@@ -238,6 +245,8 @@ const SREAgentSpace: FC = () => {
                 incidentManagement: {
                     isIncidentManagementConnected,
                     setIsIncidentManagementConnected,
+                    hasFilters,
+                    setHasFilters,
                 },
                 agent: {
                     mode: agentMode,

@@ -1,5 +1,6 @@
 import {
     Button,
+    Checkbox,
     Dialog,
     DialogActions,
     DialogBody,
@@ -11,9 +12,6 @@ import {
     Field,
     Input,
     MessageBar,
-    MessageBarActions,
-    MessageBarBody,
-    MessageBarTitle,
     Option,
     Spinner,
 } from '@fluentui/react-components';
@@ -54,7 +52,7 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
     const location = useLocation();
     const navigate = useNavigate();
 
-    const { isIncidentManagementConnected } = useIncidentManagementConnectivity(isPagerDutySetUp);
+    const { isIncidentManagementConnected, hasFilters } = useIncidentManagementConnectivity(isPagerDutySetUp);
 
     const incidentPlatformDropdownOptions = useMemo(
         () => [
@@ -103,19 +101,25 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
 
     return (
         <>
-            <MessageBar style={{ maxWidth: 1000, marginBottom: 16 }}>
-                {intl.formatMessage(IncidentManagementResources.setUpInfoBanner)}
-                <Button
-                    appearance="secondary"
-                    size="medium"
-                    style={{ marginRight: 10, marginTop: 10, marginBottom: 10 }}
-                    onClick={() => {
-                        handleGoToIncidentManagement();
-                    }}
-                >
-                    {intl.formatMessage(IncidentManagementResources.goToIncidentManagement)}
-                </Button>
-            </MessageBar>
+            {!loading && values.platform === IncidentManagementPlatform.PagerDuty && !isSetupScenario && isIncidentManagementConnected && (
+                <MessageBar style={{ maxWidth: 1000, marginBottom: 16 }}>
+                    {intl.formatMessage(
+                        hasFilters
+                            ? IncidentManagementResources.setUpInfoBanner
+                            : IncidentManagementResources.setUpInfoBannerWithoutHandlers
+                    )}
+                    <Button
+                        appearance="secondary"
+                        size="medium"
+                        style={{ marginRight: 10, marginTop: 10, marginBottom: 10 }}
+                        onClick={() => {
+                            handleGoToIncidentManagement();
+                        }}
+                    >
+                        {intl.formatMessage(IncidentManagementResources.goToIncidentManagement)}
+                    </Button>
+                </MessageBar>
+            )}
             <div style={styles.generalSettingsHeader}>{intl.formatMessage(SettingsTabResources.incidentPlatform)}</div>
             <div>
                 {loading ? (
@@ -125,26 +129,6 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                         {isSetupScenario && (
                             <div style={styles.incidentManagementDescriptionStyle}>
                                 {intl.formatMessage(IncidentManagementResources.incidentManagementDescription)}
-                            </div>
-                        )}
-                        {values.platform === IncidentManagementPlatform.PagerDuty && !isSetupScenario && (
-                            <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                                <MessageBar intent="info" className={pagerDutyStyles.messageBar}>
-                                    <MessageBarBody className={pagerDutyStyles.messageBarBody}>
-                                        <MessageBarTitle style={{ fontWeight: 400 }}>
-                                            {intl.formatMessage(PagerDutyResources.setUpIncidentHandlers)}
-                                        </MessageBarTitle>
-                                        <div className={pagerDutyStyles.messageBarActionsContainer}>
-                                            <MessageBarActions
-                                                containerAction={
-                                                    <Button appearance="secondary" size="medium" onClick={handleGoToIncidentManagement}>
-                                                        {intl.formatMessage(PagerDutyResources.goToIncidentManagement)}
-                                                    </Button>
-                                                }
-                                            />
-                                        </div>
-                                    </MessageBarBody>
-                                </MessageBar>
                             </div>
                         )}
                         <Field
@@ -192,9 +176,11 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                                             aria-label={intl.formatMessage(IncidentManagementResources.setUpComplete)}
                                         />
                                         <div>
-                                            {isIncidentManagementConnected
-                                                ? intl.formatMessage(PagerDutyResources.connectedMessage)
-                                                : intl.formatMessage(PagerDutyResources.addedMessage)}
+                                            {!isIncidentManagementConnected
+                                                ? intl.formatMessage(PagerDutyResources.addedMessage)
+                                                : hasFilters
+                                                  ? intl.formatMessage(PagerDutyResources.connectedMessage)
+                                                  : intl.formatMessage(PagerDutyResources.connectedMessageWithoutHandlers)}
                                         </div>
                                     </div>
                                 )}
@@ -221,6 +207,33 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                                         contentAfter={isValidating && !isSubmitting ? <Spinner size={'tiny'} /> : null}
                                     />
                                 </Field>
+                                {isSetupScenario && (
+                                    <>
+                                        <Field
+                                            id="createDefaultHandlerField"
+                                            label={intl.formatMessage(IncidentManagementResources.quickstartHandler)}
+                                            orientation="horizontal"
+                                            style={{ maxWidth: '1000px', marginTop: 20 }}
+                                        >
+                                            <Checkbox
+                                                id="createDefaultHandler"
+                                                checked={formikProps.values.createDefaultHandler}
+                                                onChange={(_event, newValue) => {
+                                                    setFieldTouched('createDefaultHandler', true, false);
+                                                    setFieldValue('createDefaultHandler', !!newValue?.checked);
+                                                }}
+                                                disabled={saving}
+                                                label={intl.formatMessage(IncidentManagementResources.quickstartHandlerDescription)}
+                                                labelPosition="after"
+                                            />
+                                        </Field>
+                                        {!formikProps.values.createDefaultHandler && (
+                                            <MessageBar style={{ maxWidth: 1000, marginTop: 16, marginBottom: 16 }}>
+                                                {intl.formatMessage(IncidentManagementResources.quickstartHandlerInfoMessage)}
+                                            </MessageBar>
+                                        )}
+                                    </>
+                                )}
                             </>
                         )}
 
