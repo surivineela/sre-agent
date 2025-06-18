@@ -24,7 +24,6 @@ using Agent.Runtime.SubAgents.Core;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
-using System.Diagnostics;
 
 namespace Agent.Runtime.Reasoning;
 
@@ -167,7 +166,7 @@ public class ReasoningLoop
         }
     }
 
-    public async IAsyncEnumerable<RunResult<AgentContext>> AppendFunctionCallMessagesStreamAsync(List<ChatMessage> msgs, CancellationToken cancellationToken = default)
+    public async IAsyncEnumerable<RunResult<AgentContext>> AppendFunctionCallMessagesStreamAsync(List<ChatMessage> msgs, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         if (await _msgCh.Writer.WaitToWriteAsync(cancellationToken))
         {
@@ -186,7 +185,7 @@ public class ReasoningLoop
         }
     }
 
-    public async IAsyncEnumerable<RunResult<AgentContext>> AppendNewApprovalMessageStreamAsync(Approval approval, CancellationToken cancellationToken = default)
+    public async IAsyncEnumerable<RunResult<AgentContext>> AppendNewApprovalMessageStreamAsync(Approval approval, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         if (await _msgCh.Writer.WaitToWriteAsync(cancellationToken))
         {
@@ -266,9 +265,9 @@ public class ReasoningLoop
                             sb.AppendLine("Try your best to answer the user's questions. Keep in mind:");
                             sb.AppendLine(" - If you find a suitable agent to handoff to, call transfer_to_{agentName} tool directly");
                             sb.AppendLine(" - If there's no suitable agent to handoff to, call HandoffBack directly");
-                            sb.AppendLine(" - **NEVER** tell the user you're going to handoff");
-                            sb.AppendLine(" - **NEVER** tell the user what you are handing off for or why you are handing off");
-                            sb.AppendLine(" - **NEVER** mention anything related to handoff in your outputMessage");
+                            //sb.AppendLine(" - **NEVER** tell the user you're going to handoff");
+                            //sb.AppendLine(" - **NEVER** tell the user what you are handing off for or why you are handing off");
+                            //sb.AppendLine(" - **NEVER** mention anything related to handoff in your outputMessage");
                             sb.AppendLine(" - Use transfer_to_{agentName} or HandoffBack if you are done solving an issue");
                             sb.AppendLine("User question goes below:");
                             sb.AppendLine(chatMessage.Message.Text);
@@ -499,6 +498,8 @@ public class ReasoningLoop
         {
             ChatClient = _chatClient,
             LoggerFactory = _loggerFactory,
+            // ToDo: control with dev settings
+            EnableDebugOutput = false, // Debugger.IsAttached,
         };
 
         try
@@ -513,6 +514,7 @@ public class ReasoningLoop
                 config: runConfig,
                 context: _context,
                 hooks: runHooks,
+                displayModelOutput: DisplayModelResponse,
                 cancellationToken: cancellationToken
             );
 
@@ -541,10 +543,12 @@ public class ReasoningLoop
 
                         runResult = runResult.WithNewAgent(newAgent);
 
+                        _context = await _threadRepository.UpdateAgentContextAsync(_context);
+
                         toolResults.Add(new ManualToolCallResult()
                         {
                             FunctionCall = toolCall.FunctionCall,
-                            Output = $"Handed off to agent {newAgent.Name}. Assume this persona immediately and continue with the task.",
+                            Output = Handoff<AgentContext>.HandoffMessage
                         });
                     }
                     else
@@ -655,6 +659,7 @@ public class ReasoningLoop
                     config: runConfig,
                     context: _context,
                     hooks: runHooks,
+                    displayModelOutput: DisplayModelResponse,
                     cancellationToken: cancellationToken
                 );
 
@@ -670,24 +675,36 @@ public class ReasoningLoop
             {
                 if (runResult.Output is string outputString)
                 {
-                    await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
-                        _context,
-                        new ChatMessage(ChatRole.Assistant, runResult.Output?.ToString()));
+                    // already printed in runner
+                    //await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+                    //    _context,
+                    //    new ChatMessage(ChatRole.Assistant, runResult.Output?.ToString()));
                 }
-                else if (runResult.Output is AgentOutput agentOutput)
+                else if (runResult.Output is IAgentOutput agentOutput)
                 {
                     // TODO: can we log all this info?
-                    _logger.LogInternalInformation("Agent output: {AgentOutputMessage}, {IsUserInputRequired}, {RequestCompleted}, {Reasoning}",
-                        agentOutput.OutputMessage, agentOutput.IsUserInputRequired, agentOutput.RequestCompleted, agentOutput.Reasoning);
+                    _logger.LogInternalInformation("Agent output: {AgentOutputMessage}, {State}, {StateExplanation}, {Reasoning}",
+                        agentOutput.OutputMessage, agentOutput.State, agentOutput.StateExplanation, agentOutput.ReasoningScratchPad);
 
-                    await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
-                        _context,
-                        new ChatMessage(ChatRole.Assistant, agentOutput.OutputMessage));
+                    // already printed in runner
+                    //await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+                    //    _context,
+                    //    new ChatMessage(ChatRole.Assistant, agentOutput.OutputMessage));
 
-                    if (agentOutput.CannotHandleNextStep)
+                    var state = Enum.TryParse<AgentProcessingState>(agentOutput.State, out var parsed)
+                        ? parsed
+                        : AgentProcessingState.Unknown;
+
+                    var needsHandOff = state == AgentProcessingState.HandOff_OutOfScope
+                        || state == AgentProcessingState.HandOff_Continue;
+
+                    var needsReiteration = state == AgentProcessingState.Processing;
+
+                    if (needsHandOff)
                     {
                         _logger.LogInternalInformation("Agent determined the request is out of scope. Handoff back");
 
+                        // todo: nudge agent to do better job instead of auto handoffback
                         if (_context.AgentHandoffChain.Count > 1)
                         {
                             // pop agent off the chain
@@ -704,32 +721,29 @@ public class ReasoningLoop
 
                             _logger.LogInternalInformation("Handoff back to agent: {AgentName}", agentName);
 
-                            var handoffMessage = new ChatMessage(ChatRole.Assistant, $"Handed off to agent {agentName}. Assume this persona immediately and continue with the task.");
+                            // comment to hide the handoff
+                            var handoffMessage = new ChatMessage(ChatRole.User, Handoff<AgentContext>.HandoffMessage);
                             await PersistReasoningMessageAsync(agentChatHistory, handoffMessage);
-
-                            return new ReasoningLoopIterationResult()
-                            {
-                                IsContinuation = true
-                            };
                         }
                         else
                         {
                             _logger.LogInternalInformation("AgentHandoffChain is empty or has only one agent, ending reasoning loop.");
 
-                            return new ReasoningLoopIterationResult()
-                            {
-                                IsContinuation = false
-                            };
+                            var reloopPromptMessage = new ChatMessage(ChatRole.User, "It seems you are stuck. Briefly mention to user what you are trying to solve, what you did so far and where you need guidance.");
+                            await PersistReasoningMessageAsync(agentChatHistory, reloopPromptMessage);
                         }
+
+                        return new ReasoningLoopIterationResult()
+                        {
+                            IsContinuation = true
+                        };
                     }
-                    // agent can handle the request, and it generated some messages but did not complete
-                    else if (!agentOutput.RequestCompleted
-                        // and reason for being incomplete is not user input requirement
-                        && !agentOutput.IsUserInputRequired)
+                    else if (needsReiteration)
                     {
                         _logger.LogInternalInformation("Asking {AgentName} agent to continue action...", _currentAgent.Name);
 
-                        var userPromptMessage = new ChatMessage(ChatRole.User, "You mentioned you could not complete the request. Continue taking actions to complete the request.");
+                        var userPromptMessage = new ChatMessage(ChatRole.User, $"You mentioned request is {AgentProcessingState.Processing}. " +
+                            $"Continue taking actions to complete the request.");
                         await PersistReasoningMessageAsync(agentChatHistory, userPromptMessage);
 
                         return new ReasoningLoopIterationResult()
@@ -789,7 +803,13 @@ public class ReasoningLoop
         }
 
         return new ReasoningLoopIterationResult() { IsContinuation = false };
+    }
 
+    private Task DisplayModelResponse(string t)
+    {
+        return _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+            _context,
+            new ChatMessage(ChatRole.Assistant, t));
     }
 
     // IAsyncEnumerable does not allow tuples with yields, instead use a callback for iteration result
@@ -903,12 +923,14 @@ public class ReasoningLoop
                     var agentName = _context.AgentHandoffChain[^1];
                     var newAgent = _agentFactory.GetAgent(agentName);
 
+                    _context = await _threadRepository.UpdateAgentContextAsync(_context);
+
                     runResult = runResult.WithNewAgent(newAgent);
 
                     toolResults.Add(new ManualToolCallResult()
                     {
                         FunctionCall = toolCall.FunctionCall,
-                        Output = $"Handed off to agent {newAgent.Name}. Assume this persona immediately and continue with the task.",
+                        Output = Handoff<AgentContext>.HandoffMessage,
                     });
                 }
                 else
@@ -1083,16 +1105,26 @@ public class ReasoningLoop
                     _context,
                     new ChatMessage(ChatRole.Assistant, runResult.Output?.ToString()));
             }
-            else if (runResult.Output is AgentOutput agentOutput)
+            else if (runResult.Output is IAgentOutput agentOutput)
             {
                 // TODO: can we log all this info?
-                _logger.LogInternalInformation("Agent output: {AgentOutputMessage}, {IsUserInputRequired}, {RequestCompleted}, {Reasoning}",
-                    agentOutput.OutputMessage, agentOutput.IsUserInputRequired, agentOutput.RequestCompleted, agentOutput.Reasoning);
+                _logger.LogInternalInformation("Agent output: {AgentOutputMessage}, {State}, {StateExplanation}, {Reasoning}",
+                    agentOutput.OutputMessage, agentOutput.State, agentOutput.StateExplanation, agentOutput.ReasoningScratchPad);
 
-                if (agentOutput.CannotHandleNextStep)
+                var state = Enum.TryParse<AgentProcessingState>(agentOutput.State, out var parsed)
+                        ? parsed
+                        : AgentProcessingState.Unknown;
+
+                var needsHandOff = state == AgentProcessingState.HandOff_OutOfScope
+                    || state == AgentProcessingState.HandOff_Continue;
+
+                var needsReiteration = state == AgentProcessingState.Processing;
+
+                if (needsHandOff)
                 {
                     _logger.LogInternalInformation("Agent determined the request is out of scope. Handoff back");
 
+                    // todo: nudge agent to do better job instead of auto handoffback
                     if (_context.AgentHandoffChain.Count > 1)
                     {
                         // pop agent off the chain
@@ -1108,28 +1140,31 @@ public class ReasoningLoop
 
                         var handoffMessage = new ChatMessage(ChatRole.Assistant, $"Handed off to agent {agentName}. Assume this persona immediately and continue with the task.");
                         await PersistReasoningMessageAsync(agentChatHistory, handoffMessage);
-
-                        iterationResult(new ReasoningLoopIterationResult { IsContinuation = true });
-                        yield break;
                     }
                     else
                     {
                         _logger.LogInternalInformation("AgentHandoffChain is empty or has only one agent, ending reasoning loop.");
 
                         // If the agent cannot handle the request but there is no handoff back, we just reply with the message and end the reasoning loop
-                        await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
-                            _context,
-                            new ChatMessage(ChatRole.Assistant, agentOutput.OutputMessage));
+                        _logger.LogInternalInformation("AgentHandoffChain is empty or has only one agent, ending reasoning loop.");
 
-                        iterationResult(new ReasoningLoopIterationResult { IsContinuation = false });
-                        yield break;
+                        var reloopPromptMessage = new ChatMessage(ChatRole.User, "It seems you are stuck. Briefly mention to user what you are trying to solve, what you did so far and where you need guidance.");
+                        await PersistReasoningMessageAsync(agentChatHistory, reloopPromptMessage);
                     }
+
+                    iterationResult(new ReasoningLoopIterationResult { IsContinuation = true });
+                    yield break;
                 }
-                else
+                else if (needsReiteration)
                 {
-                    await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
-                        _context,
-                        new ChatMessage(ChatRole.Assistant, agentOutput.OutputMessage));
+                    _logger.LogInternalInformation("Asking {AgentName} agent to continue action...", _currentAgent.Name);
+
+                    var userPromptMessage = new ChatMessage(ChatRole.User, $"You mentioned request is {AgentProcessingState.Processing}. " +
+                        $"Continue taking actions to complete the request.");
+                    await PersistReasoningMessageAsync(agentChatHistory, userPromptMessage);
+
+                    iterationResult(new ReasoningLoopIterationResult { IsContinuation = true });
+                    yield break;
                 }
             }
         }
@@ -1183,7 +1218,7 @@ public class ReasoningLoop
                 _currentAgentSpan = null;
                 return Task.CompletedTask;
             },
-            OnHandoff = (context, agent, handoffAgent) =>
+            OnHandoff = async (context, agent, handoffAgent) =>
             {
                 _logger.LogInternalInformation("Trace Handoff from agent: {AgentName} to agent: {HandoffAgentName}", agent.Name, handoffAgent.Name);
                 _currentToolSpan = _tracer.StartSpan($"handoff", SpanKind.Internal, _currentAgentSpan);
@@ -1195,9 +1230,7 @@ public class ReasoningLoop
                 _currentToolSpan = null;
                 _currentAgentSpan?.End();
                 _context.AgentHandoffChain.Add(handoffAgent.Name);
-                //_currentAgent = handoffAgent;
-                //return _threadRepository.UpdateAgentContextAsync(_context);
-                return Task.CompletedTask;
+                _context = await _threadRepository.UpdateAgentContextAsync(_context);
             },
             OnToolStart = (context, agent, tool, input) =>
             {

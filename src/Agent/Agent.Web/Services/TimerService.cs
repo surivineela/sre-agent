@@ -203,8 +203,8 @@ public class TimerService : IHostedService, IDisposable
                 ?? throw new Exception($"Could not find scanning method on type {type.Name}");
             var scanIntervalProp = type.GetProperty("RunInterval", BindingFlags.Public | BindingFlags.Instance)
                 ?? throw new Exception($"Could not find RunInterval property on type {type.Name}");
-            var scanInterval = (TimeSpan) scanIntervalProp.GetValue(instance);
-            GenericSubAgentScannerTimers.Add(new ScannerTimerInformation(type.Name, scanMethod, instance) {  Interval = scanInterval });
+            var scanInterval = (TimeSpan)scanIntervalProp.GetValue(instance);
+            GenericSubAgentScannerTimers.Add(new ScannerTimerInformation(type.Name, scanMethod, instance) { Interval = scanInterval });
         }
 
         _customerAuditLogger = customerAuditLogger;
@@ -257,12 +257,12 @@ public class TimerService : IHostedService, IDisposable
 
         if (_incidentManagementSettings != null)
         {
-            switch(_incidentManagementSettings.Type)
+            switch (_incidentManagementSettings.Type)
             {
                 case IncidentManagementType.AzMonitor:
                     _logger.LogInternalInformation("Starting Azure Monitor Alert Scanner timer ...");
                     StartAzMonitorAlertScannerTimer(cancellationToken);
-            
+
                     _logger.LogInternalInformation("Starting Azure Monitor Incident Closure timer ...");
                     StartAzMonitorIncidentClosureTimer(cancellationToken);
                     break;
@@ -586,6 +586,7 @@ public class TimerService : IHostedService, IDisposable
                 if (welcomeThreads.Any())
                 {
                     _logger.LogInternalInformation("Welcome message already sent, skipping.");
+                    _pagerDutyWelcomeSent = true;
                     return;
                 }
 

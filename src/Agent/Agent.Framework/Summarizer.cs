@@ -2,74 +2,99 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text;
+using System.Text.Json;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Framework;
 
 public static class Summarizer
 {
-    public static async Task<string> SummarizeUserMessagesAsync(
-        IChatClient chatClient,
-        IReadOnlyList<ChatMessage> messages)
+    public static async Task<string> SummarizeUserTrajectoryAsync(
+       IChatClient chatClient,
+       IReadOnlyList<ChatMessage> userTrajectory)
     {
-        if (messages == null || !messages.Any())
+        var lastUserMessageIndex = -1;
+        var curIndex = 0;
+        foreach (var message in userTrajectory)
         {
-            return "No messages to summarize.";
+            if (message.Role == ChatRole.User)
+            {
+                lastUserMessageIndex = curIndex;
+            }
+            curIndex++;
         }
 
-        var userMessages = messages.Where(m => m.Role != ChatRole.System && m.Role != ChatRole.Tool)
-            .Select(m => new ChatMessage(m.Role,
-                m.Contents.OfType<TextContent>()
-                    .Where(c => !(c.Text.Contains("overall_assessment", StringComparison.OrdinalIgnoreCase) &&
-                               c.Text.Contains("summary_advice", StringComparison.OrdinalIgnoreCase)))
-                    .ToArray()))
-            .Where(m => m.Contents.Any())
-            .ToList();
-
-        if (userMessages.Count == 0)
+        if (lastUserMessageIndex == -1)
         {
             return "No user messages to summarize.";
         }
-        if (userMessages.Count == 1)
+        else if (lastUserMessageIndex == 0)
         {
-            return string.Join(" ", userMessages.First().Contents.OfType<TextContent>().Select(c => c.Text));
+            return ExtractUserQuestion(userTrajectory[0].Text);
         }
 
-        var conversationText = string.Join("\n", userMessages.Select(m =>
-            $"{m.Role}: {string.Join(" ", m.Contents.OfType<TextContent>().Select(c => c.Text))}"));
+        var sb = new StringBuilder();
+        var messages = userTrajectory
+            .Take(lastUserMessageIndex + 1)
+            .Where(m => m.Role == ChatRole.User || m.Role == ChatRole.Assistant)
+            .SelectMany(m => m.Contents.OfType<TextContent>()
+                .Where(c => !c.Text.Contains("overall_assessment", StringComparison.OrdinalIgnoreCase))
+                .Select(c => (m.Role, c.Text)))
+            .ToList();
 
-        var summarizePrompt = $@"Analyze the following conversation and create a summary written from the user's perspective.
-Write as if you are the user describing what you want to accomplish. Use first-person language (""I want..."", ""I need..."", ""My goal is..."").
+        foreach (var message in messages)
+        {
+            sb.AppendLine($"Role: {message.Role}");
 
-Focus on:
-- What I am trying to accomplish
-- The main problem or task I need help with
-- Key requirements or constraints I have mentioned
-- Expected outcomes or goals I want to achieve
+            if (message.Role == ChatRole.Assistant)
+            {
+                var op = JsonSerializer.Deserialize<Dictionary<string, string>>(message.Text);
+                if (op is not null
+                    && op.TryGetValue("outputMessage", out var text))
+                {
+                    sb.AppendLine(text);
+                    sb.AppendLine();
+                }
+                else
+                {
+                    sb.AppendLine(message.Text);
+                    sb.AppendLine();
+                }
+            }
+            else if (message.Role == ChatRole.User)
+            {
+                sb.AppendLine(ExtractUserQuestion(message.Text));
+                sb.AppendLine();
+            }
+        }
 
-Provide a clear, concise summary written as the user's request:
-
-{conversationText}";
+        var conversation = sb.ToString();
+        var conversationMessage = $"Following is the conversation whose intent you need to extract:\n\n{conversation}";
 
         var summarizeMessages = new List<ChatMessage>
         {
-            new ChatMessage(ChatRole.System, @"You are tasked with summarizing conversations from the user's perspective.
-Your output should be written as if the user themselves is describing their request or problem.
-Use first-person language and capture their intent, needs, and goals clearly and concisely.
-The summary should sound like the user speaking directly about what they want to accomplish."),
-            new ChatMessage(ChatRole.User, summarizePrompt)
+            new(ChatRole.System,UserTrajectorySummarizerPrompt),
+            new(ChatRole.User, conversationMessage)
         };
 
         var response = await chatClient.GetResponseAsync(summarizeMessages, new ChatOptions
         {
-            Temperature = 0.3f,
+            Temperature = 0.0f,
             ToolMode = ChatToolMode.None,
             ResponseFormat = ChatResponseFormat.Text,
         });
 
-        // fallback to conversation text if no summary is generated
-        return response.Messages.LastOrDefault()?.Contents.OfType<TextContent>().FirstOrDefault()?.Text
-               ?? conversationText;
+        return response.Text;
+    }
+
+    private const string Marker = "User question goes below:";
+
+    private static string ExtractUserQuestion(string text)
+    {
+        return text.IndexOf(Marker, StringComparison.OrdinalIgnoreCase) is var i && i >= 0
+            ? text[(i + Marker.Length)..].Trim()
+            : text;
     }
 
     public static async Task<string> SummarizeActorTrajectoryAsync(
@@ -165,5 +190,43 @@ The summary should sound like the user speaking directly about what they want to
     Focus on creating summaries that are comprehensive, concise and precise.
 
     Following is the agent trajectory for user query: {{userQuery}}
+    """;
+
+    private const string UserTrajectorySummarizerPrompt =
+    """
+    You are an expert conversation analyst.
+        
+    Goal
+    Summarize** only the user's current intent** in an ongoing, multi-turn chat between a User and an Assistant.  
+    - Ignore earlier intents that have been fulfilled, abandoned, or superseded.
+    - Include any refinements or follow-ups that the user is still pursuing.  
+    - Use earlier dialogue only to resolve pronouns or context needed to state the latest intent clearly.  
+    - Express the intent in one concise sentence (≤ 25 words) that starts with a verb(e.g., “Get status of …”, “Show 5xx error trend …”, etc.).  
+
+    Example:
+    Role: User
+    What all apps do you manage?
+     → Intent: Get the list of managed apps.
+
+    Role: Assistant
+    App A, App B, Cosmos DB.
+
+    Role: User
+    What is status of App A?
+     → Intent: Get the current status of App A.
+
+    Role: Assistant
+    App A is healthy.Which metric would you like to see?
+
+    Role: User
+    Show me 5xx errors.
+     → Intent: Show the 5xx-error metric for App A.
+
+    Role: Assistant
+    (hands back a 5xx-error chart)
+
+    Role: User
+    How about Cosmos?
+     → Intent: Get the status/metrics for Cosmos DB.
     """;
 }

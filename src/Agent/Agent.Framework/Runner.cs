@@ -2,12 +2,9 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Agent.Framework;
 
@@ -21,6 +18,7 @@ public static class Runner
         RunConfig config,
         TContext? context = null,
         RunHooks<TContext>? hooks = null,
+        Func<string, Task>? displayModelOutput = null,
         CancellationToken cancellationToken = default
     ) where TContext : class
     {
@@ -69,7 +67,8 @@ public static class Runner
             currentTurn: previousResult.CurrentTurn,
             maxTurns: previousResult.MaxTurns,
             hooks: hooks,
-            previousResult.Trajectory,
+            trajectory: previousResult.Trajectory,
+            displayModelOutput: displayModelOutput,
             cancellationToken: cancellationToken,
             _shouldRunAgentStartHooks: previousResult.AgentChanged()
         );
@@ -82,6 +81,7 @@ public static class Runner
         TContext? context = null,
         int maxTurns = DefaultMaxTurns,
         RunHooks<TContext>? hooks = null,
+        Func<string, Task>? displayModelOutput = null,
         CancellationToken cancellationToken = default
     ) where TContext : class
     {
@@ -92,6 +92,7 @@ public static class Runner
             context: context,
             maxTurns: maxTurns,
             hooks: hooks,
+            displayModelOutput: displayModelOutput,
             cancellationToken: cancellationToken,
             _shouldRunAgentStartHooks: true // always run agent start hooks on initial run
         );
@@ -107,6 +108,7 @@ public static class Runner
         int maxTurns = DefaultMaxTurns,
         RunHooks<TContext>? hooks = null,
         Trajectory? trajectory = null,
+        Func<string, Task>? displayModelOutput = null,
         bool _shouldRunAgentStartHooks = true,
         CancellationToken cancellationToken = default // TODO: use cancellation token
     ) where TContext : class
@@ -167,6 +169,49 @@ public static class Runner
                 generatedMessages = turnResult.GeneratedItems;
                 rawResponses.Add(turnResult.ModelResponse);
 
+                if (displayModelOutput is not null)
+                {
+                    foreach (var message in turnResult.ModelResponse.Messages)
+                    {
+                        foreach (var content in message.Contents.OfType<TextContent>())
+                        {
+                            var op = JsonSerializer.Deserialize<Dictionary<string, string>>(content.Text);
+                            if (op is not null
+                                && op.TryGetValue("outputMessage", out var text))
+                            {
+                                await displayModelOutput(text);
+                            }
+                            else
+                            {
+                                await displayModelOutput(content.Text);
+                            }
+                        }
+                    }
+                }
+
+                if (config.EnableDebugOutput)
+                {
+                    if (displayModelOutput is not null)
+                    {
+                        foreach (var message in turnResult.ModelResponse.Messages)
+                        {
+                            foreach (var content in message.Contents)
+                            {
+                                if (content is TextContent t)
+                                {
+                                    await displayModelOutput($"Agent: {currentAgent.Name}\nResponse:{t.Text}");
+                                }
+                                else if (content is FunctionCallContent f)
+                                {
+                                    await displayModelOutput($"Agent: {currentAgent.Name}"
+                                        + $"\nFunction Call: {f.Name}"
+                                        + $"\nParameters: {(f.RawRepresentation as OpenAI.Chat.ChatToolCall)!.FunctionArguments.ToString()}");
+                                }
+                            }
+                        }
+                    }
+                }
+
                 if (turnResult.NextStep.Type == NextStepType.FinalOutput)
                 {
                     logger.LogInformation(
@@ -177,7 +222,7 @@ public static class Runner
 
                     if (currentAgent.MaxReflectionCount > 0 && trajectory.CriticCount < currentAgent.MaxReflectionCount)
                     {
-                        var userQuery = await Summarizer.SummarizeUserMessagesAsync(
+                        var userQuery = await Summarizer.SummarizeUserTrajectoryAsync(
                             config.ChatClient,
                             originalInput);
 
@@ -185,7 +230,6 @@ public static class Runner
 
                         var agentTools = await hooks.ResolveFactoryTools(contextWrapper, currentAgent);
 
-                        // todo: pass in past run feedback to critic
                         var criticResult = await Critic.CriticAsync(
                             currentAgent,
                             userQuery,
@@ -193,43 +237,23 @@ public static class Runner
                             agentTools,
                             config.ChatClient);
 
+                        if (config.EnableDebugOutput)
+                        {
+                            if (displayModelOutput is not null)
+                            {
+                                await displayModelOutput($"Agent: {currentAgent.Name}. Turn #{trajectory.CriticCount}/{currentAgent.MaxReflectionCount}");
+                                await displayModelOutput($"Summarized User Query: {userQuery}");
+                                await displayModelOutput($"Critic response: {criticResult}");
+                            }
+                        }
+
                         if (criticResult.Contains("\"overall_assessment\": \"FAIL\""))
                         {
                             logger.LogWarning("Critic result indicates failure: {CriticResult}", criticResult);
 
-                            // todo: compact the history so far..
+                            generatedMessages.Add(new(ChatRole.User, "Good try but you missed a few things. Summarize what you did so far, what is the gap and what further actions you will take to fix that in 3-4 sentences. Then try again with new tool calls as needed. Do not mention this feedback explicitly, just the major learnings. Feedback:\n" + criticResult));
 
-                            //var trajectorySummary = await Summarizer.SummarizeActorTrajectoryAsync(
-                            //    userQuery,
-                            //    trajectoryString,
-                            //    config.ChatClient);
-
-                            //input = [.. input, .. generatedMessages];
-                            //generatedMessages = [];
-
-                            //var handoffTranfer = Handoff<TContext>.GetTransferMessage(currentAgent.Name);
-                            //var lastHandoffIndex = input
-                            //    .FindLastIndex(m => m.Role == ChatRole.Tool
-                            //        && m.Contents.Count == 1
-                            //        && m.Contents[0] is FunctionResultContent f
-                            //        && string.Equals(handoffTranfer, f.Result?.ToString(), StringComparison.OrdinalIgnoreCase));
-                            //var messagesToKeep = lastHandoffIndex == -1
-                            //    ? 1 // the original user message
-                            //    : (lastHandoffIndex + 1 // story until the handoff message
-                            //    + (trajectory.CriticCount - 1) * 2); // criticCount * 2 (1 summary message, 1 feedback message)
-
-                            //var feedBack = new List<ChatMessage>()
-                            //{
-                            //    new(ChatRole.Assistant, "Past run summary:\n" + trajectorySummary),
-                            //    new(ChatRole.User, "Past run feedback:\n" + criticResult),
-                            //};
-
-                            //input = input
-                            //    .Take(messagesToKeep)
-                            //    .Concat(feedBack)
-                            //    .ToList();
-
-                            generatedMessages.Add(new(ChatRole.User, "Unsatisfactory response. Try again with new tool calls as needed. Feedback:\n" + criticResult));
+                            trajectory.AppendCriticFeedback(criticResult);
 
                             continue;
                         }
@@ -331,6 +355,8 @@ public static class Runner
         List<ChatMessage> modelInput = [new ChatMessage(ChatRole.System, systemPrompt)];
         modelInput.AddRange(originalInput);
         modelInput.AddRange(generatedMessages);
+        // tool invocations like metrics query depend on current time
+        modelInput.Add(new ChatMessage(ChatRole.System, $"The current date is {DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss zzz}"));
 
         await hooks.OnModelGenerationStart(contextWrapper, agent, modelInput, chatOptions);
 

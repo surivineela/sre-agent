@@ -17,4 +17,5 @@ public class RunConfig
     public string? TraceId { get; set; }
     public string? GroupId { get; set; }
     public Dictionary<string, object>? TraceMetadata { get; set; }
+    public bool EnableDebugOutput { get; set; }
 }

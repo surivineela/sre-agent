@@ -430,7 +430,8 @@ public class Program
                     agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "AgentsV2"),
                     commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonPrompts"),
                     promptStarters: [Core.Constants.SREAgentPromptStarter],
-                    defaultOutputType: typeof(AgentOutput)
+                    promptEnders: [Core.Constants.SREAgentFinalInstructions],
+                    defaultOutputType: typeof(DefaultAgentOutput)
                 );
             })
             .AddSingleton<IDiagnosticsPlugin, DiagnosticsPlugin>()

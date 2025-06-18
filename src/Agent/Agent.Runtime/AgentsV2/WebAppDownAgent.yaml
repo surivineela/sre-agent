@@ -79,7 +79,6 @@ tools:
 - GetDeploymentActivity
 - GetStackTracesOfNMostCommonExceptions
 - GetAppConsoleLogs
-- NotifyUser
 - ScaleUpAppServicePlanBySku
 - ShouldTriggerHighMemoryScenario
 - ShouldTriggerHighCPUScenario
@@ -98,7 +97,5 @@ agents_as_tools:
       Also provide the investigation details and context
       
 common_prompts:
-  - notify_user
   - format_guidelines
   - guard_rail
-  - handoff_back

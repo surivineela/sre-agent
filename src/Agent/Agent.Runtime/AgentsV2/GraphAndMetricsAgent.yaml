@@ -147,11 +147,8 @@ tools:
    - PlotAreaChartWithCorrelation
    - PlotHeatmap
    - HandoffBack
-   - NotifyUser
-
+   
 common_prompts:
-  - handoff_back
-  - notify_user
   - format_guidelines
   - guard_rail
 

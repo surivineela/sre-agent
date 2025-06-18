@@ -12,7 +12,9 @@ public class Handoff<TContext> : AIFunction where TContext : class
 
     public Type? InputType { get; }
 
-    public string TransferMessage => $"Handed off to agent '{AgentName}'. Assume this persona immediately and continue with the task.";
+    public string TransferMessage => HandoffMessage;
+
+    public const string HandoffMessage = "Handoff is complete. Analyze the current state of the conversation, think about the required next steps, and continue handling the task";
 
     #region AITool overrides
 

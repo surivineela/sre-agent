@@ -185,7 +185,7 @@ const getRiskLevel = (command: string): 'Safe' | 'Low' | 'Medium' | 'High' => {
     if (cmd.includes('start') || cmd.includes('stop') || cmd.includes('enable') || cmd.includes('disable')) return 'Low';
 
     // Safe operations (read-only)
-    if (cmd.includes('list') || cmd.includes('show') || cmd.includes('get')) return 'Safe';
+    if (cmd.includes('list') || cmd.includes('show') || cmd.includes('get') || cmd.includes('describe')) return 'Safe';
 
     return 'Medium'; // Default
 };

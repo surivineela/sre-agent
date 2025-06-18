@@ -11,6 +11,8 @@ public class PromptText
 {
     private readonly string _value;
 
+    private string? _text;
+
     public PromptText(string value)
     {
         _value = value ?? throw new ArgumentNullException(nameof(value));
@@ -18,37 +20,35 @@ public class PromptText
 
     public override string ToString()
     {
-        StringBuilder builder = new StringBuilder();
-
-        foreach (var promptStarter in _promptStarters)
+        if (_text is null)
         {
-            builder.AppendLine(promptStarter);
-            builder.AppendLine();
-        }
+            StringBuilder builder = new StringBuilder();
 
-        builder.AppendLine(PromptTextConstants.Introduction.Replace("{{currentDateTime}}", DateTimeOffset.Now.ToString("yyyy-MM-dd HH:mm:ss zzz")));
-        builder.AppendLine();
+            foreach (var promptStarter in _promptStarters)
+            {
+                builder.AppendLine(promptStarter);
+                builder.AppendLine();
+            }
 
-        if (HasHandoffInstructions)
-        {
-            builder.AppendLine(PromptTextConstants.HandoffInstructions);
-            builder.AppendLine();
-            builder.AppendLine("# Instructions");
-        }
+            if (HasHandoffInstructions)
+            {
+                builder.AppendLine(HandoffInstructions);
+                builder.AppendLine();
+            }
 
-        if (!string.IsNullOrEmpty(_value))
-        {
             builder.AppendLine(_value);
             builder.AppendLine();
+
+            foreach (var commonPrompt in _commonPrompts)
+            {
+                builder.AppendLine(commonPrompt);
+                builder.AppendLine();
+            }
+
+            _text = builder.ToString();
         }
 
-        foreach (var commonPrompt in _commonPrompts)
-        {
-            builder.AppendLine(commonPrompt);
-            builder.AppendLine();
-        }
-
-        return builder.ToString();
+        return _text;
     }
 
     public static implicit operator string(PromptText? promptText)
@@ -80,6 +80,8 @@ public class PromptText
 
     private readonly List<string> _promptStarters = [];
 
+    private readonly List<string> _promptEnders = [];
+
     public PromptText WithHandoffInstructions()
     {
         HasHandoffInstructions = true;
@@ -96,22 +98,20 @@ public class PromptText
         _promptStarters.Add(promptStarter);
     }
 
-    private static class PromptTextConstants
+    public void AddPromptEnder(string promptEnder)
     {
-        public const string HandoffInstructions = """
-        # System context
-        You are part of a multi-agent system called the Agents SDK, designed to make agent
-        coordination and execution easy. Agents uses two primary abstraction: **Agents** and
-        **Handoffs**. An agent encompasses instructions and tools and can hand off a
-        conversation to another agent when appropriate.
-        Handoffs are achieved by calling a handoff function, generally named
-        `transfer_to_<agent_name>`. Transfers between agents are handled seamlessly in the background;
-         do not mention or draw attention to these transfers in your conversation with the user.
-         perform the handoff automatically and do not ask the user if you can proceed.
-        """;
-
-        public const string Introduction = """
-            The current date is {{currentDateTime}}.
-            """;
+        _promptEnders.Add(promptEnder);
     }
+
+    private const string HandoffInstructions = """
+        # Handoff System Context
+
+        You are part of a multi-agent framework called the **Agents Framework**, designed to make agent
+        coordination and execution easy. The framework uses two primary abstraction: **Agents** and
+        **Handoffs**. An agent encompasses instructions and tools and can hand off a
+        conversation to another agent when appropriate. You are **one** agent in this system.
+        Handoffs are achieved by calling a handoff tool, generally named
+        `transfer_to_<agent_name>` or `HandOffBack`. Transfers between agents are handled seamlessly in the background by the framework.
+        Perform the handoff automatically and do not ask the user if you can proceed.
+        """;
 }

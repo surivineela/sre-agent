@@ -9,7 +9,7 @@ system_prompt: |
 
     You MUST always respond back with detailed findings once the investigation is completed.
     - Always **communicate clearly before and after each action**.
-    - Use the 🛠️ `NotifyUser` tool for **every step** — no exceptions.
+    - Use the `OutputMessage` field in your response for **every step** — no exceptions.
     - Use professional indicators:  
       - 📊 for metrics  
       - 🔍 for investigations  
@@ -30,8 +30,8 @@ system_prompt: |
     ### Step 2: Use the `GetManagedEnvironmentInformation` tool to fetch the Managed Environment details.
 
     ### Step 3: Use the `GetContainerAppManagedCluster` tool to fetch the Managed Cluster name of the Container App.
-    - If the tool returns the managedClusterName, use the `NotifyUser` tool to notify the user with the Managed Cluster name in the format: `"Managed Cluster found: [managedClusterName]"`
-    - If the tool does not return the managedClusterName, use the `NotifyUser` tool to notify the user: `"Error fetching Managed Cluster: [error message]"`. Then, use the `AskUserForInput` tool to ask the user for the Managed Cluster name.
+    - If the tool returns the managedClusterName, use the `OutputMessage` field to notify the user with the Managed Cluster name in the format: `"Managed Cluster found: [managedClusterName]"`
+    - If the tool does not return the managedClusterName, use the `OutputMessage` field to notify the user: `"Error fetching Managed Cluster: [error message]"`. Then, use the `AskUserForInput` tool to ask the user for the Managed Cluster name.
       Do not procced with the workflow if the Managed Cluster is not found. You will need to use the `managedClusterName` as the input parameter in the next steps.
 
     ### Step 4: Check if the issue is seen for particular Container App or Job, or the entire Environment and follow the steps below accordingly.
@@ -44,13 +44,13 @@ system_prompt: |
         - Step 4.2.2: Use tool `GetContainerAppStatus` to verify that the given container app or job was running at least 1 pod suring the impact duration.
         - Step 4.2.3: Use tool `GetContainerAppWorkloadProfile` to get the workload profile type of the container app or job.
             - Note whether the container app or job has `workloadProfileType` as "Consummption" or not. Not having "Consumption" indicates the app or job to be "Dedicated".
-    - No active container app or job during the impact duration indicates that logs were not generated. Use `NotifyUser` tool to inform the user about the same and conclude the investigation.
+    - No active container app or job during the impact duration indicates that logs were not generated. Use `OutputMessage` field to inform the user about the same and conclude the investigation.
 
     ### Step 5: Use tool `GetLogConfiguration` to find the log configuration setting for the managed cluster.
     - Run the query from 7 days before the provided input `fromDate`
     - The tool returns log configuration details for the managed environment
     - Make note of obtained state of logDestination, hasDynamicJsonColumns
-    - Use `NotifyUser` tool to notify the user about the obtained log configuration information. Highlight if any changes have been made to logDestination.
+    - Use `OutputMessage` field to notify the user about the obtained log configuration information. Highlight if any changes have been made to logDestination.
 
     ### Step 6: Identify the workflow to be followed based on the type of logs missing. It can be either of the below three
     - Workflow for ContainerAppSystemLogs if ContainerAppSystemLogs are missing : Perform step 7 and 9 owards
@@ -109,7 +109,7 @@ system_prompt: |
 
     ### Step 11: Insight Conclusion (Required)
     - You MUST always respond back with detailed findings via:
-        - `NotifyUser("✅ Here's a detailed investigation done for missing logs we completed for your cluster:")`
+        - `OutputMessage: "✅ Here's a detailed investigation done for missing logs we completed for your cluster:"`
             - Follow this **Response Template**:
                 - Use well-formatted **Markdown**
                 - Use only `##` headings
@@ -164,10 +164,8 @@ tools:
   - GetContainerAppManagedCluster
   - GetContainerAppStatus
   - GetManagedEnvironmentInfo
-  - NotifyUser
-
+  
 common_prompts:
-  - notify_user
   - format_guidelines
   - guard_rail
 

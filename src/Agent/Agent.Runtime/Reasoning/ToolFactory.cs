@@ -3,7 +3,6 @@
 // ------------------------------------------------------------
 
 using System.Reflection;
-using Agent.Core.Models.Api.v1;
 using Agent.Framework;
 using Agent.Logging;
 using Agent.Plugins;
@@ -208,6 +207,7 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
             catch (Exception ex)
             {
                 _logger.LogInternalError(ex, "Failed to register tool from type {pluginType}.", pluginType.FullName);
+                throw;
             }
         }
     }

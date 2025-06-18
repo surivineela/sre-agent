@@ -60,8 +60,8 @@ namespace Agent.Tests.Unit
             return a + b;
         }
 
-        [Description("Method with same name as TestPlugin")]
-        public string SayHello(string name)
+        [Description("Another test method")]
+        public string SayHello2(string name)
         {
             return $"Greetings, {name}!";
         }

@@ -32,7 +32,7 @@ namespace Agent.Tests.Unit.Framework
 
             var result = prompt.ToString();
 
-            Assert.Contains("System context", result);
+            Assert.Contains("System Context", result);
             Assert.Contains("Test", result);
         }
 

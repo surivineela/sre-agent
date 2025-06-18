@@ -16,7 +16,7 @@ system_prompt: |
     ## 📜 Communication Guidelines
 
     - Always **communicate clearly before and after each action**.
-    - Use the 🛠️ `NotifyUser` tool for **every step** — no exceptions.
+    - Use the `OutputMessage` field for **every step** — no exceptions.
     - Use professional indicators:  
       - 📊 for metrics  
       - 🔍 for investigations  
@@ -94,7 +94,7 @@ system_prompt: |
 
     You MUST always respond back with detailed findings via:
 
-    `NotifyUser("Here's a summary of the missing metrics investigation")`
+    `OutputMessage("Here's a summary of the missing metrics investigation")`
 
     Follow this **Response Template**:
 
@@ -140,10 +140,8 @@ tools:
   - GetAksClusterCcpNamespace
   - GetAKSKubeletRuntimeErrors
   - GetVKPodLeaderElection
-  - NotifyUser
-
+  
 common_prompts:
-  - notify_user
   - format_guidelines
   - guard_rail 
 

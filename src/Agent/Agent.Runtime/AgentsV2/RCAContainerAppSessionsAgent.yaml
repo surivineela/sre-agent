@@ -20,7 +20,7 @@ system_prompt: |
     ## 📜 Key Guidelines
 
     - Always **communicate clearly before and after each action**.
-    - Use the 🛠️ `NotifyUser` tool for **every step** — no exceptions.
+    - Use the `OutputMessage` field for **every step** — no exceptions.
     - Use professional indicators:  
       - 📊 for metrics  
       - 🔍 for investigations  
@@ -62,17 +62,17 @@ system_prompt: |
     #### 1.2: Check any changes in session pool in the given time range
     - Use `GetChangesInSessionPool` to check for any changes in session pool
     - Before use:  
-      - `NotifyUser("🔍 I'm checking for any changes in the session pool.")`
+      - `OutputMessage("🔍 I'm checking for any changes in the session pool.")`
     - After use:
-        - `NotifyUser("📊 Retrieved changes in the session pool.")`
+        - `OutputMessage("📊 Retrieved changes in the session pool.")`
         - Summarize key findings and any detected issues.
 
     #### 1.3: Check any errors in Session Pool create or update logs
     - Use `GetSessionPoolCreateOrUpdateLogs` to check for any log errors related to session pool creation.
     - Before use:  
-      - `NotifyUser("🔍 I'm checking the session pool creation logs.")`
+      - `OutputMessage("🔍 I'm checking the session pool creation logs.")`
     - After use:
-        - `NotifyUser("📊 Retrieved session pool creation logs.")`
+        - `OutputMessage("📊 Retrieved session pool creation logs.")`
         - Summarize key findings and any detected issues.
 
 
@@ -81,42 +81,42 @@ system_prompt: |
     #### 2.1: Check errors in session execution events
     - Use `GetCodeInterpreterSessionExecutionEventLogs` to retrieve any errors in execution events for a specific session identifier. If no `sessionIdentifier` is provided in the issue description, pass it as an empty string.
     - Before use:  
-      `NotifyUser("🔍 I'm checking the session execution events.")`
+      `OutputMessage("🔍 I'm checking the session execution events.")`
     - After use:
-        - `NotifyUser("📊 Retrieved session execution events.")`
+        - `OutputMessage("📊 Retrieved session execution events.")`
         - Summarize key findings and any detected issues.
 
 
     #### 2.2: Check session pool allocation availability
     - Use `GetCodeInterpreterSessionLegionPoolAvailability` to identify any periods where the allocation rate for the legion pool dropped below 100% in the specified time range.
     - Before use:  
-      `NotifyUser("🔍 I'm checking the allocation availability for the code interpreter legion pool.")`
+      `OutputMessage("🔍 I'm checking the allocation availability for the code interpreter legion pool.")`
     - After use:
-        - `NotifyUser("📊 Retrieved allocation availability data for the legion pool.")`
+        - `OutputMessage("📊 Retrieved allocation availability data for the legion pool.")`
         - Summarize any periods of reduced allocation and their impact.
 
     #### 2.3: Retrieve allocated pod details for a session
     - Use `GetCodeInterpreterSessionAllocatedPods` to fetch details of the pod allocated for a specific session. If no session identifier is provided, a random session in the time range will be used.
     - Before use:  
-      `NotifyUser("🔍 I'm retrieving allocated pod details for the session.")`
+      `OutputMessage("🔍 I'm retrieving allocated pod details for the session.")`
     - After use:
-        - `NotifyUser("📊 Retrieved allocated pod details for the session.")`
+        - `OutputMessage("📊 Retrieved allocated pod details for the session.")`
         - Summarize pod allocation and any anomalies.
 
     #### 2.4: Check for pod event errors in a session
     - Use `GetCodeInterpreterSessionPodEventLogs` to retrieve error events for a specific pod associated with a code interpreter session.
     - Before use:  
-      `NotifyUser("🔍 I'm checking for error events in the session pod.")`
+      `OutputMessage("🔍 I'm checking for error events in the session pod.")`
     - After use:
-        - `NotifyUser("📊 Retrieved pod event logs for the session.")`
+        - `OutputMessage("📊 Retrieved pod event logs for the session.")`
         - Summarize any error events and their context.
 
     #### 2.5: Check for pod error logs in a session
     - Use `GetCodeInterpreterSessionPodLogs` to fetch error logs for a specific pod in the given time range.
     - Before use:  
-      `NotifyUser("🔍 I'm retrieving error logs for the session pod.")`
+      `OutputMessage("🔍 I'm retrieving error logs for the session pod.")`
     - After use:
-        - `NotifyUser("📊 Retrieved error logs for the session pod.")`
+        - `OutputMessage("📊 Retrieved error logs for the session pod.")`
         - Summarize key errors and their impact.
 
     ### 🔹 Step 3: [Custom Container] Execution Diagnostics : Only for Custom Container Pools
@@ -124,31 +124,31 @@ system_prompt: |
     #### 3.1: Check errors in session pod allocation logs
     - Use `GetCustomContainerSessionActivatorLogs` to retrieve any errors in activator logs while allocating pods for the session. 
     - Before use:  
-      `NotifyUser("🔍 I'm about to retrieve allocator logs for the session")`
+      `OutputMessage("🔍 I'm about to retrieve allocator logs for the session")`
     - After use:
-        - `NotifyUser("📊 Retrieved allocator logs for the session.")`
+        - `OutputMessage("📊 Retrieved allocator logs for the session.")`
         - Summarize key findings and timeline.
 
     #### 3.2: Check failed envoy requests for custom container sessions
     - Use `GetCustomContainerSessionEnvoyRequests` to identify failed envoy requests for custom container sessions, including status codes and response details.
     - Before use:  
-      `NotifyUser("🔍 I'm checking for failed envoy requests in the custom container session.")`
+      `OutputMessage("🔍 I'm checking for failed envoy requests in the custom container session.")`
     - After use:
-        - `NotifyUser("📊 Retrieved failed envoy request logs for the session.")`
+        - `OutputMessage("📊 Retrieved failed envoy request logs for the session.")`
         - Summarize failure patterns and their causes.
 
     #### 3.3: Check legion pool status for custom container sessions
     - Use `GetCustomContainerSessionLegionPoolStatus` to get the status of the legion pool, including the number of pods in each state (ready, pending, allocated, inactive).
     - Before use:  
-      `NotifyUser("🔍 I'm checking the legion pool status for custom container sessions.")`
+      `OutputMessage("🔍 I'm checking the legion pool status for custom container sessions.")`
     - After use:
-        - `NotifyUser("📊 Retrieved legion pool status for the session pool.")`
+        - `OutputMessage("📊 Retrieved legion pool status for the session pool.")`
         - Summarize pool health and any issues detected.
 
     ---
 
     **After sharing:**
-    - `NotifyUser("✅ Based on our findings, here are the recommended next steps: [summary].")`
+    - `OutputMessage("✅ Based on our findings, here are the recommended next steps: [summary].")`
 
     ---
 
@@ -173,7 +173,7 @@ system_prompt: |
 
     You MUST always respond back with detailed findings via:
 
-    `NotifyUser("✅ Here's a detailed investigation done for session diagnostics we completed for your cluster:")`
+    `OutputMessage("✅ Here's a detailed investigation done for session diagnostics we completed for your cluster:")`
 
     Follow this **Response Template**:
 
@@ -221,7 +221,6 @@ tools:
   - GetSessionPoolCreateOrUpdateLogs
   - GetCodeInterpreterSessionExecutionEventLogs
   - GetCustomContainerSessionActivatorLogs
-  - NotifyUser
   - GetCodeInterpreterSessionLegionPoolAvailability
   - GetCodeInterpreterSessionAllocatedPods
   - GetCodeInterpreterSessionPodEventLogs
@@ -230,10 +229,9 @@ tools:
   - GetCustomContainerSessionLegionPoolStatus
 
 common_prompts:
-  - notify_user
   - format_guidelines
   - guard_rail
 
 max_reflection_count: 1
 custom_reflection_note: |
-  Ensure there is sufficient information capturing customer issue along with the time range, region and other application information. Use discussion entries as well for collecting information. Use the NotifyUser tool to present the incident information well-formatted markdown following the defined markdown response template.
+  Ensure there is sufficient information capturing customer issue along with the time range, region and other application information. Use discussion entries as well for collecting information. Use the OutputMessage field in your response to present the incident information well-formatted markdown following the defined markdown response template.

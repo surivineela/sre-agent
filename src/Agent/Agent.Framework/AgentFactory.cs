@@ -29,6 +29,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
     private readonly string? _agentsYamlDirectory;
     private readonly string? _commonPromptsYamlDirectory;
     private readonly IEnumerable<string>? _promptStarters;
+    private readonly IEnumerable<string>? _promptEnders;
     private readonly Type? _defaultOutputType;
     private readonly IAgentModeConfigurator<TContext> _modeConfigurator;
 
@@ -40,6 +41,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         string? agentsYamlDirectory = null,
         string? commonPromptsYamlDirectory = null,
         IEnumerable<string>? promptStarters = null,
+        IEnumerable<string>? promptEnders = null,
         Type? defaultOutputType = null
     )
     {
@@ -49,54 +51,51 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         _agentsYamlDirectory = agentsYamlDirectory;
         _commonPromptsYamlDirectory = commonPromptsYamlDirectory;
         _promptStarters = promptStarters;
+        _promptEnders = promptEnders;
         _modeConfigurator = modeConfigurator;
         _defaultOutputType = defaultOutputType;
         InitializeAgents();
     }
 
-    private bool ValidateAgentDescriptor(IAgentDescriptor? agentDescriptor)
+    private void ValidateAgentDescriptor(IAgentDescriptor? agentDescriptor)
     {
         if (agentDescriptor is null)
         {
-            _logger.LogError("Agent descriptor is null.");
-            return false;
+            throw new Exception("Agent descriptor is null.");
         }
 
         if (string.IsNullOrEmpty(agentDescriptor.Name))
         {
-            _logger.LogError("Agent descriptor {descriptorType} does not have a name.", agentDescriptor.GetType().Name);
-            return false;
+            throw new Exception($"Agent descriptor {agentDescriptor.GetType().Name} does not have a name.");
         }
 
         if (string.IsNullOrEmpty(agentDescriptor.Instructions))
         {
-            _logger.LogError("Agent descriptor {descriptorName} does not have instructions.", agentDescriptor.Name);
-            return false;
+            throw new Exception($"Agent descriptor {agentDescriptor.Name} does not have instructions.");
         }
 
         if (_agents.ContainsKey(agentDescriptor.Name))
         {
-            _logger.LogError("Agent descriptor {descriptorName} already exists.", agentDescriptor.Name);
-            return false;
+            throw new Exception($"Agent descriptor {agentDescriptor.Name} already exists.");
         }
 
         if (agentDescriptor.Tools.Any(toolName => !_toolFactory.HasTool(toolName)))
         {
             var missingTools = agentDescriptor.Tools.Where(toolName => !_toolFactory.HasTool(toolName)).ToList();
-            _logger.LogError("Agent descriptor {descriptorName} has tools that do not exist in the tool factory: {missingTools}",
-                agentDescriptor.Name, string.Join(", ", missingTools));
-            return false;
+            throw new Exception($"Agent descriptor {agentDescriptor.Name} has tools that do not exist in the tool factory: {string.Join(", ", missingTools)}");
         }
-
-        return true;
     }
 
-    private bool AddAgentDescriptor(IAgentDescriptor agentDescriptor)
+    private void AddAgentDescriptor(IAgentDescriptor agentDescriptor)
     {
-        if (!ValidateAgentDescriptor(agentDescriptor))
+        try
         {
-            _logger.LogError("Agent descriptor {descriptorType} is not valid.", agentDescriptor?.GetType().Name ?? "null");
-            return false;
+            ValidateAgentDescriptor(agentDescriptor);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to validate agent descriptor {descriptorName}.", agentDescriptor.Name);
+            throw;
         }
 
         var agent = new Agent<TContext>(agentDescriptor.Name)
@@ -143,21 +142,28 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
                 _logger.LogWarning("Agent descriptor {descriptorName} has a common prompt {commonPromptName} that does not exist.",
                     agentDescriptor.Name, commonPromptName);
 
-                return false;
+                throw new Exception($"Agent descriptor {agentDescriptor.Name} has a common prompt {commonPromptName} that does not exist.");
             }
 
             agent.Instructions.AddCommonPrompt(commonPrompt.Prompt);
         }
 
+        if (_promptEnders is not null)
+        {
+            foreach (var promptEnder in _promptEnders)
+            {
+                agent.Instructions.AddPromptEnder(promptEnder);
+            }
+        }
+
         if (_agents.ContainsKey(agentDescriptor.Name))
         {
             _logger.LogWarning("Agent with name {agentName} already exists.", agentDescriptor.Name);
-            return false;
+            throw new Exception($"Agent with name {agentDescriptor.Name} already exists.");
         }
 
         _agents[agentDescriptor.Name] = agent;
         _agentDescriptors[agentDescriptor.Name] = agentDescriptor;
-        return true;
     }
 
     private Type? GetOutputType(IAgentDescriptor agentDescriptor)
@@ -278,14 +284,8 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
                 continue;
             }
 
-            if (AddAgentDescriptor(agentDescriptor))
-            {
-                _logger.LogInformation("Successfully loaded agent descriptor '{descriptorName}' from assembly '{assemblyName}'.", agentType.Name, agentType.Assembly.GetName().Name);
-            }
-            else
-            {
-                _logger.LogError("Failed to load agent descriptor '{descriptorName}' from assembly '{assemblyName}'.", agentType.Name, agentType.Assembly.GetName().Name);
-            }
+            AddAgentDescriptor(agentDescriptor);
+            _logger.LogInformation("Successfully loaded agent descriptor '{descriptorName}' from assembly '{assemblyName}'.", agentType.Name, agentType.Assembly.GetName().Name);
         }
     }
 
@@ -332,14 +332,8 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
             string yamlContent = File.ReadAllText(filePath);
 
             var agentDescriptor = AgentFactory<TContext>.LoadAgentFromYaml(yamlContent);
-            if (AddAgentDescriptor(agentDescriptor))
-            {
-                _logger.LogInformation("Successfully loaded agent descriptor {descriptorName} from file {filePath}.", agentDescriptor.Name, filePath);
-            }
-            else
-            {
-                _logger.LogError("Failed to load agent descriptor from file {filePath}.", filePath);
-            }
+            AddAgentDescriptor(agentDescriptor);
+            _logger.LogInformation("Successfully loaded agent descriptor {descriptorName} from file {filePath}.", agentDescriptor.Name, filePath);
         }
         catch (Exception ex)
         {

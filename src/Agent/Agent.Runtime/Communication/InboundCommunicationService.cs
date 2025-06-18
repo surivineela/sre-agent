@@ -241,7 +241,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                 }
                 else
                 {
-                   // Process the message with MetaAgent
+                    // Process the message with MetaAgent
                     agentResponse = await _metaAgent.ProcessUserMessageAsync(agentContext: agentContext, agentChatHistory: agentChatHistory);
                 }
 
@@ -295,7 +295,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                 await foreach (var response in streamingResult)
                 {
                     string outputText = string.Empty;
-                    if (response.Output is AgentOutput agentOutput)
+                    if (response.Output is IAgentOutput agentOutput)
                     {
                         outputText = agentOutput.OutputMessage;
                     }

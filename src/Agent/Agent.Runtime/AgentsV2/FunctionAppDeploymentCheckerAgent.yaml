@@ -14,13 +14,10 @@ tools:
 - GetArmResourceAsJson
 - GetFunctionAppDeploymentChecks
 - GetFunctionAppDeploymentHistory
-- NotifyUser
 - HandoffBack
 
 common_prompts:
-  - notify_user
   - format_guidelines
   - guard_rail
-  - handoff_back
 
 max_reflection_count: 2

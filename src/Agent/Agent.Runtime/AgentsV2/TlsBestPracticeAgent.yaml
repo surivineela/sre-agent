@@ -87,11 +87,8 @@ handoff_description: |
 tools:
     - GetSuccessfulRequestVolume
     - SetMinimumTlsVersion
-    - NotifyUser
     - HandoffBack
 
 common_prompts:
-   - notify_user
    - format_guidelines
    - guard_rail
-   - handoff_back

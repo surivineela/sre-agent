@@ -50,7 +50,6 @@ tools:
   - UpdateContainerImage
   - ValidateContainerAppHealth
   - GetDeploymentTimes
-  - NotifyUser
   - HandoffBack
   - CloseAzureMonitorAlert    
 
@@ -68,7 +67,5 @@ agents_as_tools:
       network configurations to identify connectivity issues causing the HTTP errors.
 
 common_prompts:
-  - notify_user
   - format_guidelines
   - guard_rail
-  - handoff_back

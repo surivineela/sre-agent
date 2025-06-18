@@ -80,6 +80,14 @@ public sealed class Trajectory
         TrajectoryBuilder.AppendLine();
     }
 
+    public void AppendCriticFeedback(string feedback)
+    {
+        TrajectoryBuilder.AppendLine($"This is the critic feedback received by the agent in the past run. It contains a verified summary of the past actions taken by the agent.\n\nRole: Critic.");
+        TrajectoryBuilder.AppendLine();
+        TrajectoryBuilder.AppendLine(feedback);
+        TrajectoryBuilder.AppendLine($"Now the agent has taken the following steps since then to address the feedback.\n\n");
+    }
+
     public string Close()
     {
         var trajectory = TrajectoryBuilder.ToString();

@@ -65,11 +65,9 @@ handoff_description: "Handoff to this agent when dealing with issues related to 
 tools:
   - GetMemoryAnalysis
   - PlotBarChart
-  - NotifyUser
   - HandoffBack 
 
 common_prompts:
-- notify_user
 - format_guidelines
 - guard_rail
 - handoff_back

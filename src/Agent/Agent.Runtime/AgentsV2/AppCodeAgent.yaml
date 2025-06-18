@@ -29,12 +29,8 @@ tools:
 - PlotBarChart
 - PlotScatter
 - PerformDeploymentSwapForApp
-- NotifyUser
 - HandoffBack
 
 common_prompts:
-  - notify_user
   - format_guidelines
-  - handoff_back
   - guard_rail
-  - handoff_back
