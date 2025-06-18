@@ -6,6 +6,7 @@ import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/Star
 import { getErrorMessage } from '../../../Common/Clients/ArmClient';
 import { IncidentHandlerClient } from '../../../Common/Clients/IncidentHandlerClient';
 import { IncidentDocument, IncidentHandler, ToolInfo, WithSelection } from '../../../Common/Contracts/Azure/IncidentHandler';
+import { IncidentStatus } from '../../../Common/Contracts/Azure/SreAgent';
 import { Guid } from '../../../Common/Helpers/Guid';
 import { ArmResourceDescriptor } from '../../../Common/Helpers/ResourceDescriptors';
 import { IncidentHandlerCreateResources } from '../../../Strings/SREAgentResources';
@@ -433,6 +434,7 @@ export const useCreateIncidentHandler = (
                     id: handlerCreateOrEditInfo?.filterId,
                 },
                 durationInDays: selectedTimespan,
+                statuses: [IncidentStatus.resolved, IncidentStatus.mitigated],
             };
             setLoadingIncidents(true);
             setIncidents([]);

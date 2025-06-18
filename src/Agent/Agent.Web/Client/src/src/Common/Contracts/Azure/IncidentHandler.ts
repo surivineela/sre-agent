@@ -1,3 +1,5 @@
+import { IncidentStatus } from './SreAgent';
+
 export interface InstructionGenerationRequest {
     agentName: string;
     customInstructions: string;
@@ -17,6 +19,9 @@ export interface IncidentQueryRequest {
     keywords?: string[];
     durationInDays?: number;
     filter?: IncidentFilterDocumentPayload;
+    pageSize?: number;
+    pageNumber?: number;
+    statuses?: IncidentStatus[];
 }
 
 export interface IncidentFilterDocumentPayload {
