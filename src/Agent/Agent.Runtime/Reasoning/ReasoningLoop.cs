@@ -170,8 +170,11 @@ public class ReasoningLoop : IDisposable
     }
 
     // streaming methods
-    public async IAsyncEnumerable<RunResult<AgentContext>> AppendNewChatMessageStreamAsync(ChatMessage msg, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    public async IAsyncEnumerable<RunResult<AgentContext>> AppendNewChatMessageStreamAsync(ChatMessage msg)
     {
+        RefreshUserCancellationTokenSource();
+        var cancellationToken = _userCancellationTokenSource.Token;
+
         // TODO: use queue system to iterate over events and *actually* do something with them before returning all events to user
         if (await _msgCh.Writer.WaitToWriteAsync(cancellationToken))
         {
@@ -179,7 +182,7 @@ public class ReasoningLoop : IDisposable
             await _msgCh.Writer.WriteAsync(new ReasoningLoopChatMessage(msg), cancellationToken);
 
             var streamingResult = RunStreamingAsync(cancellationToken);
-            await foreach (var update in streamingResult.WithCancellation(cancellationToken))
+            await foreach (var update in streamingResult)
             {
                 yield return update;
             }
@@ -190,15 +193,18 @@ public class ReasoningLoop : IDisposable
         }
     }
 
-    public async IAsyncEnumerable<RunResult<AgentContext>> AppendFunctionCallMessagesStreamAsync(List<ChatMessage> msgs, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    public async IAsyncEnumerable<RunResult<AgentContext>> AppendFunctionCallMessagesStreamAsync(List<ChatMessage> msgs)
     {
+        RefreshUserCancellationTokenSource();
+        var cancellationToken = _userCancellationTokenSource.Token;
+
         if (await _msgCh.Writer.WaitToWriteAsync(cancellationToken))
         {
             _logger.LogInternalInformation("Appending new function call message");
             await _msgCh.Writer.WriteAsync(new ReasoningLoopFunctionCall(msgs), cancellationToken);
 
             var streamingResult = RunStreamingAsync(cancellationToken);
-            await foreach (var update in streamingResult.WithCancellation(cancellationToken))
+            await foreach (var update in streamingResult)
             {
                 yield return update;
             }
@@ -209,15 +215,18 @@ public class ReasoningLoop : IDisposable
         }
     }
 
-    public async IAsyncEnumerable<RunResult<AgentContext>> AppendNewApprovalMessageStreamAsync(Approval approval, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    public async IAsyncEnumerable<RunResult<AgentContext>> AppendNewApprovalMessageStreamAsync(Approval approval)
     {
+        RefreshUserCancellationTokenSource();
+        var cancellationToken = _userCancellationTokenSource.Token;
+
         if (await _msgCh.Writer.WaitToWriteAsync(cancellationToken))
         {
             _logger.LogInternalInformation("Appending new approval message");
             await _msgCh.Writer.WriteAsync(new ReasoningLoopApprovalMessage(approval), cancellationToken);
 
             var streamingResult = RunStreamingAsync(cancellationToken);
-            await foreach (var update in streamingResult.WithCancellation(cancellationToken))
+            await foreach (var update in streamingResult)
             {
                 yield return update;
             }
@@ -461,6 +470,29 @@ public class ReasoningLoop : IDisposable
 
         while (_msgCh.Reader.TryRead(out var reasoningLoopMessage))
         {
+            if (_context.ContextState != ContextStateEnum.Processing)
+            {
+                await ChangeAgentContextStateAsync(ContextStateEnum.Processing);
+            }
+
+            if (cancellationToken.IsCancellationRequested)
+            {
+                await ChangeAgentContextStateAsync(ContextStateEnum.Completed);
+                _logger.LogInternalInformation("Cancellation requested, stopping reasoning loop.");
+                yield return new RunResult<AgentContext>(_currentAgent)
+                {
+                    Input = _chatHistory ?? [],
+                    NewItems = [],
+                    RawResponses = [],
+                    CurrentTurn = 1,
+                    MaxTurns = 1,
+                    Output = "Operation cancelled by user.",
+                    ContextWrapper = new RunContextWrapper<AgentContext>(_context),
+                    Trajectory = new Trajectory(),
+                    IsCancellationRequested = true
+                };
+                yield break;
+            }
 
             ReasoningLoopIterationResult? iterationResult = null;
 

@@ -294,6 +294,19 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             {
                 await foreach (var response in streamingResult)
                 {
+                    if (response.IsCancellationRequested)
+                    {
+                        ChatResponseUpdate cancellationUpdate = new ChatResponseUpdate(ChatRole.System, "Message processing was cancelled.");
+                        cancellationUpdate.AdditionalProperties ??= new AdditionalPropertiesDictionary();
+                        cancellationUpdate.AdditionalProperties.Add("messageId", streamedResponseMessageId.ToString());
+                        cancellationUpdate.AdditionalProperties.Add("threadId", threadMessage.ThreadId.ToString());
+                        cancellationUpdate.AdditionalProperties.Add("currentAgent", response.LastAgent.Name ?? string.Empty);
+                        cancellationUpdate.AdditionalProperties.Add("isCancelled", true);
+                        cancellationUpdate.FinishReason = ChatFinishReason.Stop;
+                        yield return cancellationUpdate;
+                        yield break;
+                    }
+
                     string outputText = string.Empty;
                     if (response.Output is IAgentOutput agentOutput)
                     {
@@ -322,7 +335,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                             var functionCall = toolCall.FunctionCall;
                             functionCall.AdditionalProperties ??= new AdditionalPropertiesDictionary();
                             functionCall.AdditionalProperties.Add("userDescription", ToolDescriptionHelper.GetUserDescriptionForFunctionCallName(functionCall.Name));
-                            
+
                             // Create a safe version that doesn't expose the real function name
                             var safeFunctionCall = new FunctionCallContent(
                                 functionCall.CallId,
@@ -509,7 +522,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                             {
                                 string functionName = functionCall.Name;
                                 string userFriendlyDescription = ToolDescriptionHelper.GetUserDescriptionForFunctionCallName(functionName);
-                                
+
                                 // Create a new safe function call content since Name is read-only
                                 var safeFunctionCall = new FunctionCallContent(
                                     functionCall.CallId,
@@ -518,7 +531,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                                 );
                                 safeFunctionCall.AdditionalProperties ??= new AdditionalPropertiesDictionary();
                                 safeFunctionCall.AdditionalProperties.Add("functionCallDescription", userFriendlyDescription);
-                                
+
                                 // Replace the original content with the safe version
                                 var contentIndex = response.Contents.ToList().IndexOf(content);
                                 if (contentIndex >= 0)

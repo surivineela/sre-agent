@@ -44,7 +44,7 @@ public class ReasoningLoopManager : IReasoningLoopManager
     public async IAsyncEnumerable<RunResult<AgentContext>> AppendNewMessageStreamingAsync(AgentContext context, ChatMessage msg, CancellationToken cancellationToken = default)
     {
         var loop = await GetOrCreateReasoningLoopAsync(context);
-        var results = loop.AppendNewChatMessageStreamAsync(msg, cancellationToken);
+        var results = loop.AppendNewChatMessageStreamAsync(msg);
         await foreach (var result in results.WithCancellation(cancellationToken))
         {
             yield return result;

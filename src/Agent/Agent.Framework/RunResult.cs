@@ -63,7 +63,7 @@ public class RunResult<TContext>(Agent<TContext> agent) : RunResultBase<TContext
     {
         return OldAgent != null && OldAgent.Name != LastAgent.Name;
     }
-
+    public bool IsCancellationRequested { get; set; } = false;
     public RunResult<TContext> WithNewAgent(Agent<TContext> newAgent)
     {
         return new RunResult<TContext>(newAgent)
