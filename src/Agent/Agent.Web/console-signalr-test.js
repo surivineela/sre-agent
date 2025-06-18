@@ -86,7 +86,6 @@ function setupSignalRTest() {
 
     window.createThread = async function(message = "Hello, I need help with Azure subscriptions") {
         try {
-            const streamId = "console-test-" + Date.now();
             const request = {
                 startMessage: {
                     text: message,
@@ -95,9 +94,9 @@ function setupSignalRTest() {
                 },
                 source: 1 // Conversation
             };
-            
+
             console.log(`🚀 Creating thread with message: "${message}"`);
-            await window.agentConnection.invoke("CreateThread", request, streamId, false);
+            await window.agentConnection.invoke("CreateThread", request, false);
         } catch (err) {
             console.error("❌ Create thread failed:", err);
         }
@@ -105,15 +104,14 @@ function setupSignalRTest() {
 
     window.sendMessage = async function(threadId, message = "Tell me more about Azure") {
         try {
-            const streamId = "console-msg-" + Date.now();
             const request = {
                 text: message,
                 userId: "console-user",
                 displayName: "Console Tester"
             };
-            
+
             console.log(`🚀 Sending message to thread ${threadId}: "${message}"`);
-            await window.agentConnection.invoke("CreateMessage", threadId, request, streamId, false);
+            await window.agentConnection.invoke("CreateMessage", threadId, request, false);
         } catch (err) {
             console.error("❌ Send message failed:", err);
         }
@@ -122,7 +120,6 @@ function setupSignalRTest() {
     // Test with text-only mode
     window.createThreadTextOnly = async function(message = "Hello, I need help with Azure subscriptions") {
         try {
-            const streamId = "console-text-" + Date.now();
             const request = {
                 startMessage: {
                     text: message,
@@ -131,9 +128,9 @@ function setupSignalRTest() {
                 },
                 source: 1
             };
-            
+
             console.log(`🚀 Creating thread (text-only) with message: "${message}"`);
-            await window.agentConnection.invoke("CreateThread", request, streamId, true);
+            await window.agentConnection.invoke("CreateThread", request, true);
         } catch (err) {
             console.error("❌ Create thread (text-only) failed:", err);
         }
@@ -168,4 +165,4 @@ await sendMessage("your-thread-id-here", "What are the pricing options?")
 // If SignalR is already loaded, setup immediately
 if (typeof signalR !== 'undefined') {
     setupSignalRTest();
-} 
+}
