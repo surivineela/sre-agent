@@ -5,6 +5,7 @@
 using System.Globalization;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
+using Agent.Core.Models.Api.v1;
 using Agent.Core.Models.Charts;
 using Agent.Logging;
 using Agent.Plugins.Interface;
@@ -289,7 +290,13 @@ namespace Agent.Plugins
                 {
                     base64Image = $"data:image/png;base64,{base64Image}";
                 }
-                await _outboundService.AppendAgentImageMessage(ThreadId.Value, $"![Chart Graph]({base64Image})\r");
+                var chartMessage = $"![Chart Graph]({base64Image})\r";
+                
+                // Save to database via the outbound service
+                await _outboundService.AppendAgentImageMessage(ThreadId.Value, chartMessage);
+
+                // Stream the complete image message directly to bypass tool call limitations
+                await _outboundService.AppendAgentStreamMessage(ThreadId.Value, chartMessage, StreamMessageType.Image);
 
                 return $"Successfully generated the chart, image description: {description}";
             }

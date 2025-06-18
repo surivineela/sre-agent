@@ -17,5 +17,15 @@ public enum StreamMessageType
     /// <summary>
     /// Approval workflow
     /// </summary>
-    Approval
-}
+    Approval,
+
+    /// <summary>
+    /// Mermaid diagram data
+    /// </summary>
+    Mermaid,
+
+    /// <summary>
+    /// Base64 image data
+    /// </summary>
+    Image
+} 
