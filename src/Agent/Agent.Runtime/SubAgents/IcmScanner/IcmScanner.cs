@@ -11,29 +11,29 @@ using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.SubAgents.IcmScanner;
 public class IcmScanner(ILogger<IcmScanner> logger, IICMAPIClient icmApiClient, CosmosClient cosmosClient,
-                              CosmosDBSettings cosmosDbSettings):IIncidentScanner
+                              CosmosDBSettings cosmosDbSettings) : IIncidentScanner
 {
-    
+
     private readonly Container container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
     private const uint PageSize = 10;
     private readonly static TimeSpan ScanInterval = TimeSpan.FromMinutes(1);
     private DateTime lastScanTime;
+    //After offset > 5000, ICM endpoint will returning 400 bad request
+    private readonly static int maxOffset = 5000;
 
     public async Task ScanAsync(CancellationToken cancellationToken)
     {
-        // First iteration scanning incidents from the last 90 days,
-        // From 2nd iteration, it will continue scanning from the current time when previous scan finished.
-        lastScanTime = DateTime.UtcNow.AddDays(-90);
+        var lastScanTimeDoc = await GetDocumentAsync<LastScanTimeDoc>(LastScanTimeDoc.LastScanTimeKey, LastScanTimeDoc.LastScanTimeKey);
+        lastScanTime = lastScanTimeDoc != null ? lastScanTimeDoc.LastScanTime : DateTime.UtcNow.AddDays(-30); // Default to 30 days ago if not found
         while (!cancellationToken.IsCancellationRequested)
         {
             await ScannAllIncidentsAsync(cancellationToken);
 
             await Task.Delay(ScanInterval, cancellationToken);
 
-            lastScanTime = DateTime.UtcNow;
+            lastScanTime = await UpdateLastScanTimeDocAsync(DateTime.UtcNow);
         }
     }
-
     private async Task ScannAllIncidentsAsync(CancellationToken cancellationToken)
     {
         uint page = 0;
@@ -45,9 +45,16 @@ public class IcmScanner(ILogger<IcmScanner> logger, IICMAPIClient icmApiClient, 
                 return;
             }
             uint offset = page * PageSize;
+
+            if (offset > maxOffset)
+            {
+                logger.LogInternalInformation("Stop scanning ICMs over {offset}", offset);
+                return;
+            }
+
             try
             {
-                logger.LogInternalInformation("Scanning IcM incidents, page {page}", page);
+                logger.LogInternalInformation("Scanning IcM incidents, page {page}, lastScanTime {lastScanTime}", page, lastScanTime);
                 var response = await icmApiClient.GetIncidentsAsync(limit: PageSize, offset: offset, lastScanTime);
                 if (response is null || response.Count == 0)
                 {
@@ -70,7 +77,6 @@ public class IcmScanner(ILogger<IcmScanner> logger, IICMAPIClient icmApiClient, 
             {
                 logger.LogInternalError(ex, "Error scanning IcM incidents");
             }
-
             page++;
         }
     }
@@ -104,10 +110,11 @@ public class IcmScanner(ILogger<IcmScanner> logger, IICMAPIClient icmApiClient, 
 
                 logger.LogInternalInformation("Created new incident document for IcM incident {incidentId}", incident.IncidentId);
             }
-            else if(incident is not null && incidentDocument is not null && incidentDocument.Id == incident.IncidentId)
+            else if (incident is not null && incidentDocument is not null && incidentDocument.Id == incident.IncidentId)
             {
                 //var patchOperationList = new List<PatchOperation>();
                 //// PatchOperation.Add is used to update existing fields or add new fields if they don't exist.
+                //// Current is incorrect! PatchPath should be aligin with serialized string, which first character is lowercase 
                 //// https://learn.microsoft.com/en-us/azure/cosmos-db/partial-document-update
                 //if (string.IsNullOrEmpty(incident.Title) && incidentDocument.Title != incident.Title)
                 //{
@@ -154,6 +161,36 @@ public class IcmScanner(ILogger<IcmScanner> logger, IICMAPIClient icmApiClient, 
         return incidentDocument;
     }
 
+    private async Task<DateTime> UpdateLastScanTimeDocAsync(DateTime lastScanTime)
+    {
+        try
+        {
+            var patchOperationList = new List<PatchOperation>()
+        {
+            PatchOperation.Add($"/lastScanTime", lastScanTime)
+        };
+            var doc = await container.PatchItemAsync<LastScanTimeDoc>(
+                LastScanTimeDoc.LastScanTimeKey,
+                new PartitionKey(LastScanTimeDoc.LastScanTimeKey),
+                patchOperationList
+            );
+            return doc.Resource.LastScanTime;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            var lastScanTimeDoc = new LastScanTimeDoc
+            {
+                LastScanTime = DateTime.UtcNow
+            };
+            var doc = await container.CreateItemAsync(lastScanTimeDoc, new PartitionKey(lastScanTimeDoc.PartitionKey));
+            return doc.Resource.LastScanTime;
+        }
+        catch (Exception ex)
+        {
+            logger.LogInternalError(ex, "Error updating LastScanTime for IcmScanner");
+            return DateTime.UtcNow;
+        }
+    }
 }
 
 public class NullableIncidentScanner : IIncidentScanner

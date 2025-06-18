@@ -16,7 +16,7 @@ namespace Agent.Core.Services
     {
         //bool IsEnabled();
         Task<Incident> GetIncidentAsync(string incidentId);
-        Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime lastModifiedDate);
+        Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate);
         Task<List<CustomField>> GetCustomFieldsAsync(string incidentId);
         Task<List<SearchItem>> SearchIncidentsAsync(string searchString);
         Task<List<DiscussionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId);
@@ -239,14 +239,20 @@ namespace Agent.Core.Services
             }
         }
 
-        public async Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime lastModifiedDate)
+        public async Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate = null)
         {
+            var modifiedDate = lastModifiedDate ?? DateTime.UtcNow.AddDays(-30); // Default to 30 days ago if no date is provided
+
+            if (lastModifiedDate < DateTime.UtcNow.AddDays(-90))
+            {
+                throw new ArgumentException("lastModifiedDate cannot be more than 90 days ago.", nameof(lastModifiedDate));
+            }
             var queryParams = new Dictionary<string, string>()
             {
                 ["$top"] = limit.ToString(),
                 ["$skip"] = offset.ToString(),
                 ["$orderby"] = "LastModifiedDate desc",
-                ["$filter"] = $"LastModifiedDate gt {lastModifiedDate.ToString("yyyy-MM-ddTHH:mm:ss'Z'")}"
+                ["$filter"] = $"LastModifiedDate gt {modifiedDate.ToString("yyyy-MM-ddTHH:mm:ss'Z'")}"
             };
 
             return await GetIncidentsAsyncInternal(queryParams);
@@ -270,7 +276,8 @@ namespace Agent.Core.Services
             }
             else
             {
-                throw new Exception($"Failed to retrieve incident. Status code: {response.StatusCode}");
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new Exception($"Failed to retrieve incident. Status code: {response.StatusCode}. Error content: {errorContent}");
             }
         }
 
@@ -850,7 +857,7 @@ namespace Agent.Core.Services
             throw new NotImplementedException();
         }
 
-        public Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime lastModifiedDate)
+        public Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate)
         {
             throw new NotImplementedException();
         }
