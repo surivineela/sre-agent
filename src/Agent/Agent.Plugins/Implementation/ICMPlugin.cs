@@ -1,0 +1,552 @@
+using Microsoft.Extensions.Logging;
+using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.ChatCompletion;
+using Newtonsoft.Json;
+using System.ComponentModel;
+using Agent.Core.Services;
+using Agent.Core.Helpers;
+using Agent.Core.Models.ICM;
+using Agent.Logging;
+using Agent.Plugins.Helpers;
+using Microsoft.Extensions.AI;
+using ChatMessageContent = Microsoft.SemanticKernel.ChatMessageContent;
+using TextContent = Microsoft.SemanticKernel.TextContent;
+using Agent.Plugins.Interface;
+using Agent.Plugins.IcmPlugin;
+
+namespace Agent.Plugins.Implementation;
+public class ICMPlugin : IICMPlugin
+{
+    private readonly IICMAPIClient _icmApiClient;
+    private readonly ILogger<ICMPlugin> _logger;
+    private readonly IChatCompletionService _chatCompletionService;
+    //private const string HumanInterventionTag = "SREAgent_HumanIntervention";
+    private const string AgentProcessedTag = "SREAgent_Processed";
+    private const string AgentProcessingTag = "SREAgent_Processing";
+    private const string AgentMitigatedTag = "SREAgent_Mitigated";
+    private const bool ProcessImages = true;
+
+    public ICMPlugin(IICMAPIClient icmAPIClient, ILogger<ICMPlugin> logger, IChatClient chatClient)
+    {
+        _logger = logger;
+        _icmApiClient = icmAPIClient;
+
+
+#pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+        _chatCompletionService = chatClient.AsChatCompletionService();
+#pragma warning restore SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+
+    }
+
+    /// <summary>
+    /// Extracts text from an image using the chat completion service with SK (does not carry around the conversation history/context etc.; no tool calling)
+    /// </summary>
+    /// <param name="mimeType"></param>
+    /// <param name="base64Image"></param>
+    /// <param name="logger"></param>
+    /// <returns></returns>
+    private async Task<ChatMessageContent> ExtractTextFromImage(string mimeType, string base64Image)
+    {
+        _logger.LogInternalInformation($"Extracting text from image ({mimeType}, {base64Image.Length} characters)");
+
+        var history = new ChatHistory();
+        var message = new ChatMessageContentItemCollection
+                        {
+                            new TextContent("Please extract the text from the image"),
+                            new ImageContent($"{mimeType};base64,{base64Image}")
+                        };
+
+        history.AddUserMessage(message);
+        var result = await _chatCompletionService.GetChatMessageContentAsync(
+            history,
+            executionSettings: new()
+            {
+                FunctionChoiceBehavior = FunctionChoiceBehavior.None()
+            });
+        return result;
+    }
+
+    private async Task<string> ProcessComplexICMContent(string complexContent, bool skipImages = false)
+    {
+        var base64Images = new List<(string, string)>();
+        if (complexContent != null)
+        {
+            // remove base64 images from the complexContent (they would blow the response which goes back to the model and the model wouldn't make sense out of it) and store them in a list
+            complexContent = TextProcessingHelpers.StripBase64Images(complexContent, base64Images);
+
+            // remove html attributes as they don't provide much value and make the response longer (todo: it might be useful to strip html tags completely and convert the text rather to markdown or something like that)
+            complexContent = TextProcessingHelpers.RemoveHtmlAttributes(complexContent);
+
+            for (var i = 0; i < base64Images.Count; i++)
+            {
+                var imageText = "No Image Description.";
+                if (!_chatCompletionService.Attributes["DeploymentName"].ToString().StartsWith("o") && !skipImages)
+                {
+                    // extract text from the image and replace the placeholder in the summary with the extracted text
+                    try
+                    {
+                        var result = await ExtractTextFromImage(base64Images[i].Item1, base64Images[i].Item2);
+                        imageText = result.Content;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogInternalError(ex, $"Error extracting text from image {base64Images[i].Item1} - {base64Images[i].Item2}");
+                    }
+                }
+
+                complexContent = complexContent.Replace($"####{i}####", "[The following text was in an image in the incident]" + imageText + "\r\n[End of the image]");
+            }
+        }
+        return complexContent;
+    }
+
+    public async Task<Incident> GetIncidentInfo(string incidentId)
+    {
+        var logMessage = $"[get_icm_incident_details][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
+        _logger.LogInternalInformation(logMessage);
+        //if (kernel.Data.ContainsKey("incidentDetails"))
+        //{
+        //    var incidentDetails = kernel.Data["incidentDetails"] as Incident;
+        //    if (incidentDetails != null && incidentDetails.IncidentId == incidentId)
+        //    {
+        //        return incidentDetails;
+        //    }
+        //}
+
+        var incident = await _icmApiClient.GetIncidentAsync(incidentId);
+        incident.Summary = await ProcessComplexICMContent(incident.Summary, !ProcessImages);
+        incident.DiscussionEntry = await ProcessComplexICMContent(incident.DiscussionEntry, !ProcessImages);
+        //kernel.Data["incidentDetails"] = incident;
+        await SetupIncidentProcessing(incidentId, incident);
+        return incident;
+    }
+
+    [KernelFunction("get_icm_custom_fields")]
+    [Description("Get ICM incident custom fields")]
+    public async Task<List<CustomField>> GetCustomFields(
+        [Description("Incident ID")] string incidentId)
+    {
+        var logMessage = $"[get_icm_custom_fields][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
+        _logger.LogInternalInformation(logMessage);
+
+        var customFields = await _icmApiClient.GetCustomFieldsAsync(incidentId);
+
+        return customFields;
+    }
+
+    public async Task<string> SearchIncidents(string searchString, int lookbackPeriodInDays, int resultCountLimit)
+    {
+        var logMessage = $"[search_incidents][{DateTime.UtcNow}] Invoked with searchString {searchString}";
+        _logger.LogInternalInformation(logMessage);
+
+        var incidents = await _icmApiClient.SearchIncidentsAsync(searchString);
+
+        return JsonConvert.SerializeObject(incidents);
+    }
+
+    //[KernelFunction("get_queryable_columns_for_incidents")]
+    //[Description("Get queryable columns for advanced incident search")]
+    //public async Task<Dictionary<string, List<string>>> GetQueryableColumnsForIncidentLookup(Kernel kernel)
+    //{
+    //    var logMessage = $"[get_queryable_columns_for_incidents][{DateTime.UtcNow}]";
+    //    await kernel.LogKernelInfo(logMessage, _logger, _teamsClient, _sessionMessageService);
+    //    var searchableColumns = IncidentAdvancedSearchFilter.GetQueryableIncidentProperties();
+    //    return searchableColumns;
+    //}
+
+    //[KernelFunction("advanced_search_for_incidents")]
+    //[Description("Advanced search for incidents. Use get_queryable_columns_for_incidents to get list of queryable properties for help with constructing filters")]
+    //public async Task<List<IncidentAdvancedSearchResultItem>> AdvancedSearchIncidents(
+    //    [Description("Lookback Period in Days")] int lookbackPeriodInDays,
+    //    [Description("Limit on result count. Maximum 10 search results returned.")] int resultLimit,
+    //    [Description("List of filters as tuples (ColumnName, Operator, Value) e.g.. (CreateDate, >=, 2025-02-01 04:15:00), (CreateDate, <=,  2025-02-01 06:15:00), (IncidentId, ==,  123456)")]
+    //        List<Tuple<string, string, string>> filter3Tuple,
+    //    Kernel kernel)
+    //{
+    //    var logMessage = $"[advanced_search_for_incidents][{DateTime.UtcNow}] Invoked with lookbackPeriodInDays {lookbackPeriodInDays}";
+    //    await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
+    //    var incidents = await _icmWorkflowClient.SearchIncidentsWithParametersAsync(lookbackPeriodInDays, resultLimit, filter3Tuple);
+    //    return incidents;
+    //}
+
+    public async Task<string> GetCurrentUtcDateTime()
+    {
+        var returnValue = $"Current timestamp: {DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")} UTC";
+        var logMessage = $"[get_current_utc_datetime][{DateTime.UtcNow}] Invoked. Returned {returnValue}";
+        _logger.LogInternalInformation(logMessage);
+        return returnValue;
+    }
+
+    public async Task<string> GetIcmCorrelationAndLinkingRules()
+    {
+        _logger.LogInternalInformation($"[get_icm_correlation_and_linking_guidelines][{DateTime.UtcNow}] invoked.");
+        const string guidelines = "Follow the below workflow carefully, this guide is to be used for identifying potential matches only and does not apply to incidents already linked as related/parent/child, as those are considered high-confidence correlations.\n" +
+            "1. Initial Setup (Mandatory)\n" +
+            "     - Always use advanced search (advanced_search_for_incidents) for all incident search or lookup operations for lookups as part of this guide.\n" +
+            "     - If you are not given an IncidentId, ask the user to specify an incident Id that needs to be worked upon. If you have the incident Id, quietly continue with the flow.\n" +
+            "     - Start by calling get_queryable_columns_for_incidents to identify all columns on which filters can be applied.\n" +
+            "     - Next, call get_current_utc_datetime to get the latest UTC dateTime. This will help you adjust the various date-time values and apply correct filter values.\n" +
+            "     - CRITICALLY: Before proceeding with any correlation operations, you MUST call advanced_search_for_incidents for the current incident and apply the IncidentId filter.This ensures you retrieve accurate values to apply as filters before proceeding further. This step is non-negotiable and must never be skipped.\n" +
+            "2. Perform Advanced Search On Current Incident For Filter Values (Non-Negotiable)\n" +
+            "     - After identifying queryable columns, **MANDATORILY invoke advanced_search_for_incidents for the incident you are correlating, applying the IncidentId filter.**\n" +
+            "     - This forced advanced search ensures you have accurate values to apply as filters before proceeding.\n" +
+            "3. Prepare Filters Based on User Instruction\n" +
+            "     - Carefully parse the instructions to extract filter criteria (e.g., column names and conditions).\n" +
+            "     - Use advanced search filters to apply the specified conditions. If the user provides a time-based condition:\n" +
+            "         - Use the appropriate date column (based on the instructions) with the '>=' operator for the start time and the '<=' operator for the end time.\n" +
+            "     - For other column conditions (e.g., title, severity, status, slice etc.), apply filters as specified in the instructions.\n" +
+            "     - Adjust the lookbackPeriod by calculating the difference between the current UTC date and the date you are querying for, ensuring it is applied correctly.\n" +
+            "     - Ensure strict adherence to user provided criteria.\n" +
+            "4. Validate Filters Before Execution\n" +
+            "     - Once the filters are prepared, evaluate and validate them to ensure they match the criteria given in the instructions and do not contain errors. \n" +
+            "     - If necessary, refine the filters before calling the advanced search operation.\n" +
+            "     - Everytime you refine, change, fix filters; evaluate and validate them to ensure strict adherence to user provided criteria.\n" +
+            "     - Cross check the values applied in filters with the values you have from **Perform Advanced Search On Current Incident For Filter Values**.\n" +
+            "5. Perform Advanced Search For Potential Correlations\n" +
+            "     - Execute the advanced search with the validated filters to look up potential correlated incidents.\n" +
+            "     - If the instructions require multiple conditions that cannot be combined in a single query (due to AND logic limitations), run multiple queries as needed and consolidate the results.\n" +
+            "6. Important Notes\n" +
+            "     - Advanced search applies all conditions within a single query using AND logic; it does not support OR logic.\n" +
+            "     - **DO NOT SKIP the step of Perform Advanced Search On Current Incident For Filter Values as specified in step 2** before correlating, it is critical for ensuring accuracy.\n\n";
+        return guidelines;
+    }
+
+
+    public async Task<DiscussionEntry> GetAlertingDiscussionEntry(string incidentId)
+    {
+        var logMessage = $"[get_alerting_discussion_entry][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
+        _logger.LogInternalInformation(logMessage);
+        var discussionEntries = await _icmApiClient.GetIncidentDiscussionEntriesAsync(incidentId);
+
+        if (discussionEntries != null)
+        {
+            foreach (var entry in discussionEntries)
+            {
+                if (entry.IsHtml)
+                {
+                    entry.Text = await ProcessComplexICMContent(entry.Text, skipImages: true);
+                }
+                if (entry.Text.Contains("Open in AzureAlerting"))
+                {
+                    return entry;
+                }
+            }
+        }
+        return null;
+    }
+
+
+    public async Task<List<DiscussionEntry>> GetDiscussionEntries(string incidentId)
+    {
+        var logMessage = $"[get_icm_discussion_entries][{DateTime.UtcNow}] Fetching ICM Discussion entries for Incident {incidentId}";
+        _logger.LogInternalInformation(logMessage);
+        var discussionEntries = await _icmApiClient.GetIncidentDiscussionEntriesAsync(incidentId);
+        if (discussionEntries != null)
+        {
+            foreach (var entry in discussionEntries)
+            {
+                if (entry.IsHtml)
+                {
+                    entry.Text = await ProcessComplexICMContent(entry.Text, !ProcessImages);
+                }
+            }
+        }
+        return discussionEntries;
+    }
+
+    public async Task<string> TransferIncident(string incidentId, string discussionEntry, string tenantName, string owningTeam)
+    {
+        var logMessage = $"[transfer_icm_incident][{DateTime.UtcNow}] Transferring Incident {incidentId} to the team {tenantName}/{owningTeam}.\n<b>Reason</b>:\n {discussionEntry}";
+        _logger.LogInternalInformation(logMessage);
+        discussionEntry = IcmPostTemplates.DiscussionEntryTemplate.Replace("POST_CONTENT_HERE", discussionEntry);
+        var result = await _icmApiClient.TransferIncidentAsync(incidentId, discussionEntry, tenantName, owningTeam);
+        await UpdateAgentStatus(incidentId, AgentStatus.Transferred);
+        return result;
+    }
+
+
+    public async Task<string> MitigateIncident(string incidentId, string discussionEntry)
+    {
+        var logMessage = $"[mitigate_icm_incident][{DateTime.UtcNow}] Invoked with incidentId {incidentId}.\n<b>discussionEntry</b>:\n {discussionEntry}";
+        _logger.LogInternalInformation(logMessage);
+        discussionEntry = IcmPostTemplates.DiscussionEntryTemplate.Replace("POST_CONTENT_HERE", discussionEntry);
+
+        var mitigationResult = await _icmApiClient.MitigateIncidentAsync(incidentId, discussionEntry);
+        var addMitigationTagResult = await AddTagToIncident(incidentId, AgentMitigatedTag);
+        await UpdateAgentStatus(incidentId, AgentStatus.Mitigated);
+        return mitigationResult;
+    }
+
+    //[KernelFunction("escalate_for_human_intervention")]
+    //[Description("Escalate incident for human intervention")]
+    //public async Task<string> EscalateToHumanQueue(
+    //    [Description("Incident ID")] string incidentId,
+    //    [Description("Reason for escalating the incident")] string escalationReason,
+    //    Kernel kernel)
+    //{
+    //    var logMessage = $"[escalate_for_human_intervention][{DateTime.UtcNow}] Invoked with incidentId {incidentId}.\n<b>escalationReason</b>:\n {escalationReason}";
+    //    await kernel.LogKernelInfo(logMessage, _logger, _teamsClient, _sessionMessageService);
+    //    var result = await EscalateToHumanQueueInternal(incidentId, escalationReason, kernel);
+    //    return result;
+    //}
+
+    public async Task<string> DowngradeSeverity(string incidentId, string discussionEntry)
+    {
+        var logMessage = $"[downgrade_sev2_incident_to_sev3][{DateTime.UtcNow}] Invoked with incidentId {incidentId}.\n<b>discussionEntry</b>:\n {discussionEntry}";
+        _logger.LogInternalInformation(logMessage);
+        discussionEntry = IcmPostTemplates.DiscussionEntryTemplate.Replace("POST_CONTENT_HERE", discussionEntry);
+        var result = await _icmApiClient.ChangeSeverityAsync(incidentId, 3, discussionEntry);
+        await AddTagToIncident(incidentId, AgentProcessedTag);
+        return result;
+    }
+
+    public async Task<string> ResolveIncident(string incidentId, string discussionEntry)
+    {
+        var logMessage = $"[resolve_icm_incident][{DateTime.UtcNow}] Invoked with incidentId {incidentId}.\n<b>discussionEntry</b>:\n {discussionEntry}";
+        _logger.LogInternalInformation(logMessage);
+        discussionEntry = IcmPostTemplates.DiscussionEntryTemplate.Replace("POST_CONTENT_HERE", discussionEntry);
+        var result = await _icmApiClient.ResolveIncidentAsync(incidentId, discussionEntry);
+        await UpdateAgentStatus(incidentId, AgentStatus.Resolved);
+        return result;
+    }
+
+    public async Task<string> PostDiscussionEntry(string incidentId, string discussionEntry)
+    {
+        var logMessage = $"[post_icm_discussion_entry][{DateTime.UtcNow}] Invoked with incidentId {incidentId}.\n<b>discussionEntry</b>:\n {discussionEntry}";
+        _logger.LogInternalInformation(logMessage);
+        discussionEntry = IcmPostTemplates.DiscussionEntryTemplate.Replace("POST_CONTENT_HERE", discussionEntry);
+        var result = await _icmApiClient.PostDiscussionEntryAsync(incidentId, discussionEntry);
+        await AddTagToIncident(incidentId, AgentProcessedTag);
+        return result;
+    }
+
+
+    public async Task<string> AddTagToIncident(string incidentId, string tag)
+    {
+        var logMessage = $"[icm_add_tag][{DateTime.UtcNow}] Invoked with incidentId {incidentId}, tag: {tag}";
+        _logger.LogInternalInformation(logMessage);
+        // Note: We don't call AddTagToIncident with AgentProcessedTag here to avoid potential infinite loops
+        // if this method is called with AgentProcessedTag itself. The caller should handle adding the processed tag if needed.
+        return await _icmApiClient.AddTagToIncident(incidentId, tag);
+    }
+
+    public async Task<string> AddKeywordToIncident(string incidentId, string keyword)
+    {
+        var logMessage = $"[icm_add_keyword][{DateTime.UtcNow}] Invoked with incidentId {incidentId}, keyword: {keyword}";
+        _logger.LogInternalInformation(logMessage);
+        return await _icmApiClient.AddKeywordToIncident(incidentId, keyword);
+    }
+
+    // acknowledge_icm_incident using ICM API
+    public async Task<string> AcknowledgeIncident(string incidentId)
+    {
+        var logMessage = $"[acknowledge_icm_incident][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
+        _logger.LogInternalInformation(logMessage);
+        //if (!_icmApiClient.IsEnabled())
+        //{
+        //    return "Unable to acknowledge the incident as the ICM API client is not enabled.";
+        //}
+        var result = await _icmApiClient.AcknowledgeIncidentAsync(incidentId);
+        await UpdateAgentStatus(incidentId, AgentStatus.Acknowledged);
+        return result;
+    }
+
+    public async Task<List<IncidentRepairItem>> GetIncidentRepairItems(long incidentId)
+    {
+        var logMessage = $"[get_incident_repair_items][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
+        _logger.LogInternalInformation(logMessage);
+        //if (!_icmApiClient.IsEnabled())
+        //{
+        //    return new List<IncidentRepairItem>()
+        //        {
+        //            new IncidentRepairItem
+        //            {
+        //               Id = -1,
+        //               Title = "ICM API not enabled. No repair items can be fetched.",
+        //            }
+        //        };
+        //}
+
+        var repairItems = await _icmApiClient.GetIncidentRepairItemsAsync(incidentId);
+        return repairItems;
+    }
+
+    /// <summary>
+    /// Enum representing the possible statuses of the agent.
+    /// </summary>
+    private enum AgentStatus
+    {
+        Acknowledged,
+        Transferred,
+        Mitigated,
+        Resolved
+    }
+
+    /// <summary>
+    /// Updates the status of the agent by removing existing status tags and adding a new one.
+    /// </summary>
+    /// <param name="incidentId">The ID of the incident.</param>
+    /// <param name="status">The new status to update.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    private async Task UpdateAgentStatus(string incidentId, AgentStatus status)
+    {
+        var logMessage = $"[update_agent_status][{DateTime.UtcNow}] Updating status to '{status}' for incidentId {incidentId}";
+        _logger.LogInternalInformation(logMessage);
+
+        // Add the new status tag
+        var newStatusTag = $"SREAgent_{status}";
+        switch (status)
+        {
+            case AgentStatus.Transferred:
+            case AgentStatus.Mitigated:
+            case AgentStatus.Resolved:
+                await AddTagToIncident(incidentId, AgentProcessedTag);
+                break;
+            default:
+                break;
+        }
+        await AddTagToIncident(incidentId, newStatusTag);
+    }
+
+    /// <summary>
+    /// Sets up the necessary steps when the agent starts working on an incident.
+    /// </summary>
+    /// <param name="incidentId">The ID of the incident.</param>
+    /// <param name="incidentDetails">The details of the incident.</param>
+    /// <param name="kernel">The kernel instance.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    private async Task SetupIncidentProcessing(string incidentId, Incident incidentDetails)
+    {
+        try
+        {
+            await AcknowledgeIncident(incidentId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, incidentId, "Error acknowledging incident during setup processing.");
+        }
+
+        var logMessage = $"[setup_incident_processing][{DateTime.UtcNow}] Setting up processing for incidentId {incidentId}";
+        _logger.LogInternalInformation(logMessage);
+
+        // Add a tag to indicate the agent has started processing
+        await AddTagToIncident(incidentId, AgentProcessingTag);
+
+        //ICMAlertConfig alertConfig = await _alertHandlerClient.GetConfigAsync(incidentDetails, kernel);
+
+        //string agentName = alertConfig?.AgentName;
+
+        //if (!string.IsNullOrEmpty(agentName))
+        //{
+        //    await AddTagToIncident(incidentId, $"SREAgent_{agentName}", kernel);
+        //}
+        //else
+        //{
+        //    var warningMessage = $"[setup_incident_processing][{DateTime.UtcNow}] AgentName could not be determined for incidentId {incidentId}. No matching AlertConfig found based on Title, TitleContains, or OwningTeam.";
+        //    await kernel.LogKernelInfo(warningMessage, _logger, _teamsClient, _sessionMessageService);
+        //    await AddTagToIncident(incidentId, $"SREAgent_UnnamedAgent", kernel);
+        //}
+
+        //// Escalate to human intervention if CloudInstance is not Public
+        //if (incidentDetails.CloudInstance != "Public")
+        //{
+        //    await EscalateToHumanQueueInternal(incidentId, "CloudInstance is not Public.", kernel);
+        //}
+    }
+
+    private async Task<string> EscalateToHumanQueueInternal(string incidentId, string reason)
+    {
+        //var logMessage = $"[escalate_to_human_queue][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
+        //await kernel.LogKernelInfo(logMessage, _logger, _teamsClient, _sessionMessageService);
+
+        //await AddTagToIncident(incidentId, HumanInterventionTag, kernel);
+
+        //var incidentDetails = await GetIncidentInfo(incidentId, kernel);
+
+        //ICMAlertConfig alertConfig = await _alertHandlerClient.GetConfigAsync(incidentDetails, kernel);
+
+        //string discussionEntryMessage = $"The SRE Agent would not be able to proceed further with its current set of capabilities.<br><b>Reason</b>: {reason}<br>Request Human Intervention from the current on-calls to take this further.";
+        //if (alertConfig != null && !string.IsNullOrWhiteSpace(alertConfig.DefaultHumanInterventionLoop))
+        //{
+        //    string teamTenant = null; string teamName = null;
+        //    var loopParts = alertConfig.DefaultHumanInterventionLoop.Split('/');
+        //    if (loopParts.Length > 1)
+        //    {
+        //        teamTenant = loopParts[0];
+        //        teamName = loopParts[1];
+        //        var discussionEntry = IcmPostTemplates.DiscussionEntryTemplate.Replace("POST_CONTENT_HERE", discussionEntryMessage);
+        //        var transferResult = await TransferIncident(incidentId, discussionEntry, teamTenant, teamName, kernel);
+        //        return transferResult;
+        //    }
+        //}
+        //var errorMessage = $"[escalate_to_human_queue][{DateTime.UtcNow}] No valid default human intervention loop found for incidentId {incidentId}. Provided value is {alertConfig.DefaultHumanInterventionLoop}. Tagged the Incident and requested the on-calls to take a look.";
+        //await kernel.LogKernelInfo(errorMessage, _logger, _teamsClient, _sessionMessageService);
+        //var errorDiscussionEntry = IcmPostTemplates.DiscussionEntryTemplate.Replace("POST_CONTENT_HERE", discussionEntryMessage);
+        //var postResult = await PostDiscussionEntry(incidentId, errorDiscussionEntry, kernel);
+        //return errorMessage;
+        throw new NotImplementedException();
+    }
+
+    #region RelatedIncidents operation methods
+    public async Task<List<string>> GetLinkedRelatedIncidentInfo(long incidentId)
+    {
+        var logMessage = $"[get_related_incidents][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
+        _logger.LogInternalInformation(logMessage);
+        var relatedIncidents = await _icmApiClient.GetLinkedRelatedIncidentInfoAsync(incidentId);
+        return relatedIncidents;
+    }
+
+    public async Task<string> AddRelatedIncidentLink(long incidentId, long relatedIncidentId)
+    {
+        var logMessage = $"[add_related_incidents_link][{DateTime.UtcNow}] Invoked with incidentId {incidentId} and relatedIncidentId {relatedIncidentId}";
+        _logger.LogInternalInformation(logMessage);
+        var result = await _icmApiClient.AddRelatedIncidentLinkAsync(incidentId, relatedIncidentId);
+        return result;
+    }
+
+    public async Task<string> RemoveRelatedIncidentLink(long incidentId, long relatedIncidentId)
+    {
+        var logMessage = $"[remove_related_incidents_link][{DateTime.UtcNow}] Invoked with incidentId {incidentId} and relatedIncidentId {relatedIncidentId}";
+        _logger.LogInternalInformation(logMessage);
+        var result = await _icmApiClient.RemoveRelatedIncidentLinkAsync(incidentId, relatedIncidentId);
+        return result;
+    }
+
+
+    #endregion
+
+    #region ParentIncident operation methods
+    public async Task<string> GetParentIncidentInfo(long incidentId)
+    {
+        var logMessage = $"[get_parent_incident][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
+        _logger.LogInternalInformation(logMessage);
+        var parentIncidentInfo = await _icmApiClient.GetParentIncidentInfoAsync(incidentId);
+        return parentIncidentInfo;
+    }
+
+    public async Task<string> AddParentIncidentLink(long incidentId, long parentIncidentId)
+    {
+        var logMessage = $"[add_parent_incident_link][{DateTime.UtcNow}] Invoked with incidentId {incidentId} and parentIncidentId {parentIncidentId}";
+        _logger.LogInternalInformation(logMessage);
+        var result = await _icmApiClient.AddParentIncidentLinkAsync(incidentId, parentIncidentId);
+        return result;
+    }
+
+    public async Task<string> RemoveParentIncidentLink(long incidentId)
+    {
+        var logMessage = $"[remove_parent_incident_link][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
+        _logger.LogInternalInformation(logMessage);
+        var result = await _icmApiClient.RemoveParentIncidentLinkAsync(incidentId);
+        return result;
+    }
+    #endregion
+
+
+    public async Task<List<string>> GetChildIncidentsInfo(long incidentId)
+    {
+        var logMessage = $"[get_child_incidents][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
+        _logger.LogInternalInformation(logMessage);
+        var childIncidents = await _icmApiClient.GetChildIncidentsInfoAsync(incidentId);
+        return childIncidents;
+    }
+}

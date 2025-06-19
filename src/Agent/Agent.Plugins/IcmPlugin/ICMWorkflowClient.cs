@@ -5,6 +5,7 @@
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using Agent.Core.Helpers;
+using Agent.Core.Models.ICM;
 using Agent.Logging;
 using FirstPartyAgent.Common.Configuration;
 using Microsoft.Extensions.Hosting;

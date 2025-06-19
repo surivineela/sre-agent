@@ -31,10 +31,10 @@ namespace FirstPartyAgent.Core.Extensions
 
             if (sessionMessageService != null)
             {
-                if(!string.IsNullOrWhiteSpace(sessionId))
+                if (!string.IsNullOrWhiteSpace(sessionId))
                 {
                     var publisher = sessionMessageService.GetPublisher(sessionId);
-                    if(publisher != null)
+                    if (publisher != null)
                     {
                         await publisher(info).ConfigureAwait(false);
                     }

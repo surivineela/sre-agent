@@ -23,7 +23,7 @@ namespace Agent.Plugins.Definitions
         **Important:**
         - Do NOT use this function if none of the input parameters are available.
         ")]
-        public (DateTime StartDate, DateTime EndDate) GetIssueInvestigationTimeRange(
+        public (DateTime StartDate, DateTime EndDate) GetIssueInvestigationTimeRangeRCAContainerApp(
             [Description("ISO 8601 date format string of first occurrence of the issue. Skip if not available")] string? issueFirstOccurrence,
             [Description("ISO 8601 date format string of the last occurrence of the issue. Skip if not available")] string? issueLastOccurrence,
             [Description("ISO 8601 date format string  when the issue was observed and reported. Skip if not available")] string? reportedIssueObservedOnTime)
@@ -36,7 +36,7 @@ namespace Agent.Plugins.Definitions
         }
 
         [Description("Get original ICM incident information.")]
-        public async Task<string?> GetIncidentInfo(
+        public async Task<string?> GetIncidentInfoRCAContainerApp(
         [Description("Incident ID")] string incidentId)
         {
             var incident = await _plugin.GetIncidentInfo(incidentId);
@@ -54,7 +54,7 @@ namespace Agent.Plugins.Definitions
         - TimeStamp: The timestamp of the discussion entry.
         - ChangedBy: The user who created this discussion entry.
         ")]
-        public async Task<string?> GetDiscussionEntries(
+        public async Task<string?> GetDiscussionEntriesRCAContainerApp(
            [Description("Incident ID")] string incidentId,
            [Description("From time of the query")] DateTimeOffset queryFrom)
         {
@@ -103,7 +103,7 @@ namespace Agent.Plugins.Definitions
         The operation will add a discussion entry to the given incident.
         The return value is a boolean value for indicating if the operation is successful.
         ")]
-        public async Task<bool> AddDiscussionEntry(
+        public async Task<bool> AddDiscussionEntryRCAContainerApp(
         [Description("Incident ID")] string incidentId,
         [Description("Discussion entry text")] string text)
         {
@@ -118,7 +118,7 @@ namespace Agent.Plugins.Definitions
         - reason: Usually it is a reason why you can resolve this incident.
         The operation will mark the given incident as resolved. The return value is a boolean value for indicating if the operation is successful.
         ")]
-        public async Task<bool> ResolveIncident(
+        public async Task<bool> ResolveIncidentRCAContainerApp(
         [Description("Incident ID")] string incidentId,
         [Description("comment/reason for resolution action")] string reason)
         {

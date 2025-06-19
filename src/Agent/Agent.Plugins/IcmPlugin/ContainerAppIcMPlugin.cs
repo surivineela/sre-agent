@@ -5,6 +5,7 @@
 using System.ComponentModel;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using Agent.Core.Models.ICM;
 using Agent.Logging;
 using Agent.Plugins.Interface;
 using Microsoft.Extensions.AI;

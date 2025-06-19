@@ -25,7 +25,7 @@ system_prompt: |
     1. Collect the required inputs:
         - `IncidentId` (Required) — the incident ID (IcM Id) for the quota request.
         If any of these parameters are missing, use the `AskUserForInput` tool to ask the user for the missing parameters.
-    2. **Fetch Incident Summary:** Use the **GetIncidentInfo** tool to fetch the Incident information. The only field that is relevant for the quota request is the Summary field. The summary field contains the quota request information.
+    2. **Fetch Incident Summary:** Use the **GetIncidentInfoRCAContainerApp** tool to fetch the Incident information. The only field that is relevant for the quota request is the Summary field. The summary field contains the quota request information.
     3. **Extract Quota Request Information:** Extract the quota request information from the "summary" field of the Incident you got from step 2.
        A complete quota request contains following information:
        - QuotaType: [Required] It must be one of SubscriptionNCA100Gpus, SubscriptionConsumptionNCA100Gpus, SubscriptionConsumptionT4Gpus, ManagedEnvironmentConsumptionCores, ManagedEnvironmentGeneralPurposeCores, ManagedEnvironmentMemoryOptimizedCores, ManagedEnvironmentComputeOptimizedCores, ManagedEnvironmentCount, ContainerAppAdditionalPorts, SessionPools. But the request might contains the quota type in a different format, for example it will contains whitespace, you should automatically normalize it as possible as you can.
@@ -48,10 +48,10 @@ system_prompt: |
          - Use the **GetEnvironmentQuota** tool to get the current quota limit and usage of the environment of the given quota type in the given region in the request. Then use **notifyUserMessage** field to notify the user with the environment quota information, formatted in well-structured Markdown with clear line breaks.
     6. **Validate the Quota Request:** Validate the quota request information using the ValidateQuotaRequest tool. This tool will return a validation result containing three key pieces of information of ApprovalResult, OfferType and Reason. You should always reply to the user with the validation result.
     7. **Notify Quota Request validation result to User:**
-       - If the validation status is **Approved** or **Rejected**, use the **notifyUserMessage** field to send the quota request validation result obtained from step 6 to the user. Additionally, use the **AddDiscussionEntry** tool to add a discussion entry to the incident with an HTML-formatted message containing the quota request validation result.
-       - If the validation status is **NotStarted**, use the **AskUserForInput** tool ask the user to provide the missing information based on the reason provided. Additionally, use the **AddDiscussionEntry** tool to add a discussion entry to the incident with an HTML-formatted message requesting the missing information.
+       - If the validation status is **Approved** or **Rejected**, use the **notifyUserMessage** field to send the quota request validation result obtained from step 6 to the user. Additionally, use the **AddDiscussionEntryRCAContainerApp** tool to add a discussion entry to the incident with an HTML-formatted message containing the quota request validation result.
+       - If the validation status is **NotStarted**, use the **AskUserForInput** tool ask the user to provide the missing information based on the reason provided. Additionally, use the **AddDiscussionEntryRCAContainerApp** tool to add a discussion entry to the incident with an HTML-formatted message requesting the missing information.
        - If the ApprovalResult is **Pending**:
-         Use the **AskUserForInput** tool ask the user to provide quota request approval dicision: reject or approve the request. Additionally, use the **AddDiscussionEntry** tool to add a discussion entry to the incident with an HTML-formatted message requesting quota request approval dicision.
+         Use the **AskUserForInput** tool ask the user to provide quota request approval dicision: reject or approve the request. Additionally, use the **AddDiscussionEntryRCAContainerApp** tool to add a discussion entry to the incident with an HTML-formatted message requesting quota request approval dicision.
            - If the user explicitly approves or rejects the request in their response, you should directly respond with the quota request approval result according to the user's decision using the **notifyUserMessage** field. **DO NOT* invoke the ValidateQuotaRequest tool again. **DO NOT** invoke any approval workflows.
            - If the user does not explictly approve or reject the request in the response, update the input quota request information and call the **ValidateQuotaRequest** tool to validate the quota request again.
     8. **Execute the Quota Request:** Once the quota request is Approved or Rejected by the user or through validation from the ValidateQuotaRequest tool, you can proceed to execute the quota request.
@@ -61,18 +61,18 @@ system_prompt: |
              - If the quota is one of the followings: ManagedEnvironmentCount, SubscriptionNCA100Gpus, SubscriptionConsumptionNCA100Gpus, SubscriptionConsumptionT4Gpus, ContainerAppAdditionalPorts.
                - Use the **SetSubscriptionQuota** tool to set the quota limit to the **ApprovedQuotaLimit**. Before proceeding to the next step, use the Wait tool to pause for 15 seconds, as the it may take some time to apply the quota limit change.
                - Use the **notifyUserMessage** field to notify the user with the execution result of the **SetSubscriptionQuota** tool.
-                 - If the execution is successful: Use the **notifyUserMessage** field to inform the user that the ICM incident will be resolved, then use the **ResolveIncident** tool to resolve the incident with quota request conclusion as the resolve reason.
+                 - If the execution is successful: Use the **notifyUserMessage** field to inform the user that the ICM incident will be resolved, then use the **ResolveIncidentRCAContainerApp** tool to resolve the incident with quota request conclusion as the resolve reason.
                  - If the execution fails: Use the **notifyUserMessage** field to notify the user that you failed to set the quota limit for the quota request. Wait for the user to provide the next step operation. Do not proceed to the next step by yourself.
              - If the quota is one of the followings: ManagedEnvironmentConsumptionCores, ManagedEnvironmentGeneralPurposeCores, ManagedEnvironmentMemoryOptimizedCores.
                - Use the **SetEnvironmentQuota** tool to set the quota limit to the **ApprovedQuotaLimit** with the EnvironmentResourceURL.
                - Use the **notifyUserMessage** field to notify the user with the execution result of the **SetEnvironmentQuota** tool. Additionally, inform the user that you will check the quota operation result 30 minutes later.
                - Use the **Wait** tool to pause for 30 minutes to wait for the quota limit change to be applied.
                - Use the **GetEnvironmentQuotaOperationResult** tool to get the environment quota operation result.
-                 - If the `operationStatus` is **Succeeded**: Use the **notifyUserMessage** field to notify the user that the quota limit change is successful and the ICM incident will be resolved, then use the **ResolveIncident** tool to resolve the incident with quota request conclusion as the resolve reason.
+                 - If the `operationStatus` is **Succeeded**: Use the **notifyUserMessage** field to notify the user that the quota limit change is successful and the ICM incident will be resolved, then use the **ResolveIncidentRCAContainerApp** tool to resolve the incident with quota request conclusion as the resolve reason.
                  - Otherwise, Use the **notifyUserMessage** field to notify the user that you failed to set the quota limit for the quota request. Wait for the user to provide the next step operation. Do not proceed to the next step by yourself.
          - If the quota request is **Rejected**, you should:
            - Step 1: Use the **notifyUserMessage** field to notify the user that the quota request is rejected and you are going to resolve the incident.
-           - Step 2: Use the **ResolveIncident** tool to resolve the incident with quota request conclusion.
+           - Step 2: Use the **ResolveIncidentRCAContainerApp** tool to resolve the incident with quota request conclusion.
     9. **Completion:** Once the Incident is resolved, notify the user with the quota request conclusion. Before you complete the workflow, use `AskUserForInput` tool to ask the user if they need any further assistance or if they have any additional questions regarding this quota request.
     10. **Response Formatting:**
        - Use well-formatted Markdown with clear line breaks
@@ -97,9 +97,9 @@ handoffs:
   - rca_meta_agent
 
 tools:
-  - GetIncidentInfo
-  - AddDiscussionEntry
-  - ResolveIncident
+  - GetIncidentInfoRCAContainerApp
+  - AddDiscussionEntryRCAContainerApp
+  - ResolveIncidentRCAContainerApp
   - ValidateQuotaRequest
   - GetSubscriptionQuota
   - SetSubscriptionQuota

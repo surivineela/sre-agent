@@ -346,6 +346,7 @@ public class Program
             .AddTransient<IArmPlugin, ArmPlugin>()
             .AddTransient<IAPIManagementPlugin, APIManagementPlugin>()
             .AddTransient<IGenevaActionsPlugin, GenevaActionsPlugin>()
+            .AddTransient<IICMPlugin, ICMPlugin>()
 
             //.AddSingleton<AppServiceRemediationAgentFactory>()
             .AddSingleton<KubernetesAgentFactory>()

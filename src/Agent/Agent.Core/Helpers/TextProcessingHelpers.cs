@@ -11,7 +11,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Agent.Core.Helpers
 {
-    static internal class TextProcessingHelpers
+    static public class TextProcessingHelpers
     {
         /// <summary>
         /// Strips base64 images from the HTML content and adds them to the base64Images list

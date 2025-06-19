@@ -1,5 +1,4 @@
-using Agent.Plugins.IcmPlugin;
-using Incident = Agent.Plugins.IcmPlugin.Incident;
+using Agent.Core.Models.ICM;
 
 namespace Agent.Plugins.Interface;
 public interface IContainerAppIcMPlugin
