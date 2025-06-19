@@ -14,16 +14,16 @@ namespace Agent.Graph.Crawler.ARM;
 public class AzureResourceGraphClient
 {
     private readonly ArmClient _client;
-    private TenantResource _tenantResource;
+    private Lazy<TenantResource> _tenantResource;
 
     public AzureResourceGraphClient(IArmClientFactory armClientFactory, CrawlerSettings crawlerSettings)
     {
         _client = armClientFactory.GetCrawlerArmClient();
         if (crawlerSettings.TenantId == null) throw new ArgumentNullException("TenantId");
-        InitTenantResource(crawlerSettings.TenantId);
+        _tenantResource = new Lazy<TenantResource>(() => InitTenantResource(crawlerSettings.TenantId));
     }
 
-    public void InitTenantResource(string tenantId)
+    public TenantResource InitTenantResource(string tenantId)
     {
         foreach (var pages in _client.GetTenants().GetAll().AsPages())
         {
@@ -31,11 +31,12 @@ public class AzureResourceGraphClient
             {
                 if (tenant.HasData && tenant.Data.TenantId.HasValue && tenant.Data.TenantId == new Guid(tenantId))
                 {
-                    _tenantResource = tenant!;
-                    return;
+                    return tenant;
                 }
             }
         }
+
+        throw new InvalidOperationException($"Failed to initialize TenantResource for tenant ID: {tenantId}");
     }
 
     public async Task<ResourceQueryResult> Query(IList<string> subscriptions, string query)
@@ -46,7 +47,7 @@ public class AzureResourceGraphClient
             request.Subscriptions.Add(sub);
         }
 
-        var result = await _tenantResource.GetResourcesAsync(request);
+        var result = await _tenantResource.Value.GetResourcesAsync(request);
 
         return result;
     }

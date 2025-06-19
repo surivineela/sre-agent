@@ -1,3 +1,4 @@
+import { ScrollDownButton } from '@fluentui-copilot/react-copilot-chat';
 import { Button, makeStyles, mergeClasses, Popover, PopoverSurface, PopoverTrigger, Text, tokens } from '@fluentui/react-components';
 import { Lightbulb16Regular, RecordStopFilled, SendFilled } from '@fluentui/react-icons';
 import { IStyle, mergeStyles } from '@fluentui/react/lib/Styling';
@@ -9,7 +10,6 @@ import { IChatBoxFooterV2Props } from '../Contracts/Activities';
 import { SignalRContext } from '../Contracts/Context';
 import { chatInputTextStyles, sendButtonStyles, useChatInputStyles } from '../Styles/Activities.styles';
 import KnowledgeGraphBuildStatus from './KnowledgeGraphBuildStatus';
-import { ScrollDownButton } from "@fluentui-copilot/react-copilot-chat";
 
 const useDownButtonStyles = makeStyles({
     root: {
@@ -26,13 +26,11 @@ const useDownButtonStyles = makeStyles({
     },
 });
 
-const DownButton = ({ downButtonState, onClick }: { downButtonState: { visible: boolean, flash: boolean }; onClick: () => void }) => {
+const DownButton = ({ downButtonState, onClick }: { downButtonState: { visible: boolean; flash: boolean }; onClick: () => void }) => {
     const { root, hidden } = useDownButtonStyles();
     const buttonStyles = mergeClasses(root, downButtonState.visible ? undefined : hidden);
 
-    return (
-        <ScrollDownButton onClick={onClick} className={buttonStyles} isGenerating={downButtonState.flash} />
-    );
+    return <ScrollDownButton onClick={onClick} className={buttonStyles} isGenerating={downButtonState.flash} />;
 };
 
 const ChatBoxFooterV2 = ({

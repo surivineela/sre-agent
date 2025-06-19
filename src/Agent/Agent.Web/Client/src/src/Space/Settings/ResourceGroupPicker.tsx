@@ -12,12 +12,12 @@ import { DropdownWithFilter, IDropdownOptionForFilter } from '../../Common/Compo
 import { SearchFilterWithResultAnnouncement } from '../../Common/Components/SearchFilterWithResultAnnouncement';
 import { getUserFriendlyLocation } from '../../Common/Helpers/LocationHelper';
 import { ManagedResourcesStringResources, ResourcePickerTabResources } from '../../Strings/SREAgentResources';
+import { SreAgentContext } from '../Contracts/Context';
 import { getSubscriptionId, ResourceGroup, useResourceGroups } from './Hooks/useResourceGroups';
 import { Subscription } from './Hooks/useSubscriptions';
+import PermissionsDetailsList from './PermissionsDetailsList';
 import ReviewTab from './ResourcePickerReviewTab';
 import { detailsListStyles, useManagedResourcesStyles } from './Styles/ManagedResources.styles';
-import PermissionsDetailsList from './PermissionsDetailsList';
-import { SreAgentContext } from '../Contracts/Context';
 
 export type ISortedDetailsListColumn = IColumn & {
     sort?: (items: any[], isSortedDescending: boolean) => any[];
@@ -454,7 +454,7 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
             </Pivot>
             <div className={styles.dialogFooter}>
                 <DialogFooter>
-                    {(tabKey === TabKeys.select || tabKey === TabKeys.review ) && (
+                    {(tabKey === TabKeys.select || tabKey === TabKeys.review) && (
                         <PrimaryButton
                             className={styles.footerButtonDiv}
                             onClick={() => {

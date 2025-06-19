@@ -31,8 +31,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
 
     public class GremlinGraphDatabaseClient : IGraphDatabaseClient
     {
-        public static GremlinClient? _gremlinClient;
-        private static readonly object _lock = new object();
+        public static Lazy<GremlinClient> _gremlinClient;
         private readonly ILogger<GremlinGraphDatabaseClient> _logger;
         private readonly AsyncPolicy _retryPolicy;
 
@@ -42,26 +41,14 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         public GremlinGraphDatabaseClient(GremlinClient client, ILogger<GremlinGraphDatabaseClient> logger)
         {
             _logger = logger;
-            _gremlinClient = client;
+            _gremlinClient = new Lazy<GremlinClient>(client);
             _retryPolicy = BuildRetryPolicy();
         }
 
         public GremlinGraphDatabaseClient(GraphSettings graphSettings, ILogger<GremlinGraphDatabaseClient> logger)
         {
             _logger = logger;
-
-            // Initialize the Gremlin client if it hasn't been initialized yet
-            if (_gremlinClient == null)
-            {
-                lock (_lock)
-                {
-                    if (_gremlinClient == null)
-                    {
-                        _gremlinClient = CreateGremlinClient(graphSettings);
-                    }
-                }
-            }
-
+            _gremlinClient = new Lazy<GremlinClient>(() => CreateGremlinClient(graphSettings));
             _retryPolicy = BuildRetryPolicy();
         }
 
@@ -270,7 +257,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             {
                 if (this.GraphName == DefaultGraphName)
                 {
-                    return await _gremlinClient!.SubmitAsync<T>(query);
+                    return await _gremlinClient.Value.SubmitAsync<T>(query);
                 }
                 else
                 {
@@ -281,7 +268,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
                         .AddArgument(Tokens.ArgsAliases, new Dictionary<string, string> { { "g", this.GraphName } })
                         .AddArgument(Tokens.ArgsGremlin, query);
 
-                    return await _gremlinClient.SubmitAsync<T>(msgBuilder.Create());
+                    return await _gremlinClient.Value.SubmitAsync<T>(msgBuilder.Create());
                 }
             });
         }

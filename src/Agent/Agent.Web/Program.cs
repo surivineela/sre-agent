@@ -136,7 +136,13 @@ public class Program
         var azureSettings = builder.Configuration.GetSection("AppSettings:Core:Azure").Get<AzureSettings>();
         var loggingSettings = builder.Configuration.GetSection("Logging").Get<LoggingSettings>();
 
-        await app.Services.CreateCosmosContainerIfNotExists(builder.Configuration);
+        app.Lifetime.ApplicationStarted.Register(() =>
+        {
+            _ = Task.Run(async () =>
+            {
+                await app.Services.CreateCosmosContainerIfNotExists(builder.Configuration);
+            });
+        });
 
         app.Run();
 
@@ -669,6 +675,8 @@ public class Program
                 // if (builder.Environment.IsDevelopment())
                 // TODO: sanmeht - only enable traces for non-production environments
                 // {
+                // In-memory exporter for development - direct implementation
+                exporters.Add(new InMemoryActivityExporter(exportedActivities));
                 // In-memory exporter for development - direct implementation
                 exporters.Add(new InMemoryActivityExporter(exportedActivities));
                 // }
