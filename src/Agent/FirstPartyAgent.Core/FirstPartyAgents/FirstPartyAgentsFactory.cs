@@ -9,7 +9,7 @@ using Agent.Plugins;
 using FirstPartyAgent.Core.Plugins.Implementation;
 using FirstPartyAgent.Plugins;
 using Agent.Plugins.Interface;
-using IContainerAppIcMPlugin = FirstPartyAgent.Core.Plugins.Interfaces.IContainerAppIcMPlugin;
+
 
 namespace FirstPartyAgent.Core.FirstPartyAgents;
 
@@ -24,25 +24,16 @@ public class FirstPartyAgentsFactory : IAgentsFactory
     private readonly IServiceProvider _serviceProvider;
     private readonly IContainerAppIcMPlugin _containerAppIcMPlugin;
     private readonly ITimePlugin _timePlugin;
-    private readonly IManagedClusterPlugin _managedClusterPlugin;
-    private readonly IManagedEnvironmentPlugin _managedEnvironmentPlugin;
-    private readonly IContainerAppsPlugin _containerAppsPlugin;
 
     public FirstPartyAgentsFactory(
         IServiceProvider serviceProvider,
         IContainerAppIcMPlugin containerAppIcMPlugin,
-        ITimePlugin timePlugin,
-        IManagedClusterPlugin managedClusterPlugin,
-        IManagedEnvironmentPlugin managedEnvironmentPlugin,
-        IContainerAppsPlugin containerAppsPlugin
+        ITimePlugin timePlugin
         )
     {
         _serviceProvider = serviceProvider;
         _containerAppIcMPlugin = containerAppIcMPlugin;
         _timePlugin = timePlugin;
-        _managedClusterPlugin = managedClusterPlugin;
-        _managedEnvironmentPlugin = managedEnvironmentPlugin;
-        _containerAppsPlugin = containerAppsPlugin;
     }
 
     public List<AITool> GetSubAgentsAITools(Guid threadGuid, AgentContext context)
@@ -54,23 +45,12 @@ public class FirstPartyAgentsFactory : IAgentsFactory
             _aiTools.AddRange(subAgentTools);
         }
 
-        var containerAppIcMPluginDefinition = new ContainerAppIcMPluginDefinition(_containerAppIcMPlugin);
         var timePluginDefinition = new TimePluginDefinition(_timePlugin);
-        var managedClusterPluginDefinition = new ManagedClusterPluginDefinition(_managedClusterPlugin);
-        var managedEnvironmentPluginDefinition = new ManagedEnvironmentPluginDefinition(_managedEnvironmentPlugin);
-        var containerAppsPluginDefinition = new ContainerAppsPluginDefinition(_containerAppsPlugin);
 
         _aiTools.AddRange(
             new List<AITool>
             {
-                AIFunctionFactory.Create(managedClusterPluginDefinition.GetASIPageForManagedCluster),
-                AIFunctionFactory.Create(managedEnvironmentPluginDefinition.GetManagedEnvironmentInfo),
-                AIFunctionFactory.Create(managedEnvironmentPluginDefinition.GetChangesInManagedEnvironment),
-                AIFunctionFactory.Create(managedEnvironmentPluginDefinition.GetASIPageForManagedEnvironment),
                 AIFunctionFactory.Create(timePluginDefinition.GetCurrentUtcTime),
-                AIFunctionFactory.Create(containerAppIcMPluginDefinition.GetInitialInvestigationReportAsync),
-                AIFunctionFactory.Create(containerAppIcMPluginDefinition.GetIssueInvestigationTimeRange),
-                AIFunctionFactory.Create(containerAppsPluginDefinition.GetSubscriptionDetail),
             });
         return _aiTools;
     }
@@ -114,22 +94,6 @@ public class FirstPartyAgentsFactory : IAgentsFactory
             typeof(HelloWorldPluginDefinition),
             //Plugins requires by quota agent.
             //TODO: going to make it read from env variable
-            typeof(ContainerAppsPluginDefinition),
-            typeof(ContainerAppQuotaPluginDefinition),
-            typeof(ContainerAppRevisionPluginDefinition),
-            typeof(ContainerAppJobsPluginDefinition),
-            typeof(ContainerAppDocumentSearchPluginDefinition),
-            typeof(ManagedClusterPluginDefinition),
-            typeof(ManagedEnvironmentPluginDefinition),
-            typeof(HealthProbePluginDefinition),
-            typeof(NodeAvailabilityPluginDefinition),
-            typeof(ACAKustoPluginDefinition),
-            typeof(ContainerAppEnvoyPluginDefinition),
-            typeof(ContainerAppCorednsPluginDefinition),
-            typeof(ContainerAppSessionsPluginDefinition),
-            typeof(ContainerAppCustomerLogsPluginDefinition),
-            typeof(ContainerAppCustomerMetricsPluginDefinition),
-            typeof(PlatformUpgradesPluginDefinition)
         };
         return types;
     }

@@ -27,9 +27,6 @@ config.SetBasePath(builder.Environment.ContentRootPath)
 
 builder.Services.RegisterServiceDependencies(builder.Environment);
 
-// remove this plugin because its dependencies are not registered.
-builder.Services.RemoveAll<IKustoPluginChat>();
-
 if (builder.Environment.IsDevelopment())
 {
     LocalAadAuthenticator.Initialize();

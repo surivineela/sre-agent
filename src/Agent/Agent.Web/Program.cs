@@ -597,10 +597,6 @@ public class Program
             b.AddTasks(r =>
             {
                 DurableHelper.AddAllGeneratedTasks(r);
-                if (isFirstAgent)
-                {
-                    FirstPartyDurableHelper.AddAllGeneratedTasks(r);
-                }
             });
 
             string durableConnectionString = builder.ResolveDtsConnectionString();

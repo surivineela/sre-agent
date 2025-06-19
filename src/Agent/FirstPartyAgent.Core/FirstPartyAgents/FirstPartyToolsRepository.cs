@@ -21,7 +21,6 @@ public class FirstPartyToolsRepository : ToolsRepository
         RegisterPlugin<ControlFlowPluginDefinition>();
         RegisterPlugin<TimePluginDefinition>();
         RegisterPlugin<ChartPluginDefinition>();
-        RegisterPlugin<ContainerAppIcMPluginDefinition>();
         var firstPartySubAgentPlugins = _agentsFactory.GetRequiredSubAgentPluginDefinitionTypes();
         foreach (var pluginType in firstPartySubAgentPlugins)
         {

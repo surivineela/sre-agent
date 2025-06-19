@@ -126,19 +126,7 @@
 	</ItemGroup>
   
   <!-- Add system prompt files -->
-  <ItemGroup>
-    <None Update="FirstPartyAgents\ACA\**\*.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </None>
-  </ItemGroup>
 
   <!-- Add sub-agents plan files -->
-  <ItemGroup>
-    <None Update="FirstPartySubAgents\ACA\**\*.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </None>
-  </ItemGroup>
 
 </Project>
