@@ -14,12 +14,15 @@ import {
     MenuTrigger,
     tokens,
 } from '@fluentui/react-components';
-import { DeleteRegular, InfoRegular, MoreHorizontal20Regular } from '@fluentui/react-icons';
-import { memo, useMemo, useState } from 'react';
+import { CopyRegular, DeleteRegular, InfoRegular, MoreHorizontal20Regular } from '@fluentui/react-icons';
+import { memo, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import CopyButton from '../../Common/Components/CopyButton';
 import DeleteThreadDialog from '../../Common/Components/DeleteThreadDialog';
 import { Thread } from '../../Common/Contracts/Azure/SreAgent';
+import { copyToClipboard } from '../../Common/Helpers/Clipboard';
+import { useThreadDeepLink } from '../../Common/Hooks/useThreadDeepLink';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
 
 const useStyles = makeStyles({
@@ -64,6 +67,8 @@ interface ThreadActionsMenuProps {
 const ThreadActionsMenu = ({ thread, handleThreadDelete }: ThreadActionsMenuProps) => {
     const { infoContent, threadIdHighlight, section, sectionTitle } = useStyles();
     const intl = useIntl();
+    const { resourceId } = useContext(EnvironmentContext);
+    const threadDeepLink = useThreadDeepLink(resourceId, thread.id);
 
     const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -127,6 +132,9 @@ Thread ID: ${thread.id}`;
                     <MenuList>
                         <MenuItem icon={<InfoRegular />} onClick={() => setIsInfoDialogOpen(true)}>
                             {intl.formatMessage(SreAgentResources.info)}
+                        </MenuItem>
+                        <MenuItem icon={<CopyRegular />} onClick={() => copyToClipboard(threadDeepLink)}>
+                            {intl.formatMessage(SreAgentResources.copyLinkToThread)}
                         </MenuItem>
                         <MenuItem icon={<DeleteRegular />} onClick={() => setIsDeleteDialogOpen(true)}>
                             {intl.formatMessage(SreAgentResources.delete)}

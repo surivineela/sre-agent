@@ -35,6 +35,10 @@ export const SreAgentResources = defineMessages({
         id: 'aCdAsI',
         defaultMessage: 'Copy to clipboard',
     },
+    copyLinkToThread: {
+        id: 'Zidpq7',
+        defaultMessage: 'Copy link to thread',
+    },
     deny: {
         id: 'htvX+Z',
         defaultMessage: 'Deny',

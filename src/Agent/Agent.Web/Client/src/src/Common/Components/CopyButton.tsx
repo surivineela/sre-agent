@@ -3,6 +3,7 @@ import { CheckmarkRegular, CopyRegular } from '@fluentui/react-icons';
 import { useState } from 'react';
 import { useIntl } from 'react-intl';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
+import { copyToClipboard } from '../Helpers/Clipboard';
 
 interface CopyButtonProps {
     textToCopy: string;
@@ -22,19 +23,7 @@ export const CopyButton = (props: CopyButtonProps) => {
     const handleCopy = async (event: React.MouseEvent) => {
         event.stopPropagation();
 
-        try {
-            // This seems to be blocked in portal iframes
-            await navigator.clipboard.writeText(textToCopy);
-        } catch (error) {
-            // Fallback method
-            const textArea = document.createElement('textarea');
-            textArea.value = textToCopy;
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textArea);
-        }
+        copyToClipboard(textToCopy);
 
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);

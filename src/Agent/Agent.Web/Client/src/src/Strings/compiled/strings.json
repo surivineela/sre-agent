@@ -193,12 +193,6 @@
       "value": "Connect repository"
     }
   ],
-  "1uDzPU": [
-    {
-      "type": 0,
-      "value": "This will permanently delete the chat and all actions in this thread."
-    }
-  ],
   "2/2yg+": [
     {
       "type": 0,
@@ -2031,6 +2025,12 @@
       "value": "On"
     }
   ],
+  "Zidpq7": [
+    {
+      "type": 0,
+      "value": "Copy link to thread"
+    }
+  ],
   "Zqa4dQ": [
     {
       "type": 0,
@@ -2967,6 +2967,12 @@
     {
       "type": 0,
       "value": "The access key is not valid. Please try again."
+    }
+  ],
+  "u5uL6R": [
+    {
+      "type": 0,
+      "value": "This will permanently delete the chat and all actions in this thread. Are you sure you want to delete?"
     }
   ],
   "u64mw7": [

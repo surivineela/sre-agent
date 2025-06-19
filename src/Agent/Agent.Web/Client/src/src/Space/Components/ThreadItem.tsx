@@ -1,11 +1,14 @@
 import { Menu, MenuButton, MenuItem, MenuList, MenuPopover, MenuTrigger } from '@fluentui/react-components';
-import { Delete20Regular, MoreHorizontal20Regular } from '@fluentui/react-icons';
+import { CopyRegular, Delete20Regular, MoreHorizontal20Regular } from '@fluentui/react-icons';
 import { Text } from '@fluentui/react-text';
 import { mergeStyles } from '@fluentui/react/lib/Styling';
-import { memo, useMemo, useState } from 'react';
+import { memo, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import DeleteThreadDialog from '../../Common/Components/DeleteThreadDialog';
 import { IncidentStatus, Thread, ThreadSource } from '../../Common/Contracts/Azure/SreAgent';
+import { copyToClipboard } from '../../Common/Helpers/Clipboard';
+import { useThreadDeepLink } from '../../Common/Hooks/useThreadDeepLink';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
 import { useThreadMenuStyle } from '../Styles/Activities.styles';
 import { useActionsStatusBarStyles } from '../Styles/Incident.styles';
@@ -26,6 +29,8 @@ const ThreadItem = ({
     const ThreadMenuStyles = useThreadMenuStyle();
     const styles = useActionsStatusBarStyles();
     const intl = useIntl();
+    const { resourceId } = useContext(EnvironmentContext);
+    const threadDeepLink = useThreadDeepLink(resourceId, thread.id);
 
     const [isHovered, setIsHovered] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -79,24 +84,27 @@ const ThreadItem = ({
                     <Text size={300} wrap={false} block weight={makeTextBold ? 'bold' : 'regular'}>
                         {thread.title}
                     </Text>
-                    {deleteThread && (
-                        <Menu>
-                            <MenuTrigger disableButtonEnhancement>
-                                <MenuButton
-                                    appearance="subtle"
-                                    size="small"
-                                    icon={<MoreHorizontal20Regular />}
-                                    onClick={e => {
-                                        e.stopPropagation();
-                                    }}
-                                    style={{
-                                        opacity: isHovered ? 1 : 0,
-                                        visibility: isHovered ? 'visible' : 'hidden',
-                                    }}
-                                />
-                            </MenuTrigger>
-                            <MenuPopover>
-                                <MenuList>
+                    <Menu>
+                        <MenuTrigger disableButtonEnhancement>
+                            <MenuButton
+                                appearance="subtle"
+                                size="small"
+                                icon={<MoreHorizontal20Regular />}
+                                onClick={e => {
+                                    e.stopPropagation();
+                                }}
+                                style={{
+                                    opacity: isHovered ? 1 : 0,
+                                    visibility: isHovered ? 'visible' : 'hidden',
+                                }}
+                            />
+                        </MenuTrigger>
+                        <MenuPopover>
+                            <MenuList>
+                                <MenuItem icon={<CopyRegular />} onClick={() => copyToClipboard(threadDeepLink)}>
+                                    {intl.formatMessage(SreAgentResources.copyLinkToThread)}
+                                </MenuItem>
+                                {deleteThread && (
                                     <MenuItem
                                         icon={<Delete20Regular />}
                                         onClick={e => {
@@ -106,10 +114,10 @@ const ThreadItem = ({
                                     >
                                         {intl.formatMessage(SreAgentResources.delete)}
                                     </MenuItem>
-                                </MenuList>
-                            </MenuPopover>
-                        </Menu>
-                    )}
+                                )}
+                            </MenuList>
+                        </MenuPopover>
+                    </Menu>
                 </div>
                 {thread.source === ThreadSource.incident ? (
                     <div className={styles.subtitleContainer}>
