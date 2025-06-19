@@ -10,5 +10,7 @@ KedaOperatorEvents
 | extend LogCategory = tostring(LogInfo[2])
 | where LogCategory != ''
 | where * contains containerAppJobName
+| where Log has "ERROR"
 | project PreciseTimeStamp, LogInfo, LogLevel, LogCategory, _ContainerGroupName//, _ContainerImage
 | order by PreciseTimeStamp asc
+| take 1000
