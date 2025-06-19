@@ -4,7 +4,6 @@
 
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Graph.Crawler.ARM;
@@ -438,27 +437,16 @@ namespace Agent.Plugins
                 }
             }
 
-            // write to temp file
-            var kubeConfigPath = Path.GetTempFileName();
-            await File.WriteAllTextAsync(kubeConfigPath, _configJsonSerializer.Serialize(kubeConfig.Configuration));
-
-            // Remove "kubectl" prefix more safely
-            var cmd = command.Trim();
-            if (cmd.StartsWith("kubectl ", StringComparison.OrdinalIgnoreCase))
-            {
-                cmd = cmd.Substring(8); // Remove "kubectl " (7 chars + 1 space)
-            }
+            var serializedKubeConfig = _configJsonSerializer.Serialize(kubeConfig.Configuration);
 
             try
             {
-                var output = await ExecuteCommandHelper.ExecuteCommand(
-                    "kubectl",
-                    stdin,
-                    [
-                        cmd,
-                        $"--kubeconfig=\"{kubeConfigPath}\"",
-                        $"--cache-dir=\"{Path.Combine(Path.GetTempPath(), ".kube")}\""
-                    ]);
+                var cliExecution = new Core.Services.KubectlExecution(
+                    _logger,
+                    serializedKubeConfig,
+                    command,
+                    stdin);
+                var output = await cliExecution.ExecuteAsync();
 
                 // trigger recrawl for modified resources
                 TriggerRecrawl(resourceId, command, output);

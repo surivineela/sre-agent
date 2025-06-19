@@ -1814,7 +1814,7 @@ public class ArmHelper
         }
     }
 
-    public async Task<string> CheckConnectivityToAzureWebJobsStorage(string resourceId, string providerType= "BlobStorage")
+    public async Task<string> CheckConnectivityToAzureWebJobsStorage(string resourceId, string providerType = "BlobStorage")
     {
         var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
 
@@ -2378,37 +2378,18 @@ public class ArmHelper
         // Execute the command
         try
         {
-            var configDir = _hostEnvironment.IsDevelopment() ? string.Empty : Path.Join(Path.GetTempPath(), $"azcli-{Path.GetRandomFileName()}");
-            // az login does not support access token
-            // the token is consumed using Environment variable AZURE_CLI_ACCESS_TOKEN
-            if (string.IsNullOrEmpty(oboToken))
+            var identity = string.Empty;
+            if (!string.IsNullOrEmpty(_azureSettings.Action.Identity))
             {
-                var login = await AzLogin(configDir);
-                if (!login)
-                {
-                    return "[Exception encountered]: Failed to login to Azure CLI";
-                }
+                identity = _azureSettings.Action.Identity;
             }
-            else
+            else if (!string.IsNullOrEmpty(_azureSettings.Crawler.Identity))
             {
-                _logger.LogInternalInformation($"[RunAzCliCommandsAsync] Skip Az login and use OBO token for command execution.");
+                identity = _azureSettings.Crawler.Identity;
             }
 
-            var cmd = command.Substring("az ".Length);
-
-            var envs = new Dictionary<string, string>();
-
-            if (!string.IsNullOrEmpty(configDir))
-            {
-                envs["AZURE_CONFIG_DIR"] = configDir;
-            }
-
-            if (!string.IsNullOrEmpty(oboToken))
-            {
-                envs["AZURE_CLI_ACCESS_TOKEN"] = oboToken;
-            }
-
-            var result = await ExecuteCommandHelper.ExecuteCommand("az", [cmd], envs);
+            var cliExecution = new AzCliExecution(_logger, command, oboToken, identity, _hostEnvironment.IsDevelopment());
+            var result = await cliExecution.ExecuteAsync();
 
             if (!string.IsNullOrEmpty(oboToken))
             {
@@ -2645,59 +2626,6 @@ public class ArmHelper
         }
 
         return null; // No validation errors
-    }
-
-    private async Task<bool> AzLogin(string configDir)
-    {
-        if (_hostEnvironment.IsDevelopment())
-        {
-            return true;
-        }
-
-        var identity = string.Empty;
-        if (!string.IsNullOrEmpty(_azureSettings.Action.Identity))
-        {
-            identity = _azureSettings.Action.Identity;
-        }
-        else if (!string.IsNullOrEmpty(_azureSettings.Crawler.Identity))
-        {
-            identity = _azureSettings.Crawler.Identity;
-        }
-
-        string[] loginCommands;
-        if (string.IsNullOrEmpty(identity))
-        {
-            // local env
-            loginCommands = new[] { "login", "--allow-no-subscriptions" };
-        }
-        else if (string.Equals(Constants.SystemManagedIdentityName, identity))
-        {
-            loginCommands = new[] { "login", "--identity", "--allow-no-subscriptions" };
-        }
-        else
-        {
-            loginCommands = new[] { "login", "--identity", "--allow-no-subscriptions", "--resource-id", identity };
-        }
-
-        _logger.LogInternalInformation($"Az login with managed identity {identity}");
-        try
-        {
-            var envs = new Dictionary<string, string>();
-
-            if (!string.IsNullOrEmpty(configDir))
-            {
-                envs["AZURE_CONFIG_DIR"] = configDir;
-            }
-
-            await ExecuteCommandHelper.ExecuteCommand("az", loginCommands, envs);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalError($"Az login failed: {ex}");
-            return false;
-        }
-
-        return true;
     }
 
     #endregion
