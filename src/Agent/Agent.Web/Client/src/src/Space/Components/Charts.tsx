@@ -1,5 +1,5 @@
 import { toPng } from 'html-to-image';
-import React, { useMemo, useRef, useState } from 'react';
+import React, { memo, useMemo, useRef, useState } from 'react';
 import {
     Area,
     AreaChart,
@@ -1422,4 +1422,4 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
     );
 };
 
-export default AgentChart;
+export default memo(AgentChart);

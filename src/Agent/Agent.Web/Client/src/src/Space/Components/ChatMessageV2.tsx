@@ -16,7 +16,7 @@ import { getAgentModeDisplayName } from '../../Common/Helpers/AgentMode';
 import { formatDateTimeWithShortYear, getSafeDateTime } from '../../Common/Helpers/Date';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
-import { shouldGroupWithPreviousMessage } from '../Activities/Utility';
+import { isChatMessageEmpty, shouldGroupWithPreviousMessageV2 } from '../Activities/Utility';
 import { AgentMessageRegex, IChatMessageV2Props } from '../Contracts/Activities';
 import { SreAgentContext } from '../Contracts/Context';
 import { useAuthenticatedUserInfo } from '../Hooks/useAuthenticatedUserInfo';
@@ -151,6 +151,7 @@ const ChatMessageV2 = ({
     isTyping,
     threadId,
     isStreamingMessage,
+    toolCallText,
 }: IChatMessageV2Props) => {
     const chatStyles = useChatBoxStyles();
     const intl = useIntl();
@@ -191,14 +192,18 @@ const ChatMessageV2 = ({
     }, [intl, mode, chatStyles.modePill, agentMode, isTyping, message.timeStamp]);
 
     // Hide message's icon, name and timestamp if the message is grouped with the previous one
-    const hideMessageHeader = useMemo(() => shouldGroupWithPreviousMessage(message, previousMessage), [message, previousMessage]);
+    const hideMessageHeader = useMemo(() => shouldGroupWithPreviousMessageV2(message, previousMessage), [message, previousMessage]);
     // Show feedback buttons if the message is from SREAgent, not typing and it is the last message in the group
     const showFeedbackButtons = useMemo(
-        () => message.author.role === 'SREAgent' && !isTyping && !shouldGroupWithPreviousMessage(nextMessage, message),
+        () => message.author.role === 'SREAgent' && !isTyping && !shouldGroupWithPreviousMessageV2(nextMessage, message),
         [message, nextMessage, isTyping]
     );
     const showCopyMessageButton = useMemo(
-        () => message.author.role === 'SREAgent' && !isTyping && message.text && !shouldGroupWithPreviousMessage(nextMessage, message),
+        () =>
+            message.author.role === 'SREAgent' &&
+            !isTyping &&
+            message.contents.some(content => !!content.text) &&
+            !shouldGroupWithPreviousMessageV2(nextMessage, message),
         [message, nextMessage, isTyping]
     );
 
@@ -208,12 +213,15 @@ const ChatMessageV2 = ({
         const groupedMessages = getGroupedMessages();
         return groupedMessages
             .map(msg =>
-                msg.text
-                    .trim()
-                    .replace(AgentMessageRegex.imageRegex, '[Image]')
-                    .replace(AgentMessageRegex.mermaidRegex, '[Mermaid Diagram]')
-                    .replace(AgentMessageRegex.chartRegex, '[Chart]')
+                msg.contents.map(msgContent => {
+                    return msgContent.text
+                        .trim()
+                        .replace(AgentMessageRegex.imageRegex, '[Image]')
+                        .replace(AgentMessageRegex.mermaidRegex, '[Mermaid Diagram]')
+                        .replace(AgentMessageRegex.chartRegex, '[Chart]');
+                })
             )
+            .flat()
             .join('\n\n');
     }, [showCopyMessageButton, getGroupedMessages]);
 
@@ -242,6 +250,31 @@ const ChatMessageV2 = ({
         }
     };
 
+    const ToolCallTextComponent = () => {
+        const toolCallTextContent = toolCallText || (isChatMessageEmpty(message) ? 'Analyzing...' : '');
+
+        const styles = `
+            @keyframes shimmer {
+                0% {
+                    background-position: 100% 0;
+                }
+                100% {
+                    background-position: -100% 0;
+                }
+            }
+        `;
+
+        return (
+            isTyping &&
+            toolCallTextContent && (
+                <>
+                    <style>{styles}</style>
+                    <Text className={chatMessageStyles.toolCallText}>{toolCallTextContent}</Text>
+                </>
+            )
+        );
+    };
+
     switch (message.author.role) {
         case 'SREAgent':
             return (
@@ -256,13 +289,20 @@ const ChatMessageV2 = ({
                             hideMessageHeader ? ChatBoxStyles.hideAgentMessageHeader : undefined
                         )}
                     >
-                        <AgentMessage message={message} isTyping={isTyping} threadId={threadId} />
+                        {message.contents.map((content, index) => {
+                            return (
+                                <AgentMessage
+                                    key={index}
+                                    messageContent={content}
+                                    messageId={message.id}
+                                    timeStamp={message.timeStamp}
+                                    isTyping={isTyping}
+                                    threadId={threadId}
+                                />
+                            );
+                        })}
 
-                        <ToolCallTextComponent
-                            toolCallText={message.toolCallText}
-                            hasText={!!message.text || !!message.approval || !!message.azCliExecution || !!message.kubectlExecution}
-                            isTyping={isTyping}
-                        />
+                        <ToolCallTextComponent />
 
                         <div style={{ display: 'flex', flexDirection: 'row', marginTop: '8px' }}>
                             {showFeedbackButtons && ( // Only show buttons when the agent is not typing
@@ -302,36 +342,11 @@ const ChatMessageV2 = ({
                         </div>
                     )}
                     <UserMessage className={chatStyles.userBubble} message={{ className: chatStyles.userBubbleMessage }} key={message.id}>
-                        <ReactMarkdownComponent key={message.id} content={message.text} isUserMessage={true} />
+                        <ReactMarkdownComponent key={message.id} content={message.contents?.[0]?.text} isUserMessage={true} />
                     </UserMessage>
                 </div>
             );
     }
-};
-
-const ToolCallTextComponent = ({ toolCallText, hasText, isTyping }: { toolCallText?: string; hasText: boolean; isTyping?: boolean }) => {
-    const toolCallTextContent = toolCallText || (hasText ? '' : 'Analyzing...');
-
-    const styles = `
-        @keyframes shimmer {
-            0% {
-                background-position: 100% 0;
-            }
-            100% {
-                background-position: -100% 0;
-            }
-        }
-    `;
-
-    return (
-        isTyping &&
-        toolCallTextContent && (
-            <>
-                <style>{styles}</style>
-                <Text className={chatMessageStyles.toolCallText}>{toolCallTextContent}</Text>
-            </>
-        )
-    );
 };
 
 export default memo(ChatMessageV2);

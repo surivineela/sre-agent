@@ -1,4 +1,12 @@
-import { Message, Thread } from '../../Common/Contracts/Azure/SreAgent';
+import {
+    Approval,
+    AzCliExecution,
+    KubectlExecution,
+    Message,
+    MessageContent,
+    MessageMetaData,
+    Thread,
+} from '../../Common/Contracts/Azure/SreAgent';
 
 export interface IActivitiesProps {
     resourceId: string;
@@ -59,17 +67,38 @@ export interface IChatMessageProps {
 }
 
 export interface IChatMessageV2Props {
-    message: Message;
-    previousMessage?: Message;
-    nextMessage?: Message;
-    getGroupedMessages?: () => Message[];
+    message: ChatMessage;
+    previousMessage?: ChatMessage;
+    nextMessage?: ChatMessage;
+    getGroupedMessages?: () => ChatMessage[];
     isTyping?: boolean;
     threadId: string;
     isStreamingMessage?: boolean;
+    toolCallText?: string | null;
+}
+
+export interface ChatMessageContent extends MessageContent {
+    isImage?: boolean;
+}
+
+export interface ChatMessage extends MessageMetaData {
+    contents: ChatMessageContent[];
+}
+
+export interface ChatMessageComponentInput
+    extends Omit<Message, 'text' | 'approval' | 'azCliExecution' | 'kubectlExecution' | 'isDailyReport'> {
+    text: string;
+    approval?: Approval;
+    azCliExecution?: AzCliExecution;
+    kubectlExecution?: KubectlExecution;
+    isDailyReport?: boolean;
+    isImage?: boolean;
 }
 
 export interface IAgentMessageProps {
-    message: Message;
+    messageContent: MessageContent;
+    messageId: string;
+    timeStamp: string;
     isTyping?: boolean;
     threadId: string;
 }

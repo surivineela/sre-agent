@@ -881,7 +881,6 @@ describe('getGroupedMessages', () => {
             id,
             timeStamp: new Date(new Date(baseTime).getTime() + timeOffsetMinutes * 60000).toISOString(),
             text,
-            toolCallText: '',
             author: {
                 role: 'SREAgent',
                 userId,

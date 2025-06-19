@@ -11,13 +11,14 @@ import { useChatBoxV2 } from '../Hooks/useChatBoxV2';
 import { ChatBoxStyles } from '../Styles/Activities.styles';
 import AzureSREWelcome from './AzureSREWelcome';
 import { ChatSuggestions } from './ChatSuggestions';
-import { getGroupedMessages } from './Utility';
+import { getGroupedChatMessages } from './Utility';
 
 export const ChatBoxV2 = ({ addThread, promoteThread, updateThreadLastReadTime, threadId, threadSource }: IChatBoxProps) => {
     const {
         messages,
         isAgentTyping,
         streamingMessage,
+        toolCallText,
         isLoadingInitialChatHistory,
         sendMessage,
         isNewAndCleanThread,
@@ -57,7 +58,7 @@ export const ChatBoxV2 = ({ addThread, promoteThread, updateThreadLastReadTime, 
                                 message={message}
                                 previousMessage={messages[index - 1]}
                                 nextMessage={messages[index + 1]}
-                                getGroupedMessages={() => getGroupedMessages(messages, index)}
+                                getGroupedMessages={() => getGroupedChatMessages(messages, index)}
                                 threadId={currentThreadId || ''}
                             />
                         ))}
@@ -68,6 +69,7 @@ export const ChatBoxV2 = ({ addThread, promoteThread, updateThreadLastReadTime, 
                                 isStreamingMessage={true}
                                 isTyping={isAgentTyping}
                                 threadId={currentThreadId || ''}
+                                toolCallText={toolCallText}
                             />
                         )}
                     </CopilotChat>

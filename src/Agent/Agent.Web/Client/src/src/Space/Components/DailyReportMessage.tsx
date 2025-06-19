@@ -1,17 +1,16 @@
 import { memo } from 'react';
 import DailyReport from '../../Common/Components/DailyReport';
-import { Message } from '../../Common/Contracts/Azure/SreAgent';
 
-const DailyReportMessage = ({ message }: { message: Message }) => {
+const DailyReportMessage = ({ text, timeStamp }: { text: string; timeStamp: string }) => {
     try {
-        const dailyReportData = JSON.parse(message.text);
-        return <DailyReport data={dailyReportData} timestamp={message.timeStamp} />;
+        const dailyReportData = JSON.parse(text);
+        return <DailyReport data={dailyReportData} timestamp={timeStamp} />;
     } catch (e) {
         console.error('Failed to parse daily report:', e);
         return (
             <div>
                 <div style={{ color: 'red', marginBottom: '8px' }}>Failed to parse daily report:</div>
-                <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{message.text}</pre>
+                <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{text}</pre>
             </div>
         );
     }

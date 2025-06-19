@@ -139,12 +139,28 @@ export interface AgentStatus {
     };
 }
 
+export interface MessageMetaData {
+    id: string;
+    timeStamp: string;
+    author: MessageAuthor;
+    title?: string;
+}
+
+export interface MessageContent {
+    text: string;
+    approval?: Approval;
+    azCliExecution?: AzCliExecution;
+    kubectlExecution?: KubectlExecution;
+    isDailyReport?: boolean;
+}
+
+// ToDo: Replace this with interface Message extends MessageMetaData, MessageContent{} after shipping
+// streaming message experience out. Right now let's keep the definition separate to avoid breaking changes.
 export interface Message {
     id: string;
     timeStamp: string;
     author: MessageAuthor;
     text: string;
-    toolCallText?: string;
     title?: string;
     approval?: Approval;
     azCliExecution?: AzCliExecution;
@@ -176,9 +192,6 @@ export interface StreamingMessage {
         threadId?: string | null;
         messageId?: string | null;
         streamMessageType?: StreamingMessageType;
-        approval?: string | null;
-        azCliExecution?: string | null;
-        kubectlExecution?: string | null;
     } | null;
 }
 

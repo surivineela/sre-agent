@@ -4,7 +4,6 @@ import {
     AzCliExecution,
     IncidentStatus,
     Message,
-    SREAgentUserId,
     StreamingMessage,
     StreamingMessageType,
     Thread,
@@ -12,7 +11,7 @@ import {
 } from '../../Common/Contracts/Azure/SreAgent';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
-import { ThreadLoadingCounts } from '../Contracts/Activities';
+import { ChatMessage, ChatMessageContent, ThreadLoadingCounts } from '../Contracts/Activities';
 import { ThreadItemHeightInPx, ThreadItemPaddingTopBottomInPx } from '../Styles/Activities.styles';
 import { SelectedTimes } from './TimeDropdown';
 
@@ -128,21 +127,37 @@ export const processOldMessages = (prevMessages: Message[], oldMessages: Message
 };
 
 /**
+ * @param prevMessages existing messages sorted in ascending order by timestamp
+ * @param oldMessages older messages sorted in descending order by timestamp
+ * @returns messages sorted in ascending order by timestamp
+ */
+export const processOldMessagesV2 = (prevMessages: ChatMessage[], oldMessages: ChatMessage[]) => {
+    if (oldMessages.length === 0) {
+        return prevMessages;
+    }
+
+    // Copy oldMessages as reverse() will mutate the original array and return the same reference
+    const oldMessagesInAscendingOrder = [...oldMessages].reverse();
+
+    return [...oldMessagesInAscendingOrder, ...prevMessages];
+};
+
+/**
  * Update the text of the existing messages if they have been updated.
  * @param prevMessages
  * @param updatedMessages
  */
-export const updateOldMessagesText = (prevMessages: Message[], updatedMessages: Message[]) => {
+export const updateOldMessagesText = (prevMessages: ChatMessage[], updatedMessages: ChatMessage[]) => {
     const updatedPrevMessages = [...prevMessages];
     let isPrevMessagesUpdated = false;
 
-    const messagesMap: Map<string, Message> = new Map<string, Message>();
-    updatedMessages.forEach((msg: Message) => messagesMap.set(msg.id, msg));
+    const messagesMap: Map<string, ChatMessage> = new Map<string, ChatMessage>();
+    updatedMessages.forEach((msg: ChatMessage) => messagesMap.set(msg.id, msg));
 
     for (let i = prevMessages.length - 1; i >= 0; i--) {
         const message = messagesMap.get(prevMessages[i].id);
-        if (message && message.text !== prevMessages[i].text) {
-            updatedPrevMessages[i] = { ...prevMessages[i], text: message.text };
+        if (message && message.contents[0].text !== prevMessages[i].contents[0].text) {
+            updatedPrevMessages[i] = { ...prevMessages[i], contents: [{ ...prevMessages[i].contents[0], text: message.contents[0].text }] };
             isPrevMessagesUpdated = true;
 
             messagesMap.delete(prevMessages[i].id);
@@ -156,51 +171,45 @@ export const updateOldMessagesText = (prevMessages: Message[], updatedMessages: 
 };
 
 /**
- * Get a new message based on the previous message and the streaming message input. Do not append message content to the previous message if doNotAppendMessage is true.
- * @param prev
- * @param streamingMessage
- * @param doNotAppendMessage
+ * Update the current contents of the streaming message. If the new streaming message chunk is azure cli or kubectl execution, it will replace the existing azure cli or kubectl execution content with the same execution id in the current contents if it exists.
+ * @param currentContents existing chat message contents
+ * @param streamingMessage new streaming message chunk to be added to the current contents
  * @returns
  */
-export const processStreamingMessage = (
-    prev: Message | null,
-    streamingMessage: StreamingMessage,
-    doNotAppendMessage?: boolean
-): Message | null => {
-    const { additionalProperties, contents, createdAt } = streamingMessage;
-    const messageContent = contents?.[0];
-    const { messageId } = additionalProperties || {};
+export const processChatMessageContents = (
+    currentContents: ChatMessageContent[],
+    streamingMessage: StreamingMessage
+): ChatMessageContent[] => {
+    const messageContent = streamingMessage.contents?.[0];
 
-    const id = messageId || prev?.id || '';
+    const approval = getSpecialMessageContentFromStreamingMessage<Approval>(streamingMessage, 'approval');
+    const azCliExecution = getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'azcli');
+    const kubectlExecution = getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'kubectl');
+    const text = messageContent?.text && !approval && !azCliExecution && !kubectlExecution ? messageContent.text : '';
+    const isImage = isImageStreamingMessageType(streamingMessage);
 
-    const prevText = prev?.text || '';
-    const newText = doNotAppendMessage ? '' : messageContent?.text || '';
-    const updatedText = prevText + newText;
-
-    const isToolCall = equals(messageContent?.$type ?? '', 'functionCall', AntUxStringComparison.IgnoreCase);
-    const toolCallText = isToolCall
-        ? messageContent?.additionalProperties?.userDescription || messageContent?.additionalProperties?.functionCallDescription || ''
-        : '';
-
-    const timeStamp = createdAt || new Date().toISOString();
-
-    const updatedStreamingMessage: Message = {
-        id,
-        timeStamp,
-        text: updatedText,
-        toolCallText,
-        author: {
-            role: 'SREAgent',
-            userId: SREAgentUserId,
-            displayName: '',
-        },
+    const chatMessageContent: ChatMessageContent = {
+        text,
+        isImage,
         approval: getSpecialMessageContentFromStreamingMessage<Approval>(streamingMessage, 'approval'),
         azCliExecution: getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'azcli'),
         kubectlExecution: getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'kubectl'),
         isDailyReport: false,
     };
 
-    return updatedStreamingMessage;
+    const executionId = chatMessageContent.azCliExecution?.id || chatMessageContent.kubectlExecution?.id;
+    if (executionId) {
+        const existingContentIndexThatHasSameExecutionId = currentContents.findIndex(content => {
+            const id = content.azCliExecution?.id || content.kubectlExecution?.id;
+            return id === executionId;
+        });
+
+        if (existingContentIndexThatHasSameExecutionId !== -1) {
+            currentContents.splice(existingContentIndexThatHasSameExecutionId, 1);
+        }
+    }
+
+    return [...currentContents, chatMessageContent];
 };
 
 export const getSpecialMessageContentFromStreamingMessage = <T,>(
@@ -230,8 +239,25 @@ export const isDefaultStreamingMessageType = (streamingMessage: StreamingMessage
     return !streamingMessage.additionalProperties?.streamMessageType;
 };
 
+export const isImageStreamingMessageType = (streamingMessage: StreamingMessage): boolean => {
+    const streamingMessageType = streamingMessage.additionalProperties?.streamMessageType || '';
+    return (
+        equals(streamingMessageType, 'image', AntUxStringComparison.IgnoreCase) ||
+        equals(streamingMessageType, 'chart', AntUxStringComparison.IgnoreCase) ||
+        equals(streamingMessageType, 'mermaid', AntUxStringComparison.IgnoreCase)
+    );
+};
+
 export const getStreamingMessageText = (streamingMessage: StreamingMessage) => {
     return streamingMessage.contents?.[0]?.text || '';
+};
+
+export const getToolCallText = (streamingMessage: StreamingMessage): string | null => {
+    const messageContent = streamingMessage.contents?.[0];
+    if (messageContent && equals(messageContent.$type || '', 'functionCall', AntUxStringComparison.IgnoreCase)) {
+        return messageContent.additionalProperties?.userDescription || messageContent.additionalProperties?.functionCallDescription || null;
+    }
+    return null;
 };
 
 export const isFinalStreamingMessage = (streamingMessage: StreamingMessage): boolean => {
@@ -240,6 +266,15 @@ export const isFinalStreamingMessage = (streamingMessage: StreamingMessage): boo
     return (
         equals(finishReason || '', 'stop', AntUxStringComparison.IgnoreCase) ||
         equals(finishReason || '', 'length', AntUxStringComparison.IgnoreCase)
+    );
+};
+
+export const isChatMessageContentNonImageText = (chatMessageContent: ChatMessageContent): boolean => {
+    return (
+        !chatMessageContent.approval &&
+        !chatMessageContent.azCliExecution &&
+        !chatMessageContent.kubectlExecution &&
+        !chatMessageContent.isImage
     );
 };
 
@@ -268,6 +303,15 @@ export const shouldGroupWithPreviousMessage = (currentMessage?: Message, previou
     );
 };
 
+export const shouldGroupWithPreviousMessageV2 = (currentChatMessage?: ChatMessage, previousMessage?: ChatMessage) => {
+    return (
+        !!previousMessage &&
+        !!currentChatMessage &&
+        currentChatMessage.author.userId === previousMessage.author.userId &&
+        getSafeDateTime(currentChatMessage.timeStamp).getTime() - getSafeDateTime(previousMessage.timeStamp).getTime() <= 5 * 60 * 1000
+    );
+};
+
 /** Returns the messages to be considered grouped (starting from the current and only checking prior) */
 export const getGroupedMessages = (messages: Message[], currentMessageIndex: number): Message[] => {
     if (currentMessageIndex < 0 || currentMessageIndex >= messages.length) {
@@ -280,6 +324,26 @@ export const getGroupedMessages = (messages: Message[], currentMessageIndex: num
     for (let i = currentMessageIndex - 1; i >= 0; i--) {
         const previousMessage = messages[i];
         if (shouldGroupWithPreviousMessage(currentMessage, previousMessage)) {
+            groupedMessages.unshift(previousMessage);
+        } else {
+            break;
+        }
+    }
+
+    return groupedMessages;
+};
+
+export const getGroupedChatMessages = (messages: ChatMessage[], currentMessageIndex: number): ChatMessage[] => {
+    if (currentMessageIndex < 0 || currentMessageIndex >= messages.length) {
+        return [];
+    }
+
+    const currentMessage = messages[currentMessageIndex];
+    const groupedMessages: ChatMessage[] = [currentMessage];
+
+    for (let i = currentMessageIndex - 1; i >= 0; i--) {
+        const previousMessage = messages[i];
+        if (shouldGroupWithPreviousMessageV2(currentMessage, previousMessage)) {
             groupedMessages.unshift(previousMessage);
         } else {
             break;
@@ -404,4 +468,34 @@ export const isIncidentThreadCompleted = (thread?: Thread | null): boolean => {
 
     const status = thread.status?.incidentStatus?.status?.toLowerCase();
     return status === IncidentStatus.resolved || status === IncidentStatus.closed || status === IncidentStatus.mitigated;
+};
+
+export const isChatMessageEmpty = (message?: ChatMessage | null): boolean => {
+    const messageContents = message?.contents || [];
+
+    return !messageContents.some(content => {
+        return !!content.text || !!content.approval || !!content.azCliExecution || !!content.kubectlExecution;
+    });
+};
+
+export const convertMessageToChatMessage = (message: Message): ChatMessage => {
+    return {
+        id: message.id,
+        timeStamp: message.timeStamp,
+        author: {
+            role: message.author.role,
+            userId: message.author.userId,
+            displayName: message.author.displayName,
+        },
+        title: message.title,
+        contents: [
+            {
+                text: message.text,
+                approval: message.approval,
+                azCliExecution: message.azCliExecution,
+                kubectlExecution: message.kubectlExecution,
+                isDailyReport: message.isDailyReport,
+            },
+        ],
+    };
 };

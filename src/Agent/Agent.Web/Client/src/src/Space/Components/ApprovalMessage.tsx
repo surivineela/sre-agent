@@ -3,24 +3,24 @@ import axios from 'axios';
 import { useContext, useState } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
-import { ApprovalDecision, Message } from '../../Common/Contracts/Azure/SreAgent';
+import { Approval, ApprovalDecision } from '../../Common/Contracts/Azure/SreAgent';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
 import { useAuthenticatedUserInfo } from '../Hooks/useAuthenticatedUserInfo';
 
-const ApprovalMessage = ({ message, threadId }: { message: Message; threadId: string }) => {
-    const [approvalStatus, setApprovalStatus] = useState<ApprovalDecision | null>(message.approval ? message.approval.status : null);
+const ApprovalMessage = ({ approval, messageId, threadId }: { approval?: Approval; messageId: string; threadId: string }) => {
+    const [approvalStatus, setApprovalStatus] = useState<ApprovalDecision | null>(approval ? approval.status : null);
     const [isApprovalLoading, setIsApprovalLoading] = useState(false);
     const [loadingButton, setLoadingButton] = useState<'approve' | 'deny' | null>(null);
 
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const { userIdAndDisplayName } = useAuthenticatedUserInfo();
 
-    if (!message.approval) return null;
+    if (!approval) return null;
 
     // Use the local state for status to ensure UI updates immediately after user action
-    const status = approvalStatus || message.approval.status;
-    const { title, description, oboTokenScope } = message.approval;
+    const status = approvalStatus || approval.status;
+    const { title, description, oboTokenScope } = approval;
 
     // Log approval information to help with debugging
     console.log('Rendering approval with status:', status, 'and title:', title);
@@ -45,10 +45,10 @@ const ApprovalMessage = ({ message, threadId }: { message: Message; threadId: st
 
     const handleApprovalDecision = async (approved: boolean) => {
         try {
-            if (message.approval) {
+            if (approval) {
                 // Check if already approved/rejected
-                if (message.approval.status !== ApprovalDecision.Pending) {
-                    console.warn(`Approval ${message.approval.id} is already ${message.approval.status}`);
+                if (approval.status !== ApprovalDecision.Pending) {
+                    console.warn(`Approval ${approval.id} is already ${approval.status}`);
                     return; // Exit early if already decided
                 }
 
@@ -56,16 +56,16 @@ const ApprovalMessage = ({ message, threadId }: { message: Message; threadId: st
                 setLoadingButton(approved ? 'approve' : 'deny');
                 const approvalData = await sendApprovalDecision(
                     threadId,
-                    message.approval.id,
+                    approval.id,
                     approved ? ApprovalDecision.Approved : ApprovalDecision.Rejected,
-                    message.approval.oboTokenScope
+                    approval.oboTokenScope
                 );
 
-                console.log(`Approval decision sent for message ID: ${message.id}, approved: ${approved}`);
+                console.log(`Approval decision sent for message ID: ${messageId}, approved: ${approved}`);
 
                 setApprovalStatus(approvalData.status as ApprovalDecision);
-                message.approval = {
-                    ...message.approval,
+                approval = {
+                    ...approval,
                     status: approvalData.status as ApprovalDecision,
                     decisionUser: {
                         displayName: approvalData.decisionMakerName || approvalData.decisionMaker || 'Web Client User',
@@ -76,16 +76,16 @@ const ApprovalMessage = ({ message, threadId }: { message: Message; threadId: st
                 };
             }
         } catch (error: any) {
-            console.error(`Failed to send approval decision for message ID: ${message.id}`, error);
+            console.error(`Failed to send approval decision for message ID: ${messageId}`, error);
 
             // Handle specific error cases
             if (error.response?.status === 409) {
                 // Conflict - already approved/rejected
                 const errorData = error.response?.data;
 
-                if (message.approval && errorData) {
-                    message.approval = {
-                        ...message.approval,
+                if (approval && errorData) {
+                    approval = {
+                        ...approval,
                         status: errorData.status as ApprovalDecision,
                         decisionUser: {
                             displayName: errorData.decisionMakerName || 'Unknown User',
@@ -264,10 +264,10 @@ const ApprovalMessage = ({ message, threadId }: { message: Message; threadId: st
                     {' '}
                     <FormattedMessage {...SreAgentResources.requestedAt} />
                     {': '}
-                    {message.approval.createdTimestamp ? new Date(message.approval.createdTimestamp).toLocaleString() : 'N/A'}
+                    {approval.createdTimestamp ? new Date(approval.createdTimestamp).toLocaleString() : 'N/A'}
                 </p>
 
-                {message.approval.decisionUser && (
+                {approval.decisionUser && (
                     <div style={{ fontSize: '14px', color: '#666' }}>
                         <p style={{ margin: '4px 0' }}>
                             <strong>
@@ -278,14 +278,14 @@ const ApprovalMessage = ({ message, threadId }: { message: Message; threadId: st
                                 )}
                                 :
                             </strong>{' '}
-                            {message.approval.decisionUser.displayName}
+                            {approval.decisionUser.displayName}
                         </p>
-                        {message.approval.decisionTimestamp && (
+                        {approval.decisionTimestamp && (
                             <p style={{ margin: '4px 0' }}>
                                 <strong>
                                     <FormattedMessage {...SreAgentResources.decisionTime} />:
                                 </strong>{' '}
-                                {new Date(message.approval.decisionTimestamp).toLocaleString()}
+                                {new Date(approval.decisionTimestamp).toLocaleString()}
                             </p>
                         )}
                     </div>
