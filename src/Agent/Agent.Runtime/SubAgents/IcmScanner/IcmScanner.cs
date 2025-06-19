@@ -42,9 +42,9 @@ public class IcmScanner(ILogger<IcmScanner> logger,
         {
             await ScannAllIncidentsAsync(cancellationToken);
 
-            await Task.Delay(ScanInterval, cancellationToken);
-
             lastScanTime = await UpdateLastScanTimeDocAsync(DateTime.UtcNow);
+
+            await Task.Delay(ScanInterval, cancellationToken);
         }
     }
     private async Task ScannAllIncidentsAsync(CancellationToken cancellationToken)
@@ -99,7 +99,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
             try
             {
                 logger.LogInternalInformation("Scanning IcM incidents, page {page}, lastScanTime {lastScanTime}", page, lastScanTime);
-                var incidents = await icmApiClient.GetIncidentsAsync(PageSize, 0, lastScanTime, null, filterDocument.TitleContains);
+                var incidents = await icmApiClient.GetIncidentsAsync(PageSize, offset, lastScanTime, null, filterDocument.TitleContains);
                 if (incidents is null || incidents.Count == 0)
                 {
                     logger.LogInternalInformation("No incidents found for filter {filterId}", filterDocument.Id);
