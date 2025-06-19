@@ -214,7 +214,7 @@ const AzCliExecutionComponent: React.FC<{
     const [isExecutionCollapsed, setIsExecutionCollapsed] = useState(execution.status !== 'Pending');
 
     const { userIdAndDisplayName } = useAuthenticatedUserInfo();
-    const { log } = useContext(AzPortalContext);
+    const proxy = useContext(AzPortalContext);
 
     const riskLevel = getRiskLevel(currentExecution.command);
     const riskColor = getRiskColor(riskLevel);
@@ -379,7 +379,7 @@ const AzCliExecutionComponent: React.FC<{
                 } else {
                     // Wait before retrying (exponential backoff)
                     const delay = baseDelay * Math.pow(2, attempt);
-                    log({
+                    proxy.log({
                         logLevel: 'verbose',
                         action: 'azCliExecution',
                         actionModifier: 'retry',
@@ -966,7 +966,7 @@ const KubectlExecutionComponent: React.FC<{
     const [stdinCopied, setStdinCopied] = useState(false);
 
     const { userIdAndDisplayName } = useAuthenticatedUserInfo();
-    const { log } = useContext(AzPortalContext);
+    const proxy = useContext(AzPortalContext);
 
     const riskLevel = getRiskLevel(currentExecution.command);
     const riskColor = getRiskColor(riskLevel);
@@ -1119,7 +1119,7 @@ const KubectlExecutionComponent: React.FC<{
                 // Success - break out of retry loop
                 break;
             } catch (error: any) {
-                log({
+                proxy.log({
                     action: 'azCliExecution',
                     actionModifier: 'conflict',
                     data: `Failed to ${action} execution (attempt ${attempt + 1}/${maxRetries + 1}):`,
@@ -1137,7 +1137,7 @@ const KubectlExecutionComponent: React.FC<{
                 } else {
                     // Wait before retrying (exponential backoff)
                     const delay = baseDelay * Math.pow(2, attempt);
-                    log({
+                    proxy.log({
                         logLevel: 'verbose',
                         action: 'kubectlExecution',
                         actionModifier: 'retry',
@@ -1867,7 +1867,7 @@ const ChatMessage = ({
     const chatStyles = useChatBoxStyles();
     const intl = useIntl();
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
-    const { log } = useContext(AzPortalContext);
+    const proxy = useContext(AzPortalContext);
     const sreAgentContext = useContext(SreAgentContext);
     const {
         agent: { mode },
@@ -2106,7 +2106,7 @@ const ChatMessage = ({
                     message.approval.oboTokenScope
                 );
 
-                log({
+                proxy.log({
                     logLevel: 'info',
                     action: 'approvalDecision',
                     actionModifier: approved ? 'approved' : 'rejected',
@@ -2169,7 +2169,7 @@ const ChatMessage = ({
         const { title, description, oboTokenScope } = message.approval;
 
         // Log approval information to help with debugging
-        log({
+        proxy.log({
             logLevel: 'info',
             action: 'renderApproval',
             actionModifier: 'render',

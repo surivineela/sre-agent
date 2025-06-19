@@ -10,7 +10,7 @@ const DefaultUserIdAndDisplayName: Omit<MessageAuthor, 'role'> = {
 
 export const useAuthenticatedUserInfo = () => {
     const { armToken } = useContext(EnvironmentContext);
-    const { log } = useContext(AzPortalContext);
+    const proxy = useContext(AzPortalContext);
 
     const userIdAndDisplayName = useMemo<Omit<MessageAuthor, 'role'>>(() => {
         if (!armToken) {
@@ -44,7 +44,7 @@ export const useAuthenticatedUserInfo = () => {
                 displayName: name,
             };
         } catch (e) {
-            log({
+            proxy.log({
                 action: 'GetUserIdAndName',
                 actionModifier: 'failed',
                 data: e?.toString() || 'Failed to parse token',
@@ -52,7 +52,7 @@ export const useAuthenticatedUserInfo = () => {
 
             return DefaultUserIdAndDisplayName;
         }
-    }, [armToken]);
+    }, [armToken, proxy.log]);
 
     return {
         userIdAndDisplayName,
