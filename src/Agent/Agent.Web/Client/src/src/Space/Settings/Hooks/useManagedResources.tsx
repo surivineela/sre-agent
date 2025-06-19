@@ -105,7 +105,7 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
         () => [
             {
                 key: 'name',
-                name: `${intl.formatMessage(ManagedResourcesStringResources.resourceGroupName)}`,
+                name: `${intl.formatMessage(ManagedResourcesStringResources.resourceGroup)}`,
                 minWidth: 300,
                 maxWidth: 500,
                 isResizable: true,
@@ -132,7 +132,7 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
                 key: 'location',
                 name: `${intl.formatMessage(ManagedResourcesStringResources.region)}`,
                 minWidth: 200,
-                maxWidth: 500,
+                maxWidth: 400,
                 isResizable: true,
                 onRender: (item: ResourceGroup) => {
                     const itemLocation = getUserFriendlyLocation(item.location);

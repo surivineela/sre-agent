@@ -5,7 +5,7 @@ export const useManagedResourcesStyles = makeStyles({
     pillsContainer: { display: 'flex', flexDirection: 'row', gap: '5px' },
     buttonStyle: { width: 'fit-content' },
     buttonsContainer: { display: 'flex', flexDirection: 'row', gap: '10px' },
-    container: { display: 'flex', flexDirection: 'column', gap: '13px' },
+    container: { display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' },
     pickerItem: {
         flex: 1,
         maxWidth: '33.33%',
@@ -129,6 +129,21 @@ export const useManagedResourcesStyles = makeStyles({
         alignItems: 'center',
         paddingTop: '6px',
         userSelect: 'text',
+    },
+    messageBarGroup: {
+        width: '100%',
+        maxWidth: '100%',
+    },
+    messageBar: {
+        padding: '10px',
+        whiteSpace: 'normal',
+        wordBreak: 'break-word',
+        overflow: 'hidden',
+        overflowWrap: 'break-word',
+    },
+    messageBarBody: {
+        wordBreak: 'break-word',
+        overflowWrap: 'break-word',
     },
 });
 

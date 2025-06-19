@@ -338,10 +338,11 @@ export const ActionsResources = defineMessages({
 export const AccessControlResources = defineMessages({
     accessControl: { defaultMessage: 'Access control', id: 'rpG/Bn' },
     accessControlDescription: {
-        defaultMessage: 'Manage access to the SRE Agent resource by clicking on the link below.',
-        id: 'ol51Ez',
+        defaultMessage:
+            'To help monitor and respond to activities and incidents in your Azure resources, the agent needs access to the specific subscriptions, resources groups, and services that you allow.',
+        id: 'oH9YKC',
     },
-    openAccessControl: { defaultMessage: 'Open Access control', id: 'Ez5ZJg' },
+    openAccessControl: { defaultMessage: 'Go to Access control', id: 'fUgypu' },
 });
 
 export const ActivitiesResources = defineMessages({
@@ -608,6 +609,7 @@ export const ManagedResourcesStringResources = defineMessages({
     loading: { defaultMessage: 'Loading...', id: 'gjBiyj' },
     subscriptionsLoadFailure: { defaultMessage: 'Failed to load subscriptions.', id: 'EKfWmx' },
     region: { defaultMessage: 'Region', id: 'lnaWo/' },
+    resourceGroup: { defaultMessage: 'Resource group', id: '+uAdUZ' },
 });
 
 export const MetricsResources = defineMessages({

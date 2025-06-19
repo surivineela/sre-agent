@@ -68,12 +68,12 @@ const navContainerStyles: CSSProperties = {
 };
 
 const navPivotContainer: CSSProperties = {
-    flex: 1,
+    flex: 'none',
     padding: '2rem',
     backgroundColor: tokens.colorNeutralBackground1,
     borderTopLeftRadius: tokens.borderRadiusXLarge,
     boxShadow: tokens.shadow4,
-    marginLeft: 30,
+    width: 'calc(-405px + 100vw)',
 };
 
 const incidentManagementDescriptionStyle: CSSProperties = { marginTop: 20, marginBottom: 20 };
@@ -160,8 +160,8 @@ export const usePagerDutyStyles = makeStyles({
         backgroundColor: tokens.colorNeutralBackground2,
         border: `1px solid ${tokens.colorNeutralStroke2}`,
     },
-    messageBarBody: { display: 'flex', flexDirection: 'column',  justifyContent: 'space-between', gap: '10px', width: '100%' },
-    messageBarActionsContainer: { display: 'flex', justifyContent: 'flex-end', width: '100%' }
+    messageBarBody: { display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '10px', width: '100%' },
+    messageBarActionsContainer: { display: 'flex', justifyContent: 'flex-end', width: '100%' },
 });
 
 export const useDialogStyles = makeStyles({

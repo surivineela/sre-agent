@@ -1,4 +1,4 @@
-import { ShimmeredDetailsList } from '@fluentui/react';
+import { ConstrainMode, DetailsListLayoutMode, ShimmeredDetailsList } from '@fluentui/react';
 import {
     Button,
     Dialog,
@@ -8,8 +8,13 @@ import {
     DialogTitle,
     InputOnChangeData,
     MessageBar,
+    MessageBarBody,
+    MessageBarGroup,
     SearchBox,
     SearchBoxChangeEvent,
+    Toolbar,
+    ToolbarButton,
+    ToolbarDivider,
 } from '@fluentui/react-components';
 import { Add16Regular, Delete16Regular } from '@fluentui/react-icons';
 import { debounce } from 'lodash';
@@ -51,26 +56,33 @@ const ManagedResources: FC = () => {
     return (
         <div className={styles.container}>
             <div className={styles.header}>{intl.formatMessage(SettingsTabResources.managedResources)}</div>
-            <MessageBar style={{ maxWidth: 1000 }}>{intl.formatMessage(SreAgentResources.supportedServicesMessage)}</MessageBar>
+            <MessageBarGroup animate={'exit-only'} className={styles.messageBarGroup}>
+                <MessageBar className={styles.messageBar} intent={'info'}>
+                    <MessageBarBody className={styles.messageBarBody}>
+                        {intl.formatMessage(SreAgentResources.supportedServicesMessage)}
+                    </MessageBarBody>
+                </MessageBar>
+            </MessageBarGroup>
             <div className={styles.buttonsContainer}>
-                <Button
-                    className={styles.buttonStyle}
-                    icon={<Add16Regular />}
-                    appearance="outline"
-                    disabled={isLoading}
-                    onClick={() => setHideResourceGroupPicker(false)}
-                >
-                    {intl.formatMessage(ManagedResourcesStringResources.add)}
-                </Button>
-                <Button
-                    appearance="primary"
-                    className={styles.buttonStyle}
-                    icon={<Delete16Regular />}
-                    disabled={isDeleteDisabled}
-                    onClick={() => setShowDeleteConfirmationDialog(true)}
-                >
-                    {intl.formatMessage(SreAgentResources.delete)}
-                </Button>
+                <Toolbar>
+                    <ToolbarButton
+                        icon={<Add16Regular />}
+                        appearance="subtle"
+                        disabled={isLoading}
+                        onClick={() => setHideResourceGroupPicker(false)}
+                    >
+                        {intl.formatMessage(ManagedResourcesStringResources.add)}
+                    </ToolbarButton>
+                    <ToolbarDivider style={{ padding: '0px' }} />
+                    <ToolbarButton
+                        appearance="subtle"
+                        icon={<Delete16Regular />}
+                        onClick={() => setShowDeleteConfirmationDialog(true)}
+                        disabled={isDeleteDisabled}
+                    >
+                        {intl.formatMessage(SreAgentResources.delete)}
+                    </ToolbarButton>
+                </Toolbar>
             </div>
             <div className={styles.pillsContainer}>
                 <SearchBox
@@ -80,14 +92,18 @@ const ManagedResources: FC = () => {
                     onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) => setSearchText(data.value ?? ''))}
                 />
             </div>
-            <ShimmeredDetailsList
-                key={managedResourceGroups?.length}
-                enableShimmer={isLoading}
-                items={managedResourceGroups || []}
-                columns={columns}
-                selection={selection.current}
-                className={styles.detailsList}
-            />
+            <div style={{ width: '99%', maxWidth: '99%' }}>
+                <ShimmeredDetailsList
+                    key={managedResourceGroups?.length}
+                    enableShimmer={isLoading}
+                    items={managedResourceGroups || []}
+                    columns={columns}
+                    selection={selection.current}
+                    className={styles.detailsList}
+                    layoutMode={DetailsListLayoutMode.justified}
+                    constrainMode={ConstrainMode.horizontalConstrained}
+                />
+            </div>
             <Dialog open={showDeleteConfirmationDialog} onOpenChange={(_, data) => setShowDeleteConfirmationDialog(data.open)}>
                 <DialogSurface>
                     <DialogTitle>{intl.formatMessage(ManagedResourcesStringResources.deleteTitle)}</DialogTitle>

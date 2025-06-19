@@ -951,12 +951,6 @@
       "value": "User"
     }
   ],
-  "Ez5ZJg": [
-    {
-      "type": 0,
-      "value": "Open Access control"
-    }
-  ],
   "F9LrJA": [
     {
       "type": 0,
@@ -2249,6 +2243,12 @@
       "value": "Deleting thread"
     }
   ],
+  "fUgypu": [
+    {
+      "type": 0,
+      "value": "Go to Access control"
+    }
+  ],
   "fdCjVS": [
     {
       "type": 0,
@@ -2667,6 +2667,12 @@
       "value": "Scope"
     }
   ],
+  "oH9YKC": [
+    {
+      "type": 0,
+      "value": "To help monitor and respond to activities and incidents in your Azure resources, the agent needs access to the specific subscriptions, resources groups, and services that you allow."
+    }
+  ],
   "oUWADl": [
     {
       "type": 0,
@@ -2699,12 +2705,6 @@
     {
       "type": 1,
       "value": "errorMessage"
-    }
-  ],
-  "ol51Ez": [
-    {
-      "type": 0,
-      "value": "Manage access to the SRE Agent resource by clicking on the link below."
     }
   ],
   "p/xAmY": [
