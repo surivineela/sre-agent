@@ -2225,6 +2225,12 @@
       "value": "Read-only mode"
     }
   ],
+  "efI6Ev": [
+    {
+      "type": 0,
+      "value": "How valuable do you find the Azure SRE Agent features?"
+    }
+  ],
   "f0Y4Zr": [
     {
       "type": 0,
@@ -2777,6 +2783,12 @@
     {
       "type": 0,
       "value": "Disconnect"
+    }
+  ],
+  "qjx8Lm": [
+    {
+      "type": 0,
+      "value": "How easy or difficult is it to use the Azure SRE Agent?"
     }
   ],
   "qlcuNQ": [

@@ -1,6 +1,7 @@
 import debounce from 'lodash/debounce';
 import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { MessageClient } from '../../Common/Clients/MessageClient';
 import { ThreadClient } from '../../Common/Clients/ThreadClient';
@@ -73,6 +74,7 @@ export const useChatBoxV2 = (
     threadSource?: string | null
 ) => {
     const intl = useIntl();
+    const { log } = useContext(AzPortalContext);
 
     const [messages, setMessages] = useState<Message[]>([]);
     const [oldMessages, setOldMessages] = useState<Message[]>([]);
@@ -217,19 +219,28 @@ export const useChatBoxV2 = (
                 if (currentThreadId) {
                     // Issue a request to create a new message in the current thread
                     createMessage(currentThreadId, messageRequest);
-                    console.log(`New message sent in thread: ${currentThreadId}. Message: ${message}.`);
                 } else {
                     // Issue a request to create a new thread
                     createThread({
                         startMessage: messageRequest,
                     });
-                    console.log(`New thread created with message: ${message}.`);
+                    log({
+                        logLevel: 'verbose',
+                        action: 'sendMessage',
+                        actionModifier: 'existingThread',
+                        data: `New message sent in thread: ${currentThreadId}. Message: ${message}.`,
+                    });
                 }
-            } catch {
-                //Handle error if it is not abort error
+            } catch (e) {
+                log({
+                    logLevel: 'verbose',
+                    action: 'sendMessage',
+                    actionModifier: 'error',
+                    data: `Failed to send message: ${e}`,
+                });
             }
         },
-        [currentThreadId, userId, displayName, sendMessage]
+        [userId, displayName, currentThreadId, log]
     );
 
     const loadOldChatHistory = useCallback(async (): Promise<boolean | undefined> => {
@@ -358,7 +369,12 @@ export const useChatBoxV2 = (
 
         const handleMessageChunk = (messageResponseType: MessageResponseType, streamData?: StreamingMessage) => {
             if (streamData) {
-                console.log(messageResponseType + ' received: ', streamData);
+                log({
+                    logLevel: 'verbose',
+                    action: 'messageStream',
+                    actionModifier: 'received',
+                    data: `${messageResponseType} received`,
+                });
 
                 const isUserMessage = equals(streamData.role || '', 'user', AntUxStringComparison.IgnoreCase);
 

@@ -2,6 +2,7 @@ import * as signalR from '@microsoft/signalr';
 import { ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { SignalRContext } from '../../Space/Contracts/Context';
 import AzPortalProxy from '../AzPortalProxy/AzPortalProxy';
+import { AzPortalContext } from '../AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../AzPortalProxy/Providers/StartupInfoContext';
 
 export const SignalRProvider = ({ children }: { children?: ReactNode }) => {
@@ -11,6 +12,7 @@ export const SignalRProvider = ({ children }: { children?: ReactNode }) => {
     const isConnectedRef = useRef(false);
 
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
+    const { log } = useContext(AzPortalContext);
 
     const sendMessage = useCallback((method: string, ...args: any[]) => {
         if (isConnectedRef.current && connectionRef.current) {
@@ -49,10 +51,20 @@ export const SignalRProvider = ({ children }: { children?: ReactNode }) => {
 
             try {
                 await connectionRef.current.start();
-                console.log(`Connected to the SignalR hub`);
+                log({
+                    action: 'signalR',
+                    actionModifier: 'connected',
+                    data: 'Connected to the SignalR hub',
+                    logLevel: 'verbose',
+                });
                 setIsConnected(true);
             } catch (e) {
-                console.error(`Failed to connect to the SignalR hub`);
+                log({
+                    action: 'signalR',
+                    actionModifier: 'error',
+                    data: `Failed to connect to the SignalR hub`,
+                    logLevel: 'error',
+                });
                 setIsConnected(false);
             }
             setIsConnecting(false);
@@ -64,7 +76,7 @@ export const SignalRProvider = ({ children }: { children?: ReactNode }) => {
             connectionRef.current?.stop();
             setIsConnected(false);
         };
-    }, [sreAgentEndpoint]);
+    }, [log, sreAgentEndpoint]);
 
     return <SignalRContext.Provider value={{ sendMessage, onMessage, isConnecting, isConnected }}>{children}</SignalRContext.Provider>;
 };

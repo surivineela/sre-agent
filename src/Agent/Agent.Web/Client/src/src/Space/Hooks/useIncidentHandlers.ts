@@ -1,18 +1,23 @@
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { IncidentHandlerClient } from '../../Common/Clients/IncidentHandlerClient';
 import { IncidentHandler } from '../../Common/Contracts/Azure/IncidentHandler';
 
 export const useIncidentHandlers = () => {
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
+    const azPortalContext = useContext(AzPortalContext);
 
     const [incidentHandlers, setIncidentHandlers] = useState<IncidentHandler[]>();
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
     const getIncidentHandlers = useCallback(async (): Promise<IncidentHandler[]> => {
-        const incidentResults = await IncidentHandlerClient.getInstance(sreAgentEndpoint).listHandlers();
+        const incidentResults = await IncidentHandlerClient.getInstance(
+            sreAgentEndpoint,
+            azPortalContext.log.bind(azPortalContext)
+        ).listHandlers();
         return incidentResults?.content ?? [];
-    }, [sreAgentEndpoint]);
+    }, [sreAgentEndpoint, azPortalContext]);
 
     const refresh = useCallback(async () => {
         setIsLoading(true);

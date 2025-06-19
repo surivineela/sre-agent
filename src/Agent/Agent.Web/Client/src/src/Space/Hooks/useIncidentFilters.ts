@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
@@ -14,10 +14,15 @@ export const useIncidentFilters = () => {
     const [incidentFilters, setIncidentFilters] = useState<IncidentFilter[]>();
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
+    const incidentHandlerClient = useMemo(
+        () => IncidentHandlerClient.getInstance(sreAgentEndpoint, portalContext.log.bind(portalContext)),
+        [sreAgentEndpoint, portalContext]
+    );
+
     const getIncidentFilters = useCallback(async (): Promise<IncidentFilter[]> => {
-        const incidentResults = await IncidentHandlerClient.getInstance(sreAgentEndpoint).listIncidentFilters();
+        const incidentResults = await incidentHandlerClient.listIncidentFilters();
         return incidentResults?.content ?? [];
-    }, [sreAgentEndpoint]);
+    }, [incidentHandlerClient]);
 
     const refresh = useCallback(async () => {
         setIsLoading(true);
@@ -32,7 +37,7 @@ export const useIncidentFilters = () => {
                 intl.formatMessage(IncidentManagementNotificationResources.deleteFilterTitle),
                 intl.formatMessage(IncidentManagementNotificationResources.deleteFilterInProgress)
             );
-            const deleteFilterResponse = await IncidentHandlerClient.getInstance(sreAgentEndpoint).deleteIncidentFilter(id);
+            const deleteFilterResponse = await incidentHandlerClient.deleteIncidentFilter(id);
             if (deleteFilterResponse.isSuccessful) {
                 portalContext.stopNotification(
                     notification,
@@ -56,7 +61,7 @@ export const useIncidentFilters = () => {
                 );
             }
         },
-        [intl, portalContext, sreAgentEndpoint]
+        [incidentHandlerClient, intl, portalContext]
     );
 
     const createIncidentFilter = useCallback(
@@ -65,7 +70,7 @@ export const useIncidentFilters = () => {
                 intl.formatMessage(IncidentManagementNotificationResources.createFilterTitle),
                 intl.formatMessage(IncidentManagementNotificationResources.createFilterInProgress)
             );
-            const createFilterResponse = await IncidentHandlerClient.getInstance(sreAgentEndpoint).createIncidentFilter(incidentFilter);
+            const createFilterResponse = await incidentHandlerClient.createIncidentFilter(incidentFilter);
             if (createFilterResponse.isSuccessful) {
                 portalContext.stopNotification(
                     notification,
@@ -91,7 +96,7 @@ export const useIncidentFilters = () => {
                 );
             }
         },
-        [intl, portalContext, sreAgentEndpoint]
+        [incidentHandlerClient, intl, portalContext]
     );
 
     const updateIncidentFilter = useCallback(
@@ -100,7 +105,7 @@ export const useIncidentFilters = () => {
                 intl.formatMessage(IncidentManagementNotificationResources.updateFilterTitle),
                 intl.formatMessage(IncidentManagementNotificationResources.updateFilterInProgress)
             );
-            const updateFilterResponse = await IncidentHandlerClient.getInstance(sreAgentEndpoint).updateIncidentFilter(incidentFilter);
+            const updateFilterResponse = await incidentHandlerClient.updateIncidentFilter(incidentFilter);
             if (updateFilterResponse.isSuccessful) {
                 portalContext.stopNotification(
                     notification,
@@ -110,7 +115,7 @@ export const useIncidentFilters = () => {
                 if (updateFilterResponse.content) {
                     setIncidentFilters(prev => {
                         const updated = prev?.map(filter =>
-                            filter.id === incidentFilter.Id ? updateFilterResponse.content as IncidentFilter : filter
+                            filter.id === incidentFilter.Id ? (updateFilterResponse.content as IncidentFilter) : filter
                         );
                         return updated ?? [];
                     });
@@ -131,7 +136,7 @@ export const useIncidentFilters = () => {
                 );
             }
         },
-        [intl, portalContext, sreAgentEndpoint]
+        [incidentHandlerClient, intl, portalContext]
     );
 
     const enableIncidentFilter = useCallback(
@@ -140,7 +145,7 @@ export const useIncidentFilters = () => {
                 intl.formatMessage(IncidentManagementNotificationResources.enableFilterTitle),
                 intl.formatMessage(IncidentManagementNotificationResources.enableFilterInProgress)
             );
-            const enableFilterResponse = await IncidentHandlerClient.getInstance(sreAgentEndpoint).enableIncidentFilter(id);
+            const enableFilterResponse = await incidentHandlerClient.enableIncidentFilter(id);
             if (enableFilterResponse.isSuccessful) {
                 portalContext.stopNotification(
                     notification,
@@ -148,10 +153,8 @@ export const useIncidentFilters = () => {
                     intl.formatMessage(IncidentManagementNotificationResources.enableFilterSuccess)
                 );
                 setIncidentFilters(prev => {
-                        const updated = prev?.map(filter =>
-                            filter.id === id ? enableFilterResponse.content as IncidentFilter : filter
-                        );
-                        return updated ?? [];
+                    const updated = prev?.map(filter => (filter.id === id ? (enableFilterResponse.content as IncidentFilter) : filter));
+                    return updated ?? [];
                 });
             } else {
                 portalContext.log({
@@ -169,7 +172,7 @@ export const useIncidentFilters = () => {
                 );
             }
         },
-        [intl, portalContext, sreAgentEndpoint]
+        [incidentHandlerClient, intl, portalContext]
     );
 
     const disableIncidentFilter = useCallback(
@@ -178,7 +181,7 @@ export const useIncidentFilters = () => {
                 intl.formatMessage(IncidentManagementNotificationResources.disableFilterTitle),
                 intl.formatMessage(IncidentManagementNotificationResources.disableFilterInProgress)
             );
-            const disableFilterResponse = await IncidentHandlerClient.getInstance(sreAgentEndpoint).disableIncidentFilter(id);
+            const disableFilterResponse = await incidentHandlerClient.disableIncidentFilter(id);
             if (disableFilterResponse.isSuccessful) {
                 portalContext.stopNotification(
                     notification,
@@ -186,10 +189,8 @@ export const useIncidentFilters = () => {
                     intl.formatMessage(IncidentManagementNotificationResources.disableFilterSuccess)
                 );
                 setIncidentFilters(prev => {
-                        const updated = prev?.map(filter =>
-                            filter.id === id ? disableFilterResponse.content as IncidentFilter : filter
-                        );
-                        return updated ?? [];
+                    const updated = prev?.map(filter => (filter.id === id ? (disableFilterResponse.content as IncidentFilter) : filter));
+                    return updated ?? [];
                 });
             } else {
                 portalContext.log({
@@ -207,7 +208,7 @@ export const useIncidentFilters = () => {
                 );
             }
         },
-        [intl, portalContext, sreAgentEndpoint]
+        [incidentHandlerClient, intl, portalContext]
     );
 
     useEffect(() => {

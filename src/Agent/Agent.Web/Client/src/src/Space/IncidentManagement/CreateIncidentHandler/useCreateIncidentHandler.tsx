@@ -21,7 +21,10 @@ export const useCreateIncidentHandler = (
     const azPortalContext = useContext(AzPortalContext);
     const { resourceId, sreAgentEndpoint } = useContext(EnvironmentContext);
     const agentName = useMemo(() => (resourceId ? (new ArmResourceDescriptor(resourceId).resourceName ?? '') : ''), [resourceId]);
-    const incidentHandlerClient = useMemo(() => IncidentHandlerClient.getInstance(sreAgentEndpoint), [sreAgentEndpoint]);
+    const incidentHandlerClient = useMemo(
+        () => IncidentHandlerClient.getInstance(sreAgentEndpoint, azPortalContext.log.bind(azPortalContext)),
+        [azPortalContext, sreAgentEndpoint]
+    );
 
     const [handler, setHandler] = useState<IncidentHandler>();
     const [handlerLoading, setHandlerLoading] = useState<boolean>(true);
@@ -171,16 +174,14 @@ export const useCreateIncidentHandler = (
                 }
             });
     }, [
-        setGeneratingInstructions,
-        incidentHandlerClient.generateInstructions,
+        handlerCreateOrEditInfo.filterId,
+        azPortalContext,
+        resourceId,
+        incidentHandlerClient,
+        agentName,
         selectedIncidents,
         selectedTools,
         customInstructions,
-        setIncidentProcessingGuide,
-        agentName,
-        azPortalContext.log,
-        resourceId,
-        handlerCreateOrEditInfo.filterId,
     ]);
 
     const [editorDisplayValue, setEditorDisplayValue] = useState<string>();
@@ -249,15 +250,13 @@ export const useCreateIncidentHandler = (
             });
         }
     }, [
-        intl.formatMessage,
-        azPortalContext.log,
-        azPortalContext.startNotification,
-        azPortalContext.stopNotification,
-        incidentHandlerClient.deleteHandler,
         handlerCreateOrEditInfo?.handlerId,
+        azPortalContext,
+        intl,
         exitToHome,
-        resourceId,
         setHandlerOperationStatus,
+        resourceId,
+        incidentHandlerClient,
     ]);
 
     const save = useCallback(
@@ -342,15 +341,13 @@ export const useCreateIncidentHandler = (
             });
         },
         [
-            intl.formatMessage,
-            azPortalContext.log,
-            azPortalContext.startNotification,
-            azPortalContext.stopNotification,
-            incidentHandlerClient.createHandler,
             incidentHandlerClient.updateHandler,
+            incidentHandlerClient.createHandler,
+            azPortalContext,
+            intl,
             exitToHome,
-            resourceId,
             setHandlerOperationStatus,
+            resourceId,
         ]
     );
 
@@ -368,7 +365,7 @@ export const useCreateIncidentHandler = (
 
             save(configObject);
         }
-    }, [editorDisplayValue, save, handlerCreateOrEditInfo?.handlerId, tools]);
+    }, [editorDisplayValue, save, handlerCreateOrEditInfo?.handlerId]);
 
     const initializeEditorDisplayValue = useCallback(() => {
         const config = {
@@ -423,7 +420,7 @@ export const useCreateIncidentHandler = (
         return () => {
             subscribed = false;
         };
-    }, [incidentHandlerClient.listTools]);
+    }, [incidentHandlerClient, incidentHandlerClient.listTools]);
 
     useEffect(() => {
         let subscribed = true;
@@ -544,6 +541,8 @@ export const useCreateIncidentHandler = (
         handlerCreateOrEditInfo.filterId,
         azPortalContext.log,
         resourceId,
+        azPortalContext,
+        incidentHandlerClient,
     ]);
 
     useEffect(() => {

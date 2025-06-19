@@ -1,10 +1,12 @@
-import { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { IncidentHandlerClient } from '../../Common/Clients/IncidentHandlerClient';
 import { SreAgentContext } from '../Contracts/Context';
 
 export const useIncidentManagementConnectivity = (shouldPoll: boolean) => {
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
+    const azPortalContext = useContext(AzPortalContext);
     const {
         incidentManagement: { isIncidentManagementConnected, setIsIncidentManagementConnected, hasFilters, setHasFilters },
     } = useContext(SreAgentContext);
@@ -12,15 +14,20 @@ export const useIncidentManagementConnectivity = (shouldPoll: boolean) => {
     const [isLoading, setIsLoading] = useState(true);
     const pollingTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+    const incidentHandlerClient = useMemo(
+        () => IncidentHandlerClient.getInstance(sreAgentEndpoint, azPortalContext.log.bind(azPortalContext)),
+        [sreAgentEndpoint, azPortalContext]
+    );
+
     const checkConnectivity = useCallback(async () => {
-        const result = await IncidentHandlerClient.getInstance(sreAgentEndpoint).checkConnectivity();
+        const result = await incidentHandlerClient.checkConnectivity();
         return result?.content ?? false;
-    }, [sreAgentEndpoint]);
+    }, [incidentHandlerClient]);
 
     const checkHandlers = useCallback(async () => {
-        const result = await IncidentHandlerClient.getInstance(sreAgentEndpoint).listIncidentFilters();
+        const result = await incidentHandlerClient.listIncidentFilters();
         return !!result?.content?.length;
-    }, [sreAgentEndpoint]);
+    }, [incidentHandlerClient]);
 
     const checkIncidentManagementConnectivity = useCallback(async () => {
         setIsLoading(true);
@@ -32,7 +39,7 @@ export const useIncidentManagementConnectivity = (shouldPoll: boolean) => {
         setIsIncidentManagementConnected(result);
         setIsLoading(false);
         return result;
-    }, [checkConnectivity, checkHandlers]);
+    }, [checkConnectivity, checkHandlers, setHasFilters, setIsIncidentManagementConnected]);
 
     const stopPolling = useCallback(() => {
         if (pollingTimerRef.current) {
@@ -56,7 +63,7 @@ export const useIncidentManagementConnectivity = (shouldPoll: boolean) => {
                 stopPolling();
             }
         }, 2000);
-    }, [checkConnectivity, shouldPoll, stopPolling]);
+    }, [checkConnectivity, checkHandlers, setHasFilters, setIsIncidentManagementConnected, shouldPoll, stopPolling]);
 
     useEffect(() => {
         const runInitialCheck = async () => {

@@ -131,7 +131,8 @@ const CreateOrUpdateFilterForm = ({
         const options = [{ key: 'ALL', display: intl.formatMessage(IncidentManagementResources.allIncidentTypes) }];
         incidentTypeOptions.forEach(option => options.push({ key: option, display: option }));
         return options;
-    }, [incidentTypeOptions]);
+    }, [incidentTypeOptions, intl]);
+
     const selectedIncidentTypeDisplay = useMemo(() => {
         const key = values.incidentType || (isEditMode ? 'ALL' : '');
         const selectedOption = incidentTypeOptionsExtended.find(option => option.key === key);
@@ -142,7 +143,8 @@ const CreateOrUpdateFilterForm = ({
         const options = [{ key: 'ALL', display: intl.formatMessage(IncidentManagementResources.allImpactedServices) }];
         impactedServiceOptions.forEach(option => options.push({ key: option, display: option }));
         return options;
-    }, [impactedServiceOptions]);
+    }, [impactedServiceOptions, intl]);
+
     const selectedImpactedServiceDisplay = useMemo(() => {
         const key = values.impactedService || (isEditMode ? 'ALL' : '');
         const selectedOption = impactedServiceOptionsExtended.find(option => option.key === key);
@@ -153,7 +155,8 @@ const CreateOrUpdateFilterForm = ({
         const options = [{ key: 'ALL', display: intl.formatMessage(IncidentManagementResources.allPriorities) }];
         priorityOptions.forEach(option => options.push({ key: option, display: option }));
         return options;
-    }, [priorityOptions]);
+    }, [priorityOptions, intl]);
+
     const selectedPriorityDisplay = useMemo(() => {
         const key = values.priority || (isEditMode ? 'ALL' : '');
         const selectedOption = priorityOptionsExtended.find(option => option.key === key);

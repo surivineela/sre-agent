@@ -1,4 +1,5 @@
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { IncidentHandlerClient } from '../../Common/Clients/IncidentHandlerClient';
 
@@ -18,6 +19,7 @@ export enum IncidentFilterField {
 
 export const useIncidentFilterFields = () => {
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
+    const azPortalContext = useContext(AzPortalContext);
 
     const [filterFieldOptions, setFilterFieldOptions] = useState<IncidentFilterFieldOptions[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -47,9 +49,12 @@ export const useIncidentFilterFields = () => {
     }, [filterFieldOptions]);
 
     const getFilterFieldOptions = useCallback(async (): Promise<IncidentFilterFieldOptions[]> => {
-        const incidentResults = await IncidentHandlerClient.getInstance(sreAgentEndpoint).getFilterFieldOptions();
+        const incidentResults = await IncidentHandlerClient.getInstance(
+            sreAgentEndpoint,
+            azPortalContext.log.bind(azPortalContext)
+        ).getFilterFieldOptions();
         return incidentResults?.content ?? [];
-    }, [sreAgentEndpoint]);
+    }, [azPortalContext, sreAgentEndpoint]);
 
     const refresh = useCallback(async () => {
         setIsLoading(true);

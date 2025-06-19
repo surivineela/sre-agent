@@ -192,6 +192,8 @@ export const SreAgentResources = defineMessages({
         defaultMessage: 'Thread info',
         id: 'srG8e2',
     },
+    sreAgentCESFeedbackQuestion: { defaultMessage: 'How easy or difficult is it to use the Azure SRE Agent?', id: 'qjx8Lm' },
+    sreAgentCVAFeedbackQuestion: { defaultMessage: 'How valuable do you find the Azure SRE Agent features?', id: 'efI6Ev' },
 });
 
 export const SreAgentTabResources = defineMessages({

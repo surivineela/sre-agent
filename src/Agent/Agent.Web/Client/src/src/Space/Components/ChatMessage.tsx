@@ -22,6 +22,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
+import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import CopyButton from '../../Common/Components/CopyButton';
 import DailyReport from '../../Common/Components/DailyReport';
@@ -213,6 +214,7 @@ const AzCliExecutionComponent: React.FC<{
     const [isExecutionCollapsed, setIsExecutionCollapsed] = useState(execution.status !== 'Pending');
 
     const { userIdAndDisplayName } = useAuthenticatedUserInfo();
+    const { log } = useContext(AzPortalContext);
 
     const riskLevel = getRiskLevel(currentExecution.command);
     const riskColor = getRiskColor(riskLevel);
@@ -377,7 +379,12 @@ const AzCliExecutionComponent: React.FC<{
                 } else {
                     // Wait before retrying (exponential backoff)
                     const delay = baseDelay * Math.pow(2, attempt);
-                    console.log(`Retrying in ${delay}ms...`);
+                    log({
+                        logLevel: 'verbose',
+                        action: 'azCliExecution',
+                        actionModifier: 'retry',
+                        data: `Retrying in ${delay}ms...`,
+                    });
                     await new Promise(resolve => setTimeout(resolve, delay));
                 }
             }
@@ -959,6 +966,7 @@ const KubectlExecutionComponent: React.FC<{
     const [stdinCopied, setStdinCopied] = useState(false);
 
     const { userIdAndDisplayName } = useAuthenticatedUserInfo();
+    const { log } = useContext(AzPortalContext);
 
     const riskLevel = getRiskLevel(currentExecution.command);
     const riskColor = getRiskColor(riskLevel);
@@ -1111,6 +1119,12 @@ const KubectlExecutionComponent: React.FC<{
                 // Success - break out of retry loop
                 break;
             } catch (error: any) {
+                log({
+                    action: 'azCliExecution',
+                    actionModifier: 'conflict',
+                    data: `Failed to ${action} execution (attempt ${attempt + 1}/${maxRetries + 1}):`,
+                    logLevel: 'error',
+                });
                 console.error(`Failed to ${action} execution (attempt ${attempt + 1}/${maxRetries + 1}):`, error);
 
                 // If this was the last attempt, handle the error
@@ -1123,7 +1137,12 @@ const KubectlExecutionComponent: React.FC<{
                 } else {
                     // Wait before retrying (exponential backoff)
                     const delay = baseDelay * Math.pow(2, attempt);
-                    console.log(`Retrying in ${delay}ms...`);
+                    log({
+                        logLevel: 'verbose',
+                        action: 'kubectlExecution',
+                        actionModifier: 'retry',
+                        data: `Retrying in ${delay}ms...`,
+                    });
                     await new Promise(resolve => setTimeout(resolve, delay));
                 }
             }
@@ -1848,6 +1867,7 @@ const ChatMessage = ({
     const chatStyles = useChatBoxStyles();
     const intl = useIntl();
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
+    const { log } = useContext(AzPortalContext);
     const sreAgentContext = useContext(SreAgentContext);
     const {
         agent: { mode },
@@ -2086,7 +2106,12 @@ const ChatMessage = ({
                     message.approval.oboTokenScope
                 );
 
-                console.log(`Approval decision sent for message ID: ${message.id}, approved: ${approved}`);
+                log({
+                    logLevel: 'info',
+                    action: 'approvalDecision',
+                    actionModifier: approved ? 'approved' : 'rejected',
+                    data: `Approval decision sent for message ID: ${message.id}, approved: ${approved}`,
+                });
 
                 setApprovalStatus(approvalData.status as ApprovalDecision);
                 message.approval = {
@@ -2144,7 +2169,12 @@ const ChatMessage = ({
         const { title, description, oboTokenScope } = message.approval;
 
         // Log approval information to help with debugging
-        console.log('Rendering approval with status:', status, 'and title:', title);
+        log({
+            logLevel: 'info',
+            action: 'renderApproval',
+            actionModifier: 'render',
+            data: `Rendering approval with status: ${status} and title: ${title}`,
+        });
 
         if (status === ApprovalDecision.Pending) {
             return (
