@@ -17,7 +17,7 @@ export const KnowledgeGraphBuildStatusProvider = ({ children }: { children?: Rea
     const [isKnowledgeGraphBuildCompleted, setIsKnowledgeGraphBuildCompleted] = useState(true);
 
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
-    const { log } = useContext(AzPortalContext);
+    const proxy = useContext(AzPortalContext);
 
     const getProgress = useCallback(async (): Promise<KnowledgeGraphBuildStatus | undefined> => {
         try {
@@ -26,14 +26,14 @@ export const KnowledgeGraphBuildStatusProvider = ({ children }: { children?: Rea
             });
             return response.data;
         } catch (error) {
-            log({
+            proxy.log({
                 action: 'GetKnowledgeGraphBuildProgress',
                 actionModifier: 'failed',
                 data: error?.toString() || 'Failed to get knowledge graph build progress',
             });
             return undefined;
         }
-    }, [sreAgentEndpoint, log]);
+    }, [sreAgentEndpoint, proxy.log]);
 
     useEffect(() => {
         let isSubscribed = true;

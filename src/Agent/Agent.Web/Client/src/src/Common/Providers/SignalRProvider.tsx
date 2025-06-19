@@ -12,7 +12,7 @@ export const SignalRProvider = ({ children }: { children?: ReactNode }) => {
     const isConnectedRef = useRef(false);
 
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
-    const { log } = useContext(AzPortalContext);
+    const proxy = useContext(AzPortalContext);
 
     const sendMessage = useCallback((method: string, ...args: any[]) => {
         if (isConnectedRef.current && connectionRef.current) {
@@ -51,21 +51,21 @@ export const SignalRProvider = ({ children }: { children?: ReactNode }) => {
 
             try {
                 await connectionRef.current.start();
-                log({
+                setIsConnected(true);
+                proxy.log({
                     action: 'signalR',
                     actionModifier: 'connected',
                     data: 'Connected to the SignalR hub',
                     logLevel: 'verbose',
                 });
-                setIsConnected(true);
             } catch (e) {
-                log({
+                setIsConnected(false);
+                proxy.log({
                     action: 'signalR',
                     actionModifier: 'error',
                     data: `Failed to connect to the SignalR hub`,
                     logLevel: 'error',
                 });
-                setIsConnected(false);
             }
             setIsConnecting(false);
         };
@@ -76,7 +76,7 @@ export const SignalRProvider = ({ children }: { children?: ReactNode }) => {
             connectionRef.current?.stop();
             setIsConnected(false);
         };
-    }, [log, sreAgentEndpoint]);
+    }, [proxy.log, sreAgentEndpoint]);
 
     return <SignalRContext.Provider value={{ sendMessage, onMessage, isConnecting, isConnected }}>{children}</SignalRContext.Provider>;
 };

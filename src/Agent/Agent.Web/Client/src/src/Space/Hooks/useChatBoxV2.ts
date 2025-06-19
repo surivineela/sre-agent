@@ -82,7 +82,7 @@ export const useChatBoxV2 = (
     threadSource?: string | null
 ) => {
     const intl = useIntl();
-    const { log } = useContext(AzPortalContext);
+    const proxy = useContext(AzPortalContext);
 
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [oldMessages, setOldMessages] = useState<ChatMessage[]>([]);
@@ -229,30 +229,30 @@ export const useChatBoxV2 = (
                 if (currentThreadId) {
                     // Issue a request to create a new message in the current thread
                     createMessage(currentThreadId, messageRequest);
-                    log({
+                    proxy.log({
                         logLevel: 'verbose',
                         action: 'sendMessage',
                         actionModifier: 'existingThread',
                         data: `New message sent in thread: ${currentThreadId}. Message: ${message}.`,
                     });
                     // Keep it for now for testing purpose. Will remove it once the streaming is not behind the feature flag
-                    console.log(`New message sent in thread: ${currentThreadId}. Message: ${message}.`)
+                    console.log(`New message sent in thread: ${currentThreadId}. Message: ${message}.`);
                 } else {
                     // Issue a request to create a new thread
                     createThread({
                         startMessage: messageRequest,
                     });
-                    log({
+                    proxy.log({
                         logLevel: 'verbose',
                         action: 'createThread',
                         actionModifier: 'newThread',
                         data: `New thread is created. Message: ${message}.`,
                     });
                     // Keep it for now for testing purpose. Will remove it once the streaming is not behind the feature flag
-                    console.log(`New thread is created. Message: ${message}.`)
+                    console.log(`New thread is created. Message: ${message}.`);
                 }
             } catch (e) {
-                log({
+                proxy.log({
                     logLevel: 'verbose',
                     action: 'sendMessage',
                     actionModifier: 'error',
@@ -260,7 +260,7 @@ export const useChatBoxV2 = (
                 });
             }
         },
-        [userId, displayName, currentThreadId, log]
+        [userId, displayName, currentThreadId, proxy.log]
     );
 
     const loadOldChatHistory = useCallback(async (): Promise<boolean | undefined> => {
@@ -414,7 +414,7 @@ export const useChatBoxV2 = (
 
         const handleMessageChunk = (messageResponseType: MessageResponseType, streamData?: StreamingMessage) => {
             if (streamData) {
-                log({
+                proxy.log({
                     logLevel: 'verbose',
                     action: 'messageStream',
                     actionModifier: 'received',
