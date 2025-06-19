@@ -69,6 +69,7 @@ public class AlertHandlerClient
                 if (incidentDetails.Title == testAlertConfig.IncidentTitle
                     || (!string.IsNullOrWhiteSpace(testAlertConfig.IncidentTitleContains) && incidentDetails.Title.Contains(testAlertConfig.IncidentTitleContains, StringComparison.OrdinalIgnoreCase))
                     || (testAlertConfig.OwningTeams != null && testAlertConfig.OwningTeams.Count > 0 && testAlertConfig.OwningTeams.Any(x => x.Equals(incidentDetails.OwningTeam, StringComparison.OrdinalIgnoreCase)))
+                    || (testAlertConfig.MonitorId != null && testAlertConfig.MonitorId.Equals(incidentDetails.MonitorId, StringComparison.OrdinalIgnoreCase))
                     || IsEmergingIssue(agentMode, testAlertConfig, incidentDetails)
                     )
                 {

@@ -35,6 +35,7 @@ namespace FirstPartyAgent.Models
         public string MonitoringSlice { get; set; }
         public string SubscriptionId { get; set; }
         public string[] Tags { get; set; } = Array.Empty<string>();
+        public string? MonitorId { get; set; }
     }
 
     public class DiscussionEntry

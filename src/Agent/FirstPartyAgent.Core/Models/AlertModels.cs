@@ -32,6 +32,7 @@ namespace FirstPartyAgent.Core.Models
         public List<string> IncidentProcessingGuide { get; set; } = new List<string>();
         public string? AgentName { get; set; }
         public string? ValidationQuery { get; set; }
+        public string? MonitorId { get; set; }
         public List<string> Tags { get; set; } = new List<string>();
     }
 
