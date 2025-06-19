@@ -4,6 +4,7 @@ import { Text } from '@fluentui/react-text';
 import { mergeStyles } from '@fluentui/react/lib/Styling';
 import { memo, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
+import DeleteThreadDialog from '../../Common/Components/DeleteThreadDialog';
 import { IncidentStatus, Thread, ThreadSource } from '../../Common/Contracts/Azure/SreAgent';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
 import { useThreadMenuStyle } from '../Styles/Activities.styles';
@@ -27,6 +28,7 @@ const ThreadItem = ({
     const intl = useIntl();
 
     const [isHovered, setIsHovered] = useState(false);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
     const makeTextBold = useMemo(() => {
         return isThreadUnread && !isActive;
@@ -99,7 +101,7 @@ const ThreadItem = ({
                                         icon={<Delete20Regular />}
                                         onClick={e => {
                                             e.stopPropagation();
-                                            deleteThread(thread);
+                                            setIsDeleteDialogOpen(true);
                                         }}
                                     >
                                         {intl.formatMessage(SreAgentResources.delete)}
@@ -122,6 +124,14 @@ const ThreadItem = ({
                     </Text>
                 )}
             </div>
+
+            <DeleteThreadDialog
+                thread={thread}
+                isOpen={isDeleteDialogOpen}
+                onOpenChange={setIsDeleteDialogOpen}
+                onConfirmDelete={() => deleteThread && deleteThread(thread)}
+                source="ThreadItem"
+            />
         </div>
     );
 };

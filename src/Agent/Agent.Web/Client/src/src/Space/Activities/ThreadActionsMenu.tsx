@@ -6,7 +6,6 @@ import {
     DialogContent,
     DialogSurface,
     DialogTitle,
-    DialogTrigger,
     makeStyles,
     Menu,
     MenuItem,
@@ -19,20 +18,11 @@ import { DeleteRegular, InfoRegular, MoreHorizontal20Regular } from '@fluentui/r
 import { memo, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import CopyButton from '../../Common/Components/CopyButton';
+import DeleteThreadDialog from '../../Common/Components/DeleteThreadDialog';
 import { Thread } from '../../Common/Contracts/Azure/SreAgent';
-import { ActivitiesThreadHeaderResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { SreAgentResources } from '../../Strings/SREAgentResources';
 
 const useStyles = makeStyles({
-    dangerButton: {
-        backgroundColor: tokens.colorStatusDangerBackground3,
-        color: `${tokens.colorNeutralForegroundInverted} !important`,
-        ':hover': {
-            backgroundColor: tokens.colorStatusDangerBackground3Hover,
-        },
-        ':active': {
-            backgroundColor: tokens.colorStatusDangerBackground3Pressed,
-        },
-    },
     infoContent: {
         fontFamily: 'SF Mono, Monaco, Inconsolata, "Roboto Mono", Consolas, "Courier New", monospace',
         fontSize: '13px',
@@ -72,7 +62,7 @@ interface ThreadActionsMenuProps {
 }
 
 const ThreadActionsMenu = ({ thread, handleThreadDelete }: ThreadActionsMenuProps) => {
-    const { dangerButton, infoContent, threadIdHighlight, section, sectionTitle } = useStyles();
+    const { infoContent, threadIdHighlight, section, sectionTitle } = useStyles();
     const intl = useIntl();
 
     const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(false);
@@ -163,25 +153,13 @@ Thread ID: ${thread.id}`;
                 </DialogSurface>
             </Dialog>
 
-            {/* Delete Dialog */}
-            <Dialog modalType="alert" open={isDeleteDialogOpen} onOpenChange={(_, data) => setIsDeleteDialogOpen(data.open)}>
-                <DialogSurface>
-                    <DialogBody>
-                        <DialogTitle>{intl.formatMessage(ActivitiesThreadHeaderResources.deleteThreadDialogTitle)}</DialogTitle>
-                        <DialogContent>{intl.formatMessage(ActivitiesThreadHeaderResources.deleteThreadDialogDescription)}</DialogContent>
-                        <DialogActions>
-                            <DialogTrigger>
-                                <Button className={dangerButton} onClick={() => handleThreadDelete()}>
-                                    {intl.formatMessage(SreAgentResources.yes)}
-                                </Button>
-                            </DialogTrigger>
-                            <DialogTrigger disableButtonEnhancement>
-                                <Button appearance="secondary">{intl.formatMessage(SreAgentResources.no)}</Button>
-                            </DialogTrigger>
-                        </DialogActions>
-                    </DialogBody>
-                </DialogSurface>
-            </Dialog>
+            <DeleteThreadDialog
+                thread={thread}
+                isOpen={isDeleteDialogOpen}
+                onOpenChange={setIsDeleteDialogOpen}
+                onConfirmDelete={handleThreadDelete}
+                source="ThreadActionsMenu"
+            />
         </>
     );
 };

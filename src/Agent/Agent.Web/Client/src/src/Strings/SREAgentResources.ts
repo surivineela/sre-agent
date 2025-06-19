@@ -389,8 +389,8 @@ export const ActivitiesThreadHeaderResources = defineMessages({
     },
     deleteThreadDialogTitle: { defaultMessage: 'Delete thread?', id: '+5BJJL' },
     deleteThreadDialogDescription: {
-        defaultMessage: 'This will permanently delete the chat and all actions in this thread.',
-        id: '1uDzPU',
+        defaultMessage: 'This will permanently delete the chat and all actions in this thread. Are you sure you want to delete?',
+        id: 'u5uL6R',
     },
 });
 

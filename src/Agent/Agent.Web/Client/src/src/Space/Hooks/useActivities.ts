@@ -79,8 +79,25 @@ export const useActivities = () => {
                 threadListHandleRef.current?.removeThreadFromList(thread);
                 selectThread(null);
 
+                proxy.log({
+                    action: 'deleteThread',
+                    actionModifier: 'success',
+                    logLevel: 'info',
+                    resourceId: thread.id,
+                });
+
                 proxy.stopNotification(id, true, intl.formatMessage(ActivitiesThreadHeaderResources.deleteThreadSuccessDescription));
             } catch (e: any) {
+                proxy.log({
+                    action: 'deleteThread',
+                    actionModifier: 'failure',
+                    logLevel: 'error',
+                    resourceId: thread.id,
+                    data: {
+                        error: e?.message || e?.response?.data,
+                    },
+                });
+
                 proxy.stopNotification(
                     id,
                     false,
@@ -90,7 +107,7 @@ export const useActivities = () => {
                 );
             }
         },
-        [intl, selectThread]
+        [intl, selectThread, proxy, threadClient]
     );
 
     const updateThreadLastReadTime = useCallback((threadId: string) => {
@@ -146,7 +163,7 @@ export const useActivities = () => {
         return () => {
             isSubscribed = false;
         };
-    }, [initialThreadId, activeThreadId, selectThread]);
+    }, [initialThreadId, activeThreadId, selectThread, threadClient]);
 
     return {
         selectedThread,
