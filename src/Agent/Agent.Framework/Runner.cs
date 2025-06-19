@@ -179,7 +179,7 @@ public static class Runner
                         {
                             var op = JsonSerializer.Deserialize<Dictionary<string, string>>(content.Text);
                             if (op is not null
-                                && op.TryGetValue("outputMessage", out var text))
+                                && op.TryGetValue("notifyUserMessage", out var text))
                             {
                                 await displayModelOutput(text);
                             }

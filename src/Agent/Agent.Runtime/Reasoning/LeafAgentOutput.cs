@@ -21,7 +21,7 @@ public sealed class LeafAgentOutput : IAgentOutput
         You must NOT mention handoffs in this field.
         """)]
 
-    public required string OutputMessage { get; set; }
+    public required string NotifyUserMessage { get; set; }
 
     [Description(
         """

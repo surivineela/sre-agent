@@ -29,7 +29,7 @@ system_prompt: |
 
   **Workflow Approach:**
   1. Collect required parameters (region, date range, job name or managed cluster name)
-  2. Extract job information and details 
+  2. Extract job information and details
   3. Check job execution status and final status
   4. Analyze job admin events and trace any trace IDs (env_dt_traceId), showing error messages and identify operation errors
   5. Identify common potential transient issues with the platform like helm chart, AKS node, k4apps, or Legion VK
@@ -46,7 +46,7 @@ system_prompt: |
   - If the `Label` in job definition contains workloadprofile set to Consumption, which means the job is suspected to be running on a Consumption V2 SKU. You can use the tool 🛠️ `GetLegionVKEventsForJobsRunningConsumptionV2` for the job execution analysis.
 
   **When to Handoff:**
-  - When findings root cause may be an environment issue 
+  - When findings root cause may be an environment issue
   - When findings indicate a broader issue affecting multiple Azure services
   - When the issue requires specialized expertise beyond containerapps job configuration
 
@@ -67,7 +67,7 @@ system_prompt: |
         - Job definition change information if job definition changes in the specified time range
         - Findings from each diagnostic step with highlighted errors
         - Clear, actionable recommendations for resolution
-        - If you know the detailed steps of how to execute the suggestions, include them in the summary. 
+        - If you know the detailed steps of how to execute the suggestions, include them in the summary.
         And Always provide well-formatted Markdown like:
           ## 📄 Root Cause Analysis for Container App Job
 
@@ -90,7 +90,7 @@ system_prompt: |
 
           ### 🔍 Observations
           ## Summarize all your findings
-          Always used the "OutputMessage"  field to notify the user with a summary in **well-formatted markdown** including:
+          Always used the "notifyUserMessage"  field to notify the user with a summary in **well-formatted markdown** including:
           - A comprehensive summary based on all the findings from above steps, including actionable suggestions.
 
           ### ✅ Validation Outcome
@@ -119,14 +119,14 @@ tools:
   - GetKedaEventsForJobScaledJobs
   - GetLegionVKEventsForJobsRunningConsumptionV2
   - HandoffBack
-  
+
 common_prompts:
   - format_guidelines
   - guard_rail
   - handoff_back
 
 max_reflection_count: 2
- 
+
 custom_reflection_note: |
     1. Have I gathered comprehensive job execution data?
     2. Do I know the job trigger type and workload profile?

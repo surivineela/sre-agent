@@ -22,15 +22,15 @@ public sealed class MetaAgentOutput : IAgentOutput
         When state is CompletedSuccessfully or RequestFailed, it should scale with the investigation. For short ones 2-3 sentence summary is fine. For more involved investigations it may be upto 7-8 sentences long explaining in detail the actions taken and result gathered and any help / guidance needed.
         You must NOT mention other agents or the flow of control or handoffs in this field.
         """)]
-    public required string OutputMessage { get; set; }
+    public required string NotifyUserMessage { get; set; }
 
     [Description(
         """
         Current state of execution. Your internal evaluation of where you're at. The allowed values are:
         - UserInputRequired: User needs to select from few options or give approval.
         - HandOff_Continue: Continue with next relevant agent. This should be followed by transfer_to_* tool call clearly specifying the subtask for the next agent.
-        - CompletedSuccessfully: User request completed successfully. Clearly state the summary of your actions and final result in OutputMessage.
-        - RequestFailed: You failed to solve the user query, or only solved partially. Clearly state the summary of your actions, why you failed and what help / guidance you need from user in OutputMessage.
+        - CompletedSuccessfully: User request completed successfully. Clearly state the summary of your actions and final result in notifyUserMessage.
+        - RequestFailed: You failed to solve the user query, or only solved partially. Clearly state the summary of your actions, why you failed and what help / guidance you need from user in notifyUserMessage.
         """)]
     public required string State { get; set; }
 

@@ -8,7 +8,7 @@ public interface IAgentOutput
 {
     public string ReasoningScratchPad { get; }
 
-    public string OutputMessage { get; }
+    public string NotifyUserMessage { get; }
 
     public string State { get; }
 

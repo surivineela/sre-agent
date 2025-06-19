@@ -51,7 +51,7 @@ public static class Summarizer
             {
                 var op = JsonSerializer.Deserialize<Dictionary<string, string>>(message.Text);
                 if (op is not null
-                    && op.TryGetValue("outputMessage", out var text))
+                    && op.TryGetValue("notifyUserMessage", out var text))
                 {
                     sb.AppendLine(text);
                     sb.AppendLine();
@@ -139,7 +139,7 @@ public static class Summarizer
 
     ```markdown
     ## 🎯 **Objective & Plan**
-    **Objective:** 
+    **Objective:**
     [Detailed objective as understood by agent: 1 sentence]
 
     **Strategic Approach:**
@@ -195,13 +195,13 @@ public static class Summarizer
     private const string UserTrajectorySummarizerPrompt =
     """
     You are an expert conversation analyst.
-        
+
     Goal
-    Summarize** only the user's current intent** in an ongoing, multi-turn chat between a User and an Assistant.  
+    Summarize** only the user's current intent** in an ongoing, multi-turn chat between a User and an Assistant.
     - Ignore earlier intents that have been fulfilled, abandoned, or superseded.
-    - Include any refinements or follow-ups that the user is still pursuing.  
-    - Use earlier dialogue only to resolve pronouns or context needed to state the latest intent clearly.  
-    - Express the intent in one concise sentence (≤ 25 words) that starts with a verb(e.g., “Get status of …”, “Show 5xx error trend …”, etc.).  
+    - Include any refinements or follow-ups that the user is still pursuing.
+    - Use earlier dialogue only to resolve pronouns or context needed to state the latest intent clearly.
+    - Express the intent in one concise sentence (≤ 25 words) that starts with a verb(e.g., “Get status of …”, “Show 5xx error trend …”, etc.).
 
     Example:
     Role: User

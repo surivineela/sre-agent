@@ -310,7 +310,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                     string outputText = string.Empty;
                     if (response.Output is IAgentOutput agentOutput)
                     {
-                        outputText = agentOutput.OutputMessage;
+                        outputText = agentOutput.NotifyUserMessage;
                     }
                     else if (response.Output is string stringOutput)
                     {

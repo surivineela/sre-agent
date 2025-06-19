@@ -340,7 +340,7 @@ public class ReasoningLoop : IDisposable
                             sb.AppendLine(" - If there's no suitable agent to handoff to, call HandoffBack directly");
                             //sb.AppendLine(" - **NEVER** tell the user you're going to handoff");
                             //sb.AppendLine(" - **NEVER** tell the user what you are handing off for or why you are handing off");
-                            //sb.AppendLine(" - **NEVER** mention anything related to handoff in your outputMessage");
+                            //sb.AppendLine(" - **NEVER** mention anything related to handoff in your notifyUserMessage");
                             sb.AppendLine(" - Use transfer_to_{agentName} or HandoffBack if you are done solving an issue");
                             sb.AppendLine("User question goes below:");
                             sb.AppendLine(chatMessage.Message.Text);
@@ -815,13 +815,13 @@ public class ReasoningLoop : IDisposable
                 else if (runResult.Output is IAgentOutput agentOutput)
                 {
                     // TODO: can we log all this info?
-                    _logger.LogInternalInformation("Agent output: {AgentOutputMessage}, {State}, {StateExplanation}, {Reasoning}",
-                        agentOutput.OutputMessage, agentOutput.State, agentOutput.StateExplanation, agentOutput.ReasoningScratchPad);
+                    _logger.LogInternalInformation("Agent output: {AgentnotifyUserMessage}, {State}, {StateExplanation}, {Reasoning}",
+                        agentOutput.NotifyUserMessage, agentOutput.State, agentOutput.StateExplanation, agentOutput.ReasoningScratchPad);
 
                     // already printed in runner
                     //await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
                     //    _context,
-                    //    new ChatMessage(ChatRole.Assistant, agentOutput.OutputMessage));
+                    //    new ChatMessage(ChatRole.Assistant, agentOutput.notifyUserMessage));
 
                     var state = Enum.TryParse<AgentProcessingState>(agentOutput.State, out var parsed)
                         ? parsed
@@ -1248,8 +1248,8 @@ public class ReasoningLoop : IDisposable
             else if (runResult.Output is IAgentOutput agentOutput)
             {
                 // TODO: can we log all this info?
-                _logger.LogInternalInformation("Agent output: {AgentOutputMessage}, {State}, {StateExplanation}, {Reasoning}",
-                    agentOutput.OutputMessage, agentOutput.State, agentOutput.StateExplanation, agentOutput.ReasoningScratchPad);
+                _logger.LogInternalInformation("Agent output: {AgentnotifyUserMessage}, {State}, {StateExplanation}, {Reasoning}",
+                    agentOutput.NotifyUserMessage, agentOutput.State, agentOutput.StateExplanation, agentOutput.ReasoningScratchPad);
 
                 var state = Enum.TryParse<AgentProcessingState>(agentOutput.State, out var parsed)
                         ? parsed

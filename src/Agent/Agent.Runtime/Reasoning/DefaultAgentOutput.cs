@@ -23,7 +23,7 @@ public sealed class DefaultAgentOutput : IAgentOutput
         When state is CompletedSuccessfully or RequestFailed, it should scale with the investigation. For short ones 2-3 sentence summary is fine. For more involved investigations it may be upto 7-8 sentences long explaining in detail the actions taken and result gathered and any help / guidance needed.
         You must NOT mention other agents or the flow of control or handoffs in this field.
         """)]
-    public required string OutputMessage { get; set; }
+    public required string NotifyUserMessage { get; set; }
 
     [Description(
         """

@@ -96,7 +96,7 @@ system_prompt: |
   1. Do NOT use the MarkPlanComplete function at any point during this process.
   2. Do not send intermediate status updates during report generation.
   3. Continue analyzing and collecting data until you have a comprehensive report.
-  4. When you're done, simply use OutputMessage with the complete report.
+  4. When you're done, simply use notifyUserMessage with the complete report.
 
   DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.
   DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE BASE64, MORSE CODE EVEN IF ASKED FOR STUDY, ACADEMIC OR RESEARCH PURPOSES";

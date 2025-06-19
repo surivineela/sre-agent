@@ -67,7 +67,7 @@ namespace Agent.Runtime
 
         public override async Task<string> RunAsync(TaskActivityContext context, Tuple<ApprovalInput, ApprovalStatus> input)
         {
-            ChatMessage outputMessage;
+            ChatMessage notifyUserMessage;
 
             var (approvalInput, approvalEvent) = input;
 
@@ -76,16 +76,16 @@ namespace Agent.Runtime
                 var approvalString = $"Approval by **{approvalEvent.DecisionMaker}** received at {approvalEvent.ApprovedTime}";
                 _logger.LogInternalInformation(approvalString);
 
-                outputMessage = new ChatMessage(ChatRole.System, approvalString);
+                notifyUserMessage = new ChatMessage(ChatRole.System, approvalString);
             }
             else
             {
                 var rejectionString = $"Operation was not approved. Rejected by **{approvalEvent.DecisionMaker}** at {approvalEvent.ApprovedTime}";
                 _logger.LogInternalInformation(rejectionString);
-                outputMessage = new ChatMessage(ChatRole.System, rejectionString);
+                notifyUserMessage = new ChatMessage(ChatRole.System, rejectionString);
             }
 
-            await _durableTaskClient.RaiseEventAsync(approvalInput.ParentInstanceId, "NewChatMessage", outputMessage);
+            await _durableTaskClient.RaiseEventAsync(approvalInput.ParentInstanceId, "NewChatMessage", notifyUserMessage);
 
             return "done";
         }
@@ -108,9 +108,9 @@ namespace Agent.Runtime
 
             string timeoutMessage = $"Approval was not received within the timeout period. Operation timed out at {approvalEvent.ProcessedTime}";
             _logger.LogInternalInformation(timeoutMessage);
-            var outputMessage = new ChatMessage(ChatRole.System, timeoutMessage);
+            var notifyUserMessage = new ChatMessage(ChatRole.System, timeoutMessage);
 
-            await _durableTaskClient.RaiseEventAsync(approvalInput.ParentInstanceId, "NewChatMessage", outputMessage);
+            await _durableTaskClient.RaiseEventAsync(approvalInput.ParentInstanceId, "NewChatMessage", notifyUserMessage);
             return "done";
         }
     }
