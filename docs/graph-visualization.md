@@ -6,7 +6,7 @@
 ## Export Graph Data
 Run the following command to export your graph data:
 ```powershell
-dotnet run --project .\src\Agent\Agent.Cmd\Agent.Cmd.csproj ExportGraph [Path]
+just agent ExportGraph [Path]
 ```
 
 ## Visualize Using Gephi

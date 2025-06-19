@@ -2,23 +2,39 @@
 
 ## Prerequisites
 
-- Visual Studio or preferred IDE
 - .NET Core SDK
-- NuGet Package Manager
 - NodeJS 22
+- Just
+
+```bash
+# Windows
+winget install --id Casey.Just
+
+# MacOS
+brew install just
+
+# Linux
+
+## Ubuntu/Debian
+apt install just
+
+## Mariner
+dnf install just
+```
 
 ## Private Environment Setup
 1. **Depoloy the necessary resources**
   You can use git bash to run these on windows via the VSCode terminal or directly. The first time you run, an untracked `dev.bicepparam` file will be created which you can use to re-run the command without needing to specify the `-n` arg.
    ```bash
-   source aliases.bash
-   deploy3p -n <stamp prefix>
+   just deploy3p <stamp_prefix>
    ```
    The `<stamp prefix>` above is the prefix that would be used for your resource names. Your alias is a good option.
 
 ## NuGet Configuration
 
-We use an internal NuGet source for packages. To set up:
+### Windows
+
+Either `just setup-windows` or:
 
 1. Install NuGet if needed:
    ```powershell
@@ -31,7 +47,38 @@ We use an internal NuGet source for packages. To set up:
    nuget.exe setApiKey az -Source https://msazure.pkgs.visualstudio.com/Antares/_packaging/antares-websites/nuget/v3/index.json
    ```
 
-> **Warning**: The cross-platform `dotnet nuget` command doesn't support setting API keys.
+### Linux/WSL/MacOS
+
+Either `just setup-mac` or `just setup-ubuntu` or:
+
+1. Download Artifact Credentials Provider [microsoft/articfacts-credprovider](https://github.com/microsoft/artifacts-credprovider)
+
+1. set `NUGET_PLUGIN_PATHS` to `plugins/netcore/CredentialProvider.Microsoft/CredentialProvider.Microsoft.dll`
+
+```bash
+# create a place under ~ to store the plugin.
+# This can be anywhere as long as you update `NUGET_PLUGIN_PATHS` to match
+mkdir -p ~/.nuget/
+
+# temp working dir
+mkdir -p /tmp/scratch/nuget
+cd /tmp/scratch/nuget
+
+# download and extract
+wget https://github.com/microsoft/artifacts-credprovider/releases/download/v1.4.1/Microsoft.NuGet.CredentialProvider.tar.gz
+tar xzvf Microsoft.Nuget.CredentialProvider.tar.gz
+
+mv plugins ~/.nuget/
+
+
+# set this in your profile
+export NUGET_PLUGIN_PATHS="$HOME/.nuget/plugins/netcore/CredentialProvider.Microsoft/CredentialProvider.Microsoft.dll"
+```
+
+> [!IMPORTANT]
+> Set `NUGET_PLUGIN_PATHS` in your `.zshrc` or `.bashrc`
+> You might need to run `just login` or `dotnet restore --interactive` the first time.
+
 
 ## NodeJS setup
 
@@ -69,14 +116,14 @@ You can set up npm authentication using our script:
 
 1. Generate a [Personal Access Token](https://dev.azure.com/msazure/_details/security/tokens) with scopes: Packaging read, write & manage; Drop read & write. (Select Access Scope to be "All accessible organizations")
 
-2. Run the setup script:
+1. Run the setup script:
    ```bash
    ./scripts/setup-npm-auth.sh <your-PAT>
    ```
 
-3. The script will encode your PAT and configure your `~/.npmrc` file automatically.
+1. The script will encode your PAT and configure your `~/.npmrc` file automatically.
 
-4. Remember to refresh the token every 7 days by running the script with a new PAT.
+1. Remember to refresh the token every 7 days by running the script with a new PAT.
 
 #### Manual Setup (Alternative)
 1. Copy the code below to your User npm profile (.npmrc) file, located at `~/.npmrc`:
@@ -110,7 +157,7 @@ The deployment script deploys the DTS service. You can grab the connection strin
 
 Note: 
 1. If you get the connection string from the deployed resource in the portal, it will be missing the `TaskHub` parameter, which you'll need to add manually (also in the portal).
-2. Make sure there is a Durable Task Data Contributor role assignment; otherwise, you should add it first.
+1. Make sure there is a Durable Task Data Contributor role assignment; otherwise, you should add it first.
 
 ```
   "AppSettings": {
@@ -125,7 +172,7 @@ Note:
 ```    
 
 Another option is to leave the connection string blank so it uses the emulator. Its convenient because every time you restart it, you start from a blank slate.
-Run the emulator using: `./src/run-durable-emulator.ps1`
+Run the emulator using: `just durable-emulator` (or `./src/run-durable-emulator.ps1`)
 * If you do choose to use the emulator, you will need to install Docker beforehand.
 
 ### Dashboard Settings

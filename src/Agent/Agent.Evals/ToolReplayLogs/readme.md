@@ -15,7 +15,7 @@ If you record the logs using the step described below, then you shouldn't need t
 The easiest way to record these logs is to use the new command in Agent.Cmd. For example, to start 10 copies of the agent with the message "fix my app foo":
 
 ```
-dotnet run --no-restore --project src/Agent/Agent.Cmd/Agent.Cmd.csproj -- RunScenario 10 "fix my app foo"
+just run-cmd RunScenario 10 "fix my app foo"
 ```
 
 This command runs against `http://localhost:5073` by default, but you can pass a different endpoint with `--url`
