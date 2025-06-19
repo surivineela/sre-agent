@@ -36,16 +36,16 @@ PreciseTimeStamp,managedClusterName,managedClusterLocation,managedSubscription,m
     [Description("Azure subscription ID.")] string subscriptionId,
      [Description("provide sampling inputs")] SamplingOptions sampling)
         {
-           return await _kustoPlugin.ExecuteLocalFunctionAsync("GetManagedEnvironment", region,
-                new Dictionary<string, string> {
+            return await _kustoPlugin.ExecuteLocalFunctionAsync("GetManagedEnvironment", region,
+                 new Dictionary<string, string> {
                     { "fromDate", fromDate.ToString() },
                     { "toDate", toDate.ToString() },
                     { "region", region },
                     { "environmentName", environmentName },
                     { "resourceGroupName", resourceGroupName },
                     { "subscriptionId", subscriptionId }
-                }
-            );
+                 }
+             );
         }
 
         [Description(
@@ -344,6 +344,33 @@ Projects:
                     { "toDate", toDate.ToString() },
                     { "env_dt_traceId", traceId }
                 });
+        }
+
+        [Description(
+@"Retrieve AKS node alerts and their status over time for a specific managed cluster.
+Projects:
+- StartTime: Start time of the alert timeline.
+- EndTime: End time of the alert timeline.
+- Content: Description of alert status (e.g., 'Healthy' or 'X Alerts').
+- Tooltip: Detailed information about critical and warning alerts.
+- Health: Overall health status ('healthy', 'degraded', 'error').
+- GroupBy: Alert categorization (e.g., 'Alerts: Node').
+- warnings: List of warning-level alerts.
+- criticals: List of critical-level alerts."
+)]
+        public async Task<string> GetAKSNodeAlerts(
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed cluster.")] string managedClusterName)
+        {
+            return await _kustoPlugin.ExecuteLocalFunctionAsync("GetAKSNodeAlerts", "centralus",
+                new Dictionary<string, string>
+                {
+                    { "fromDate", fromDate.ToString() },
+                    { "toDate", toDate.ToString() },
+                    { "managedClusterName", managedClusterName }
+                },
+                groupName: "AKS");
         }
     }
 }

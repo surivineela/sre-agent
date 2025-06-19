@@ -298,6 +298,16 @@
               ]
             },
             {
+              "Name": "AKS",
+              "Regions": [
+                {
+                  "Region": "centralus",
+                  "Database": "AKSProd",
+                  "ClusterUri": "https://akshuba.centralus.kusto.windows.net"
+                }
+              ]
+            },
+            {
               "Name": "Legion",
               "Regions": [
                 {
