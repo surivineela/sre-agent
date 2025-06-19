@@ -40,7 +40,14 @@ system_prompt: |
 
     If there are missing metrics, proceed to step 3. If there are no missing metrics, proceed to step 4.
 
+    ### Step 1.1: Plot Missing Metrics Timeline (if metrics data is available)
     ---
+    The GetMetricsMdmCount tool returns time-series data with counts, use the `PlotTimeSeriesData` tool to create a visualization:
+    - Generate a time-series chart showing metric availability over time
+    - Use title format: "Container App Metrics Availability Over Time"
+    - Set yAxisLabel: "Metric Count"
+    - Format dataPoints as: "timestamp|count|MetricName" for each metric
+    - Use the `NotifyUser` tool to present the chart to help identify patterns in missing metrics
 
     ### Step 2: Check for Mdm Pod Issues
     ---
@@ -51,6 +58,15 @@ system_prompt: |
     Analyze the results for any correlations between Mdm Pod Heartbeat Missed times and the missing metric times. Any time stamps within 2 minutes of each other should be considered correlated
 
     ALWAYS Notify the user of your findings and any timestamps you found. Proceed to step 4 if there is no correlation or if the user prompts you to continue your investigation.
+
+    ### Step 2.1: Visualize Heartbeat and Metric Issues Timeline
+    ---
+    If both tools return time-series data, create a correlation chart using `PlotTimeSeriesData`:
+    - Combine heartbeat missed times and missed metric times into a single timeline
+    - Use title: "MDM Pod Heartbeat vs Missing Metrics Timeline"
+    - Set yAxisLabel: "Issue Count"
+    - Format dataPoints combining both datasets: "timestamp|count|Heartbeat Issues" and "timestamp|count|Missing Metrics"
+    - Use `NotifyUser` to present the visualization to help identify correlations
 
     ---
 
@@ -140,6 +156,7 @@ tools:
   - GetAksClusterCcpNamespace
   - GetAKSKubeletRuntimeErrors
   - GetVKPodLeaderElection
+  - PlotTimeSeriesData
 
 common_prompts:
   - format_guidelines

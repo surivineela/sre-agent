@@ -118,6 +118,7 @@ tools:
   - GetAllJobExecutionsFinalStatus
   - GetKedaEventsForJobScaledJobs
   - GetLegionVKEventsForJobsRunningConsumptionV2
+  - PlotTimeSeriesData
   - HandoffBack
 
 common_prompts:

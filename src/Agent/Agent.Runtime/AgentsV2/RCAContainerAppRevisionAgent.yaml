@@ -130,6 +130,7 @@ tools:
   - GetK4appsHelmChartUpgradeTimes
   - GetAksNodeImageUpgradeTimes
   - GetLegionHostRoleOSUpgradeTimes
+  - PlotTimeSeriesData
 
 common_prompts:
   - format_guidelines

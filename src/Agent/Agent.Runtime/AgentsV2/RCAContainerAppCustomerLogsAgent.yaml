@@ -87,10 +87,18 @@ system_prompt: |
         - Step 8.3.2: Confirm with the user if further investigation is needed.
             - If yes, continue with the next steps, step 9 onwards. Otherwise, conclude the investigation with summary as described in step 12.
 
-
     ### Step 9: Workflow for metrics analysis
     - Step 9.1: Use tool `GetInputPressureOnLogProcessor` to see if there was any anomaly in input records count for the log processor during the impact duration.
         - If the input records count has increased significantly, it indicates high resource pressure on log-processor which can cause some logs to miss. Conclude the investigation with summary as described in step 11.
+
+    ### Step 9.1.1: Visualize Log Processing Metrics
+    - If any of the metrics tools return time-series data, use `PlotTimeSeriesData` to create comprehensive logging metrics charts:
+      - **Input Pressure Chart**: Use title "Log Processor Input Pressure Over Time", yAxisLabel "Input Records Count"
+      - **Memory Pressure Chart**: Use title "Fluentbit Memory Pressure Over Time", yAxisLabel "Memory Usage (%)"
+      - **Buffer Pressure Chart**: Use title "Fluentbit Buffer Pressure Over Time", yAxisLabel "Buffer Usage (%)"
+      - **Output Count Chart**: Use title "Fluentbit Output Records Over Time", yAxisLabel "Output Records Count"
+      - **Error Rate Chart**: Use title "Fluentbit Output Errors Over Time", yAxisLabel "Error Count"
+    - Use `NotifyUser` to present these charts showing logging system health patterns and anomalies
     - Step 9.2: Use tool `GetMemoryPressureOnFluentbit` to see if there was any anomaly in memory pressure on fluentbit during the impact duration.
         - If memory pressure is seen, it can cause fluentbit to drop logs. Conclude the investigation with summary as described in step 11.
     - Step 9.3: Use tool `GetFluentbitBufferPressure` to see if fluentbit buffer pressure was seen during the impact duration.
@@ -164,6 +172,7 @@ tools:
   - GetContainerAppManagedCluster
   - GetContainerAppStatus
   - GetManagedEnvironmentInfo
+  - PlotTimeSeriesData
 
 common_prompts:
   - format_guidelines

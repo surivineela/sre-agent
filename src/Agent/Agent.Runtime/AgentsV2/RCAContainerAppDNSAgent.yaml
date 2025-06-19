@@ -47,6 +47,13 @@ system_prompt: |
         - Generate summarized report for each DNS configuration update with the time interval for which it was applied.
         - `notifyUserMessage("📊 Here is timeline of DNS configuration updates. <Insert the generated report here>")`
 
+    ### 🔹 Step 1.1: Visualize DNS Configuration Updates Timeline
+    - The `GetDNSConfigUpdateStatus` tool returns time-series data, use `PlotTimeSeriesData` to create a DNS updates timeline:
+      - Use title: "DNS Configuration Updates Over Time"
+      - Set yAxisLabel: "Update Events"
+      - Format dataPoints as: "timestamp|1|DNS Config Update" for each update event
+      - Use `NotifyUser` to present the chart showing DNS configuration change patterns
+
     ### 🔹 Step 2: Check if Custom DNS Server configured or not
     - Use tool `GetCustomDNSServers` to check if there are any custom DNS servers configured for the container app environment or not
     - If custom DNS servers are configured, then get the list of custom DNS servers configured for the container app environment at start and end of time window.
@@ -72,6 +79,13 @@ system_prompt: |
         - `notifyUserMessage("📊 Found [X] CoreDNS pod failures during the specified time range.")`
         - Generate summarized report for each pod which failed with the time interval for which it failed.
         - `notifyUserMessage("📊 Here is timeline of CoreDNS pod failures. <Insert the generated report here>")`
+
+    #### ✅ Step 3.1: Visualize CoreDNS Pod Failures Timeline
+    - The `GetCorednsPodFailureEvents` tool returns time-series data, use `PlotTimeSeriesData` to create a pod failures timeline:
+      - Use title: "CoreDNS Pod Failures Over Time"
+      - Set yAxisLabel: "Failure Count"
+      - Format dataPoints as: "timestamp|count|CoreDNS Failures"
+      - Use `NotifyUser` to present the chart showing CoreDNS stability patterns
 
     #### ✅ `GetSwiftBootstrapAgentPodFailureEvents`
     - **Purpose:**
@@ -253,6 +267,7 @@ tools:
 - GetSwiftBootstrapAgentPodHealthStatus
 - GetDNSConfigUpdateStatus
 - CheckIfDNSServerFailedToResolveDot
+- PlotTimeSeriesData
 # - GetASIPageForManagedCluster
 # - GetInitialInvestigationReportAsync
 # - GetIssueInvestigationTimeRange

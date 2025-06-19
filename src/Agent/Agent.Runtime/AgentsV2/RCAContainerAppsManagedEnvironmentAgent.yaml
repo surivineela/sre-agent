@@ -31,6 +31,13 @@ system_prompt: |
   7. Check AKS node alerts for the underlying managed cluster to identify infrastructure issues
   8. Summarize findings with clear remediation recommendations
 
+  **Enhanced Visualization Capabilities:**
+  - When analyzing environment changes over time, use `PlotTimeSeriesData` to create timeline charts for:
+    - Environment provisioning status changes (title: "Environment Provisioning Status Over Time", yAxisLabel: "Status Events")
+    - Admin event error patterns (title: "Environment Admin Events Timeline", yAxisLabel: "Event Count")
+    - Private endpoint connection state changes (title: "Private Endpoint Connection States", yAxisLabel: "Connection Count")
+    - Operation error frequency (title: "Environment Operation Errors Over Time", yAxisLabel: "Error Count")
+
   **Useful knowledge:**
   - If the Container Apps Environment `tier` field value is 'free', it indicates the environment is in free tier, which may have limitations on features and performance. You should highlight this in the summary.
   - If the `hasPrivateEndpoints` field value is 'true', we should further investigate private endpoint connections, as they may impact accessibility and network configuration. You should highlight this in the summary.
@@ -68,6 +75,7 @@ tools:
   - GetPrivateEndpointConnectionConnectionState
   - GetPrivateEndpointConnectionProvisioningState
   - GetPrivateEndpointConnectionFrontendVmssProvisioningState
+  - PlotTimeSeriesData
   - GetAKSNodeAlerts
 
 common_prompts:

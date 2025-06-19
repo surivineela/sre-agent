@@ -95,6 +95,14 @@ system_prompt: |
         - `notifyUserMessage("📊 Retrieved allocation availability data for the legion pool.")`
         - Summarize any periods of reduced allocation and their impact.
 
+    #### 2.2.1: Visualize Session Pool Allocation Availability
+    - The `GetCodeInterpreterSessionLegionPoolAvailability` tool returns time-series data, use `PlotTimeSeriesData` to create an availability chart:
+      - Use title: "Session Pool Allocation Availability Over Time"
+      - Set yAxisLabel: "Allocation Rate (%)"
+      - Set yAxisMin: "0" and yAxisMax: "100"
+      - Format dataPoints as: "timestamp|availability_percentage|Allocation Rate"
+      - Use `NotifyUser` to present the chart showing availability patterns and drops
+
     #### 2.3: Retrieve allocated pod details for a session
     - Use `GetCodeInterpreterSessionAllocatedPods` to fetch details of the pod allocated for a specific session. If no session identifier is provided, a random session in the time range will be used.
     - Before use:
@@ -227,6 +235,7 @@ tools:
   - GetCodeInterpreterSessionPodLogs
   - GetCustomContainerSessionEnvoyRequests
   - GetCustomContainerSessionLegionPoolStatus
+  - PlotTimeSeriesData
 
 common_prompts:
   - format_guidelines

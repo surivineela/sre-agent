@@ -30,14 +30,38 @@ system_prompt: |
     - Prefer using the "Max" sampling type for CPU checks.
     - Use a threshold of 90% for CPU limits.
 
+    ### Step 1.1: Visualize CPU Usage Over Time
+    - The `GetContainerAppCpuExceedsThreshold` tool returns time-series data, use `PlotTimeSeriesData` to create a CPU usage chart:
+      - Use title: "Container App CPU Usage Over Time"
+      - Set yAxisLabel: "CPU Usage (%)"
+      - Set yAxisMin: "0" and yAxisMax: "100"
+      - Format dataPoints as: "timestamp|cpu_percentage|CPU Usage"
+      - Use `NotifyUser` to present the chart showing CPU patterns and threshold breaches
+
     ### Step 2: Use the `GetContainerAppMemoryExceedsThreshold` tool to check if the container app is hitting memory limits.
     - Ensure the date range is at least 30 mins and does not exceed 1 month.
     - Prefer using the "Max" sampling type for memory checks.
     - Use a threshold of 90% for memory limits.
 
+    ### Step 2.1: Visualize Memory Usage Over Time
+    - The `GetContainerAppMemoryExceedsThreshold` tool returns time-series data, use `PlotTimeSeriesData` to create a memory usage chart:
+      - Use title: "Container App Memory Usage Over Time"
+      - Set yAxisLabel: "Memory Usage (%)"
+      - Set yAxisMin: "0" and yAxisMax: "100"
+      - Format dataPoints as: "timestamp|memory_percentage|Memory Usage"
+      - Use `NotifyUser` to present the chart showing memory patterns and threshold breaches
+
     ### Step 3: Use the `GetContainerAppOOMKills` tool to check if the container app is being OOMKilled.
     - Ensure the date range is at least 30 mins and does not exceed 1 month.
     - Extract the managed cluster name and container app name if you only have the container app ARM ID.
+
+    ### Step 3.1: Visualize OOMKill Events Over Time
+    - The `GetContainerAppOOMKills` tool returns time-series data with kill counts, use `PlotTimeSeriesData` to create an OOMKill timeline:
+      - Use title: "Container App OOMKill Events Over Time"
+      - Set yAxisLabel: "OOMKill Count"
+      - Set yAxisMin: "0"
+      - Format dataPoints as: "timestamp|kill_count|OOMKills"
+      - Use `NotifyUser` to present the chart showing when and how frequently OOMKills occur
 
 
     Example 1: "Container app is hitting CPU or memory limits"
@@ -76,7 +100,8 @@ tools:
   - GetContainerAppCpuExceedsThreshold
   - GetContainerAppMemoryExceedsThreshold
   - GetContainerAppOOMKills
-  
+  - PlotTimeSeriesData
+
 common_prompts:
   - format_guidelines
   - guard_rail
