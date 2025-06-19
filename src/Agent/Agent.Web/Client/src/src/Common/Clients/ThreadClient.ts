@@ -146,7 +146,13 @@ export class ThreadClient extends DataPlaneClient {
         }
     };
 
-    public getThreadContext = async (threadId: string, signal: AbortSignal): Promise<Response<ThreadContext | undefined>> => {
+    // If throwError is true, the caller will get the error and handle it accordingly. This is useful when clicking cancel button which will abort
+    // all the ongoing requests in sendMessageHandler and all the ongoing requests will throw an abort error to indicate the cancellation.
+    public getThreadContext = async (
+        threadId: string,
+        signal: AbortSignal,
+        throwError?: boolean
+    ): Promise<Response<ThreadContext | undefined>> => {
         const url = this.getRequestUrl(`/api/v1/threads/${threadId}/context`);
 
         try {
@@ -159,10 +165,14 @@ export class ThreadClient extends DataPlaneClient {
                 content: data as ThreadContext | undefined,
             };
         } catch (e) {
-            return {
-                isSuccessful: false,
-                error: e,
-            };
+            if (throwError) {
+                throw e;
+            } else {
+                return {
+                    isSuccessful: false,
+                    error: e,
+                };
+            }
         }
     };
 

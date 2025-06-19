@@ -195,7 +195,13 @@ export const useChatBox = (
      * @param interval
      * @returns
      */
-    const pollResponses = async (messageCount: number, threadId: string, latestMessage?: Message, signal?: AbortSignal) => {
+    const pollResponses = async (
+        messageCount: number,
+        threadId: string,
+        latestMessage?: Message,
+        signal?: AbortSignal,
+        throwError?: boolean
+    ) => {
         // latest response sorted in descending order by timestamp
         const responses: Message[] = [];
 
@@ -207,7 +213,8 @@ export const useChatBox = (
                     top: messageCount,
                     descending: true,
                 },
-                signal
+                signal,
+                throwError
             );
 
             const messages = messagesResponse.content || [];
@@ -226,8 +233,8 @@ export const useChatBox = (
 
     const waitUntilNewMessageIsAvailable = async (threadId: string, signal: AbortSignal, latestMessage?: Message) => {
         const [threadContextResponse, messagesResponse] = await Promise.all([
-            threadClient.getThreadContext(threadId, signal),
-            messageClient.getMessages(threadId, { skip: 0, top: 2, descending: true }, signal),
+            threadClient.getThreadContext(threadId, signal, true),
+            messageClient.getMessages(threadId, { skip: 0, top: 2, descending: true }, signal, true),
         ]);
 
         const reasoningState = threadContextResponse.content?.orchestrationState?.reasoningState;
@@ -282,7 +289,7 @@ export const useChatBox = (
                 if (threadId) {
                     await waitUntilNewMessageIsAvailable(threadId, signal, latestMessageRef.current);
                     // poll answers by getting all messages from the most recent one to the latest message reference
-                    answers = await pollResponses(MessagePollingCounts.default, threadId, latestMessageRef.current, signal);
+                    answers = await pollResponses(MessagePollingCounts.default, threadId, latestMessageRef.current, signal, true);
                 }
             } catch {
                 //Handle error if it is not abort error

@@ -32,7 +32,14 @@ export class MessageClient extends DataPlaneClient {
         super(sreAgentEndpoint);
     }
 
-    public async getMessages(threadId: string, options: MessagesGetOptions, signal?: AbortSignal): Promise<Response<Message[]>> {
+    // If throwError is true, the caller will get the error and handle it accordingly. This is useful when clicking cancel button which will abort
+    // all the ongoing requests in sendMessageHandler and all the ongoing requests will throw an abort error to indicate the cancellation.
+    public async getMessages(
+        threadId: string,
+        options: MessagesGetOptions,
+        signal?: AbortSignal,
+        throwError?: boolean
+    ): Promise<Response<Message[]>> {
         const url = this._getMessagesGetUrl(threadId, options);
 
         try {
@@ -46,11 +53,15 @@ export class MessageClient extends DataPlaneClient {
             };
         } catch (e) {
             // ToDo: handle error
-            return {
-                isSuccessful: false,
-                error: e,
-                content: [],
-            };
+            if (throwError) {
+                throw e;
+            } else {
+                return {
+                    isSuccessful: false,
+                    error: e,
+                    content: [],
+                };
+            }
         }
     }
 
