@@ -27,7 +27,7 @@ namespace Agent.Web.Services
             _logger = logger;
         }
 
-        public async Task StreamMessageAsync(Guid threadId, string message, StreamMessageType type)
+        public async Task StreamMessageAsync(Guid threadId, string message, StreamMessageType type, Guid? messageId = null)
         {
             try
             {
@@ -43,23 +43,23 @@ namespace Agent.Web.Services
                     {
                         { "streamMessageType", type.ToString() },
                         { "threadId", threadId.ToString() },
-                        { "messageId", Guid.NewGuid().ToString() },
+                        { "messageId", messageId?.ToString() ?? Guid.NewGuid().ToString() },
                     }
                 };
 
                 // Send directly to SignalR clients
                 await _hubContext.Clients.All.MessageUpdate(streamMessage);
 
-                _logger.LogInternalInformation("Successfully streamed message for thread {ThreadId} with type {Type}", 
+                _logger.LogInternalInformation("Successfully streamed message for thread {ThreadId} with type {Type}",
                     threadId, type);
             }
             catch (Exception ex)
             {
-                _logger.LogInternalError(ex, "Failed to stream message for thread {ThreadId} with type {Type}", 
+                _logger.LogInternalError(ex, "Failed to stream message for thread {ThreadId} with type {Type}",
                     threadId, type);
                 // Don't rethrow - streaming failures should not break the tool call
                 // The message is already persisted to database via AppendAgentImageMessage
             }
         }
     }
-} 
+}

@@ -18,6 +18,6 @@ namespace Agent.Core.Interfaces
         /// <param name="message">The message content to stream</param>
         /// <param name="type">The type of message being streamed</param>
         /// <returns>Task representing the async operation</returns>
-        Task StreamMessageAsync(Guid threadId, string message, StreamMessageType type);
+        Task StreamMessageAsync(Guid threadId, string message, StreamMessageType type, Guid? messageId = null);
     }
-} 
+}

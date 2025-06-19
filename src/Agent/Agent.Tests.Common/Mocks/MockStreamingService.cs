@@ -15,7 +15,7 @@ namespace Agent.Tests.Common.Mocks
     public class MockStreamingService : IStreamingService
     {
         private readonly ILogger<MockStreamingService> _logger;
-        
+
         public List<StreamedMessage> StreamedMessages { get; } = new();
 
         public MockStreamingService(ILogger<MockStreamingService> logger)
@@ -23,19 +23,20 @@ namespace Agent.Tests.Common.Mocks
             _logger = logger;
         }
 
-        public Task StreamMessageAsync(Guid threadId, string message, StreamMessageType type)
+        public Task StreamMessageAsync(Guid threadId, string message, StreamMessageType type, Guid? messageId = null)
         {
             var streamedMessage = new StreamedMessage
             {
                 ThreadId = threadId,
                 Message = message,
                 Type = type,
-                Timestamp = DateTime.UtcNow
+                Timestamp = DateTime.UtcNow,
+                MessageId = messageId ?? Guid.NewGuid()
             };
 
             StreamedMessages.Add(streamedMessage);
-            
-            _logger.LogInternalInformation("Mock: Streamed message for thread {ThreadId} with type {Type}: {Message}", 
+
+            _logger.LogInternalInformation("Mock: Streamed message for thread {ThreadId} with type {Type}: {Message}",
                 threadId, type, message);
 
             return Task.CompletedTask;
@@ -48,5 +49,6 @@ namespace Agent.Tests.Common.Mocks
         public string Message { get; set; } = string.Empty;
         public StreamMessageType Type { get; set; }
         public DateTime Timestamp { get; set; }
+        public Guid MessageId { get; set; }
     }
-} 
+}

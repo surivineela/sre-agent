@@ -108,9 +108,9 @@ class MockStreamingService : IStreamingService
         _logger = logger;
     }
 
-    public Task StreamMessageAsync(Guid threadId, string message, StreamMessageType type)
+    public Task StreamMessageAsync(Guid threadId, string message, StreamMessageType type, Guid? messageId = null)
     {
-        _logger.LogInformation("Mock: Streaming message for thread {ThreadId} with type {Type}: {Message}", 
+        _logger.LogInformation("Mock: Streaming message for thread {ThreadId} with type {Type}: {Message}",
             threadId, type, message);
         return Task.CompletedTask;
     }
@@ -153,7 +153,7 @@ class Program
             .AddSingleton<SinkService>()
             .AddSingleton<ThreadService>()
             // .AddSingleton<ThreadManagementService>()
-            .AddSingleton<IStreamingService>(sp => 
+            .AddSingleton<IStreamingService>(sp =>
             {
                 var logger = sp.GetRequiredService<ILoggerFactory>()
                     .CreateLogger<MockStreamingService>();

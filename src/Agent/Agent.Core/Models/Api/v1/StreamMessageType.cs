@@ -10,6 +10,11 @@ namespace Agent.Core.Models.Api.v1;
 public enum StreamMessageType
 {
     /// <summary>
+    /// Text message type, typically used for chat messages
+    /// </summary>
+    Message,
+
+    /// <summary>
     /// Chart or visualization data
     /// </summary>
     Chart,

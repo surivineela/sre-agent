@@ -129,7 +129,7 @@ public static class TestHelpers
     {
         builder.Services.AddSingleton<ThreadManagementService>();
         builder.Services.AddSingleton<IAgentInboundCommunicationService, InboundCommunicationService>();
-        builder.Services.AddSingleton<IStreamingService>(sp => 
+        builder.Services.AddSingleton<IStreamingService>(sp =>
         {
             var logger = sp.GetRequiredService<ILoggerFactory>()
                 .CreateLogger<MockStreamingService>();
@@ -268,9 +268,9 @@ class MockStreamingService : IStreamingService
         _logger = logger;
     }
 
-    public Task StreamMessageAsync(Guid threadId, string message, StreamMessageType type)
+    public Task StreamMessageAsync(Guid threadId, string message, StreamMessageType type, Guid? messageId = null)
     {
-        _logger.LogInternalInformation("Mock: Streaming message for thread {ThreadId} with type {Type}: {Message}", 
+        _logger.LogInternalInformation("Mock: Streaming message for thread {ThreadId} with type {Type}: {Message}",
             threadId, type, message);
         return Task.CompletedTask;
     }

@@ -48,8 +48,9 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         }
         _logger.LogExternalInformation("orchestrationInstanceId {orchestrationInstanceId} message to thread {ThreadId}: {Message}",
             orchestrationInstanceId, threadId, message.Text);
-
-        await _sinkService.SinkAgentMessageAsync(threadId.Value, message.Text ?? string.Empty);
+        Guid agentMessageId = Guid.NewGuid();
+        await AppendAgentStreamMessage(threadId ?? Guid.Empty, message.Text ?? string.Empty, StreamMessageType.Message, agentMessageId);
+        await _sinkService.SinkAgentMessageAsync(threadId.Value, message.Text ?? string.Empty, agentResponseMessageId: agentMessageId);
     }
 
     public async Task<Guid> AppendAgentImageMessage(Guid threadId, string message)
@@ -85,7 +86,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         return await _sinkService.SinkAgentMessageAsync(threadId, "Approval Request for Processing Azure SRE Agent Request", true, approval);
     }
 
-    public async Task AppendAgentStreamMessage(Guid threadId, string message, StreamMessageType type)
+    public async Task AppendAgentStreamMessage(Guid threadId, string message, StreamMessageType type, Guid? messageId = null)
     {
         if (threadId == Guid.Empty)
         {
@@ -95,7 +96,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         try
         {
             // Use the streaming service abstraction to send the message
-            await _streamingService.StreamMessageAsync(threadId, message, type);
+            await _streamingService.StreamMessageAsync(threadId, message, type, messageId);
 
             _logger.LogExternalInformation("Successfully sent direct stream message for thread {ThreadId} with type {Type}",
                 threadId, type);
@@ -125,12 +126,14 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         await _postToTeamsService.PostTeamsMessage(threadId, activity, messageId);
     }
 
-    public Task UpdateThreadWithAgentMessageAsync(AgentContext context, ChatMessage message)
+    public async Task UpdateThreadWithAgentMessageAsync(AgentContext context, ChatMessage message)
     {
         _logger.LogExternalInformation("Agent context {AgentContextId} of type {AgentType} message to thread {ThreadId}: {message}",
             context.Id, context.AgentType.ToString(), context.ThreadId, message.Text);
 
-        return _sinkService.SinkAgentMessageAsync(context.ThreadId, message.Text ?? string.Empty);
+        Guid agentMessageId = Guid.NewGuid();
+        await AppendAgentStreamMessage(context.ThreadId, message.Text ?? string.Empty, StreamMessageType.Message, agentMessageId);
+        await _sinkService.SinkAgentMessageAsync(context.ThreadId, message.Text ?? string.Empty, agentResponseMessageId: agentMessageId);
     }
 
     public Task NotifyCompletionAsync(AgentContext context, string subAgentIdentifier, string status, string? summary = null)
