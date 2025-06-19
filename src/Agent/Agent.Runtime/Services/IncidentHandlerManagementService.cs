@@ -22,13 +22,17 @@ namespace Agent.Runtime.Services
     {
         private readonly Container _container;
         private readonly ILogger<IncidentHandlerManagementService> _logger;
+        private readonly IncidentManagementSettings _incidentManagementSettings;
         protected readonly string DocumentType = "IncidentHandler";
 
         public IncidentHandlerManagementService(
             CosmosClient cosmosClient,
             CosmosDBSettings cosmosDbSettings,
+            IncidentManagementSettings incidentManagementSettings,
             ILogger<IncidentHandlerManagementService> logger)
         {
+            _incidentManagementSettings = incidentManagementSettings;
+            DocumentType = $"IncidentHandler{_incidentManagementSettings.Type}";
             _container = cosmosClient.GetContainer(
                 cosmosDbSettings.Docs.Database,
                 AgentDataConfiguration.ThreadContainerName

@@ -125,6 +125,7 @@ public class IncidentPlaygroundController : ControllerBase
         }
         var cosmosDocument = new IncidentHandlerDocument(
             document.Id,
+            $"IncidentHandler{_incidentManagementSettings.Type.ToString()}",
             document.Name,
             document.Description,
             document.IncidentFilterId,
@@ -228,6 +229,7 @@ public class IncidentPlaygroundController : ControllerBase
         }
         var filterDoc = new IncidentFilterDocument(
             payload.Id,
+            $"IncidentFilter{_incidentManagementSettings.Type.ToString()}",
             DateTime.UtcNow,
             payload.Name,
             payload.ImpactedService,

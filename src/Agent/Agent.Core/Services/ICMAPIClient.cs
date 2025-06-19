@@ -16,7 +16,7 @@ namespace Agent.Core.Services
     {
         //bool IsEnabled();
         Task<Incident> GetIncidentAsync(string incidentId);
-        Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate);
+        Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? owningServiceId, string? titleContains);
         Task<List<CustomField>> GetCustomFieldsAsync(string incidentId);
         Task<List<SearchItem>> SearchIncidentsAsync(string searchString);
         Task<List<DiscussionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId);
@@ -239,20 +239,24 @@ namespace Agent.Core.Services
             }
         }
 
-        public async Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate = null)
+        public async Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? owningServiceId, string? titleContains)
         {
-            var modifiedDate = lastModifiedDate ?? DateTime.UtcNow.AddDays(-30); // Default to 30 days ago if no date is provided
+            var modifiedDate = lastModifiedDate.HasValue ? lastModifiedDate.Value : DateTime.UtcNow.AddDays(-30); // Default to 30 days ago if no date is provided
 
             if (lastModifiedDate < DateTime.UtcNow.AddDays(-90))
             {
                 throw new ArgumentException("lastModifiedDate cannot be more than 90 days ago.", nameof(lastModifiedDate));
             }
+
+            owningServiceId = owningServiceId ?? _icmApiSettings.OwningServiceId;
+            var serviceIdFilter = !string.IsNullOrWhiteSpace(owningServiceId) ? $" and OwningServiceId eq {owningServiceId}" : string.Empty;
+            var titleFilter = !string.IsNullOrWhiteSpace(titleContains) ? $" and contains(Title, '{titleContains}')" : string.Empty;
             var queryParams = new Dictionary<string, string>()
             {
                 ["$top"] = limit.ToString(),
                 ["$skip"] = offset.ToString(),
                 ["$orderby"] = "LastModifiedDate desc",
-                ["$filter"] = $"LastModifiedDate gt {modifiedDate.ToString("yyyy-MM-ddTHH:mm:ss'Z'")}"
+                ["$filter"] = $"LastModifiedDate gt {modifiedDate.ToString("yyyy-MM-ddTHH:mm:ss'Z'")}{serviceIdFilter}{titleFilter}"
             };
 
             return await GetIncidentsAsyncInternal(queryParams);
@@ -857,7 +861,7 @@ namespace Agent.Core.Services
             throw new NotImplementedException();
         }
 
-        public Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate)
+        public Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? owningServiceId, string? titleContains)
         {
             throw new NotImplementedException();
         }

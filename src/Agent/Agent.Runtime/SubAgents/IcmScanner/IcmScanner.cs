@@ -1,17 +1,29 @@
 using System.Net;
+using System.Threading;
 using Agent.Core.Configuration;
+using Agent.Core.Interfaces;
+using Agent.Core.Models.Api.v1;
 using Agent.Core.Models.ICM;
 using Agent.Core.Services;
 using Agent.Data;
 using Agent.Data.DataModels;
 using Agent.Logging;
 using Agent.Runtime.Interfaces;
+using Agent.Runtime.Services;
 using Microsoft.Azure.Cosmos;
+using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.SubAgents.IcmScanner;
-public class IcmScanner(ILogger<IcmScanner> logger, IICMAPIClient icmApiClient, CosmosClient cosmosClient,
-                              CosmosDBSettings cosmosDbSettings) : IIncidentScanner
+public class IcmScanner(ILogger<IcmScanner> logger,
+    IICMAPIClient icmApiClient,
+    CosmosClient cosmosClient,
+    CosmosDBSettings cosmosDbSettings,
+    IIncidentHandlingService incidentHandlingService,
+    IIncidentHandlerManagementService incidentHandlerManagementService,
+    IIncidentManagementService<IcmIncidentDocument> incidentManagementService,
+    IIncidentFilterManagementService incidentFilterManagementService,
+    IAgentInboundCommunicationService agentInboundCommunicationService) : IIncidentScanner
 {
 
     private readonly Container container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
@@ -19,7 +31,8 @@ public class IcmScanner(ILogger<IcmScanner> logger, IICMAPIClient icmApiClient, 
     private readonly static TimeSpan ScanInterval = TimeSpan.FromMinutes(1);
     private DateTime lastScanTime;
     //After offset > 5000, ICM endpoint will returning 400 bad request
-    private readonly static int maxOffset = 5000;
+    //Updating offset to 200, since now it will apply on every existing incident Filter
+    private readonly static int maxOffset = 200;
 
     public async Task ScanAsync(CancellationToken cancellationToken)
     {
@@ -36,6 +49,37 @@ public class IcmScanner(ILogger<IcmScanner> logger, IICMAPIClient icmApiClient, 
     }
     private async Task ScannAllIncidentsAsync(CancellationToken cancellationToken)
     {
+        var filters = await incidentFilterManagementService.ListIncidentFilters();
+        if (filters is null || filters.Count == 0)
+        {
+            logger.LogInternalInformation("No incident filters found, skipping IcM scanner.");
+            return;
+        }
+        logger.LogInternalInformation("Found {filterCount} incident filters, starting IcM scanner.", filters.Count);
+        foreach (var filter in filters)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                logger.LogInternalInformation("Cancellation requested, stopping the IcM scanner.");
+                return;
+            }
+            if (filter is IncidentFilterDocument filterDocument && filterDocument.DocumentType == "IncidentFilterIcm")
+            {
+                try
+                {
+                    await ScanIncidentsForFilter(filterDocument, cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogInternalError(ex, "Error scanning incidents for filter {filterId}", filterDocument.Id);
+                }
+            }
+        }
+    }
+
+    private async Task ScanIncidentsForFilter(IncidentFilterDocument filterDocument, CancellationToken cancellationToken)
+    {
+        logger.LogInternalInformation("Scanning incidents for filter {filterId}", filterDocument.Id);
         uint page = 0;
         while (true)
         {
@@ -55,20 +99,17 @@ public class IcmScanner(ILogger<IcmScanner> logger, IICMAPIClient icmApiClient, 
             try
             {
                 logger.LogInternalInformation("Scanning IcM incidents, page {page}, lastScanTime {lastScanTime}", page, lastScanTime);
-                var response = await icmApiClient.GetIncidentsAsync(limit: PageSize, offset: offset, lastScanTime);
-                if (response is null || response.Count == 0)
+                var incidents = await icmApiClient.GetIncidentsAsync(PageSize, 0, lastScanTime, null, filterDocument.TitleContains);
+                if (incidents is null || incidents.Count == 0)
                 {
-                    logger.LogInternalInformation("No more incidents to process for IcM, stopping the scanner.");
+                    logger.LogInternalInformation("No incidents found for filter {filterId}", filterDocument.Id);
                     return;
                 }
-
-                foreach (var incident in response)
+                foreach (var incident in incidents)
                 {
                     var incidentDocument = await GetDocumentAsync<IcmIncidentDocument>(incident.IncidentId, incident.IncidentId);
-
-                    incidentDocument = await UpsertIncidentDocumentIfNeededAsync(incidentDocument, incident, cancellationToken);
-
-                    //await NotifyUserAsync(incidentDocument, realtedResourceIds);
+                    incidentDocument = await UpsertIncidentDocumentIfNeededAsync(incidentDocument, incident);
+                    await NotifyUserAsync(incidentDocument, new List<string>());
                 }
                 //Between each page, wait for 1 minute
                 await Task.Delay(ScanInterval);
@@ -190,6 +231,90 @@ public class IcmScanner(ILogger<IcmScanner> logger, IICMAPIClient icmApiClient, 
             logger.LogInternalError(ex, "Error updating LastScanTime for IcmScanner");
             return DateTime.UtcNow;
         }
+    }
+
+    private async Task NotifyUserAsync(IcmIncidentDocument incidentDocument, List<string> relatedResourceIds)
+    {
+        try
+        {
+            if (incidentDocument is null)
+            {
+                logger.LogInternalWarning("Incident document is null, skipping notification.");
+                return;
+            }
+
+            if (incidentDocument.Status.Equals("resolved", StringComparison.OrdinalIgnoreCase) || incidentDocument.Status.Equals("mitigated", StringComparison.OrdinalIgnoreCase))
+            {
+                logger.LogInternalInformation("Incident {incidentId} is mitigated/resolved, skipping notification.", incidentDocument.Id);
+                return;
+            }
+
+            var threadDocument = await GetIncidentThread(incidentDocument.Id);
+            if (threadDocument is null)
+            {
+                logger.LogInternalInformation("Thread doesn't exist for incident {incidentId}, skipping notification", incidentDocument.Id);
+                var response = await incidentHandlingService.HandleIncidentAsync(new IncidentHandlingRequestModel()
+                {
+                    IncidentId = incidentDocument.Id,
+                    Title = incidentDocument.Title,
+                    Description = incidentDocument.Description,
+                    Severity = incidentDocument.Priority
+                });
+            }
+            else
+            {
+                logger.LogInternalInformation("Thread already exists for incident {incidentId}, checking whether it needs to be updated", incidentDocument.Id);
+                var existingIncidentDocument = await incidentManagementService.GetIncidentDetails(incidentDocument.Id);
+                var existingDiscussionEntries = existingIncidentDocument != null ? existingIncidentDocument.DiscussionEntries : new List<DiscussionEntry>();
+                var latestDiscussionEntries = await icmApiClient.GetIncidentDiscussionEntriesAsync(incidentDocument.Id);
+
+                var newNotes = latestDiscussionEntries
+                        .Skip(existingDiscussionEntries.Count)
+                        .Select(entry => new IncidentDiscussion(entry.IncidentId, entry.Text, entry.ChangedBy, entry.ChangedBy, entry.Date))
+                        .ToList();
+
+                if (newNotes.Count > 0)
+                {
+                    logger.LogInternalInformation("Found {newNotesCount} new notes for incident {incidentId}", newNotes.Count, incidentDocument.Id);
+                    await agentInboundCommunicationService.AddNewDiscussionsToIncidentThread(Guid.Parse(threadDocument.Id), newNotes);
+                    logger.LogInternalInformation("Added {newNotesCount} new notes to incident thread {threadId}", newNotes.Count, threadDocument.Id);
+                }
+                else
+                {
+                    logger.LogInternalInformation("No new notes found for incident {incidentId}", incidentDocument.Id);
+                }
+
+            }
+
+        }
+        catch (Exception ex)
+        {
+            logger.LogInternalError(ex, "Error notifying user about incident {incidentId}", incidentDocument.Id);
+        }
+    }
+
+    private async Task<ThreadDocument?> GetIncidentThread(string incidentId)
+    {
+        var threads = container.GetItemLinqQueryable<ThreadDocument>()
+            .Where(doc => doc.DocumentType == "Thread" && doc.Source == ThreadSource.Incident)
+            .Where(doc => (doc.IncidentSource != null && doc.IncidentSource.IncidentType == Agent.Core.Models.Api.v1.IncidentType.Icm && doc.IncidentSource.IncidentId == incidentId) || (doc.IncidentId == incidentId))
+            .OrderBy(doc => doc.CreatedTimestamp)
+            .ToFeedIterator();
+
+        if (threads.HasMoreResults)
+        {
+            var response = await threads.ReadNextAsync();
+            if (response.Count == 1)
+            {
+                return response.FirstOrDefault();
+            }
+            else if (response.Count > 1)
+            {
+                logger.LogInternalWarning("Multiple threads({threadIds}) found for incident {incidentId}, returning the first one.", string.Join(',', response.Select(t => t.Id)), incidentId);
+                return response.FirstOrDefault();
+            }
+        }
+        return null;
     }
 }
 

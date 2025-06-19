@@ -135,11 +135,16 @@ namespace Agent.Core.Helpers
                 obj["IncidentId"] = obj["Id"];
             }
 
+            if (obj["Status"] == null && obj["State"] != null)
+            {
+                obj["Status"] = obj["State"];
+            }
+
 
             // 2. CloudInstance: not provided in source json, so default to "Public"  
-            if (obj["CloudInstance"] == null)
+            if (obj["CloudInstance"] == null && obj["CloudName"] != null)
             {
-                obj["CloudInstance"] = "Public";
+                obj["CloudInstance"] = obj["CloudName"];
             }
 
             // 3. Slice: fill using IncidentLocation.ServiceInstanceId  
@@ -164,6 +169,11 @@ namespace Agent.Core.Helpers
             if (obj["CreatedDate"] == null && obj["CreateDate"] != null)
             {
                 obj["CreatedDate"] = obj["CreateDate"];
+            }
+
+            if (obj["MitigatedDate"] == null && obj["MitigateTime"] != null)
+            {
+                obj["MitigatedDate"] = obj["MitigateTime"];
             }
 
             // 7. OwningService: not provided. Default to empty string.  
@@ -218,6 +228,10 @@ namespace Agent.Core.Helpers
             if (obj["Severity"] != null && obj["Severity"].Type != JTokenType.String)
             {
                 obj["Severity"] = obj["Severity"].ToString();
+            }
+
+            if (obj["IncidentType"] == null && obj["Type"] != null){
+                obj["IncidentType"] = obj["Type"];
             }
 
             // Additional mappings can be added here if needed.  

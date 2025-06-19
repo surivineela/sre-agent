@@ -6,6 +6,7 @@ namespace Agent.Data.DataModels;
 
 public record IncidentFilterDocument(
     string Id, // Filter Id
+    string DocumentType,
     DateTime CreatedAt,
     string Name,
     string ImpactedService,
@@ -17,7 +18,6 @@ public record IncidentFilterDocument(
 ) : ICosmosDocument
 {
     public static string ContainerName => AgentDataConfiguration.ThreadContainerName; // Cosmos DB container name
-    public string DocumentType => "IncidentFilter";
     public string PartitionKey => DocumentType; // Use document type as partition key
     public bool IsDeleted { get; set; } = false; // Flag to indicate if the filter is deleted. This is used for soft delete.
     public DateTime UpdatedAt { get; set; } = CreatedAt;

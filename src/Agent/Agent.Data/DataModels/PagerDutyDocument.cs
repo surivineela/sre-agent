@@ -15,10 +15,25 @@ public record PagerDutyIncidentDocument(
     string ImpactedServiceId, // e.g. "Microsoft Teams", "Azure Storage"
     string ImpactedServiceName, // e.g. "Microsoft Teams", "Azure Storage"
     DateTime CreatedAt
-) : CommonIncidentDocument(Id, Status, Priority, IncidentType, ImpactedServiceId, ImpactedServiceName, CreatedAt, DocumentType: "PagerDutyIncident")
+) : IIncidentDocument
 {
     // public float[]? TitleVector { get; set; } = null;
     // public float[]? DescriptionVector { get; set; } = null;
+    public static string ContainerName => AgentDataConfiguration.ThreadContainerName;
+    public string DocumentType { get; } = "PagerDutyIncident";
+    public string Id { get; } = Id; // Use the incident id as the document id
+    public string PartitionKey => Id; // Use incident id as partition key
+    public DateTime CreatedAt { get; } = CreatedAt;
+    public DateTime UpdatedAt { get; set; }
+    public string ImpactedServiceId { get; set; } = ImpactedServiceId;
+    public string ImpactedServiceName { get; set; } = ImpactedServiceName;
+    public string Status { get; set; } = Status;
+    public string IncidentType { get; set; } = IncidentType;
+    public string Priority { get; set; } = Priority;
+    public string Severity { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public string ExtractedKnowledge { get; set; } = string.Empty;
     public List<PagerDutyIncidentNote> Notes { get; set; } = []; // Notes of the incident sorted by CreatedAt in decending order.
 }
 

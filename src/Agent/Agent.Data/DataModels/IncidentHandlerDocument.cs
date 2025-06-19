@@ -6,6 +6,7 @@ namespace Agent.Data.DataModels;
 
 public record IncidentHandlerDocument(
     string Id, // Handler Id
+    string DocumentType, // Type of the document, e.g. "IncidentHandler"
     string Name, // A user friendly name for the handler
     string Description, // A description of the handler, e.g. "This handler is used to process auth related incidents."
     string IncidentFilterId, // For filtering incidents where the handler applies
@@ -17,7 +18,6 @@ public record IncidentHandlerDocument(
 ) : ICosmosDocument
 {
     public static string ContainerName => AgentDataConfiguration.ThreadContainerName; // Cosmos DB container name
-    public string DocumentType => "IncidentHandler";
     public string PartitionKey => DocumentType; // Use document type as partition key
     public bool IsDeleted { get; set; } = false; // Flag to indicate if the handler is deleted. This is used for soft delete.
     public DateTime UpdatedAt { get; set; } = CreatedAt;

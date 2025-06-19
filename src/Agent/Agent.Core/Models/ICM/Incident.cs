@@ -19,6 +19,8 @@ namespace Agent.Core.Models.ICM
         public string CreatedBy { get; set; }
         public DateTime ImpactStartDate { get; set; }
         public DateTime CreatedDate { get; set; }
+        public DateTime? MitigatedDate { get; set; }
+        public MitigationData? MitigateData { get; set; }
         public DateTime LastModifiedDate { get; set; }
         public IncidentStatus Status { get; set; }
         public string OwningService { get; set; }
@@ -32,9 +34,17 @@ namespace Agent.Core.Models.ICM
         public string Summary { get; set; }
         public string DiscussionEntry { get; set; }
         public string MonitoringRole { get; set; }
+        public string? MonitorId { get; set; }
         public string MonitoringSlice { get; set; }
         public string SubscriptionId { get; set; }
         public string[] Tags { get; set; } = Array.Empty<string>();
+    }
+
+    public class MitigationData
+    {
+        public string MitigationSteps { get; set; }
+        public string MitigatedBy { get; set; }
+        public DateTime? MitigateTime { get; set; }
     }
 
     public class DiscussionEntry

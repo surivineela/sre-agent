@@ -42,6 +42,7 @@ namespace Agent.Core.Configuration
         public string CertificateSubjectName { get; set; } = string.Empty;
         public string IcmMSIResource { get; set; } = "api://icmapi-prod";
         public string UserToken { get; set; } = string.Empty;
+        public string OwningServiceId { get; set; } = string.Empty;
         public bool ReadOnly { get; set; } = false;
     }
 }

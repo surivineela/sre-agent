@@ -44,6 +44,7 @@ namespace Agent.Runtime.Services
             ILogger<IncidentFilterManagementService> logger)
         {
             _incidentManagementSettings = incidentManagementSettings;
+            DocumentType = $"IncidentFilter{incidentManagementSettings.Type.ToString()}";
             _container = cosmosClient.GetContainer(
                 cosmosDbSettings.Docs.Database,
                 AgentDataConfiguration.ThreadContainerName

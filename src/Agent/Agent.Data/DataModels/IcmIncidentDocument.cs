@@ -65,6 +65,7 @@ public class IcmIncidentDocument : Incident, IIncidentDocument
     public DateTime CreatedAt { get; init; }
 
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public List<DiscussionEntry> DiscussionEntries { get; set; } = new List<DiscussionEntry>();
 
     public string ExtractedKnowledge { get; set; } = string.Empty;
 }

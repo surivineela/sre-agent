@@ -242,7 +242,13 @@ namespace Agent.Runtime.Services
                         DocumentType, since
                     );
                     var queryable = _container.GetItemLinqQueryable<T>(allowSynchronousQueryExecution: false)
-                        .Where(c => c.DocumentType == DocumentType && c.CreatedAt >= since && ((request.Statuses == null || request.Statuses.Count() == 0) || request.Statuses.Contains(c.Status)));
+                        .Where(c => c.DocumentType == DocumentType && c.CreatedAt >= since);
+
+                    if (request.Statuses != null && request.Statuses.Count() > 0)
+                    {
+                        request.Statuses = request.Statuses.Select(s => s.ToLower()).ToArray();
+                        queryable = queryable.Where(c => request.Statuses.Contains(c.Status.ToLower()));
+                    }
 
                     var iterator = queryable.ToFeedIterator();
                     var results = new List<T>();
@@ -276,7 +282,12 @@ namespace Agent.Runtime.Services
                         Newtonsoft.Json.JsonConvert.SerializeObject(request.Filter)
                     );
                     var queryable = _container.GetItemLinqQueryable<T>(allowSynchronousQueryExecution: false)
-                        .Where(c => c.DocumentType == DocumentType && c.CreatedAt >= since && ((request.Statuses == null || request.Statuses.Count() == 0) || request.Statuses.Contains(c.Status)));
+                        .Where(c => c.DocumentType == DocumentType && c.CreatedAt >= since);
+
+                    if (request.Statuses != null && request.Statuses.Count() > 0) {
+                        request.Statuses = request.Statuses.Select(s => s.ToLower()).ToArray();
+                        queryable = queryable.Where(c => request.Statuses.Contains(c.Status.ToLower()));
+                    }
 
                     IncidentFilterDocumentPayload filter = null;
 
@@ -321,15 +332,15 @@ namespace Agent.Runtime.Services
 
                     if (!string.IsNullOrEmpty(filter.ImpactedService))
                     {
-                        queryable = queryable.Where(c => c.ImpactedServiceName == filter.ImpactedService || c.ImpactedServiceId == filter.ImpactedService);
+                        queryable = queryable.Where(c => c.ImpactedServiceName.Equals(filter.ImpactedService, StringComparison.OrdinalIgnoreCase) || c.ImpactedServiceId.Equals(filter.ImpactedService, StringComparison.OrdinalIgnoreCase));
                     }
                     if (!string.IsNullOrEmpty(filter.Priority))
                     {
-                        queryable = queryable.Where(c => c.Priority == filter.Priority);
+                        queryable = queryable.Where(c => c.Priority.Equals(filter.Priority, StringComparison.OrdinalIgnoreCase));
                     }
                     if (!string.IsNullOrEmpty(filter.IncidentType))
                     {
-                        queryable = queryable.Where(c => c.IncidentType == filter.IncidentType);
+                        queryable = queryable.Where(c => c.IncidentType.Equals(filter.IncidentType, StringComparison.OrdinalIgnoreCase));
                     }
                     var iterator = queryable.ToFeedIterator();
                     var results = new List<T>();

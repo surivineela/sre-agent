@@ -47,7 +47,8 @@ namespace Agent.Runtime.Services
         private readonly IThreadRepository _repository;
         private readonly IIncidentFilterManagementService _incidentFilterManagementService;
         private readonly IIncidentHandlerManagementService _incidentHandlerManagementService;
-        private readonly IIncidentManagementService<PagerDutyIncidentDocument> _incidentManagementService;
+        private readonly IIncidentManagementService<PagerDutyIncidentDocument> _pagerDutyincidentManagementService;
+        private readonly IIncidentManagementService<IcmIncidentDocument> _icmIncidentManagementService;
         private readonly IncidentManagementSettings _incidentManagementSettings;
 
         public IncidentHandlingService(
@@ -58,8 +59,9 @@ namespace Agent.Runtime.Services
             ILogger<IncidentHandlingService> logger,
             IIncidentFilterManagementService incidentFilterManagementService,
             IIncidentHandlerManagementService incidentHandlerManagementService,
-            IIncidentManagementService<PagerDutyIncidentDocument> incidentManagementService,
-            IncidentManagementSettings incidentManagementSettings)
+            IIncidentManagementService<PagerDutyIncidentDocument> pagerDutyincidentManagementService,
+            IIncidentManagementService<IcmIncidentDocument> icmIncidentManagementService,
+        IncidentManagementSettings incidentManagementSettings)
         {
             _pagerDutyService = pagerDutyService;
             _icmApiClient = icmApiClient;
@@ -68,21 +70,22 @@ namespace Agent.Runtime.Services
             _logger = logger;
             _incidentFilterManagementService = incidentFilterManagementService;
             _incidentHandlerManagementService = incidentHandlerManagementService;
-            _incidentManagementService = incidentManagementService;
+            _pagerDutyincidentManagementService = pagerDutyincidentManagementService;
+            _icmIncidentManagementService = icmIncidentManagementService;
             _incidentManagementSettings = incidentManagementSettings;
         }
 
         // Fix for CS8920: The interface 'IIncidentDocument' cannot be used as type argument. 
         // Static member 'ICosmosDocument.ContainerName' does not have a most specific implementation in the interface.
 
-        private async Task<CommonIncidentDocument> GetIncidentLatest(string incidentId)
+        private async Task<PagerDutyIncidentDocument> GetPagerDutyIncidentLatest(string incidentId)
         {
-            _logger.LogInternalInformation("GetIncidentLatest: Invoked for IncidentId: {IncidentId}", incidentId);
+            _logger.LogInternalInformation("GetPagerDutyIncidentLatest: Invoked for IncidentId: {IncidentId}", incidentId);
             try
             {
-                _logger.LogInternalInformation("GetIncidentLatest: Fetching PagerDuty incident for IncidentId: {IncidentId}", incidentId);
+                _logger.LogInternalInformation("GetPagerDutyIncidentLatest: Fetching incident for IncidentId: {IncidentId}", incidentId);
                 var incidentData = await _pagerDutyService.GetPagerDutyIncidentAsync(incidentId);
-                _logger.LogInternalInformation("GetIncidentLatest: Received incident data for IncidentId: {IncidentId}", incidentId);
+                _logger.LogInternalInformation("GetPagerDutyIncidentLatest: Received incident data for IncidentId: {IncidentId}", incidentId);
 
                 var incident = new PagerDutyIncidentDocument(
                     Id: incidentData.IncidentId,
@@ -97,17 +100,38 @@ namespace Agent.Runtime.Services
                 incident.Title = incidentData.Title;
                 incident.Description = incidentData.Body.Details;
 
-                _logger.LogInternalInformation("GetIncidentLatest: Successfully created PagerDutyIncidentDocument for IncidentId: {IncidentId}", incidentId);
+                _logger.LogInternalInformation("GetPagerDutyIncidentLatest: Successfully created PagerDutyIncidentDocument for IncidentId: {IncidentId}", incidentId);
                 return incident;
             }
             catch (Exception ex)
             {
-                _logger.LogInternalError(ex, "GetIncidentLatest: Error occurred for IncidentId: {IncidentId}", incidentId);
+                _logger.LogInternalError(ex, "GetPagerDutyIncidentLatest: Error occurred for IncidentId: {IncidentId}", incidentId);
                 throw;
             }
         }
 
-        private async Task<CommonIncidentDocument> GetIncidentAsync(string incidentId)
+        private async Task<IcmIncidentDocument> GetIcmIncidentLatest(string incidentId)
+        {
+            _logger.LogInternalInformation("GetIcmIncidentLatest: Invoked for IncidentId: {IncidentId}", incidentId);
+            try
+            {
+                _logger.LogInternalInformation("GetIcmIncidentLatest: Fetching Icm incident for IncidentId: {IncidentId}", incidentId);
+                var incidentData = await _icmApiClient.GetIncidentAsync(incidentId);
+                _logger.LogInternalInformation("GetIcmIncidentLatest: Received incident data for IncidentId: {IncidentId}", incidentId);
+
+                var incident = new IcmIncidentDocument(incidentData);
+
+                _logger.LogInternalInformation("GetIcmIncidentLatest: Successfully created IcmIncidentDocument for IncidentId: {IncidentId}", incidentId);
+                return incident;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "GetIcmIncidentLatest: Error occurred for IncidentId: {IncidentId}", incidentId);
+                throw;
+            }
+        }
+
+        private async Task<dynamic> GetIncidentAsync(string incidentId)
         {
             _logger.LogInternalInformation("GetIncidentAsync: Invoked for IncidentId: {IncidentId}", incidentId);
             try
@@ -116,15 +140,24 @@ namespace Agent.Runtime.Services
                 {
                     case IncidentManagementType.PagerDuty:
                         _logger.LogInternalInformation("GetIncidentAsync: Using PagerDuty for IncidentId: {IncidentId}", incidentId);
-                        var incidentData = (CommonIncidentDocument)await _incidentManagementService.GetIncidentDetails(incidentId);
+                        var incidentData = await _pagerDutyincidentManagementService.GetIncidentDetails(incidentId);
                         if (incidentData == null)
                         {
                             _logger.LogInternalWarning("GetIncidentAsync: No incident data found for IncidentId: {IncidentId}, fetching latest", incidentId);
-                            incidentData = await GetIncidentLatest(incidentId);
+                            incidentData = await GetPagerDutyIncidentLatest(incidentId);
                         }
                         _logger.LogInternalInformation("GetIncidentAsync: Returning incident data for IncidentId: {IncidentId}", incidentId);
                         return incidentData;
                     case IncidentManagementType.Icm:
+                        _logger.LogInternalInformation("GetIncidentAsync: Using Icm for IncidentId: {IncidentId}", incidentId);
+                        var icmIncidentData = await _icmIncidentManagementService.GetIncidentDetails(incidentId);
+                        if (icmIncidentData == null)
+                        {
+                            _logger.LogInternalWarning("GetIncidentAsync: No incident data found for IncidentId: {IncidentId}, fetching latest", incidentId);
+                            icmIncidentData = await GetIcmIncidentLatest(incidentId);
+                        }
+                        _logger.LogInternalInformation("GetIncidentAsync: Returning incident data for IncidentId: {IncidentId}", incidentId);
+                        return icmIncidentData;
                     case IncidentManagementType.AzMonitor:
                         _logger.LogInternalWarning("GetIncidentAsync: Not implemented for IncidentManagementType: {Type}", _incidentManagementSettings.Type);
                         throw new NotImplementedException("ICM and Azure Monitor incident handling is not implemented yet.");
@@ -147,7 +180,7 @@ namespace Agent.Runtime.Services
             var response = new IncidentHandlingResponseModel();
             try
             {
-                var incidentDetails = await GetIncidentAsync(incidentId);
+                var incidentDetails = (IIncidentDocument)(await GetIncidentAsync(incidentId));
 
                 _logger.LogInternalInformation("HandleIncidentAsync: Fetching incident filters for IncidentId: {IncidentId}", incidentId);
                 var filters = await _incidentFilterManagementService.ListIncidentFilters();
@@ -221,7 +254,7 @@ namespace Agent.Runtime.Services
             }
         }
 
-        private async Task<Core.Models.Api.v1.Thread> CreateIncidentHandlerAgentThread(CommonIncidentDocument incidentDetails, IncidentHandlerDocument incidentHandler)
+        private async Task<Core.Models.Api.v1.Thread> CreateIncidentHandlerAgentThread(IIncidentDocument incidentDetails, IncidentHandlerDocument incidentHandler)
         {
             _logger.LogInternalInformation("CreateIncidentHandlerAgentThread: Invoked for IncidentId: {IncidentId}, HandlerId: {HandlerId}", incidentDetails.Id, incidentHandler.Id);
             try

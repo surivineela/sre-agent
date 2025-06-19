@@ -94,6 +94,10 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
             catch (Exception ex)
             {
                 logger.LogInternalError(ex, "Error scanning PagerDuty incidents");
+                if (ex.Message.Contains("Unauthorized"))
+                {
+                    return;
+                }
             }
 
             page++;
