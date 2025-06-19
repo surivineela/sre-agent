@@ -17,7 +17,8 @@
     "ActionName": "RestartWebApp",
     "TenantId": "8b4ee84d-c4b2-47db-b046-c4e863852b3c",
     "WorkflowName": "SREAgent1P-RestartWebsite-AJSHARM",
-    "WorkflowInputParameters": [ "subscriptionId", "webappName", "webspaceName" ]
+    "WorkflowInputParameters": [ "subscriptionId", "webappName", "webspaceName" ],
+    "IsApprovalNeeded": true
   },
   {
     "IsWriteAction": true,

@@ -23,14 +23,14 @@
     <!-- Application Insights isn't enabled by default. See https://aka.ms/AAt8mw4. -->
     <!-- <PackageReference Include="Microsoft.ApplicationInsights.WorkerService" Version="2.22.0" /> -->
     <!-- <PackageReference Include="Microsoft.Azure.Functions.Worker.ApplicationInsights" Version="2.0.0" /> -->
-    <PackageReference Include="Microsoft.Azure.Functions.Worker"/>
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http"/>
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore"/>
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk"/>
-    <PackageReference Include="Serilog"/>
-    <PackageReference Include="Serilog.Extensions.Hosting"/>
-    <PackageReference Include="Serilog.Sinks.AzureDataExplorer"/>
-    <PackageReference Include="Serilog.Sinks.Console"/>
+    <PackageReference Include="Microsoft.Azure.Functions.Worker" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" />
+    <PackageReference Include="Serilog" />
+    <PackageReference Include="Serilog.Extensions.Hosting" />
+    <PackageReference Include="Serilog.Sinks.AzureDataExplorer" />
+    <PackageReference Include="Serilog.Sinks.Console" />
 	<PackageReference Include="System.Linq" />
   </ItemGroup>
   <ItemGroup>

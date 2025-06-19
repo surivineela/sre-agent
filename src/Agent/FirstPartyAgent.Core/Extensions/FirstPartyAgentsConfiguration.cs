@@ -4,6 +4,7 @@
 
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
+using Agent.Core.Services;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.Repositories;
 using Agent.Plugins;
@@ -183,6 +184,7 @@ namespace FirstPartyAgent.Core.Extensions
             services.AddSingleton<DevOpsHelperService>();
             services.AddSingleton<TsgFetcherService>();
             services.AddSingleton<HandoffToAgentPlugin>();
+            services.AddSingleton<OneBranchApprovalService>();
         }
 
         public static IServiceCollection ConfigureSemanticKernel(this IServiceCollection services)
@@ -277,6 +279,8 @@ namespace FirstPartyAgent.Core.Extensions
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.TsgCrawler);
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.HandoffToAgentConfig);
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.Applens);
+            services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.OneBranchApprovalService);
+            services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.AgentHelper);
 
             return services;
         }

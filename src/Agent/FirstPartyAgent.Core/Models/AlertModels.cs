@@ -41,6 +41,10 @@ namespace FirstPartyAgent.Core.Models
         public bool IsWriteAction { get; set; }
         [Required]
         public bool IsAllowedOnExternalSubs { get; set; }
+
+        public bool IsApprovalNeeded { get; set; }
+
+        public Guid? ServiceTreeId { get; set; }
     }
 
     public class GenevaActionsConfigCosmos
@@ -50,6 +54,7 @@ namespace FirstPartyAgent.Core.Models
         public string Id { get; set; } = Guid.NewGuid().ToString();
         public List<GenevaActionConfig> GenevaActions { get; set; }
         public int TeamId { get; set; }
+        public Guid ServiceTreeId { get; set; } = Guid.NewGuid();
     }
 
     public class GenevaActionConfigBase

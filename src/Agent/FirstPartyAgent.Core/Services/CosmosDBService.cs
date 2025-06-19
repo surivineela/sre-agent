@@ -84,17 +84,32 @@ namespace FirstPartyAgent.Core.Services
             var config = configuration ?? throw new ArgumentNullException(nameof(configuration));
 
             var cosmosDbSettings = azureSettings.Value.CosmosDB;
-            var cosmosAccountName = cosmosDbSettings.Docs.AccountName;
-            var domainSuffix = cosmosDbSettings.Docs.DomainSuffix;
-            var endpoint = $"https://{cosmosAccountName}.{domainSuffix}";
-            var cosmosDatabaseName = cosmosDbSettings.Docs.Database;
+
+
+            string cosmosAccountName = null;
+            string domainSuffix = null;
+            string endpoint = null;
+            string cosmosDatabaseName = null;
+
+            if (!string.IsNullOrWhiteSpace(cosmosDbSettings?.Docs?.AccountName))
+            {
+                cosmosAccountName = cosmosDbSettings.Docs.AccountName;
+                domainSuffix = cosmosDbSettings.Docs.DomainSuffix;
+                endpoint = $"https://{cosmosAccountName}.{domainSuffix}";
+                cosmosDatabaseName = cosmosDbSettings.Docs.Database;
+            }
+            else
+            {
+                // Fallback to configuration values if CosmosDB settings are not provided
+                endpoint = configuration.GetValue<string>("AppSettings:Core:External:CosmosDB:AccountUrl", null);
+            }
 
             // use cosmosDatabaseName if not set in configuration
             _icmAgentDatabaseName = configuration.GetValue<string>("AppSettings:Core:External:CosmosDB:IcmAgentDatabaseName", cosmosDatabaseName);
 
-            if (!hostEnvironment.IsDevelopment() && string.IsNullOrWhiteSpace(cosmosAccountName))
+            if (!hostEnvironment.IsDevelopment() && string.IsNullOrWhiteSpace(endpoint))
             {
-                throw new InvalidOperationException("cosmosAccountName is not configured");
+                throw new InvalidOperationException("Cosmos DB endpoint is not configured");
             }
 
             _federationSettings = azureSettings.Value.Federation;

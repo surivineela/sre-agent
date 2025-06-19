@@ -23,6 +23,9 @@ namespace FirstPartyAgent.Core.Configuration
         public TsgCrawlerSettings TsgCrawler { get; set; } = new();
         public DevOpsSetting DevOps { get; set; }
         public ApplensSettings Applens { get; set; } = new();
+        public OneBranchApprovalServiceSettings OneBranchApprovalService { get; set; } = new();
+
+        public AgentHelperSettings AgentHelper { get; set; } = new();
         public IcmAgentSettings IcmAgent { get; set; }
         public HandoffToAgentSettings HandoffToAgentConfig { get; set; } = new();
     }
