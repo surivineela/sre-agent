@@ -20,11 +20,18 @@ public class AgentActionLogger
     /// Logs an agent action with structured information
     /// </summary>
     /// <param name="action">The action being performed</param>
-    /// <param name="module">The module or component performing the action</param>
     /// <param name="parameter">Parameters associated with the action</param>
     /// <param name="status">The status/result of the action</param>
     /// <param name="duration">The duration of the action in milliseconds</param>
-    public void LogAction(string action, string parameter, string status, long duration)
+    public void LogAction(
+        string action,
+        string parameter,
+        string status,
+        long duration,
+        string threadId = "",
+        string subagent = "",
+        long inputToken = 0,
+        long outputToken = 0)
     {
         var logRecord = new AgentActionLogRecord
         {
@@ -32,7 +39,11 @@ public class AgentActionLogger
             Parameter = parameter,
             Status = status,
             Duration = duration,
-            Timestamp = DateTimeOffset.UtcNow
+            PreciseTimeStamp = DateTimeOffset.UtcNow,
+            ThreadId = threadId,
+            SubAgentName = subagent,
+            InputToken = inputToken,
+            OutputToken = outputToken
         };
 
         using var scope = _logger.BeginScope(new Dictionary<string, object>
@@ -41,7 +52,11 @@ public class AgentActionLogger
             { nameof(logRecord.Parameter), logRecord.Parameter },
             { nameof(logRecord.Status), logRecord.Status },
             { nameof(logRecord.Duration), logRecord.Duration },
-            { nameof(logRecord.Timestamp), logRecord.Timestamp }
+            { nameof(logRecord.PreciseTimeStamp), logRecord.PreciseTimeStamp },
+            { nameof(logRecord.ThreadId), logRecord.ThreadId },
+            { nameof(logRecord.SubAgentName), logRecord.SubAgentName },
+            { nameof(logRecord.InputToken), logRecord.InputToken },
+            { nameof(logRecord.OutputToken), logRecord.OutputToken }
         });
 
         _logger.LogInformation(
@@ -68,7 +83,7 @@ public class AgentActionLogger
             Parameter = parameter,
             Status = status,
             Duration = duration,
-            Timestamp = DateTimeOffset.UtcNow,
+            PreciseTimeStamp = DateTimeOffset.UtcNow,
         };
 
         using var scope = _logger.BeginScope(new Dictionary<string, object>
@@ -77,7 +92,7 @@ public class AgentActionLogger
             { nameof(logRecord.Parameter), logRecord.Parameter },
             { nameof(logRecord.Status), logRecord.Status },
             { nameof(logRecord.Duration), logRecord.Duration },
-            { nameof(logRecord.Timestamp), logRecord.Timestamp },
+            { nameof(logRecord.PreciseTimeStamp), logRecord.PreciseTimeStamp },
         });
 
         _logger.LogError(exception,
@@ -94,6 +109,21 @@ public class AgentActionLogger
 /// </summary>
 public class AgentActionLogRecord
 {
+    /// <summary>
+    /// PreciseTimeStamp when the action occurred
+    /// </summary>
+    public DateTimeOffset PreciseTimeStamp { get; set; }
+
+    /// <summary>
+    /// ThreadId
+    /// </summary>
+    public string ThreadId { get; set; }
+
+    /// <summary>
+    /// Sub Agent Name
+    /// </summary>
+    public string SubAgentName { get; set; }
+
     /// <summary>
     /// The action being performed
     /// </summary>
@@ -115,8 +145,12 @@ public class AgentActionLogRecord
     public long Duration { get; set; }
 
     /// <summary>
-    /// Timestamp when the action occurred
+    /// The input token count for the action
     /// </summary>
-    public DateTimeOffset Timestamp { get; set; }
+    public long InputToken { get; set; }
 
+    /// <summary>
+    /// The output token count for the action
+    /// </summary>
+    public long OutputToken { get; set; }
 }

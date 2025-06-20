@@ -74,7 +74,7 @@ public class AgentActionLogConsoleExporter : IAgentActionLogExporter
             Parameter = logRecord.Parameter,
             Status = logRecord.Status,
             Duration = logRecord.Duration,
-            Timestamp = logRecord.Timestamp,
+            PreciseTimeStamp = logRecord.PreciseTimeStamp,
         };
     }
 
@@ -87,7 +87,7 @@ public class AgentActionLogConsoleExporter : IAgentActionLogExporter
 
         // Also log through the structured logger
         _logger.LogInformation("Agent Action: {Action}, Parameter: {Parameter}, Status: {Status}, Duration: {Duration}ms, Timestamp: {Timestamp}",
-            logRecord.Action, logRecord.Parameter, logRecord.Status, logRecord.Duration, logRecord.Timestamp);
+            logRecord.Action, logRecord.Parameter, logRecord.Status, logRecord.Duration, logRecord.PreciseTimeStamp);
     }
 
     /// <summary>

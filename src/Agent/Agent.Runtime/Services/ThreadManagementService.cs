@@ -123,12 +123,13 @@ public class ThreadManagementService(
             action: "CreateUserInitiatedThread",
             parameter: $"{thread.Id}",
             status: "Success",
-            duration: stopwatch.ElapsedMilliseconds);
+            duration: stopwatch.ElapsedMilliseconds,
+            threadId: thread.Id.ToString());
 
         return thread;
     }
     public async IAsyncEnumerable<ChatResponseUpdate> CreateUserInitiatedThreadStream(
-        CreateThreadRequest request, 
+        CreateThreadRequest request,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var threadId = Guid.NewGuid();

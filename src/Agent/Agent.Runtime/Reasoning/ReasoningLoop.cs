@@ -1382,7 +1382,9 @@ public class ReasoningLoop : IDisposable
                     action: "InvokeAgent",
                     parameter: agent.Name,
                     status: "Success",
-                    duration: 0);
+                    duration: 0,
+                    threadId: _context.ThreadId.ToString(),
+                    subagent: agent.Name);
                 return Task.CompletedTask;
             },
             OnAgentEnd = (context, agent, output) =>
@@ -1422,7 +1424,9 @@ public class ReasoningLoop : IDisposable
                     action: "InvokeTool",
                     parameter: tool.Name,
                     status: "Success",
-                    duration: 0);
+                    duration: 0,
+                    threadId: _context.ThreadId.ToString(),
+                    subagent: agent.Name);
                 return Task.CompletedTask;
             },
             OnToolEnd = (context, agent, tool, output) =>
@@ -1457,7 +1461,11 @@ public class ReasoningLoop : IDisposable
                     action: "GenerateModelResponse",
                     parameter: response?.Usage?.TotalTokenCount?.ToString() ?? "0",
                     status: "Success",
-                    duration: 0);
+                    duration: 0,
+                    threadId: _context.ThreadId.ToString(),
+                    subagent: agent?.Name ?? "Unknown",
+                    inputToken: response?.Usage?.InputTokenCount ?? 0,
+                    outputToken: response?.Usage?.OutputTokenCount ?? 0);
                 return Task.CompletedTask;
             }
         };

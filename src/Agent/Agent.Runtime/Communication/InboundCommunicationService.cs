@@ -273,7 +273,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
     }
 
     public async IAsyncEnumerable<ChatResponseUpdate> ProcessUserMessageStreamAsync(
-        ThreadMessage threadMessage, 
+        ThreadMessage threadMessage,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         if (_useAgentFramwork)
@@ -298,7 +298,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                 await foreach (var response in streamingResult.WithCancellation(cancellationToken))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    
+
                     if (response.IsCancellationRequested)
                     {
                         ChatResponseUpdate cancellationUpdate = new ChatResponseUpdate(ChatRole.System, "Message processing was cancelled.");
@@ -604,7 +604,8 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                     action: "ThumbsUp",
                     parameter: $"{threadMessageFeedback.ThreadId}",
                     status: "Success",
-                    duration: 0);
+                    duration: 0,
+                    threadId: threadMessageFeedback.ThreadId.ToString());
             }
             else
             {
@@ -612,7 +613,8 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                     action: "ThumbsDown",
                     parameter: $"{threadMessageFeedback.ThreadId}",
                     status: "Success",
-                    duration: 0);
+                    duration: 0,
+                    threadId: threadMessageFeedback.ThreadId.ToString());
             }
 
             await _repository.AddOrUpdateMessageFeedbackAsync(threadMessageFeedback.ThreadId, messageFeedback);

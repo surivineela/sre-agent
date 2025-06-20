@@ -16,9 +16,9 @@ public class AgentActionLogADXExporter : IAgentActionLogExporter
     private readonly IKustoIngestClient _kustoClient;
     private readonly string _databaseName;
     private readonly string _tableName;
-    private readonly LogBuffer? _logBuffer;
-    private readonly bool _useBatchProcessing;
     private readonly ILogger<AgentActionLogADXExporter> _logger;
+
+    private readonly CommonColumn _commonColumn;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AgentActionLogADXExporter"/> class.
@@ -37,6 +37,8 @@ public class AgentActionLogADXExporter : IAgentActionLogExporter
         string firstPartyAppTenantId,
         ILogger<AgentActionLogADXExporter> logger)
     {
+        _commonColumn = CommonColumn.Build();
+
         Console.WriteLine("AgentActionLogADXExporter initialized with parameters: " +
             $"ClusterUri: {clusteruri}, " +
             $"DatabaseName: {databaseName}, " +
@@ -139,11 +141,17 @@ public class AgentActionLogADXExporter : IAgentActionLogExporter
     {
         var kustoData = new Dictionary<string, object>
         {
+            ["AgentName"] = _commonColumn.AgentName,
+            ["Region"] = _commonColumn.AgentLocation,
+            ["PreciseTimeStamp"] = logRecord.PreciseTimeStamp,
+            ["SubAgentName"] = logRecord.SubAgentName,
+            ["ThreadId"] = logRecord.ThreadId,
             ["Action"] = logRecord.Action,
             ["Parameter"] = logRecord.Parameter,
             ["Status"] = logRecord.Status,
             ["Duration"] = logRecord.Duration,
-            ["Timestamp"] = logRecord.Timestamp,
+            ["InputToken"] = logRecord.InputToken,
+            ["OutputToken"] = logRecord.OutputToken,
         };
 
         return kustoData;

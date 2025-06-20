@@ -325,7 +325,7 @@ public class Program
             .AddTransient<RCAContainerAppRevisionPluginDefinition>()
             .AddSingleton<IKustoDashboardPlugin, KustoDashboardPlugin>()
             .AddTransient<RCAContainerAppResourceCheckPluginDefinition>()
-            
+
 
             .AddTransient<IMetaAgentContainerAppsRemediationPlugin, ContainerAppsRemediationPlugin>()
             .AddTransient<IMetaAgentManagedIdentityMigrationPlugin, ManagedIdentityMigrationPlugin>()
@@ -677,8 +677,6 @@ public class Program
                 // {
                 // In-memory exporter for development - direct implementation
                 exporters.Add(new InMemoryActivityExporter(exportedActivities));
-                // In-memory exporter for development - direct implementation
-                exporters.Add(new InMemoryActivityExporter(exportedActivities));
                 // }
 
                 // Add Azure Data Explorer exporter for production if configured
@@ -886,12 +884,11 @@ public class Program
                 return new AgentActionLogADXExporter(
                     ClusterUri,
                     DatabaseName,
-                    "AgentActionLog",
+                    "AgentActionEvents",
                     CertificatePath,
                     FirstPartyAppClientId,
                     FirstPartyAppTenantId,
                     logger);
-                // Enable batch processing for better performance
             });
         }
         else

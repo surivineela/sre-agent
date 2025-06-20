@@ -7,6 +7,7 @@ public class CommonColumn
     public string ContainerImage { get; set; } = string.Empty;
 
     public string ContainerGroupName { get; set; } = string.Empty;
+    public string AgentLocation { get; set; } = string.Empty;
 
     public static CommonColumn Build()
     {
@@ -14,7 +15,8 @@ public class CommonColumn
         {
             AgentName = Environment.GetEnvironmentVariable("AGENT_NAME") ?? throw new ArgumentNullException("AGENT_NAME", "Environment variable AGENT_NAME is not set."),
             ContainerImage = Environment.GetEnvironmentVariable("AGENT_CONTAINER_IMAGE") ?? string.Empty,
-            ContainerGroupName = Environment.GetEnvironmentVariable("AGENT_CONTAINER_GROUP_NAME") ?? string.Empty
+            ContainerGroupName = Environment.GetEnvironmentVariable("AGENT_CONTAINER_GROUP_NAME") ?? string.Empty,
+            AgentLocation = Environment.GetEnvironmentVariable("AGENT_LOCATION") ?? string.Empty,
         };
     }
 }
