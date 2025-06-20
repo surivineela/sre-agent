@@ -1,3 +1,4 @@
+using System.Linq;
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
 using Microsoft.Extensions.AI;
@@ -15,7 +16,14 @@ public class HandOffEvals
             targetAgent: "aks_general_agent"),
     ];
 
-    public static IEnumerable<object[]> HandOffTestCases => HandOffInputs.Select(i => new object[] { i });
+    public static IEnumerable<object[]> HandOffTestCases => HandOffInputs.Concat(LoadTestCasesFromFiles()).Select(i => new object[] { i });
+
+    private static HandOffTestCase[] LoadTestCasesFromFiles()
+    {
+        var data = ModelGenerationDataLoader.LoadChatMessagesFromJsonFilesAsync().GetAwaiter().GetResult();
+        var result = data.Values.Select(HandOffTestCase.FromModelGenerationContent).ToArray();
+        return result;
+    }
 
     [TestMethod]
     [DynamicData(nameof(HandOffTestCases))]
@@ -64,6 +72,37 @@ public class HandOffEvals
                 TargetAgent: targetAgent,
                 ChatHistory: [new(ChatRole.User, userMessage)])
         {
+        }
+
+        public static HandOffTestCase FromModelGenerationContent(ModelGenerationContent content)
+        {
+            var outputMessage = content.ModelOutput.Single();
+            if (outputMessage.Role != ChatRole.Assistant)
+            {
+                throw new InvalidOperationException("Model output must be from the assistant role.");
+            }
+            if (outputMessage.Contents.Count != 1 || outputMessage.Contents[0] is not FunctionCallContent functionCall)
+            {
+                throw new InvalidOperationException("Model output must contain a single function call content.");
+            }
+
+            string functionName = functionCall.Name;
+            if (!functionName.StartsWith("transfer_to_"))
+            {
+                throw new InvalidOperationException($"Model output function call must be a handoff to an agent, but was: {functionName}.");
+            }
+            string targetAgent = functionName.Substring("transfer_to_".Length);
+
+            var chatHistory = content.ModelInput.ToList();
+            if (chatHistory[0].Role == ChatRole.System)
+            {
+                chatHistory.RemoveRange(0, 1); // Remove system message if it exists
+            }
+
+            return new HandOffTestCase(
+                StartAgent: content.AgentName,
+                TargetAgent: targetAgent,
+                ChatHistory: chatHistory);
         }
     }
 
