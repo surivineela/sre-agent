@@ -38,7 +38,6 @@ namespace Agent.Web.Services
                     Role = ChatRole.Assistant,
                     CreatedAt = DateTime.UtcNow,
                     Contents = [new TextContent(message)],
-                    FinishReason = ChatFinishReason.Stop,
                     AdditionalProperties = new AdditionalPropertiesDictionary
                     {
                         { "streamMessageType", type.ToString() },
