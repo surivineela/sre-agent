@@ -23,7 +23,8 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
     private readonly IStreamingService _streamingService;
     private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions
     {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNamingPolicy = new LowerCaseNamingPolicy(),
+        DictionaryKeyPolicy = new LowerCaseNamingPolicy(),
         WriteIndented = true,
     };
 
@@ -102,10 +103,10 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
                 cancellationToken = ToolStatic.AsyncLocalCancellationToken.Value;
                 _logger.LogInternalInformation("Using AsyncLocal cancellation token for streaming message to thread {ThreadId}", threadId);
             }
-            
+
             // Check for cancellation before streaming
             cancellationToken.ThrowIfCancellationRequested();
-            
+
             // Use the streaming service abstraction to send the message
             await _streamingService.StreamMessageAsync(threadId, message, type, messageId, cancellationToken);
 
