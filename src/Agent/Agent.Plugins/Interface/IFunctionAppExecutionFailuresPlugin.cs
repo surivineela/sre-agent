@@ -2,8 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System;
-using System.Threading.Tasks;
+using Agent.Core.Models.Charts;
 
 namespace Agent.Plugins.Interface
 {
@@ -24,13 +23,12 @@ namespace Agent.Plugins.Interface
         Task<string> GetFunctionAppCallStacks(string resourceId);
 
         /// <summary>
-        /// Gets failed requests per function with optional time range
+        /// Gets failed function invocations for a specified time range
         /// </summary>
         /// <param name="resourceId">The Azure resource ID of the Function App</param>
-        /// <param name="startTime">Optional start time for the query (defaults to 1 hour ago)</param>
-        /// <param name="endTime">Optional end time for the query (defaults to current time minus 15 minutes)</param>
-        /// <returns>A summary of failed requests grouped by function</returns>
-        Task<string> GetFailedRequestsPerFunction(string resourceId, DateTime? startTime = null, DateTime? endTime = null);
+        /// <param name="minutes">Optional duration in minutes to query for (defaults to 60 minutes)</param>
+        /// <returns>A collection of time series data points showing failed invocations by function</returns>
+        Task<IReadOnlyList<FailedRequestsTimeSeriesData>> GetFailedFunctionInvocations(string resourceId, int? minutes = null);
 
         /// <summary>
         /// Gets top 3 exceptions per function with optional time range

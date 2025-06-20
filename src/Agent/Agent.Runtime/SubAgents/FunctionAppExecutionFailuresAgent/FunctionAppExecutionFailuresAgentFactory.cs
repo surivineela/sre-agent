@@ -56,7 +56,7 @@ public sealed class FunctionAppExecutionFailuresAgentFactory
         var functionAppExecutionFailuresPluginDefinition = new FunctionAppExecutionFailuresPluginDefinition(functionAppExecutionFailuresPlugin);
         toolSignatures.Add(toolsRepository.GetSignature(() => functionAppExecutionFailuresPluginDefinition.GetFunctionAppExecutionFailures));
         toolSignatures.Add(toolsRepository.GetSignature(() => functionAppExecutionFailuresPluginDefinition.GetFunctionAppCallStacks));
-        toolSignatures.Add(toolsRepository.GetSignature(() => functionAppExecutionFailuresPluginDefinition.GetFailedRequestsPerFunction));
+        toolSignatures.Add(toolsRepository.GetSignature(() => functionAppExecutionFailuresPluginDefinition.GetFailedFunctionInvocations));
         toolSignatures.Add(toolsRepository.GetSignature(() => functionAppExecutionFailuresPluginDefinition.GetHostRuntimeErrorEvents));
         toolSignatures.Add(toolsRepository.GetSignature(() => functionAppExecutionFailuresPluginDefinition.GetTop3ExceptionsPerFunction));
 

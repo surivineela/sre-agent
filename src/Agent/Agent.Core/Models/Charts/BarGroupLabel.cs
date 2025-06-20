@@ -4,10 +4,9 @@
 
 namespace Agent.Core.Models.Charts
 {
-    public class ScatterPoint
+    public class BarGroupLabel
     {
-        public double X { get; set; }
-        public double Y { get; set; }
+        public double Position { get; set; }
         public string Label { get; set; }
     }
 }

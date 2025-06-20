@@ -1,6 +1,11 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.ComponentModel;
 using Agent.Framework;
 using Agent.Plugins.Interface;
+using Agent.Plugins.Models;
 
 namespace Agent.Plugins.Definitions
 {
@@ -11,15 +16,15 @@ namespace Agent.Plugins.Definitions
     [AgentToolPlugin]
     public class FunctionAppConfigurationChecksPluginDefinition
     {
-        private readonly IFunctionAppConfigurationChecksPlugin _functionAppConfigurationChecksPlugin;
+        private readonly IFunctionAppConfigurationChecksPlugin _configChecksPlugin;
 
         /// <summary>
         /// Constructor for FunctionAppConfigurationChecksPluginDefinition
         /// </summary>
-        /// <param name="functionAppConfigurationChecksPlugin">The Function App Configuration Checks Plugin implementation</param>
-        public FunctionAppConfigurationChecksPluginDefinition(IFunctionAppConfigurationChecksPlugin functionAppConfigurationChecksPlugin)
+        /// <param name="configChecksPlugin">The Function App Configuration Checks Plugin implementation</param>
+        public FunctionAppConfigurationChecksPluginDefinition(IFunctionAppConfigurationChecksPlugin configChecksPlugin)
         {
-            _functionAppConfigurationChecksPlugin = functionAppConfigurationChecksPlugin;
+            _configChecksPlugin = configChecksPlugin;
         }
 
         /// <summary>
@@ -33,7 +38,18 @@ namespace Agent.Plugins.Definitions
             [Description("Optional start time for the query (defaults to 1 hour ago)")] DateTime? startTime = null,
             [Description("Optional end time for the query (defaults to current time minus 15 minutes)")] DateTime? endTime = null)
         {
-            return await _functionAppConfigurationChecksPlugin.GetFunctionAppConfigurationChecks(resourceId, startTime, endTime);
+            return await _configChecksPlugin.GetFunctionAppConfigurationChecks(resourceId, startTime, endTime);
+        }
+
+        /// <summary>
+        /// Gets Event Grid subscriptions associated with a storage account used by a Function App
+        /// </summary>
+        [Description("Gets Event Grid subscriptions associated with a storage account used by a Function App. " +
+                    "Returns detailed information about each subscription including endpoint, filter criteria, and retry policy.")]
+        public async Task<IReadOnlyList<EventGridSubscriptionInfo>> GetEventGridSubscriptionsAsync(
+            [Description("The resource ID of the storage account to check for Event Grid subscriptions.")] string storageAccountResourceId)
+        {
+            return await _configChecksPlugin.GetEventGridSubscriptionsAsync(storageAccountResourceId);
         }
 
     }

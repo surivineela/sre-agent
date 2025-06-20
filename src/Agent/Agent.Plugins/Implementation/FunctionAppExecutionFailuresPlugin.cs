@@ -9,6 +9,7 @@ using Agent.Plugins.Interface;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Newtonsoft.Json.Linq;
+using Agent.Core.Models.Charts;
 
 namespace Agent.Plugins.Implementation
 {
@@ -37,8 +38,72 @@ namespace Agent.Plugins.Implementation
             try
             {
                 // Call ArmHelper's GetDetectorResponse instead of _armPlugin.GetArmResourceLogs
-                // Note: You'll need to provide an appropriate detectorId below
                 var result = await _armHelper.GetDetectorResponseWithTime(resourceId, "functionExecutionErrors");
+
+                // Check if the response is too large (roughly over 50KB)
+                const int maxResponseSize = 50 * 1024; // 50KB threshold
+                if (result.Length > maxResponseSize)
+                {
+                    _logger.LogInternalInformation("Response size {size} bytes exceeds threshold, extracting only critical function failures", result.Length);
+                    
+                    try
+                    {
+                        // Parse the JSON response
+                        JObject resultObj = JObject.Parse(result);
+                        
+                        // Look for the critical failures table - find the dataset array
+                        if (resultObj["properties"] is JObject properties && 
+                            properties["dataset"] is JArray dataset)
+                        {
+                            // Look for the table with critical failures
+                            foreach (var item in dataset)
+                            {
+                                if (item["table"] is JObject table)
+                                {
+                                    var rows = table["rows"] as JArray;
+                                    if (rows != null && rows.Count > 0)
+                                    {
+                                        // Check if this is the table with critical failures
+                                        // The first row usually contains the status, message, etc.
+                                        var firstRow = rows[0] as JArray;
+                                        if (firstRow != null && firstRow.Count > 1)
+                                        {
+                                            string status = firstRow[0]?.ToString();
+                                            string message = firstRow[1]?.ToString();
+                                            
+                                            if (status == "Critical" && 
+                                                message == "Detected function(s) having execution failure rate more than 1%.")
+                                            {
+                                                // This is the table we want to keep - extract just this part
+                                                var reducedResponse = new JObject
+                                                {
+                                                    ["id"] = resultObj["id"],
+                                                    ["name"] = resultObj["name"],
+                                                    ["type"] = resultObj["type"],
+                                                    ["location"] = resultObj["location"],
+                                                    ["properties"] = new JObject
+                                                    {
+                                                        ["metadata"] = properties["metadata"],
+                                                        ["dataset"] = new JArray { item }
+                                                    }
+                                                };
+                                                
+                                                _logger.LogInternalInformation("Successfully extracted critical failure data from large response");
+                                                return reducedResponse.ToString();
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        _logger.LogInternalWarning("Failed to extract critical failures table from large response, returning full response");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogInternalWarning(ex, "Error while attempting to extract critical failures from large response, returning full response");
+                    }
+                }
 
                 return result;
             }
@@ -67,13 +132,16 @@ namespace Agent.Plugins.Implementation
             }
         }
 
-        public async Task<string> GetFailedRequestsPerFunction(string resourceId, DateTime? startTime = null, DateTime? endTime = null)
+        public async Task<IReadOnlyList<FailedRequestsTimeSeriesData>> GetFailedFunctionInvocations(string resourceId, int? minutes = null)
         {
-            // Default to past hour if not specified, with endTime being now minus 15 minutes
-            startTime ??= DateTime.UtcNow.AddHours(-1);
-            endTime ??= DateTime.UtcNow.AddMinutes(-15);
+            // Default to 60 minutes if not specified
+            int lookbackMinutes = minutes ?? 60;
+            
+            // Calculate the start and end times
+            DateTime endTime = DateTime.UtcNow;
+            DateTime startTime = endTime.AddMinutes(-lookbackMinutes);
 
-            _logger.LogInternalInformation("[GetFailedRequestsPerFunction] Invoked with resourceId {resourceId}, startTime {startTime}, endTime {endTime}", resourceId, startTime, endTime);
+            _logger.LogInternalInformation("[GetFailedFunctionInvocations] Invoked with resourceId {resourceId}, lookback minutes {lookbackMinutes}", resourceId, lookbackMinutes);
 
             string resourceName = resourceId;
             if (resourceId.Contains('/'))
@@ -83,18 +151,80 @@ namespace Agent.Plugins.Implementation
             }
 
             string failedRequestsPerFunctionQuery = $@"
-                    let start=datetime({startTime.Value:O});
-                    let end=datetime({endTime.Value:O});
+                    let start=datetime({startTime:O});
+                    let end=datetime({endTime:O});
                     let timeGrain=5m;
                     let dataset=requests
                         | where timestamp > start and timestamp < end
-                        | where cloud_RoleName =~ ""{resourceName}"" or cloud_RoleName startswith ""{resourceName}-""
+                        | where cloud_RoleName =~ ""{resourceName}"" //or cloud_RoleName startswith strcat(""{resourceName}"",""-"")
                         | where client_Type != ""Browser"";
                     dataset
-                    | summarize FailedCount=sumif(itemCount, success == false) by bin(timestamp, timeGrain)";
+                    | summarize FailedCount=sumif(itemCount, success == false) by name, bin(timestamp, timeGrain)";
 
-            var failedRequestsPerFunction = await _appInsightsPlugin.ExecuteAppInsightsQuery(resourceId, failedRequestsPerFunctionQuery);
-            return failedRequestsPerFunction;
+            var failedRequestsPerFunctionJson = await _appInsightsPlugin.ExecuteAppInsightsQuery(resourceId, failedRequestsPerFunctionQuery);
+            
+            var failedRequestsData = new List<FailedRequestsTimeSeriesData>();
+            
+            try
+            {
+                // Parse the JSON response from App Insights
+                var jsonResult = JObject.Parse(failedRequestsPerFunctionJson);
+                
+                if (jsonResult["tables"] is JArray tables && tables.Count > 0)
+                {
+                    var table = tables[0];
+                    var columns = table["columns"] as JArray;
+                    var rows = table["rows"] as JArray;
+                    
+                    if (columns != null && rows != null)
+                    {
+                        // Find the indices of the columns we need
+                        int nameIndex = -1;
+                        int timestampIndex = -1;
+                        int failedCountIndex = -1;
+                        
+                        for (int i = 0; i < columns.Count; i++)
+                        {
+                            string columnName = columns[i]["name"]?.ToString().ToLowerInvariant();
+                            if (columnName == "name")
+                            {
+                                nameIndex = i;
+                            }
+                            else if (columnName == "timestamp")
+                            {
+                                timestampIndex = i;
+                            }
+                            else if (columnName == "failedcount")
+                            {
+                                failedCountIndex = i;
+                            }
+                        }
+                        
+                        // Parse each row into a FailedRequestsTimeSeriesData object
+                        if (nameIndex >= 0 && timestampIndex >= 0 && failedCountIndex >= 0)
+                        {
+                            foreach (JArray row in rows)
+                            {
+                                string functionName = row[nameIndex]?.ToString() ?? "Unknown";
+                                DateTime timestamp = row[timestampIndex]?.ToObject<DateTime>() ?? DateTime.MinValue;
+                                double failedCount = row[failedCountIndex]?.ToObject<double>() ?? 0;
+                                
+                                failedRequestsData.Add(new FailedRequestsTimeSeriesData(
+                                    TimeStamp: timestamp,
+                                    FunctionName: functionName,
+                                    FailedCount: failedCount));
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Error parsing failed requests data for {resourceId}", resourceId);
+            }
+            var sortedData = failedRequestsData.OrderBy(d => d.TimeStamp).ToList();
+
+            return sortedData;
         }
 
         public async Task<string> GetTop3ExceptionsPerFunction(string resourceId, DateTime? startTime = null, DateTime? endTime = null)
@@ -103,6 +233,12 @@ namespace Agent.Plugins.Implementation
             startTime ??= DateTime.UtcNow.AddHours(-1);
             endTime ??= DateTime.UtcNow.AddMinutes(-15);
 
+            string resourceName = resourceId;
+            if (resourceId.Contains('/'))
+            {
+                var splitResourceParts = resourceId.Split('/');
+                resourceName = splitResourceParts[splitResourceParts.Length - 1];
+            }
             _logger.LogInternalInformation("[GetTop3ExceptionsPerFunction] Invoked with resourceId {resourceId}, startTime {startTime}, endTime {endTime}", resourceId, startTime, endTime);
 
             string top3ExceptionsPerFunctionQuery = $@"
@@ -112,17 +248,18 @@ namespace Agent.Plugins.Implementation
                     let dataset=exceptions
                         | where timestamp > start and timestamp < end
                         | where client_Type != ""Browser""
+                        | where cloud_RoleName =~ ""{resourceName}""
                         | extend FunctionName = iif(outerMessage has ""Result: Function"", extract(@""Result: Function '([^']+)'"", 1, outerMessage), """")
                         | extend FunctionName = iif(isempty(FunctionName), iif(method has "".Run"", extract(@""([^.]+).([^.]+).Run"", 2, method), method), FunctionName)
                         | extend FunctionName = iif(isempty(FunctionName),method,FunctionName);
                     dataset
-                        | summarize _count=sum(itemCount) by type, FunctionName
+                        | summarize _count=sum(itemCount) by type
                         | sort by _count desc
                         | top 3 by _count";
 
             var top3ExceptionsPerFunction = await _appInsightsPlugin.ExecuteAppInsightsQuery(resourceId, top3ExceptionsPerFunctionQuery);
-            return top3ExceptionsPerFunction;
-        }
+                return top3ExceptionsPerFunction;
+            }
 
         public async Task<string> GetHostRuntimeErrorEvents(string resourceId, DateTime? startTime = null, DateTime? endTime = null)
         {

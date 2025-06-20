@@ -30,4 +30,13 @@ public interface IFunctionAppDeploymentChecksPlugin
     /// <param name="endTime">Optional end time for the query (defaults to current time minus 15 minutes)</param>
     /// <returns>A detailed history of function app deployments</returns>
     Task<string> GetFunctionAppDeploymentHistory(string resourceId, DateTime? startTime = null, DateTime? endTime = null);
+    
+    /// <summary>
+    /// Gets Function App slot swap information for a Function App
+    /// </summary>
+    /// <param name="resourceId">The Azure resource ID of the Function App</param>
+    /// <param name="startTime">Optional start time for the query (defaults to 1 hour ago)</param>
+    /// <param name="endTime">Optional end time for the query (defaults to current time minus 15 minutes)</param>
+    /// <returns>A detailed history of function app slot swap operations</returns>
+    Task<string> GetFunctionAppSlotSwapHistory(string resourceId, DateTime? startTime = null, DateTime? endTime = null);
 }

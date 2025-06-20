@@ -1,5 +1,11 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Agent.Plugins.Models;
 
 namespace Agent.Plugins.Interface;
 
@@ -21,4 +27,11 @@ public interface IFunctionAppConfigurationChecksPlugin
     /// <param name="endTime">Optional end time for the query (defaults to current time minus 15 minutes)</param>
     /// <returns>A summary of function app configuration checks</returns>
     Task<string> GetFunctionAppConfigurationChecks(string resourceId, DateTime? startTime = null, DateTime? endTime = null);
+
+    /// <summary>
+    /// Gets Event Grid subscriptions for a storage account
+    /// </summary>
+    /// <param name="storageAccountResourceId">The Azure resource ID of the storage account</param>
+    /// <returns>A read-only list of Event Grid subscription information</returns>
+    Task<IReadOnlyList<EventGridSubscriptionInfo>> GetEventGridSubscriptionsAsync(string storageAccountResourceId);
 }

@@ -199,21 +199,31 @@ const IncidentsFiltersGrid: FC<IncidentsTabProps> = (props: IncidentsTabProps) =
         })
     );
 
-    const onIdCLick = useCallback((item: IncidentFilter) => {
-        setIsEditFilterMode(true);
-        setInitialValues({
-            id: item.id ?? '',
-            incidentType: item.incidentType ?? '',
-            impactedService: item.impactedService ?? '',
-            priority: item.priority ?? '',
-            titleContains: item.titleContains ?? '',
-        });
-        setIsCreateIncidentFilterDialogOpen(true);
-    }, [setInitialValues, setIsCreateIncidentFilterDialogOpen, setIsEditFilterMode]);
+    const onIdCLick = useCallback(
+        (item: IncidentFilter) => {
+            setIsEditFilterMode(true);
+            setInitialValues({
+                id: item.id ?? '',
+                incidentType: item.incidentType ?? '',
+                impactedService: item.impactedService ?? '',
+                priority: item.priority ?? '',
+                titleContains: item.titleContains ?? '',
+            });
+            setIsCreateIncidentFilterDialogOpen(true);
+        },
+        [setInitialValues, setIsCreateIncidentFilterDialogOpen, setIsEditFilterMode]
+    );
 
-    const onRenderId = useCallback((item: IncidentFilter) => {
-        return <Link style={{ userSelect: 'text', fontSize: '13px' }} onClick={() => onIdCLick(item)}>{item.id ?? ''}</Link>;
-    }, [onIdCLick]);
+    const onRenderId = useCallback(
+        (item: IncidentFilter) => {
+            return (
+                <Link style={{ userSelect: 'text', fontSize: '13px' }} onClick={() => onIdCLick(item)}>
+                    {item.id ?? ''}
+                </Link>
+            );
+        },
+        [onIdCLick]
+    );
 
     const onRenderStatus = useCallback(
         (item: IncidentFilter) => {

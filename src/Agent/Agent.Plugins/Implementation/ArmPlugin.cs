@@ -393,6 +393,63 @@ namespace Agent.Plugins.Implementation
                 return $"Failed to retrieve help information for '{helpTopic}': {ex.Message}";
             }
         }
+
+        public async Task<string> GetResourceIdFromStorageServiceUri(string storageServiceUri, string subscriptionId)
+        {
+            if (string.IsNullOrWhiteSpace(storageServiceUri))
+            {
+                return $"Error: Storage Service URI cannot be null or empty";
+            }
+
+            if (string.IsNullOrWhiteSpace(subscriptionId))
+            {
+                return $"Error: Subscription ID cannot be null or empty";
+            }
+
+            try
+            {
+                // Parse the URI to extract the storage account name
+                if (!Uri.TryCreate(storageServiceUri, UriKind.Absolute, out var uri))
+                {
+                    return $"Error: Invalid storage service URI format: {storageServiceUri}";
+                }
+
+                // Extract storage account name from URI host
+                // Example: "eventgridblobtriggerstrg.blob.core.windows.net" -> "eventgridblobtriggerstrg"
+                string host = uri.Host;
+                string[] hostParts = host.Split('.');
+                
+                if (hostParts.Length < 4 || !host.Contains(".blob.core.windows.net"))
+                {
+                    return $"Error: URI does not appear to be a valid Azure Blob Storage URI: {storageServiceUri}";
+                }
+                
+                string storageAccountName = hostParts[0];
+                
+                // Search only in the specified subscription
+                var resourceIds = await _armHelper.GetAllResourceUriAsync(subscriptionId);
+                
+                // Filter for storage account resources that match our name
+                var storageAccountResourceIds = resourceIds
+                    .Where(r => r.Contains("/Microsoft.Storage/storageAccounts/") && 
+                                r.EndsWith($"/{storageAccountName}", StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+                if (storageAccountResourceIds.Any())
+                {
+                    // Return the first matching resource ID
+                    return storageAccountResourceIds.First();
+                }
+
+                return $"Error: Could not find storage account '{storageAccountName}' in subscription '{subscriptionId}'";
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogInternalError(ex, "Error getting resource ID from storage service URI {Uri} in subscription {SubscriptionId}", storageServiceUri, subscriptionId);
+                return $"Error: Exception occurred while processing storage service URI: {ex.Message}";
+            }
+        }
+
         private bool IsReadOnlyCommand(string command)
         {
             var readOnlyVerbs = new[] { "list", "show", "get" };

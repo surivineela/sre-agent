@@ -4,10 +4,11 @@
 
 namespace Agent.Core.Models.Charts
 {
-    public class ScatterPoint
+    public class ScottPlotBarData
     {
-        public double X { get; set; }
-        public double Y { get; set; }
-        public string Label { get; set; }
+        public double Position { get; set; }
+        public double Value { get; set; }
+        public string FillColorHex { get; set; }
+        public double? Error { get; set; }
     }
 }

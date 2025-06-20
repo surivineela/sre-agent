@@ -892,7 +892,7 @@ public class ArmHelper
     /// <exception cref="ArgumentException">Thrown when the time range exceeds 3 days</exception>
     public async Task<string> GetDetectorResponseWithTime(string resourceId, string detectorId, DateTime? startTime = null, DateTime? endTime = null)
     {
-        startTime ??= DateTime.UtcNow.AddHours(-1);
+        startTime ??= DateTime.UtcNow.AddHours(-2);
         endTime = DateTime.UtcNow.AddMinutes(-15);
 
         if (startTime > endTime)
@@ -1358,6 +1358,12 @@ public class ArmHelper
 
     public async Task<string> GetArmResourceAsJsonAsync(string resourceId)
     {
+        // Validate resource ID format before attempting to use it
+        if (!IsWellFormattedResourceId(resourceId))
+        {
+            return $"{{\"error\":{{\"code\":\"InvalidResourceId\",\"message\":\"The provided resource ID '{resourceId}' is not in the correct format. Azure resource IDs should start with /subscriptions/ and follow the pattern /subscriptions/{{subscriptionId}}/resourceGroups/{{resourceGroupName}}/providers/{{resourceProviderNamespace}}/{{resourceType}}/{{resourceName}}\"}}}}";
+        }
+
         var armClient = await _armClientFactory.GetArmOperationClient();
         var resource = armClient.GetGenericResource(new ResourceIdentifier(resourceId));
         var resourceDataResponse = await resource.GetAsync();
@@ -2415,6 +2421,80 @@ public class ArmHelper
 
         var result = await responseMessage.Content.ReadAsStringAsync();
         return result;
+    }
+
+    /// <summary>
+    /// Gets Event Grid subscriptions for a specified resource.
+    /// </summary>
+    /// <param name="resourceId">The resource ID to get Event Grid subscriptions for (e.g., a storage account resource ID)</param>
+    /// <param name="apiVersion">The API version to use, defaults to 2024-12-15-preview</param>
+    /// <param name="top">The maximum number of subscriptions to return, defaults to 20</param>
+    /// <returns>The JSON response containing Event Grid subscriptions</returns>
+    public async Task<string> GetEventGridSubscriptionsAsync(string resourceId, string apiVersion = "2024-12-15-preview", int top = 20)
+    {
+        if (string.IsNullOrWhiteSpace(resourceId))
+            throw new ArgumentException("Resource ID is required", nameof(resourceId));
+
+        // Validate resource ID format
+        if (!IsWellFormattedResourceId(resourceId))
+            throw new ArgumentException($"Invalid resource ID format: {resourceId}", nameof(resourceId));
+
+        // Check if the resource exists before attempting to get subscriptions
+        bool resourceExists = await CheckIfResourceExistsAsync(resourceId);
+        if (!resourceExists)
+        {
+            _logger.LogInternalWarning($"Resource not found when retrieving Event Grid subscriptions: {resourceId}");
+            return $"{{\"error\":{{\"code\":\"ResourceNotFound\",\"message\":\"The Resource was not found. Please verify the resource exists before retrieving Event Grid subscriptions.\"}}}}";
+        }
+
+        // Construct the URL for Event Grid subscriptions
+        // Format: {resourceId}/providers/Microsoft.EventGrid/eventSubscriptions?api-version={apiVersion}&$top={top}
+        string requestUrl = $"https://management.azure.com{resourceId}/providers/Microsoft.EventGrid/eventSubscriptions?api-version={apiVersion}&$top={top}";
+
+        try
+        {
+            // Use the existing GetResourceByURL method to make the API call
+            string result = await GetResourceByURL(requestUrl);
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError($"Failed to get Event Grid subscriptions for resource {resourceId}: {ex.Message}");
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Helper method to get a storage account by name and resource group
+    /// </summary>
+    /// <param name="subscriptionId">The subscription ID</param>
+    /// <param name="resourceGroupName">The resource group name</param>
+    /// <param name="storageAccountName">The storage account name</param>
+    /// <returns>The resource ID of the storage account if it exists, otherwise null</returns>
+    public async Task<string> GetStorageAccountResourceIdAsync(string subscriptionId, string resourceGroupName, string storageAccountName)
+    {
+        if (string.IsNullOrWhiteSpace(subscriptionId) || 
+            string.IsNullOrWhiteSpace(resourceGroupName) || 
+            string.IsNullOrWhiteSpace(storageAccountName))
+        {
+            return null;
+        }
+
+        try
+        {
+            // Construct the resource ID for the storage account
+            string resourceId = $"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{storageAccountName}";
+            
+            // Check if the resource exists
+            bool exists = await CheckIfResourceExistsAsync(resourceId);
+            
+            return exists ? resourceId : null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError($"Error getting storage account resource ID: {ex.Message}");
+            return null;
+        }
     }
 
     #region Private Methods

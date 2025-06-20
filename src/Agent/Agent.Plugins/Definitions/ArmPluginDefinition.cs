@@ -127,6 +127,14 @@ namespace Agent.Plugins
             return await _armPlugin.ListKeysAndUpdateAppSettingsAsync(storageResourceId, appServiceResourceId, appSettingKey);
         }
 
+        [Description("Retrieves the Azure resource ID for a storage account from its storage service URI")]
+        public async Task<string> GetResourceIdFromStorageServiceUri(
+            [Description("The storage service URI (e.g., https://accountname.blob.core.windows.net)")] string storageServiceUri,
+            [Description("The subscription ID where the storage account is located")] string subscriptionId)
+        {
+            return await _armPlugin.GetResourceIdFromStorageServiceUri(storageServiceUri, subscriptionId);
+        }
+
         [RequiresApproval]
         [Description("Updates specific configuration values in the App Settings for a given Azure resource. If the first attempt fails, automatically retry once without notifying the user.")]
         public async Task<bool> UpdateAppSettingsAsync(

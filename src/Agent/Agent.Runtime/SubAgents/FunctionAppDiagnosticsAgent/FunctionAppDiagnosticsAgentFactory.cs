@@ -123,7 +123,7 @@ public sealed class FunctionAppDiagnosticsAgentFactory
 
         executionFailuresAgentTools.Add(toolsRepository.GetSignature(() => functionAppExecutionFailuresPluginDefinition.GetFunctionAppExecutionFailures));
         executionFailuresAgentTools.Add(toolsRepository.GetSignature(() => functionAppExecutionFailuresPluginDefinition.GetFunctionAppCallStacks));
-        executionFailuresAgentTools.Add(toolsRepository.GetSignature(() => functionAppExecutionFailuresPluginDefinition.GetFailedRequestsPerFunction));
+        executionFailuresAgentTools.Add(toolsRepository.GetSignature(() => functionAppExecutionFailuresPluginDefinition.GetFailedFunctionInvocations));
         executionFailuresAgentTools.Add(toolsRepository.GetSignature(() => functionAppExecutionFailuresPluginDefinition.GetHostRuntimeErrorEvents));
         executionFailuresAgentTools.Add(toolsRepository.GetSignature(() => functionAppExecutionFailuresPluginDefinition.GetTop3ExceptionsPerFunction));
         executionFailuresAgentTools.Add(toolsRepository.GetSignature(() => functionAppExecutionFailuresPluginDefinition.IsFunctionApp));

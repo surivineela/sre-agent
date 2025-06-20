@@ -30,6 +30,7 @@ namespace Agent.Plugins.Interface
         Task<string> RunAzCliReadCommandsAsync(string command);
         Task<string> RunAzCliWriteCommandsAsync(string command);
         Task<string> GetAzCliHelpAsync(string helpTopic, string grepPattern = null);
+        Task<string> GetResourceIdFromStorageServiceUri(string storageServiceUri, string subscriptionId);
     }
 }
 

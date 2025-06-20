@@ -79,5 +79,29 @@ namespace Agent.Plugins.Implementation
                 throw;
             }
         }
+
+        /// <summary>
+        /// Gets Function App slot swap information for a Function App
+        /// </summary>
+        /// <param name="resourceId">The Azure resource ID of the Function App</param>
+        /// <param name="startTime">Optional start time for the query (defaults to 1 hour ago)</param>
+        /// <param name="endTime">Optional end time for the query (defaults to current time minus 15 minutes)</param>
+        /// <returns>A detailed history of function app slot swap operations</returns>
+        public async Task<string> GetFunctionAppSlotSwapHistory(string resourceId, DateTime? startTime = null, DateTime? endTime = null)
+        {
+            try
+            {
+                _logger.LogInternalInformation("Getting Function App slot swap history for {ResourceId}", resourceId);
+
+                // Call GetDetectorResponseWithTime with the 'FunctionAppSlotSwaps' detector ID
+                string result = await _armHelper.GetDetectorResponseWithTime(resourceId, "swap", startTime, endTime);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Error getting Function App slot swap history for {ResourceId}", resourceId);
+                throw;
+            }
+        }
     }
 }

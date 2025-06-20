@@ -147,12 +147,13 @@ public class ResourceGraphCrawlerService : ICrawlerService
                         var armOperationType = GetArmResourceOperationType(eventData);
                         if (armOperationType == ArmResourceOperationType.Other)
                         {
-                            _logger.LogInternalInformation($"Ignoring event: {eventData.HttpRequest.Method} {eventData.ResourceId}.");
+                            // Log with safe null handling for HttpRequest.Method and ResourceId
+                            _logger.LogInternalInformation($"Ignoring event: {eventData.HttpRequest?.Method ?? "unknown method"} {eventData.ResourceId ?? "unknown resource"}.");
                             return;
                         }
                         else if (armOperationType == ArmResourceOperationType.Delete)
                         {
-                            _logger.LogInternalInformation($"Deleting resource: {eventData.HttpRequest.Method} {eventData.ResourceId}.");
+                            _logger.LogInternalInformation($"Deleting resource: {eventData.HttpRequest?.Method ?? "unknown method"} {eventData.ResourceId ?? "unknown resource"}.");
                             if (!string.IsNullOrEmpty(eventData.ResourceId))
                             {
                                 await _graphDbClient.SoftDeleteResourceById(eventData.ResourceId);
@@ -161,16 +162,22 @@ public class ResourceGraphCrawlerService : ICrawlerService
                         }
                         else if (armOperationType == ArmResourceOperationType.Update)
                         {
+                            if (string.IsNullOrEmpty(eventData.ResourceId))
+                            {
+                                _logger.LogInternalWarning("Received update event with null or empty ResourceId");
+                                return;
+                            }
+
                             GraphNode node = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(eventData.ResourceId);
                             if (node != null)
                             {
-                                _logger.LogInternalInformation($"Crawling on event: {eventData.HttpRequest.Method} {eventData.ResourceId}.");
+                                _logger.LogInternalInformation($"Crawling on event: {eventData.HttpRequest?.Method ?? "unknown method"} {eventData.ResourceId}.");
                                 await OnDemandCrawl(node);
                             }
                         }
                         else
                         {
-                            _logger.LogInternalWarning($"Unknown arm operation: {armOperationType} {eventData.HttpRequest.Method} {eventData.ResourceId}.");
+                            _logger.LogInternalWarning($"Unknown arm operation: {armOperationType} {eventData.HttpRequest?.Method ?? "unknown method"} {eventData.ResourceId ?? "unknown resource"}.");
                         }
                     }
                     catch (Exception ex)
@@ -586,6 +593,18 @@ public class ResourceGraphCrawlerService : ICrawlerService
 
     private ArmResourceOperationType GetArmResourceOperationType(EventDataInfo eventData)
     {
+        // Add null checks for each property that could be null
+        if (eventData == null || 
+            eventData.Category?.Value == null || 
+            eventData.ResourceId == null || 
+            eventData.HttpRequest == null || 
+            eventData.HttpRequest.Method == null || 
+            string.IsNullOrEmpty(eventData.Status?.Value))
+        {
+            _logger.LogInternalWarning($"Incomplete event data received: {(eventData?.ResourceId ?? "unknown resource")}");
+            return ArmResourceOperationType.Other;
+        }
+
         // TODO: filter operation, e.g. Microsoft.App/containerApps/listSecrets/action
         if (eventData.Category.Value == "Administrative"
             && eventData.ResourceId != null

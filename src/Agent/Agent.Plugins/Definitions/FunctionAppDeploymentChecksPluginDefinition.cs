@@ -49,5 +49,19 @@ namespace Agent.Plugins.Definitions
         {
             return await _functionAppDeploymentChecksPlugin.GetFunctionAppDeploymentHistory(resourceId, startTime, endTime);
         }
+
+        /// <summary>
+        /// Gets Function App slot swap information for a Function App
+        /// </summary>
+        [Description("Gets detailed Function App slot swap information to analyze swap operations. " +
+                    "Retrieves chronological slot swap records, including source and target slots, operation status, and timestamps. " +
+                    "Returns comprehensive slot swap timeline with success/failure information.")]
+        public async Task<string> GetFunctionAppSlotSwapHistory(
+            [Description("The full Azure resource ID of the Function App to retrieve slot swap history for.")] string resourceId,
+            [Description("Optional start time for the query (defaults to 1 hour ago)")] DateTime? startTime = null,
+            [Description("Optional end time for the query (defaults to current time minus 15 minutes)")] DateTime? endTime = null)
+        {
+            return await _functionAppDeploymentChecksPlugin.GetFunctionAppSlotSwapHistory(resourceId, startTime, endTime);
+        }
     }
 }

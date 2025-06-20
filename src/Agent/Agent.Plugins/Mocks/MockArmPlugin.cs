@@ -157,5 +157,45 @@ namespace Agent.Plugins.Mocks
             }
             return Task.FromResult(mockHelp);
         }
+
+        public Task<string> GetResourceIdFromStorageServiceUri(string storageServiceUri, string subscriptionId)
+        {
+            if (string.IsNullOrWhiteSpace(storageServiceUri))
+            {
+                return Task.FromResult($"Error: Storage Service URI cannot be null or empty");
+            }
+
+            if (string.IsNullOrWhiteSpace(subscriptionId))
+            {
+                return Task.FromResult($"Error: Subscription ID cannot be null or empty");
+            }
+
+            try
+            {
+                // For mock implementation, create a consistent resource ID based on the URI
+                if (!Uri.TryCreate(storageServiceUri, UriKind.Absolute, out var uri))
+                {
+                    return Task.FromResult($"Error: Invalid storage service URI format: {storageServiceUri}");
+                }
+
+                // Extract storage account name from URI host
+                string host = uri.Host;
+                string[] hostParts = host.Split('.');
+                
+                if (hostParts.Length < 4 || !host.Contains(".blob.core.windows.net"))
+                {
+                    return Task.FromResult($"Error: URI does not appear to be a valid Azure Blob Storage URI: {storageServiceUri}");
+                }
+                
+                string storageAccountName = hostParts[0];
+                
+                // Generate a mock resource ID for the storage account using the provided subscription ID
+                return Task.FromResult($"/subscriptions/{subscriptionId}/resourceGroups/mock-resource-group/providers/Microsoft.Storage/storageAccounts/{storageAccountName}");
+            }
+            catch (Exception ex)
+            {
+                return Task.FromResult($"Error: Exception occurred while processing storage service URI: {ex.Message}");
+            }
+        }
     }
 }

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Agent.Framework;
 using Agent.Plugins.Interface;
 using Microsoft.SemanticKernel;
+using Agent.Core.Models.Charts;
 
 namespace Agent.Plugins.Definitions
 {
@@ -17,7 +18,7 @@ namespace Agent.Plugins.Definitions
         private readonly IFunctionAppExecutionFailuresPlugin _functionAppExecutionFailuresPlugin = functionAppExecutionFailuresPlugin;
 
         [KernelFunction("get_function_app_execution_failures")]
-        [Description("Gets a summary of execution failures for an Azure Function App")]
+        [Description("Gets a summary of execution failures for an Azure Function App. Do not call for FlexConsumption SKU")]
         public async Task<string> GetFunctionAppExecutionFailures(
             [Description("The full Azure resource ID of the Function App to analyze")] string resourceId)
         {
@@ -32,14 +33,13 @@ namespace Agent.Plugins.Definitions
             return await _functionAppExecutionFailuresPlugin.GetFunctionAppCallStacks(resourceId);
         }
 
-        [KernelFunction("get_failed_requests_per_function")]
-        [Description("Gets a summary of failed requests grouped by function for an Azure Function App")]
-        public async Task<string> GetFailedRequestsPerFunction(
+        [KernelFunction("get_failed_function_invocations")]
+        [Description("Gets a summary of failed invocations grouped by function for an Azure Function App")]
+        public async Task<IReadOnlyList<FailedRequestsTimeSeriesData>> GetFailedFunctionInvocations(
             [Description("The full Azure resource ID of the Function App to analyze")] string resourceId,
-            [Description("Optional start time for the query (defaults to 1 hour ago)")] DateTime? startTime = null,
-            [Description("Optional end time for the query (defaults to current time minus 15 minutes)")] DateTime? endTime = null)
+            [Description("Optional duration in minutes to query for (defaults to 60 minutes)")] int? minutes = null)
         {
-            return await _functionAppExecutionFailuresPlugin.GetFailedRequestsPerFunction(resourceId, startTime, endTime);
+            return await _functionAppExecutionFailuresPlugin.GetFailedFunctionInvocations(resourceId, minutes);
         }
 
         [KernelFunction("get_top3_exceptions_per_function")]

@@ -149,8 +149,7 @@ public class AppServiceCrawler : GenericArmResourceCrawler
             try
             {
                 // Special handling for container app based function apps
-                if (appServiceNode.Kind?.Contains("container", StringComparison.OrdinalIgnoreCase) == true &&
-                    appServiceNode.Kind?.Contains("azurecontainerapps", StringComparison.OrdinalIgnoreCase) == true)
+                if (appServiceNode.Kind?.Contains("azurecontainerapps", StringComparison.OrdinalIgnoreCase) == true)
                 {
                     _logger.LogDebug($"Processing container app based function app: {appServiceNode.ResourceId}");
                     // Container app function apps have different available properties
