@@ -100,6 +100,67 @@ public class IncidentWebhookController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Handles Icm incident webhook notifications
+    /// </summary>
+    [HttpPost("icm")]
+    public async Task<IActionResult> IcmIncidentWebhook([FromBody] IncidentRequest request)
+    {
+        _logger.LogInternalInformation(
+            "IcmWebhook: Invoked with IncidentId: {IncidentId}, Title: {Title}, Source: {Source}",
+            request?.IncidentId, request?.Title, request?.Source);
+
+        try
+        {
+            return await IcmProcessIncident(request);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(
+                ex,
+                "IcmWebhook: Error processing Icm webhook for IncidentId: {IncidentId}, Title: {Title}, Source: {Source}",
+                request?.IncidentId, request?.Title, request?.Source);
+
+            return StatusCode(500, "Failed to process Icm webhook");
+        }
+    }
+
+    private async Task<IActionResult> IcmProcessIncident(IncidentRequest request)
+    {
+        _logger.LogInternalInformation(
+            "IcmProcessIncident: Handling incident with IncidentId: {IncidentId}, Title: {Title}, Source: {Source}",
+            request?.IncidentId, request?.Title, request?.Source);
+
+        var response = await _incidentHandlingService.HandleIncidentAsync(
+            new IncidentHandlingRequestModel()
+            {
+                IncidentId = request.IncidentId,
+                Title = request.Title,
+                Description = request.Description,
+                Severity = request.Severity,
+                Source = request.Source,
+                AdditionalProperties = request.AdditionalProperties,
+            }
+        );
+
+        if (response == null)
+        {
+            _logger.LogInternalError(
+                "IcmProcessIncident: Failed to handle Icm incident for IncidentId: {IncidentId}, Title: {Title}, Source: {Source}",
+                request?.IncidentId, request?.Title, request?.Source);
+
+            return StatusCode(500, "Failed to handle Icm incident");
+        }
+        else
+        {
+            _logger.LogInternalInformation(
+                "IcmProcessIncident: Successfully handled Icm incident for IncidentId: {IncidentId}, StatusCode: {StatusCode}",
+                request?.IncidentId, response.StatusCode);
+
+            return StatusCode(response.StatusCode, response.Response);
+        }
+    }
+
 #if DEBUG
     [HttpPost("azmonitor")]
     public async Task AzMonitorAlertsWebhook([FromBody] AlertItem alertItem)
@@ -136,11 +197,9 @@ public class IncidentWebhookController : ControllerBase
 /// </summary>
 public class IncidentRequest
 {
-    [Required]
-    public string Title { get; set; } = string.Empty;
+    public string? Title { get; set; } = string.Empty;
 
-    [Required]
-    public string Description { get; set; } = string.Empty;
+    public string? Description { get; set; } = string.Empty;
 
     public string? IncidentId { get; set; }
     public string? Severity { get; set; }
