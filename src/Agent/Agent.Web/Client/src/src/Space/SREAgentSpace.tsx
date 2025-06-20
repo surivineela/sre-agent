@@ -43,7 +43,7 @@ const TabsListWrapper: FC = () => {
     const environmentContext = useContext(EnvironmentContext);
     const theme = useContext(ThemeContext);
     const sreAgentContext = useContext(SreAgentContext);
-    const azPortalContext = useContext(AzPortalContext);
+    const { openBlade } = useContext(AzPortalContext);
 
     const {
         incidentManagement: { isIncidentManagementConnected },
@@ -143,7 +143,7 @@ const TabsListWrapper: FC = () => {
     const onSendFeedback = useCallback(() => {
         const featureName = 'SREAgent';
 
-        azPortalContext.openBlade({
+        openBlade({
             extension: 'HubsExtension',
             detailBlade: 'InProductFeedbackBlade',
             asContextBlade: true,
@@ -156,7 +156,7 @@ const TabsListWrapper: FC = () => {
                 surveyId: `${featureName}-${'AgentFrameBlade'}`,
             },
         });
-    }, [azPortalContext, intl]);
+    }, [openBlade, intl]);
 
     return (
         <div>

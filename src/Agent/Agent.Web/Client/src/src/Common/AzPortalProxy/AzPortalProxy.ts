@@ -10,6 +10,9 @@ import { ITokenInfo } from './Models/ITokenInfo';
 
 export const defaultSreAgentEndpoint = '..';
 
+/**
+ * NOTE: Must use arrow functions in order for destructing to work
+ */
 export default class AzPortalProxy {
     public shellSrc: string = '';
 
@@ -38,7 +41,7 @@ export default class AzPortalProxy {
         return window.self === window.top;
     }
 
-    public initialize(setEnvironmentInfo: React.Dispatch<React.SetStateAction<IEnvironmentInfo>>) {
+    public initialize = (setEnvironmentInfo: React.Dispatch<React.SetStateAction<IEnvironmentInfo>>) => {
         // We don't need any initialization if we're not running within an iframe
         if (AzPortalProxy.inStandaloneMode) {
             return;
@@ -53,13 +56,13 @@ export default class AzPortalProxy {
 
         this.postMessage(AgentSiteToAzPortalVerbs.ready, null);
         this.postMessage(AgentSiteToAzPortalVerbs.readyForData, null);
-    }
+    };
 
-    public log(info: ITelemetryInfo) {
+    public log = (info: ITelemetryInfo) => {
         this.postMessage(AgentSiteToAzPortalVerbs.log, info);
-    }
+    };
 
-    public startNotification(title: string, description: string) {
+    public startNotification = (title: string, description: string) => {
         const notification: INotificationInfo = {
             title,
             description,
@@ -69,9 +72,9 @@ export default class AzPortalProxy {
 
         this.postMessage(AgentSiteToAzPortalVerbs.updateNotification, notification);
         return notification.id;
-    }
+    };
 
-    public stopNotification(id: string, success: boolean, description: string) {
+    public stopNotification = (id: string, success: boolean, description: string) => {
         const state: INotificationState = success ? 'success' : 'fail';
 
         const notification: INotificationInfo = {
@@ -82,9 +85,9 @@ export default class AzPortalProxy {
         };
 
         this.postMessage(AgentSiteToAzPortalVerbs.updateNotification, notification);
-    }
+    };
 
-    public openBlade(info: IOpenBlade) {
+    public openBlade = (info: IOpenBlade) => {
         const operationId = Guid.newGuid();
 
         const requestInfo = {
@@ -102,9 +105,9 @@ export default class AzPortalProxy {
         });
 
         return bladeClosedPromise;
-    }
+    };
 
-    private bladeClosed(result: IBladeClosedResult) {
+    private bladeClosed = (result: IBladeClosedResult) => {
         if (!this.bladeClosedResolver || !this.bladeClosedResolver.resolver) {
             throw Error('bladeClosedResolver not set!');
         }
@@ -121,9 +124,9 @@ export default class AzPortalProxy {
         });
 
         this.bladeClosedResolver = undefined;
-    }
+    };
 
-    private postMessage<T>(verb: string, data: T) {
+    private postMessage = <T>(verb: string, data: T) => {
         console.log(`Request AgentSiteToAzPortal: '${verb}'`);
         if (!AzPortalProxy.inStandaloneMode) {
             window.parent.postMessage(
@@ -135,9 +138,9 @@ export default class AzPortalProxy {
                 this.shellSrc
             );
         }
-    }
+    };
 
-    private messageReceived(event: IEvent): void {
+    private messageReceived = (event: IEvent): void => {
         if (!event || !event.data) {
             return;
         }
@@ -195,9 +198,9 @@ export default class AzPortalProxy {
             default:
                 break;
         }
-    }
+    };
 
-    private updateToken(tokenInfo: ITokenInfo) {
+    private updateToken = (tokenInfo: ITokenInfo) => {
         if (tokenInfo.type === 'arm') {
             AzPortalProxy.envInfo = {
                 ...AzPortalProxy.envInfo,
@@ -213,5 +216,5 @@ export default class AzPortalProxy {
         }
 
         this.setEnvironmentInfo(AzPortalProxy.envInfo);
-    }
+    };
 }
