@@ -7,10 +7,10 @@ using Agent.Framework;
 using Agent.Logging;
 using Agent.Plugins;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Configuration;
 
 namespace Agent.Runtime.Reasoning;
 
@@ -179,11 +179,12 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
                     continue;
                 }
 
-                if (!ShouldRegisterPlugin(pluginName: pluginType.Name, attribute))
-                {
-                    _logger.LogInternalInformation("Skipping registration of plugin {pluginName} due to attribute conditions.", pluginType.Name);
-                    continue;
-                }
+                // Temp: Load all 1P tools to unblock 3p agents start up
+                //if (!ShouldRegisterPlugin(pluginName: pluginType.Name, attribute))
+                //{
+                //    _logger.LogInternalInformation("Skipping registration of plugin {pluginName} due to attribute conditions.", pluginType.Name);
+                //    continue;
+                //}
 
                 var flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly;
 
