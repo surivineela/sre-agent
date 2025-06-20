@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Agent.Graph.Schema;
 
 namespace Agent.Graph.Interfaces;
@@ -34,6 +29,13 @@ public interface ICrawlerService
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     public Task StartKubernetesWatchCrawler(IEnumerable<string> resourceIds, CancellationToken? cancellationToken = null);
+
+    /// <summary>
+    /// Cleans up soft-deleted nodes in the graph database.
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public Task DeleteStaleSoftDeletedNodes(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets the current crawler result. This is a snapshot of the crawler state.

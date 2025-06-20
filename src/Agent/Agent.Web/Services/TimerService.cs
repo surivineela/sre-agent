@@ -331,6 +331,8 @@ public class TimerService : IHostedService, IDisposable
                     await _crawlerService.StartKubernetesWatchCrawler(roots, cancellationToken);
                     _logger.LogInternalInformation("Started Kubernetes watch crawler");
                 }
+
+                await _crawlerService.DeleteStaleSoftDeletedNodes(cancellationToken);
             }
             catch (Exception ex)
             {

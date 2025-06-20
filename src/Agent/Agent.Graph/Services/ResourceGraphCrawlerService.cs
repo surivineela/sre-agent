@@ -47,6 +47,7 @@ public class ResourceGraphCrawlerService : ICrawlerService
     private int _crawlingCount = 0;
     private int _pendingCount = 0;
     private readonly ConcurrentDictionary<string, CrawlProgressCounter> _progressByResourceType = new();
+    private static readonly TimeSpan SoftDeletedNodesStaleThreshold = TimeSpan.FromDays(3); // Threshold for soft-deleted nodes cleanup
 
     public ResourceGraphCrawlerService(ILogger<ResourceGraphCrawlerService> logger,
         CrawlerSettings crawlerSettings,
@@ -722,12 +723,29 @@ public class ResourceGraphCrawlerService : ICrawlerService
             var query = $"g.V().has('id', '{node.GetNodeId()}').drop()";
             await _graphDbClient.Query(query);
 
-            _logger.LogDebug($"Successfully removed deleted resource {node.GetNodeId()} from graph");
+            _logger.LogDebug($"Successfully removed resource {node.GetNodeId()} from graph");
         }
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, $"Failed to remove deleted resource {node.GetNodeId()} from graph");
         }
     }
-}
 
+    public async Task DeleteStaleSoftDeletedNodes(CancellationToken cancellationToken)
+    {
+        try
+        {
+            _logger.LogInternalInformation("Cleaning up stale nodes in the graph");
+            var ts = (DateTimeOffset.UtcNow - SoftDeletedNodesStaleThreshold).Ticks;
+
+            // Remove nodes that are soft-deleted and older than the threshold
+            var query = $"g.V().has('isDeleted', true).has('updateTs', lt({ts})).drop()";
+            await _graphDbClient.Query(query);
+            _logger.LogInternalInformation($"Removed stale soft-deleted nodes older than {ts} from the graph");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error during cleanup of stale nodes");
+        }
+    }
+}
