@@ -23,12 +23,20 @@ dnf install just
 ```
 
 ## Private Environment Setup
-1. **Depoloy the necessary resources**
-  You can use git bash to run these on windows via the VSCode terminal or directly. The first time you run, an untracked `dev.bicepparam` file will be created which you can use to re-run the command without needing to specify the `-n` arg.
+1. **Deploy the necessary resources**
+  
+   > [!IMPORTANT]   
+   > On Windows, you **MUST** use git bash to run these commands, either via the VSCode terminal or directly.
+
+   For the very first execution, run the command bellow to prepare your environment and perform an initial deployment:
+   
    ```bash
-   just deploy3p <stamp_prefix>
+   just deploy3p -n <stamp_prefix>
    ```
+
    The `<stamp prefix>` above is the prefix that would be used for your resource names. Your alias is a good option.
+
+   After first time you run, an untracked `dev.bicepparam` file will be created which you can use to re-run the command without needing to specify the `-n <stamp prefix>` argument.
 
 ## NuGet Configuration
 

@@ -26,6 +26,7 @@ module openaiModule 'openai.bicep' = {
   dependsOn: [
     appConfig
     keyVault
+    identity
   ]
 }
 
@@ -80,6 +81,7 @@ module search 'search.bicep' = {
   }
   dependsOn: [
     appConfig
+    identity
   ]
 }
 
@@ -90,6 +92,7 @@ module storage 'storage.bicep' = {
   }
   dependsOn: [
     appConfig
+    identity
   ]
 }
 
