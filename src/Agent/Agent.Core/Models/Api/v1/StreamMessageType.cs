@@ -6,14 +6,10 @@ namespace Agent.Core.Models.Api.v1;
 
 /// <summary>
 /// Defines the types of messages that can be streamed to client
+/// when property is null, type is just pure text 
 /// </summary>
 public enum StreamMessageType
 {
-    /// <summary>
-    /// Text message type, typically used for chat messages
-    /// </summary>
-    Message,
-
     /// <summary>
     /// Chart or visualization data
     /// </summary>

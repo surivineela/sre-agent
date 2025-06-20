@@ -27,7 +27,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         DictionaryKeyPolicy = new LowerCaseNamingPolicy(),
         WriteIndented = true,
     };
-
+    
     public OutboundCommunicationService(
         IThreadOrchestrationManager mappingManager,
         ILogger<OutboundCommunicationService> logger,
@@ -51,7 +51,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         _logger.LogExternalInformation("orchestrationInstanceId {orchestrationInstanceId} message to thread {ThreadId}: {Message}",
             orchestrationInstanceId, threadId, message.Text);
         Guid agentMessageId = Guid.NewGuid();
-        await AppendAgentStreamMessage(threadId ?? Guid.Empty, message.Text ?? string.Empty, StreamMessageType.Message, agentMessageId);
+        await AppendAgentStreamMessage(threadId ?? Guid.Empty, message.Text ?? string.Empty, null, agentMessageId);
         await _sinkService.SinkAgentMessageAsync(threadId.Value, message.Text ?? string.Empty, agentResponseMessageId: agentMessageId);
     }
 
@@ -88,7 +88,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         return await _sinkService.SinkAgentMessageAsync(threadId, "Approval Request for Processing Azure SRE Agent Request", true, approval);
     }
 
-    public async Task AppendAgentStreamMessage(Guid threadId, string message, StreamMessageType type, Guid? messageId = null, CancellationToken cancellationToken = default)
+    public async Task AppendAgentStreamMessage(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, CancellationToken cancellationToken = default)
     {
         if (threadId == Guid.Empty)
         {
@@ -149,7 +149,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
             context.Id, context.AgentType.ToString(), context.ThreadId, message.Text);
 
         Guid agentMessageId = Guid.NewGuid();
-        await AppendAgentStreamMessage(context.ThreadId, message.Text ?? string.Empty, StreamMessageType.Message, agentMessageId);
+        await AppendAgentStreamMessage(context.ThreadId, message.Text ?? string.Empty, null, agentMessageId);
         await _sinkService.SinkAgentMessageAsync(context.ThreadId, message.Text ?? string.Empty, agentResponseMessageId: agentMessageId);
     }
 

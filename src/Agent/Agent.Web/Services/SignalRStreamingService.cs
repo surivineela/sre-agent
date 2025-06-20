@@ -28,7 +28,7 @@ namespace Agent.Web.Services
         }
 
 
-        public async Task StreamMessageAsync(Guid threadId, string message, StreamMessageType type, Guid? messageId = null, CancellationToken cancellationToken = default)
+        public async Task StreamMessageAsync(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -46,7 +46,7 @@ namespace Agent.Web.Services
                     Contents = [new TextContent(message)],
                     AdditionalProperties = new AdditionalPropertiesDictionary
                     {
-                        { "streamMessageType", type.ToString() },
+                        { "streamMessageType", type?.ToString() },
                         { "threadId", threadId.ToString() },
                         { "messageId", messageId?.ToString() ?? Guid.NewGuid().ToString() },
                     }

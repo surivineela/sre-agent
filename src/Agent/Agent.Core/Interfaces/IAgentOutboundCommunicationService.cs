@@ -41,5 +41,5 @@ public interface IAgentOutboundCommunicationService
     /// <summary>
     /// Streams a message directly to the reasoning loop, bypassing normal tool call flow
     /// </summary>
-    Task AppendAgentStreamMessage(Guid threadId, string message, StreamMessageType type, Guid? messageId = null, CancellationToken cancellationToken = default);
+    Task AppendAgentStreamMessage(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, CancellationToken cancellationToken = default);
 }

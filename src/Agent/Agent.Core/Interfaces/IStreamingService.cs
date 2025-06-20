@@ -16,9 +16,9 @@ namespace Agent.Core.Interfaces
         /// </summary>
         /// <param name="threadId">The thread ID to stream the message to</param>
         /// <param name="message">The message content to stream</param>
-        /// <param name="type">The type of message being streamed</param>
+        /// <param name="type">The type of message being streamed, if null just pure normal text</param>
         /// <param name="cancellationToken">Cancellation token to cancel the streaming operation</param>
         /// <returns>Task representing the async operation</returns>
-        Task StreamMessageAsync(Guid threadId, string message, StreamMessageType type, Guid? messageId = null, CancellationToken cancellationToken = default);
+        Task StreamMessageAsync(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, CancellationToken cancellationToken = default);
     }
 }
