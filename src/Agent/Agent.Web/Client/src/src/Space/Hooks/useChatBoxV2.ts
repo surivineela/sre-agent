@@ -229,24 +229,12 @@ export const useChatBoxV2 = (
                 if (currentThreadId) {
                     // Issue a request to create a new message in the current thread
                     createMessage(currentThreadId, messageRequest);
-                    proxy.log({
-                        logLevel: 'verbose',
-                        action: 'sendMessage',
-                        actionModifier: 'existingThread',
-                        data: `New message sent in thread: ${currentThreadId}. Message: ${message}.`,
-                    });
                     // Keep it for now for testing purpose. Will remove it once the streaming is not behind the feature flag
                     console.log(`New message sent in thread: ${currentThreadId}. Message: ${message}.`);
                 } else {
                     // Issue a request to create a new thread
                     createThread({
                         startMessage: messageRequest,
-                    });
-                    proxy.log({
-                        logLevel: 'verbose',
-                        action: 'createThread',
-                        actionModifier: 'newThread',
-                        data: `New thread is created. Message: ${message}.`,
                     });
                     // Keep it for now for testing purpose. Will remove it once the streaming is not behind the feature flag
                     console.log(`New thread is created. Message: ${message}.`);
@@ -414,13 +402,6 @@ export const useChatBoxV2 = (
 
         const handleMessageChunk = (messageResponseType: MessageResponseType, streamData?: StreamingMessage) => {
             if (streamData) {
-                proxy.log({
-                    logLevel: 'verbose',
-                    action: 'messageStream',
-                    actionModifier: 'received',
-                    data: `${messageResponseType} received`,
-                });
-
                 // Keep it for now for testing purpose. Will remove it once the streaming is not behind the feature flag
                 console.log(
                     messageResponseType + ' received: ',
