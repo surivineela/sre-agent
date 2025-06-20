@@ -36,6 +36,8 @@ jobs:
       backend: ${{ steps.check.outputs.backend }}
       frontend: ${{ steps.check.outputs.frontend }}
     steps:
+    - name: 🛒 Checkout code
+      uses: actions/checkout@v4
     - name: 🔍 Check for changes
       uses: serverless-paas-balam/actions-paths-filter@v3
       id: check
