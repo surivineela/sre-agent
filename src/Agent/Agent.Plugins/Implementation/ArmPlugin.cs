@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
@@ -219,6 +220,7 @@ namespace Agent.Plugins.Implementation
                     DictionaryKeyPolicy = new LowerCaseNamingPolicy(),
                     WriteIndented = true
                 };
+                options.Converters.Add(new JsonStringEnumConverter());
 
                 // Stream the whole az cli execution to render the special AzCliExecution component
                 await _outboundCommunicationService.AppendAgentStreamMessage(ThreadId.Value, JsonSerializer.Serialize(execution, options), StreamMessageType.AzCli);
@@ -306,6 +308,7 @@ namespace Agent.Plugins.Implementation
                     DictionaryKeyPolicy = new LowerCaseNamingPolicy(),
                     WriteIndented = true
                 };
+                options.Converters.Add(new JsonStringEnumConverter());
 
                 // Create execution record in Pending state for approval
                 var execution = new AzCliExecution(

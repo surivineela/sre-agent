@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
@@ -62,6 +63,7 @@ namespace Agent.Plugins
                     DictionaryKeyPolicy = new LowerCaseNamingPolicy(),
                     WriteIndented = true
                 };
+                options.Converters.Add(new JsonStringEnumConverter());
 
                 var executionId = Guid.NewGuid();
 
@@ -177,6 +179,7 @@ namespace Agent.Plugins
                     DictionaryKeyPolicy = new LowerCaseNamingPolicy(),
                     WriteIndented = true
                 };
+                options.Converters.Add(new JsonStringEnumConverter());
 
                 // Validate command format
                 var validationSummary = ValidateKubectlWriteCommand(command.Trim());
