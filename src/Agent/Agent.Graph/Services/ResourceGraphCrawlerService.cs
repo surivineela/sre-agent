@@ -71,7 +71,7 @@ public class ResourceGraphCrawlerService : ICrawlerService
         _ = Task.Run(ProcessTriggeredCrawls);
     }
 
-    public async Task CrawlAsync(IEnumerable<string> rootIds, IEnumerable<string>? filters = null, bool cascade = true, CancellationToken? cancellationToken = null)
+    public async Task CrawlAsync(IEnumerable<string> rootIds, IEnumerable<string>? typeFilters = null, bool cascade = true, CancellationToken? cancellationToken = null)
     {
         _logger.LogInternalInformation($"Crawl roots: {string.Join(",", rootIds)}. Cascade = {cascade}.");
         List<GraphNode> roots = new List<GraphNode>();
@@ -84,16 +84,29 @@ public class ResourceGraphCrawlerService : ICrawlerService
             }
         }
 
-        HashSet<string> filtersSet = null;
-        if (filters != null)
+        HashSet<string> scopeFiltersSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var sorted = rootIds.OrderBy(id => id, StringComparer.OrdinalIgnoreCase);
+        var last = string.Empty;
+        foreach (var id in sorted)
         {
-            filtersSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var filter in filters)
+            if (!string.IsNullOrEmpty(last) && id.StartsWith(last, StringComparison.OrdinalIgnoreCase))
             {
-                filtersSet.Add(filter);
+                continue;
+            }
+            scopeFiltersSet.Add(id);
+            last = id;
+        }
+
+        HashSet<string> typeFiltersSet = null;
+        if (typeFilters != null)
+        {
+            typeFiltersSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var filter in typeFilters)
+            {
+                typeFiltersSet.Add(filter);
             }
         }
-        await Crawl(roots, filtersSet, cascade, cancellationToken);
+        await Crawl(roots, scopeFiltersSet, typeFiltersSet, cascade, cancellationToken);
     }
 
     public Task<CrawlerResult> GetCrawlerResult()
@@ -220,9 +233,9 @@ public class ResourceGraphCrawlerService : ICrawlerService
         }, cancellationToken ?? CancellationToken.None);
     }
 
-    private async Task Crawl(IList<GraphNode> nodes, HashSet<string> filters = null, bool cascade = true, CancellationToken? cancellationToken = null)
+    private async Task Crawl(IList<GraphNode> nodes, HashSet<string> scopeFilters, HashSet<string> typeFilters = null, bool cascade = true, CancellationToken? cancellationToken = null)
     {
-        _logger.LogInternalInformation($"Crawling resources: {string.Join(", ", nodes.Select(n => n.GetNodeId()))}. Cascade = {cascade}. Filters = {string.Join(", ", filters ?? Enumerable.Empty<string>())}");
+        _logger.LogInternalInformation($"Crawling resources: {string.Join(", ", nodes.Select(n => n.GetNodeId()))}. Cascade = {cascade}. Scope Filters = {string.Join(", ", scopeFilters ?? Enumerable.Empty<string>())}. Type Filters = {string.Join(", ", typeFilters ?? Enumerable.Empty<string>())}");
         _isCrawling = true;
         HashSet<string> crawled = new();
         try
@@ -243,7 +256,7 @@ public class ResourceGraphCrawlerService : ICrawlerService
 
             foreach (var node in nodes)
             {
-                if (filters == null || FilterResourceType(filters, node))
+                if (typeFilters == null || FilterResourceType(typeFilters, node))
                 {
                     toCrawl.Enqueue(node);
                     Interlocked.Increment(ref _pendingCount);
@@ -310,7 +323,9 @@ public class ResourceGraphCrawlerService : ICrawlerService
                             var crawler = _factory.CreateFromNode(node);
                             await foreach (var n in crawler.Crawl(node))
                             {
-                                if (cascade && (filters == null || FilterResourceType(filters, n)))
+                                if (cascade
+                                    && FilterResourceType(typeFilters, n)
+                                    && FilterResourceScope(scopeFilters, n))
                                 {
                                     toCrawl.Enqueue(n);
                                     Interlocked.Increment(ref _pendingCount);
@@ -541,6 +556,19 @@ public class ResourceGraphCrawlerService : ICrawlerService
         else if (node is KubernetesResourceNode k8sNode)
         {
             if (filters.Contains(k8sNode.Kind))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool FilterResourceScope(HashSet<string> filters, GraphNode node)
+    {
+        foreach (var filter in filters)
+        {
+            if (node.GetNodeId().StartsWith(filter, StringComparison.OrdinalIgnoreCase))
             {
                 return true;
             }
