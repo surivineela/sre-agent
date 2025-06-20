@@ -5,7 +5,7 @@ using Agent.Plugins.Interface;
 
 namespace Agent.Plugins;
 
-[AgentToolPlugin]
+[AgentToolPlugin(IsFirstPartyOnly = true)]
 public class GenevaActionsPluginDefinition
 {
     private readonly IGenevaActionsPlugin _genevaActionsPlugin;
