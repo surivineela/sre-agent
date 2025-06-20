@@ -71,7 +71,8 @@ tools:
   - GetManagedEnvironmentAdminEvents
   - GetAdminEventErrorMessagesByTraceId
   - GetManagedEnvironmentOperationErrors
-  - GetChangesInManagedEnvironment  - GetPrivateEndpointConnectionDetails
+  - GetChangesInManagedEnvironment
+  - GetPrivateEndpointConnectionDetails
   - GetPrivateEndpointConnectionConnectionState
   - GetPrivateEndpointConnectionProvisioningState
   - GetPrivateEndpointConnectionFrontendVmssProvisioningState
