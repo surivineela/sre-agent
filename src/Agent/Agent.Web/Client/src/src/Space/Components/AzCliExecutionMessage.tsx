@@ -89,6 +89,10 @@ const AzCliExecutionMessage: FC<{
     };
 
     useEffect(() => {
+        setCurrentExecution({ ...execution });
+    }, [execution]);
+
+    useEffect(() => {
         if (currentExecution.status !== 'Running') {
             return;
         }

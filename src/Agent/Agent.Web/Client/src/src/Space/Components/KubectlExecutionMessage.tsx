@@ -89,6 +89,10 @@ const KubectlExecutionMessage: FC<{
     };
 
     useEffect(() => {
+        setCurrentExecution({ ...execution });
+    }, [execution]);
+
+    useEffect(() => {
         if (currentExecution.status !== 'Running') {
             return;
         }
@@ -168,10 +172,10 @@ const KubectlExecutionMessage: FC<{
                         startedTimestamp: response.data.startedTimestamp || prev.startedTimestamp,
                         executedBy: response.data.executedBy
                             ? {
-                                  displayName: response.data.executedBy,
-                                  userId: response.data.executedById,
-                                  role: 'User',
-                              }
+                                displayName: response.data.executedBy,
+                                userId: response.data.executedById,
+                                role: 'User',
+                            }
                             : prev.executedBy,
                     }));
                 }
@@ -610,8 +614,8 @@ const KubectlExecutionMessage: FC<{
                                     {currentExecution.output && currentExecution.error
                                         ? 'Output and error available'
                                         : currentExecution.output
-                                          ? 'Output available'
-                                          : 'Error available'}
+                                            ? 'Output available'
+                                            : 'Error available'}
                                 </span>
                             )}
                         </div>
@@ -760,7 +764,7 @@ const KubectlExecutionMessage: FC<{
                         {Math.round(
                             (new Date(currentExecution.completedTimestamp).getTime() -
                                 new Date(currentExecution.startedTimestamp).getTime()) /
-                                1000
+                            1000
                         )}
                         s
                     </div>
