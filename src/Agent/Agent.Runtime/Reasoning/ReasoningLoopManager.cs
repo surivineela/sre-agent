@@ -44,9 +44,10 @@ public class ReasoningLoopManager : IReasoningLoopManager
     public async IAsyncEnumerable<RunResult<AgentContext>> AppendNewMessageStreamingAsync(AgentContext context, ChatMessage msg, CancellationToken cancellationToken = default)
     {
         var loop = await GetOrCreateReasoningLoopAsync(context);
-        var results = loop.AppendNewChatMessageStreamAsync(msg);
+        var results = loop.AppendNewChatMessageStreamAsync(msg, cancellationToken);
         await foreach (var result in results.WithCancellation(cancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             yield return result;
         }
     }
@@ -77,9 +78,11 @@ public class ReasoningLoopManager : IReasoningLoopManager
 
     public void CancelCurrentOperation(AgentContext context)
     {
-        if (_reasoningLoops.TryGetValue(context.ThreadId, out var loop))
+        if (_reasoningLoops.TryRemove(context.ThreadId, out var loop))
         {
             loop.CancelCurrentOperation();
+            // Dispose the loop since it's no longer needed
+            loop.Dispose();
         }
         else
         {

@@ -83,8 +83,9 @@ public interface IAgentInboundCommunicationService
     /// Processes a user message and returns a stream of updates as the response is generated.
     /// </summary>
     /// <param name="threadMessage"></param>
+    /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    IAsyncEnumerable<ChatResponseUpdate> ProcessUserMessageStreamAsync(ThreadMessage threadMessage);
+    IAsyncEnumerable<ChatResponseUpdate> ProcessUserMessageStreamAsync(ThreadMessage threadMessage, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Processes a user's feedback on a message, which can be positive or negative.

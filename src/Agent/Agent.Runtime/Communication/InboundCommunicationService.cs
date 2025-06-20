@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using Agent.Core.Configuration;
@@ -271,7 +272,9 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         }
     }
 
-    public async IAsyncEnumerable<ChatResponseUpdate> ProcessUserMessageStreamAsync(ThreadMessage threadMessage)
+    public async IAsyncEnumerable<ChatResponseUpdate> ProcessUserMessageStreamAsync(
+        ThreadMessage threadMessage, 
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         if (_useAgentFramwork)
         {
@@ -287,13 +290,15 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             var streamingResult = _reasoningLoopManager.AppendNewMessageStreamingAsync(
                 context: agentFrameworkContext!,
                 msg: new ChatMessage(ChatRole.User, threadMessage.Message),
-                cancellationToken: default);
+                cancellationToken: cancellationToken);
 
             Guid streamedResponseMessageId = Guid.NewGuid();
             if (streamingResult != null)
             {
-                await foreach (var response in streamingResult)
+                await foreach (var response in streamingResult.WithCancellation(cancellationToken))
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    
                     if (response.IsCancellationRequested)
                     {
                         ChatResponseUpdate cancellationUpdate = new ChatResponseUpdate(ChatRole.System, "Message processing was cancelled.");

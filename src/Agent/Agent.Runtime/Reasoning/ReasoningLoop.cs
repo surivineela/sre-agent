@@ -170,10 +170,21 @@ public class ReasoningLoop : IDisposable
     }
 
     // streaming methods
-    public async IAsyncEnumerable<RunResult<AgentContext>> AppendNewChatMessageStreamAsync(ChatMessage msg)
+    public async IAsyncEnumerable<RunResult<AgentContext>> AppendNewChatMessageStreamAsync(ChatMessage msg, CancellationToken externalCancellationToken = default)
     {
-        RefreshUserCancellationTokenSource();
-        var cancellationToken = _userCancellationTokenSource.Token;
+        // Use external token if provided, otherwise create our own
+        CancellationToken cancellationToken;
+        if (externalCancellationToken != default)
+        {
+            cancellationToken = externalCancellationToken;
+            _logger.LogInternalInformation("Using external cancellation token for streaming");
+        }
+        else
+        {
+            RefreshUserCancellationTokenSource();
+            cancellationToken = _userCancellationTokenSource.Token;
+            _logger.LogInternalInformation("Using internal cancellation token for streaming");
+        }
 
         // TODO: use queue system to iterate over events and *actually* do something with them before returning all events to user
         if (await _msgCh.Writer.WaitToWriteAsync(cancellationToken))
@@ -193,10 +204,19 @@ public class ReasoningLoop : IDisposable
         }
     }
 
-    public async IAsyncEnumerable<RunResult<AgentContext>> AppendFunctionCallMessagesStreamAsync(List<ChatMessage> msgs)
+    public async IAsyncEnumerable<RunResult<AgentContext>> AppendFunctionCallMessagesStreamAsync(List<ChatMessage> msgs, CancellationToken externalCancellationToken = default)
     {
-        RefreshUserCancellationTokenSource();
-        var cancellationToken = _userCancellationTokenSource.Token;
+        // Use external token if provided, otherwise create our own
+        CancellationToken cancellationToken;
+        if (externalCancellationToken != default)
+        {
+            cancellationToken = externalCancellationToken;
+        }
+        else
+        {
+            RefreshUserCancellationTokenSource();
+            cancellationToken = _userCancellationTokenSource.Token;
+        }
 
         if (await _msgCh.Writer.WaitToWriteAsync(cancellationToken))
         {
@@ -215,10 +235,19 @@ public class ReasoningLoop : IDisposable
         }
     }
 
-    public async IAsyncEnumerable<RunResult<AgentContext>> AppendNewApprovalMessageStreamAsync(Approval approval)
+    public async IAsyncEnumerable<RunResult<AgentContext>> AppendNewApprovalMessageStreamAsync(Approval approval, CancellationToken externalCancellationToken = default)
     {
-        RefreshUserCancellationTokenSource();
-        var cancellationToken = _userCancellationTokenSource.Token;
+        // Use external token if provided, otherwise create our own
+        CancellationToken cancellationToken;
+        if (externalCancellationToken != default)
+        {
+            cancellationToken = externalCancellationToken;
+        }
+        else
+        {
+            RefreshUserCancellationTokenSource();
+            cancellationToken = _userCancellationTokenSource.Token;
+        }
 
         if (await _msgCh.Writer.WaitToWriteAsync(cancellationToken))
         {
@@ -468,7 +497,9 @@ public class ReasoningLoop : IDisposable
             yield break;
         }
 
-        while (_msgCh.Reader.TryRead(out var reasoningLoopMessage))
+        try
+        {
+            while (_msgCh.Reader.TryRead(out var reasoningLoopMessage))
         {
             if (_context.ContextState != ContextStateEnum.Processing)
             {
@@ -614,8 +645,11 @@ public class ReasoningLoop : IDisposable
                 _rootSpan = null;
             }
         }
-
-        _semaphore.Release();
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
     }
 
     private async Task<ReasoningLoopIterationResult> RunInternalAsync(
@@ -1458,6 +1492,8 @@ public class ReasoningLoop : IDisposable
     {
         try
         {
+            // Set the cancellation token for plugins to use
+            ToolStatic.AsyncLocalCancellationToken.Value = cancellationToken;
             var functionResult = await aiTool.InvokeAsync(new AIFunctionArguments(functionCall.Arguments), cancellationToken);
             var result = new FunctionResultContent(functionCall.CallId, functionResult);
             var functionCallMessage = new ChatMessage(ChatRole.Tool, [result]);
@@ -1777,6 +1813,7 @@ public class ReasoningLoop : IDisposable
         try
         {
             ToolStatic.AsyncLocalThreadId.Value = _context.ThreadId;
+            ToolStatic.AsyncLocalCancellationToken.Value = cancellationToken;
             return await toolCall.Tool.InvokeAsync(new AIFunctionArguments(toolCall.FunctionCall.Arguments), cancellationToken);
         }
         catch (Exception ex)

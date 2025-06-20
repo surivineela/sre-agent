@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Text.Json;
+using Agent.Core;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Logging;
@@ -86,7 +87,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         return await _sinkService.SinkAgentMessageAsync(threadId, "Approval Request for Processing Azure SRE Agent Request", true, approval);
     }
 
-    public async Task AppendAgentStreamMessage(Guid threadId, string message, StreamMessageType type, Guid? messageId = null)
+    public async Task AppendAgentStreamMessage(Guid threadId, string message, StreamMessageType type, Guid? messageId = null, CancellationToken cancellationToken = default)
     {
         if (threadId == Guid.Empty)
         {
@@ -95,11 +96,26 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
 
         try
         {
+            // If no cancellation token provided, try to get it from AsyncLocal (set during tool execution)
+            if (cancellationToken == default && ToolStatic.AsyncLocalCancellationToken.Value != default)
+            {
+                cancellationToken = ToolStatic.AsyncLocalCancellationToken.Value;
+                _logger.LogInternalInformation("Using AsyncLocal cancellation token for streaming message to thread {ThreadId}", threadId);
+            }
+            
+            // Check for cancellation before streaming
+            cancellationToken.ThrowIfCancellationRequested();
+            
             // Use the streaming service abstraction to send the message
-            await _streamingService.StreamMessageAsync(threadId, message, type, messageId);
+            await _streamingService.StreamMessageAsync(threadId, message, type, messageId, cancellationToken);
 
             _logger.LogExternalInformation("Successfully sent direct stream message for thread {ThreadId} with type {Type}",
                 threadId, type);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInternalInformation("Streaming cancelled for thread {ThreadId}", threadId);
+            // Don't rethrow - cancellation is expected
         }
         catch (Exception ex)
         {

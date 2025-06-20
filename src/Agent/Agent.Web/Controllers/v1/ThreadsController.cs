@@ -240,7 +240,7 @@ namespace Agent.Web.Controllers.v1
                     UserId: request.UserId,
                     DisplayName: request.DisplayName,
                     Timestamp: DateTime.UtcNow
-                ));
+                ), HttpContext.RequestAborted);
             } catch (Exception ex) {
                 Response.StatusCode = 500;
                 var errorResponse = new { Message = "An unexpected error occurred. Please try again later." };

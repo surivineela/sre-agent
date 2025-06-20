@@ -27,10 +27,16 @@ namespace Agent.Web.Services
             _logger = logger;
         }
 
-        public async Task StreamMessageAsync(Guid threadId, string message, StreamMessageType type, Guid? messageId = null)
+
+        public async Task StreamMessageAsync(Guid threadId, string message, StreamMessageType type, Guid? messageId = null, CancellationToken cancellationToken = default)
         {
             try
             {
+                // Check for cancellation before processing
+                cancellationToken.ThrowIfCancellationRequested();
+                
+                _logger.LogInternalInformation("Streaming message for thread {ThreadId} with type {Type}", threadId, type);
+                
                 // Create a ChatResponseUpdate with the message and type metadata
                 var streamMessage = new ChatResponseUpdate
                 {
@@ -46,18 +52,21 @@ namespace Agent.Web.Services
                     }
                 };
 
-                // Send directly to SignalR clients
                 await _hubContext.Clients.All.MessageUpdate(streamMessage);
 
                 _logger.LogInternalInformation("Successfully streamed message for thread {ThreadId} with type {Type}",
                     threadId, type);
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInternalInformation("Streaming cancelled for thread {ThreadId}", threadId);
+                // Don't rethrow cancellation - it's expected
             }
             catch (Exception ex)
             {
                 _logger.LogInternalError(ex, "Failed to stream message for thread {ThreadId} with type {Type}",
                     threadId, type);
                 // Don't rethrow - streaming failures should not break the tool call
-                // The message is already persisted to database via AppendAgentImageMessage
             }
         }
     }

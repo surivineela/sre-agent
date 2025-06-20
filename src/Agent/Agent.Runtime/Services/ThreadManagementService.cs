@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel.DataAnnotations;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using Agent.Core.Helpers;
@@ -126,7 +127,9 @@ public class ThreadManagementService(
 
         return thread;
     }
-    public async IAsyncEnumerable<ChatResponseUpdate> CreateUserInitiatedThreadStream(CreateThreadRequest request)
+    public async IAsyncEnumerable<ChatResponseUpdate> CreateUserInitiatedThreadStream(
+        CreateThreadRequest request, 
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var threadId = Guid.NewGuid();
         var messageId = Guid.NewGuid();
@@ -228,10 +231,11 @@ public class ThreadManagementService(
             UserId: request.StartMessage.UserId,
             DisplayName: request.StartMessage.DisplayName,
             Timestamp: DateTime.UtcNow
-        ));
+        ), cancellationToken);
 
- await foreach (var update in response)
+        await foreach (var update in response.WithCancellation(cancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             yield return update;
         }
     }
