@@ -4,6 +4,7 @@ export enum IncidentManagementPlatform {
     Disconnected = 'Disconnected',
     PagerDuty = 'PagerDuty',
     AzMonitor = 'AzMonitor',
+    Icm = 'Icm',
 }
 
 export interface IncidentManagementFormValues {
@@ -20,6 +21,9 @@ export interface IncidentManagementFormProps {
     loadFailure?: string;
     saving?: boolean;
     saveFailure?: string;
+    armUrl?: string;
+    managedIdentityResourceName?: string;
+    tenantId?: string;
 }
 
 export interface IncidentHandler {

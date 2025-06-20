@@ -11,16 +11,20 @@ import {
     Dropdown,
     Field,
     Input,
+    Link,
     MessageBar,
     Option,
     Spinner,
+    Text,
 } from '@fluentui/react-components';
 import { CheckmarkCircle16Filled } from '@fluentui/react-icons';
 import { FC, useCallback, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { FirstPartyHelper } from '../../Common/Helpers/FirstPartyHelper';
 import {
     AzMonitorResources,
+    IcMResources,
     IncidentManagementPlatformResources,
     IncidentManagementResources,
     PagerDutyResources,
@@ -37,6 +41,9 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
     loadFailure,
     saving,
     disconnect,
+    armUrl,
+    managedIdentityResourceName,
+    tenantId,
 }: IncidentManagementFormProps) => {
     const intl = useIntl();
     const styles = useSettingsStyles();
@@ -54,13 +61,17 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
 
     const { isIncidentManagementConnected, hasFilters } = useIncidentManagementConnectivity(isPagerDutySetUp);
 
-    const incidentPlatformDropdownOptions = useMemo(
-        () => [
+    const incidentPlatformDropdownOptions = useMemo(() => {
+        const options = [
             { key: IncidentManagementPlatform.PagerDuty, text: intl.formatMessage(IncidentManagementPlatformResources.pagerDuty) },
             { key: IncidentManagementPlatform.AzMonitor, text: intl.formatMessage(IncidentManagementPlatformResources.azMonitor) },
-        ],
-        [intl]
-    );
+        ];
+        const agentTenantId = tenantId ?? '';
+        if (FirstPartyHelper.isAmeTenant(agentTenantId)) {
+            options.push({ key: IncidentManagementPlatform.Icm, text: intl.formatMessage(IncidentManagementPlatformResources.icm) });
+        }
+        return options;
+    }, [intl, tenantId]);
 
     const selectedPlatformDisplayName = useMemo(() => {
         const selectedPlatform = incidentPlatformDropdownOptions.find(option => option.key === values.platform);
@@ -89,6 +100,13 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
             };
         }
 
+        if (initialValues.platform === IncidentManagementPlatform.Icm) {
+            return {
+                disconnectConfirmationTitle: intl.formatMessage(IcMResources.disconnectConfirmationTitle),
+                disconnectConfirmationMessage: intl.formatMessage(IcMResources.disconnectConfirmationMessage),
+            };
+        }
+
         return {
             disconnectConfirmationTitle: '',
             disconnectConfirmationMessage: '',
@@ -101,25 +119,28 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
 
     return (
         <>
-            {!loading && values.platform === IncidentManagementPlatform.PagerDuty && !isSetupScenario && isIncidentManagementConnected && (
-                <MessageBar style={{ maxWidth: 1000, marginBottom: 16 }}>
-                    {intl.formatMessage(
-                        hasFilters
-                            ? IncidentManagementResources.setUpInfoBanner
-                            : IncidentManagementResources.setUpInfoBannerWithoutHandlers
-                    )}
-                    <Button
-                        appearance="secondary"
-                        size="medium"
-                        style={{ marginRight: 10, marginTop: 10, marginBottom: 10 }}
-                        onClick={() => {
-                            handleGoToIncidentManagement();
-                        }}
-                    >
-                        {intl.formatMessage(IncidentManagementResources.goToIncidentManagement)}
-                    </Button>
-                </MessageBar>
-            )}
+            {!loading &&
+                (values.platform === IncidentManagementPlatform.PagerDuty || values.platform === IncidentManagementPlatform.Icm) &&
+                !isSetupScenario &&
+                isIncidentManagementConnected && (
+                    <MessageBar style={{ maxWidth: 1000, marginBottom: 16 }}>
+                        {intl.formatMessage(
+                            hasFilters
+                                ? IncidentManagementResources.setUpInfoBanner
+                                : IncidentManagementResources.setUpInfoBannerWithoutHandlers
+                        )}
+                        <Button
+                            appearance="secondary"
+                            size="medium"
+                            style={{ marginRight: 10, marginTop: 10, marginBottom: 10 }}
+                            onClick={() => {
+                                handleGoToIncidentManagement();
+                            }}
+                        >
+                            {intl.formatMessage(IncidentManagementResources.goToIncidentManagement)}
+                        </Button>
+                    </MessageBar>
+                )}
             <div style={styles.generalSettingsHeader}>{intl.formatMessage(SettingsTabResources.incidentPlatform)}</div>
             <div>
                 {loading ? (
@@ -207,33 +228,6 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                                         contentAfter={isValidating && !isSubmitting ? <Spinner size={'tiny'} /> : null}
                                     />
                                 </Field>
-                                {isSetupScenario && (
-                                    <>
-                                        <Field
-                                            id="createDefaultHandlerField"
-                                            label={intl.formatMessage(IncidentManagementResources.quickstartHandler)}
-                                            orientation="horizontal"
-                                            style={{ maxWidth: '1000px', marginTop: 20 }}
-                                        >
-                                            <Checkbox
-                                                id="createDefaultHandler"
-                                                checked={formikProps.values.createDefaultHandler}
-                                                onChange={(_event, newValue) => {
-                                                    setFieldTouched('createDefaultHandler', true, false);
-                                                    setFieldValue('createDefaultHandler', !!newValue?.checked);
-                                                }}
-                                                disabled={saving}
-                                                label={intl.formatMessage(IncidentManagementResources.quickstartHandlerDescription)}
-                                                labelPosition="after"
-                                            />
-                                        </Field>
-                                        {!formikProps.values.createDefaultHandler && (
-                                            <MessageBar style={{ maxWidth: 1000, marginTop: 16, marginBottom: 16 }}>
-                                                {intl.formatMessage(IncidentManagementResources.quickstartHandlerInfoMessage)}
-                                            </MessageBar>
-                                        )}
-                                    </>
-                                )}
                             </>
                         )}
 
@@ -252,6 +246,42 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                                     <div style={styles.connectedWrapperStyle}>
                                         <img src="./success.svg" alt="Connected" style={styles.connectedImageStyle} />
                                         <span>{intl.formatMessage(AzMonitorResources.connectedMessage)}</span>
+                                    </div>
+                                )}
+                            </>
+                        )}
+
+                        {values.platform === IncidentManagementPlatform.Icm && (
+                            <>
+                                <div style={styles.azMonitorWrapperStyle}>
+                                    <img src="./IcM.svg" alt="IcM" style={styles.azMonitorLogoStyle} />
+                                    <span style={styles.azMonitorNameStyle}>
+                                        {intl.formatMessage(IncidentManagementPlatformResources.icm)}
+                                    </span>
+                                </div>
+                                <div style={styles.incidentManagementDescriptionStyle}>
+                                    <Text block>{intl.formatMessage(IcMResources.connectionDescription)}</Text>
+                                    <Text block>
+                                        {intl.formatMessage(IcMResources.allowListDescription)}
+                                        &nbsp;&nbsp;
+                                        <Link
+                                            href="https://eng.ms/docs/products/icm/developers/authorizingcertificatesforprogrammaticaccesstoicm"
+                                            target="_blank"
+                                        >
+                                            {intl.formatMessage(IcMResources.allowListLink)}
+                                        </Link>
+                                    </Text>
+                                    <Text block>
+                                        {intl.formatMessage(IcMResources.managedIdentity)}:{' '}
+                                        <Link href={armUrl} target="_blank">
+                                            {managedIdentityResourceName}
+                                        </Link>
+                                    </Text>
+                                </div>
+                                {!isSetupScenario && (
+                                    <div style={styles.connectedWrapperStyle}>
+                                        <img src="./success.svg" alt="Connected" style={styles.connectedImageStyle} />
+                                        <span>{intl.formatMessage(IcMResources.connectedMessage)}</span>
                                     </div>
                                 )}
                             </>
@@ -303,6 +333,39 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                                     {intl.formatMessage(SreAgentResources.cancel)}
                                 </Button>
                             )}
+
+                            {(values.platform === IncidentManagementPlatform.PagerDuty ||
+                                values.platform === IncidentManagementPlatform.Icm) &&
+                                isSetupScenario && (
+                                    <>
+                                        {/* Once have CheckConnectivity for IcM, we can remove this check */}
+                                        {values.platform === IncidentManagementPlatform.PagerDuty && (
+                                            <Field
+                                                id="createDefaultHandlerField"
+                                                label={intl.formatMessage(IncidentManagementResources.quickstartHandler)}
+                                                orientation="horizontal"
+                                                style={{ maxWidth: '1000px', marginTop: 20 }}
+                                            >
+                                                <Checkbox
+                                                    id="createDefaultHandler"
+                                                    checked={formikProps.values.createDefaultHandler}
+                                                    onChange={(_event, newValue) => {
+                                                        setFieldTouched('createDefaultHandler', true, false);
+                                                        setFieldValue('createDefaultHandler', !!newValue?.checked);
+                                                    }}
+                                                    disabled={saving}
+                                                    label={intl.formatMessage(IncidentManagementResources.quickstartHandlerDescription)}
+                                                    labelPosition="after"
+                                                />
+                                            </Field>
+                                        )}
+                                        {!formikProps.values.createDefaultHandler && (
+                                            <MessageBar style={{ maxWidth: 1000, marginTop: 16, marginBottom: 16 }}>
+                                                {intl.formatMessage(IncidentManagementResources.quickstartHandlerInfoMessage)}
+                                            </MessageBar>
+                                        )}
+                                    </>
+                                )}
 
                             {!isSetupScenario && (
                                 <Dialog modalType="alert">

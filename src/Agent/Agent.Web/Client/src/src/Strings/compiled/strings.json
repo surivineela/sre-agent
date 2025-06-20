@@ -83,6 +83,12 @@
       "value": "Incident handler"
     }
   ],
+  "0D+7fr": [
+    {
+      "type": 0,
+      "value": "Microsoft IcM"
+    }
+  ],
   "0G14fL": [
     {
       "type": 0,
@@ -1785,6 +1791,12 @@
       "value": "Website Contributor/Operator"
     }
   ],
+  "UZMdQH": [
+    {
+      "type": 0,
+      "value": "Managed Identity"
+    }
+  ],
   "Udeffr": [
     {
       "type": 0,
@@ -1831,6 +1843,12 @@
     {
       "type": 0,
       "value": "Application Insights Component Contributor"
+    }
+  ],
+  "VwHnVH": [
+    {
+      "type": 0,
+      "value": "This will permanently delete the connection to IcM. The agent will no longer be able to manage incidents. Are you sure you want to delete this connection?"
     }
   ],
   "VzzYJk": [
@@ -2463,6 +2481,12 @@
       "value": "Fired At"
     }
   ],
+  "if9CEr": [
+    {
+      "type": 0,
+      "value": "Learn How to"
+    }
+  ],
   "irFBKn": [
     {
       "type": 0,
@@ -2583,6 +2607,12 @@
       "value": "Choose incident type"
     }
   ],
+  "mf3k9F": [
+    {
+      "type": 0,
+      "value": "IcM is added."
+    }
+  ],
   "mgYBYo": [
     {
       "type": 0,
@@ -2667,10 +2697,22 @@
       "value": "Scope"
     }
   ],
+  "o7TUwc": [
+    {
+      "type": 0,
+      "value": "Connect to ICM so that the Agent can automatically listen and respond to your Incidents."
+    }
+  ],
   "oH9YKC": [
     {
       "type": 0,
       "value": "To help monitor and respond to activities and incidents in your Azure resources, the agent needs access to the specific subscriptions, resources groups, and services that you allow."
+    }
+  ],
+  "oTNrPz": [
+    {
+      "type": 0,
+      "value": "Allowlist below Managed Identity on your ICM Service Team."
     }
   ],
   "oUWADl": [
@@ -3009,6 +3051,12 @@
     {
       "type": 0,
       "value": "Start chat"
+    }
+  ],
+  "vAWzLN": [
+    {
+      "type": 0,
+      "value": "Disconnect IcM?"
     }
   ],
   "vCAhII": [

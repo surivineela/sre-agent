@@ -518,6 +518,7 @@ export const IncidentManagementPlatformResources = defineMessages({
     disconnected: { defaultMessage: 'Choose a platform', id: '/2OpVO' },
     pagerDuty: { defaultMessage: 'PagerDuty', id: '6UyZlH' },
     azMonitor: { defaultMessage: 'Azure Monitor', id: '7Nz2Ev' },
+    icm: { defaultMessage: 'Microsoft IcM', id: '0D+7fr' },
 });
 
 export const IncidentManagementNotificationResources = defineMessages({
@@ -670,6 +671,32 @@ export const AzMonitorResources = defineMessages({
         id: 'w/UZrq',
     },
     connectedMessage: { defaultMessage: 'Azure Monitor added', id: '14xQ4i' },
+});
+
+export const IcMResources = defineMessages({
+    disconnectConfirmationTitle: { defaultMessage: 'Disconnect IcM?', id: 'vAWzLN' },
+    disconnectConfirmationMessage: {
+        defaultMessage:
+            'This will permanently delete the connection to IcM. The agent will no longer be able to manage incidents. Are you sure you want to delete this connection?',
+        id: 'VwHnVH',
+    },
+    connectedMessage: { defaultMessage: 'IcM is added.', id: 'mf3k9F' },
+    connectionDescription: {
+        defaultMessage: 'Connect to ICM so that the Agent can automatically listen and respond to your Incidents.',
+        id: 'o7TUwc',
+    },
+    allowListDescription: {
+        defaultMessage: 'Allowlist below Managed Identity on your ICM Service Team.',
+        id: 'oTNrPz',
+    },
+    allowListLink: {
+        defaultMessage: 'Learn How to',
+        id: 'if9CEr',
+    },
+    managedIdentity: {
+        defaultMessage: 'Managed Identity',
+        id: 'UZMdQH',
+    },
 });
 
 export const SettingsTabResources = defineMessages({

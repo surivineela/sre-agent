@@ -26,6 +26,8 @@ const getIncidentManagementPlatform = (agent?: ArmObj<Agent>): IncidentManagemen
             return IncidentManagementPlatform.PagerDuty;
         case IncidentManagementType.AzMonitor:
             return IncidentManagementPlatform.AzMonitor;
+        case IncidentManagementType.Icm:
+            return IncidentManagementPlatform.Icm;
         default:
             return IncidentManagementPlatform.Disconnected;
     }
@@ -53,6 +55,11 @@ const generateIncidentManagementConfiguration = (formValues: IncidentManagementF
             return {
                 type: IncidentManagementType.AzMonitor,
                 connectionName: 'azmonitor',
+            };
+        case IncidentManagementPlatform.Icm:
+            return {
+                type: IncidentManagementType.Icm,
+                connectionName: 'icm',
             };
         default:
             throw new Error(`Unknown incident management platform: ${formValues.platform}`);
@@ -216,6 +223,7 @@ export function useIncidentManagement(resourceId: string) {
                             intl.formatMessage(IncidentManagementNotificationResources.saveSucceeded)
                         );
                     } else {
+                        //To do, once adding /CheckConnectivity for IcM, Will include Icm here as well
                         if (formValues.platform === IncidentManagementPlatform.PagerDuty && formValues.createDefaultHandler) {
                             pollForConnectivity(environmentContext.sreAgentEndpoint, azPortalContext.log.bind(azPortalContext)).then(
                                 isConnected => {
@@ -331,5 +339,6 @@ export function useIncidentManagement(resourceId: string) {
         validate,
         save,
         disconnect,
+        agent,
     };
 }

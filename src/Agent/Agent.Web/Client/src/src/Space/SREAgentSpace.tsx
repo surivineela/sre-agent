@@ -77,7 +77,9 @@ const TabsListWrapper: FC = () => {
 
     const isIncidentManagementEnabled = useMemo(() => {
         return (
-            agent?.properties?.incidentManagementConfiguration?.type === IncidentManagementType.PagerDuty || isIncidentManagementConnected
+            agent?.properties?.incidentManagementConfiguration?.type === IncidentManagementType.PagerDuty ||
+            agent?.properties?.incidentManagementConfiguration?.type === IncidentManagementType.Icm ||
+            isIncidentManagementConnected
         );
     }, [agent?.properties?.incidentManagementConfiguration?.type, isIncidentManagementConnected]);
 
