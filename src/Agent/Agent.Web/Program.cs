@@ -325,7 +325,7 @@ public class Program
             .AddTransient<RCAContainerAppRevisionPluginDefinition>()
             .AddSingleton<IKustoDashboardPlugin, KustoDashboardPlugin>()
             .AddTransient<RCAContainerAppResourceCheckPluginDefinition>()
-            .AddTransient<GenevaActionsPluginDefinition>()
+            
 
             .AddTransient<IMetaAgentContainerAppsRemediationPlugin, ContainerAppsRemediationPlugin>()
             .AddTransient<IMetaAgentManagedIdentityMigrationPlugin, ManagedIdentityMigrationPlugin>()
@@ -345,8 +345,7 @@ public class Program
             .AddTransient<IAzureMonitorMetricsPlugin, AzureMonitorMetricsPlugin>()
             .AddTransient<IArmPlugin, ArmPlugin>()
             .AddTransient<IAPIManagementPlugin, APIManagementPlugin>()
-            .AddTransient<IGenevaActionsPlugin, GenevaActionsPlugin>()
-            .AddTransient<IICMPlugin, ICMPlugin>()
+
 
             //.AddSingleton<AppServiceRemediationAgentFactory>()
             .AddSingleton<KubernetesAgentFactory>()
@@ -482,6 +481,10 @@ public class Program
             builder.Services.AddSingleton<IAgentsFactory, FirstPartyAgentsFactory>();
             builder.Services.AddSingleton<IToolsRepository, FirstPartyToolsRepository>();
             builder.Services.AddSingleton<ITitleGenerationService, FirstPartyTitleGenerationService>();
+            builder.Services.AddTransient<IGenevaActionsPlugin, GenevaActionsPlugin>()
+                .AddTransient<GenevaActionsPluginDefinition>()
+                .AddTransient<IICMPlugin, ICMPlugin>()
+                .AddSingleton<OneBranchApprovalService>();
             builder.RegisterFirstPartySubAgentsDependencies();
             builder.RegisterFirstPartyAppSettings();
         }
