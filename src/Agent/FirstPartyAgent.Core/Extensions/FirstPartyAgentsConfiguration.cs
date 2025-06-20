@@ -30,6 +30,8 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
 using IKustoPluginClient = FirstPartyAgent.Core.Plugins.Interfaces.IKustoPluginClient;
+using ICMWorkflowSettings = FirstPartyAgent.Core.Configuration.ICMWorkflowSettings;
+using Agent.Core.Services;
 
 namespace FirstPartyAgent.Core.Extensions
 {

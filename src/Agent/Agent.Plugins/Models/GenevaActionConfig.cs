@@ -20,6 +20,8 @@ public class GenevaActionConfig : GenevaActionConfigBase
     public bool IsWriteAction { get; set; }
     [Required]
     public bool IsAllowedOnExternalSubs { get; set; }
+    public bool IsApprovalNeeded { get; set; }
+    public Guid? ServiceTreeId { get; set; }
 }
 
 public class GenevaActionConfigBase

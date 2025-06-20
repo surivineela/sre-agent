@@ -18,6 +18,8 @@ namespace Agent.Core.Configuration
         public GenevaActionsSettings GenevaActions { get; set; } = new();
 
         public ICMWorkflowSettings ICMWorkflows { get; set; } = new();
+        public AgentHelperSettings AgentHelper { get; set; } = new();
+        public OneBranchApprovalServiceSettings OneBranchApprovalService { get; set; } = new();
     }
 }
 

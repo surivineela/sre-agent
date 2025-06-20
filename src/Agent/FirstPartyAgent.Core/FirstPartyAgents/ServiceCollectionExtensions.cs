@@ -15,6 +15,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using ICMWorkflowSettings = FirstPartyAgent.Core.Configuration.ICMWorkflowSettings;
+
 namespace FirstPartyAgent.Core.FirstPartyAgents;
 
 // This class is responsible for all kind of dependency injections required for the first party sub agents.

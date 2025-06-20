@@ -12,6 +12,7 @@ using Azure.Identity;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using Azure.Core;
+using System.Diagnostics;
 
 namespace Agent.Core.Services;
 public class OneBranchApprovalService
@@ -22,7 +23,6 @@ public class OneBranchApprovalService
     private HttpClient _httpClient;
 
     public bool IsEnabled = false;
-    private ManagedIdentityCredential _managedIdentityCredential;
 
     private TimeSpan maxPollingTime = TimeSpan.FromDays(7); 
     private TimeSpan initialDelay = TimeSpan.FromMinutes(1);
@@ -56,14 +56,37 @@ public class OneBranchApprovalService
 
         IsEnabled = true;
 
-        if (string.IsNullOrEmpty(_agentHelperSettings.ManagedIdentityClientId))
+
+        if (Debugger.IsAttached)
         {
-            throw new ArgumentException("ManagedIdentityClientId must be set in AgentHelperSettings.");
+            var options = new DefaultAzureCredentialOptions
+            {
+                ExcludeEnvironmentCredential = false,
+                ExcludeManagedIdentityCredential = true,
+                ExcludeWorkloadIdentityCredential = false,
+                ExcludeSharedTokenCacheCredential = false,
+                ExcludeVisualStudioCredential = false,
+                ExcludeVisualStudioCodeCredential = false,
+                ExcludeAzureCliCredential = false,
+                ExcludeInteractiveBrowserCredential = false,
+                ExcludeAzurePowerShellCredential = false
+            };
+
+            var credential = new DefaultAzureCredential(options);
+            _httpClient = new HttpClient(new TokenCredentialHttpClientHandler(credential, _agentHelperSettings.Resource));
         }
+        else
+        {
 
-        _managedIdentityCredential = new ManagedIdentityCredential(_agentHelperSettings.ManagedIdentityClientId);
+            if (string.IsNullOrEmpty(_agentHelperSettings.ManagedIdentityClientId))
+            {
+                throw new ArgumentException("ManagedIdentityClientId must be set in AgentHelperSettings.");
+            }
 
-        _httpClient = new HttpClient(new ManagedIdentityHttpClientHandler(_managedIdentityCredential, _agentHelperSettings.Resource));
+            var managedIdentityCredential = new ManagedIdentityCredential(_agentHelperSettings.ManagedIdentityClientId);
+
+            _httpClient = new HttpClient(new TokenCredentialHttpClientHandler(managedIdentityCredential, _agentHelperSettings.Resource));
+        }
 
         if (!string.IsNullOrEmpty(_agentHelperSettings.Endpoint))
         {
@@ -178,12 +201,12 @@ public class OneBranchApprovalService
     }
 
 
-    private class ManagedIdentityHttpClientHandler : HttpClientHandler
+    private class TokenCredentialHttpClientHandler : HttpClientHandler
     {
-        private readonly ManagedIdentityCredential _credential;
+        private readonly TokenCredential _credential;
         private readonly string _scope;
 
-        public ManagedIdentityHttpClientHandler(ManagedIdentityCredential credential, string scope)
+        public TokenCredentialHttpClientHandler(TokenCredential credential, string scope)
         {
             _credential = credential ?? throw new ArgumentNullException(nameof(credential));
             _scope = scope ?? throw new ArgumentNullException(nameof(scope));
@@ -191,7 +214,7 @@ public class OneBranchApprovalService
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            var tokenRequestContext = new TokenRequestContext(new[] { _scope });
+            var tokenRequestContext = new TokenRequestContext(new[] { _scope + "/.default" });
             var accessToken = await _credential.GetTokenAsync(tokenRequestContext, cancellationToken);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Token);
             return await base.SendAsync(request, cancellationToken);

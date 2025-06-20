@@ -30,29 +30,40 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(configuration));
             }
 
-            var securitySettings = configuration.GetSection("SecuritySettings").Get<SecuritySettings>();
+            var securitySettings = configuration.GetSection("SecuritySettings").Get<SecuritySettings[]>();
 
-            ValidateSecuritySettings(securitySettings);
+            if (securitySettings == null || !securitySettings.Any())
+            {
+                throw new ArgumentException("SecuritySettings must be configured in appsettings.json.", nameof(securitySettings));
+            }
+
+            foreach (var settings in securitySettings)
+            {
+                ValidateSecuritySettings(settings);
+            }
 
             if (isDevelopment)
             {
                 //S2SEventSource.ShowPII = true;
             }
 
+
             services.AddAuthentication(S2SAuthenticationDefaults.AuthenticationScheme)
             .AddMiseWithDefaultAuthentication(configuration, options =>
             {
-                AadInboundPolicyOptions policyOptions = new AadInboundPolicyOptions()
+                foreach (var settings in securitySettings)
                 {
-                    Label = "Default",
-                    Authority = securitySettings.Authority,
-                    TenantId = securitySettings.TenantId,
-                };
-                policyOptions.AuthenticationSchemes.Add("Bearer");
-                policyOptions.ValidAudiences = new List<string>() { securitySettings.ClientId };
-
-                policyOptions.ValidApplicationIds = securitySettings.AllowedAppIds;
-                options.InboundPolicies.Add(policyOptions);
+                    AadInboundPolicyOptions policyOptions = new AadInboundPolicyOptions()
+                    {
+                        Label = settings.ClientId,
+                        Authority = settings.Authority,
+                        TenantId = settings.TenantId,
+                    };
+                    policyOptions.AuthenticationSchemes.Add("Bearer");
+                    policyOptions.ValidAudiences = new List<string>() { settings.ClientId };
+                    policyOptions.ValidApplicationIds = settings.AllowedAppIds;
+                    options.InboundPolicies.Add(policyOptions);
+                }
             });
         }
 

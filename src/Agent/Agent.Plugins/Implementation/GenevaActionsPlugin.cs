@@ -1,5 +1,8 @@
 using System;
+using System.Text.Json.Serialization;
 using Agent.Core.Configuration;
+using Agent.Core.Models;
+using Agent.Core.Services;
 using Agent.Logging;
 using Agent.Plugins.IcmPlugin;
 using Agent.Plugins.Interface;
@@ -7,10 +10,11 @@ using Agent.Plugins.Kusto;
 using Agent.Plugins.KustoPlugin;
 using Agent.Plugins.Models;
 using Agent.Plugins.TeamsPlugin;
-using FirstPartyAgent.Common.Configuration;
 using k8s.KubeConfigModels;
 using Microsoft.Azure.Cosmos;
+using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
+using Microsoft.SemanticKernel;
 using Newtonsoft.Json;
 
 namespace Agent.Plugins;
@@ -20,7 +24,6 @@ public class GenevaActionsPlugin : IGenevaActionsPlugin
     private readonly ICMWorkflowClient _icmWorkflowClient;
     private readonly KustoClient _kustoClient;
     private readonly ILogger<GenevaActionsPlugin> _logger;
-    private readonly ITeamsClient _teamsClient;
     private readonly CosmosClient _cosmosDBService;
     private readonly CosmosDBSettings _cosmosDBSettings;
     private readonly GenevaActionsSettings _genevaActionsSettings;
@@ -28,19 +31,27 @@ public class GenevaActionsPlugin : IGenevaActionsPlugin
     private readonly bool _icmWorkflowReadOnly;
 
     private Lazy<Task<List<GenevaActionConfig>>> _lazyGenevaActions;
+    private OneBranchApprovalService _oneBranchApprovalService;
 
-
-    public GenevaActionsPlugin(ICMWorkflowClient icmWorkflowClient, KustoClient kustoPlugin, ILogger<GenevaActionsPlugin> logger, ITeamsClient teamsClient, CosmosClient cosmosDBService, CosmosDBSettings cosmosDBSettings, GenevaActionsSettings genevaActionsSettings, ICMWorkflowSettings iCMWorkflowSettings)
+    public GenevaActionsPlugin(
+        ICMWorkflowClient icmWorkflowClient,
+        KustoClient kustoPlugin,
+        ILogger<GenevaActionsPlugin> logger,
+        CosmosClient cosmosDBService,
+        CosmosDBSettings cosmosDBSettings,
+        GenevaActionsSettings genevaActionsSettings,
+        ICMWorkflowSettings iCMWorkflowSettings,
+        OneBranchApprovalService oneBranchApprovalService)
     {
         _logger = logger;
         _icmWorkflowClient = icmWorkflowClient;
         _kustoClient = kustoPlugin;
-        _teamsClient = teamsClient;
         _cosmosDBService = cosmosDBService;
         _cosmosDBSettings = cosmosDBSettings;
         _genevaActionsSettings = genevaActionsSettings;
         _icmWorkflowReadOnly = iCMWorkflowSettings.ReadOnly;
         _lazyGenevaActions = new Lazy<Task<List<GenevaActionConfig>>>(() => InitializeGenevaActionsConfig());
+        _oneBranchApprovalService = oneBranchApprovalService;
     }
 
     private async Task<List<GenevaActionConfig>> InitializeGenevaActionsConfig()
@@ -51,22 +62,20 @@ public class GenevaActionsPlugin : IGenevaActionsPlugin
 
         try
         {
-            var genevaActionsContainer = _cosmosDBService.GetContainer(_cosmosDBSettings.Docs.Database, _genevaActionsSettings.CosmosDbContainerId);
-            var queryDefinition = new QueryDefinition("SELECT * FROM c");
-            var iterator = genevaActionsContainer.GetItemQueryIterator<GenevaActionsConfigCosmos>(queryDefinition);
+            var genevaActionsContainer = _cosmosDBService
+                .GetContainer(_cosmosDBSettings.Docs.Database, _genevaActionsSettings.CosmosDbContainerId)
+                .GetItemLinqQueryable<AgentFactoryConfigCosmos<GenevaActionsConfigCosmos>>(true);
 
-            var genevaActionsConfig = new List<GenevaActionsConfigCosmos>();
-            while (iterator.HasMoreResults)
+
+            var genevaActionsConfig = await genevaActionsContainer.Where(c => c.Id == "GenevaActionsConfig").ToListAsync();
+
+            if(genevaActionsConfig == null || genevaActionsConfig.Count == 0)
             {
-                var response = await iterator.ReadNextAsync();
-                genevaActionsConfig.AddRange(response);
+                _logger.LogInternalWarning("No Geneva Actions Config found in CosmosDB. Returning empty list.");
+                return allGenevaActions;
             }
 
-            allGenevaActions = genevaActionsConfig
-                .SelectMany(c => c.GenevaActions)
-                .GroupBy(a => a.ActionName)
-                .Select(g => g.First())
-                .ToList();
+            allGenevaActions = genevaActionsConfig[0].Content.GenevaActions;
         }
         catch (Exception ex)
         {
@@ -132,6 +141,53 @@ public class GenevaActionsPlugin : IGenevaActionsPlugin
             return "Success. ICM Workflow Client is in ReadOnly mode.";
         }
 
+        if (_oneBranchApprovalService.IsEnabled && genevaAction.IsApprovalNeeded)
+        {
+            logMessage = $"[execute_geneva_action][{DateTime.UtcNow}] Geneva action requires approval. Creating approval document.";
+            _logger.LogInternalInformation(logMessage);
+
+            try
+            {
+                // Create approval request with detailed information about the action
+                var approvalRequest = new OneBranchApprovalRequest
+                {
+                    CorrelationId = Guid.NewGuid().ToString(),
+                    Title = $"Geneva Action Approval: {actionName}",
+                    RequestDescription = $"Request to execute Geneva Action '{actionName}' with parameters: {JsonConvert.SerializeObject(inputParameters)}",
+                    Submitter = "SRE Agent",
+                    ServiceTreeGuid = genevaAction.ServiceTreeId?.ToString() ?? "00000000-0000-0000-0000-000000000000",
+                    ReleaseApproversAllowed = new List<string> { "AME\\AZURE-ALL-PSV" } // FTE AME account, see https://dev.azure.com/mseng/AzureDevOps/_wiki/wikis/AzureDevOps.wiki/1113/TSG-Azure-Network-Troubleshooting?anchor=security-groups-that-you-need-to-join
+                };
+
+                // Create the approval document
+                var approvalResponse = await _oneBranchApprovalService.CreateApprovalDocumentAsync(approvalRequest);
+
+                logMessage = $"[execute_geneva_action][{DateTime.UtcNow}] Approval document created, please approve {approvalResponse.ApprovalDocumentUri} to continue.";
+                _logger.LogInternalInformation(logMessage);
+
+                // Poll for approval with binary exponential backoff
+                var approvalStatus = await _oneBranchApprovalService.PollForApprovalAsync(approvalResponse.ApprovalDocumentId);
+
+                string status = approvalStatus?.Data?.ApprovalDocumentCompleteDetails?.Action;
+                if (status != "Approve")
+                {
+                    string message = $"Geneva Action execution was rejected by {approvalStatus?.Data?.ApprovalDocumentCompleteDetails?.Principal}. Status: {status}. Comments: {approvalStatus?.Data?.ApprovalDocumentCompleteDetails?.Comments}";
+                    _logger.LogInternalInformation(message);
+                    return message;
+                }
+
+                logMessage = $"[execute_geneva_action][{DateTime.UtcNow}] Geneva Action approved by {approvalStatus?.Data?.ApprovalDocumentCompleteDetails?.Principal}. Proceeding with execution.";
+                _logger.LogInternalInformation(logMessage);
+            }
+            catch (Exception ex)
+            {
+                var errorMessage = $"[execute_geneva_action][{DateTime.UtcNow}] Error in approval workflow: {ex.Message}";
+                _logger.LogInternalWarning(errorMessage);
+                return errorMessage;
+            }
+        }
+
+
         var subscriptionId = inputParameters.ContainsKey("subscriptionId") ? inputParameters["subscriptionId"] : (inputParameters.ContainsKey("subscription") ? inputParameters["subscription"] : null);
         if (!string.IsNullOrWhiteSpace(subscriptionId))
         {
@@ -171,5 +227,38 @@ public class GenevaActionsPlugin : IGenevaActionsPlugin
             }
         }
         return false;
+    }
+
+
+    private class AgentFactoryConfigCosmos<T>
+    {
+        [JsonPropertyName("id")]
+        [JsonProperty("id")]
+        public string Id { get; set; }
+        public T Content { get; set; }
+
+        [JsonPropertyName("_ts")]
+        [JsonProperty("_ts")]
+        public int Timestamp { get; set; }
+
+        [Newtonsoft.Json.JsonIgnore]
+        [System.Text.Json.Serialization.JsonIgnore]
+        public DateTimeOffset Datetime => DateTimeOffset.FromUnixTimeSeconds(Timestamp);
+    }
+
+
+}
+public static class CosmosExtensions
+{
+    public async static Task<List<T>> ToListAsync<T>(this IQueryable<T> queryable)
+    {
+        var iterator = queryable.ToFeedIterator();
+        var results = new List<T>();
+        while (iterator.HasMoreResults)
+        {
+            var response = await iterator.ReadNextAsync();
+            results.AddRange(response);
+        }
+        return results;
     }
 }
