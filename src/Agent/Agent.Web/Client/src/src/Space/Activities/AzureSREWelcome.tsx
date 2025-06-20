@@ -252,6 +252,7 @@ const AzureSREWelcome = ({ threadId, addThread }: AzureSREWelcomeProps) => {
 
     const logicalAppGridItems = useMemo<LogicalAppGridItem[]>(() => {
         return logicalApps.map(logicalApp => ({
+            rscId: logicalApp.resourceId,
             rscName: logicalApp.name ?? '-',
             rscType: logicalApp.properties?.type ?? '-',
             rscSubType: logicalApp.subType,
@@ -281,9 +282,10 @@ const AzureSREWelcome = ({ threadId, addThread }: AzureSREWelcomeProps) => {
     }, []);
 
     const onRenderResourceMap = useCallback(
-        (_item: LogicalAppGridItem) => {
+        (item: LogicalAppGridItem) => {
+            const encodedRscId = encodeURIComponent(item.rscId);
             return (
-                <Link onClick={() => navigate({ ...location, pathname: '/views/resourcegraph' })}>
+                <Link onClick={() => navigate({ ...location, pathname: `/views/resourcegraph/groups/${encodedRscId}` })}>
                     {intl.formatMessage(SreAgentResources.goToMap)}
                 </Link>
             );

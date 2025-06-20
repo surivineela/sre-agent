@@ -12,6 +12,7 @@ import {
 import axios from 'axios';
 import { memo, useContext, useEffect, useState } from 'react';
 import { FormattedMessage } from 'react-intl';
+import { useParams } from 'react-router-dom';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { GraphResources, SreAgentResources } from '../../Strings/SREAgentResources';
@@ -23,6 +24,7 @@ interface IResourceSelectorProps {
 }
 
 const ResourceSelector = ({ onAppGroupUpdate }: IResourceSelectorProps) => {
+    const { groupId: initialGroupId } = useParams();
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
 
     const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
@@ -93,19 +95,22 @@ const ResourceSelector = ({ onAppGroupUpdate }: IResourceSelectorProps) => {
                 setIsSubscriptionLoading(false);
             }
 
-            const selectedSubscription = subscriptions[0];
+            const initialGroupSubscriptionId = initialGroupId?.split('/')[1];
+            const initialGroupSubscription = subscriptions.find(sub => sub.id === initialGroupSubscriptionId);
+            const selectedSubscription =
+                initialGroupSubscriptionId && initialGroupSubscription ? initialGroupSubscription : subscriptions[0];
 
             if (isSubscribed) {
                 setSelectedSubscription(selectedSubscription);
             }
 
-            if (selectedSubscription?.id) {
-                const appGroups = await getAppGroups(subscriptions[0].id);
+            const appGroups = await getAppGroups(selectedSubscription.id);
 
-                if (isSubscribed) {
-                    setAppGroups(appGroups);
-                    setSelectedAppGroup(appGroups[0]);
-                }
+            if (isSubscribed) {
+                setAppGroups(appGroups);
+
+                const initialSelectedAppGroup = appGroups.find(appGroup => appGroup.properties.resourceId[0] === initialGroupId);
+                setSelectedAppGroup(initialSelectedAppGroup ?? appGroups[0]);
             }
 
             if (isSubscribed) {

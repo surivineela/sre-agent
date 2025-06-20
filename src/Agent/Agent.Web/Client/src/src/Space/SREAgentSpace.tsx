@@ -210,6 +210,7 @@ const router = createHashRouter([
             { index: true, element: <Activities /> },
             { path: 'views/settings/:menuItem', element: <Settings /> },
             { path: 'views/settings', element: <Settings /> },
+            { path: 'views/resourcegraph/groups/:groupId', element: <Graph /> },
             { path: 'views/resourcegraph', element: <Graph /> },
             { path: 'views/incidentmanagement', element: <IncidentManagement /> },
             { path: 'views/activities/threads/:threadId', element: <Activities /> },

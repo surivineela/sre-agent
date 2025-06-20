@@ -59,6 +59,7 @@ export interface WelcomeMessageResponse {
 }
 
 export interface LogicalAppGridItem {
+    rscId: string;
     rscName: string;
     rscType: string;
     rscSubType: string;
