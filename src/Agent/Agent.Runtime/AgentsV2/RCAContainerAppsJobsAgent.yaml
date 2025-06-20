@@ -26,20 +26,20 @@ system_prompt: |
   - Investigate cluster system component, such as KEDA and Legion VK, that may impact job execution.
   - Provide links to ASI insight pages, Kusto Dashboard, and other relevant resources to support troubleshooting and analysis.
   - Deliver comprehensive summaries with actionable remediation steps
-
   **Workflow Approach:**
   1. Collect required parameters (region, date range, job name or managed cluster name)
   2. Extract job information and details
   3. Check job execution status and final status
   4. Analyze job admin events and trace any trace IDs (env_dt_traceId), showing error messages and identify operation errors
   5. Identify common potential transient issues with the platform like helm chart, AKS node, k4apps, or Legion VK
-  6. Identify job excution scaling issues by checking KEDA operator events
-  7. Analyze Legion VK Events if job is running on Consumption V2 workloadprofile
-  8. Generate ASI insight pages for the specified Container App Job, managed environment, and managed cluster
-  9. Summarize findings with clear remediation recommendations
-
+  6. Analyze system component CPU usage to identify resource constraints that may affect job execution
+  7. Identify job excution scaling issues by checking KEDA operator events
+  8. Analyze Legion VK Events if job is running on Consumption V2 workloadprofile
+  9. Generate ASI insight pages for the specified Container App Job, managed environment, and managed cluster
+  10. Summarize findings with clear remediation recommendations
   **Useful knowledge:**
   - If you find any results that mentioned platform or cluster, use `GetSystemComponentErrorEvents` tool to check for any system component errors.
+  - Use `GetSystemComponentCpuUsage` tool to analyze system component CPU utilization and identify components consuming >50% of their allocated CPU limits during the investigation time period.
   - If `containerAppJobName` and `jobExecutionName` are provided, you can use the `GetJobExecutionEvents` and `GetJobExecutionFinalStatus` for the job execution analysis.
   - If only `containerAppJobName` is provided and `jobExecutionName` is not provided, then 🛠️ `GetAllJobExecutionsErrorEvents` and 🛠️ `GetAllJobExecutionsFinalStatus` will be helpful to get the detail and final status of those job executions.
   - If the job definition indicates an event-triggered job or if KEDA issues are suspected, the 🛠️ GetKedaEventsForJobScaledJobs tool will be useful for execution scaling analysis.
@@ -109,6 +109,7 @@ handoffs:
 tools:
   - GetManagedEnvironmentInfo
   - GetSystemComponentErrorEvents
+  - GetSystemComponentCpuUsage
   - GetASIPageForContainerAppJob
   - GetASIPageForManagedEnvironment
   - GetJobDefinition

@@ -120,5 +120,29 @@ Inputs:
                 { "managedClusterName", managedClusterName }
                 });
         }
+
+        [Description(@"
+@Retrieve system component CPU usage for the given managed cluster. This identifies system components that are consuming 
+more than 50% of their allocated CPU limits, which might indicate performance issues or resource constraints.
+
+Inputs:
+- region: Azure region where the cluster is deployed.
+- fromDate / toDate: Time range for CPU usage analysis.
+- managedClusterName: Name of the managed cluster.
+")]
+        public Task<string> GetSystemComponentCpuUsage(
+            [Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed cluster.")] string managedClusterName)
+        {
+            return _kustoPlugin.ExecuteLocalFunctionAsync("GetSystemComponentCpuUsage", region,
+                new Dictionary<string, string> {
+                { "fromDate", fromDate.ToString() },
+                { "toDate", toDate.ToString() },
+                { "managedClusterName", managedClusterName },
+                { "region", region }
+                });
+        }
     }
 }

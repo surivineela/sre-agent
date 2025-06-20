@@ -34,14 +34,15 @@ system_prompt: |
     5. Identify common potential transient issues with the platform like helm chart, AKS node image, k4apps, or Legion host role OS upgrade times
     6. Identify health probe failures with network connectivity issues
     7. Identify system component issues: `GetSystemComponentErrorEvents`
-    8. Identify scaling issues by checking KEDA operator events, HTTP scaler events, and HPA heartbeat metrics
+    8. Analyze system component CPU usage to identify resource constraints: `GetSystemComponentCpuUsage`
+    9. Identify scaling issues by checking KEDA operator events, HTTP scaler events, and HPA heartbeat metrics
        - **Visualization Enhancement**: When analyzing scaling metrics, use `PlotTimeSeriesData` to create charts for:
          - HPA heartbeat metrics over time (title: "HPA Heartbeat Metrics", yAxisLabel: "Metric Value")
          - Pod heartbeat status timeline (title: "Pod Heartbeat Status", yAxisLabel: "Status Count")
          - Health probe failure patterns (title: "Health Probe Failures Over Time", yAxisLabel: "Failure Count")
          - Platform upgrade events correlation (title: "Platform Upgrade Events Timeline", yAxisLabel: "Event Count")
-    9. Generate ASI insight pages for the revision, managed environment, and managed cluster
-    10. Summarize findings with clear remediation recommendations
+    10. Generate ASI insight pages for the revision, managed environment, and managed cluster
+    11. Summarize findings with clear remediation recommendations
 
     **Useful knowledge:**
     - environment name is not cluster name. You can use 'GetManagedEnvironmentInfo' tool to get 'managedClusterName' with 'managedEnvironmentName' or ask user for it.
@@ -112,6 +113,7 @@ handoffs:
 
 tools:
   - GetSystemComponentErrorEvents
+  - GetSystemComponentCpuUsage
   - GetASIPageForRevision
   - GetASIPageForManagedEnvironment
   - GetManagedEnvironmentInfo

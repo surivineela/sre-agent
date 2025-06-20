@@ -1,0 +1,38 @@
+let queryFrom = datetime("##fromDate##");
+let queryTo = datetime("##toDate##");
+let managedCluster = "##managedClusterName##";
+let region = replace_string("##region##", " ", "");
+let regionalMdmAccount = strcat("ContainerAppsIntSystemMetrics", region);
+let metricName = "UsageNanoCores";
+let podPrefix = "k8se";
+let kubeEnvironmentId = toscalar(ManagedEnvironmentDBState
+| where managedClusterName == managedCluster
+| distinct environmentName, managedClusterName
+| project environmentName);
+let whereClause = strcat("| where kubeEnvironmentId contains '", kubeEnvironmentId, "'and podName startswith '", podPrefix , "'");
+GetMdmResult(queryFrom, queryTo, regionalMdmAccount, "k4apps-metrics", metricName, "'kubeEnvironmentId', 'podName'", "NullableAverage", whereClause) 
+| where Max != 0
+| extend podNameTrimmed = substring(podName, 0, strlen(podName)-6)
+| summarize max(Max) by bin(TimestampUtc, 30m), podName=podNameTrimmed
+| extend cores = max_Max / 1000000000.0
+| extend limit = case(
+    podName startswith "k8se-containerapp-controller", 0.5,
+    podName startswith "k8se-node-agent", 0.1,
+    podName startswith "k8se-http-scaler", 0.1,
+    podName startswith "k8se-token-service", 0.25,
+    podName startswith "k8se-envoy-controller", 0.2,
+    podName startswith "k8se-event-processor", 0.1,
+    podName startswith "k8se-log-processor-default", 0.3,
+    podName startswith "k8se-mdm", 0.5,
+    podName startswith "k8se-swift-cleanup-manager", 0.01,
+    podName startswith "k8se-swift-load-balancer", 0.1,
+    podName startswith "k8se-keda-metrics-apiserver", 1.0,
+    podName startswith "k8se-swift-bootstrap-agent", 0.1,
+    podName startswith "k8se-activator", 0.1,
+    podName startswith "k8se-billing", 1.0,
+    podName startswith "k8se-keda-operator", 1.0,
+    podName startswith "k8se-external-auth", 0.1,
+    real(null)  // default
+)
+| extend pct = cores/limit * 100
+| where pct > 50
