@@ -312,26 +312,27 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                         yield break;
                     }
 
-                    string outputText = string.Empty;
-                    if (response.Output is IAgentOutput agentOutput)
-                    {
-                        outputText = agentOutput.NotifyUserMessage;
-                    }
-                    else if (response.Output is string stringOutput)
-                    {
-                        outputText = stringOutput;
-                    }
-                    else
-                    {
-                        outputText = response.Output?.ToString() ?? string.Empty;
-                    }
+                    // TODO: remove this once streaming has been moved to push based model
+                    // string outputText = string.Empty;
+                    // if (response.Output is IAgentOutput agentOutput)
+                    // {
+                    //     outputText = agentOutput.NotifyUserMessage;
+                    // }
+                    // else if (response.Output is string stringOutput)
+                    // {
+                    //     outputText = stringOutput;
+                    // }
+                    // else
+                    // {
+                    //     outputText = response.Output?.ToString() ?? string.Empty;
+                    // }
 
-                    ChatResponseUpdate update = new ChatResponseUpdate(ChatRole.Assistant, outputText);
-                    update.AdditionalProperties ??= new AdditionalPropertiesDictionary();
-                    update.AdditionalProperties.Add("messageId", streamedResponseMessageId.ToString());
-                    update.AdditionalProperties.Add("threadId", threadMessage.ThreadId.ToString());
-                    update.AdditionalProperties.Add("currentAgent", response.LastAgent.Name ?? string.Empty);
-                    yield return update;
+                    // ChatResponseUpdate update = new ChatResponseUpdate(ChatRole.Assistant, outputText);
+                    // update.AdditionalProperties ??= new AdditionalPropertiesDictionary();
+                    // update.AdditionalProperties.Add("messageId", streamedResponseMessageId.ToString());
+                    // update.AdditionalProperties.Add("threadId", threadMessage.ThreadId.ToString());
+                    // update.AdditionalProperties.Add("currentAgent", response.LastAgent.Name ?? string.Empty);
+                    // yield return update;
                     if (response.ManualToolCalls != null && response.ManualToolCalls.Any())
                     {
                         List<AIContent> toolCalls = new List<AIContent>();
