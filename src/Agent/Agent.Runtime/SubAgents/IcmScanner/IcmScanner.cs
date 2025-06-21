@@ -40,22 +40,23 @@ public class IcmScanner(ILogger<IcmScanner> logger,
         lastScanTime = lastScanTimeDoc != null ? lastScanTimeDoc.LastScanTime : DateTime.UtcNow.AddDays(-30); // Default to 30 days ago if not found
         while (!cancellationToken.IsCancellationRequested)
         {
-            await ScannAllIncidentsAsync(cancellationToken);
-
-            lastScanTime = await UpdateLastScanTimeDocAsync(DateTime.UtcNow);
-
+            var filters = await incidentFilterManagementService.ListIncidentFilters();
+            if (filters is null || filters.Count == 0)
+            {
+                logger.LogInternalInformation("No incident filters found, skipping IcM scanner.");
+            } else
+            {
+                logger.LogInternalInformation("Found {filterCount} incident filters, starting IcM scanner.", filters.Count);
+                await ScannAllIncidentsAsync(cancellationToken,filters);
+                lastScanTime = await UpdateLastScanTimeDocAsync(DateTime.UtcNow);
+            }
             await Task.Delay(ScanInterval, cancellationToken);
         }
     }
-    private async Task ScannAllIncidentsAsync(CancellationToken cancellationToken)
+    private async Task ScannAllIncidentsAsync(CancellationToken cancellationToken, List<IncidentFilterDocument> filters)
     {
-        var filters = await incidentFilterManagementService.ListIncidentFilters();
-        if (filters is null || filters.Count == 0)
-        {
-            logger.LogInternalInformation("No incident filters found, skipping IcM scanner.");
-            return;
-        }
-        logger.LogInternalInformation("Found {filterCount} incident filters, starting IcM scanner.", filters.Count);
+        
+        
         foreach (var filter in filters)
         {
             if (cancellationToken.IsCancellationRequested)

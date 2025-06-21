@@ -3,10 +3,13 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Configuration;
+using Agent.Data;
 using Agent.Data.DataModels;
 using Agent.Logging;
 using Agent.Runtime.Services;
+using Agent.Runtime.SubAgents.IcmScanner;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Cosmos;
 
 namespace Agent.Web.Controllers.v1;
 
@@ -21,6 +24,7 @@ public class IncidentPlaygroundController : ControllerBase
     private readonly IIncidentManagementService<IcmIncidentDocument> _icmIncidentManagementService;
     private readonly ILogger<IncidentPlaygroundController> _logger;
     private readonly IncidentManagementSettings _incidentManagementSettings;
+    private readonly Container _container;
 
     public IncidentPlaygroundController(
         IInstructionGenerationService instructionGenerationService,
@@ -29,7 +33,9 @@ public class IncidentPlaygroundController : ControllerBase
         IIncidentHandlerManagementService incidentHandlerManagementService,
         IIncidentFilterManagementService incidentFilterManagementService,
         IncidentManagementSettings incidentManagementSettings,
-        ILogger<IncidentPlaygroundController> logger)
+        ILogger<IncidentPlaygroundController> logger,
+        CosmosClient cosmosClient,
+        CosmosDBSettings cosmosDbSettings)
     {
         _pagerDutyincidentManagementService = pagerDutyIncidentManagementService;
         _icmIncidentManagementService = icmIncidentManagementService;
@@ -38,6 +44,7 @@ public class IncidentPlaygroundController : ControllerBase
         _incidentFilterManagementService = incidentFilterManagementService;
         _incidentManagementSettings = incidentManagementSettings;
         _logger = logger;
+        _container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
     }
 
     [HttpGet("checkConnectivity")]
@@ -415,6 +422,23 @@ public class IncidentPlaygroundController : ControllerBase
         {
             _logger.LogInternalError(ex, "GenerateInstructions: Error processing incident request for AgentName: {AgentName}", instructionGenerationRequest?.AgentName);
             return StatusCode(500, "Failed to process incident request");
+        }
+    }
+
+    [HttpPost("restLastScanTimeIcm")]
+    public async Task<IActionResult> ResetLastScanTime()
+    {
+        var doc = new LastScanTimeDoc()
+        {
+            LastScanTime = DateTime.UtcNow.AddDays(-30)
+        };
+        try
+        {
+            await _container.UpsertItemAsync(doc);
+            return Ok("Reset to last 30 days");
+        } catch(Exception ex)
+        {
+            return StatusCode(500, "Failed to reset LastScanTimeIcm");
         }
     }
 }
