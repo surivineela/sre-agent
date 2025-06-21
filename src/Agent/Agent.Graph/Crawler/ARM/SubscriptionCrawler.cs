@@ -25,7 +25,6 @@ public class SubscriptionCrawler : IResourceCrawler
 
     public async IAsyncEnumerable<GraphNode> Crawl(GraphNode node)
     {
-        var deleteBefore = DateTimeOffset.UtcNow;
         var subNode = (SubscriptionNode)node;
         _logger.LogDebug($"Crawling for subscription {subNode.SubscriptionId}");
 
@@ -51,6 +50,8 @@ public class SubscriptionCrawler : IResourceCrawler
 
             yield return rgNode;
         }
+
+        var deleteBefore = DateTimeOffset.UtcNow;
 
         var props = new Dictionary<string, string>
         {

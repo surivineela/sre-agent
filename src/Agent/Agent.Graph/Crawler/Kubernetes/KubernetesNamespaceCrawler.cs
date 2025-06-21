@@ -6,7 +6,6 @@ using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Interfaces;
-using Agent.Logging;
 using k8s.Models;
 using Microsoft.Extensions.Logging;
 
@@ -42,8 +41,6 @@ namespace Agent.Graph.Crawler.Kubernetes
             }
 
             await nsNode.SaveKubernetesResourceNode(_graphDbClient);
-
-            var deleteBefore = DateTimeOffset.UtcNow;
 
             // list all deployments
             var deployments = await _k8sService.GetDeploymentsAsync(nsNode.ClusterResourceId, nsNode.ResourceName);
@@ -136,6 +133,7 @@ namespace Agent.Graph.Crawler.Kubernetes
                 yield return pvcNode;
             }
 
+            var deleteBefore = DateTimeOffset.UtcNow;
             _logger.LogDebug($"Cleaning up stale nodes in namespace {nsNode.ResourceName} of {nsNode.ClusterResourceId} (older than {deleteBefore})");
             var props = new Dictionary<string, string>
             {

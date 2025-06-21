@@ -29,7 +29,6 @@ public class ResourceGroupCrawler : IResourceCrawler
 
     public async IAsyncEnumerable<GraphNode> Crawl(GraphNode node)
     {
-        var deleteBefore = DateTimeOffset.UtcNow;
         var rgNode = (ResourceGroupNode)node;
         _logger.LogDebug($"Crawling resource group {rgNode.ResourceGroupName}");
 
@@ -188,6 +187,9 @@ public class ResourceGroupCrawler : IResourceCrawler
                 // do not return node because we only crawl specific resource types here
             }
         }
+
+        var deleteBefore = DateTimeOffset.UtcNow;
+
         var props = new Dictionary<string, string>
         {
             { "resourceGroupName", rgNode.ResourceGroupName },
