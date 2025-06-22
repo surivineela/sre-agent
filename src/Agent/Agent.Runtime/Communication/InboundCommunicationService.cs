@@ -39,7 +39,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
     private readonly ThreadService _threadService;
     private readonly IPostToTeamsPlugin _teamsPlugin;
     private readonly IReasoningLoopManager _reasoningLoopManager;
-    private readonly bool _useAgentFramwork;
+    private readonly bool _useAgentFramework;
 
     private readonly AgentActionLogger _actionLogger;
 
@@ -69,7 +69,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         _customerLogger = customerLogger;
         _serviceProvider = serviceProvider;
         _reasoningLoopManager = reasoningLoopManager;
-        _useAgentFramwork = coreSettings.UseAgentFramework;
+        _useAgentFramework = coreSettings.UseAgentFramework;
         _actionLogger = actionLogger;
     }
 
@@ -125,7 +125,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             { "Message", threadMessage.Message }
         });
 
-        if (_useAgentFramwork)
+        if (_useAgentFramework)
         {
             AgentContext agentContext = await _repository.GetAgentContextAsync(agentContextId: threadMessage.AgentContextId, threadId: threadMessage.ThreadId);
 
@@ -276,7 +276,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         ThreadMessage threadMessage,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        if (_useAgentFramwork)
+        if (_useAgentFramework)
         {
             AgentContext agentFrameworkContext = await _repository.GetAgentContextAsync(agentContextId: threadMessage.AgentContextId, threadId: threadMessage.ThreadId);
 

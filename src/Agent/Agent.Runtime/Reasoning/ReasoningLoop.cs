@@ -33,24 +33,27 @@ public class ReasoningLoop : IDisposable
     private readonly ILoggerFactory _loggerFactory;
     private readonly IChatClient _chatClient;
     private readonly IAgentOutboundCommunicationService _outboundCommunicationService;
-    private AgentContext _context;
     private readonly IThreadRepository _threadRepository;
-    private readonly Channel<ReasoningLoopMessage> _msgCh;
-    private readonly SemaphoreSlim _semaphore = new(initialCount: 1, maxCount: 1);
     private readonly IToolFactory<AgentContext> _toolFactory;
+    private readonly IAgentFactory<AgentContext> _agentFactory;
     private readonly ActionSettings _actionSettings;
     private readonly Tracer _tracer;
+    private readonly AgentActionLogger _actionLogger;
+    private readonly bool _enableReasoningDebugOutput;
+
+    private readonly Channel<ReasoningLoopMessage> _msgCh;
+    private AgentContext _context;
+    private Agent<AgentContext> _currentAgent;
+    private List<ChatMessage>? _chatHistory;
+
     private TelemetrySpan? _rootSpan;
     private TelemetrySpan? _currentAgentSpan;
     private TelemetrySpan? _currentToolSpan;
-
     private TelemetrySpan? _currentGenerationSpan;
-    private readonly IAgentFactory<AgentContext> _agentFactory;
-    private readonly AgentActionLogger _actionLogger;
-    private List<ChatMessage>? _chatHistory;
-    private Agent<AgentContext> _currentAgent;
-    private readonly object _userCancellationTokenSourceLock = new();
+
     private CancellationTokenSource _userCancellationTokenSource = new();
+    private readonly object _userCancellationTokenSourceLock = new();
+    private readonly SemaphoreSlim _semaphore = new(initialCount: 1, maxCount: 1);
     private bool _disposed = false;
 
     // Retry configuration
@@ -71,7 +74,6 @@ public class ReasoningLoop : IDisposable
     };
 
     public ReasoningLoop(
-        ILogger<ReasoningLoop> logger,
         ILoggerFactory loggerFactory,
         IChatClient chatClient,
         IAgentOutboundCommunicationService outboundCommunicationService,
@@ -82,10 +84,11 @@ public class ReasoningLoop : IDisposable
         ActionSettings actionSettings,
         Tracer tracer,
         IAgentFactory<AgentContext> agentFactory,
-        AgentActionLogger actionLogger)
+        IAgentActionLogExporter actionLogExporter,
+        bool enableReasoningDebugOutput)
     {
-        _logger = logger;
         _loggerFactory = loggerFactory;
+        _logger = _loggerFactory.CreateLogger<ReasoningLoop>();
         _chatClient = chatClient;
         _outboundCommunicationService = outboundCommunicationService;
         _msgCh = Channel.CreateUnbounded<ReasoningLoopMessage>(new UnboundedChannelOptions
@@ -100,7 +103,10 @@ public class ReasoningLoop : IDisposable
         _actionSettings = actionSettings;
         _tracer = tracer;
         _agentFactory = agentFactory;
-        _actionLogger = actionLogger;
+        _actionLogger = new AgentActionLogger(
+            _loggerFactory.CreateLogger<AgentActionLogger>(),
+            actionLogExporter);
+        _enableReasoningDebugOutput = enableReasoningDebugOutput;
     }
     public void CancelCurrentOperation()
     {
@@ -500,151 +506,151 @@ public class ReasoningLoop : IDisposable
         try
         {
             while (_msgCh.Reader.TryRead(out var reasoningLoopMessage))
-        {
-            if (_context.ContextState != ContextStateEnum.Processing)
             {
-                await ChangeAgentContextStateAsync(ContextStateEnum.Processing);
-            }
-
-            if (cancellationToken.IsCancellationRequested)
-            {
-                await ChangeAgentContextStateAsync(ContextStateEnum.Completed);
-                _logger.LogInternalInformation("Cancellation requested, stopping reasoning loop.");
-                yield return new RunResult<AgentContext>(_currentAgent)
+                if (_context.ContextState != ContextStateEnum.Processing)
                 {
-                    Input = _chatHistory ?? [],
-                    NewItems = [],
-                    RawResponses = [],
-                    CurrentTurn = 1,
-                    MaxTurns = 1,
-                    Output = "Operation cancelled by user.",
-                    ContextWrapper = new RunContextWrapper<AgentContext>(_context),
-                    Trajectory = new Trajectory(),
-                    IsCancellationRequested = true
-                };
-                yield break;
-            }
+                    await ChangeAgentContextStateAsync(ContextStateEnum.Processing);
+                }
 
-            ReasoningLoopIterationResult? iterationResult = null;
-
-            if (_rootSpan == null)
-            {
-                // don't reset the root span if one exists (loop continuation)
-                _rootSpan = _tracer.StartRootSpan(TraceOperationName.UserMessage);
-                _rootSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
-                _rootSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.UserMessage);
-            }
-
-            AgentChatHistory? agentChatHistory = null;
-            RunResult<AgentContext>? pendingApprovalsResult = null;
-
-            try
-            {
-                _logger.LogInternalInformation("Received new message. Running reasoning loop...");
-
-                agentChatHistory = await _threadRepository.GetAgentChatHistoryAsync(_context.Id);
-
-                switch (reasoningLoopMessage)
+                if (cancellationToken.IsCancellationRequested)
                 {
-                    case ReasoningLoopChatMessage chatMessage:
-                        {
-                            _logger.LogInternalInformation("Processing chat message.");
-                            _rootSpan.SetAttribute(TraceAttribute.MessageContent, chatMessage.Message.Text);
-                            if (_context.ApprovalInformation != null &&
-                                _context.ApprovalInformation.PendingApprovals.Count > 0)
+                    await ChangeAgentContextStateAsync(ContextStateEnum.Completed);
+                    _logger.LogInternalInformation("Cancellation requested, stopping reasoning loop.");
+                    yield return new RunResult<AgentContext>(_currentAgent)
+                    {
+                        Input = _chatHistory ?? [],
+                        NewItems = [],
+                        RawResponses = [],
+                        CurrentTurn = 1,
+                        MaxTurns = 1,
+                        Output = "Operation cancelled by user.",
+                        ContextWrapper = new RunContextWrapper<AgentContext>(_context),
+                        Trajectory = new Trajectory(),
+                        IsCancellationRequested = true
+                    };
+                    yield break;
+                }
+
+                ReasoningLoopIterationResult? iterationResult = null;
+
+                if (_rootSpan == null)
+                {
+                    // don't reset the root span if one exists (loop continuation)
+                    _rootSpan = _tracer.StartRootSpan(TraceOperationName.UserMessage);
+                    _rootSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
+                    _rootSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.UserMessage);
+                }
+
+                AgentChatHistory? agentChatHistory = null;
+                RunResult<AgentContext>? pendingApprovalsResult = null;
+
+                try
+                {
+                    _logger.LogInternalInformation("Received new message. Running reasoning loop...");
+
+                    agentChatHistory = await _threadRepository.GetAgentChatHistoryAsync(_context.Id);
+
+                    switch (reasoningLoopMessage)
+                    {
+                        case ReasoningLoopChatMessage chatMessage:
                             {
-                                await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
-                                    _context.ThreadId,
-                                    string.Empty,
-                                    new ChatMessage(ChatRole.Assistant, "You have pending approvals. Please resolve them before continuing."));
-
-                                pendingApprovalsResult = new RunResult<AgentContext>(_currentAgent)
+                                _logger.LogInternalInformation("Processing chat message.");
+                                _rootSpan.SetAttribute(TraceAttribute.MessageContent, chatMessage.Message.Text);
+                                if (_context.ApprovalInformation != null &&
+                                    _context.ApprovalInformation.PendingApprovals.Count > 0)
                                 {
-                                    Input = _chatHistory ?? [],
-                                    NewItems = [],
-                                    RawResponses = [],
-                                    CurrentTurn = 1,
-                                    MaxTurns = 1,
-                                    Output = "You have pending approvals. Please resolve them before continuing.",
-                                    ContextWrapper = new RunContextWrapper<AgentContext>(_context),
-                                    Trajectory = new Trajectory()
-                                };
+                                    await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+                                        _context.ThreadId,
+                                        string.Empty,
+                                        new ChatMessage(ChatRole.Assistant, "You have pending approvals. Please resolve them before continuing."));
+
+                                    pendingApprovalsResult = new RunResult<AgentContext>(_currentAgent)
+                                    {
+                                        Input = _chatHistory ?? [],
+                                        NewItems = [],
+                                        RawResponses = [],
+                                        CurrentTurn = 1,
+                                        MaxTurns = 1,
+                                        Output = "You have pending approvals. Please resolve them before continuing.",
+                                        ContextWrapper = new RunContextWrapper<AgentContext>(_context),
+                                        Trajectory = new Trajectory()
+                                    };
+                                    break;
+                                }
+                                var shouldStop = await HandleUnprocessedToolCallsAsync(agentChatHistory, cancellationToken);
+                                if (shouldStop)
+                                {
+                                    yield break;
+                                }
+
+                                await PersistReasoningMessageAsync(agentChatHistory, chatMessage.Message);
                                 break;
                             }
-                            var shouldStop = await HandleUnprocessedToolCallsAsync(agentChatHistory, cancellationToken);
-                            if (shouldStop)
+                        case ReasoningLoopApprovalMessage approvalMessage:
                             {
-                                yield break;
+                                _logger.LogInternalInformation("Processing approval message.");
+                                _rootSpan.SetAttribute(TraceAttribute.MessageContent, approvalMessage.Approval.Title);
+                                var approval = approvalMessage.Approval;
+                                var shouldStop = await ProcessNewApprovalAsync(agentChatHistory, approval, cancellationToken);
+                                if (shouldStop)
+                                {
+                                    yield break;
+                                }
+                                break;
                             }
-
-                            await PersistReasoningMessageAsync(agentChatHistory, chatMessage.Message);
-                            break;
-                        }
-                    case ReasoningLoopApprovalMessage approvalMessage:
-                        {
-                            _logger.LogInternalInformation("Processing approval message.");
-                            _rootSpan.SetAttribute(TraceAttribute.MessageContent, approvalMessage.Approval.Title);
-                            var approval = approvalMessage.Approval;
-                            var shouldStop = await ProcessNewApprovalAsync(agentChatHistory, approval, cancellationToken);
-                            if (shouldStop)
+                        case ReasoningLoopFunctionCall functionCall:
                             {
-                                yield break;
+                                _logger.LogInternalInformation("Processing function call messages.");
+                                await PersistReasoningMessagesAsync(agentChatHistory, functionCall.Messages);
+                                break;
                             }
-                            break;
-                        }
-                    case ReasoningLoopFunctionCall functionCall:
-                        {
-                            _logger.LogInternalInformation("Processing function call messages.");
-                            await PersistReasoningMessagesAsync(agentChatHistory, functionCall.Messages);
-                            break;
-                        }
-                    case ReasoningLoopContinuation:
-                        {
-                            _logger.LogInternalInformation("Received continuation message. Running reasoning loop...");
-                            break;
-                        }
-                    default:
-                        _logger.LogInternalWarning("Received unknown message type: {Type}", reasoningLoopMessage.GetType());
-                        continue;
+                        case ReasoningLoopContinuation:
+                            {
+                                _logger.LogInternalInformation("Received continuation message. Running reasoning loop...");
+                                break;
+                            }
+                        default:
+                            _logger.LogInternalWarning("Received unknown message type: {Type}", reasoningLoopMessage.GetType());
+                            continue;
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogInternalError(ex, "An error occurred during reasoning loop.");
-                continue;
-            }
-
-            if (pendingApprovalsResult != null)
-            {
-                yield return pendingApprovalsResult;
-                yield break;
-            }
-
-            await foreach (var result in RunInternalStreamingAsync(agentChatHistory, cancellationToken, r => iterationResult = r))
-            {
-                yield return result;
-
-                if (iterationResult != null && iterationResult.IsContinuation)
+                catch (Exception ex)
                 {
-                    if (await _msgCh.Writer.WaitToWriteAsync(cancellationToken))
+                    _logger.LogInternalError(ex, "An error occurred during reasoning loop.");
+                    continue;
+                }
+
+                if (pendingApprovalsResult != null)
+                {
+                    yield return pendingApprovalsResult;
+                    yield break;
+                }
+
+                await foreach (var result in RunInternalStreamingAsync(agentChatHistory, cancellationToken, r => iterationResult = r))
+                {
+                    yield return result;
+
+                    if (iterationResult != null && iterationResult.IsContinuation)
                     {
-                        await _msgCh.Writer.WriteAsync(new ReasoningLoopContinuation(), cancellationToken);
-                    }
-                    else
-                    {
-                        // can't write to the channel, set the continuation flag to false and end the loop
-                        iterationResult = new ReasoningLoopIterationResult { IsContinuation = false };
+                        if (await _msgCh.Writer.WaitToWriteAsync(cancellationToken))
+                        {
+                            await _msgCh.Writer.WriteAsync(new ReasoningLoopContinuation(), cancellationToken);
+                        }
+                        else
+                        {
+                            // can't write to the channel, set the continuation flag to false and end the loop
+                            iterationResult = new ReasoningLoopIterationResult { IsContinuation = false };
+                        }
                     }
                 }
-            }
 
-            if (iterationResult?.IsContinuation == false)
-            {
-                // only end the root span if we didn't continue the loop
-                _rootSpan?.End();
-                _rootSpan = null;
+                if (iterationResult?.IsContinuation == false)
+                {
+                    // only end the root span if we didn't continue the loop
+                    _rootSpan?.End();
+                    _rootSpan = null;
+                }
             }
-        }
         }
         finally
         {
@@ -660,8 +666,7 @@ public class ReasoningLoop : IDisposable
         {
             ChatClient = _chatClient,
             LoggerFactory = _loggerFactory,
-            // ToDo: control with dev settings
-            EnableDebugOutput = false, // Debugger.IsAttached,
+            EnableDebugOutput = _enableReasoningDebugOutput,
         };
 
         try

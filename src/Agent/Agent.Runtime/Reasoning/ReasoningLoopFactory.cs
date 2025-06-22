@@ -8,6 +8,7 @@ using Agent.Core.Models.Api.v1;
 using Agent.Framework;
 using Agent.Logging;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
 
@@ -27,7 +28,8 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
     private readonly IToolFactory<AgentContext> _toolFactory;
     private readonly IThreadRepository _threadRepository;
     private readonly ActionSettings _actionSettings;
-    private readonly IAgentActionLogExporter? _actionLogExporter;
+    private readonly IAgentActionLogExporter _actionLogExporter;
+    private readonly bool _enableReasoningDebugOutput;
 
     private readonly Tracer _tracer;
 
@@ -39,8 +41,10 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         IAgentFactory<AgentContext> agentFactory,
         IToolFactory<AgentContext> toolFactory,
         ActionSettings actionSettings,
+        CoreSettings coreSettings,
         Tracer tracer,
-        IAgentActionLogExporter? actionLogExporter = null)
+        IAgentActionLogExporter actionLogExporter,
+        IHostEnvironment hostEnvironment)
     {
         _loggerFactory = loggerFactory;
         _chatClient = chatClient;
@@ -51,6 +55,8 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         _actionSettings = actionSettings;
         _tracer = tracer;
         _actionLogExporter = actionLogExporter;
+        _enableReasoningDebugOutput = coreSettings.EnableReasoningOutput
+            && hostEnvironment.IsDevelopment(); // only enable debug output in dev environment
     }
 
     public async Task<ReasoningLoop> Create(AgentContext context)
@@ -77,25 +83,21 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
             context.AgentHandoffChain.Add(agentName);
         }
         var agent = _agentFactory.GetAgent(agentName);
-        
-        // Create AgentActionLogger for this ReasoningLoop instance
-        var logger = _loggerFactory.CreateLogger<AgentActionLogger>();
-        var actionLogger = new AgentActionLogger(logger, _actionLogExporter);
-        
+
         // Create and return a new instance of ReasoningLoop
         var loop = new ReasoningLoop(
-            _loggerFactory.CreateLogger<ReasoningLoop>(),
-            _loggerFactory,
-            _chatClient,
-            _outboundCommunicationService,
-            agent,
-            _threadRepository,
-            context,
-            _toolFactory,
-            _actionSettings,
-            _tracer,
-            _agentFactory,
-            actionLogger);
+            loggerFactory: _loggerFactory,
+            chatClient: _chatClient,
+            outboundCommunicationService: _outboundCommunicationService,
+            startingAgent: agent,
+            threadRepository: _threadRepository,
+            context: context,
+            toolFactory: _toolFactory,
+            actionSettings: _actionSettings,
+            tracer: _tracer,
+            agentFactory: _agentFactory,
+            actionLogExporter: _actionLogExporter,
+            enableReasoningDebugOutput: _enableReasoningDebugOutput);
 
         await loop.LoadChatHistoryAsync();
         return loop;
