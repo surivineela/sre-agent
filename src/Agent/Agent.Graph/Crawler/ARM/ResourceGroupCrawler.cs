@@ -172,6 +172,19 @@ public class ResourceGroupCrawler : IResourceCrawler
                     yield return pgNode;
                 }
             }
+            else if (Constants.ApiManagementType.Equals(type, StringComparison.OrdinalIgnoreCase))
+            {
+                var apimNode = CreateNodeFromJson(resource);
+                if (apimNode != null)
+                {
+                    apimNode.Location = resource.GetProperty("location").GetString();
+                    await _graphDbClient.AddOrUpdateNodeAsync(apimNode);
+                    var edge = new ArmResourceEdge(rgNode.GetNodeId(), apimNode.GetNodeId(), Constants.Relationships.Contains);
+                    edge.AddRbacInheritedEdgeProperties();
+                    await _graphDbClient.AddOrUpdateEdgeAsync(edge);
+                    yield return apimNode;
+                }
+            }
             else
             {
                 var genericNode = CreateNodeFromJson(resource);

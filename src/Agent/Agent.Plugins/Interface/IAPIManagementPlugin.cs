@@ -4,7 +4,7 @@ namespace Agent.Plugins.Interface
 {
     public interface IAPIManagementPlugin
     {
-        Task<IReadOnlyList<APIManagementDescriptor>> ListAPIManagementAsync(Guid subscriptionId);
+        Task<List<APIManagementDescriptor>> ListAPIManagementAsync(Guid subscriptionId);
 
         Task<APIManagementDescriptor> GetAPIManagementInfoAsync(string resourceId);
 

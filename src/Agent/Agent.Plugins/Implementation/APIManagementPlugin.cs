@@ -7,9 +7,9 @@ using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
-
-using AgentCoreConstants = Agent.Core.Constants;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 using Constants = Agent.Graph.Crawler.ARM.Constants;
+using Agent.Plugins.Extensions;
 
 namespace Agent.Plugins.Implementation
 {
@@ -18,7 +18,6 @@ namespace Agent.Plugins.Implementation
         private readonly IGraphDatabaseClient _databaseClient;
         private readonly ILogger<APIManagementPlugin> _logger;
         private readonly ArmHelper _armHelper;
-        private readonly IHttpClientFactory _httpClientFactory;
 
         public APIManagementPlugin(
             IGraphDatabaseClient databaseClient,
@@ -30,9 +29,7 @@ namespace Agent.Plugins.Implementation
             _databaseClient = databaseClient;
             _logger = logger;
             _armHelper = armHelper;
-            _httpClientFactory = httpClientFactory;
         }
-
         public async Task<APIManagementDescriptor> GetAPIManagementInfoAsync(string resourceId)
         {
             _logger.LogInternalInformation($"[get_api_management_info] Invoked with resourceId: {resourceId}");
@@ -43,24 +40,23 @@ namespace Agent.Plugins.Implementation
                 string apiManagementResourceId = resourceId.ToLower().Replace("/", "_");
 
                 string query = $@"
-                g.V().has('id', '{apiManagementResourceId}').has('isDeleted', false)
-                     .hasLabel('{Constants.ApiManagementType.ToLower()}')
-                     .project('id', 'name', 'type', 'properties')
-                       .by(id())
-                       .by(coalesce(values('resourceName'), constant('')))
-                       .by(label())
-                       .by(valueMap())";
+                    g.V()
+                    .has('id', '{apiManagementResourceId}')
+                    .project('properties')
+                    .by(properties().group().by(key()).by(value()))
+                    .select('properties')";
 
-                // Use the helper to run the query and map results:
-                var allDescriptors = await GetDescriptorsFromGremlinAsync(query);
+                var result = await _databaseClient.Query<Dictionary<string, object>>(query);
 
-                if (allDescriptors.Count == 0)
+                if (result == null || !result.Any())
                 {
-                    _logger.LogInternalWarning($"API Management Instance with ID '{resourceId}' not found in graph database.");
+                    _logger.LogInternalInformation("Could not retrieve API Management instance information for API Management Resource ID: " + resourceId);
                     return null;
                 }
 
-                return allDescriptors[0];
+                // get the descriptors from the API Management Resource Node
+                var apiManagementNode = new APIManagementNode(result.First());
+                return apiManagementNode.ToDescriptor(verbose: true);
             }
             catch (Exception ex)
             {
@@ -69,38 +65,43 @@ namespace Agent.Plugins.Implementation
             }
         }
 
-        public async Task<IReadOnlyList<APIManagementDescriptor>> ListAPIManagementAsync(Guid subscriptionId)
+        // Intentionally returning a string as the SRE agent frequently makes errors when trying to deserialize the descriptors manually
+        public async Task<List<APIManagementDescriptor>> ListAPIManagementAsync(Guid subscriptionId)
         {
             _logger.LogInternalInformation($"[list_api_management_instances] Invoked with subscription {subscriptionId}");
 
             try
             {
                 string query = $@"
-                g.V().has('subscriptionId', '{subscriptionId}').has('isDeleted', false)
-                     .hasLabel('{Constants.ApiManagementType.ToLower()}')
-                     .project('id', 'name', 'type', 'properties')
-                       .by(id())
-                       .by(coalesce(values('resourceName'), constant('')))
-                       .by(label())
-                       .by(valueMap())";
+                    g.V()
+                    .has('subscriptionId', '{subscriptionId}')
+                    .hasLabel('{Constants.ApiManagementType.ToLower()}')
+                    .project('properties')
+                    .by(properties().group().by(key()).by(value()))
+                    .select('properties')";
 
-                var descriptors = await GetDescriptorsFromGremlinAsync(query);
-                RestoreIdSlashes(descriptors);
+                var result = await _databaseClient.Query<Dictionary<string, object>>(query);
 
-                if (descriptors.Count == 0)
+                if (result == null || !result.Any())
                 {
-                    _logger.LogInternalInformation($"No API Management instances found for subscription {subscriptionId} in graph database.");
+                    _logger.LogInternalInformation("No API Management Instances found for subscription {subscriptionId} in graph database.", subscriptionId);
+                    return null;
                 }
 
-                return descriptors;
+                // get the descriptors from the API Management Resource Node
+                return result
+                    .Select(apiManagementAppData => new APIManagementNode(apiManagementAppData))
+                    .Select(a => a.ToDescriptor(verbose: false))
+                    .ToList();               
             }
             catch (Exception ex)
             {
                 _logger.LogInternalError(ex, $"Error in ListAPIManagementAsync with subscription {subscriptionId}");
-                return new List<APIManagementDescriptor>();
+                return null;
             }
         }
 
+        // Intentionally returning a string as the SRE agent frequently makes errors when trying to deserialize the descriptors manually
         public async Task<string> GetAPIMErrorLogsAsync(string apimInstanceResourceId, DateTime startTime , DateTime endTime, string statusCode, int top)
         {
             _logger.LogInternalInformation($"[GetAPIMErrorLogsAsync] Invoked with resourceId: {apimInstanceResourceId}, startTime: {startTime}, endTime: {endTime}, statusCode: {statusCode ?? "Any"}, top: {top}");
@@ -359,71 +360,6 @@ namespace Agent.Plugins.Implementation
         #endregion
 
         #region Generic API Management Helpers
-
-        private async Task<List<APIManagementDescriptor>> GetDescriptorsFromGremlinAsync(string gremlinQuery)
-        {
-            var descriptors = new List<APIManagementDescriptor>();
-
-            var rawResults = await _databaseClient.Query(gremlinQuery);
-            if (rawResults == null || !rawResults.Any())
-            {
-                return descriptors; // empty
-            }
-
-            foreach (var apiManagementInstance in rawResults)
-            {
-                var properties = apiManagementInstance["properties"];
-
-                string id = apiManagementInstance["id"]?.ToString() ?? "";
-
-                string name = apiManagementInstance["name"]?.ToString() ?? "";
-                string type = apiManagementInstance["type"]?.ToString() ?? "Unknown";
-
-                // Extract “resourceGroupName” and “location” from the valueMap in “properties”
-                string resourceGroup = GetFirstPropertyValue(properties, "resourceGroupName");
-                string location = GetFirstPropertyValue(properties, "location");
-
-                var descriptor = new APIManagementDescriptor(
-                    ResourceId: id,
-                    Name: name,
-                    Type: type,
-                    ResourceGroup: resourceGroup,
-                    Location: location
-                );
-
-                descriptors.Add(descriptor);
-            }
-
-            return descriptors;
-        }
-
-        private string GetFirstPropertyValue(dynamic properties, string propertyName)
-        {
-            if (properties == null || !((IDictionary<string, object>)properties).ContainsKey(propertyName))
-            {
-                return string.Empty;
-            }
-
-            var values = properties[propertyName];
-            if (values is IEnumerable<object> enumerable && enumerable.Any())
-            {
-                return enumerable.First().ToString();
-            }
-
-            return string.Empty;
-        }
-
-        private void RestoreIdSlashes(List<APIManagementDescriptor> descriptors)
-        {
-            for (int i = 0; i < descriptors.Count; i++)
-            {
-                var apimDescriptor = descriptors[i];
-                if (apimDescriptor.ResourceId.Contains("_"))
-                {
-                    descriptors[i] = apimDescriptor with { ResourceId = apimDescriptor.ResourceId.Replace("_", "/") };
-                }
-            }
-        }
 
         private string? GetInstrumentationKey(string? connectionString)
         {
