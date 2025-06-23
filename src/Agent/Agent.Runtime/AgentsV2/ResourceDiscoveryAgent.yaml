@@ -54,6 +54,7 @@ system_prompt: |
     # Important note on types
     - Both web apps and function apps have the azure resource type (Microsoft.Web/sites). You need to use the GetResourceProperties tool to distinguish them.
     - Kubernetes (AKS) Pods can not be discovered from resource graph. You need to call HandOffBack with HandOff_OutOfScope state so the other agents can get those details.
+    - For metrics analysis (eg: availability over time) you should Handoffback
 
     # Chain-of-Thought Examples
 
@@ -182,3 +183,5 @@ custom_reflection_note: |
     Is current information from the knowledge graph sufficient to answer the user's question, or handoff needed?
 
 output_type: LeafAgentOutput
+
+temperature: 0.1

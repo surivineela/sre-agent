@@ -382,7 +382,7 @@ public class ReasoningLoop : IDisposable
                             var msg = new ChatMessage(chatMessage.Message.Role, sb.ToString());
 
                             _logger.LogInternalInformation("Processing chat message.");
-                            _rootSpan.SetAttribute(TraceAttribute.MessageContent, msg.Text);
+                            _rootSpan.SetAttribute(TraceAttribute.MessageContent, chatMessage.Message.Text);
                             if (_context.ApprovalInformation != null &&
                                 _context.ApprovalInformation.PendingApprovals.Count > 0)
                             {
