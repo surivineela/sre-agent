@@ -325,7 +325,7 @@ public class Program
             .AddTransient<RCAContainerAppRevisionPluginDefinition>()
             .AddSingleton<IKustoDashboardPlugin, KustoDashboardPlugin>()
             .AddTransient<RCAContainerAppResourceCheckPluginDefinition>()
-
+            .AddTransient<RCAContainerAppsSwiftNetworkContainerPluginDefinition>()
 
             .AddTransient<IMetaAgentContainerAppsRemediationPlugin, ContainerAppsRemediationPlugin>()
             .AddTransient<IMetaAgentManagedIdentityMigrationPlugin, ManagedIdentityMigrationPlugin>()

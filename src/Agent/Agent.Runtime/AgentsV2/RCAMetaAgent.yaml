@@ -31,6 +31,7 @@ handoffs:
   - rca_containerapp_outbound_connection_agent
   - rca_containerapp_quota_agent
   - rca_containerapp_resource_check_agent
+  - rca_containerapp_swift_network_container_agent
 
 common_prompts:
   - format_guidelines

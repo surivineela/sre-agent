@@ -1,0 +1,10 @@
+let fromTime = datetime("##fromDate##");
+let toTime = datetime("##toDate##");
+let managedCluster = "##managedClusterName##";
+ContainerAppControllerEvents
+| where ['time'] between ( fromTime .. toTime)
+| where msg =='Node Heartbeat'
+| where EnvironmentName == managedCluster
+| where NodeName != "" and NodeName != "virtual-node-legion-linux"
+| summarize min(TIMESTAMP),max(TIMESTAMP) by NodeName
+

@@ -1,0 +1,9 @@
+let fromTime = datetime("##fromDate##");
+let toTime = datetime("##toDate##");
+let networkContainerID = "##networkContainerID##";
+cluster("aznwsdn").database("aznwmds").AggregatedNcHealthEvent
+| where TIMESTAMP between (toTime-30d .. toTime)
+| where OwningServiceInstanceId == "Microsoft.App"
+| where NcId == networkContainerID
+| summarize min(healthEventTime), max(healthEventTime) by NcId, VnetId, ContainerId,OwnDsMappingsStatus, CustomerAddress,HealthState,NodeId
+| project StartTime=min_healthEventTime,EndTime=max_healthEventTime,NetworkContainerId=NcId,ContainerId,NodeId,OwnDsMappingsStatus,CustomerAddress,HealthState

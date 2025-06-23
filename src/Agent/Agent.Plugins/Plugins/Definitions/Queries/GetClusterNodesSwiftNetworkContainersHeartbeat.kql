@@ -1,0 +1,22 @@
+let fromTime = datetime("##fromDate##");
+let toTime = datetime("##toDate##");
+let managedCluster = "##managedClusterName##";
+let nodeList = ContainerAppControllerEvents
+| where ['time'] between ( fromTime .. toTime)
+| where msg =='Node Heartbeat'
+| where EnvironmentName == managedCluster
+| where NodeName != "" and NodeName != "virtual-node-legion-linux"
+| distinct NodeName;
+SwiftNetworkingEvents
+| where ['time'] between ( fromTime .. toTime)
+| where EnvironmentName == managedCluster
+| where NodeName in (nodeList)
+| where msg contains "Network container heartbeat"
+| where NetworkContainerID != ""
+| extend NetworkContainerHeartbeat = "Alive"
+| project PreciseTimeStamp,NodeName,NetworkContainerID,NetworkContainerHeartbeat
+| order by NodeName,PreciseTimeStamp asc
+| extend SessionIndex = strcat(NodeName,"#",row_cumsum(iff(PreciseTimeStamp > prev(PreciseTimeStamp)+15m and NodeName == prev(NodeName), 1, 0)))
+| summarize StartTime=min( PreciseTimeStamp), EndTime=max(PreciseTimeStamp) by NodeName,NetworkContainerID,NetworkContainerHeartbeat,SessionIndex
+| project StartTime, EndTime,NodeName,NetworkContainerID,NetworkContainerHeartbeat
+| order by NodeName,StartTime asc

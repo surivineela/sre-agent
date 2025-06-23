@@ -1,0 +1,16 @@
+let fromTime = datetime("##fromDate##");
+let toTime = datetime("##toDate##");
+let managedCluster = "##managedClusterName##";
+let nodeName = "##nodeName##";
+SwiftNetworkingEvents
+| where ['time'] between ( fromTime .. toTime)
+| where EnvironmentName == managedCluster
+| where NodeName == nodeName
+| where msg contains "Network container heartbeat"
+| extend NetworkContainerHeartbeat = "Alive"
+| project PreciseTimeStamp,NetworkContainerHeartbeat
+| order by PreciseTimeStamp asc
+| extend SessionIndex = row_cumsum(iff(PreciseTimeStamp > prev(PreciseTimeStamp)+15m, 1, 0))
+| summarize StartTime=min( PreciseTimeStamp), EndTime=max(PreciseTimeStamp) by NetworkContainerHeartbeat,SessionIndex
+| project StartTime, EndTime,NetworkContainerHeartbeat
+| order by StartTime asc

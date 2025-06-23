@@ -1,0 +1,22 @@
+let fromTime = datetime("##fromDate##");
+let toTime = datetime("##toDate##");
+let managedCluster = "##managedClusterName##";
+let nodeList = ContainerAppControllerEvents
+| where ['time'] between ( fromTime .. toTime)
+| where msg =='Node Heartbeat'
+| where EnvironmentName == managedCluster
+| where NodeName != "" and NodeName != "virtual-node-legion-linux"
+| distinct NodeName;
+let vnetIdList = SwiftNetworkingEvents
+| where ['time'] between ( fromTime .. toTime)
+| where EnvironmentName == managedCluster
+| where NodeName in (nodeList)
+| where VnetId != ""
+| distinct VnetId;
+cluster('azurecm.kusto.windows.net').database('AzureCM').NetworkServiceManagerEvents
+| where PreciseTimeStamp between ( fromTime .. toTime)
+| where Tenant startswith "ZRH" 
+| where Message contains "Gre key 355 is already in use" 
+| extend VnetId = extract(@"VnetId:\s*([a-f0-9\-]+)", 1, Message)
+| where VnetId in (vnetIdList)
+| project TIMESTAMP,TaskName,Message

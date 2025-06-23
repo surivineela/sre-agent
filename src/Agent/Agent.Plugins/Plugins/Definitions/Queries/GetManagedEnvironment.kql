@@ -12,7 +12,7 @@ ManagedEnvironmentDBState
 | where isempty(local_environmentLocation) or Tenant =~ local_environmentLocation
 | join kind=inner (GetRegions) on $left.Tenant == $right.Name
 | extend envType = case(hasWorkloadProfiles == true or isLegionEnabled == true, "V2", "V1")
-| extend customVnet = case(hasCustomerVnetForCluster == true and envType == "v1", true, subnetResourceId != "", true, false)
+| extend customVnet = case(hasCustomerVnetForCluster == true and envType == "v1", "True", subnetResourceId != "", "True", "False")
 | extend RegionalConsumptionV2 = iif(envType == "V2", strcat("Regional Consumption V2 at ", managedClusterLocation), "")
 | order by PreciseTimeStamp desc
 | project 

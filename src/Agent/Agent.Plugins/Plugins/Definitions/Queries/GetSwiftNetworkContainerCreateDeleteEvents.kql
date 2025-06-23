@@ -1,0 +1,14 @@
+let fromTime = datetime("##fromDate##");
+let toTime = datetime("##toDate##");
+let managedCluster = "##managedClusterName##";
+let nodeName = "##nodeName##";
+SwiftNetworkingEvents
+| where ['time'] between (fromTime .. toTime)
+| where EnvironmentName == managedCluster
+| where NodeName == nodeName
+| where logger =='swift-cleanup-manager' or logger == 'cx-swift' or logger == "swift-bootstrap-agent"
+| where msg startswith 'Network container creation response'
+or msg startswith 'Network container cleanup completed successfully' or msg startswith 'Starting network container cleanup'
+or msg startswith 'Attempting to create Swift NC'
+or msg startswith 'Error injecting node'
+| project TimeStamp=['time'],OperationName,message=msg,Response,error

@@ -1,0 +1,9 @@
+let fromTime = datetime("##fromDate##");
+let toTime = datetime("##toDate##");
+let networkContainerID = "##networkContainerID##";
+cluster("aznwsdn").database("aznwmds").SwiftFifteenMinuteEvent
+| where FirstTimeStamp between (toTime-30d .. toTime)
+| where OperationName == "DeleteNetworkContainer"
+| where Message has networkContainerID 
+| summarize max(FirstTimeStamp) by NodeId,ContainerId,OperationName,Message
+| project TimeStamp=max_FirstTimeStamp,NodeId,ContainerId,OperationName,Message

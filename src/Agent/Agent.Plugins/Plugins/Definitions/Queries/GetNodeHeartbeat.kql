@@ -1,0 +1,17 @@
+let fromTime = datetime("##fromDate##");
+let toTime = datetime("##toDate##");
+let managedCluster = "##managedClusterName##";
+let nodeName = "##nodeName##";
+ContainerAppControllerEvents
+| where ['time'] between ( fromTime .. toTime)
+| where msg =='Node Heartbeat'
+| where EnvironmentName == managedCluster
+| where NodeName == nodeName
+| extend NodeReady = tostring(extract("Ready: (True|False)", 1, NodeStatus))
+| extend NodeHeartbeat = iff(NodeReady=="True","Ready","Not Ready")
+| project PreciseTimeStamp,NodeHeartbeat
+| order by PreciseTimeStamp asc
+| extend SessionIndex = row_cumsum(iff(NodeHeartbeat != prev(NodeHeartbeat), 1, 0))
+| summarize StartTime=min( PreciseTimeStamp), EndTime=max(PreciseTimeStamp) by NodeHeartbeat,SessionIndex
+| project StartTime, EndTime,NodeHeartbeat
+| order by StartTime asc

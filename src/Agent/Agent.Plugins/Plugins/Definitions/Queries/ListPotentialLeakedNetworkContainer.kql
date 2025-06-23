@@ -1,0 +1,15 @@
+let fromTime = datetime("##fromDate##");
+let toTime = datetime("##toDate##");
+let managedCluster = "##managedClusterName##";
+let nodes = ContainerAppControllerEvents
+| where ['time'] between ( fromTime .. toTime)
+| where msg =='Node Heartbeat'
+| where EnvironmentName == managedCluster
+| where NodeName != "" and NodeName != "virtual-node-legion-linux"
+| distinct NodeName;
+SwiftNetworkingEvents
+| where ['time'] between (fromTime .. toTime)
+| where EnvironmentName == managedCluster
+| where NodeName in (nodes)
+| where NetworkContainerStatus == "Leaked"
+| distinct NodeName,NetworkContainerID
