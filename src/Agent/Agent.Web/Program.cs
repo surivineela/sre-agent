@@ -483,8 +483,9 @@ public class Program
             builder.Services.AddSingleton<ITitleGenerationService, FirstPartyTitleGenerationService>();
             builder.Services.AddTransient<IGenevaActionsPlugin, GenevaActionsPlugin>()
                 .AddTransient<GenevaActionsPluginDefinition>()
-                .AddTransient<IICMPlugin, ICMPlugin>()
                 .AddSingleton<OneBranchApprovalService>();
+            builder.Services.AddTransient<IICMPlugin, ICMPlugin>()
+                .AddTransient<ICMPluginDefinition>();
             builder.RegisterFirstPartySubAgentsDependencies();
             builder.RegisterFirstPartyAppSettings();
         }
