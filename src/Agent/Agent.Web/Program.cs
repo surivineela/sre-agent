@@ -90,6 +90,8 @@ using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using Agent.Plugins.KustoPlugin;
+using Agent.Plugins.Kusto;
 
 namespace Agent.Web;
 
@@ -326,6 +328,8 @@ public class Program
             .AddSingleton<IKustoDashboardPlugin, KustoDashboardPlugin>()
             .AddTransient<RCAContainerAppResourceCheckPluginDefinition>()
             .AddTransient<RCAContainerAppsSwiftNetworkContainerPluginDefinition>()
+            .AddTransient<ICMPluginDefinition>()
+            .AddTransient<KustoPlugin>()
 
             .AddTransient<IMetaAgentContainerAppsRemediationPlugin, ContainerAppsRemediationPlugin>()
             .AddTransient<IMetaAgentManagedIdentityMigrationPlugin, ManagedIdentityMigrationPlugin>()
@@ -345,7 +349,8 @@ public class Program
             .AddTransient<IAzureMonitorMetricsPlugin, AzureMonitorMetricsPlugin>()
             .AddTransient<IArmPlugin, ArmPlugin>()
             .AddTransient<IAPIManagementPlugin, APIManagementPlugin>()
-
+            .AddTransient<IICMPlugin, ICMPlugin>()
+            .AddSingleton<IKustoPluginClient, KustoPluginClient>()
 
             //.AddSingleton<AppServiceRemediationAgentFactory>()
             .AddSingleton<KubernetesAgentFactory>()
@@ -405,7 +410,7 @@ public class Program
             .AddSingleton<ISearchPlugin, SearchPlugin>()
             .AddSingleton<ISearchIndexingClient, SearchIndexingClient>()
             .AddSingleton<DocumentationIndex>()
-
+          
             .AddSingleton(sp =>
             {
                 return new ToolFactory<AgentContext>(
@@ -484,8 +489,6 @@ public class Program
             builder.Services.AddTransient<IGenevaActionsPlugin, GenevaActionsPlugin>()
                 .AddTransient<GenevaActionsPluginDefinition>()
                 .AddSingleton<OneBranchApprovalService>();
-            builder.Services.AddTransient<IICMPlugin, ICMPlugin>()
-                .AddTransient<ICMPluginDefinition>();
             builder.RegisterFirstPartySubAgentsDependencies();
             builder.RegisterFirstPartyAppSettings();
         }
@@ -495,8 +498,35 @@ public class Program
             builder.Services.AddSingleton<IToolsRepository, ToolsRepository>();
             builder.Services.AddSingleton<ITitleGenerationService, TitleGenerationService>();
         }
-
         builder.ValidateAndRegisterFirstPartyTypes();
+
+        //Overwrite KustoClient from ValidateAndRegisterFirstPartyTypes if is not Container FirstParty Agent
+        if (!isFirstAgent)
+        {
+            builder.Services.AddSingleton<KustoClient>(sp =>
+            {
+                var logger = sp.GetRequiredService<ILogger<KustoClient>>();
+                var actionSettings = sp.GetRequiredService<ActionSettings>();
+                var kustoAuthSetting = new KustoAuthSettings()
+                {
+                    AuthenticationType = KustoAuthenticationType.UAMI,
+                    ManagedIdentityResourceId = actionSettings.Identity
+                };
+                if (builder.Environment.IsDevelopment())
+                {
+                    kustoAuthSetting.AuthenticationType = KustoAuthenticationType.User;
+                }
+                var kustoSetting = new KustoSettings()
+                {
+                    Auth = kustoAuthSetting,
+                    Enabled = true,
+                    RegionalClusterGroups = []
+                };
+                return new KustoClient(logger, kustoSetting);
+            });
+        }
+
+
         // Register all subagent factories that derive from the shared impl
         var genericSubAgentFactories = TypeReflectionHelpers.GetClassesDerivedFromGeneric(typeof(MetaAgent).Assembly, typeof(SimpleResourceSubAgentFactoryBase<,,,>));
         foreach (var type in genericSubAgentFactories)

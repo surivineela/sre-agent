@@ -1,42 +1,35 @@
 using System.ComponentModel;
-using Agent.Framework;
 using Agent.Logging;
 using Agent.Plugins.Interface;
-using Agent.Plugins.TeamsPlugin;
 using Microsoft.Extensions.Logging;
-using Microsoft.SemanticKernel;
 namespace Agent.Plugins.KustoPlugin;
 
-// [Export]
+
 [AgentToolPlugin(IsFirstPartyOnly = true)]
 public class KustoPlugin
 {
     private readonly ILogger<KustoPlugin> _logger;
-    private readonly ITeamsClient _teamsClient;
     private readonly IKustoPluginClient _kustoPluginClient;
 
-    public KustoPlugin(ILogger<KustoPlugin> logger, ITeamsClient teamsClient, IKustoPluginClient kustoPluginClient)
+    public KustoPlugin(ILogger<KustoPlugin> logger, IKustoPluginClient kustoPluginClient)
     {
-        _logger = logger;
-        _teamsClient = teamsClient;
         _logger = logger;
         _kustoPluginClient = kustoPluginClient;
     }
 
-    [KernelFunction("execute_kusto_query_on_cluster")]
     [Description("Executes a fully qualified Kusto query on a specific cluster and database, returning the result in JSON format.")]
     public async Task<string> ExecuteClusterKustoQuery(
             [Description("The short name of the target Kusto cluster (without URL schema or suffix).")] string cluster,
             [Description("The name of the target Kusto database.")] string database,
             [Description("The full Kusto query to execute.")] string fullQuery,
-            DateTime? NowOverride,
-            Kernel kernel
+            DateTime? NowOverride
             )
     {
         cluster = cluster.Replace(".kusto.windows.net", "");
         cluster = cluster.Replace("https://", "");
 
-        
+        var logMessage = $"[execute_kusto_query_on_cluster][{DateTime.UtcNow}] Invoked with cluster: {cluster}, database: {database}\nquery:\n{fullQuery.Substring(0, Math.Min(100, fullQuery.Length))}...";
+        _logger.LogInternalInformation(logMessage);
         KustoQueryResult result = null;
         try
         {

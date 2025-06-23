@@ -5,11 +5,11 @@
 using System.Collections.Concurrent;
 using System.Data;
 using System.Security.Cryptography.X509Certificates;
-using Azure.Identity;
-using KustoData=Kusto.Data;
 using Agent.Logging;
+using Azure.Identity;
 using Kusto.Data.Common;
 using Microsoft.Extensions.Logging;
+using KustoData=Kusto.Data;
 
 namespace Agent.Plugins.Kusto;
 
@@ -80,12 +80,29 @@ public class KustoClient
                     });
     }
 
+    private DefaultAzureCredential GetUserManagedIdentityCredentials()
+    {
+        var defaultAzureCredentialOptions = new DefaultAzureCredentialOptions();
+        if (!string.IsNullOrEmpty(_kustoAuthSettings.ManagedIdentityClientId))
+        {
+            defaultAzureCredentialOptions.ManagedIdentityClientId = _kustoAuthSettings.ManagedIdentityClientId;
+        } else if(!string.IsNullOrEmpty(_kustoAuthSettings.ManagedIdentityResourceId))
+        {
+            defaultAzureCredentialOptions.ManagedIdentityResourceId = new Azure.Core.ResourceIdentifier(_kustoAuthSettings.ManagedIdentityResourceId);
+        } else
+        {
+
+            throw new InvalidOperationException("Either ManagedIdentityClientId or ManagedIdentityResourceId must be provided.");
+        }
+        return new DefaultAzureCredential(defaultAzureCredentialOptions);
+    }
+
     private ICslQueryProvider GetClient(string clusterUri)
     {
         return _kustoAuthSettings.AuthenticationType switch
         {
             KustoAuthenticationType.ManagedIdentity => KustoData.Net.Client.KustoClientFactory.CreateCslQueryProvider(new KustoData.KustoConnectionStringBuilder(clusterUri).WithAadSystemManagedIdentity()),
-            KustoAuthenticationType.UAMI => KustoData.Net.Client.KustoClientFactory.CreateCslQueryProvider(new KustoData.KustoConnectionStringBuilder(clusterUri).WithAadUserManagedIdentity(_kustoAuthSettings.ManagedIdentityClientId)),
+            KustoAuthenticationType.UAMI => KustoData.Net.Client.KustoClientFactory.CreateCslQueryProvider(new KustoData.KustoConnectionStringBuilder(clusterUri).WithAadAzureTokenCredentialsAuthentication(GetUserManagedIdentityCredentials())),
             KustoAuthenticationType.App => KustoData.Net.Client.KustoClientFactory.CreateCslQueryProvider(new KustoData.KustoConnectionStringBuilder(clusterUri).WithAadAzureTokenCredentialsAuthentication(GetClientCertificateCredentials())),
             _ => KustoData.Net.Client.KustoClientFactory.CreateCslQueryProvider(new KustoData.KustoConnectionStringBuilder(clusterUri).WithAadUserPromptAuthentication())
         };

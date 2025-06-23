@@ -28,6 +28,7 @@ namespace Agent.Plugins.Kusto
         public string ApplicationClientId { get; set; } = string.Empty;
         public string ApplicationCertificate { get; set; } = string.Empty;
         public string ManagedIdentityClientId { get; set; } = string.Empty;
+        public string ManagedIdentityResourceId { get; set; } = string.Empty;
     }
 }
 
