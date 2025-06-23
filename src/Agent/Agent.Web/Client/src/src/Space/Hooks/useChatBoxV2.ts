@@ -109,7 +109,7 @@ export const useChatBoxV2 = (
     const [downButtonState, setDownButtonState] = useState<{ visible: boolean; flash: boolean }>({ visible: false, flash: false });
 
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
-    const { sendMessage, onMessage } = useContext(SignalRContext);
+    const { sendMessage, subscribeSignalR, unsubscribeSignalR } = useContext(SignalRContext);
 
     const isPreviousOldMessagesLoadingCompleted = useRef(true);
     const oldestMessageRef = useRef<ChatMessage>();
@@ -319,7 +319,7 @@ export const useChatBoxV2 = (
 
             if (currentMessageText && !isCancellingStreaming) {
                 if (isDefaultStreamingMessageType(currentMessageChunk)) {
-                    const typeChar = (isNewlineAdded: boolean) => {
+                    const typeChar = () => {
                         if (typingCharIndex.current < currentMessageText.length && !isCancellingStreaming) {
                             const charIndex = typingCharIndex.current;
                             typingCharIndex.current += MessageTypingCharactersPer10Ms;
@@ -332,17 +332,18 @@ export const useChatBoxV2 = (
                                 const newStreamingMessage = prev ? { ...prev } : composeDefaultStreamingMessage();
                                 const latestContent = newStreamingMessage.contents[newStreamingMessage.contents.length - 1];
 
-                                if (latestContent && isChatMessageContentNonImageText(latestContent)) {
-                                    // If the previous chat message content is a non-image text content, then appending the new text to it starting with a newline
+                                if (charIndex !== 0 && latestContent && isChatMessageContentNonImageText(latestContent)) {
+                                    // Append text to the lastest text messsage when
                                     const updatedLatestContent = {
                                         ...latestContent,
-                                        text: latestContent.text + (isNewlineAdded ? '' : '\n') + newText,
+                                        text: latestContent.text + newText,
                                     };
                                     return {
                                         ...newStreamingMessage,
                                         contents: [...newStreamingMessage.contents.slice(0, -1), updatedLatestContent],
                                     };
                                 } else {
+                                    // Start a new content
                                     return {
                                         ...newStreamingMessage,
                                         contents: [
@@ -354,12 +355,12 @@ export const useChatBoxV2 = (
                                     };
                                 }
                             });
-                            typingCharsTimeout.current = setTimeout(() => typeChar(true), MessageTypingSpeedInMilliseconds);
+                            typingCharsTimeout.current = setTimeout(() => typeChar(), MessageTypingSpeedInMilliseconds);
                         } else {
                             handleCompletedMessageChunk(currentMessageChunk);
                         }
                     };
-                    typeChar(false);
+                    typeChar();
                 } else {
                     setStreamingMessage(prev => {
                         const newStreamingMessage = prev ? { ...prev } : composeDefaultStreamingMessage();
@@ -434,18 +435,23 @@ export const useChatBoxV2 = (
             }
         };
 
-        onMessage(MessageResponseType.ThreadUpdate, (streamData?: StreamingMessage) => {
+        const threadUpdateCallback = (streamData?: StreamingMessage) => {
             handleMessageChunk(MessageResponseType.ThreadUpdate, streamData);
-        });
+        };
 
-        onMessage(MessageResponseType.MessageUpdate, (streamData?: StreamingMessage) => {
+        const messageUpdateCallback = (streamData?: StreamingMessage) => {
             handleMessageChunk(MessageResponseType.MessageUpdate, streamData);
-        });
+        };
+
+        subscribeSignalR(MessageResponseType.ThreadUpdate, threadUpdateCallback);
+        subscribeSignalR(MessageResponseType.MessageUpdate, messageUpdateCallback);
 
         return () => {
             isSubscribed = false;
+            unsubscribeSignalR(MessageResponseType.ThreadUpdate, threadUpdateCallback);
+            unsubscribeSignalR(MessageResponseType.MessageUpdate, messageUpdateCallback);
         };
-    }, [onMessage, addThread, promoteThread, isCancellingStreaming]);
+    }, [subscribeSignalR, unsubscribeSignalR, addThread, promoteThread, isCancellingStreaming]);
 
     // Load the latest 20 chat message history
     useEffect(() => {

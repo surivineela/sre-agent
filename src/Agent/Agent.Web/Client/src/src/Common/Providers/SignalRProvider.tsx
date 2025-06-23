@@ -9,6 +9,7 @@ export const SignalRProvider = ({ children }: { children?: ReactNode }) => {
     const connectionRef = useRef<signalR.HubConnection | null>(null);
     const [isConnecting, setIsConnecting] = useState(true);
     const [isConnected, setIsConnected] = useState(false);
+    const subscribers = useRef<Map<string, Set<(...args: any[]) => void>>>(new Map());
     const isConnectedRef = useRef(false);
 
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
@@ -22,9 +23,29 @@ export const SignalRProvider = ({ children }: { children?: ReactNode }) => {
         }
     }, []);
 
-    const onMessage = useCallback((method: string, callback: (...args: any[]) => void) => {
-        if (connectionRef.current) {
-            connectionRef.current.on(method, callback);
+    const subscribeSignalR = useCallback((method: string, callback: (...args: any[]) => void) => {
+        if (!subscribers.current.has(method)) {
+            subscribers.current.set(method, new Set());
+            connectionRef.current?.off(method); // Ensure no duplicate handlers
+            connectionRef.current?.on(method, (...args: any[]) => {
+                const callbacks = subscribers.current.get(method);
+                if (callbacks) {
+                    callbacks.forEach(cb => cb(...args));
+                }
+            });
+        }
+
+        subscribers.current.get(method)?.add(callback);
+    }, []);
+
+    const unsubscribeSignalR = useCallback((method: string, callback: (...args: any[]) => void) => {
+        const callbacks = subscribers.current.get(method);
+        if (callbacks) {
+            callbacks.delete(callback);
+            if (callbacks.size === 0) {
+                subscribers.current.delete(method);
+                connectionRef.current?.off(method);
+            }
         }
     }, []);
 
@@ -74,9 +95,14 @@ export const SignalRProvider = ({ children }: { children?: ReactNode }) => {
 
         return () => {
             connectionRef.current?.stop();
+            subscribers.current = new Map();
             setIsConnected(false);
         };
     }, [proxy.log, sreAgentEndpoint]);
 
-    return <SignalRContext.Provider value={{ sendMessage, onMessage, isConnecting, isConnected }}>{children}</SignalRContext.Provider>;
+    return (
+        <SignalRContext.Provider value={{ sendMessage, subscribeSignalR, unsubscribeSignalR, isConnecting, isConnected }}>
+            {children}
+        </SignalRContext.Provider>
+    );
 };

@@ -157,6 +157,75 @@ export const ChatBoxStyles = mergeStyleSets({
     },
 });
 
+export const ChatBoxV2Styles = mergeStyleSets({
+    chatBox: {
+        height: 'calc(100vh - 25px)',
+        borderRadius: tokens.borderRadiusXLarge,
+        minWidth: '300px',
+        marginRight: '4px',
+        boxShadow: tokens.shadow4,
+    },
+    chatBoxInner: {
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        alignItems: 'stretch',
+        height: 'calc(95% - 15px)',
+        fontSize: '16px',
+        backgroundColor: tokens.colorNeutralForegroundInverted,
+        borderRadius: tokens.borderRadiusXLarge,
+        boxShadow: tokens.shadow4,
+        selectors: {
+            // Allegedly styles on the below get copied to anything that portals within it (Dialogs, etc)
+            '&[data-portal-node="true"]': {
+                height: 'auto',
+                width: 'auto',
+                padding: 0,
+            },
+        },
+    },
+    chatContainer: {
+        height: '100%',
+        padding: '20px 10px 0px 20px',
+        borderRadius: tokens.borderRadiusLarge,
+    },
+    chat: {
+        height: '100%',
+        maxWidth: '1000px',
+        margin: 'auto',
+    },
+    userMessage: {
+        alignSelf: 'flex-end',
+        wordBreak: 'normal',
+        overflowWrap: 'anywhere',
+        whiteSpace: 'normal',
+        fontSize: '16px',
+        lineHeight: '24px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-end',
+    },
+    agentMessage: {
+        fontSize: '16px',
+        lineHeight: '24px',
+        '.fai-CopilotMessage__content': {
+            width: '90%',
+            gap: `${tokens.spacingVerticalS}`,
+        },
+    },
+    hideAgentMessageHeader: {
+        '.fai-CopilotMessage__accessibleHeading': {
+            display: 'none',
+        },
+        '.fai-CopilotMessage__avatar': {
+            display: 'none',
+        },
+        '.fai-CopilotMessage__name': {
+            display: 'none',
+        },
+    },
+});
+
 const textFieldMaxWidth = '1000px';
 
 export const useChatInputStyles = makeStyles({

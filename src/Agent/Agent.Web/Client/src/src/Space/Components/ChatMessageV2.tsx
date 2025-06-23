@@ -20,7 +20,7 @@ import { isChatMessageEmpty, shouldGroupWithPreviousMessageV2 } from '../Activit
 import { AgentMessageRegex, IChatMessageV2Props } from '../Contracts/Activities';
 import { SreAgentContext } from '../Contracts/Context';
 import { useAuthenticatedUserInfo } from '../Hooks/useAuthenticatedUserInfo';
-import { ChatBoxStyles, nameAndTimestampContainerStyle, useChatBoxStyles } from '../Styles/Activities.styles';
+import { ChatBoxV2Styles as ChatBoxStyles, nameAndTimestampContainerStyle, useChatBoxStyles } from '../Styles/Activities.styles';
 import AgentMessage from './AgentMessage';
 import { FeedbackDialog } from './FeedbackDialog';
 import ReactMarkdownComponent from './ReactMarkdownComponent';
@@ -58,6 +58,7 @@ const chatMessageStyles = mergeStyleSets({
         backgroundClip: 'text',
         color: 'transparent',
         animation: 'shimmer 2s infinite linear',
+        marginBottom: `${tokens.spacingVerticalS}px`,
     },
 });
 
@@ -207,6 +208,10 @@ const ChatMessageV2 = ({
         [message, nextMessage, isTyping]
     );
 
+    const isMessageEmpty = useMemo(() => {
+        return isChatMessageEmpty(message);
+    }, [message]);
+
     const filteredMessageContentToCopy = useMemo(() => {
         if (!showCopyMessageButton || !getGroupedMessages) return '';
 
@@ -251,8 +256,6 @@ const ChatMessageV2 = ({
     };
 
     const ToolCallTextComponent = () => {
-        const toolCallTextContent = toolCallText || (isChatMessageEmpty(message) ? 'Analyzing...' : '');
-
         const styles = `
             @keyframes shimmer {
                 0% {
@@ -266,11 +269,29 @@ const ChatMessageV2 = ({
 
         return (
             isTyping &&
-            toolCallTextContent && (
+            toolCallText && (
                 <>
                     <style>{styles}</style>
-                    <Text className={chatMessageStyles.toolCallText}>{toolCallTextContent}</Text>
+                    <Text className={chatMessageStyles.toolCallText}>{toolCallText}</Text>
                 </>
+            )
+        );
+    };
+
+    const MessageFooter = () => {
+        return (
+            !isMessageEmpty && (
+                <div style={{ display: 'flex', flexDirection: 'row' }}>
+                    {showFeedbackButtons && ( // Only show buttons when the agent is not typing
+                        <FeedbackButtons
+                            positiveFeedbackButton={{ onClick: () => handleFeedbackClick(true) }}
+                            negativeFeedbackButton={{ onClick: () => handleFeedbackClick(false) }}
+                            selected={selectedFeedback}
+                            disabled={hasSubmittedFeedback}
+                        />
+                    )}
+                    {showCopyMessageButton && <CopyButton textToCopy={filteredMessageContentToCopy} />}
+                </div>
             )
         );
     };
@@ -302,19 +323,8 @@ const ChatMessageV2 = ({
                             );
                         })}
 
-                        <ToolCallTextComponent />
-
-                        <div style={{ display: 'flex', flexDirection: 'row', marginTop: '8px' }}>
-                            {showFeedbackButtons && ( // Only show buttons when the agent is not typing
-                                <FeedbackButtons
-                                    positiveFeedbackButton={{ onClick: () => handleFeedbackClick(true) }}
-                                    negativeFeedbackButton={{ onClick: () => handleFeedbackClick(false) }}
-                                    selected={selectedFeedback}
-                                    disabled={hasSubmittedFeedback}
-                                />
-                            )}
-                            {showCopyMessageButton && <CopyButton textToCopy={filteredMessageContentToCopy} />}
-                        </div>
+                        <ToolCallTextComponent key={`${message.id}-tool-call-text`} />
+                        <MessageFooter key={`${message.id}-message-footer`} />
                     </CopilotMessage>
 
                     <FeedbackDialog

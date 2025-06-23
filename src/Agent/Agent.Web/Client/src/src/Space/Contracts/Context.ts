@@ -24,7 +24,8 @@ type SreAgentContextProps = {
 
 type SignalRContextProps = {
     sendMessage: (message: string, ...args: any[]) => void;
-    onMessage: (method: string, callback: (...args: any[]) => void) => void;
+    subscribeSignalR: (method: string, callback: (...args: any[]) => void) => void;
+    unsubscribeSignalR: (method: string, callback: (...args: any[]) => void) => void;
     isConnecting: boolean;
     isConnected: boolean;
 };
@@ -57,7 +58,8 @@ export const AgentContext = createContext<AgentContextProps>({
 
 export const SignalRContext = createContext<SignalRContextProps>({
     sendMessage: (_message: string, ..._args: any[]) => {},
-    onMessage: (_method: string, _callback: (...args: any[]) => void) => {},
+    subscribeSignalR: (_method: string, _callback: (...args: any[]) => void) => {},
+    unsubscribeSignalR: (_method: string, _callback: (...args: any[]) => void) => {},
     isConnecting: true,
     isConnected: false,
 });

@@ -8,7 +8,7 @@ import remarkGfm from 'remark-gfm';
 const chatMessageStyles = mergeStyleSets({
     root: {
         backgroundColor: tokens.colorNeutralBackground3,
-        padding: '0px 16px',
+        padding: '1px 16px',
         borderRadius: tokens.borderRadiusXLarge,
     },
     codeBlock: {
