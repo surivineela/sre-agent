@@ -12,7 +12,7 @@ export const SreAgentResources = defineMessages({
     deleteAgentNotificationDescription: { defaultMessage: 'Deleting SRE Agent {name} in progress', id: 'L0KVkI' },
     deleteAgentNotificationSuccess: { defaultMessage: 'SRE Agent {name} deleted successfully', id: '1O47t6' },
     deleteAgentNotificationError: { defaultMessage: 'Failed to delete SRE Agent {name}', id: 'JCjxSH' },
-    sreAgent: { defaultMessage: 'SRE Agent', id: '+WRusC' },
+    sreAgent: { defaultMessage: 'Azure SRE Agent', id: 'Erci0g' },
     add: { defaultMessage: 'Add', id: '2/2yg+' },
     new: { defaultMessage: 'New', id: 'bW7B87' },
     feedbackDialogTitle: {

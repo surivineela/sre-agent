@@ -2,7 +2,7 @@ import { Dropdown, Option } from '@fluentui/react-components';
 import { useActionsStatusBarStyles } from '../Styles/Incident.styles';
 
 export enum SelectedTimes {
-    OneDay = '24hrs',
+    OneDay = '24 h',
     SevenDays = '7d',
     ThirtyDays = '30d',
 }
