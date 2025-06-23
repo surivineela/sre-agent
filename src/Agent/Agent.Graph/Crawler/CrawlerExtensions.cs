@@ -88,11 +88,12 @@ public static class CrawlerExtensions
         return client.Query($"g.V('{GetSanitizedCosmosDBId(node.GetNodeId())}').outE().not(__.has('nonCrawled', 'True')).or(__.not(has('updateTs')),__.has('updateTs', P.lt({ts}))).drop()");
     }
 
-    public static Task SoftDeleteStaleNodesWithFilter(IGraphDatabaseClient client, IDictionary<string, string> props, DateTimeOffset deleteBefore)
+    public static Task SoftDeleteStaleNodesWithFilter(IGraphDatabaseClient client, IDictionary<string, string> props, DateTimeOffset updateTimestamp)
     {
-        var ts = deleteBefore.AddMinutes(-35).Ticks; // offset by 35 mins since the crawler runs every 30 mins.
+        var updateTs = updateTimestamp.Ticks;
+        var deleteBeforeWithOffset = updateTimestamp.AddMinutes(-35).Ticks; // offset by 35 mins since the crawler runs every 30 mins.
         var filter = string.Join(",", props.Select(kvp => $"has('{kvp.Key}','{kvp.Value}')"));
-        return client.Query($"g.V().and({filter}).not(__.has('nonCrawled', 'True')).has('updateTs', P.lt({ts})).property('isDeleted', true).property('updateTs', {ts})");
+        return client.Query($"g.V().and({filter}).not(__.has('nonCrawled', 'True')).has('updateTs', P.lt({deleteBeforeWithOffset})).property('isDeleted', true).property('updateTs', {updateTs})");
     }
 
     public static string GetSanitizedCosmosDBId(string id)
