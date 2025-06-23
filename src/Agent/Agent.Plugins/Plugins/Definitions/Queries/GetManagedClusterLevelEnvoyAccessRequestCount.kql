@@ -1,0 +1,25 @@
+let startTime = datetime("##fromDate##");
+let endTime = datetime("##toDate##");
+let managedClusterName = "##managedClusterName##";
+let duration = endTime-startTime;     
+let bins = datatable(span: timespan, bucket: timespan, mdm_bucket: string)
+[ 5m, 1m, '1m', 
+  1h, 5m, '5m',
+  6h, 10m, '10m',
+  12h, 20m, '20m',
+  1d, 1h, '1h', 
+  2d, 2h, '2h',
+  4d, 4h, '4h',
+  8d, 8h, '8h',
+  16d, 16h, '16h',
+];
+let spans = bins | where duration >= span | top 1 by span desc;
+let bucket = coalesce(toscalar(spans | project bucket), 1d);
+let allMinutes = range TimeBin from startTime to endTime step bucket  | summarize by bin(TimeBin, bucket);
+EnvoyFrontEndLogsTable
+| where TIMESTAMP between (startTime .. endTime)
+| where EnvironmentName == managedClusterName
+| extend TimeBin = bin(PreciseTimeStamp, bucket)
+| summarize Count = count() by Status,TimeBin
+| project TimeStamp=TimeBin,Count
+| order by TimeStamp asc

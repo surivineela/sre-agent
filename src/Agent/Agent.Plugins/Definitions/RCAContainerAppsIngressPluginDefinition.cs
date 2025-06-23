@@ -95,7 +95,7 @@ namespace Agent.Plugins.Definitions
 
         [Description(
             """
-            Retrieve Container Apps Envoy Access Request Count Time Series, 
+            Retrieve Container Apps Envoy Access Request Count Time Series at Container App Level. 
             count of envoy access request grouped by http status code, e.g. Http 2xx Count, Http 3xx Count, Http 4xx Count, Http 5xx Count.
             """)]
         public Task<string> GetEnvoyAccessRequestCountTimeSeries(
@@ -114,9 +114,28 @@ namespace Agent.Plugins.Definitions
             });
         }
 
+        [Description(@"Retrieve Managed Cluster Level Envoy Access Request Count Time Series.
+This tool is used to verify if there is any envoy access log recorded in the managed cluster within the given time range.
+- If there is no Envoy Access Request at Container App level, but there is at Managed Cluster level, it indicates that the issue is not related to the Envoy component in the Managed Cluster, but rather to the specific Container App itself.
+- If there is no Envoy Access Request at both Container App and Managed Cluster levels, it indicates that the issue maybe related to the Envoy component in the Managed Cluster, so none of the Container Apps in the Managed Cluster are receiving any requests via Envoy.
+")]
+        public Task<string> GetManagedClusterLevelEnvoyAccessRequestCount(
+            [Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Managed Cluster Name of the container app.")] string managedClusterName)
+        {
+            return _kustoPlugin.ExecuteLocalFunctionAsync("GetManagedClusterLevelEnvoyAccessRequestCount", region,
+            new Dictionary<string, string> {
+                { "fromDate", fromDate.ToString() },
+                { "toDate", toDate.ToString() },
+                { "managedClusterName", managedClusterName }
+            });
+        }
+
         [Description(
             """
-            Retrieve Container Apps Envoy Access Logs
+            Retrieve detailed Container Apps Envoy Access Logs at Container App Level.
             Projects:
                 - FirstSeen: Start time of the current kind of envoy access log.
                 - LastSeen: End time of the current kind of envoy access log.

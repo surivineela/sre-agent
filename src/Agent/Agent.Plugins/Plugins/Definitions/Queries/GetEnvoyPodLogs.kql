@@ -1,8 +1,8 @@
-let startTime = datetime("##fromDate##");
-let endTime = datetime("##toDate##");
+let fromTime = datetime("##fromDate##");
+let toTime = datetime("##toDate##");
 let managedClusterName = "##managedClusterName##";
 EnvoyFrontEndEvents
-| where PreciseTimeStamp between (startTime .. endTime)
+| where PreciseTimeStamp between (fromTime .. toTime)
 | where EnvironmentName == managedClusterName
 | where _ContainerName == "envoy"
 | where Log !contains "\"GET /"
