@@ -10,13 +10,7 @@ public class HandOffEvals
 {
     private static TestHost TestHost { get; } = TestHelpers.InitializeTestHost();
 
-    public static readonly HandOffTestCase[] HandOffInputs = [
-        new(
-            userMessage: "Create a simple deployment nginx with image nginx:latest in namespace default in my AKS cluster, the AKS cluster resource id is `/subscriptions/ea2aa16c-c257-4359-aaea-ff2b0f3b3d10/resourceGroups/rg/providers/Microsoft.ContainerService/managedClusters/prod-shopping-c1`",
-            targetAgent: "aks_general_agent"),
-    ];
-
-    public static IEnumerable<object[]> HandOffTestCases => HandOffInputs.Concat(LoadTestCasesFromFiles()).Select(i => new object[] { i });
+    public static IEnumerable<object[]> HandOffTestCases => LoadTestCasesFromFiles().Select(i => new object[] { i });
 
     private static HandOffTestCase[] LoadTestCasesFromFiles()
     {
