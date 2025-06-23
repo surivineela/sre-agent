@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json;
 using Agent.Core.Helpers;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Logging;
@@ -30,7 +31,7 @@ namespace Agent.Plugins.Implementation
             _logger = logger;
             _armHelper = armHelper;
         }
-        public async Task<APIManagementDescriptor> GetAPIManagementInfoAsync(string resourceId)
+        public async Task<APIManagementDescriptor?> GetAPIManagementInfoAsync(string resourceId)
         {
             _logger.LogInternalInformation($"[get_api_management_info] Invoked with resourceId: {resourceId}");
 
@@ -65,7 +66,6 @@ namespace Agent.Plugins.Implementation
             }
         }
 
-        // Intentionally returning a string as the SRE agent frequently makes errors when trying to deserialize the descriptors manually
         public async Task<List<APIManagementDescriptor>> ListAPIManagementAsync(Guid subscriptionId)
         {
             _logger.LogInternalInformation($"[list_api_management_instances] Invoked with subscription {subscriptionId}");
@@ -85,7 +85,7 @@ namespace Agent.Plugins.Implementation
                 if (result == null || !result.Any())
                 {
                     _logger.LogInternalInformation("No API Management Instances found for subscription {subscriptionId} in graph database.", subscriptionId);
-                    return null;
+                    return [];
                 }
 
                 // get the descriptors from the API Management Resource Node
@@ -97,12 +97,11 @@ namespace Agent.Plugins.Implementation
             catch (Exception ex)
             {
                 _logger.LogInternalError(ex, $"Error in ListAPIManagementAsync with subscription {subscriptionId}");
-                return null;
+                return [];
             }
         }
 
-        // Intentionally returning a string as the SRE agent frequently makes errors when trying to deserialize the descriptors manually
-        public async Task<string> GetAPIMErrorLogsAsync(string apimInstanceResourceId, DateTime startTime , DateTime endTime, string statusCode, int top)
+        public async Task<string> GetAPIMErrorLogsAsync(string apimInstanceResourceId, DateTime startTime, DateTime endTime, string statusCode, int top)
         {
             _logger.LogInternalInformation($"[GetAPIMErrorLogsAsync] Invoked with resourceId: {apimInstanceResourceId}, startTime: {startTime}, endTime: {endTime}, statusCode: {statusCode ?? "Any"}, top: {top}");
 
@@ -133,8 +132,10 @@ namespace Agent.Plugins.Implementation
             dataset");
 
             // Resolve instrumentation key and App Insights App ID
-            const string apiVersion = APIManagementHelper.Constants.AppInsightsApiVer;
-            var appSettingsJson = await _armHelper.GetResourceByURL($"https://management.azure.com{appInsightsResourceId}?api-version={apiVersion}");
+            string apiVersion = APIManagementHelper.Constants.AppInsightsApiVer;
+            string managementAzureBaseUrl = APIManagementHelper.Constants.ManagementAzureBaseUrl;
+
+            var appSettingsJson = await _armHelper.GetResourceByURL($"{managementAzureBaseUrl}{appInsightsResourceId}?api-version={apiVersion}");
             var jsonObject = JObject.Parse(appSettingsJson);
 
             var instrumentationKey = jsonObject["properties"]?["InstrumentationKey"]?.ToString()
@@ -149,8 +150,7 @@ namespace Agent.Plugins.Implementation
             var appInsightsAppId = await _armHelper.GetAppInsightsAppIdBySubscription(subscriptionId, instrumentationKey);
 
             // Execute the query
-            var queryResult = await _armHelper.ExecuteAppInsightsQuery(appInsightsAppId, queryBuilder.ToString());
-            return queryResult;
+            return await _armHelper.ExecuteAppInsightsQuery(appInsightsAppId, queryBuilder.ToString());
         }
 
         public async Task<string> GetAPIMActivityLogs(string apimResourceId, DateTime startTime, DateTime endTime)
@@ -159,9 +159,10 @@ namespace Agent.Plugins.Implementation
 
             string subscriptionId = apimResourceId.Split('/')[2];
             string apiVersion = APIManagementHelper.Constants.ActivityLogApiVer;
+            string managementAzureBaseUrl = APIManagementHelper.Constants.ManagementAzureBaseUrl;
 
             string filter = $"eventTimestamp ge '{startTime:O}' and eventTimestamp le '{endTime:O}' and resourceUri eq '{apimResourceId}'";
-            string requestUrl = $"https://management.azure.com/subscriptions/{subscriptionId}/providers/Microsoft.Insights/eventtypes/management/values?api-version={apiVersion}&$filter={Uri.EscapeDataString(filter)}";
+            string requestUrl = $"{managementAzureBaseUrl}/subscriptions/{subscriptionId}/providers/Microsoft.Insights/eventtypes/management/values?api-version={apiVersion}&$filter={Uri.EscapeDataString(filter)}";
 
             try
             {
@@ -254,7 +255,7 @@ namespace Agent.Plugins.Implementation
             catch (Exception ex)
             {
                 _logger.LogInternalError(ex, $"Error in GetFailureRateByApiOperationAsync for {apiManagementResourceId}");
-                return null;
+                return string.Empty;
             }
         }
 
@@ -304,6 +305,111 @@ namespace Agent.Plugins.Implementation
             catch (Exception ex)
             {
                 _logger.LogInternalError(ex, $"Error in GetAPIMConnectedLogAnalytics for {apiManagementResourceId}");
+                return string.Empty;
+            }
+        }
+
+        #endregion
+
+        #region APIM APIs and Operations Methods
+
+        public async Task<List<APIManagementApiDescriptor>> GetAPIMApis(string apiManagementResourceId, string workspaceName)
+        {
+            string apiVersion = APIManagementHelper.Constants.APIMAPIVersion;
+            string managementAzureBaseUrl = APIManagementHelper.Constants.ManagementAzureBaseUrl;
+
+            string workspaceSegment = string.IsNullOrWhiteSpace(workspaceName) ? string.Empty : $"/workspaces/{workspaceName}";
+            var requestUrl = $"{managementAzureBaseUrl}{apiManagementResourceId}{workspaceSegment}/apis?api-version={apiVersion}";
+
+            try
+            {
+                var res = await _armHelper.GetResourceByURL(requestUrl);
+
+                using var doc = JsonDocument.Parse(res);
+                if (!doc.RootElement.TryGetProperty("value", out var valueElement))
+                {
+                    _logger.LogInternalError($"GetAPIMApis: 'value' property not found in response for resourceId {apiManagementResourceId}.");
+                    return null;
+                }
+
+                return JsonSerializer.Deserialize<List<APIManagementApiDescriptor>>(valueElement.GetRawText()) ?? new List<APIManagementApiDescriptor>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, $"GetAPIMApis: Exception occurred while fetching APIs for resourceId {apiManagementResourceId}: {ex.Message}");
+                return null;
+            }
+        }
+
+        public async Task<APIManagementApiDescriptor> GetAPIDetailsByName(string apiManagementResourceId, string apiName, string workspaceName)
+        {
+            string normalizedAPIName = apiName.ToLower().Replace(" ", "-");
+            string workspaceSegment = string.IsNullOrWhiteSpace(workspaceName) ? string.Empty : $"/workspaces/{workspaceName}";
+
+            string apiVersion = APIManagementHelper.Constants.APIMAPIVersion;
+            string managementAzureBaseUrl = APIManagementHelper.Constants.ManagementAzureBaseUrl;
+
+            var requestUrl = $"{managementAzureBaseUrl}{apiManagementResourceId}{workspaceSegment}/apis/{normalizedAPIName}?api-version={apiVersion}";
+
+            try
+            {
+                var res = await _armHelper.GetResourceByURL(requestUrl);
+                return JsonSerializer.Deserialize<APIManagementApiDescriptor>(res);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, $"GetAPIDetailsByName: Exception occurred while fetching API '{apiName}' for resourceId {apiManagementResourceId}: {ex.Message}");
+                return null;
+            }
+        }
+
+        public async Task<List<APIManagementApiOperationSummary>> GetAPIOperationsByApi(string apiManagementResourceId, string apiName, string workspaceName)
+        {
+            string normalizedAPIName = apiName.ToLower().Replace(" ", "-");
+            string workspaceSegment = string.IsNullOrWhiteSpace(workspaceName) ? string.Empty : $"/workspaces/{workspaceName}";
+
+            string apiVersion = APIManagementHelper.Constants.APIMAPIVersion;
+            string managementAzureBaseUrl = APIManagementHelper.Constants.ManagementAzureBaseUrl;
+
+            var requestUrl = $"{managementAzureBaseUrl}{apiManagementResourceId}{workspaceSegment}/apis/{normalizedAPIName}/operations?api-version={apiVersion}"; 
+            try
+            {
+                var res = await _armHelper.GetResourceByURL(requestUrl);
+                using var doc = JsonDocument.Parse(res);
+
+                if (!doc.RootElement.TryGetProperty("value", out var valueElement))
+                {
+                    _logger.LogInternalError(null, $"GetAPIOperationsByApi: 'value' property not found in response for resourceId {apiManagementResourceId}, API {apiName}.");
+                    return null;
+                }
+
+                return JsonSerializer.Deserialize<List<APIManagementApiOperationSummary>>(valueElement.GetRawText()) ?? new List<APIManagementApiOperationSummary>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, $"GetAPIOperationsByApi: Exception occurred while fetching operations for resourceId {apiManagementResourceId}, API {apiName}: {ex.Message}");
+                return null;
+            }
+        }
+
+        public async Task<APIManagementApiOperationDescriptor> GetAPIOperationDetailedInfo(string apiManagementResourceId, string apiName, string operationName, string workspaceName)
+        {
+            string normalizedAPIName = apiName.ToLower().Replace(" ", "-");
+            string normalizedOperationName = operationName.ToLower().Replace(" ", "-");
+            string workspaceSegment = string.IsNullOrWhiteSpace(workspaceName) ? string.Empty : $"/workspaces/{workspaceName}";
+
+            string apiVersion = APIManagementHelper.Constants.APIMAPIVersion;
+            string managementAzureBaseUrl = APIManagementHelper.Constants.ManagementAzureBaseUrl;
+
+            var requestUrl = $"{managementAzureBaseUrl}{apiManagementResourceId}{workspaceSegment}/apis/{normalizedAPIName}/operations/{normalizedOperationName}?api-version={apiVersion}";
+            try
+            {
+                var res = await _armHelper.GetResourceByURL(requestUrl);
+                return JsonSerializer.Deserialize<APIManagementApiOperationDescriptor>(res) ?? null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, $"GetAPIOperationDetailedInfo: Exception occurred while fetching operation '{operationName}' for resourceId {apiManagementResourceId}, API {apiName}: {ex.Message}");
                 return null;
             }
         }
@@ -315,9 +421,10 @@ namespace Agent.Plugins.Implementation
         public async Task<string> GetAPIMConnectedAppInsights(string apiManagementResourceId)
         {
             string apiVersion = APIManagementHelper.Constants.LoggersApiVer;
+            string managementAzureBaseUrl = APIManagementHelper.Constants.ManagementAzureBaseUrl;
 
             // Call to list all of the app insights resources connected to the API Management instance
-            var requestUrl = $"https://management.azure.com{apiManagementResourceId}/loggers?api-version={apiVersion}";
+            var requestUrl = $"{managementAzureBaseUrl}{apiManagementResourceId}/loggers?api-version={apiVersion}";
 
             var connectedAppInsightsResources = await _armHelper.GetResourceByURL(requestUrl);
             JObject connectedAPIMAppInsights = JObject.Parse(connectedAppInsightsResources);
@@ -328,13 +435,13 @@ namespace Agent.Plugins.Implementation
             if (string.IsNullOrEmpty(apimSubscriptionId))
             {
                 _logger.LogInternalWarning($"Could not extract subscriptionId from API Management resourceId: {apiManagementResourceId}");
-                return null;
+                return string.Empty;
             }
 
             var loggers = connectedAPIMAppInsights["value"];
             if (loggers == null)
             {
-                return null;
+                return string.Empty;
             }
 
             foreach (var logger in loggers)
@@ -354,7 +461,7 @@ namespace Agent.Plugins.Implementation
                 }
             }
 
-            return null;
+            return string.Empty;
         }
 
         #endregion
@@ -376,6 +483,7 @@ namespace Agent.Plugins.Implementation
             }
             return null;
         }
+
         #endregion
 
     }

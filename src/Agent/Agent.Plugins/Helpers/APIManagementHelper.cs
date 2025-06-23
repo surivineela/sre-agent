@@ -13,5 +13,7 @@ internal class APIManagementHelper
         public const string ActivityLogApiVer = "2015-04-01";
         public const string AppInsightsApiVer = "2018-05-01-preview";
         public const string LoggersApiVer = "2020-06-01-preview";
+        public const string APIMAPIVersion = "2024-06-01-preview";
+        public const string ManagementAzureBaseUrl = "https://management.azure.com";
     }
 }

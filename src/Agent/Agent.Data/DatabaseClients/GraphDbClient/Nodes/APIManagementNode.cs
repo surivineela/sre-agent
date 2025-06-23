@@ -31,10 +31,10 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         [GraphProperty("legacyPortalStatus")] public string? LegacyPortalStatus { get; set; }
 
         // SystemData properties (flattened)
-        [GraphProperty("createdAt")] public string? CreatedOn { get; set; }
+        [GraphProperty("createdOn")] public string? CreatedOn { get; set; }
         [GraphProperty("createdBy")] public string? CreatedBy { get; set; }
         [GraphProperty("createdByType")] public string? CreatedByType { get; set; }
-        [GraphProperty("lastModifiedAt")] public string? LastModifiedAt { get; set; }
+        [GraphProperty("lastModifiedOn")] public string? LastModifiedOn { get; set; }
         [GraphProperty("lastModifiedBy")] public string? LastModifiedBy { get; set; }
         [GraphProperty("lastModifiedByType")] public string? LastModifiedByType { get; set; }
 
@@ -77,7 +77,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             CreatedOn = apimInstance.SystemData?.CreatedOn?.ToString();
             CreatedBy = apimInstance.SystemData?.CreatedBy?.ToString();
             CreatedByType = apimInstance.SystemData?.CreatedByType?.ToString();
-            LastModifiedAt = apimInstance.SystemData?.LastModifiedOn?.ToString();
+            LastModifiedOn = apimInstance.SystemData?.LastModifiedOn?.ToString();
             LastModifiedBy = apimInstance.SystemData?.LastModifiedBy?.ToString();
             LastModifiedByType = apimInstance.SystemData?.LastModifiedByType?.ToString();
 

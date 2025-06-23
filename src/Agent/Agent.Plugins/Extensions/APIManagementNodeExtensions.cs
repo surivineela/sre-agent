@@ -69,12 +69,12 @@ namespace Agent.Plugins.Extensions
                 PlatformVersion: apiManagementNode.PlatformVersion,
                 CreatedAtUtc: apiManagementNode.CreatedAtUtc,
 
-                SystemData: apiManagementNode.CreatedOn != null || apiManagementNode.LastModifiedAt != null
+                SystemData: apiManagementNode.CreatedOn != null || apiManagementNode.LastModifiedOn != null
                     ? new SystemDataDescriptor(
-                        CreatedAt: apiManagementNode.CreatedOn,
+                        CreatedOn: apiManagementNode.CreatedOn,
                         CreatedBy: apiManagementNode.CreatedBy,
                         CreatedByType: apiManagementNode.CreatedByType,
-                        LastModifiedAt: apiManagementNode.LastModifiedAt,
+                        LastModifiedOn: apiManagementNode.LastModifiedOn,
                         LastModifiedBy: apiManagementNode.LastModifiedBy,
                         LastModifiedByType: apiManagementNode.LastModifiedByType
                     )

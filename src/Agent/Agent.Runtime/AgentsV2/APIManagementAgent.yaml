@@ -59,6 +59,10 @@ tools:
   - GetAPIMErrorLogs
   - GetAPIMFailureRateByApiOperation
   - GetAPIMRecentFailedRequests
+  - GetAPIMApis
+  - GetAPIDetailsByName
+  - GetAPIOperationsByApi
+  - GetAPIOperationDetailedInfo
   - ListSubscriptions
   - GetAPIMActivityLogs
   - ListResourceGroups
