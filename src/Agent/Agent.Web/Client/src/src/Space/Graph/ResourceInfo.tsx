@@ -29,6 +29,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
+import { isPaasResourceType } from '../../Common/Helpers/Resources';
 import { ResourceInfoResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { GraphContext, GraphNode, ResourceExtended } from '../Contracts/Graph';
 import { getPropertyValue, useResourceInfo } from '../Hooks/useResourceInfo';
@@ -140,13 +141,17 @@ const ResourceInfo = () => {
 const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode; onGitHubLogin: () => void }) => {
     const { isLoading, isUpdating, initialRemarks, resource, onSubmit, toasterId } = useResourceInfo(selectedNode);
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
-    const styles = useStyles();
+    const { infoContent, title, spinner, content, dashboard, githubButton, githubIcon } = useStyles();
+    const intl = useIntl();
+
     const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
     const [repoUrl, setRepoUrl] = useState('');
     const [isLinking, setIsLinking] = useState(false);
     const [repoUrlError, setRepoUrlError] = useState('');
 
-    const intl = useIntl();
+    const properties = resource?.properties;
+
+    const isPaasResource = useMemo<boolean>(() => isPaasResourceType(resource?.type), [resource]);
 
     const handleLinkRepository = async () => {
         if (!selectedNode?.id || !repoUrl) return;
@@ -180,18 +185,15 @@ const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode; onGit
         }
     };
 
-    const properties = resource?.properties;
-    const { infoContent, title, spinner, content, dashboard } = styles;
-
     return selectedNode ? (
         <div className={infoContent}>
-            <Text as="h2" size={600} weight={'semibold'} className={title}>
+            <Text as="h2" size={600} weight="semibold" className={title}>
                 {selectedNode?.name ?? ''}
             </Text>
 
             <div>
                 {isLoading ? (
-                    <Spinner size={'large'} className={spinner} />
+                    <Spinner size="large" className={spinner} />
                 ) : (
                     <div className={content}>
                         <SummaryField
@@ -226,101 +228,105 @@ const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode; onGit
                                 </div>
                             ) : null}
                         </SummaryField>
-                        <SummaryField label={intl.formatMessage(ResourceInfoResources.repositoryConnection)}>
-                            {resource?.sourceCodeLinkageStatus ? (
-                                resource.sourceCodeLinkageStatus.status === 'Linked' ? (
-                                    <div className={styles.githubButton}>
-                                        <FaGithub className={styles.githubIcon} />
-                                        <Link href={resource.sourceCodeLinkageStatus.repositoryUrl} target="_blank">
-                                            {resource.sourceCodeLinkageStatus.repositoryUrl}
-                                        </Link>
-                                    </div>
+                        {isPaasResource && (
+                            <SummaryField label={intl.formatMessage(ResourceInfoResources.repositoryConnection)}>
+                                {resource?.sourceCodeLinkageStatus ? (
+                                    resource.sourceCodeLinkageStatus.status === 'Linked' ? (
+                                        <div className={githubButton}>
+                                            <FaGithub className={githubIcon} />
+                                            <Link href={resource.sourceCodeLinkageStatus.repositoryUrl} target="_blank">
+                                                {resource.sourceCodeLinkageStatus.repositoryUrl}
+                                            </Link>
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            {resource.sourceCodeLinkageStatus.repositoryUrl && (
+                                                <div className={githubButton} style={{ marginBottom: '8px' }}>
+                                                    <FaGithub className={githubIcon} />
+                                                    <Link href={resource.sourceCodeLinkageStatus.repositoryUrl} target="_blank">
+                                                        {resource.sourceCodeLinkageStatus.repositoryUrl}
+                                                    </Link>
+                                                </div>
+                                            )}
+                                            <Button
+                                                appearance="primary"
+                                                size="small"
+                                                icon={<FaGithub className={githubIcon} />}
+                                                onClick={() => {
+                                                    const status = resource?.sourceCodeLinkageStatus;
+                                                    if (status?.loginCallbackUrl) {
+                                                        window.open(status.loginCallbackUrl, 'githubAuth', 'width=600,height=700');
+                                                    }
+                                                }}
+                                            >
+                                                <FormattedMessage {...ResourceInfoResources.authorizeRepositoryAccess} />
+                                            </Button>
+                                        </div>
+                                    )
                                 ) : (
-                                    <div>
-                                        {resource.sourceCodeLinkageStatus.repositoryUrl && (
-                                            <div className={styles.githubButton} style={{ marginBottom: '8px' }}>
-                                                <FaGithub className={styles.githubIcon} />
-                                                <Link href={resource.sourceCodeLinkageStatus.repositoryUrl} target="_blank">
-                                                    {resource.sourceCodeLinkageStatus.repositoryUrl}
-                                                </Link>
-                                            </div>
-                                        )}
+                                    <>
                                         <Button
                                             appearance="primary"
                                             size="small"
-                                            icon={<FaGithub className={styles.githubIcon} />}
-                                            onClick={() => {
-                                                const status = resource?.sourceCodeLinkageStatus;
-                                                if (status?.loginCallbackUrl) {
-                                                    window.open(status.loginCallbackUrl, 'githubAuth', 'width=600,height=700');
-                                                }
-                                            }}
+                                            icon={<FaGithub className={githubIcon} />}
+                                            onClick={() => setIsLinkDialogOpen(true)}
                                         >
-                                            <FormattedMessage {...ResourceInfoResources.authorizeRepositoryAccess} />
+                                            <FormattedMessage {...ResourceInfoResources.connectRepository} />
                                         </Button>
-                                    </div>
-                                )
-                            ) : (
-                                <>
-                                    <Button
-                                        appearance="primary"
-                                        size="small"
-                                        icon={<FaGithub className={styles.githubIcon} />}
-                                        onClick={() => setIsLinkDialogOpen(true)}
-                                    >
-                                        <FormattedMessage {...ResourceInfoResources.connectRepository} />
-                                    </Button>
-                                    <Dialog open={isLinkDialogOpen} onOpenChange={(_, data) => setIsLinkDialogOpen(data.open)}>
-                                        <DialogSurface>
-                                            <DialogBody>
-                                                <DialogTitle>
-                                                    <FormattedMessage {...ResourceInfoResources.linkRepositoryToResource} />
-                                                </DialogTitle>
-                                                <DialogContent>
-                                                    <Field
-                                                        label={intl.formatMessage(ResourceInfoResources.repositoryUrl)}
-                                                        validationState={repoUrlError ? 'error' : undefined}
-                                                        validationMessage={repoUrlError}
-                                                    >
-                                                        <Textarea
-                                                            placeholder="https://github.com/owner/repo-name.git"
-                                                            value={repoUrl}
-                                                            onChange={(_, data) => {
-                                                                setRepoUrl(data.value);
-                                                                if (!githubRepoRegex.test(data.value)) {
-                                                                    setRepoUrlError(
-                                                                        intl.formatMessage(ResourceInfoResources.repositoryUrlErrorMessage)
-                                                                    );
-                                                                } else {
-                                                                    setRepoUrlError('');
-                                                                }
-                                                            }}
-                                                            style={{ direction: 'ltr' }}
-                                                        />
-                                                    </Field>
-                                                </DialogContent>
-                                                <DialogActions>
-                                                    <Button
-                                                        appearance="primary"
-                                                        disabled={!repoUrl || !!repoUrlError || isLinking}
-                                                        onClick={handleLinkRepository}
-                                                    >
-                                                        {isLinking ? (
-                                                            <FormattedMessage {...ResourceInfoResources.connecting} />
-                                                        ) : (
-                                                            <FormattedMessage {...ResourceInfoResources.connectRepository} />
-                                                        )}
-                                                    </Button>
-                                                    <Button appearance="secondary" onClick={() => setIsLinkDialogOpen(false)}>
-                                                        <FormattedMessage {...SreAgentResources.cancel} />
-                                                    </Button>
-                                                </DialogActions>
-                                            </DialogBody>
-                                        </DialogSurface>
-                                    </Dialog>
-                                </>
-                            )}
-                        </SummaryField>
+                                        <Dialog open={isLinkDialogOpen} onOpenChange={(_, data) => setIsLinkDialogOpen(data.open)}>
+                                            <DialogSurface>
+                                                <DialogBody>
+                                                    <DialogTitle>
+                                                        <FormattedMessage {...ResourceInfoResources.linkRepositoryToResource} />
+                                                    </DialogTitle>
+                                                    <DialogContent>
+                                                        <Field
+                                                            label={intl.formatMessage(ResourceInfoResources.repositoryUrl)}
+                                                            validationState={repoUrlError ? 'error' : undefined}
+                                                            validationMessage={repoUrlError}
+                                                        >
+                                                            <Textarea
+                                                                placeholder="https://github.com/owner/repo-name.git"
+                                                                value={repoUrl}
+                                                                onChange={(_, data) => {
+                                                                    setRepoUrl(data.value);
+                                                                    if (!githubRepoRegex.test(data.value)) {
+                                                                        setRepoUrlError(
+                                                                            intl.formatMessage(
+                                                                                ResourceInfoResources.repositoryUrlErrorMessage
+                                                                            )
+                                                                        );
+                                                                    } else {
+                                                                        setRepoUrlError('');
+                                                                    }
+                                                                }}
+                                                                style={{ direction: 'ltr' }}
+                                                            />
+                                                        </Field>
+                                                    </DialogContent>
+                                                    <DialogActions>
+                                                        <Button
+                                                            appearance="primary"
+                                                            disabled={!repoUrl || !!repoUrlError || isLinking}
+                                                            onClick={handleLinkRepository}
+                                                        >
+                                                            {isLinking ? (
+                                                                <FormattedMessage {...ResourceInfoResources.connecting} />
+                                                            ) : (
+                                                                <FormattedMessage {...ResourceInfoResources.connectRepository} />
+                                                            )}
+                                                        </Button>
+                                                        <Button appearance="secondary" onClick={() => setIsLinkDialogOpen(false)}>
+                                                            <FormattedMessage {...SreAgentResources.cancel} />
+                                                        </Button>
+                                                    </DialogActions>
+                                                </DialogBody>
+                                            </DialogSurface>
+                                        </Dialog>
+                                    </>
+                                )}
+                            </SummaryField>
+                        )}
                         <SummaryField label={intl.formatMessage(ResourceInfoResources.annotation)}>
                             {initialRemarks ? <div>{initialRemarks}</div> : null}
                             <Dialog>

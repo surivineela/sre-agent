@@ -1,6 +1,7 @@
 import { defineMessages } from 'react-intl';
 
 export const SreAgentResources = defineMessages({
+    all: { defaultMessage: 'All', id: 'zQvVDJ' },
     azureSreAgent: { defaultMessage: 'Azure SRE Agent', id: 'Erci0g' },
     runMode: { defaultMessage: 'Run mode', id: 'MFofa3' },
     deleteAgentTitle: { defaultMessage: 'Delete SRE Agent', id: 'ThSX0k' },
@@ -135,6 +136,7 @@ export const SreAgentResources = defineMessages({
     resourceGroup: { defaultMessage: 'Resource group', id: '+uAdUZ' },
     resourceGroups: { defaultMessage: 'Resource groups', id: '/zQv2D' },
     resourceGroupName: { defaultMessage: 'Resource group name', id: 'xVPoso' },
+    resourceType: { defaultMessage: 'Resource type', id: 'WHleoJ' },
     save: { defaultMessage: 'Save', id: 'jvo0vs' },
     scope: { defaultMessage: 'Scope', id: 'nso3Mj' },
     selectResourceGroups: { defaultMessage: 'Select resource groups', id: 'ftfFhS' },

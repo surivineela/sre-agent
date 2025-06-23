@@ -104,3 +104,11 @@ export const getResourceTypeFriendlyName = (azureType?: string, subType?: string
         return typeArray[typeArray.length - 1];
     }
 };
+
+const paasResourceTypeMatchers = ['microsoft.app', 'microsoft.web'];
+export const isPaasResourceType = (rscType?: string): boolean => {
+    if (!rscType) return false;
+
+    const lowerRscType = rscType.toLowerCase();
+    return paasResourceTypeMatchers.some(matcher => lowerRscType.includes(matcher));
+};

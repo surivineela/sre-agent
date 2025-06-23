@@ -10,14 +10,16 @@ import {
     Text,
 } from '@fluentui/react-components';
 import axios from 'axios';
-import { memo, useContext, useEffect, useState } from 'react';
-import { FormattedMessage } from 'react-intl';
+import { memo, useContext, useEffect, useMemo, useState } from 'react';
+import { FormattedMessage, useIntl } from 'react-intl';
 import { useParams } from 'react-router-dom';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { GraphResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { ResourceExtended, Subscription } from '../Contracts/Graph';
 import { useResourceSelectorStyles } from '../Styles/Graph.styles';
+
+const allKey = 'all';
 
 interface IResourceSelectorProps {
     onAppGroupUpdate: (appGroup?: ResourceExtended) => void;
@@ -26,17 +28,33 @@ interface IResourceSelectorProps {
 const ResourceSelector = ({ onAppGroupUpdate }: IResourceSelectorProps) => {
     const { groupId: initialGroupId } = useParams();
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
+    const intl = useIntl();
 
     const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
     const [appGroups, setAppGroups] = useState<ResourceExtended[]>([]);
+    const [filteredAppGroups, setFilteredAppGroups] = useState<ResourceExtended[]>([]);
 
     const [selectedSubscription, setSelectedSubscription] = useState<Subscription>();
+    const [selectedRscType, setSelectedRscType] = useState<string>(allKey);
     const [selectedAppGroup, setSelectedAppGroup] = useState<ResourceExtended>();
 
     const [isSubscriptionLoading, setIsSubscriptionLoading] = useState<boolean>(false);
     const [isAppGroupLoading, setIsAppGroupLoading] = useState<boolean>(false);
 
     const { root, field, option, optionText, optionSubtext } = useResourceSelectorStyles();
+
+    const resourceTypeFilterOptions = useMemo(() => {
+        const options = [{ key: allKey, text: intl.formatMessage(SreAgentResources.all) }];
+
+        if (!isAppGroupLoading && appGroups.length > 0) {
+            const uniqueTypes = new Set(appGroups.map(appGroup => appGroup.type));
+            uniqueTypes.forEach(type => {
+                options.push({ key: type, text: type });
+            });
+        }
+
+        return options;
+    }, [intl, appGroups, isAppGroupLoading]);
 
     const getSubscriptions = async (): Promise<Subscription[]> => {
         try {
@@ -71,6 +89,19 @@ const ResourceSelector = ({ onAppGroupUpdate }: IResourceSelectorProps) => {
             setAppGroups(appGroups);
             setSelectedAppGroup(appGroups[0]);
             setIsAppGroupLoading(false);
+        }
+    };
+
+    const onSelectRscType = (_: SelectionEvents, data: OptionOnSelectData) => {
+        const rscType = data.optionValue;
+        setSelectedRscType(rscType ?? allKey);
+
+        if (rscType === allKey) {
+            setFilteredAppGroups(appGroups);
+        } else {
+            const filteredAppGroups = appGroups.filter(appGroup => appGroup.type === rscType);
+            setFilteredAppGroups(filteredAppGroups);
+            setSelectedAppGroup(filteredAppGroups[0]);
         }
     };
 
@@ -126,6 +157,10 @@ const ResourceSelector = ({ onAppGroupUpdate }: IResourceSelectorProps) => {
     }, []);
 
     useEffect(() => {
+        setFilteredAppGroups([...appGroups]);
+    }, [appGroups]);
+
+    useEffect(() => {
         onAppGroupUpdate(selectedAppGroup);
     }, [selectedAppGroup]);
 
@@ -159,6 +194,23 @@ const ResourceSelector = ({ onAppGroupUpdate }: IResourceSelectorProps) => {
                     </Dropdown>
                 )}
             </Field>
+
+            <Field label={intl.formatMessage(SreAgentResources.resourceType)} className={field}>
+                <Dropdown
+                    value={selectedRscType === allKey ? intl.formatMessage(SreAgentResources.all) : selectedRscType}
+                    selectedOptions={selectedRscType ? [selectedRscType] : []}
+                    onOptionSelect={onSelectRscType}
+                >
+                    {resourceTypeFilterOptions.map(rscTypeOption => {
+                        return (
+                            <Option key={rscTypeOption.key} value={rscTypeOption.key} text={rscTypeOption.text}>
+                                <Text className={optionText}>{rscTypeOption.text}</Text>
+                            </Option>
+                        );
+                    })}
+                </Dropdown>
+            </Field>
+
             <Field label={<FormattedMessage {...SreAgentResources.coreApplicationGroup} />} className={field}>
                 {isAppGroupLoading ? (
                     <Shimmer />
@@ -168,7 +220,7 @@ const ResourceSelector = ({ onAppGroupUpdate }: IResourceSelectorProps) => {
                         selectedOptions={selectedAppGroup ? [selectedAppGroup.id] : []}
                         onOptionSelect={onSelectAppGroup}
                     >
-                        {appGroups.map(appGroup => {
+                        {filteredAppGroups.map(appGroup => {
                             return (
                                 <Option key={appGroup.id} value={appGroup.id} text={appGroup.name}>
                                     <div className={option}>

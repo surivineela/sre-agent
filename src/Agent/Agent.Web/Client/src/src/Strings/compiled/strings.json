@@ -1875,6 +1875,12 @@
       "value": "Approve"
     }
   ],
+  "WHleoJ": [
+    {
+      "type": 0,
+      "value": "Resource type"
+    }
+  ],
   "WIm1Zh": [
     {
       "type": 0,
@@ -3269,6 +3275,12 @@
     {
       "type": 0,
       "value": "Optimize how the agent responds to incidents"
+    }
+  ],
+  "zQvVDJ": [
+    {
+      "type": 0,
+      "value": "All"
     }
   ],
   "zcyAwy": [
