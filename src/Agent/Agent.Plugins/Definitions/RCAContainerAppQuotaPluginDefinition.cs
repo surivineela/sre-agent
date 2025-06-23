@@ -65,9 +65,9 @@ namespace Agent.Plugins.Definitions
 
         [Description(@"Get Container App Environment Quota limit.
         Input parameters:
-        - environmentResourceURL: The resource url of the container app environment.
-        - region: The region of the quota need to be set.
-        - quotaType: The quota type.
+        - environmentResourceURL: The resource url of the container app environment. Format `/subscriptions/[SubscriptionId]/resourceGroups/[resource group name]/providers/Microsoft.App/managedEnvironments/[environment name]`
+        - region: The region of the quota need to be set. example eastus
+        - quotaType: The quota type. example ManagedEnvironmentConsumptionCores
         The return value is a string containing the quota limit value for the specified environment, region, and quota type.
         ")]
         public async Task<string> GetEnvironmentQuota(

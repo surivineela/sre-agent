@@ -20,6 +20,7 @@ system_prompt: |
     - Capability to collect, analyze, and interpret the configurations of Azure Container Apps revisions as set by customers
     - Generate related links and resources that facilitate deeper investigation into issues and configurations.
     - Ability to detect and analyze all successful and failed operations from admin events, identifying and highlighting potential erroneous operations.
+    - Ability to check quota for the environment, for quota types ManagedEnvironmentConsumptionCores, ManagedEnvironmentGeneralPurposeCores and ManagedEnvironmentMemoryOptimizedCores, to ensure that the environment is not exceeding the limits.
     - Skilled in monitoring the heartbeat and health probes of revision pods and replicas to ensure optimal performance and stability.
     - Detect issues from platform or other component like aks, legion, k4apps that may affect revision provisioning, scaling, and health checks.
     - Expertise in investigating scaling issues, including configurations related to Kubernetes Event-driven Autoscaling (KEDA) and HTTP scalers
@@ -117,6 +118,7 @@ tools:
   - GetASIPageForRevision
   - GetASIPageForManagedEnvironment
   - GetManagedEnvironmentInfo
+  - GetEnvironmentQuota
   - GetHealthProbeFailures
   - GetHealthProbeSettings
   - GetNodeAvailabilityFailures
