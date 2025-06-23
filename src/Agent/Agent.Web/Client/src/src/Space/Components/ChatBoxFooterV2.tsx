@@ -42,6 +42,7 @@ const ChatBoxFooterV2 = ({
     messagePromptsUsed,
     cancelStreaming,
     isTyping,
+    isCancellingStreaming,
 }: IChatBoxFooterV2Props) => {
     const intl = useIntl();
 
@@ -55,8 +56,13 @@ const ChatBoxFooterV2 = ({
     const { isConnected } = useContext(SignalRContext);
 
     const disableInputInteraction = useMemo(() => {
-        return disableInput || !isConnected;
-    }, [disableInput, isConnected]);
+        return disableInput || !isConnected || isCancellingStreaming;
+    }, [disableInput, isConnected, isCancellingStreaming]);
+
+    const SendOrCancelButtonIcon = () => {
+        const color = disableInputInteraction ? 'undefined' : tokens.colorBrandForeground1;
+        return isTyping ? <RecordStopFilled style={{ color }} /> : <SendFilled style={{ color }} />;
+    };
 
     const chatInputHandleSendClick = useCallback(() => {
         const messageToSend = input?.trim() ?? '';
@@ -161,6 +167,7 @@ const ChatBoxFooterV2 = ({
                                 appearance="outline"
                                 icon={<Lightbulb16Regular />}
                                 onClick={() => setOpen(!open)}
+                                disabled={disableInputInteraction}
                             >
                                 {intl.formatMessage(PromptResources.promptLibrary)}
                             </Button>
@@ -179,13 +186,7 @@ const ChatBoxFooterV2 = ({
                         </PopoverSurface>
                     </Popover>
                     <Button
-                        icon={
-                            isTyping ? (
-                                <RecordStopFilled style={{ color: tokens.colorBrandForeground1 }} />
-                            ) : (
-                                <SendFilled style={{ color: disableInputInteraction ? 'undefined' : tokens.colorBrandForeground1 }} />
-                            )
-                        }
+                        icon={<SendOrCancelButtonIcon />}
                         disabled={disableInputInteraction}
                         onClick={() => {
                             if (isTyping) {

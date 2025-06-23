@@ -172,6 +172,7 @@ export interface Message {
 export enum MessageRequestType {
     CreateMessage = 'CreateMessage',
     CreateThread = 'CreateThread',
+    CancelThread = 'CancelThread',
 }
 
 export enum MessageResponseType {
@@ -193,6 +194,7 @@ export interface StreamingMessage {
         threadId?: string | null;
         messageId?: string | null;
         streamMessageType?: StreamingMessageType;
+        isCancelled?: boolean | null;
     } | null;
 }
 

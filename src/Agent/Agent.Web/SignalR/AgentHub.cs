@@ -178,7 +178,6 @@ namespace Agent.Web.SignalR
                         AuthorName = "System",
                         Role = ChatRole.System,
                         CreatedAt = DateTime.UtcNow,
-                        Contents = [new TextContent("Operation cancelled by user.")],
                         FinishReason = ChatFinishReason.Stop,
                         AdditionalProperties = new AdditionalPropertiesDictionary
                         {
@@ -380,7 +379,6 @@ namespace Agent.Web.SignalR
                         AuthorName = "System",
                         Role = ChatRole.System,
                         CreatedAt = DateTime.UtcNow,
-                        Contents = [new TextContent("Operation cancelled by user.")],
                         FinishReason = ChatFinishReason.Stop,
                         AdditionalProperties = new AdditionalPropertiesDictionary
                         {
@@ -456,13 +454,13 @@ namespace Agent.Web.SignalR
                     AuthorName = "System",
                     Role = ChatRole.System,
                     CreatedAt = DateTime.UtcNow,
-                    Contents = [new TextContent("Operation cancelled by user.")],
                     FinishReason = ChatFinishReason.Stop,
                     AdditionalProperties = new AdditionalPropertiesDictionary
                     {
                         { "connectionId", Context.ConnectionId },
                         { "threadId", threadId.ToString() },
-                        { "actionName", nameof(CancelThread) }
+                        { "actionName", nameof(CancelThread) },
+                        { "isCancelled", true }
                     }
                 };
 

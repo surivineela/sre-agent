@@ -25,6 +25,7 @@ import {
     isDefaultStreamingMessageType,
     isFinalStreamingMessage,
     isIncidentThreadCompleted,
+    isUserStreamingMessage,
     processChatMessageContents,
     processOldMessagesV2,
     updateOldMessagesText,
@@ -97,8 +98,8 @@ export const useChatBoxV2 = (
     );
 
     const [streamingMessage, setStreamingMessage] = useState<ChatMessage | null>(null);
+    const [isCancellingStreaming, setIsCancellingStreaming] = useState<boolean>(false);
     const [toolCallText, setToolCallText] = useState<string | null>(null);
-    const [stopReceivingStreamingMessages, setStopReceivingStreamingMessages] = useState<boolean>(false);
     const [isAgentTyping, setIsAgentTyping] = useState<boolean>(false);
     const messageChunkQueue = useRef<StreamingMessage[]>([]);
     const isTypingChars = useRef<boolean>(false);
@@ -164,18 +165,13 @@ export const useChatBoxV2 = (
 
     const finishStreaming = () => {
         setIsAgentTyping(false);
+        setIsCancellingStreaming(false);
         setToolCallText(null);
         messageChunkQueue.current = [];
         isTypingChars.current = false;
         typingCharIndex.current = 0;
         clearTimeout(typingCharsTimeout.current);
     };
-
-    const cancelStreaming = useCallback(() => {
-        //ToDo: Cancel the streaming message by sending a cancellation token (API is not ready yet)
-        setStopReceivingStreamingMessages(true);
-        finishStreaming();
-    }, []);
 
     /**
      * @param newMessages messages in descending order by timeStamp
@@ -203,6 +199,16 @@ export const useChatBoxV2 = (
         sendMessage(MessageRequestType.CreateMessage, threadId, messageCreateRequest, false);
     };
 
+    const cancelStreaming = useCallback(() => {
+        setIsCancellingStreaming(true);
+    }, []);
+
+    useEffect(() => {
+        if (isCancellingStreaming && currentThreadId) {
+            sendMessage(MessageRequestType.CancelThread, currentThreadId);
+        }
+    }, [isCancellingStreaming, currentThreadId, sendMessage]);
+
     const sendMessageHandler = useCallback(
         async (message: string) => {
             const currentStreamingMessage = streamingMessageRef.current;
@@ -217,7 +223,6 @@ export const useChatBoxV2 = (
             handleNewMessages(messagesToAdd);
             setStreamingMessage(composeDefaultStreamingMessage());
             setIsAgentTyping(true);
-            setStopReceivingStreamingMessages(false);
 
             try {
                 const messageRequest: MessageCreateRequest = {
@@ -295,9 +300,9 @@ export const useChatBoxV2 = (
                 return;
             }
 
-            const handleCompletedMessageChunk = () => {
+            const handleCompletedMessageChunk = (messageChunk: StreamingMessage) => {
                 messageChunkQueue.current.shift();
-                if (isFinalStreamingMessage(currentMessageChunk)) {
+                if (isFinalStreamingMessage(messageChunk)) {
                     finishStreaming();
                 } else {
                     handleMessageTyping();
@@ -310,12 +315,12 @@ export const useChatBoxV2 = (
             const currentMessageText = getStreamingMessageText(currentMessageChunk);
             const currentToolCallText = getToolCallText(currentMessageChunk);
 
-            setToolCallText(currentToolCallText);
+            setToolCallText(isCancellingStreaming ? null : currentToolCallText);
 
-            if (currentMessageText) {
+            if (currentMessageText && !isCancellingStreaming) {
                 if (isDefaultStreamingMessageType(currentMessageChunk)) {
                     const typeChar = (isNewlineAdded: boolean) => {
-                        if (typingCharIndex.current < currentMessageText.length) {
+                        if (typingCharIndex.current < currentMessageText.length && !isCancellingStreaming) {
                             const charIndex = typingCharIndex.current;
                             typingCharIndex.current += MessageTypingCharactersPer10Ms;
                             const newText = currentMessageText.slice(
@@ -351,7 +356,7 @@ export const useChatBoxV2 = (
                             });
                             typingCharsTimeout.current = setTimeout(() => typeChar(true), MessageTypingSpeedInMilliseconds);
                         } else {
-                            handleCompletedMessageChunk();
+                            handleCompletedMessageChunk(currentMessageChunk);
                         }
                     };
                     typeChar(false);
@@ -363,10 +368,10 @@ export const useChatBoxV2 = (
                             contents: processChatMessageContents(newStreamingMessage.contents, currentMessageChunk),
                         };
                     });
-                    handleCompletedMessageChunk();
+                    handleCompletedMessageChunk(currentMessageChunk);
                 }
             } else {
-                handleCompletedMessageChunk();
+                handleCompletedMessageChunk(currentMessageChunk);
             }
         };
 
@@ -404,21 +409,23 @@ export const useChatBoxV2 = (
             if (streamData) {
                 // Keep it for now for testing purpose. Will remove it once the streaming is not behind the feature flag
                 console.log(
-                    messageResponseType + ' received: ',
-                    'Content: ',
-                    streamData.contents?.[0]?.text,
+                    messageResponseType,
                     'Role: ',
                     streamData.role,
-                    'Type: ',
+                    'Text: ',
+                    streamData.contents?.[0]?.text,
+                    'Text type: ',
                     streamData.additionalProperties?.streamMessageType,
+                    'Tool call',
+                    streamData.contents?.[0]?.name,
+                    'isCancelled',
+                    streamData.additionalProperties?.isCancelled,
                     'Finish Reason: ',
                     streamData.finishReason
                 );
 
-                const isUserMessage = equals(streamData.role || '', 'user', AntUxStringComparison.IgnoreCase);
-
-                if (isSubscribed && !stopReceivingStreamingMessages) {
-                    if (isUserMessage) {
+                if (isSubscribed) {
+                    if (isUserStreamingMessage(streamData)) {
                         handleUserMessageChunk(messageResponseType, streamData);
                     } else {
                         handleAgentMessageChunk(streamData);
@@ -438,7 +445,7 @@ export const useChatBoxV2 = (
         return () => {
             isSubscribed = false;
         };
-    }, [onMessage, addThread, promoteThread, stopReceivingStreamingMessages]);
+    }, [onMessage, addThread, promoteThread, isCancellingStreaming]);
 
     // Load the latest 20 chat message history
     useEffect(() => {
@@ -662,6 +669,7 @@ export const useChatBoxV2 = (
         isAgentTyping,
         streamingMessage,
         toolCallText,
+        isCancellingStreaming,
         sendMessage: sendMessageHandler,
         isNewAndCleanThread,
         messagesDivRef,

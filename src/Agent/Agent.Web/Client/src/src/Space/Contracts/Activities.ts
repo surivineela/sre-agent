@@ -129,6 +129,7 @@ export interface IChatBoxFooterV2Props {
     messagePromptsUsed: string[];
     cancelStreaming: () => void;
     isTyping: boolean;
+    isCancellingStreaming: boolean;
 }
 
 export class ThreadLoadingCounts {

@@ -261,12 +261,17 @@ export const getToolCallText = (streamingMessage: StreamingMessage): string | nu
 };
 
 export const isFinalStreamingMessage = (streamingMessage: StreamingMessage): boolean => {
-    const { finishReason } = streamingMessage;
+    const { finishReason, additionalProperties } = streamingMessage;
 
     return (
         equals(finishReason || '', 'stop', AntUxStringComparison.IgnoreCase) ||
-        equals(finishReason || '', 'length', AntUxStringComparison.IgnoreCase)
+        equals(finishReason || '', 'length', AntUxStringComparison.IgnoreCase) ||
+        !!additionalProperties?.isCancelled
     );
+};
+
+export const isUserStreamingMessage = (streamingMessage: StreamingMessage): boolean => {
+    return equals(streamingMessage.role || '', 'user', AntUxStringComparison.IgnoreCase);
 };
 
 export const isChatMessageContentNonImageText = (chatMessageContent: ChatMessageContent): boolean => {
