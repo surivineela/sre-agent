@@ -93,7 +93,7 @@ const buttonsWrapperStyle: CSSProperties = { marginTop: 30 };
 const deleteButtonStyle: CSSProperties = { marginTop: '20px' };
 
 const controlStyles = {
-    width: 460,
+    width: 350,
     bordeRadius: tokens.borderRadiusLarge,
 };
 

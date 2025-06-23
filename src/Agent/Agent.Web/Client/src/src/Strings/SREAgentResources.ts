@@ -524,7 +524,7 @@ export const IncidentManagementPlatformResources = defineMessages({
 });
 
 export const IncidentManagementNotificationResources = defineMessages({
-    saveTitle: { defaultMessage: 'Save incident management configuration', id: '35UE1s' },
+    saveTitle: { defaultMessage: 'Saving incident management configuration', id: 'TyvDrC' },
     saveStarted: { defaultMessage: 'Saving incident management configuration', id: 'TyvDrC' },
     saveSucceeded: { defaultMessage: 'Successfully saved incident management configuration', id: 'NrGEOo' },
     saveFailed: { defaultMessage: 'Failed to save incident management configuration. Error: {errorMessage}', id: 'slxYbm' },
@@ -649,8 +649,8 @@ export const PagerDutyResources = defineMessages({
     disconnectConfirmationTitle: { defaultMessage: 'Disconnect PagerDuty?', id: 'cTY8WU' },
     disconnectConfirmationMessage: {
         defaultMessage:
-            'This will permanently delete the connection to PagerDuty. The agent will no longer be able to manage tickets. Are you sure you want to delete this connection?',
-        id: 'rGl1yu',
+            'This will permanently delete the connection to PagerDuty. The agent will no longer be able to manage tickets. Are you sure you want to disconnect?',
+        id: 'r2x5ZI',
     },
     connectedMessage: { defaultMessage: 'PagerDuty is connected.', id: '23nct0' },
     connectedMessageWithoutHandlers: {
@@ -663,8 +663,8 @@ export const PagerDutyResources = defineMessages({
 export const AzMonitorResources = defineMessages({
     description: {
         defaultMessage:
-            'Connect to Azure Monitor so that the SRE Agent can automatically monitor notifications from resources in the resource groups it manages, without additional provisioning.',
-        id: 'XgXHWP',
+            'Connect to Azure Monitor so that the agent can automatically monitor notifications from the resource groups it manages, without additional provisioning.',
+        id: 'iDSWYk',
     },
     disconnectConfirmationTitle: { defaultMessage: 'Disconnect Azure Monitor?', id: 'blSyDZ' },
     disconnectConfirmationMessage: {

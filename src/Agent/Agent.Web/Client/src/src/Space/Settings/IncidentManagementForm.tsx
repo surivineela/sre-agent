@@ -123,7 +123,7 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                 (values.platform === IncidentManagementPlatform.PagerDuty || values.platform === IncidentManagementPlatform.Icm) &&
                 !isSetupScenario &&
                 isIncidentManagementConnected && (
-                    <MessageBar style={{ maxWidth: 1000, marginBottom: 16 }}>
+                    <MessageBar style={{ maxWidth: '80%', marginBottom: 16 }}>
                         {intl.formatMessage(
                             hasFilters
                                 ? IncidentManagementResources.setUpInfoBanner
@@ -157,7 +157,7 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                             label={intl.formatMessage(IncidentManagementResources.incidentPlatform)}
                             orientation="horizontal"
                             required={true}
-                            style={{ maxWidth: '1000px' }}
+                            style={{ maxWidth: '80%' }}
                         >
                             <Dropdown
                                 id="platform"
@@ -213,7 +213,7 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                                     validationMessage={
                                         formikProps.touched.connectionKey && !isValidating ? formikProps.errors.connectionKey : undefined
                                     }
-                                    style={{ maxWidth: '1000px' }}
+                                    style={{ maxWidth: '80%' }}
                                 >
                                     <Input
                                         style={styles.textFieldStyles}
@@ -287,6 +287,38 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                             </>
                         )}
 
+                        {(values.platform === IncidentManagementPlatform.PagerDuty || values.platform === IncidentManagementPlatform.Icm) &&
+                            isSetupScenario && (
+                                <>
+                                    {/* Once have CheckConnectivity for IcM, we can remove this check */}
+                                    {values.platform === IncidentManagementPlatform.PagerDuty && (
+                                        <Field
+                                            id="createDefaultHandlerField"
+                                            label={intl.formatMessage(IncidentManagementResources.quickstartHandler)}
+                                            orientation="horizontal"
+                                            style={{ maxWidth: '78.5%', marginTop: 20 }}
+                                        >
+                                            <Checkbox
+                                                id="createDefaultHandler"
+                                                checked={formikProps.values.createDefaultHandler}
+                                                onChange={(_event, newValue) => {
+                                                    setFieldTouched('createDefaultHandler', true, false);
+                                                    setFieldValue('createDefaultHandler', !!newValue?.checked);
+                                                }}
+                                                disabled={saving}
+                                                label={intl.formatMessage(IncidentManagementResources.quickstartHandlerDescription)}
+                                                labelPosition="after"
+                                            />
+                                        </Field>
+                                    )}
+                                    {!formikProps.values.createDefaultHandler && (
+                                        <MessageBar style={{ maxWidth: '80%', marginTop: 16, marginBottom: 16 }}>
+                                            {intl.formatMessage(IncidentManagementResources.quickstartHandlerInfoMessage)}
+                                        </MessageBar>
+                                    )}
+                                </>
+                            )}
+
                         <div style={styles.buttonsWrapperStyle}>
                             {initialValues.platform === IncidentManagementPlatform.PagerDuty && !editingApiKey && (
                                 <Button
@@ -333,39 +365,6 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                                     {intl.formatMessage(SreAgentResources.cancel)}
                                 </Button>
                             )}
-
-                            {(values.platform === IncidentManagementPlatform.PagerDuty ||
-                                values.platform === IncidentManagementPlatform.Icm) &&
-                                isSetupScenario && (
-                                    <>
-                                        {/* Once have CheckConnectivity for IcM, we can remove this check */}
-                                        {values.platform === IncidentManagementPlatform.PagerDuty && (
-                                            <Field
-                                                id="createDefaultHandlerField"
-                                                label={intl.formatMessage(IncidentManagementResources.quickstartHandler)}
-                                                orientation="horizontal"
-                                                style={{ maxWidth: '1000px', marginTop: 20 }}
-                                            >
-                                                <Checkbox
-                                                    id="createDefaultHandler"
-                                                    checked={formikProps.values.createDefaultHandler}
-                                                    onChange={(_event, newValue) => {
-                                                        setFieldTouched('createDefaultHandler', true, false);
-                                                        setFieldValue('createDefaultHandler', !!newValue?.checked);
-                                                    }}
-                                                    disabled={saving}
-                                                    label={intl.formatMessage(IncidentManagementResources.quickstartHandlerDescription)}
-                                                    labelPosition="after"
-                                                />
-                                            </Field>
-                                        )}
-                                        {!formikProps.values.createDefaultHandler && (
-                                            <MessageBar style={{ maxWidth: 1000, marginTop: 16, marginBottom: 16 }}>
-                                                {intl.formatMessage(IncidentManagementResources.quickstartHandlerInfoMessage)}
-                                            </MessageBar>
-                                        )}
-                                    </>
-                                )}
 
                             {!isSetupScenario && (
                                 <Dialog modalType="alert">

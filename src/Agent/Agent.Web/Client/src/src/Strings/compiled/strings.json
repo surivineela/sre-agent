@@ -23,12 +23,6 @@
       "value": "Type"
     }
   ],
-  "+WRusC": [
-    {
-      "type": 0,
-      "value": "SRE Agent"
-    }
-  ],
   "+k5t/y": [
     {
       "type": 0,
@@ -239,12 +233,6 @@
     {
       "type": 0,
       "value": "Grafana dashboard"
-    }
-  ],
-  "35UE1s": [
-    {
-      "type": 0,
-      "value": "Save incident management configuration"
     }
   ],
   "35vd1u": [
@@ -1965,12 +1953,6 @@
       "value": "Updating incident handler"
     }
   ],
-  "XgXHWP": [
-    {
-      "type": 0,
-      "value": "Connect to Azure Monitor so that the SRE Agent can automatically monitor notifications from resources in the resource groups it manages, without additional provisioning."
-    }
-  ],
   "XvrDTb": [
     {
       "type": 0,
@@ -2457,6 +2439,12 @@
       "value": "Container Apps Contributor"
     }
   ],
+  "iDSWYk": [
+    {
+      "type": 0,
+      "value": "Connect to Azure Monitor so that the agent can automatically monitor notifications from the resource groups it manages, without additional provisioning."
+    }
+  ],
   "iTTSax": [
     {
       "type": 0,
@@ -2845,6 +2833,12 @@
       "value": "ID"
     }
   ],
+  "r2x5ZI": [
+    {
+      "type": 0,
+      "value": "This will permanently delete the connection to PagerDuty. The agent will no longer be able to manage tickets. Are you sure you want to disconnect?"
+    }
+  ],
   "r6+QFy": [
     {
       "type": 0,
@@ -2867,12 +2861,6 @@
     {
       "type": 0,
       "value": "Active threads"
-    }
-  ],
-  "rGl1yu": [
-    {
-      "type": 0,
-      "value": "This will permanently delete the connection to PagerDuty. The agent will no longer be able to manage tickets. Are you sure you want to delete this connection?"
     }
   ],
   "rbrahO": [

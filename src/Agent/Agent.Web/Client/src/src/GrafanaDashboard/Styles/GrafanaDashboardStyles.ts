@@ -52,7 +52,7 @@ const apiKeyRow: CSSProperties = {
     maxWidth: '500px',
 };
 
-const inputFieldLabel: CSSProperties = { height: '50px', columnGap: '50px' };
+const inputFieldLabel: CSSProperties = { maxWidth: '80%' };
 
 const displayFieldLabel: CSSProperties = { marginRight: '100px' };
 
