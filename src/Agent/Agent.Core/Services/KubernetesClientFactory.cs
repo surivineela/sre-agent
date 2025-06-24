@@ -2,11 +2,13 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Logging;
 using Azure.Core;
 using Azure.ResourceManager.ContainerService;
+using Azure.ResourceManager.ContainerService.Models;
 using Azure.ResourceManager.Resources;
 using k8s;
 using k8s.KubeConfigModels;
@@ -19,17 +21,20 @@ public class KubernetesClientFactory : IKubernetesClientFactory
     private readonly ILogger<KubernetesClientFactory> _logger;
     private readonly IArmClientFactory _armClientFactory;
     private readonly IAuthenticationService _authService;
+    private readonly ActionSettings _actionSettings;
 
     private readonly Dictionary<string, CachedK8sConfiguration> _configurationCache;
 
     public KubernetesClientFactory(
         ILogger<KubernetesClientFactory> logger,
         IArmClientFactory armClientFactory,
-        IAuthenticationService authService)
+        IAuthenticationService authService,
+        ActionSettings actionSettings)
     {
         _logger = logger;
         _armClientFactory = armClientFactory;
         _authService = authService;
+        _actionSettings = actionSettings;
 
         _configurationCache = new Dictionary<string, CachedK8sConfiguration>();
     }
@@ -93,7 +98,7 @@ public class KubernetesClientFactory : IKubernetesClientFactory
         return new Kubernetes(kubeConfig);
     }
 
-    private async Task<(K8SConfiguration, DateTimeOffset?)> GetK8sConfigurationFromArm(string subscription, string resourceGroup, string clusterName, TokenCredential cred)
+    private async Task<(K8SConfiguration, DateTimeOffset?)> GetK8sConfigurationFromArm(string subscription, string resourceGroup, string clusterName, TokenCredential cred, string? agentMode = null)
     {
         var armClient = await _armClientFactory.GetArmOperationClient();
         var rg = armClient.GetResourceGroupResource(ResourceGroupResource.CreateResourceIdentifier(subscription, resourceGroup));
@@ -107,6 +112,7 @@ public class KubernetesClientFactory : IKubernetesClientFactory
         }
 
         var cluster = resp.Value;
+        var isReadOnlyMode = string.Equals(agentMode, "ReadOnly", StringComparison.OrdinalIgnoreCase);
         if (cluster.Data.AadProfile != null)
         {
             _logger.LogInternalInformation($"User credential will be used for {subscription}/{resourceGroup}/{clusterName}");
@@ -138,9 +144,9 @@ public class KubernetesClientFactory : IKubernetesClientFactory
                 user.UserCredentials.ExternalExecution = null; //remove exec since we do not need depend on exec during execution
                 user.UserCredentials.Extensions = [
                     new NamedExtension{
-                        Name = "UseAADAuth",
-                        Extension = true,
-                    }
+                    Name = "UseAADAuth",
+                    Extension = true,
+                }
                 ]; // for kubectl cli execution to know whether to use the obo token
             }
 
@@ -148,17 +154,28 @@ public class KubernetesClientFactory : IKubernetesClientFactory
         }
         else
         {
-            _logger.LogInternalInformation($"Admin credential will be used for {subscription}/{resourceGroup}/{clusterName}");
-            var credResp = await cluster.GetClusterAdminCredentialsAsync();
-            if (credResp == null)
+            Azure.Response<ManagedClusterCredentials> credResp;
+            var credentialType = isReadOnlyMode ? "user" : "admin";
+
+            if (isReadOnlyMode)
             {
-                var msg = $"Failed to list admin credential for {subscription}/{resourceGroup}/{clusterName}";
+                _logger.LogInternalInformation($"ReadOnly mode is enabled, user credential will be used for {subscription}/{resourceGroup}/{clusterName}");
+                credResp = await cluster.GetClusterUserCredentialsAsync();
+            }
+            else
+            {
+                _logger.LogInternalInformation($"Admin credential will be used for {subscription}/{resourceGroup}/{clusterName}");
+                credResp = await cluster.GetClusterAdminCredentialsAsync();
+            }
+            if (credResp?.Value?.Kubeconfigs == null || !credResp.Value.Kubeconfigs.Any())
+            {
+                var msg = $"Failed to retrieve {credentialType} credentials or empty kubeconfig list for {subscription}/{resourceGroup}/{clusterName}";
                 _logger.LogInternalError(msg);
                 throw new InvalidOperationException(msg);
             }
 
             var mcCred = credResp.Value.Kubeconfigs.FirstOrDefault();
-            if (mcCred == null)
+            if (mcCred?.Value == null || mcCred.Value.Length == 0)
             {
                 var msg = $"Empty kube config for {subscription}/{resourceGroup}/{clusterName}";
                 _logger.LogInternalError(msg);
@@ -181,7 +198,7 @@ public class KubernetesClientFactory : IKubernetesClientFactory
                 _configurationCache[key].IsExpired())
             {
                 var cred = _authService.GetCrawlerCredential();
-                var (config, expiresOn) = await GetK8sConfigurationFromArm(subscription, resourceGroup, clusterName, cred);
+                var (config, expiresOn) = await GetK8sConfigurationFromArm(subscription, resourceGroup, clusterName, cred, _actionSettings.Mode.ToString());
                 _configurationCache[key] = new CachedK8sConfiguration(config, expiresOn);
             }
         }
@@ -190,7 +207,7 @@ public class KubernetesClientFactory : IKubernetesClientFactory
             var cred = await _authService.GetKubernetesOperationCredential();
             if (!_configurationCache.ContainsKey(key))
             {
-                var (config, expiresOn) = await GetK8sConfigurationFromArm(subscription, resourceGroup, clusterName, cred);
+                var (config, expiresOn) = await GetK8sConfigurationFromArm(subscription, resourceGroup, clusterName, cred, _actionSettings.Mode.ToString());
                 _configurationCache[key] = new CachedK8sConfiguration(config, expiresOn);
             }
             else
