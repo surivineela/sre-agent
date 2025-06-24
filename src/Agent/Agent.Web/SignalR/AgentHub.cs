@@ -76,7 +76,7 @@ namespace Agent.Web.SignalR
             }
         }
 
-        public Task CreateThread(CreateThreadRequest request, bool textOnly = false)
+        public Task CreateThread(Guid userDefinedThreadId, CreateThreadRequest request, bool textOnly = false)
         {
             // Capture context before async operation
             var connectionId = Context.ConnectionId;
@@ -113,7 +113,7 @@ namespace Agent.Web.SignalR
 
                 // Process the request without cancellation initially
                 var createThreadRequest = request;
-                var results = _threadManagementService.CreateUserInitiatedThreadStream(createThreadRequest, CancellationToken.None);
+                var results = _threadManagementService.CreateUserInitiatedThreadStream(createThreadRequest, CancellationToken.None, userDefinedThreadId);
 
                 await foreach (var result in results)
                 {

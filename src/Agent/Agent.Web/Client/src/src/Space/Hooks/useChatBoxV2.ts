@@ -122,6 +122,8 @@ export const useChatBoxV2 = (
     const streamingMessageRef = useRef<ChatMessage | null>(null);
     const currentThreadIdRef = useRef<string>(threadId || '');
     const isNewThreadAdded = useRef<boolean>(false);
+    // pass userDefinedThreadId to thread create for matching the thread id from the stream message
+    const userDefinedThreadIdRef = useRef<string>(Guid.newGuid());
 
     const threadClient = ThreadClient.getInstance(sreAgentEndpoint);
     const messageClient = MessageClient.getInstance(sreAgentEndpoint);
@@ -191,8 +193,8 @@ export const useChatBoxV2 = (
         }
     };
 
-    const createThread = (threadCreateRequest: ThreadCreateRequest) => {
-        sendMessage(MessageRequestType.CreateThread, threadCreateRequest, false);
+    const createThread = (threadId: string, threadCreateRequest: ThreadCreateRequest) => {
+        sendMessage(MessageRequestType.CreateThread, threadId, threadCreateRequest, false);
     };
 
     const createMessage = (threadId: string, messageCreateRequest: MessageCreateRequest) => {
@@ -238,7 +240,8 @@ export const useChatBoxV2 = (
                     console.log(`New message sent in thread: ${currentThreadId}. Message: ${message}.`);
                 } else {
                     // Issue a request to create a new thread
-                    createThread({
+                    userDefinedThreadIdRef.current = Guid.newGuid();
+                    createThread(userDefinedThreadIdRef.current, {
                         startMessage: messageRequest,
                     });
                     // Keep it for now for testing purpose. Will remove it once the streaming is not behind the feature flag

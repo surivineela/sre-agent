@@ -130,9 +130,10 @@ public class ThreadManagementService(
     }
     public async IAsyncEnumerable<ChatResponseUpdate> CreateUserInitiatedThreadStream(
         CreateThreadRequest request,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        [EnumeratorCancellation] CancellationToken cancellationToken = default,
+        Guid? userDefinedThreadId = null)
     {
-        var threadId = Guid.NewGuid();
+        var threadId = userDefinedThreadId ?? Guid.NewGuid();
         var messageId = Guid.NewGuid();
 
         string temporaryTitle = request.StartMessage.Text.Length <= 50 ? request.StartMessage.Text : request.StartMessage.Text.Substring(0, 47) + "...";
