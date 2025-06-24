@@ -24,6 +24,11 @@ export interface IncidentQueryRequest {
     statuses?: IncidentStatus[];
 }
 
+export interface IncidentQueryResponse {
+    items: IncidentDocument[];
+    totalCount: number;
+}
+
 export interface IncidentFilterDocumentPayload {
     id?: string;
     impactedService?: string;

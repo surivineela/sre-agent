@@ -23,7 +23,7 @@ export const useIncidents = (durationInDays: number, filter: IncidentFilterDocum
                 filter,
             });
 
-            return incidentResults?.content ?? [];
+            return incidentResults?.content?.items ?? [];
         },
         [incidentHandlerClient]
     );

@@ -1,5 +1,5 @@
 import React from 'react';
-import { IncidentDocument, ToolInfo, WithSelection } from '../../../Common/Contracts/Azure/IncidentHandler';
+import { IncidentDocument, ToolInfo } from '../../../Common/Contracts/Azure/IncidentHandler';
 
 export enum IncidentHandlerCreateSteps {
     GenerateHandler = 'GenerateHandler',
@@ -33,10 +33,13 @@ export interface IncidentHandlerCreateMetadata {
     incidentProcessingGuide: string;
     customInstructions: string;
     onCustomInstructionsChange: (value: string) => void;
-    incidents: WithSelection<IncidentDocument>[] | undefined;
+    incidents: IncidentDocument[] | undefined;
+    selectedIncidentIds: string[] | undefined;
+    selectedIncidents: IncidentDocument[] | undefined;
     onSelectedIncidentsChange: (newSelectedIncidentIds: string[]) => void;
     loadingIncidents: boolean;
-    tools: WithSelection<ToolInfo>[];
+    tools: ToolInfo[];
+    selectedToolNames: string[] | undefined;
     onSelectedToolsChange: (newSelectedToolNames: string[]) => void;
     toolsLoading: boolean;
     selectedTimespan: TimeDuration;
@@ -53,6 +56,10 @@ export interface IncidentHandlerCreateMetadata {
     exportHandler: () => void;
     mode: CreateOrEditMode | undefined;
     handlerLoaded: boolean;
+    incidentsListDivRef: React.RefObject<HTMLDivElement | null>;
+    isLoadingInitialIncidents: boolean;
+    hasMoreOldIncidents: boolean;
+    loadMoreOldIncidents: (overflowDiv: boolean) => Promise<boolean | undefined>;
 }
 
 export const IncidentHandlerCreateContext = React.createContext<IncidentHandlerCreateMetadata>({
@@ -73,9 +80,12 @@ export const IncidentHandlerCreateContext = React.createContext<IncidentHandlerC
     customInstructions: '',
     onCustomInstructionsChange: () => {},
     incidents: [],
+    selectedIncidentIds: [],
+    selectedIncidents: [],
     onSelectedIncidentsChange: () => {},
     loadingIncidents: false,
     tools: [],
+    selectedToolNames: [],
     onSelectedToolsChange: () => {},
     toolsLoading: false,
     selectedTimespan: TimeDuration.Last60Days,
@@ -92,4 +102,8 @@ export const IncidentHandlerCreateContext = React.createContext<IncidentHandlerC
     exportHandler: () => {},
     mode: undefined,
     handlerLoaded: false,
+    incidentsListDivRef: React.createRef<HTMLDivElement | null>(),
+    isLoadingInitialIncidents: false,
+    hasMoreOldIncidents: true,
+    loadMoreOldIncidents: () => Promise.resolve(true),
 });

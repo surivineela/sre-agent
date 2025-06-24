@@ -6,6 +6,7 @@ import {
     IncidentFilterPayload,
     IncidentHandler,
     IncidentQueryRequest,
+    IncidentQueryResponse,
     InstructionGenerationRequest,
     InstructionGenerationResponse,
     ToolInfo,
@@ -281,19 +282,15 @@ export class IncidentHandlerClient extends DataPlaneClient {
         }
     };
 
-    public queryIncidents = async (request: IncidentQueryRequest): Promise<Response<IncidentDocument[]>> => {
+    public queryIncidents = async (request: IncidentQueryRequest): Promise<Response<IncidentQueryResponse>> => {
         const url = this.getRequestUrl(`${this._apiPathPrefix}/queryIncidents`);
         try {
-            const { data } = await axios.post<{ items: IncidentDocument[]; totalCount: number }>(
-                url,
-                { ...request, pageSize: 1000 },
-                {
-                    headers: getAgentHeaders(),
-                }
-            );
+            const { data } = await axios.post<IncidentQueryResponse>(url, request, {
+                headers: getAgentHeaders(),
+            });
             return {
                 isSuccessful: true,
-                content: data.items,
+                content: data,
             };
         } catch (error) {
             const errorMessage = this.getErrorMessage(error);
@@ -302,6 +299,31 @@ export class IncidentHandlerClient extends DataPlaneClient {
                 action: 'queryIncidents',
                 actionModifier: 'failed',
                 data: `Failed to query incidents: ${errorMessage}`,
+            });
+            return {
+                isSuccessful: false,
+                error: error,
+            };
+        }
+    };
+
+    public getIncident = async (incidentId: string): Promise<Response<IncidentDocument>> => {
+        const url = this.getRequestUrl(`${this._apiPathPrefix}/getIncident/${incidentId}`);
+        try {
+            const { data } = await axios.get<IncidentDocument>(url, {
+                headers: getAgentHeaders(),
+            });
+            return {
+                isSuccessful: true,
+                content: data,
+            };
+        } catch (error) {
+            const errorMessage = this.getErrorMessage(error);
+            this._log?.({
+                logLevel: 'error',
+                action: 'getIncident',
+                actionModifier: 'failed',
+                data: `Failed to get incident: ${errorMessage}`,
             });
             return {
                 isSuccessful: false,
@@ -410,15 +432,14 @@ export class IncidentHandlerClient extends DataPlaneClient {
         }
     };
 
-    public deleteHandler = async (handlerId: string): Promise<Response<IncidentHandler>> => {
+    public deleteHandler = async (handlerId: string): Promise<Response<void>> => {
         const url = this.getRequestUrl(`${this._apiPathPrefix}/handlers/${handlerId}`);
         try {
-            const { data } = await axios.delete<IncidentHandler>(url, {
+            await axios.delete<IncidentHandler>(url, {
                 headers: getAgentHeaders(),
             });
             return {
                 isSuccessful: true,
-                content: data,
             };
         } catch (error) {
             const errorMessage = this.getErrorMessage(error);

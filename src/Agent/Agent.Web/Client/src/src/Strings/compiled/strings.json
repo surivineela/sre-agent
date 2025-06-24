@@ -849,6 +849,12 @@
       "value": "Add custom incident handler"
     }
   ],
+  "DX7w9O": [
+    {
+      "type": 0,
+      "value": "Selected incidents"
+    }
+  ],
   "DlSXUR": [
     {
       "type": 0,
@@ -1529,6 +1535,12 @@
     {
       "type": 0,
       "value": "Agent"
+    }
+  ],
+  "QQX4Pv": [
+    {
+      "type": 0,
+      "value": "No incidents selected"
     }
   ],
   "Qfec1M": [

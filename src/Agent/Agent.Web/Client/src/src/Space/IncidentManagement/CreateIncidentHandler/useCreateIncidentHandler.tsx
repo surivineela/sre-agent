@@ -1,16 +1,38 @@
-import { isEqual } from 'lodash';
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getErrorMessage } from '../../../Common/Clients/ArmClient';
 import { IncidentHandlerClient } from '../../../Common/Clients/IncidentHandlerClient';
-import { IncidentDocument, IncidentHandler, ToolInfo, WithSelection } from '../../../Common/Contracts/Azure/IncidentHandler';
+import { IncidentDocument, IncidentHandler, IncidentQueryRequest, ToolInfo } from '../../../Common/Contracts/Azure/IncidentHandler';
 import { IncidentStatus } from '../../../Common/Contracts/Azure/SreAgent';
 import { Guid } from '../../../Common/Helpers/Guid';
 import { ArmResourceDescriptor } from '../../../Common/Helpers/ResourceDescriptors';
 import { IncidentHandlerCreateResources } from '../../../Strings/SREAgentResources';
 import { CreateOrEditMode, IncidentHandlerCreateSteps, OperationStatus, TimeDuration } from './IncidentHandlerCreateContext';
+
+const pageSize = 10;
+
+const defaultNumberOfIncidentsToLoad = 10;
+
+/**
+ * Return 1.5 times of the number of incidents that can fill the incidents list div to make sure the div is overflowed. Return 5 if the result is less than 5.
+ * @param incidentsListContainerHeight
+ * @param numberOfincidentsInDiv the existing number of incidents in the div
+ * @returns
+ */
+const getNumberOfincidentsToOverflowincidentsListDiv = (
+    incidentsListDivHeightInPx: number | undefined,
+    numberOfincidentsInDiv: number
+): number => {
+    if (incidentsListDivHeightInPx === undefined) return defaultNumberOfIncidentsToLoad;
+
+    const incidentItemHeightInPx = 32;
+
+    const numberOfincidentsToLoad = Math.ceil(1.5 * (incidentsListDivHeightInPx / incidentItemHeightInPx)) - numberOfincidentsInDiv;
+
+    return Math.max(numberOfincidentsToLoad, defaultNumberOfIncidentsToLoad);
+};
 
 export const useCreateIncidentHandler = (
     exitToHome: () => void,
@@ -50,66 +72,59 @@ export const useCreateIncidentHandler = (
     }, []);
 
     // Timespan field
-    const [selectedTimespan, setSelectedTimespan] = useState<TimeDuration>(TimeDuration.Last60Days);
+    const [selectedTimespan, setSelectedTimespan] = useState<TimeDuration>(
+        mode === 'create' ? TimeDuration.Last60Days : TimeDuration.Last90Days
+    );
     const onSelectedTimespanChange = useCallback((value: TimeDuration) => {
         setIsDirty(true);
         setSelectedTimespan(value);
     }, []);
 
     // Incidents field
-    const [incidents, setIncidents] = useState<WithSelection<IncidentDocument>[]>();
-    const [loadingIncidents, setLoadingIncidents] = useState<boolean>(true);
-    const selectedIncidents = useMemo(() => incidents?.filter(incident => incident.selected) || [], [incidents]);
-    const [selectedIncidentIds, setSelectedIncidentIds] = useState<string[]>();
 
-    const onSelectedIncidentsChange = useCallback((newSelectedIncidentIds: string[]) => {
-        setIsDirty(true);
-        setSelectedIncidentIds(currentValue => {
-            if (isEqual(currentValue, newSelectedIncidentIds)) {
-                return currentValue; // No change, return current state
-            }
-            return newSelectedIncidentIds; // Update state with new selected incident IDs
-        });
-        setIncidents(currentValue => {
-            if (!currentValue) {
-                return [];
-            }
-            const updatedIncidents = currentValue.map(incident => ({
-                ...incident,
-                selected: newSelectedIncidentIds.includes(incident.id),
-            }));
-            if (isEqual(currentValue, updatedIncidents)) {
-                return currentValue; // No change, return current state
-            }
-            return updatedIncidents; // Update state with new incident documents
-        });
-    }, []);
+    const [prefetchedIncidents, setPrefetchedIncidents] = useState<IncidentDocument[]>([]);
+    const [incidents, setIncidents] = useState<IncidentDocument[]>();
+    const [loadingIncidents, setLoadingIncidents] = useState<boolean>(true);
+    const [selectedIncidentIds, setSelectedIncidentIds] = useState<string[]>();
+    const [selectedIncidents, setSelectedIncidents] = useState<IncidentDocument[]>();
+
+    const incidentsInitialized = useRef(false);
+    const [initialSelectedIncidentIds, setInitialSelectedIncidentIds] = useState<string[]>();
+
+    const onSelectedIncidentsChange = useCallback(
+        (newSelectedIncidentIds: string[]) => {
+            setIsDirty(true);
+            setSelectedIncidentIds(newSelectedIncidentIds);
+            setSelectedIncidents(previousSelectedIncidents => {
+                const allIncidents = [...(previousSelectedIncidents || []), ...prefetchedIncidents, ...(incidents || [])];
+                const newSelectedIncidents: IncidentDocument[] = [];
+                newSelectedIncidentIds.forEach(id => {
+                    const incident = allIncidents.find(inc => inc.id === id);
+                    if (incident) {
+                        newSelectedIncidents.push(incident);
+                    }
+                });
+                return newSelectedIncidents.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+            });
+        },
+        [prefetchedIncidents, incidents]
+    );
 
     // Tools field
-    const [tools, setTools] = useState<WithSelection<ToolInfo>[] | undefined>([]);
+    const [tools, setTools] = useState<ToolInfo[] | undefined>();
     const [toolsLoading, setToolsLoading] = useState<boolean>(true);
-    const selectedTools = useMemo(() => tools?.filter(tool => tool.selected) || [], [tools]);
     const [selectedToolNames, setSelectedToolNames] = useState<string[]>();
 
     const onSelectedToolsChange = useCallback((newSelectedToolNames: string[]) => {
         setIsDirty(true);
-        setSelectedToolNames(currentValue => {
-            if (isEqual(currentValue, newSelectedToolNames)) {
-                return currentValue; // No change, return current state
-            }
-            return newSelectedToolNames; // Update state with new selected tool names
-        });
-        setTools(currentValue => {
-            if (!currentValue) {
-                return [];
-            }
-            const updatedTools = currentValue.map(tool => ({ ...tool, selected: newSelectedToolNames.includes(tool.name) }));
-            if (isEqual(currentValue, updatedTools)) {
-                return currentValue; // No change, return current state
-            }
-            return updatedTools; // Update state with new incident documents
-        });
+        setSelectedToolNames(newSelectedToolNames);
     }, []);
+
+    useEffect(() => {
+        if (mode === 'create' && !selectedToolNames && tools) {
+            setSelectedToolNames(tools.map(tool => tool.name));
+        }
+    }, [tools, selectedToolNames, mode]);
 
     // Custom instructions field
     const [customInstructions, setCustomInstructions] = useState<string>('');
@@ -142,8 +157,8 @@ export const useCreateIncidentHandler = (
         return incidentHandlerClient
             .generateInstructions({
                 agentName,
-                incidents: selectedIncidents?.map(incident => incident.id) ?? [],
-                tools: selectedTools?.map(tool => tool.name) ?? [],
+                incidents: selectedIncidentIds ?? [],
+                tools: selectedToolNames ?? [],
                 customInstructions: customInstructions,
             })
             .then(instructionsResult => {
@@ -177,10 +192,10 @@ export const useCreateIncidentHandler = (
         handlerCreateOrEditInfo.filterId,
         azPortalContext,
         resourceId,
-        incidentHandlerClient,
+        incidentHandlerClient.generateInstructions,
         agentName,
-        selectedIncidents,
-        selectedTools,
+        selectedIncidentIds,
+        selectedToolNames,
         customInstructions,
     ]);
 
@@ -373,8 +388,8 @@ export const useCreateIncidentHandler = (
             description,
             incidentFilterId: handlerCreateOrEditInfo?.filterId,
             incidentProcessingGuide: incidentProcessingGuide.replace('\r\n', '\n').replace('\r', '\n').split('\n'),
-            tools: selectedTools.map(tool => tool.name),
-            incidents: selectedIncidents.map(incident => incident.id),
+            tools: selectedToolNames,
+            incidents: selectedIncidentIds || [],
             customInstructions: customInstructions,
         };
         setEditorDisplayValue(JSON.stringify(config, null, 4));
@@ -383,8 +398,8 @@ export const useCreateIncidentHandler = (
         description,
         handlerCreateOrEditInfo?.filterId,
         incidentProcessingGuide,
-        selectedTools,
-        selectedIncidents,
+        selectedToolNames,
+        selectedIncidentIds,
         customInstructions,
     ]);
 
@@ -402,17 +417,75 @@ export const useCreateIncidentHandler = (
 
     const goToFullEditMode = useCallback(() => setMode('edit'), []);
 
+    const incidentsListDivRef = useRef<HTMLDivElement | null>(null);
+    const [isLoadingInitialIncidents, setIsLoadingInitialIncidents] = useState<boolean>(true);
+    const [hasMoreOldIncidents, setHasMoreOldIncidents] = useState<boolean>(true);
+    const isLoadingOldIncidents = useRef<boolean>(false);
+    const loadOldIncidentCallId = useRef<string>(Guid.newShortGuid());
+    const incidentsPageNumber = useRef<number>(0);
+
+    const loadMoreOldIncidents = useCallback(
+        async (overflowDiv: boolean): Promise<boolean | undefined> => {
+            if (!isLoadingInitialIncidents && !isLoadingOldIncidents.current) {
+                const callId = loadOldIncidentCallId.current;
+                isLoadingOldIncidents.current = true;
+
+                const numberOfIncidentsToLoad = overflowDiv
+                    ? getNumberOfincidentsToOverflowincidentsListDiv(incidentsListDivRef.current?.clientHeight, incidents?.length || 0)
+                    : defaultNumberOfIncidentsToLoad;
+
+                const oldIncidentsResponse = await incidentHandlerClient.queryIncidents({
+                    filter: {
+                        id: handlerCreateOrEditInfo?.filterId,
+                    },
+                    durationInDays: selectedTimespan,
+                    pageSize: pageSize,
+                    pageNumber: ++incidentsPageNumber.current,
+                    statuses: [IncidentStatus.resolved, IncidentStatus.mitigated],
+                });
+
+                if (callId === loadOldIncidentCallId.current) {
+                    const olderIncidents = oldIncidentsResponse.content?.items ?? [];
+                    if (oldIncidentsResponse.isSuccessful && olderIncidents.length < numberOfIncidentsToLoad) {
+                        setHasMoreOldIncidents(false);
+                    }
+                    setIncidents(prevIncidents => {
+                        if (!prevIncidents) {
+                            return olderIncidents;
+                        }
+
+                        const olderIncidentsToAdd = olderIncidents.filter(
+                            oldIncident => !prevIncidents.some(prevIncident => prevIncident.id === oldIncident.id)
+                        );
+
+                        const newIncidents = [...prevIncidents, ...olderIncidentsToAdd].sort((a, b) =>
+                            b.createdAt.localeCompare(a.createdAt)
+                        );
+                        return newIncidents;
+                    });
+
+                    isLoadingOldIncidents.current = false;
+
+                    return oldIncidentsResponse.isSuccessful;
+                } else {
+                    isLoadingOldIncidents.current = false;
+                    return undefined;
+                }
+            }
+        },
+        [isLoadingInitialIncidents, incidentHandlerClient.queryIncidents, selectedTimespan, handlerCreateOrEditInfo?.filterId]
+    );
+
     useEffect(() => {
         let subscribed = true;
 
         setToolsLoading(true);
-        setTools([]);
+        setTools(undefined);
         incidentHandlerClient.listTools().then(response => {
             if (subscribed) {
                 setToolsLoading(false);
                 if (response.isSuccessful && response.content) {
-                    const sortedTools = response.content.sort((a, b) => a.name.localeCompare(b.name));
-                    setTools(sortedTools.map(tool => ({ ...tool, selected: false }) as WithSelection<ToolInfo>));
+                    setTools(response.content.sort((a, b) => a.name.localeCompare(b.name)));
                 }
             }
         });
@@ -425,36 +498,74 @@ export const useCreateIncidentHandler = (
     useEffect(() => {
         let subscribed = true;
 
-        if (selectedTimespan) {
-            const queryPayload = {
+        if (mode === 'create' || !!initialSelectedIncidentIds) {
+            loadOldIncidentCallId.current = Guid.newShortGuid();
+            setHasMoreOldIncidents(true);
+            setIsLoadingInitialIncidents(true);
+            setLoadingIncidents(true);
+            incidentsPageNumber.current = 0;
+
+            const queryPayload: IncidentQueryRequest = {
                 filter: {
                     id: handlerCreateOrEditInfo?.filterId,
                 },
                 durationInDays: selectedTimespan,
+                pageSize: pageSize,
+                pageNumber: ++incidentsPageNumber.current,
                 statuses: [IncidentStatus.resolved, IncidentStatus.mitigated],
             };
-            setLoadingIncidents(true);
-            setIncidents([]);
-            incidentHandlerClient.queryIncidents(queryPayload).then(response => {
-                if (subscribed) {
-                    if (response.isSuccessful && response.content) {
-                        const sortedIncidents = response.content.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-                        setIncidents(
-                            sortedIncidents.map(incident => ({ ...incident, selected: false }) as WithSelection<IncidentDocument>)
-                        );
-                    }
-                    setLoadingIncidents(false);
+
+            const filteredIncidentsPromise = incidentHandlerClient.queryIncidents(queryPayload);
+
+            const shouldPrefetchIncidents = mode !== 'create' && !!initialSelectedIncidentIds && !incidentsInitialized.current;
+
+            const initialSelectionsPromises = shouldPrefetchIncidents
+                ? Promise.all(initialSelectedIncidentIds.map(id => incidentHandlerClient.getIncident(id)))
+                : Promise.resolve([]);
+
+            Promise.all([filteredIncidentsPromise, initialSelectionsPromises]).then(response => {
+                if (!subscribed) {
+                    return;
                 }
+
+                const [filteredIncidentsResponse, initialSelectionsResponses] = response;
+
+                if (filteredIncidentsResponse.isSuccessful && filteredIncidentsResponse.content) {
+                    const filteredIncidents = filteredIncidentsResponse.content.items.sort((a, b) =>
+                        b.createdAt.localeCompare(a.createdAt)
+                    );
+
+                    setIncidents(filteredIncidents);
+
+                    if (shouldPrefetchIncidents) {
+                        const prefetchedIncidents: IncidentDocument[] = [];
+                        initialSelectionsResponses.forEach(result => {
+                            if (result.isSuccessful && result.content) {
+                                prefetchedIncidents.push(result.content);
+                            }
+                        });
+                        setPrefetchedIncidents(prefetchedIncidents);
+                        setSelectedIncidents(prefetchedIncidents);
+                        setSelectedIncidentIds(prefetchedIncidents.map(incident => incident.id));
+                    } else if (!incidentsInitialized.current) {
+                        const latestThreeIncidents = filteredIncidents.slice(0, 3);
+                        setSelectedIncidents(latestThreeIncidents);
+                        setSelectedIncidentIds(latestThreeIncidents.map(incident => incident.id));
+                    }
+                } else {
+                    setIncidents([]);
+                }
+
+                setIsLoadingInitialIncidents(false);
+                setLoadingIncidents(false);
+                incidentsInitialized.current = true;
             });
-        } else {
-            setLoadingIncidents(false);
-            setIncidents([]);
         }
 
         return () => {
             subscribed = false;
         };
-    }, [incidentHandlerClient, handlerCreateOrEditInfo?.filterId, selectedTimespan]);
+    }, [incidentHandlerClient, handlerCreateOrEditInfo?.filterId, selectedTimespan, mode, initialSelectedIncidentIds]);
 
     useEffect(() => {
         if (handlerCreateOrEditInfo.handlerId) {
@@ -503,6 +614,7 @@ export const useCreateIncidentHandler = (
                         setSelectedToolNames([]);
                         setIncidentProcessingGuide('');
                         setSelectedIncidentIds([]);
+                        setInitialSelectedIncidentIds([]);
                     } else {
                         azPortalContext.log({
                             action: 'get-incidentHandler',
@@ -515,6 +627,7 @@ export const useCreateIncidentHandler = (
 
                         setSelectedToolNames(getResult.content.tools);
                         setSelectedIncidentIds(getResult.content.incidents);
+                        setInitialSelectedIncidentIds(getResult.content.incidents);
                         setCustomInstructions(getResult.content.customInstructions || '');
                         setIncidentProcessingGuide(getResult.content.incidentProcessingGuide.join('\n'));
                         setName(getResult.content.name);
@@ -529,6 +642,7 @@ export const useCreateIncidentHandler = (
             setHandlerLoaded(true);
             setSelectedToolNames(undefined);
             setSelectedIncidentIds(undefined);
+            setInitialSelectedIncidentIds([]);
             setHandlerLoading(false);
         }
 
@@ -544,54 +658,6 @@ export const useCreateIncidentHandler = (
         azPortalContext,
         incidentHandlerClient,
     ]);
-
-    useEffect(() => {
-        if (!loadingIncidents && incidents && handlerLoaded) {
-            const updatedIncidents = incidents?.map((incident, index) => ({
-                ...incident,
-                selected: !selectedIncidentIds
-                    ? index < 3 // Default to selecting the first 3 incidents in create scenario
-                    : selectedIncidentIds.includes(incident.id),
-            }));
-            setIncidents(currentValue => {
-                if (isEqual(currentValue, updatedIncidents)) {
-                    return currentValue; // No change, return current state
-                }
-                return updatedIncidents; // Update state with new incident documents
-            });
-            setSelectedIncidentIds(currentValue => {
-                const newSelectedIncidentIds = updatedIncidents.filter(incident => incident.selected).map(incident => incident.id);
-                if (isEqual(currentValue, newSelectedIncidentIds)) {
-                    return currentValue; // No change, return current state
-                }
-                return newSelectedIncidentIds; // Update state with new selected incident IDs
-            });
-        }
-    }, [selectedIncidentIds, incidents, loadingIncidents, handlerLoaded]);
-
-    useEffect(() => {
-        if (!toolsLoading && tools && handlerLoaded) {
-            const updatedToolsList = tools?.map(tool => ({
-                ...tool,
-                selected: !selectedToolNames
-                    ? true // Default to selecting all tools in create scenario
-                    : selectedToolNames.includes(tool.name),
-            }));
-            setTools(currentValue => {
-                if (isEqual(currentValue, updatedToolsList)) {
-                    return currentValue; // No change, return current state
-                }
-                return updatedToolsList; // Update state with new tool infos
-            });
-            setSelectedToolNames(currentSelectedToolNames => {
-                const newSelectedToolNames = updatedToolsList.filter(tool => tool.selected).map(tool => tool.name);
-                if (isEqual(currentSelectedToolNames, newSelectedToolNames)) {
-                    return currentSelectedToolNames; // No change, return current state
-                }
-                return newSelectedToolNames; // Update state with new selected tool names
-            });
-        }
-    }, [selectedToolNames, tools, toolsLoading, handlerLoaded]);
 
     return {
         exitToHome,
@@ -619,6 +685,12 @@ export const useCreateIncidentHandler = (
         saveHandler,
         exportHandler,
 
+        // For paginating incidents on scroll
+        incidentsListDivRef,
+        isLoadingInitialIncidents,
+        hasMoreOldIncidents,
+        loadMoreOldIncidents,
+
         // Name field
         name,
         onNameChange,
@@ -633,10 +705,13 @@ export const useCreateIncidentHandler = (
 
         // Incidents field
         incidents,
+        selectedIncidentIds,
+        selectedIncidents,
         onSelectedIncidentsChange,
 
         // Tools field
         tools: tools || [],
+        selectedToolNames,
         onSelectedToolsChange,
 
         // Custom instructions field

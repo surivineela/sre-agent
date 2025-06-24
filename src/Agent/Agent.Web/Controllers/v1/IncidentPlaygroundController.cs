@@ -378,7 +378,7 @@ public class IncidentPlaygroundController : ControllerBase
             else
             {
                 _logger.LogInternalWarning("QueryIncidents: Incident management type '{Type}' is not implemented", _incidentManagementSettings.Type);
-                return StatusCode(500, $"Incident management type '{_incidentManagementSettings.Type}' is not implemented.");
+                return StatusCode(501, $"Incident management type '{_incidentManagementSettings.Type}' is not implemented.");
             }
         }
         catch (Exception ex)
@@ -439,6 +439,61 @@ public class IncidentPlaygroundController : ControllerBase
         } catch(Exception ex)
         {
             return StatusCode(500, "Failed to reset LastScanTimeIcm");
+        }
+    }
+
+    [HttpGet("getIncident/{incidentId}")]
+    public async Task<IActionResult> GetIncident(string incidentId)
+    {
+        _logger.LogInternalInformation("GetIncident: Invoked for IncidentId: {IncidentId}", incidentId);
+        if (string.IsNullOrEmpty(incidentId))
+        {
+            _logger.LogInternalWarning("GetIncident: Invalid incidentId");
+            return BadRequest("Invalid incidentId");
+        }
+        if (_incidentManagementSettings.Type == IncidentManagementType.PagerDuty)
+        {
+            _logger.LogInternalInformation("GetIncident: Fetching PagerDuty incident");
+            try
+            {
+                var incident = await _pagerDutyincidentManagementService.GetIncidentDetails(incidentId);
+                if (incident == null)
+                {
+                    _logger.LogInternalWarning("GetIncident: PagerDuty incident not found for IncidentId: {IncidentId}", incidentId);
+                    return NotFound();
+                }
+                _logger.LogInternalInformation("GetIncident: PagerDuty incident found for IncidentId: {IncidentId}", incidentId);
+                return Ok(incident);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "GetIncident: Error retrieving PagerDuty incident for IncidentId: {IncidentId}", incidentId);
+                return StatusCode(500, "Failed to get incident");
+            }
+        }
+        else if (_incidentManagementSettings.Type == IncidentManagementType.Icm)
+        {
+            _logger.LogInternalInformation("GetIncident: Fetching ICM incident");
+            try {
+                var incident = await _icmIncidentManagementService.GetIncidentDetails(incidentId);
+                if (incident == null)
+                {
+                    _logger.LogInternalWarning("GetIncident: ICM incident not found for IncidentId: {IncidentId}", incidentId);
+                    return NotFound();
+                }
+                _logger.LogInternalInformation("GetIncident: ICM incident found for IncidentId: {IncidentId}", incidentId);
+                return Ok(incident);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "GetIncident: Error retrieving ICM incident for IncidentId: {IncidentId}", incidentId);
+                return StatusCode(500, "Failed to get incident");
+            }
+        }
+        else
+        {
+            _logger.LogInternalWarning("GetIncident: Incident management type '{Type}' is not implemented", _incidentManagementSettings.Type);
+            return StatusCode(501, $"Incident management type '{_incidentManagementSettings.Type}' is not implemented.");
         }
     }
 }

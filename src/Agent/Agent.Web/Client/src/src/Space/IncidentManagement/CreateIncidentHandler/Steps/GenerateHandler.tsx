@@ -2,9 +2,10 @@ import { IColumn } from '@fluentui/react';
 import { Button, Dropdown, Field, Input, Option, Spinner, Text, Textarea } from '@fluentui/react-components';
 import { useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
-import { IncidentDocument, ToolInfo, WithSelection } from '../../../../Common/Contracts/Azure/IncidentHandler';
+import { IncidentDocument, ToolInfo } from '../../../../Common/Contracts/Azure/IncidentHandler';
 import { IncidentHandlerCreateResources } from '../../../../Strings/SREAgentResources';
 import { MultipleSelectionShimmerDetailsList } from '../../../Components/MultipleSelectionShimmerDetailsList';
+import { SelectedItemsList } from '../../../Components/SelectedItemsList';
 import { generateHandlerStyles } from '../../../Styles/IncidentManagement.styles';
 import { DirtyStateConfirmationWrapper } from '../DirtyStateConfirmationDialog';
 import { IncidentHandlerCreateContext, IncidentHandlerCreateSteps, TimeDuration } from '../IncidentHandlerCreateContext';
@@ -47,14 +48,21 @@ export const GenerateHandler = () => {
         selectedTimespan,
         onSelectedTimespanChange,
         incidents,
+        selectedIncidentIds,
+        selectedIncidents,
         onSelectedIncidentsChange,
         toolsLoading,
         tools,
+        selectedToolNames,
         onSelectedToolsChange,
         loadingIncidents,
         generateInstructions,
         incidentProcessingGuide,
         handlerLoaded,
+        incidentsListDivRef,
+        isLoadingInitialIncidents,
+        hasMoreOldIncidents,
+        loadMoreOldIncidents,
     } = context;
 
     const timespanDropdownOptions = useMemo(
@@ -237,26 +245,46 @@ export const GenerateHandler = () => {
                         </Option>
                     ))}
                 </Dropdown>
-                <MultipleSelectionShimmerDetailsList
-                    data={incidents}
-                    loading={loadingIncidents}
-                    columns={incidentTableColumns}
-                    disabled={generatingInstructions || !handlerLoaded}
-                    onChange={onSelectedIncidentsChange}
-                    getKey={(item: WithSelection<IncidentDocument>) => item.id}
-                    selectionLimit={5}
-                />
+                <div style={{ display: 'flex', flexDirection: 'row', gap: 20, marginTop: 10 }}>
+                    <MultipleSelectionShimmerDetailsList
+                        listContainerStyle={{ width: '100%' }}
+                        ref={incidentsListDivRef}
+                        data={incidents}
+                        selectedKeys={selectedIncidentIds}
+                        loading={loadingIncidents}
+                        columns={incidentTableColumns}
+                        disabled={generatingInstructions || !handlerLoaded}
+                        onChange={onSelectedIncidentsChange}
+                        getKey={(item: IncidentDocument) => item.id}
+                        selectionLimit={5}
+                        isLoadingInitialItems={isLoadingInitialIncidents}
+                        loadMoreItems={loadMoreOldIncidents}
+                        hasMoreItems={hasMoreOldIncidents}
+                        isPicker
+                    />
+                    <SelectedItemsList
+                        items={selectedIncidents || []}
+                        onRemove={removedIncident =>
+                            onSelectedIncidentsChange(selectedIncidentIds?.filter(incidentId => incidentId !== removedIncident.id) || [])
+                        }
+                        getItemTitle={incident => incident.title}
+                        getItemId={incident => incident.id}
+                        title={intl.formatMessage(IncidentHandlerCreateResources.selectedIncidents)}
+                        emtpyText={intl.formatMessage(IncidentHandlerCreateResources.selectedIncidentsEmptyText)}
+                    />
+                </div>
                 <Text size={400} weight="semibold">
                     {intl.formatMessage(IncidentHandlerCreateResources.chooseToolsTitle)}
                 </Text>
                 <Text size={300}>{intl.formatMessage(IncidentHandlerCreateResources.chooseToolsDescription)}</Text>
                 <MultipleSelectionShimmerDetailsList
                     data={tools}
+                    selectedKeys={selectedToolNames}
                     loading={toolsLoading}
                     columns={toolsTableColumns}
                     disabled={generatingInstructions || !handlerLoaded}
                     onChange={onSelectedToolsChange}
-                    getKey={(item: WithSelection<ToolInfo>) => item.name}
+                    getKey={(item: ToolInfo) => item.name}
                     filter={(searchTerm, item) => {
                         return (
                             item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -285,10 +313,7 @@ export const GenerateHandler = () => {
                         appearance="primary"
                         onClick={() => generateInstructions()}
                         disabled={
-                            !name ||
-                            (!customInstructions && !incidents?.some(incident => incident.selected)) ||
-                            generatingInstructions ||
-                            !handlerLoaded
+                            !name || (!customInstructions && !selectedIncidentIds?.length) || generatingInstructions || !handlerLoaded
                         }
                     >
                         {intl.formatMessage(IncidentHandlerCreateResources.generate)}

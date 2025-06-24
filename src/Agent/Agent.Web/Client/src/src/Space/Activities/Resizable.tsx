@@ -19,6 +19,8 @@ export type ResizableProps = {
     collapsed?: boolean;
     setCollapsed: (collapsed: boolean) => void;
     children?: ((props: ResizableChildProps) => React.ReactNode) | React.ReactNode;
+    style?: React.CSSProperties;
+    handleStyle?: React.CSSProperties;
 };
 
 const isFunction = (obj: any): obj is ResizableChild => {
@@ -96,6 +98,8 @@ export const Resizable = ({
     collapsed,
     setCollapsed,
     children,
+    style,
+    handleStyle,
 }: ResizableProps) => {
     const resizableRef = useRef<HTMLDivElement>(null);
     const [width, setWidth] = useState(initialWidth);
@@ -182,11 +186,11 @@ export const Resizable = ({
                 justifyContent: 'flex-start',
                 alignItems: 'stretch',
                 gap: '10px',
-                backgroundColor: tokens.colorNeutralBackground3,
                 maxWidth: maxWidthPercent ? `${maxWidthPercent}%` : undefined,
                 minWidth: minWidthPercent ? `${minWidthPercent}%` : undefined,
                 position: 'relative',
                 height: '100%',
+                ...style,
             }}
         >
             {children
@@ -207,6 +211,7 @@ export const Resizable = ({
                         bottom: 0,
                         left: position === 'right' ? 0 : undefined,
                         backgroundColor: isHovering || isResizing ? tokens.colorNeutralStroke2 : 'transparent',
+                        ...handleStyle,
                     }}
                     onPointerDown={onPointerDown}
                     onPointerEnter={onPointerEnter}

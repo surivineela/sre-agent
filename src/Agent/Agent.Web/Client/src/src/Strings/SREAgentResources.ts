@@ -935,6 +935,8 @@ export const IncidentHandlerCreateResources = defineMessages({
             'Add a custom handler to define how the agent should respond to specific incidents using custom instructions with your own knowledge base and mitigation logic.',
         id: '7y/qdT',
     },
+    selectedIncidents: { defaultMessage: 'Selected incidents', id: 'DX7w9O' },
+    selectedIncidentsEmptyText: { defaultMessage: 'No incidents selected', id: 'QQX4Pv' },
 });
 
 export const WelcomeResources = defineMessages({

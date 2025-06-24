@@ -1,3 +1,4 @@
+import { tokens } from '@fluentui/react-components';
 import { FC, useState } from 'react';
 import { AgentContext } from '../Contracts/Context';
 import { useActivities } from '../Hooks/useActivities';
@@ -36,6 +37,7 @@ const Activities: FC = () => {
                     collapsedWidthPixels={70}
                     collapsed={menuCollapsed}
                     setCollapsed={setMenuCollapsed}
+                    style={{ backgroundColor: tokens.colorNeutralBackground3 }}
                 >
                     {(resizableChildProps: ResizableChildProps) => (
                         <ThreadsMenu
@@ -65,6 +67,7 @@ const Activities: FC = () => {
                     collapsedWidthPixels={0}
                     collapsed={actionsCollapsed}
                     setCollapsed={setActionsCollapsed}
+                    style={{ backgroundColor: tokens.colorNeutralBackground3 }}
                 >
                     {(resizableChildProps: ResizableChildProps) => {
                         return <ThreadActions thread={selectedThread} {...resizableChildProps} />;
