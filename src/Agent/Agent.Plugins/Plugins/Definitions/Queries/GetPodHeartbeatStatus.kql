@@ -16,5 +16,5 @@ ContainerAppControllerEvents
 | summarize arg_max(PreciseTimeStamp, PodStatus) by PodName, EnvironmentName, legionRevisionName
 | extend Status = iif(PreciseTimeStamp < queryTo - 30m, "Shut Down", PodStatus)
 | extend legionPodName = iif(isempty(legionRevisionName), "", PodName)
-| project PodName, EnvironmentName, Status, PreciseTimeStamp, legionPodName
+| project PodName, ManagedClusterName = EnvironmentName, Status, PreciseTimeStamp, legionPodName
 | order by PreciseTimeStamp

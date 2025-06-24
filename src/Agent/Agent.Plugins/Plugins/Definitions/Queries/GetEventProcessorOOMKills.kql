@@ -7,5 +7,5 @@ EventProcessorEvents
 | where EnvironmentName =~ clusterName
 | where isempty(containerAppOrJobName) or ContainerAppName =~ containerAppOrJobName or JobName =~ containerAppOrJobName
 | where Reason == "OOMKilled"
-| project PreciseTimeStamp, EnvironmentName, ContainerAppName, RevisionName, ReplicaName, Count, resourceId
+| project PreciseTimeStamp, ManagedClusterName = EnvironmentName, ContainerAppName, RevisionName, ReplicaName, Count, resourceId
 | take 100
