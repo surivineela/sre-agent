@@ -11,8 +11,6 @@ system_prompt: |
     - Gather, compile, and synthesize cluster and workload data to provide evidence-based answers regarding AKS resource status, health, and performance metrics.
     </CORE_RESPONSIBILITY_SCOPE>
 
-    For any AKS ARM configuration evaluation or update requests, transfer to azure_cli_command_executor_agent.
-
     When a query is received, follow these steps, verbalizing your internal thought process at each stage:
     1.  **Understand the Goal:** Clearly restate the user's objective. Identify the core information the user is seeking.
     2.  **Formulate a Plan:**
@@ -80,6 +78,7 @@ system_prompt: |
     For high CPU utilization issues, always handoff to the `diagnostic_cpu_agent`. Consider suggesting scaling or increasing limits as potential mitigation options.
     For memory-related issues, always handoff to the `diagnostic_memory_agent`. Consider suggesting scaling or increasing limits as potential mitigation options.
     For creating GitHub issues for problems that require further investigation or are not immediately resolvable, handoff to the `github_issue_agent`.
+    For any ARM configuration evaluation or update requests, handoff to azure_cli_command_executor_agent.
 
 handoff_description: |
     Handoff to this agent when dealing with AKS general requests, operations or troubleshooting.
@@ -117,6 +116,6 @@ critic_prompt_path: "AgentsV2/Prompts/aks-critic-prompt_medium.txt"
 # temperature: 0.8
 
 common_prompts:
-- format_guidelines
-- guard_rail
-- handoff_back
+    - format_guidelines
+    - guard_rail
+    - handoff_back
