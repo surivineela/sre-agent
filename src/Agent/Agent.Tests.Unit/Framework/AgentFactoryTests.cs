@@ -7,6 +7,7 @@ using System.Reflection;
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
 using Agent.Framework.Models;
+using Agent.Plugins;
 using Agent.Runtime.Reasoning;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,7 +16,6 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
-using Agent.Plugins;
 
 namespace Agent.Tests.Unit.Framework;
 
@@ -212,6 +212,7 @@ public class TestAgent1Descriptor : IAgentDescriptor
     public string CustomReflectionNote { get; set; } = "Test Custom Reflection Note";
     public List<string> CommonPrompts { get; set; } = ["test_prompt"];
     public string CriticPromptPath { get; set; } = string.Empty;
+    public bool CriticOnHandOff { get; set; } = false;
     public float? Temperature { get; set; } = null;
     public List<AgentsAsTools> AgentsAsTools { get; set; } = [];
     public string? OutputType { get; set; } = null;
@@ -229,6 +230,7 @@ public class TestAgent2Descriptor : IAgentDescriptor
     public string CustomReflectionNote { get; set; } = "Test Custom Reflection Note";
     public List<string> CommonPrompts { get; set; } = [];
     public string CriticPromptPath { get; set; } = string.Empty;
+    public bool CriticOnHandOff { get; set; } = false;
     public float? Temperature { get; set; } = null;
     public List<AgentsAsTools> AgentsAsTools { get; set; } = [];
     public string? OutputType { get; set; } = null;

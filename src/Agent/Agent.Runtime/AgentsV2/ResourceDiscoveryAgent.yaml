@@ -170,6 +170,8 @@ tools:
     - GetResourceIdForResourceName
     - HandoffBack
 
+critic_on_handoff: true
+
 common_prompts:
     - format_guidelines
     - guard_rail

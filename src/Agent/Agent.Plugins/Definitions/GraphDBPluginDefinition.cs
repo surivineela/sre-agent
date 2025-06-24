@@ -47,6 +47,7 @@ namespace Agent.Plugins
             "4) Present a text-based summary" +
             " The output is a List<Node> where each Node contains id, name, type, essential properties. " +
             "Use this instead of VisualizeApplicationComponents when you don't need to show the relationships between resources.")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<List<Node>> GetApplicationComponentsSummary(
             [Description("Azure Resource Id of the application resource to analyze. Should begin with /subscriptions/... Example: /subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebapp")] string resourceId,
             [Description("Maximum number of relationship hops to traverse in the graph. Higher values (1-5) will discover more distant relationships but may include unrelated resources. Default is 3.")] int hops = 3)
@@ -64,6 +65,7 @@ namespace Agent.Plugins
     "Returns the graph as a base64-encoded string. Input: Azure Resource Id of the application resource to visualize." +
     "Examples of usage: 'Visualize <WebAppName> in my subscription.'" +
     "**Keywords: Visualize, Azure Resource, Topology.**")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> VisualizeApplicationComponents(
             [Description("Azure Resource Id of the application resource to visualize. Should begin with /subscriptions/... Example: /subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebapp")] string resourceId,
             [Description("Maximum number of relationship hops to include in the visualization. Higher values (1-5) show more distant connections but may make the diagram more complex. Default is 3.")] int hops = 3,
@@ -79,6 +81,7 @@ namespace Agent.Plugins
     "Entry points are identified from Container Apps, App Services. " +
     "The function maps out application topologies, including all connected resources and relationships. " +
     "Returns an empty list if no applications are found.")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<List<ApplicationGraph>> DiscoverApplications(
             [Description("Azure Subscription Id to analyze. This is the GUID identifier for the subscription, found in the subscription's overview page or in the resource ID after '/subscriptions/'")] string subscriptionId)
         {
@@ -156,6 +159,7 @@ namespace Agent.Plugins
             "3) Find resources matching a naming pattern, or " +
             "4) Verify if resources exist before performing operations on them. " +
             "Returns a list of matching resources with their details.")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<List<ArmResourceNode>> SearchResource(
             [Description("Partial or complete name of the resource to search for. The search is case-insensitive and will match any resource containing this string.")] string resourceName,
             [Description("Type of the Azure resource to search for (e.g., 'microsoft.app/containerapps', 'microsoft.storage/storageaccounts')")] string resourceType)
@@ -169,6 +173,7 @@ namespace Agent.Plugins
             "2) Find resources matching a naming pattern, or " +
             "3) Verify if resources exist before performing operations on them. " +
             "Returns a list of matching resources with their details.")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<dynamic> SearchResourceByName(
         [Description("Partial or complete name of the resource to search for. The search is case-insensitive and will match any resource containing this string.")] string resourceName)
         {
@@ -181,6 +186,7 @@ namespace Agent.Plugins
             "3) Monitor resource proliferation over time, or " +
             "4) Get statistics about your Azure environment composition. " +
             "Returns a count of matching resources and can group by specific properties.")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<dynamic> GetResourceCount(
             [Description("Not empty. Pass 'all' to query all resource types or pass a valid type of the Azure resource to count (e.g., 'microsoft.app/containerapps' for container apps, 'microsoft.web/sites' for webapps, function apps, 'microsoft.containerservice/managedclusters' for AKS)")] string resourceType,
             [Description("Optional. Property to group by for getting counts by specific attribute (currently only allowed 'location', 'resourceGroupName'). Leave empty for total count. It is ignored if 'resourceType' is 'all'.")] string groupBy = "")
@@ -195,6 +201,7 @@ namespace Agent.Plugins
             "3) Get subscription IDs for use with other commands, or " +
             "4) Perform an inventory of monitored subscriptions. " +
             "The output is a list of subscription IDs without additional details.")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<List<dynamic>> ListSubscriptions()
         {
             return await _plugin.ListSubscriptionsAsync();
@@ -207,6 +214,7 @@ namespace Agent.Plugins
             "3) Get resource group names for use with other commands, or " +
             "4) Perform an inventory of monitored resource groups. " +
             "The output is a list of resource group names without additional details.")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<List<Dictionary<string, object>>> ListResourceGroups(
              [Description("The subscription ID for which to list resource groups. This should be the GUID identifier from the subscription.")] string subscriptionId)
         {
@@ -220,6 +228,7 @@ namespace Agent.Plugins
             "3) Understand patterns of administrative activity, or " +
             "4) Detect potentially unauthorized or unusual operations. " +
             "The output is a natural language summary highlighting key activities, patterns, and potential concerns.")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> GetActivityLogsSummary(
             [Description("Azure Resource Id of the resource to analyze. Should begin with /subscriptions/... Example: /subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebapp")] string resourceId,
             [Description("Number of hours of activity logs to retrieve and analyze. Default is 24 hours.")] int hoursBack = 24,
@@ -239,6 +248,7 @@ namespace Agent.Plugins
             "Use pagination with 'skip' and 'take'. If user asked for listing all resources, set 'take' to a negative number like -1 to return all resources without pagination." +
             "If the total number of matching resources is large, only the first 50 will be returned." +
             "The agent should inform the user that the list is partial if more resources exist, and offer to retrieve more if needed.")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<List<Dictionary<string, object>>> ListResourcesByType(
             [Description(
                 "The type or kind of resource to list. " +
@@ -264,6 +274,7 @@ namespace Agent.Plugins
             "This function is useful when you need to: 1) Need to provide a URL to the daily dashboard " +
             "2) Provide a very generic dashboard for the knowledge graph overview at a very high level." +
             "3) When asked Have you created a dashboard?")]
+        [AgentTool(ToolMode.Auto)]
         public string GetKnowledgeGraphResourceUsageDashboard()
         {
             return _plugin.GetKnowledgeGraphResourceUsageDashboard();
@@ -293,6 +304,7 @@ namespace Agent.Plugins
             "- resource name" +
             "- location (or region)" +
             "\nNote: For resources with parent-child relationships like App Service and App Service Plan, or Container Apps and Container App Environment, basic properties only include the core metadata.")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<Dictionary<string, object>> GetResourceBasicProperties(
              [Description("Azure Resource Id of the resource to analyze. Should begin with /subscriptions/... Example: /subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebapp")] string resourceId)
         {
@@ -307,6 +319,7 @@ namespace Agent.Plugins
             "\n- For App Service Plans: workers, status, zone redundancy, region, kind. " +
             "\n- For Container Apps: state, profile, access, containers, scaling. " +
             "Note: Some properties may be in associated resources (e.g., App Service Plan) and need separate queries (example zone redundancy, sku etc).This function will return all properties directly attached to the requested resource. Also retuns Health Scorecard for the resource if available")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<Dictionary<string, object>> GetResourceDetailedProperties(
              [Description("Azure Resource Id of the resource to analyze. Should begin with /subscriptions/... Example: /subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebapp")] string resourceId)
         {
@@ -315,6 +328,7 @@ namespace Agent.Plugins
 
         [Description("Returns the resource ID of an Azure resource. The input should be the name of the resource format and it's corresponding resource type. Example: (mywebapp, microsoft.web/sites), (myakscluster, microsoft.containerservice/managedclusters)" +
             "Use this tool when you want to get the resource ID of an Azure resource.")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> GetResourceIdForResourceName(
              [Description("Name and type of the resource to fetch the resource ID for. Example: mywebapp")] string resourceName,
              [Description("Azure Resource Type for this resource.")] string resourceType)

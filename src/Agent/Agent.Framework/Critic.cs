@@ -58,6 +58,14 @@ public static class Critic
 
     If the assistant is asking for user confirmation, return the result as PASS.
 
+    **AVAILABLE TOOLS:**
+    The actor has access to the following tools:
+    {{availableTools}}
+
+    Do not suggest using tools that are not in this list. Evaluate the actor's tool usage based only on what is actually available to them.
+
+    **EVALUATION METHODOLOGY:**
+
     Think step by step to assess the following criteria:
 
     1.  **Clarity of Articulated Plan and Intent:**

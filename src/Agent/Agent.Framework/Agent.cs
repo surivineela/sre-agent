@@ -43,6 +43,8 @@ public class Agent<TContext>(string name) where TContext : class
     //todo: map to thinking effort
     public string CriticPromptPath { get; set; } = string.Empty;
 
+    public bool CriticOnHandOff { get; set; } = false;
+
     public bool AllowParallelToolCalls { get; set; } = false;
 
     public virtual ChatToolMode ChatToolMode { get; set; } = ChatToolMode.Auto;

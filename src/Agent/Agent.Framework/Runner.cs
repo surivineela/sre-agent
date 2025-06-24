@@ -38,6 +38,7 @@ public static class Runner
             var matchingResult = manualToolResults.FirstOrDefault(o => o.FunctionCall.CallId == manualToolCall.FunctionCall.CallId)
                 ?? throw new Exception("No matching result found for manual tool call");
 
+            // todo: review: this may remove the text reasoning produced by the model
             if (!matchingResult.SkipToolCall)
             {
                 var resultContent = new FunctionResultContent(manualToolCall.FunctionCall.CallId, matchingResult.Output);
@@ -163,7 +164,9 @@ public static class Runner
                     contextWrapper: contextWrapper,
                     hooks: hooks,
                     shouldRunAgentStartHooks: shouldRunAgentStartHooks,
-                    trajectory: trajectory
+                    trajectory: trajectory,
+                    logger: logger,
+                    displayModelOutput: displayModelOutput
                 );
 
                 shouldRunAgentStartHooks = false;
@@ -205,7 +208,7 @@ public static class Runner
                                 }
                                 else if (content is FunctionCallContent f)
                                 {
-                                    await displayModelOutput($"Agent: {currentAgent.Name}"
+                                    await displayModelOutput($"{DateTimeOffset.UtcNow:O}\nAgent: {currentAgent.Name}"
                                         + $"\nFunction Call: {f.Name}"
                                         + $"\nParameters: {(f.RawRepresentation as OpenAI.Chat.ChatToolCall)!.FunctionArguments.ToString()}");
                                 }
@@ -222,47 +225,20 @@ public static class Runner
                         trajectory.CriticCount,
                         currentAgent.MaxReflectionCount);
 
-                    if (currentAgent.MaxReflectionCount > 0 && trajectory.CriticCount < currentAgent.MaxReflectionCount)
+                    var criticApproval = await CriticAsync(
+                        config,
+                        hooks,
+                        trajectory,
+                        displayModelOutput,
+                        currentAgent,
+                        originalInput,
+                        generatedMessages,
+                        contextWrapper,
+                        logger);
+
+                    if (!criticApproval)
                     {
-                        var userQuery = await Summarizer.SummarizeUserTrajectoryAsync(
-                            config.ChatClient,
-                            originalInput);
-
-                        var trajectoryString = trajectory.Close();
-
-                        var agentTools = await hooks.ResolveFactoryTools(contextWrapper, currentAgent);
-
-                        var criticResult = await Critic.CriticAsync(
-                            currentAgent,
-                            userQuery,
-                            trajectoryString,
-                            agentTools,
-                            config.ChatClient);
-
-                        if (config.EnableDebugOutput)
-                        {
-                            if (displayModelOutput is not null)
-                            {
-                                await displayModelOutput($"Agent: {currentAgent.Name}. Turn #{trajectory.CriticCount}/{currentAgent.MaxReflectionCount}");
-                                await displayModelOutput($"Summarized User Query: {userQuery}");
-                                await displayModelOutput($"Critic response: {criticResult}");
-                            }
-                        }
-
-                        if (criticResult.Contains("\"overall_assessment\": \"FAIL\""))
-                        {
-                            logger.LogWarning("Critic result indicates failure: {CriticResult}", criticResult);
-
-                            generatedMessages.Add(new(ChatRole.User, "Good try but you missed a few things. Summarize what you did so far, what is the gap and what further actions you will take to fix that in 3-4 sentences. Then try again with new tool calls as needed. Do not mention this feedback explicitly, just the major learnings. Feedback:\n" + criticResult));
-
-                            trajectory.AppendCriticFeedback(criticResult);
-
-                            continue;
-                        }
-                        else
-                        {
-                            logger.LogInformation("Critic approved response: {CriticResult}", criticResult);
-                        }
+                        continue;
                     }
 
                     await hooks.OnAgentEnd(contextWrapper, currentAgent, turnResult.NextStep.Output);
@@ -279,7 +255,8 @@ public static class Runner
                         Trajectory = trajectory,
                     };
                 }
-                else if (turnResult.NextStep.Type == NextStepType.Handoff && turnResult.NextStep.Agent != null)
+                else if (turnResult.NextStep.Type == NextStepType.Handoff
+                    && turnResult.NextStep.Agent is not null)
                 {
                     currentAgent = turnResult.NextStep.Agent;
                     shouldRunAgentStartHooks = true;
@@ -290,7 +267,8 @@ public static class Runner
                 {
                     // do nothing, we will run the agent again
                 }
-                else if (turnResult.NextStep.Type == NextStepType.ManualTool && turnResult.NextStep.ManualToolCall != null)
+                else if (turnResult.NextStep.Type == NextStepType.ManualTool
+                    && turnResult.NextStep.ManualToolCall is not null)
                 {
                     return new RunResult<TContext>(currentAgent)
                     {
@@ -324,6 +302,107 @@ public static class Runner
         }
     }
 
+    private static async Task<bool> CriticAsync<TContext>(
+        RunConfig config,
+        RunHooks<TContext> hooks,
+        Trajectory trajectory,
+        Func<string, Task>? displayModelOutput,
+        Agent<TContext> currentAgent,
+        List<ChatMessage> originalInput,
+        List<ChatMessage> generatedMessages,
+        RunContextWrapper<TContext> contextWrapper,
+        ILogger logger,
+        Action? failureHook = null)
+        where TContext : class
+    {
+        if (currentAgent.MaxReflectionCount > 0 && trajectory.CriticCount < currentAgent.MaxReflectionCount)
+        {
+            if (config.EnableDebugOutput)
+            {
+                if (displayModelOutput is not null)
+                {
+                    await displayModelOutput($"{DateTimeOffset.UtcNow:O}\nGathering critique: Agent: {currentAgent.Name}. Turn #{trajectory.CriticCount}/{currentAgent.MaxReflectionCount}");
+                }
+            }
+
+            var userQuery = await Summarizer.SummarizeUserTrajectoryAsync(
+                config.ChatClient,
+                originalInput);
+
+            if (config.EnableDebugOutput)
+            {
+                if (displayModelOutput is not null)
+                {
+                    await displayModelOutput($"{DateTimeOffset.UtcNow:O}\nSummarized User Query: {userQuery}");
+                }
+            }
+
+            var trajectoryString = trajectory.Close();
+
+            if (config.EnableDebugOutput)
+            {
+                if (displayModelOutput is not null)
+                {
+                    await displayModelOutput($"{DateTimeOffset.UtcNow:O}\nCritic input trajectory: {trajectoryString}");
+                }
+            }
+
+            var agentTools = await hooks.ResolveFactoryTools(contextWrapper, currentAgent);
+
+            var criticResult = await Critic.CriticAsync(
+                currentAgent,
+                userQuery,
+                trajectoryString,
+                agentTools,
+                config.ChatClient);
+
+            if (config.EnableDebugOutput)
+            {
+                if (displayModelOutput is not null)
+                {
+                    await displayModelOutput($"{DateTimeOffset.UtcNow:O}\nCritic response: {criticResult}");
+                }
+            }
+
+            if (criticResult.Contains("\"overall_assessment\": \"FAIL\""))
+            {
+                logger.LogWarning("Critic result indicates failure: {CriticResult}", criticResult);
+
+                //// mention to user we are reviewing work
+                //if (displayModelOutput is not null)
+                //{
+                //    await displayModelOutput($"Reviewing my work for completeness and correctness...");
+                //}
+
+                if (failureHook is not null)
+                {
+                    failureHook();
+                }
+
+                generatedMessages.Add(new(ChatRole.User, "Good try but you missed a few things. " +
+                    "Clearly mention following in your **NotifyUserMessage** in 4-5 sentences: " +
+                    "1. A natural flowing message to pretend you did a review of past work. " +
+                    "Something like \"Reviewing my work for completeness and correctness...\" " +
+                    "2. What you did so far? " +
+                    "3. What is the gap in that work? " +
+                    "4. What further actions you will take to fix that. " +
+                    "Then try again with new tool calls as needed. " +
+                    "Do not mention this feedback explicitly, just the major learnings. " +
+                    "Feedback:\n" + criticResult));
+
+                trajectory.AppendCriticFeedback(criticResult);
+
+                return false;
+            }
+            else
+            {
+                logger.LogInformation("Critic approved response: {CriticResult}", criticResult);
+            }
+        }
+
+        return true;
+    }
+
     public static async Task<SingleStepResult<TContext>> RunSingleTurnAsync<TContext>(
         Agent<TContext> agent,
         List<ChatMessage> originalInput,
@@ -332,7 +411,9 @@ public static class Runner
         RunContextWrapper<TContext> contextWrapper,
         RunHooks<TContext> hooks,
         bool shouldRunAgentStartHooks,
-        Trajectory trajectory
+        Trajectory trajectory,
+        ILogger logger,
+        Func<string, Task>? displayModelOutput = null
     ) where TContext : class
     {
         if (shouldRunAgentStartHooks)
@@ -399,7 +480,9 @@ public static class Runner
             contextWrapper: contextWrapper,
             runConfig: config,
             tools: tools,
-            trajectory: trajectory
+            trajectory: trajectory,
+            logger: logger,
+            displayModelOutput: displayModelOutput
         );
     }
 
@@ -414,12 +497,12 @@ public static class Runner
         RunContextWrapper<TContext> contextWrapper,
         RunConfig runConfig,
         List<AIFunction> tools,
-        Trajectory trajectory
+        Trajectory trajectory,
+        ILogger logger,
+        Func<string, Task>? displayModelOutput = null
     ) where TContext : class
     {
         List<ChatMessage> newStepItems = [];
-
-
 
         // process tool calls
         // assume no parallel tool calling, so if a regular tool is called, we are not handing off to another agent
@@ -429,7 +512,54 @@ public static class Runner
 
             foreach (var functionCall in functionCalls)
             {
-                // handle handoff
+                // critic on handoff attempt
+                if (agent.CriticOnHandOff
+                    && IsAllowedHandOff(functionCall, agent, tools))
+                {
+                    logger.LogInformation(
+                        "HandOff received from {AgentName}, Critic: {criticCount}/{MaxReflectionCount}",
+                        agent.Name,
+                        trajectory.CriticCount,
+                        agent.MaxReflectionCount);
+
+                    var criticApproval = await CriticAsync(
+                        config,
+                        hooks,
+                        trajectory,
+                        displayModelOutput,
+                        agent,
+                        originalInput,
+                        newStepItems,
+                        contextWrapper,
+                        logger,
+                        failureHook: () =>
+                        {
+                            // add fn result to deny
+                            var handOffDeniedMessage = $"HandOff denied because of unsatisfactory response.";
+                            newStepItems.Add(modelResponseMessage);
+                            var errorResult = new FunctionResultContent(functionCall.CallId, handOffDeniedMessage);
+                            newStepItems.Add(new ChatMessage(ChatRole.Tool, [errorResult]));
+                        });
+
+                    if (!criticApproval)
+                    {
+                        logger.LogInformation("Critic failure {AgentName}. Running reasoning step again.", agent.Name);
+
+                        return new SingleStepResult<TContext>
+                        {
+                            OriginalInput = originalInput,
+                            ModelResponse = modelResponse,
+                            PreStepItems = preStepItems,
+                            NewStepItems = newStepItems,
+                            NextStep = new NextStep<TContext>
+                            {
+                                Type = NextStepType.RunAgain,
+                            }
+                        };
+                    }
+                }
+
+                // handle handoff if critic passed
                 if (agent.HandoffNames.Contains(functionCall.Name))
                 {
                     var handoff = agent.Handoffs.First(h => h.Name == functionCall.Name);
@@ -438,9 +568,16 @@ public static class Runner
                     await hooks.OnHandoff(contextWrapper, agent, newAgent);
 
                     var handoffResult = new FunctionResultContent(functionCall.CallId, handoff.TransferMessage);
-
                     newStepItems.Add(modelResponseMessage);
                     newStepItems.Add(new ChatMessage(ChatRole.Tool, [handoffResult]));
+
+                    if (config.EnableDebugOutput)
+                    {
+                        if (displayModelOutput is not null)
+                        {
+                            await displayModelOutput($"Handoff Completed. Previous Agent: {agent.Name} -> New Agent: {newAgent.Name}");
+                        }
+                    }
 
                     return new SingleStepResult<TContext>
                     {
@@ -459,7 +596,7 @@ public static class Runner
                 // handle regular tool call
                 AIFunction? tool = tools.FirstOrDefault(t => t.Name == functionCall.Name);
 
-                if (tool != null)
+                if (tool is not null)
                 {
                     // check runtime type AgentAsTool
                     if (tool.IsAgentAsTool())
@@ -478,6 +615,15 @@ public static class Runner
                         newStepItems.Add(modelResponseMessage);
                         newStepItems.Add(new ChatMessage(ChatRole.Tool, [result]));
                         trajectory.Append(result);
+
+                        if (config.EnableDebugOutput)
+                        {
+                            if (displayModelOutput is not null)
+                            {
+                                var resultString = Trajectory.ResultToString(result);
+                                await displayModelOutput($"{DateTimeOffset.UtcNow:O}\nCompleted Agent Invocation as Tool: {tool.Name}\n\n{resultString}");
+                            }
+                        }
 
                         return new SingleStepResult<TContext>
                         {
@@ -504,6 +650,15 @@ public static class Runner
                         newStepItems.Add(modelResponseMessage);
                         newStepItems.Add(new ChatMessage(ChatRole.Tool, [result]));
                         trajectory.Append(result);
+
+                        if (config.EnableDebugOutput)
+                        {
+                            if (displayModelOutput is not null)
+                            {
+                                var resultString = Trajectory.ResultToString(result);
+                                await displayModelOutput($"{DateTimeOffset.UtcNow:O}\nCompleted Auto Invoked Tool: {tool.Name}\n\n{resultString}");
+                            }
+                        }
 
                         return new SingleStepResult<TContext>
                         {
@@ -598,7 +753,6 @@ public static class Runner
         else
         {
             // if we reach here, there were no tool calls in the response
-
             newStepItems.AddRange(modelResponse.Messages);
 
             return new SingleStepResult<TContext>
@@ -610,9 +764,24 @@ public static class Runner
                 NextStep = new NextStep<TContext>
                 {
                     Type = NextStepType.FinalOutput,
-                    Output = modelResponse.Messages.Last().Contents.OfType<TextContent>().First().Text
+                    Output = modelResponse.Text
                 }
             };
         }
+    }
+
+    private static bool IsAllowedHandOff<TContext>(
+        FunctionCallContent functionCall,
+        Agent<TContext> agent,
+        List<AIFunction> tools
+        ) where TContext : class
+    {
+        // either in agent handoffs
+        return agent.HandoffNames.Contains(functionCall.Name)
+            ||
+            // or calling handoffback
+            (tools.FirstOrDefault(t => t.Name == functionCall.Name) is var resolvedTool
+            && resolvedTool is not null
+            && resolvedTool.UnderlyingMethod?.Name == "HandoffBack");
     }
 }

@@ -18,6 +18,7 @@ public interface IAgentDescriptor
     public int MaxReflectionCount { get; set; }
     public string CustomReflectionNote { get; set; }
     public string CriticPromptPath { get; set; }
+    public bool CriticOnHandOff { get; set; }
     public List<string> CommonPrompts { get; set; }
     public float? Temperature { get; set; }
     public string? OutputType { get; set; }

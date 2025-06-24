@@ -36,6 +36,9 @@ internal class YamlAgentDescriptor : IAgentDescriptor
     [YamlMember(Alias = "critic_prompt_path")]
     public string CriticPromptPath { get; set; } = string.Empty;
 
+    [YamlMember(Alias = "critic_on_handoff")]
+    public bool CriticOnHandOff { get; set; } = false;
+
     [YamlMember(Alias = "custom_reflection_note")]
     public string CustomReflectionNote { get; set; } = string.Empty;
 

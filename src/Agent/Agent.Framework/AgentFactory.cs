@@ -105,6 +105,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
             MaxReflectionCount = agentDescriptor.MaxReflectionCount,
             CustomReflectionNote = agentDescriptor.CustomReflectionNote,
             Handoffs = [], // Will be populated later to avoid circular references
+            CriticOnHandOff = agentDescriptor.CriticOnHandOff,
             FactoryTools = agentDescriptor.Tools,
             // TODO: parallel tool calls not supported in the framework yet, ignore agent-level overrides
             AllowParallelToolCalls = false, // agentDescriptor.AllowParallelToolCalls,

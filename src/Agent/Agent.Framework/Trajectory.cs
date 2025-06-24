@@ -59,25 +59,28 @@ public sealed class Trajectory
 
     public void Append(FunctionResultContent functionResult)
     {
-        string resultString;
+        var resultString = ResultToString(functionResult);
+        TrajectoryBuilder.AppendLine($"Function Call Result:\n{resultString}");
+        TrajectoryBuilder.AppendLine();
+    }
+
+    public static string ResultToString(FunctionResultContent functionResult)
+    {
         if (functionResult.Result is null)
         {
-            resultString = "null";
+            return "null";
         }
         else
         {
             var resultObj = functionResult.Result;
 
-            resultString = (resultObj is string str) ? str : JsonSerializer.Serialize(resultObj, _jsonOptions);
+            var resultString = (resultObj is string str) ? str : JsonSerializer.Serialize(resultObj, _jsonOptions);
 
-            resultString = TextVolumeHelpers.ApplyWordTruncation(
+            return TextVolumeHelpers.ApplyWordTruncation(
                 input: resultString,
                 maxWords: MaxResultWords,
                 addTruncationMessage: false);
         }
-
-        TrajectoryBuilder.AppendLine($"Function Call Result:\n{resultString}");
-        TrajectoryBuilder.AppendLine();
     }
 
     public void AppendCriticFeedback(string feedback)

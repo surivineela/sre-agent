@@ -263,4 +263,4 @@ temperature: 0.2
 
 max_reflection_count: 3
 
-critic_prompt_path: "AgentsV2/Prompts/aks-critic-prompt_medium.txt"
+critic_prompt_path: "CriticPrompts/aks-critic-prompt_medium.txt"

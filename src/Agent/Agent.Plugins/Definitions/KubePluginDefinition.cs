@@ -315,7 +315,7 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
         BEST PRACTICES:
         - Always specify the namespace you care about: 'kubectl get pods -n default'
         """)]
-        [AgentTool(ToolMode.Auto)]
+        [AgentTool(ToolMode.Manual)]
         public async Task<string> RunKubectlReadCommandAsync(
             [Description("The resource ID of the Azure Kubernetes Service. e.g. '/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ContainerService/managedClusters/{cluster-name}'")] string AKSClusterResourceId,
             [Description($"Complete kubectl get command string, e.g.: 'kubectl get deployments -n production -o wide'")] string command)
@@ -351,7 +351,7 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
             @"Provides help information about kubectl commands and resources.
             Used whenever user needs guidance on using kubectl commands or understanding Kubernetes resources.
             eg: 'How do I use kubectl get pods?', 'What options are available for kubectl describe?'.")]
-        [AgentTool(ToolMode.Auto)]
+        [AgentTool(ToolMode.Manual)]
         public async Task<string> RunKubectlCommandHelpAsync(
             [Description("The resource ID of the Azure Kubernetes Service. e.g. '/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ContainerService/managedClusters/{cluster-name}'")] string AKSClusterResourceId,
             [Description("Expected kubectl command input format example: 'get', 'describe pod', 'create deployment', etc. The full command will be composed with 'kubectl' prefix and ''--help' suffix.")] string command)
@@ -362,7 +362,7 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
         /// <summary>Run 'kubectl get' on any resource.</summary>
         [Description(
             "Retrieve Kubernetes resources with optional label filtering and custom columns.")]
-        [AgentTool(ToolMode.Auto)]
+        [AgentTool(ToolMode.Manual)]
         public Task<string> KubectlGetAsync(
             [Description("The resource ID of the Azure Kubernetes Service. e.g. '/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ContainerService/managedClusters/{cluster-name}'")]
             string AKSClusterResourceId,
@@ -412,7 +412,7 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
         [Description(
             "Run 'kubectl describe' on a single object. " +
             "Must specify kind, name, and namespace (or empty for cluster‑scoped kinds).")]
-        [AgentTool(ToolMode.Auto)]
+        [AgentTool(ToolMode.Manual)]
         public Task<string> KubectlDescribeAsync(
             [Description("The resource ID of the Azure Kubernetes Service. e.g. '/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ContainerService/managedClusters/{cluster-name}'")]
             string AKSClusterResourceId,
@@ -443,7 +443,7 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
             "Run 'kubectl explain' for API documentation. " +
             "Always specify full resourcePath (e.g. 'pod.spec.containers') and " +
             "whether recursion is desired.")]
-        [AgentTool(ToolMode.Auto)]
+        [AgentTool(ToolMode.Manual)]
         public Task<string> KubectlExplainAsync(
             [Description("The resource ID of the Azure Kubernetes Service. e.g. '/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ContainerService/managedClusters/{cluster-name}'")]
             string AKSClusterResourceId,
@@ -470,7 +470,7 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
         /// </summary>
         [Description(
             "Run 'kubectl api-resources' with optional filters and explicit output columns.")]
-        [AgentTool(ToolMode.Auto)]
+        [AgentTool(ToolMode.Manual)]
         public Task<string> KubeApiResourcesAsync(
             [Description("The resource ID of the Azure Kubernetes Service. e.g. '/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ContainerService/managedClusters/{cluster-name}'")]
             string AKSClusterResourceId,
@@ -497,7 +497,7 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
         /// <summary>Get pod logs with advanced filtering and volume reduction.</summary>
         [Description(
             "Retrieve Kubernetes pod logs with grep filtering, truncation, and all built-in kubectl log options.")]
-        [AgentTool(ToolMode.Auto)]
+        [AgentTool(ToolMode.Manual)]
         public async Task<string> GetPodLogsAsync(
             [Description("The resource ID of the Azure Kubernetes Service. e.g. '/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ContainerService/managedClusters/{cluster-name}'")]
             string AKSClusterResourceId,
@@ -579,7 +579,7 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
         /// <summary>Get Kubernetes events with filtering and volume reduction.</summary>
         [Description(
             "Retrieve Kubernetes events with grep filtering, truncation, and built-in event filtering options.")]
-        [AgentTool(ToolMode.Auto)]
+        [AgentTool(ToolMode.Manual)]
         public async Task<string> GetKubeEventsAsync(
             [Description("The resource ID of the Azure Kubernetes Service. e.g. '/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ContainerService/managedClusters/{cluster-name}'")]
             string AKSClusterResourceId,
