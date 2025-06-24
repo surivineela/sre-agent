@@ -38,7 +38,7 @@
     "ActionName": "GetRedisCacheDeploymentDetails",
     "TenantId": "e988c3c5-e0e8-402b-92b2-e05bfe1798bf",
     "WorkflowName": "SREAgentGetDeploymentDetailsTest/triggers/When_a_HTTP_request_is_received/execute?teamId=WINDOWSAZURECACHE%5CAutomation",
-    "WorkflowInputParameters": [ "incidentId", "redisCacheName" ]
+    "WorkflowInputParameters": [ "cacheName" ]
   },
   {
     "ActionName": "GetRedisCacheDeploymentHistory",
