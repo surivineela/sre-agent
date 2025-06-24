@@ -142,7 +142,22 @@ public class Program
         {
             _ = Task.Run(async () =>
             {
-                await app.Services.CreateCosmosContainerIfNotExists(builder.Configuration);
+                try
+                {
+                    await app.Services.CreateCosmosContainerIfNotExists(builder.Configuration);
+
+                    var agentMemorySettings = builder.Configuration.GetSection("AppSettings:Core:AgentMemory").Get<AgentMemorySettings>();
+                    if (agentMemorySettings is not null && agentMemorySettings.Enabled)
+                    {
+                        await app.Services.CreateDocumentBlobContainerIfNotExists();
+                        await app.Services.SetupAgentMemoryIndexAsync();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+                    logger.LogInternalError(ex, "Error during application startup tasks");
+                }
             });
         });
 
@@ -411,7 +426,7 @@ public class Program
             .AddSingleton<ISearchPlugin, SearchPlugin>()
             .AddSingleton<ISearchIndexingClient, SearchIndexingClient>()
             .AddSingleton<DocumentationIndex>()
-          
+
             .AddSingleton(sp =>
             {
                 return new ToolFactory<AgentContext>(
@@ -666,6 +681,7 @@ public class Program
         });
 
         builder.Services.AddCosmosClient();
+        ConfigureAgentMemory(builder);
 
         ConfigureLogger(builder);
 
@@ -770,6 +786,13 @@ public class Program
         builder.Services.AddSingleton(TracerProvider.Default.GetTracer("SREAgent"));
 
         return builder;
+    }
+
+    private static void ConfigureAgentMemory(WebApplicationBuilder builder)
+    {
+        var agentMemorySettings = builder.Configuration.GetSection("AppSettings:Core:AgentMemory").Get<AgentMemorySettings>();
+        var enableAgentMemory = agentMemorySettings?.Enabled ?? false;
+        builder.Services.AddAgentMemory(enableAgentMemory);
     }
 
     private static TracerProvider GetTracerProvider(ResourceBuilder resourceBuilder, AzureSettings azureSettings, LoggingSettings? loggingSettings)

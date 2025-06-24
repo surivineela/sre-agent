@@ -25,14 +25,14 @@ namespace Agent.Data.DataModels
         public string Id { get; set; }
         public string DocumentType => "AppHealthHistory";
         public string PartitionKey => AppId;
-        
+
         public string AppId { get; set; }
         public string AppName { get; set; }
         public string ResourceType { get; set; }
-        
+
         // Collection of historical data points
         public List<AppHealthInfoData> HistoryData { get; set; }
-        
+
         // Last updated timestamp
         public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
 
@@ -49,4 +49,4 @@ namespace Agent.Data.DataModels
             public double? Transactions { get; set; }
         }
     }
-} 
+}

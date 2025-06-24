@@ -42,7 +42,7 @@ public record PagerDutyAgent(
     string Name, // Agent name. e.g. Yefu Wang
     string HtmlUrl // e.g. https://yefutest.pagerduty.com/users/PYPV3MY
 );
-// Notes are like discussions in PagerDuty. 
+// Notes are like discussions in PagerDuty.
 public record PagerDutyIncidentNote(
     string Id, // ID of the note
     string Content,

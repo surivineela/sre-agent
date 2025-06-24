@@ -84,6 +84,26 @@ public class AuthenticationService : IAuthenticationService
         return GetWorkloadIdentityCredential(_federationSettings.ClientId, _federationSettings.TenantId, _federationSettings.AuthorityHost);
     }
 
+    public TokenCredential GetAgentMemoryBlobStorageCredential()
+    {
+        if (_hostEnvironment.IsDevelopment())
+        {
+            return GetDefaultAzureCredential();
+        }
+
+        return GetWorkloadIdentityCredential(_federationSettings.ClientId, _federationSettings.TenantId, _federationSettings.AuthorityHost);
+    }
+
+    public TokenCredential GetAgentMemoryAzureAISearchCredential()
+    {
+        if (_hostEnvironment.IsDevelopment())
+        {
+            return GetDefaultAzureCredential();
+        }
+
+        return GetWorkloadIdentityCredential(_federationSettings.ClientId, _federationSettings.TenantId, _federationSettings.AuthorityHost);
+    }
+
     public TokenCredential GetSearchPluginCredential()
     {
         if (_hostEnvironment.IsDevelopment())

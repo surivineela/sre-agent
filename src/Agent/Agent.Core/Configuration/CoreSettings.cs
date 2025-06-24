@@ -28,5 +28,8 @@ namespace Agent.Core.Configuration
 
         [Required]
         public bool EnableReasoningOutput { get; set; } = false;
+
+        [Required]
+        public AgentMemorySettings AgentMemory { get; set; } = new();
     }
 }

@@ -55,8 +55,8 @@ public class IcmScanner(ILogger<IcmScanner> logger,
     }
     private async Task ScannAllIncidentsAsync(CancellationToken cancellationToken, List<IncidentFilterDocument> filters)
     {
-        
-        
+
+
         foreach (var filter in filters)
         {
             if (cancellationToken.IsCancellationRequested)
@@ -156,7 +156,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
             {
                 //var patchOperationList = new List<PatchOperation>();
                 //// PatchOperation.Add is used to update existing fields or add new fields if they don't exist.
-                //// Current is incorrect! PatchPath should be aligin with serialized string, which first character is lowercase 
+                //// Current is incorrect! PatchPath should be aligin with serialized string, which first character is lowercase
                 //// https://learn.microsoft.com/en-us/azure/cosmos-db/partial-document-update
                 //if (string.IsNullOrEmpty(incident.Title) && incidentDocument.Title != incident.Title)
                 //{

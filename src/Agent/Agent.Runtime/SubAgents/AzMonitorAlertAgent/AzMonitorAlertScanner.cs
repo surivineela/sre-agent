@@ -91,7 +91,7 @@ public class AzMonitorAlertScanner
     }
 
     /// <summary>
-    /// Polls for new alerts in Log Analytics Workspace on a given cadence. 
+    /// Polls for new alerts in Log Analytics Workspace on a given cadence.
     /// </summary>
     /// <param name="ct">Cancellation token.</param>
     /// <returns></returns>
@@ -230,7 +230,7 @@ public class AzMonitorAlertScanner
             string summarizePrompt = @$"
 TASK:
 
-You are an AI assistant helping a Site Reliability Engineer analyze an Azure Monitor alert. 
+You are an AI assistant helping a Site Reliability Engineer analyze an Azure Monitor alert.
 The following context contains the results of an automated investigation into an Azure Monitor alert.This includes details about the alert itself,
 the health of the affected application, relevant metrics, recent activity logs, analysis of connected components to this application, and results from relevant log queries saved in user's log analytics workspace.
 
@@ -327,7 +327,7 @@ Additional things to consider after running your reasoning loop:
 FORMAT YOUR RESPONSE AS:
 
 ## Summary of Findings
-- [Specific finding with exact metric/timestamp/error] 
+- [Specific finding with exact metric/timestamp/error]
 - [Specific finding with exact metric/timestamp/error]
 
 ## Hypotheses
@@ -409,7 +409,7 @@ Remember: Quality findings with specific values are better than quantity. Exclud
                 UpdatedAt = DateTime.UtcNow
             };
 
-            // Save to database 
+            // Save to database
             try
             {
                 var response = await _dbContainer.UpsertItemAsync(

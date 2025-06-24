@@ -5,6 +5,7 @@
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Data.AgentMemory;
 using Agent.Framework;
 using Agent.Logging;
 using Microsoft.Extensions.AI;
@@ -30,8 +31,9 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
     private readonly ActionSettings _actionSettings;
     private readonly IAgentActionLogExporter _actionLogExporter;
     private readonly bool _enableReasoningDebugOutput;
-
     private readonly Tracer _tracer;
+    private readonly IAgentMemoryClient _agentMemoryClient;
+    private readonly bool _agentMemoryEnabled;
 
     public ReasoningLoopFactory(
         ILoggerFactory loggerFactory,
@@ -44,7 +46,9 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         CoreSettings coreSettings,
         Tracer tracer,
         IAgentActionLogExporter actionLogExporter,
-        IHostEnvironment hostEnvironment)
+        IHostEnvironment hostEnvironment,
+        IAgentMemoryClient agentMemoryClient,
+        AgentMemorySettings agentMemorySettings)
     {
         _loggerFactory = loggerFactory;
         _chatClient = chatClient;
@@ -57,6 +61,8 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         _actionLogExporter = actionLogExporter;
         _enableReasoningDebugOutput = coreSettings.EnableReasoningOutput
             && hostEnvironment.IsDevelopment(); // only enable debug output in dev environment
+        _agentMemoryClient = agentMemoryClient;
+        _agentMemoryEnabled = agentMemorySettings.Enabled;
     }
 
     public async Task<ReasoningLoop> Create(AgentContext context)
@@ -97,7 +103,9 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
             tracer: _tracer,
             agentFactory: _agentFactory,
             actionLogExporter: _actionLogExporter,
-            enableReasoningDebugOutput: _enableReasoningDebugOutput);
+            enableReasoningDebugOutput: _enableReasoningDebugOutput,
+            agentMemoryClient: _agentMemoryClient,
+            agentMemoryEnabled: _agentMemoryEnabled);
 
         await loop.LoadChatHistoryAsync();
         return loop;

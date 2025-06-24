@@ -1,3 +1,6 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
 
 namespace Agent.Core.Helpers;
 
@@ -45,5 +48,39 @@ public class AgentNameHelper
     public static string GetMainDashboardTitle(bool isProd)
     {
         return $"SRE Agent {GetAgentName(isProd)}: Resource Monitoring Dashboard";
+    }
+
+    public static string GetCustomerUploadedDocumentBlobContainerName(bool isProd)
+    {
+        var name = GetAgentName(isProd).ToLowerInvariant();
+        return $"{name}-docs";
+    }
+
+    public static string GetCustomerUploadedDocumentIndexName(bool isProd)
+    {
+        var name = GetAgentName(isProd).ToLowerInvariant();
+        var fullName = $"{name}-doc-index";
+        return fullName.Length > 128 ? fullName[..128] : fullName;
+    }
+
+    public static string GetCustomerUploadedDocumentIndexerName(bool isProd)
+    {
+        var name = GetAgentName(isProd).ToLowerInvariant();
+        var fullName = $"{name}-doc-indexer";
+        return fullName.Length > 128 ? fullName[..128] : fullName;
+    }
+
+    public static string GetCustomerUploadedDocumentSkillSetName(bool isProd)
+    {
+        var name = GetAgentName(isProd).ToLowerInvariant();
+        var fullName = $"{name}-doc-skills";
+        return fullName.Length > 128 ? fullName[..128] : fullName;
+    }
+
+    public static string GetCustomerUploadedDocumentAISearchDatasourceName(bool isProd)
+    {
+        var name = GetAgentName(isProd).ToLowerInvariant();
+        var fullName = $"{name}-doc-ds";
+        return fullName.Length > 64 ? fullName[..64] : fullName;
     }
 }

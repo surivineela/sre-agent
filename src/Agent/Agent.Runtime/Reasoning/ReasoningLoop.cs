@@ -15,6 +15,7 @@ using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
+using Agent.Data.AgentMemory;
 using Agent.Data.DataModels;
 using Agent.Framework;
 using Agent.Logging;
@@ -40,6 +41,7 @@ public class ReasoningLoop : IDisposable
     private readonly Tracer _tracer;
     private readonly AgentActionLogger _actionLogger;
     private readonly bool _enableReasoningDebugOutput;
+    private readonly bool _agentMemoryEnabled;
 
     private readonly Channel<ReasoningLoopMessage> _msgCh;
     private AgentContext _context;
@@ -58,6 +60,7 @@ public class ReasoningLoop : IDisposable
 
     // Retry configuration
     private const int MaxRetryAttempts = 3;
+    private readonly IAgentMemoryClient _agentMemoryClient;
     private static readonly TimeSpan[] RetryDelays = { TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(500), TimeSpan.FromSeconds(1) };
 
     private static readonly JsonSerializerOptions _toolArgumentsJsonOptions = new()
@@ -85,7 +88,9 @@ public class ReasoningLoop : IDisposable
         Tracer tracer,
         IAgentFactory<AgentContext> agentFactory,
         IAgentActionLogExporter actionLogExporter,
-        bool enableReasoningDebugOutput)
+        bool enableReasoningDebugOutput,
+        IAgentMemoryClient agentMemoryClient,
+        bool agentMemoryEnabled)
     {
         _loggerFactory = loggerFactory;
         _logger = _loggerFactory.CreateLogger<ReasoningLoop>();
@@ -107,6 +112,8 @@ public class ReasoningLoop : IDisposable
             _loggerFactory.CreateLogger<AgentActionLogger>(),
             actionLogExporter);
         _enableReasoningDebugOutput = enableReasoningDebugOutput;
+        _agentMemoryClient = agentMemoryClient;
+        _agentMemoryEnabled = agentMemoryEnabled;
     }
     public void CancelCurrentOperation()
     {
@@ -338,6 +345,25 @@ public class ReasoningLoop : IDisposable
         }
     }
 
+    private async Task RetrieveAndAugmentUserMessage(string userQuery, StringBuilder sb)
+    {
+        var result = await _agentMemoryClient.SearchCustomerDocumentsAsync(query: userQuery, enableHybridSearch: true);
+        if (result.Count > 0)
+        {
+            sb.AppendLine("Use the following context to answer the user's question. If the context is not helpful, you can ignore it.");
+            sb.AppendLine("<Context>");
+            foreach (var doc in result)
+            {
+                sb.AppendLine($"- Document: {doc.Title}\nContent: {doc.Chunk}");
+            }
+            sb.AppendLine("</Context>");
+        }
+        else
+        {
+            _logger.LogInternalInformation("No relevant documents found in agent memory for user query: {UserQuery}", userQuery);
+        }
+    }
+
     private async Task RunAsync(CancellationToken cancellationToken)
     {
         while (_msgCh.Reader.TryRead(out var reasoningLoopMessage))
@@ -377,6 +403,13 @@ public class ReasoningLoop : IDisposable
                             //sb.AppendLine(" - **NEVER** tell the user what you are handing off for or why you are handing off");
                             //sb.AppendLine(" - **NEVER** mention anything related to handoff in your notifyUserMessage");
                             sb.AppendLine(" - Use transfer_to_{agentName} or HandoffBack if you are done solving an issue");
+
+                            if (_agentMemoryEnabled)
+                            {
+                                _logger.LogInternalInformation("Retrieving and augmenting user message with agent memory.");
+                                await RetrieveAndAugmentUserMessage(chatMessage.Message.Text, sb);
+                            }
+
                             sb.AppendLine("User question goes below:");
                             sb.AppendLine(chatMessage.Message.Text);
                             var msg = new ChatMessage(chatMessage.Message.Role, sb.ToString());

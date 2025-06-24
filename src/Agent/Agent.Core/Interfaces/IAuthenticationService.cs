@@ -84,4 +84,7 @@ public interface IAuthenticationService
     public Task<TokenCredential> GetKubernetesOperationCredential();
 
     public string? GetActionIdentity();
+
+    public TokenCredential GetAgentMemoryBlobStorageCredential();
+    public TokenCredential GetAgentMemoryAzureAISearchCredential();
 }
