@@ -272,6 +272,20 @@ public class ThreadManagementService(
             );
         }
 
+        if (agentContext != null && agentContext.AgentType == AgentTypeEnum.Incident)
+        {
+            return await agentInboundCommunicationService.ProcessIncidentMessageAsync(new ThreadMessage
+            (
+                ThreadId: threadId,
+                AgentContextId: agentContext.Id,
+                MessageId: Guid.NewGuid(),
+                Message: request.Text,
+                UserId: request.UserId,
+                DisplayName: request.DisplayName,
+                Timestamp: DateTime.UtcNow
+            ));
+        }
+
         var response = await agentInboundCommunicationService.ProcessUserMessageAsync(new ThreadMessage
         (
             ThreadId: threadId,

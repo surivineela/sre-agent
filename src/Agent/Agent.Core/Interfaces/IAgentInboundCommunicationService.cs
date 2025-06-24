@@ -79,6 +79,8 @@ public interface IAgentInboundCommunicationService
     /// </summary>
     Task<InboundServiceResponse> ProcessUserMessageAsync(ThreadMessage message);
 
+    Task<InboundServiceResponse> ProcessIncidentMessageAsync(ThreadMessage message);
+
     /// <summary>
     /// Processes a user message and returns a stream of updates as the response is generated.
     /// </summary>

@@ -238,8 +238,9 @@ namespace Agent.Runtime.Services
                     return response;
                 }
 
+                _logger.LogInternalInformation("HandleIncidentAsync: Matched Handler. Creating IncidentHandlerAgent thread for IncidentId: {IncidentId}, FilterId: {FilterId} and HandlerId: {HandlerId}", incidentId, matchingFilter.Id, matchingHandler.Id);
                 var thread = await CreateIncidentHandlerAgentThread(incidentDetails, matchingHandler);
-                _logger.LogInternalInformation("HandleIncidentAsync: Created HandlerAgent thread with ThreadId: {ThreadId} for IncidentId: {IncidentId} and HandlerId: {HandlerId}", thread.Id, incidentId, matchingHandler.Id);
+                _logger.LogInternalInformation("HandleIncidentAsync: Created IncidentHandlerAgent thread with ThreadId: {ThreadId} for IncidentId: {IncidentId} and HandlerId: {HandlerId}", thread.Id, incidentId, matchingHandler.Id);
 
                 response.StatusCode = 200;
                 response.Response = new { threadId = thread.Id, message = "Incident received" };
