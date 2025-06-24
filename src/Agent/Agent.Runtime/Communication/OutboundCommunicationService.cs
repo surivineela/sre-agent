@@ -23,11 +23,11 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
     private readonly IStreamingService _streamingService;
     private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions
     {
-        PropertyNamingPolicy = new LowerCaseNamingPolicy(),
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         DictionaryKeyPolicy = new LowerCaseNamingPolicy(),
         WriteIndented = true,
     };
-    
+
     public OutboundCommunicationService(
         IThreadOrchestrationManager mappingManager,
         ILogger<OutboundCommunicationService> logger,

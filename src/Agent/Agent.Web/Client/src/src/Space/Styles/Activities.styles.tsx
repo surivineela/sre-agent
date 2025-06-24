@@ -210,7 +210,7 @@ export const ChatBoxV2Styles = mergeStyleSets({
         lineHeight: '24px',
         '.fai-CopilotMessage__content': {
             width: '90%',
-            gap: `${tokens.spacingVerticalS}`,
+            gap: `${tokens.spacingVerticalL}`,
         },
     },
     hideAgentMessageHeader: {

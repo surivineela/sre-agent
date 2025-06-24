@@ -1,6 +1,7 @@
 import { ThreadSeverity } from '../../Common/Clients/ThreadClient';
 import {
     Approval,
+    ApprovalDecision,
     AzCliExecution,
     IncidentStatus,
     Message,
@@ -182,26 +183,39 @@ export const processChatMessageContents = (
 ): ChatMessageContent[] => {
     const messageContent = streamingMessage.contents?.[0];
 
-    const approval = getSpecialMessageContentFromStreamingMessage<Approval>(streamingMessage, 'approval');
+    let approval = getSpecialMessageContentFromStreamingMessage<Approval>(streamingMessage, 'approval');
     const azCliExecution = getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'azcli');
     const kubectlExecution = getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'kubectl');
     const text = messageContent?.text && !approval && !azCliExecution && !kubectlExecution ? messageContent.text : '';
     const isImage = isImageStreamingMessageType(streamingMessage);
 
+    if (approval && approval.status !== null && approval.status !== undefined && typeof approval.status === 'number') {
+        approval = {
+            ...approval,
+            status:
+                approval.status === 0
+                    ? ApprovalDecision.Pending
+                    : approval.status === 1
+                        ? ApprovalDecision.Approved
+                        : ApprovalDecision.Rejected,
+        };
+    }
+
     const chatMessageContent: ChatMessageContent = {
         text,
         isImage,
-        approval: getSpecialMessageContentFromStreamingMessage<Approval>(streamingMessage, 'approval'),
-        azCliExecution: getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'azcli'),
-        kubectlExecution: getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'kubectl'),
+        approval,
+        azCliExecution,
+        kubectlExecution,
         isDailyReport: false,
     };
 
     const executionId = chatMessageContent.azCliExecution?.id || chatMessageContent.kubectlExecution?.id;
+
     if (executionId) {
         const existingContentIndexThatHasSameExecutionId = currentContents.findIndex(content => {
             const id = content.azCliExecution?.id || content.kubectlExecution?.id;
-            return id === executionId;
+            return id && id === executionId;
         });
 
         if (existingContentIndexThatHasSameExecutionId !== -1) {

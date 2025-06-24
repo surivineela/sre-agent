@@ -55,7 +55,7 @@ export const ChatBoxV2 = ({ addThread, promoteThread, updateThreadLastReadTime, 
                         {/* Render the remaining chat history */}
                         {messages.map((message, index) => (
                             <ChatMessageV2
-                                key={index}
+                                key={message.id}
                                 message={message}
                                 previousMessage={messages[index - 1]}
                                 nextMessage={messages[index + 1]}
@@ -66,7 +66,9 @@ export const ChatBoxV2 = ({ addThread, promoteThread, updateThreadLastReadTime, 
 
                         {streamingMessage && (
                             <ChatMessageV2
+                                key={streamingMessage.id}
                                 message={streamingMessage}
+                                previousMessage={messages[messages.length - 1]}
                                 isStreamingMessage={true}
                                 isTyping={isAgentTyping}
                                 threadId={currentThreadId || ''}
