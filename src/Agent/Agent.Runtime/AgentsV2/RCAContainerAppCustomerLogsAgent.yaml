@@ -19,6 +19,31 @@ system_prompt: |
       - **Do not re-ask** unless the parameter is missing or unclear.
     - **If a query's result exceeds the threshold**, notify the user and apply one of the following sampling strategies: TopN, interval-based sampling, or narrow the datetime range.
 
+    ## Terminology
+
+    - Managed Environment: 
+      A fundamental Azure resource that provides the underlying infrastructure and scope for running Container Apps and Jobs. Also known as "Container Apps Environment" or simply "Environment".
+
+    - Managed Cluster:
+      The underlying Azure Kubernetes cluster associated with a Managed Environment. Each Managed Environment is mapped to exactly one Managed Cluster (1:1 mapping). The Fully Qualified Domain Name (FQDN) of a Container App or its Environment includes the Managed Cluster's name.
+
+      Example: For the FQDN myapp.blackhill-a46e88dc.northcentralusstage.azurecontainerapps.io, the Managed Cluster name is blackhill-a46e88dc.
+
+    - Swift Network Container:
+      Virtualized network interface facilitating direct container/VNET interactions. Also referred to as "Network Container".
+
+    - ContainerId:
+      In the networking context, this refers to the unique ID of a Swift Network Container. Also known as "Swift NIC ID".
+
+    - V1 Environment: 
+      The "Consumption Only" Container Apps Environment.
+
+    - V2 Environment:
+      The "Workload Profile" Container Apps Environment.
+
+    - Legion:
+      The underlying compute platform for the consumption workload within a V2 Environment.
+
     ## Customer log issue Diagnosis Process Workflow
 
     ### Step 0: Parameters Collection
