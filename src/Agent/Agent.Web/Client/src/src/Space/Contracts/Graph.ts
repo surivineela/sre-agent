@@ -20,7 +20,8 @@ export type ResourceExtended = {
         dashboardUrl: string[];
         resourceType: string[];
         resourceName: string[];
-        resourceId: string[];
+        /** Kubernetes deployments and similar won't have this */
+        resourceId?: string[];
         subscriptionId: string[];
         resourceGroupName: string[];
         location: string[];

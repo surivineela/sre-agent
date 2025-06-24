@@ -127,7 +127,9 @@ const ResourceSelector = ({ onAppGroupUpdate }: IResourceSelectorProps) => {
             }
 
             const initialGroupSubscriptionId = initialGroupId?.split('/')[1];
-            const initialGroupSubscription = subscriptions.find(sub => sub.id === initialGroupSubscriptionId);
+            const initialGroupSubscription = initialGroupSubscriptionId
+                ? subscriptions.find(sub => sub.id === initialGroupSubscriptionId)
+                : undefined;
             const selectedSubscription =
                 initialGroupSubscriptionId && initialGroupSubscription ? initialGroupSubscription : subscriptions[0];
 
@@ -140,7 +142,12 @@ const ResourceSelector = ({ onAppGroupUpdate }: IResourceSelectorProps) => {
             if (isSubscribed) {
                 setAppGroups(appGroups);
 
-                const initialSelectedAppGroup = appGroups.find(appGroup => appGroup.properties.resourceId[0] === initialGroupId);
+                // NOTE: If deep linked and target resource doesn't have `resourceId`, won't select it - but
+                // we shouldn't ever be deep linking to such resources. Could use appGroup.id, but there's parsing
+                // considerations there ('_' replace '/', etc, but names can contain those...)
+                const initialSelectedAppGroup = initialGroupId
+                    ? appGroups.find(appGroup => appGroup.properties.resourceId?.[0] === initialGroupId)
+                    : undefined;
                 setSelectedAppGroup(initialSelectedAppGroup ?? appGroups[0]);
             }
 
