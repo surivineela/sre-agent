@@ -1,0 +1,12 @@
+let queryFrom = datetime("##queryFrom##");
+let queryTo = datetime("##queryTo##");
+let cappName = "##containerAppJobName##";
+let jobExecutionName = "##jobExecutionName##";
+let cappClusterName = "##managedClusterName##";
+SystemLogs
+| where PreciseTimeStamp between (queryFrom .. queryTo)
+| where severityText != "Information"
+| where ResourceNamespace contains cappClusterName
+| where PodName contains iif(isempty(jobExecutionName), cappName, jobExecutionName)
+| summarize count() by Message, Value//, HttpStatusCode
+| sort by count_
