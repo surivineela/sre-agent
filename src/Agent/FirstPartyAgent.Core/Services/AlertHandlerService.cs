@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Castle.Core.Logging;
 using FirstPartyAgent.Core.Configuration;
+using Agent.Core.Configuration;
 using FirstPartyAgent.Core.Models;
 using Microsoft.Bot.Configuration;
 using Microsoft.Extensions.Configuration;

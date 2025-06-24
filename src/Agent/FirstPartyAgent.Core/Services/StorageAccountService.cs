@@ -7,6 +7,7 @@ using Azure.Identity;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using FirstPartyAgent.Core.Configuration;
+using Agent.Core.Configuration;
 
 namespace FirstPartyAgent.Core.Services
 {

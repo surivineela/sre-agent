@@ -2,8 +2,11 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-namespace FirstPartyAgent.Core.Configuration
+namespace Agent.Core.Configuration
 {
+    /// <summary>
+    /// Configuration settings for Azure DevOps connections
+    /// </summary>
     public class AzureDevOpsSettings
     {
         public bool Enabled { get; set; }
@@ -20,4 +23,3 @@ namespace FirstPartyAgent.Core.Configuration
         public string PersonalAccessToken { get; set; } = string.Empty;
     }
 }
-

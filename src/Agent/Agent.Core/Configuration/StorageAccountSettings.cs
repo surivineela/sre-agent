@@ -2,8 +2,11 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-namespace FirstPartyAgent.Core.Configuration
+namespace Agent.Core.Configuration
 {
+    /// <summary>
+    /// Configuration settings for Azure Storage Account connections
+    /// </summary>
     public class StorageAccountSettings
     {
         public string AccountUrl { get; set; }
@@ -11,4 +14,3 @@ namespace FirstPartyAgent.Core.Configuration
         public string GenevaActionsContainerName { get; set; }
     }
 }
-

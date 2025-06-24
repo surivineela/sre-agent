@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Agent.Core.Models;
 using Agent.Core.Services;
 using FirstPartyAgent.Core.Configuration;
+using Agent.Core.Configuration;
 using FirstPartyAgent.Core.Extensions;
 using FirstPartyAgent.Core.Models;
 using FirstPartyAgent.Core.Plugins.Interfaces;

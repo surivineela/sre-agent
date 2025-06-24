@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Azure.Core;
 using Azure.Identity;
 using FirstPartyAgent.Core.Configuration;
+using Agent.Core.Configuration;
 using Microsoft.Extensions.Hosting;
 
 namespace FirstPartyAgent.Core.Services

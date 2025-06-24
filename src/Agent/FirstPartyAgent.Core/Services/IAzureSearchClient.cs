@@ -32,10 +32,10 @@ namespace FirstPartyAgent.Core.Services
     public class AzureSearchClient : IAzureSearchClient
     {
         private const int MAX_RESULTS_TO_FETCH = 20;
-        private readonly AzureSearchSettings _azureSearchSettings;
+        private readonly Agent.Core.Configuration.AzureSearchSettings _azureSearchSettings;
         private readonly ConcurrentDictionary<string, SearchClient> _searchClients = new(StringComparer.OrdinalIgnoreCase);
 
-        public AzureSearchClient(AzureSearchSettings searchSettings)
+        public AzureSearchClient(Agent.Core.Configuration.AzureSearchSettings searchSettings)
         {
             _azureSearchSettings = searchSettings;
         }

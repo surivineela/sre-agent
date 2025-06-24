@@ -26,11 +26,11 @@ using Agent.Plugins.Definitions;
 using Agent.Plugins.Implementation;
 using Agent.Plugins.Implementation.DiagnosticsPlugin;
 using Agent.Plugins.Interface;
+using Agent.Plugins.Kusto;
+using Agent.Plugins.KustoPlugin;
 using Agent.Plugins.Services;
 using Agent.Plugins.Services.Interfaces;
 using Agent.Prometheus.Services;
-using Kusto.Data;
-using Kusto.Ingest;
 using Agent.Runtime;
 using Agent.Runtime.Clients.Search;
 using Agent.Runtime.Communication;
@@ -75,6 +75,8 @@ using Agent.Runtime.TeamsChatServices;
 using Agent.Web.Services;
 using Azure.Monitor.OpenTelemetry.Exporter;
 using FirstPartyAgent.Core.FirstPartyAgents;
+using Kusto.Data;
+using Kusto.Ingest;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Connector.Authentication;
@@ -84,14 +86,13 @@ using Microsoft.DurableTask.Client.AzureManaged;
 using Microsoft.DurableTask.Worker;
 using Microsoft.DurableTask.Worker.AzureManaged;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
 using OpenTelemetry;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using Agent.Plugins.KustoPlugin;
-using Agent.Plugins.Kusto;
 
 namespace Agent.Web;
 
@@ -221,6 +222,65 @@ public class Program
         builder.Services.Configure<SearchSettings>(
             builder.Configuration.GetSection("AppSettings:Core:SearchOptions"));
 
+        // Add AzureSearchSettings registration
+        builder.Services.AddSingleton<Agent.Core.Configuration.AzureSearchSettings>(sp => {
+            var configuration = sp.GetRequiredService<IConfiguration>();
+            // Try to get from configuration first
+            var settings = configuration.GetSection("AppSettings:Core:Azure:AzureSearch").Get<Agent.Core.Configuration.AzureSearchSettings>();
+            
+            if (settings == null)
+            {
+                // Fallback to FirstPartyAgent settings
+                var firstPartySettings = configuration
+                    .GetSection("AppSettings:Core:External:AzureSearch")
+                    .Get<Agent.Core.Configuration.AzureSearchSettings>();
+                    
+                if (firstPartySettings != null)
+                {
+                    settings = firstPartySettings;
+                }
+                else
+                {
+                    // Provide default settings to prevent null reference exceptions
+                    settings = new Agent.Core.Configuration.AzureSearchSettings();
+                }
+            }
+            
+            return settings;
+        });
+
+        // Add TsgCrawlerSettings registration right after the AzureSearchSettings registration
+        builder.Services.AddSingleton<Agent.Core.Configuration.TsgCrawlerSettings>(sp => {
+            var configuration = sp.GetRequiredService<IConfiguration>();
+            // Try to get from configuration first
+            var settings = configuration.GetSection("AppSettings:Core:External:TSGCrawler").Get<Agent.Core.Configuration.TsgCrawlerSettings>();
+            
+            if (settings == null)
+            {
+                // Provide default settings to prevent null reference exceptions
+                settings = new Agent.Core.Configuration.TsgCrawlerSettings
+                {
+                    Enabled = false,
+                    AiSearchSettings = sp.GetRequiredService<Agent.Core.Configuration.AzureSearchSettings>()
+                };
+            }
+            
+            return settings;
+        });
+
+        // Add ExternalSettings registration after the other settings registrations
+        builder.Services.AddSingleton<Agent.Core.Configuration.ExternalSettings>(sp => {
+            var configuration = sp.GetRequiredService<IConfiguration>();
+            var externalSettings = new Agent.Core.Configuration.ExternalSettings
+            {
+                // Use the already registered AzureSearchSettings and TsgCrawlerSettings
+                AzureSearch = sp.GetRequiredService<Agent.Core.Configuration.AzureSearchSettings>(),
+                TsgCrawler = sp.GetRequiredService<Agent.Core.Configuration.TsgCrawlerSettings>()
+            };
+            
+            return externalSettings;
+        });
+
         var azureSettings = builder.Configuration.GetSection("AppSettings:Core:Azure").Get<AzureSettings>();
         var agentModeString = azureSettings?.Action.Mode.ToString();
 
@@ -346,6 +406,19 @@ public class Program
             .AddTransient<RCAContainerAppsSwiftNetworkContainerPluginDefinition>()
             .AddTransient<ICMPluginDefinition>()
             .AddTransient<KustoPlugin>()
+            // Conditionally register AzureSearchPluginDefinition based on settings.Enabled
+            .AddTransient<AzureSearchPluginDefinition>(sp => 
+            {
+                var searchSettings = sp.GetRequiredService<Agent.Core.Configuration.AzureSearchSettings>();
+                if (searchSettings.Enabled)
+                {
+                    return new AzureSearchPluginDefinition(sp.GetRequiredService<IAzureSearchPlugin>());
+                }
+                else
+                {
+                    return null;
+                }
+            })
 
             .AddTransient<IMetaAgentContainerAppsRemediationPlugin, ContainerAppsRemediationPlugin>()
             .AddTransient<IMetaAgentManagedIdentityMigrationPlugin, ManagedIdentityMigrationPlugin>()
@@ -367,6 +440,22 @@ public class Program
             .AddTransient<IAPIManagementPlugin, APIManagementPlugin>()
             .AddTransient<IICMPlugin, ICMPlugin>()
             .AddSingleton<IKustoPluginClient, KustoPluginClient>()
+            // Replace the existing IAzureSearchPlugin registration with this updated version
+            // which properly passes ExternalSettings to the AzureSearchPlugin constructor
+            .AddTransient<IAzureSearchPlugin>(sp =>
+            {
+                var searchSettings = sp.GetRequiredService<Agent.Core.Configuration.AzureSearchSettings>();
+                if (searchSettings.Enabled)
+                {
+                    return new AzureSearchPlugin(
+                        sp.GetRequiredService<ILogger<AzureSearchPlugin>>(),
+                        sp.GetRequiredService<Agent.Core.Configuration.ExternalSettings>());
+                }
+                else
+                {
+                    return null;
+                }
+            })
 
             //.AddSingleton<AppServiceRemediationAgentFactory>()
             .AddSingleton<KubernetesAgentFactory>()

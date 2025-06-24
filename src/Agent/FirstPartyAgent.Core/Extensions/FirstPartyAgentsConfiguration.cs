@@ -32,6 +32,8 @@ using Microsoft.SemanticKernel;
 using IKustoPluginClient = FirstPartyAgent.Core.Plugins.Interfaces.IKustoPluginClient;
 using ICMWorkflowSettings = FirstPartyAgent.Core.Configuration.ICMWorkflowSettings;
 using Agent.Core.Services;
+// Add alias for FirstPartyAgent's AzureSearchPlugin
+using FirstPartyAzureSearchPlugin = FirstPartyAgent.Core.Plugins.AzureSearchPlugin;
 
 namespace FirstPartyAgent.Core.Extensions
 {
@@ -98,8 +100,12 @@ namespace FirstPartyAgent.Core.Extensions
             services.AddSingleton<ColdStartPlugin>();
 
             services.AddSingleton<FirstPartyAgent.Core.Services.IAzureSearchClient, FirstPartyAgent.Core.Services.AzureSearchClient>();
-            services.AddSingleton<IAzureSearchPlugin, AzureSearchPlugin>();
-            services.AddSingleton<AzureSearchPluginDefinition>();
+            
+            // Register FirstPartyAgent's AzureSearchPlugin with its interface using the alias
+            services.AddSingleton<FirstPartyAgent.Core.Plugins.IAzureSearchPlugin, FirstPartyAzureSearchPlugin>();
+            
+            // Register AzureSearchPluginDefinition that depends on FirstPartyAgent's implementation
+            services.AddSingleton<FirstPartyAgent.Core.Plugins.Definitions.AzureSearchPluginDefinition>();
 
             var threadRepository = new InMemoryThreadRepository(new NullLogger<InMemoryThreadRepository>());
             var sinkService = new SinkService(threadRepository, new NullLogger<SinkService>());

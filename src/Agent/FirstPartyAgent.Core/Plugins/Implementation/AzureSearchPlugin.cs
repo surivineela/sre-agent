@@ -10,6 +10,7 @@ using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Core.Models;
 using FirstPartyAgent.Core.Services;
 using Microsoft.Extensions.Logging;
+using Agent.Core.Configuration;
 
 namespace FirstPartyAgent.Core.Plugins
 {

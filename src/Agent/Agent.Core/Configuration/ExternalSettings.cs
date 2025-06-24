@@ -20,6 +20,8 @@ namespace Agent.Core.Configuration
         public ICMWorkflowSettings ICMWorkflows { get; set; } = new();
         public AgentHelperSettings AgentHelper { get; set; } = new();
         public OneBranchApprovalServiceSettings OneBranchApprovalService { get; set; } = new();
+        public AzureSearchSettings AzureSearch { get; set; } = new();
+        public TsgCrawlerSettings TsgCrawler { get; set; } = new();
     }
 }
 
