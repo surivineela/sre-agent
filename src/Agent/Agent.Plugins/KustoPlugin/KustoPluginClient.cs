@@ -14,8 +14,7 @@ public class KustoPluginClient: IKustoPluginClient
     public async Task<KustoQueryResult> ExecuteClusterKustoQuery(
             string cluster,
             string database,
-            string fullQuery,
-            DateTime? NowOverride)
+            string fullQuery)
     {
         cluster = cluster.Replace(".kusto.windows.net", "");
         cluster = cluster.Replace("https://", "");

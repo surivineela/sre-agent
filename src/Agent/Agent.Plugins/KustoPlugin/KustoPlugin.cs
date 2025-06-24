@@ -21,9 +21,7 @@ public class KustoPlugin
     public async Task<string> ExecuteClusterKustoQuery(
             [Description("The short name of the target Kusto cluster (without URL schema or suffix).")] string cluster,
             [Description("The name of the target Kusto database.")] string database,
-            [Description("The full Kusto query to execute.")] string fullQuery,
-            DateTime? NowOverride
-            )
+            [Description("The full Kusto query to execute.")] string fullQuery)
     {
         cluster = cluster.Replace(".kusto.windows.net", "");
         cluster = cluster.Replace("https://", "");
@@ -33,7 +31,7 @@ public class KustoPlugin
         KustoQueryResult result = null;
         try
         {
-            result = await _kustoPluginClient.ExecuteClusterKustoQuery(cluster, database, fullQuery, NowOverride);
+            result = await _kustoPluginClient.ExecuteClusterKustoQuery(cluster, database, fullQuery);
         }
         catch (Exception ex)
         {

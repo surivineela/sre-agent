@@ -32,16 +32,23 @@ public class KustoClient
 
     public async Task<IDataReader> PerformQueryAsync(string clusterUri, string database, string query)
     {
-        ICslQueryProvider queryProvider = GetQueryProvider(clusterUri);
-
-        ClientRequestProperties properties = new ClientRequestProperties()
+        try
         {
-            ClientRequestId = "Operational Agent;" + Guid.NewGuid().ToString()
-        };
+            ICslQueryProvider queryProvider = GetQueryProvider(clusterUri);
 
-        _logger.LogExternalInformation($"Executing query: {query}, request Id: {properties.ClientRequestId}");
+            ClientRequestProperties properties = new ClientRequestProperties()
+            {
+                ClientRequestId = "Operational Agent;" + Guid.NewGuid().ToString()
+            };
 
-        return await queryProvider.ExecuteQueryAsync(database, query, properties);
+            _logger.LogExternalInformation($"Executing query: {query}, request Id: {properties.ClientRequestId}");
+
+            return await queryProvider.ExecuteQueryAsync(database, query, properties);
+        } catch(Exception ex)
+        {
+            _logger.LogInternalError($"An error occurred while executing PerformQueryAsync: {ex.Message}");
+            throw;
+        } 
     }
 
     public async Task<IDataReader> PerformQueryWithParametersAsync(string clusterUri, string database, string query, Dictionary<string, object> parameters)
