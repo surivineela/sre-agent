@@ -176,6 +176,7 @@ public class Program
             "false" or "0" or "n" => false,
             _ => false // Default to false if the value is invalid or not set
         };
+        var agentType = Environment.GetEnvironmentVariable("AGENT_TYPE_NAME") ?? string.Empty;
 
         builder.LoadAppSettings(builder.Environment.IsDevelopment());
         builder.ValidateAndRegisterAppSettings<AppSettings>();
@@ -486,9 +487,13 @@ public class Program
             builder.Services.AddSingleton<IAgentsFactory, FirstPartyAgentsFactory>();
             builder.Services.AddSingleton<IToolsRepository, FirstPartyToolsRepository>();
             builder.Services.AddSingleton<ITitleGenerationService, FirstPartyTitleGenerationService>();
-            builder.Services.AddTransient<IGenevaActionsPlugin, GenevaActionsPlugin>()
+
+            if (agentType != "ACAAgent") {
+                builder.Services.AddTransient<IGenevaActionsPlugin, GenevaActionsPlugin>()
                 .AddTransient<GenevaActionsPluginDefinition>()
                 .AddSingleton<OneBranchApprovalService>();
+            }
+
             builder.RegisterFirstPartySubAgentsDependencies();
             builder.RegisterFirstPartyAppSettings();
         }
@@ -605,9 +610,9 @@ public class Program
 
 
         // Register all SubAgent types
-        foreach (var agentType in SubAgentDiscovery.DiscoverSubAgentTypes())
+        foreach (var subAgentType in SubAgentDiscovery.DiscoverSubAgentTypes())
         {
-            builder.Services.AddSingleton(agentType);
+            builder.Services.AddSingleton(subAgentType);
         }
 
         // Kick off background processes
