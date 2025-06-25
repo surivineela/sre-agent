@@ -36,12 +36,12 @@ public class KubernetesDaemonSetCrawler : IResourceCrawler
     public async IAsyncEnumerable<GraphNode> Crawl(GraphNode node)
     {
         var daemonSetNode = (KubernetesNamespacedResourceNode)node;
-        _logger.LogDebug($"Crawling deployment: {daemonSetNode.GetNodeId()}");
+        _logger.LogDebug($"Crawling daemonset: {daemonSetNode.GetNodeId()}");
 
-        var daemonSet = (V1Deployment)daemonSetNode.ResourceObject;
+        var daemonSet = (V1DaemonSet)daemonSetNode.ResourceObject;
         if (daemonSet == null)
         {
-            daemonSet = await _k8sService.GetDeploymentAsync(
+            daemonSet = await _k8sService.GetDaemonSetAsync(
                 daemonSetNode.ClusterResourceId,
                 daemonSetNode.Namespace,
                 daemonSetNode.ResourceName);
