@@ -19,7 +19,7 @@ permissions:
   checks: write
   issues: write
   pull-requests: write
-  id-token: write
+  id-token: write # allows OIDC
 
 env:
   DOTNET_VERSION: '9.x'
@@ -192,6 +192,23 @@ jobs:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
         cache-dependency-path: src/Agent/Agent.Web/Client/package-lock.json
+
+      # https://eng.ms/docs/more/github-inside-microsoft/troubleshoot/cfs
+    - name: 🔐 Azure OIDC Login
+      if: ${{ needs.changes.outputs.frontend == 'true' }}
+      uses: azure/login@v1
+      with:
+        client-id: ${{ vars.CFS_CLIENT_ID }}
+        tenant-id: ${{ vars.CFS_TENANT_ID }}
+        allow-no-subscriptions: true
+
+    # https://github.com/1es-actions/setup-cfs
+    - name: 🔐 Setup CFS
+      if: ${{ needs.changes.outputs.frontend == 'true' }}
+      uses: 1es-actions/setup-cfs@v1
+      with:
+        feed-url: https://msazure.pkgs.visualstudio.com/_packaging/AzurePortal
+        npm-config: true
 
     - name: 📦 Install NPM packages for Agent.Web
       if: ${{ needs.changes.outputs.frontend == 'true' }}
