@@ -129,6 +129,14 @@ resource openaiEmbeddingGeneratorDeploymentNameSetting 'Microsoft.AppConfigurati
   }
 }
 
+resource openaiEmbeddingGeneratorModelNameSetting 'Microsoft.AppConfiguration/configurationStores/keyValues@2022-05-01' = {
+  name: 'AppSettings:Core:Azure:OpenAI:EmbeddingGeneratorModelName'
+  parent: appConfig
+  properties: {
+    value: consts.openAIEmbeddingGeneratorModel
+  }
+}
+
 // Secret Settings
 var openaiApiKey = openai.listKeys().key1
 resource openaiApiKeySecret 'Microsoft.KeyVault/vaults/secrets@2021-06-01-preview' = {

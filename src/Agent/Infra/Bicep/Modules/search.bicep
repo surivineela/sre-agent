@@ -63,6 +63,36 @@ resource identitySetting 'Microsoft.AppConfiguration/configurationStores/keyValu
   }
 }
 
+// AgentMemory Settings
+resource agentMemorySearchNameSetting 'Microsoft.AppConfiguration/configurationStores/keyValues@2022-05-01' = {
+  name: 'AppSettings:Core:AgentMemory:AzureAISearchName'
+  parent: appConfig
+  properties: {
+    value: searchService.name
+  }
+}
+
+resource agentMemoryManagedIdentityResourceIdSetting 'Microsoft.AppConfiguration/configurationStores/keyValues@2022-05-01' = {
+  name: 'AppSettings:Core:AgentMemory:ManagedIdentityResourceId'
+  parent: appConfig
+  properties: {
+    value: identity.id
+  }
+}
+
+// local user access to search service for local deployments
+resource searchDeployerRoleAssignment 'Microsoft.Authorization/roleAssignments@2018-09-01-preview' = {
+  name: guid(searchService.name, deployer().objectId, consts.SearchIndexDataContributorRoleDefinition)
+  scope: searchService
+  properties: {
+    principalId: deployer().objectId
+    roleDefinitionId: subscriptionResourceId(
+      'Microsoft.Authorization/roleDefinitions',
+      consts.SearchIndexDataContributorRoleDefinition
+    )
+  }
+}
+
 output searchServiceName string = searchService.name
 output searchServiceId string = searchService.id
 output searchServiceEndpoint string = 'https://${searchService.name}.search.windows.net'

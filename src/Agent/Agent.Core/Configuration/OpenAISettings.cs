@@ -19,6 +19,9 @@ namespace Agent.Core.Configuration
 
         [Required]
         public string EmbeddingGeneratorDeploymentName { get; set; } = string.Empty;
+
+        [Required]
+        public string EmbeddingGeneratorModelName { get; set; } = string.Empty;
     }
 }
 

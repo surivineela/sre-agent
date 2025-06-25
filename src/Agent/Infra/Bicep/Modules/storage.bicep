@@ -46,6 +46,23 @@ resource searchEndpointSetting 'Microsoft.AppConfiguration/configurationStores/k
   }
 }
 
+// AgentMemory Settings
+resource agentMemoryStorageAccountNameSetting 'Microsoft.AppConfiguration/configurationStores/keyValues@2022-05-01' = {
+  name: 'AppSettings:Core:AgentMemory:StorageAccountName'
+  parent: appConfig
+  properties: {
+    value: storageAccount.name
+  }
+}
+
+resource agentMemoryBlobStorageResourceIdSetting 'Microsoft.AppConfiguration/configurationStores/keyValues@2022-05-01' = {
+  name: 'AppSettings:Core:AgentMemory:BlobStorageResourceId'
+  parent: appConfig
+  properties: {
+    value: storageAccount.id
+  }
+}
+
 // user-assigned identity access to blob storage for Azure deployments
 resource storageIdentityRoleAssignment 'Microsoft.Authorization/roleAssignments@2018-09-01-preview' = {
   name: guid(storageAccountName, identity.name, consts.StorageBlobDataContributorRoleDefinition)
@@ -56,6 +73,20 @@ resource storageIdentityRoleAssignment 'Microsoft.Authorization/roleAssignments@
     roleDefinitionId: subscriptionResourceId(
       'Microsoft.Authorization/roleDefinitions',
       consts.StorageBlobDataContributorRoleDefinition
+    )
+  }
+}
+
+// AI search service access to blob storage for AgentMemory
+resource searchStorageRoleAssignment 'Microsoft.Authorization/roleAssignments@2018-09-01-preview' = {
+  name: guid(storageAccountName, 'search-blob-reader', consts.StorageBlobDataReaderRoleDefinition)
+  scope: storageAccount
+  properties: {
+    principalId: identity.properties.principalId
+    principalType: 'ServicePrincipal'
+    roleDefinitionId: subscriptionResourceId(
+      'Microsoft.Authorization/roleDefinitions',
+      consts.StorageBlobDataReaderRoleDefinition
     )
   }
 }

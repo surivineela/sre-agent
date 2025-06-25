@@ -8,4 +8,5 @@ public class AgentMemorySettings
     public string BlobStorageResourceId { get; set; } = string.Empty;
     public string AzureAISearchName { get; set; } = string.Empty;
     public string AzureAISearchDomainSuffix { get; set; } = "search.windows.net";
+    public string ManagedIdentityResourceId { get; set; } = string.Empty;
 }

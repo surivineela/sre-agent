@@ -5,6 +5,7 @@
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Logging;
+using Azure.Core;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Indexes;
 using Azure.Search.Documents.Indexes.Models;
@@ -119,6 +120,7 @@ public class AgentMemoryClient(ILogger<AgentMemoryClient> logger,
                 container: new SearchIndexerDataContainer(blobContainerName));
 
             dataSource.IndexerPermissionOptions ??= new List<IndexerPermissionOption>();
+            dataSource.Identity = new SearchIndexerDataUserAssignedIdentity(new ResourceIdentifier(agentMemorySettings.ManagedIdentityResourceId));
             await indexerClient.CreateOrUpdateDataSourceConnectionAsync(dataSource);
             logger.LogInternalInformation("Data source connection created/updated successfully");
 
@@ -155,7 +157,8 @@ public class AgentMemoryClient(ILogger<AgentMemoryClient> logger,
                     Context = "/document/pages/*",
                     ResourceUri = new Uri(openAISettings.Endpoint),
                     DeploymentName = openAISettings.EmbeddingGeneratorDeploymentName,
-                    ModelName = openAISettings.EmbeddingGeneratorDeploymentName
+                    ModelName = openAISettings.EmbeddingGeneratorModelName,
+                    AuthenticationIdentity = new SearchIndexerDataUserAssignedIdentity(new ResourceIdentifier(agentMemorySettings.ManagedIdentityResourceId))
                 }
             })
             {
@@ -249,7 +252,8 @@ public class AgentMemoryClient(ILogger<AgentMemoryClient> logger,
                         {
                             ResourceUri = new Uri(openAISettings.Endpoint),
                             DeploymentName = openAISettings.EmbeddingGeneratorDeploymentName,
-                            ModelName = openAISettings.EmbeddingGeneratorDeploymentName,
+                            ModelName = openAISettings.EmbeddingGeneratorModelName,
+                            AuthenticationIdentity = new SearchIndexerDataUserAssignedIdentity(new ResourceIdentifier(agentMemorySettings.ManagedIdentityResourceId))
                         }
                     }
                 }
@@ -293,7 +297,7 @@ public class AgentMemoryClient(ILogger<AgentMemoryClient> logger,
         {
             Filter = filter,
             Size = (int)Math.Min(k, maxK),
-            Select = { "title", "chunk_id", "chunk", "parent_id"},
+            Select = { "title", "chunk_id", "chunk", "parent_id" },
             IncludeTotalCount = true,
             VectorSearch = new VectorSearchOptions(),
         };
@@ -318,7 +322,7 @@ public class AgentMemoryClient(ILogger<AgentMemoryClient> logger,
 
 
         var response = await searchClient.SearchAsync<SearchDocumentResult>(
-                searchText: enableHybridSearch ? query: "*",
+                searchText: enableHybridSearch ? query : "*",
                 options: searchOptions,
                 cancellationToken: cancellationToken);
         var results = new List<SearchDocumentResult>();
