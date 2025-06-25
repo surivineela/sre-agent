@@ -196,8 +196,8 @@ export const processChatMessageContents = (
                 approval.status === 0
                     ? ApprovalDecision.Pending
                     : approval.status === 1
-                        ? ApprovalDecision.Approved
-                        : ApprovalDecision.Rejected,
+                      ? ApprovalDecision.Approved
+                      : ApprovalDecision.Rejected,
         };
     }
 

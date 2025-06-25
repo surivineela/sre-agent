@@ -26,6 +26,7 @@ namespace Agent.Plugins
             return await _appIdentityUpdatePlugin.MigrateSqlToManagedIdentityAsync(resourceId);
         }
 
+        [WriteAction]
         [RequiresApproval]
         [Description(@"<category>Applicable if helping MI Migration or Identity SFI 1.6.2 or best practices</category>"
             + "Migrates WebApp's SQL Connection String AppSetting to Managed Identity based Connection string\n\n"
@@ -46,6 +47,7 @@ namespace Agent.Plugins
             return await _appIdentityUpdatePlugin.MigrateSqlToManagedIdentityAsync(resourceId, sqlServer, database);
         }
 
+        [WriteAction]
         [RequiresApproval]
         [Description("<category>Applicable if helping MI Migration or Identity SFI 1.6.2 or best practices</category>"
             + "Enables Azure AD Entra Admin on the SQL Server if not already enabled. \n"

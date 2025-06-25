@@ -65,6 +65,7 @@ namespace Agent.Plugins.Definitions
         }
 
         [RequiresApproval]
+        [WriteAction]
         [KernelFunction("restart_containerapp_revision")]
         [Description("Restarts a container app. Use this to restart a container app to resolve transient issues that may be fixed by restarting the instance.")]
         public async Task<string> RestartContainerApp(
@@ -152,6 +153,7 @@ namespace Agent.Plugins.Definitions
         #endregion
 
         // For Jay's Demo - don't require approvals -- [RequiresApproval]
+        [WriteAction]
         [Description(
             "Scales a Container App by adjusting its memory allocation and replica count. Use this to resolve performance or availability issues by increasing resources or scaling out the application.")]
         public async Task<bool> ScaleContainerApp(
@@ -174,6 +176,7 @@ namespace Agent.Plugins.Definitions
         }
 
         [RequiresApproval]
+        [WriteAction]
         [Description("Adds a new scaling rule to a Container App. Use this to define custom scaling behavior based on CPU, HTTP traffic, Azure Queue length, or any scaler from the scaler list.")]
         public async Task<bool> ModifyContainerAppScaleRule(
             [Description("Azure resource ID of the Container App to add the scale rule to")]
@@ -226,6 +229,7 @@ namespace Agent.Plugins.Definitions
 
         [Description("Update the target port of a Container App instance.")]
         [RequiresApproval]
+        [WriteAction]
         public async Task<bool> UpdateTargetPort(
             [Description("The resource ID of the Container App instance.")]
             string resourceId,
@@ -282,6 +286,7 @@ namespace Agent.Plugins.Definitions
         }
 
         [RequiresApproval]
+        [WriteAction]
         [KernelFunction("update_container_image")]
         [Description("Updates the container image for a Container App. This enables changing to a new image version or completely different image. Returns detailed information about the update operation including success status, original image, new image, and reasons for failure if applicable. Note that this tool requires explicit user's approval before it can be used.")]
         public async Task<ImageUpdateResult> UpdateContainerImage(

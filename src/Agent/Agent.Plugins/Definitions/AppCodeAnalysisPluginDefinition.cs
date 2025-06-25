@@ -77,6 +77,7 @@ namespace Agent.Plugins.Definitions
             return await _appCodeAnalysisPlugin.GetStackTracesOfNMostCommonExceptions(resourceId, num);
         }
 
+        [WriteAction]
         [RequiresApproval]
         [KernelFunction("perform_deployment_swap_for_app")]
         [Description("Performs a Deployment Swap for the specified app.")]

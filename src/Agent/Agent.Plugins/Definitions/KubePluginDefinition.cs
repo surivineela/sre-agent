@@ -65,6 +65,7 @@ If user didn't specify namespace in the context, try to use 'default' namespace"
 Used whenever user wants to restart or rollout restart a deployment, it can also be used by restart pod if the pod belongs to the deployment.
 eg: restart the 'nginx-deployment' in the 'default' namespace.
 If user didn't specify namespace in the context, try to use 'default' namespace")]
+        [WriteAction]
         [RequiresApproval("Requires approval to rollout restart a deployment.", useOboToken: false)]
         public async Task<string> RolloutRestartDeploymentAsync(
             [Description("The resource ID of the Azure Kubernetes Service. e.g. '/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ContainerService/managedClusters/{cluster-name}'")] string AKSClusterResourceId,
@@ -81,7 +82,7 @@ Used whenever user wants to scale a deployment, it can also be used by scale pod
 eg: scale the 'nginx-deployment' in the 'default' namespace to 3 replicas.
 If user didn't specify namespace in the context, try to use 'default' namespace")]
         [RequiresApproval("Requires approval to scale a deployment.", useOboToken: false)]
-        [WriteAction(runInReadOnlyMode: true)]
+        [WriteAction]
         public async Task<string> ScaleDeploymentAsync(
             [Description("The resource ID of the Azure Kubernetes Service. e.g. '/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ContainerService/managedClusters/{cluster-name}'")] string AKSClusterResourceId,
               [Description($"Kubernetes namespace, e.g. 'default', 'kube-system'")] string _namespace,
@@ -199,6 +200,7 @@ If user didn't specify namespace in the context, try to use 'default' namespace"
 Used whenever user wants to scale a StatefulSet, it can also be used to scale pods that belong to a StatefulSet.
 eg: scale the 'redis' StatefulSet in the 'default' namespace to 3 replicas.
 If user didn't specify namespace in the context, try to use 'default' namespace")]
+        [WriteAction]
         [RequiresApproval("Requires approval to scale a StatefulSet.", useOboToken: false)]
         public async Task<string> ScaleStatefulSetAsync(
             [Description("The resource ID of the Azure Kubernetes Service. e.g. '/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ContainerService/managedClusters/{cluster-name}'")] string AKSClusterResourceId,
@@ -257,6 +259,7 @@ e.g.: check what's wrong with my 'redis' statefulset in the 'databse-system' nam
 Used whenever user wants to create or update resources in a Kubernetes cluster using YAML.
 eg: please apply this YAML object to my AKS cluster to create a new deployment.
 eg: update my service with this YAML manifest.")]
+        [WriteAction]
         [RequiresApproval("Requires approval to apply Kubernetes YAML.", useOboToken: false)]
         public async Task<string> PatchKubernetesYamlAsync(
             [Description("The resource ID of the Azure Kubernetes Service. e.g. '/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ContainerService/managedClusters/{cluster-name}'")] string AKSClusterResourceId,

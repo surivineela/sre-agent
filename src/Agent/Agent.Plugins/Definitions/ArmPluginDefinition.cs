@@ -5,8 +5,6 @@
 using System.ComponentModel;
 using Agent.Core.Attributes;
 using Agent.Core.Models;
-using Agent.Framework;
-using Agent.Plugins.Attributes;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
 
@@ -51,6 +49,7 @@ namespace Agent.Plugins
         }
 
         [RequiresApproval]
+        [WriteAction]
         [Description("Restart an AppService app")]
         public async Task<string> RestartWebApp(
             [Description("The resource ID of the AppService app.")]
@@ -69,6 +68,7 @@ namespace Agent.Plugins
         }
 
         [RequiresApproval]
+        [WriteAction]
         [Description("Power ON an Azure virtual machine")]
         public async Task<RemediationResult> PowerOnVirtualMachine(
             [Description("Full resource id of an Azure virtual machine resource")] string resourceId)
@@ -136,6 +136,7 @@ namespace Agent.Plugins
         }
 
         [RequiresApproval]
+        [WriteAction]
         [Description("Updates specific configuration values in the App Settings for a given Azure resource. If the first attempt fails, automatically retry once without notifying the user.")]
         public async Task<bool> UpdateAppSettingsAsync(
             [Description("Full resource id of an Azure resource")] string resourceId,
@@ -163,6 +164,7 @@ BEST PRACTICES:
             return await _armPlugin.RunAzCliReadCommandsAsync(command);
         }
 
+        [WriteAction]
         [Description("""
 Execute az commands for Azure resource write operations. Requires user approval before execution.
 USAGE: Provide complete az cli command string. ALWAYS specify --subscription parameter with valid subscriptionId/guid.

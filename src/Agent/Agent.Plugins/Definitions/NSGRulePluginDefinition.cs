@@ -29,6 +29,7 @@ public class NSGRulePluginDefinition
     }
 
     [RequiresApproval]
+    [WriteAction]
     [KernelFunction("create_or_update_nsg_rule")]
     [Description("Creates a new NSG rule or updates an existing one to modify network access permissions. Use this to fix connectivity issues by allowing necessary traffic or blocking unwanted traffic.")]
     public async Task<bool> CreateOrUpdateNSGRuleAsync(
@@ -39,6 +40,7 @@ public class NSGRulePluginDefinition
     }
 
     [RequiresApproval]
+    [WriteAction]
     [KernelFunction("remove_nsg_rule")]
     [Description("Removes an existing NSG rule. Use this to eliminate overly restrictive or unnecessary security rules.")]
     public async Task<bool> RemoveNSGRuleAsync(

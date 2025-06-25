@@ -23,6 +23,7 @@ namespace Agent.Plugins
         [KernelFunction("scale_up_app_service_plan_by_sku")]
         [Description("Scale up the app service plan by sku")]
         [RequiresApproval]
+        [WriteAction]
         public async Task<string> ScaleUpAppServicePlanBySku(
         [Description("resourceId of the app")] string resourceId)
         {
@@ -32,6 +33,7 @@ namespace Agent.Plugins
         [KernelFunction("autoscale_app_service")]
         [Description("Create AutoScale Settings for App to Autoscale App")]
         [RequiresApproval]
+        [WriteAction]
         public async Task<string> AutoScaleApp(
             [Description("resourceId of the app")] string subscriptionId,
             string resourceGroupName,
