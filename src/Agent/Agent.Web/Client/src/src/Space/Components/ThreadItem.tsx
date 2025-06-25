@@ -101,7 +101,13 @@ const ThreadItem = ({
                         </MenuTrigger>
                         <MenuPopover>
                             <MenuList>
-                                <MenuItem icon={<CopyRegular />} onClick={() => copyToClipboard(threadDeepLink)}>
+                                <MenuItem
+                                    icon={<CopyRegular />}
+                                    onClick={e => {
+                                        e.stopPropagation();
+                                        copyToClipboard(threadDeepLink);
+                                    }}
+                                >
                                     {intl.formatMessage(SreAgentResources.copyLinkToThread)}
                                 </MenuItem>
                                 {deleteThread && (
