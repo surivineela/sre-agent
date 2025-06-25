@@ -9,9 +9,10 @@ import { ThemeMode } from './src/Common/AzPortalProxy/Models/ITheme';
 import { AzPortalContext } from './src/Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from './src/Common/AzPortalProxy/Providers/StartupInfoContext';
 import { KnowledgeGraphBuildStatusProvider } from './src/Common/Providers/KnowledgeGraphBuildStatusProvider';
+import { ReactQueryClientProvider } from './src/Common/Providers/ReactQueryClientProvider';
+import { SignalRProvider } from './src/Common/Providers/SignalRProvider';
 import SREAgentSpace from './src/Space/SREAgentSpace';
 import { IntlProvider } from './src/Strings/Intl/IntlProvider';
-import { SignalRProvider } from './src/Common/Providers/SignalRProvider';
 
 const portalProxy = new AzPortalProxy();
 
@@ -38,9 +39,11 @@ const App: React.FC = () => {
                     <IntlProvider locale={environmentInfo.effectiveLocale}>
                         <AzPortalContext.Provider value={portalProxy}>
                             <SignalRProvider>
-                                <KnowledgeGraphBuildStatusProvider>
-                                    <SREAgentSpace />
-                                </KnowledgeGraphBuildStatusProvider>
+                                <ReactQueryClientProvider>
+                                    <KnowledgeGraphBuildStatusProvider>
+                                        <SREAgentSpace />
+                                    </KnowledgeGraphBuildStatusProvider>
+                                </ReactQueryClientProvider>
                             </SignalRProvider>
                         </AzPortalContext.Provider>
                     </IntlProvider>

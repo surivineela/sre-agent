@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query';
 import debounce from 'lodash/debounce';
 import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -65,6 +66,8 @@ const composeDefaultStreamingMessage = (): ChatMessage => {
     };
 };
 
+const ChatMessagesQueryIdPrefix = 'usechatboxv2-chat-messages';
+
 interface MessageCreateRequest {
     text: string;
     userId: string;
@@ -89,6 +92,7 @@ export const useChatBoxV2 = (
     const [oldMessages, setOldMessages] = useState<ChatMessage[]>([]);
     const [newMessages, setNewMessages] = useState<ChatMessage[]>([]);
     const [currentThreadId, setCurrentThreadId] = useState<string | null>(threadId || null);
+    const [newestMessageTimestampInOldMessages, setNewestMessageTimestampInOldMessages] = useState<string>('');
 
     const [isLoadingInitialChatHistory, setIsLoadingInitialChatHistory] = useState<boolean>(true);
     const [noChatHistoryLeftToLoad, setNoChatHistoryLeftToLoad] = useState<boolean>(false);
@@ -111,7 +115,7 @@ export const useChatBoxV2 = (
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const { sendMessage, subscribeSignalR, unsubscribeSignalR } = useContext(SignalRContext);
 
-    const isPreviousOldMessagesLoadingCompleted = useRef(true);
+    const isPreviousOldMessagesLoadingCompleted = useRef(false);
     const oldestMessageRef = useRef<ChatMessage>();
     const messagesDivRef = useRef<HTMLDivElement>(null);
     const intersectionObserverRef = useRef<HTMLDivElement>(null);
@@ -456,45 +460,42 @@ export const useChatBoxV2 = (
         };
     }, [subscribeSignalR, unsubscribeSignalR, addThread, promoteThread, isCancellingStreaming]);
 
-    // Load the latest 20 chat message history
-    useEffect(() => {
-        let isSubscribed = true;
+    const { data: latest20ChatHistory, isLoading: isQueryingInitialChatHistory } = useQuery({
+        queryKey: [ChatMessagesQueryIdPrefix, threadId],
+        enabled: !!threadId,
+        queryFn: async () => {
+            const messagesResponse = await messageClient.getMessages(threadId!, {
+                skip: 0,
+                top: MessageLoadingCounts.default,
+                descending: true,
+            });
 
-        const loadLatest20ChatHistory = async () => {
-            setStreamingMessage(null);
-            if (threadId) {
-                isPreviousOldMessagesLoadingCompleted.current = false;
-                updateThreadLastReadTime(threadId);
-                const messagesResponse = await messageClient.getMessages(threadId, {
-                    skip: 0,
-                    top: MessageLoadingCounts.default,
-                    descending: true,
-                });
-
-                const messages = (messagesResponse.content || []).map(convertMessageToChatMessage);
-
-                if (isSubscribed) {
-                    handleOldMessages(messages, true);
-                    setIsLoadingInitialChatHistory(false);
-
-                    // The threshold depends on the number of the messages this query is intended to return.
-                    // if the top parameter for calling getMessages, the threshold should be changed accordingly
-                    if (messagesResponse.isSuccessful && messages.length < MessageLoadingCounts.default) {
-                        setNoChatHistoryLeftToLoad(true);
-                    }
-                }
-                isPreviousOldMessagesLoadingCompleted.current = true;
+            if (messagesResponse.isSuccessful) {
+                return (messagesResponse.content || []).map(convertMessageToChatMessage);
             } else {
-                setIsLoadingInitialChatHistory(false);
-                setNoChatHistoryLeftToLoad(true);
+                throw new Error(`Failed to load messages for thread ${threadId}`);
             }
-        };
+        },
+        // This will ignore the cache each time a new thread is selected. Set gcTime to infinity once we incorprate the existing streaming message to the chat message list.
+        gcTime: 0,
+    });
 
-        loadLatest20ChatHistory();
+    useEffect(() => {
+        if (!threadId) {
+            isPreviousOldMessagesLoadingCompleted.current = true;
+            setIsLoadingInitialChatHistory(false);
+            setNoChatHistoryLeftToLoad(true);
+        } else if (!isQueryingInitialChatHistory && latest20ChatHistory) {
+            isPreviousOldMessagesLoadingCompleted.current = true;
+            handleOldMessages(latest20ChatHistory, true);
+            setIsLoadingInitialChatHistory(false);
+        }
+    }, [threadId, isQueryingInitialChatHistory, latest20ChatHistory]);
 
-        return () => {
-            isSubscribed = false;
-        };
+    useEffect(() => {
+        if (threadId) {
+            updateThreadLastReadTime(threadId);
+        }
     }, [threadId]);
 
     useEffect(() => {
@@ -557,10 +558,6 @@ export const useChatBoxV2 = (
             }
         };
     }, [messages.length]);
-
-    const newestMessageTimestampInOldMessages = useMemo(() => {
-        return oldMessages[oldMessages.length - 1]?.timeStamp || '';
-    }, [oldMessages]);
 
     // If this is an incident thread, periodically refresh the latest 10 old messages to check for the progress
     useEffect(() => {
@@ -652,13 +649,14 @@ export const useChatBoxV2 = (
 
     useEffect(() => {
         oldestMessageRef.current = oldMessages[0];
+        setNewestMessageTimestampInOldMessages(oldMessages[oldMessages.length - 1]?.timeStamp || '');
     }, [oldMessages]);
 
     useEffect(() => {
         currentThreadIdRef.current = currentThreadId || '';
     }, [currentThreadId]);
 
-    // Record the last read time when the component is unmounted
+    // Record the last read time and cache all the old messages when the component is unmounted
     useEffect(() => {
         return () => {
             if (currentThreadIdRef.current) {
