@@ -11,6 +11,7 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.MetaAgent;
+
 public class ThirdPartyAgentsFactory : IAgentsFactory
 {
     public readonly string SystemPrompt = @"# Azure SRE Agent
@@ -494,7 +495,7 @@ $@"## Facts
             AIFunctionFactory.Create(_githubIssuePlugin.FindConnectedRepo),
             AIFunctionFactory.Create(diagnosticsPluginDefinition.GetAnalysisAsync),
             AIFunctionFactory.Create(diagnosticsPluginDefinition.GetCPUAnalysis),
-            AIFunctionFactory.Create(searchPluginDefinition.SearchAsync),
+            AIFunctionFactory.Create(searchPluginDefinition.SearchDocumentsAsync),
             AIFunctionFactory.Create(_remediationPlugin.ServiceBusSetLocalAuthSupport)
 
         ];

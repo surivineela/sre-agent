@@ -4,7 +4,7 @@
 
 using Agent.Core.Models.Api.v1;
 
-namespace Agent.Runtime.Services;
+namespace Agent.Core.Interfaces;
 
 public interface ISearchEndpointService
 {
@@ -14,8 +14,9 @@ public interface ISearchEndpointService
     Task<IReadOnlyList<SearchDocument>> GetAllDocumentsAsync();
 
     /// <summary>
-    /// Searches for documents containing the specified search term
+    /// Searches for documents containing the specified search query and vectors
     /// </summary>
-    /// <param name="term">The term to search for in the documents</param>
-    Task<IReadOnlyList<SearchDocument>> SearchDocumentsAsync(string term);
+    /// <param name="query">The query to search for in the documents</param>
+    /// <param name="vectors">The vectors to use for vector search</param>
+    Task<IReadOnlyList<SearchDocument>> SearchDocumentsAsync(string query, float[]? vectors);
 }

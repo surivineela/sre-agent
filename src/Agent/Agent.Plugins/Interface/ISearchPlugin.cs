@@ -2,8 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Core.Models;
-using Azure.Search.Documents.Models;
+using Agent.Core.Models.Api.v1;
 
 namespace Agent.Plugins.Interface
 {
@@ -17,11 +16,8 @@ namespace Agent.Plugins.Interface
         /// </summary>
         /// <param name="searchIndex">The name of the search index to query</param>
         /// <param name="searchText">The search query text</param>
-        /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>A collection of search results</returns>
-        Task<List<SearchArticle>> SearchAsync(
-            string searchIndex,
-            string searchText,
-            CancellationToken cancellationToken = default);
+        Task<List<SearchDocument>> SearchAsync(
+            string searchText);
     }
 }

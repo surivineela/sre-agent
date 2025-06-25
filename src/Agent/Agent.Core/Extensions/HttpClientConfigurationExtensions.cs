@@ -45,6 +45,15 @@ namespace Agent.Core.Extensions
                 return new CrawlerAccessTokenHandler(cred);
             });
         }
+
+        public static void AddSearchEndpointHttpClient(this IServiceCollection services)
+        {
+            services.AddTransient<SearchEndpointAccessTokenHandler>();
+            services.AddHttpClient(Constants.HttpClientForSearchEndpoint, client =>
+            {
+                client.DefaultRequestHeaders.Add("User-Agent", "SRE Agent");
+            }).AddHttpMessageHandler<SearchEndpointAccessTokenHandler>();
+        }
     }
 
     // This handler targets for Agent's arm operation
@@ -93,6 +102,32 @@ namespace Agent.Core.Extensions
         {
             var accessToken = await _tokenCache.GetTokenAsync(
                 new TokenRequestContext(new[] { "https://management.azure.com/.default" }),
+                cancellationToken);
+
+            request.Headers.Authorization = new AuthenticationHeaderValue(
+                "Bearer",
+                accessToken.Token);
+
+            return await base.SendAsync(request, cancellationToken);
+        }
+    }
+
+    public class SearchEndpointAccessTokenHandler : DelegatingHandler
+    {
+        private readonly IAuthenticationService _authenticationService;
+
+        public SearchEndpointAccessTokenHandler(IAuthenticationService authenticationService)
+        {
+            _authenticationService = authenticationService;
+        }
+
+        protected override async Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            var cred = _authenticationService.GetSearchEndpointCredential();
+            var accessToken = await cred.GetTokenAsync(
+                new TokenRequestContext(new[] { "https://azuresre.ai/.default" }),
                 cancellationToken);
 
             request.Headers.Authorization = new AuthenticationHeaderValue(

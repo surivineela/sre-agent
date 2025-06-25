@@ -12,6 +12,7 @@ using Agent.Core;
 using Agent.Core.Attributes;
 using Agent.Core.Configuration;
 using Agent.Core.Extensions;
+using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
@@ -21,6 +22,7 @@ using Agent.Framework;
 using Agent.Logging;
 using Agent.Plugins.Definitions;
 using Agent.Runtime.Helpers;
+using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents.Core;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -33,6 +35,7 @@ public class ReasoningLoop : IDisposable
     private readonly ILogger<ReasoningLoop> _logger;
     private readonly ILoggerFactory _loggerFactory;
     private readonly IChatClient _chatClient;
+    private readonly IEmbeddingGenerator<string, Embedding<float>> _embeddingGenerator;
     private readonly IAgentOutboundCommunicationService _outboundCommunicationService;
     private readonly IThreadRepository _threadRepository;
     private readonly IToolFactory<AgentContext> _toolFactory;
@@ -41,6 +44,9 @@ public class ReasoningLoop : IDisposable
     private readonly Tracer _tracer;
     private readonly AgentActionLogger _actionLogger;
     private readonly bool _enableReasoningDebugOutput;
+    private readonly ISearchEndpointService _searchEndpointService;
+    private readonly bool _enableDocumentRetrieval;
+    private readonly bool _enableVectorSearch;
     private readonly bool _agentMemoryEnabled;
 
     private readonly Channel<ReasoningLoopMessage> _msgCh;
@@ -79,6 +85,7 @@ public class ReasoningLoop : IDisposable
     public ReasoningLoop(
         ILoggerFactory loggerFactory,
         IChatClient chatClient,
+        IEmbeddingGenerator<string, Embedding<float>> embeddingGenerator,
         IAgentOutboundCommunicationService outboundCommunicationService,
         Agent<AgentContext> startingAgent,
         IThreadRepository threadRepository,
@@ -89,12 +96,16 @@ public class ReasoningLoop : IDisposable
         IAgentFactory<AgentContext> agentFactory,
         IAgentActionLogExporter actionLogExporter,
         bool enableReasoningDebugOutput,
+        ISearchEndpointService searchEndpointService,
+        bool enableDocumentRetrieval,
+        bool enableVectorSearch,
         IAgentMemoryClient agentMemoryClient,
         bool agentMemoryEnabled)
     {
         _loggerFactory = loggerFactory;
         _logger = _loggerFactory.CreateLogger<ReasoningLoop>();
         _chatClient = chatClient;
+        _embeddingGenerator = embeddingGenerator;
         _outboundCommunicationService = outboundCommunicationService;
         _msgCh = Channel.CreateUnbounded<ReasoningLoopMessage>(new UnboundedChannelOptions
         {
@@ -112,6 +123,9 @@ public class ReasoningLoop : IDisposable
             _loggerFactory.CreateLogger<AgentActionLogger>(),
             actionLogExporter);
         _enableReasoningDebugOutput = enableReasoningDebugOutput;
+        _searchEndpointService = searchEndpointService;
+        _enableDocumentRetrieval = enableDocumentRetrieval;
+        _enableVectorSearch = enableVectorSearch;
         _agentMemoryClient = agentMemoryClient;
         _agentMemoryEnabled = agentMemoryEnabled;
     }
@@ -408,6 +422,12 @@ public class ReasoningLoop : IDisposable
                             {
                                 _logger.LogInternalInformation("Retrieving and augmenting user message with agent memory.");
                                 await RetrieveAndAugmentUserMessage(chatMessage.Message.Text, sb);
+                            }
+
+                            var docMsg = await RetrieveDocumentsFromSearchEndpoint(_chatHistory!, chatMessage.Message.Text);
+                            if (!string.IsNullOrEmpty(docMsg))
+                            {
+                                sb.AppendLine(docMsg);
                             }
 
                             sb.AppendLine("User question goes below:");
@@ -2103,6 +2123,67 @@ public class ReasoningLoop : IDisposable
 
             _disposed = true;
         }
+    }
+
+    private async Task<string> RetrieveDocumentsFromSearchEndpoint(List<ChatMessage> chatHistory, string userMessage)
+    {
+        if (!_enableDocumentRetrieval)
+        {
+            return string.Empty;
+        }
+
+        var span = _tracer.StartActiveSpan("retrieval_search_documents", SpanKind.Internal, _rootSpan);
+        var query = await DocumentRetrieval.GenerateSearchQuery(_chatClient, chatHistory, userMessage, _logger);
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            span.End();
+            _logger.LogInternalWarning("Generated search query is empty, skipping document retrieval.");
+            return string.Empty;
+        }
+        span.SetAttribute("search.query", query);
+
+        float[]? vector = null;
+        if (_enableVectorSearch)
+        {
+            vector = await DocumentRetrieval.GenerateSearchVector(_embeddingGenerator, query, _logger);
+            span.SetAttribute("search.vector.dimensions", vector.Length.ToString());
+        }
+
+        IReadOnlyList<SearchDocument> results = [];
+        try
+        {
+            results = await _searchEndpointService.SearchDocumentsAsync(query, vector);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error while searching documents in search endpoint");
+        }
+
+        span.SetAttribute("search.results.count", results.Count.ToString());
+        var sb = new StringBuilder();
+        sb.AppendLine($"Here are some relevant documents retrieved from the knowledge base. If the documents are not helpful, you can ignore them:");
+        sb.AppendLine("<Documents>");
+        foreach (var doc in results)
+        {
+            sb.AppendLine($"Title: {doc.Title}");
+            sb.AppendLine($"Content: {doc.Content}");
+            if (!string.IsNullOrEmpty(doc.Url))
+            {
+                sb.AppendLine($"Reference url: {doc.Url}");
+            }
+            sb.AppendLine();
+            sb.AppendLine();
+        }
+        sb.AppendLine("</Documents>");
+
+        if (results.Count == 0)
+        {
+            span.End();
+            return string.Empty;
+        }
+
+        span.End();
+        return sb.ToString();
     }
 }
 

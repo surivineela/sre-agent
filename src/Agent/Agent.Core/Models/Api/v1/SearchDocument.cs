@@ -5,8 +5,8 @@
 namespace Agent.Core.Models.Api.v1;
 
 public record SearchDocument(
-    string id,
-    string? content,
-    string? title,
-    string? Url
+    string Id,
+    string Content,
+    string Title,
+    string Url = ""
     );

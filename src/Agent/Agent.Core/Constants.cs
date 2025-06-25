@@ -18,6 +18,8 @@ namespace Agent.Core
 
         public const string HttpClientForCrawler = "Crawler";
 
+        public const string HttpClientForSearchEndpoint = "SearchEndpoint";
+
         public const string SREAgentPromptStarter =
             $"""
             # Role and Objective

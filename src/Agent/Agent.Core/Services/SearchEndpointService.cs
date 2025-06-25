@@ -2,35 +2,35 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Net.Http.Headers;
 using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Models.Api.v1;
-using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using Agent.Logging;
-using Azure.Core;
 using Agent.Core.Interfaces;
+using System.Text;
 
-namespace Agent.Runtime.Services;
+namespace Agent.Core.Services;
+
+public class SearchRequest
+{
+    public string SearchText { get; set; } = string.Empty;
+    public float[]? Vector { get; set; } = null;
+}
 
 public class SearchEndpointService : ISearchEndpointService
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly SearchEndpointSettings _searchEndpointSettings;
     private readonly ILogger<SearchEndpointService> _logger;
-    private readonly IAuthenticationService _authenticationService;
-
     public SearchEndpointService(
         ILogger<SearchEndpointService> logger,
         IHttpClientFactory httpClientFactory,
-        IOptions<AzureSettings> azureSettings,
-        IAuthenticationService authenticationService)
+        AzureSettings azureSettings)
     {
         _httpClientFactory = httpClientFactory;
-        _searchEndpointSettings = azureSettings.Value.SearchEndpoint;
+        _searchEndpointSettings = azureSettings.SearchEndpoint;
         _logger = logger;
-        _authenticationService = authenticationService;
     }
 
     public async Task<IReadOnlyList<SearchDocument>> GetAllDocumentsAsync()
@@ -41,34 +41,42 @@ public class SearchEndpointService : ISearchEndpointService
             "/search/documents");
     }
 
-    public async Task<IReadOnlyList<SearchDocument>> SearchDocumentsAsync(string term)
+    public async Task<IReadOnlyList<SearchDocument>> SearchDocumentsAsync(string query, float[]? vectors)
     {
-        _logger.LogInternalInformation($"Getting documents with term {term} from search endpoint");
-        var path = $"/search?term={Uri.EscapeDataString(term)}";
+        _logger.LogInternalInformation($"Getting documents with term {query} from search endpoint");
+        var path = $"/search";
+        var searchRequest = new SearchRequest
+        {
+            SearchText = query,
+        };
+
+        if (vectors != null && vectors.Length > 0)
+        {
+            searchRequest.Vector = vectors;
+        }
+
         return await SendRequestAsync<List<SearchDocument>>(
-            HttpMethod.Get,
-            path);
+            HttpMethod.Post,
+            path,
+            searchRequest);
     }
 
-    private async Task<T> SendRequestAsync<T>(HttpMethod method, string path)
+    private async Task<T> SendRequestAsync<T>(HttpMethod method, string path, SearchRequest? searchRequest = null)
     {
-        string baseUrl = _searchEndpointSettings.SearchEndpointUrl ?? throw new InvalidOperationException("SearchEndpoint:Url is not set");
+        string baseUrl = _searchEndpointSettings.SearchEndpointUrl;
         string fullUrl = $"{baseUrl.TrimEnd('/')}{path}";
 
         _logger.LogInternalInformation($"Sending {method} request to search endpoint {fullUrl}");
 
         try
         {
-            var client = _httpClientFactory.CreateClient();
+            var client = _httpClientFactory.CreateClient(Constants.HttpClientForSearchEndpoint);
             var request = new HttpRequestMessage(method, fullUrl);
 
-            // TODO: cache the token, then only renew it if it has expired or once on a 401
-            var tokenRequestContext = new TokenRequestContext(new[] { "https://azuresre.ai/.default" });
-
-            var cred = _authenticationService.GetAzureOpenAICredential();
-            var accessToken = await cred.GetTokenAsync(tokenRequestContext, CancellationToken.None);
-
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Token);
+            if (searchRequest != null)
+            {
+                request.Content = new StringContent(JsonSerializer.Serialize(searchRequest), Encoding.UTF8, "application/json");
+            }
 
             using var response = await client.SendAsync(request);
 

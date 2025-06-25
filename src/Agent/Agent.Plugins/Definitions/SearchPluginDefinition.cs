@@ -2,13 +2,13 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Core.Models;
+using Agent.Core.Models.Api.v1;
 using Agent.Plugins.Interface;
-using Microsoft.SemanticKernel;
 using System.ComponentModel;
 
 namespace Agent.Plugins.Definitions
 {
+    [AgentToolPlugin]
     public class SearchPluginDefinition
     {
         private readonly ISearchPlugin _plugin;
@@ -18,13 +18,17 @@ namespace Agent.Plugins.Definitions
             _plugin = plugin;
         }
 
-        [KernelFunction("SearchAsync")]
-        [Description("Performs a semantic search using Azure AI Search to find relevant documents.")]
-        public async Task<List<SearchArticle>> SearchAsync(
-            [Description("The name of the search index to query")] string searchIndex,
-            [Description("The search query text")] string searchText)
+        [Description("""
+            Peforms a semantic search for documents in a knowledge base. The knowledge base contains up-to-date documentation that may be newer than your own knowledge.
+            The knowledge base contains following topics:
+            - Az CLI documentation
+            - Kubectl documentation
+            - Documentation and user manual of yourself, Azure SRE Agent.
+            """)]
+        public async Task<List<SearchDocument>> SearchDocumentsAsync(
+            [Description("The plain text question/query to be searched in the knowledge base")] string searchText)
         {
-            return await _plugin.SearchAsync(searchIndex, searchText);
+            return await _plugin.SearchAsync(searchText);
         }
     }
 }

@@ -78,6 +78,7 @@ using FirstPartyAgent.Core.FirstPartyAgents;
 using Kusto.Data;
 using Kusto.Ingest;
 using Microsoft.Bot.Builder;
+using Microsoft.Extensions.Options;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Connector.Authentication;
 using Microsoft.DurableTask;
@@ -93,6 +94,9 @@ using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using Azure.Search.Documents;
+using Agent.Plugins.KustoPlugin;
+using Agent.Plugins.Kusto;
 
 namespace Agent.Web;
 
@@ -223,18 +227,19 @@ public class Program
             builder.Configuration.GetSection("AppSettings:Core:SearchOptions"));
 
         // Add AzureSearchSettings registration
-        builder.Services.AddSingleton<Agent.Core.Configuration.AzureSearchSettings>(sp => {
+        builder.Services.AddSingleton<Agent.Core.Configuration.AzureSearchSettings>(sp =>
+        {
             var configuration = sp.GetRequiredService<IConfiguration>();
             // Try to get from configuration first
             var settings = configuration.GetSection("AppSettings:Core:Azure:AzureSearch").Get<Agent.Core.Configuration.AzureSearchSettings>();
-            
+
             if (settings == null)
             {
                 // Fallback to FirstPartyAgent settings
                 var firstPartySettings = configuration
                     .GetSection("AppSettings:Core:External:AzureSearch")
                     .Get<Agent.Core.Configuration.AzureSearchSettings>();
-                    
+
                 if (firstPartySettings != null)
                 {
                     settings = firstPartySettings;
@@ -245,16 +250,17 @@ public class Program
                     settings = new Agent.Core.Configuration.AzureSearchSettings();
                 }
             }
-            
+
             return settings;
         });
 
         // Add TsgCrawlerSettings registration right after the AzureSearchSettings registration
-        builder.Services.AddSingleton<Agent.Core.Configuration.TsgCrawlerSettings>(sp => {
+        builder.Services.AddSingleton<Agent.Core.Configuration.TsgCrawlerSettings>(sp =>
+        {
             var configuration = sp.GetRequiredService<IConfiguration>();
             // Try to get from configuration first
             var settings = configuration.GetSection("AppSettings:Core:External:TSGCrawler").Get<Agent.Core.Configuration.TsgCrawlerSettings>();
-            
+
             if (settings == null)
             {
                 // Provide default settings to prevent null reference exceptions
@@ -264,12 +270,13 @@ public class Program
                     AiSearchSettings = sp.GetRequiredService<Agent.Core.Configuration.AzureSearchSettings>()
                 };
             }
-            
+
             return settings;
         });
 
         // Add ExternalSettings registration after the other settings registrations
-        builder.Services.AddSingleton<Agent.Core.Configuration.ExternalSettings>(sp => {
+        builder.Services.AddSingleton<Agent.Core.Configuration.ExternalSettings>(sp =>
+        {
             var configuration = sp.GetRequiredService<IConfiguration>();
             var externalSettings = new Agent.Core.Configuration.ExternalSettings
             {
@@ -277,7 +284,7 @@ public class Program
                 AzureSearch = sp.GetRequiredService<Agent.Core.Configuration.AzureSearchSettings>(),
                 TsgCrawler = sp.GetRequiredService<Agent.Core.Configuration.TsgCrawlerSettings>()
             };
-            
+
             return externalSettings;
         });
 
@@ -406,8 +413,9 @@ public class Program
             .AddTransient<RCAContainerAppsSwiftNetworkContainerPluginDefinition>()
             .AddTransient<ICMPluginDefinition>()
             .AddTransient<KustoPlugin>()
+            .AddTransient<SearchPluginDefinition>()
             // Conditionally register AzureSearchPluginDefinition based on settings.Enabled
-            .AddTransient<AzureSearchPluginDefinition>(sp => 
+            .AddTransient<AzureSearchPluginDefinition>(sp =>
             {
                 var searchSettings = sp.GetRequiredService<Agent.Core.Configuration.AzureSearchSettings>();
                 if (searchSettings.Enabled)
@@ -515,6 +523,7 @@ public class Program
             .AddSingleton<ISearchPlugin, SearchPlugin>()
             .AddSingleton<ISearchIndexingClient, SearchIndexingClient>()
             .AddSingleton<DocumentationIndex>()
+            .AddSingleton<ISearchEndpointService, SearchEndpointService>()
 
             .AddSingleton(sp =>
             {
@@ -597,7 +606,8 @@ public class Program
             builder.Services.AddSingleton<IToolsRepository, FirstPartyToolsRepository>();
             builder.Services.AddSingleton<ITitleGenerationService, FirstPartyTitleGenerationService>();
 
-            if (agentType != "ACAAgent") {
+            if (agentType != "ACAAgent")
+            {
                 builder.Services.AddTransient<IGenevaActionsPlugin, GenevaActionsPlugin>()
                 .AddTransient<GenevaActionsPluginDefinition>()
                 .AddSingleton<OneBranchApprovalService>();
@@ -707,6 +717,7 @@ public class Program
         builder.Services.AddArmHelperHttpClient();
         builder.Services.AddRazorHttpClient();
         builder.Services.AddCrawlerHttpClient();
+        builder.Services.AddSearchEndpointHttpClient();
 
         builder.Services.AddSingleton<ILogAnalyticsService, LogAnalyticsService>();
         builder.Services.AddSingleton<ILogAnalysisService, LogAnalysisService>();
