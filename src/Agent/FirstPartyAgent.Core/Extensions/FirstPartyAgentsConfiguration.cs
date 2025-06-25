@@ -98,6 +98,7 @@ namespace FirstPartyAgent.Core.Extensions
 
             services.AddSingleton<RedisGenevaActionsPlugin>();
             services.AddSingleton<ColdStartPlugin>();
+            services.AddSingleton<ATLPlugin>();
 
             services.AddSingleton<FirstPartyAgent.Core.Services.IAzureSearchClient, FirstPartyAgent.Core.Services.AzureSearchClient>();
             

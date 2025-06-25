@@ -28,6 +28,7 @@ namespace FirstPartyAgent.Core.Helpers
             { "GithubIssueTagger", new List<string>() { "GitHubIssuePlugin", "AzureSearchPlugin" } },
             { "ICMSummarizer", new List<string>(){ "IcmPlugin" } },
             { "ColdStart", new List<string>(){ "ColdStartPlugin", "TeamsChartPlugin" } },
+            { "ACIToLegionMigration", new List<string>(){ "ATLPlugin" } },
             { "ICMCorrelationAgent", new List<string>(){ "KustoPlugin", "IcmPlugin", "AzureAlertingPlugin", "HandoffToAgentPlugin" }  },
             { "ICMTriagerAgent", new List<string>(){ "KustoPlugin", "IcmPlugin", "AzureAlertingPlugin", "HandoffToAgentPlugin" } },
             { "EmergingIssue", new List<string>() { "KustoPlugin", "IcmPlugin", "EmergingIssuePlugin", "AzureAlertingPlugin" } },
@@ -50,7 +51,7 @@ namespace FirstPartyAgent.Core.Helpers
 
         public static List<string> ListAgentModes()
         {
-            var allowedAgentModes = new List<string>() { "None", "ColdStart", "DevOpsAgent", "ControlPlane", "ICMAgent", "Sev2", "ICMSummarizer", "ICMCorrelationAgent", "ICMTriagerAgent", "EmergingIssue", "EmergingIssueManager" };
+            var allowedAgentModes = new List<string>() { "None", "ColdStart", "DevOpsAgent", "ControlPlane", "ICMAgent", "Sev2", "ICMSummarizer", "ICMCorrelationAgent", "ICMTriagerAgent", "EmergingIssue", "EmergingIssueManager", "ACIToLegionMigration" };
             return Enum.GetNames(typeof(AgentMode)).Where(x => allowedAgentModes.Contains(x)).ToList();
         }
 

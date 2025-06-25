@@ -20,7 +20,8 @@ namespace FirstPartyAgent.Models
         DevOpsAgent,
         ICMTriagerAgent,
         EmergingIssue,
-        EmergingIssueManager
+        EmergingIssueManager,
+        ACIToLegionMigration
     }
 }
 

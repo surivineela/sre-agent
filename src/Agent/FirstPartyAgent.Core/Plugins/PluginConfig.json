@@ -68,6 +68,10 @@
     "ServiceIdentifier": "FirstPartyAgent.Plugins.ColdStartPlugin"
   },
   {
+    "PluginName": "ATLPlugin",
+    "ServiceIdentifier": "FirstPartyAgent.Plugins.ATLPlugin"
+  },
+  {
     "PluginName": "AzureDevOpsPlugin",
     "ServiceIdentifier": "FirstPartyAgent.Core.Plugins.AzureDevOpsPlugin"
   },
