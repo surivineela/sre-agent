@@ -1,0 +1,21 @@
+let queryFrom = datetime(##fromDate##);
+let queryTo = datetime(##toDate##);
+let appName = "##appName##";
+let region = replace_string("##region##", " ", "");
+let regionalMdmAccount = strcat("ContainerAppsShoebox", region);
+let metricsName = "Replicas";
+let GroupValueRanges = (inputTable:(Time: datetime, Value: int))
+{
+    inputTable
+    | serialize
+    | extend Row = row_number()
+    | extend PrevValue = prev(Value), ValueChanged = iif(prev(Value) != Value, 1, 0)
+    | extend ChangeGroup = row_cumsum(ValueChanged)
+    | summarize StartTime = min(Time), EndTime = max(Time) by ChangeGroup, Value
+    | project StartTime, EndTime, Value
+    | order by StartTime
+};
+let whereClause = strcat("| where containerAppName == '", appName, "'");
+let values = GetMdmResult(queryFrom, queryTo, regionalMdmAccount, "k4apps-metrics", metricsName, "'containerAppArmId','containerAppName'", "Max", whereClause)
+| project Time=todatetime(TimestampUtc), Value=toint(Max);
+GroupValueRanges(values)

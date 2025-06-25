@@ -159,6 +159,7 @@ tools:
   - GetK4appsHelmChartUpgradeTimes
   - GetAksNodeImageUpgradeTimes
   - GetLegionHostRoleOSUpgradeTimes
+  - GetContainerAppReplicaCountChanges
   - PlotTimeSeriesData
 
 common_prompts:

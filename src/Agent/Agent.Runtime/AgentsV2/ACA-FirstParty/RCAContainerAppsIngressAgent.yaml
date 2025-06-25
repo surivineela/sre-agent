@@ -213,6 +213,7 @@ tools:
   - GetContainerAppPodStatus
   - GetContainerAppStatus
   - GetContainerAppAdminEvents
+  - GetContainerAppReplicaCountChanges
   - PlotTimeSeriesData
 
 

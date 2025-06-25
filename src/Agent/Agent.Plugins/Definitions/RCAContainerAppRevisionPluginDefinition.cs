@@ -555,6 +555,34 @@ namespace Agent.Core.Plugins.Definitions
               });
         }
 
+        [Description(@"
+        Get container app replica count changes over time for a given time frame and application.
+        This query tracks when replica counts change and groups consecutive periods with the same replica count.
+        Returns start time, end time, and replica value for each period where the replica count was constant.
+        The value is the count of replicas across all revisions of the container app.
+
+        What this metric measures:
+        Tracks replica count changes over time and identifies periods of stability or scaling events.
+
+        When it is applicable:
+        Useful for understanding scaling behavior, identifying scaling events, and correlating replica changes with performance issues.
+        ")]
+        public Task<string> GetContainerAppReplicaCountChanges(
+            string region,
+            DateTime fromDate,
+            DateTime toDate,
+            string appName)
+        {
+            return _kustoPlugin.ExecuteLocalFunctionAsync("GetContainerAppReplicaCountChanges", region,
+                new Dictionary<string, string>
+                {
+                    { "fromDate", fromDate.ToString() },
+                    { "toDate", toDate.ToString() },
+                    { "appName", appName },
+                    { "region", region }
+                });
+        }
+
         [Description("Generate a dashboard link for customer issues related to container app revisions.")]
         public string GenerateRevisionCustomerIssuesDashboardLink(
             [Description("Start time for the dashboard.")] string startTime,
