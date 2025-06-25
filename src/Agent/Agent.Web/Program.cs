@@ -836,27 +836,37 @@ public class Program
                 exporters.Add(new InMemoryActivityExporter(exportedActivities));
                 // }
 
-                // Add Azure Data Explorer exporter for production if configured
-                if (builder.Environment.IsProduction() &&
-                    azureSettings?.AgentTraceKusto != null &&
-                    !string.IsNullOrEmpty(azureSettings.AgentTraceKusto.ClusterUri))
+
+                // Set up populate columns delegate
+                PopulateColumnsDelegate populateColumns = (activity, trace) =>
+                {
+                    // Add standard fields from activity tags
+                    trace["ThreadId"] = activity.GetTagItem("thread.id")?.ToString() ?? string.Empty;
+                    trace["OperationName"] = activity.TagObjects.FirstOrDefault(t => t.Key == "operation.name").Value?.ToString() ?? string.Empty;
+                    trace["ToolName"] = activity.TagObjects.FirstOrDefault(t => t.Key == "tool.name").Value?.ToString() ?? string.Empty;
+                    trace["AgentName"] = activity.TagObjects.FirstOrDefault(t => t.Key == "agent.name").Value?.ToString() ?? string.Empty;
+                    trace["ModelInputTokensCount"] = activity.TagObjects.FirstOrDefault(t => t.Key == "model.input.tokens.count").Value?.ToString() ?? "0";
+                    trace["ModelOutputTokensCount"] = activity.TagObjects.FirstOrDefault(t => t.Key == "model.output.tokens.count").Value?.ToString() ?? "0";
+                    trace["ModelTotalTokensCount"] = activity.TagObjects.FirstOrDefault(t => t.Key == "model.total.tokens.count").Value?.ToString() ?? "0";
+                    trace["AgentId"] = AgentNameHelper.GetAgentName(builder.Environment.IsProduction());
+                };
+
+                // Add EventHub exporter if configured, otherwise use Azure Data Explorer exporter
+                if (!string.IsNullOrEmpty(azureSettings?.AgentTraceEventHub.FullyQualifiedNamespace))
+                {
+                    exporters.Add(new EventHubTraceExporter(new EventHubTraceExporterOptions(
+                        azureSettings.AgentTraceEventHub.FullyQualifiedNamespace,
+                        azureSettings.AgentTraceEventHub.EventHubName,
+                        populateColumns,
+                        azureSettings.AgentTraceEventHub.CertificatePath,
+                        azureSettings.AgentTraceEventHub.FirstPartyAppClientId,
+                        azureSettings.AgentTraceEventHub.FirstPartyAppTenantId)));
+
+                }
+                else if (builder.Environment.IsProduction() && !string.IsNullOrEmpty(azureSettings?.AgentTraceKusto.ClusterUri))
                 {
                     try
                     {
-                        // Set up populate columns delegate
-                        PopulateColumnsDelegate populateColumns = (activity, trace) =>
-                        {
-                            // Add standard fields from activity tags
-                            trace["ThreadId"] = activity.GetTagItem("thread.id")?.ToString() ?? string.Empty;
-                            trace["OperationName"] = activity.TagObjects.FirstOrDefault(t => t.Key == "operation.name").Value?.ToString() ?? string.Empty;
-                            trace["ToolName"] = activity.TagObjects.FirstOrDefault(t => t.Key == "tool.name").Value?.ToString() ?? string.Empty;
-                            trace["AgentName"] = activity.TagObjects.FirstOrDefault(t => t.Key == "agent.name").Value?.ToString() ?? string.Empty;
-                            trace["ModelInputTokensCount"] = activity.TagObjects.FirstOrDefault(t => t.Key == "model.input.tokens.count").Value?.ToString() ?? "0";
-                            trace["ModelOutputTokensCount"] = activity.TagObjects.FirstOrDefault(t => t.Key == "model.output.tokens.count").Value?.ToString() ?? "0";
-                            trace["ModelTotalTokensCount"] = activity.TagObjects.FirstOrDefault(t => t.Key == "model.total.tokens.count").Value?.ToString() ?? "0";
-                            trace["AgentId"] = AgentNameHelper.GetAgentName(builder.Environment.IsProduction());
-                        };
-
                         // Create and add ADX exporter
                         exporters.Add(new AzureDataExplorerExporter(new AzureDataExplorerExporterOptions(
                             azureSettings.AgentTraceKusto.ClusterUri,

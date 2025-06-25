@@ -40,6 +40,11 @@ namespace Agent.Core.Configuration
             DatabaseName = "trace",
         };
 
+        public EventHubConfiguration AgentTraceEventHub { get; set; } = new()
+        {
+            EventHubName = "agent-trace",
+        };
+
         public EmergingIssueSettings EmergingIssue { get; set; } = new();
     }
 }
