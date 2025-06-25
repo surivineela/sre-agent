@@ -2,8 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Clients.Search;
 using Agent.Core.Configuration;
-using Agent.Runtime.Clients.Search;
 using Azure.Core;
 using Azure.Search.Documents.Indexes.Models;
 

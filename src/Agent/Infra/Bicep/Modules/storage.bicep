@@ -38,11 +38,19 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' = {
 }
 
 // Settings
-resource searchEndpointSetting 'Microsoft.AppConfiguration/configurationStores/keyValues@2022-05-01' = {
+resource storageResourceIdSetting 'Microsoft.AppConfiguration/configurationStores/keyValues@2022-05-01' = {
   name: 'AppSettings:Core:Azure:Indexing:BlobStorageResourceId'
   parent: appConfig
   properties: {
     value: storageAccount.id
+  }
+}
+
+resource blobEndpointSetting 'Microsoft.AppConfiguration/configurationStores/keyValues@2022-05-01' = {
+  name: 'AppSettings:Core:Azure:Storage:BlobEndpoint'
+  parent: appConfig
+  properties: {
+    value: storageAccount.properties.primaryEndpoints.blob
   }
 }
 

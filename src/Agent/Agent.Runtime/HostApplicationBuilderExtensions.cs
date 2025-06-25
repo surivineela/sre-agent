@@ -20,6 +20,7 @@ namespace Agent.Runtime
         {
             builder.Configuration.SetBasePath(AppContext.BaseDirectory)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true); // load base settings
+
             if (isDevelopment)
             {
                 builder.Configuration.AddJsonFile("appsettings.development.json", optional: true, reloadOnChange: true); // load local dev settings one more time to override Azure App Configuration
@@ -151,6 +152,8 @@ Otherwise, there may be required settings which are not auto-populated by the pr
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.External.IncidentManagement);
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.External.GenevaActions);
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.External.ICMWorkflows);
+            sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.External.AgentHelper);
+            sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.External.OneBranchApprovalService);
 
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.Timer);
 

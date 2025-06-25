@@ -8,6 +8,7 @@ namespace Agent.Core.Configuration;
 
 public class AppSettings
 {
+    public string ManagedIdentityClientId { get; set; } = string.Empty;
     public string ApplicationName { get; set; } = string.Empty;
     public string Environment { get; set; } = string.Empty;
 

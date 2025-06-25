@@ -7,11 +7,13 @@ using Agent.Core.Interfaces;
 using Agent.Logging;
 using Azure;
 using Azure.Core;
+using Azure.Search.Documents;
 using Azure.Search.Documents.Indexes;
 using Azure.Search.Documents.Indexes.Models;
+using Azure.Search.Documents.Models;
 using Microsoft.Extensions.Logging;
 
-namespace Agent.Runtime.Clients.Search;
+namespace Agent.Core.Clients.Search;
 
 public class SearchIndexingClient : ISearchIndexingClient
 {
@@ -21,7 +23,7 @@ public class SearchIndexingClient : ISearchIndexingClient
 
     public SearchIndexingClient(IAuthenticationService authService, IndexingSettings indexingSettings, ILogger<SearchIndexingClient> logger)
     {
-        TokenCredential credential = authService.GetIndexingCredential();
+        TokenCredential credential = authService.GetSearchEndpointCredential();
         _searchIndexClient = new SearchIndexClient(new Uri(indexingSettings.SearchEndpoint), credential);
         _searchIndexerClient = new SearchIndexerClient(new Uri(indexingSettings.SearchEndpoint), credential);
         _logger = logger;
@@ -84,5 +86,15 @@ public class SearchIndexingClient : ISearchIndexingClient
         dataSourceDefinition.Identity = new SearchIndexerDataUserAssignedIdentity(managedIdentityResourceId);
 
         return await _searchIndexerClient.CreateOrUpdateDataSourceConnectionAsync(dataSourceDefinition);
+    }
+
+    public async Task<SearchResults<TResult>> SearchAsync<TResult>(string indexName, string searchText, SearchOptions searchOptions, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInternalInformation("Performing search on index {IndexName} with query '{SearchText}'", indexName, searchText);
+        SearchClient searchClient = _searchIndexClient.GetSearchClient(indexName);
+
+        Response<SearchResults<TResult>> results = await searchClient.SearchAsync<TResult>(searchText, searchOptions, cancellationToken);
+
+        return results.Value;
     }
 }

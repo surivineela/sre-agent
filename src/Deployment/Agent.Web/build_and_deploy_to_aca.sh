@@ -6,7 +6,7 @@ IMAGE_NAME="agent-web"
 IMAGE_TAG=$(date +%Y%m%d%H%M)
 RESOURCE_GROUP="agent-web-rg"
 LOCATION="eastus"
-APP_NAME="agent-web"
+APP_NAME="agent-web-app"
 ENVIRONMENT_NAME="agent-web-env"
 PRIVATE_STAMP_ENV_PREFIX="jianbosun"
 
@@ -26,6 +26,7 @@ if [ -z "$ACR_REGISTRY" ]; then
     exit 1
 fi
 
+
 # Print configuration
 echo "Building and deploying with the following configuration:"
 echo "ACR Registry: $ACR_REGISTRY"
@@ -36,7 +37,42 @@ echo "Location: $LOCATION"
 echo "App Name: $APP_NAME"
 echo "Environment Name: $ENVIRONMENT_NAME"
 echo "Private Stamp env prefix: $PRIVATE_STAMP_ENV_PREFIX"
-echo "Managed Identity Client ID: $MI_CLIENT_ID"
+echo "Managed Identity Resource ID: $MI_RESOURCE_ID"
+echo "Managed Identity Resource ID for Kusto: $MI_KUSTO_RESOURCE_ID"
+echo "Managed Identity Client ID for Kusto: $MI_KUSTO_CLIENT_ID"
+
+echo "Logging in to Azure Container Registry..."
+# Get ACR access token and extract required values
+ACCESS_TOKEN_JSON=$(az acr login --name "${ACR_REGISTRY}" --expose-token --output json)
+ACCESS_TOKEN=$(echo $ACCESS_TOKEN_JSON | jq -r '.accessToken')
+
+# Login to Docker with the token
+echo "Logging in to Docker with ACR token..."
+docker login $ACR_REGISTRY -u "00000000-0000-0000-0000-000000000000" -p $ACCESS_TOKEN
+
+# Get managed identity details and extract client ID and tenant ID
+echo "Retrieving managed identity details..."
+if [ -z "$MI_RESOURCE_ID" ]; then
+    echo "Error: MI_RESOURCE_ID environment variable is required"
+    echo "Please set it to your managed identity resource ID"
+    exit 1
+fi
+
+MI_DETAILS=$(az identity show --ids $MI_RESOURCE_ID --query "{clientId:clientId, tenantId:tenantId}" -o json)
+MI_CLIENT_ID=$(echo $MI_DETAILS | jq -r '.clientId')
+MI_TENANT_ID=$(echo $MI_DETAILS | jq -r '.tenantId')
+
+# Validate the managed identity values
+if [ -z "$MI_CLIENT_ID" ] || [ -z "$MI_TENANT_ID" ]; then
+    echo "Error: Unable to retrieve managed identity details"
+    echo "Please verify that MI_RESOURCE_ID is correct and you have permissions to access it"
+    exit 1
+fi
+
+echo "Successfully retrieved managed identity details"
+echo "Client ID: $MI_CLIENT_ID"
+echo "Tenant ID: $MI_TENANT_ID"
+
 
 # Get script directory
 SCRIPT_DIR=$(dirname "$0")
@@ -96,14 +132,18 @@ if ! az containerapp show --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} 
         --image ${FULL_IMAGE_NAME} \
         --target-port 8080 --ingress external \
         --min-replicas 1 \
+        --user-assigned $MI_RESOURCE_ID $MI_KUSTO_RESOURCE_ID \
         --env-vars AppSettings__EnvPrefix=$PRIVATE_STAMP_ENV_PREFIX \
         ASPNETCORE_ENVIRONMENT=Development \
         AppSettings__ManagedIdentityClientId=$MI_CLIENT_ID \
         AppSettings__Core__External__TeamsBot__AppId=$MI_CLIENT_ID \
         AppSettings__Core__External__TeamsBot__AppType=UserAssignedMsi \
         AppSettings__Core__External__TeamsBot__TenantId=$MI_TENANT_ID \
+        AppSettings__Core__External__Kusto__Auth__AuthenticationType=UAMI \
+        AppSettings__Core__External__Kusto__Auth__ManagedIdentityClientId=$MI_KUSTO_CLIENT_ID \
+        IS_FIRST_PARTY=1 \
+        AGENT_TYPE_NAME=ACAAgent \
         --query properties.configuration.ingress.fqdn
-    az containerapp identity assign --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --system-assigned
 else
     echo "Updating Container App ${APP_NAME} with new image..."
     az containerapp update \
@@ -116,6 +156,10 @@ else
         AppSettings__Core__External__TeamsBot__AppId=$MI_CLIENT_ID \
         AppSettings__Core__External__TeamsBot__AppType=UserAssignedMsi \
         AppSettings__Core__External__TeamsBot__TenantId=$MI_TENANT_ID \
+        AppSettings__Core__External__Kusto__Auth__AuthenticationType=UAMI \
+        AppSettings__Core__External__Kusto__Auth__ManagedIdentityClientId=$MI_KUSTO_CLIENT_ID \
+        IS_FIRST_PARTY=1 \
+        AGENT_TYPE_NAME=ACAAgent \
         --image ${FULL_IMAGE_NAME}
 fi
 

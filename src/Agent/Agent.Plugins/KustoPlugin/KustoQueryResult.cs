@@ -10,12 +10,15 @@ namespace Agent.Plugins.KustoPlugin
 {
     public class KustoQueryResult
     {
-        public int RowCount;
-        public string Query = string.Empty;
-        public string Result { get; set; } = string.Empty;
-        public bool Success = true;
+        public int RowCount { get; set; }
 
-        public ChatMessage? Message;
+        public string Query { get; set; } = string.Empty;
+
+        public string Result { get; set; } = string.Empty;
+
+        public bool Success { get; set; } = true;
+
+        public ChatMessage? Message { get; set; }
 
         public KustoQueryResult()
         {

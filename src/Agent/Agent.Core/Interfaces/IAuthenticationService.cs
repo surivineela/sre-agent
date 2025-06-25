@@ -33,12 +33,6 @@ public interface IAuthenticationService
     public TokenCredential GetSearchPluginCredential();
 
     /// <summary>
-    /// Gets credentials to access Azure Search for indexing operations.
-    /// </summary>
-    /// <returns></returns>
-    public TokenCredential GetIndexingCredential();
-
-    /// <summary>
     /// Get the credential to crawl resources of user tenant
     /// </summary>
     /// <returns></returns>
@@ -79,6 +73,13 @@ public interface IAuthenticationService
     /// Get the credential to access Log Analytics workspace
     /// </summary>
     /// <returns></returns>
+    ///
+
+    /// <summary>
+    /// Gets credentials for accessing Azure Storage resources, such as Blob Storage or File Storage.
+    /// </summary>
+    public TokenCredential GetStorageCredential();
+
     public TokenCredential GetLogAnalyticsCredential();
 
     public Task<TokenCredential> GetKubernetesOperationCredential();

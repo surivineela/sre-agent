@@ -2,30 +2,16 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Net;
-using System.Net.Http;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
-using Agent.Core.Models;
 using Agent.Core.Services;
 using Agent.Data;
 using Agent.Plugins;
 using Agent.Plugins.IcmPlugin;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Kusto;
-using Agent.Plugins.Models;
-using Agent.Plugins.TeamsPlugin;
 using Agent.Runtime;
 using Agent.Tests.Integration.Fixtures;
-using FirstPartyAgent.Core.Configuration;
-using Kusto.Cloud.Platform.Modularization;
-using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

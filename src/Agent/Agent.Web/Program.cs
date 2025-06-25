@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Diagnostics;
+using Agent.Core.Clients.Search;
 using Agent.Core.Configuration;
 using Agent.Core.Extensions;
 using Agent.Core.Helpers;
@@ -32,11 +33,11 @@ using Agent.Plugins.Services;
 using Agent.Plugins.Services.Interfaces;
 using Agent.Prometheus.Services;
 using Agent.Runtime;
-using Agent.Runtime.Clients.Search;
 using Agent.Runtime.Communication;
 using Agent.Runtime.HelperAgents;
 using Agent.Runtime.IncidentHandlerAgent;
 using Agent.Runtime.Indexing.Documentation;
+using Agent.Runtime.Indexing.KustoQueryGeneration;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.MetaAgent;
 using Agent.Runtime.MetaAgent.Interfaces;
@@ -106,7 +107,7 @@ public class Program
     {
         var builder = CreateWebApplicationBuilder(args);
 
-        var app = builder.Build();
+        WebApplication app = builder.Build();
 
         var metricsService = app.Services.GetRequiredService<IGremlinMetricsService>();
         // Kick off metrics collection after the app has fully started
@@ -120,7 +121,7 @@ public class Program
         }
 
         // Add CORS support for Azure Portal domains
-        app.UseCors(x => x.WithOrigins(GetAzurePortalDomains(builder.Configuration))
+        app.UseCors(x => x.WithOrigins(GetAzurePortalDomains(app.Configuration))
                           .AllowAnyHeader()
                           .AllowCredentials()
                           .SetIsOriginAllowedToAllowWildcardSubdomains());
@@ -140,8 +141,8 @@ public class Program
         // Finally, map the fallback page
         app.MapFallbackToFile("/static/index.html");
 
-        var azureSettings = builder.Configuration.GetSection("AppSettings:Core:Azure").Get<AzureSettings>();
-        var loggingSettings = builder.Configuration.GetSection("Logging").Get<LoggingSettings>();
+        var azureSettings = app.Configuration.GetSection("AppSettings:Core:Azure").Get<AzureSettings>();
+        var loggingSettings = app.Configuration.GetSection("Logging").Get<LoggingSettings>();
 
         app.Lifetime.ApplicationStarted.Register(() =>
         {
@@ -149,9 +150,9 @@ public class Program
             {
                 try
                 {
-                    await app.Services.CreateCosmosContainerIfNotExists(builder.Configuration);
+                    await app.Services.CreateCosmosContainerIfNotExists(app.Configuration);
 
-                    var agentMemorySettings = builder.Configuration.GetSection("AppSettings:Core:AgentMemory").Get<AgentMemorySettings>();
+                    var agentMemorySettings = app.Configuration.GetSection("AppSettings:Core:AgentMemory").Get<AgentMemorySettings>();
                     if (agentMemorySettings is not null && agentMemorySettings.Enabled)
                     {
                         await app.Services.CreateDocumentBlobContainerIfNotExists();
@@ -166,14 +167,14 @@ public class Program
             });
         });
 
-        app.Run();
+        await app.RunAsync();
 
         ResourceBuilder resourceBuilder = ResourceBuilder
             .CreateDefault()
-            .AddService(serviceName: builder.Environment.ApplicationName, serviceVersion: "0.0.1")
+            .AddService(serviceName: app.Environment.ApplicationName, serviceVersion: "0.0.1")
             .AddAttributes(new Dictionary<string, object>
             {
-                ["environment.name"] = builder.Environment.EnvironmentName,
+                ["environment.name"] = app.Environment.EnvironmentName,
                 ["team.name"] = "backend"
             });
 
@@ -190,12 +191,7 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        var isFirstAgent = (Environment.GetEnvironmentVariable("IS_FIRST_PARTY") ?? String.Empty).Trim().ToLower() switch
-        {
-            "true" or "1" or "y" => true,
-            "false" or "0" or "n" => false,
-            _ => false // Default to false if the value is invalid or not set
-        };
+        bool isFirstAgent = IsFirstParty(args);
         var agentType = Environment.GetEnvironmentVariable("AGENT_TYPE_NAME") ?? string.Empty;
 
         builder.LoadAppSettings(builder.Environment.IsDevelopment());
@@ -204,8 +200,6 @@ public class Program
         // Configure Azure settings
         builder.Services.Configure<AzureSettings>(
             builder.Configuration.GetSection("Azure"));
-
-        builder.Services.AddLogging();
 
         builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
 
@@ -217,7 +211,7 @@ public class Program
             options.KeepAliveInterval = TimeSpan.FromSeconds(15);
             options.ClientTimeoutInterval = TimeSpan.FromSeconds(30);
         });
-
+            
         // Configure Azure App Insights settings
         builder.Services.Configure<AppInsightsSettings>(
             builder.Configuration.GetSection("AppInsightsSettings"));
@@ -225,6 +219,10 @@ public class Program
         // Configure Azure Search Settings settings
         builder.Services.Configure<SearchSettings>(
             builder.Configuration.GetSection("AppSettings:Core:SearchOptions"));
+
+        //Configure Azure Storage settings
+        builder.Services.Configure<StorageSettings>(
+            builder.Configuration.GetSection("AppSettings:Core:Azure:Storage"));
 
         // Add AzureSearchSettings registration
         builder.Services.AddSingleton<Agent.Core.Configuration.AzureSearchSettings>(sp =>
@@ -287,7 +285,7 @@ public class Program
 
             return externalSettings;
         });
-
+            
         var azureSettings = builder.Configuration.GetSection("AppSettings:Core:Azure").Get<AzureSettings>();
         var agentModeString = azureSettings?.Action.Mode.ToString();
 
@@ -524,6 +522,7 @@ public class Program
             .AddSingleton<ISearchIndexingClient, SearchIndexingClient>()
             .AddSingleton<DocumentationIndex>()
             .AddSingleton<ISearchEndpointService, SearchEndpointService>()
+            .AddSingleton<KustoMetadataIndex>()
 
             .AddSingleton(sp =>
             {
@@ -900,7 +899,23 @@ public class Program
         });
         builder.Services.AddSingleton(TracerProvider.Default.GetTracer("SREAgent"));
 
+        builder.RegisterDataConnectors();
+
         return builder;
+    }
+
+    private static bool IsFirstParty(string[] args)
+    {
+        if (args.Any(x => string.Equals(x.Trim(), "--is-first-party=true", StringComparison.OrdinalIgnoreCase)))
+        {
+            return true;
+        }
+
+        return (Environment.GetEnvironmentVariable("IS_FIRST_PARTY") ?? String.Empty).Trim().ToLowerInvariant() switch
+        {
+            "true" or "1" or "y" => true,
+            _ => false // Default to false if the value is invalid or not set
+        };
     }
 
     private static void ConfigureAgentMemory(WebApplicationBuilder builder)
@@ -946,6 +961,8 @@ public class Program
 
     private static void ConfigureLogger(WebApplicationBuilder builder)
     {
+        builder.Services.AddLogging();
+
         builder.Logging.ClearProviders();
 
         if (builder.Environment.IsDevelopment())

@@ -1,6 +1,8 @@
-using Microsoft.Extensions.Logging;
+using Agent.Logging;
 
-namespace Agent.Logging;
+#pragma warning disable IDE0130 // Extension methods should be in the same namespace as the containing type
+namespace Microsoft.Extensions.Logging;
+#pragma warning restore IDE0130 // Extension methods should be in the same namespace as the containing type
 
 public static class LoggerExtensions
 {

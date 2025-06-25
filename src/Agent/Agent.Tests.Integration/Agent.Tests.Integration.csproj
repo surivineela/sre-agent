@@ -13,6 +13,7 @@
 		<PackageReference Include="Azure.AI.OpenAI" />
 		<PackageReference Include="Azure.Identity" />
 		<PackageReference Include="coverlet.collector" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
 		<PackageReference Include="Microsoft.Extensions.Hosting" />
 		<PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" />
@@ -27,6 +28,7 @@
 	  <ProjectReference Include="..\Agent.Core\Agent.Core.csproj" />
 	  <ProjectReference Include="..\Agent.Runtime\Agent.Runtime.csproj" />
 	  <ProjectReference Include="..\Agent.Tests.Common\Agent.Tests.Common.csproj" />
+	  <ProjectReference Include="..\Agent.Web\Agent.Web.csproj" />
   </ItemGroup>
 
   <ItemGroup>

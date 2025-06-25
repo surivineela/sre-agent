@@ -67,7 +67,12 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
         {
             { "agent_name", _agentName },
         };
-        Metrics.DefaultRegistry.SetStaticLabels(staticLabels);
+
+        if (!Metrics.DefaultRegistry.StaticLabels.Any())
+        {
+            Metrics.DefaultRegistry.SetStaticLabels(staticLabels);
+        }
+
         // Define core Prometheus metrics
         _vertexCountGauge = Metrics.CreateGauge("gremlin_vertex_count", "Total number of vertices");
         _edgeCountGauge = Metrics.CreateGauge("gremlin_edge_count", "Total number of edges");
