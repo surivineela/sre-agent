@@ -27,6 +27,7 @@ namespace Agent.Runtime.SubAgents
         protected readonly IAgentInboundCommunicationService _agentInboundCommunicationService;
         protected readonly IGraphDatabaseClient _graphDatabaseClient;
         protected readonly ArmHelper _armHelper;
+        private readonly IThreadRepository _repository;
 
         public SimpleResourceSubAgentScannerBase(
             DurableTaskClient durableTaskClient,
@@ -34,14 +35,17 @@ namespace Agent.Runtime.SubAgents
             ILogger<TAgentType> logger,
             IAgentInboundCommunicationService agentInboundCommunicationService,
             IGraphDatabaseClient graphDatabaseClient,
-            ArmHelper armHelper)
+            ArmHelper armHelper,
+            IThreadRepository repository)
         {
+
             _logger = logger;
             _durableTaskClient = durableTaskClient;
             _agentFactory = agentFactory;
             _agentInboundCommunicationService = agentInboundCommunicationService;
             _graphDatabaseClient = graphDatabaseClient;
             _armHelper = armHelper;
+            _repository = repository;
         }
 
         /// <summary>
@@ -102,23 +106,32 @@ namespace Agent.Runtime.SubAgents
                     }
 
                     // TODO: We probably want to reuse threads per-resource provider.
+                    var reasoningMessage = "\n\nHere are the resources in violation:\n\n" + string.Join("\n\n", group.Select(a => a.ResourceId));
                     (var thread, var agentContext) = await _agentInboundCommunicationService.CreateAgentThread(
                         $"{agentName} for {resourceProviderName} found issues",
-                        this.MessageWhenFoundResourcesInViolation,
+                        this.MessageWhenFoundResourcesInViolation + reasoningMessage,
                         AgentTypeEnum.Meta,
-                        ThreadSource.Agent
+                        ThreadSource.Conversation
                     );
 
+                    await _repository.CreateReasoningMessageAsync(new ReasoningMessage(
+                        Guid.NewGuid(),
+                        agentContext.Id,
+                        ReasoningMessageRoleEnum.System,
+                        reasoningMessage
+                    ));
+
                     _logger.LogInternalInformation($"Using Agent Framework to process resources for {agentName}");
+
                     var message = new ThreadMessage(
-                        ThreadId: agentContext.ThreadId,
+                        ThreadId: thread.Id,
                         AgentContextId: agentContext.Id,
-                        MessageId: Guid.NewGuid(),
-                        Message: "Here are the resources in violation:\n\n" + string.Join("\n", group.Select(a => a.ResourceId)),
+                        MessageId: thread.StartMessage.Id,
+                        Message: "Detected resources that have unsafe key-based access enabled.",
                         UserId: "",
                         DisplayName: "",
                         Timestamp: DateTime.UtcNow);
-                    await _agentInboundCommunicationService.ProcessAlertMessageAsync(message);
+                    await _agentInboundCommunicationService.ProcessUserMessageAsync(message);
 
                     //var input = GenerateActivityInput(
                     //    group.Select(x => new SimpleResourceSubAgentResourceInformation(x.ResourceId, x.Name, x.Location))

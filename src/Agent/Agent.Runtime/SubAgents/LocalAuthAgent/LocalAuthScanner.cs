@@ -21,8 +21,9 @@ public class LocalAuthScanner : SimpleResourceSubAgentScannerBase<LocalAuthAgent
         ILogger<LocalAuthAgent> logger,
         IAgentInboundCommunicationService agentInboundCommunicationService,
         IGraphDatabaseClient graphDatabaseClient,
-        ArmHelper armHelper)
-        : base(durableTaskClient, LocalAuthAgentFactory, logger, agentInboundCommunicationService, graphDatabaseClient, armHelper)
+        ArmHelper armHelper
+        )
+        : base(durableTaskClient, LocalAuthAgentFactory, logger, agentInboundCommunicationService, graphDatabaseClient, armHelper, threadRepository)
     {
 
     }
@@ -86,7 +87,7 @@ public class LocalAuthScanner : SimpleResourceSubAgentScannerBase<LocalAuthAgent
 
     private async Task<T> GetResourceTypeInViolationAsync<T>(string resourceType, Func<List<string>, Task<T>> resourceSettingsGetter)
     {
-        const string ignoreFieldName = "ignoreuntil";
+        const string ignoreFieldName = "notification_ignoreuntil";
 
         string query = $"""
         g.V().has('resourceType', '{resourceType}').has('isDeleted', false)

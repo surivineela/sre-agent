@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Agent.Core.Configuration;
+using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
@@ -14,6 +15,7 @@ using Agent.Graph.Crawler;
 using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Schema;
 using Agent.Logging;
+using Agent.Plugins.Interface;
 using Azure.Core;
 using Gremlin.Net.Driver;
 using Microsoft.Azure.Management.Monitor.Fluent;
@@ -21,13 +23,11 @@ using Microsoft.Azure.Management.Monitor.Fluent.Models;
 using Microsoft.Azure.Management.ResourceManager.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Rest.Azure;
 using Microsoft.Rest.Azure.OData;
 using Microsoft.SemanticKernel;
-using Agent.Core.Helpers;
-using Microsoft.Extensions.Hosting;
-using Agent.Plugins.Interface;
 
 namespace Agent.Plugins
 {
@@ -288,7 +288,7 @@ Input JSON:
                     _logger.LogInternalInformation($"Generated Mermaid specification successfully: {mermaidSpec}");
 
                     string mermaidMessage = $"```mermaid\n{mermaidSpec}\n```";
-                    
+
                     // Save to database via the outbound service
                     await _agentOutboundCommunicationService.AppendAgentImageMessage(threadId.Value, mermaidMessage);
 
@@ -718,6 +718,7 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
                     { "latest_status", actionTaken },
                     { "resourceName", $"AuthConfig-{resourceId.Split('/').Last()}" },
                     { "updateTs", DateTime.UtcNow.Ticks },
+                    { "isDeleted", false }
                 };
 
                 // Create the auth configuration node
@@ -962,7 +963,7 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
                 {
                     // TODO: read threadcontext from cosmos db
                     var dashboardMessage = $"![DailyReport Dashboard](data:image/png;base64,{screenshotResponse.Screenshot})\r";
-                    
+
                     // Save to database via the outbound service
                     await _agentOutboundCommunicationService.AppendAgentImageMessage(ThreadId.Value, dashboardMessage);
 
