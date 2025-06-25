@@ -536,6 +536,11 @@ public class Program
                 var azureSettings = configuration.GetSection("AppSettings:Core:Azure").Get<AzureSettings>();
                 var modeConfigurator = sp.GetRequiredService<IAgentModeConfigurator<AgentContext>>();
 
+                // Use ACA-FirstParty subfolder for first party agents, otherwise use full AgentsV2 directory
+                var agentsDirectory = isFirstAgent 
+                    ? Path.Combine(AppContext.BaseDirectory, "AgentsV2", "ACA-FirstParty")
+                    : Path.Combine(AppContext.BaseDirectory, "AgentsV2");
+
                 return new AgentFactory<AgentContext>(
                     logger: sp.GetRequiredService<ILogger<AgentFactory<AgentContext>>>(),
                     toolFactory: sp.GetRequiredService<IToolFactory<AgentContext>>(),
@@ -543,7 +548,7 @@ public class Program
                         .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
                         .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.Runtime") == true),
                     modeConfigurator: modeConfigurator,
-                    agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "AgentsV2"),
+                    agentsYamlDirectory: agentsDirectory,
                     commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonPrompts"),
                     promptStarters: [Core.Constants.SREAgentPromptStarter],
                     promptEnders: [Core.Constants.SREAgentFinalInstructions],
