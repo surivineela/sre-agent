@@ -317,7 +317,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
             Id: Guid.NewGuid(),
             AgentContextId: agentContext.Id,
             Role: ReasoningMessageRoleEnum.System,
-            SerializedChatMessage: JsonSerializer.Serialize(new ChatMessage(ChatRole.System, _agentsFactory.GetMetaAgentSystemPrompt()))
+            SerializedChatMessage: JsonSerializer.Serialize(new ChatMessage(ChatRole.System, string.Empty))
         ));
 
         var startReasoningMessage = await _threadRepository.CreateReasoningMessageAsync(new ReasoningMessage(
