@@ -59,7 +59,11 @@ const ThreadItem = ({
 
     return (
         <div
-            onClick={() => selectThread(thread)}
+            onClick={() => {
+                if (!isActive) {
+                    selectThread(thread);
+                }
+            }}
             onKeyDown={e => {
                 if (e.key.toLowerCase() === 'enter') {
                     selectThread(thread);
