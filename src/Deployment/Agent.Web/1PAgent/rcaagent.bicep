@@ -21,13 +21,6 @@ param agentName string
 @description('The container image for the RCA agent.')
 param agentImage string
 
-@description('The container registry username.')
-param registryUserName string
-
-@secure()
-@description('The container registry password.')
-param registryPassword string
-
 @description('Indicates whether to include the FirstPartyConfiguration block.')
 param includeFirstPartyConfiguration bool = false
 
@@ -72,8 +65,6 @@ resource agent 'Microsoft.App/agents@2025-05-01-preview' = {
       agentTypeName: 'ACAAgent'
       agentImageConfiguration: {
         imageName: agentImage
-        registryUserName: registryUserName
-        registryPassword: registryPassword
       }
     } : null
   }

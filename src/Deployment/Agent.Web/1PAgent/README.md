@@ -1,19 +1,24 @@
 # Deployment Guide for RCA Agent
 
-This document provides instructions to deploy changes to the RCA agent in Dogfood, Production, or a private test environment. Always test new agents or configurations in Dogfood before releasing to Production unless the changes are minor (e.g., simple plugins or bug fixes).
+This document provides instructions to deploy the RCA agent in Dogfood, Production, or a private test environment. The deployment script uses the official build image with a specific version tag from the CI/CD pipeline, eliminating the need for local builds. Always test new agents or configurations in Dogfood before releasing to Production unless the changes are minor (e.g., simple plugins or bug fixes).
+
+**Note:** You must specify a version number instead of using "latest". Available versions can be found at: https://msazure.visualstudio.com/One/_build?definitionId=421313&_a=summary
 
 ---
 
 ## Deployment Steps
 
-### Build and Publish the Application
-Use the following command to publish the .NET application and build the Docker image. Run this command using WSL or Git Bash Shell:
+### Deploy Using Official Build Image
+Use the following command to deploy the RCA agent using the official build image. Run this command using WSL or Git Bash Shell:
 
 > Directory Location of running this script: `AAPT-Antares-OperationalAgent/src/Deployment/Agent.Web/1PAgent`
 
 ```bash
-./deploy_rca_agent_dev.sh <subscriptionId> <location> <resourceGroupName> <sreAgentName> <acrName> <includeFirstPartyConfig>
+./deploy_rca_agent_dev.sh <subscriptionId> <location> <resourceGroupName> <sreAgentName> <includeFirstPartyConfig> <version>
 ```
+**Parameters:**
+- `<version>`: Docker image version (e.g., 1.0.123). Find available versions at: https://msazure.visualstudio.com/One/_build?definitionId=421313&_a=summary
+
 Note: It will ask for Az-login so take required actions.
 ---
 
@@ -22,13 +27,13 @@ Note: It will ask for Az-login so take required actions.
 ### Dogfood Deployment
 Test your changes in the Dogfood environment using the following command:
 ```bash
-./deploy_rca_agent_dev.sh be8d491e-109c-4ee1-aaee-dc7615af0a42 swedencentral ACA1PAgentDogfood-rg RCAAgentDogfood rcaagentacrdogfood true
+./deploy_rca_agent_dev.sh be8d491e-109c-4ee1-aaee-dc7615af0a42 swedencentral ACA1PAgentDogfood-rg RCAAgentDogfood true <version>
 ```
 
 ### Production Deployment
 Deploy to Production using the following command:
 ```bash
-./deploy_rca_agent_dev.sh be8d491e-109c-4ee1-aaee-dc7615af0a42 swedencentral ACA1PAgent-rg RCAAgent rcaagentacr true
+./deploy_rca_agent_dev.sh be8d491e-109c-4ee1-aaee-dc7615af0a42 swedencentral ACA1PAgent-rg RCAAgent true <version>
 ```
 
 ---
@@ -36,7 +41,7 @@ Deploy to Production using the following command:
 ## Private Test Deployment
 Optionally, deploy the agent to a private subscription for testing or debugging in a remote cloud environment. Use the following command:
 ```bash
-./deploy_rca_agent_dev.sh 79ab50cf-1b41-4b24-a33f-26c8940f4469 swedencentral tdarolyrcaagentrg tdarolyrcaagent rcaagentacrtdaroly true
+./deploy_rca_agent_dev.sh 79ab50cf-1b41-4b24-a33f-26c8940f4469 swedencentral tdarolyrcaagentrg tdarolyrcaagent true <version>
 ```
 Scenarios for private remote test setup:
 - When you are setting up new configuration for remote agent for first time
@@ -73,9 +78,9 @@ To resolve this issue:
 **Example Commands:**
 - First Run (to bypass validation):
   ```bash
-  ./deploy_rca_agent_dev.sh be8d491e-109c-4ee1-aaee-dc7615af0a42 swedencentral ACA1PAgent-rg RCAAgent rcaagentacr false
+  ./deploy_rca_agent_dev.sh be8d491e-109c-4ee1-aaee-dc7615af0a42 swedencentral ACA1PAgent-rg RCAAgent false <version>
   ```
 - Subsequent Runs (after validation):
   ```bash
-  ./deploy_rca_agent_dev.sh be8d491e-109c-4ee1-aaee-dc7615af0a42 swedencentral ACA1PAgent-rg RCAAgent rcaagentacr true
+  ./deploy_rca_agent_dev.sh be8d491e-109c-4ee1-aaee-dc7615af0a42 swedencentral ACA1PAgent-rg RCAAgent true <version>
   ```
