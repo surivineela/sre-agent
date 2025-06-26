@@ -5,6 +5,7 @@ let managedClusterName = "##managedClusterName##";
 LegionVKVirtualKubeletEvents
 | where PreciseTimeStamp between(queryFrom .. queryTo)
 | where EnvironmentName == managedClusterName
+| where level != "info"
 | where pod startswith jobExecutionName or msg contains jobExecutionName or error contains jobExecutionName
-| project PreciseTimeStamp, ManagedClusterName = EnvironmentName, level, pod, phase, msg, RequestMethod, ResponseHttpStatusCode, error, queue, TraceId
-| order by PreciseTimeStamp asc
+| summarize by phase, msg, error,  RequestMethod, ResponseHttpStatusCode
+| take 1000

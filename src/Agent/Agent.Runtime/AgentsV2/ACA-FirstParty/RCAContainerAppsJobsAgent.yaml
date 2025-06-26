@@ -54,7 +54,7 @@ system_prompt: |
   - If only `containerAppJobName` is provided and `jobExecutionName` is not provided, then 🛠️ `GetAllJobExecutionsErrorEvents` and 🛠️ `GetAllJobExecutionsFinalStatus` will be helpful to get the detail and final status of those job executions.
   - If the job definition indicates an event-triggered job or if KEDA issues are suspected, the 🛠️ GetKedaEventsForJobScaledJobs tool will be useful for execution scaling analysis.
   - If the `Label` in job definition contains workloadprofile set to Consumption, which means the job is suspected to be running on a Consumption V2 SKU. You can use the tool 🛠️ `GetLegionVKEventsForJobsRunningConsumptionV2` for the job execution analysis.
-  - If the output of tool 🛠️ `GetLegionVKEventsForJobsRunningConsumptionV2` indicates any issueses on the Legion platform, you can use the tool 🛠️ `GetLegionSystemLogsForJobExecutionErrors` to get the system logs and analyse.
+  - If the output of tool 🛠️ `GetLegionVKEventsForJobsRunningConsumptionV2` indicates any issues, you can use the tool 🛠️ `GetLegionSystemLogsForJobExecutionErrors` to get the Legion system logs and analyse further.
 
   **When to Handoff:**
   - When findings root cause may be an environment issue

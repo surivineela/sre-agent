@@ -32,8 +32,6 @@ public static class ServiceCollectionExtensions
 
     private static void ValidateAndRegisterFirstPartyAppSettings(this IHostApplicationBuilder builder)
     {
-        // Load static appsettings which are applicable for ACA 1P RCA Agent.
-        builder.Configuration.AddJsonFile("aca-appsettings.json", optional: false, reloadOnChange: true); //load base settings
         // load development setting if env is local
         if (builder.Environment.IsDevelopment())
         {

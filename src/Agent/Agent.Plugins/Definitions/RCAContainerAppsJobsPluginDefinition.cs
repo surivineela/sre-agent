@@ -199,19 +199,19 @@ namespace Agent.Plugins.Definitions
 
         [Description(
             """
-            Retrives container app job execution errors from Legion System Logs, for consumption workloadprofile jobs. It contains details indicating issues with the job execution
-            on the Legion platform
+            Retrieves container app job execution errors from Legion System Logs, for consumption workloadprofile jobs. It contains details indicating issues with the job execution
+            on the Legion platform. Only one of the job execution name and job name is required, the other can be empty. Job execution name can be inferred from previous queries.
             Projects:
                 - Message: Error message
                 - Value: Error value
                 - count_: Error count
             """
             )]
-        public async Task<string> GetLegionSystemLogsForJobExecutionErrors(
+        public Task<string> GetLegionSystemLogsForJobExecutionErrors(
             [Description("The Azure region")] string region,
             [Description("Name of the managed cluster")] string managedClusterName,
             [Description("Name of the container app job")] string containerAppJobName,
-            [Description("The name of the job execution")] string jobExecutionName,
+            [Description("The name of the specific job execution, if present, else empty string")] string jobExecutionName,
             [Description("The start of the time range for the query (UTC datetime)")] DateTime queryFrom,
             [Description("The end of the time range for the query (UTC datetime)")] DateTime queryTo)
         {
@@ -223,7 +223,7 @@ namespace Agent.Plugins.Definitions
                 { "queryFrom", queryFrom.ToString() },
                 { "queryTo", queryTo.ToString() }
             };
-            return await _kustoPluginChat.ExecuteLocalFunctionAsync(
+            return _kustoPluginChat.ExecuteLocalFunctionAsync(
                 "GetLegionSystemLogsForJobExecutionErrors",
                 region,
                 args,
