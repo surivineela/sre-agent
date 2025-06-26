@@ -9,6 +9,7 @@ using Agent.Core.Helpers;
 using Agent.Core.Models.ICM;
 using Agent.Core.Configuration;
 using Microsoft.AspNetCore.WebUtilities;
+using Agent.Logging;
 
 namespace Agent.Core.Services
 {
@@ -184,25 +185,25 @@ namespace Agent.Core.Services
 
         private async Task<HttpResponseMessage> SendICMPatchRequestAsync(string apiPath, object content)
         {
-            if (string.IsNullOrWhiteSpace(apiPath))
-            {
-                throw new ArgumentException("apiPath must be provided.", nameof(apiPath));
-            }
-            if (content == null)
-            {
-                throw new ArgumentException("content must be provided.", nameof(content));
-            }
+                if (string.IsNullOrWhiteSpace(apiPath))
+                {
+                    throw new ArgumentException("apiPath must be provided.", nameof(apiPath));
+                }
+                if (content == null)
+                {
+                    throw new ArgumentException("content must be provided.", nameof(content));
+                }
 
-            var requestUri = $"{_icmApiSettings.APIEndpoint}{apiPath}";
-            var requestMessage = new HttpRequestMessage(HttpMethod.Patch, requestUri);
-            requestMessage.Content = new StringContent(JsonConvert.SerializeObject(content), Encoding.UTF8, "application/json");
-            if (_authType == AuthType.ManagedIdentity)
-            {
-                string authToken = await ICMAPITokenService.Instance.GetAuthorizationTokenAsync();
-                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authToken);
-            }
-            var response = await _httpClient.SendAsync(requestMessage);
-            return response;
+                var requestUri = $"{_icmApiSettings.APIEndpoint}{apiPath}";
+                var requestMessage = new HttpRequestMessage(HttpMethod.Patch, requestUri);
+                requestMessage.Content = new StringContent(JsonConvert.SerializeObject(content), Encoding.UTF8, "application/json");
+                if (_authType == AuthType.ManagedIdentity)
+                {
+                    string authToken = await ICMAPITokenService.Instance.GetAuthorizationTokenAsync();
+                    requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authToken);
+                }
+                var response = await _httpClient.SendAsync(requestMessage);
+                return response;
         }
 
         private async Task<HttpResponseMessage> SendICMDeleteRequestAsync(string apiPath)
@@ -480,11 +481,7 @@ namespace Agent.Core.Services
             }
             var content = new
             {
-                NewDescriptionEntry = new
-                {
-                    Text = discussionEntry,
-                    RenderType = htmlRendering ? "Html" : "Plaintext",
-                },
+                Description = discussionEntry
             };
             var response = await SendICMPatchRequestAsync($"{IcmAPIPathPrefix}/incidents({incidentId})", content);
             if (response.IsSuccessStatusCode)
@@ -493,6 +490,7 @@ namespace Agent.Core.Services
             }
             else
             {
+                _logger.LogInternalError($"Failed to post discussion entry. Status code: {response.StatusCode} : {await response.Content.ReadAsStringAsync()}");
                 return "Hi";
                 //throw new Exception($"Failed to post discussion entry. Status code: {response.StatusCode}");
             }

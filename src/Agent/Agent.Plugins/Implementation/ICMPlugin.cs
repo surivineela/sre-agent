@@ -12,7 +12,6 @@ using Microsoft.Extensions.AI;
 using ChatMessageContent = Microsoft.SemanticKernel.ChatMessageContent;
 using TextContent = Microsoft.SemanticKernel.TextContent;
 using Agent.Plugins.Interface;
-using Agent.Plugins.IcmPlugin;
 
 namespace Agent.Plugins.Implementation;
 public class ICMPlugin : IICMPlugin
@@ -102,16 +101,8 @@ public class ICMPlugin : IICMPlugin
 
     public async Task<Incident> GetIncidentInfo(string incidentId)
     {
-        var logMessage = $"[get_icm_incident_details][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
+        var logMessage = $"[{nameof(ICMPlugin)}_{nameof(GetIncidentInfo)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
         _logger.LogInternalInformation(logMessage);
-        //if (kernel.Data.ContainsKey("incidentDetails"))
-        //{
-        //    var incidentDetails = kernel.Data["incidentDetails"] as Incident;
-        //    if (incidentDetails != null && incidentDetails.IncidentId == incidentId)
-        //    {
-        //        return incidentDetails;
-        //    }
-        //}
 
         var incident = await _icmApiClient.GetIncidentAsync(incidentId);
         incident.Summary = await ProcessComplexICMContent(incident.Summary, !ProcessImages);
@@ -126,7 +117,7 @@ public class ICMPlugin : IICMPlugin
     public async Task<List<CustomField>> GetCustomFields(
         [Description("Incident ID")] string incidentId)
     {
-        var logMessage = $"[get_icm_custom_fields][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
+        var logMessage = $"[{nameof(ICMPlugin)}_{nameof(GetCustomFields)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
         _logger.LogInternalInformation(logMessage);
 
         var customFields = await _icmApiClient.GetCustomFieldsAsync(incidentId);
@@ -136,7 +127,8 @@ public class ICMPlugin : IICMPlugin
 
     public async Task<string> SearchIncidents(string searchString, int lookbackPeriodInDays, int resultCountLimit)
     {
-        var logMessage = $"[search_incidents][{DateTime.UtcNow}] Invoked with searchString {searchString}";
+        var logMessage = $"[{nameof(ICMPlugin)}_{nameof(SearchIncidents)}][{DateTime.UtcNow}] Invoked with searchString {searchString}";
+        _logger.LogInternalInformation(logMessage);
         _logger.LogInternalInformation(logMessage);
 
         var incidents = await _icmApiClient.SearchIncidentsAsync(searchString);
@@ -172,7 +164,7 @@ public class ICMPlugin : IICMPlugin
     public async Task<string> GetCurrentUtcDateTime()
     {
         var returnValue = $"Current timestamp: {DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")} UTC";
-        var logMessage = $"[get_current_utc_datetime][{DateTime.UtcNow}] Invoked. Returned {returnValue}";
+        var logMessage = $"[{nameof(ICMPlugin)}_{nameof(GetCurrentUtcDateTime)}][{DateTime.UtcNow}] Invoked. Returned {returnValue}";
         _logger.LogInternalInformation(logMessage);
         return returnValue;
     }
@@ -214,7 +206,7 @@ public class ICMPlugin : IICMPlugin
 
     public async Task<DiscussionEntry> GetAlertingDiscussionEntry(string incidentId)
     {
-        var logMessage = $"[get_alerting_discussion_entry][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
+        var logMessage = $"[{nameof(ICMPlugin)}_{nameof(GetAlertingDiscussionEntry)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
         _logger.LogInternalInformation(logMessage);
         var discussionEntries = await _icmApiClient.GetIncidentDiscussionEntriesAsync(incidentId);
 
@@ -238,7 +230,7 @@ public class ICMPlugin : IICMPlugin
 
     public async Task<List<DiscussionEntry>> GetDiscussionEntries(string incidentId)
     {
-        var logMessage = $"[get_icm_discussion_entries][{DateTime.UtcNow}] Fetching ICM Discussion entries for Incident {incidentId}";
+        var logMessage = $"[{nameof(ICMPlugin)}_{nameof(GetDiscussionEntries)}][{DateTime.UtcNow}] Fetching ICM Discussion entries for Incident {incidentId}";
         _logger.LogInternalInformation(logMessage);
         var discussionEntries = await _icmApiClient.GetIncidentDiscussionEntriesAsync(incidentId);
         if (discussionEntries != null)
@@ -256,7 +248,7 @@ public class ICMPlugin : IICMPlugin
 
     public async Task<string> TransferIncident(string incidentId, string discussionEntry, string tenantName, string owningTeam)
     {
-        var logMessage = $"[transfer_icm_incident][{DateTime.UtcNow}] Transferring Incident {incidentId} to the team {tenantName}/{owningTeam}.\n<b>Reason</b>:\n {discussionEntry}";
+        var logMessage = $"[{nameof(ICMPlugin)}_{nameof(TransferIncident)}][{DateTime.UtcNow}] Transferring Incident {incidentId} to the team {tenantName}/{owningTeam}.\n<b>Reason</b>:\n {discussionEntry}";
         _logger.LogInternalInformation(logMessage);
         discussionEntry = IcmPostTemplates.DiscussionEntryTemplate.Replace("POST_CONTENT_HERE", discussionEntry);
         var result = await _icmApiClient.TransferIncidentAsync(incidentId, discussionEntry, tenantName, owningTeam);
@@ -267,7 +259,7 @@ public class ICMPlugin : IICMPlugin
 
     public async Task<string> MitigateIncident(string incidentId, string discussionEntry)
     {
-        var logMessage = $"[mitigate_icm_incident][{DateTime.UtcNow}] Invoked with incidentId {incidentId}.\n<b>discussionEntry</b>:\n {discussionEntry}";
+        var logMessage = $"[{nameof(ICMPlugin)}_{nameof(MitigateIncident)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}.\n<b>discussionEntry</b>:\n {discussionEntry}";
         _logger.LogInternalInformation(logMessage);
         discussionEntry = IcmPostTemplates.DiscussionEntryTemplate.Replace("POST_CONTENT_HERE", discussionEntry);
 
@@ -292,7 +284,7 @@ public class ICMPlugin : IICMPlugin
 
     public async Task<string> DowngradeSeverity(string incidentId, string discussionEntry)
     {
-        var logMessage = $"[downgrade_sev2_incident_to_sev3][{DateTime.UtcNow}] Invoked with incidentId {incidentId}.\n<b>discussionEntry</b>:\n {discussionEntry}";
+        var logMessage = $"[{nameof(ICMPlugin)}_{nameof(DowngradeSeverity)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}.\n<b>discussionEntry</b>:\n {discussionEntry}";
         _logger.LogInternalInformation(logMessage);
         discussionEntry = IcmPostTemplates.DiscussionEntryTemplate.Replace("POST_CONTENT_HERE", discussionEntry);
         var result = await _icmApiClient.ChangeSeverityAsync(incidentId, 3, discussionEntry);
@@ -302,7 +294,7 @@ public class ICMPlugin : IICMPlugin
 
     public async Task<string> ResolveIncident(string incidentId, string discussionEntry)
     {
-        var logMessage = $"[resolve_icm_incident][{DateTime.UtcNow}] Invoked with incidentId {incidentId}.\n<b>discussionEntry</b>:\n {discussionEntry}";
+        var logMessage = $"[{nameof(ICMPlugin)}_{nameof(ResolveIncident)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}.\n<b>discussionEntry</b>:\n {discussionEntry}";
         _logger.LogInternalInformation(logMessage);
         discussionEntry = IcmPostTemplates.DiscussionEntryTemplate.Replace("POST_CONTENT_HERE", discussionEntry);
         var result = await _icmApiClient.ResolveIncidentAsync(incidentId, discussionEntry);
@@ -312,7 +304,7 @@ public class ICMPlugin : IICMPlugin
 
     public async Task<string> PostDiscussionEntry(string incidentId, string discussionEntry)
     {
-        var logMessage = $"[post_icm_discussion_entry][{DateTime.UtcNow}] Invoked with incidentId {incidentId}.\n<b>discussionEntry</b>:\n {discussionEntry}";
+        var logMessage = $"[{nameof(ICMPlugin)}_{nameof(PostDiscussionEntry)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}.\n<b>discussionEntry</b>:\n {discussionEntry}";
         _logger.LogInternalInformation(logMessage);
         discussionEntry = IcmPostTemplates.DiscussionEntryTemplate.Replace("POST_CONTENT_HERE", discussionEntry);
         var result = await _icmApiClient.PostDiscussionEntryAsync(incidentId, discussionEntry);
@@ -323,7 +315,7 @@ public class ICMPlugin : IICMPlugin
 
     public async Task<string> AddTagToIncident(string incidentId, string tag)
     {
-        var logMessage = $"[icm_add_tag][{DateTime.UtcNow}] Invoked with incidentId {incidentId}, tag: {tag}";
+        var logMessage = $"[{nameof(ICMPlugin)}_{nameof(AddTagToIncident)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}, tag: {tag}";
         _logger.LogInternalInformation(logMessage);
         // Note: We don't call AddTagToIncident with AgentProcessedTag here to avoid potential infinite loops
         // if this method is called with AgentProcessedTag itself. The caller should handle adding the processed tag if needed.
@@ -332,7 +324,7 @@ public class ICMPlugin : IICMPlugin
 
     public async Task<string> AddKeywordToIncident(string incidentId, string keyword)
     {
-        var logMessage = $"[icm_add_keyword][{DateTime.UtcNow}] Invoked with incidentId {incidentId}, keyword: {keyword}";
+        var logMessage = $"[{nameof(ICMPlugin)}_{nameof(AddKeywordToIncident)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}, keyword: {keyword}";
         _logger.LogInternalInformation(logMessage);
         return await _icmApiClient.AddKeywordToIncident(incidentId, keyword);
     }
@@ -340,7 +332,7 @@ public class ICMPlugin : IICMPlugin
     // acknowledge_icm_incident using ICM API
     public async Task<string> AcknowledgeIncident(string incidentId)
     {
-        var logMessage = $"[acknowledge_icm_incident][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
+        var logMessage = $"[{nameof(ICMPlugin)}_{nameof(AcknowledgeIncident)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
         _logger.LogInternalInformation(logMessage);
         //if (!_icmApiClient.IsEnabled())
         //{
@@ -353,7 +345,7 @@ public class ICMPlugin : IICMPlugin
 
     public async Task<List<IncidentRepairItem>> GetIncidentRepairItems(long incidentId)
     {
-        var logMessage = $"[get_incident_repair_items][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
+        var logMessage = $"[{nameof(ICMPlugin)}_{nameof(GetIncidentRepairItems)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
         _logger.LogInternalInformation(logMessage);
         //if (!_icmApiClient.IsEnabled())
         //{
@@ -390,7 +382,7 @@ public class ICMPlugin : IICMPlugin
     /// <returns>A task representing the asynchronous operation.</returns>
     private async Task UpdateAgentStatus(string incidentId, AgentStatus status)
     {
-        var logMessage = $"[update_agent_status][{DateTime.UtcNow}] Updating status to '{status}' for incidentId {incidentId}";
+        var logMessage = $"[{nameof(ICMPlugin)}_{nameof(UpdateAgentStatus)}][{DateTime.UtcNow}] Updating status to '{status}' for incidentId {incidentId}";
         _logger.LogInternalInformation(logMessage);
 
         // Add the new status tag
@@ -426,7 +418,7 @@ public class ICMPlugin : IICMPlugin
             _logger.LogInternalError(ex, incidentId, "Error acknowledging incident during setup processing.");
         }
 
-        var logMessage = $"[setup_incident_processing][{DateTime.UtcNow}] Setting up processing for incidentId {incidentId}";
+        var logMessage = $"[{nameof(ICMPlugin)}_{nameof(SetupIncidentProcessing)}][{DateTime.UtcNow}] Setting up processing for incidentId {incidentId}";
         _logger.LogInternalInformation(logMessage);
 
         // Add a tag to indicate the agent has started processing
@@ -490,7 +482,7 @@ public class ICMPlugin : IICMPlugin
     #region RelatedIncidents operation methods
     public async Task<List<string>> GetLinkedRelatedIncidentInfo(long incidentId)
     {
-        var logMessage = $"[get_related_incidents][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
+        var logMessage = $"[{nameof(ICMPlugin)}_{nameof(GetLinkedRelatedIncidentInfo)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
         _logger.LogInternalInformation(logMessage);
         var relatedIncidents = await _icmApiClient.GetLinkedRelatedIncidentInfoAsync(incidentId);
         return relatedIncidents;
@@ -498,7 +490,7 @@ public class ICMPlugin : IICMPlugin
 
     public async Task<string> AddRelatedIncidentLink(long incidentId, long relatedIncidentId)
     {
-        var logMessage = $"[add_related_incidents_link][{DateTime.UtcNow}] Invoked with incidentId {incidentId} and relatedIncidentId {relatedIncidentId}";
+        var logMessage = $"[{nameof(ICMPlugin)}_{nameof(AddRelatedIncidentLink)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId} and relatedIncidentId {relatedIncidentId}";
         _logger.LogInternalInformation(logMessage);
         var result = await _icmApiClient.AddRelatedIncidentLinkAsync(incidentId, relatedIncidentId);
         return result;
@@ -506,7 +498,7 @@ public class ICMPlugin : IICMPlugin
 
     public async Task<string> RemoveRelatedIncidentLink(long incidentId, long relatedIncidentId)
     {
-        var logMessage = $"[remove_related_incidents_link][{DateTime.UtcNow}] Invoked with incidentId {incidentId} and relatedIncidentId {relatedIncidentId}";
+        var logMessage = $"[{nameof(ICMPlugin)}_{nameof(RemoveRelatedIncidentLink)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId} and relatedIncidentId {relatedIncidentId}";
         _logger.LogInternalInformation(logMessage);
         var result = await _icmApiClient.RemoveRelatedIncidentLinkAsync(incidentId, relatedIncidentId);
         return result;
@@ -518,7 +510,7 @@ public class ICMPlugin : IICMPlugin
     #region ParentIncident operation methods
     public async Task<string> GetParentIncidentInfo(long incidentId)
     {
-        var logMessage = $"[get_parent_incident][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
+        var logMessage = $"[{nameof(ICMPlugin)}_{nameof(GetParentIncidentInfo)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
         _logger.LogInternalInformation(logMessage);
         var parentIncidentInfo = await _icmApiClient.GetParentIncidentInfoAsync(incidentId);
         return parentIncidentInfo;
@@ -526,7 +518,7 @@ public class ICMPlugin : IICMPlugin
 
     public async Task<string> AddParentIncidentLink(long incidentId, long parentIncidentId)
     {
-        var logMessage = $"[add_parent_incident_link][{DateTime.UtcNow}] Invoked with incidentId {incidentId} and parentIncidentId {parentIncidentId}";
+        var logMessage = $"[{nameof(ICMPlugin)}_{nameof(AddParentIncidentLink)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId} and parentIncidentId {parentIncidentId}";
         _logger.LogInternalInformation(logMessage);
         var result = await _icmApiClient.AddParentIncidentLinkAsync(incidentId, parentIncidentId);
         return result;
@@ -534,7 +526,7 @@ public class ICMPlugin : IICMPlugin
 
     public async Task<string> RemoveParentIncidentLink(long incidentId)
     {
-        var logMessage = $"[remove_parent_incident_link][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
+        var logMessage = $"[{nameof(ICMPlugin)}_{nameof(RemoveParentIncidentLink)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
         _logger.LogInternalInformation(logMessage);
         var result = await _icmApiClient.RemoveParentIncidentLinkAsync(incidentId);
         return result;
@@ -544,7 +536,7 @@ public class ICMPlugin : IICMPlugin
 
     public async Task<List<string>> GetChildIncidentsInfo(long incidentId)
     {
-        var logMessage = $"[get_child_incidents][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
+        var logMessage = $"[{nameof(ICMPlugin)}_{nameof(GetChildIncidentsInfo)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
         _logger.LogInternalInformation(logMessage);
         var childIncidents = await _icmApiClient.GetChildIncidentsInfoAsync(incidentId);
         return childIncidents;
