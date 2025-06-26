@@ -3,7 +3,7 @@ let queryTo = datetime("##toDate##");
 let managedClusterName = "##managedClusterName##";
 let podNamePrefix = "##podNamePrefix##";
 let podNamespace = "##podNamespace##";
-ContainerAppControllerEvents
+let podStatus= ContainerAppControllerEvents
 | where PreciseTimeStamp between (queryFrom .. queryTo)
 | where EnvironmentName == managedClusterName
 | where msg == 'Pod Heartbeat'
@@ -14,4 +14,21 @@ ContainerAppControllerEvents
 | mv-expand containers
 | extend restartCount= todecimal(containers.restartCount)
 | summarize StartTime = min(PreciseTimeStamp),EndTime=max(PreciseTimeStamp),restartCount= max(restartCount) by PodName,PodStatus,NodeName
-| project StartTime, EndTime, PodName, NodeName, PodStatus, Health = iff(PodStatus in ("Running","Succeeded"),"Healthy","Degraded"), restartCount
+| project StartTime, EndTime, PodName, NodeName, PodStatus, Health = iff(PodStatus in ("Running","Succeeded"),"Healthy","Degraded"), restartCount;
+let podContainerFailures = ContainerAppControllerEvents
+| where PreciseTimeStamp between (queryFrom .. queryTo)
+| where EnvironmentName == managedClusterName
+| where msg == 'Pod Heartbeat'
+| where PodNamespace == podNamespace
+| where PodName startswith podNamePrefix
+| extend podContainer = parse_json(PodContainerStatus)
+| mv-expand podContainer
+| extend ContainerName = tostring(podContainer.name)
+| extend ContainerReady = tostring(podContainer.ready)
+| extend ContainerImage = tostring(podContainer.image)
+| summarize StartTime = min(PreciseTimeStamp),EndTime=max(PreciseTimeStamp) by PodName, ContainerName, ContainerReady,ContainerImage,NodeName
+| where isnotempty( ContainerName)
+| extend ContainerState = iff(ContainerReady=="true","Ready","Not Ready")
+| where ContainerReady == "false"
+| project StartTime,EndTime,PodName,ContainerName,ContainerState,ContainerImage,NodeName;
+union podStatus,podContainerFailures

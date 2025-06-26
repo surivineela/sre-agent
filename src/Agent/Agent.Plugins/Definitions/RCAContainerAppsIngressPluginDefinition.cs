@@ -229,6 +229,8 @@ This tool is used to verify if there is any envoy access log recorded in the man
                 - EndTime: End time of the Container App pod status.
                 - PodName: Name of the Container App pod.
                 - PodStatus: Status of the Container App pod.
+                - ContainerName: Pod container name. There can be multiple containers in a pod.
+                - ContainerStatus: Status of the pod container. The value can be Ready or NotReady. If the value is not Ready, even if the Pod is in Running state, it indicates that the pod container is not ready to serve traffic.
             """)]
         public Task<string> GetContainerAppPodStatus(
             [Description("Azure region.")] string region,
