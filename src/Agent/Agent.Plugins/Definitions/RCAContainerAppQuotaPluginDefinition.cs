@@ -289,7 +289,7 @@ This function helps ensure quota requests comply with predefined rules and provi
             }
             else if (quotaTypeEnum.Equals(QuotaType.SubscriptionConsumptionT4Gpus))
             {
-                if (region.Equals("westus3") || region.Equals("swedencentral") || region.Equals("australiaeast"))
+                if (region.Equals("westus3") || region.Equals("swedencentral") || region.Equals("australiaeast") || region.Equals("westeurope"))
                 {
                     if (isEA)
                     {
@@ -310,7 +310,7 @@ This function helps ensure quota requests comply with predefined rules and provi
                 }
                 else
                 {
-                    return (ApprovalState.NotStarted, string.Format(MessageTemplates.RegionNotSupported, "SubscriptionConsumptionT4Gpus", region, "westus3, australiaeast, or swedensentral"));
+                    return (ApprovalState.NotStarted, string.Format(MessageTemplates.RegionNotSupported, "SubscriptionConsumptionT4Gpus", region, "westus3, australiaeast, swedensentral, or westeurope"));
                 }
             }
             else if (quotaTypeEnum.Equals(QuotaType.ManagedEnvironmentCount)
