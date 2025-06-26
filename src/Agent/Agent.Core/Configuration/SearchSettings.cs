@@ -14,6 +14,6 @@ namespace Agent.Core.Configuration
         /// <summary>
         /// The default index name to use if not specified
         /// </summary>
-        public string DefaultIndexName { get; set; }
+        public string IndexName { get; set; }
     }
 }

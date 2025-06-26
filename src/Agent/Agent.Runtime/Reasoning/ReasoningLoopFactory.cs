@@ -3,16 +3,15 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Configuration;
+using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.AgentMemory;
 using Agent.Framework;
 using Agent.Logging;
-using Agent.Runtime.Services;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using OpenTelemetry.Trace;
 
 namespace Agent.Runtime.Reasoning;
@@ -35,6 +34,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
     private readonly IAgentActionLogExporter _actionLogExporter;
     private readonly bool _enableReasoningDebugOutput;
     private readonly ISearchEndpointService _searchEndpointService;
+    private readonly SearchHelper _searchHelper;
     private readonly bool _enableDocumentRetrieval;
     private readonly bool _enableVectorSearch;
 
@@ -57,6 +57,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         IAgentActionLogExporter actionLogExporter,
         IHostEnvironment hostEnvironment,
         ISearchEndpointService searchEndpointService,
+        SearchHelper searchHelper,
         IAgentMemoryClient agentMemoryClient,
         AgentMemorySettings agentMemorySettings)
     {
@@ -73,6 +74,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         _enableReasoningDebugOutput = coreSettings.EnableReasoningOutput
             && hostEnvironment.IsDevelopment(); // only enable debug output in dev environment
         _searchEndpointService = searchEndpointService;
+        _searchHelper = searchHelper;
         _enableDocumentRetrieval = azureSettings.SearchEndpoint.EnableDocumentRetrieval;
         _enableVectorSearch = azureSettings.SearchEndpoint.EnableVectorSearch;
         _agentMemoryClient = agentMemoryClient;
@@ -120,6 +122,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
             actionLogExporter: _actionLogExporter,
             enableReasoningDebugOutput: _enableReasoningDebugOutput,
             searchEndpointService: _searchEndpointService,
+            searchHelper: _searchHelper,
             enableDocumentRetrieval: _enableDocumentRetrieval,
             enableVectorSearch: _enableVectorSearch,
             agentMemoryClient: _agentMemoryClient,

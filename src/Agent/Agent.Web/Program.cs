@@ -76,10 +76,7 @@ using Agent.Runtime.TeamsChatServices;
 using Agent.Web.Services;
 using Azure.Monitor.OpenTelemetry.Exporter;
 using FirstPartyAgent.Core.FirstPartyAgents;
-using Kusto.Data;
-using Kusto.Ingest;
 using Microsoft.Bot.Builder;
-using Microsoft.Extensions.Options;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Connector.Authentication;
 using Microsoft.DurableTask;
@@ -88,16 +85,12 @@ using Microsoft.DurableTask.Client.AzureManaged;
 using Microsoft.DurableTask.Worker;
 using Microsoft.DurableTask.Worker.AzureManaged;
 using Microsoft.Extensions.AI;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
 using OpenTelemetry;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using Azure.Search.Documents;
-using Agent.Plugins.KustoPlugin;
-using Agent.Plugins.Kusto;
 
 namespace Agent.Web;
 
@@ -519,6 +512,7 @@ public class Program
             .AddSingleton<IReasoningLoopFactory, ReasoningLoopFactory>()
             .AddSingleton<IReasoningLoopManager, ReasoningLoopManager>()
             .AddSingleton<ISearchPlugin, SearchPlugin>()
+            .AddSingleton<SearchHelper>()
             .AddSingleton<ISearchIndexingClient, SearchIndexingClient>()
             .AddSingleton<DocumentationIndex>()
             .AddSingleton<ISearchEndpointService, SearchEndpointService>()
@@ -545,7 +539,7 @@ public class Program
                 var modeConfigurator = sp.GetRequiredService<IAgentModeConfigurator<AgentContext>>();
 
                 // Use ACA-FirstParty subfolder for first party agents, otherwise use full AgentsV2 directory
-                var agentsDirectory = isFirstAgent 
+                var agentsDirectory = isFirstAgent
                     ? Path.Combine(AppContext.BaseDirectory, "AgentsV2", "ACA-FirstParty")
                     : Path.Combine(AppContext.BaseDirectory, "AgentsV2");
 

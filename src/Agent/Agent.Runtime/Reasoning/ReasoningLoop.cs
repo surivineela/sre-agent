@@ -44,6 +44,7 @@ public class ReasoningLoop : IDisposable
     private readonly AgentActionLogger _actionLogger;
     private readonly bool _enableReasoningDebugOutput;
     private readonly ISearchEndpointService _searchEndpointService;
+    private readonly SearchHelper _searchHelper;
     private readonly bool _enableDocumentRetrieval;
     private readonly bool _enableVectorSearch;
     private readonly bool _agentMemoryEnabled;
@@ -96,6 +97,7 @@ public class ReasoningLoop : IDisposable
         IAgentActionLogExporter actionLogExporter,
         bool enableReasoningDebugOutput,
         ISearchEndpointService searchEndpointService,
+        SearchHelper searchHelper,
         bool enableDocumentRetrieval,
         bool enableVectorSearch,
         IAgentMemoryClient agentMemoryClient,
@@ -123,6 +125,7 @@ public class ReasoningLoop : IDisposable
             actionLogExporter);
         _enableReasoningDebugOutput = enableReasoningDebugOutput;
         _searchEndpointService = searchEndpointService;
+        _searchHelper = searchHelper ?? throw new ArgumentNullException(nameof(searchHelper));
         _enableDocumentRetrieval = enableDocumentRetrieval;
         _enableVectorSearch = enableVectorSearch;
         _agentMemoryClient = agentMemoryClient;
@@ -423,7 +426,7 @@ public class ReasoningLoop : IDisposable
                                 await RetrieveAndAugmentUserMessage(chatMessage.Message.Text, sb);
                             }
 
-                            var docMsg = await RetrieveDocumentsFromSearchEndpoint(_chatHistory!, chatMessage.Message.Text);
+                            var docMsg = await RetrieveDocumentsFromSearch(_chatHistory!, chatMessage.Message.Text);
                             if (!string.IsNullOrEmpty(docMsg))
                             {
                                 sb.AppendLine(docMsg);
@@ -2124,7 +2127,7 @@ public class ReasoningLoop : IDisposable
         }
     }
 
-    private async Task<string> RetrieveDocumentsFromSearchEndpoint(List<ChatMessage> chatHistory, string userMessage)
+    private async Task<string> RetrieveDocumentsFromSearch(List<ChatMessage> chatHistory, string userMessage)
     {
         if (!_enableDocumentRetrieval)
         {
@@ -2141,17 +2144,10 @@ public class ReasoningLoop : IDisposable
         }
         span.SetAttribute("search.query", query);
 
-        float[]? vector = null;
-        if (_enableVectorSearch)
-        {
-            vector = await DocumentRetrieval.GenerateSearchVector(_embeddingGenerator, query, _logger);
-            span.SetAttribute("search.vector.dimensions", vector.Length.ToString());
-        }
-
         IReadOnlyList<SearchDocument> results = [];
         try
         {
-            results = await _searchEndpointService.SearchDocumentsAsync(query, vector);
+            results = await _searchHelper.SearchAsync(query);
         }
         catch (Exception ex)
         {
