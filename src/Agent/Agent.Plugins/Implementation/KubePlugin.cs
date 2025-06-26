@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Agent.Core;
+using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
@@ -57,7 +58,8 @@ namespace Agent.Plugins
             IAuthenticationService authenticationService,
             IHostEnvironment hostEnvironment,
             ILogger<KubePlugin>? logger,
-            ICrawlerTriggerService crawlerTriggerService)
+            ICrawlerTriggerService crawlerTriggerService,
+            ActionSettings actionSettings)
         {
             _logger = logger;
             _chatClient = chatClient;
@@ -70,6 +72,7 @@ namespace Agent.Plugins
             _agentOutboundCommunicationService = agentOutboundCommunicationService;
             _agentKubeCtlIdentity = GetAgentKubectlIdentity(authenticationService, hostEnvironment);
             _crawlerTriggerService = crawlerTriggerService;
+            _actionSettings = actionSettings;
         }
 
         private static string GetAgentKubectlIdentity(

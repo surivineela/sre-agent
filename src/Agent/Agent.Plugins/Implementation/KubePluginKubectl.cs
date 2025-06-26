@@ -7,6 +7,7 @@ using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Core.Configuration;
 using Agent.Graph.Crawler.ARM;
 using Agent.Logging;
 using Agent.Plugins.Interface;
@@ -19,6 +20,7 @@ namespace Agent.Plugins
         // Add thread repository and ThreadId property for command execution tracking
         private readonly IThreadRepository? _threadRepository;
         private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
+        private readonly ActionSettings _actionSettings;
 
         public Guid? ThreadId { get; set; }
 
@@ -173,79 +175,202 @@ namespace Agent.Plugins
         {
             try
             {
-                var options = new JsonSerializerOptions
+                // Early validation
+                var validationResult = ValidateWriteCommandRequest(command);
+                if (validationResult != null)
                 {
-                    PropertyNamingPolicy = new LowerCaseNamingPolicy(),
-                    DictionaryKeyPolicy = new LowerCaseNamingPolicy(),
-                    WriteIndented = true
-                };
-                options.Converters.Add(new JsonStringEnumConverter());
-
-                // Validate command format
-                var validationSummary = ValidateKubectlWriteCommand(command.Trim());
-                if (validationSummary != null)
-                {
-                    return validationSummary; // Return the validation error message
-                }
-
-                if (ThreadId == null || _threadRepository == null)
-                {
-                    return "Error: ThreadId is not set or ThreadRepository is not available. Please set the ThreadId before running commands.";
+                    return validationResult;
                 }
 
                 var executionId = Guid.NewGuid();
+                var isAutonomousMode = _actionSettings.Mode == ActionMode.Autonomous;
 
-                // Create execution record in Pending state for approval
-                var execution = new KubectlExecution(
-                    Id: executionId,
-                    Command: command,
-                    Stdin: stdin,
-                    Description: GetCommandDescription(command),
-                    Status: KubectlExecutionStatus.Pending,
-                    ClusterResourceId: resourceId,
-                    OriginalFunctionCall: null, // temporary, will be set later
-                    Output: null,
-                    Error: null,
-                    CreatedTimestamp: DateTime.UtcNow,
-                    StartedTimestamp: null,
-                    CompletedTimestamp: null,
-                    ExecutedBy: null,
-                    AgentContextId: null
-                );
+                // Create and persist execution record
+                var execution = await CreateAndPersistKubectlExecution(executionId, resourceId, command, stdin, isAutonomousMode);
 
-                await _threadRepository.CreateKubectlExecutionAsync(ThreadId.Value, execution);
-
-                // Create a new message with the execution
-                var message = new Message(
-                    Id: Guid.NewGuid(),
-                    TimeStamp: DateTime.UtcNow,
-                    Author: new Author(
-                        DisplayName: "SRE Agent",
-                        UserId: "agent-default",
-                        Role: Role.SREAgent
-                    ),
-                    Text: "",
-                    IsImageContent: false,
-                    Posted: new Posted(false),
-                    Approval: null,
-                    AzCliExecution: null,
-                    KubectlExecution: execution,
-                    IncidentDiscussionId: null,
-                    IsDailyReport: false
-                );
-
-                await _threadRepository.AddMessageAsync(ThreadId.Value, message);
-
-                await _agentOutboundCommunicationService.AppendAgentStreamMessage(ThreadId.Value, JsonSerializer.Serialize(execution, options), StreamMessageType.Kubectl);
-
-
-                return "Kubectl write command has been prepared for approval. Please click 'Run' to execute or 'Cancel' to dismiss.";
+                // Handle execution based on mode
+                return isAutonomousMode
+                    ? await ExecuteAutonomousCommand(resourceId, command, stdin, execution)
+                    : "Kubectl write command has been prepared for approval. Please click 'Run' to execute or 'Cancel' to dismiss.";
             }
             catch (Exception ex)
             {
                 _logger?.LogInternalError(ex, "Failed to create execution for write command: {Command}", command);
                 return $"Failed to prepare command execution: {ex.Message}";
             }
+        }
+
+        private string? ValidateWriteCommandRequest(string command)
+        {
+            var validationSummary = ValidateKubectlWriteCommand(command.Trim());
+            if (validationSummary != null)
+            {
+                return validationSummary;
+            }
+
+            if (ThreadId == null || _threadRepository == null)
+            {
+                return "Error: ThreadId is not set or ThreadRepository is not available. Please set the ThreadId before running commands.";
+            }
+
+            return null;
+        }
+
+        private async Task<KubectlExecution> CreateAndPersistKubectlExecution(
+            Guid executionId,
+            string resourceId,
+            string command,
+            string stdin,
+            bool isAutonomousMode)
+        {
+            var execution = CreateKubectlExecution(executionId, resourceId, command, stdin, isAutonomousMode);
+
+            await _threadRepository!.CreateKubectlExecutionAsync(ThreadId!.Value, execution);
+
+            var message = CreateExecutionMessage(execution);
+            await _threadRepository.AddMessageAsync(ThreadId.Value, message);
+
+            await NotifyExecutionCreated(execution);
+
+            return execution;
+        }
+
+        private KubectlExecution CreateKubectlExecution(
+            Guid executionId,
+            string resourceId,
+            string command,
+            string stdin,
+            bool isAutonomousMode)
+        {
+            return new KubectlExecution(
+                Id: executionId,
+                Command: command,
+                Stdin: stdin,
+                Description: GetCommandDescription(command),
+                Status: isAutonomousMode ? KubectlExecutionStatus.Running : KubectlExecutionStatus.Pending,
+                ClusterResourceId: resourceId,
+                OriginalFunctionCall: null,
+                Output: null,
+                Error: null,
+                CreatedTimestamp: DateTime.UtcNow,
+                StartedTimestamp: isAutonomousMode ? DateTime.UtcNow : null,
+                CompletedTimestamp: null,
+                ExecutedBy: null,
+                AgentContextId: null
+            );
+        }
+
+        private static Message CreateExecutionMessage(KubectlExecution execution)
+        {
+            return new Message(
+                Id: Guid.NewGuid(),
+                TimeStamp: DateTime.UtcNow,
+                Author: new Author(
+                    DisplayName: "SRE Agent",
+                    UserId: "agent-default",
+                    Role: Role.SREAgent
+                ),
+                Text: "",
+                IsImageContent: false,
+                Posted: new Posted(false),
+                Approval: null,
+                AzCliExecution: null,
+                KubectlExecution: execution,
+                IncidentDiscussionId: null,
+                IsDailyReport: false
+            );
+        }
+
+        private async Task<string> ExecuteAutonomousCommand(
+            string resourceId,
+            string command,
+            string stdin,
+            KubectlExecution execution)
+        {
+            try
+            {
+                var output = await ExecuteKubectlCommandSafely(resourceId, command, stdin);
+
+                await UpdateExecutionWithSuccess(execution, output);
+                TriggerRecrawl(resourceId, command, output);
+
+                return $"Kubectl command completed successfully. Output:\n{output}";
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogInternalError(ex, "Failed to execute write command: {Command}", command);
+
+                await UpdateExecutionWithFailure(execution, ex.Message);
+
+                return $"Failed to execute command: {ex.Message}";
+            }
+        }
+
+        private async Task UpdateExecutionWithSuccess(KubectlExecution execution, string output)
+        {
+            var updatedExecution = execution with
+            {
+                Status = KubectlExecutionStatus.Completed,
+                ExecutedBy = CreateAgentAuthor(),
+                Output = output,
+                CompletedTimestamp = DateTime.UtcNow
+            };
+
+            await _threadRepository!.UpdateKubectlExecutionAsync(ThreadId!.Value, updatedExecution);
+            await NotifyExecutionUpdated(updatedExecution);
+        }
+
+        private async Task UpdateExecutionWithFailure(KubectlExecution execution, string errorMessage)
+        {
+            var updatedExecution = execution with
+            {
+                Status = KubectlExecutionStatus.Failed,
+                ExecutedBy = CreateAgentAuthor(),
+                Error = errorMessage,
+                CompletedTimestamp = DateTime.UtcNow
+            };
+
+            await _threadRepository!.UpdateKubectlExecutionAsync(ThreadId!.Value, updatedExecution);
+            await NotifyExecutionUpdated(updatedExecution);
+        }
+
+        private static Author CreateAgentAuthor()
+        {
+            return new Author(
+                DisplayName: "SRE Agent",
+                UserId: "agent-default",
+                Role: Role.User
+            );
+        }
+
+        private async Task NotifyExecutionCreated(KubectlExecution execution)
+        {
+            var options = GetJsonSerializerOptions();
+            await _agentOutboundCommunicationService.AppendAgentStreamMessage(
+                ThreadId!.Value,
+                JsonSerializer.Serialize(execution, options),
+                StreamMessageType.Kubectl);
+        }
+
+        private async Task NotifyExecutionUpdated(KubectlExecution execution)
+        {
+            var options = GetJsonSerializerOptions();
+            await _agentOutboundCommunicationService.AppendAgentStreamMessage(
+                ThreadId!.Value,
+                JsonSerializer.Serialize(execution, options),
+                StreamMessageType.Kubectl);
+        }
+
+        private static JsonSerializerOptions GetJsonSerializerOptions()
+        {
+            var options = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = new LowerCaseNamingPolicy(),
+                DictionaryKeyPolicy = new LowerCaseNamingPolicy(),
+                WriteIndented = true
+            };
+            options.Converters.Add(new JsonStringEnumConverter());
+            return options;
         }
 
         private string? CommonValidateKubectlCommand(string command)

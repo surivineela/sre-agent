@@ -1,3 +1,4 @@
+using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Services;
 using Agent.Data.DatabaseClients.GraphDbClient;
@@ -45,7 +46,8 @@ namespace Agent.Tests.Unit.Plugins.Implementation
           new Mock<IAuthenticationService>().Object,
           new Mock<IHostEnvironment>().Object,
           new Mock<ILogger<KubePlugin>>().Object,
-          new Mock<ICrawlerTriggerService>().Object
+          new Mock<ICrawlerTriggerService>().Object,
+          new Mock<ActionSettings>().Object
           );
     }
 
