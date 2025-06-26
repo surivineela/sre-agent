@@ -177,7 +177,7 @@ const ChatMessageV2 = ({
             mode: 'canvas',
             name: (
                 <div style={nameAndTimestampContainerStyle}>
-                    <span>Azure SRE Agent</span>
+                    <span>{intl.formatMessage(SreAgentResources.sreAgent)}</span>
                     {mode && <span className={chatStyles.modePill}>{agentMode}</span>}
                     {!isTyping && (
                         <Text size={200} color={tokens.colorNeutralForeground3}>

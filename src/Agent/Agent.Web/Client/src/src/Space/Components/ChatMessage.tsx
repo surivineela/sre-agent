@@ -82,6 +82,24 @@ const chatMessageStyles = mergeStyleSets({
         borderRadius: tokens.borderRadiusSmall,
         padding: '15px',
     },
+    strong: {
+        fontWeight: '600',
+    },
+    h3: {
+        fontWeight: '600',
+        fontSize: '14px',
+        lineHeight: '20px',
+    },
+    h2: {
+        fontWeight: '600',
+        fontSize: '16px',
+        lineHeight: '22px',
+    },
+    h1: {
+        fontWeight: '600',
+        fontSize: '20px',
+        lineHeight: '26px',
+    },
 });
 
 // Initialize mermaid with default configuration
@@ -1908,7 +1926,7 @@ const ChatMessage = ({
             mode: 'canvas',
             name: (
                 <div style={nameAndTimestampContainerStyle}>
-                    <span>Azure SRE Agent</span>
+                    <span>{intl.formatMessage(SreAgentResources.sreAgent)}</span>
                     {mode && <span className={chatStyles.modePill}>{agentMode}</span>}
                     {!isTyping && (
                         <Text size={200} color={tokens.colorNeutralForeground3}>
@@ -2511,6 +2529,22 @@ const ReactMarkdownComponent = ({
         return <pre className={chatMessageStyles.preBlock}>{props.children}</pre>;
     }, []);
 
+    const strongRenderer = useCallback((props: any) => {
+        return <strong className={chatMessageStyles.strong}>{props.children}</strong>;
+    }, []);
+
+    const h3Renderer = useCallback((props: any) => {
+        return <h3 className={chatMessageStyles.h3}>{props.children}</h3>;
+    }, []);
+
+    const h2Renderer = useCallback((props: any) => {
+        return <h2 className={chatMessageStyles.h2}>{props.children}</h2>;
+    }, []);
+
+    const h1Renderer = useCallback((props: any) => {
+        return <h1 className={chatMessageStyles.h1}>{props.children}</h1>;
+    }, []);
+
     return (
         <div key={key} className={mergeClasses('markdown-content', isUserMessage ? undefined : chatMessageStyles.regularMessageContent)}>
             <ReactMarkdown
@@ -2518,6 +2552,10 @@ const ReactMarkdownComponent = ({
                     a: aLinkRenderer,
                     code: codeRenderer,
                     pre: preRenderer,
+                    strong: strongRenderer,
+                    h3: h3Renderer,
+                    h2: h2Renderer,
+                    h1: h1Renderer,
                 }}
                 remarkPlugins={[remarkGfm]}
                 rehypePlugins={[rehypeRaw]}
