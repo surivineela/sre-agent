@@ -29,6 +29,7 @@ import {
     isUserStreamingMessage,
     processChatMessageContents,
     processOldMessagesV2,
+    shouldGroupWithPreviousMessageV2,
     updateOldMessagesText,
 } from '../Activities/Utility';
 import {
@@ -128,6 +129,7 @@ export const useChatBoxV2 = (
     const isNewThreadAdded = useRef<boolean>(false);
     // pass userDefinedThreadId to thread create for matching the thread id from the stream message
     const userDefinedThreadIdRef = useRef<string>(Guid.newGuid());
+    const messagesRef = useRef<ChatMessage[]>([]);
 
     const threadClient = ThreadClient.getInstance(sreAgentEndpoint);
     const messageClient = MessageClient.getInstance(sreAgentEndpoint);
@@ -214,6 +216,28 @@ export const useChatBoxV2 = (
             sendMessage(MessageRequestType.CancelThread, currentThreadId);
         }
     }, [isCancellingStreaming, currentThreadId, sendMessage]);
+
+    const getGroupedChatMessages = useCallback((currentMessageId: string): ChatMessage[] => {
+        const currentMessageIndex = messagesRef.current.findIndex(msg => msg.id === currentMessageId);
+
+        if (currentMessageIndex < 0 || currentMessageIndex >= messagesRef.current.length) {
+            return [];
+        }
+
+        const currentMessage = messagesRef.current[currentMessageIndex];
+        const groupedMessages: ChatMessage[] = [currentMessage];
+
+        for (let i = currentMessageIndex - 1; i >= 0; i--) {
+            const previousMessage = messagesRef.current[i];
+            if (shouldGroupWithPreviousMessageV2(currentMessage, previousMessage)) {
+                groupedMessages.unshift(previousMessage);
+            } else {
+                break;
+            }
+        }
+
+        return groupedMessages;
+    }, []);
 
     const sendMessageHandler = useCallback(
         async (message: string) => {
@@ -630,6 +654,10 @@ export const useChatBoxV2 = (
     }, [messages]);
 
     useEffect(() => {
+        messagesRef.current = messages;
+    }, [messages])
+
+    useEffect(() => {
         // When new messages are added or the streaming message is initialized or set to null, scroll to the bottom
         if (!oldMessagesToBeAdded.current) {
             scrollToBottom(true);
@@ -689,5 +717,6 @@ export const useChatBoxV2 = (
         downButtonState,
         onClickDownButton,
         loadOldChatHistory,
+        getGroupedChatMessages
     };
 };

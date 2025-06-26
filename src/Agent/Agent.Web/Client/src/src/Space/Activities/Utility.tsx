@@ -196,8 +196,8 @@ export const processChatMessageContents = (
                 approval.status === 0
                     ? ApprovalDecision.Pending
                     : approval.status === 1
-                      ? ApprovalDecision.Approved
-                      : ApprovalDecision.Rejected,
+                        ? ApprovalDecision.Approved
+                        : ApprovalDecision.Rejected,
         };
     }
 
@@ -343,26 +343,6 @@ export const getGroupedMessages = (messages: Message[], currentMessageIndex: num
     for (let i = currentMessageIndex - 1; i >= 0; i--) {
         const previousMessage = messages[i];
         if (shouldGroupWithPreviousMessage(currentMessage, previousMessage)) {
-            groupedMessages.unshift(previousMessage);
-        } else {
-            break;
-        }
-    }
-
-    return groupedMessages;
-};
-
-export const getGroupedChatMessages = (messages: ChatMessage[], currentMessageIndex: number): ChatMessage[] => {
-    if (currentMessageIndex < 0 || currentMessageIndex >= messages.length) {
-        return [];
-    }
-
-    const currentMessage = messages[currentMessageIndex];
-    const groupedMessages: ChatMessage[] = [currentMessage];
-
-    for (let i = currentMessageIndex - 1; i >= 0; i--) {
-        const previousMessage = messages[i];
-        if (shouldGroupWithPreviousMessageV2(currentMessage, previousMessage)) {
             groupedMessages.unshift(previousMessage);
         } else {
             break;

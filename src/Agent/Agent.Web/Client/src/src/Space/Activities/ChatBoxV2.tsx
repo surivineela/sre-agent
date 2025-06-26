@@ -11,7 +11,6 @@ import { useChatBoxV2 } from '../Hooks/useChatBoxV2';
 import { ChatBoxStyles } from '../Styles/Activities.styles';
 import AzureSREWelcome from './AzureSREWelcome';
 import { ChatSuggestions } from './ChatSuggestions';
-import { getGroupedChatMessages } from './Utility';
 
 export const ChatBoxV2 = ({ addThread, promoteThread, updateThreadLastReadTime, threadId, threadSource }: IChatBoxProps) => {
     const {
@@ -32,6 +31,7 @@ export const ChatBoxV2 = ({ addThread, promoteThread, updateThreadLastReadTime, 
         onScroll,
         downButtonState,
         onClickDownButton,
+        getGroupedChatMessages,
     } = useChatBoxV2(addThread, promoteThread, updateThreadLastReadTime, threadId, threadSource);
 
     const isWelcomeThread = threadSource === ThreadSource.welcomeMessage;
@@ -59,7 +59,7 @@ export const ChatBoxV2 = ({ addThread, promoteThread, updateThreadLastReadTime, 
                                 message={message}
                                 previousMessage={messages[index - 1]}
                                 nextMessage={messages[index + 1]}
-                                getGroupedMessages={() => getGroupedChatMessages(messages, index)}
+                                getGroupedMessages={getGroupedChatMessages}
                                 threadId={currentThreadId || ''}
                             />
                         ))}

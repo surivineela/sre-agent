@@ -215,7 +215,7 @@ const ChatMessageV2 = ({
     const filteredMessageContentToCopy = useMemo(() => {
         if (!showCopyMessageButton || !getGroupedMessages) return '';
 
-        const groupedMessages = getGroupedMessages();
+        const groupedMessages = getGroupedMessages(message.id);
         return groupedMessages
             .map(msg =>
                 msg.contents.map(msgContent => {
@@ -228,7 +228,7 @@ const ChatMessageV2 = ({
             )
             .flat()
             .join('\n\n');
-    }, [showCopyMessageButton, getGroupedMessages]);
+    }, [showCopyMessageButton, getGroupedMessages, message.id]);
 
     const handleFeedbackClick = async (isPositive: boolean) => {
         setSelectedFeedback(isPositive ? 'positive' : 'negative');
