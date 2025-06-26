@@ -55,7 +55,7 @@ The operation will mark the given incident as resolved. The return value is a bo
             return await _plugin.ResolveIncident(incidentId, reason);
         }
 
-        [KernelFunction(KernelFunctionNames.Icm.IcmGetDisscussionEntries)]
+        [KernelFunction(KernelFunctionNames.Icm.IcmGetDiscussionEntries)]
         [Description(@"Get ICM discussion entries
 This operation will get all the discussion entries of the given IcM Incident.
 

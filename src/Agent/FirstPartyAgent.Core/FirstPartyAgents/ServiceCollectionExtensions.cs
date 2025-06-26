@@ -89,12 +89,9 @@ public static class ServiceCollectionExtensions
         // TODO: automatically inject these DI in next iteration
         services.AddSingleton<IHelloWorldPlugin, HelloWorldPlugin>();
         services.AddSingleton<HelloWorldPluginDefinition>();
-        services.AddSingleton<IAzureDocSearchPlugin, AzureDocSearchPlugin>();
         services.AddSingleton<IAzureSearchClient, AzureSearchClient>();
 
         services.AddSingleton<IIcmPlugin, IcmPlugin>();
-
-        services.AddSingleton<IKustoDashboardPlugin, KustoDashboardPlugin>();
     }
 
     private static void RegisterFirstPartySubAgentPluginImplementationDependencies(this IServiceCollection services)

@@ -2,12 +2,8 @@ using Agent.Core.Helpers;
 using Agent.Core.Models.Api.v1;
 using Agent.Runtime.MetaAgent.Interfaces;
 using FirstPartyAgent.Core.Plugins.Definitions;
-using FirstPartyAgent.Plugins.Definitions;
 using Microsoft.Extensions.AI;
-using FirstPartyAgent.Core.Plugins.Interfaces;
 using Agent.Plugins;
-using FirstPartyAgent.Core.Plugins.Implementation;
-using FirstPartyAgent.Plugins;
 using Agent.Plugins.Interface;
 
 
@@ -22,17 +18,14 @@ public enum FirstPartyMetaAgentNames
 public class FirstPartyAgentsFactory : IAgentsFactory
 {
     private readonly IServiceProvider _serviceProvider;
-    private readonly IContainerAppIcMPlugin _containerAppIcMPlugin;
     private readonly ITimePlugin _timePlugin;
 
     public FirstPartyAgentsFactory(
         IServiceProvider serviceProvider,
-        IContainerAppIcMPlugin containerAppIcMPlugin,
         ITimePlugin timePlugin
         )
     {
         _serviceProvider = serviceProvider;
-        _containerAppIcMPlugin = containerAppIcMPlugin;
         _timePlugin = timePlugin;
     }
 

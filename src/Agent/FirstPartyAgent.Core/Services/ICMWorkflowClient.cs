@@ -273,19 +273,6 @@ namespace FirstPartyAgent.Core.Services
             return null;
         }
 
-
-        public async Task<AcaSubscriptionUsage> GetSubscriptionUsage(string subscriptionId)
-        {
-            var response = await SendICMWorkflowRequest(_icmWorkflowSettings.SubscriptionUsageWorkflowName, JsonConvert.SerializeObject(new { SubscriptionId = subscriptionId }));
-            if (response.IsSuccessStatusCode)
-            {
-                var content = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<AcaSubscriptionUsage>(content);
-            }
-            _logger.LogError($"Failed to fetch SubscriptionUsage for subscription {subscriptionId}, statusCode: {response.StatusCode}");
-            return null;
-        }
-
         public async Task<string> GetSubscriptionQuota(string subscriptionId, string region, string quotaType)
         {
             const string workflowName = "Workflow-GenevaAction-GetSubscriptionQuota";
@@ -897,8 +884,6 @@ Incidents
 
         public Task<SubscriptionDetail> GetSubscriptionDetail(string subscriptionId) => Task.FromResult<SubscriptionDetail>(null);
 
-        public Task<AcaSubscriptionUsage> GetSubscriptionUsage(string subscriptionId) => Task.FromResult<AcaSubscriptionUsage>(null);
-
         public Task<string> SetSubscriptionQuota(string subscriptionId, string region, string quotaType, string quotaLimit) =>
             Task.FromResult("ICM Plugin is disabled");
 
@@ -966,7 +951,6 @@ Incidents
         Task<Incident> GetIncidentAsync(string incidentId);
         Task<string> AddAttachmentToIncident(string incidentId, string fileName, string base64Content);
         Task<SubscriptionDetail> GetSubscriptionDetail(string subscriptionId);
-        Task<AcaSubscriptionUsage> GetSubscriptionUsage(string subscriptionId);
         Task<string> SetSubscriptionQuota(string subscriptionId, string region, string quotaType, string quotaLimit);
         Task<List<DiscussionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId, DateTimeOffset? queryFrom = null);
         Task<string> TransferIncidentAsync(string incidentId, string discussionEntry, string tenantName, string owningTeam);

@@ -131,15 +131,6 @@ namespace FirstPartyAgent.Models
         public string Message { get; set; }
     }
 
-    public class AcaSubscriptionUsage
-    {
-        public string? SubscriptionId { get; set; }
-        public string? NumberOfEnvironments { get; set; }
-        public string? NumberOfContainerApps { get; set; }
-        public string? NumberOfJobs { get; set; }
-        public string? TrustLevel { get; set; }
-    }
-
     [JsonConverter(typeof(JsonStringEnumConverter<ConversationSource>))]
     public enum ConversationSource
     {
@@ -155,59 +146,5 @@ namespace FirstPartyAgent.Models
         Approved,
         Rejected,
         NotSupported,
-    }
-
-    [JsonConverter(typeof(JsonStringEnumConverter<QuotaType>))]
-    public enum QuotaType
-    {
-        /// <summary>
-        /// Gpus quota for NCA100 workload profiles in subscription
-        /// </summary>
-        SubscriptionNCA100Gpus,
-
-        /// <summary>
-        /// Quota for consumption GPUs for NCA100 VMs per subscription
-        /// </summary>
-        SubscriptionConsumptionNCA100Gpus,
-
-        /// <summary>
-        /// Quota for consumption GPUs for T4 VMs per subscription
-        /// </summary>
-        SubscriptionConsumptionT4Gpus,
-
-        /// <summary>
-        /// Quota for additional ports per subscription
-        /// </summary>
-        ContainerAppAdditionalPorts,
-
-        /// <summary>
-        /// Quota for managed environment consumption cores
-        /// </summary>
-        ManagedEnvironmentConsumptionCores,
-
-        /// <summary>
-        /// Quota for managed environment general purpose cores
-        /// </summary>
-        ManagedEnvironmentGeneralPurposeCores,
-
-        /// <summary>
-        /// Quota for managed environment memory optimized cores
-        /// </summary>
-        ManagedEnvironmentMemoryOptimizedCores,
-
-        /// <summary>
-        /// Quota for managed environment compute optimized cores
-        /// </summary>
-        ManagedEnvironmentComputeOptimizedCores,
-
-        /// <summary>
-        /// Quota for managed environment count
-        /// </summary>
-        ManagedEnvironmentCount,
-
-        /// <summary>
-        /// Quota for Session Pools
-        /// </summary>
-        SessionPools
     }
 }
