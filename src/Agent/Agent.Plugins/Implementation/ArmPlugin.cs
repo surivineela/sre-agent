@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Collections.Immutable;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Agent.Core.Helpers;
@@ -23,6 +24,37 @@ namespace Agent.Plugins.Implementation
         private readonly IAgentOutboundCommunicationService _outboundCommunicationService;
 
         public Guid? ThreadId { get; set; }
+
+        private static readonly ImmutableArray<string> _allowedReadVerbs = [
+            "get",
+            "list",
+            "show",
+        ];
+
+        private static readonly string _allowedReadVerbString = string.Join(", ", _allowedReadVerbs);
+
+        private static readonly ImmutableArray<string> _allowedWriteVerbs = [
+            "add",
+            "create",
+            "query",
+            "register", // for RPs and Features
+            "restart",
+            "scale",
+            "set",
+            "start",
+            "stop",
+            "update",
+            "upgrade",
+        ];
+
+        private static readonly string _allowedWriteVerbString = string.Join(", ", _allowedWriteVerbs);
+
+        private static readonly ImmutableArray<string> _blockedDeleteVerbs = [
+            "delete",
+            "remove",
+        ];
+
+        private static readonly ImmutableArray<string> _writeVerbs = [.. _allowedWriteVerbs, .. _blockedDeleteVerbs];
 
         public ArmPlugin(ILogger<ArmPlugin> logger, ArmHelper armHelper, IThreadRepository threadRepository, IAgentOutboundCommunicationService outboundCommunicationService)
         {
@@ -166,7 +198,7 @@ namespace Agent.Plugins.Implementation
             {
                 if (!IsReadOnlyCommand(command))
                 {
-                    return "Error: This method only supports read operations (list, show, get). Use RunAzCliWriteCommandsAsync for write operations.";
+                    return $"Error: This method only supports read operations ({_allowedReadVerbString}). Use RunAzCliWriteCommandsAsync for write operations.";
                 }
 
                 if (ThreadId == null)
@@ -287,7 +319,7 @@ namespace Agent.Plugins.Implementation
                 // Validate it's a write command and not a delete
                 if (!IsWriteCommand(command))
                 {
-                    return "Error: This method only supports write operations (create, update, set, scale, start, stop, restart).";
+                    return $"Error: This method only supports write operations ({_allowedWriteVerbString}).";
                 }
 
                 if (IsDeleteCommand(command))
@@ -418,20 +450,20 @@ namespace Agent.Plugins.Implementation
                 // Example: "eventgridblobtriggerstrg.blob.core.windows.net" -> "eventgridblobtriggerstrg"
                 string host = uri.Host;
                 string[] hostParts = host.Split('.');
-                
+
                 if (hostParts.Length < 4 || !host.Contains(".blob.core.windows.net"))
                 {
                     return $"Error: URI does not appear to be a valid Azure Blob Storage URI: {storageServiceUri}";
                 }
-                
+
                 string storageAccountName = hostParts[0];
-                
+
                 // Search only in the specified subscription
                 var resourceIds = await _armHelper.GetAllResourceUriAsync(subscriptionId);
-                
+
                 // Filter for storage account resources that match our name
                 var storageAccountResourceIds = resourceIds
-                    .Where(r => r.Contains("/Microsoft.Storage/storageAccounts/") && 
+                    .Where(r => r.Contains("/Microsoft.Storage/storageAccounts/") &&
                                 r.EndsWith($"/{storageAccountName}", StringComparison.OrdinalIgnoreCase))
                     .ToList();
 
@@ -452,20 +484,18 @@ namespace Agent.Plugins.Implementation
 
         private bool IsReadOnlyCommand(string command)
         {
-            var readOnlyVerbs = new[] { "list", "show", "get" };
             var commandLower = command.ToLower();
 
             // Check if command contains read-only verbs
-            return readOnlyVerbs.Any(verb => commandLower.Contains($" {verb} ") || commandLower.Contains($" {verb}"));
+            return _allowedReadVerbs.Any(verb => commandLower.Contains($" {verb} ") || commandLower.Contains($" {verb}"));
         }
 
         private bool IsWriteCommand(string command)
         {
-            var writeVerbs = new[] { "create", "update", "set", "scale", "start", "stop", "restart", "add", "remove", "upgrade", "query" };
             var commandLower = command.ToLower();
 
             // Check if command contains write verbs
-            return writeVerbs.Any(verb => commandLower.Contains($" {verb} ") || commandLower.Contains($" {verb}"));
+            return _writeVerbs.Any(verb => commandLower.Contains($" {verb} ") || commandLower.Contains($" {verb}"));
         }
 
         private bool IsDeleteCommand(string command)
@@ -474,7 +504,7 @@ namespace Agent.Plugins.Implementation
             var commandLower = command.ToLower();
 
             // Check if command contains delete verbs as primary action
-            return deleteVerbs.Any(verb => commandLower.Contains($" {verb} ") || commandLower.Contains($" {verb}"));
+            return _blockedDeleteVerbs.Any(verb => commandLower.Contains($" {verb} ") || commandLower.Contains($" {verb}"));
         }
 
         private string GetCommandDescription(string command)

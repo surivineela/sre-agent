@@ -22,7 +22,6 @@ using Agent.Framework;
 using Agent.Logging;
 using Agent.Plugins.Definitions;
 using Agent.Runtime.Helpers;
-using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents.Core;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;

@@ -1,15 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Evals;
 
-internal class ModelGenerationDataLoader
+public static class ModelGenerationDataLoader
 {
     /// <summary>
     /// Loads all JSON files from the specified data folder and deserializes them into ChatMessages.
