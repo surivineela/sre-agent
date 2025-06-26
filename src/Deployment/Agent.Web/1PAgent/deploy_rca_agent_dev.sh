@@ -85,7 +85,7 @@ fi
 
 # Use the official build image with specified version
 echo "🐳 Using official Docker image..."
-imageName="sreagentdev.azurecr.io/sre-agent-web:$version"
+imageName="sreagentprod.azurecr.io/sre-agent-web:$version"
 echo "✅ Using official image: $imageName"
 
 # Deploy the Microsoft.App/agent resource
