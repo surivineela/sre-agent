@@ -1,0 +1,133 @@
+import { InfiniteData, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
+import { MessageClient } from '../../Common/Clients/MessageClient';
+import { ThreadClient } from '../../Common/Clients/ThreadClient';
+import { ThreadSource } from '../../Common/Contracts/Azure/SreAgent';
+import { convertMessageToChatMessage, isIncidentThreadCompleted, updateOldMessagesText } from '../Activities/Utility';
+import { ChatMessage, MessageLoadingCounts } from '../Contracts/Activities';
+
+const ChatMessagesQueryIdPrefix = 'usechatboxv2-chat-messages';
+
+export const useChatHistoryDataCache = (threadId: string | null | undefined, threadSource: string | null | undefined) => {
+    const [isIncidentInvestigationInProgress, setIsIncidentInvestigationInProgress] = useState<boolean>(
+        threadSource === ThreadSource.incident
+    );
+    const [newestMessageTimestampInOldMessages, setNewestMessageTimestampInOldMessages] = useState<string>('');
+
+    const { sreAgentEndpoint } = useContext(EnvironmentContext);
+    const threadClient = ThreadClient.getInstance(sreAgentEndpoint);
+    const messageClient = MessageClient.getInstance(sreAgentEndpoint);
+
+    const queryClient = useQueryClient();
+
+    const { data, isLoading, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage } = useInfiniteQuery({
+        queryKey: [ChatMessagesQueryIdPrefix, threadId],
+        enabled: !!threadId,
+        queryFn: async ({ pageParam }): Promise<ChatMessage[] | undefined> => {
+            const messagesResponse = await messageClient.getMessages(threadId!, {
+                skip: 0,
+                top: MessageLoadingCounts.default,
+                descending: true,
+                maxTimestamp: pageParam || undefined,
+            });
+
+            if (messagesResponse.isSuccessful) {
+                return (messagesResponse.content || []).map(convertMessageToChatMessage);
+            } else {
+                // This will trigger retry and prevent adding empty page to the cache.
+                throw new Error(`Failed to load messages for thread ${threadId}`);
+            }
+        },
+        getNextPageParam: lastPage => {
+            return lastPage?.[lastPage.length - 1]?.timeStamp || undefined;
+        },
+        initialPageParam: '',
+        // This will ignore the cache each time a new thread is selected. Set gcTime to infinity once we incorprate the existing streaming message to the chat message list.
+        gcTime: 0,
+    });
+
+    const loadOlderMessages = useCallback(() => {
+        if (isLoading || isFetching || isFetchingNextPage || !hasNextPage) {
+            return;
+        }
+        return fetchNextPage();
+    }, [isLoading, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage]);
+
+    const isLoadingInitialChatHistory = useMemo(() => {
+        return !!threadId && isLoading;
+    }, [threadId, isLoading]);
+
+    useEffect(() => {
+        setNewestMessageTimestampInOldMessages(data?.pages?.[0]?.[0]?.timeStamp || '');
+    }, [data]);
+
+    // If this is an incident thread, periodically refresh the latest 5 old messages to check for the progress
+    useEffect(() => {
+        let isSubscribed = true;
+        let timeoutId: NodeJS.Timeout | undefined = undefined;
+
+        if (isIncidentInvestigationInProgress && threadId && !isLoadingInitialChatHistory) {
+            const refreshOldMessages = async () => {
+                if (newestMessageTimestampInOldMessages) {
+                    const [threadResponse, updatedOldMessagesResponse] = await Promise.all([
+                        threadClient.getThread(threadId),
+                        messageClient.getMessages(threadId, {
+                            skip: 0,
+                            top: 5,
+                            descending: true,
+                            maxTimestamp: newestMessageTimestampInOldMessages,
+                            maxTimestampInclusive: true,
+                        }),
+                    ]);
+
+                    const threadCompleted = threadResponse.isSuccessful && isIncidentThreadCompleted(threadResponse.content);
+                    const updatedOldMessages = updatedOldMessagesResponse.content || [];
+
+                    if (isSubscribed) {
+                        if (threadCompleted) {
+                            setIsIncidentInvestigationInProgress(false);
+                        }
+                        if (updatedOldMessagesResponse.isSuccessful && updatedOldMessages.length > 0) {
+                            queryClient.setQueryData<InfiniteData<ChatMessage[] | undefined, unknown> | undefined>(
+                                [ChatMessagesQueryIdPrefix, threadId],
+                                oldData => {
+                                    if (oldData && oldData.pages && oldData.pages.length > 0) {
+                                        const page0 = oldData.pages[0];
+                                        const updatedPage0 = updateOldMessagesText(
+                                            page0,
+                                            updatedOldMessages.map(convertMessageToChatMessage)
+                                        );
+                                        if (updatedPage0 === page0) {
+                                            return oldData;
+                                        } else {
+                                            return { ...oldData, pages: [updatedPage0, ...oldData.pages.slice(1)] };
+                                        }
+                                    }
+                                    return oldData;
+                                }
+                            );
+                        }
+                    }
+
+                    timeoutId = setTimeout(refreshOldMessages, 10000);
+                }
+            };
+
+            refreshOldMessages();
+        }
+
+        return () => {
+            isSubscribed = false;
+            clearTimeout(timeoutId);
+        };
+    }, [threadId, isLoadingInitialChatHistory, isIncidentInvestigationInProgress, newestMessageTimestampInOldMessages]);
+
+    return {
+        oldMessagesQueryData: data,
+        isLoadingInitialChatHistory,
+        loadOlderMessages,
+        hasMoreDataToLoad: hasNextPage,
+        isFetchingOlderMessages: isFetchingNextPage,
+    };
+};

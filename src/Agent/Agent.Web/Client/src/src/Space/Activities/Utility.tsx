@@ -148,7 +148,10 @@ export const processOldMessagesV2 = (prevMessages: ChatMessage[], oldMessages: C
  * @param prevMessages
  * @param updatedMessages
  */
-export const updateOldMessagesText = (prevMessages: ChatMessage[], updatedMessages: ChatMessage[]) => {
+export const updateOldMessagesText = (prevMessages: ChatMessage[] | undefined, updatedMessages: ChatMessage[]) => {
+    //Do not update the messages if the prevMessages is undefined or empty or updatedMessages is empty
+    if (prevMessages === undefined || prevMessages.length === 0 || updatedMessages.length === 0) return prevMessages;
+
     const updatedPrevMessages = [...prevMessages];
     let isPrevMessagesUpdated = false;
 
