@@ -1476,7 +1476,10 @@ public class ReasoningLoop : IDisposable
             return string.Empty;
         }
 
-        var span = _tracer.StartActiveSpan("retrieval_search_documents", SpanKind.Internal, _rootSpan);
+        TelemetrySpan span = _tracer.StartActiveSpan("retrieval_search_documents", SpanKind.Internal, _rootSpan);
+        span.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
+        span.SetAttribute(TraceAttribute.OperationName, "retrieval.search.documents");
+
         var query = await DocumentRetrieval.GenerateSearchQuery(_chatClient, chatHistory, userMessage, _logger);
         if (string.IsNullOrWhiteSpace(query))
         {
@@ -1494,9 +1497,17 @@ public class ReasoningLoop : IDisposable
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "Error while searching documents in search endpoint");
+            span.SetAttribute("search.error", ex.Message);
         }
 
         span.SetAttribute("search.results.count", results.Count.ToString());
+        if (results.Count == 0)
+        {
+            span.End();
+            return string.Empty;
+        }
+        span.SetAttribute("search.results", JsonSerializer.Serialize(results));
+
         var sb = new StringBuilder();
         sb.AppendLine($"Here are some relevant documents retrieved from the knowledge base. If the documents are not helpful, you can ignore them:");
         sb.AppendLine("<Documents>");
@@ -1512,12 +1523,6 @@ public class ReasoningLoop : IDisposable
             sb.AppendLine();
         }
         sb.AppendLine("</Documents>");
-
-        if (results.Count == 0)
-        {
-            span.End();
-            return string.Empty;
-        }
 
         span.End();
         return sb.ToString();
