@@ -206,8 +206,27 @@ namespace Agent.Data.Repositories
             };
 
             _threads[threadId] = updatedThread;
-
             _logger.LogInternalInformation("Successfully updated thread {ThreadId}", threadId);
+            return Task.FromResult(updatedThread);
+        }
+
+        public Task<Thread> UpdateThreadEvaluatedTimestampAsync(Guid threadId, DateTime evaluatedTimestamp)
+        {
+            if (!_threads.TryGetValue(threadId, out var existingThread))
+            {
+                _logger.LogInternalWarning("Cannot update evaluated timestamp: Thread {ThreadId} not found", threadId);
+                return Task.FromResult<Thread>(null);
+            }
+
+            // Update the thread with new evaluated timestamp
+            var updatedThread = existingThread with
+            {
+                EvaluatedTimestamp = evaluatedTimestamp
+            };
+
+            _threads[threadId] = updatedThread;
+
+            _logger.LogInternalInformation("Successfully updated evaluated timestamp for thread {ThreadId}", threadId);
             return Task.FromResult(updatedThread);
         }
 

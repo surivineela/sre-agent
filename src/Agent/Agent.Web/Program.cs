@@ -68,6 +68,7 @@ using Agent.Runtime.SubAgents.ManagedIdentityMigration;
 using Agent.Runtime.SubAgents.PagerDutyAgent;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
 using Agent.Runtime.SubAgents.SqlDbQueryPerfAgent;
+using Agent.Runtime.SubAgents.ThreadEvaluator;
 using Agent.Runtime.SubAgents.TlsBestPractices;
 using Agent.Runtime.SubAgents.TlsBestPracticesAgent;
 using Agent.Runtime.SubAgents.VmRdpInvestigatorAgent;
@@ -460,6 +461,7 @@ public class Program
             .AddSingleton<KubernetesAgentFactory>()
             .AddSingleton<AksQaAgentFactory>()
             .AddSingleton<ManagedIdentityMigrationAgentFactory>()
+            .AddSingleton<ThreadEvaluator>()
             .AddSingleton<TlsBestPracticeAgentFactory>()
             .AddSingleton<TlsBestPracticesScanner>()
             .AddTransient<IMetaAgentLocalAuthPlugin, LocalAuthAgentPlugin>()
@@ -823,6 +825,7 @@ public class Program
                 // {
                 // In-memory exporter for development - direct implementation
                 exporters.Add(new InMemoryActivityExporter(exportedActivities));
+
                 // }
 
 

@@ -16,6 +16,7 @@ public record ThreadDocument(
     DateTime CreatedTimestamp,
     DateTime ModifiedTimestamp,
     ThreadSource Source = ThreadSource.Conversation,
+    DateTime EvaluatedTimestamp = default,
     IncidentSource? IncidentSource = null
 ) : ICosmosDocument
 {
@@ -35,6 +36,7 @@ public record ThreadDocument(
             thread.CreatedTimestamp,
             thread.ModifiedTimestamp,
             thread.Source,
+            thread.EvaluatedTimestamp,
             IncidentSource: thread.IncidentSource
         )
         {
@@ -54,6 +56,7 @@ public record ThreadDocument(
             IncidentSource: IncidentSource
         )
         {
-            LastReadTime = LastReadTime
+            LastReadTime = LastReadTime,
+            EvaluatedTimestamp = EvaluatedTimestamp
         };
 }

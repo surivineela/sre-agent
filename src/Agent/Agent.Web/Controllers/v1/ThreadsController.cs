@@ -20,7 +20,7 @@ using Agent.Web.Models.WelcomeMessage;
 using Agent.Runtime.Services;
 using Agent.Plugins.Interface;
 using Agent.Runtime.Reasoning;
-
+using Agent.Runtime.SubAgents.ThreadEvaluator;
 
 namespace Agent.Web.Controllers.v1
 {
@@ -46,7 +46,8 @@ namespace Agent.Web.Controllers.v1
         IConnectedIntegrationsPlugin connectedIntegrationsPlugin,
         IGithubIssuePlugin githubIssuePlugin,
         IReasoningLoopManager reasoningLoopManager,
-        ThreadManagementService threadManagementService) : ControllerBase
+        ThreadManagementService threadManagementService,
+        ThreadEvaluator threadEvaluator) : ControllerBase
     {
         // By default, returns threads ordered by timestamp in ascending order.
         // Pagination can be achieve by using `top` and `skip` query options. https://learn.microsoft.com/en-us/odata/client/pagination#client-driven-paging
@@ -181,15 +182,16 @@ namespace Agent.Web.Controllers.v1
         {
             StreamWriter sw;
 
-            if (!ModelState.IsValid) {
+            if (!ModelState.IsValid)
+            {
                 Response.StatusCode = 400;
                 Response.ContentType = "application/json";
                 BadRequestObjectResult badRequest = new BadRequestObjectResult(ModelState);
                 await using ((sw = new StreamWriter(Response.Body))
                     .ConfigureAwait(false))
                 {
-                        await sw.WriteLineAsync(JsonSerializer.Serialize(badRequest)).ConfigureAwait(false);
-                        await sw.FlushAsync().ConfigureAwait(false);
+                    await sw.WriteLineAsync(JsonSerializer.Serialize(badRequest)).ConfigureAwait(false);
+                    await sw.FlushAsync().ConfigureAwait(false);
                 }
                 return;
             }
@@ -197,14 +199,15 @@ namespace Agent.Web.Controllers.v1
             // First check if thread exists
             var thread = await repository.GetThreadAsync(threadId);
 
-            if (thread == null) {
+            if (thread == null)
+            {
                 Response.StatusCode = 404;
                 NotFoundObjectResult notFound = new NotFoundObjectResult($"Thread with id {threadId} not found");
                 await using ((sw = new StreamWriter(Response.Body))
                     .ConfigureAwait(false))
                 {
-                        await sw.WriteLineAsync(JsonSerializer.Serialize(notFound)).ConfigureAwait(false);
-                        await sw.FlushAsync().ConfigureAwait(false);
+                    await sw.WriteLineAsync(JsonSerializer.Serialize(notFound)).ConfigureAwait(false);
+                    await sw.FlushAsync().ConfigureAwait(false);
                 }
                 return;
             }
@@ -220,8 +223,8 @@ namespace Agent.Web.Controllers.v1
                 await using ((sw = new StreamWriter(Response.Body))
                     .ConfigureAwait(false))
                 {
-                        await sw.WriteLineAsync(JsonSerializer.Serialize(notFound)).ConfigureAwait(false);
-                        await sw.FlushAsync().ConfigureAwait(false);
+                    await sw.WriteLineAsync(JsonSerializer.Serialize(notFound)).ConfigureAwait(false);
+                    await sw.FlushAsync().ConfigureAwait(false);
                 }
                 return;
             }
@@ -230,7 +233,8 @@ namespace Agent.Web.Controllers.v1
             var messageId = Guid.NewGuid();
             IAsyncEnumerable<ChatResponseUpdate> results = AsyncEnumerable.Empty<ChatResponseUpdate>();
 
-            try {
+            try
+            {
                 results = agentInboundCommunicationService.ProcessUserMessageStreamAsync(new ThreadMessage
                 (
                     ThreadId: threadId,
@@ -241,7 +245,9 @@ namespace Agent.Web.Controllers.v1
                     DisplayName: request.DisplayName,
                     Timestamp: DateTime.UtcNow
                 ), HttpContext.RequestAborted);
-            } catch (Exception ex) {
+            }
+            catch (Exception ex)
+            {
                 Response.StatusCode = 500;
                 var errorResponse = new { Message = "An unexpected error occurred. Please try again later." };
                 logger.LogInternalError(ex, "Error processing user message stream");
@@ -249,8 +255,8 @@ namespace Agent.Web.Controllers.v1
                 await using ((sw = new StreamWriter(Response.Body))
                     .ConfigureAwait(false))
                 {
-                        await sw.WriteLineAsync(JsonSerializer.Serialize(errorResponse)).ConfigureAwait(false);
-                        await sw.FlushAsync().ConfigureAwait(false);
+                    await sw.WriteLineAsync(JsonSerializer.Serialize(errorResponse)).ConfigureAwait(false);
+                    await sw.FlushAsync().ConfigureAwait(false);
                 }
                 return;
             }
@@ -277,18 +283,19 @@ namespace Agent.Web.Controllers.v1
                 await sw.WriteLineAsync(textOnly ? request.Text : JsonSerializer.Serialize(userMessage)).ConfigureAwait(false);
                 await sw.FlushAsync().ConfigureAwait(false);
                 // TODO: Do we want to actually process the ChatResponseUpdate objects further or just return fragments of ChatResponseUpdate?
-                await foreach(var result in results)
+                await foreach (var result in results)
                 {
                     completeMessage.Append(result.Text);
                     if (textOnly && result.FinishReason == ChatFinishReason.ToolCalls && result.Contents.Count > 0 && result.Contents[0].GetType() == typeof(FunctionCallContent))
                     {
-                        var toolCallContent = (FunctionCallContent) result.Contents[0];
+                        var toolCallContent = (FunctionCallContent)result.Contents[0];
                         await sw.WriteLineAsync("Calling tool... " + toolCallContent.Name).ConfigureAwait(false);
                         await sw.WriteLineAsync("Tool call params: " + JsonSerializer.Serialize(toolCallContent.Arguments)).ConfigureAwait(false);
                         await sw.FlushAsync().ConfigureAwait(false);
 
                     }
-                    if (textOnly && result.Role == ChatRole.Tool && result.Contents.Count > 0 && result.Contents[0].GetType() == typeof(FunctionResultContent)) {
+                    if (textOnly && result.Role == ChatRole.Tool && result.Contents.Count > 0 && result.Contents[0].GetType() == typeof(FunctionResultContent))
+                    {
                         await sw.WriteLineAsync("Tool call completed.").ConfigureAwait(false);
                         await sw.FlushAsync().ConfigureAwait(false);
                     }
@@ -296,7 +303,7 @@ namespace Agent.Web.Controllers.v1
                     await sw.FlushAsync().ConfigureAwait(false);
                 }
                 await sw.WriteLineAsync("[DONE]").ConfigureAwait(false);
-            logger.LogInternalInformation($"Stream output complete response: {completeMessage.ToString()}");
+                logger.LogInternalInformation($"Stream output complete response: {completeMessage.ToString()}");
             }
         }
 

@@ -22,6 +22,7 @@ using Agent.Runtime.SubAgents.CVEAgent;
 using Agent.Runtime.SubAgents.DailyReportSummary;
 using Agent.Runtime.SubAgents.FeedbackRCAAgent;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
+using Agent.Runtime.SubAgents.ThreadEvaluator;
 using Agent.Runtime.SubAgents.TlsBestPracticesAgent;
 using Agent.Runtime.SubAgents.WebAppDownAgent;
 using Microsoft.Extensions.AI;
@@ -79,6 +80,7 @@ public class TimerService : IHostedService, IDisposable
     private ScoreCardService _scoreCardService;
     private FeedbackRCAScanner _feedbackRCAScanner;
     private AzMonitorAlertScanner _azMonitorAlertScanner;
+    private ThreadEvaluator _threadEvaluator;
     private AzureDataExplorerLogger _azureDataExplorerLogger;
     private CustomerLogger _customerLogger;
     private CustomerAuditLogger _customerAuditLogger;
@@ -115,6 +117,10 @@ public class TimerService : IHostedService, IDisposable
     private Timer? _feedbackRCATimer = null;
     private bool _feedbackRCATimerIsRunning = false;
     private TimeSpan _feedbackRCATimerInterval = TimeSpan.FromMinutes(1);
+
+    private Timer? _threadEvaluatorTimer = null;
+    private bool _threadEvaluatorTimerIsRunning = false;
+    private TimeSpan _threadEvaluatorTimerInterval = TimeSpan.FromMinutes(30);
 
     private Timer? _azMonitorAlertScannerTimer = null;
     private bool _azMonitorAlertScannerTimerIsRunning = false;
@@ -162,6 +168,7 @@ public class TimerService : IHostedService, IDisposable
         SinkService sinkService,
         FeedbackRCAScanner feedbackRCAScanner,
         AzMonitorAlertScanner azMonitorAlertScanner,
+        ThreadEvaluator threadEvaluator,
         AzureDataExplorerLogger azureDataExplorerLogger,
         CustomerLogger customerLogger,
         CustomerAuditLogger customerAuditLogger,
@@ -187,6 +194,7 @@ public class TimerService : IHostedService, IDisposable
         _feedbackRCAScanner = feedbackRCAScanner;
         _dashboardSettings = dashboardSettings;
         _azMonitorAlertScanner = azMonitorAlertScanner;
+        _threadEvaluator = threadEvaluator;
         _azureDataExplorerLogger = azureDataExplorerLogger;
         _customerLogger = customerLogger;
         _customerAuditLogger = customerAuditLogger;
@@ -252,6 +260,9 @@ public class TimerService : IHostedService, IDisposable
         _logger.LogInternalInformation("Starting Feedback RCA timer...");
         StartFeedbackRCATimer(cancellationToken);
 
+        _logger.LogInternalInformation("Starting Thread Evaluator timer...");
+        StartThreadEvaluatorTimer(cancellationToken);
+
         _logger.LogInternalInformation("Starting GitHub access token timer...");
         //StartGitHubAccessTokenTimer(cancellationToken);
 
@@ -285,6 +296,7 @@ public class TimerService : IHostedService, IDisposable
         _logger.LogInternalInformation("Stopping background services...");
 
         _crawlerTimer?.Change(Timeout.Infinite, 0); // Stop the timer
+        _threadEvaluatorTimer?.Change(Timeout.Infinite, 0); // Stop the ThreadEvaluator timer
 
         // Stop all generic timers
         foreach (var scanner in GenericSubAgentScannerTimers)
@@ -641,6 +653,31 @@ public class TimerService : IHostedService, IDisposable
         }, null, TimeSpan.Zero, _feedbackRCATimerInterval);
     }
 
+    public void StartThreadEvaluatorTimer(CancellationToken cancellationToken)
+    {
+        _threadEvaluatorTimer = new Timer(async _ =>
+        {
+            if (_threadEvaluatorTimerIsRunning)
+            {
+                _logger.LogInternalInformation("Thread evaluator is already running. Skip this round.");
+                return;
+            }
+            try
+            {
+                _threadEvaluatorTimerIsRunning = true;
+                await _threadEvaluator.Evaluate(cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Error executing thread evaluator.");
+            }
+            finally
+            {
+                _threadEvaluatorTimerIsRunning = false;
+            }
+        }, null, TimeSpan.Zero, _threadEvaluatorTimerInterval);
+    }
+
     public void StartGitHubAccessTokenTimer(CancellationToken cancellationToken)
     {
         _githubAccessTokenTimer = new Timer(async _ =>
@@ -808,10 +845,10 @@ public class TimerService : IHostedService, IDisposable
     }
 
     public void Dispose()
-    {
-        _logger.LogInternalInformation("Disposing Azure Resource Crawler Worker");
+    {        _logger.LogInternalInformation("Disposing Azure Resource Crawler Worker");
 
         _crawlerTimer?.Dispose();
+        _threadEvaluatorTimer?.Dispose();
 
         // Dispose generic timers
         foreach (var scanner in GenericSubAgentScannerTimers)

@@ -1,0 +1,653 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Core.Interfaces;
+using Agent.Core.Models.Api.v1;
+using Agent.Core.Extensions;
+using Agent.Logging;
+using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging;
+using OpenTelemetry.Trace;
+using System.Text;
+using System.Text.Json;
+using ThreadModel = Agent.Core.Models.Api.v1.Thread;
+
+namespace Agent.Runtime.SubAgents.ThreadEvaluator;
+
+/// <summary>
+/// Scanner that periodically evaluates completed threads to assess their behavior and performance.
+/// Filters threads based on configurable time windows:
+/// - Evaluation history range: How far back to search for threads (default: 24 hours)
+/// - Cool down period: Minimum time since last modification before evaluation (default: 30 minutes)
+/// </summary>
+public class ThreadEvaluator
+{
+    private readonly ILogger<ThreadEvaluator> _logger;
+    private readonly IThreadRepository _threadRepository;
+    private readonly IChatClient _chatClient;
+    private readonly Tracer _tracer;
+    private readonly AgentActionLogger _actionLogger;    // Configurable time windows for thread filtering
+    private readonly TimeSpan _evaluationHistoryRange; // How far back to search for threads
+    private readonly TimeSpan _coolDownPeriod;         // Minimum time since last modification before evaluation
+      public ThreadEvaluator(
+        ILogger<ThreadEvaluator> logger,
+        IThreadRepository threadRepository,
+        IChatClient chatClient,
+        AgentActionLogger actionLogger,
+        Tracer tracer,
+        TimeSpan? evaluationHistoryRange = null,
+        TimeSpan? coolDownPeriod = null)
+    {
+        _logger = logger;
+        _threadRepository = threadRepository;
+        _chatClient = chatClient;
+        _actionLogger = actionLogger;
+        _tracer = tracer;
+
+        // Allow overriding default time windows
+        _evaluationHistoryRange = evaluationHistoryRange ?? TimeSpan.FromHours(24);
+        _coolDownPeriod = coolDownPeriod ?? TimeSpan.FromMinutes(30);
+    }
+
+    /// <summary>
+    /// Main evaluation method that scans all completed threads from the past calendar day
+    /// </summary>
+    public async Task Evaluate(CancellationToken cancellationToken)
+    {
+        try
+        {
+            _logger.LogInternalInformation("Starting thread behavior evaluation for completed threads from the past day");
+
+            // Get all completed threads from the past calendar day
+            var threads = await ListThreadsToEvaluate();
+
+            _logger.LogInternalInformation($"Found {threads.Count()} completed threads to evaluate");
+
+            foreach (var thread in threads)
+            {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    _logger.LogInternalInformation("Thread behavior evaluation cancelled");
+                    break;
+                }
+
+                try
+                {
+                    // Check if this thread has already been evaluated today
+                    // var existingTodayResult = await GetTodayEvaluationResult(thread.Id);
+
+                    var evaluationResult = await EvaluateThread(thread, cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalError(ex, $"Error evaluating thread {thread.Id}: {ex.Message}");
+                }
+            }
+
+            _logger.LogInternalInformation("Completed thread behavior evaluation");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, $"Error during thread behavior evaluation: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Evaluate a specific thread by its ID
+    /// </summary>
+    /// <param name="threadId">The ID of the thread to evaluate</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The evaluation result or null if thread not found or evaluation failed</returns>
+    public async Task<ThreadEvaluateResult?> EvaluateThreadById(Guid threadId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInternalInformation($"Starting evaluation for thread {threadId}");
+
+            // Get the specific thread
+            var threads = await _threadRepository.GetThreadsAsync();
+            var thread = threads.FirstOrDefault(t => t.Id == threadId);
+
+            if (thread == null)
+            {
+                _logger.LogInternalWarning($"Thread {threadId} not found");
+                return null;
+            }
+
+            // Use the existing EvaluateThread method
+            var evaluationResult = await EvaluateThread(thread, cancellationToken);
+
+            _logger.LogInternalInformation($"Completed evaluation for thread {threadId}");
+            return evaluationResult;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, $"Error evaluating thread {threadId}: {ex.Message}");
+            return null;
+        }
+    }
+
+
+    /// <summary>
+    /// List all completed threads from the past calendar day that need evaluation
+    /// </summary>
+    private async Task<IEnumerable<ThreadModel>> ListThreadsToEvaluate()
+    {
+        try
+        {
+            var allThreads = await _threadRepository.GetThreadsAsync();            // Calculate time boundaries for filtering
+            var now = DateTime.UtcNow;
+            var earliestTime = now - _evaluationHistoryRange; // 24 hours ago (configurable)
+            var latestTime = now - _coolDownPeriod;           // 30 minutes ago (configurable)
+
+            // Filter threads that were modified in the specified time window and need evaluation
+            var threads = new List<ThreadModel>();
+
+            foreach (var thread in allThreads)
+            {
+                try
+                {
+                    // First check if thread is within the time window
+                    bool isInTimeWindow = thread.ModifiedTimestamp >= earliestTime &&
+                                         thread.ModifiedTimestamp <= latestTime;
+
+                    if (!isInTimeWindow)
+                    {
+                        continue; // Skip threads outside the time window
+                    }
+
+                    if(thread.EvaluatedTimestamp >= thread.ModifiedTimestamp)
+                    {
+                        // Skip threads that have already been evaluated after their last modification
+                        continue;
+                    }
+
+                    threads.Add(thread);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalWarning(ex, $"Error checking thread {thread.Id} for evaluation criteria");
+                }
+            }
+
+            _logger.LogInternalInformation($"Found {threads.Count()} threads needing evaluation out of {allThreads.Count()} total threads (time window: {earliestTime:yyyy-MM-dd HH:mm:ss} to {latestTime:yyyy-MM-dd HH:mm:ss} UTC)");
+            return threads;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error listing threads for evaluation");
+            return Enumerable.Empty<ThreadModel>();
+        }
+    }
+
+    /// <summary>
+    /// Evaluate a single thread's behavior and performance
+    /// </summary>
+    private async Task<ThreadEvaluateResult?> EvaluateThread(ThreadModel thread, CancellationToken cancellationToken)
+    {
+        try
+        {
+            // var span = _tracer.StartRootSpan("evaluate.thread");
+            // span.SetAttribute("thread.id", thread.Id.ToString());
+            // span.SetAttribute("operation.name", "evaluate.thread");
+
+            _logger.LogInternalInformation($"Evaluating thread {thread.Id}: {thread.Title}");
+
+            // Calculate basic metrics
+            var duration = thread.ModifiedTimestamp - thread.CreatedTimestamp;
+
+            // Get all messages for the thread
+            var messages = await _threadRepository.GetMessagesAsync(thread.Id);
+            var messagesList = messages.ToList();
+
+            // Count user interactions (messages from users)
+            var userInteractionCount = messagesList.Count(m => m.Author.Role == Role.User);
+
+            // Get agent contexts to analyze tool calls
+            var agentContexts = await _threadRepository.GetAgentContextsForThreadAsync(thread.Id);
+            var toolCallMetrics = await CalculateToolCallMetrics(thread.Id, agentContexts);
+
+            // Get chat and reasoning message history for LLM evaluation
+            (string chatHistory, string reasoningHistory) = await GetMessageHistories(thread.Id, agentContexts);            // Call LLM to evaluate thread quality
+            var llmEvaluation = await EvaluateThreadWithLLM(thread, chatHistory, reasoningHistory, toolCallMetrics, cancellationToken);// Calculate SAT Score from the individual criteria scores
+            var satScore = llmEvaluation.Resolved + llmEvaluation.Satisfied + llmEvaluation.Automatic + llmEvaluation.Smooth + llmEvaluation.Concise;
+
+            var evaluationResult = new ThreadEvaluateResult(
+                Id: Guid.NewGuid(),
+                ThreadId: thread.Id,
+                ThreadTitle: thread.Title,
+                Duration: duration,
+                UserInteractionCount: userInteractionCount,
+                ToolCallCount: toolCallMetrics.TotalToolCalls,
+                ToolCallSuccessRate: toolCallMetrics.OverallSuccessRate,
+                AzCliCallCount: toolCallMetrics.AzCliCalls,
+                AzCliSuccessRate: toolCallMetrics.AzCliSuccessRate,
+                KubectlCallCount: toolCallMetrics.KubectlCalls,
+                KubectlSuccessRate: toolCallMetrics.KubectlSuccessRate,
+                EvaluationSummary: llmEvaluation.Summary,
+                SATScore: satScore,
+                Category: llmEvaluation.Category,
+                Resolved: llmEvaluation.Resolved,
+                Satisfied: llmEvaluation.Satisfied,
+                Automatic: llmEvaluation.Automatic,
+                Smooth: llmEvaluation.Smooth,
+                Concise: llmEvaluation.Concise,
+                Priority: llmEvaluation.Priority,
+                PriorityReason: llmEvaluation.PriorityReason,
+                EvaluatedTimestamp: thread.ModifiedTimestamp
+            );
+            // span.SetAttribute("sat_score", evaluationResult.SATScore);
+            _actionLogger.LogAction(
+                action: "evaluate.thread",
+                parameter: JsonSerializer.Serialize(evaluationResult),
+                status: "success",
+                duration: 0,
+                threadId: thread.Id.ToString());
+
+            // Update thread with evaluation timestamp
+            await _threadRepository.UpdateThreadEvaluatedTimestampAsync(thread.Id, DateTime.UtcNow);
+
+            return evaluationResult;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, $"Error evaluating thread {thread.Id}: {ex.Message}");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Calculate tool call metrics for the thread
+    /// </summary>
+    private async Task<ToolCallMetrics> CalculateToolCallMetrics(Guid threadId, IEnumerable<AgentContext> agentContexts)
+    {
+        var metrics = new ToolCallMetrics();
+
+        foreach (var context in agentContexts)
+        {
+            try
+            {
+                // Get reasoning messages for this context to find tool calls
+                var reasoningMessages = await GetReasoningMessagesForContext(context.Id);
+                  foreach (var reasoningMessage in reasoningMessages)
+                {
+                    // Look for tool calls in reasoning messages
+                    if (reasoningMessage.Role == ReasoningMessageRoleEnum.Tool)
+                    {
+                        metrics.TotalToolCalls++;
+
+                        // Deserialize the chat message to get content
+                        string content = GetContentFromReasoningMessage(reasoningMessage);
+
+                        // Determine tool type and success based on message content
+                        var isSuccess = !content.ToLower().Contains("error") &&
+                                       !content.ToLower().Contains("failed");
+
+                        if (content.Contains("az ") || content.Contains("azure"))
+                        {
+                            metrics.AzCliCalls++;
+                            if (isSuccess) metrics.AzCliSuccesses++;
+                        }
+                        else if (content.Contains("kubectl"))
+                        {
+                            metrics.KubectlCalls++;
+                            if (isSuccess) metrics.KubectlSuccesses++;
+                        }
+
+                        if (isSuccess) metrics.TotalSuccesses++;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalWarning(ex, $"Error calculating tool metrics for context {context.Id}");
+            }
+        }
+
+        return metrics;
+    }
+
+    /// <summary>
+    /// Get reasoning messages for a specific agent context
+    /// </summary>
+    private async Task<IEnumerable<ReasoningMessage>> GetReasoningMessagesForContext(Guid agentContextId)
+    {
+        try
+        {
+            var chatHistory = await _threadRepository.GetAgentChatHistoryAsync(agentContextId);
+            if (chatHistory?.ReasoningMessageIds == null || !chatHistory.ReasoningMessageIds.Any())
+            {
+                return Enumerable.Empty<ReasoningMessage>();
+            }
+
+            var reasoningMessages = new List<ReasoningMessage>();
+            foreach (var messageId in chatHistory.ReasoningMessageIds)
+            {
+                try
+                {
+                    var reasoningMessage = await _threadRepository.GetReasoningMessageAsync(messageId, agentContextId);
+                    if (reasoningMessage != null)
+                    {
+                        reasoningMessages.Add(reasoningMessage);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalWarning(ex, $"Error getting reasoning message {messageId}");
+                }
+            }
+
+            return reasoningMessages;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning(ex, $"Error getting reasoning messages for context {agentContextId}");
+            return Enumerable.Empty<ReasoningMessage>();
+        }
+    }
+
+    /// <summary>
+    /// Get chat and reasoning message histories for the thread
+    /// </summary>
+    private async Task<(string ChatHistory, string ReasoningHistory)> GetMessageHistories(Guid threadId, IEnumerable<AgentContext> agentContexts)
+    {
+        var chatHistoryBuilder = new StringBuilder();
+        var reasoningHistoryBuilder = new StringBuilder();
+
+        try
+        {
+            // Get regular chat messages
+            var messages = await _threadRepository.GetMessagesAsync(threadId);
+            foreach (var message in messages.OrderBy(m => m.TimeStamp))
+            {
+                chatHistoryBuilder.AppendLine($"[{message.TimeStamp:yyyy-MM-dd HH:mm:ss}] {message.Author.Role}: {message.Text}");
+            }
+
+            // Get reasoning messages from all agent contexts
+            foreach (var context in agentContexts)
+            {
+                var reasoningMessages = await GetReasoningMessagesForContext(context.Id);
+                foreach (var reasoningMessage in reasoningMessages)
+                {
+                    try
+                    {
+                        // Build reasoning message content
+                        var content = GetContentFromReasoningMessage(reasoningMessage);
+                        reasoningHistoryBuilder.AppendLine($"[{reasoningMessage.Role}]: {content}");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogInternalWarning(ex, $"Error processing reasoning message {reasoningMessage.Id}");
+                        reasoningHistoryBuilder.AppendLine($"[{reasoningMessage.Role}]: <Unable to parse message>");
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning(ex, $"Error building message histories for thread {threadId}");
+        }
+
+        return (chatHistoryBuilder.ToString(), reasoningHistoryBuilder.ToString());
+    }
+
+    /// <summary>
+    /// Use LLM to evaluate thread performance and quality
+    /// </summary>
+    private async Task<LLMEvaluationResult> EvaluateThreadWithLLM(ThreadModel thread, string chatHistory, string reasoningHistory, ToolCallMetrics toolCallMetrics, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var prompt = BuildEvaluationPrompt(thread, chatHistory, reasoningHistory, toolCallMetrics);
+
+            _logger.LogInternalInformation("LLM Evaluation Prompt for thread {ThreadId}:\n{Prompt}", thread.Id, prompt);            var chatMessages = new List<ChatMessage>
+            {
+                new(ChatRole.System, """
+                    You are an expert evaluator of AI agent conversations. Your task is to evaluate the quality and effectiveness of agent threads based on the provided conversation history and reasoning logs.
+
+                    Evaluation Criteria (evaluate each with -1, 0, 1):
+                    1. **Resolved**: Did the agent successfully meet user intent and resolve their issue?
+                        Score Definitions:
+                        - -1 (Not Resolved): The user's issue remains unresolved, the agent failed to address the core problem, or the user explicitly states their issue is not fixed. Examples: "This didn't work", "My problem is still there", agent provided incorrect solution.
+                        - 0 (Partially Resolved): The agent made progress but didn't fully resolve the issue, or the resolution status is unclear from the conversation. Examples: Partial fixes provided, user acknowledges some progress but indicates more work needed.
+                        - 1 (Fully Resolved): The agent successfully addressed the user's issue completely, user confirms the problem is solved, or the task was completed satisfactorily. Examples: "Thanks, that fixed it!", successful completion of requested actions.
+
+                    2. **Satisfied**: Was the agent's response good enough? Did the user appear satisfied and not frustrated?
+                        Score Definitions:
+                        - -1 (Dissatisfied): User expresses frustration, dissatisfaction, or indicates the agent's response was unhelpful. Examples: "This is not what I asked for", "You're not understanding me", expressions of anger or impatience.
+                        - 0 (Neutral): User shows neither clear satisfaction nor dissatisfaction, or their sentiment is mixed/ambiguous. Examples: Neutral acknowledgments, no clear emotional indicators.
+                        - 1 (Satisfied): User expresses satisfaction, appreciation, or positive feedback about the agent's help. Examples: "Thank you", "Great!", "This is exactly what I needed", positive tone throughout.
+
+                    3. **Automatic**: Can the agent work automatically and finish the thread without user interaction as much as possible?
+                        Score Definitions:
+                        - -1 (Not Automatic): Agent requires significant user interaction, frequent confirmations, or cannot proceed without constant user guidance. Examples: Agent asks for permission for every step, requires detailed instructions for basic tasks, cannot make autonomous decisions.
+                        - 0 (Partially Automatic): Agent can handle some tasks autonomously but still requires moderate user interaction for key decisions or guidance. Examples: Agent handles routine steps automatically but needs user input for important decisions, some self-directed progress with occasional guidance needed.
+                        - 1 (Fully Automatic): Agent works independently with minimal user interaction, makes appropriate autonomous decisions, and can complete most tasks without requiring step-by-step guidance. Examples: Agent proactively identifies and executes solutions, makes reasonable assumptions, completes complex workflows with minimal supervision.
+
+                    4. **Smooth**: Was the interaction smooth without the user getting stuck or confused?
+                        Score Definitions:
+                        - -1 (Not Smooth): User frequently gets confused, the conversation has multiple misunderstandings, or the user repeatedly asks for clarification. Examples: "I don't understand", "What do you mean?", back-and-forth confusion, repeated failed attempts.
+                        - 0 (Somewhat Smooth): Some minor confusion or misunderstandings but generally progresses forward. Examples: Occasional clarifications needed, minor hiccups that are quickly resolved.
+                        - 1 (Very Smooth): Conversation flows naturally, minimal confusion, agent and user understand each other clearly. Examples: Clear communication, efficient problem-solving, no significant misunderstandings.
+
+                    5. **Concise**: Was the conversation focused and efficient without unnecessary back-and-forth?
+                        Score Definitions:
+                        - -1 (Not Concise): Excessive back-and-forth, repetitive exchanges, or agent provides overly verbose/irrelevant information. Examples: Repeating the same questions, long tangential discussions, inefficient problem-solving process.
+                        - 0 (Moderately Concise): Some unnecessary exchanges but generally stays on track. Examples: Minor repetition, some irrelevant details but overall focused approach.
+                        - 1 (Very Concise): Efficient, focused conversation that gets to the point quickly and stays on task. Examples: Direct problem-solving, relevant responses, minimal repetition, efficient resolution path.
+
+                    Additional Classification Criteria:
+                    **Category** - Classify the thread into one of these categories:
+                    - "incidents": Thread triggered by an alert from PagerDuty or monitoring systems
+                    - "user-driven-investigation": Thread initiated by user investigating specific issues
+                    - "security-updates": Thread related to security issues or updates
+                    - "other": All other topics not covered above
+
+                    **Priority** - Assess the priority level:
+                    - "high": Important and urgent (e.g., P0 alerts, production outages, security incidents)
+                    - "medium": Important but non-urgent (e.g., P1/P2 alerts, planned maintenance, feature requests)
+                    - "low": Non-important and non-urgent (e.g., informational queries, documentation requests)
+
+                    **PriorityReason** - Explain why you assigned this priority level
+
+                    Respond in valid JSON format with:
+                    {
+                      "Resolved": 1,
+                      "Satisfied": 0,
+                      "Automatic": 1,
+                      "Smooth": -1,
+                      "Concise": 0,
+                      "Summary": "Brief 1-2 sentence summary of performance",
+                      "Category": "incidents",
+                      "Priority": "high",
+                      "PriorityReason": "Explanation for the priority assignment"
+                    }
+                    """),
+                new(ChatRole.User, prompt)
+            };
+
+            var chatOptions = new ChatOptions
+            {
+                Temperature = 0
+            };
+            var response = await _chatClient.GetResponseAsync(chatMessages, chatOptions, cancellationToken: cancellationToken);
+            var jsonResponse = response.GetMessage().Text?.Trim();
+            if (string.IsNullOrEmpty(jsonResponse))
+            {
+                return new LLMEvaluationResult
+                {
+                    SATScore = 2.5,
+                    Summary = "Unable to evaluate - no LLM response",
+                    DetailedFeedback = "The LLM did not provide a response for evaluation.",
+                    Category = "other",
+                    Resolved = 0,
+                    Satisfied = 0,
+                    Automatic = 0,
+                    Smooth = 0,
+                    Concise = 0,
+                    Priority = "low",
+                    PriorityReason = "Unable to determine priority - no LLM response"
+                };
+            }
+
+            // Parse LLM response
+            try
+            {
+                var cleanedJson = jsonResponse.Replace("\n", "").Replace("\\n", "").Trim();
+                var evaluationData = JsonSerializer.Deserialize<LLMEvaluationResponse>(cleanedJson);
+                return new LLMEvaluationResult
+                {
+                    SATScore = Math.Max(0.0, Math.Min(5.0, evaluationData?.SATScore ?? 2.5)), // Clamp between 0-5
+                    Summary = evaluationData?.Summary ?? "Unable to evaluate",
+                    DetailedFeedback = evaluationData?.DetailedFeedback ?? "No detailed feedback available",
+                    Category = evaluationData?.Category ?? "other",
+                    Resolved = evaluationData?.Resolved ?? 0,
+                    Satisfied = evaluationData?.Satisfied ?? 0,
+                    Automatic = evaluationData?.Automatic ?? 0,
+                    Smooth = evaluationData?.Smooth ?? 0,
+                    Concise = evaluationData?.Concise ?? 0,
+                    Priority = evaluationData?.Priority ?? "low",
+                    PriorityReason = evaluationData?.PriorityReason ?? "Unable to determine priority"
+                };
+            }catch (JsonException ex)
+            {
+                _logger.LogInternalWarning(ex, $"Error parsing LLM evaluation response. Original response: {jsonResponse}");
+                return new LLMEvaluationResult
+                {
+                    SATScore = 2.5,
+                    Summary = "Evaluation parsing failed",
+                    DetailedFeedback = $"Failed to parse LLM evaluation response: {ex.Message}",
+                    Category = "other",
+                    Resolved = 0,
+                    Satisfied = 0,
+                    Automatic = 0,
+                    Smooth = 0,
+                    Concise = 0,
+                    Priority = "low",
+                    PriorityReason = "Unable to determine priority - parsing failed"
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, $"Error during LLM evaluation for thread {thread.Id}");
+            return new LLMEvaluationResult
+            {
+                SATScore = 2.5,
+                Summary = "Evaluation failed due to error",
+                DetailedFeedback = $"Error during evaluation: {ex.Message}",
+                Category = "other",
+                Resolved = 0,
+                Satisfied = 0,
+                Automatic = 0,
+                Smooth = 0,
+                Concise = 0,
+                Priority = "low",
+                PriorityReason = "Unable to determine priority - evaluation failed"
+            };
+        }
+    }
+    /// <summary>
+    /// Build the evaluation prompt for the LLM
+    /// </summary>
+    private string BuildEvaluationPrompt(ThreadModel thread, string chatHistory, string reasoningHistory, ToolCallMetrics toolCallMetrics)
+    {
+        var promptBuilder = new StringBuilder();
+
+        promptBuilder.AppendLine("Please evaluate the following agent conversation thread:");
+        promptBuilder.AppendLine();
+        promptBuilder.AppendLine($"**Thread Information:**");
+        promptBuilder.AppendLine($"- Title: {thread.Title}");
+        promptBuilder.AppendLine($"- Source: {thread.Source}");
+        promptBuilder.AppendLine($"- Duration: {thread.ModifiedTimestamp - thread.CreatedTimestamp}");
+        promptBuilder.AppendLine($"- Created: {thread.CreatedTimestamp:yyyy-MM-dd HH:mm:ss} UTC");
+        promptBuilder.AppendLine($"- Completed: {thread.ModifiedTimestamp:yyyy-MM-dd HH:mm:ss} UTC");
+        promptBuilder.AppendLine();
+
+        promptBuilder.AppendLine("**Tool Call Metrics:**");
+        promptBuilder.AppendLine($"- Total Tool Calls: {toolCallMetrics.TotalToolCalls}");
+        promptBuilder.AppendLine($"- Overall Success Rate: {toolCallMetrics.OverallSuccessRate:P2}");
+        promptBuilder.AppendLine($"- Azure CLI Calls: {toolCallMetrics.AzCliCalls} (Success Rate: {toolCallMetrics.AzCliSuccessRate:P2})");
+        promptBuilder.AppendLine($"- Kubectl Calls: {toolCallMetrics.KubectlCalls} (Success Rate: {toolCallMetrics.KubectlSuccessRate:P2})");
+        promptBuilder.AppendLine();
+
+        promptBuilder.AppendLine("**Chat History:**");
+        promptBuilder.AppendLine(string.IsNullOrEmpty(chatHistory) ? "(No chat history available)" : chatHistory);
+        promptBuilder.AppendLine();
+
+        promptBuilder.AppendLine("**Agent Reasoning History:**");
+        promptBuilder.AppendLine(string.IsNullOrEmpty(reasoningHistory) ? "(No reasoning history available)" : reasoningHistory);
+        promptBuilder.AppendLine();
+
+        promptBuilder.AppendLine("Based on the above information, please provide a comprehensive evaluation of this agent thread's performance.");
+
+        return promptBuilder.ToString();
+    }
+
+    /// <summary>
+    /// Helper classes for managing evaluation metrics and results
+    /// </summary>
+    /// <summary>
+    /// Helper method to get content from a ReasoningMessage by deserializing the SerializedChatMessage
+    /// </summary>
+    private string GetContentFromReasoningMessage(ReasoningMessage reasoningMessage)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(reasoningMessage.SerializedChatMessage))
+            {
+                return "";
+            }
+
+            var chatMessage = JsonSerializer.Deserialize<ChatMessage>(reasoningMessage.SerializedChatMessage);
+            return chatMessage?.Text ?? "";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning(ex, $"Error deserializing reasoning message {reasoningMessage.Id}");
+            return reasoningMessage.SerializedChatMessage ?? "";
+        }
+    }
+
+    internal class ToolCallMetrics
+    {
+        public int TotalToolCalls { get; set; }
+        public int TotalSuccesses { get; set; }
+        public int AzCliCalls { get; set; }
+        public int AzCliSuccesses { get; set; }
+        public int KubectlCalls { get; set; }
+        public int KubectlSuccesses { get; set; }
+        public double OverallSuccessRate => TotalToolCalls > 0 ? (double)TotalSuccesses / TotalToolCalls : 0.0;
+        public double AzCliSuccessRate => AzCliCalls > 0 ? (double)AzCliSuccesses / AzCliCalls : 0.0;
+        public double KubectlSuccessRate => KubectlCalls > 0 ? (double)KubectlSuccesses / KubectlCalls : 0.0;
+    }
+
+    internal class LLMEvaluationResult
+    {
+        public double SATScore { get; set; }
+        public string Summary { get; set; } = "";
+        public string DetailedFeedback { get; set; } = ""; public string Category { get; set; } = "";
+        public int Resolved { get; set; }
+        public int Satisfied { get; set; }
+        public int Automatic { get; set; }
+        public int Smooth { get; set; }
+        public int Concise { get; set; }
+        public string Priority { get; set; } = "";
+        public string PriorityReason { get; set; } = "";
+    }    internal class LLMEvaluationResponse
+    {
+        public double SATScore { get; set; }        public int Resolved { get; set; }
+        public int Satisfied { get; set; }
+        public int Automatic { get; set; }
+        public int Smooth { get; set; }
+        public int Concise { get; set; }
+        public string? Summary { get; set; }
+        public string? DetailedFeedback { get; set; }
+        public string[]? Recommendations { get; set; }
+        public string Category { get; set; } = "";
+        public string Priority { get; set; } = "";
+        public string PriorityReason { get; set; } = "";
+    }
+
+}
