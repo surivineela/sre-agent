@@ -212,6 +212,9 @@ public class TimerService : IHostedService, IDisposable
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
+        _logger.LogInternalInformation("Starting Log Flush timer...");
+        StartLogFlushTimer(cancellationToken);
+
         if (_timerSettings.Disabled)
         {
             _logger.LogInternalWarning("Timer is disabled in appsettings. Skipping timer initialization.");
@@ -251,9 +254,6 @@ public class TimerService : IHostedService, IDisposable
 
         _logger.LogInternalInformation("Starting GitHub access token timer...");
         //StartGitHubAccessTokenTimer(cancellationToken);
-
-        _logger.LogInternalInformation("Starting Log Flush timer...");
-        StartLogFlushTimer(cancellationToken);
 
         if (_incidentManagementSettings != null)
         {
