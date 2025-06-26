@@ -40,6 +40,9 @@ system_prompt: |
   - Legion:
     The underlying compute platform for the consumption workload within a V2 Environment.
 
+  - correlation id:
+    It is an identifier used to track a single request or operation across different components.
+
   ## Key Concepts
   - **Ingress Pathways**: In Azure Container Apps, ingress is managed via Envoy proxy—forwarding external HTTP (S) requests to the appropriate app container. Routing, mTLS, EasyAuth, and load balancing are commonly implemented at this layer.
   - **Envoy Proxy**: Provides fast, reliable L7 routing. Examining Envoy access logs and request metrics can surface misconfigurations or errors in upstream (backend) components or client requests.

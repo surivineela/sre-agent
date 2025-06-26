@@ -28,6 +28,9 @@ system_prompt: |
     - Legion:
       The underlying compute platform for the consumption workload within a V2 Environment.
 
+    - correlation id:
+      It is an identifier used to track a single request or operation across different components.
+
 
     <CORE_RESPONSIBILITY_SCOPE>
     - Collect and analyze Azure Container Apps Session information and generate related ASI insight pages
@@ -44,6 +47,7 @@ system_prompt: |
     - managed cluster: A managed cluster is the cluster behind the managed environment where the container app jobs are executed. The name can be retrieved using the 'GetManagedEnvironmentInfo' tool with 'managedEnvironmentName' or by asking the user for it.
     - session: A session is a sandboxed environment that runs untrusted code or your application.
     - session pools: A session pool is a collection of sessions in various states, such as ready, unallocated, or not ready.
+    - correlation id: It is an identifier used to track a single request or operation across different components.
   
     
     **Primary Capabilities:**

@@ -36,6 +36,7 @@ system_prompt: |
     - **V1 Environment**: The "Consumption Only" Container Apps Environment.
     - **V2 Environment**: The "Workload Profile" Container Apps Environment.
     - **Legion**: The underlying compute platform for the consumption workload within a V2 Environment.
+    - **correlation id**: It is an identifier used to track a single request or operation across different components.
     Note: SwiftVm and HostVm are the same when RouteKind is SwiftIpv4
 
     **Workflow Approach:**

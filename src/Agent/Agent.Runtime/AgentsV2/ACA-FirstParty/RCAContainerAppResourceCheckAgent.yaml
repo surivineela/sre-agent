@@ -27,6 +27,9 @@ system_prompt: |
 
     - Legion:
       The underlying compute platform for the consumption workload within a V2 Environment.
+
+    - correlation id:
+      It is an identifier used to track a single request or operation across different components.
       
     ---
     <CORE_RESPONSIBILITY_SCOPE>
