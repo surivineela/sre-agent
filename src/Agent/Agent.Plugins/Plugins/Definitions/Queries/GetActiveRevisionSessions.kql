@@ -4,13 +4,14 @@ let capp_name = "##containerAppName##";
 let capp_rg = "##resourceGroupName##";
 let capp_sub = "##subscriptionId##";
 let managedClusterName = toscalar(GetManagedClusterName(capp_name, capp_rg, capp_sub));
-ContainerAppControllerEvents
+Heartbeats
 | where PreciseTimeStamp between (queryFrom .. queryTo)
 | where ContainerAppName == capp_name
 | where EnvironmentName == managedClusterName
-| where msg == "Active Revision Heartbeat"
-| extend parsedJson = parse_json(RevisionJson)
-| extend RevisionRunningState = tostring(parsedJson.status.appRunningState)
+| extend parsedJson = parse_json(AppJson)
+| extend latestReadyRevisionName = tostring(parsedJson.status.latestReadyRevisionName)
+| extend currentActiveRevisionName = tostring(parsedJson.status.currentActiveRevisionName)
+| extend RevisionRunningState = tostring(parsedJson.status.containerAppRunningState)
 | extend time_state = todynamic(strcat("{\"timestamp\": \"", PreciseTimeStamp, "\", \"state\": \"", RevisionRunningState, "\"}"))
 | project PreciseTimeStamp, RevisionName, RevisionRunningState, time_state
 | summarize time_state_array = make_set(time_state) by RevisionName
@@ -36,9 +37,6 @@ ContainerAppControllerEvents
     Content = state,
     GroupBy = revision_name,
     Health = case(
-        state contains "failed", "Unhealthy",
-        state contains "running", "Healthy",
-        state =~ "Degraded", "Degraded",
-        "Neutral"
+        state contains "Running", "Healthy", "Unhealthy"
     )
 | order by StartTime asc
