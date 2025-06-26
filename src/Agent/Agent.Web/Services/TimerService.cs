@@ -691,6 +691,8 @@ public class TimerService : IHostedService, IDisposable
 
             _logFlushTimerIsRunning = true;
 
+            Console.WriteLine("Flushing logs...");
+
             Task.WhenAll(AzureDataExplorerLoggerFlushAsync(cancellationToken),
                          CustomerLoggerFlushAsync(cancellationToken),
                          CustomerAuditLoggerFlushAsync(cancellationToken))
@@ -715,7 +717,7 @@ public class TimerService : IHostedService, IDisposable
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, "Error executing Azure Data Explorer log flusher.");
+            Console.WriteLine($"Error executing Azure Data Explorer log flusher. {ex}");
         }
     }
 

@@ -125,6 +125,7 @@ public class AzureDataExplorerLogger : ILogger
 
     public async Task FlushLogBufferAsync()
     {
+        Console.WriteLine($"[{DateTime.UtcNow}] [AzureDataExplorerLogger/FlushLogBuffer] Flushing log buffer with {_logBuffer.Logs.Count} logs.");
         if (_logBuffer.Logs.Count > 0)
         {
             var logDataList = new List<object>();
