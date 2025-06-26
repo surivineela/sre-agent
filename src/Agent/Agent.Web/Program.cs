@@ -728,11 +728,7 @@ public class Program
             builder.Services.AddSingleton(subAgentType);
         }
 
-        // Kick off background processes
-        if (!isFirstAgent)
-        {
-            builder.Services.AddHostedService<TimerService>();
-        }
+        builder.Services.AddHostedService<TimerService>();
 
         // Kick off MCP Server Initializer
         builder.Services.AddSingleton<MCPMetaAgent>();
