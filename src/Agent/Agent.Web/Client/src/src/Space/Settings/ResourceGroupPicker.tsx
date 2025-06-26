@@ -454,19 +454,6 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
             </Pivot>
             <div className={styles.dialogFooter}>
                 <DialogFooter>
-                    {(tabKey === TabKeys.select || tabKey === TabKeys.review) && (
-                        <PrimaryButton
-                            className={styles.footerButtonDiv}
-                            onClick={() => {
-                                if (tabKey === TabKeys.review) {
-                                    setTabKey(TabKeys.assign);
-                                } else if (tabKey === TabKeys.select) {
-                                    setTabKey(TabKeys.review);
-                                }
-                            }}
-                            text={intl.formatMessage(ManagedResourcesStringResources.next)}
-                        />
-                    )}
                     {(tabKey == TabKeys.assign || tabKey == TabKeys.review) && (
                         <DefaultButton
                             className={styles.footerButtonDiv}
@@ -478,6 +465,19 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
                                 }
                             }}
                             text={intl.formatMessage(ManagedResourcesStringResources.back)}
+                        />
+                    )}
+                    {(tabKey === TabKeys.select || tabKey === TabKeys.review) && (
+                        <PrimaryButton
+                            className={styles.footerButtonDiv}
+                            onClick={() => {
+                                if (tabKey === TabKeys.review) {
+                                    setTabKey(TabKeys.assign);
+                                } else if (tabKey === TabKeys.select) {
+                                    setTabKey(TabKeys.review);
+                                }
+                            }}
+                            text={intl.formatMessage(ManagedResourcesStringResources.next)}
                         />
                     )}
                     {tabKey == TabKeys.assign && (

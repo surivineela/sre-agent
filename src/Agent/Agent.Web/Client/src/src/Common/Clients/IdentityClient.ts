@@ -2,7 +2,7 @@ import { ApiVersions } from '../ApiVersions';
 import { MicrosoftAuthorization } from '../Constants/Auth';
 import { ArmObj } from '../Contracts/Azure/ArmObj';
 import { Identity } from '../Contracts/Azure/Identity';
-import { RoleAssignment } from '../Contracts/Azure/Permissions';
+import { RoleAssignment } from '../Contracts/Azure/Permission';
 import MakeArmCall from './ArmClient';
 
 export class IdentityClient {
@@ -25,11 +25,20 @@ export class IdentityClient {
         });
     }
 
-    public static getManagedUserIdentity(resourceId: string, apiVersion = ApiVersions.userIdentityApiVersion) {
+    public static getManagedUserIdentity(
+        resourceId: string,
+        apiVersion = ApiVersions.userIdentityApiVersion
+    ): Promise<ArmObj<Identity> | undefined> {
         return MakeArmCall<ArmObj<Identity>>({
             resourceId,
             commandName: 'GetManagedUserIdentityResource',
             apiVersion,
+        }).then(response => {
+            if (response?.metadata.success && response.data) {
+                return response.data;
+            } else {
+                return undefined;
+            }
         });
     }
 }

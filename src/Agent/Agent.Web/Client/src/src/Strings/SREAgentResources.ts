@@ -593,7 +593,7 @@ export const ManagedResourcesStringResources = defineMessages({
     addNotificationSuccess: { defaultMessage: 'Managed resource group added successfully', id: '5yG7b2' },
     addNotificationPluralSuccess: { defaultMessage: 'Managed resource groups added successfully', id: 'FGAk9M' },
     addNotificationAgentError: { defaultMessage: 'Failed to add {number} managed resource groups to your SRE Agent', id: 'ZukeYV' },
-    addNotificationError: { defaultMessage: 'Failed to add {number} managed resource groups with errors: {error}', id: 'sKQWgY' },
+    addNotificationError: { defaultMessage: 'Failed to assign roles to managed resource groups with error: {error}', id: 'nCbZ6p' },
     resourceGroupsLoadFailure: { defaultMessage: 'Failed to load resource groups.', id: 'anSi7M' },
     selectAll: { defaultMessage: 'Select all', id: '94Fg25' },
     selectResourceGroupsToMonitor: { defaultMessage: 'Select resource groups to monitor', id: 'CfGC/2' },
@@ -613,6 +613,7 @@ export const ManagedResourcesStringResources = defineMessages({
     subscriptionsLoadFailure: { defaultMessage: 'Failed to load subscriptions.', id: 'EKfWmx' },
     region: { defaultMessage: 'Region', id: 'lnaWo/' },
     resourceGroup: { defaultMessage: 'Resource group', id: '+uAdUZ' },
+    refresh: { defaultMessage: 'Refresh', id: 'rELDbB' },
 });
 
 export const MetricsResources = defineMessages({

@@ -1,24 +1,31 @@
 import { IColumn, Selection } from '@fluentui/react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { ArmTemplateBuilder } from '../../../Common/ArmTemplateBuilder/ArmTemplateBuilder';
+import {
+    ARM_DEPLOYMENT_NAME_LIMIT,
+    ArmTemplateParameterName,
+    SreAgentParameterName,
+} from '../../../Common/ArmTemplateBuilder/ArmTemplateTypes';
+import { RoleAssignmentTemplateResource } from '../../../Common/ArmTemplateFragments/RoleAssignmentTemplateResource';
 import AzPortalProxy from '../../../Common/AzPortalProxy/AzPortalProxy';
 import { getErrorMessage } from '../../../Common/Clients/ArmClient';
+import { DeploymentClient } from '../../../Common/Clients/DeploymentClient';
 import { IdentityClient } from '../../../Common/Clients/IdentityClient';
 import SreAgentClient from '../../../Common/Clients/SreAgentClient';
-import { Guid } from '../../../Common/Helpers/Guid';
+import { ProvisioningStates } from '../../../Common/Constants/Arm';
+import { ArmObj } from '../../../Common/Contracts/Azure/ArmObj';
+import { PermissionIds } from '../../../Common/Contracts/Azure/Permission';
+import { AgentMode } from '../../../Common/Contracts/Azure/SreAgent';
 import { getUserFriendlyLocation } from '../../../Common/Helpers/LocationHelper';
+import { ArmResourceDescriptor } from '../../../Common/Helpers/ResourceDescriptors';
 import { ManagedResourcesStringResources } from '../../../Strings/SREAgentResources';
+import { SreAgentContext } from '../../Contracts/Context';
+import { Identity } from '../../Contracts/Identity';
 import { useManagedResourcesStyles } from '../Styles/ManagedResources.styles';
 import { getSubscriptionId, ResourceGroup, useResourceGroups } from './useResourceGroups';
 import { useSreAgent } from './useSreAgent';
 import { Subscription, useSubscriptions } from './useSubscriptions';
-
-export enum PermissionIds {
-    owner = '8e3af657-a8ff-443c-a75c-2fe8c4bcb635',
-    contributor = 'b24988ac-6180-42a0-ab88-20f7382dd24c',
-    reader = 'acdd72a7-3385-48ef-bd42-f606fba81ae7',
-    monitoringContributor = '749f88d5-cbae-40b8-bcfc-e573ddc772fa',
-}
 
 export enum PermissionPrincipalType {
     servicePrincipal = 'ServicePrincipal',
@@ -32,8 +39,36 @@ export interface Location {
     type?: 'EdgeZone' | 'Region';
 }
 
+const corePermissions = [
+    PermissionIds.azureMonitorMonitoringContributor,
+    PermissionIds.applicationInsightsComponentContributor,
+    PermissionIds.logAnalyticsContributor,
+    PermissionIds.websitesContributor,
+    PermissionIds.redisCacheContributor,
+    PermissionIds.sqlDbContributor,
+    PermissionIds.storageBlobDataContributor,
+    PermissionIds.documentDbAccountContributor,
+];
+
+const reviewOrAutonomousPermissions = [
+    PermissionIds.contributor,
+    PermissionIds.webPlanContributor,
+    PermissionIds.containerAppsContributor,
+    PermissionIds.azureKubernetesServiceClusterAdmin,
+    PermissionIds.azureKubernetesServiceRbacClusterAdmin,
+];
+
+const readOnlyPermissions = [
+    PermissionIds.reader,
+    PermissionIds.containerAppsOperator,
+    PermissionIds.azureKubernetesServiceRbacReader,
+    PermissionIds.azureKubernetesServiceClusterUser,
+];
+
 export function useManagedResources(resourceId: string, portalContext: AzPortalProxy) {
     const { agentLoaded, agent, refresh } = useSreAgent(resourceId);
+    const { agent: agentContext } = useContext(SreAgentContext);
+    const { mode } = agentContext;
     const styles = useManagedResourcesStyles();
     const intl = useIntl();
 
@@ -58,6 +93,9 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
     const [showDeleteConfirmationDialog, setShowDeleteConfirmationDialog] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
     const [hideResourceGroupPicker, setHideResourceGroupPicker] = useState(true);
+    const [deploymentId, setDeploymentId] = useState<string>('');
+    const [notification, setNotification] = useState<string>('');
+    const [numberOfRgs, setNumberOfRgs] = useState<number>(0);
 
     const selection = useRef(
         new Selection({
@@ -97,9 +135,20 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
     }, [managedResourceGroupIds, resourceGroupsList, selectedSubscriptions, selectedLocations, searchText]);
 
     const isLoading = useMemo(
-        () => resourceGroupsLoading || !agentLoaded || subscriptionsLoading || !locationsList || !subscriptionsList || isUpdating,
-        [agentLoaded, isUpdating, locationsList, resourceGroupsLoading, subscriptionsList, subscriptionsLoading]
+        () => resourceGroupsLoading || !agentLoaded || subscriptionsLoading || !locationsList || !subscriptionsList,
+        [agentLoaded, locationsList, resourceGroupsLoading, subscriptionsList, subscriptionsLoading]
     );
+
+    const agentResourceGroupId = useMemo(() => {
+        if (!agent?.id) return '';
+
+        const descriptor = new ArmResourceDescriptor(agent.id);
+        return `/subscriptions/${descriptor.subscription}/resourceGroups/${descriptor.resourceGroup}`;
+    }, [agent]);
+
+    const agentName = useMemo(() => {
+        return agent?.name || '';
+    }, [agent]);
 
     const columns: IColumn[] = useMemo(
         () => [
@@ -149,9 +198,74 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
         setLocationsList(userFriendlyLocations);
     }, [resourceGroupsList]);
 
+    const getParameters = useCallback(
+        (selectedResourceGroups: ResourceGroup[], identity: ArmObj<Identity> | undefined) => {
+            const { subscription, resourceGroup } = new ArmResourceDescriptor(agent?.id ?? '');
+
+            const parameters: Record<string, any> = {};
+            parameters[ArmTemplateParameterName.SubscriptionId] = {
+                value: `/subscriptions/${subscription}`,
+            };
+            parameters[ArmTemplateParameterName.Location] = {
+                value: agent?.location || '',
+            };
+            parameters[ArmTemplateParameterName.ResourceGroupName] = {
+                value: resourceGroup,
+            };
+            parameters[SreAgentParameterName.ResourceGroups] = {
+                value: selectedResourceGroups.map((resourceGroup: ResourceGroup) => resourceGroup.name),
+            };
+            parameters[SreAgentParameterName.Subscriptions] = {
+                value: selectedResourceGroups.map((resourceGroup: ResourceGroup) => {
+                    const { subscription } = new ArmResourceDescriptor(resourceGroup.id);
+                    return subscription;
+                }),
+            };
+            parameters[SreAgentParameterName.UserIdentityName] = {
+                value: identity?.name || '',
+            };
+            return parameters;
+        },
+        [agent?.id, agent?.location]
+    );
+
+    const getTemplate = useCallback(
+        (dateTime: string) => {
+            const permissions = [...corePermissions];
+            if (mode === AgentMode.autonomous || mode === AgentMode.review) {
+                permissions.push(...reviewOrAutonomousPermissions);
+            } else {
+                permissions.push(...readOnlyPermissions);
+            }
+
+            const builder = new ArmTemplateBuilder();
+            const roleAssignmentTemplateResource = new RoleAssignmentTemplateResource(builder, {
+                roleDefinitionIds: permissions,
+                deploymentGuid: dateTime,
+            });
+            builder.addResource(roleAssignmentTemplateResource);
+            const template = builder.getTemplate();
+
+            return template;
+        },
+        [mode]
+    );
+
+    const getDeploymentResourceId = useCallback(
+        (dateTime: string) => {
+            const maxNameLength = ARM_DEPLOYMENT_NAME_LIMIT - 30;
+            const safeName = agentName.length > maxNameLength ? agentName.substring(0, maxNameLength) : agentName;
+            const deploymentName = `${safeName}-roleAssignments-${dateTime}`;
+            const deploymentResourceId = `${agentResourceGroupId}/providers/Microsoft.Resources/deployments/${deploymentName}`;
+            return deploymentResourceId;
+        },
+        [agentName, agentResourceGroupId]
+    );
+
     const onAddClick = useCallback(
         async (selectedResourceGroups: ResourceGroup[]) => {
             const numberOfRgs = selectedResourceGroups.length;
+            setNumberOfRgs(numberOfRgs);
             setIsUpdating(true);
             setHideResourceGroupPicker(false);
             const notification = portalContext.startNotification(
@@ -162,6 +276,7 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
                     ? intl.formatMessage(ManagedResourcesStringResources.addNotificationPluralDescription)
                     : intl.formatMessage(ManagedResourcesStringResources.addNotificationDescription)
             );
+            setNotification(notification);
 
             const updatedManagedResourceGroupIds = [
                 ...managedResourceGroupIds,
@@ -176,56 +291,28 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
                     },
                 },
             };
+            const agentPromise = SreAgentClient.patchAgent(resourceId, newAgentInfo);
 
             const identity = await IdentityClient.getManagedUserIdentity(agent?.properties.knowledgeGraphConfiguration?.identity ?? '');
 
-            const agentPromise = SreAgentClient.patchAgent(resourceId, newAgentInfo);
+            const dateTime = `${new Date().getTime()}`;
+            const template = getTemplate(dateTime);
+            const parameters = getParameters(selectedResourceGroups, identity);
+            const deploymentResourceId = getDeploymentResourceId(dateTime);
+            setDeploymentId(deploymentResourceId);
+            const roleAssignmentsPromise = DeploymentClient.createNewDeployment(deploymentResourceId, template, parameters, true);
 
-            const resourceGroupContributorPromises = selectedResourceGroups.map(rg => {
-                return IdentityClient.putRoleAssignmentWithScope({
-                    name: Guid.newGuid(),
-                    properties: {
-                        scope: rg.id,
-                        principalId: identity.data?.properties?.principalId ?? '',
-                        roleDefinitionId: `${rg.id}/providers/Microsoft.Authorization/roleDefinitions/${PermissionIds.contributor}`,
-                        principalType: PermissionPrincipalType.servicePrincipal,
-                    },
-                });
-            });
-
-            const resourceGroupMontioringContributorPromises = selectedResourceGroups.map(rg => {
-                return IdentityClient.putRoleAssignmentWithScope({
-                    name: Guid.newGuid(),
-                    properties: {
-                        scope: rg.id,
-                        principalId: identity.data?.properties?.principalId ?? '',
-                        roleDefinitionId: `${rg.id}/providers/Microsoft.Authorization/roleDefinitions/${PermissionIds.monitoringContributor}`,
-                        principalType: PermissionPrincipalType.servicePrincipal,
-                    },
-                });
-            });
-
-            const updateManagedRgPromises = await Promise.all([
-                agentPromise,
-                ...resourceGroupContributorPromises,
-                ...resourceGroupMontioringContributorPromises,
-            ]);
+            const updateManagedRgPromises = await Promise.all([agentPromise, roleAssignmentsPromise]);
 
             const isSuccessful = updateManagedRgPromises.every((promise: any) => !promise.metadata.error);
 
-            if (isSuccessful) {
-                portalContext.stopNotification(
-                    notification,
-                    true,
-                    numberOfRgs > 1
-                        ? intl.formatMessage(ManagedResourcesStringResources.addNotificationPluralSuccess)
-                        : intl.formatMessage(ManagedResourcesStringResources.addNotificationSuccess)
-                );
-                refresh();
-            } else {
+            if (!isSuccessful) {
+                setIsUpdating(false);
+                setDeploymentId('');
+                let errorMsg = '';
                 if (!updateManagedRgPromises[0].metadata.success) {
                     const agentError = updateManagedRgPromises[0].metadata.error;
-                    const errorMsg = getErrorMessage(agentError);
+                    errorMsg = getErrorMessage(agentError);
                     portalContext.log({
                         action: 'addManagedResourceGroups',
                         actionModifier: 'failed',
@@ -236,41 +323,29 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
                         },
                     });
                 } else {
-                    const errorPromises = updateManagedRgPromises.filter(promise => !promise.metadata.success);
-                    const numberOfErrors = errorPromises.length;
-                    const errorMessages = updateManagedRgPromises.map((p, i) => {
-                        if (!p.metadata.success) {
-                            return `${selectedResourceGroups[i - 1]?.name || ''} - "${getErrorMessage(p.metadata.error)}"`;
-                        }
+                    const deploymentError = updateManagedRgPromises[0].metadata.error;
+                    errorMsg = getErrorMessage(deploymentError);
+                    portalContext.log({
+                        action: 'addManagedResourceGroups',
+                        actionModifier: 'failed',
+                        resourceId,
+                        logLevel: 'error',
+                        data: {
+                            message: `Failed to deploy role assignments for resource groups: ${errorMsg}`,
+                        },
                     });
-                    const finalErrorMessage = errorMessages.filter(Boolean).join(', ');
-                    portalContext.stopNotification(
-                        notification,
-                        false,
-                        intl.formatMessage(ManagedResourcesStringResources.addNotificationError, {
-                            number: numberOfErrors,
-                            error: finalErrorMessage,
-                        })
-                    );
-
-                    errorPromises.forEach(errorPromise => {
-                        const errorMessage = getErrorMessage(errorPromise.metadata.error);
-                        portalContext.log({
-                            action: 'addManagedResourceGroups',
-                            actionModifier: 'failed',
-                            resourceId,
-                            logLevel: 'error',
-                            data: {
-                                message: `Failed to add role assignment for resource group to managed resources: ${errorMessage}`,
-                            },
-                        });
-                    });
-                    refresh();
                 }
+                portalContext.stopNotification(
+                    notification,
+                    false,
+                    intl.formatMessage(ManagedResourcesStringResources.addNotificationError, {
+                        error: errorMsg,
+                    })
+                );
+                refresh();
             }
-            setIsUpdating(false);
         },
-        [agent, managedResourceGroupIds, refresh, resourceId, portalContext, intl]
+        [portalContext, intl, managedResourceGroupIds, agent, resourceId, getTemplate, getParameters, getDeploymentResourceId, refresh]
     );
 
     const onDeleteClick = useCallback(async () => {
@@ -321,6 +396,57 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
         setIsUpdating(false);
     }, [managedResourceGroupIds, refresh, resourceId, selectedResourceGroups, agent, portalContext, intl]);
 
+    const pollForDeploymentCompletion = useCallback(() => {
+        if (isUpdating && deploymentId) {
+            const fetchDeploymentStatus = async () => {
+                const response = await DeploymentClient.getDeployment(deploymentId);
+                const provisioningState = response?.data?.properties?.provisioningState || '';
+                if (provisioningState === ProvisioningStates.succeeded) {
+                    clearInterval(intervalId);
+                    setIsUpdating(false);
+                    setDeploymentId('');
+                    portalContext.stopNotification(
+                        notification,
+                        true,
+                        numberOfRgs > 1
+                            ? intl.formatMessage(ManagedResourcesStringResources.addNotificationPluralSuccess)
+                            : intl.formatMessage(ManagedResourcesStringResources.addNotificationSuccess)
+                    );
+
+                    refresh();
+                } else if (provisioningState === ProvisioningStates.Failed) {
+                    clearInterval(intervalId);
+                    setIsUpdating(false);
+                    setDeploymentId('');
+                    portalContext.log({
+                        action: 'deleteManagedResourceGroups',
+                        actionModifier: 'failed',
+                        resourceId,
+                        logLevel: 'error',
+                        data: {
+                            message: `Failed to delete managed resources: ${response.metadata.error?.Message}`,
+                        },
+                    });
+                    portalContext.stopNotification(
+                        notification,
+                        false,
+                        intl.formatMessage(ManagedResourcesStringResources.addNotificationError, {
+                            error: getErrorMessage(response?.data?.properties?.error),
+                        })
+                    );
+                }
+            };
+
+            fetchDeploymentStatus();
+            const intervalId: NodeJS.Timeout = setInterval(fetchDeploymentStatus, 5000);
+            return () => clearInterval(intervalId);
+        }
+    }, [isUpdating, deploymentId, portalContext, notification, numberOfRgs, intl, refresh, resourceId]);
+
+    useEffect(() => {
+        pollForDeploymentCompletion();
+    }, [pollForDeploymentCompletion]);
+
     return {
         managedResourceGroups,
         columns,
@@ -344,5 +470,7 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
         setSelectedSubscriptions,
         onAddClick,
         onDeleteClick,
+        refresh,
+        isUpdating,
     };
 }

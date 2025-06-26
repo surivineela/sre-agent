@@ -2667,6 +2667,16 @@
       "value": "Lets you manage all resources in the cluster."
     }
   ],
+  "nCbZ6p": [
+    {
+      "type": 0,
+      "value": "Failed to assign roles to managed resource groups with error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
   "nFOo9o": [
     {
       "type": 0,
@@ -2933,24 +2943,6 @@
     {
       "type": 0,
       "value": "Log Analytics Reader"
-    }
-  ],
-  "sKQWgY": [
-    {
-      "type": 0,
-      "value": "Failed to add "
-    },
-    {
-      "type": 1,
-      "value": "number"
-    },
-    {
-      "type": 0,
-      "value": " managed resource groups with errors: "
-    },
-    {
-      "type": 1,
-      "value": "error"
     }
   ],
   "sVbKA0": [

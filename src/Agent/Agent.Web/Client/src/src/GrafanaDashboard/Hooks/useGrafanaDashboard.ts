@@ -282,15 +282,15 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
 
     const fetchManagedUserIdentityResource = useCallback(async () => {
         const response = await IdentityClient.getManagedUserIdentity(existingManagedUserIdentityResourceId);
-        if (response.metadata.success) {
-            return response.data;
+        if (response) {
+            return response;
         } else {
             azPortalContext.log({
                 action: 'GetManagedUserIdentityResource',
                 actionModifier: 'failed',
                 resourceId: existingManagedUserIdentityResourceId,
                 logLevel: 'error',
-                data: response.metadata.error,
+                data: 'Managed User Identity resource not found',
             });
         }
     }, [azPortalContext, existingManagedUserIdentityResourceId]);

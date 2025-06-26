@@ -55,6 +55,7 @@ export enum ArmServiceType {
     DashboardGrafana = 'Microsoft.Dashboard/grafana',
     AzureMonitorWorkspace = 'Microsoft.Monitor/accounts',
     DataCollectionEndpoint = 'Microsoft.Insights/dataCollectionEndpoints',
+    SiteRbac = 'Microsoft.Authorization/roleAssignments',
 }
 
 export enum GrafanaParameterName {
@@ -64,3 +65,16 @@ export enum GrafanaParameterName {
 export enum AzureMonitorWorkspaceParameterName {
     WorkspaceName = 'workspaceName',
 }
+
+export enum SreAgentParameterName {
+    UserIdentityName = 'userIdentity',
+    ResourceGroups = 'resourceGroups',
+    Subscriptions = 'subscriptions',
+    AgentName = 'agentName',
+}
+
+export enum ResourceTypes {
+    ResourceDeploymentType = 'Microsoft.Resources/deployments',
+}
+
+export const ARM_DEPLOYMENT_NAME_LIMIT = 64;

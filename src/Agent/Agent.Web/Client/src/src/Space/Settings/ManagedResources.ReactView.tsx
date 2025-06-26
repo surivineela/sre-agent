@@ -16,7 +16,7 @@ import {
     ToolbarButton,
     ToolbarDivider,
 } from '@fluentui/react-components';
-import { Add16Regular, Delete16Regular } from '@fluentui/react-icons';
+import { Add16Regular, ArrowClockwise16Regular, Delete16Regular } from '@fluentui/react-icons';
 import { debounce } from 'lodash';
 import { FC, useContext } from 'react';
 import { useIntl } from 'react-intl';
@@ -51,6 +51,8 @@ const ManagedResources: FC = () => {
         onAddClick,
         setShowDeleteConfirmationDialog,
         setSearchText,
+        refresh,
+        isUpdating,
     } = useManagedResources(resourceId, az);
 
     return (
@@ -67,11 +69,21 @@ const ManagedResources: FC = () => {
                 <Toolbar>
                     <ToolbarButton
                         icon={<Add16Regular />}
+                        style={{ paddingLeft: '0px', minWidth: '20px' }}
                         appearance="subtle"
-                        disabled={isLoading}
+                        disabled={isLoading || isUpdating}
                         onClick={() => setHideResourceGroupPicker(false)}
                     >
                         {intl.formatMessage(ManagedResourcesStringResources.add)}
+                    </ToolbarButton>
+                    <ToolbarButton
+                        style={{ paddingLeft: '0px', minWidth: '20px' }}
+                        icon={<ArrowClockwise16Regular />}
+                        appearance="subtle"
+                        disabled={isLoading || isUpdating}
+                        onClick={() => refresh()}
+                    >
+                        {intl.formatMessage(ManagedResourcesStringResources.refresh)}
                     </ToolbarButton>
                     <ToolbarDivider style={{ padding: '0px' }} />
                     <ToolbarButton
