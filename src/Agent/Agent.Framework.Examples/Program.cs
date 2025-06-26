@@ -114,6 +114,12 @@ class MockStreamingService : IStreamingService
             threadId, type, message);
         return Task.CompletedTask;
     }
+
+    public Task StreamChatResponseUpdateAsync(Guid threadId, ChatResponseUpdate update, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Mock: Streaming message for thread {ThreadId}", threadId);
+        return Task.CompletedTask;
+    }
 }
 
 class Program

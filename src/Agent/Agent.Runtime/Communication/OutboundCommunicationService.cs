@@ -6,8 +6,10 @@ using System.Text.Json;
 using Agent.Core;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Framework;
 using Agent.Logging;
 using Agent.Plugins.Interface;
+using Agent.Runtime.Helpers;
 using Microsoft.Bot.Schema;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -163,5 +165,375 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         }
 
         return UpdateThreadWithAgentMessageAsync(context, new(ChatRole.Assistant, message));
+    }
+
+    public async Task AppendAgentToolCallMessage(Guid threadId, AIFunction aiTool, CancellationToken cancellationToken = default)
+    {
+        if (threadId == Guid.Empty)
+        {
+            throw new ArgumentException("Thread ID cannot be empty.", nameof(threadId));
+        }
+
+        try
+        {
+            // If no cancellation token provided, try to get it from AsyncLocal (set during tool execution)
+            if (cancellationToken == default && ToolStatic.AsyncLocalCancellationToken.Value != default)
+            {
+                cancellationToken = ToolStatic.AsyncLocalCancellationToken.Value;
+                _logger.LogInternalInformation("Using AsyncLocal cancellation token for streaming message to thread {ThreadId}", threadId);
+            }
+
+            // Check for cancellation before streaming
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Send stop reason for tool calls in response
+            var stopMessageToolCalls = new ChatResponseUpdate
+            {
+                AuthorName = "Azure SRE Agent",
+                Role = ChatRole.Assistant,
+                CreatedAt = DateTime.UtcNow,
+                AdditionalProperties = new AdditionalPropertiesDictionary
+                {
+                    { "threadId", threadId.ToString() },
+                    { "messageId", Guid.NewGuid().ToString() },
+                },
+                FinishReason = ChatFinishReason.ToolCalls,
+            };
+            await _streamingService.StreamChatResponseUpdateAsync(threadId, stopMessageToolCalls, cancellationToken);
+
+            // Use the streaming service abstraction to send the ChatUpdateResponse
+            string userDisplayedToolDescription = ToolDescriptionHelper.GetUserDescriptionForFunctionCallName(aiTool.Name);
+            var functionCallContent = new FunctionCallContent(threadId.ToString(), "operation");
+            functionCallContent.AdditionalProperties = new AdditionalPropertiesDictionary
+            {
+                { "userDescription", userDisplayedToolDescription }
+            };
+
+            var message = new ChatResponseUpdate
+            {
+                AuthorName = "Azure SRE Agent",
+                Role = ChatRole.Tool,
+                CreatedAt = DateTime.UtcNow,
+                Contents = [functionCallContent],
+                AdditionalProperties = new AdditionalPropertiesDictionary
+                {
+                    { "threadId", threadId.ToString() },
+                    { "messageId", Guid.NewGuid().ToString() },
+                    { "actionName", nameof(AppendAgentToolCallMessage) },
+                },
+            };
+
+            await _streamingService.StreamChatResponseUpdateAsync(threadId, message, cancellationToken);
+
+            _logger.LogExternalInformation("Successfully sent tool call message for thread {ThreadId} with type",
+                threadId);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInternalInformation("Streaming cancelled for thread {ThreadId}", threadId);
+            // Don't rethrow - cancellation is expected
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to stream message directly for thread {ThreadId}", threadId);
+        }
+    }
+
+    public async Task AppendAgentManualToolCallMessage(Guid threadId, List<ManualToolCall>? manualToolCalls, CancellationToken cancellationToken = default)
+    {
+        if (threadId == Guid.Empty)
+        {
+            throw new ArgumentException("Thread ID cannot be empty.", nameof(threadId));
+        }
+
+        if (manualToolCalls == null || !manualToolCalls.Any())
+        {
+            _logger.LogInternalWarning("No manual tool calls provided for thread {ThreadId}", threadId);
+            return;
+        }
+
+        try
+        {
+            // If no cancellation token provided, try to get it from AsyncLocal (set during tool execution)
+            if (cancellationToken == default && ToolStatic.AsyncLocalCancellationToken.Value != default)
+            {
+                cancellationToken = ToolStatic.AsyncLocalCancellationToken.Value;
+                _logger.LogInternalInformation("Using AsyncLocal cancellation token for streaming message to thread {ThreadId}", threadId);
+            }
+
+            // Check for cancellation before streaming
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Send stop reason for tool calls in response
+            var stopMessageToolCalls = new ChatResponseUpdate
+            {
+                AuthorName = "Azure SRE Agent",
+                Role = ChatRole.Assistant,
+                CreatedAt = DateTime.UtcNow,
+                AdditionalProperties = new AdditionalPropertiesDictionary
+                {
+                    { "threadId", threadId.ToString() },
+                    { "messageId", Guid.NewGuid().ToString() },
+                },
+                FinishReason = ChatFinishReason.ToolCalls,
+            };
+            await _streamingService.StreamChatResponseUpdateAsync(threadId, stopMessageToolCalls, cancellationToken);
+
+            List<AIContent> toolCalls = new List<AIContent>();
+            foreach(var toolCall in manualToolCalls)
+            {
+                var functionCall = toolCall.FunctionCall;
+                functionCall.AdditionalProperties ??= new AdditionalPropertiesDictionary();
+                functionCall.AdditionalProperties.Add("userDescription", ToolDescriptionHelper.GetUserDescriptionForFunctionCallName(functionCall.Name));
+
+                // Create a safe version that doesn't expose the real function name
+                var safeFunctionCall = new FunctionCallContent(
+                    functionCall.CallId,
+                    "operation", // Never expose real function names
+                    null // Don't expose arguments for security
+                );
+                safeFunctionCall.AdditionalProperties = functionCall.AdditionalProperties;
+                toolCalls.Add(safeFunctionCall);
+            }
+
+            ChatResponseUpdate toolCallUpdate = new ChatResponseUpdate(ChatRole.Tool, toolCalls);
+            toolCallUpdate.AdditionalProperties = new AdditionalPropertiesDictionary
+            {
+                { "threadId", threadId.ToString() },
+                { "messageId", Guid.NewGuid().ToString() },
+                { "actionName", nameof(AppendAgentManualToolCallMessage) },
+            };
+
+            await _streamingService.StreamChatResponseUpdateAsync(threadId, toolCallUpdate, cancellationToken);
+
+            _logger.LogExternalInformation("Successfully sent tool call message for thread {ThreadId} with type",
+                threadId);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInternalInformation("Streaming cancelled for thread {ThreadId}", threadId);
+            // Don't rethrow - cancellation is expected
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to stream message directly for thread {ThreadId}", threadId);
+        }
+    }
+
+    public async Task AppendAgentToolCallResult(Guid threadId, FunctionResultContent result, CancellationToken cancellationToken = default)
+    {
+        if (threadId == Guid.Empty)
+        {
+            throw new ArgumentException("Thread ID cannot be empty.", nameof(threadId));
+        }
+
+        try
+        {
+            // If no cancellation token provided, try to get it from AsyncLocal (set during tool execution)
+            if (cancellationToken == default && ToolStatic.AsyncLocalCancellationToken.Value != default)
+            {
+                cancellationToken = ToolStatic.AsyncLocalCancellationToken.Value;
+                _logger.LogInternalInformation("Using AsyncLocal cancellation token for streaming message to thread {ThreadId}", threadId);
+            }
+
+            // Check for cancellation before streaming
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Use the streaming service abstraction to send the ChatUpdateResponse
+            var message = new ChatResponseUpdate
+            {
+                AuthorName = "Azure SRE Agent",
+                Role = ChatRole.Assistant,
+                CreatedAt = DateTime.UtcNow,
+                Contents = [result],
+                AdditionalProperties = new AdditionalPropertiesDictionary
+                {
+                    { "threadId", threadId.ToString() },
+                    { "messageId", Guid.NewGuid().ToString() },
+                    { "actionName", nameof(AppendAgentToolCallResult) },
+                }
+            };
+
+            await _streamingService.StreamChatResponseUpdateAsync(threadId, message, cancellationToken);
+
+            _logger.LogExternalInformation("Successfully sent tool call message for thread {ThreadId} with type",
+                threadId);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInternalInformation("Streaming cancelled for thread {ThreadId}", threadId);
+            // Don't rethrow - cancellation is expected
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to stream message directly for thread {ThreadId}", threadId);
+        }
+    }
+
+    public async Task AppendAgentManualToolCallResult(Guid threadId, List<ManualToolCallResult>? manualToolCallResults, CancellationToken cancellationToken = default)
+    {
+        if (threadId == Guid.Empty)
+        {
+            throw new ArgumentException("Thread ID cannot be empty.", nameof(threadId));
+        }
+
+        try
+        {
+            // If no cancellation token provided, try to get it from AsyncLocal (set during tool execution)
+            if (cancellationToken == default && ToolStatic.AsyncLocalCancellationToken.Value != default)
+            {
+                cancellationToken = ToolStatic.AsyncLocalCancellationToken.Value;
+                _logger.LogInternalInformation("Using AsyncLocal cancellation token for streaming message to thread {ThreadId}", threadId);
+            }
+
+            if (manualToolCallResults == null || !manualToolCallResults.Any())
+            {
+                _logger.LogInternalWarning("No manual tool call results provided for thread {ThreadId}", threadId);
+                return;
+            }
+
+            // Check for cancellation before streaming
+            cancellationToken.ThrowIfCancellationRequested();
+            List<AIContent> safeFunctionResults = new List<AIContent>();
+
+            foreach (var manualToolCallResult in manualToolCallResults)
+            {
+                var safeFunctionResult = new FunctionResultContent(
+                    manualToolCallResult.FunctionCall.CallId,
+                    "operation result"
+                );
+                safeFunctionResult.AdditionalProperties = new AdditionalPropertiesDictionary
+                {
+                    { "userDescription", ToolDescriptionHelper.GetUserDescriptionForFunctionCallName(manualToolCallResult.FunctionCall.Name) }
+                };
+                safeFunctionResults.Add(safeFunctionResult);
+            }
+
+            // Use the streaming service abstraction to send the ChatUpdateResponse
+            var message = new ChatResponseUpdate
+                {
+                    AuthorName = "Azure SRE Agent",
+                    Role = ChatRole.Assistant,
+                    CreatedAt = DateTime.UtcNow,
+                    Contents = safeFunctionResults,
+                    AdditionalProperties = new AdditionalPropertiesDictionary
+                    {
+                        { "threadId", threadId.ToString() },
+                        { "messageId", Guid.NewGuid().ToString() },
+                        { "actionName", nameof(AppendAgentManualToolCallResult) },
+                    }
+                };
+
+                await _streamingService.StreamChatResponseUpdateAsync(threadId, message, cancellationToken);
+
+            _logger.LogExternalInformation("Successfully sent tool call message for thread {ThreadId} with type",
+                threadId);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInternalInformation("Streaming cancelled for thread {ThreadId}", threadId);
+            // Don't rethrow - cancellation is expected
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to stream message directly for thread {ThreadId}", threadId);
+        }
+    }
+
+    public async Task AppendUserStreamMessage(Guid threadId, string displayName, string message, Guid messageId, Guid? userId = null, CancellationToken cancellationToken = default)
+    {
+        if (threadId == Guid.Empty)
+        {
+            throw new ArgumentException("Thread ID cannot be empty.", nameof(threadId));
+        }
+
+        try
+        {
+            // If no cancellation token provided, try to get it from AsyncLocal (set during tool execution)
+            if (cancellationToken == default && ToolStatic.AsyncLocalCancellationToken.Value != default)
+            {
+                cancellationToken = ToolStatic.AsyncLocalCancellationToken.Value;
+                _logger.LogInternalInformation("Using AsyncLocal cancellation token for streaming message to thread {ThreadId}", threadId);
+            }
+
+            // Check for cancellation before streaming
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var userMessage = new ChatResponseUpdate
+            {
+                AuthorName = displayName,
+                Role = ChatRole.User,
+                CreatedAt = DateTime.UtcNow,
+                Contents = [new TextContent(message)],
+                AdditionalProperties = new AdditionalPropertiesDictionary
+                {
+                    { "messageId", messageId.ToString() },
+                    { "threadId", threadId.ToString() },
+                    { "userId", userId?.ToString() },
+                    { "actionName", nameof(AppendUserStreamMessage) }
+                }
+            };
+
+            // Use the streaming service abstraction to send the message
+            await _streamingService.StreamChatResponseUpdateAsync(threadId, userMessage, cancellationToken);
+
+            _logger.LogExternalInformation("Successfully sent direct stream message for thread {ThreadId}");
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInternalInformation("Streaming cancelled for thread {ThreadId}", threadId);
+            // Don't rethrow - cancellation is expected
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to stream message directly for thread {ThreadId}", threadId);
+        }
+    }
+
+    public async Task SignalProcessingComplete(Guid threadId, CancellationToken cancellationToken = default)
+    {
+        if (threadId == Guid.Empty)
+        {
+            throw new ArgumentException("Thread ID cannot be empty.", nameof(threadId));
+        }
+
+        try
+        {
+            // If no cancellation token provided, try to get it from AsyncLocal (set during tool execution)
+            if (cancellationToken == default && ToolStatic.AsyncLocalCancellationToken.Value != default)
+            {
+                cancellationToken = ToolStatic.AsyncLocalCancellationToken.Value;
+                _logger.LogInternalInformation("Using AsyncLocal cancellation token for streaming message to thread {ThreadId}", threadId);
+            }
+
+            // Check for cancellation before streaming
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Use the streaming service abstraction to send the ChatFinishReason.Stop command back to the user
+            var stopMessage = new ChatResponseUpdate
+            {
+                AuthorName = "Azure SRE Agent",
+                Role = ChatRole.Assistant,
+                CreatedAt = DateTime.UtcNow,
+                FinishReason = ChatFinishReason.Stop
+            };
+            stopMessage.AdditionalProperties = new AdditionalPropertiesDictionary
+            {
+                { "threadId", threadId.ToString() },
+                { "messageId", Guid.NewGuid().ToString() },
+                { "actionName", nameof(SignalProcessingComplete) }
+            };
+
+            await _streamingService.StreamChatResponseUpdateAsync(threadId, stopMessage, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInternalInformation("Streaming cancelled for thread {ThreadId}", threadId);
+            // Don't rethrow - cancellation is expected
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to signal processing complete for thread {ThreadId}", threadId);
+        }
     }
 }

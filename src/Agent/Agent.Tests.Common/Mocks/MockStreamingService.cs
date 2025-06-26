@@ -5,6 +5,7 @@
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Logging;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Tests.Common.Mocks
@@ -38,6 +39,25 @@ namespace Agent.Tests.Common.Mocks
 
             _logger.LogInternalInformation("Mock: Streamed message for thread {ThreadId} with type {Type}: {Message}",
                 threadId, type, message);
+
+            return Task.CompletedTask;
+        }
+
+        public Task StreamChatResponseUpdateAsync(Guid threadId, ChatResponseUpdate update, CancellationToken cancellationToken = default)
+        {
+            var streamedMessage = new StreamedMessage
+            {
+                ThreadId = threadId,
+                Message = update.Text,
+                Type = StreamMessageType.Image,
+                Timestamp = DateTime.UtcNow,
+                MessageId = update.AdditionalProperties?.GetValueOrDefault("messageId") as Guid? ?? Guid.NewGuid()
+            };
+
+            StreamedMessages.Add(streamedMessage);
+
+            _logger.LogInternalInformation("Mock: Streamed message for thread {ThreadId}",
+                threadId);
 
             return Task.CompletedTask;
         }

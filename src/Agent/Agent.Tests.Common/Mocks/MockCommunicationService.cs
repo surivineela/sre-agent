@@ -4,6 +4,7 @@
 
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Framework;
 using Agent.Logging;
 using Microsoft.Bot.Schema;
 using Microsoft.Extensions.AI;
@@ -30,13 +31,44 @@ namespace Agent.Tests.Common.Mocks
 
         public Task<Guid> AppendAgentImageMessage(Guid threadId, string message)
         {
-            throw new NotImplementedException();
+            Messages.Add(message);
+            return Task.FromResult(Guid.NewGuid());
+        }
+
+        public Task AppendAgentManualToolCallMessage(Guid threadId, List<ManualToolCall>? manualToolCalls, CancellationToken cancellationToken = default)
+        {
+            Messages.AddRange(manualToolCalls?.Select(call => call.FunctionCall.Name) ?? Enumerable.Empty<string>());
+            return Task.FromResult(Guid.NewGuid());
+        }
+
+        public Task AppendAgentManualToolCallResult(Guid threadId, List<ManualToolCallResult>? manualToolCallResults, CancellationToken cancellationToken = default)
+        {
+            Messages.AddRange(manualToolCallResults?.Select(result => result.FunctionCall.Name) ?? Enumerable.Empty<string>());
+            return Task.CompletedTask;
         }
 
         public Task AppendAgentStreamMessage(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             _logger?.LogInternalInformation($"Mock: Streaming message for thread {threadId} with type {type}: {message}");
+            Messages.Add(message);
+            return Task.CompletedTask;
+        }
+
+        public Task AppendAgentToolCallMessage(Guid threadId, AIFunction aiTool, CancellationToken cancellationToken = default)
+        {
+            Messages.Add(aiTool.Name);
+            return Task.CompletedTask;
+        }
+
+        public Task AppendAgentToolCallResult(Guid threadId, FunctionResultContent result, CancellationToken cancellationToken = default)
+        {
+            Messages.Add(result?.Result?.ToString());
+            return Task.CompletedTask;
+        }
+
+        public Task AppendUserStreamMessage(Guid threadId, string displayName, string message, Guid messageId, Guid? userId = null, CancellationToken cancellationToken = default)
+        {
             Messages.Add(message);
             return Task.CompletedTask;
         }
@@ -63,6 +95,12 @@ namespace Agent.Tests.Common.Mocks
         public Task PostActivity(string threadId, Activity activity, string messageId = "")
         {
             _logger?.LogInternalInformation($"ThreadId: {threadId}, Activity: {activity.Text}");
+            return Task.CompletedTask;
+        }
+
+        public Task SignalProcessingComplete(Guid threadId, CancellationToken cancellationToken = default)
+        {
+            _logger?.LogInternalInformation($"ThreadId: {threadId}");
             return Task.CompletedTask;
         }
 

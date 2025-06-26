@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Models.Api.v1;
+using Microsoft.Extensions.AI;
 
 namespace Agent.Core.Interfaces
 {
@@ -20,5 +21,14 @@ namespace Agent.Core.Interfaces
         /// <param name="cancellationToken">Cancellation token to cancel the streaming operation</param>
         /// <returns>Task representing the async operation</returns>
         Task StreamMessageAsync(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Streams a ChatResponseUpdate message to clients for the specified thread
+        /// </summary>
+        /// <param name="threadId"></param>
+        /// <param name="update"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        Task StreamChatResponseUpdateAsync(Guid threadId, ChatResponseUpdate update, CancellationToken cancellationToken = default);
     }
 }

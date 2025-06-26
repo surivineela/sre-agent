@@ -34,9 +34,9 @@ namespace Agent.Web.Services
             {
                 // Check for cancellation before processing
                 cancellationToken.ThrowIfCancellationRequested();
-                
+
                 _logger.LogInternalInformation("Streaming message for thread {ThreadId} with type {Type}", threadId, type);
-                
+
                 // Create a ChatResponseUpdate with the message and type metadata
                 var streamMessage = new ChatResponseUpdate
                 {
@@ -66,6 +66,46 @@ namespace Agent.Web.Services
             {
                 _logger.LogInternalError(ex, "Failed to stream message for thread {ThreadId} with type {Type}",
                     threadId, type);
+                // Don't rethrow - streaming failures should not break the tool call
+            }
+        }
+
+        public async Task StreamChatResponseUpdateAsync(Guid threadId, ChatResponseUpdate update, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                // Check for cancellation before processing
+                cancellationToken.ThrowIfCancellationRequested();
+
+                _logger.LogInternalInformation("Streaming message for thread {ThreadId}", threadId);
+
+                // Update a ChatResponseUpdate with threadId and messageId if not provided
+                update.AdditionalProperties ??= new AdditionalPropertiesDictionary();
+                if (!update.AdditionalProperties.TryGetValue("threadId", out var existingThreadId))
+                {
+                    update.AdditionalProperties["threadId"] = threadId.ToString();
+                }
+
+                if (!update.AdditionalProperties.TryGetValue("messageId", out var existingMessageId))
+                {
+                    update.AdditionalProperties["messageId"] = Guid.NewGuid().ToString();
+                }
+
+
+                await _hubContext.Clients.All.MessageUpdate(update);
+
+                _logger.LogInternalInformation("Successfully streamed message for thread {ThreadId}",
+                    threadId);
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInternalInformation("Streaming cancelled for thread {ThreadId}", threadId);
+                // Don't rethrow cancellation - it's expected
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Failed to stream message for thread {ThreadId}",
+                    threadId);
                 // Don't rethrow - streaming failures should not break the tool call
             }
         }
