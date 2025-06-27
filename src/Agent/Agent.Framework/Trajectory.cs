@@ -206,6 +206,70 @@ public sealed class Trajectory
         _trajectoryItems.Add(new CriticFeedbackTrajectoryItem(feedback));
     }
 
+    /// <summary>
+    /// Creates a new Trajectory instance from chat message history
+    /// </summary>
+    /// <param name="chatMessages">The chat messages to restore from</param>
+    /// <returns>A new Trajectory with items built from the chat messages</returns>
+    public static Trajectory FromChatHistory(IEnumerable<ChatMessage> chatMessages)
+    {
+        var trajectory = new Trajectory();
+
+        foreach (var message in chatMessages)
+        {
+            // Handle different message roles appropriately
+            if (message.Role == ChatRole.System || message.Role == ChatRole.User || message.Role == ChatRole.Assistant)
+            {
+                foreach (var content in message.Contents)
+                {
+                    if (content is TextContent textContent)
+                    {
+                        trajectory._trajectoryItems.Add(new TextTrajectoryItem(message.Role, textContent.Text));
+                    }
+                    else if (content is FunctionCallContent functionCallContent)
+                    {
+                        var parameters = (functionCallContent.RawRepresentation as OpenAI.Chat.ChatToolCall)?.FunctionArguments.ToString() ?? "{}";
+                        trajectory._trajectoryItems.Add(new FunctionCallTrajectoryItem(message.Role, functionCallContent.Name, parameters));
+                    }
+                    else if (content is FunctionResultContent functionResultContent)
+                    {
+                        trajectory._trajectoryItems.Add(new FunctionResultTrajectoryItem(functionResultContent.CallId, functionResultContent.Result));
+                    }
+                    // Skip unknown content types when restoring from history
+                }
+            }
+            else if (message.Role == ChatRole.Tool)
+            {
+                // Tool messages should only contain function result content
+                foreach (var content in message.Contents)
+                {
+                    if (content is FunctionResultContent functionResultContent)
+                    {
+                        trajectory._trajectoryItems.Add(new FunctionResultTrajectoryItem(functionResultContent.CallId, functionResultContent.Result));
+                    }
+                    // Tool messages might also have text content in some cases
+                    else if (content is TextContent textContent)
+                    {
+                        trajectory._trajectoryItems.Add(new TextTrajectoryItem(message.Role, textContent.Text));
+                    }
+                }
+            }
+            else
+            {
+                // For any other roles, treat them as text content
+                foreach (var content in message.Contents)
+                {
+                    if (content is TextContent textContent)
+                    {
+                        trajectory._trajectoryItems.Add(new TextTrajectoryItem(message.Role, textContent.Text));
+                    }
+                }
+            }
+        }
+
+        return trajectory;
+    }
+
     public string GetFilteredTrajectory()
     {
         // Apply filtering strategy: keep all content but filter function results to reduce context size, and return the trajectory

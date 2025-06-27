@@ -122,7 +122,15 @@ public static class Runner
             ? [.. newGeneratedItems]
             : [];
         List<ChatResponse> rawResponses = [];
-        trajectory ??= new Trajectory();
+
+        // Create trajectory from chat history if null, otherwise use the provided trajectory
+        if (trajectory == null)
+        {
+            var allChatMessages = new List<ChatMessage>();
+            allChatMessages.AddRange(originalInput);
+            allChatMessages.AddRange(generatedMessages);
+            trajectory = Trajectory.FromChatHistory(allChatMessages);
+        }
 
         var contextWrapper = new RunContextWrapper<TContext>(context);
 
