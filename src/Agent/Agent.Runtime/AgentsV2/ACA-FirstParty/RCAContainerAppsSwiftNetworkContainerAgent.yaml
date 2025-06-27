@@ -204,6 +204,7 @@ tools:
   - GetDeleteNetworkContainerOperation
   - GetAggregatedNetworkContainerHealthEvent
   - TrackSwiftILBGreKeyConflicts
+  - HandoffBack
 
 common_prompts:
   - notify_user

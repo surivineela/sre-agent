@@ -220,6 +220,7 @@ tools:
   - GetEnvironmentQuotaOperationResult
   - GetSubscriptionDetail
   - GetSubscriptionUsage
+  - HandoffBack
 
 common_prompts:
   - format_guidelines

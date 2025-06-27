@@ -230,8 +230,10 @@ tools:
   - GetContainerAppAdminEvents
   - GetContainerAppReplicaCountChanges
   - PlotTimeSeriesData
+  - HandoffBack
 
 
 common_prompts:
   - format_guidelines
   - guard_rail
+  - handoff_back

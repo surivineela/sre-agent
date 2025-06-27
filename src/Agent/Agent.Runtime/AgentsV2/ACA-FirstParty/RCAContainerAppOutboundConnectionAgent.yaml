@@ -163,10 +163,12 @@ tools:
 - DnsServerManagerOperation
 - GetASIPageForLegionPod
 - GetPodGuidFromName
+- HandoffBack
 
 common_prompts:
   - format_guidelines
   - guard_rail
+  - handoff_back
 
 
 custom_reflection_note: |

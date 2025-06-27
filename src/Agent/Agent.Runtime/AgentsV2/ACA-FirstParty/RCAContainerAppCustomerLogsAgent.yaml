@@ -145,10 +145,12 @@ tools:
   - GetContainerAppStatus
   - GetManagedEnvironmentInfo
   - PlotTimeSeriesData
+  - HandoffBack
 
 common_prompts:
   - format_guidelines
   - guard_rail
+  - handoff_back
 
 max_reflection_count: 2
 

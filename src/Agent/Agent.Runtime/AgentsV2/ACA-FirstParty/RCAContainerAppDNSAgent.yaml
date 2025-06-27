@@ -163,6 +163,7 @@ tools:
 - GetDNSConfigUpdateStatus
 - CheckIfDNSServerFailedToResolveDot
 - PlotTimeSeriesData
+- HandoffBack
 # - GetASIPageForManagedCluster
 # - GetInitialInvestigationReportAsync
 # - GetIssueInvestigationTimeRange
@@ -173,3 +174,4 @@ tools:
 common_prompts:
   - format_guidelines
   - guard_rail
+  - handoff_back

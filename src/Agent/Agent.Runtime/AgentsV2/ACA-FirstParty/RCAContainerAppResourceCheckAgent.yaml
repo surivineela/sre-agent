@@ -147,7 +147,9 @@ tools:
   - GetContainerAppMemoryExceedsThreshold
   - GetContainerAppOOMKills
   - PlotTimeSeriesData
+  - HandoffBack
 
 common_prompts:
   - format_guidelines
   - guard_rail
+  - handoff_back
