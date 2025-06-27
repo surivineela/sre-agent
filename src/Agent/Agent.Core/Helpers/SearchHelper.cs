@@ -16,6 +16,7 @@ using Microsoft.Extensions.Options;
 using SearchDocument = Agent.Core.Models.Api.v1.SearchDocument;
 
 namespace Agent.Core.Helpers;
+
 public class SearchHelper
 {
     private readonly ILogger<SearchHelper> _logger;
@@ -58,8 +59,8 @@ public class SearchHelper
 
         try
         {
-
-            if (_hostEnvironment.IsDevelopment())
+            // if it does not specify search endpoint locally, use SearchClient directly
+            if (_hostEnvironment.IsDevelopment() && string.IsNullOrEmpty(_searchEndpointSettings.SearchEndpointUrl))
             {
                 _logger.LogInternalInformation($"Development Environment. Searching with query: '{searchText}'");
                 var searchClient = GetSearchClient();
@@ -92,7 +93,7 @@ public class SearchHelper
             float[]? vector = null;
             if (_searchEndpointSettings.EnableVectorSearch)
             {
-                vector = await DocumentRetrieval.GenerateSearchVector(_embeddingGenerator, searchText, _logger);
+                vector = await DocumentRetrieval.GenerateSearchVector(_embeddingGenerator, searchText, _searchEndpointSettings.VectorDimensions, _logger);
             }
 
             var results = await _searchEndpointService.SearchDocumentsAsync(searchText, vector);

@@ -10,6 +10,7 @@ namespace Agent.Core.Configuration
         public string SearchEndpointUrl { get; set; } = string.Empty;
         public bool EnableDocumentRetrieval { get; set; }
         public bool EnableVectorSearch { get; set; }
+        public int VectorDimensions { get; set; }
     }
 }
 

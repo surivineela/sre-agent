@@ -12,15 +12,13 @@ public static class DocumentRetrieval
     {
         try
         {
-            var prompt = "Below is a history of the conversation so far, and a new question asked by the user that needs to be answered by searching in a knowledge base.\n" +
-                    "You have access to Azure AI Search index with 100's of documents.\n" +
-                    "Generate a search query based on the conversation and the new question.\n" +
-                    "Do not include cited source filenames and document names e.g. info.txt or doc.pdf in the search query terms.\n" +
-                    "Do not include any text inside [] or <<>> in the search query terms.\n" +
-                    "Do not include any special characters like '+' in the search query terms.\n" +
-                    "If the question is not in English, translate the question to English before generating the search query.\n" +
+            var prompt = "Generate a search query based on the user's new question and the conversation history, ensuring it: \n" +
+                    "- Concisely captures the user's intent or problem.\n" +
+                    "- Avoids including entity names, IDs, source filenames, or document names.\n" +
+                    "- Excludes any text inside brackets ([]) or special characters.\n" +
+                    "- Translates non-English questions into English before framing the search query.\n" +
                     "\n\n" +
-                    "The chat hisotry is:\n";
+                    "The chat history is:\n";
             foreach (var msg in chatHistory)
             {
                 prompt += $"{msg.Role}: {msg.Text}\n";
@@ -43,11 +41,15 @@ public static class DocumentRetrieval
         }
     }
 
-    public static async Task<float[]> GenerateSearchVector(IEmbeddingGenerator<string, Embedding<float>> embeddingGenerator, string searchQuery, ILogger logger)
+    public static async Task<float[]> GenerateSearchVector(IEmbeddingGenerator<string, Embedding<float>> embeddingGenerator, string searchQuery, int dimensions, ILogger logger)
     {
         try
         {
-            var embedding = await embeddingGenerator.GenerateAsync(searchQuery);
+            var options = new EmbeddingGenerationOptions
+            {
+                Dimensions = dimensions,
+            };
+            var embedding = await embeddingGenerator.GenerateAsync(searchQuery, options);
             return embedding.Vector.ToArray();
         }
         catch (Exception ex)

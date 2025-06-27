@@ -83,7 +83,7 @@ public class SearchEndpointService : ISearchEndpointService
             if (!response.IsSuccessStatusCode)
             {
                 string errorContent = await response.Content.ReadAsStringAsync();
-                _logger.LogInternalError($"Search endpoint returned error: {(int)response.StatusCode} {response.ReasonPhrase}, Content: {errorContent}", null);
+                _logger.LogInternalError($"Search endpoint returned error: {(int)response.StatusCode} {response.ReasonPhrase}, Content: {errorContent}");
                 response.EnsureSuccessStatusCode();
             }
 
