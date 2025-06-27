@@ -21,8 +21,7 @@ export interface IncidentManagementFormProps {
     loadFailure?: string;
     saving?: boolean;
     saveFailure?: string;
-    armUrl?: string;
-    managedIdentityResourceName?: string;
+    managedIdentityId?: string;
     tenantId?: string;
 }
 

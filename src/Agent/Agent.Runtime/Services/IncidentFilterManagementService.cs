@@ -7,7 +7,7 @@ using Agent.Graph.Interfaces;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
-using Agent.Logging;
+using Agent.Core.Services;
 
 namespace Agent.Runtime.Services
 {
@@ -34,6 +34,7 @@ namespace Agent.Runtime.Services
         protected readonly string DocumentType = "IncidentFilter";
         private readonly IncidentManagementSettings _incidentManagementSettings;
         private readonly IPagerDutyService _pagerDutyService;
+        private readonly IICMAPIClient _icmApiClient;
         private readonly ILogger<IncidentFilterManagementService> _logger;
 
         public IncidentFilterManagementService(
@@ -41,7 +42,8 @@ namespace Agent.Runtime.Services
             CosmosDBSettings cosmosDbSettings,
             IncidentManagementSettings incidentManagementSettings,
             IPagerDutyService pagerDutyService,
-            ILogger<IncidentFilterManagementService> logger)
+            ILogger<IncidentFilterManagementService> logger,
+            IICMAPIClient icmApiClient)
         {
             _incidentManagementSettings = incidentManagementSettings;
             DocumentType = $"IncidentFilter{incidentManagementSettings.Type.ToString()}";
@@ -51,29 +53,35 @@ namespace Agent.Runtime.Services
             );
             _pagerDutyService = pagerDutyService;
             _logger = logger;
+            _icmApiClient = icmApiClient;
         }
 
         public async Task<bool> CheckConnectivity()
         {
             _logger.LogInternalInformation("CheckConnectivity: Invoked for IncidentManagementType: {IncidentManagementType}", _incidentManagementSettings.Type);
-
-            if (_incidentManagementSettings.Type == IncidentManagementType.PagerDuty)
+            try
             {
-                try
+                switch (_incidentManagementSettings.Type)
                 {
-                    _logger.LogInternalInformation("CheckConnectivity: Checking PagerDuty service connectivity.");
-                    var response = await _pagerDutyService.GetPagerDutyRequest("status");
-                    _logger.LogInternalInformation("CheckConnectivity: PagerDuty service responded with status code {StatusCode}", response.StatusCode);
-                    return response.IsSuccessStatusCode;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogInternalError(ex, "CheckConnectivity: Failed to connect to PagerDuty service for IncidentManagementType: {IncidentManagementType}", _incidentManagementSettings.Type);
-                    throw new Exception("Failed to connect to PagerDuty service.", ex);
+                    case IncidentManagementType.PagerDuty:
+                        _logger.LogInternalInformation($"CheckConnectivity: Checking {_incidentManagementSettings.Type} service connectivity.");
+                        var response = await _pagerDutyService.GetPagerDutyRequest("status");
+                        _logger.LogInternalInformation($"CheckConnectivity: {_incidentManagementSettings.Type} service responded with status code {response.StatusCode}");
+                        return response.IsSuccessStatusCode;
+                    case IncidentManagementType.Icm:
+                        _logger.LogInternalInformation($"CheckConnectivity: Checking {_incidentManagementSettings.Type} service connectivity.");
+                        await _icmApiClient.GetIncidentsAsync(1, 0, null, null, null);
+                        return true;
+                    default:
+                        _logger.LogInternalWarning("CheckConnectivity: Connectivity check not implemented for IncidentManagementType: {IncidentManagementType}", _incidentManagementSettings.Type);
+                        return false;
                 }
             }
-            _logger.LogInternalWarning("CheckConnectivity: Connectivity check not implemented for IncidentManagementType: {IncidentManagementType}", _incidentManagementSettings.Type);
-            return false;
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "CheckConnectivity: Exception occurred while checking connectivity for IncidentManagementType: {IncidentManagementType}", _incidentManagementSettings.Type);
+                throw new Exception($"Failed to connect to {_incidentManagementSettings.Type} service.", ex);
+            }
         }
 
         public async Task<List<IncidentFilterFieldOption>> ListIncidentFilterFieldOptions()

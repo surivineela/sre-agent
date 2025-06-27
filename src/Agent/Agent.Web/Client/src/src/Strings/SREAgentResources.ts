@@ -496,10 +496,6 @@ export const IncidentManagementResources = defineMessages({
         id: 'ia2Cai',
     },
     quickstartHandler: { defaultMessage: 'Quickstart handler', id: '7p54Vc' },
-    quickstartHandlerDescription: {
-        defaultMessage: 'Add a default incident handler for the agent to use for P1 base incidents.',
-        id: 'r6+QFy',
-    },
     quickstartHandlerInfoMessage: {
         defaultMessage:
             'After the platform is connected, create incident handlers and custom handlers so that the agent can respond to incidents.',
@@ -650,6 +646,10 @@ export const PagerDutyResources = defineMessages({
         id: '84MFOR',
     },
     addedMessage: { defaultMessage: 'PagerDuty connection added successfully', id: 'Wr7RY0' },
+    quickstartHandlerDescription: {
+        defaultMessage: 'Add a default incident handler for the agent to use for P1 base incidents.',
+        id: 'r6+QFy',
+    },
 });
 
 export const AzMonitorResources = defineMessages({
@@ -674,7 +674,13 @@ export const IcMResources = defineMessages({
             'This will permanently delete the connection to IcM. The agent will no longer be able to manage incidents. Are you sure you want to delete this connection?',
         id: 'VwHnVH',
     },
-    connectedMessage: { defaultMessage: 'IcM is added.', id: 'mf3k9F' },
+    connectedMessage: { defaultMessage: 'IcM is connected.', id: 'tyJNW5' },
+    connectedMessageWithoutHandlers: {
+        defaultMessage: 'IcM connected. Your next step is to set up incident handlers.',
+        id: 'Dz+Iv9',
+    },
+    addedMessage: { defaultMessage: 'IcM connection added successfully', id: 'P3Xgmf' },
+
     connectionDescription: {
         defaultMessage: 'Connect to ICM so that the Agent can automatically listen and respond to your Incidents.',
         id: 'o7TUwc',
@@ -690,6 +696,10 @@ export const IcMResources = defineMessages({
     managedIdentity: {
         defaultMessage: 'Managed Identity',
         id: 'UZMdQH',
+    },
+    quickstartHandlerDescription: {
+        defaultMessage: 'Add a default incident handler for the agent to use for Sev3 LiveSite incidents.',
+        id: '8oXUdb',
     },
 });
 

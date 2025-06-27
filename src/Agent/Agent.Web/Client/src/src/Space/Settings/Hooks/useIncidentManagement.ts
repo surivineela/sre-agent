@@ -8,6 +8,7 @@ import { getErrorMessage } from '../../../Common/Clients/ArmClient';
 import { IncidentHandlerClient } from '../../../Common/Clients/IncidentHandlerClient';
 import SreAgentClient from '../../../Common/Clients/SreAgentClient';
 import { ArmObj } from '../../../Common/Contracts/Azure/ArmObj';
+import { IncidentFilterPayload } from '../../../Common/Contracts/Azure/IncidentHandler';
 import { Agent, IncidentManagementConfiguration, IncidentManagementType } from '../../../Common/Contracts/Azure/SreAgent';
 import { Guid } from '../../../Common/Helpers/Guid';
 import {
@@ -223,8 +224,11 @@ export function useIncidentManagement(resourceId: string) {
                             intl.formatMessage(IncidentManagementNotificationResources.saveSucceeded)
                         );
                     } else {
-                        //To do, once adding /CheckConnectivity for IcM, Will include Icm here as well
-                        if (formValues.platform === IncidentManagementPlatform.PagerDuty && formValues.createDefaultHandler) {
+                        if (
+                            (formValues.platform === IncidentManagementPlatform.PagerDuty ||
+                                formValues.platform === IncidentManagementPlatform.Icm) &&
+                            formValues.createDefaultHandler
+                        ) {
                             pollForConnectivity(environmentContext.sreAgentEndpoint, azPortalContext.log.bind(azPortalContext)).then(
                                 isConnected => {
                                     if (!isConnected) {
@@ -247,52 +251,56 @@ export function useIncidentManagement(resourceId: string) {
                                             logLevel: 'info',
                                             resourceId,
                                         });
-                                        incidentHandlerClient
-                                            .createIncidentFilter({
-                                                Id: 'quickstart_handler',
-                                                Priority: 'P1',
-                                                IncidentType: 'incident_default',
-                                            })
-                                            .then(filterResult => {
-                                                setIsIncidentManagementConnected(true);
-                                                setSaving(false);
-                                                setInitialValues({ platform: formValues.platform, createDefaultHandler: false });
-                                                if (filterResult.isSuccessful) {
-                                                    azPortalContext.log({
-                                                        action: 'create-defaultHandler',
-                                                        actionModifier: 'success',
-                                                        logLevel: 'info',
-                                                        resourceId,
-                                                    });
-                                                    setHasFilters(true);
-                                                    setSaveFailure(undefined);
-                                                    azPortalContext.stopNotification(
-                                                        notificationId,
-                                                        true,
-                                                        intl.formatMessage(IncidentManagementNotificationResources.saveSucceeded)
-                                                    );
-                                                } else {
-                                                    azPortalContext.log({
-                                                        action: 'create-defaultHandler',
-                                                        actionModifier: 'failed',
-                                                        logLevel: 'error',
-                                                        resourceId,
-                                                    });
-                                                    setHasFilters(false);
-                                                    setSaveFailure(
-                                                        intl.formatMessage(
-                                                            IncidentManagementNotificationResources.createDefaultHandlerFailed
-                                                        )
-                                                    );
-                                                    azPortalContext.stopNotification(
-                                                        notificationId,
-                                                        false,
-                                                        intl.formatMessage(
-                                                            IncidentManagementNotificationResources.createDefaultHandlerFailed
-                                                        )
-                                                    );
-                                                }
-                                            });
+
+                                        const defaultIncidentFilter: IncidentFilterPayload = {
+                                            Id: 'quickstart_handler',
+                                        };
+
+                                        if (formValues.platform === IncidentManagementPlatform.PagerDuty) {
+                                            defaultIncidentFilter.IncidentType = 'incident_default';
+                                            defaultIncidentFilter.Priority = 'P1';
+                                        }
+
+                                        if (formValues.platform === IncidentManagementPlatform.Icm) {
+                                            defaultIncidentFilter.IncidentType = 'LiveSite';
+                                            defaultIncidentFilter.Priority = '3';
+                                        }
+                                        incidentHandlerClient.createIncidentFilter(defaultIncidentFilter).then(filterResult => {
+                                            setIsIncidentManagementConnected(true);
+                                            setSaving(false);
+                                            setInitialValues({ platform: formValues.platform, createDefaultHandler: false });
+                                            if (filterResult.isSuccessful) {
+                                                azPortalContext.log({
+                                                    action: 'create-defaultHandler',
+                                                    actionModifier: 'success',
+                                                    logLevel: 'info',
+                                                    resourceId,
+                                                });
+                                                setHasFilters(true);
+                                                setSaveFailure(undefined);
+                                                azPortalContext.stopNotification(
+                                                    notificationId,
+                                                    true,
+                                                    intl.formatMessage(IncidentManagementNotificationResources.saveSucceeded)
+                                                );
+                                            } else {
+                                                azPortalContext.log({
+                                                    action: 'create-defaultHandler',
+                                                    actionModifier: 'failed',
+                                                    logLevel: 'error',
+                                                    resourceId,
+                                                });
+                                                setHasFilters(false);
+                                                setSaveFailure(
+                                                    intl.formatMessage(IncidentManagementNotificationResources.createDefaultHandlerFailed)
+                                                );
+                                                azPortalContext.stopNotification(
+                                                    notificationId,
+                                                    false,
+                                                    intl.formatMessage(IncidentManagementNotificationResources.createDefaultHandlerFailed)
+                                                );
+                                            }
+                                        });
                                     }
                                 }
                             );

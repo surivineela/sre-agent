@@ -867,6 +867,12 @@
       "value": "Failed to delete logic app"
     }
   ],
+  "Dz+Iv9": [
+    {
+      "type": 0,
+      "value": "IcM connected. Your next step is to set up incident handlers."
+    }
+  ],
   "E396gv": [
     {
       "type": 0,
@@ -1427,6 +1433,12 @@
     {
       "type": 0,
       "value": "The custom incident handler was successfully updated"
+    }
+  ],
+  "P3Xgmf": [
+    {
+      "type": 0,
+      "value": "IcM connection added successfully"
     }
   ],
   "P9odAr": [
@@ -2601,12 +2613,6 @@
       "value": "Choose incident type"
     }
   ],
-  "mf3k9F": [
-    {
-      "type": 0,
-      "value": "IcM is added."
-    }
-  ],
   "mgYBYo": [
     {
       "type": 0,
@@ -2781,6 +2787,12 @@
     {
       "type": 0,
       "value": "Managed resources"
+    }
+  ],
+  "pPJwiJ": [
+    {
+      "type": 0,
+      "value": "Add a default incident handler for the agent to use for Sev3 LiveSite incidents."
     }
   ],
   "pT3qMe": [
@@ -2977,6 +2989,12 @@
     {
       "type": 0,
       "value": "Select region"
+    }
+  ],
+  "tyJNW5": [
+    {
+      "type": 0,
+      "value": "IcM is connected."
     }
   ],
   "tzMNF3": [
