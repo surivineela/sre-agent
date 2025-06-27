@@ -274,6 +274,31 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                         incidentDocument.Notes = latestDetails.Notes;
                         needsUpsert = true;
                     }
+                    if (incidentDocument.Status != incident.Status)
+                    {
+                        incidentDocument.Status = incident.Status;
+                        needsUpsert = true;
+                    }
+                    if (incidentDocument.Priority != incident.Priority.Summary)
+                    {
+                        incidentDocument.Priority = incident.Priority.Summary;
+                        needsUpsert = true;
+                    }
+                    if (incidentDocument.ImpactedServiceId != incident.ImpactedService.Id)
+                    {
+                        incidentDocument.ImpactedServiceId = incident.ImpactedService.Id;
+                        needsUpsert = true;
+                    }
+                    if (incidentDocument.ImpactedServiceName != incident.ImpactedService.Summary)
+                    {
+                        incidentDocument.ImpactedServiceName = incident.ImpactedService.Summary;
+                        needsUpsert = true;
+                    }
+                    if (incidentDocument.IncidentType != incident.IncidentType.Name)
+                    {
+                        incidentDocument.IncidentType = incident.IncidentType.Name;
+                        needsUpsert = true;
+                    }
 
                 }
                 // var descriptionEmbedding = await embeddingGenerator.GenerateEmbeddingAsync(incident.Description, cancellationToken: cancellationToken);
