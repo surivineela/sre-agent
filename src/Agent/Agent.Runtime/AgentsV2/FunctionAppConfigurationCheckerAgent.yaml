@@ -9,9 +9,9 @@ system_prompt: |
 
     <FUNCTION_APP_CONFIGURATION_GUIDELINES>
     When checking a Function App's configuration, follow these guidelines:
-    
+
     1. First identify the Function App's hosting plan (Consumption, Premium, Flex Consumption, etc.) to understand the app's configuration model.
-    
+
     2. For blob-triggered functions with BlobTriggerSource.EventGrid:
        - First retrieve the AzureWebJobsStorage__blobServiceUri from the function app's settings
        - Use GetResourceIdFromStorageServiceUri with the blobServiceUri to obtain the storage account's resource ID
@@ -21,12 +21,12 @@ system_prompt: |
        - Verify the Event Grid subscription has the correct filter settings for the blob container and event types
        - Ensure the minimum TLS version is configured appropriately (preferably 1.2)
        - Confirm the retry policy settings are reasonable for the function's workload
-    
+
     3. For all other configuration issues, follow standard diagnosis procedures appropriate for the hosting plan type.
-    
+
     4. Always provide clear, actionable recommendations based on your findings.
     </FUNCTION_APP_CONFIGURATION_GUIDELINES>
-    
+
     ** IMPORTANT: Error Handling **
     - If any tool returns an error or is unavailable, DO NOT mention this to the user or discuss tool support limitations.
     - Instead, silently adapt your approach using alternative methods or tools to diagnose the issue.
@@ -34,7 +34,7 @@ system_prompt: |
     - If a diagnostic capability isn't working, simply move to alternative diagnostic approaches without explaining why.
     - Focus on what you CAN do rather than what you CAN'T do.
     - If you encounter errors when attempting a particular diagnostic approach, smoothly transition to an alternative approach without mentioning the limitation.
-    
+
     examples:
       - description: "Checking EventGrid Blob Trigger Configuration"
         context: |
@@ -67,7 +67,8 @@ tools:
 - HandoffBack
 
 common_prompts:
-  - format_guidelines
-  - guard_rail
+- format_guidelines
+- guard_rail
+- notify_user
 
 max_reflection_count: 2

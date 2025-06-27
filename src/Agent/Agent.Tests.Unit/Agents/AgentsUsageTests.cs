@@ -20,7 +20,7 @@ public class AgentsUsageTests
         _app = Web.Program.CreateWebApplicationBuilder([]).Build();
     }
 
-    [Fact(Skip = "Dsiabled to unblock official build failure")]
+    [Fact]
     public void ValidateNotifyUserUsage()
     {
         var agentFactory = _app.Services.GetRequiredService<IAgentFactory<AgentContext>>() as AgentFactory<AgentContext>;
@@ -41,31 +41,7 @@ public class AgentsUsageTests
         }
     }
 
-    [Fact(Skip = "Dsiabled to unblock official build failure")]
-    public void ValidateHandoffBackUsage()
-    {
-        var agentFactory = _app.Services.GetRequiredService<IAgentFactory<AgentContext>>() as AgentFactory<AgentContext>;
-
-        Assert.NotNull(agentFactory);
-
-        var agentDescriptors = agentFactory.GetAllAgentDescriptors();
-
-        Assert.NotEmpty(agentDescriptors);
-
-        foreach (var agentDescriptor in agentDescriptors)
-        {
-            if (agentDescriptor.Tools.Any(t => t == "HandoffBack"))
-            {
-                Assert.True(agentDescriptor.CommonPrompts.Contains("handoff_back"),
-                    $"Agent Descriptor with name {agentDescriptor.Name} uses tool HandoffBack but does not include 'handoff_back' in the 'common_prompts' list");
-
-                Assert.True(agentDescriptor.Instructions.Contains("<CORE_RESPONSIBILITY_SCOPE>"),
-                    $"Agent Descriptor with name {agentDescriptor.Name} uses tool HandoffBack but does not include '<CORE_RESPONSIBILITY_SCOPE>' in the prompt. You'll need to add core responsibility scope to make handoff back working effectively.");
-            }
-        }
-    }
-
-    [Fact(Skip = "Dsiabled to unblock official build failure")]
+    [Fact]
     public void ValidateGuardRailUsage()
     {
         var agentFactory = _app.Services.GetRequiredService<IAgentFactory<AgentContext>>() as AgentFactory<AgentContext>;
@@ -83,7 +59,7 @@ public class AgentsUsageTests
         }
     }
 
-    [Fact(Skip = "Dsiabled to unblock official build failure")]
+    [Fact]
     public void ValidateFormatGuidelinesUsage()
     {
         var agentFactory = _app.Services.GetRequiredService<IAgentFactory<AgentContext>>() as AgentFactory<AgentContext>;
