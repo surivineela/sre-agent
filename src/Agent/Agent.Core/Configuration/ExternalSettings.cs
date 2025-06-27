@@ -22,6 +22,7 @@ namespace Agent.Core.Configuration
         public OneBranchApprovalServiceSettings OneBranchApprovalService { get; set; } = new();
         public AzureSearchSettings AzureSearch { get; set; } = new();
         public TsgCrawlerSettings TsgCrawler { get; set; } = new();
+        public KeyVaultSettings KeyVault { get; set; } = new();
     }
 }
 

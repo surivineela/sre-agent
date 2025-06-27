@@ -69,6 +69,7 @@ namespace Agent.Tests.Integration.External
                 return new NullableICMWorkflowClient();
             });
             services.AddSingleton<ICMWorkflowClient, ICMWorkflowClient>();
+            services.AddSingleton<IKeyVaultService, KeyVaultService>();
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<AzureSettings>>().Value.CosmosDB);
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<AzureSettings>>().Value.Crawler);
             // add IOption<CrawlerSettings> by using Crawler
@@ -85,8 +86,11 @@ namespace Agent.Tests.Integration.External
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<ExternalSettings>>().Value.ICMWorkflows);
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<ExternalSettings>>().Value.AgentHelper);
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<ExternalSettings>>().Value.OneBranchApprovalService);
+            services.AddSingleton(sp => sp.GetRequiredService<IOptions<ExternalSettings>>().Value.KeyVault);
+
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<KustoSettings>>().Value);
             services.AddSingleton<IAuthenticationService, AuthenticationService>();
+            services.AddSingleton<AgentHelperService>();
 
 
             services.AddSingleton<IHostEnvironment>(_environment);
@@ -107,13 +111,13 @@ namespace Agent.Tests.Integration.External
         public async Task ExecuteGenevaActionTest()
         {
             var plugin = _serviceProvider.GetRequiredService<IGenevaActionsPlugin>();
-            var result = await plugin.ExecuteGenevaAction("RestartWebApp", new Dictionary<string, string>
+            var result = await plugin.ExecuteGenevaAction("123","RestartWebApp", new Dictionary<string, string>
             {
                 ["subscriptionId"] = "14300d68-d0c8-4060-82af-bf2d9b70f130",
                 ["webappName"] = "hotsite1",
                 ["webspaceName"] = "hotsite-rg-CentralUSwebspace"
             });
-            Assert.True(result?.Contains("RequestID"));
+            Assert.True(result?.Contains("RestartWebApp"));
         }
 
        

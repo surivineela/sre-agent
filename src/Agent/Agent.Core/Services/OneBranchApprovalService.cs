@@ -20,8 +20,7 @@ public class OneBranchApprovalService
     private ILogger _logger;
     private AgentHelperSettings _agentHelperSettings;
     private OneBranchApprovalServiceSettings _oneBranchApprovalServiceSettings;
-    private HttpClient _httpClient;
-
+    private AgentHelperService _agentHelperService;
     public bool IsEnabled = false;
 
     private TimeSpan maxPollingTime = TimeSpan.FromDays(7); 
@@ -35,13 +34,15 @@ public class OneBranchApprovalService
     public OneBranchApprovalService(
         ILogger<OneBranchApprovalService> logger,
         AgentHelperSettings agentHelperSettings,
-        OneBranchApprovalServiceSettings oneBranchApprovalServiceSettings)
+        OneBranchApprovalServiceSettings oneBranchApprovalServiceSettings,
+        AgentHelperService agentHelperService)
     {
         _logger = logger;
         _agentHelperSettings = agentHelperSettings ?? throw new ArgumentNullException(nameof(agentHelperSettings));
         _oneBranchApprovalServiceSettings = oneBranchApprovalServiceSettings ?? throw new ArgumentNullException(nameof(oneBranchApprovalServiceSettings));
+        _agentHelperService = agentHelperService;
 
-        if (!_agentHelperSettings.Enabled)
+        if (!_agentHelperService.IsEnabled)
         {
             if (!_oneBranchApprovalServiceSettings.Enabled)
             {
@@ -50,63 +51,23 @@ public class OneBranchApprovalService
             }
             else
             {
-                throw new ArgumentException("AgentHelperSettings must be enabled when OneBranchApprovalService is enabled.");
+                throw new ArgumentException("agentHelperService must be enabled when OneBranchApprovalService is enabled.");
             }
         }
 
         IsEnabled = true;
 
-
-        if (Debugger.IsAttached)
-        {
-            var options = new DefaultAzureCredentialOptions
-            {
-                ExcludeEnvironmentCredential = false,
-                ExcludeManagedIdentityCredential = true,
-                ExcludeWorkloadIdentityCredential = false,
-                ExcludeSharedTokenCacheCredential = false,
-                ExcludeVisualStudioCredential = false,
-                ExcludeVisualStudioCodeCredential = false,
-                ExcludeAzureCliCredential = false,
-                ExcludeInteractiveBrowserCredential = false,
-                ExcludeAzurePowerShellCredential = false
-            };
-
-            var credential = new DefaultAzureCredential(options);
-            _httpClient = new HttpClient(new TokenCredentialHttpClientHandler(credential, _agentHelperSettings.Resource));
-        }
-        else
-        {
-
-            if (string.IsNullOrEmpty(_agentHelperSettings.ManagedIdentityClientId))
-            {
-                throw new ArgumentException("ManagedIdentityClientId must be set in AgentHelperSettings.");
-            }
-
-            var managedIdentityCredential = new ManagedIdentityCredential(_agentHelperSettings.ManagedIdentityClientId);
-
-            _httpClient = new HttpClient(new TokenCredentialHttpClientHandler(managedIdentityCredential, _agentHelperSettings.Resource));
-        }
-
-        if (!string.IsNullOrEmpty(_agentHelperSettings.Endpoint))
-        {
-            _httpClient.BaseAddress = new Uri(_agentHelperSettings.Endpoint);
-        }
-        else
-        {
-            throw new ArgumentException("Endpoint must be set in AgentHelperSettings.");
-        }
     }
 
 
-    public async Task<OneBranchApprovalResponse> CreateApprovalDocumentAsync(OneBranchApprovalRequest request)
+    public async Task<OneBranchApprovalResponse> CreateApprovalDocumentAsync(OneBranchApprovalRequest request, string actionName = null, Dictionary<string, string> inputParameters = null)
     {
         if (request == null)
         {
             throw new ArgumentNullException(nameof(request), "Approval request cannot be null.");
         }
-        var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
-        var response = await _httpClient.PostAsync(createApprovalDocApi, content);
+
+        var response = await _agentHelperService.CreateApprovalDocumentAsync(request);
         if (!response.IsSuccessStatusCode)
         {
             var respContent = await response.Content.ReadAsStringAsync();
@@ -126,6 +87,7 @@ public class OneBranchApprovalService
         }
 
         _logger.LogInternalInformation("Approval document created successfully with ID: {ApprovalId}", resp.ApprovalDocumentId);
+
         return resp;
     }
 
@@ -135,7 +97,7 @@ public class OneBranchApprovalService
         {
             throw new ArgumentException("Approval ID cannot be null or empty.", nameof(id));
         }
-        var response = await _httpClient.GetAsync($"{getApprovalRequestApi}/{id}");
+        var response = await _agentHelperService.GetApprovalRequestAsync(id);
         if (!response.IsSuccessStatusCode)
         {
             if(response.StatusCode == System.Net.HttpStatusCode.NotFound)
@@ -178,6 +140,7 @@ public class OneBranchApprovalService
                     string action = approvalStatus?.Data?.ApprovalDocumentCompleteDetails?.Action;
                     logMessage = $"[poll_for_approval][{DateTime.UtcNow}] Approval process completed. Status: {action}";
                     _logger.LogInternalInformation(logMessage);
+
                     return approvalStatus;
                 }
 
@@ -199,7 +162,6 @@ public class OneBranchApprovalService
         // Timeout reached
         throw new TimeoutException($"Approval polling timed out after {maxPollingTime.TotalHours} hours for approval ID: {approvalId}");
     }
-
 
     private class TokenCredentialHttpClientHandler : HttpClientHandler
     {

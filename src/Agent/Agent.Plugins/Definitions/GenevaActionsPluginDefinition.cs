@@ -22,9 +22,9 @@ public class GenevaActionsPluginDefinition
     }
 
     [AgentTool(ToolMode.Manual)]
-    [Description("Execute a geneva action with action name, and input parameters.\nIf Geneva Action execution fails due to incorrect parameters, then correct the parameters and try again.")]
-    public Task<string> ExecuteGenevaAction(string actionName, Dictionary<string, string> inputParameters)
+    [Description("Execute a geneva action for a specific incident with action name, and input parameters.\nIf Geneva Action execution fails due to incorrect parameters, then correct the parameters and try again.")]
+    public Task<string> ExecuteGenevaAction(string incidentId, string actionName, Dictionary<string, string> inputParameters)
     {
-        return _genevaActionsPlugin.ExecuteGenevaAction(actionName, inputParameters);
+        return _genevaActionsPlugin.ExecuteGenevaAction(incidentId, actionName, inputParameters);
     }
 }

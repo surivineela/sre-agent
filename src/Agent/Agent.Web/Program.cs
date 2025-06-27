@@ -403,6 +403,7 @@ public class Program
             .AddSingleton<IKustoDashboardPlugin, KustoDashboardPlugin>()
             .AddTransient<RCAContainerAppResourceCheckPluginDefinition>()
             .AddTransient<RCAContainerAppsSwiftNetworkContainerPluginDefinition>()
+            .AddTransient<GenevaActionsPluginDefinition>()
             .AddTransient<ICMPluginDefinition>()
             .AddTransient<KustoPlugin>()
             .AddTransient<SearchPluginDefinition>()
@@ -438,6 +439,9 @@ public class Program
             .AddTransient<IAzureMonitorMetricsPlugin, AzureMonitorMetricsPlugin>()
             .AddTransient<IArmPlugin, ArmPlugin>()
             .AddTransient<IAPIManagementPlugin, APIManagementPlugin>()
+            .AddTransient<IGenevaActionsPlugin, GenevaActionsPlugin>()
+            .AddTransient<AgentHelperService>()
+
             .AddTransient<IICMPlugin, ICMPlugin>()
             .AddSingleton<IKustoPluginClient, KustoPluginClient>()
             // Replace the existing IAzureSearchPlugin registration with this updated version
@@ -517,8 +521,10 @@ public class Program
             .AddSingleton<SearchHelper>()
             .AddSingleton<ISearchIndexingClient, SearchIndexingClient>()
             .AddSingleton<DocumentationIndex>()
+            .AddSingleton<OneBranchApprovalService>()
             .AddSingleton<ISearchEndpointService, SearchEndpointService>()
             .AddSingleton<KustoMetadataIndex>()
+            .AddSingleton<IKeyVaultService, KeyVaultService>()
 
             .AddSingleton(sp =>
             {
@@ -600,14 +606,6 @@ public class Program
             builder.Services.AddSingleton<IAgentsFactory, FirstPartyAgentsFactory>();
             builder.Services.AddSingleton<IToolsRepository, FirstPartyToolsRepository>();
             builder.Services.AddSingleton<ITitleGenerationService, FirstPartyTitleGenerationService>();
-
-            if (agentType != "ACAAgent")
-            {
-                builder.Services.AddTransient<IGenevaActionsPlugin, GenevaActionsPlugin>()
-                .AddTransient<GenevaActionsPluginDefinition>()
-                .AddSingleton<OneBranchApprovalService>();
-            }
-
             builder.RegisterFirstPartySubAgentsDependencies();
             builder.RegisterFirstPartyAppSettings();
         }

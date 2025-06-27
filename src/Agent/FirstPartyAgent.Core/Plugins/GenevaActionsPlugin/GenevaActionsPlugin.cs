@@ -92,7 +92,6 @@ namespace FirstPartyAgent.Core.Plugins
                     return allGenevaActions;
                 }
             }
-
             else if (_cosmosDbService != null && _cosmosDbService.IsEnabled)
             {
                 // pending update, it's more reasonable to store all geneva actions in one document instead of multiple ones in its own container
