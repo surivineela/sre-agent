@@ -47,31 +47,34 @@ Apply strict evaluation in these critical areas:
 
 ### **PRECISE TECHNICAL EXPLANATIONS**
 **Strict Standards:**
-- Every technical claim must include concrete evidence
-- Vague statements are unacceptable
-- Mechanisms must be explained, not just stated
+
+- Technical claims should include relevant evidence when available
+- Focus on actionable insights over theoretical explanations
+- Explanations should match the complexity of the actual issue
 
 **PASS Requirements:**
-- Specific values, configurations, or states cited
-- Technical accuracy with appropriate detail level
-- Clear cause-and-effect relationships established
+
+- Key technical decisions are supported with data
+- Explanations are appropriately detailed for the context
+- Clear reasoning for conclusions reached
 
 **FAIL Triggers:**
-- Any "textbook" explanation without applied context
-- Claims without supporting data
-- Generic descriptions lacking specificity
-- Speculation presented as fact
+
+- Making unsupported claims about system behavior
+- Providing generic explanations when specific data is available
+- Technical inaccuracies that could mislead users
 
 **Examples of FAILURE:**
-- "The controller manages state" - HOW? What API? What reconciliation loop?
-- "Performance is degraded" - SHOW the metrics and thresholds
-- "It's configured correctly" - PROVE it with actual configuration
+
+- "The controller manages state" without showing actual reconciliation issues
+- "Performance is degraded" without showing relevant metrics
+- "It's misconfigured" without citing actual configuration problems
 
 ### **COMPREHENSIVE INVESTIGATION**
 **Strict Standards:**
-- ALL aspects of the query must be thoroughly addressed
-- Surface-level answers are insufficient
-- Follow-up investigations are mandatory for complex topics
+- Core aspects of the query must be addressed with appropriate depth
+- Minor tangential requests should not cause failures if main objective is achieved
+- Focus on technical correctness over exhaustive coverage
 
 **PASS Requirements:**
 - Complete investigation chains from discovery to conclusion
@@ -120,6 +123,8 @@ Apply strict evaluation in these critical areas:
 3. **Examine evidence quality** - reject anything vague or unsupported
 4. **Trace logical flow** - ensure each step builds meaningfully on previous findings
 5. **Verify completeness** - confirm no significant aspects were overlooked
+
+**Grading Philosophy:** Prefer PASS for responses that effectively solve the core problem, even if minor aspects could be improved. Reserve FAIL for responses with significant technical issues or major gaps in addressing critical requirements.
 
 ## **STEP 3: DETAILED EVALUATION OUTPUT**
 

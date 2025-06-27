@@ -260,8 +260,7 @@ public static class Runner
                 {
                     currentAgent = turnResult.NextStep.Agent;
                     shouldRunAgentStartHooks = true;
-                    // clear out the past trajectory.. we track new path for new agent
-                    trajectory = new Trajectory();
+                    // we should not reset the trajectory, as it may contain important information for critic as handoff is very cheap frequent behavior.
                 }
                 else if (turnResult.NextStep.Type == NextStepType.RunAgain)
                 {
@@ -337,7 +336,7 @@ public static class Runner
                 }
             }
 
-            var trajectoryString = trajectory.Close();
+            var trajectoryString = trajectory.GetFilteredTrajectory();
 
             if (config.EnableDebugOutput)
             {

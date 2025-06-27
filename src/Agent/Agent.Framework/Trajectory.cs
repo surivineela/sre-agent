@@ -8,6 +8,133 @@ using Microsoft.Extensions.AI;
 
 namespace Agent.Framework;
 
+public abstract class TrajectoryItem
+{
+    public abstract string ToString(bool filterResults);
+}
+
+public class TextTrajectoryItem : TrajectoryItem
+{
+    public ChatRole Role { get; }
+    public string Text { get; }
+
+    public TextTrajectoryItem(ChatRole role, string text)
+    {
+        Role = role;
+        Text = text;
+    }
+
+    public override string ToString(bool filterResults)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine($"Role: {Role}");
+        sb.AppendLine();
+        sb.AppendLine(Text);
+        sb.AppendLine();
+        return sb.ToString();
+    }
+}
+
+public class FunctionCallTrajectoryItem : TrajectoryItem
+{
+    public ChatRole Role { get; }
+    public string FunctionName { get; }
+    public string Parameters { get; }
+
+    public FunctionCallTrajectoryItem(ChatRole role, string functionName, string parameters)
+    {
+        Role = role;
+        FunctionName = functionName;
+        Parameters = parameters;
+    }
+
+    public override string ToString(bool filterResults)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine($"Role: {Role}");
+        sb.AppendLine();
+        sb.AppendLine($"Function Call: {FunctionName}");
+        sb.AppendLine($"Parameters: {Parameters}");
+        sb.AppendLine();
+        return sb.ToString();
+    }
+}
+
+public class FunctionResultTrajectoryItem : TrajectoryItem
+{
+    public string CallId { get; }
+    public object? Result { get; }
+
+    public FunctionResultTrajectoryItem(string callId, object? result)
+    {
+        CallId = callId;
+        Result = result;
+    }
+
+    public override string ToString(bool filterResults)
+    {
+        var sb = new StringBuilder();
+        if (filterResults)
+        {
+            // When filtering, only show that a function result was received but not the content
+            sb.AppendLine("Function Call Result: [Result filtered for brevity]");
+        }
+        else
+        {
+            // Full result content
+            var functionResult = new FunctionResultContent(CallId, Result);
+            var resultString = ResultToString(functionResult);
+            sb.AppendLine($"Function Call Result:\n{resultString}");
+        }
+        sb.AppendLine();
+        return sb.ToString();
+    }
+
+    private static string ResultToString(FunctionResultContent functionResult)
+    {
+        if (functionResult.Result is null)
+        {
+            return "null";
+        }
+        else
+        {
+            var resultObj = functionResult.Result;
+
+            var jsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web)
+            {
+                WriteIndented = true,
+            };
+
+            var resultString = (resultObj is string str) ? str : JsonSerializer.Serialize(resultObj, jsonOptions);
+
+            return TextVolumeHelpers.ApplyWordTruncation(
+                input: resultString,
+                maxWords: 200,
+                addTruncationMessage: false);
+        }
+    }
+}
+
+public class CriticFeedbackTrajectoryItem : TrajectoryItem
+{
+    public string Feedback { get; }
+
+    public CriticFeedbackTrajectoryItem(string feedback)
+    {
+        Feedback = feedback;
+    }
+
+    public override string ToString(bool filterResults)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine($"This is the critic feedback received by the agent in the past run. It contains a verified summary of the past actions taken by the agent.\n\nRole: Critic.");
+        sb.AppendLine();
+        sb.AppendLine(Feedback);
+        sb.AppendLine($"Now the agent has taken the following steps since then to address the feedback.\n\n");
+        return sb.ToString();
+    }
+}
+
 public sealed class Trajectory
 {
     public int CriticCount { get; private set; } = 0;
@@ -19,27 +146,22 @@ public sealed class Trajectory
 
     private const int MaxResultWords = 200;
 
-    private StringBuilder TrajectoryBuilder { get; } = new();
+    private readonly List<TrajectoryItem> _trajectoryItems = new();
 
     public void Append(ChatResponse modelResponse)
     {
         foreach (var msg in modelResponse.Messages)
         {
-            TrajectoryBuilder.AppendLine($"Role: {msg.Role}");
-            TrajectoryBuilder.AppendLine();
-
             foreach (var content in msg.Contents)
             {
                 if (content is TextContent textContent)
                 {
-                    TrajectoryBuilder.AppendLine(textContent.Text);
-                    TrajectoryBuilder.AppendLine();
+                    _trajectoryItems.Add(new TextTrajectoryItem(msg.Role, textContent.Text));
                 }
                 else if (content is FunctionCallContent functionCallContent)
                 {
-                    TrajectoryBuilder.AppendLine($"Function Call: {functionCallContent.Name}");
-                    TrajectoryBuilder.AppendLine($"Parameters: {(functionCallContent.RawRepresentation as OpenAI.Chat.ChatToolCall)!.FunctionArguments.ToString()}");
-                    TrajectoryBuilder.AppendLine();
+                    var parameters = (functionCallContent.RawRepresentation as OpenAI.Chat.ChatToolCall)!.FunctionArguments.ToString();
+                    _trajectoryItems.Add(new FunctionCallTrajectoryItem(msg.Role, functionCallContent.Name, parameters));
                 }
                 // don't expect this in general as tool calls are handled manually
                 // however for parallel tool call we use functionInvokingChatClient, which will inline the results
@@ -53,15 +175,11 @@ public sealed class Trajectory
                 }
             }
         }
-
-        TrajectoryBuilder.AppendLine();
     }
 
     public void Append(FunctionResultContent functionResult)
     {
-        var resultString = ResultToString(functionResult);
-        TrajectoryBuilder.AppendLine($"Function Call Result:\n{resultString}");
-        TrajectoryBuilder.AppendLine();
+        _trajectoryItems.Add(new FunctionResultTrajectoryItem(functionResult.CallId, functionResult.Result));
     }
 
     public static string ResultToString(FunctionResultContent functionResult)
@@ -85,17 +203,36 @@ public sealed class Trajectory
 
     public void AppendCriticFeedback(string feedback)
     {
-        TrajectoryBuilder.AppendLine($"This is the critic feedback received by the agent in the past run. It contains a verified summary of the past actions taken by the agent.\n\nRole: Critic.");
-        TrajectoryBuilder.AppendLine();
-        TrajectoryBuilder.AppendLine(feedback);
-        TrajectoryBuilder.AppendLine($"Now the agent has taken the following steps since then to address the feedback.\n\n");
+        _trajectoryItems.Add(new CriticFeedbackTrajectoryItem(feedback));
     }
 
-    public string Close()
+    public string GetFilteredTrajectory()
     {
-        var trajectory = TrajectoryBuilder.ToString();
-        TrajectoryBuilder.Clear();
+        // Apply filtering strategy: keep all content but filter function results to reduce context size, and return the trajectory
+        var trajectory = ToString(filterResults: true);
+
+        // Remove function result items from memory to reduce memory usage
+        _trajectoryItems.RemoveAll(item => item is FunctionResultTrajectoryItem);
+
         CriticCount++;
         return trajectory;
+    }
+
+    /// <summary>
+    /// Get the full trajectory without any filtering (for debugging or other purposes)
+    /// </summary>
+    public string GetFullTrajectory()
+    {
+        return ToString(filterResults: false);
+    }
+
+    private string ToString(bool filterResults)
+    {
+        var sb = new StringBuilder();
+        foreach (var item in _trajectoryItems)
+        {
+            sb.Append(item.ToString(filterResults));
+        }
+        return sb.ToString();
     }
 }
