@@ -3,7 +3,6 @@
 // ------------------------------------------------------------
 
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -623,6 +622,7 @@ public class ReasoningLoop : IDisposable
                         }
                     }
                 }
+
                 runResult = await Runner.ResumeFromManualToolsAsync(
                     previousResult: runResult,
                     manualToolResults: toolResults,
@@ -642,7 +642,6 @@ public class ReasoningLoop : IDisposable
                 _currentAgent = runResult.LastAgent;
                 _context = _context with { CurrentAgent = _currentAgent.Name };
                 _context = await _threadRepository.UpdateAgentContextAsync(_context);
-
             }
 
             if (runResult.Output != null)
@@ -678,32 +677,27 @@ public class ReasoningLoop : IDisposable
                     {
                         _logger.LogInternalInformation("Agent determined the request is out of scope. Handoff back");
 
-                        // todo: nudge agent to do better job instead of auto handoffback
                         if (_context.AgentHandoffChain.Count > 1)
                         {
-                            // pop agent off the chain
-                            _context.AgentHandoffChain.RemoveAt(_context.AgentHandoffChain.Count - 1);
-                            var agentName = _context.AgentHandoffChain[^1];
-                            var newAgent = _agentFactory.GetAgent(agentName);
+                            _logger.LogInternalInformation("Agent set handoff state without handoff tool call. AgentHandoffChain has more agents, asking agent to do the right handoff.");
 
-                            // persist handoff to trace
-                            await runHooks.OnHandoff(new(_context), _currentAgent, newAgent);
+                            var userPromptMessage = new ChatMessage(ChatRole.User,
+                                $"You mentioned the request is in state {state}, but did not actually perform any handoffs (transfer_to_* or HandOffBack). " +
+                                $"Reflect if any more processing work is required. If yes, set the state to {AgentProcessingState.Processing} and continue taking actions in your scope. " +
+                                $"Otherwise if you are actually done, then call the right handoff tool.");
+                            await PersistReasoningMessageAsync(agentChatHistory, userPromptMessage);
 
-                            _currentAgent = newAgent;
-                            _context = _context with { CurrentAgent = _currentAgent.Name };
-                            _context = await _threadRepository.UpdateAgentContextAsync(_context);
-
-                            _logger.LogInternalInformation("Handoff back to agent: {AgentName}", agentName);
-
-                            // comment to hide the handoff
-                            var handoffMessage = new ChatMessage(ChatRole.User, Handoff<AgentContext>.HandoffMessage);
-                            await PersistReasoningMessageAsync(agentChatHistory, handoffMessage);
+                            return new ReasoningLoopIterationResult()
+                            {
+                                IsContinuation = true
+                            };
                         }
                         else
                         {
-                            _logger.LogInternalInformation("AgentHandoffChain is empty or has only one agent, ending reasoning loop.");
+                            _logger.LogInternalInformation("AgentHandoffChain is empty or has only one agent, asking agent to seek user help.");
 
-                            var reloopPromptMessage = new ChatMessage(ChatRole.User, "It seems you are stuck. Briefly mention to user what you are trying to solve, what you did so far and where you need guidance.");
+                            var reloopPromptMessage = new ChatMessage(ChatRole.User,
+                                "It seems you are stuck. Briefly mention to user what you are trying to solve, what you did so far and where you need guidance.");
                             await PersistReasoningMessageAsync(agentChatHistory, reloopPromptMessage);
                         }
 
