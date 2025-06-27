@@ -86,7 +86,10 @@ public static class Critic
         *   Did the actor's output leading to the tool call demonstrate a clear, step-by-step thought process as outlined in its instructions?
 
     5.  **Complete Answer Delivery:**
-        *   If handoff or more tool calls needed, mark this as PASS since the actor is not yet done. Otherwise, did the actor provide a complete answer to the user's query?
+        *   If handoff or more tool calls needed, mark this as PASS since the actor is not yet done.
+        *   Otherwise, did the actor provide a complete answer to the user's query?
+        *   **CRITICAL: Based on the structure output, the user can only see the answer from 'notifyUserMessage' field.**
+        *   If the actor mentioned to provide follow-up information, did it provide the answer? In some cases, it's acceptable if the answer is like 'the actor not has the capability to do something'. 
         *   Did the actor provide the specific information the user requested (e.g., actual resource property values to the point, not just resource identification)?
         *   Did the actor avoid prematurely marking the request as "complete" when only partial information was provided?
 
@@ -106,7 +109,7 @@ public static class Critic
         }
         // ... one object for each of the 5 criteria
       ],
-      "actor_guidance": "INTERNAL NOTE: You are receiving feedback from an internal reviewer. The user is unaware of this process. Continue addressing the user's original query while incorporating the above suggestions. The results from previous tool calls are already visible to the user - reuse those results when possible and avoid repeating the same information or making identical tool calls unnecessarily. Assume you're doing a self-reflection on your previous answer if you want to correct anything."
+      "actor_guidance": "INTERNAL NOTE: You are receiving feedback from an internal reviewer. The user is unaware of this process. Continue addressing the user's original query while incorporating the above suggestions. The results from previous tool calls or notifyUserMessage are already visible to the user - reuse those results when possible and avoid repeating the same information or making identical tool calls unnecessarily. Assume you're doing a self-reflection on your previous answer if you want to correct anything based on this review. Use **bold** markdown format to highlight the corrected answer."
     }
 
     If any criterion scores a "FAIL", the "overall_assessment" should generally be "FAIL".
