@@ -74,6 +74,7 @@ export interface IChatMessageV2Props {
     threadId: string;
     isStreamingMessage?: boolean;
     toolCallText?: string | null;
+    isStreamingEmpty?: boolean;
 }
 
 export interface ChatMessageContent extends MessageContent {

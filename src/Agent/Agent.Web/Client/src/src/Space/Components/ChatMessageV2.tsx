@@ -24,6 +24,7 @@ import { ChatBoxV2Styles as ChatBoxStyles, nameAndTimestampContainerStyle, useCh
 import AgentMessage from './AgentMessage';
 import { FeedbackDialog } from './FeedbackDialog';
 import ReactMarkdownComponent from './ReactMarkdownComponent';
+import AgentMessageLoadingComponent from './AgentMessageLoadingComponent';
 
 const chatMessageStyles = mergeStyleSets({
     regularMessageContent: {
@@ -153,6 +154,7 @@ const ChatMessageV2 = ({
     threadId,
     isStreamingMessage,
     toolCallText,
+    isStreamingEmpty
 }: IChatMessageV2Props) => {
     const chatStyles = useChatBoxStyles();
     const intl = useIntl();
@@ -255,6 +257,18 @@ const ChatMessageV2 = ({
         }
     };
 
+    const Loading = () => {
+        return (
+            isStreamingMessage &&
+            isTyping &&
+            isStreamingEmpty && (
+                <div style={{ margin: '5px 5px 0px 5px' }}>
+                    <AgentMessageLoadingComponent />
+                </div>
+            )
+        );
+    };
+
     const ToolCallTextComponent = () => {
         const styles = `
             @keyframes shimmer {
@@ -310,6 +324,8 @@ const ChatMessageV2 = ({
                             hideMessageHeader ? ChatBoxStyles.hideAgentMessageHeader : undefined
                         )}
                     >
+                        <Loading />
+
                         {message.contents.map((content, index) => {
                             return (
                                 <AgentMessage

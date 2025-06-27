@@ -91,26 +91,6 @@ namespace Agent.Web.SignalR
                 {
                     _logger.LogInternalInformation($"SignalR CreateThread request from {connectionId}");
 
-                    // Send initial analyzing message
-                    var initialToolCallContent = new FunctionCallContent(Guid.NewGuid().ToString(), "", new AdditionalPropertiesDictionary());
-                    initialToolCallContent.AdditionalProperties ??= new AdditionalPropertiesDictionary();
-                    initialToolCallContent.AdditionalProperties.Add("userDescription", "Analyzing...");
-
-                    var initialMessage = new ChatResponseUpdate
-                    {
-                        AuthorName = "System",
-                        Role = ChatRole.System,
-                        CreatedAt = DateTime.UtcNow,
-                        Contents = [initialToolCallContent],
-                        AdditionalProperties = new AdditionalPropertiesDictionary
-                        {
-                            { "connectionId", connectionId },
-                            { "actionName", nameof(CreateThread) }
-                        }
-                    };
-
-                    await caller.ThreadUpdate(initialMessage);
-
                     var createThreadRequest = request;
                     // Thread service will also push the user message to stream if thread is sucessfully created
                     var result = await _threadManagementService.CreateUserInitiatedThread(createThreadRequest, userDefinedThreadId);
@@ -171,9 +151,9 @@ namespace Agent.Web.SignalR
                         _logger.LogInternalWarning(sendEx, "Failed to send error message to client {ConnectionId}", connectionId);
                     }
                 }
-        });
+            });
 
-        return Task.CompletedTask;
+            return Task.CompletedTask;
         }
 
         public Task CreateMessage(Guid threadId, CreateMessageRequest request, bool textOnly = false)
@@ -191,26 +171,6 @@ namespace Agent.Web.SignalR
                 try
                 {
                     _logger.LogInternalInformation($"SignalR CreateMessage request from {connectionId} for thread {threadId}");
-
-                    // Send initial analyzing message
-                    var initialToolCallContent = new FunctionCallContent(Guid.NewGuid().ToString(), "", new AdditionalPropertiesDictionary());
-                    initialToolCallContent.AdditionalProperties ??= new AdditionalPropertiesDictionary();
-                    initialToolCallContent.AdditionalProperties.Add("userDescription", "Analyzing...");
-
-                    var initialMessage = new ChatResponseUpdate
-                    {
-                        AuthorName = "System",
-                        Role = ChatRole.System,
-                        CreatedAt = DateTime.UtcNow,
-                        Contents = [initialToolCallContent],
-                        AdditionalProperties = new AdditionalPropertiesDictionary
-                    {
-                        { "connectionId", connectionId },
-                        { "actionName", nameof(CreateMessage) }
-                    }
-                    };
-
-                    await caller.MessageUpdate(initialMessage);
 
                     // Get thread and agent context
                     var thread = await _repository.GetThreadAsync(threadId);

@@ -16,6 +16,7 @@ export const ChatBoxV2 = ({ addThread, promoteThread, updateThreadLastReadTime, 
     const {
         messages,
         isAgentTyping,
+        isStreamingEmpty,
         streamingMessage,
         toolCallText,
         isCancellingStreaming,
@@ -73,6 +74,7 @@ export const ChatBoxV2 = ({ addThread, promoteThread, updateThreadLastReadTime, 
                                 isTyping={isAgentTyping}
                                 threadId={currentThreadId || ''}
                                 toolCallText={toolCallText}
+                                isStreamingEmpty={isStreamingEmpty}
                             />
                         )}
                     </CopilotChat>

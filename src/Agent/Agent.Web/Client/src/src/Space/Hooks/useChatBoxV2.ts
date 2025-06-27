@@ -80,6 +80,7 @@ export const useChatBoxV2 = (
     const [isCancellingStreaming, setIsCancellingStreaming] = useState<boolean>(false);
     const [toolCallText, setToolCallText] = useState<string | null>(null);
     const [isAgentTyping, setIsAgentTyping] = useState<boolean>(false);
+    const [isStreamingEmpty, setIsStreamingEmpty] = useState<boolean>(false);
     const messageChunkQueue = useRef<StreamingMessage[]>([]);
     const isTypingChars = useRef<boolean>(false);
     const typingCharIndex = useRef<number>(0);
@@ -213,6 +214,7 @@ export const useChatBoxV2 = (
             handleNewMessages(messagesToAdd);
             setStreamingMessage(composeDefaultStreamingMessage());
             setIsAgentTyping(true);
+            setIsStreamingEmpty(true);
 
             try {
                 const messageRequest: MessageCreateRequest = {
@@ -389,6 +391,7 @@ export const useChatBoxV2 = (
                     if (isUserStreamingMessage(streamData)) {
                         handleUserMessageChunk(messageResponseType, streamData);
                     } else {
+                        setIsStreamingEmpty(false);
                         handleAgentMessageChunk(streamData);
                     }
                 }
@@ -559,6 +562,7 @@ export const useChatBoxV2 = (
         messages,
         isLoadingInitialChatHistory,
         isAgentTyping,
+        isStreamingEmpty,
         streamingMessage,
         toolCallText,
         isCancellingStreaming,
