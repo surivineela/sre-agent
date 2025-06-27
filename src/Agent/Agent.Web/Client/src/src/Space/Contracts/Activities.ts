@@ -63,7 +63,6 @@ export interface IChatMessageProps {
     isTyping?: boolean;
     cancelResponse?: () => void;
     threadId: string;
-    threadOrchestrationReasoningState?: string;
 }
 
 export interface IChatMessageV2Props {

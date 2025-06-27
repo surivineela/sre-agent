@@ -235,12 +235,6 @@
       "value": "Grafana dashboard"
     }
   ],
-  "35vd1u": [
-    {
-      "type": 0,
-      "value": "Waiting..."
-    }
-  ],
   "3BubSI": [
     {
       "type": 0,
@@ -1161,12 +1155,6 @@
     {
       "type": 0,
       "value": "Remove managed resource group"
-    }
-  ],
-  "JqiqNj": [
-    {
-      "type": 0,
-      "value": "Something went wrong"
     }
   ],
   "JxjlUE": [
@@ -2997,12 +2985,6 @@
       "value": "Status"
     }
   ],
-  "u0RCrx": [
-    {
-      "type": 0,
-      "value": "Response completed"
-    }
-  ],
   "u4hSyh": [
     {
       "type": 0,
@@ -3081,12 +3063,6 @@
       "value": "Can read Azure Cosmos DB account data."
     }
   ],
-  "vjy7Cr": [
-    {
-      "type": 0,
-      "value": "Determining next steps..."
-    }
-  ],
   "w+XRP2": [
     {
       "type": 0,
@@ -3103,12 +3079,6 @@
     {
       "type": 0,
       "value": "Cost calculation pending"
-    }
-  ],
-  "wInZgf": [
-    {
-      "type": 0,
-      "value": "Generating a response..."
     }
   ],
   "wL7VAE": [
@@ -3145,12 +3115,6 @@
     {
       "type": 0,
       "value": "incidents reported"
-    }
-  ],
-  "xQRfI5": [
-    {
-      "type": 0,
-      "value": "Initializing..."
     }
   ],
   "xUgb9H": [

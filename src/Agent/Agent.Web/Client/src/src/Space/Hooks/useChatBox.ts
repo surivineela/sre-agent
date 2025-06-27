@@ -4,9 +4,9 @@ import { useIntl } from 'react-intl';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { MessageClient } from '../../Common/Clients/MessageClient';
 import { ThreadClient } from '../../Common/Clients/ThreadClient';
-import { Message, Thread, ThreadOrchestrationReasoningState } from '../../Common/Contracts/Azure/SreAgent';
+import { Message, Thread } from '../../Common/Contracts/Azure/SreAgent';
 import { Guid } from '../../Common/Helpers/Guid';
-import { PromptResources, SreAgentResources, ThreadContextStateResources } from '../../Strings/SREAgentResources';
+import { PromptResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import {
     getIntervalBetweenLoading,
     noGapBetweenNewMessagesAndExistingMessages,
@@ -48,7 +48,6 @@ export const useChatBox = (
 
     const [temporaryUserMessage, setTemporaryUserMessage] = useState<Message | null>(null);
     const [agentTypingMessage, setAgentTypingMessage] = useState<Message | null>(null);
-    const [threadOrchestrationReasoningState, setThreadOrchestrationReasoningState] = useState<string>();
 
     const [showNewMessageButton, setShowNewMessageButton] = useState(false);
 
@@ -70,23 +69,6 @@ export const useChatBox = (
         () => !isLoadingInitialChatHistory && !currentThreadId && messages.length === 0 && !temporaryUserMessage,
         [isLoadingInitialChatHistory, currentThreadId, messages, temporaryUserMessage]
     );
-
-    const getThreadOrchestrationReasoningStateDisplayString = (state?: ThreadOrchestrationReasoningState) => {
-        switch (state?.toLowerCase()) {
-            case ThreadOrchestrationReasoningState.OrchestrationInitialized.toLowerCase():
-                return intl.formatMessage(ThreadContextStateResources.initializing);
-            case ThreadOrchestrationReasoningState.Waiting.toLowerCase():
-                return intl.formatMessage(ThreadContextStateResources.waiting);
-            case ThreadOrchestrationReasoningState.PlanningNextAction.toLowerCase():
-                return intl.formatMessage(ThreadContextStateResources.determiningNextSteps);
-            case ThreadOrchestrationReasoningState.RunningFunctionCall.toLowerCase():
-                return intl.formatMessage(ThreadContextStateResources.generatingAResponse);
-            case ThreadOrchestrationReasoningState.Error.toLowerCase():
-                return intl.formatMessage(ThreadContextStateResources.somethingWentWrong);
-            default:
-                return undefined;
-        }
-    };
 
     const isMounted = useRef(true);
     const isPreviousNewMessagesPollingCompleted = useRef(true);
@@ -232,19 +214,14 @@ export const useChatBox = (
     };
 
     const waitUntilNewMessageIsAvailable = async (threadId: string, signal: AbortSignal, latestMessage?: Message) => {
-        const [threadContextResponse, messagesResponse] = await Promise.all([
-            threadClient.getThreadContext(threadId, signal, true),
-            messageClient.getMessages(threadId, { skip: 0, top: 2, descending: true }, signal, true),
-        ]);
+        const messagesResponse = await messageClient.getMessages(threadId, { skip: 0, top: 2, descending: true }, signal, true);
 
-        const reasoningState = threadContextResponse.content?.orchestrationState?.reasoningState;
         const messages = messagesResponse.content || [];
 
         const isAnswerAvailable = messages.length >= 2 && !messages.some(message => message.id === latestMessage?.id);
         if (isAnswerAvailable) {
             return;
         } else {
-            setThreadOrchestrationReasoningState(getThreadOrchestrationReasoningStateDisplayString(reasoningState));
             await new Promise(resolve => setTimeout(resolve, 1000));
             await waitUntilNewMessageIsAvailable(threadId, signal, latestMessage);
         }
@@ -260,7 +237,6 @@ export const useChatBox = (
 
             setWaitingForSendMessageResponse(true);
             setTemporaryUserMessage(composeTemporaryUserMessage(userId, displayName, message));
-            setThreadOrchestrationReasoningState(undefined);
             setAgentTypingMessage(composeAgentTypingMessage());
 
             let newThread: Thread | undefined = undefined;
@@ -298,7 +274,6 @@ export const useChatBox = (
             if (isMounted.current) {
                 setTemporaryUserMessage(null);
                 setAgentTypingMessage(null);
-                setThreadOrchestrationReasoningState(undefined);
                 handleNewMessages(answers, true);
                 setWaitingForSendMessageResponse(false);
 
@@ -539,7 +514,6 @@ export const useChatBox = (
         noChatHistoryLeftToLoad,
         temporaryUserMessage,
         agentTypingMessage,
-        threadOrchestrationReasoningState,
         sendMessage: sendMessageHandler,
         disableInput,
         isNewAndCleanThread,

@@ -379,15 +379,6 @@ export const ActivitiesResources = defineMessages({
     },
 });
 
-export const ThreadContextStateResources = defineMessages({
-    initializing: { defaultMessage: 'Initializing...', id: 'xQRfI5' },
-    waiting: { defaultMessage: 'Waiting...', id: '35vd1u' },
-    determiningNextSteps: { defaultMessage: 'Determining next steps...', id: 'vjy7Cr' },
-    generatingAResponse: { defaultMessage: 'Generating a response...', id: 'wInZgf' },
-    responseCompleted: { defaultMessage: 'Response completed', id: 'u0RCrx' },
-    somethingWentWrong: { defaultMessage: 'Something went wrong', id: 'JqiqNj' },
-});
-
 export const ActivitiesThreadHeaderResources = defineMessages({
     deleteThreadTitle: { defaultMessage: "Deleting thread ''{title}''", id: 'OMp9VI' },
     deleteThreadInProgressDescription: { defaultMessage: 'Deleting thread', id: 'fLkL3F' },

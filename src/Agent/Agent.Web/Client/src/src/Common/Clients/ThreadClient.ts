@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Thread, ThreadContext, ThreadSource } from '../Contracts/Azure/SreAgent';
+import { Thread, ThreadSource } from '../Contracts/Azure/SreAgent';
 import { getAgentHeaders } from '../Helpers/headers';
 import { DataPlaneClient, Response } from './DataPlaneClient.ts';
 import { MessagePostOptions } from './MessageClient.ts';
@@ -143,36 +143,6 @@ export class ThreadClient extends DataPlaneClient {
                 isSuccessful: false,
                 error: e,
             };
-        }
-    };
-
-    // If throwError is true, the caller will get the error and handle it accordingly. This is useful when clicking cancel button which will abort
-    // all the ongoing requests in sendMessageHandler and all the ongoing requests will throw an abort error to indicate the cancellation.
-    public getThreadContext = async (
-        threadId: string,
-        signal: AbortSignal,
-        throwError?: boolean
-    ): Promise<Response<ThreadContext | undefined>> => {
-        const url = this.getRequestUrl(`/api/v1/threads/${threadId}/context`);
-
-        try {
-            const { data } = await axios.get(url, {
-                headers: getAgentHeaders(),
-                signal,
-            });
-            return {
-                isSuccessful: true,
-                content: data as ThreadContext | undefined,
-            };
-        } catch (e) {
-            if (throwError) {
-                throw e;
-            } else {
-                return {
-                    isSuccessful: false,
-                    error: e,
-                };
-            }
         }
     };
 
