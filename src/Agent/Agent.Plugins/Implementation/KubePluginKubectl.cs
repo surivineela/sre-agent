@@ -17,11 +17,6 @@ namespace Agent.Plugins
 {
     public partial class KubePlugin : IKubePlugin
     {
-        // Add thread repository and ThreadId property for command execution tracking
-        private readonly IThreadRepository? _threadRepository;
-        private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
-        private readonly ActionSettings _actionSettings;
-
         public Guid? ThreadId { get; set; }
 
         [GeneratedRegex(@"^([a-z0-9.-]+)\/([a-z0-9.-]+) (created|configured|patched|edited|scaled|deleted)$", RegexOptions.IgnoreCase)]
@@ -183,8 +178,23 @@ namespace Agent.Plugins
                 }
 
                 var executionId = Guid.NewGuid();
-                var isAutonomousMode = _actionSettings.Mode == ActionMode.Autonomous;
 
+                // Get the agent context and determine the real agent mode at thread level
+                bool isAutonomousMode;
+                var threadAgentMode = _actionSettings.Mode.ToString();
+                if (ThreadId.HasValue && _threadRepository != null)
+                {
+                    var agentContexts = await _threadRepository.GetAgentContextsForThreadAsync(ThreadId.Value);
+                    var agentContext = agentContexts?.FirstOrDefault();
+                    if (agentContext != null)
+                    {
+                        // Use agent runtime modifier to get the real agent mode for the thread
+                        threadAgentMode = _agentRuntimeModifier.GetThreadAgentMode(agentContext);
+                    }
+
+                }
+
+                isAutonomousMode = string.Equals(threadAgentMode, ActionMode.Autonomous.ToString(), StringComparison.OrdinalIgnoreCase);
                 // Create and persist execution record
                 var execution = await CreateAndPersistKubectlExecution(executionId, resourceId, command, stdin, isAutonomousMode);
 

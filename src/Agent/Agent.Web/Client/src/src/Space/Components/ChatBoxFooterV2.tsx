@@ -9,6 +9,7 @@ import { ActivitiesResources, PromptResources, SreAgentResources } from '../../S
 import { IChatBoxFooterV2Props } from '../Contracts/Activities';
 import { SignalRContext } from '../Contracts/Context';
 import { chatInputTextStyles, sendButtonStyles, useChatInputStyles } from '../Styles/Activities.styles';
+import AgentModeSelector from './AgentModeSelector';
 import KnowledgeGraphBuildStatus from './KnowledgeGraphBuildStatus';
 
 const useDownButtonStyles = makeStyles({
@@ -43,6 +44,9 @@ const ChatBoxFooterV2 = ({
     cancelStreaming,
     isTyping,
     isCancellingStreaming,
+    threadId,
+    currentAgentMode,
+    onAgentModeChange,
 }: IChatBoxFooterV2Props) => {
     const intl = useIntl();
 
@@ -160,6 +164,9 @@ const ChatBoxFooterV2 = ({
                     }}
                 />
                 <div className={footer}>
+                    {threadId && (
+                        <AgentModeSelector threadId={threadId} currentAgentMode={currentAgentMode} onAgentModeChange={onAgentModeChange} />
+                    )}
                     <Popover positioning={'after-top'} open={open} onOpenChange={(_e, data) => setOpen(data.open)}>
                         <PopoverTrigger>
                             <Button

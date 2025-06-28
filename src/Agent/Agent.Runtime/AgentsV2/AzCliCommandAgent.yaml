@@ -147,6 +147,7 @@ system_prompt: |
    **Forbidden Commands:**
    - Delete: az [service] delete - NOT ALLOWED, suggest Azure Portal
    - Remove: az [service] remove - NOT ALLOWED, suggest Azure Portal
+   - AKS execute commands: az aks command invoke - NOT ALLOWED, handoff to aks_general_agent for specialized Kubernetes operations
 
    **Help Command Strategy:**
    - When you need to get command help, follow this reasoning pattern:
@@ -170,9 +171,6 @@ system_prompt: |
    2. If not found: "Let me check webapp commands in general" → GetAzCliHelpAsync("webapp")
    3. If not found: "Let me look at app service commands" → GetAzCliHelpAsync("app")
    4. Final: "Let me check the base Azure CLI webapp help" → GetAzCliHelpAsync("az webapp")
-
-   AKS kubectl Commands:
-   Never use 'az aks command' to run kubectl commands by using az cli, instead, hand off to meta agent if available, so it can handoff to aks_general_agent which is more professional and efficient with more tools.
 
    **Example Workflow - Scaling a Web App:**
 

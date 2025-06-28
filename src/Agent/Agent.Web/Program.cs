@@ -205,7 +205,7 @@ public class Program
             options.KeepAliveInterval = TimeSpan.FromSeconds(15);
             options.ClientTimeoutInterval = TimeSpan.FromSeconds(30);
         });
-            
+
         // Configure Azure App Insights settings
         builder.Services.Configure<AppInsightsSettings>(
             builder.Configuration.GetSection("AppInsightsSettings"));
@@ -279,7 +279,7 @@ public class Program
 
             return externalSettings;
         });
-            
+
         var azureSettings = builder.Configuration.GetSection("AppSettings:Core:Azure").Get<AzureSettings>();
         var agentModeString = azureSettings?.Action.Mode.ToString();
 
@@ -296,6 +296,9 @@ public class Program
         {
             builder.Services.AddSingleton<IAgentModeConfigurator<AgentContext>, DefaultAgentModeConfigurator<AgentContext>>();
         }
+        // Register the AgentModeManager for runtime mode switching
+        builder.Services.AddSingleton<IAgentModeManager<AgentContext>, AgentModeManager<AgentContext>>();
+        builder.Services.AddSingleton<IAgentRuntimeModifier<AgentContext>, AgentRuntimeModifier>();
 
         // Register a default ConversationReference that can be injected into PostToTeamsPlugin
         // builder.Services.AddSingleton<Microsoft.Bot.Schema.ConversationReference>(new Microsoft.Bot.Schema.ConversationReference());

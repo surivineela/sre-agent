@@ -24,6 +24,7 @@ export const ThreadContent = memo(
         updateThreadLastReadTime,
         actionsCollapsed,
         expandActions,
+        onThreadUpdate,
     }: IThreadContentProps) => {
         const { threadContentAndActionKey } = useContext(AgentContext);
         const intl = useIntl();
@@ -62,6 +63,8 @@ export const ThreadContent = memo(
                         updateThreadLastReadTime={updateThreadLastReadTime}
                         promoteThread={promoteThread}
                         threadSource={thread?.source}
+                        thread={thread}
+                        onThreadUpdate={onThreadUpdate}
                     />
                 ) : (
                     <ChatBox
@@ -70,6 +73,8 @@ export const ThreadContent = memo(
                         updateThreadLastReadTime={updateThreadLastReadTime}
                         promoteThread={promoteThread}
                         threadSource={thread?.source}
+                        thread={thread}
+                        onThreadUpdate={onThreadUpdate}
                     />
                 )}
             </div>

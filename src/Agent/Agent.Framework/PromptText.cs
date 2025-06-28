@@ -13,6 +13,15 @@ public class PromptText
 
     private string? _text;
 
+    private readonly List<string> _commonPrompts = [];
+
+    private readonly List<string> _promptStarters = [];
+
+    private readonly List<string> _promptEnders = [];
+
+    // Add mode-specific prompt storage
+    private string? _modeSpecificPrompt;
+
     public PromptText(string value)
     {
         _value = value ?? throw new ArgumentNullException(nameof(value));
@@ -38,6 +47,13 @@ public class PromptText
 
             builder.AppendLine(_value);
             builder.AppendLine();
+
+            // Add mode-specific prompt before common prompts
+            if (!string.IsNullOrEmpty(_modeSpecificPrompt))
+            {
+                builder.AppendLine(_modeSpecificPrompt);
+                builder.AppendLine();
+            }
 
             foreach (var commonPrompt in _commonPrompts)
             {
@@ -76,31 +92,40 @@ public class PromptText
 
     public bool HasFormattingGuidelines { get; private set; } = false;
 
-    private readonly List<string> _commonPrompts = [];
-
-    private readonly List<string> _promptStarters = [];
-
-    private readonly List<string> _promptEnders = [];
-
     public PromptText WithHandoffInstructions()
     {
         HasHandoffInstructions = true;
         return this;
     }
 
+    public void AddModeSpecificPrompt(string promptText)
+    {
+        _modeSpecificPrompt = promptText;
+        _text = null; // Reset cached text
+    }
+
+    public void ClearModeSpecificPrompt()
+    {
+        _modeSpecificPrompt = null;
+        _text = null; // Reset cached text
+    }
+
     public void AddCommonPrompt(string promptText)
     {
         _commonPrompts.Add(promptText);
+        _text = null; // Reset cached text
     }
 
     public void AddPromptStarter(string promptStarter)
     {
         _promptStarters.Add(promptStarter);
+        _text = null; // Reset cached text
     }
 
     public void AddPromptEnder(string promptEnder)
     {
         _promptEnders.Add(promptEnder);
+        _text = null; // Reset cached text
     }
 
     private const string HandoffInstructions = """

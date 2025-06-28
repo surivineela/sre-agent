@@ -16,6 +16,7 @@ public class RunConfig
     public string WorkflowName { get; set; } = "Agent workflow";
     public string? TraceId { get; set; }
     public string? GroupId { get; set; }
+    public Guid ThreadId { get; set; } = Guid.Empty;
     public Dictionary<string, object>? TraceMetadata { get; set; }
     public bool EnableDebugOutput { get; set; }
 }

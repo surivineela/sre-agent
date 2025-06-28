@@ -57,9 +57,9 @@ public class ReasoningLoop : IDisposable
     private TelemetrySpan? _currentAgentSpan;
     private TelemetrySpan? _currentToolSpan;
     private TelemetrySpan? _currentGenerationSpan;
-
-    private CancellationTokenSource _userCancellationTokenSource = new();
+    private readonly IAgentRuntimeModifier<AgentContext> _AgentRuntimeModifier;
     private readonly object _userCancellationTokenSourceLock = new();
+    private CancellationTokenSource _userCancellationTokenSource = new();
     private readonly SemaphoreSlim _semaphore = new(initialCount: 1, maxCount: 1);
     private bool _disposed = false;
 
@@ -100,7 +100,8 @@ public class ReasoningLoop : IDisposable
         bool enableDocumentRetrieval,
         bool enableVectorSearch,
         IAgentMemoryClient agentMemoryClient,
-        bool agentMemoryEnabled)
+        bool agentMemoryEnabled,
+        IAgentRuntimeModifier<AgentContext> AgentRuntimeModifier)
     {
         _loggerFactory = loggerFactory;
         _logger = _loggerFactory.CreateLogger<ReasoningLoop>();
@@ -129,6 +130,31 @@ public class ReasoningLoop : IDisposable
         _enableVectorSearch = enableVectorSearch;
         _agentMemoryClient = agentMemoryClient;
         _agentMemoryEnabled = agentMemoryEnabled;
+        _AgentRuntimeModifier = AgentRuntimeModifier;
+
+        var globalDefaultMode = actionSettings.Mode.ToString() ?? AgentModes.Review;
+        if (!string.IsNullOrEmpty(context.AgentMode) && !string.Equals(context.AgentMode, globalDefaultMode, StringComparison.OrdinalIgnoreCase))
+        {
+
+            // Validate if the requested agent mode is allowed based on the global default mode
+            if (AgentModes.IsValidModeChange(globalDefaultMode, context.AgentMode))
+            {
+                _logger.LogInternalInformation("Setting agent mode to {AgentMode} for thread {ThreadId} (global default: {GlobalMode})",
+                    context.AgentMode, context.ThreadId, globalDefaultMode);
+                _ = Task.Run(async () => await _AgentRuntimeModifier.SetAgentMode(context, context.AgentMode, notifyUser: false));
+            }
+            else
+            {
+                _logger.LogInternalWarning("Invalid agent mode '{RequestedMode}' for thread {ThreadId}. {ValidationMessage}",
+                    context.AgentMode, context.ThreadId, AgentModes.GetValidationErrorMessage(globalDefaultMode));
+
+                _ = Task.Run(async () => await _AgentRuntimeModifier.SetAgentMode(context, globalDefaultMode, notifyUser: true));
+
+                // Don't set the invalid mode, keep the global default
+                _logger.LogInternalInformation("Keeping global default mode '{GlobalMode}' for thread {ThreadId}",
+                    globalDefaultMode, context.ThreadId);
+            }
+        }
     }
     public void CancelCurrentOperation()
     {
@@ -462,6 +488,7 @@ public class ReasoningLoop : IDisposable
             ChatClient = _chatClient,
             LoggerFactory = _loggerFactory,
             EnableDebugOutput = _enableReasoningDebugOutput,
+            ThreadId = _context.ThreadId,
         };
 
         try
@@ -476,6 +503,7 @@ public class ReasoningLoop : IDisposable
                 startingAgent: _currentAgent,
                 input: _chatHistory!,
                 config: runConfig,
+                runtimeModifier: _AgentRuntimeModifier,
                 context: _context,
                 hooks: runHooks,
                 displayModelOutput: DisplayModelResponse,
@@ -533,9 +561,10 @@ public class ReasoningLoop : IDisposable
                 else
                 {
                     var checkWriteActionResult = CheckWriteActionInReadOnlyMode(toolCall);
-                    if (_actionSettings.Mode == ActionMode.ReadOnly && checkWriteActionResult.NeedSkip)
+                    var currentAgentMode = _AgentRuntimeModifier.GetThreadAgentMode(_context);
+                    if (string.Compare(currentAgentMode, ActionMode.ReadOnly.ToString(), StringComparison.OrdinalIgnoreCase) == 0 && checkWriteActionResult.NeedSkip)
                     {
-                        var chatMessage = new ChatMessage(ChatRole.User, checkWriteActionResult.Prompt);
+                        var chatMessage = new ChatMessage(ChatRole.System, checkWriteActionResult.Prompt);
                         toolResults.Add(new ManualToolCallResult()
                         {
                             FunctionCall = toolCall.FunctionCall,
@@ -803,6 +832,7 @@ public class ReasoningLoop : IDisposable
 
                 return Task.FromResult(tools);
             },
+
             OnAgentStart = (context, agent) =>
             {
                 if (_currentAgentSpan is not null)
@@ -884,6 +914,7 @@ public class ReasoningLoop : IDisposable
                 _currentGenerationSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
                 _currentGenerationSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.ModelGeneration);
                 _currentGenerationSpan.SetAttribute(TraceAttribute.ModelInput, FormatChatMessages(messages));
+
                 return Task.CompletedTask;
             },
             OnModelGenerationEnd = (context, agent, response) =>
@@ -896,6 +927,7 @@ public class ReasoningLoop : IDisposable
                 _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelTemperature, agent?.Temperature.ToString() ?? string.Empty);
                 _currentGenerationSpan?.End();
                 _currentGenerationSpan = null;
+
                 _actionLogger.LogAction(
                     action: "GenerateModelResponse",
                     parameter: response?.Usage?.TotalTokenCount?.ToString() ?? "0",
@@ -1038,7 +1070,7 @@ public class ReasoningLoop : IDisposable
                         var approvalContext = new ApprovalContext(
                             ThreadId: _context.ThreadId,
                             ApprovalId: approval.Id,
-                            UseOboToken: approvalAttr.UseOboToken && _actionSettings.Mode == ActionMode.Review
+                            UseOboToken: approvalAttr.UseOboToken && string.Compare(_AgentRuntimeModifier.GetThreadAgentMode(_context), ActionMode.Review.ToString(), StringComparison.OrdinalIgnoreCase) == 0
                         );
 
                         ToolStatic.AsyncLocalApprovalContext.Value = approvalContext;
@@ -1119,7 +1151,8 @@ public class ReasoningLoop : IDisposable
             }
 
             // if in agent mode, return auto approved
-            if (_actionSettings.Mode == ActionMode.Autonomous)
+            var currentAgentMode = _AgentRuntimeModifier.GetThreadAgentMode(_context);
+            if (string.Compare(currentAgentMode, ActionMode.Autonomous.ToString(), StringComparison.OrdinalIgnoreCase) == 0)
             {
                 return new CheckApprovalActivityOutput()
                 {

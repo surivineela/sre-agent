@@ -192,4 +192,46 @@ export class ThreadClient extends DataPlaneClient {
             };
         }
     };
+
+    public getAvailableAgentModes = async (): Promise<Response<string[]>> => {
+        const url = this.getRequestUrl('/api/v1/threads/agentModes');
+        try {
+            const response = await axios.get(url, {
+                headers: getAgentHeaders(),
+            });
+
+            return {
+                isSuccessful: true,
+                content: response.data as string[],
+            };
+        } catch (e) {
+            return {
+                isSuccessful: false,
+                error: e,
+            };
+        }
+    };
+
+    public updateThreadAgentMode = async (threadId: string, agentMode: string): Promise<Response<Thread>> => {
+        const url = this.getRequestUrl(`/api/v1/threads/${threadId}/agentMode`);
+        try {
+            const response = await axios.post(
+                url,
+                { agentMode },
+                {
+                    headers: getAgentHeaders(),
+                }
+            );
+
+            return {
+                isSuccessful: true,
+                content: response.data as Thread,
+            };
+        } catch (e) {
+            return {
+                isSuccessful: false,
+                error: e,
+            };
+        }
+    };
 }

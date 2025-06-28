@@ -496,7 +496,8 @@ public class CosmosDbThreadRepository : IThreadRepository
             var updatedThread = await GetThreadAsync(threadId);
             return updatedThread;
         }
-        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)        {
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
             _logger.LogInternalWarning(ex, "Thread {ThreadId} not found during update", threadId);
             return null;
         }
@@ -543,6 +544,53 @@ public class CosmosDbThreadRepository : IThreadRepository
         {
             _logger.LogInternalError(ex, "Error updating evaluated timestamp for thread {ThreadId}", threadId);
             throw;
+        }
+    }
+
+    public async Task<Thread> UpdateThreadAgentModeAsync(Guid threadId, string? agentMode)
+    {
+        string threadIdStr = threadId.ToString();
+
+        try
+        {
+            // Get the current thread document
+            ThreadDocument threadDoc = await GetDocumentAsync<ThreadDocument>(threadIdStr, threadIdStr);
+
+            if (threadDoc == null)
+            {
+                _logger.LogInternalWarning("Cannot update thread: Thread {ThreadId} not found", threadId);
+                return null;
+            }
+
+            // Create updated thread document with new agent mode
+            ThreadDocument updatedThreadDoc = threadDoc with
+            {
+                AgentMode = agentMode,
+            };
+
+            // Save the updated document
+            var response = await _client.GetContainer<ThreadDocument>(_databaseName).ReplaceItemAsync(
+                updatedThreadDoc,
+                threadIdStr,
+                new PartitionKey(threadIdStr)
+            );
+
+            // Update all agent contexts for this thread with the new agent mode
+            var agentContexts = await GetAgentContextsForThreadAsync(threadId);
+            foreach (var agentContext in agentContexts)
+            {
+                var updatedAgentContext = agentContext with { AgentMode = agentMode };
+                await UpdateAgentContextAsync(updatedAgentContext);
+            }
+
+            // Get the updated thread with all of its data
+            var updatedThread = await GetThreadAsync(threadId);
+            return updatedThread;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            _logger.LogInternalWarning(ex, "Thread {ThreadId} not found during agent mode update", threadId);
+            return null;
         }
     }
 

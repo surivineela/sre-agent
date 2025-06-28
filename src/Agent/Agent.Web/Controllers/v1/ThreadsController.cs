@@ -7,8 +7,9 @@ using System.Text;
 using System.Text.Json;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Core.Configuration;
 using Agent.Data.DataModels;
-using Agent.Logging;
+using Agent.Framework;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.Extensions.AI;
@@ -47,7 +48,9 @@ namespace Agent.Web.Controllers.v1
         IGithubIssuePlugin githubIssuePlugin,
         IReasoningLoopManager reasoningLoopManager,
         ThreadManagementService threadManagementService,
-        ThreadEvaluator threadEvaluator) : ControllerBase
+        ThreadEvaluator threadEvaluator,
+        ActionSettings actionSettings,
+        IAgentRuntimeModifier<AgentContext> agentRuntimeModifier) : ControllerBase
     {
         // By default, returns threads ordered by timestamp in ascending order.
         // Pagination can be achieve by using `top` and `skip` query options. https://learn.microsoft.com/en-us/odata/client/pagination#client-driven-paging
@@ -479,6 +482,123 @@ namespace Agent.Web.Controllers.v1
 
             // Return the count
             return Ok(count);
+        }
+
+        /// <summary>
+        /// Updates the agent mode configuration for a thread
+        /// </summary>
+        /// <param name="threadId">Thread ID to update agent mode for</param>
+        /// <param name="request">Request containing the new agent mode</param>
+        /// <returns>Updated Thread object</returns>
+        [HttpPost("{threadId}/agentMode")]
+        public async Task<ActionResult<Thread>> UpdateThreadAgentMode(Guid threadId, [FromBody] UpdateAgentModeRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            logger.LogInternalInformation("Updating agent mode for thread: {Id} to {AgentMode}", threadId, request.AgentMode);
+
+            // First check if thread exists
+            var thread = await repository.GetThreadAsync(threadId);
+
+            if (thread == null)
+            {
+                logger.LogInternalInformation("Thread not found: {Id}", threadId);
+                return NotFound();
+            }
+
+            // Get the effective current mode (thread-specific or global default)
+            var defaultMode = actionSettings.Mode?.ToString() ?? AgentModes.Review;
+            var currentEffectiveMode = string.IsNullOrEmpty(thread.AgentMode) ? defaultMode : thread.AgentMode;
+
+            // If request.AgentMode is null/empty, it means reset to default
+            var requestedMode = string.IsNullOrEmpty(request.AgentMode) ? defaultMode : request.AgentMode;
+
+            // Check if the requested mode is the same as the current effective mode
+            if (string.Equals(requestedMode, currentEffectiveMode, StringComparison.OrdinalIgnoreCase))
+            {
+                logger.LogInternalInformation("Thread {ThreadId} agent mode is already effectively set to requested mode {AgentMode}", threadId, requestedMode);
+                return Ok(thread); // No change needed
+            }
+
+            // Get the global default agent mode from configuration
+            var globalDefaultMode = actionSettings.Mode?.ToString() ?? AgentModes.Review;
+
+            // Validate the requested agent mode against the global restrictions
+            var validationResult = ValidateAgentModeChange(globalDefaultMode, request.AgentMode);
+            if (!validationResult.IsValid)
+            {
+                logger.LogInternalWarning("Invalid agent mode change attempted: {RequestedMode} with global default {GlobalMode}. Reason: {Reason}",
+                    request.AgentMode, globalDefaultMode, validationResult.ErrorMessage);
+                return BadRequest(new { error = validationResult.ErrorMessage });
+            }
+
+            // Update thread agent mode in repository
+            var updatedThread = await repository.UpdateThreadAgentModeAsync(threadId, request.AgentMode);
+
+            if (updatedThread == null)
+            {
+                logger.LogInternalError("Failed to update agent mode for thread: {Id}", threadId);
+                return StatusCode(500, "Failed to update thread agent mode");
+            }
+
+            // Notify the agent runtime about the mode change to affect running agents
+            // Get the agent context for this thread to pass to the runtime modifier
+            var agentContexts = await repository.GetAgentContextsForThreadAsync(threadId);
+            var agentContext = agentContexts?.FirstOrDefault();
+
+            if (agentContext != null)
+            {
+                await agentRuntimeModifier.SetAgentMode(agentContext, request.AgentMode);
+                logger.LogInternalInformation("Notified agent runtime modifier about mode change for thread: {Id} to {AgentMode}", threadId, request.AgentMode);
+            }
+            else
+            {
+                logger.LogInternalInformation("No agent context found for thread {ThreadId}, skipping runtime modifier notification", threadId);
+            }
+
+            return Ok(updatedThread);
+        }
+
+        /// <summary>
+        /// Validates whether the requested agent mode change is allowed based on the global default configuration
+        /// </summary>
+        /// <param name="globalDefaultMode">Global default agent mode from configuration</param>
+        /// <param name="requestedMode">Requested agent mode for the thread</param>
+        /// <returns>Validation result with IsValid flag and error message if invalid</returns>
+        private (bool IsValid, string? ErrorMessage) ValidateAgentModeChange(string globalDefaultMode, string requestedMode)
+        {
+            if (AgentModes.IsValidModeChange(globalDefaultMode, requestedMode))
+            {
+                return (true, null);
+            }
+
+            var errorMessage = AgentModes.GetValidationErrorMessage(globalDefaultMode);
+            return (false, errorMessage);
+        }
+
+        /// <summary>
+        /// Gets the available agent modes based on the global default configuration
+        /// </summary>
+        /// <returns>Array of available agent mode strings</returns>
+        [HttpGet("agentModes")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string[]))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public ActionResult<string[]> GetAvailableAgentModes()
+        {
+            try
+            {
+                var globalDefaultMode = actionSettings.Mode?.ToString() ?? AgentModes.Review;
+                var availableModes = AgentModes.GetAvailableModesFor(globalDefaultMode);
+
+                return Ok(availableModes);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error retrieving available agent modes: {ex.Message}");
+            }
         }
     }
 }

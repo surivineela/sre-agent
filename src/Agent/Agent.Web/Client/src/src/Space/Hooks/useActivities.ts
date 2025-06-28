@@ -67,6 +67,16 @@ export const useActivities = () => {
         [navigate, location, selectThread]
     );
 
+    const updateThread = useCallback(
+        (updatedThread: Thread) => {
+            // Update the selected thread if it matches the updated thread
+            if (selectedThread?.id === updatedThread.id) {
+                setSelectedThread(updatedThread);
+            }
+        },
+        [selectedThread]
+    );
+
     const deleteThread = useCallback(
         async (thread: Thread) => {
             const id = proxy.startNotification(
@@ -114,7 +124,10 @@ export const useActivities = () => {
         threadListHandleRef.current?.updateThreadLastReadTime(threadId);
     }, []);
 
-    useEffect(() => setThreadContentAndActionKey(Guid.newGuid()), [selectedThread]);
+    useEffect(() => {
+        // Only regenerate the key when the thread ID changes, not when thread properties update
+        setThreadContentAndActionKey(Guid.newGuid());
+    }, [selectedThread?.id]);
 
     useEffect(() => {
         let isSubscribed = true;
@@ -176,5 +189,6 @@ export const useActivities = () => {
         activeThreadId,
         threadPollingTriggerId,
         threadListHandleRef,
+        updateThread,
     };
 };

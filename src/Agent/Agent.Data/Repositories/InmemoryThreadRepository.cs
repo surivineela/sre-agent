@@ -225,9 +225,36 @@ namespace Agent.Data.Repositories
             };
 
             _threads[threadId] = updatedThread;
-
             _logger.LogInternalInformation("Successfully updated evaluated timestamp for thread {ThreadId}", threadId);
             return Task.FromResult(updatedThread);
+        }
+
+        public async Task<Thread> UpdateThreadAgentModeAsync(Guid threadId, string? agentMode)
+        {
+            if (!_threads.TryGetValue(threadId, out var existingThread))
+            {
+                _logger.LogInternalWarning("Cannot update thread: Thread {ThreadId} not found", threadId);
+                return null;
+            }
+
+            var updatedThread = existingThread with
+            {
+                ModifiedTimestamp = DateTime.UtcNow,
+                AgentMode = agentMode
+            };
+
+            _threads[threadId] = updatedThread;
+
+            // Update all agent contexts for this thread with the new agent mode
+            var agentContexts = await GetAgentContextsForThreadAsync(threadId);
+            foreach (var agentContext in agentContexts)
+            {
+                var updatedAgentContext = agentContext with { AgentMode = agentMode };
+                await UpdateAgentContextAsync(updatedAgentContext);
+            }
+
+            _logger.LogInternalInformation("Successfully updated agent mode for thread {ThreadId}", threadId);
+            return updatedThread;
         }
 
         #endregion
@@ -243,7 +270,8 @@ namespace Agent.Data.Repositories
             bool hasCriticalActions = criticalActionThreads.Contains(thread.Id.ToString());
             bool hasWarningActions = warningActionThreads.Contains(thread.Id.ToString());
 
-            status = new Status {
+            status = new Status
+            {
                 ActionsStatus = new ActionsStatus
                 {
                     HasCriticalActions = hasCriticalActions,

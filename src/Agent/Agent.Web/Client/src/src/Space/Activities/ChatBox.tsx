@@ -1,7 +1,7 @@
 import { CopilotChat, CopilotProvider } from '@fluentui-copilot/react-copilot';
 import { mergeClasses } from '@fluentui/react-components';
-import { memo } from 'react';
-import { ThreadSource } from '../../Common/Contracts/Azure/SreAgent';
+import { memo, useCallback } from 'react';
+import { Thread, ThreadSource } from '../../Common/Contracts/Azure/SreAgent';
 import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
 import ChatBoxFooter from '../Components/ChatBoxFooter';
 import ChatLoading from '../Components/ChatLoading';
@@ -13,7 +13,15 @@ import AzureSREWelcome from './AzureSREWelcome';
 import { ChatSuggestions } from './ChatSuggestions';
 import { getGroupedMessages } from './Utility';
 
-export const ChatBox = ({ addThread, promoteThread, updateThreadLastReadTime, threadId, threadSource }: IChatBoxProps) => {
+export const ChatBox = ({
+    addThread,
+    promoteThread,
+    updateThreadLastReadTime,
+    threadId,
+    threadSource,
+    thread,
+    onThreadUpdate,
+}: IChatBoxProps) => {
     const {
         messages,
         temporaryUserMessage,
@@ -32,6 +40,15 @@ export const ChatBox = ({ addThread, promoteThread, updateThreadLastReadTime, th
         showNewMessageButton,
         onClickNewMessageButton,
     } = useChatBox(addThread, promoteThread, updateThreadLastReadTime, threadId);
+
+    const handleAgentModeChange = useCallback(
+        (updatedThread: Thread) => {
+            console.log('Agent mode updated for thread:', updatedThread);
+            // Pass the updated thread to the parent component
+            onThreadUpdate?.(updatedThread);
+        },
+        [onThreadUpdate]
+    );
 
     const isWelcomeThread = threadSource === ThreadSource.welcomeMessage;
 
@@ -89,6 +106,9 @@ export const ChatBox = ({ addThread, promoteThread, updateThreadLastReadTime, th
                     onClickNewMessageButton={onClickNewMessageButton}
                     prompts={prompts}
                     messagePromptsUsed={messagePromptsUsed}
+                    threadId={threadId}
+                    currentAgentMode={thread?.agentMode}
+                    onAgentModeChange={handleAgentModeChange}
                 />
             </CopilotProvider>
         </div>

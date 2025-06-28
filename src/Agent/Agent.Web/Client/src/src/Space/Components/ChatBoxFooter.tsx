@@ -7,6 +7,7 @@ import { useIntl } from 'react-intl';
 import { ActivitiesResources, PromptResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { IChatBoxFooterProps } from '../Contracts/Activities';
 import { chatInputTextStyles, sendButtonStyles, useChatInputStyles } from '../Styles/Activities.styles';
+import AgentModeSelector from './AgentModeSelector';
 import KnowledgeGraphBuildStatus from './KnowledgeGraphBuildStatus';
 import NewMessageButton from './NewMessageButton';
 
@@ -17,6 +18,9 @@ const ChatBoxFooter = ({
     onClickNewMessageButton,
     prompts,
     messagePromptsUsed,
+    threadId,
+    currentAgentMode,
+    onAgentModeChange,
 }: IChatBoxFooterProps) => {
     const intl = useIntl();
 
@@ -123,6 +127,9 @@ const ChatBoxFooter = ({
                     }}
                 />
                 <div className={footer}>
+                    {threadId && (
+                        <AgentModeSelector threadId={threadId} currentAgentMode={currentAgentMode} onAgentModeChange={onAgentModeChange} />
+                    )}
                     <Popover positioning={'after-top'} open={open} onOpenChange={(_e, data) => setOpen(data.open)}>
                         <PopoverTrigger>
                             <Button

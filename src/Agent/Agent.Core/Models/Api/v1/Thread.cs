@@ -42,6 +42,7 @@ namespace Agent.Core.Models.Api.v1
         public Status? Status { get; set; } = null;
         public DateTime? LastReadTime { get; set; } = null;
         public DateTime EvaluatedTimestamp { get; set; } = default;
+        public string? AgentMode { get; set; } = null;
     };
 
     public class Status
@@ -76,6 +77,10 @@ namespace Agent.Core.Models.Api.v1
     public record FeedbackRequest(
         [Required] bool IsPositive,
         string? FeedbackText
+    );
+
+    public record UpdateAgentModeRequest(
+        [Required] string AgentMode
     );
 }
 

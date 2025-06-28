@@ -9,11 +9,16 @@ using YamlDotNet.Serialization.NamingConventions;
 
 namespace Agent.Framework;
 
+public interface IAgentExistenceChecker
+{
+    bool AgentExists(string agentName);
+}
 
 public interface IAgentFactory<TContext>
     where TContext : class
 {
     public Agent<TContext> GetAgent(string name);
+    public IReadOnlyDictionary<string, IPromptDescriptor> PromptDescriptors { get; }
 }
 
 public class AgentFactory<TContext> : IAgentFactory<TContext>
@@ -420,6 +425,10 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
             throw new InvalidOperationException("Failed to parse YAML into PromptDescriptor", ex);
         }
     }
+    public bool AgentExists(string agentName)
+    {
+        return _agents.ContainsKey(agentName);
+    }
 
     public Agent<TContext> GetAgent(string name)
     {
@@ -447,5 +456,8 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
     {
         return [.. _agentDescriptors.Values];
     }
+
+    public IReadOnlyDictionary<string, IPromptDescriptor> PromptDescriptors =>
+       _promptDescriptors.AsReadOnly();
 }
 

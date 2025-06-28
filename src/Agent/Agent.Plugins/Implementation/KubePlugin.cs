@@ -13,6 +13,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Framework;
 using Agent.Graph.Crawler.Metrics;
 using Agent.Logging;
 using Agent.Plugins.Interface;
@@ -36,9 +37,13 @@ namespace Agent.Plugins
         private readonly IPrometheusQueryService _prometheusQueryService;
         private readonly IAzureMetricsClient _azureMetricsClient;
         private readonly IGraphDatabaseClient? _graphDbClient;
+        private readonly IThreadRepository? _threadRepository;
+        private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
         private readonly IArmClientFactory _armClientFactory;
         private readonly string _agentKubeCtlIdentity;
         private readonly ICrawlerTriggerService _crawlerTriggerService;
+        private readonly ActionSettings _actionSettings;
+        private readonly IAgentRuntimeModifier<AgentContext> _agentRuntimeModifier;
 
         private static readonly ISerializer _configJsonSerializer = new SerializerBuilder().ConfigureDefaultValuesHandling(DefaultValuesHandling.OmitNull).Build();
 
@@ -59,7 +64,8 @@ namespace Agent.Plugins
             IHostEnvironment hostEnvironment,
             ILogger<KubePlugin>? logger,
             ICrawlerTriggerService crawlerTriggerService,
-            ActionSettings actionSettings)
+            ActionSettings actionSettings,
+            IAgentRuntimeModifier<AgentContext> agentRuntimeModifier)
         {
             _logger = logger;
             _chatClient = chatClient;
@@ -73,6 +79,7 @@ namespace Agent.Plugins
             _agentKubeCtlIdentity = GetAgentKubectlIdentity(authenticationService, hostEnvironment);
             _crawlerTriggerService = crawlerTriggerService;
             _actionSettings = actionSettings;
+            _agentRuntimeModifier = agentRuntimeModifier;
         }
 
         private static string GetAgentKubectlIdentity(

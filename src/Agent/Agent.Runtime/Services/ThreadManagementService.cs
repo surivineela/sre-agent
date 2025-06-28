@@ -21,6 +21,7 @@ using Agent.Runtime.Services;
 using Microsoft.Extensions.Logging;
 using System.Threading;
 using Agent.Core.Configuration;
+using System.Diagnostics.Metrics;
 
 namespace Agent.Runtime.Services;
 public class ThreadManagementService(

@@ -109,6 +109,7 @@ export interface Thread {
     incidentSource?: any;
     source?: ThreadSource;
     lastReadTime?: string;
+    agentMode?: string;
 }
 
 export interface AgentStatus {

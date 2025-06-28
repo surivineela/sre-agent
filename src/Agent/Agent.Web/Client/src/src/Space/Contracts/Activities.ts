@@ -33,6 +33,7 @@ export interface IThreadContentProps {
     deleteThread: (thread: Thread) => void;
     promoteThread: (threadId: string) => void;
     updateThreadLastReadTime: (threadId: string) => void;
+    onThreadUpdate?: (updatedThread: Thread) => void;
 }
 
 export interface IThreadActivitiesProps {
@@ -53,6 +54,8 @@ export interface IChatBoxProps {
     updateThreadLastReadTime: (threadId: string) => void;
     threadId?: string;
     threadSource?: string;
+    thread?: Thread | null;
+    onThreadUpdate?: (updatedThread: Thread) => void;
 }
 
 export interface IChatMessageProps {
@@ -118,6 +121,9 @@ export interface IChatBoxFooterProps {
     onClickNewMessageButton: () => void;
     prompts: string[];
     messagePromptsUsed: string[];
+    threadId?: string;
+    currentAgentMode?: string;
+    onAgentModeChange?: (updatedThread: Thread) => void;
 }
 
 export interface IChatBoxFooterV2Props {
@@ -130,6 +136,9 @@ export interface IChatBoxFooterV2Props {
     cancelStreaming: () => void;
     isTyping: boolean;
     isCancellingStreaming: boolean;
+    threadId?: string;
+    currentAgentMode?: string;
+    onAgentModeChange?: (updatedThread: Thread) => void;
 }
 
 export class ThreadLoadingCounts {
@@ -162,6 +171,29 @@ export class MessageLoadingCounts {
 
 export const MessageTypingSpeedInMilliseconds = 10;
 export const MessageTypingCharactersPer10Ms = 5;
+
+// Agent Mode related types and interfaces
+export enum AgentMode {
+    ReadOnly = 'ReadOnly',
+    Review = 'Review',
+    Autonomous = 'Autonomous',
+}
+
+export interface IAgentModeInfo {
+    mode: string;
+    displayName: string;
+    description: string;
+    isRestricted?: boolean;
+    restrictionReason?: string;
+}
+
+export interface IAgentModeSelectorProps {
+    threadId?: string;
+    currentAgentMode?: string;
+    onAgentModeChange?: (updatedThread: Thread) => void;
+    disabled?: boolean;
+    disabledReason?: string;
+}
 
 export class AgentMessageRegex {
     // Check for markdown image syntax with base64 data

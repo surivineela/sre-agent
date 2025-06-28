@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Diagnostics.Metrics;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
@@ -28,6 +29,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
     private readonly IEmbeddingGenerator<string, Embedding<float>> _embeddingGenerator;
     private readonly IAgentOutboundCommunicationService _outboundCommunicationService;
     private readonly IAgentFactory<AgentContext> _agentFactory;
+    private readonly IAgentRuntimeModifier<AgentContext> _AgentRuntimeModifier;
     private readonly IToolFactory<AgentContext> _toolFactory;
     private readonly IThreadRepository _threadRepository;
     private readonly ActionSettings _actionSettings;
@@ -51,6 +53,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         IAgentFactory<AgentContext> agentFactory,
         IToolFactory<AgentContext> toolFactory,
         AzureSettings azureSettings,
+        IAgentRuntimeModifier<AgentContext> AgentRuntimeModifier,
         ActionSettings actionSettings,
         CoreSettings coreSettings,
         Tracer tracer,
@@ -59,13 +62,15 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         ISearchEndpointService searchEndpointService,
         SearchHelper searchHelper,
         IAgentMemoryClient agentMemoryClient,
-        AgentMemorySettings agentMemorySettings)
+        AgentMemorySettings agentMemorySettings,
+        IMeterFactory meterFactory)
     {
         _loggerFactory = loggerFactory;
         _chatClient = chatClient;
         _embeddingGenerator = embeddingGenerator;
         _outboundCommunicationService = outboundCommunicationService;
         _agentFactory = agentFactory;
+        _AgentRuntimeModifier = AgentRuntimeModifier;
         _threadRepository = threadRepository;
         _toolFactory = toolFactory;
         _actionSettings = actionSettings;
@@ -126,7 +131,8 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
             enableDocumentRetrieval: _enableDocumentRetrieval,
             enableVectorSearch: _enableVectorSearch,
             agentMemoryClient: _agentMemoryClient,
-            agentMemoryEnabled: _agentMemoryEnabled);
+            agentMemoryEnabled: _agentMemoryEnabled,
+            AgentRuntimeModifier: _AgentRuntimeModifier);
 
         await loop.LoadChatHistoryAsync();
         return loop;

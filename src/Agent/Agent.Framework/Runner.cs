@@ -16,6 +16,7 @@ public static class Runner
         RunResult<TContext> previousResult,
         List<ManualToolCallResult> manualToolResults,
         RunConfig config,
+        IAgentRuntimeModifier<TContext>? runtimeModifier = null,
         TContext? context = null,
         RunHooks<TContext>? hooks = null,
         Func<string, Task>? displayModelOutput = null,
@@ -63,6 +64,7 @@ public static class Runner
             startingAgent: previousResult.LastAgent,
             input: input,
             config: config,
+            runtimeModifier: runtimeModifier,
             newGeneratedItems: functionCallMessages,
             context: context,
             currentTurn: previousResult.CurrentTurn,
@@ -79,6 +81,7 @@ public static class Runner
         Agent<TContext> startingAgent,
         List<ChatMessage> input,
         RunConfig config,
+        IAgentRuntimeModifier<TContext>? runtimeModifier = null,
         TContext? context = null,
         int maxTurns = DefaultMaxTurns,
         RunHooks<TContext>? hooks = null,
@@ -90,6 +93,7 @@ public static class Runner
             startingAgent: startingAgent,
             input: input,
             config: config,
+            runtimeModifier: runtimeModifier,
             context: context,
             maxTurns: maxTurns,
             hooks: hooks,
@@ -103,6 +107,7 @@ public static class Runner
         Agent<TContext> startingAgent,
         List<ChatMessage> input,
         RunConfig config,
+        IAgentRuntimeModifier<TContext>? runtimeModifier = null,
         List<ChatMessage>? newGeneratedItems = null,
         TContext? context = null,
         int currentTurn = 0,
@@ -169,6 +174,7 @@ public static class Runner
                     originalInput: originalInput,
                     generatedMessages: generatedMessages,
                     config: config,
+                    runtimeModifier: runtimeModifier,
                     contextWrapper: contextWrapper,
                     hooks: hooks,
                     shouldRunAgentStartHooks: shouldRunAgentStartHooks,
@@ -235,6 +241,7 @@ public static class Runner
 
                     var criticApproval = await CriticAsync(
                         config,
+                        runtimeModifier,
                         hooks,
                         trajectory,
                         displayModelOutput,
@@ -311,6 +318,7 @@ public static class Runner
 
     private static async Task<bool> CriticAsync<TContext>(
         RunConfig config,
+        IAgentRuntimeModifier<TContext>? runtimeModifier,
         RunHooks<TContext> hooks,
         Trajectory trajectory,
         Func<string, Task>? displayModelOutput,
@@ -415,6 +423,7 @@ public static class Runner
         List<ChatMessage> originalInput,
         List<ChatMessage> generatedMessages,
         RunConfig config,
+        IAgentRuntimeModifier<TContext>? runtimeModifier,
         RunContextWrapper<TContext> contextWrapper,
         RunHooks<TContext> hooks,
         bool shouldRunAgentStartHooks,
@@ -423,6 +432,18 @@ public static class Runner
         Func<string, Task>? displayModelOutput = null
     ) where TContext : class
     {
+
+        logger.LogInformation("Running agent {AgentName} with runtime modifier {HasRuntimeModifier}", agent.Name, runtimeModifier != null);
+        // Apply runtime modifications at the beginning of each turn
+        if (runtimeModifier != null)
+        {
+            var modeChangeMessage = await runtimeModifier.ApplyRuntimeModificationsAsync(contextWrapper, agent);
+            if (modeChangeMessage != null)
+            {
+                generatedMessages.Add(modeChangeMessage);
+            }
+        }
+
         if (shouldRunAgentStartHooks)
         {
             await hooks.OnAgentStart(contextWrapper, agent);
@@ -483,6 +504,7 @@ public static class Runner
             modelResponse: response,
             structuredOutput: structuredOutput,
             config: config,
+            runtimeModifier: runtimeModifier,
             hooks: hooks,
             contextWrapper: contextWrapper,
             runConfig: config,
@@ -500,6 +522,7 @@ public static class Runner
         ChatResponse modelResponse,
         object? structuredOutput,
         RunConfig config,
+        IAgentRuntimeModifier<TContext>? runtimeModifier,
         RunHooks<TContext> hooks,
         RunContextWrapper<TContext> contextWrapper,
         RunConfig runConfig,
@@ -531,6 +554,7 @@ public static class Runner
 
                     var criticApproval = await CriticAsync(
                         config,
+                        runtimeModifier,
                         hooks,
                         trajectory,
                         displayModelOutput,

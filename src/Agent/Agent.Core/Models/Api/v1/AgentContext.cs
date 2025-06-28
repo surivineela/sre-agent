@@ -18,7 +18,8 @@ public record AgentContext(
     Guid? HandoffFromAgentContextId = null, // agent context this agent was handed off from
     string? CurrentAgent = null, // current agent handling this context. Deprecated in favor of AgentStack
     List<string>? AgentHandoffChain = null, // handoff stack of agents
-    List<string>? AllowedTools = null
+    List<string>? AllowedTools = null,
+    string? AgentMode = null // agent mode configuration for the context
 )
 {
     public List<string> AgentHandoffChain { get; init; } = AgentHandoffChain ?? new List<string>();

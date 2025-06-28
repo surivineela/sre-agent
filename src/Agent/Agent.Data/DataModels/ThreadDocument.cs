@@ -25,6 +25,7 @@ public record ThreadDocument(
     public static string ContainerName => AgentDataConfiguration.ThreadContainerName;
     public string IncidentId { get; set; } = string.Empty; // Incident Id associated with the thread if the source of the thread is incident
     public DateTime? LastReadTime { get; set; } = null; // The last time the thread was read
+    public string? AgentMode { get; set; } = null; // Agent mode configuration for the thread
 
     // Conversion to/from domain model
     public static ThreadDocument FromDomainModel(Thread thread) =>
@@ -41,7 +42,8 @@ public record ThreadDocument(
         )
         {
             IncidentId = thread.Status?.IncidentStatus?.IncidentId ?? string.Empty,
-            LastReadTime = thread.LastReadTime
+            LastReadTime = thread.LastReadTime,
+            AgentMode = thread.AgentMode
         };
 
     public Thread ToDomainModel(Message startMessage, Message? lastMessage) =>
@@ -57,6 +59,7 @@ public record ThreadDocument(
         )
         {
             LastReadTime = LastReadTime,
-            EvaluatedTimestamp = EvaluatedTimestamp
+            EvaluatedTimestamp = EvaluatedTimestamp,
+            AgentMode = AgentMode
         };
 }
