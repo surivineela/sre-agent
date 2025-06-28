@@ -105,7 +105,13 @@ export const getResourceTypeFriendlyName = (azureType?: string, subType?: string
     }
 };
 
-const paasResourceTypeMatchers = ['microsoft.app', 'microsoft.web'];
+const paasResourceTypeMatchers = [
+    'microsoft.app',
+    'microsoft.web',
+    'microsoft.containerservice/managedclusters',
+    'k8s/apps/v1/deployments',
+    'k8s/apps/v1/statefulsets',
+];
 export const isPaasResourceType = (rscType?: string): boolean => {
     if (!rscType) return false;
 
