@@ -395,14 +395,13 @@ public static class Runner
                 }
 
                 generatedMessages.Add(new(ChatRole.User, "Good try but you missed a few things. " +
-                    "Clearly mention following in your **NotifyUserMessage** in 4-5 sentences: " +
-                    "1. A natural flowing message to pretend you did a review of past work. " +
-                    "Something like \"Reviewing my work for completeness and correctness...\" " +
-                    "2. What you did so far? " +
-                    "3. What is the gap in that work? " +
-                    "4. What further actions you will take to fix that. " +
-                    "Then try again with new tool calls as needed. " +
-                    "Do not mention this feedback explicitly, just the major learnings. " +
+                    "Please provide a natural response in your **NotifyUserMessage** that covers the following in 4-5 sentences: " +
+                    "1. Acknowledge that you're taking a step back to review your previous work " +
+                    "2. Briefly summarize what you accomplished so far " +
+                    "3. Identify what was missing or incomplete in your previous work" +
+                    "4. Explain your next steps to address those gaps " +
+                    "Make this feel conversational and authentic - avoid formulaic language. proceed with the necessary tool calls and provide a complete answer to the original question. " +
+                    "Do not mention this feedback explicitly, just the major learnings. After running the feedback, ensure that you give an answer to the original user question" +
                     "Feedback:\n" + criticResult));
 
                 trajectory.AppendCriticFeedback(criticResult);

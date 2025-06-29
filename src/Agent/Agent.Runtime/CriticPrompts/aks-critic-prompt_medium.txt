@@ -40,6 +40,16 @@ Apply strict evaluation in these critical areas:
 - Repeated broad requests without refinement
 - Missing obvious filtering opportunities
 
+IF query_complexity == "SIMPLE_OPERATIONAL":
+  eg: List Pods, Get Services, show status of deployment 'bar' etc.
+  - PASS if actor retrieves requested data accurately
+  - PASS if reasonable parameters used (don't demand optimization)
+  - PASS if basic answer provided (don't require deep analysis)
+  
+IF query_complexity == "ANALYTICAL/DIAGNOSTIC":
+eg: What is wrong with deployment 'foo'? do a deep network analysis of this clyster?
+  - Apply all current rigorous standards
+
 **Examples of FAILURE:**
 - Using `namespace="*"` after discovering "production" namespace
 - Getting all pods when only those with specific labels are relevant
