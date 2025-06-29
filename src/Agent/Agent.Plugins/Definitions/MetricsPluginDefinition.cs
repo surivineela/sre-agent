@@ -49,7 +49,7 @@ public class MetricsPluginDefinition
     }
 
     [KernelFunction("get_functionapp_request_availability")]
-    [Description("Get the request availability of a specific FunctionApp (not Flex or Consumption SKU) at per minute granularity" +
+    [Description("Get the request availability of a specific FunctionApp (DO NOT CALL FOR FLEX or CONSUMPTION SKU) at per minute granularity" +
     " for the past 30 minutes, FunctionApp is healthy if all data points are at least 99.9 availability")]
     public async Task<IReadOnlyList<RequestAvailabilitySeriesData>> GetFunctionAppRequestAvailability(
         [Description("The resource ID of the FunctionApp resource.")] string resourceId)

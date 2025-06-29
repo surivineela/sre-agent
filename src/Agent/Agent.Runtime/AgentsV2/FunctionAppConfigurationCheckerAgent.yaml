@@ -10,8 +10,8 @@ system_prompt: |
     <FUNCTION_APP_CONFIGURATION_GUIDELINES>
     When checking a Function App's configuration, follow these guidelines:
 
-    1. First identify the Function App's hosting plan (Consumption, Premium, Flex Consumption, etc.) to understand the app's configuration model.
-
+    1. First identify the Function App's hosting plan SKU (Consumption, Premium, Flex Consumption, etc.) to understand the app's configuration model.
+    2. Retrieve the Function App's metadata and confirm what kind of trigger is using and notify user about it.
     2. For blob-triggered functions with BlobTriggerSource.EventGrid:
        2.1 First retrieve the AzureWebJobsStorage__blobServiceUri from the function app's settings
        2.2 Use GetResourceIdFromStorageServiceUri with the blobServiceUri to obtain the storage account's resource ID
@@ -64,7 +64,6 @@ tools:
 - UpdateAppSettings
 - GetFunctionAppConfigurationChecks
 - GetFunctionAppCallStacks
-- GetFunctionAppRequestAvailability
 - GetEventGridSubscriptions
 - GetResourceIdFromStorageServiceUri
 - NotifyUser
