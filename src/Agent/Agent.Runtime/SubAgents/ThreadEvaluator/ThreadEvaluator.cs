@@ -74,9 +74,24 @@ public class ThreadEvaluator
 
                 try
                 {
-                    // Check if this thread has already been evaluated today
-                    // var existingTodayResult = await GetTodayEvaluationResult(thread.Id);
+                    // Check if this thread's evaluation is up to date (no new messages since last evaluation)
+                    var isEvaluationUpToDate = await IsEvaluationUpToDate(thread.Id);
 
+                    // Skip evaluation if it's already up to date
+                    if (isEvaluationUpToDate == true)
+                    {
+                        _logger.LogInternalInformation($"Thread '{thread.Id}' evaluation is up to date, skipping");
+                        continue;
+                    }
+
+                    // Handle error case - if we can't determine evaluation status, log and skip
+                    if (isEvaluationUpToDate == null)
+                    {
+                        _logger.LogInternalWarning($"Could not determine evaluation status for thread '{thread.Id}', this can happen if a thread was deleted,skipping");
+                        continue;
+                    }
+
+                    // If isEvaluationUpToDate == false, proceed with evaluation
                     var evaluationResult = await EvaluateThread(thread, cancellationToken);
                 }
                 catch (Exception ex)
@@ -106,8 +121,7 @@ public class ThreadEvaluator
             _logger.LogInternalInformation($"Starting evaluation for thread {threadId}");
 
             // Get the specific thread
-            var threads = await _threadRepository.GetThreadsAsync();
-            var thread = threads.FirstOrDefault(t => t.Id == threadId);
+            var thread = await _threadRepository.GetThreadAsync(threadId);
 
             if (thread == null)
             {
@@ -237,6 +251,7 @@ public class ThreadEvaluator
                 PriorityReason: llmEvaluation.PriorityReason,
                 EvaluatedTimestamp: thread.ModifiedTimestamp
             );
+
             // span.SetAttribute("sat_score", evaluationResult.SATScore);
             _actionLogger.LogAction(
                 action: "evaluate.thread",
@@ -648,6 +663,47 @@ public class ThreadEvaluator
         public string Category { get; set; } = "";
         public string Priority { get; set; } = "";
         public string PriorityReason { get; set; } = "";
+    }
+
+    /// <summary>
+    /// Check if a thread has already been evaluated and if there are new messages since last evaluation
+    /// </summary>
+    /// <param name="threadId">The ID of the thread to check</param>
+    /// <returns>True if the thread has been evaluated recently and has no new messages, false if it needs evaluation</returns>
+    private async Task<bool?> IsEvaluationUpToDate(Guid threadId)
+    {
+        try
+        {
+            var thread = await _threadRepository.GetThreadAsync(threadId);
+
+            if (thread == null)
+            {
+                _logger.LogInternalWarning($"Thread {threadId} not found when checking evaluation status");
+                return null;
+            }
+
+            // If thread has never been evaluated, it needs evaluation
+            if (thread.EvaluatedTimestamp == default(DateTime))
+            {
+                _logger.LogInternalInformation($"Thread {threadId} has never been evaluated, needs evaluation");
+                return false;
+            }
+
+            // Check if the thread has been modified since the last evaluation
+            if (thread.ModifiedTimestamp > thread.EvaluatedTimestamp)
+            {
+                _logger.LogInternalInformation($"Thread {threadId} was modified at {thread.ModifiedTimestamp:yyyy-MM-dd HH:mm:ss} UTC after last evaluation at {thread.EvaluatedTimestamp:yyyy-MM-dd HH:mm:ss} UTC, needs re-evaluation");
+                return false;
+            }
+
+            _logger.LogInternalInformation($"Thread {threadId} was already evaluated at {thread.EvaluatedTimestamp:yyyy-MM-dd HH:mm:ss} UTC and has no new messages, skipping evaluation");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, $"Error checking evaluation status for thread {threadId}");
+            return null;
+        }
     }
 
 }
