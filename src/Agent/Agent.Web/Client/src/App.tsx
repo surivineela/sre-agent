@@ -10,7 +10,7 @@ import { AzPortalContext } from './src/Common/AzPortalProxy/Providers/AzPortalPr
 import { EnvironmentContext } from './src/Common/AzPortalProxy/Providers/StartupInfoContext';
 import { KnowledgeGraphBuildStatusProvider } from './src/Common/Providers/KnowledgeGraphBuildStatusProvider';
 import { ReactQueryClientProvider } from './src/Common/Providers/ReactQueryClientProvider';
-import { SignalRProvider } from './src/Common/Providers/SignalRProvider';
+import { StreamingProvider } from './src/Common/Providers/StreamingProvider';
 import SREAgentSpace from './src/Space/SREAgentSpace';
 import { IntlProvider } from './src/Strings/Intl/IntlProvider';
 
@@ -38,13 +38,13 @@ const App: React.FC = () => {
                 <FluentProvider theme={environmentInfo.theme?.mode === ThemeMode.Dark ? webDarkTheme : webLightTheme}>
                     <IntlProvider locale={environmentInfo.effectiveLocale}>
                         <AzPortalContext.Provider value={portalProxy}>
-                            <SignalRProvider>
+                            <StreamingProvider>
                                 <ReactQueryClientProvider>
                                     <KnowledgeGraphBuildStatusProvider>
                                         <SREAgentSpace />
                                     </KnowledgeGraphBuildStatusProvider>
                                 </ReactQueryClientProvider>
-                            </SignalRProvider>
+                            </StreamingProvider>
                         </AzPortalContext.Provider>
                     </IntlProvider>
                 </FluentProvider>

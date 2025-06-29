@@ -1,3 +1,4 @@
+import cloneDeep from 'lodash/cloneDeep';
 import { ThreadSeverity } from '../../Common/Clients/ThreadClient';
 import {
     Approval,
@@ -5,11 +6,13 @@ import {
     AzCliExecution,
     IncidentStatus,
     Message,
-    StreamingMessage,
-    StreamingMessageType,
+    MessageAuthor,
+    MessageMetaData,
+    SREAgentUserId,
     Thread,
     ThreadSource,
 } from '../../Common/Contracts/Azure/SreAgent';
+import { StreamingMessage, StreamingMessageType } from '../../Common/Contracts/Azure/Streaming';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
 import { ChatMessage, ChatMessageContent, ThreadLoadingCounts } from '../Contracts/Activities';
@@ -174,6 +177,82 @@ export const updateOldMessagesText = (prevMessages: ChatMessage[] | undefined, u
     return isPrevMessagesUpdated ? updatedPrevMessages : prevMessages;
 };
 
+export const getDefaultSREAgentAuthor = (): MessageAuthor => {
+    return {
+        role: 'SREAgent',
+        userId: SREAgentUserId,
+        displayName: '',
+    };
+};
+
+export const convertStreamingMessagesToChatMessages = (
+    streamingMessages: StreamingMessage[],
+    userId: string,
+    displayName: string
+): ChatMessage[] => {
+    const ChatMessages: ChatMessage[] = [];
+    let currentChatMessage: ChatMessage | undefined;
+
+    const isValidStreamingMessage = (streamingMessage: StreamingMessage) => {
+        return streamingMessage && streamingMessage.contents && streamingMessage.contents.length > 0 && streamingMessage.contents[0].text;
+    };
+
+    const pushChatMessageIfApplicable = (chatMessage: ChatMessage | undefined) => {
+        if (chatMessage && chatMessage.id && chatMessage.timeStamp && chatMessage.contents && chatMessage.contents.length > 0) {
+            ChatMessages.push(cloneDeep(chatMessage));
+        }
+    };
+
+    for (const streamingMessage of streamingMessages) {
+        if (isValidStreamingMessage(streamingMessage)) {
+            const metadata = getMessageMetaDataFromChatMessage(streamingMessage, userId, displayName);
+            const chatMessageContent = processChatMessageContents([], streamingMessage);
+            // If the current chat message has the same id with the current streaming message, then push the streaming message content to the current chat message.
+            if (currentChatMessage && currentChatMessage.id === metadata.id) {
+                currentChatMessage.contents.push(...chatMessageContent);
+                if (!currentChatMessage.timeStamp && metadata.timeStamp) {
+                    currentChatMessage.timeStamp = metadata.timeStamp;
+                }
+            }
+            // If the current chat message is undefined or has a different id, then push the current chat message to the ChatMessages array and create a new current chat message based on the streaming message
+            else {
+                pushChatMessageIfApplicable(currentChatMessage);
+                currentChatMessage = {
+                    ...metadata,
+                    contents: chatMessageContent,
+                };
+            }
+        }
+    }
+
+    // When the loop ends, if the current chat message is defined and has contents, then push it to the ChatMessages array
+    pushChatMessageIfApplicable(currentChatMessage);
+
+    return ChatMessages;
+};
+
+export const getMessageMetaDataFromChatMessage = (
+    streamingMessage: StreamingMessage,
+    userId: string,
+    displayName: string
+): MessageMetaData => {
+    const { additionalProperties, createdAt } = streamingMessage;
+
+    const author: MessageAuthor = isUserStreamingMessage(streamingMessage)
+        ? {
+              role: 'User',
+              userId,
+              displayName: displayName,
+          }
+        : getDefaultSREAgentAuthor();
+
+    return {
+        id: additionalProperties?.messageId || '',
+        timeStamp: createdAt || '',
+        author,
+    };
+};
+
 /**
  * Update the current contents of the streaming message. If the new streaming message chunk is azure cli or kubectl execution, it will replace the existing azure cli or kubectl execution content with the same execution id in the current contents if it exists.
  * @param currentContents existing chat message contents
@@ -199,8 +278,8 @@ export const processChatMessageContents = (
                 approval.status === 0
                     ? ApprovalDecision.Pending
                     : approval.status === 1
-                        ? ApprovalDecision.Approved
-                        : ApprovalDecision.Rejected,
+                      ? ApprovalDecision.Approved
+                      : ApprovalDecision.Rejected,
         };
     }
 

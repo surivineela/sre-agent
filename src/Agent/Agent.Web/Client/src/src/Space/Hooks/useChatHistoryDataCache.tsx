@@ -1,10 +1,15 @@
 import { InfiniteData, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { MessageClient } from '../../Common/Clients/MessageClient';
 import { ThreadClient } from '../../Common/Clients/ThreadClient';
 import { ThreadSource } from '../../Common/Contracts/Azure/SreAgent';
-import { convertMessageToChatMessage, isIncidentThreadCompleted, updateOldMessagesText } from '../Activities/Utility';
+import {
+    convertMessageToChatMessage,
+    getIntervalBetweenLoading,
+    isIncidentThreadCompleted,
+    updateOldMessagesText,
+} from '../Activities/Utility';
 import { ChatMessage, MessageLoadingCounts } from '../Contracts/Activities';
 
 const ChatMessagesQueryIdPrefix = 'usechatboxv2-chat-messages';
@@ -14,6 +19,11 @@ export const useChatHistoryDataCache = (threadId: string | null | undefined, thr
         threadSource === ThreadSource.incident
     );
     const [newestMessageTimestampInOldMessages, setNewestMessageTimestampInOldMessages] = useState<string>('');
+
+    const exponentialBackoffDepth = useRef(-1);
+    const timeout = useRef<NodeJS.Timeout | undefined>(undefined);
+
+    const loadOlderMessagesRef = useRef<(() => void) | null>(null);
 
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const threadClient = ThreadClient.getInstance(sreAgentEndpoint);
@@ -43,20 +53,36 @@ export const useChatHistoryDataCache = (threadId: string | null | undefined, thr
             return lastPage?.[lastPage.length - 1]?.timeStamp || undefined;
         },
         initialPageParam: '',
-        // This will ignore the cache each time a new thread is selected. Set gcTime to infinity once we incorprate the existing streaming message to the chat message list.
-        gcTime: 0,
+        refetchOnWindowFocus: false,
+        refetchOnReconnect: false,
+        staleTime: Infinity,
+        gcTime: Infinity,
     });
-
-    const loadOlderMessages = useCallback(() => {
-        if (isLoading || isFetching || isFetchingNextPage || !hasNextPage) {
-            return;
-        }
-        return fetchNextPage();
-    }, [isLoading, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage]);
 
     const isLoadingInitialChatHistory = useMemo(() => {
         return !!threadId && isLoading;
     }, [threadId, isLoading]);
+
+    const loadOlderMessages = useCallback(() => {
+        if (isLoadingInitialChatHistory || isFetching || isFetchingNextPage || !hasNextPage) {
+            return;
+        }
+
+        const interval = exponentialBackoffDepth.current < 0 ? 0 : getIntervalBetweenLoading(exponentialBackoffDepth.current);
+
+        timeout.current = setTimeout(async () => {
+            const result = await fetchNextPage();
+            if (result.isError || result.isFetchNextPageError) {
+                exponentialBackoffDepth.current += 1;
+            } else {
+                exponentialBackoffDepth.current = -1; // Reset on successful fetch
+            }
+        }, interval);
+    }, [isLoadingInitialChatHistory, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage]);
+
+    useEffect(() => {
+        loadOlderMessagesRef.current = loadOlderMessages;
+    }, [loadOlderMessages]);
 
     useEffect(() => {
         setNewestMessageTimestampInOldMessages(data?.pages?.[0]?.[0]?.timeStamp || '');
@@ -123,11 +149,15 @@ export const useChatHistoryDataCache = (threadId: string | null | undefined, thr
         };
     }, [threadId, isLoadingInitialChatHistory, isIncidentInvestigationInProgress, newestMessageTimestampInOldMessages]);
 
+    useEffect(() => {
+        return () => {
+            clearTimeout(timeout.current);
+        };
+    }, []);
+
     return {
         oldMessagesQueryData: data,
         isLoadingInitialChatHistory,
-        loadOlderMessages,
-        hasMoreDataToLoad: hasNextPage,
-        isFetchingOlderMessages: isFetchingNextPage,
+        loadOlderMessagesRef,
     };
 };

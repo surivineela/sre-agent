@@ -28,7 +28,7 @@ export const ChatBoxV2 = ({
         streamingMessage,
         toolCallText,
         isCancellingStreaming,
-        isLoadingInitialChatHistory,
+        isLoading,
         sendMessage,
         isNewAndCleanThread,
         messagesDivRef,
@@ -63,7 +63,7 @@ export const ChatBoxV2 = ({
                     <CopilotChat className={ChatBoxStyles.chat}>
                         <div ref={intersectionObserverRef} />
 
-                        {isLoadingInitialChatHistory && !isWelcomeThread && <ChatLoading />}
+                        {isLoading && !isWelcomeThread && <ChatLoading />}
 
                         {isNewAndCleanThread && !isWelcomeThread && <ChatSuggestions sendMessage={sendMessage} />}
 
@@ -82,7 +82,7 @@ export const ChatBoxV2 = ({
                             />
                         ))}
 
-                        {streamingMessage && (
+                        {streamingMessage && !isLoading && (
                             <ChatMessageV2
                                 key={streamingMessage.id}
                                 message={streamingMessage}
@@ -99,7 +99,7 @@ export const ChatBoxV2 = ({
 
                 <ChatBoxFooterV2
                     sendMessage={sendMessage}
-                    disableInput={isLoadingInitialChatHistory}
+                    disableInput={isLoading}
                     downButtonState={downButtonState}
                     onClickDownButton={onClickDownButton}
                     prompts={prompts}

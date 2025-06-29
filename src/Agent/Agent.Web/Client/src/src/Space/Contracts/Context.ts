@@ -1,4 +1,5 @@
 import { createContext } from 'react';
+import { MessageRequestType, StreamingMessage } from '../../Common/Contracts/Azure/Streaming';
 import { AgentContextProps } from './Activities';
 
 type SreAgentContextProps = {
@@ -22,10 +23,15 @@ type SreAgentContextProps = {
     };
 };
 
-type SignalRContextProps = {
-    sendMessage: (message: string, ...args: any[]) => void;
-    subscribeSignalR: (method: string, callback: (...args: any[]) => void) => void;
-    unsubscribeSignalR: (method: string, callback: (...args: any[]) => void) => void;
+type StreamingContextProps = {
+    sendMessage: (message: MessageRequestType, ...args: any[]) => void;
+    subscribeChatStreaming: (
+        threadId: string,
+        existingStreamingMessageHandler: (streamingMessages: StreamingMessage[] | null | undefined) => void,
+        messageUpdateHandler: (...args: any[]) => void,
+        threadUpdateHandler: (...args: any[]) => void
+    ) => () => void;
+    deleteStreamingMessages: (threadId: string) => void;
     isConnecting: boolean;
     isConnected: boolean;
 };
@@ -56,10 +62,17 @@ export const AgentContext = createContext<AgentContextProps>({
     activeThreadId: '',
 });
 
-export const SignalRContext = createContext<SignalRContextProps>({
-    sendMessage: (_message: string, ..._args: any[]) => {},
-    subscribeSignalR: (_method: string, _callback: (...args: any[]) => void) => {},
-    unsubscribeSignalR: (_method: string, _callback: (...args: any[]) => void) => {},
+export const StreamingContext = createContext<StreamingContextProps>({
+    sendMessage: (_message: MessageRequestType, ..._args: any[]) => {},
+    subscribeChatStreaming:
+        (
+            _threadId: string,
+            _existingStreamingMessageHandler: (streamingMessages: StreamingMessage[] | null | undefined) => void,
+            _messageUpdateHandler: (...args: any[]) => void,
+            _threadUpdateHandler: (...args: any[]) => void
+        ) =>
+        () => {},
+    deleteStreamingMessages: (_threadId: string) => {},
     isConnecting: true,
     isConnected: false,
 });

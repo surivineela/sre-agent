@@ -7,7 +7,7 @@ import { memo, useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { ActivitiesResources, PromptResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { IChatBoxFooterV2Props } from '../Contracts/Activities';
-import { SignalRContext } from '../Contracts/Context';
+import { StreamingContext } from '../Contracts/Context';
 import { chatInputTextStyles, sendButtonStyles, useChatInputStyles } from '../Styles/Activities.styles';
 import AgentModeSelector from './AgentModeSelector';
 import KnowledgeGraphBuildStatus from './KnowledgeGraphBuildStatus';
@@ -57,7 +57,7 @@ const ChatBoxFooterV2 = ({
     const { root, footer, chatStatement, sectionHeader, promptItem, lightbulbIcon, sectionDivider, popoverSurface } = useChatInputStyles();
     const [open, setOpen] = useState(false);
 
-    const { isConnected } = useContext(SignalRContext);
+    const { isConnected } = useContext(StreamingContext);
 
     const disableInputInteraction = useMemo(() => {
         return disableInput || !isConnected || isCancellingStreaming;

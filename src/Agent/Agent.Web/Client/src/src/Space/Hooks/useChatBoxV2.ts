@@ -2,12 +2,13 @@ import debounce from 'lodash/debounce';
 import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
-import { MessageRequestType, MessageResponseType, SREAgentUserId, StreamingMessage } from '../../Common/Contracts/Azure/SreAgent';
+import { MessageRequestType, MessageResponseType, StreamingMessage } from '../../Common/Contracts/Azure/Streaming';
 import { Guid } from '../../Common/Helpers/Guid';
 import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
 import { PromptResources } from '../../Strings/SREAgentResources';
 import {
-    getIntervalBetweenLoading,
+    convertStreamingMessagesToChatMessages,
+    getDefaultSREAgentAuthor,
     getStreamingMessageText,
     getToolCallText,
     isChatMessageContentNonImageText,
@@ -19,7 +20,7 @@ import {
     shouldGroupWithPreviousMessageV2,
 } from '../Activities/Utility';
 import { ChatMessage, MessageTypingCharactersPer10Ms, MessageTypingSpeedInMilliseconds } from '../Contracts/Activities';
-import { SignalRContext } from '../Contracts/Context';
+import { StreamingContext } from '../Contracts/Context';
 import { useAuthenticatedUserInfo } from './useAuthenticatedUserInfo';
 import { useChatHistoryDataCache } from './useChatHistoryDataCache';
 
@@ -40,11 +41,7 @@ const composeDefaultStreamingMessage = (): ChatMessage => {
     return {
         id: Guid.newGuid(),
         timeStamp: new Date().toISOString(),
-        author: {
-            role: 'SREAgent',
-            userId: SREAgentUserId,
-            displayName: '',
-        },
+        author: getDefaultSREAgentAuthor(),
         contents: [],
     };
 };
@@ -71,16 +68,18 @@ export const useChatBoxV2 = (
 
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [oldMessages, setOldMessages] = useState<ChatMessage[]>([]);
+    const [existingStreamingMessages, setExistingStreamingMessages] = useState<StreamingMessage[]>();
     const [newMessages, setNewMessages] = useState<ChatMessage[]>([]);
     const [currentThreadId, setCurrentThreadId] = useState<string | null>(threadId || null);
 
-    const [isIntersecting, setIsIntersecting] = useState<boolean>(false);
-
     const [streamingMessage, setStreamingMessage] = useState<ChatMessage | null>(null);
     const [isCancellingStreaming, setIsCancellingStreaming] = useState<boolean>(false);
+    const [isLoadingExistingStreamingMessages, setIsLoadingExistingStreamingMessages] = useState<boolean>(true);
+    const [ignoreExistingStreamingMessages, setIgnoreExistingStreamingMessages] = useState<boolean>(false);
     const [toolCallText, setToolCallText] = useState<string | null>(null);
     const [isAgentTyping, setIsAgentTyping] = useState<boolean>(false);
     const [isStreamingEmpty, setIsStreamingEmpty] = useState<boolean>(false);
+
     const messageChunkQueue = useRef<StreamingMessage[]>([]);
     const isTypingChars = useRef<boolean>(false);
     const typingCharIndex = useRef<number>(0);
@@ -88,7 +87,7 @@ export const useChatBoxV2 = (
 
     const [downButtonState, setDownButtonState] = useState<{ visible: boolean; flash: boolean }>({ visible: false, flash: false });
 
-    const { sendMessage, subscribeSignalR, unsubscribeSignalR } = useContext(SignalRContext);
+    const { sendMessage, subscribeChatStreaming, deleteStreamingMessages: deleteExistingStreamingMessages } = useContext(StreamingContext);
 
     const messagesDivRef = useRef<HTMLDivElement>(null);
     const intersectionObserverRef = useRef<HTMLDivElement>(null);
@@ -106,8 +105,42 @@ export const useChatBoxV2 = (
         userIdAndDisplayName: { userId, displayName },
     } = useAuthenticatedUserInfo();
 
-    const { oldMessagesQueryData, isLoadingInitialChatHistory, loadOlderMessages, hasMoreDataToLoad, isFetchingOlderMessages } =
-        useChatHistoryDataCache(threadId, threadSource);
+    const { oldMessagesQueryData, isLoadingInitialChatHistory, loadOlderMessagesRef } = useChatHistoryDataCache(threadId, threadSource);
+
+    useEffect(() => {
+        // If isLoadingInitialChatHistory is true, that means chat history data cache is not available.
+        // In this case, we should delete and ignore the existing streaming messages for this thread to avoid potential conflicts as some
+        // of the existing streaming messages might be already recorded in database that will be returned in the chat history
+        if (isLoadingInitialChatHistory) {
+            deleteExistingStreamingMessages(currentThreadIdRef.current || userDefinedThreadIdRef.current);
+            setIgnoreExistingStreamingMessages(true);
+        }
+    }, [isLoadingInitialChatHistory, deleteExistingStreamingMessages]);
+
+    const chatMessagesFromExistingStreamingMessages = useMemo(() => {
+        if (ignoreExistingStreamingMessages || !existingStreamingMessages || existingStreamingMessages.length === 0) {
+            return undefined;
+        }
+        return convertStreamingMessagesToChatMessages(existingStreamingMessages, userId, displayName);
+    }, [existingStreamingMessages, ignoreExistingStreamingMessages, userId, displayName]);
+
+    useEffect(() => {
+        const messages = [...(oldMessagesQueryData?.pages?.flat() || []).filter(message => !!message)].reverse();
+
+        if (chatMessagesFromExistingStreamingMessages) {
+            messages.push(...chatMessagesFromExistingStreamingMessages);
+        }
+
+        if (messages.length > 0) {
+            oldMessagesToBeAdded.current = true;
+            currentScrollHeight.current = messagesDivRef.current?.scrollHeight || 0;
+            setOldMessages(messages);
+        }
+    }, [oldMessagesQueryData, chatMessagesFromExistingStreamingMessages]);
+
+    const isLoading = useMemo(() => {
+        return isLoadingInitialChatHistory || (!ignoreExistingStreamingMessages && isLoadingExistingStreamingMessages);
+    }, [isLoadingInitialChatHistory, isLoadingExistingStreamingMessages, ignoreExistingStreamingMessages]);
 
     const isNewAndCleanThread = useMemo(
         () => !isLoadingInitialChatHistory && !currentThreadId && messages.length === 0,
@@ -123,7 +156,7 @@ export const useChatBoxV2 = (
 
     const handleScroll = debounce((isScrollingToTop: boolean) => {
         if (isScrollingToTop) {
-            loadOlderMessages();
+            loadOlderMessagesRef.current?.();
         }
 
         const isAtBottom = isChatAtBottom();
@@ -230,7 +263,6 @@ export const useChatBoxV2 = (
                     console.log(`New message sent in thread: ${currentThreadId}. Message: ${message}.`);
                 } else {
                     // Issue a request to create a new thread
-                    userDefinedThreadIdRef.current = Guid.newGuid();
                     createThread(userDefinedThreadIdRef.current, {
                         startMessage: messageRequest,
                     });
@@ -370,23 +402,6 @@ export const useChatBoxV2 = (
 
         const handleMessageChunk = (messageResponseType: MessageResponseType, streamData?: StreamingMessage) => {
             if (streamData) {
-                // Keep it for now for testing purpose. Will remove it once the streaming is not behind the feature flag
-                console.log(
-                    messageResponseType,
-                    'Role: ',
-                    streamData.role,
-                    'Text: ',
-                    streamData.contents?.[0]?.text,
-                    'Text type: ',
-                    streamData.additionalProperties?.streamMessageType,
-                    'Tool call',
-                    streamData.contents?.[0]?.name,
-                    'isCancelled',
-                    streamData.additionalProperties?.isCancelled,
-                    'Finish Reason: ',
-                    streamData.finishReason
-                );
-
                 if (isSubscribed) {
                     if (isUserStreamingMessage(streamData)) {
                         handleUserMessageChunk(messageResponseType, streamData);
@@ -398,23 +413,33 @@ export const useChatBoxV2 = (
             }
         };
 
-        const threadUpdateCallback = (streamData?: StreamingMessage) => {
+        const existingStreamingMessagesHandler = (streamingMessages: StreamingMessage[] | null | undefined) => {
+            if (streamingMessages && streamingMessages.length > 0) {
+                setExistingStreamingMessages(streamingMessages);
+            }
+            setIsLoadingExistingStreamingMessages(false);
+        };
+
+        const threadUpdateHandler = (streamData?: StreamingMessage) => {
             handleMessageChunk(MessageResponseType.ThreadUpdate, streamData);
         };
 
-        const messageUpdateCallback = (streamData?: StreamingMessage) => {
+        const messageUpdateHandler = (streamData?: StreamingMessage) => {
             handleMessageChunk(MessageResponseType.MessageUpdate, streamData);
         };
 
-        subscribeSignalR(MessageResponseType.ThreadUpdate, threadUpdateCallback);
-        subscribeSignalR(MessageResponseType.MessageUpdate, messageUpdateCallback);
+        const unsubscribeChatStreaming = subscribeChatStreaming(
+            currentThreadIdRef.current || userDefinedThreadIdRef.current,
+            existingStreamingMessagesHandler,
+            messageUpdateHandler,
+            threadUpdateHandler
+        );
 
         return () => {
             isSubscribed = false;
-            unsubscribeSignalR(MessageResponseType.ThreadUpdate, threadUpdateCallback);
-            unsubscribeSignalR(MessageResponseType.MessageUpdate, messageUpdateCallback);
+            unsubscribeChatStreaming();
         };
-    }, [subscribeSignalR, unsubscribeSignalR, addThread, promoteThread, isCancellingStreaming]);
+    }, [subscribeChatStreaming, addThread, promoteThread, isCancellingStreaming]);
 
     useEffect(() => {
         if (threadId) {
@@ -425,40 +450,18 @@ export const useChatBoxV2 = (
     useEffect(() => {
         const observer = new IntersectionObserver((entries: IntersectionObserverEntry[]) => {
             const entry = entries[0];
-            setIsIntersecting(entry.isIntersecting);
+            if (entry.isIntersecting) {
+                loadOlderMessagesRef.current?.();
+            }
         });
-        if (observer && intersectionObserverRef.current && !isLoadingInitialChatHistory) {
+        if (observer && intersectionObserverRef.current && !isLoading) {
             observer.observe(intersectionObserverRef.current);
         }
 
         return () => {
             observer?.disconnect();
-            setIsIntersecting(false);
         };
-    }, [isLoadingInitialChatHistory]);
-
-    useEffect(() => {
-        let timeoutId: NodeJS.Timeout | undefined = undefined;
-
-        if (isIntersecting && hasMoreDataToLoad && !isFetchingOlderMessages) {
-            let exponentialBackoffDepth = -1;
-
-            const loadOldMessages = async () => {
-                const result = await loadOlderMessages();
-
-                exponentialBackoffDepth = result?.isLoadingError || result?.isFetchNextPageError ? exponentialBackoffDepth + 1 : -1;
-                const interval = getIntervalBetweenLoading(exponentialBackoffDepth);
-
-                timeoutId = setTimeout(loadOldMessages, interval);
-            };
-
-            loadOldMessages();
-        }
-
-        return () => {
-            clearTimeout(timeoutId);
-        };
-    }, [hasMoreDataToLoad, isFetchingOlderMessages, isIntersecting, loadOlderMessages]);
+    }, [isLoading]);
 
     // When old messages are added at the top of the chat, this useLayoutEffect will calculate the new scroll top
     // to make sure the chat does not scroll to top before the next paint
@@ -545,22 +548,12 @@ export const useChatBoxV2 = (
     }, []);
 
     useEffect(() => {
-        const data = [...(oldMessagesQueryData?.pages?.flat() || []).filter(message => !!message)].reverse();
-
-        if (data.length > 0) {
-            oldMessagesToBeAdded.current = true;
-            currentScrollHeight.current = messagesDivRef.current?.scrollHeight || 0;
-            setOldMessages(data);
-        }
-    }, [oldMessagesQueryData]);
-
-    useEffect(() => {
         setMessages([...oldMessages, ...newMessages]);
     }, [oldMessages, newMessages]);
 
     return {
         messages,
-        isLoadingInitialChatHistory,
+        isLoading,
         isAgentTyping,
         isStreamingEmpty,
         streamingMessage,

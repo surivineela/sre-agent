@@ -22,9 +22,9 @@ import { SreAgentContext } from '../Contracts/Context';
 import { useAuthenticatedUserInfo } from '../Hooks/useAuthenticatedUserInfo';
 import { ChatBoxV2Styles as ChatBoxStyles, nameAndTimestampContainerStyle, useChatBoxStyles } from '../Styles/Activities.styles';
 import AgentMessage from './AgentMessage';
+import AgentMessageLoadingComponent from './AgentMessageLoadingComponent';
 import { FeedbackDialog } from './FeedbackDialog';
 import ReactMarkdownComponent from './ReactMarkdownComponent';
-import AgentMessageLoadingComponent from './AgentMessageLoadingComponent';
 
 const chatMessageStyles = mergeStyleSets({
     regularMessageContent: {
@@ -154,7 +154,7 @@ const ChatMessageV2 = ({
     threadId,
     isStreamingMessage,
     toolCallText,
-    isStreamingEmpty
+    isStreamingEmpty,
 }: IChatMessageV2Props) => {
     const chatStyles = useChatBoxStyles();
     const intl = useIntl();
@@ -181,7 +181,7 @@ const ChatMessageV2 = ({
                 <div style={nameAndTimestampContainerStyle}>
                     <span>{intl.formatMessage(SreAgentResources.sreAgent)}</span>
                     {mode && <span className={chatStyles.modePill}>{agentMode}</span>}
-                    {!isTyping && (
+                    {!isTyping && message.timeStamp && (
                         <Text size={200} color={tokens.colorNeutralForeground3}>
                             {formatDateTimeWithShortYear(getSafeDateTime(message.timeStamp))}
                         </Text>
@@ -324,7 +324,7 @@ const ChatMessageV2 = ({
                             hideMessageHeader ? ChatBoxStyles.hideAgentMessageHeader : undefined
                         )}
                     >
-                        <Loading />
+                        <Loading key={`${message.id}-loading`} />
 
                         {message.contents.map((content, index) => {
                             return (
