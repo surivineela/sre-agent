@@ -193,5 +193,79 @@ This is particularly useful for diagnosing issues where internal traffic fails t
                     { "managedClusterName", managedClusterName }
                 });
         }
+
+        [Description(@"Get ASI page URL for the Load Balancer of a Managed Cluster.")]
+        public Task<string> GetASIPageForManagedClusterLoadBalancer(
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Load Balancer Resource Url.")] string loadBalancerResourceUrl)
+        {
+            var basePath = "https://asi.azure.ms/services/ACE%20Network%20Tools/pages/Load%20Balancer";
+
+            var args = $"ResourceUri={loadBalancerResourceUrl}" +
+               $"&globalFrom={Uri.EscapeDataString(fromDate.ToString("M/d/yyyy hh:mm:ss tt"))}" +
+               $"&globalTo={Uri.EscapeDataString(toDate.ToString("M/d/yyyy hh:mm:ss tt"))}";
+
+            var asiPageUri = $"{basePath}?{args}";
+
+            return Task.FromResult($"ASI Page for managed cluster loader balancer: {asiPageUri}");
+        }
+
+        [Description(@"Get the managed cluster's load balancer VipAvailability_DataPathAvailability and DipAvailability_HealthProbeStatus page URLs")]
+        public async Task<string> GetVipAndDipAvailabilityUrls(
+            [Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed cluster.")] string managedClusterName)
+        {
+            string loadBalancerVipDipInfo;
+            try
+            {
+                loadBalancerVipDipInfo = await _kustoPlugin.ExecuteLocalFunctionAsync("GetLoadBalancerVipDipInfo", region,
+                    new Dictionary<string, string>
+                    {
+                        { "fromDate", fromDate.ToString() },
+                        { "toDate", toDate.ToString() },
+                        { "managedClusterName", managedClusterName }
+                    });
+            }
+            catch (Exception ex)
+            {
+                return $"Error retrieving Load Balancer Vip and Dip information: {ex.Message}";
+            }
+
+            if (string.IsNullOrEmpty(loadBalancerVipDipInfo))
+            {
+                return "No Load Balancer Vip and Dip information found.";
+            }
+            else if (!loadBalancerVipDipInfo.Contains('\t'))
+            {
+                return "Invalid Load Balancer Vip and Dip information format.";
+            }
+            var parts = loadBalancerVipDipInfo.Split('\t');
+            if (parts.Length < 4)
+            {
+                return "Invalid Load Balancer Vip and Dip information format.";
+            }
+
+            string mdmAccountName = parts[0];
+            string nrpLbId = parts[1];
+            string vip = parts[2];
+            string altAddress = parts[3];
+
+            long fromDateUnix = new DateTimeOffset(fromDate.ToUniversalTime()).ToUnixTimeMilliseconds();
+            long toDateUnix = new DateTimeOffset(toDate.ToUniversalTime()).ToUnixTimeMilliseconds();
+
+
+            string vipUrl = $"https://portal.microsoftgeneva.com/dashboard/slbv2prod/AzureMonitor/VipAvailability_DataPathAvailability?overrides=[{{\"query\":\"//dataSources\",\"key\":\"account\",\"replacement\":\"{mdmAccountName}\"}},{{\"query\":\"//*[id='Slbv2MDMAccount']\",\"key\":\"value\",\"replacement\":\"{mdmAccountName}\"}},{{\"query\":\"//*[id='VipPort']\",\"key\":\"value\",\"replacement\":\"\"}},{{\"query\":\"//*[id='LoadBalancerArmId']\",\"key\":\"value\",\"replacement\":\"{nrpLbId}\"}},{{\"query\":\"//*[id='PublicIpArmId']\",\"key\":\"value\",\"replacement\":\"\"}},{{\"query\":\"//*[id='VnetId']\",\"key\":\"value\",\"replacement\":\"\"}},{{\"query\":\"//*[id='VipOrIlbPA']\",\"key\":\"value\",\"replacement\":\"{vip}\"}},{{\"query\":\"//*[id='Ring']\",\"key\":\"value\",\"replacement\":\"\"}},{{\"query\":\"//*[id='AddressFamily']\",\"key\":\"value\",\"replacement\":\"\"}},{{\"query\":\"//*[id='SubscriptionId']\",\"key\":\"value\",\"replacement\":\"\"}},{{\"query\":\"//*[id='VipAddress']\",\"key\":\"value\",\"replacement\":\"{altAddress}\"}}]" +
+               $"&globalStartTime={fromDateUnix}" +
+               $"&globalEndTime={toDateUnix}" + "&pinGlobalTimeRange=true";
+
+            string dipUrl = $"https://portal.microsoftgeneva.com/dashboard/slbv2prod/AzureMonitor/DipAvailability_HealthProbeStatus?overrides=[{{\"query\":\"//dataSources\",\"key\":\"account\",\"replacement\":\"{mdmAccountName}\"}},{{\"query\":\"//*[id='Slbv2MDMAccount']\",\"key\":\"value\",\"replacement\":\"{mdmAccountName}\"}},{{\"query\":\"//*[id='VipPort']\",\"key\":\"value\",\"replacement\":\"\"}},{{\"query\":\"//*[id='LoadBalancerArmId']\",\"key\":\"value\",\"replacement\":\"{nrpLbId}\"}},{{\"query\":\"//*[id='PublicIpArmId']\",\"key\":\"value\",\"replacement\":\"\"}},{{\"query\":\"//*[id='VnetId']\",\"key\":\"value\",\"replacement\":\"\"}},{{\"query\":\"//*[id='VipOrIlbPA']\",\"key\":\"value\",\"replacement\":\"{vip}\"}},{{\"query\":\"//*[id='Ring']\",\"key\":\"value\",\"replacement\":\"\"}},{{\"query\":\"//*[id='AddressFamily']\",\"key\":\"value\",\"replacement\":\"\"}},{{\"query\":\"//*[id='SubscriptionId']\",\"key\":\"value\",\"replacement\":\"\"}},{{\"query\":\"//*[id='VipAddress']\",\"key\":\"value\",\"replacement\":\"{altAddress}\"}},{{\"query\":\"//*[id='CaAddress']\",\"key\":\"value\",\"replacement\":\"\"}},{{\"query\":\"//*[id='DipPort']\",\"key\":\"value\",\"replacement\":\"\"}},{{\"query\":\"//*[id='ProtocolType']\",\"key\":\"value\",\"replacement\":\"\"}},{{\"query\":\"//*[id='DipAddress']\",\"key\":\"value\",\"replacement\":\"\"}},{{\"query\":\"//*[id='HostAddress']\",\"key\":\"value\",\"replacement\":\"\"}},{{\"query\":\"//*[id='VipInternalAddress']\",\"key\":\"value\",\"replacement\":\"{vip}\"}}]" +
+               $"&globalStartTime={fromDateUnix}" +
+               $"&globalEndTime={toDateUnix}" + "&pinGlobalTimeRange=true";
+
+            return $"VipAvailability_DataPathAvailability: {vipUrl}, DipAvailability_HealthProbeStatus: {dipUrl}";
+        }
     }
 }

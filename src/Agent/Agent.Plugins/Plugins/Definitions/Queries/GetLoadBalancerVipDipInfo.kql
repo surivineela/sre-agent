@@ -1,0 +1,32 @@
+let fromTime = datetime("##fromDate##");
+let toTime = datetime("##toDate##");
+let queryManagedCluster = "##managedClusterName##";
+let sourceTable=ManagedEnvironmentDBState
+| where PreciseTimeStamp between (fromTime .. toTime)
+| where managedClusterName == queryManagedCluster
+| extend vnetResourceUri=tostring(split(subnetResourceId,"/subnets/")[0])
+| distinct subnetResourceGuid,ingressIP,loadBalancerId,vnetResourceUri;
+let local_vnetId = toscalar(sourceTable | project subnetResourceGuid);
+let local_ingressIP = toscalar(sourceTable | project ingressIP);
+let local_loadBalancerId = toscalar(sourceTable | project loadBalancerId);
+let local_LbNrpId = toscalar(cluster("argwus2nrpone.westus2.kusto.windows.net").database("AzureResourceGraph").Resources
+| where id =~ local_loadBalancerId and type=~'microsoft.network/loadbalancers' and not(deleted)
+| summarize arg_max(timestamp, properties, sku, name, location, subscriptionId) by id
+| extend skuDetails=parse_json(sku), props=parse_json(properties)
+| extend lbNrpId=tostring(props.resourceGuid)
+| project lbNrpId);
+let local_privateIPs = todynamic(local_ingressIP);
+let local_altAddress = array_concat(local_privateIPs);
+let local_sku = "Standard";
+cluster("azslb.kusto.windows.net").database("azslbmds").VipMetadataSnapshotRecord
+| where (NrpLbId =~ local_LbNrpId and local_sku =~ 'standard') or (AltAddress in~ (local_altAddress) and local_sku =~ 'basic' and VNetId in~ (local_vnetId))
+| summarize arg_max(env_time, *) by AltAddress
+| extend IsHypernet=tostring(IsHypernet), IsServiceTunnel=tostring(IsServiceTunnel), IsStandardDdosProtectionEnabledOnVnet=tostring(IsStandardDdosProtectionEnabledOnVnet), SlbRing=env_cloud_role
+| project-keep NrpLbId,Vip,AltAddress,Region
+| join kind=leftouter (
+cluster("azslb.kusto.windows.net").database("azslbmds").SlbMetadataVersionRecord
+| where env_time  > ago(1d)
+|summarize by Region, MdmAccountName
+| extend HPAccountName = strcat("slbhp", substring(MdmAccountName, 5))) on $left.Region == $right.Region
+| where AltAddress != "0.0.0.0"
+| project MdmAccountName,NrpLbId,Vip,AltAddress

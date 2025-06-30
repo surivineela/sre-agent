@@ -47,5 +47,6 @@ ManagedEnvironmentDBState
     customVnet,
     customHelmValues,
     RegionalConsumptionV2,
-    tier
+    tier,
+    loadBalancerResourceUrl=loadBalancerId
 | top 1 by PreciseTimeStamp desc
