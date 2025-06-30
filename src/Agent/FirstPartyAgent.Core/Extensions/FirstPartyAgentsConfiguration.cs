@@ -34,6 +34,7 @@ using ICMWorkflowSettings = FirstPartyAgent.Core.Configuration.ICMWorkflowSettin
 using Agent.Core.Services;
 // Add alias for FirstPartyAgent's AzureSearchPlugin
 using FirstPartyAzureSearchPlugin = FirstPartyAgent.Core.Plugins.AzureSearchPlugin;
+using Agent.Core.Helpers;
 
 namespace FirstPartyAgent.Core.Extensions
 {
@@ -129,7 +130,7 @@ namespace FirstPartyAgent.Core.Extensions
             services.AddSingleton<AzureAlertingClient>();
             services.AddSingleton<AzureAlertingPlugin>();
             services.AddSingleton<ControlPlanePlugin>();
-            services.AddSingleton<ApplensDetectorPlugin>();
+            services.AddSingleton<Agent.Plugins.Implementation.ApplensDetectorPlugin>();
             services.AddSingleton<IStorageService>(sp =>
             {
                 try
@@ -154,7 +155,7 @@ namespace FirstPartyAgent.Core.Extensions
                 var logger = sp.GetRequiredService<ILogger<DiagnosticsHelper>>();
                 return new DiagnosticsHelper(logger, applensSettings, environment);
             });
-            services.AddSingleton<IApplensService>(sp =>
+            services.AddSingleton<Agent.Plugins.Services.Interfaces.IApplensService>(sp =>
             {
                 var applensSettings = sp.GetRequiredService<ApplensSettings>();
                 if (applensSettings.Enabled)

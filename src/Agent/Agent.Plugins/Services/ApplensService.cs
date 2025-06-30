@@ -4,31 +4,34 @@
 
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
-using FirstPartyAgent.Core.Configuration;
+using Agent.Logging;
+using Agent.Plugins.Services.Interfaces;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Threading.Tasks;
 
-namespace FirstPartyAgent.Core.Services
+namespace Agent.Plugins.Services
 {
-    public class ApplensService : Agent.Plugins.Services.Interfaces.IApplensService
+    public class ApplensService : IApplensService
     {
         private readonly ILogger<ApplensService> _logger;
-        private readonly ApplensSettings _applensSettings;
+        private readonly ApplensSettings _settings;
         private readonly DiagnosticsHelper _diagnosticsHelper;
 
-        public ApplensService(ApplensSettings applensSettings, DiagnosticsHelper diagnosticsHelper, ILogger<ApplensService> logger)
+        public ApplensService(ILogger<ApplensService> logger, ApplensSettings settings, DiagnosticsHelper diagnosticsHelper)
         {
             _logger = logger;
-            _applensSettings = applensSettings;
+            _settings = settings;
             _diagnosticsHelper = diagnosticsHelper;
         }
 
         public bool IsEnabled()
         {
-            return _applensSettings != null && _applensSettings.Enabled;
+            return _settings != null && _settings.Enabled;
         }
 
         /// <summary>
-        /// Gets detector response for a resource using DiagnosticHelper
+        /// Gets detector response for a resource
         /// </summary>
         /// <param name="resourceId">The resource ID to analyze</param>
         /// <param name="detectorId">The ID of the detector to run</param>
@@ -39,25 +42,25 @@ namespace FirstPartyAgent.Core.Services
         {
             if (!IsEnabled())
             {
-                _logger.LogWarning("Applens service is not enabled");
+                _logger.LogInternalWarning("Applens service is not enabled");
                 return "Applens service is not enabled";
             }
 
             try
             {
-                _logger.LogInformation($"Getting detector response for resource {resourceId} with detector {detectorId}");
+                _logger.LogInternalInformation($"Getting detector response for resource {resourceId} with detector {detectorId}");
                 var result = await _diagnosticsHelper.GetDetectorResponseWithTime(resourceId, detectorId, startTime, endTime);
                 return result;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error getting detector response for resource {resourceId} with detector {detectorId}");
+                _logger.LogInternalError(ex, $"Error getting detector response for resource {resourceId} with detector {detectorId}");
                 return $"Error getting detector response: {ex.Message}";
             }
         }
 
         /// <summary>
-        /// Gets analysis for a resource using DiagnosticHelper
+        /// Gets analysis for a resource
         /// </summary>
         /// <param name="resourceId">The resource ID to analyze</param>
         /// <param name="analysisId">The ID of the analysis to run</param>
@@ -68,36 +71,21 @@ namespace FirstPartyAgent.Core.Services
         {
             if (!IsEnabled())
             {
-                _logger.LogWarning("Applens service is not enabled");
+                _logger.LogInternalWarning("Applens service is not enabled");
                 return "Applens service is not enabled";
             }
 
             try
             {
-                _logger.LogInformation($"Getting analysis response for resource {resourceId} with analysis {analysisId}");
+                _logger.LogInternalInformation($"Getting analysis response for resource {resourceId} with analysis {analysisId}");
                 var result = await _diagnosticsHelper.GetAnalysisWithTime(resourceId, analysisId, startTime, endTime);
                 return result;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error getting analysis response for resource {resourceId} with analysis {analysisId}");
+                _logger.LogInternalError(ex, $"Error getting analysis response for resource {resourceId} with analysis {analysisId}");
                 return $"Error getting analysis response: {ex.Message}";
             }
-        }
-    }
-
-    public class ApplensServiceDisabled : Agent.Plugins.Services.Interfaces.IApplensService
-    {
-        public bool IsEnabled() => false;
-
-        public Task<string> GetDetectorResponse(string resourceId, string detectorId, DateTime? startTime = null, DateTime? endTime = null)
-        {
-            return Task.FromResult("Applens service is not enabled");
-        }
-
-        public Task<string> GetAnalysisResponse(string resourceId, string analysisId, DateTime? startTime = null, DateTime? endTime = null)
-        {
-            return Task.FromResult("Applens service is not enabled");
         }
     }
 }

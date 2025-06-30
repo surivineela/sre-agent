@@ -266,6 +266,61 @@ public class Program
             return settings;
         });
 
+        // Add ApplensSettings registration
+        builder.Services.AddSingleton<Agent.Core.Configuration.ApplensSettings>(sp =>
+        {
+            var configuration = sp.GetRequiredService<IConfiguration>();
+            // Try to get from configuration first
+            var settings = configuration.GetSection("AppSettings:Core:Azure:Applens").Get<Agent.Core.Configuration.ApplensSettings>();
+
+            if (settings == null)
+            {
+                // Fallback to FirstPartyAgent settings
+                var firstPartySettings = configuration
+                    .GetSection("AppSettings:Core:External:Applens")
+                    .Get<Agent.Core.Configuration.ApplensSettings>();
+
+                if (firstPartySettings != null)
+                {
+                    settings = firstPartySettings;
+                }
+                else
+                {
+                    // Provide default settings to prevent null reference exceptions
+                    settings = new Agent.Core.Configuration.ApplensSettings
+                    {
+                        Enabled = false
+                    };
+                }
+            }
+
+            return settings;
+        });
+
+        // Register DiagnosticsHelper before ApplensService
+        builder.Services.AddSingleton<Agent.Core.Helpers.DiagnosticsHelper>(sp =>
+        {
+            var settings = sp.GetRequiredService<Agent.Core.Configuration.ApplensSettings>();
+            var logger = sp.GetRequiredService<ILogger<Agent.Core.Helpers.DiagnosticsHelper>>();
+            var hostEnvironment = sp.GetRequiredService<IHostEnvironment>();
+            
+            return new Agent.Core.Helpers.DiagnosticsHelper(logger, settings, hostEnvironment);
+        });
+
+        // Register IApplensService with DiagnosticsHelper instead of HttpClient
+        builder.Services.AddSingleton<Agent.Plugins.Services.Interfaces.IApplensService>(sp =>
+        {
+            var settings = sp.GetRequiredService<Agent.Core.Configuration.ApplensSettings>();
+            var logger = sp.GetRequiredService<ILogger<Agent.Plugins.Services.ApplensService>>();
+            var diagnosticsHelper = sp.GetRequiredService<Agent.Core.Helpers.DiagnosticsHelper>();
+
+            return new Agent.Plugins.Services.ApplensService(logger, settings, diagnosticsHelper);
+        });
+
+        // Register ApplensDetectorPlugin and its definition
+        builder.Services.AddSingleton<Agent.Plugins.Interface.IApplensDetectorPlugin, Agent.Plugins.Implementation.ApplensDetectorPlugin>();
+        builder.Services.AddTransient<Agent.Plugins.Definitions.ApplensDetectorPluginDefinition>();
+
         // Add ExternalSettings registration after the other settings registrations
         builder.Services.AddSingleton<Agent.Core.Configuration.ExternalSettings>(sp =>
         {
@@ -424,6 +479,19 @@ public class Program
                 }
             })
 
+            .AddTransient<ApplensDetectorPluginDefinition>(sp =>
+            {
+                var applensSettings = sp.GetRequiredService<Agent.Core.Configuration.ApplensSettings>();
+                if (applensSettings.Enabled)
+                {
+                    return new ApplensDetectorPluginDefinition(sp.GetRequiredService<IApplensDetectorPlugin>());
+                }
+                else
+                {
+                    return null;
+                }
+            })
+
             .AddTransient<IMetaAgentContainerAppsRemediationPlugin, ContainerAppsRemediationPlugin>()
             .AddTransient<IMetaAgentManagedIdentityMigrationPlugin, ManagedIdentityMigrationPlugin>()
             .AddTransient<IMetaAgentTlsBestPracticesPlugin, TlsBestPracticesPlugin>()
@@ -457,6 +525,21 @@ public class Program
                     return new AzureSearchPlugin(
                         sp.GetRequiredService<ILogger<AzureSearchPlugin>>(),
                         sp.GetRequiredService<Agent.Core.Configuration.ExternalSettings>());
+                }
+                else
+                {
+                    return null;
+                }
+            })
+
+            .AddTransient<IApplensDetectorPlugin>(sp =>
+            {
+                var applensSettings = sp.GetRequiredService<Agent.Core.Configuration.ApplensSettings>();
+                if (applensSettings.Enabled)
+                {
+                    return new ApplensDetectorPlugin(
+                        sp.GetRequiredService<IApplensService>(),
+                        sp.GetRequiredService<ILogger<ApplensDetectorPlugin>>());
                 }
                 else
                 {
@@ -672,7 +755,6 @@ public class Program
         builder.Services.AddKeyedSingleton<IKubernetesService, CrawlerKubernetesService>("Crawler");
         builder.Services.AddKeyedSingleton<IWatchEventService, ActivityLogService>("ActivityLog");
         builder.Services.AddKeyedSingleton<IWatchEventService, KubernetesWatchService>("Kubernetes");
-
 
         var serviceProvider = builder.Services.BuildServiceProvider();
         var incidentManagementSettings = serviceProvider.GetRequiredService<IncidentManagementSettings>();

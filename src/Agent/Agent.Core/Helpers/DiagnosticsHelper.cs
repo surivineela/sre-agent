@@ -4,13 +4,13 @@
 
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Agent.Core.Configuration;
 using Azure.Core;
 using Azure.Identity;
-using FirstPartyAgent.Core.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace FirstPartyAgent.Core.Helpers
+namespace Agent.Core.Helpers
 {
     /// <summary>
     /// Helper class for diagnostic operations like fetching detector responses and analyses
@@ -50,7 +50,7 @@ namespace FirstPartyAgent.Core.Helpers
             // Skip token retrieval in development environment
             if (_hostEnvironment.IsDevelopment())
             {
-                _logger.LogInformation("Skipping authorization token retrieval in development environment");
+                _logger.LogInternalInformation("Skipping authorization token retrieval in development environment");
                 return string.Empty;
             }
 
@@ -64,7 +64,7 @@ namespace FirstPartyAgent.Core.Helpers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to get Azure authentication token");
+                _logger.LogInternalWarning(ex, "Failed to get Azure authentication token");
                 throw;
             }
         }
@@ -196,7 +196,7 @@ namespace FirstPartyAgent.Core.Helpers
                                             catch (Exception ex)
                                             {
                                                 // Log the error but continue with other detector IDs
-                                                _logger.LogError(ex, $"Failed to get detector response for {subDetectorId}");
+                                                _logger.LogInternalWarning(ex, "Failed to get detector response for {subDetectorId}", subDetectorId);
                                             }
                                         }
                                     }
@@ -216,7 +216,7 @@ namespace FirstPartyAgent.Core.Helpers
                     }
                     catch (JsonException ex)
                     {
-                        _logger.LogError(ex, "Failed to parse detector response. Skipping this response.");
+                        _logger.LogInternalWarning(ex, "Failed to parse detector response. Skipping this response.");
                     }
                 }
 

@@ -4,7 +4,7 @@
 
 using System.ComponentModel.DataAnnotations;
 
-namespace FirstPartyAgent.Core.Configuration
+namespace Agent.Core.Configuration
 {
     public class ApplensSettings
     {
