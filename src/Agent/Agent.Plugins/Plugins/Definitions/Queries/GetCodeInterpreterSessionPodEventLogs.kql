@@ -1,5 +1,5 @@
 let fromDate = datetime("##fromDate##");
-let endDate = datetime("##toDate##");
+let toDate = datetime("##toDate##");
 let podName = "##podName##";
 SystemLogs 
 | where PreciseTimeStamp between (fromDate .. toDate)

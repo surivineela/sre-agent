@@ -1,5 +1,5 @@
 let fromDate = datetime("##fromDate##");
-let endDate = datetime("##toDate##"); 
+let toDate = datetime("##toDate##"); 
 let _subscriptionId = "##subscriptionId##";
 let _resourceGroupName = "##resourceGroupName##";
 let _sessionPoolName =  "##sessionPoolName##";
