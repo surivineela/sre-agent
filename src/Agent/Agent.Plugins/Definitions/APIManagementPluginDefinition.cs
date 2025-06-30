@@ -1,7 +1,7 @@
 using System.ComponentModel;
-using Agent.Plugins.Models;
-using Agent.Framework;
 using Agent.Plugins.Interface;
+using Agent.Plugins.Models;
+using static Agent.Plugins.Helpers.APIManagementHelper;
 
 namespace Agent.Plugins.Definitions
 {
@@ -14,6 +14,8 @@ namespace Agent.Plugins.Definitions
         {
             _apiManagementPlugin = apiManagementPlugin;
         }
+
+        #region Basic API Management Information
 
         [Description(
             "PREFERRED METHOD FOR API MANAGEMENT DETAILS: Gets detailed information about a specific Azure API Management instance by its resource ID. " +
@@ -40,6 +42,10 @@ namespace Agent.Plugins.Definitions
         {
             return await _apiManagementPlugin.ListAPIManagementAsync(subscriptionId);
         }
+
+        #endregion
+
+        #region API Error Logs and Activity - Diagnostics
 
         // NOTE: The reason these functions take relative time parameters (e.g., startDaysAgo, endDaysAgo, lookbackHours) is because the agent does not have a consistent definition of "current time" and often defaults to UTC DateTime values based on its training data. 
         // Using relative time ensures more predictable and accurate results regardless of the agent's runtime environment or time zone.
@@ -70,7 +76,7 @@ namespace Agent.Plugins.Definitions
             "Use this to audit changes, deployments, or administrative actions on the API Management instance. " +
             "If startTime and endTime are not provided, defaults to the past 2 days. Pass in the datetimes as parameters to override the default window."
         )]
-        public async Task<string> GetAPIMActivityLogs(
+        public async Task<string> GetAPIMActivityLogsAsync(
             [Description("Full Azure resource ID of the API Management instance (e.g. /subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.ApiManagement/service/{serviceName})")] string apiManagementResourceId,
             [Description("Optional. Number of days ago to start the range (e.g., 3 for 3 days ago). Defaults to 3.")] int startDaysAgo = 3,
             [Description("Optional. Number of days ago to end the range (e.g., 0 for now, 1 for 1 day ago). Defaults to 0.")] int endDaysAgo = 0)
@@ -79,7 +85,7 @@ namespace Agent.Plugins.Definitions
             DateTime endTime = DateTime.UtcNow.AddDays(-endDaysAgo);
             if (startTime >= endTime) { return $"Invalid time range: startDaysAgo ({startDaysAgo}) must be less than endDaysAgo ({endDaysAgo})."; }
 
-            return await _apiManagementPlugin.GetAPIMActivityLogs(apiManagementResourceId, startTime, endTime);
+            return await _apiManagementPlugin.GetAPIMActivityLogsAsync(apiManagementResourceId, startTime, endTime);
         }
 
         [Description(
@@ -87,7 +93,7 @@ namespace Agent.Plugins.Definitions
             "startDaysAgo and endDaysAgo are optional integers relative to now (e.g., 3 and 0 means from 3 days ago to now). " +
             "If not provided, startDaysAgo defaults to 3 and endDaysAgo defaults to 0. " +
             "Returns a markdown table with columns: ApiId, OperationId, ResponseCode, LastErrorReason, TotalCount, FailedCount, FailureRatePercent.")]
-        public async Task<string> GetAPIMFailureRateByApiOperation(
+        public async Task<string> GetAPIMFailureRateByApiOperationAsync(
             [Description("Full Azure resource ID of the API Management instance (e.g. /subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.ApiManagement/service/{serviceName})")] string apiManagementResourceId,
             [Description("Optional. Number of days ago to start the range (e.g., 3 for 3 days ago). Defaults to 3.")] int startDaysAgo = 3,
             [Description("Optional. Number of days ago to end the range (e.g., 0 for now, 1 for 1 day ago). Defaults to 0.")] int endDaysAgo = 0)
@@ -96,70 +102,172 @@ namespace Agent.Plugins.Definitions
             DateTime endTime = DateTime.UtcNow.AddDays(-endDaysAgo);
             if (startTime >= endTime) { return $"Invalid time range: startDaysAgo ({startDaysAgo}) must be less than endDaysAgo ({endDaysAgo})."; }
 
-            return await _apiManagementPlugin.GetAPIMFailureRateByApiOperation(apiManagementResourceId, startTime, endTime);
+            return await _apiManagementPlugin.GetAPIMFailureRateByApiOperationAsync(apiManagementResourceId, startTime, endTime);
         }
 
         [Description(
             "Retrieves the most recent failed requests (up to a specified limit) with full request/response details. " +
             "Defaults to the past 24 hours and top 10 results if no parameters are provided. " +
             "Returns a markdown table with columns: TimeGenerated, CorrelationId, ApiId, OperationId, Url, Method, CallerIpAddress, ResponseCode, LastErrorReason, LastErrorMessage, RequestSize, ResponseSize, RequestHeaders, ResponseHeaders, RequestBody, ResponseBody.")]
-        public async Task<string> GetAPIMRecentFailedRequests(
+        public async Task<string> GetAPIMRecentFailedRequestsAsync(
             [Description("Full Azure resource ID of the API Management instance (e.g. /subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.ApiManagement/service/{serviceName})")] string apiManagementResourceId,
             [Description("Optional. Hours to look back to; defaults to 24 hours if omitted.")] int lookbackHours = 24,
             [Description("Optional. Maximum number of failures to return; defaults to 10.")] int topN = 10)
         {
             TimeSpan lookback = TimeSpan.FromHours(lookbackHours);
 
-            return await _apiManagementPlugin.GetAPIMRecentFailedRequests(apiManagementResourceId, lookback, topN);
+            return await _apiManagementPlugin.GetAPIMRecentFailedRequestsAsync(apiManagementResourceId, lookback, topN);
         }
+
+        #endregion
+
+        #region APIs, Operations, and Policies - Diagnostics
 
         [Description(
             "Retrieves the list of APIs defined in the specified Azure API Management instance. " +
             "Returns a markdown table with columns: ApiId, Name, Description, Path, Protocols, ServiceUrl. " +
             "This method queries the API Management service for its defined APIs.")]
-        public async Task<List<APIManagementApiDescriptor>> GetAPIMApis(
+        public async Task<List<APIManagementApiDescriptor>> GetAPIMApisAsync(
             [Description("Full Azure resource ID of the API Management instance (e.g. /subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.ApiManagement/service/{serviceName})")] string apiManagementResourceId,
             [Description("Optional name of the workspace within the API Management instance.")] string? workspaceName = null)
         {
-            return await _apiManagementPlugin.GetAPIMApis(apiManagementResourceId, workspaceName);
+            return await _apiManagementPlugin.GetAPIMApisAsync(apiManagementResourceId, workspaceName);
         }
 
         [Description(
             "Retrieves detailed information about a specific API in the Azure API Management instance by its name. " +
             "Returns an APIManagementApiDescriptor with properties like Id, Name, Type, and detailed properties including display name, revision, description, subscription requirements, service URL, backend ID, path, protocols, authentication settings, and subscription key parameter names. " +
             "This method queries the API Management service for the specified API.")]
-        public async Task<APIManagementApiDescriptor> GetAPIDetailsByName(
+        public async Task<APIManagementApiDescriptor> GetAPIDetailsByNameAsync(
             [Description("Full Azure resource ID of the API Management instance (e.g. /subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.ApiManagement/service/{serviceName})")] string apiManagementResourceId,
             [Description("The name of the API to retrieve details for.")] string apiName,
             [Description("Optional name of the workspace within the API Management instance.")] string? workspaceName = null)
         {
-            return await _apiManagementPlugin.GetAPIDetailsByName(apiManagementResourceId, apiName, workspaceName);
+            return await _apiManagementPlugin.GetAPIDetailsByNameAsync(apiManagementResourceId, apiName, workspaceName);
         }
 
         [Description(
             "Retrieves the list of operations for a specific API in the Azure API Management instance. " +
             "Returns a markdown table with columns: OperationId, Name, Description, Method, UrlTemplate, ResponseCodes. " +
             "This method queries the API Management service for operations defined under the specified API.")]
-        public async Task<List<APIManagementApiOperationSummary>> GetAPIOperationsByApi(
+        public async Task<List<APIManagementApiOperationSummary>> GetAPIOperationsByApiAsync(
             [Description("Full Azure resource ID of the API Management instance (e.g. /subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.ApiManagement/service/{serviceName})")] string apiManagementResourceId,
             [Description("The name of the API to retrieve operations for.")] string apiName,
             [Description("Optional name of the workspace within the API Management instance.")] string? workspaceName = null)
 
         {
-            return await _apiManagementPlugin.GetAPIOperationsByApi(apiManagementResourceId, apiName, workspaceName);
+            return await _apiManagementPlugin.GetAPIOperationsByApiAsync(apiManagementResourceId, apiName, workspaceName);
         }
 
         [Description(
             "Retrieves detailed information about a specific operation in an API within the Azure API Management instance. " +
             "Returns a markdown table with columns: OperationId, Name, Policies, Method, Responses, Properties, etc. " +
             "This method queries the API Management service for detailed operation information.")]
-        public async Task<APIManagementApiOperationDescriptor> GetAPIOperationDetailedInfo(
+        public async Task<APIManagementApiOperationDescriptor> GetAPIOperationDetailedInfoAsync(
             [Description("Full Azure resource ID of the API Management instance (e.g. /subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.ApiManagement/service/{serviceName})")] string apiManagementResourceId,
             [Description("The name of the API to retrieve operations for.")] string apiName,
             [Description("The name of the operation to retrieve detailed information for.")] string operationName,
             [Description("Optional name of the workspace within the API Management instance.")] string? workspaceName = null)
         {
-            return await _apiManagementPlugin.GetAPIOperationDetailedInfo(apiManagementResourceId, apiName, operationName, workspaceName);
+            return await _apiManagementPlugin.GetAPIOperationDetailedInfoAsync(apiManagementResourceId, apiName, operationName, workspaceName);
         }
+        #endregion
+
+        #region Virtual Networking - Diagnostics
+
+        [Description(
+            "Retrieves the full virtual network configuration for a specified Azure API Management instance. " +
+            "Returns details about the associated VNet including address space, subnets, NSG associations, DNS settings, and private endpoint policies. " +
+            "Use this to understand how the APIM instance is integrated into its virtual network and to verify correct setup.")]
+        public async Task<VirtualNetworkDetails?> GetVNetConfigurationForApiManagementAsync(
+            [Description("Full Azure resource ID of the API Management instance (e.g. /subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.ApiManagement/service/{serviceName})")] string apimResourceId)
+        {
+            return await _apiManagementPlugin.GetVNetConfigurationForApiManagementAsync(apimResourceId);
+        }
+
+        [Description(
+            "Runs a diagnostic check potential for virtual network connectivity issues for a specified Azure API Management instance within a given time window. " +
+            "Returns information summarizing detected issues, affected subnets, error types, and recommended actions. " +
+            "Use this to troubleshoot APIM instances that are experiencing connectivity or integration problems with their virtual network."
+        )]
+        public async Task<string> CheckForVirtualNetworkIssuesAsync(
+            [Description("Full Azure resource ID of the API Management instance (e.g. /subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.ApiManagement/service/{serviceName})")] string apimResourceId,
+            [Description("Optional. Number of days ago to start the range (e.g., 1 for 1 day ago). Defaults to 1.")] int startDaysAgo = 1,
+            [Description("Optional. Number of days ago to end the range (e.g., 0 for now, 1 for 1 day ago). Defaults to 0.")] int endDaysAgo = 0)
+        {
+            DateTime startTime = DateTime.UtcNow.AddDays(-startDaysAgo);
+            DateTime endTime = DateTime.UtcNow.AddDays(-endDaysAgo);
+            if (startTime >= endTime) { return $"Invalid time range: startDaysAgo ({startDaysAgo}) must be less than endDaysAgo ({endDaysAgo})."; }
+
+            return await _apiManagementPlugin.CheckForVirtualNetworkIssuesAsync(apimResourceId, startTime, endTime);
+        }
+
+        [Description(
+            "Retrieves Network Security Group (NSG) rules associated with an API Management instance. " +
+            "Returns a dictionary or formatted string of NSG rule names and their properties. " +
+            "If 'getCustomOnly' is set to true, only custom (non-system-managed) rules will be returned. " +
+            "This is useful for reviewing the network security posture or identifying firewall rules that may impact connectivity.")]
+        public async Task<List<NSGRuleDetails>> GetNSGRulesForApiManagementAsync(
+            [Description("Full Azure resource ID of the API Management instance (e.g. /subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.ApiManagement/service/{serviceName})")] string resourceId,
+            [Description("Optional flag to return only custom (non-default) rules. Defaults to false. Set to true to exclude system-managed rules.")] bool getCustomOnly = false)
+        {
+            return await _apiManagementPlugin.GetNSGRulesForApiManagementAsync(resourceId, getCustomOnly);
+        }
+
+        [Description(
+            "Retrieves Network Security Group (NSG) administrative activity logs for a specified Azure API Management instance within a given time window. " +
+            "Returns a markdown table with columns: TimeGenerated, OperationName, Status, Caller, SourceAddress, DestinationAddress, Protocol, Port, RuleName, and Description. " +
+            "Specify the time window using startDaysAgo and endDaysAgo (relative to now, in days). Defaults to the past 1 day if not provided."
+        )]
+        public async Task<string> GetNSGActivityLogsAsync(
+            [Description("Full Azure resource ID of the API Management instance (e.g. /subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.ApiManagement/service/{serviceName})")] string apimResourceId,
+            [Description("Optional. Number of faw log entries to look into. Defaults to 40.")] int topNAzureLogs = 40,
+            [Description("Optional. Maximum number of relevant NSG-related findings to include in the report. Defaults to 10.")] int maxFindings = 10)
+        {
+            return await _apiManagementPlugin.GetNSGActivityLogsAsync(apimResourceId, topNAzureLogs, maxFindings);
+        }
+
+        #endregion
+
+        #region Virtual Network - Remediation 
+
+        [Description(
+            "Removes a specified Network Security Group (NSG) rule from an Azure NSG resource. " +
+            "This is typically used to unblock connectivity for an API Management instance or related resources. " +
+            "Returns true if the rule was successfully removed, false otherwise. " +
+            "Use this to automate the removal of firewall or network restrictions that may be impacting APIM connectivity. " +
+            "MANDATORY: Before using this method, you must explain to the user what is going to be done and any possible consequences, and inform them that the action will be performed on their behalf."
+        )]
+        public async Task<bool> APIMRemoveNSGRuleAsync(
+            [Description("The full Azure resource ID of the Network Security Group (NSG) (e.g., /subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.Network/networkSecurityGroups/{nsgName})")] string nsgResourceId,
+            [Description("The name of the NSG rule to remove.")] string ruleName)
+        {
+            return await _apiManagementPlugin.APIMRemoveNSGRuleAsync(nsgResourceId, ruleName);
+        }
+
+        [Description(
+            "Modifies properties of an existing Network Security Group (NSG) rule in an Azure NSG resource. " +
+            "Use this to update firewall rules to unblock or adjust connectivity for an API Management instance or related resources. " +
+            "Only the parameters provided (non-null) will be updated; all others will remain unchanged. " +
+            "Returns true if the rule was successfully modified, false otherwise. " +
+            "MANDATORY: Before using this method, you must explain to the user what is going to be done and any possible consequences, and inform them that the action will be performed on their behalf."
+        )]
+        public async Task<bool> APIMModifyNSGRuleAsync(
+            [Description("The full Azure resource ID of the Network Security Group (NSG) (e.g., /subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.Network/networkSecurityGroups/{nsgName})")] string nsgResourceId,
+            [Description("The name of the NSG rule to modify.")] string ruleName,
+            [Description("New priority for the rule (e.g., '100', '200'). Must be between 100 and 4096. Leave null to keep existing value.")] string? priority = null,
+            [Description("New access type: 'Allow' or 'Deny'. Case-insensitive. Leave null to keep existing value.")] string? access = null,
+            [Description("New direction: 'Inbound' or 'Outbound'. Case-insensitive. Leave null to keep existing value.")] string? direction = null,
+            [Description("New protocol: 'Tcp', 'Udp', or '*' for any. Case-insensitive. Leave null to keep existing value.")] string? protocol = null,
+            [Description("New source port range (e.g., '80', '*'). Leave null to keep existing value.")] string? sourcePortRange = null,
+            [Description("New destination port range (e.g., '443', '8080', '*'). Leave null to keep existing value.")] string? destinationPortRange = null,
+            [Description("New source address prefix (e.g., '*', '10.0.0.0/24'). Leave null to keep existing value.")] string? sourceAddressPrefix = null,
+            [Description("New destination address prefix (e.g., '*', '10.1.0.0/24'). Leave null to keep existing value.")] string? destinationAddressPrefix = null,
+            [Description("New description for the rule. Leave null to keep existing value.")] string? description = null)
+        {
+            return await _apiManagementPlugin.APIMModifyNSGRuleAsync(nsgResourceId, ruleName, priority, access, direction, protocol, sourcePortRange, destinationPortRange, sourceAddressPrefix, destinationAddressPrefix, description);
+        }
+
+        #endregion
     }
 }

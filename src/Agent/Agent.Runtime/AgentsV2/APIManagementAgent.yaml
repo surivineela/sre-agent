@@ -63,6 +63,12 @@ tools:
   - GetAPIDetailsByName
   - GetAPIOperationsByApi
   - GetAPIOperationDetailedInfo
+  - GetVNetConfigurationForApiManagement
+  - GetNSGRulesForApiManagement
+  - GetNSGActivityLogs
+  - CheckForVirtualNetworkIssues
+  - APIMModifyNSGRule
+  - APIMRemoveNSGRule
   - ListSubscriptions
   - GetAPIMActivityLogs
   - ListResourceGroups

@@ -32,6 +32,7 @@ public class Constants
     public const string KeyVaultType = "Microsoft.KeyVault/vaults";
     public const string ManagedDiskType = "Microsoft.Compute/disks";
     public const string ApiManagementType = "Microsoft.ApiManagement/service";
+    public const string NetworkSecurityGroupType = "Microsoft.Network/networkSecurityGroups";
 
     // New constants for App Service Web/Function Apps and App Service Plans.
     public const string AppServiceType = "Microsoft.Web/sites";
@@ -115,5 +116,9 @@ public class Constants
     public const string BackendStatusKey = "BackendStatus";
     public const string BackendStatusReady = "Ready";
     public const string BackendStatusNotReady = "NotReady";
+
+    // Connection properties
+    public const string ConnectionType = "connectionType";
+    public const string ConnectionTypeNetwork = "network";
 }
 

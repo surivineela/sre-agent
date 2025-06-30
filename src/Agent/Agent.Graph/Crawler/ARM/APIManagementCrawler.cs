@@ -57,6 +57,52 @@ namespace Agent.Graph.Crawler.ARM
 
             // Create or update the API Management node in the graph database
             await _graphDbClient.AddOrUpdateNodeAsync(apiManagementNode);
+
+            await foreach (var connectedNode in ExtractNetworkConnections(apiManagementNode))
+            {
+                _logger.LogDebug($"Discovered network connection API Management instance: {apiManagementNode.ResourceName} | Connected node: {connectedNode}");
+            }
+        }
+
+        private async IAsyncEnumerable<GraphNode> ExtractNetworkConnections(APIManagementNode apiManagementNode)
+        {
+            if (!string.IsNullOrWhiteSpace(apiManagementNode.SubnetResourceId))
+            {
+                var subnetResourceId = new ResourceIdentifier(apiManagementNode.SubnetResourceId);
+                var vnetResourceId = subnetResourceId.Parent;
+
+                if (vnetResourceId != null)
+                {
+                    // Create VNet node
+                    var vnetNode = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(vnetResourceId.ToString());
+                    await _graphDbClient.AddOrUpdateNodeAsync(vnetNode);
+
+                    // Connect APIM -> VNet
+                    var apimToVnetEdge = new ArmResourceEdge(apiManagementNode.GetNodeId(), vnetNode.GetNodeId(), Constants.Relationships.Connected);
+                    apimToVnetEdge.AddOrUpdateEdgeProperty(Constants.ConnectionType, Constants.ConnectionTypeNetwork);
+                    await _graphDbClient.AddOrUpdateEdgeAsync(apimToVnetEdge);
+                    _logger.LogDebug($"Connected API Management {apiManagementNode.ResourceName} to VNet {vnetNode.ResourceName}");
+                    yield return vnetNode;
+
+                    // Create Subnet node
+                    var subnetNode = new ArmResourceNode(
+                        Constants.VirtualNetworkType,
+                        apiManagementNode.SubnetResourceId,
+                        subnetResourceId.SubscriptionId,
+                        subnetResourceId.ResourceGroupName,
+                        subnetResourceId.Name,
+                        apiManagementNode.Location);
+
+                    await _graphDbClient.AddOrUpdateNodeAsync(subnetNode);
+
+                    // Connect VNet -> Subnet
+                    var vnetToSubnetEdge = new ArmResourceEdge(vnetNode.GetNodeId(), subnetNode.GetNodeId(), Constants.Relationships.Connected);
+                    vnetToSubnetEdge.AddOrUpdateEdgeProperty(Constants.ConnectionType, Constants.ConnectionTypeNetwork);
+                    await _graphDbClient.AddOrUpdateEdgeAsync(vnetToSubnetEdge);
+                    _logger.LogDebug($"Connected VNet {vnetNode.ResourceName} to Subnet {subnetNode.ResourceName}");
+                    yield return subnetNode;
+                }
+            }
         }
     }
 }

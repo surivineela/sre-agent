@@ -42,7 +42,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         [GraphProperty("skuName")] public string? SkuName { get; set; }
         [GraphProperty("skuCapacity")] public int? SkuCapacity { get; set; }
 
-        // VirtualNetworkConfiguration properties (
+        // VirtualNetworkConfiguration properties
         [GraphProperty("subnetName")] public string? SubnetName { get; set; }
         [GraphProperty("subnetResourceId")] public string? SubnetResourceId { get; set; }
         [GraphProperty("vnetId")] public Guid? VnetId { get; set; }
