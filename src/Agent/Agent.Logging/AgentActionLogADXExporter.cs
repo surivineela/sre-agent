@@ -152,6 +152,7 @@ public class AgentActionLogADXExporter : IAgentActionLogExporter
             ["Duration"] = logRecord.Duration,
             ["InputToken"] = logRecord.InputToken,
             ["OutputToken"] = logRecord.OutputToken,
+            ["ThreadSource"] = logRecord.ThreadSource,
         };
 
         return kustoData;
