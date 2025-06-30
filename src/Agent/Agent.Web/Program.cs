@@ -210,10 +210,6 @@ public class Program
         builder.Services.Configure<AppInsightsSettings>(
             builder.Configuration.GetSection("AppInsightsSettings"));
 
-        // Configure Azure Search Settings settings
-        builder.Services.Configure<SearchSettings>(
-            builder.Configuration.GetSection("AppSettings:Core:SearchOptions"));
-
         //Configure Azure Storage settings
         builder.Services.Configure<StorageSettings>(
             builder.Configuration.GetSection("AppSettings:Core:Azure:Storage"));
@@ -303,7 +299,7 @@ public class Program
             var settings = sp.GetRequiredService<Agent.Core.Configuration.ApplensSettings>();
             var logger = sp.GetRequiredService<ILogger<Agent.Core.Helpers.DiagnosticsHelper>>();
             var hostEnvironment = sp.GetRequiredService<IHostEnvironment>();
-            
+
             return new Agent.Core.Helpers.DiagnosticsHelper(logger, settings, hostEnvironment);
         });
 

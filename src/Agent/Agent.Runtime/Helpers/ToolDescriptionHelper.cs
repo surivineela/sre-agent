@@ -227,6 +227,9 @@ public static class ToolDescriptionHelper
             "GetNodeAvailabilityFailures" => "Getting node availability failure information.",
             "GenerateRevisionCustomerIssuesDashboardLink" => "Generating customer issues dashboard link.",
 
+            // Search Plugin functions
+            "SearchDocuments" => "Peforms a semantic search for documents in a knowledge base.",
+
             // Default case
             _ => DefaultSafeDescription
         };
