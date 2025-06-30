@@ -31,7 +31,8 @@ public class AgentActionLogger
         string threadId = "",
         string subagent = "",
         long inputToken = 0,
-        long outputToken = 0)
+        long outputToken = 0,
+        string threadSource = "")
     {
         var logRecord = new AgentActionLogRecord
         {
@@ -43,7 +44,8 @@ public class AgentActionLogger
             ThreadId = threadId,
             SubAgentName = subagent,
             InputToken = inputToken,
-            OutputToken = outputToken
+            OutputToken = outputToken,
+            ThreadSource = threadSource
         };
 
         using var scope = _logger.BeginScope(new Dictionary<string, object>
@@ -56,7 +58,8 @@ public class AgentActionLogger
             { nameof(logRecord.ThreadId), logRecord.ThreadId },
             { nameof(logRecord.SubAgentName), logRecord.SubAgentName },
             { nameof(logRecord.InputToken), logRecord.InputToken },
-            { nameof(logRecord.OutputToken), logRecord.OutputToken }
+            { nameof(logRecord.OutputToken), logRecord.OutputToken },
+            { nameof(logRecord.ThreadSource), logRecord.ThreadSource }
         });
 
         _logger.LogInformation(
@@ -153,4 +156,9 @@ public class AgentActionLogRecord
     /// The output token count for the action
     /// </summary>
     public long OutputToken { get; set; }
+
+    /// <summary>
+    /// The source of the thread
+    /// </summary>
+    public string ThreadSource { get; set; } = string.Empty;
 }

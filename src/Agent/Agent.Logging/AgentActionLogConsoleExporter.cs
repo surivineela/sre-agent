@@ -75,6 +75,9 @@ public class AgentActionLogConsoleExporter : IAgentActionLogExporter
             Status = logRecord.Status,
             Duration = logRecord.Duration,
             PreciseTimeStamp = logRecord.PreciseTimeStamp,
+            ThreadId = logRecord.ThreadId,
+            SubAgentName = logRecord.SubAgentName,
+            ThreadSource = logRecord.ThreadSource,
         };
     }
 

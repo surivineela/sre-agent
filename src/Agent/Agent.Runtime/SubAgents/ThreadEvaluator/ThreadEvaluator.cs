@@ -157,6 +157,7 @@ public class ThreadEvaluator
 
             // Filter threads that were modified in the specified time window and need evaluation
             var threads = new List<ThreadModel>();
+            var dailyReportThreadsFiltered = 0;
 
             foreach (var thread in allThreads)
             {
@@ -177,6 +178,13 @@ public class ThreadEvaluator
                         continue;
                     }
 
+                    // Skip daily report threads created by DailyReportScanner
+                    if (thread.Title.StartsWith("Daily Resources Report", StringComparison.OrdinalIgnoreCase) && thread.Source == ThreadSource.Agent)
+                    {
+                        dailyReportThreadsFiltered++;
+                        continue;
+                    }
+
                     threads.Add(thread);
                 }
                 catch (Exception ex)
@@ -185,7 +193,7 @@ public class ThreadEvaluator
                 }
             }
 
-            _logger.LogInternalInformation($"Found {threads.Count()} threads needing evaluation out of {allThreads.Count()} total threads (time window: {earliestTime:yyyy-MM-dd HH:mm:ss} to {latestTime:yyyy-MM-dd HH:mm:ss} UTC)");
+            _logger.LogInternalInformation($"Found {threads.Count()} threads needing evaluation out of {allThreads.Count()} total threads (time window: {earliestTime:yyyy-MM-dd HH:mm:ss} to {latestTime:yyyy-MM-dd HH:mm:ss} UTC). Filtered out {dailyReportThreadsFiltered} daily report threads.");
             return threads;
         }
         catch (Exception ex)
@@ -206,7 +214,7 @@ public class ThreadEvaluator
             // span.SetAttribute("thread.id", thread.Id.ToString());
             // span.SetAttribute("operation.name", "evaluate.thread");
 
-            _logger.LogInternalInformation($"Evaluating thread {thread.Id}: {thread.Title}");
+            _logger.LogInternalInformation($"Evaluating thread {thread.Id} from source {thread.Source}: {thread.Title}");
 
             // Calculate basic metrics
             var duration = thread.ModifiedTimestamp - thread.CreatedTimestamp;
@@ -258,7 +266,8 @@ public class ThreadEvaluator
                 parameter: JsonSerializer.Serialize(evaluationResult),
                 status: "success",
                 duration: 0,
-                threadId: thread.Id.ToString());
+                threadId: thread.Id.ToString(),
+                threadSource: thread.Source.ToString());
 
             // Update thread with evaluation timestamp
             await _threadRepository.UpdateThreadEvaluatedTimestampAsync(thread.Id, DateTime.UtcNow);
