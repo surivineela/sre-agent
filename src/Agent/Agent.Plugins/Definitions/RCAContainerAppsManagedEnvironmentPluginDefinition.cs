@@ -79,7 +79,7 @@ PreciseTimeStamp,managedClusterName,managedClusterLocation,managedSubscription,m
         [Description(
 @"Retrieve a direct ASI (App Service Insights) page URL for a given Azure Container Apps managed environment.
 
-Projects:
+Tool outputs:
 - region: Azure region hosting the environment.
 - environmentName: Name of the ACA managed environment.
 - fromDate / toDate: Time window of interest.
@@ -113,7 +113,7 @@ Projects:
 
         [Description(
         @"Retrieve the Azure Container Apps environment resource identity based on the managed cluster name.
-        Projects:
+        Tool outputs:
         - managedClusterName: Name of the managed cluster.
         - subscription: Azure subscription ID of the Azure Container Apps environment.
         - resourceGroup: Resource group of the Azure Container Apps environment.
@@ -141,7 +141,7 @@ Projects:
 
         [Description(
         @"Retrieve the provisioning status of a specific Azure Container Apps managed environment.
-        Projects:
+        Tool outputs:
         - StartTime: Start time of the reported environment provisioning status.
         - EndTime: End time of the reported environment provisioning status.
         - environmentProvisioningState
@@ -171,7 +171,7 @@ Projects:
 
         [Description(
         @"Retrieve the Azure Container Apps environment Admin operation events.
-        Projects:
+        Tool outputs:
         - PreciseTimeStamp: Timestamp of the event.
         - requestPath: The path of the request.
         - requestMethod: The HTTP method used for the request.
@@ -201,7 +201,7 @@ Projects:
 
         [Description(
         @"Retrieve the Azure Container Apps environment operation errors.
-        Projects:
+        Tool outputs:
         - FirstSeen: Timestamp of the first occurrence of the error.
         - LastSeen: Timestamp of the last occurrence of the error.
         - count: The number of times the error has occurred.
@@ -230,7 +230,7 @@ Projects:
 
         [Description(
 @"Retrieve the Azure Container Apps managed cluster private endpoint connection details.
-Projects:
+Tool outputs:
 - frontendVmssName
 - frontendVmssCreatedTime
 - frontendVmssProvisioningState
@@ -259,7 +259,7 @@ Projects:
 
         [Description(
 @"Retrieve the Azure Container Apps Private Endpoint Connection connection state details.
-Projects:
+Tool outputs:
 - StartTime: Start time of the reported connection state.
 - EndTime: End time of the reported connection state.
 - ConnectionState: The connection status of the private endpoint connection.
@@ -281,7 +281,7 @@ Projects:
 
         [Description(
 @"Retrieve the Azure Container Apps Private Endpoint Connection Provisioning state details.
-Projects:
+Tool outputs:
 - StartTime: Start time of the reported Provisioning status.
 - EndTime: End time of the reported Provisioning status.
 - ProvisioningState: The Provisioning state of the private endpoint connection.
@@ -303,7 +303,7 @@ Projects:
 
         [Description(
 @"Retrieve the provisioning state of the customer frontend VMSS (Virtual Machine Scale Set) for a specific Private Endpoint Connection.
-Projects:
+Tool outputs:
 - StartTime: Start time of the reported Provisioning status.
 - EndTime: End time of the reported Provisioning status.
 - ProvisioningState: The Provisioning state of the customer frontend VMSS.
@@ -326,7 +326,7 @@ Projects:
         [Description(
 @"Retrieve detailed error messages for Azure Container Apps environment Admin operation events. Every environment Admin event has a unique trace ID (env_dt_traceId) that can be used to correlate related events and errors.
 
-Projects:
+Tool outputs:
 - FirstSeen: First occurrence of the error message.
 - LastSeen: Last occurrence of the error message.
 - message: The error message content.
@@ -348,7 +348,7 @@ Projects:
 
         [Description(
 @"Retrieve AKS node alerts and their status over time for a specific managed cluster.
-Projects:
+Tool outputs:
 - StartTime: Start time of the alert timeline.
 - EndTime: End time of the alert timeline.
 - Content: Description of alert status (e.g., 'Healthy' or 'X Alerts').

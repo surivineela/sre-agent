@@ -17,7 +17,7 @@ namespace Agent.Plugins.Definitions
         [Description(
             """
             Retrieve Container Apps Managed Cluster
-            Projects:
+            Tool outputs:
                 - managedClusterName: Managed Cluster Name of the given Container App.
             """)]
         public Task<string> GetContainerAppManagedCluster(
@@ -41,7 +41,7 @@ namespace Agent.Plugins.Definitions
         [Description(
             """
             Retrieve Container Apps Envoy Pod Logs. 
-            Projects:
+            Tool outputs:
                 - EnvironmentName: Environment name, also called Managed Cluster Name.
                 - Log: Envoy pod log.
                 - Role: Cluster Node Id.
@@ -67,7 +67,7 @@ namespace Agent.Plugins.Definitions
         [Description(
             """
             Retrieve Container Apps Envoy Controller Logs.
-            Projects:
+            Tool outputs:
                 - PreciseTimeStamp: Envoy controller log timestamp.
                 - Log: Envoy controller events log.
                 - msg: Envoy controller events message.
@@ -136,7 +136,7 @@ This tool is used to verify if there is any envoy access log recorded in the man
         [Description(
             """
             Retrieve detailed Container Apps Envoy Access Logs at Container App Level.
-            Projects:
+            Tool outputs:
                 - FirstSeen: Start time of the current kind of envoy access log.
                 - LastSeen: End time of the current kind of envoy access log.
                 - max_RequestDuration: maximum request duration of this kind of envoy access log.
@@ -168,7 +168,7 @@ This tool is used to verify if there is any envoy access log recorded in the man
         [Description(
             """
             Retrieve Swift Networking Events
-            Projects:
+            Tool outputs:
                 - PreciseTimeStamp: Swift networking event timestamp.
                 - logger: Swift networking event logger.
                 - Log: Swift networking event log.
@@ -198,7 +198,7 @@ This tool is used to verify if there is any envoy access log recorded in the man
         [Description(
             """
             Retrieve Envoy Pod Status
-            Projects:
+            Tool outputs:
                 - StartTime: Start time of the current envoy pod status.
                 - EndTime: End time of the current envoy pod status.
                 - PodName: Name of the envoy pod.
@@ -224,7 +224,7 @@ This tool is used to verify if there is any envoy access log recorded in the man
         [Description(
             """
             Retrieve Container App Pod Status
-            Projects:
+            Tool outputs:
                 - StartTime: Start time of the Container App pod status.
                 - EndTime: End time of the Container App pod status.
                 - PodName: Name of the Container App pod.
@@ -253,7 +253,7 @@ This tool is used to verify if there is any envoy access log recorded in the man
         [Description(
             """
             Retrieve Container App Status
-            Projects:
+            Tool outputs:
                 - StartTime: Start time of the current container app provisioning status.
                 - EndTime: End time of the current container app provisioning status.
                 - containerAppName: Name of the container app.
@@ -281,7 +281,7 @@ This tool is used to verify if there is any envoy access log recorded in the man
         [Description(
             """
             Retrieve Container App Admin Events
-            Projects:
+            Tool outputs:
                 - PreciseTimeStamp: Container app admin event timestamp.
                 - requestMethod: HTTP request method.
                 - requestPath: HTTP request path.

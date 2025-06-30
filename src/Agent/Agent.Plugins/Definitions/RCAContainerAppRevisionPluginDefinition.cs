@@ -27,7 +27,7 @@ namespace Agent.Core.Plugins.Definitions
         [Description(
             """
             Retrieve active revisions with configuration, workload profile, scaling settings, and app status.
-            Projects:
+            Tool outputs:
             - Name: Revision name.
             - EnvironmentName: Cluster name.
             - ContainerAppName: App name.
@@ -65,7 +65,7 @@ namespace Agent.Core.Plugins.Definitions
             - Missed scale-to-zero transitions
             - Anomalous scaling patterns at revision or container app level.
 
-            Projects:
+            Tool outputs:
             - PreciseTimeStamp: When the scaling event occurred.
             - EnvironmentName: Name of the cluster hosting the container app.
             - Msg: Detailed message describing the scaling activity or failure reason.
@@ -95,7 +95,7 @@ namespace Agent.Core.Plugins.Definitions
         [Description(
             """
             Retrieve KEDA Operator events related to scaling actions or failures for a container app.
-            Projects:
+            Tool outputs:
             - LogTime: Log timestamp.
             - Level: Event severity(Info / Error).
             - Msg: Operator event message.
@@ -154,7 +154,7 @@ namespace Agent.Core.Plugins.Definitions
             """
             Retrieve replica counts and HTTP request counts for a revision (or all revisions) over time to diagnose scaling issues.
             Detect potential problems where replicas exist but no traffic is received.
-            Projects:
+            Tool outputs:
             - Timestamp: Timestamp for the data point.
             - Revision: Name of the revision.
             - ReplicaCount: Number of active replicas at the timestamp.
@@ -249,7 +249,7 @@ namespace Agent.Core.Plugins.Definitions
         [Description(
             """
             Retrieve active sessions (start/stop/running changes) for a revision.
-            Projects: 
+            Tool outputs: 
             - StartTime: Session start timestamp.
             - EndTime: Session end timestamp.
             - Content: The running state(e.g., Running, Stopped).
@@ -279,7 +279,7 @@ namespace Agent.Core.Plugins.Definitions
         [Description(
             """
             Retrieve HPA (Horizontal Pod Autoscaler) current and target metric values over time for a revision.
-            Projects:
+            Tool outputs:
             - Timestamp: The timestamp of metric capture.
             - Legend: Metric type(e.g., cpu: current, memory: target).
             - Value: The numeric value of the metric.
@@ -309,7 +309,7 @@ namespace Agent.Core.Plugins.Definitions
         [Description(
             """
             Retrieve HPA (Horizontal Pod Autoscaler) current and target metric values over time for a revision.
-            Projects:
+            Tool outputs:
             - Timestamp: The timestamp of metric capture.
             - Legend: Metric type(e.g., cpu: current, memory: target).
             - Value: The numeric value of the metric.
@@ -337,7 +337,7 @@ namespace Agent.Core.Plugins.Definitions
         [Description(
             """
             Retrieves all ARM(Azure resource manager) operations for the container app. These include PUT,UPDATE,DELETE and the appropriate status codes pertaining to those operations.
-            Projects:
+            Tool outputs:
             - Timestamp: The timestamp of metric capture.
             - Legend: Metric type(e.g., cpu: current, memory: target).
             - Value: The numeric value of the metric.
@@ -363,7 +363,7 @@ namespace Agent.Core.Plugins.Definitions
         [Description(
             """
             Retrieve EventProcessor events for a revision where no replica is associated.
-            Projects:
+            Tool outputs:
             - PreciseTimeStamp: Timestamp of event.
             - RevisionName: Revision associated.
             - Reason: Why the event occurred.
@@ -392,7 +392,7 @@ namespace Agent.Core.Plugins.Definitions
         [Description(
             """
             Retrieve the latest pod heartbeat status for a revision.
-            Projects:
+            Tool outputs:
             - PodName: The pod's name.
             - EnvironmentName: The cluster where the pod runs.
             - Status: Current pod status or 'Shut Down'.
@@ -422,7 +422,7 @@ namespace Agent.Core.Plugins.Definitions
         [Description(
             """
             Retrieve internal EventProcessor events for a specific pod inside a revision.
-            Projects:
+            Tool outputs:
             - PreciseTimeStamp: Event timestamp.
             - Type: Type of event (Normal/Error).
             - Msg: Event message.
@@ -480,7 +480,7 @@ namespace Agent.Core.Plugins.Definitions
         [Description(
             """
             Retrieve readiness/liveness/startup probe failures for a specific Azure container app revision.
-            Projects:
+            Tool outputs:
             - msg: Log message of the probe failure.
             - count: Number of times the probe failed with the same message consecutively.
             - replicaName: Name of the replica where the failure occurred.
@@ -509,7 +509,7 @@ namespace Agent.Core.Plugins.Definitions
             """
             Retrieve the latest health probe settings for the Azure container app within the specified period.
         
-            Projects:
+            Tool outputs:
             - containers: List of containers in the container app with the each probe setting if set by the customer.
             """
         )]
@@ -533,7 +533,7 @@ namespace Agent.Core.Plugins.Definitions
 
         [Description(
             @"Retrieve node availability failure events for a specific Azure container app revision.
-            Projects:
+            Tool outputs:
             - preciseTimeStamp: Precise timestamp of the event.
             - replicaName: Name of the replica where the failure occurred.
             - revisionName: Name of the container app revision.

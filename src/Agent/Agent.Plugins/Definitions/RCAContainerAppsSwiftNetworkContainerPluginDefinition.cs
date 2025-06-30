@@ -34,7 +34,7 @@ These node names can be used to query the node heartbeat and Swift Network Conta
         }
 
         [Description(@"Get the heartbeat status of all the nodes in the specified Managed Cluster.
-Projects:
+Tool outputs:
 - StartTime: The start time of the heartbeat data.
 - EndTime: The end time of the heartbeat data.
 - NodeName: The name of the node.
@@ -60,7 +60,7 @@ Use this tool to identify which nodes are operational ('Ready') and when. Nodes 
         }
 
         [Description(@"Get the Swift Network Container heartbeat status of all the nodes in the specified Managed Cluster.
-Projects:
+Tool outputs:
 - StartTime: The start time of the heartbeat data.
 - EndTime: The end time of the heartbeat data.
 - NodeName: The name of the node where the Swift Network Container is running.
@@ -86,7 +86,7 @@ Use this tool to verify that each 'Ready' node has a corresponding 'Alive' Netwo
         }
 
         [Description(@"Retrieves the Swift Network Container creation and deletion events for the specified Managed Cluster node.
-Projects:
+Tool outputs:
 - TimeStamp: The timestamp of the event.
 - OperationName: The name of the operation, such as 'CreateSwiftNetworkContainer' or 'DeleteSwiftNetworkContainer'. It can also be empty.
 - message: message describing the event.

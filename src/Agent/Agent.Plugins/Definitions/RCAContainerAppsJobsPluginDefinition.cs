@@ -17,7 +17,7 @@ namespace Agent.Plugins.Definitions
         [Description(
             """
             Retrieve the Container Apps job definition (spec) for a given Container App Job
-            Projects:
+            Tool outputs:
               - Timestamp: Timestamp of the job definition. More than 1 row indicates change in job defintion(spec).
               - Configuration: Configuration details for th job, like trigger type, retries, job deadlines, completion times
                                 parallelism for the job, container registry, assigned identity etc details.
@@ -48,7 +48,7 @@ namespace Agent.Plugins.Definitions
             """
             Get the job execution's final status for a Container App Job. It contains detailed status of the given
             job execution, whether succeeded or failed, if failed, failure reason and message details in JobExecutionStatusDetails column.
-            Projects:
+            Tool outputs:
               - PreciseTimeStamp: Precise timestamp of the event.
               - JobExecutionName: Name of the job execution.
               - JobExecutionStatus: Status of the job execution, ex: Succeeded, Failed.
@@ -74,7 +74,7 @@ namespace Agent.Plugins.Definitions
         [Description(
             """
             Get full lifecycle events for a specific Container App Job execution from EventProcessorEvents.
-            Projects:
+            Tool outputs:
               - PreciseTimeStamp: Precise timestamp of the event.
               - msg: Log message of the event.
               - Reason: Reason for the event.
@@ -143,7 +143,7 @@ namespace Agent.Plugins.Definitions
         [Description(
             """
             Retrieve KEDA events for job scaled jobs.
-            Projects:
+            Tool outputs:
                 - Timestamp: Event timestamp
                 - Level: Log level
                 - Logger: KEDA component logger
@@ -171,7 +171,7 @@ namespace Agent.Plugins.Definitions
         [Description(
             """
             Retrieve Legion VK events for jobs running on Consumption V2 workload profile.
-            Projects:
+            Tool outputs:
                 - Timestamp: Event timestamp
                 - Level: Log level
                 - Message: Legion VK event message
@@ -201,7 +201,7 @@ namespace Agent.Plugins.Definitions
             """
             Retrieves container app job execution errors from Legion System Logs, for consumption workloadprofile jobs. It contains details indicating issues with the job execution
             on the Legion platform. Only one of the job execution name and job name is required, the other can be empty. Job execution name can be inferred from previous queries.
-            Projects:
+            Tool outputs:
                 - Message: Error message
                 - Value: Error value
                 - count_: Error count
