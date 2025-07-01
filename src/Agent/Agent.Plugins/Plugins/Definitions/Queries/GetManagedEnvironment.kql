@@ -10,43 +10,39 @@ ManagedEnvironmentDBState
 | where isempty(local_environmentResourceGroup) or resourceGroup =~ local_environmentResourceGroup
 | where isempty(local_environmentSubscription) or subscription =~ local_environmentSubscription
 | where isempty(local_environmentLocation) or Tenant =~ local_environmentLocation
-| join kind=inner (GetRegions) on $left.Tenant == $right.Name
-| extend envType = case(hasWorkloadProfiles == true or isLegionEnabled == true, "V2", "V1")
-| extend customVnet = case(hasCustomerVnetForCluster == true and envType == "v1", "True", subnetResourceId != "", "True", "False")
-| extend RegionalConsumptionV2 = iif(envType == "V2", strcat("Regional Consumption V2 at ", managedClusterLocation), "")
-| order by PreciseTimeStamp desc
-| project 
-    PreciseTimeStamp,
-    managedClusterName,
-    managedClusterLocation,
-    managedSubscription,
-    managedClusterCreatedTime,
-    powerState,
-    provisioningState = managedClusterProvisioningState,
-    managedClusterProvisioningError = "<TO BE ADDED>",
-    chartVersion,
-    isInternal,
-    chartVersionUpgradeTime,
-    chartVersionUpgradeError = chartVersionUpgradeErrors,
-    kubernetesVersion,
-    kubernetesVersionUpgradeTime,
-    upgradeBatch,
+| summarize arg_max(PreciseTimeStamp, subscription, resourceGroup, environmentName, environmentCreatedTime, environmentProvisioningState, environmentDeploymentErrors, powerState, targetPowerState,
+                    isLegionEnabled, isInternal, hasCustomerVnetForEnv, hasMaintenanceConfiguration, managedSubscription, managedClusterCreatedTime,managedClusterProvisioningState,  managedClusterProvisioningError,
+                    chartVersion, targetChartVersion, chartVersionUpgradeErrors, kubernetesVersion, targetKubernetesVersion, kubernetesVersionUpgradeErrors, hasPrivateEndpoints, tier, customHelmValues) by Tenant, managedClusterName, loadBalancerId
+| extend environmentType = case(isLegionEnabled == true, "V2", "V1")
+| join kind=inner (GetRegions | project Name, KustoUrl) on $left.Tenant == $right.Name
+| project
+    Region = Tenant,
+    environmentCreatedTime,
     environmentSubscription = subscription,
     environmentResourceGroup = resourceGroup,
-    environmentLocation = Tenant,
     environmentName,
-    environmentCreatedTime = environmentCreatedTime,
-    hasWorkloadProfiles = tostring(hasWorkloadProfiles),
-    hasCustomerVnetForEnv = tostring(hasCustomerVnetForEnv),
-    hasCustomerVnetForCluster = tostring(hasCustomerVnetForCluster),
-    hasMaintenanceConfiguration = tostring(hasMaintenanceConfiguration),
-    publicNetworkAccess,
+    environmentType,
+    environmentProvisioningState,
+    environmentDeploymentErrors,
+    isLegionEnabled,
+    isInternal,
+    hasCustomerVnet = tostring(hasCustomerVnetForEnv),
     hasPrivateEndpoints = tostring(hasPrivateEndpoints),
-    KustoUrl = iff(Region contains "Test", "cappstest.westus", KustoUrl),
-    envType,
-    customVnet,
+    hasMaintenanceConfiguration = tostring(hasMaintenanceConfiguration),
+    managedClusterCreatedTime,
+    managedSubscription,
+    managedClusterName,
     customHelmValues,
-    RegionalConsumptionV2,
     tier,
+    managedClusterProvisioningState,
+    managedClusterProvisioningError,
+    powerState,
+    targetPowerState,
+    currentChartVersion = chartVersion,
+    targetChartVersion,
+    chartVersionUpgradeErrors,
+    currentKubernetesVersion = kubernetesVersion,
+    targetKubernetesVersion,
+    kubernetesVersionUpgradeErrors,
+    KustoUrl,
     loadBalancerResourceUrl=loadBalancerId
-| top 1 by PreciseTimeStamp desc

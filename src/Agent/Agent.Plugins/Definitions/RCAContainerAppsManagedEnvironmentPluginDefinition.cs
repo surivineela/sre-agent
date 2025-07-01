@@ -21,10 +21,37 @@ namespace Agent.Plugins.Definitions
         }
 
         [Description(
-@"Retrieve configuration and provisioning metadata for a specific Azure Container Apps managed environment.
-
-The function return managed environment detailed information includes:
-PreciseTimeStamp,managedClusterName,managedClusterLocation,managedSubscription,managedClusterCreatedTime,powerState,provisioningState,chartVersion,isInternal,chartVersionUpgradeTime,chartVersionUpgradeError,kubernetesVersion,kubernetesVersionUpgradeTime,upgradeBatch,environmentSubscription,environmentResourceGroup,environmentLocation,environmentName,environmentCreatedTime,hasWorkloadProfiles,hasCustomerVnet,hasMaintenanceConfiguration,publicNetworkAccess,hasPrivateEndpoints,envType,customVnet,RegionalConsumptionV2,tier
+        @"Retrieve the base information, configuration, and state for an Azure Container Apps managed environment.
+Tool Output:
+Region,
+environmentCreatedTime,
+environmentSubscription: subscription of the managedEnvironment,
+environmentResourceGroup,
+environmentName,
+environmentType: V1/V2,
+environmentProvisioningState,
+environmentDeploymentErrors,
+isLegionEnabled: Whether the V2 environment is using the consumption workload,
+isInternal,
+hasCustomerVnet,
+hasPrivateEndpoints,
+hasMaintenanceConfiguration,
+managedClusterCreatedTime,
+managedSubscription: subscription of the managedCluster,
+managedClusterName,
+customHelmValues,
+tier,
+managedClusterProvisioningState,
+managedClusterProvisioningError,
+powerState,
+targetPowerState,
+currentChartVersion,
+targetChartVersion: chart version that should be updated to,
+chartVersionUpgradeErrors,
+currentKubernetesVersion,
+targetKubernetesVersion: Kubernetes version that should be updated to,
+kubernetesVersionUpgradeErrors,
+loadBalancerResourceUrl,
 "
 )]
         public async Task<string> GetManagedEnvironmentInfo(
