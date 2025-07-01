@@ -611,6 +611,7 @@ public class Program
             .AddSingleton<ISearchEndpointService, SearchEndpointService>()
             .AddSingleton<KustoMetadataIndex>()
             .AddSingleton<IKeyVaultService, KeyVaultService>()
+            .AddSingleton<ObserverClientService>()
 
             .AddSingleton(sp =>
             {
