@@ -5,11 +5,11 @@ import ChatMessageV2 from './ChatMessageV2';
 interface IChatMessagesProps {
     messages?: ChatMessage[];
     threadId: string;
-    prevMessageBeforeTheFistMessage?: ChatMessage;
+    prevMessageBeforeTheFirstMessage?: ChatMessage;
     nextMessageAfterTheLastMessage?: ChatMessage;
 }
 
-const ChatMessages = ({ messages, threadId, prevMessageBeforeTheFistMessage, nextMessageAfterTheLastMessage }: IChatMessagesProps) => {
+const ChatMessages = ({ messages, threadId, prevMessageBeforeTheFirstMessage, nextMessageAfterTheLastMessage }: IChatMessagesProps) => {
     return messages ? (
         <>
             {messages.map((message, index) => (
@@ -17,7 +17,7 @@ const ChatMessages = ({ messages, threadId, prevMessageBeforeTheFistMessage, nex
                     key={message.id}
                     message={message}
                     threadId={threadId}
-                    previousMessage={index === 0 ? prevMessageBeforeTheFistMessage : messages[index - 1]}
+                    previousMessage={index === 0 ? prevMessageBeforeTheFirstMessage : messages[index - 1]}
                     nextMessage={index === messages.length - 1 ? nextMessageAfterTheLastMessage : messages[index + 1]}
                 />
             ))}

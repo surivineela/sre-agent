@@ -83,7 +83,7 @@ export const ChatBoxV2 = ({
                                         key={chatHistory.length - index}
                                         messages={messages}
                                         threadId={currentThreadId || ''}
-                                        prevMessageBeforeTheFistMessage={chatHistory?.[index - 1]?.[chatHistory?.[index - 1]?.length - 1]}
+                                        prevMessageBeforeTheFirstMessage={chatHistory?.[index - 1]?.[chatHistory?.[index - 1]?.length - 1]}
                                         nextMessageAfterTheLastMessage={
                                             chatHistory?.[index + 1]?.[0] || chatMessagesFromExistingStreamingMessages[0] || newMessages[0]
                                         }
@@ -95,7 +95,7 @@ export const ChatBoxV2 = ({
                             <ChatMessages
                                 messages={chatMessagesFromExistingStreamingMessages}
                                 threadId={currentThreadId || ''}
-                                prevMessageBeforeTheFistMessage={
+                                prevMessageBeforeTheFirstMessage={
                                     chatHistory?.[chatHistory.length - 1]?.[chatHistory?.[chatHistory.length - 1]?.length - 1]
                                 }
                                 nextMessageAfterTheLastMessage={newMessages[0]}
@@ -105,7 +105,7 @@ export const ChatBoxV2 = ({
                             <ChatMessages
                                 messages={newMessages}
                                 threadId={currentThreadId || ''}
-                                prevMessageBeforeTheFistMessage={
+                                prevMessageBeforeTheFirstMessage={
                                     chatMessagesFromExistingStreamingMessages[chatMessagesFromExistingStreamingMessages.length - 1] ||
                                     chatHistory?.[chatHistory.length - 1]?.[chatHistory?.[chatHistory.length - 1]?.length - 1]
                                 }
