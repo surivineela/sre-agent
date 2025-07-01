@@ -174,7 +174,7 @@ const ChatBoxFooterV2 = ({
                                 appearance="outline"
                                 icon={<Lightbulb16Regular />}
                                 onClick={() => setOpen(!open)}
-                                disabled={disableInputInteraction}
+                                disabled={disableInputInteraction || isTyping}
                             >
                                 {intl.formatMessage(PromptResources.promptLibrary)}
                             </Button>
