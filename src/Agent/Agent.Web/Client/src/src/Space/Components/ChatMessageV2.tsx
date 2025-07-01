@@ -1,4 +1,3 @@
-import { FeedbackButtons } from '@fluentui-copilot/react-copilot';
 import {
     CopilotMessageV2 as CopilotMessage,
     CopilotMessageV2Props as CopilotMessageProps,
@@ -6,24 +5,20 @@ import {
 } from '@fluentui-copilot/react-copilot-chat';
 import { mergeStyleSets } from '@fluentui/react';
 import { Image, mergeClasses, Text, tokens } from '@fluentui/react-components';
-import axios from 'axios';
 import mermaid from 'mermaid';
-import { memo, useContext, useMemo, useState } from 'react';
+import { memo, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
-import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
-import CopyButton from '../../Common/Components/CopyButton';
 import { getAgentModeDisplayName } from '../../Common/Helpers/AgentMode';
 import { formatDateTimeWithShortYear, getSafeDateTime } from '../../Common/Helpers/Date';
-import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
-import { isChatMessageEmpty, shouldGroupWithPreviousMessageV2 } from '../Activities/Utility';
-import { AgentMessageRegex, IChatMessageV2Props } from '../Contracts/Activities';
+import { shouldGroupWithPreviousMessageV2 } from '../Activities/Utility';
+import { IChatMessageV2Props } from '../Contracts/Activities';
 import { SreAgentContext } from '../Contracts/Context';
 import { useAuthenticatedUserInfo } from '../Hooks/useAuthenticatedUserInfo';
 import { ChatBoxV2Styles as ChatBoxStyles, nameAndTimestampContainerStyle, useChatBoxStyles } from '../Styles/Activities.styles';
 import AgentMessage from './AgentMessage';
 import AgentMessageLoadingComponent from './AgentMessageLoadingComponent';
-import { FeedbackDialog } from './FeedbackDialog';
+import ChatMessageFooter from './ChatMessageFooter';
 import ReactMarkdownComponent from './ReactMarkdownComponent';
 
 const chatMessageStyles = mergeStyleSets({
@@ -149,7 +144,6 @@ const ChatMessageV2 = ({
     message,
     previousMessage,
     nextMessage,
-    getGroupedMessages,
     isTyping,
     threadId,
     isStreamingMessage,
@@ -158,15 +152,10 @@ const ChatMessageV2 = ({
 }: IChatMessageV2Props) => {
     const chatStyles = useChatBoxStyles();
     const intl = useIntl();
-    const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const sreAgentContext = useContext(SreAgentContext);
     const {
         agent: { mode },
     } = sreAgentContext;
-
-    const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
-    const [selectedFeedback, setSelectedFeedback] = useState<'positive' | 'negative'>();
-    const [hasSubmittedFeedback, setHasSubmittedFeedback] = useState(false);
 
     const { userIdAndDisplayName } = useAuthenticatedUserInfo();
 
@@ -196,66 +185,6 @@ const ChatMessageV2 = ({
 
     // Hide message's icon, name and timestamp if the message is grouped with the previous one
     const hideMessageHeader = useMemo(() => shouldGroupWithPreviousMessageV2(message, previousMessage), [message, previousMessage]);
-    // Show feedback buttons if the message is from SREAgent, not typing and it is the last message in the group
-    const showFeedbackButtons = useMemo(
-        () => message.author.role === 'SREAgent' && !isTyping && !shouldGroupWithPreviousMessageV2(nextMessage, message),
-        [message, nextMessage, isTyping]
-    );
-    const showCopyMessageButton = useMemo(
-        () =>
-            message.author.role === 'SREAgent' &&
-            !isTyping &&
-            message.contents.some(content => !!content.text) &&
-            !shouldGroupWithPreviousMessageV2(nextMessage, message),
-        [message, nextMessage, isTyping]
-    );
-
-    const isMessageEmpty = useMemo(() => {
-        return isChatMessageEmpty(message);
-    }, [message]);
-
-    const filteredMessageContentToCopy = useMemo(() => {
-        if (!showCopyMessageButton || !getGroupedMessages) return '';
-
-        const groupedMessages = getGroupedMessages(message.id);
-        return groupedMessages
-            .map(msg =>
-                msg.contents.map(msgContent => {
-                    return msgContent.text
-                        .trim()
-                        .replace(AgentMessageRegex.imageRegex, '[Image]')
-                        .replace(AgentMessageRegex.mermaidRegex, '[Mermaid Diagram]')
-                        .replace(AgentMessageRegex.chartRegex, '[Chart]');
-                })
-            )
-            .flat()
-            .join('\n\n');
-    }, [showCopyMessageButton, getGroupedMessages, message.id]);
-
-    const handleFeedbackClick = async (isPositive: boolean) => {
-        setSelectedFeedback(isPositive ? 'positive' : 'negative');
-
-        if (isPositive) {
-            try {
-                const url = `${sreAgentEndpoint}/api/v1/threads/${threadId}/feedbacks`;
-                await axios.post(
-                    url,
-                    {
-                        isPositive: true,
-                        feedbackText: '',
-                    },
-                    {
-                        headers: getAgentHeaders(),
-                    }
-                );
-                setHasSubmittedFeedback(true);
-            } catch (error) {
-                console.error('Failed to send positive feedback:', error);
-            }
-        } else {
-            setShowFeedbackDialog(true);
-        }
-    };
 
     const Loading = () => {
         return (
@@ -292,24 +221,6 @@ const ChatMessageV2 = ({
         );
     };
 
-    const MessageFooter = () => {
-        return (
-            !isMessageEmpty && (
-                <div style={{ display: 'flex', flexDirection: 'row' }}>
-                    {showFeedbackButtons && ( // Only show buttons when the agent is not typing
-                        <FeedbackButtons
-                            positiveFeedbackButton={{ onClick: () => handleFeedbackClick(true) }}
-                            negativeFeedbackButton={{ onClick: () => handleFeedbackClick(false) }}
-                            selected={selectedFeedback}
-                            disabled={hasSubmittedFeedback}
-                        />
-                    )}
-                    {showCopyMessageButton && <CopyButton textToCopy={filteredMessageContentToCopy} />}
-                </div>
-            )
-        );
-    };
-
     switch (message.author.role) {
         case 'SREAgent':
             return (
@@ -324,8 +235,6 @@ const ChatMessageV2 = ({
                             hideMessageHeader ? ChatBoxStyles.hideAgentMessageHeader : undefined
                         )}
                     >
-                        <Loading key={`${message.id}-loading`} />
-
                         {message.contents.map((content, index) => {
                             return (
                                 <AgentMessage
@@ -340,16 +249,16 @@ const ChatMessageV2 = ({
                         })}
 
                         <ToolCallTextComponent key={`${message.id}-tool-call-text`} />
-                        <MessageFooter key={`${message.id}-message-footer`} />
+                        <Loading key={`${message.id}-loading`} />
+                        <ChatMessageFooter
+                            key={`${message.id}-message-footer`}
+                            message={message}
+                            threadId={threadId}
+                            nextMessage={nextMessage}
+                            isTyping={isTyping}
+                            isStreamingMessage={isStreamingMessage}
+                        />
                     </CopilotMessage>
-
-                    <FeedbackDialog
-                        isOpen={showFeedbackDialog}
-                        setIsOpen={setShowFeedbackDialog}
-                        threadId={threadId}
-                        clearSelectedFeedback={() => setSelectedFeedback(undefined)}
-                        setHasSubmittedFeedback={setHasSubmittedFeedback}
-                    />
                 </div>
             );
         default:

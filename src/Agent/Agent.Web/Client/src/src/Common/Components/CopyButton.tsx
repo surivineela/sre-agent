@@ -1,6 +1,6 @@
 import { Button, Tooltip } from '@fluentui/react-components';
 import { CheckmarkRegular, CopyRegular } from '@fluentui/react-icons';
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
 import { copyToClipboard } from '../Helpers/Clipboard';
@@ -41,4 +41,4 @@ export const CopyButton = (props: CopyButtonProps) => {
     );
 };
 
-export default CopyButton;
+export default memo(CopyButton);

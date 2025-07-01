@@ -5,8 +5,10 @@ import { Thread, ThreadSource } from '../../Common/Contracts/Azure/SreAgent';
 import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
 import ChatBoxFooterV2 from '../Components/ChatBoxFooterV2';
 import ChatLoading from '../Components/ChatLoading';
+import ChatMessages from '../Components/ChatMessages';
 import ChatMessageV2 from '../Components/ChatMessageV2';
 import { IChatBoxProps } from '../Contracts/Activities';
+import { ChatBoxContext } from '../Contracts/Context';
 import { useChatBoxV2 } from '../Hooks/useChatBoxV2';
 import { ChatBoxStyles } from '../Styles/Activities.styles';
 import AzureSREWelcome from './AzureSREWelcome';
@@ -22,7 +24,9 @@ export const ChatBoxV2 = ({
     onThreadUpdate,
 }: IChatBoxProps) => {
     const {
-        messages,
+        chatHistory,
+        chatMessagesFromExistingStreamingMessages,
+        newMessages,
         isAgentTyping,
         isStreamingEmpty,
         streamingMessage,
@@ -57,62 +61,92 @@ export const ChatBoxV2 = ({
     const { scrollable } = useScrollableComponentStyles();
 
     return (
-        <div className={ChatBoxStyles.chatBox}>
-            <CopilotProvider mode="canvas" className={ChatBoxStyles.chatBoxInner}>
-                <div className={mergeClasses(scrollable, ChatBoxStyles.chatContainer)} ref={messagesDivRef} onScroll={onScroll}>
-                    <CopilotChat className={ChatBoxStyles.chat}>
-                        <div ref={intersectionObserverRef} />
+        <ChatBoxContext.Provider value={{ getGroupedChatMessages }}>
+            <div className={ChatBoxStyles.chatBox}>
+                <CopilotProvider mode="canvas" className={ChatBoxStyles.chatBoxInner}>
+                    <div className={mergeClasses(scrollable, ChatBoxStyles.chatContainer)} ref={messagesDivRef} onScroll={onScroll}>
+                        <CopilotChat className={ChatBoxStyles.chat}>
+                            <div ref={intersectionObserverRef} />
 
-                        {isLoading && !isWelcomeThread && <ChatLoading />}
+                            {isLoading && !isWelcomeThread && <ChatLoading />}
 
-                        {isNewAndCleanThread && !isWelcomeThread && <ChatSuggestions sendMessage={sendMessage} />}
+                            {isNewAndCleanThread && !isWelcomeThread && <ChatSuggestions sendMessage={sendMessage} />}
 
-                        {/* Insert the richer welcome experience once at the top for welcome threads */}
-                        {isWelcomeThread && <AzureSREWelcome threadId={currentThreadId} addThread={addThread} />}
+                            {/* Insert the richer welcome experience once at the top for welcome threads */}
+                            {isWelcomeThread && <AzureSREWelcome threadId={currentThreadId} addThread={addThread} />}
 
-                        {/* Render the remaining chat history */}
-                        {messages.map((message, index) => (
-                            <ChatMessageV2
-                                key={message.id}
-                                message={message}
-                                previousMessage={messages[index - 1]}
-                                nextMessage={messages[index + 1]}
-                                getGroupedMessages={getGroupedChatMessages}
+                            {/* Chat history */}
+                            {chatHistory?.map((messages, index) => {
+                                return (
+                                    <ChatMessages
+                                        // set key to chathistory.length - index to ensure the existing page always has the same key to prevent re-rendering
+                                        key={chatHistory.length - index}
+                                        messages={messages}
+                                        threadId={currentThreadId || ''}
+                                        prevMessageBeforeTheFistMessage={chatHistory?.[index - 1]?.[chatHistory?.[index - 1]?.length - 1]}
+                                        nextMessageAfterTheLastMessage={
+                                            chatHistory?.[index + 1]?.[0] || chatMessagesFromExistingStreamingMessages[0] || newMessages[0]
+                                        }
+                                    />
+                                );
+                            })}
+
+                            {/* Existing streaming messages */}
+                            <ChatMessages
+                                messages={chatMessagesFromExistingStreamingMessages}
                                 threadId={currentThreadId || ''}
+                                prevMessageBeforeTheFistMessage={
+                                    chatHistory?.[chatHistory.length - 1]?.[chatHistory?.[chatHistory.length - 1]?.length - 1]
+                                }
+                                nextMessageAfterTheLastMessage={newMessages[0]}
                             />
-                        ))}
 
-                        {streamingMessage && !isLoading && (
-                            <ChatMessageV2
-                                key={streamingMessage.id}
-                                message={streamingMessage}
-                                previousMessage={messages[messages.length - 1]}
-                                isStreamingMessage={true}
-                                isTyping={isAgentTyping}
+                            {/* New messages */}
+                            <ChatMessages
+                                messages={newMessages}
                                 threadId={currentThreadId || ''}
-                                toolCallText={toolCallText}
-                                isStreamingEmpty={isStreamingEmpty}
+                                prevMessageBeforeTheFistMessage={
+                                    chatMessagesFromExistingStreamingMessages[chatMessagesFromExistingStreamingMessages.length - 1] ||
+                                    chatHistory?.[chatHistory.length - 1]?.[chatHistory?.[chatHistory.length - 1]?.length - 1]
+                                }
                             />
-                        )}
-                    </CopilotChat>
-                </div>
 
-                <ChatBoxFooterV2
-                    sendMessage={sendMessage}
-                    disableInput={isLoading}
-                    downButtonState={downButtonState}
-                    onClickDownButton={onClickDownButton}
-                    prompts={prompts}
-                    messagePromptsUsed={messagePromptsUsed}
-                    cancelStreaming={cancelStreaming}
-                    isTyping={isAgentTyping}
-                    isCancellingStreaming={isCancellingStreaming}
-                    threadId={threadId}
-                    currentAgentMode={thread?.agentMode}
-                    onAgentModeChange={handleAgentModeChange}
-                />
-            </CopilotProvider>
-        </div>
+                            {streamingMessage && !isLoading && (
+                                <ChatMessageV2
+                                    key={streamingMessage.id}
+                                    message={streamingMessage}
+                                    isStreamingMessage={true}
+                                    isTyping={isAgentTyping}
+                                    threadId={currentThreadId || ''}
+                                    toolCallText={toolCallText}
+                                    isStreamingEmpty={isStreamingEmpty}
+                                    previousMessage={
+                                        newMessages[newMessages.length - 1] ||
+                                        chatMessagesFromExistingStreamingMessages[chatMessagesFromExistingStreamingMessages.length - 1] ||
+                                        chatHistory?.[chatHistory.length - 1]?.[chatHistory?.[chatHistory.length - 1]?.length - 1]
+                                    }
+                                />
+                            )}
+                        </CopilotChat>
+                    </div>
+
+                    <ChatBoxFooterV2
+                        sendMessage={sendMessage}
+                        disableInput={isLoading}
+                        downButtonState={downButtonState}
+                        onClickDownButton={onClickDownButton}
+                        prompts={prompts}
+                        messagePromptsUsed={messagePromptsUsed}
+                        cancelStreaming={cancelStreaming}
+                        isTyping={isAgentTyping}
+                        isCancellingStreaming={isCancellingStreaming}
+                        threadId={threadId}
+                        currentAgentMode={thread?.agentMode}
+                        onAgentModeChange={handleAgentModeChange}
+                    />
+                </CopilotProvider>
+            </div>
+        </ChatBoxContext.Provider>
     );
 };
 

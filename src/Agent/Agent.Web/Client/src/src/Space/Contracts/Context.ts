@@ -1,6 +1,6 @@
 import { createContext } from 'react';
 import { MessageRequestType, StreamingMessage } from '../../Common/Contracts/Azure/Streaming';
-import { AgentContextProps } from './Activities';
+import { AgentContextProps, ChatMessage } from './Activities';
 
 type SreAgentContextProps = {
     grafana: {
@@ -34,6 +34,10 @@ type StreamingContextProps = {
     deleteStreamingMessages: (threadId: string) => void;
     isConnecting: boolean;
     isConnected: boolean;
+};
+
+type ChatBoxContextProps = {
+    getGroupedChatMessages: (message: ChatMessage, isStreamingMessage?: boolean) => ChatMessage[];
 };
 
 export const SreAgentContext = createContext<SreAgentContextProps>({
@@ -75,4 +79,8 @@ export const StreamingContext = createContext<StreamingContextProps>({
     deleteStreamingMessages: (_threadId: string) => {},
     isConnecting: true,
     isConnected: false,
+});
+
+export const ChatBoxContext = createContext<ChatBoxContextProps>({
+    getGroupedChatMessages: (_message: ChatMessage, _isStreamingMessage?: boolean) => [],
 });

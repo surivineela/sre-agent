@@ -185,13 +185,23 @@ export const getDefaultSREAgentAuthor = (): MessageAuthor => {
     };
 };
 
+export const isAgentMessage = (message: ChatMessage): boolean => {
+    return equals(message.author.role, 'SREAgent', AntUxStringComparison.IgnoreCase);
+};
+
 export const convertStreamingMessagesToChatMessages = (
+    ignoreExistingStreamingMessages: boolean,
     streamingMessages: StreamingMessage[],
     userId: string,
     displayName: string
-): ChatMessage[] => {
-    const ChatMessages: ChatMessage[] = [];
+): { messages: ChatMessage[]; lastChatMessageFinished: boolean } => {
+    if (ignoreExistingStreamingMessages || !streamingMessages || streamingMessages.length === 0) {
+        return { messages: [], lastChatMessageFinished: false };
+    }
+
+    const chatMessages: ChatMessage[] = [];
     let currentChatMessage: ChatMessage | undefined;
+    let lastChatMessageFinished: boolean = false;
 
     const isValidStreamingMessage = (streamingMessage: StreamingMessage) => {
         return streamingMessage && streamingMessage.contents && streamingMessage.contents.length > 0 && streamingMessage.contents[0].text;
@@ -199,36 +209,39 @@ export const convertStreamingMessagesToChatMessages = (
 
     const pushChatMessageIfApplicable = (chatMessage: ChatMessage | undefined) => {
         if (chatMessage && chatMessage.id && chatMessage.timeStamp && chatMessage.contents && chatMessage.contents.length > 0) {
-            ChatMessages.push(cloneDeep(chatMessage));
+            chatMessages.push(cloneDeep(chatMessage));
         }
     };
 
     for (const streamingMessage of streamingMessages) {
-        if (isValidStreamingMessage(streamingMessage)) {
-            const metadata = getMessageMetaDataFromChatMessage(streamingMessage, userId, displayName);
-            const chatMessageContent = processChatMessageContents([], streamingMessage);
-            // If the current chat message has the same id with the current streaming message, then push the streaming message content to the current chat message.
-            if (currentChatMessage && currentChatMessage.id === metadata.id) {
+        const metadata = getMessageMetaDataFromChatMessage(streamingMessage, userId, displayName);
+        const chatMessageContent = isValidStreamingMessage(streamingMessage) ? processChatMessageContents([], streamingMessage) : undefined;
+        // If the current chat message has the same id with the current streaming message, then push the streaming message content to the current chat message.
+        if (currentChatMessage && currentChatMessage.id === metadata.id) {
+            if (chatMessageContent) {
                 currentChatMessage.contents.push(...chatMessageContent);
-                if (!currentChatMessage.timeStamp && metadata.timeStamp) {
-                    currentChatMessage.timeStamp = metadata.timeStamp;
-                }
             }
-            // If the current chat message is undefined or has a different id, then push the current chat message to the ChatMessages array and create a new current chat message based on the streaming message
-            else {
-                pushChatMessageIfApplicable(currentChatMessage);
-                currentChatMessage = {
-                    ...metadata,
-                    contents: chatMessageContent,
-                };
+            if (!currentChatMessage.timeStamp && metadata.timeStamp) {
+                currentChatMessage.timeStamp = metadata.timeStamp;
             }
+            // We treat the current chat message as completed as long as one of its streaming message is finished;
+            lastChatMessageFinished = lastChatMessageFinished || isFinalStreamingMessage(streamingMessage);
+        }
+        // If the current chat message is undefined or has a different id, then push the current chat message to chatMessages array and create a new current chat message and the finish status based on the streaming message
+        else {
+            pushChatMessageIfApplicable(currentChatMessage);
+            currentChatMessage = {
+                ...metadata,
+                contents: chatMessageContent || [],
+            };
+            lastChatMessageFinished = isFinalStreamingMessage(streamingMessage);
         }
     }
 
-    // When the loop ends, if the current chat message is defined and has contents, then push it to the ChatMessages array
+    // When the loop ends, if the current chat message is defined and has contents, then push it to the chatMessages array
     pushChatMessageIfApplicable(currentChatMessage);
 
-    return ChatMessages;
+    return { messages: chatMessages, lastChatMessageFinished };
 };
 
 export const getMessageMetaDataFromChatMessage = (

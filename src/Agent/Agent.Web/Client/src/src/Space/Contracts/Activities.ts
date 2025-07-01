@@ -72,7 +72,6 @@ export interface IChatMessageV2Props {
     message: ChatMessage;
     previousMessage?: ChatMessage;
     nextMessage?: ChatMessage;
-    getGroupedMessages?: (messageId: string) => ChatMessage[];
     isTyping?: boolean;
     threadId: string;
     isStreamingMessage?: boolean;
