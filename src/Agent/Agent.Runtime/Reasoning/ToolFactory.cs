@@ -143,7 +143,11 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
         }
 
         // TODO: Set this in a constants file
-        var firstPartyTenants = new List<string>() { "33e01921-4d64-4f8c-a055-5bdaffd5e33d", "72f988bf-86f1-41af-91ab-2d7cd011db47" };
+        // AME : 33e01921-4d64-4f8c-a055-5bdaffd5e33d
+        // CORP : 72f988bf-86f1-41af-91ab-2d7cd011db47
+        // PME : 975f013f-7f24-47e8-a7d3-abc4752bf346
+        // TORUS : cdc5aeea-15c5-4db6-b079-fcadd2505dc2	
+        var firstPartyTenants = new List<string>() { "33e01921-4d64-4f8c-a055-5bdaffd5e33d", "72f988bf-86f1-41af-91ab-2d7cd011db47", "975f013f-7f24-47e8-a7d3-abc4752bf346", "cdc5aeea-15c5-4db6-b079-fcadd2505dc2" };
 
         var tenantId = _configuration != null ? _configuration.GetValue("AppSettings:Core:Azure:Crawler:TenantId", string.Empty) : string.Empty;
         var isFirstParty = !string.IsNullOrWhiteSpace(tenantId) && firstPartyTenants.Contains(tenantId);

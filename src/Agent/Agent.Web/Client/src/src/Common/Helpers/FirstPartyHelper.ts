@@ -3,6 +3,8 @@ import { AntUxStringComparison, equals } from './Strings';
 enum TenantType {
     AME,
     Corp,
+    PME,
+    TORUS,
     Other,
 }
 
@@ -14,6 +16,12 @@ export class FirstPartyHelper {
         if (equals(tenantId, '72f988bf-86f1-41af-91ab-2d7cd011db47', AntUxStringComparison.IgnoreCase)) {
             return TenantType.Corp;
         }
+        if (equals(tenantId, '975f013f-7f24-47e8-a7d3-abc4752bf346', AntUxStringComparison.IgnoreCase)) {
+            return TenantType.PME;
+        }
+        if (equals(tenantId, 'cdc5aeea-15c5-4db6-b079-fcadd2505dc2', AntUxStringComparison.IgnoreCase)) {
+            return TenantType.TORUS;
+        }
         return TenantType.Other;
     }
 
@@ -24,6 +32,6 @@ export class FirstPartyHelper {
         }
 
         const type = FirstPartyHelper.getTenantType(tenantId);
-        return type === TenantType.AME;
+        return type === TenantType.AME || type === TenantType.PME || type === TenantType.TORUS;
     }
 }

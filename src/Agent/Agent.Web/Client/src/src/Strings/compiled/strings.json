@@ -615,6 +615,12 @@
       "value": "Redis Cache Contributor"
     }
   ],
+  "8oXUdb": [
+    {
+      "type": 0,
+      "value": "Add a default incident handler for the agent to use for Sev3 LiveSite incidents."
+    }
+  ],
   "8quEg9": [
     {
       "type": 0,
@@ -2787,12 +2793,6 @@
     {
       "type": 0,
       "value": "Managed resources"
-    }
-  ],
-  "pPJwiJ": [
-    {
-      "type": 0,
-      "value": "Add a default incident handler for the agent to use for Sev3 LiveSite incidents."
     }
   ],
   "pT3qMe": [
