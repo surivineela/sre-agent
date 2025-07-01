@@ -6,7 +6,7 @@ namespace Agent.Core.Models.Api.v1;
 
 /// <summary>
 /// Defines the types of messages that can be streamed to client
-/// when property is null, type is just pure text 
+/// when property is null, type is just pure text
 /// </summary>
 public enum StreamMessageType
 {
@@ -39,4 +39,9 @@ public enum StreamMessageType
     /// Kubectl Execution message type.
     /// </summary>
     Kubectl,
+
+    /// <summary>
+    /// Message type for agent mode change (e.g. switching to ReadOnly)
+    /// </summary>
+    AgentModeChange,
 }

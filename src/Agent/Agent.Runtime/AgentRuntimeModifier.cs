@@ -20,6 +20,7 @@ public class AgentRuntimeModifier : IAgentRuntimeModifier<AgentContext>
     private readonly ILogger<AgentRuntimeModifier> _logger;
     private readonly IServiceProvider _serviceProvider;
     private readonly IThreadRepository _threadRepository;
+    private readonly IAgentOutboundCommunicationService _outboundCommunicationService;
 
     private readonly ActionSettings _actionSettings;
 
@@ -27,12 +28,14 @@ public class AgentRuntimeModifier : IAgentRuntimeModifier<AgentContext>
         ILogger<AgentRuntimeModifier> logger,
         IServiceProvider serviceProvider,
         ActionSettings actionSettings,
-        IThreadRepository threadRepository)
+        IThreadRepository threadRepository,
+        IAgentOutboundCommunicationService outboundCommunicationService)
     {
         _logger = logger;
         _serviceProvider = serviceProvider;
         _actionSettings = actionSettings;
         _threadRepository = threadRepository;
+        _outboundCommunicationService = outboundCommunicationService;
     }
 
     /// <summary>
@@ -109,6 +112,8 @@ public class AgentRuntimeModifier : IAgentRuntimeModifier<AgentContext>
                 );
 
                 await _threadRepository.AddMessageAsync(threadId, notificationMessage);
+                await _outboundCommunicationService.NotifyGenericAgentMessage(threadId, notificationMessage, StreamMessageType.AgentModeChange);
+
                 _logger.LogInternalInformation("Added agent mode change notification message for thread {ThreadId} to user", threadId);
             }
             catch (Exception ex)
