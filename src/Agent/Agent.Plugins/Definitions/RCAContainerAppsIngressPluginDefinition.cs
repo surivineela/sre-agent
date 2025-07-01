@@ -77,7 +77,7 @@ namespace Agent.Plugins.Definitions
                 - _ContainerGroupName: Envoy container group Name.
                 - _ContainerId: Envoy container Id.
                 - _ContainerImage: The docker image used by the Envoy container.
-                - caller:
+                - caller: The source component or service that initiated the controller event or operation
             """)]
         public Task<string> GetEnvoyControllerLogs(
             [Description("Azure region.")] string region,

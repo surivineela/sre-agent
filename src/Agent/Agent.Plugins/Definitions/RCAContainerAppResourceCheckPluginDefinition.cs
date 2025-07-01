@@ -85,19 +85,24 @@ Returns true if the Memory percentage is above the specified threshold, otherwis
         }
 
     [Description(@"
-This operation will get if the container app CPU percentage is above specified threshold in the duration specified by fromDate and toDate.
+Retrieve Out of Memory (OOM) kill events for container apps within a managed cluster.This operation identifies instances where containers were terminated due to memory resource exhaustion.
+OOM kills indicate that a container exceeded its memory limits or that the node ran out of available memory.
 
 Input parameters:
 - region: The Azure region where the container app is hosted
 - fromDate: The start date for the query
 - toDate: The end date for the query
-- metricName: The name of the metric to check
-- containerAppArmId: The ARM ID of the container app
-- samplingType: The type of sampling to use (e.g., 'Max', 'Average', 'Min')
-- Threshold: The threshold value to compare against the metric (e.g., '80' for 80% CPU usage)
+- managedClusterName: Name of the managed Kubernetes cluster
+- containerAppOrJobName: Name of the container app or job (use empty string if not available)
 
 Output:
-Returns true if the CPU percentage is above the specified threshold, otherwise false.")]
+- PreciseTimeStamp
+- ManagedClusterNam
+- ContainerAppName
+- RevisionName
+- ReplicaName
+- Count
+- resourceId")]
         public Task<string> GetContainerAppOOMKills(
             [Description("Azure region in lower case. example: 'westeurope'")] string region,
             [Description("Start time of the query.")] DateTime fromDate,

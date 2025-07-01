@@ -35,7 +35,13 @@ namespace Agent.Plugins.Definitions
             return _plugin.GetIssueInvestigationTimeRange(issueFirstOccurrenceDate, issueLastOccurrenceDate, reportedIssueObservedOnTimeDate);
         }
 
-        [Description("Get original ICM incident information.")]
+        [Description(@"Get base ICM incident information.
+            Returns a JSON-formatted string containing:
+           - IncidentId
+           - Creation and last update time
+           - Status
+           - Severity level
+           - Summary")]
         public async Task<string?> GetIncidentInfoRCAContainerApp(
         [Description("Incident ID")] string incidentId)
         {
