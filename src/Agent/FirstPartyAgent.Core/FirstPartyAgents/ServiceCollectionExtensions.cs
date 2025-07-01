@@ -5,7 +5,6 @@ using Agent.Runtime.MetaAgent;
 using Agent.Runtime.SubAgents;
 using FirstPartyAgent.Core.Clients;
 using FirstPartyAgent.Core.Configuration;
-using FirstPartyAgent.Core.Plugins;
 using FirstPartyAgent.Core.Plugins.Definitions;
 using FirstPartyAgent.Core.Plugins.Implementation;
 using FirstPartyAgent.Core.Plugins.Interfaces;

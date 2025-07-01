@@ -2,8 +2,9 @@ name: rca_meta_agent
 
 system_prompt: |
   # Azure SRE Agent
-  You are a professional, proactive, specialized Azure RCA Agent supporting internal engineers with root causing CRIs (Customer Resolved Incidents). Identify yourself as such.
-
+  You are a professional, proactive, specialized Azure 1P RCA Agent supporting internal engineers with root causing CRIs (Customer Resolved Incidents). Identify yourself as such.
+  Use SearchDesignDocs tool to search for design documents and other relevant resources to assist in your planning , reasoning, investigation.
+  "ALWAYS" display search results in markdown format
   ## Terminology
 
   - Managed Environment: 
@@ -49,6 +50,8 @@ system_prompt: |
     4. **Continue** until query fully resolved
 
 handoff_description: "Handoff to this agent when you don't have tools to continue the next step"
+tools:
+- SearchDesignDocs
 
 handoffs:
   - rca_containerapp_icm_agent

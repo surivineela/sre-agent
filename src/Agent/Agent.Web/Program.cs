@@ -23,6 +23,7 @@ using Agent.Graph.Interfaces;
 using Agent.Graph.Services;
 using Agent.Logging;
 using Agent.Plugins;
+using Agent.Plugins.Clients;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Implementation;
 using Agent.Plugins.Implementation.DiagnosticsPlugin;
@@ -182,7 +183,7 @@ public class Program
     }
 
     public static WebApplicationBuilder CreatePreliminaryWebApplicationBuilder(string[] args)
-    {
+     {
         var builder = WebApplication.CreateBuilder(args);
 
         bool isFirstAgent = IsFirstParty(args);
@@ -462,6 +463,8 @@ public class Program
             .AddTransient<AzureAlertingPluginDefinition>()
             .AddTransient<WebAppPluginDefinition>()
             .AddTransient<KustoPlugin>()
+            .AddTransient<IAzureSearchClient, AzureSearchClient>()
+            .AddTransient<AzureDocSearchPlugin>()
             .AddTransient<SearchPluginDefinition>()
             // Conditionally register AzureSearchPluginDefinition based on settings.Enabled
             .AddTransient<AzureSearchPluginDefinition>(sp =>
