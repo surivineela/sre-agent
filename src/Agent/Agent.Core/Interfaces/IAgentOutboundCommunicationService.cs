@@ -17,12 +17,12 @@ public interface IAgentOutboundCommunicationService
     /// <summary>
     /// Updates a thread with a message from an agent
     /// </summary>
-    Task UpdateThreadWithAgentMessageAsync(Guid? threadId, string orchestrationInstanceId, ChatMessage message);
+    Task UpdateThreadWithAgentMessageAsync(Guid? threadId, string orchestrationInstanceId, ChatMessage message, Guid? messageId = null);
 
     /// <summary>
     /// Updates a thread with a message from an agent
     /// </summary>
-    Task UpdateThreadWithAgentMessageAsync(AgentContext context, ChatMessage message);
+    Task UpdateThreadWithAgentMessageAsync(AgentContext context, ChatMessage message, Guid? messageId = null);
 
     /// <summary>
     /// Notifies about agent task completion
@@ -44,10 +44,10 @@ public interface IAgentOutboundCommunicationService
     /// </summary>
     Task AppendAgentStreamMessage(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, CancellationToken cancellationToken = default);
 
-    Task AppendAgentToolCallMessage(Guid threadId, AIFunction aiTool, CancellationToken cancellationToken = default);
-    Task AppendAgentManualToolCallMessage(Guid threadId, List<ManualToolCall>? manualToolCalls, CancellationToken cancellationToken = default);
-    Task AppendAgentToolCallResult(Guid threadId, FunctionResultContent result, CancellationToken cancellationToken = default);
-    Task AppendAgentManualToolCallResult(Guid threadId, List<ManualToolCallResult>? manualToolCallResults, CancellationToken cancellationToken = default);
+    Task AppendAgentToolCallMessage(Guid threadId, AIFunction aiTool, Guid? messageId = null, CancellationToken cancellationToken = default);
+    Task AppendAgentManualToolCallMessage(Guid threadId, List<ManualToolCall>? manualToolCalls, Guid? messageId = null, CancellationToken cancellationToken = default);
+    Task AppendAgentToolCallResult(Guid threadId, FunctionResultContent result, Guid? messageId = null, CancellationToken cancellationToken = default);
+    Task AppendAgentManualToolCallResult(Guid threadId, List<ManualToolCallResult>? manualToolCallResults, Guid? messageId = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Appends a message to the user stream for a specific thread.
@@ -58,5 +58,5 @@ public interface IAgentOutboundCommunicationService
     /// Signals that signal processing is complete for a given message on a specific thread.
     /// Sends ChatFinishReason.Stop command back to the user
     /// </summary>
-    Task SignalProcessingComplete(Guid threadId, CancellationToken cancellationToken = default);
+    Task SignalProcessingComplete(Guid threadId, Guid? messageId = null, CancellationToken cancellationToken = default);
 }

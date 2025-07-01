@@ -35,13 +35,13 @@ namespace Agent.Tests.Common.Mocks
             return Task.FromResult(Guid.NewGuid());
         }
 
-        public Task AppendAgentManualToolCallMessage(Guid threadId, List<ManualToolCall>? manualToolCalls, CancellationToken cancellationToken = default)
+        public Task AppendAgentManualToolCallMessage(Guid threadId, List<ManualToolCall>? manualToolCalls, Guid? messageId = null, CancellationToken cancellationToken = default)
         {
             Messages.AddRange(manualToolCalls?.Select(call => call.FunctionCall.Name) ?? Enumerable.Empty<string>());
             return Task.FromResult(Guid.NewGuid());
         }
 
-        public Task AppendAgentManualToolCallResult(Guid threadId, List<ManualToolCallResult>? manualToolCallResults, CancellationToken cancellationToken = default)
+        public Task AppendAgentManualToolCallResult(Guid threadId, List<ManualToolCallResult>? manualToolCallResults, Guid? messageId = null, CancellationToken cancellationToken = default)
         {
             Messages.AddRange(manualToolCallResults?.Select(result => result.FunctionCall.Name) ?? Enumerable.Empty<string>());
             return Task.CompletedTask;
@@ -55,13 +55,13 @@ namespace Agent.Tests.Common.Mocks
             return Task.CompletedTask;
         }
 
-        public Task AppendAgentToolCallMessage(Guid threadId, AIFunction aiTool, CancellationToken cancellationToken = default)
+        public Task AppendAgentToolCallMessage(Guid threadId, AIFunction aiTool, Guid? messageId = null, CancellationToken cancellationToken = default)
         {
             Messages.Add(aiTool.Name);
             return Task.CompletedTask;
         }
 
-        public Task AppendAgentToolCallResult(Guid threadId, FunctionResultContent result, CancellationToken cancellationToken = default)
+        public Task AppendAgentToolCallResult(Guid threadId, FunctionResultContent result, Guid? messageId = null, CancellationToken cancellationToken = default)
         {
             Messages.Add(result?.Result?.ToString());
             return Task.CompletedTask;
@@ -98,20 +98,20 @@ namespace Agent.Tests.Common.Mocks
             return Task.CompletedTask;
         }
 
-        public Task SignalProcessingComplete(Guid threadId, CancellationToken cancellationToken = default)
+        public Task SignalProcessingComplete(Guid threadId, Guid? messageId = null, CancellationToken cancellationToken = default)
         {
             _logger?.LogInternalInformation($"ThreadId: {threadId}");
             return Task.CompletedTask;
         }
 
-        public Task UpdateThreadWithAgentMessageAsync(Guid? threadId, string agentId, ChatMessage message)
+        public Task UpdateThreadWithAgentMessageAsync(Guid? threadId, string agentId, ChatMessage message, Guid? messageId = null)
         {
             _logger?.LogInternalInformation($"ThreadId: {threadId}, AgentId: {agentId}, Message: {message.Text}");
             Messages.Add(message.Text);
             return Task.CompletedTask;
         }
 
-        public Task UpdateThreadWithAgentMessageAsync(AgentContext context, ChatMessage message)
+        public Task UpdateThreadWithAgentMessageAsync(AgentContext context, ChatMessage message, Guid? messageId = null)
         {
             _logger?.LogInternalInformation($"ThreadId: {context.ThreadId}, Message: {message.Text}");
             Messages.Add(message.Text);

@@ -44,7 +44,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         _streamingService = streamingService;
     }
 
-    public async Task UpdateThreadWithAgentMessageAsync(Guid? threadId, string orchestrationInstanceId, ChatMessage message)
+    public async Task UpdateThreadWithAgentMessageAsync(Guid? threadId, string orchestrationInstanceId, ChatMessage message, Guid? messageId = null)
     {
         if (!string.IsNullOrEmpty(orchestrationInstanceId))
         {
@@ -52,7 +52,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         }
         _logger.LogExternalInformation("orchestrationInstanceId {orchestrationInstanceId} message to thread {ThreadId}: {Message}",
             orchestrationInstanceId, threadId, message.Text);
-        Guid agentMessageId = Guid.NewGuid();
+        Guid agentMessageId = messageId ?? Guid.NewGuid();
         await AppendAgentStreamMessage(threadId ?? Guid.Empty, message.Text ?? string.Empty, null, agentMessageId);
         await _sinkService.SinkAgentMessageAsync(threadId.Value, message.Text ?? string.Empty, agentResponseMessageId: agentMessageId);
     }
@@ -145,12 +145,12 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         await _postToTeamsService.PostTeamsMessage(threadId, activity, messageId);
     }
 
-    public async Task UpdateThreadWithAgentMessageAsync(AgentContext context, ChatMessage message)
+    public async Task UpdateThreadWithAgentMessageAsync(AgentContext context, ChatMessage message, Guid? messageId = null)
     {
         _logger.LogExternalInformation("Agent context {AgentContextId} of type {AgentType} message to thread {ThreadId}: {message}",
             context.Id, context.AgentType.ToString(), context.ThreadId, message.Text);
 
-        Guid agentMessageId = Guid.NewGuid();
+        Guid agentMessageId = messageId ?? Guid.NewGuid();
         await AppendAgentStreamMessage(context.ThreadId, message.Text ?? string.Empty, null, agentMessageId);
         await _sinkService.SinkAgentMessageAsync(context.ThreadId, message.Text ?? string.Empty, agentResponseMessageId: agentMessageId);
     }
@@ -167,7 +167,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         return UpdateThreadWithAgentMessageAsync(context, new(ChatRole.Assistant, message));
     }
 
-    public async Task AppendAgentToolCallMessage(Guid threadId, AIFunction aiTool, CancellationToken cancellationToken = default)
+    public async Task AppendAgentToolCallMessage(Guid threadId, AIFunction aiTool, Guid? messageId = null, CancellationToken cancellationToken = default)
     {
         if (threadId == Guid.Empty)
         {
@@ -185,6 +185,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
 
             // Check for cancellation before streaming
             cancellationToken.ThrowIfCancellationRequested();
+            Guid agentMessageId = messageId ?? Guid.NewGuid();
 
             // Send stop reason for tool calls in response
             var stopMessageToolCalls = new ChatResponseUpdate
@@ -195,7 +196,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
                 AdditionalProperties = new AdditionalPropertiesDictionary
                 {
                     { "threadId", threadId.ToString() },
-                    { "messageId", Guid.NewGuid().ToString() },
+                    { "messageId", agentMessageId.ToString() },
                 },
                 FinishReason = ChatFinishReason.ToolCalls,
             };
@@ -218,7 +219,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
                 AdditionalProperties = new AdditionalPropertiesDictionary
                 {
                     { "threadId", threadId.ToString() },
-                    { "messageId", Guid.NewGuid().ToString() },
+                    { "messageId", agentMessageId.ToString() },
                     { "actionName", nameof(AppendAgentToolCallMessage) },
                 },
             };
@@ -239,7 +240,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         }
     }
 
-    public async Task AppendAgentManualToolCallMessage(Guid threadId, List<ManualToolCall>? manualToolCalls, CancellationToken cancellationToken = default)
+    public async Task AppendAgentManualToolCallMessage(Guid threadId, List<ManualToolCall>? manualToolCalls, Guid? messageId = null, CancellationToken cancellationToken = default)
     {
         if (threadId == Guid.Empty)
         {
@@ -263,6 +264,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
 
             // Check for cancellation before streaming
             cancellationToken.ThrowIfCancellationRequested();
+            Guid agentMessageId = messageId ?? Guid.NewGuid();
 
             // Send stop reason for tool calls in response
             var stopMessageToolCalls = new ChatResponseUpdate
@@ -273,7 +275,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
                 AdditionalProperties = new AdditionalPropertiesDictionary
                 {
                     { "threadId", threadId.ToString() },
-                    { "messageId", Guid.NewGuid().ToString() },
+                    { "messageId", agentMessageId.ToString() },
                 },
                 FinishReason = ChatFinishReason.ToolCalls,
             };
@@ -300,7 +302,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
             toolCallUpdate.AdditionalProperties = new AdditionalPropertiesDictionary
             {
                 { "threadId", threadId.ToString() },
-                { "messageId", Guid.NewGuid().ToString() },
+                { "messageId", agentMessageId.ToString() },
                 { "actionName", nameof(AppendAgentManualToolCallMessage) },
             };
 
@@ -320,7 +322,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         }
     }
 
-    public async Task AppendAgentToolCallResult(Guid threadId, FunctionResultContent result, CancellationToken cancellationToken = default)
+    public async Task AppendAgentToolCallResult(Guid threadId, FunctionResultContent result, Guid? messageId = null, CancellationToken cancellationToken = default)
     {
         if (threadId == Guid.Empty)
         {
@@ -338,6 +340,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
 
             // Check for cancellation before streaming
             cancellationToken.ThrowIfCancellationRequested();
+            Guid agentMessageId = messageId ?? Guid.NewGuid();
 
             // Use the streaming service abstraction to send the ChatUpdateResponse
             var message = new ChatResponseUpdate
@@ -349,7 +352,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
                 AdditionalProperties = new AdditionalPropertiesDictionary
                 {
                     { "threadId", threadId.ToString() },
-                    { "messageId", Guid.NewGuid().ToString() },
+                    { "messageId", agentMessageId.ToString() },
                     { "actionName", nameof(AppendAgentToolCallResult) },
                 }
             };
@@ -370,7 +373,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         }
     }
 
-    public async Task AppendAgentManualToolCallResult(Guid threadId, List<ManualToolCallResult>? manualToolCallResults, CancellationToken cancellationToken = default)
+    public async Task AppendAgentManualToolCallResult(Guid threadId, List<ManualToolCallResult>? manualToolCallResults, Guid? messageId = null, CancellationToken cancellationToken = default)
     {
         if (threadId == Guid.Empty)
         {
@@ -408,6 +411,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
                 };
                 safeFunctionResults.Add(safeFunctionResult);
             }
+            Guid agentMessageId = messageId ?? Guid.NewGuid();
 
             // Use the streaming service abstraction to send the ChatUpdateResponse
             var message = new ChatResponseUpdate
@@ -419,7 +423,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
                     AdditionalProperties = new AdditionalPropertiesDictionary
                     {
                         { "threadId", threadId.ToString() },
-                        { "messageId", Guid.NewGuid().ToString() },
+                        { "messageId", agentMessageId.ToString() },
                         { "actionName", nameof(AppendAgentManualToolCallResult) },
                     }
                 };
@@ -490,7 +494,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         }
     }
 
-    public async Task SignalProcessingComplete(Guid threadId, CancellationToken cancellationToken = default)
+    public async Task SignalProcessingComplete(Guid threadId, Guid? messageId = null, CancellationToken cancellationToken = default)
     {
         if (threadId == Guid.Empty)
         {
@@ -508,6 +512,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
 
             // Check for cancellation before streaming
             cancellationToken.ThrowIfCancellationRequested();
+            Guid agentMessageId = messageId ?? Guid.NewGuid();
 
             // Use the streaming service abstraction to send the ChatFinishReason.Stop command back to the user
             var stopMessage = new ChatResponseUpdate
@@ -520,7 +525,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
             stopMessage.AdditionalProperties = new AdditionalPropertiesDictionary
             {
                 { "threadId", threadId.ToString() },
-                { "messageId", Guid.NewGuid().ToString() },
+                { "messageId", agentMessageId.ToString() },
                 { "actionName", nameof(SignalProcessingComplete) }
             };
 

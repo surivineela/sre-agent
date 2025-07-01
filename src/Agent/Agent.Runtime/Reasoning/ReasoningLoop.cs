@@ -285,7 +285,7 @@ public class ReasoningLoop : IDisposable
         }
         finally
         {
-            await _outboundCommunicationService.SignalProcessingComplete(_context.ThreadId, _userCancellationTokenSource.Token);
+            await _outboundCommunicationService.SignalProcessingComplete(_context.ThreadId, cancellationToken: _userCancellationTokenSource.Token);
             _semaphore.Release();
         }
     }
@@ -445,7 +445,7 @@ public class ReasoningLoop : IDisposable
             }
             finally
             {
-                await _outboundCommunicationService.SignalProcessingComplete(_context.ThreadId, _userCancellationTokenSource.Token);
+                await _outboundCommunicationService.SignalProcessingComplete(_context.ThreadId, cancellationToken: _userCancellationTokenSource.Token);
                 if (iterationResult?.IsContinuation == false)
                 {
                     // only end the root span if we didn't continue the loop
@@ -523,10 +523,12 @@ public class ReasoningLoop : IDisposable
                 List<ManualToolCallResult> toolResults = [];
 
                 var toolCall = runResult.ManualToolCalls.Single(); // Should only be one tool call at a time
+                Guid toolCallMessageId = Guid.NewGuid();
 
                 await _outboundCommunicationService.AppendAgentManualToolCallMessage(
                     _context.ThreadId,
-                    runResult.ManualToolCalls);
+                    runResult.ManualToolCalls,
+                    toolCallMessageId);
 
                 // TODO: move handoff back to Agent.Framework so we don't have to manipulate the chat history so much outside the runner
                 if (toolCall.Tool.UnderlyingMethod?.Name == nameof(AgentControlFlowPluginDefinition.HandoffBack))
@@ -664,7 +666,8 @@ public class ReasoningLoop : IDisposable
 
                 await _outboundCommunicationService.AppendAgentManualToolCallResult(
                     _context.ThreadId,
-                    toolResults);
+                    toolResults,
+                    toolCallMessageId);
 
                 await PersistReasoningMessagesAsync(agentChatHistory, runResult.NewItems);
 
@@ -973,13 +976,14 @@ public class ReasoningLoop : IDisposable
         {
             // Set the cancellation token for plugins to use
             ToolStatic.AsyncLocalCancellationToken.Value = cancellationToken;
+            Guid toolCallMessageId = Guid.NewGuid();
 
-            await _outboundCommunicationService.AppendAgentToolCallMessage(_context.ThreadId, aiTool);
+            await _outboundCommunicationService.AppendAgentToolCallMessage(_context.ThreadId, aiTool, toolCallMessageId);
             var functionResult = await aiTool.InvokeAsync(new AIFunctionArguments(functionCall.Arguments), cancellationToken);
             var result = new FunctionResultContent(functionCall.CallId, functionResult);
             var functionCallMessage = new ChatMessage(ChatRole.Tool, [result]);
 
-            await _outboundCommunicationService.AppendAgentToolCallResult(_context.ThreadId, result);
+            await _outboundCommunicationService.AppendAgentToolCallResult(_context.ThreadId, result, toolCallMessageId);
             await PersistReasoningMessageAsync(agentChatHistory, functionCallMessage);
         }
         catch (Exception ex)
