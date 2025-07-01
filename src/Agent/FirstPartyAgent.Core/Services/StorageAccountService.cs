@@ -15,11 +15,12 @@ namespace FirstPartyAgent.Core.Services
     {
         Task<string> ReadFileFromStorage(string containerName, string blobName);
         Task WriteContentToStorage(string containerName, string blobName, string content);
+        public Task<Stream> ReadFileStreamFromStorage(string containerName, string blobName);
         Task<List<string>> ListFilesInContainer(string containerName);
         bool IsEnabled { get; }
     }
 
-    public class StorageServiceDisabled: IStorageService
+    public class StorageServiceDisabled : IStorageService
     {
         public bool IsEnabled => false;
         public async Task<string> ReadFileFromStorage(string containerName, string blobName)
@@ -34,6 +35,11 @@ namespace FirstPartyAgent.Core.Services
         {
             return new List<string>();
         }
+
+        public Task<Stream> ReadFileStreamFromStorage(string containerName, string blobName)
+        {
+            return Task.FromResult<Stream>(null);
+        }
     }
     public class StorageService : IStorageService
     {
@@ -43,7 +49,20 @@ namespace FirstPartyAgent.Core.Services
         public StorageService(StorageAccountSettings storageAccountSettings)
         {
             string storageAccountUrl = storageAccountSettings.AccountUrl;
-            var credential = new DefaultAzureCredential();
+            DefaultAzureCredential credential = null;
+
+            if (!string.IsNullOrEmpty(storageAccountSettings.ManagedIdentityClientId))
+            {
+                credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions
+                {
+                    ManagedIdentityClientId = storageAccountSettings.ManagedIdentityClientId
+                });
+            }
+            else
+            {
+                credential = new DefaultAzureCredential();
+            }
+
             _blobServiceClient = new BlobServiceClient(new Uri(storageAccountUrl), credential);
         }
 
@@ -70,6 +89,14 @@ namespace FirstPartyAgent.Core.Services
             StreamReader reader = new StreamReader(resultInfo.Content);
             string res = reader.ReadToEnd();
             return res;
+        }
+
+        public async Task<Stream> ReadFileStreamFromStorage(string containerName, string blobName)
+        {
+            BlobContainerClient containerClient = await GetContainerClient(containerName);
+            BlobClient blobClient = containerClient.GetBlobClient(blobName);
+            BlobDownloadInfo resultInfo = await blobClient.DownloadAsync();
+            return resultInfo.Content;
         }
 
         public async Task<List<string>> ListFilesInContainer(string containerName)

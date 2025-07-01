@@ -23,6 +23,8 @@ namespace Agent.Core.Configuration
         public AzureSearchSettings AzureSearch { get; set; } = new();
         public TsgCrawlerSettings TsgCrawler { get; set; } = new();
         public KeyVaultSettings KeyVault { get; set; } = new();
+
+        public ObserverClientSettings ObserverClient { get; set; } = new();
     }
 }
 

@@ -68,11 +68,16 @@ public class Program
             .ValidateDataAnnotations();
 
         builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.OneBranchApprovalService);
+        builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.Storage);
+
 
         builder.Services.AddSingleton<ICosmosDBService, CosmosDBService>();
+        builder.Services.AddSingleton<IStorageService, StorageService>();
         builder.Services.AddSingleton<IApprovalAuditEventLogger, AppInsightsApprovalAuditEventLogger>();
 
         builder.Services.AddControllers();
+
+        builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = 100 * 1024 * 1024);
 
         var app = builder.Build();
 

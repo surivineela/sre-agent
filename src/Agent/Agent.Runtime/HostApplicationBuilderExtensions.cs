@@ -155,6 +155,9 @@ Otherwise, there may be required settings which are not auto-populated by the pr
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.External.OneBranchApprovalService);
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.External.AgentHelper);
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.External.KeyVault);
+            sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.External.ObserverClient);
+            sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.External.OneBranchApprovalService);
+            sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.External.AgentHelper);
 
 
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.Timer);

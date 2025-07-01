@@ -87,12 +87,14 @@ public class ToolsRepository : IToolsRepository
         RegisterPlugin<KubePluginDefinition>();
         RegisterPlugin<AppCodeAnalysisPluginDefinition>();
         RegisterPlugin<CpuAnalysisPluginDefinition>();
+        RegisterPlugin<WebAppPluginDefinition>();
         RegisterPlugin<RoleAssignmentPluginDefinition>();
         RegisterPlugin<FunctionAppsPluginDefinition>();
         RegisterPlugin<FunctionAppExecutionFailuresPluginDefinition>();
         RegisterPlugin<FunctionAppConfigurationChecksPluginDefinition>();
         RegisterPlugin<FunctionAppDeploymentChecksPluginDefinition>();
         RegisterPlugin<PagerDutyIncidentPluginDefinition>();
+        RegisterPlugin<AzureAlertingPluginDefinition>();
 
         // Not all tools were registered, so registering individually
         Register200<GitHubIssuePluginDefinition>(x => x.FetchGithubSecurityDependabotAlerts);

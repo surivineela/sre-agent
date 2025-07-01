@@ -35,6 +35,7 @@ using Agent.Core.Services;
 // Add alias for FirstPartyAgent's AzureSearchPlugin
 using FirstPartyAzureSearchPlugin = FirstPartyAgent.Core.Plugins.AzureSearchPlugin;
 using Agent.Core.Helpers;
+using WebAppPlugin = FirstPartyAgent.Core.Plugins.WebAppPlugin;
 
 namespace FirstPartyAgent.Core.Extensions
 {

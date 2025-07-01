@@ -508,18 +508,3 @@ public class OnebranchApprovalRequestDetails
     public DateTime CreatedAt { get; set; }
     public required Uri ApprovalRequestUri { get; set; }
 }
-
-public static class CosmosExtensions
-{
-    public async static Task<List<T>> ToListAsync<T>(this IQueryable<T> queryable)
-    {
-        var iterator = queryable.ToFeedIterator();
-        var results = new List<T>();
-        while (iterator.HasMoreResults)
-        {
-            var response = await iterator.ReadNextAsync();
-            results.AddRange(response);
-        }
-        return results;
-    }
-}

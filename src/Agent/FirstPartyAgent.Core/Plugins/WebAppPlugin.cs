@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Services;
 using FirstPartyAgent.Core.Extensions;
 using FirstPartyAgent.Core.Models.Resources;
 using FirstPartyAgent.Core.Services;

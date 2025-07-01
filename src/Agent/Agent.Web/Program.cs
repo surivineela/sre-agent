@@ -459,6 +459,8 @@ public class Program
             .AddTransient<RCAContainerAppsSwiftNetworkContainerPluginDefinition>()
             .AddTransient<GenevaActionsPluginDefinition>()
             .AddTransient<ICMPluginDefinition>()
+            .AddTransient<AzureAlertingPluginDefinition>()
+            .AddTransient<WebAppPluginDefinition>()
             .AddTransient<KustoPlugin>()
             .AddTransient<SearchPluginDefinition>()
             // Conditionally register AzureSearchPluginDefinition based on settings.Enabled
@@ -510,6 +512,8 @@ public class Program
             .AddTransient<AgentHelperService>()
 
             .AddTransient<IICMPlugin, ICMPlugin>()
+            .AddTransient<IAzureAlertingPlugin, AzureAlertingPlugin>()
+            .AddTransient<IWebAppPlugin, WebAppPlugin>()
             .AddSingleton<IKustoPluginClient, KustoPluginClient>()
             // Replace the existing IAzureSearchPlugin registration with this updated version
             // which properly passes ExternalSettings to the AzureSearchPlugin constructor

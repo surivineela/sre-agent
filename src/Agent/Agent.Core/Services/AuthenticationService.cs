@@ -120,7 +120,7 @@ public class AuthenticationService : IAuthenticationService
         return GetWorkloadIdentityCredential(_federationSettings.ClientId, _federationSettings.TenantId, _federationSettings.AuthorityHost);
     }
 
-    public TokenCredential GetAgentHelperCredential()
+    public TokenCredential GetObserverCredential()
     {
         if (_hostEnvironment.IsDevelopment())
         {
@@ -130,6 +130,15 @@ public class AuthenticationService : IAuthenticationService
         return GetWorkloadIdentityCredential(_federationSettings.ClientId, _federationSettings.TenantId, _federationSettings.AuthorityHost);
     }
 
+    public TokenCredential GetAgentHelperCredential()
+    {
+        if (_hostEnvironment.IsDevelopment())
+        {
+            return GetDefaultAzureCredential();
+        }
+
+        return GetWorkloadIdentityCredential(_federationSettings.ClientId, _federationSettings.TenantId, _federationSettings.AuthorityHost);
+    }
     #endregion
 
 

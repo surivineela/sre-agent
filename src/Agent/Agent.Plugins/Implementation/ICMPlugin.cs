@@ -79,7 +79,7 @@ public class ICMPlugin : IICMPlugin
             for (var i = 0; i < base64Images.Count; i++)
             {
                 var imageText = "No Image Description.";
-                if (!_chatCompletionService.Attributes["DeploymentName"].ToString().StartsWith("o") && !skipImages)
+                if (!_chatCompletionService.Attributes["ModelId"].ToString().StartsWith("o") && !skipImages)
                 {
                     // extract text from the image and replace the placeholder in the summary with the extracted text
                     try
