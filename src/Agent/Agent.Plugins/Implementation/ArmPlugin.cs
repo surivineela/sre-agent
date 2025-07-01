@@ -5,10 +5,12 @@
 using System.Collections.Immutable;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
+using Agent.Framework;
 using Agent.Logging;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
@@ -22,6 +24,8 @@ namespace Agent.Plugins.Implementation
         private readonly ArmHelper _armHelper;
         private readonly IThreadRepository _threadRepository;
         private readonly IAgentOutboundCommunicationService _outboundCommunicationService;
+        private readonly ActionSettings _actionSettings;
+        private readonly IAgentRuntimeModifier<AgentContext> _agentRuntimeModifier;
 
         public Guid? ThreadId { get; set; }
 
@@ -56,12 +60,14 @@ namespace Agent.Plugins.Implementation
 
         private static readonly ImmutableArray<string> _writeVerbs = [.. _allowedWriteVerbs, .. _blockedDeleteVerbs];
 
-        public ArmPlugin(ILogger<ArmPlugin> logger, ArmHelper armHelper, IThreadRepository threadRepository, IAgentOutboundCommunicationService outboundCommunicationService)
+        public ArmPlugin(ILogger<ArmPlugin> logger, ArmHelper armHelper, IThreadRepository threadRepository, IAgentOutboundCommunicationService outboundCommunicationService, ActionSettings actionSettings, IAgentRuntimeModifier<AgentContext> agentRuntimeModifier)
         {
             _logger = logger;
             _armHelper = armHelper;
             _threadRepository = threadRepository;
             _outboundCommunicationService = outboundCommunicationService;
+            _actionSettings = actionSettings;
+            _agentRuntimeModifier = agentRuntimeModifier;
         }
 
         public async Task<string> SetMinimumTlsVersion(
@@ -316,79 +322,212 @@ namespace Agent.Plugins.Implementation
         {
             try
             {
-                // Validate it's a write command and not a delete
-                if (!IsWriteCommand(command))
+                // Early validation
+                var validationResult = ValidateWriteCommandRequest(command);
+                if (validationResult != null)
                 {
-                    return $"Error: This method only supports write operations ({_allowedWriteVerbString}).";
-                }
-
-                if (IsDeleteCommand(command))
-                {
-                    return "Error: Delete operations are not allowed for safety reasons. Please use the Azure Portal for deletions.";
-                }
-
-                if (ThreadId == null)
-                {
-                    return "Error: ThreadId is not set. Please set the ThreadId before running commands.";
+                    return validationResult;
                 }
 
                 var executionId = Guid.NewGuid();
-
-                var options = new JsonSerializerOptions
+                // Get the agent context and determine the real agent mode at thread level
+                bool isAutonomousMode;
+                var threadAgentMode = _actionSettings.Mode.ToString();
+                if (ThreadId.HasValue && _threadRepository != null)
                 {
-                    PropertyNamingPolicy = new LowerCaseNamingPolicy(),
-                    DictionaryKeyPolicy = new LowerCaseNamingPolicy(),
-                    WriteIndented = true
-                };
-                options.Converters.Add(new JsonStringEnumConverter());
+                    var agentContexts = await _threadRepository.GetAgentContextsForThreadAsync(ThreadId.Value);
+                    var agentContext = agentContexts?.FirstOrDefault();
+                    if (agentContext != null)
+                    {
+                        // Use agent runtime modifier to get the real agent mode for the thread
+                        threadAgentMode = _agentRuntimeModifier.GetThreadAgentMode(agentContext);
+                    }
 
-                // Create execution record in Pending state for approval
-                var execution = new AzCliExecution(
-                    Id: executionId,
-                    Command: command,
-                    Description: GetCommandDescription(command),
-                    Status: AzCliExecutionStatus.Pending,
-                    OriginalFunctionCall: null, // temporary, will be set later
-                    Output: null,
-                    Error: null,
-                    CreatedTimestamp: DateTime.UtcNow,
-                    StartedTimestamp: null,
-                    CompletedTimestamp: null,
-                    ExecutedBy: null,
-                    AgentContextId: null
-                );
+                }
 
-                await _threadRepository.CreateAzCliExecutionAsync(ThreadId.Value, execution);
+                isAutonomousMode = string.Equals(threadAgentMode, ActionMode.Autonomous.ToString(), StringComparison.OrdinalIgnoreCase);
 
-                // Create a new message with the execution
-                var message = new Message(
-                    Id: Guid.NewGuid(),
-                    TimeStamp: DateTime.UtcNow,
-                    Author: new Author(
-                        DisplayName: "SRE Agent",
-                        UserId: "agent-default",
-                        Role: Role.SREAgent
-                    ),
-                    Text: "",
-                    IsImageContent: false,
-                    Posted: new Posted(false),
-                    Approval: null,
-                    AzCliExecution: execution,
-                    IncidentDiscussionId: null,
-                    IsDailyReport: false
-                );
+                // Create and persist execution record
+                var execution = await CreateAndPersistAzCliExecution(executionId, command, isAutonomousMode);
 
-                await _threadRepository.AddMessageAsync(ThreadId.Value, message);
-
-                await _outboundCommunicationService.AppendAgentStreamMessage(ThreadId.Value, JsonSerializer.Serialize(execution, options), StreamMessageType.AzCli);
-
-                return "Azure CLI write command has been prepared for approval. Please click 'Run' to execute or 'Cancel' to dismiss.";
+                // Handle execution based on mode
+                return isAutonomousMode
+                    ? await ExecuteAutonomousAzCliCommand(command, execution)
+                    : "Azure CLI write command has been prepared for approval. Please click 'Run' to execute or 'Cancel' to dismiss.";
             }
             catch (Exception ex)
             {
                 _logger?.LogInternalError(ex, "Failed to create execution for write command: {Command}", command);
                 return $"Failed to prepare command execution: {ex.Message}";
             }
+        }
+
+        private string? ValidateWriteCommandRequest(string command)
+        {
+            // Validate it's a write command and not a delete
+            if (!IsWriteCommand(command))
+            {
+                return $"Error: This method only supports write operations ({_allowedWriteVerbString}).";
+            }
+
+            if (IsDeleteCommand(command))
+            {
+                return "Error: Delete operations are not allowed for safety reasons. Please use the Azure Portal for deletions.";
+            }
+
+            if (ThreadId == null)
+            {
+                return "Error: ThreadId is not set. Please set the ThreadId before running commands.";
+            }
+
+            return null;
+        }
+
+        private async Task<AzCliExecution> CreateAndPersistAzCliExecution(
+            Guid executionId,
+            string command,
+            bool isAutonomousMode)
+        {
+            var execution = CreateAzCliExecution(executionId, command, isAutonomousMode);
+
+            await _threadRepository.CreateAzCliExecutionAsync(ThreadId!.Value, execution);
+
+            var message = CreateAzCliExecutionMessage(execution);
+            await _threadRepository.AddMessageAsync(ThreadId.Value, message);
+
+            await NotifyAzCliExecutionCreated(execution);
+
+            return execution;
+        }
+
+        private AzCliExecution CreateAzCliExecution(
+            Guid executionId,
+            string command,
+            bool isAutonomousMode)
+        {
+            return new AzCliExecution(
+                Id: executionId,
+                Command: command,
+                Description: GetCommandDescription(command),
+                Status: isAutonomousMode ? AzCliExecutionStatus.Running : AzCliExecutionStatus.Pending,
+                OriginalFunctionCall: null,
+                Output: null,
+                Error: null,
+                CreatedTimestamp: DateTime.UtcNow,
+                StartedTimestamp: isAutonomousMode ? DateTime.UtcNow : null,
+                CompletedTimestamp: null,
+                ExecutedBy: null,
+                AgentContextId: null
+            );
+        }
+
+        private static Message CreateAzCliExecutionMessage(AzCliExecution execution)
+        {
+            return new Message(
+                Id: Guid.NewGuid(),
+                TimeStamp: DateTime.UtcNow,
+                Author: new Author(
+                    DisplayName: "SRE Agent",
+                    UserId: "agent-default",
+                    Role: Role.SREAgent
+                ),
+                Text: "",
+                IsImageContent: false,
+                Posted: new Posted(false),
+                Approval: null,
+                AzCliExecution: execution,
+                IncidentDiscussionId: null,
+                IsDailyReport: false
+            );
+        }
+
+        private async Task<string> ExecuteAutonomousAzCliCommand(
+            string command,
+            AzCliExecution execution)
+        {
+            try
+            {
+                var output = await _armHelper.RunAzCliCommandsAsync(command);
+
+                await UpdateAzCliExecutionWithSuccess(execution, output);
+
+                return $"Azure CLI command completed successfully. Output: {output}";
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogInternalError(ex, "Failed to execute write command: {Command}", command);
+
+                await UpdateAzCliExecutionWithFailure(execution, ex.Message);
+
+                return $"Failed to execute command: {ex.Message}";
+            }
+        }
+
+        private async Task UpdateAzCliExecutionWithSuccess(AzCliExecution execution, string output)
+        {
+            var updatedExecution = execution with
+            {
+                Status = AzCliExecutionStatus.Completed,
+                ExecutedBy = CreateAgentAuthor(),
+                Output = output,
+                CompletedTimestamp = DateTime.UtcNow
+            };
+
+            await _threadRepository.UpdateAzCliExecutionAsync(ThreadId!.Value, updatedExecution);
+            await NotifyAzCliExecutionUpdated(updatedExecution);
+        }
+
+        private async Task UpdateAzCliExecutionWithFailure(AzCliExecution execution, string errorMessage)
+        {
+            var updatedExecution = execution with
+            {
+                Status = AzCliExecutionStatus.Failed,
+                ExecutedBy = CreateAgentAuthor(),
+                Error = errorMessage,
+                CompletedTimestamp = DateTime.UtcNow
+            };
+
+            await _threadRepository.UpdateAzCliExecutionAsync(ThreadId!.Value, updatedExecution);
+            await NotifyAzCliExecutionUpdated(updatedExecution);
+        }
+
+        private static Author CreateAgentAuthor()
+        {
+            return new Author(
+                DisplayName: "SRE Agent",
+                UserId: "agent-default",
+                Role: Role.User
+            );
+        }
+
+        private async Task NotifyAzCliExecutionCreated(AzCliExecution execution)
+        {
+            var options = GetJsonSerializerOptions();
+            await _outboundCommunicationService.AppendAgentStreamMessage(
+                ThreadId!.Value,
+                JsonSerializer.Serialize(execution, options),
+                StreamMessageType.AzCli);
+        }
+
+        private async Task NotifyAzCliExecutionUpdated(AzCliExecution execution)
+        {
+            var options = GetJsonSerializerOptions();
+            await _outboundCommunicationService.AppendAgentStreamMessage(
+                ThreadId!.Value,
+                JsonSerializer.Serialize(execution, options),
+                StreamMessageType.AzCli);
+        }
+
+        private static JsonSerializerOptions GetJsonSerializerOptions()
+        {
+            var options = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = new LowerCaseNamingPolicy(),
+                DictionaryKeyPolicy = new LowerCaseNamingPolicy(),
+                WriteIndented = true
+            };
+            options.Converters.Add(new JsonStringEnumConverter());
+            return options;
         }
 
         public async Task<string> GetAzCliHelpAsync(string helpTopic, string grepPattern = null)
