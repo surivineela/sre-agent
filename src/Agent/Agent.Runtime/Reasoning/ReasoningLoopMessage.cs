@@ -41,6 +41,8 @@ public class ReasoningLoopFunctionCall : ReasoningLoopMessage
     }
 }
 
-public class ReasoningLoopContinuation : ReasoningLoopMessage
+public class ReasoningLoopContinuation(uint interations) : ReasoningLoopMessage
 {
+    // Indicates how many iterations have been completed in the current round of reasoning.
+    public uint CurrentIterationCount { get; } = interations;
 }

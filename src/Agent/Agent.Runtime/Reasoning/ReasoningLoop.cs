@@ -65,6 +65,9 @@ public class ReasoningLoop : IDisposable
 
     // Retry configuration
     private const int MaxRetryAttempts = 3;
+
+    // Maximum number of iterations to run the reasoning loop
+    private const int MaxIterations = 10;
     private readonly IAgentMemoryClient _agentMemoryClient;
     private static readonly TimeSpan[] RetryDelays = { TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(500), TimeSpan.FromSeconds(1) };
 
@@ -167,13 +170,13 @@ public class ReasoningLoop : IDisposable
         {
             // If the context is idle or pending approval, there's no operation to cancel
             // This is a no-op, but we log it for clarity
-            _logger.LogInternalInformation("No operation to cancel, agent context is idle or pending approval.");
+            _logger.LogInternalInformation("[{threadId}]No operation to cancel, agent context is idle or pending approval.", _context.ThreadId);
             return;
         }
 
         lock (_userCancellationTokenSourceLock)
         {
-            _logger.LogInternalInformation("Cancelling current operation.");
+            _logger.LogInternalInformation("[{threadId}]Cancelling current operation.", _context.ThreadId);
             _userCancellationTokenSource.Cancel();
         }
     }
@@ -266,11 +269,11 @@ public class ReasoningLoop : IDisposable
         {
             if (e.CancellationToken == _userCancellationTokenSource.Token)
             {
-                _logger.LogInternalInformation($"{nameof(RunInternalAsync)} was canceled by user.");
+                _logger.LogInternalInformation("[{threadId}]{RunInternalAsync} was canceled by user.", _context.ThreadId, nameof(RunInternalAsync));
             }
             else
             {
-                _logger.LogInternalWarning($"{nameof(RunInternalAsync)} was unexpectedly canceled");
+                _logger.LogInternalWarning("[{threadId}]{RunInternalAsync} was unexpectedly canceled", _context.ThreadId, nameof(RunInternalAsync));
             }
 
             // todo: do we need to cleanup existing approvals?
@@ -281,7 +284,7 @@ public class ReasoningLoop : IDisposable
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, "An error occurred while running the reasoning loop with user cancellation.");
+            _logger.LogInternalError(ex, "[{threadId}]An error occurred while running the reasoning loop with user cancellation.", _context.ThreadId);
         }
         finally
         {
@@ -305,7 +308,7 @@ public class ReasoningLoop : IDisposable
         }
         else
         {
-            _logger.LogInternalInformation("No relevant documents found in agent memory for user query: {UserQuery}", userQuery);
+            _logger.LogInternalInformation("[{threadId}]No relevant documents found in agent memory for user query: {UserQuery}", _context.ThreadId, userQuery);
         }
     }
 
@@ -316,6 +319,7 @@ public class ReasoningLoop : IDisposable
             cancellationToken.ThrowIfCancellationRequested();
 
             ReasoningLoopIterationResult? iterationResult = null;
+            uint currentIterationCount = 0;
 
             if (_rootSpan == null)
             {
@@ -327,7 +331,7 @@ public class ReasoningLoop : IDisposable
 
             try
             {
-                _logger.LogInternalInformation("Received new message. Running reasoning loop...");
+                _logger.LogInternalInformation("[{threadId}]Received new message. Running reasoning loop...", _context.ThreadId);
 
                 var agentChatHistory = await _threadRepository.GetAgentChatHistoryAsync(_context.Id);
 
@@ -351,7 +355,7 @@ public class ReasoningLoop : IDisposable
 
                             if (_agentMemoryEnabled)
                             {
-                                _logger.LogInternalInformation("Retrieving and augmenting user message with agent memory.");
+                                _logger.LogInternalInformation("[{threadId}]Retrieving and augmenting user message with agent memory.", _context.ThreadId);
                                 await RetrieveAndAugmentUserMessage(chatMessage.Message.Text, sb);
                             }
 
@@ -365,7 +369,7 @@ public class ReasoningLoop : IDisposable
                             sb.AppendLine(chatMessage.Message.Text);
                             var msg = new ChatMessage(chatMessage.Message.Role, sb.ToString());
 
-                            _logger.LogInternalInformation("Processing chat message.");
+                            _logger.LogInternalInformation("[{threadId}]Processing chat message.", _context.ThreadId);
                             _rootSpan.SetAttribute(TraceAttribute.MessageContent, chatMessage.Message.Text);
                             if (_context.ApprovalInformation != null &&
                                 _context.ApprovalInformation.PendingApprovals.Count > 0)
@@ -387,11 +391,11 @@ public class ReasoningLoop : IDisposable
                         }
                     case ReasoningLoopApprovalMessage approvalMessage:
                         {
-                            _logger.LogInternalInformation("Processing approval message.");
+                            _logger.LogInternalInformation("[{threadId}]Processing approval message.", _context.ThreadId);
 
                             if (_context.ContextState != ContextStateEnum.PendingApproval)
                             {
-                                _logger.LogInternalWarning("Received approval message while not in PendingApproval state, but in state: {State}", _context.ContextState);
+                                _logger.LogInternalWarning("[{threadId}]Received approval message while not in PendingApproval state, but in state: {State}", _context.ThreadId, _context.ContextState);
                             }
 
                             _rootSpan.SetAttribute(TraceAttribute.MessageContent, approvalMessage.Approval.Title);
@@ -406,27 +410,46 @@ public class ReasoningLoop : IDisposable
                         }
                     case ReasoningLoopFunctionCall functionCall:
                         {
-                            _logger.LogInternalInformation("Processing function call messages.");
+                            _logger.LogInternalInformation("[{threadId}]Processing function call messages.", _context.ThreadId);
                             await PersistReasoningMessagesAsync(agentChatHistory, functionCall.Messages);
                             break;
                         }
-                    case ReasoningLoopContinuation:
+                    case ReasoningLoopContinuation continuation:
                         {
-                            _logger.LogInternalInformation("Received continuation message. Running reasoning loop...");
+                            _logger.LogInternalInformation("[{threadId}]Received continuation message. current iteration {currentIterationCount} Running reasoning loop...", _context.ThreadId, continuation.CurrentIterationCount);
+                            currentIterationCount = continuation.CurrentIterationCount;
                             break;
                         }
                     default:
-                        _logger.LogInternalWarning("Received unknown message type: {Type}", reasoningLoopMessage.GetType());
+                        _logger.LogInternalWarning("[{threadId}]Received unknown message type: {Type}", _context.ThreadId, reasoningLoopMessage.GetType());
                         continue;
                 }
 
-                iterationResult = await RunInternalAsync(agentChatHistory, cancellationToken);
+                iterationResult = await RunInternalAsync(agentChatHistory, currentIterationCount, cancellationToken);
 
                 if (iterationResult.IsContinuation)
                 {
+                    _logger.LogInternalInformation("[{threadId}]Iteration result indicates continuation. Preparing for next iteration.", _context.ThreadId);
+
+                    if (iterationResult.CurrentIterationCount >= MaxIterations)
+                    {
+                        _logger.LogInternalWarning("[{threadId}] Maximum iterations reached ({maxIterations}). Ending reasoning loop.", _context.ThreadId, MaxIterations);
+                        iterationResult.IsContinuation = false;
+
+                        var assistantMessage = new ChatMessage(ChatRole.Assistant,
+                            "I've been working on your request for a while. Would you like me to keep going, or do you want to provide more details or guidance?");
+
+                        await PersistReasoningMessageAsync(agentChatHistory, assistantMessage);
+
+                        await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+                            _context,
+                            assistantMessage);
+
+                    }
+
                     if (await _msgCh.Writer.WaitToWriteAsync(cancellationToken))
                     {
-                        await _msgCh.Writer.WriteAsync(new ReasoningLoopContinuation(), cancellationToken);
+                        await _msgCh.Writer.WriteAsync(new ReasoningLoopContinuation(iterationResult.CurrentIterationCount), cancellationToken);
                     }
                     else
                     {
@@ -441,7 +464,7 @@ public class ReasoningLoop : IDisposable
             }
             catch (Exception ex)
             {
-                _logger.LogInternalError(ex, "An error occurred during reasoning loop.");
+                _logger.LogInternalError(ex, "[{threadId}]An error occurred during reasoning loop.", _context.ThreadId);
             }
             finally
             {
@@ -475,12 +498,13 @@ public class ReasoningLoop : IDisposable
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, $"Failed to change agent context state from {oldState} to {newState}");
+            _logger.LogInternalError(ex, "[{threadId}]Failed to change agent context state from {oldState} to {newState}", _context.ThreadId, oldState, newState);
         }
     }
 
     private async Task<ReasoningLoopIterationResult> RunInternalAsync(
         AgentChatHistory agentChatHistory,
+        uint currentIterationCount,
         CancellationToken cancellationToken)
     {
         var runConfig = new RunConfig
@@ -719,9 +743,9 @@ public class ReasoningLoop : IDisposable
                                 $"Otherwise if you are actually done, then call the right handoff tool.");
                             await PersistReasoningMessageAsync(agentChatHistory, userPromptMessage);
 
-                            return new ReasoningLoopIterationResult()
+                            return new ReasoningLoopIterationResult(currentIterationCount + 1)
                             {
-                                IsContinuation = true
+                                IsContinuation = true,
                             };
                         }
                         else
@@ -733,7 +757,7 @@ public class ReasoningLoop : IDisposable
                             await PersistReasoningMessageAsync(agentChatHistory, reloopPromptMessage);
                         }
 
-                        return new ReasoningLoopIterationResult()
+                        return new ReasoningLoopIterationResult(currentIterationCount + 1)
                         {
                             IsContinuation = true
                         };
@@ -746,7 +770,7 @@ public class ReasoningLoop : IDisposable
                             $"Continue taking actions to complete the request.");
                         await PersistReasoningMessageAsync(agentChatHistory, userPromptMessage);
 
-                        return new ReasoningLoopIterationResult()
+                        return new ReasoningLoopIterationResult(currentIterationCount + 1)
                         {
                             IsContinuation = true
                         };
@@ -764,7 +788,7 @@ public class ReasoningLoop : IDisposable
         }
         catch (TurnLimitReachedException<AgentContext> ex)
         {
-            _logger.LogInternalWarning("Turn limit reached.", ex);
+            _logger.LogInternalWarning("[{threadId}]Turn limit reached.", _context.ThreadId, ex);
 
             // generate progress summary
 
@@ -800,7 +824,7 @@ public class ReasoningLoop : IDisposable
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, "An error occurred during reasoning loop.");
+            _logger.LogInternalError(ex, "[{threadId}]An error occurred during reasoning loop.", _context.ThreadId);
         }
         finally
         {
@@ -808,7 +832,7 @@ public class ReasoningLoop : IDisposable
             _currentAgentSpan = null;
         }
 
-        return new ReasoningLoopIterationResult() { IsContinuation = false };
+        return new ReasoningLoopIterationResult(currentIterationCount) { IsContinuation = false };
     }
 
     private Task DisplayModelResponse(string t)
