@@ -92,9 +92,9 @@ namespace Agent.Tests.Common.Mocks
             return Task.CompletedTask;
         }
 
-        public Task NotifyGenericAgentMessage(Guid threadId, Message message, StreamMessageType type)
+        public Task NotifyGenericAgentMessage(Guid threadId, Message message, StreamMessageType? type)
         {
-            _logger?.LogInternalInformation($"ThreadId: {threadId}, Message: {message.Text}, Type: {type}");
+            _logger?.LogInternalInformation($"ThreadId: {threadId}, Message: {message.Text}");
             Messages.Add(message.Text);
             return Task.CompletedTask;
         }

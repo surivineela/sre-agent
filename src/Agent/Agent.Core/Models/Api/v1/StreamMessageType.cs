@@ -39,9 +39,4 @@ public enum StreamMessageType
     /// Kubectl Execution message type.
     /// </summary>
     Kubectl,
-
-    /// <summary>
-    /// Message type for agent mode change (e.g. switching to ReadOnly)
-    /// </summary>
-    AgentModeChange,
 }

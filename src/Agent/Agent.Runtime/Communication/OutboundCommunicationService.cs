@@ -90,7 +90,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         return await _sinkService.SinkAgentMessageAsync(threadId, "Approval Request for Processing Azure SRE Agent Request", true, approval);
     }
 
-    public async Task NotifyGenericAgentMessage(Guid threadId, Message message, StreamMessageType type)
+    public async Task NotifyGenericAgentMessage(Guid threadId, Message message, StreamMessageType? type)
     {
         if (threadId == Guid.Empty)
         {
@@ -99,8 +99,12 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
 
         try
         {
-            string jsonString = JsonSerializer.Serialize(message, _serializerOptions);
-            await AppendAgentStreamMessage(threadId, jsonString, type);
+            if (type != null)
+            {
+                string jsonString = JsonSerializer.Serialize(message, _serializerOptions);
+                await AppendAgentStreamMessage(threadId, jsonString, type);
+            }
+            await AppendAgentStreamMessage(threadId, message.Text ?? string.Empty, null, messageId: message.Id);
         }
         catch (Exception ex)
         {

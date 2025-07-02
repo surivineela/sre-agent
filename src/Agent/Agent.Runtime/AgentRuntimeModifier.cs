@@ -112,7 +112,7 @@ public class AgentRuntimeModifier : IAgentRuntimeModifier<AgentContext>
                 );
 
                 await _threadRepository.AddMessageAsync(threadId, notificationMessage);
-                await _outboundCommunicationService.NotifyGenericAgentMessage(threadId, notificationMessage, StreamMessageType.AgentModeChange);
+                await _outboundCommunicationService.AppendAgentStreamMessage(threadId, notificationMessage.Text, null, notificationMessage.Id);
 
                 _logger.LogInternalInformation("Added agent mode change notification message for thread {ThreadId} to user", threadId);
             }
