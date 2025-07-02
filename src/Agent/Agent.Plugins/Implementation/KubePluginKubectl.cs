@@ -589,11 +589,7 @@ namespace Agent.Plugins
             }
             catch (Exception ex) when (ex.Message.Contains("forbidden", StringComparison.OrdinalIgnoreCase))
             {
-                var errorMessage = "Failed to run kubectl command. Error from AKS API Server: Forbidden.\n" +
-                    $"Please ensure the following permissions are provided on the AKS cluster scope to {_agentKubeCtlIdentity}:\n" +
-                    "For reader mode: Azure Kubernetes Service Cluster User Role and Azure Kubernetes Service RBAC Reader.\n" +
-                    "For agent mode: Azure Kubernetes Service Cluster Admin Role and Azure Kubernetes Service RBAC Cluster Admin.";
-
+                var errorMessage = await GetPermissionErrorMessageAsync(resourceId);
                 throw new Exception(errorMessage);
             }
         }

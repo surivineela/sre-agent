@@ -196,10 +196,7 @@ namespace Agent.Plugins
                 catch (k8s.Autorest.HttpOperationException ex) when (ex.Response?.StatusCode == System.Net.HttpStatusCode.Forbidden)
                 {
                     _logger?.LogInternalError(ex, "Forbidden error checking resource existence for {Kind}/{Name} in cluster {ResourceId}", kind, resourceName, resourceId);
-                    return "Failed to check resource existence. Error from AKS API Server: Forbidden.\n" +
-                        $"Please ensure the following permissions are provided on the AKS cluster scope to {_agentKubeCtlIdentity}:\n" +
-                        "For reader mode: Azure Kubernetes Service Cluster User Role and Azure Kubernetes Service RBAC Reader.\n" +
-                        "For agent mode: Azure Kubernetes Service Cluster Admin Role and Azure Kubernetes Service RBAC Cluster Admin.";
+                    return await GetPermissionErrorMessageAsync(resourceId);
                 }
                 catch (Exception ex)
                 {
@@ -637,10 +634,7 @@ namespace Agent.Plugins
             catch (k8s.Autorest.HttpOperationException ex) when (ex.Response?.StatusCode == System.Net.HttpStatusCode.Forbidden)
             {
                 _logger?.LogInternalError(ex, "Forbidden error applying Kubernetes YAML to cluster {ResourceId}", resourceId);
-                return "Failed to run kubectl command. Error from AKS API Server: Forbidden.\n" +
-                    $"Please ensure the following permissions are provided on the AKS cluster scope to {_agentKubeCtlIdentity}:\n" +
-                    "For reader mode: Azure Kubernetes Service Cluster User Role and Azure Kubernetes Service RBAC Reader.\n" +
-                    "For agent mode: Azure Kubernetes Service Cluster Admin Role and Azure Kubernetes Service RBAC Cluster Admin.";
+                return await GetPermissionErrorMessageAsync(resourceId);
             }
             catch (k8s.Autorest.HttpOperationException ex) when (ex.Response?.StatusCode == System.Net.HttpStatusCode.Unauthorized)
             {
@@ -657,14 +651,6 @@ namespace Agent.Plugins
             {
                 _logger?.LogInternalError(ex, "HTTP operation error applying Kubernetes YAML to cluster {ResourceId}. Status: {StatusCode}", resourceId, ex.Response?.StatusCode);
                 return $"Failed to apply Kubernetes YAML. HTTP {ex.Response?.StatusCode}: {ex.Message}";
-            }
-            catch (Exception ex) when (ex.Message.Contains("forbidden", StringComparison.OrdinalIgnoreCase))
-            {
-                _logger?.LogInternalError(ex, "Forbidden error (fallback) applying Kubernetes YAML to cluster {ResourceId}", resourceId);
-                return "Failed to run kubectl command. Error from AKS API Server: Forbidden.\n" +
-                    $"Please ensure the following permissions are provided on the AKS cluster scope to {_agentKubeCtlIdentity}:\n" +
-                    "For reader mode: Azure Kubernetes Service Cluster User Role and Azure Kubernetes Service RBAC Reader.\n" +
-                    "For agent mode: Azure Kubernetes Service Cluster Admin Role and Azure Kubernetes Service RBAC Cluster Admin.";
             }
             catch (Exception ex)
             {

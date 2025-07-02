@@ -2467,5 +2467,98 @@ namespace Agent.Plugins
                 limit,
                 minValue);
         }
+
+        private async Task<string> GetPermissionErrorMessageAsync(string resourceId)
+        {
+            // Extract the actual identity resource ID from the agent kubectl identity string
+            string identityResourceId = _agentKubeCtlIdentity;
+
+            // Check if the identity string contains the descriptive prefix
+            if (_agentKubeCtlIdentity.StartsWith("SRE Agent User-Assigned Identity ", StringComparison.OrdinalIgnoreCase))
+            {
+                // Extract just the resource ID part after the prefix
+                identityResourceId = _agentKubeCtlIdentity.Substring("SRE Agent User-Assigned Identity ".Length).Trim();
+            }
+            
+            // Extract subscription and resource group from the identity
+            var identityParts = identityResourceId.Split('/');
+            var subscription = identityParts[2];
+            var resourceGroup = identityParts[4];
+            var identityName = identityParts[8];
+
+            // Extract AKS cluster details from resourceId
+            var aksParts = resourceId.Split('/');
+            var aksSubscription = aksParts[2];
+            var aksResourceGroup = aksParts[4];
+            var aksClusterName = aksParts[8];
+            var aksScope = $"/subscriptions/{aksSubscription}/resourceGroups/{aksResourceGroup}/providers/Microsoft.ContainerService/managedClusters/{aksClusterName}";
+
+            // Get the current agent mode
+            var threadAgentMode = _actionSettings.Mode.ToString();
+            if (ThreadId.HasValue && _threadRepository != null)
+            {
+                var agentContexts = await _threadRepository.GetAgentContextsForThreadAsync(ThreadId.Value);
+                var agentContext = agentContexts?.FirstOrDefault();
+                if (agentContext != null)
+                {
+                    threadAgentMode = _agentRuntimeModifier.GetThreadAgentMode(agentContext);
+                }
+            }
+
+            var baseMessage = "Failed to run kubectl command. Error from AKS API Server: Forbidden.\n\n";
+
+            // Determine roles based on current mode
+            bool isReadOnlyMode = string.Equals(threadAgentMode, ActionMode.ReadOnly.ToString(), StringComparison.OrdinalIgnoreCase);
+
+            if (isReadOnlyMode)
+            {
+                return baseMessage +
+                    $"The agent is currently in **ReadOnly mode** and requires the following permissions on the AKS cluster scope for {_agentKubeCtlIdentity}:\n\n" +
+                    "- Azure Kubernetes Service Cluster User Role\n" +
+                    "- Azure Kubernetes Service RBAC Reader\n\n" +
+                    "You can use the Azure Portal or run the following CLI commands on bash:\n\n" +
+                    "```bash\n" +
+                    "# Get the principal ID of the managed identity\n" +
+                    $"PRINCIPAL_ID=$(az identity show --id \"{identityResourceId}\" --query principalId -o tsv)\n\n" +
+                    "# Assign Azure Kubernetes Service Cluster User Role\n" +
+                    "az role assignment create \\\n" +
+                    "  --assignee $PRINCIPAL_ID \\\n" +
+                    "  --role \"Azure Kubernetes Service Cluster User Role\" \\\n" +
+                    $"  --scope \"{aksScope}\"\n\n" +
+                    "# Assign Azure Kubernetes Service RBAC Reader\n" +
+                    "az role assignment create \\\n" +
+                    "  --assignee $PRINCIPAL_ID \\\n" +
+                    "  --role \"Azure Kubernetes Service RBAC Reader\" \\\n" +
+                    $"  --scope \"{aksScope}\"\n" +
+                    "```";
+            }
+            else
+            {
+                // Review or Autonomous mode
+                var modeDisplay = string.Equals(threadAgentMode, ActionMode.Autonomous.ToString(), StringComparison.OrdinalIgnoreCase)
+                    ? "Autonomous mode"
+                    : "Review mode";
+
+                return baseMessage +
+                    $"The agent is currently in **{modeDisplay}** and requires the following permissions on the AKS cluster scope for {_agentKubeCtlIdentity}:\n\n" +
+                    "- Azure Kubernetes Service Cluster Admin Role\n" +
+                    "- Azure Kubernetes Service RBAC Cluster Admin\n\n" +
+                    "You can use the Azure Portal or run the following CLI commands on bash:\n\n" +
+                    "```bash\n" +
+                    "# Get the principal ID of the managed identity\n" +
+                    $"PRINCIPAL_ID=$(az identity show --id \"{identityResourceId}\" --query principalId -o tsv)\n\n" +
+                    "# Assign Azure Kubernetes Service Cluster Admin Role\n" +
+                    "az role assignment create \\\n" +
+                    "  --assignee $PRINCIPAL_ID \\\n" +
+                    "  --role \"Azure Kubernetes Service Cluster Admin Role\" \\\n" +
+                    $"  --scope \"{aksScope}\"\n\n" +
+                    "# Assign Azure Kubernetes Service RBAC Cluster Admin\n" +
+                    "az role assignment create \\\n" +
+                    "  --assignee $PRINCIPAL_ID \\\n" +
+                    "  --role \"Azure Kubernetes Service RBAC Cluster Admin\" \\\n" +
+                    $"  --scope \"{aksScope}\"\n" +
+                    "```";
+            }
+        }
     }
 }
