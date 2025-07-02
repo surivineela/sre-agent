@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Agent.Plugins.Models;
 
 namespace Agent.Plugins.Interface;
 
@@ -51,18 +52,25 @@ public interface IFunctionAppDeploymentChecksPlugin
     Task<string> GetFunctionAppDeploymentFailureAnalysis(string resourceId, DateTime? startTime = null, DateTime? endTime = null);
 
     /// <summary>
-    /// Verifies if a zip file exists in Azure Storage
-    /// </summary>
-    /// <param name="resourceId">The Azure resource ID of the Function App or Web App</param>
-    /// <param name="zipFilePath">Optional path to the zip file. If not provided, the WEBSITE_RUN_FROM_PACKAGE app setting will be used</param>
-    /// <returns>A verification result indicating if the zip file exists and details about the verification</returns>
-    Task<Models.ZipFileVerificationResult> VerifyZipFileExistsAsync(string resourceId, string zipFilePath = null);
-
-    /// <summary>
     /// Updates the WEBSITE_RUN_FROM_PACKAGE app setting to a new Azure Storage zip file path
     /// </summary>
     /// <param name="resourceId">The Azure resource ID of the Function App or Web App</param>
     /// <param name="zipFilePath">Path to the zip file in Azure Storage</param>
     /// <returns>A result indicating the success or failure of the update operation</returns>
     Task<Models.WebsiteRunFromPackageUpdateResult> UpdateWebsiteRunFromPackageAsync(string resourceId, string zipFilePath);
+    
+    /// <summary>
+    /// Lists blobs in a storage container using ARM REST API
+    /// </summary>
+    /// <param name="containerUri">The URI of the container to list blobs from, including any query parameters</param>
+    /// <returns>A result containing the list of blobs in the container</returns>
+    Task<Models.StorageBlobListResult> ListStorageBlobsAsync(string containerUri);
+
+    /// <summary>
+    /// Verifies files in a Blob container
+    /// </summary>
+    /// <param name="resourceId">The Azure resource ID of the Function App or Web App</param>
+    /// <param name="containerPath">Optional path to the container. If not provided, a default container path will be used</param>
+    /// <returns>A verification result indicating if the files exist and details about the verification</returns>
+    Task<BlobContainerVerificationResult> VerifyFilesInBlobContainerAsync(string resourceId, string containerPath = null);
 }

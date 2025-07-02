@@ -81,20 +81,6 @@ namespace Agent.Plugins.Definitions
         }
 
         /// <summary>
-        /// Verifies if a zip file exists in Azure Storage
-        /// </summary>
-        [Description("Verifies if a zip file exists in Azure Storage. " +
-                    "Checks if the specified zip file is accessible from its URL location. " +
-                    "If no zip file path is provided, retrieves the path from the WEBSITE_RUN_FROM_PACKAGE app setting. " +
-                    "Returns verification status, path information, and details about the file if it exists.")]
-        public async Task<Models.ZipFileVerificationResult> VerifyZipFileExistsAsync(
-            [Description("The full Azure resource ID of the Function App or Web App to verify.")] string resourceId,
-            [Description("Optional path to the zip file. If not provided, the WEBSITE_RUN_FROM_PACKAGE app setting will be used.")] string zipFilePath = null)
-        {
-            return await _functionAppDeploymentChecksPlugin.VerifyZipFileExistsAsync(resourceId, zipFilePath);
-        }
-
-        /// <summary>
         /// Updates the WEBSITE_RUN_FROM_PACKAGE app setting to point to a new zip file
         /// </summary>
         [Description("Updates the WEBSITE_RUN_FROM_PACKAGE app setting to point to a new zip file in Azure Storage. " +
@@ -108,6 +94,32 @@ namespace Agent.Plugins.Definitions
             [Description("The path to the zip file in Azure Storage. Must be a valid URL to a zip file in an Azure Storage Blob container.")] string zipFilePath)
         {
             return await _functionAppDeploymentChecksPlugin.UpdateWebsiteRunFromPackageAsync(resourceId, zipFilePath);
+        }
+
+        /// <summary>
+        /// Lists blobs in a storage container using ARM REST API
+        /// </summary>
+        [Description("Lists blobs in a storage container using Azure ARM REST API. " +
+                     "This method provides a way to list all blobs in a container without using storage account credentials, " +
+                     "using ARM authentication instead. Returns information about each blob including name, size, type, and metadata.")]
+        public async Task<Models.StorageBlobListResult> ListStorageBlobsAsync(
+            [Description("The URI of the container to list blobs from, including any query parameters. Example: https://mystorageaccount.blob.core.windows.net/mycontainer?restype=container&comp=list")] string containerUri)
+        {
+            return await _functionAppDeploymentChecksPlugin.ListStorageBlobsAsync(containerUri);
+        }
+
+        /// <summary>
+        /// Verifies files in a blob container
+        /// </summary>
+        [Description("Verifies files in an Azure Storage blob container. " +
+                    "Lists all files in the specified container or extracts container information from WEBSITE_RUN_FROM_PACKAGE. " +
+                    "Provides detailed information about each file including name, size, content type, and last modified date. " +
+                    "Returns verification status, container details, and comprehensive file information.")]
+        public async Task<Models.BlobContainerVerificationResult> VerifyFilesInBlobContainerAsync(
+            [Description("The full Azure resource ID of the Function App or Web App to verify.")] string resourceId,
+            [Description("Optional path to the blob container. If not provided, the container will be extracted from the WEBSITE_RUN_FROM_PACKAGE app setting.")] string containerPath = null)
+        {
+            return await _functionAppDeploymentChecksPlugin.VerifyFilesInBlobContainerAsync(resourceId, containerPath);
         }
     }
 }
