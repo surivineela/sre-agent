@@ -1,0 +1,69 @@
+# .github/workflows/pull-doc-cli.yml
+
+name: Pull Cli Docs
+
+on:
+  workflow_dispatch:
+    inputs:
+      github_repo:
+        description: 'The GitHub repository to pull ali docs'
+        required: true
+        type: string
+        default: 'MicrosoftDocs/azure-docs-cli'
+  repository_dispatch:
+    types: [SRE-Agent-PullDoc-Sync]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  sync-github-repo-to-storage:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+    - name: 'Echo Environment Variables'
+      run: |
+        echo "AZURE_CLIENT_ID=${{ vars.AZURE_CLIENT_ID }}"
+        echo "AZURE_TENANT_ID=${{ vars.AZURE_TENANT_ID }}"
+        echo "AZURE_SUBSCRIPTION_ID=${{ vars.AZURE_SUBSCRIPTION_ID }}"
+
+    - name: 'Azure Login using OIDC'
+      uses: azure/login@v1
+      with:
+        client-id: ${{ vars.AZURE_CLIENT_ID }}
+        tenant-id: ${{ vars.AZURE_TENANT_ID }}
+        subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+    - name: 'Checkout GitHub Repository'
+      uses: actions/checkout@v4
+      with:
+        repository: ${{ github.event.inputs.github_repo || 'MicrosoftDocs/azure-docs-cli' }}
+        ref: main
+        fetch-depth: 1  # shallow clone for speed
+
+    - name: 'Sync files to Azure Blob Storage'
+      uses: azure/cli@v1
+      with:
+        inlineScript: |
+          echo "Starting sync of files from GitHub repo..."
+          STORAGE_ACCOUNT_NAME="stsrch25s32nr3eb4t6"
+          CONTAINER_NAME="test1"
+          SOURCE_DIRECTORY="."
+
+          az storage blob upload-batch \
+            --account-name $STORAGE_ACCOUNT_NAME \
+            --destination $CONTAINER_NAME \
+            --source "${SOURCE_DIRECTORY}" \
+            --overwrite \
+            --auth-mode login
+
+          echo "Sync from GitHub repo complete."
+
+    - name: Azure logout
+      if: always()
+      run: |
+        az logout
+        az cache purge
+        az account clear
