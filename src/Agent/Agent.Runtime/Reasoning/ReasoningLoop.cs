@@ -185,7 +185,7 @@ public class ReasoningLoop : IDisposable
     {
         if (await _msgCh.Writer.WaitToWriteAsync(cancellationToken))
         {
-            _logger.LogInternalInformation("Appending new chat message");
+            _logger.LogInternalInformation("[{threadId}]Appending new chat message", _context.ThreadId);
             await _msgCh.Writer.WriteAsync(new ReasoningLoopChatMessage(msg), cancellationToken);
 
             _ = Task.Run(RunWithUserCancellationAsync, cancellationToken);
@@ -200,7 +200,7 @@ public class ReasoningLoop : IDisposable
     {
         if (await _msgCh.Writer.WaitToWriteAsync(cancellationToken))
         {
-            _logger.LogInternalInformation("Appending new function call message");
+            _logger.LogInternalInformation("[{threadId}]Appending new function call message", _context.ThreadId);
             await _msgCh.Writer.WriteAsync(new ReasoningLoopFunctionCall(msgs), cancellationToken);
 
             _ = Task.Run(RunWithUserCancellationAsync, cancellationToken);
@@ -215,7 +215,7 @@ public class ReasoningLoop : IDisposable
     {
         if (await _msgCh.Writer.WaitToWriteAsync(cancellationToken))
         {
-            _logger.LogInternalInformation("Appending new approval message");
+            _logger.LogInternalInformation("[{threadId}]Appending new approval message", _context.ThreadId);
             await _msgCh.Writer.WriteAsync(new ReasoningLoopApprovalMessage(approval), cancellationToken);
 
             _ = Task.Run(RunWithUserCancellationAsync, cancellationToken);
@@ -425,16 +425,16 @@ public class ReasoningLoop : IDisposable
                         continue;
                 }
 
-                iterationResult = await RunInternalAsync(agentChatHistory, currentIterationCount, cancellationToken);
+                iterationResult = await RunInternalAsync(agentChatHistory, cancellationToken);
+                currentIterationCount++;
 
                 if (iterationResult.IsContinuation)
                 {
                     _logger.LogInternalInformation("[{threadId}]Iteration result indicates continuation. Preparing for next iteration.", _context.ThreadId);
 
-                    if (iterationResult.CurrentIterationCount >= MaxIterations)
+                    if (currentIterationCount >= MaxIterations)
                     {
                         _logger.LogInternalWarning("[{threadId}] Maximum iterations reached ({maxIterations}). Ending reasoning loop.", _context.ThreadId, MaxIterations);
-                        iterationResult.IsContinuation = false;
 
                         var assistantMessage = new ChatMessage(ChatRole.Assistant,
                             "I've been working on your request for a while. Would you like me to keep going, or do you want to provide more details or guidance?");
@@ -445,11 +445,13 @@ public class ReasoningLoop : IDisposable
                             _context,
                             assistantMessage);
 
+                        iterationResult.IsContinuation = false;
+                        return;
                     }
 
                     if (await _msgCh.Writer.WaitToWriteAsync(cancellationToken))
                     {
-                        await _msgCh.Writer.WriteAsync(new ReasoningLoopContinuation(iterationResult.CurrentIterationCount), cancellationToken);
+                        await _msgCh.Writer.WriteAsync(new ReasoningLoopContinuation(currentIterationCount), cancellationToken);
                     }
                     else
                     {
@@ -475,13 +477,14 @@ public class ReasoningLoop : IDisposable
                     _rootSpan?.End();
                     _rootSpan = null;
                 }
+
+                if (_context.ContextState == ContextStateEnum.Processing)
+                {
+                    await ChangeAgentContextStateAsync(ContextStateEnum.Idle);
+                }
             }
         }
 
-        if (_context.ContextState == ContextStateEnum.Processing)
-        {
-            await ChangeAgentContextStateAsync(ContextStateEnum.Idle);
-        }
     }
 
     private async Task ChangeAgentContextStateAsync(ContextStateEnum newState)
@@ -504,7 +507,6 @@ public class ReasoningLoop : IDisposable
 
     private async Task<ReasoningLoopIterationResult> RunInternalAsync(
         AgentChatHistory agentChatHistory,
-        uint currentIterationCount,
         CancellationToken cancellationToken)
     {
         var runConfig = new RunConfig
@@ -743,7 +745,7 @@ public class ReasoningLoop : IDisposable
                                 $"Otherwise if you are actually done, then call the right handoff tool.");
                             await PersistReasoningMessageAsync(agentChatHistory, userPromptMessage);
 
-                            return new ReasoningLoopIterationResult(currentIterationCount + 1)
+                            return new ReasoningLoopIterationResult
                             {
                                 IsContinuation = true,
                             };
@@ -757,7 +759,7 @@ public class ReasoningLoop : IDisposable
                             await PersistReasoningMessageAsync(agentChatHistory, reloopPromptMessage);
                         }
 
-                        return new ReasoningLoopIterationResult(currentIterationCount + 1)
+                        return new ReasoningLoopIterationResult
                         {
                             IsContinuation = true
                         };
@@ -770,7 +772,7 @@ public class ReasoningLoop : IDisposable
                             $"Continue taking actions to complete the request.");
                         await PersistReasoningMessageAsync(agentChatHistory, userPromptMessage);
 
-                        return new ReasoningLoopIterationResult(currentIterationCount + 1)
+                        return new ReasoningLoopIterationResult
                         {
                             IsContinuation = true
                         };
@@ -832,7 +834,7 @@ public class ReasoningLoop : IDisposable
             _currentAgentSpan = null;
         }
 
-        return new ReasoningLoopIterationResult(currentIterationCount) { IsContinuation = false };
+        return new ReasoningLoopIterationResult { IsContinuation = false };
     }
 
     private Task DisplayModelResponse(string t)
