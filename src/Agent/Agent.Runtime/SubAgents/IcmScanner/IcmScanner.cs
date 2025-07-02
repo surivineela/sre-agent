@@ -29,11 +29,12 @@ public class IcmScanner(ILogger<IcmScanner> logger,
     private readonly Container container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
     private const uint PageSize = 10;
     private readonly static TimeSpan ScanInterval = TimeSpan.FromMinutes(1);
+    private readonly static TimeSpan PageInterval = TimeSpan.FromSeconds(10);
+    private bool isScanSucceeded = true;
     private DateTime lastScanTime;
     //After offset > 5000, ICM endpoint will returning 400 bad request
     //Updating offset to 200, since now it will apply on every existing incident Filter
     private readonly static int maxOffset = 200;
-
     public async Task ScanAsync(CancellationToken cancellationToken)
     {
         var lastScanTimeDoc = await GetDocumentAsync<LastScanTimeDoc>(LastScanTimeDoc.LastScanTimeKey, LastScanTimeDoc.LastScanTimeKey);
@@ -48,14 +49,19 @@ public class IcmScanner(ILogger<IcmScanner> logger,
             {
                 logger.LogInternalInformation("Found {filterCount} incident filters, starting IcM scanner.", filters.Count);
                 await ScannAllIncidentsAsync(cancellationToken,filters);
-                lastScanTime = await UpdateLastScanTimeDocAsync(DateTime.UtcNow);
+                if(isScanSucceeded)
+                {
+                    lastScanTime = await UpdateLastScanTimeDocAsync(DateTime.UtcNow);
+                } else
+                {
+                    logger.LogInternalWarning("IcM scanner failed to scan incidents, last scan time will not be updated.");
+                }
             }
             await Task.Delay(ScanInterval, cancellationToken);
         }
     }
     private async Task ScannAllIncidentsAsync(CancellationToken cancellationToken, List<IncidentFilterDocument> filters)
     {
-
 
         foreach (var filter in filters)
         {
@@ -82,10 +88,12 @@ public class IcmScanner(ILogger<IcmScanner> logger,
     {
         logger.LogInternalInformation("Scanning incidents for filter {filterId}", filterDocument.Id);
         uint page = 0;
+        isScanSucceeded = true;
         while (true)
         {
             if (cancellationToken.IsCancellationRequested)
             {
+                isScanSucceeded = false;
                 logger.LogInternalInformation("Cancellation requested, stopping the IcM scanner.");
                 return;
             }
@@ -101,6 +109,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
             {
                 logger.LogInternalInformation("Scanning IcM incidents, page {page}, lastScanTime {lastScanTime}", page, lastScanTime);
                 var incidents = await icmApiClient.GetIncidentsAsync(PageSize, offset, lastScanTime, null, filterDocument.TitleContains);
+                
                 if (incidents is null || incidents.Count == 0)
                 {
                     logger.LogInternalInformation("No incidents found for filter {filterId}", filterDocument.Id);
@@ -112,12 +121,13 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                     incidentDocument = await UpsertIncidentDocumentIfNeededAsync(incidentDocument, incident);
                     await NotifyUserAsync(incidentDocument, new List<string>());
                 }
-                //Between each page, wait for 1 minute
-                await Task.Delay(ScanInterval);
+                //Between each page, wait for 10 seconds
+                await Task.Delay(PageInterval);
             }
             catch (Exception ex)
             {
                 logger.LogInternalError(ex, "Error scanning IcM incidents");
+                isScanSucceeded = false;
             }
             page++;
         }
