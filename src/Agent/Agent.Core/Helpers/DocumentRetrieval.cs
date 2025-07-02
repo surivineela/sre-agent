@@ -3,6 +3,8 @@ using System.ComponentModel;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.AI;
 using Agent.Logging;
+using Agent.Core.Models.Api.v1;
+using Agent.Framework;
 
 namespace Agent.Core.Helpers;
 
@@ -56,6 +58,39 @@ public static class DocumentRetrieval
         {
             logger.LogInternalError(ex, "Error generating search vector");
             return Array.Empty<float>();
+        }
+    }
+
+    public static async Task<List<string>> RerankWithLLM(
+        IChatClient chatClient,
+        string searchQuery,
+        IReadOnlyList<SearchDocument> searchResults,
+        ILogger logger)
+    {
+        try
+        {
+            var prompt = "You are a helpful assistant that ranks documents based on relevance to the search query.\n" +
+                    "You will receive a search query and a list of documents. The documents are separated by '-' symbols.\n" +
+                    "Rank the documents from most relevant to least relevant. Drop documents that are not relevant.\n" +
+                    "Return an array of Id of each document in the ranked order. Do not include any prefix or suffix to each id.\n" +
+                    "Search query: " + searchQuery + "\n" +
+                    "Documents: " + string.Join("\n----------\n", searchResults.Select(d => $"Id:{d.Id}\nContent:{d.Content}"));
+
+            var systemMessage = new ChatMessage(ChatRole.System, prompt);
+            var chatOptions = new ChatOptions
+            {
+                ToolMode = ChatToolMode.None,
+                Temperature = 0,
+            };
+
+            var (response, obj) = await chatClient.GetResponseAsync([systemMessage], typeof(List<string>), chatOptions);
+            var result = obj as List<string> ?? new List<string>();
+            return result;
+        }
+        catch (Exception ex)
+        {
+            logger.LogInternalError(ex, "Error reranking search results");
+            return new List<string>();
         }
     }
 }

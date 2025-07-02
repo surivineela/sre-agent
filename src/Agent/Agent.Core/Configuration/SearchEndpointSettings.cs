@@ -11,6 +11,7 @@ namespace Agent.Core.Configuration
         public bool EnableDocumentRetrieval { get; set; }
         public bool EnableVectorSearch { get; set; }
         public int VectorDimensions { get; set; }
+        public int? Top { get; set; }
     }
 }
 

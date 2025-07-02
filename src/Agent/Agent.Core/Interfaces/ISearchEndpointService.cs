@@ -18,5 +18,5 @@ public interface ISearchEndpointService
     /// </summary>
     /// <param name="query">The query to search for in the documents</param>
     /// <param name="vectors">The vectors to use for vector search</param>
-    Task<IReadOnlyList<SearchDocument>> SearchDocumentsAsync(string query, float[]? vectors);
+    Task<IReadOnlyList<SearchDocument>> SearchDocumentsAsync(string query, float[]? vectors, int? top = null);
 }

@@ -9,13 +9,24 @@ using Microsoft.Extensions.Logging;
 using Agent.Logging;
 using Agent.Core.Interfaces;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace Agent.Core.Services;
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum SearchType
+{
+    FullText,
+    Vector,
+    Hybrid
+}
+
 public class SearchRequest
 {
+    public SearchType SearchType { get; set; } = SearchType.Hybrid;
     public string SearchText { get; set; } = string.Empty;
-    public float[]? Vector { get; set; } = null;
+    public float[]? Vector { get; set; }
+    public int? Top { get; set; }
 }
 
 public class SearchEndpointService : ISearchEndpointService
@@ -23,6 +34,7 @@ public class SearchEndpointService : ISearchEndpointService
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly SearchEndpointSettings _searchEndpointSettings;
     private readonly ILogger<SearchEndpointService> _logger;
+    private readonly int _defaultTop;
     public SearchEndpointService(
         ILogger<SearchEndpointService> logger,
         IHttpClientFactory httpClientFactory,
@@ -31,6 +43,7 @@ public class SearchEndpointService : ISearchEndpointService
         _httpClientFactory = httpClientFactory;
         _searchEndpointSettings = azureSettings.SearchEndpoint;
         _logger = logger;
+        _defaultTop = _searchEndpointSettings.Top ?? 10;
     }
 
     public async Task<IReadOnlyList<SearchDocument>> GetAllDocumentsAsync()
@@ -41,13 +54,15 @@ public class SearchEndpointService : ISearchEndpointService
             "/search/documents");
     }
 
-    public async Task<IReadOnlyList<SearchDocument>> SearchDocumentsAsync(string query, float[]? vectors)
+    public async Task<IReadOnlyList<SearchDocument>> SearchDocumentsAsync(string query, float[]? vectors, int? top = null)
     {
-        _logger.LogInternalInformation($"Getting documents with term {query} from search endpoint");
+        top = top ?? _defaultTop;
+        _logger.LogInternalInformation($"Getting top {top} documents with term {query} from search endpoint");
         var path = $"/search";
         var searchRequest = new SearchRequest
         {
             SearchText = query,
+            Top = top
         };
 
         if (vectors != null && vectors.Length > 0)

@@ -1563,10 +1563,14 @@ public class ReasoningLoop : IDisposable
         }
         span.SetAttribute("search.results", JsonSerializer.Serialize(results));
 
+        var reranked = await DocumentRetrieval.RerankWithLLM(_chatClient, query, results, _logger);
+        var rerankedDocuments = reranked.Select(id => results.FirstOrDefault(doc => doc.Id == id)).Where(doc => doc != null).Take(3).ToList();
+        span.SetAttribute("search.reranked", JsonSerializer.Serialize(rerankedDocuments));
+
         var sb = new StringBuilder();
-        sb.AppendLine($"Here are some relevant documents retrieved from the knowledge base. If the documents are not helpful, you can ignore them:");
+        sb.AppendLine($"Here are some relevant documents that can be referenced for user's query. Identify user's intent and reflect on these documents. If the documents are not helpful, you can ignore them:");
         sb.AppendLine("<Documents>");
-        foreach (var doc in results)
+        foreach (var doc in rerankedDocuments)
         {
             sb.AppendLine($"Title: {doc.Title}");
             sb.AppendLine($"Content: {doc.Content}");
