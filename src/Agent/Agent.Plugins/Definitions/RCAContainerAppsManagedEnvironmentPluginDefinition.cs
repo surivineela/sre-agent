@@ -399,5 +399,37 @@ Tool outputs:
                 },
                 groupName: "AKS");
         }
+
+        [Description(
+        @"Retrieve logs by a correlation ID. This tool can help to trace all logs related to a specific request.
+        Tool outputs:
+        - PreciseTimeStamp: the exact time the operation was logged,
+        - message: the content of the operation log,
+        - severityText: the message level (Information/Warning/Error),
+        - requestMethod: the HTTP method of the operation,
+        - requestPath: the path of the operation request,
+        - statusCode: the HTTP response code,
+        - exception: exception message,
+        - env_dt_traceId: unique identifier for tracing the complete lifecycle of a request"
+)]
+        public async Task<string> GetLogsByCorrelationId(
+    [Description("Azure region.")] string region,
+    [Description("Start time of the query.")] DateTime fromDate,
+    [Description("End time of the query.")] DateTime toDate,
+    [Description("Correlation ID to filter the operation logs. This parameter cannot be empty")] string correlationId)
+        {
+            if (string.IsNullOrEmpty(correlationId))
+            {
+                throw new ArgumentException("Correlation ID cannot be null or empty.", nameof(correlationId));
+            }
+
+            return await _kustoPlugin.ExecuteLocalFunctionAsync("GetLogsByCorrelationId", region,
+                new Dictionary<string, string>
+                {
+                    { "fromDate", fromDate.ToString() },
+                    { "toDate", toDate.ToString() },
+                    { "correlationId", correlationId }
+                });
+        }
     }
 }

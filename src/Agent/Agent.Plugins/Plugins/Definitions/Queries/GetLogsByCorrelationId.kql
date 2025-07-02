@@ -1,0 +1,19 @@
+let ST = datetime("##fromDate##");
+let ET = datetime("##toDate##");
+let correlationID = "##correlationId##";
+let trace_ids = ContainerAppsAdminEvents
+| where PreciseTimeStamp between (ST .. ET)
+| where correlationId =~ correlationID
+| distinct env_dt_traceId;
+ContainerAppsAdminEvents
+| where PreciseTimeStamp between (ST .. ET)
+| where env_dt_traceId in~ (trace_ids)
+| project
+   PreciseTimeStamp,
+   message,
+   severityText,
+   requestMethod,
+   requestPath,
+   statusCode,
+   exception,
+   env_dt_traceId 
