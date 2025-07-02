@@ -500,6 +500,12 @@ namespace Agent.Plugins
                     return $"[Validation Failed]: Unsupported subcommand '{subcommand}'. Supported write commands: apply, create, delete, patch, replace, scale, label, annotate, set, rollout";
             }
 
+            // Check for delete commands and return error with the command for manual execution
+            if (subcommand == "delete")
+            {
+                return $"Error: Delete operations are not allowed for safety reasons. Please manually execute this command: {command}";
+            }
+
             // For apply commands, ensure we have a -f flag or YAML content
             // please note 'create' don't need "-f", e.g. `kubectl create deployment my-deployment --image=my-image`
             if (subcommand == "apply")
@@ -510,16 +516,6 @@ namespace Agent.Plugins
                 if (!hasFile && !hasYaml)
                 {
                     return $"[Validation Failed]: '{subcommand}' command must include a file reference (-f flag) or YAML content.";
-                }
-            }
-
-            // For delete commands, ensure we have a specific resource type and name
-            if (subcommand == "delete")
-            {
-                var resourceSpecified = Regex.IsMatch(command, @"delete\s+(\w+/\w+|\w+\s+\w+)", RegexOptions.IgnoreCase);
-                if (!resourceSpecified)
-                {
-                    return "[Validation Failed]: Delete commands must specify a resource type and name to avoid accidental bulk deletions.";
                 }
             }
 
