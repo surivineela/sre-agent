@@ -417,6 +417,12 @@
       "value": "This will permanently delete the incident handler, which might affect how incidents are processed and also any custom handlers. Are you sure you want to delete?"
     }
   ],
+  "61e5yQ": [
+    {
+      "type": 0,
+      "value": "What didn't you like about the agent's response? Your feedback helps us make the agent even better."
+    }
+  ],
   "6ENgmY": [
     {
       "type": 0,
@@ -1451,6 +1457,12 @@
     {
       "type": 0,
       "value": "IcM connection added successfully"
+    }
+  ],
+  "P7MNl8": [
+    {
+      "type": 0,
+      "value": "Provide agent feedback"
     }
   ],
   "P9odAr": [
@@ -2769,6 +2781,12 @@
     {
       "type": 1,
       "value": "errorMessage"
+    }
+  ],
+  "omHElC": [
+    {
+      "type": 0,
+      "value": "Provide response feedback"
     }
   ],
   "p/xAmY": [

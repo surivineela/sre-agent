@@ -2471,6 +2471,7 @@ const ChatMessage = ({
                         isOpen={showFeedbackDialog}
                         setIsOpen={setShowFeedbackDialog}
                         threadId={threadId}
+                        isMessageFeedback={true}
                         clearSelectedFeedback={() => setSelectedFeedback(undefined)}
                         setHasSubmittedFeedback={setHasSubmittedFeedback}
                     />

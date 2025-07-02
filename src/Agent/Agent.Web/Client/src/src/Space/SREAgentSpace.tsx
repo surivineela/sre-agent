@@ -11,8 +11,9 @@ import { EnvironmentContext } from '../Common/AzPortalProxy/Providers/StartupInf
 import { AppInsightsClient } from '../Common/Clients/AppInsightsClient';
 import { IncidentManagementType } from '../Common/Contracts/Azure/SreAgent';
 import { ArmResourceDescriptor } from '../Common/Helpers/ResourceDescriptors';
-import { SreAgentResources, SreAgentTabResources } from '../Strings/SREAgentResources';
+import { SreAgentTabResources } from '../Strings/SREAgentResources';
 import Activities from './Activities/Activities.ReactView';
+import { FeedbackDialog } from './Components/FeedbackDialog';
 import { SreAgentContext } from './Contracts/Context';
 import Graph from './Graph/Graph';
 import IncidentManagement from './IncidentManagement/IncidentManagement';
@@ -43,7 +44,6 @@ const TabsListWrapper: FC = () => {
     const environmentContext = useContext(EnvironmentContext);
     const theme = useContext(ThemeContext);
     const sreAgentContext = useContext(SreAgentContext);
-    const { openBlade } = useContext(AzPortalContext);
 
     const {
         incidentManagement: { isIncidentManagementConnected },
@@ -52,6 +52,8 @@ const TabsListWrapper: FC = () => {
     const intl = useIntl();
     const location = useLocation();
     const navigate = useNavigate();
+
+    const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
 
     const selectedValue = useMemo(() => {
         if (location.pathname?.startsWith('/views/activities')) {
@@ -143,22 +145,8 @@ const TabsListWrapper: FC = () => {
     }, [setMode]);
 
     const onSendFeedback = useCallback(() => {
-        const featureName = 'SREAgent';
-
-        openBlade({
-            extension: 'HubsExtension',
-            detailBlade: 'InProductFeedbackBlade',
-            asContextBlade: true,
-            detailBladeInputs: {
-                bladeName: 'AgentFrameBlade',
-                cesQuestion: intl.formatMessage(SreAgentResources.sreAgentCESFeedbackQuestion),
-                cvaQuestion: intl.formatMessage(SreAgentResources.sreAgentCVAFeedbackQuestion),
-                extensionName: 'Microsoft_Azure_PaasServerless',
-                featureName: featureName,
-                surveyId: `${featureName}-${'AgentFrameBlade'}`,
-            },
-        });
-    }, [openBlade, intl]);
+        setIsFeedbackDialogOpen(true);
+    }, []);
 
     return (
         <div>
@@ -199,6 +187,7 @@ const TabsListWrapper: FC = () => {
                     {intl.formatMessage(SreAgentTabResources.feedback)}
                 </Button>
             </div>
+            <FeedbackDialog isOpen={isFeedbackDialogOpen} setIsOpen={setIsFeedbackDialogOpen} />
             <Outlet />
         </div>
     );

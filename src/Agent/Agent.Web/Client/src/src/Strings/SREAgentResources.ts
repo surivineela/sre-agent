@@ -796,8 +796,17 @@ export const GrafanaDashboardResources = defineMessages({
 });
 
 export const FeedbackResources = defineMessages({
+    provideAgentFeedback: { defaultMessage: 'Provide agent feedback', id: 'P7MNl8' },
+    provideResponseFeedback: { defaultMessage: 'Provide response feedback', id: 'omHElC' },
     submitFeedbackTitle: { defaultMessage: 'Submit feedback to Microsoft', id: '+FoBRs' },
-    feedbackPlaceholder: { defaultMessage: 'Give as much detail as you can, but do not include any personal information.', id: 'csu0rb' },
+    generalFeedbackPlaceholder: {
+        defaultMessage: 'Give as much detail as you can, but do not include any personal information.',
+        id: 'csu0rb',
+    },
+    threadFeedbackPlaceholder: {
+        defaultMessage: `What didn't you like about the agent's response? Your feedback helps us make the agent even better.`,
+        id: '61e5yQ',
+    },
     feedbackContactMe: { defaultMessage: "It's OK to contact me about my feedback.", id: 'E396gv' },
     feedbackPrivacyStatement: {
         defaultMessage: 'Data usage, customer rights, and privacy statement if needed. We got it covered.',
