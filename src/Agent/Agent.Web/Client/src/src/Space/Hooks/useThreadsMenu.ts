@@ -3,6 +3,7 @@ import { Ref, useCallback, useContext, useEffect, useImperativeHandle, useRef, u
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { ThreadClient, ThreadSeverity } from '../../Common/Clients/ThreadClient';
 import { Thread, ThreadSource } from '../../Common/Contracts/Azure/SreAgent';
+import { KnowledgeGraphBuildStatusContext } from '../../Common/Providers/KnowledgeGraphBuildStatusProvider';
 import { SelectedTimes } from '../Activities/TimeDropdown';
 import {
     getFilteredThreads,
@@ -18,6 +19,7 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadLi
     const [threads, setThreads] = useState<Thread[]>([]);
     const [isLoadingInitialThreads, setIsLoadingInitialThreads] = useState<boolean>(true);
 
+    const { hasChatPermissions } = useContext(KnowledgeGraphBuildStatusContext);
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const threadClient = ThreadClient.getInstance(sreAgentEndpoint);
 
@@ -219,6 +221,12 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadLi
 
     // Load initial threads when the component mounts or when threadsFilterOptions changes
     useEffect(() => {
+        if (!hasChatPermissions) {
+            setThreads([]);
+            setIsLoadingInitialThreads(false);
+            return;
+        }
+
         let isSubscribed = true;
 
         const { threadSearchText, threadSource, oldestThreadModifiedTimestamp, threadSeverity } = threadsFilterOptions;
@@ -270,10 +278,14 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadLi
         return () => {
             isSubscribed = false;
         };
-    }, [threadsFilterOptions]);
+    }, [threadsFilterOptions, hasChatPermissions]);
 
     // Poll new threads every 10 seconds
     useEffect(() => {
+        if (!hasChatPermissions) {
+            return;
+        }
+
         let isSubscribed = true;
         let pollNewThreadsTimeout: NodeJS.Timeout | undefined = undefined;
 
@@ -308,9 +320,10 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadLi
             isSubscribed = false;
             clearTimeout(pollNewThreadsTimeout);
         };
-    }, [threadsFilterOptions, isLoadingInitialThreads, threadPollingTriggerId]);
+    }, [threadsFilterOptions, isLoadingInitialThreads, threadPollingTriggerId, hasChatPermissions]);
 
     return {
+        hasChatPermissions,
         threads,
         isLoadingInitialThreads,
         loadMoreOldThreads,

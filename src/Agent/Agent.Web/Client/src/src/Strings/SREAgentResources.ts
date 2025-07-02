@@ -348,6 +348,11 @@ export const AccessControlResources = defineMessages({
 });
 
 export const ActivitiesResources = defineMessages({
+    insufficientChatPermissions: {
+        defaultMessage:
+            'Make sure you have Contributor or Owner access to the resource group where the agent is hosted. If you still have access issues, assign the role directly to your account instead of relying on group-based role assignments.',
+        id: 'CimbUb',
+    },
     createThreadButtonText: { defaultMessage: 'New chat thread', id: 'TkWiD5' },
     chatPivotHeader: { defaultMessage: 'Chat', id: 'WTrOy3' },
     actionsPivotHeader: { defaultMessage: 'Actions', id: 'wL7VAE' },

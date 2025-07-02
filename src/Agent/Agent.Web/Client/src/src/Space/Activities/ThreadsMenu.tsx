@@ -20,6 +20,7 @@ export const ThreadsMenu = forwardRef<ThreadListHandle, IThreadsMenuProps>(
         const { selectThread, deleteThread, threadPollingTriggerId, collapsed, setCollapsed } = props;
 
         const {
+            hasChatPermissions,
             threads,
             isLoadingInitialThreads,
             loadMoreOldThreads,
@@ -95,10 +96,11 @@ export const ThreadsMenu = forwardRef<ThreadListHandle, IThreadsMenuProps>(
                         icon={<AddRegular />}
                         onClick={() => selectThread(null)}
                         aria-label={intl.formatMessage(ActivitiesResources.createThreadButtonText)}
+                        disabled={!hasChatPermissions}
                     >
                         {collapsed ? null : intl.formatMessage(ActivitiesResources.createThreadButtonText)}
                     </Button>
-                    {!collapsed && (
+                    {!collapsed && hasChatPermissions && (
                         <SearchBox
                             style={searchBoxStyle}
                             placeholder={intl.formatMessage(SreAgentResources.search)}
@@ -106,7 +108,7 @@ export const ThreadsMenu = forwardRef<ThreadListHandle, IThreadsMenuProps>(
                         />
                     )}
                 </div>
-                {!collapsed && (
+                {!collapsed && hasChatPermissions && (
                     <RadioGroup
                         value={threadSource || ''}
                         onChange={(_e, data) => {
@@ -120,7 +122,7 @@ export const ThreadsMenu = forwardRef<ThreadListHandle, IThreadsMenuProps>(
                         <Radio value={ThreadSource.incident} label={intl.formatMessage(SreAgentResources.incidents)} />
                     </RadioGroup>
                 )}
-                {collapsed ? null : !threadSource ? (
+                {collapsed || !hasChatPermissions ? null : !threadSource ? (
                     <ActivitiesStatusBar
                         selectedTime={oldestThreadModifiedTimestamp}
                         setSelectedTime={setOldestThreadModifiedTimestamp}
@@ -139,7 +141,7 @@ export const ThreadsMenu = forwardRef<ThreadListHandle, IThreadsMenuProps>(
                         incidentMetrics={incidentMetrics}
                     />
                 )}
-                {!collapsed && (
+                {!collapsed && hasChatPermissions && (
                     <ThreadsList
                         ref={threadsListDivRef}
                         threads={threads}

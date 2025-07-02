@@ -1,6 +1,7 @@
 import { Card, Image, makeStyles, Text } from '@fluentui/react-components';
-import { useMemo } from 'react';
+import { useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
+import { KnowledgeGraphBuildStatusContext } from '../../Common/Providers/KnowledgeGraphBuildStatusProvider';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
 
 const useChatSuggestionStyles = makeStyles({
@@ -43,6 +44,8 @@ export const ChatSuggestions = (props: ChatSuggestionsProps) => {
     const intl = useIntl();
     const chatSuggestionsStyles = useChatSuggestionStyles();
 
+    const { hasChatPermissions } = useContext(KnowledgeGraphBuildStatusContext);
+
     const chatSuggestionStrings = useMemo<string[]>(
         () => [
             'What can you help me with?',
@@ -63,11 +66,12 @@ export const ChatSuggestions = (props: ChatSuggestionsProps) => {
             </div>
 
             <div className={chatSuggestionsStyles.cardContainer}>
-                {chatSuggestionStrings.map(suggestion => (
-                    <Card key={suggestion} onClick={() => sendMessage(suggestion)} className={chatSuggestionsStyles.card}>
-                        <Text size={200}>{suggestion}</Text>
-                    </Card>
-                ))}
+                {hasChatPermissions &&
+                    chatSuggestionStrings.map(suggestion => (
+                        <Card key={suggestion} onClick={() => sendMessage(suggestion)} className={chatSuggestionsStyles.card}>
+                            <Text size={200}>{suggestion}</Text>
+                        </Card>
+                    ))}
             </div>
         </div>
     );

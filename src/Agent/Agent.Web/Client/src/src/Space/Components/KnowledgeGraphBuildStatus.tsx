@@ -19,13 +19,13 @@ const useKnowledgeGraphBuildStatusStyles = makeStyles({
 
 const KnowledgeGraphBuildStatus = () => {
     const { root } = useKnowledgeGraphBuildStatusStyles();
-    const { isKnowledgeGraphBuildCompleted } = useContext(KnowledgeGraphBuildStatusContext);
+    const { isKnowledgeGraphBuildCompleted, hasChatPermissions } = useContext(KnowledgeGraphBuildStatusContext);
     const intl = useIntl();
 
-    return isKnowledgeGraphBuildCompleted ? null : (
+    return isKnowledgeGraphBuildCompleted && hasChatPermissions ? null : (
         <div className={root}>
-            <Spinner size={'extra-tiny'} />
-            <Text block={true}>{intl.formatMessage(ActivitiesResources.knowledgeGraphBuildStatus)}</Text>
+            {hasChatPermissions && <Spinner size={'extra-tiny'} />}
+            <Text block={true}>{hasChatPermissions && intl.formatMessage(ActivitiesResources.knowledgeGraphBuildStatus)}</Text>
         </div>
     );
 };

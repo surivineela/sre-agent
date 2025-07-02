@@ -1,8 +1,11 @@
 import { CopilotChat, CopilotProvider } from '@fluentui-copilot/react-copilot';
 import { mergeClasses } from '@fluentui/react-components';
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useContext, useMemo } from 'react';
+import { useIntl } from 'react-intl';
 import { Thread, ThreadSource } from '../../Common/Contracts/Azure/SreAgent';
+import { KnowledgeGraphBuildStatusContext } from '../../Common/Providers/KnowledgeGraphBuildStatusProvider';
 import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
+import { ActivitiesResources } from '../../Strings/SREAgentResources';
 import ChatBoxFooter from '../Components/ChatBoxFooter';
 import ChatLoading from '../Components/ChatLoading';
 import ChatMessage from '../Components/ChatMessage';
@@ -22,6 +25,9 @@ export const ChatBox = ({
     thread,
     onThreadUpdate,
 }: IChatBoxProps) => {
+    const { hasChatPermissions } = useContext(KnowledgeGraphBuildStatusContext);
+    const intl = useIntl();
+
     const {
         messages,
         temporaryUserMessage,
@@ -54,6 +60,30 @@ export const ChatBox = ({
 
     const { scrollable } = useScrollableComponentStyles();
 
+    const insufficientPermissionsMessage = useMemo(() => {
+        if (hasChatPermissions) {
+            return null;
+        }
+
+        return {
+            id: 'insufficient-permissions',
+            text: intl.formatMessage(ActivitiesResources.insufficientChatPermissions),
+            author: {
+                role: 'SREAgent' as const,
+                displayName: 'Azure SRE Agent',
+                userId: 'system',
+            },
+            timeStamp: new Date().toISOString(),
+        };
+    }, [hasChatPermissions, intl]);
+
+    const displayMessages = useMemo(() => {
+        if (insufficientPermissionsMessage) {
+            return [...messages, insufficientPermissionsMessage];
+        }
+        return messages;
+    }, [messages, insufficientPermissionsMessage]);
+
     return (
         <div className={ChatBoxStyles.chatBox}>
             <CopilotProvider mode="canvas" className={ChatBoxStyles.chatBoxInner}>
@@ -69,26 +99,26 @@ export const ChatBox = ({
                         {isWelcomeThread && <AzureSREWelcome threadId={currentThreadId} addThread={addThread} />}
 
                         {/* Render the remaining chat history */}
-                        {messages.map((message, index) => (
+                        {displayMessages.map((message, index) => (
                             <ChatMessage
                                 key={index}
                                 message={message}
-                                previousMessage={messages[index - 1]}
-                                nextMessage={messages[index + 1]}
-                                getGroupedMessages={() => getGroupedMessages(messages, index)}
+                                previousMessage={displayMessages[index - 1]}
+                                nextMessage={displayMessages[index + 1]}
+                                getGroupedMessages={() => getGroupedMessages(displayMessages, index)}
                                 threadId={currentThreadId || ''}
                             />
                         ))}
 
-                        {temporaryUserMessage && (
+                        {hasChatPermissions && temporaryUserMessage && (
                             <ChatMessage
                                 message={temporaryUserMessage}
-                                previousMessage={messages[messages.length - 1]}
+                                previousMessage={displayMessages[displayMessages.length - 1]}
                                 threadId={currentThreadId || ''}
                             />
                         )}
 
-                        {agentTypingMessage && (
+                        {hasChatPermissions && agentTypingMessage && (
                             <ChatMessage
                                 message={agentTypingMessage}
                                 isTyping
@@ -101,8 +131,8 @@ export const ChatBox = ({
 
                 <ChatBoxFooter
                     sendMessage={sendMessage}
-                    disableInput={disableInput}
-                    isNewMessageButtonVisible={showNewMessageButton}
+                    disableInput={disableInput || !hasChatPermissions}
+                    isNewMessageButtonVisible={showNewMessageButton && hasChatPermissions}
                     onClickNewMessageButton={onClickNewMessageButton}
                     prompts={prompts}
                     messagePromptsUsed={messagePromptsUsed}

@@ -15,6 +15,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { useParams } from 'react-router-dom';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
+import { KnowledgeGraphBuildStatusContext } from '../../Common/Providers/KnowledgeGraphBuildStatusProvider';
 import { GraphResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { ResourceExtended, Subscription } from '../Contracts/Graph';
 import { useResourceSelectorStyles } from '../Styles/Graph.styles';
@@ -28,6 +29,7 @@ interface IResourceSelectorProps {
 const ResourceSelector = ({ onAppGroupUpdate }: IResourceSelectorProps) => {
     const { groupId: initialGroupId } = useParams();
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
+    const { hasChatPermissions } = useContext(KnowledgeGraphBuildStatusContext);
     const intl = useIntl();
 
     const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
@@ -114,6 +116,15 @@ const ResourceSelector = ({ onAppGroupUpdate }: IResourceSelectorProps) => {
     };
 
     useEffect(() => {
+        if (!hasChatPermissions) {
+            setSubscriptions([]);
+            setAppGroups([]);
+            setFilteredAppGroups([]);
+            setIsSubscriptionLoading(false);
+            setIsAppGroupLoading(false);
+            return;
+        }
+
         let isSubscribed = true;
 
         const init = async () => {
@@ -161,7 +172,7 @@ const ResourceSelector = ({ onAppGroupUpdate }: IResourceSelectorProps) => {
         return () => {
             isSubscribed = false;
         };
-    }, []);
+    }, [hasChatPermissions]);
 
     useEffect(() => {
         setFilteredAppGroups([...appGroups]);
@@ -190,6 +201,7 @@ const ResourceSelector = ({ onAppGroupUpdate }: IResourceSelectorProps) => {
                         value={selectedSubscription?.name}
                         selectedOptions={selectedSubscription ? [selectedSubscription.id] : []}
                         onOptionSelect={onSelectSubscription}
+                        disabled={!hasChatPermissions}
                     >
                         {subscriptions.map(subscription => {
                             return (
@@ -207,6 +219,7 @@ const ResourceSelector = ({ onAppGroupUpdate }: IResourceSelectorProps) => {
                     value={selectedRscType === allKey ? intl.formatMessage(SreAgentResources.all) : selectedRscType}
                     selectedOptions={selectedRscType ? [selectedRscType] : []}
                     onOptionSelect={onSelectRscType}
+                    disabled={!hasChatPermissions}
                 >
                     {resourceTypeFilterOptions.map(rscTypeOption => {
                         return (
@@ -226,6 +239,7 @@ const ResourceSelector = ({ onAppGroupUpdate }: IResourceSelectorProps) => {
                         value={selectedAppGroup?.name}
                         selectedOptions={selectedAppGroup ? [selectedAppGroup.id] : []}
                         onOptionSelect={onSelectAppGroup}
+                        disabled={!hasChatPermissions}
                     >
                         {filteredAppGroups.map(appGroup => {
                             return (

@@ -801,6 +801,12 @@
       "value": "Select resource groups to monitor"
     }
   ],
+  "CimbUb": [
+    {
+      "type": 0,
+      "value": "Make sure you have Contributor or Owner access to the resource group where the agent is hosted. If you still have access issues, assign the role directly to your account instead of relying on group-based role assignments."
+    }
+  ],
   "CvWvf+": [
     {
       "type": 0,

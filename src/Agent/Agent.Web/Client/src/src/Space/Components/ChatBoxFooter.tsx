@@ -125,6 +125,7 @@ const ChatBoxFooter = ({
                             }
                         }
                     }}
+                    disabled={disableInput}
                 />
                 <div className={footer}>
                     {threadId && (
@@ -137,6 +138,7 @@ const ChatBoxFooter = ({
                                 appearance="outline"
                                 icon={<Lightbulb16Regular />}
                                 onClick={() => setOpen(!open)}
+                                disabled={disableInput}
                             >
                                 {intl.formatMessage(PromptResources.promptLibrary)}
                             </Button>

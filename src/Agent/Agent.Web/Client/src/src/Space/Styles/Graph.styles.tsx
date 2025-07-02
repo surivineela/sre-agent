@@ -22,6 +22,11 @@ export const useGraphStyles = makeStyles({
         left: '50%',
         top: '50%',
     },
+    messageBar: {
+        marginTop: '10px',
+        marginLeft: '10px',
+        marginRight: '10px',
+    },
 });
 
 export const useGraphNodeStyles = makeStyles({

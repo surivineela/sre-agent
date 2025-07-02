@@ -2,48 +2,80 @@ import axios from 'axios';
 import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 import { AzPortalContext } from '../AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../AzPortalProxy/Providers/StartupInfoContext';
+import { getErrorMessage } from '../Clients/ArmClient';
 import { KnowledgeGraphBuildStatus } from '../Contracts/Azure/SreAgent';
 import { getAgentHeaders } from '../Helpers/headers';
 
 interface KnowledgeGraphBuildStatusContextProps {
     isKnowledgeGraphBuildCompleted: boolean;
+    hasChatPermissions: boolean;
 }
 
 export const KnowledgeGraphBuildStatusContext = createContext<KnowledgeGraphBuildStatusContextProps>({
     isKnowledgeGraphBuildCompleted: true,
+    hasChatPermissions: true,
 });
 
 export const KnowledgeGraphBuildStatusProvider = ({ children }: { children?: ReactNode }) => {
     const [isKnowledgeGraphBuildCompleted, setIsKnowledgeGraphBuildCompleted] = useState(true);
+    const [hasChatPermissions, setHasChatPermissions] = useState(true);
 
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const proxy = useContext(AzPortalContext);
 
-    const getProgress = useCallback(async (): Promise<KnowledgeGraphBuildStatus | undefined> => {
-        try {
-            const response = await axios.get(`${sreAgentEndpoint}/api/v1/graph/progress`, {
-                headers: getAgentHeaders(),
-            });
-            return response.data;
-        } catch (error) {
-            proxy.log({
-                action: 'GetKnowledgeGraphBuildProgress',
-                actionModifier: 'failed',
-                data: error?.toString() || 'Failed to get knowledge graph build progress',
-            });
-            return undefined;
+    const getProgress = useCallback(async (): Promise<{ data?: KnowledgeGraphBuildStatus; permissionsError: boolean }> => {
+        const maxRetries = 5;
+        let consecutivePermissionErrors = 0;
+
+        for (let attempt = 0; attempt < maxRetries; attempt++) {
+            try {
+                const response = await axios.get(`${sreAgentEndpoint}/api/v1/graph/progress`, {
+                    headers: getAgentHeaders(),
+                });
+
+                return { data: response.data, permissionsError: false };
+            } catch (error) {
+                const permissionsError = axios.isAxiosError(error) && error.response?.status === 403;
+                const errorMessage = permissionsError
+                    ? 'Permissions error while fetching knowledge graph build progress'
+                    : 'Error fetching knowledge graph build progress';
+
+                proxy.log({
+                    action: 'GetKnowledgeGraphBuildProgress',
+                    actionModifier: 'failed',
+                    data: getErrorMessage(error) || errorMessage,
+                });
+
+                if (permissionsError) {
+                    consecutivePermissionErrors++;
+
+                    if (consecutivePermissionErrors >= maxRetries) {
+                        setHasChatPermissions(false);
+                        setIsKnowledgeGraphBuildCompleted(true);
+                        return { data: undefined, permissionsError: true };
+                    }
+                } else {
+                    return { data: undefined, permissionsError: false };
+                }
+            }
         }
-    }, [sreAgentEndpoint, proxy.log]);
+
+        return { data: undefined, permissionsError: true };
+    }, [sreAgentEndpoint, proxy]);
 
     useEffect(() => {
         let isSubscribed = true;
         let timeoutId: NodeJS.Timeout | null = null;
 
         const pollProgress = async () => {
-            const progress = await getProgress();
+            if (!hasChatPermissions) {
+                return;
+            }
 
-            if (isSubscribed) {
-                const isCompleted = progress?.hasCompletedInitialGraphCrawl ?? false;
+            const result = await getProgress();
+
+            if (isSubscribed && !result.permissionsError) {
+                const isCompleted = result.data?.hasCompletedInitialGraphCrawl ?? false;
                 setIsKnowledgeGraphBuildCompleted(isCompleted);
 
                 const interval = isCompleted ? 20000 : 5000;
@@ -63,10 +95,10 @@ export const KnowledgeGraphBuildStatusProvider = ({ children }: { children?: Rea
                 clearTimeout(timeoutId);
             }
         };
-    }, [getProgress]);
+    }, [getProgress, hasChatPermissions]);
 
     return (
-        <KnowledgeGraphBuildStatusContext.Provider value={{ isKnowledgeGraphBuildCompleted }}>
+        <KnowledgeGraphBuildStatusContext.Provider value={{ isKnowledgeGraphBuildCompleted, hasChatPermissions }}>
             {children}
         </KnowledgeGraphBuildStatusContext.Provider>
     );
