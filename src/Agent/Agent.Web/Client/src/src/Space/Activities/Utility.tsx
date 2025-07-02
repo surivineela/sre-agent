@@ -194,14 +194,15 @@ export const convertStreamingMessagesToChatMessages = (
     streamingMessages: StreamingMessage[],
     userId: string,
     displayName: string
-): { messages: ChatMessage[]; lastChatMessageFinished: boolean } => {
+): { messages: ChatMessage[]; lastChatMessageFinished: boolean; latestToolCall: string | null } => {
     if (ignoreExistingStreamingMessages || !streamingMessages || streamingMessages.length === 0) {
-        return { messages: [], lastChatMessageFinished: false };
+        return { messages: [], lastChatMessageFinished: false, latestToolCall: null };
     }
 
     const chatMessages: ChatMessage[] = [];
     let currentChatMessage: ChatMessage | undefined;
     let lastChatMessageFinished: boolean = false;
+    let latestToolCall: string | null = null;
 
     const isValidStreamingMessage = (streamingMessage: StreamingMessage) => {
         return streamingMessage && streamingMessage.contents && streamingMessage.contents.length > 0 && streamingMessage.contents[0].text;
@@ -216,6 +217,7 @@ export const convertStreamingMessagesToChatMessages = (
     for (const streamingMessage of streamingMessages) {
         const metadata = getMessageMetaDataFromChatMessage(streamingMessage, userId, displayName);
         const chatMessageContent = isValidStreamingMessage(streamingMessage) ? processChatMessageContents([], streamingMessage) : undefined;
+        const toolCallText = getToolCallText(streamingMessage);
         // If the current chat message has the same id with the current streaming message, then push the streaming message content to the current chat message.
         if (currentChatMessage && currentChatMessage.id === metadata.id) {
             if (chatMessageContent) {
@@ -224,7 +226,7 @@ export const convertStreamingMessagesToChatMessages = (
             if (!currentChatMessage.timeStamp && metadata.timeStamp) {
                 currentChatMessage.timeStamp = metadata.timeStamp;
             }
-            // We treat the current chat message as completed as long as one of its streaming message is finished;
+            // We treat the current chat message as completed as long as one of its streaming message is finished
             lastChatMessageFinished = lastChatMessageFinished || isFinalStreamingMessage(streamingMessage);
         }
         // If the current chat message is undefined or has a different id, then push the current chat message to chatMessages array and create a new current chat message and the finish status based on the streaming message
@@ -236,12 +238,14 @@ export const convertStreamingMessagesToChatMessages = (
             };
             lastChatMessageFinished = isFinalStreamingMessage(streamingMessage);
         }
+        // update the latest tool call text
+        latestToolCall = toolCallText;
     }
 
     // When the loop ends, if the current chat message is defined and has contents, then push it to the chatMessages array
     pushChatMessageIfApplicable(currentChatMessage);
 
-    return { messages: chatMessages, lastChatMessageFinished };
+    return { messages: chatMessages, lastChatMessageFinished, latestToolCall };
 };
 
 export const getMessageMetaDataFromChatMessage = (

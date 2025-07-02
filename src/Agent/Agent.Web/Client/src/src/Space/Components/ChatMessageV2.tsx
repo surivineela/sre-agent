@@ -148,7 +148,7 @@ const ChatMessageV2 = ({
     threadId,
     isStreamingMessage,
     toolCallText,
-    isStreamingEmpty,
+    isWaitingForStreamingMessages,
 }: IChatMessageV2Props) => {
     const chatStyles = useChatBoxStyles();
     const intl = useIntl();
@@ -188,9 +188,9 @@ const ChatMessageV2 = ({
 
     const Loading = () => {
         return (
-            isStreamingMessage &&
             isTyping &&
-            isStreamingEmpty && (
+            !toolCallText &&
+            isWaitingForStreamingMessages && (
                 <div style={{ margin: '5px 5px 0px 5px' }}>
                     <AgentMessageLoadingComponent />
                 </div>

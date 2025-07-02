@@ -28,10 +28,10 @@ export const ChatBoxV2 = ({
         chatMessagesFromExistingStreamingMessages,
         newMessages,
         isAgentTyping,
-        isStreamingEmpty,
         streamingMessage,
         toolCallText,
         isCancellingStreaming,
+        isWaitingForStreamingMessages,
         isLoading,
         sendMessage,
         isNewAndCleanThread,
@@ -119,7 +119,7 @@ export const ChatBoxV2 = ({
                                     isTyping={isAgentTyping}
                                     threadId={currentThreadId || ''}
                                     toolCallText={toolCallText}
-                                    isStreamingEmpty={isStreamingEmpty}
+                                    isWaitingForStreamingMessages={isWaitingForStreamingMessages}
                                     previousMessage={
                                         newMessages[newMessages.length - 1] ||
                                         chatMessagesFromExistingStreamingMessages[chatMessagesFromExistingStreamingMessages.length - 1] ||
@@ -138,7 +138,7 @@ export const ChatBoxV2 = ({
                         prompts={prompts}
                         messagePromptsUsed={messagePromptsUsed}
                         cancelStreaming={cancelStreaming}
-                        isTyping={isAgentTyping}
+                        isTyping={!!isAgentTyping}
                         isCancellingStreaming={isCancellingStreaming}
                         threadId={threadId}
                         currentAgentMode={thread?.agentMode}

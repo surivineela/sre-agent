@@ -84,8 +84,8 @@ export const useChatBoxV2 = (
     const [streamingMessage, setStreamingMessage] = useState<ChatMessage | null>(null);
     const [isCancellingStreaming, setIsCancellingStreaming] = useState<boolean>(false);
     const [toolCallText, setToolCallText] = useState<string | null>(null);
-    const [isAgentTyping, setIsAgentTyping] = useState<boolean>(false);
-    const [isStreamingEmpty, setIsStreamingEmpty] = useState<boolean>(true);
+    const [isAgentTyping, setIsAgentTyping] = useState<boolean>();
+    const [isWaitingForStreamingMessages, setIsWaitingForStreamingMessages] = useState<boolean>();
 
     const [downButtonState, setDownButtonState] = useState<{ visible: boolean; flash: boolean }>({ visible: false, flash: false });
 
@@ -130,45 +130,49 @@ export const useChatBoxV2 = (
 
     // Handling existing streaming messages when landing on the thread chat box
     useEffect(() => {
-        const { messages, lastChatMessageFinished } = convertStreamingMessagesToChatMessages(
+        const { messages, lastChatMessageFinished, latestToolCall } = convertStreamingMessagesToChatMessages(
             ignoreExistingStreamingMessages,
             existingStreamingMessages,
             userId,
             displayName
         );
+
         if (messages.length > 0) {
             const isLastChatMessageAgentMessage = isAgentMessage(messages[messages.length - 1]);
             if (isLastChatMessageAgentMessage && lastChatMessageFinished) {
                 setChatMessagesFromExistingStreamingMessages(messages);
             } else {
-                // If the last message is a user message, that means there are pending streaming messages. In this case, we create an empty streaming message and set isAgentTyping to true
+                // If the last message is a user message, that means there are pending streaming messages. In this case, we create an empty streaming message
                 if (!isLastChatMessageAgentMessage) {
                     setChatMessagesFromExistingStreamingMessages(messages);
                     setStreamingMessage(prev => {
                         // in case the latest streaming message is being handled before the existing streaming messages are loaded, we ignore creating a default streaming message
                         return prev ? prev : composeDefaultStreamingMessage();
                     });
-                    setIsAgentTyping(true);
                 }
-                // If the last message is an agent message, and not finished, we treat the last message as the streaming message and set isAgentTyping to true
+                // If the last message is an agent message, and not finished, we treat the last message as the streaming message, set isAgentTyping to true and set latest tool call text if any
                 else {
                     setChatMessagesFromExistingStreamingMessages(messages.slice(0, -1));
-                    const currentStreamingMessage = messages[messages.length - 1];
+                    const currentExistingStreamingMessage = messages[messages.length - 1];
                     setStreamingMessage(prev => {
                         if (prev) {
                             // In case the latest streaming message is being handled before the existing streaming messages are loaded, we merge the contents
                             return {
                                 ...prev,
-                                id: prev.id || currentStreamingMessage.id,
-                                timeStamp: prev.timeStamp || currentStreamingMessage.timeStamp,
-                                contents: [...currentStreamingMessage.contents, ...prev.contents],
+                                id: prev.id || currentExistingStreamingMessage.id,
+                                timeStamp: prev.timeStamp || currentExistingStreamingMessage.timeStamp,
+                                contents: [...currentExistingStreamingMessage.contents, ...prev.contents],
                             };
                         } else {
-                            return { ...currentStreamingMessage };
+                            return { ...currentExistingStreamingMessage };
                         }
                     });
-                    setIsAgentTyping(true);
+                    // Set toolCallText if it has not been set yet
+                    setToolCallText(prev => prev ?? latestToolCall);
                 }
+                // Set isAgentTyping and isWaitingForStreamingMessages to true if they have not been set yet
+                setIsAgentTyping(prev => (prev === undefined ? true : prev));
+                setIsWaitingForStreamingMessages(prev => (prev === undefined ? true : prev));
             }
         }
     }, [existingStreamingMessages, ignoreExistingStreamingMessages, userId, displayName]);
@@ -201,7 +205,7 @@ export const useChatBoxV2 = (
         }
 
         const isAtBottom = isChatAtBottom();
-        setDownButtonState({ visible: !isAtBottom, flash: isAgentTyping });
+        setDownButtonState({ visible: !isAtBottom, flash: !!isAgentTyping });
     }, 300);
 
     const onScroll = () => {
@@ -218,11 +222,14 @@ export const useChatBoxV2 = (
 
     const finishStreaming = () => {
         setIsAgentTyping(false);
-        setIsCancellingStreaming(false);
+        setIsWaitingForStreamingMessages(false);
         setToolCallText(null);
+        setIsCancellingStreaming(false);
+
         messageChunkQueue.current = [];
         isTypingChars.current = false;
         typingCharIndex.current = 0;
+
         clearTimeout(typingCharsTimeout.current);
     };
 
@@ -277,9 +284,11 @@ export const useChatBoxV2 = (
             messagesToAdd.push(userMessage);
 
             setNewMessages(prev => [...prev, ...messagesToAdd]);
+
             setStreamingMessage(composeDefaultStreamingMessage());
             setIsAgentTyping(true);
-            setIsStreamingEmpty(true);
+            setIsWaitingForStreamingMessages(true);
+            setToolCallText(null);
 
             try {
                 const messageRequest: MessageCreateRequest = {
@@ -323,6 +332,7 @@ export const useChatBoxV2 = (
         const handleMessageTyping = () => {
             if (messageChunkQueue.current.length === 0) {
                 isTypingChars.current = false;
+                setIsWaitingForStreamingMessages(true);
                 return;
             }
 
@@ -354,9 +364,8 @@ export const useChatBoxV2 = (
                 }
                 handleCompletedMessageChunk(currentMessageChunk);
             } else {
-                setIsStreamingEmpty(false);
-
                 setToolCallText(isCancellingStreamingRef.current ? null : currentToolCallText);
+                setIsWaitingForStreamingMessages(false);
 
                 if (currentMessageText && !isCancellingStreamingRef.current) {
                     if (isDefaultStreamingMessageType(currentMessageChunk)) {
@@ -540,7 +549,7 @@ export const useChatBoxV2 = (
     useEffect(() => {
         if (streamingMessage && !isChatMessageEmpty(streamingMessage)) {
             if (!isChatAtBottom()) {
-                setDownButtonState({ visible: true, flash: isAgentTyping });
+                setDownButtonState({ visible: true, flash: !!isAgentTyping });
             } else {
                 setDownButtonState({ visible: false, flash: false });
                 scrollToBottom(true);
@@ -575,7 +584,7 @@ export const useChatBoxV2 = (
         newMessages,
         isLoading,
         isAgentTyping,
-        isStreamingEmpty,
+        isWaitingForStreamingMessages,
         streamingMessage,
         toolCallText,
         isCancellingStreaming,
