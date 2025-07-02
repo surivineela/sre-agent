@@ -26,11 +26,11 @@ public class AgentMemoryClient(ILogger<AgentMemoryClient> logger,
                                AgentMemorySettings agentMemorySettings,
                                OpenAISettings openAISettings) : IAgentMemoryClient
 {
-    private readonly string blobContainerName = AgentNameHelper.GetCustomerUploadedDocumentBlobContainerName(hostEnvironment.IsProduction());
-    private readonly string aiSearchDataSourceName = AgentNameHelper.GetCustomerUploadedDocumentAISearchDatasourceName(hostEnvironment.IsProduction());
-    private readonly string aiSearchIndexName = AgentNameHelper.GetCustomerUploadedDocumentIndexName(hostEnvironment.IsProduction());
-    private readonly string aiSearchIndexerName = AgentNameHelper.GetCustomerUploadedDocumentIndexerName(hostEnvironment.IsProduction());
-    private readonly string aiSearchSkillsetName = AgentNameHelper.GetCustomerUploadedDocumentSkillSetName(hostEnvironment.IsProduction());
+    private readonly string blobContainerName = agentMemorySettings.BlobStorageContainerName;
+    private readonly string aiSearchDataSourceName = agentMemorySettings.AzureAISearchDataSourceName;
+    private readonly string aiSearchIndexName = agentMemorySettings.AzureAISearchIndexName;
+    private readonly string aiSearchIndexerName = agentMemorySettings.AzureAISearchIndexerName;
+    private readonly string aiSearchSkillsetName = agentMemorySettings.AzureAISearchSkillSetName;
     private const string semanticSearchConfig = "semanticConfig";
     // Maximum number of results to return in a search query
     private const uint maxK = 100;
