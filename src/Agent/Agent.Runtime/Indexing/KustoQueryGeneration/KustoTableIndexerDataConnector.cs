@@ -67,9 +67,9 @@ namespace Agent.Runtime.Indexing.KustoQueryGeneration
         {
             _dataConnectorSettings = settings ?? throw new ArgumentNullException(nameof(settings));
 
-            _logger.LogInternalInformation($"Using managed identity resource ID {settings.IdentityResourceId} for Kusto summarizer.");
+            _logger.LogInternalInformation($"Using managed identity resource ID {settings.Identity} for Kusto summarizer.");
 
-            KustoSummarizer = new KustoTableSummarizer(_chatClient, new Uri(settings.DataSource), settings.IdentityResourceId, _loggerFactory);
+            KustoSummarizer = new KustoTableSummarizer(_chatClient, new Uri(settings.DataSource), settings.Identity, _loggerFactory);
 
             return Task.CompletedTask;
         }

@@ -46,7 +46,7 @@ public class DataConnectorService : BackgroundService
     private async Task RunDataConnectorAsync(DataConnectorInstance instance, CancellationToken stoppingToken)
     {
         string implementationTypeName = instance.DataConnector.GetType().Name;
-        _logger.LogInternalInformation("Initializing data connector: {DataConnectorName}, {DataConnectorType}, {ImplementationType}", instance.Settings.DataConnectorName, instance.Settings.DataConnectorType, implementationTypeName);
+        _logger.LogInternalInformation("Initializing data connector: {Name}, {DataConnectorType}, {ImplementationType}", instance.Settings.Name, instance.Settings.DataConnectorType, implementationTypeName);
 
         await instance.DataConnector.InitAsync(instance.Settings, stoppingToken);
 
@@ -54,7 +54,7 @@ public class DataConnectorService : BackgroundService
         {
             try
             {
-                _logger.LogInternalInformation("Running data connector: {DataConnectorName}, {DataConnectorType}, {ImplementationType}", instance.Settings.DataConnectorName, instance.Settings.DataConnectorType, implementationTypeName);
+                _logger.LogInternalInformation("Running data connector: {Name}, {DataConnectorType}, {ImplementationType}", instance.Settings.Name, instance.Settings.DataConnectorType, implementationTypeName);
 
                 await instance.DataConnector.RunAsync(stoppingToken);
 
@@ -66,16 +66,16 @@ public class DataConnectorService : BackgroundService
 
                 await Task.Delay(interval, stoppingToken);
 
-                _logger.LogInternalInformation("Data connector iteration completed successfully: {DataConnectorName}, {DataConnectorType}, {ImplementationType}", instance.Settings.DataConnectorName, instance.Settings.DataConnectorType, implementationTypeName);
+                _logger.LogInternalInformation("Data connector iteration completed successfully: {Name}, {DataConnectorType}, {ImplementationType}", instance.Settings.Name, instance.Settings.DataConnectorType, implementationTypeName);
             }
             catch (OperationCanceledException ex) when (ex.CancellationToken == stoppingToken)
             {
-                _logger.LogInternalInformation("Data connector  {DataConnectorName}, {DataConnectorType}, {ImplementationType}", instance.Settings.DataConnectorName, instance.Settings.DataConnectorType, implementationTypeName);
+                _logger.LogInternalInformation("Data connector  {Name}, {DataConnectorType}, {ImplementationType}", instance.Settings.Name, instance.Settings.DataConnectorType, implementationTypeName);
                 return;
             }
             catch (Exception ex)
             {
-                _logger.LogInternalError(ex, "Error during data connector iteration: {Message}, {DataConnectorName}, {DataConnectorType}, {ImplementationType}", ex.Message, instance.Settings.DataConnectorName, instance.Settings.DataConnectorType, implementationTypeName);
+                _logger.LogInternalError(ex, "Error during data connector iteration: {Message}, {Name}, {DataConnectorType}, {ImplementationType}", ex.Message, instance.Settings.Name, instance.Settings.DataConnectorType, implementationTypeName);
             }
         }
     }

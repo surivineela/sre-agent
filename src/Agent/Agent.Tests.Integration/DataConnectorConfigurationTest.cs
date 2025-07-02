@@ -58,7 +58,7 @@ public class DataConnectorConfigurationTest
             // Find the corresponding data connector instance for this setting
             KeyValuePair<IDataConnector, DataConnectorSettings?> matchingConnector = Assert.Single(
                 verifier.DataConnectors,
-                dc => dc.Value?.DataConnectorName == connectorSetting.DataConnectorName);
+                dc => dc.Value?.Name == connectorSetting.Name);
 
             Assert.Equal(matchingConnector.Key.GetType().GetCustomAttribute<DataConnectorAttribute>()?.Type, connectorSetting.DataConnectorType, StringComparer.OrdinalIgnoreCase);
         }
@@ -68,8 +68,8 @@ public class DataConnectorConfigurationTest
         foreach (var connector in verifier.DataConnectors)
         {
             Assert.NotNull(connector.Value);
-            Assert.True(usedSettingNames.Add(connector.Value.DataConnectorName), 
-                $"Multiple connector instances are using the same settings for {connector.Value.DataConnectorName}");
+            Assert.True(usedSettingNames.Add(connector.Value.Name),
+                $"Multiple connector instances are using the same settings for {connector.Value.Name}");
         }
     }
 
@@ -109,10 +109,10 @@ public class DataConnectorConfigurationTest
                 {
                     "DataConnectors": [
                         {
-                            "DataConnectorName": "test1",
+                            "Name": "test1",
                             "DataConnectorType": "TestConnector1",
                             "DataSource": "whatever",
-                            "IdentityResourceId": ""
+                            "Identity": ""
                         }
                     ]
                 }
@@ -129,16 +129,16 @@ public class DataConnectorConfigurationTest
                 {
                     "DataConnectors": [
                         {
-                            "DataConnectorName": "test1",
+                            "Name": "test1",
                             "DataConnectorType": "TestConnector1",
                             "DataSource": "whatever",
-                            "IdentityResourceId": ""
+                            "Identity": ""
                         },
                         {
-                            "DataConnectorName": "test2",
+                            "Name": "test2",
                             "DataConnectorType": "TestConnector2",
                             "DataSource": "whatever",
-                            "IdentityResourceId": ""
+                            "Identity": ""
                         }
                     ]
                 }
@@ -146,7 +146,7 @@ public class DataConnectorConfigurationTest
         }
         """];
 
-        yield return 
+        yield return
         ["""
         {
             "AppSettings" :
@@ -155,22 +155,22 @@ public class DataConnectorConfigurationTest
                 {
                     "DataConnectors": [
                         {
-                            "DataConnectorName": "test1-a",
+                            "Name": "test1-a",
                             "DataConnectorType": "TestConnector1",
                             "DataSource": "whatever",
-                            "IdentityResourceId": ""
+                            "Identity": ""
                         },
                         {
-                            "DataConnectorName": "test1-b",
+                            "Name": "test1-b",
                             "DataConnectorType": "TestConnector1",
                             "DataSource": "whatever",
-                            "IdentityResourceId": ""
+                            "Identity": ""
                         },
                         {
-                            "DataConnectorName": "test2",
+                            "Name": "test2",
                             "DataConnectorType": "TestConnector2",
                             "DataSource": "whatever",
-                            "IdentityResourceId": ""
+                            "Identity": ""
                         }
                     ]
                 }

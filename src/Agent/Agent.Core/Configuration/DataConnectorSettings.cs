@@ -12,7 +12,7 @@ namespace Agent.Core.Configuration
         /// Each data connector instance must have a unique name.
         /// </summary>
         [Required]
-        public string DataConnectorName { get; init; } = string.Empty;
+        public string Name { get; init; } = string.Empty;
 
         /// <summary>
         /// The type of the data connector, which should match the DataConnectorAttribute on the implementation class.
@@ -27,9 +27,9 @@ namespace Agent.Core.Configuration
         public string DataSource { get; init; } = string.Empty;
 
         /// <summary>
-        /// The resource ID of the managed identity to use for authentication. 
+        /// The resource ID of the managed identity to use for authentication.
         /// </summary>
-        public string IdentityResourceId { get; init; } = string.Empty;
+        public string Identity { get; init; } = string.Empty;
     }
 }
 
