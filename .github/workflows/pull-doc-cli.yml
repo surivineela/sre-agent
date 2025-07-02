@@ -6,10 +6,21 @@ on:
   workflow_dispatch:
     inputs:
       github_repo:
-        description: 'The GitHub repository to pull ali docs'
+        description: 'The GitHub repository to pull CLI docs'
         required: true
         type: string
         default: 'MicrosoftDocs/azure-docs-cli'
+      storage_account:
+        description: 'Azure Storage Account name'
+        required: true
+        type: string
+        default: 'stsrchfe4ozut5zosje'
+      container_name:
+        description: 'Blob Container name'
+        required: true
+        type: string
+        default: 'test1'
+
   repository_dispatch:
     types: [SRE-Agent-PullDoc-Sync]
 
@@ -28,6 +39,8 @@ jobs:
         echo "AZURE_CLIENT_ID=${{ vars.AZURE_CLIENT_ID }}"
         echo "AZURE_TENANT_ID=${{ vars.AZURE_TENANT_ID }}"
         echo "AZURE_SUBSCRIPTION_ID=${{ vars.AZURE_SUBSCRIPTION_ID }}"
+        echo "STORAGE_ACCOUNT_NAME=${{ github.event.inputs.storage_account }}"
+        echo "CONTAINER_NAME=${{ github.event.inputs.container_name }}"
 
     - name: 'Azure Login using OIDC'
       uses: azure/login@v1
@@ -41,21 +54,18 @@ jobs:
       with:
         repository: ${{ github.event.inputs.github_repo || 'MicrosoftDocs/azure-docs-cli' }}
         ref: main
-        fetch-depth: 1  # shallow clone for speed
+        fetch-depth: 1
 
     - name: 'Sync files to Azure Blob Storage'
       uses: azure/cli@v1
       with:
         inlineScript: |
           echo "Starting sync of files from GitHub repo..."
-          STORAGE_ACCOUNT_NAME="stsrch25s32nr3eb4t6"
-          CONTAINER_NAME="test1"
-          SOURCE_DIRECTORY="."
 
           az storage blob upload-batch \
-            --account-name $STORAGE_ACCOUNT_NAME \
-            --destination $CONTAINER_NAME \
-            --source "${SOURCE_DIRECTORY}" \
+            --account-name "${{ github.event.inputs.storage_account }}" \
+            --destination "${{ github.event.inputs.container_name }}" \
+            --source "." \
             --overwrite \
             --auth-mode login
 
