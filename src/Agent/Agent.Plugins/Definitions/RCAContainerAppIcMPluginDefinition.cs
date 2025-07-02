@@ -50,24 +50,24 @@ namespace Agent.Plugins.Definitions
             return incidentString;
         }
 
-        [Description(@"Get original ICM discussion entries
-        This operation will get all the discussion entries of the given IcM Incident.
-        Input parameters:
-        - IncidentId: The Id of the IcM incident. It is usually a integer number.
-        - QueryFrom: The timestamp for filter the discussion entries which are created after it.
-        The return value is a list of discussion entries of the given IcM Incident. Each discussion entry includes the following information:
-        - IncidentId: The Id of the IcM incident.
-        - TimeStamp: The timestamp of the discussion entry.
-        - ChangedBy: The user who created this discussion entry.
-        ")]
-        public async Task<string?> GetDiscussionEntriesRCAContainerApp(
-           [Description("Incident ID")] string incidentId,
-           [Description("From time of the query")] DateTimeOffset queryFrom)
-        {
-            var discussionEntries = await _plugin.GetDiscussionEntries(incidentId, queryFrom);
-            var discussionEntriesString = JsonConvert.SerializeObject(discussionEntries, Formatting.Indented);
-            return discussionEntriesString;
-        }
+        //[Description(@"Get original ICM discussion entries
+        //This operation will get all the discussion entries of the given IcM Incident.
+        //Input parameters:
+        //- IncidentId: The Id of the IcM incident. It is usually a integer number.
+        //- QueryFrom: The timestamp for filter the discussion entries which are created after it.
+        //The return value is a list of discussion entries of the given IcM Incident. Each discussion entry includes the following information:
+        //- IncidentId: The Id of the IcM incident.
+        //- TimeStamp: The timestamp of the discussion entry.
+        //- ChangedBy: The user who created this discussion entry.
+        //")]
+        //public async Task<string?> GetDiscussionEntriesRCAContainerApp(
+        //   [Description("Incident ID")] string incidentId,
+        //   [Description("From time of the query")] DateTimeOffset queryFrom)
+        //{
+        //    var discussionEntries = await _plugin.GetDiscussionEntries(incidentId, queryFrom);
+        //    var discussionEntriesString = JsonConvert.SerializeObject(discussionEntries, Formatting.Indented);
+        //    return discussionEntriesString;
+        //}
 
 
         [Description(@"Provide official RCA from container apps template

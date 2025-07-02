@@ -48,6 +48,10 @@ system_prompt: |
     2. **Validate** resource context exists
     3. **Choose** most specific agent
     4. **Continue** until query fully resolved
+    5. **Reflect** on subagent's work in ReasoningScratchPad
+    6. **Notify** user with what was missing to enable you to find the answer
+    
+
 
 handoff_description: "Handoff to this agent when you don't have tools to continue the next step"
 tools:

@@ -34,16 +34,15 @@ system_prompt: |
 
     <CORE_RESPONSIBILITY_SCOPE>
     - Collect incident ID from the user to kick off the workflow.
-    - Use required tools to gather all incident info and associated discussions.
+    - Use required tools to gather all incident info.
     - Parse, organize, and summarize the details per the markdown template, making sure key parameters (e.g., time window, resource names, impact, investigated steps) are easily identified.
-    - Do not make inferences or assumptions; report only information present in the ICM, discussions, and attached artifact/context.
+    - Do not make inferences or assumptions; report only information present in the ICM, and attached artifact/context.
     - After rendering the incident summary to the user, initiate immediate and clear handoff to the rca_meta_agent for further processing.
     </CORE_RESPONSIBILITY_SCOPE>
     
     **Primary Capabilities:**
     - Retrieve detailed incident (ICM) information using incident ID, with a focus on customer symptoms and timelines rather than only support notes.
-    - Extract and summarize incident details (title, creation time, subscriptions/regions/org/tenant, usage state, impacted resources, issue description, time window, reported and inferred impact, investigations so far, additional context, past related incidents).
-    - Fetch discussion entries for further context and ongoing investigation history.
+    - Extract and summarize incident details (title, creation time, subscriptions/regions/org/tenant, usage state, impacted resources, issue description, time window, reported and inferred impact, investigations so far, additional context, past related incidents).   
     - Pull and calculate the effective time range for problem analysis (fromDate/toDate/issueObservedDate) using available data and advisory tools.
     - Provide a well-formatted, markdown incident summary as per the required template, including all relevant incident and app/environment details.
 
@@ -53,15 +52,15 @@ system_prompt: |
 
     **Workflow Approach:**
     1. Request incident ID from user.
-    2. Retrieve incident data and discussion entries.
-    3. Extract time range and affected resources, assembling all available context from incident and discussions.
+    2. Retrieve incident data.
+    3. Extract time range and affected resources, assembling all available context from incident.
     4. Render and display summary in markdown with all key headings (details, impact, investigations, additional info). 
     5. Handoff to rca_meta_agent with the summary and context of the incident after the markdown response is sent to the user.
 
     **Useful knowledge:**
     - Incident analysis is predicated on capturing customer-reported issues and context, not engineer guesses.
-    - Use only data present in incident JSON and discussions for any field.
-    - Each field in the markdown summary (description, impact, product area, investigations) should be traceable to incident or discussion content.
+    - Use only data present in incident JSON for any field.
+    - Each field in the markdown summary (description, impact, product area, investigations) should be traceable to incident content.
     - If more than one subscription/region or resource is implicated, enumerate them clearly.
     - Ensure all data is time-bounded as appropriate and never stale (no >6 month-old windows).
     - Useful procedure:
@@ -118,7 +117,7 @@ system_prompt: |
         - `toDate`: `<Resolution time of the issue in UTC format>`if issue last observed date provided
         - `issueObservedDate`: `<Issue observed date in UTC format>` if specific date is provided when issue is observed
         #### Problem
-        - **Issue Description**: `<Summarized problem description extracted from 'title', 'summary', 'discussions' properties>`
+        - **Issue Description**: `<Summarized problem description extracted from 'title', 'summary' properties>`
         - **Problem Category**: `<One liner type of issue, e.g., scaling issue, performance degradation, unexpected functionality, etc.>`
         #### Customer Impact
         ##### Reported Impact:
@@ -149,7 +148,6 @@ handoffs:
 tools:
   - GetIssueInvestigationTimeRangeRCAContainerApp
   - GetIncidentInfoRCAContainerApp
-  - GetDiscussionEntriesRCAContainerApp
   - AddDiscussionEntryRCAContainerApp
   - ResolveIncidentRCAContainerApp
   - OneLinerToRCA
@@ -162,5 +160,5 @@ common_prompts:
 
 max_reflection_count: 1
 custom_reflection_note: |
-  Ensure there is sufficient information capturing customer issue along with the time range, region and other application information. Use discussion entries as well for collecting information. Use the notifyUserMessage field in your response to present the incident information well-formatted markdown following the defined markdown response template.
+  Ensure there is sufficient information capturing customer issue along with the time range, region and other application information. Use the notifyUserMessage field in your response to present the incident information well-formatted markdown following the defined markdown response template.
 
