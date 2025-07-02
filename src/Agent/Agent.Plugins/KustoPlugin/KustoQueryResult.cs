@@ -31,6 +31,15 @@ namespace Agent.Plugins.KustoPlugin
 
             var sb = new StringBuilder();
 
+            // Append column names as the first row
+            var columnNames = new List<string>();
+            for (int i = 0; i < reader.FieldCount; i++)
+            {
+                columnNames.Add(reader.GetName(i));
+            }
+
+            sb.AppendLine(string.Join('\t', columnNames));
+
             var firstRow = true;
             while (reader.Read())
             {
