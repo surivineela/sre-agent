@@ -9,11 +9,15 @@ using Agent.Data.Repositories;
 using Agent.Framework;
 using Agent.Graph.Crawler.Legacy;
 using Agent.Logging;
+using Agent.Core.Extensions;
+using Agent.Core.Services;
+using Agent.Data.AgentMemory;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Interface;
 using Agent.Runtime;
 using Agent.Runtime.Communication;
+using Agent.Runtime.IncidentHandlerAgent;
 using Agent.Runtime.MetaAgent;
 using Agent.Runtime.MetaAgent.Interfaces;
 using Agent.Runtime.Reasoning;
@@ -65,6 +69,7 @@ public static class TestHelpers
             }
 
             builder.Services.AddSingleton(new AzureOpenAIClient(new Uri(aiEndpoint), new ApiKeyCredential(apiKey)));
+            
         }
         else
         {
@@ -72,6 +77,7 @@ public static class TestHelpers
             builder.Services.ConfigureAzureOpenAIClient();
         }
 
+        builder.Services.ConfigureIEmbeddingGenerator();
         builder.Services.AddLogging(builder =>
         {
             builder.AddConsole();
@@ -135,6 +141,7 @@ public static class TestHelpers
                 .CreateLogger<MockStreamingService>();
             return new MockStreamingService(logger);
         });
+        builder.Services.AddSingleton<IIncidentHandlerAgent, IncidentHandlerAgent>();
         builder.Services.AddSingleton<IAgentOutboundCommunicationService, OutboundCommunicationService>();
         builder.Services.AddTransient<IAgent, MetaAgent>();
         builder.Services.AddSingleton(Mock.Of<IAuthenticationService>());
@@ -203,6 +210,25 @@ public static class TestHelpers
         // should be removed later - currently required because ThreadManagementService has code for handling UseAgentFramework=false
         // required because InboundCommunicationService has code for handling durable
         builder.ConfigureDurable();
+
+        // Runtime–modifier for agent-mode switching
+        builder.Services.AddSingleton<IAgentRuntimeModifier<AgentContext>, AgentRuntimeModifier>();
+
+        // Action-logging (console exporter is fine for tests)
+        builder.Services.AddSingleton<AgentActionLogger>();
+        builder.Services.AddSingleton<IAgentActionLogExporter>(sp =>
+        {
+            var logger = sp.GetRequiredService<ILogger<AgentActionLogConsoleExporter>>();
+           return new AgentActionLogConsoleExporter(logger);
+        });
+
+        // Search endpoint & helper (document-retrieval support)
+        builder.Services.AddSearchEndpointHttpClient();
+        builder.Services.AddSingleton<ISearchEndpointService, SearchEndpointService>();
+        builder.Services.AddSingleton<SearchHelper>();
+
+        // Agent-memory (disabled ➜ dummy implementation)
+        builder.Services.AddSingleton<IAgentMemoryClient, DummyAgentMemoryClient>();
 
         return builder;
     }
