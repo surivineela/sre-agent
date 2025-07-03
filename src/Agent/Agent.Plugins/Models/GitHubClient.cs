@@ -4,6 +4,7 @@
 
 using Agent.Core.Configuration;
 using Octokit;
+using Octokit.Internal;
 
 namespace Agent.Plugins.Models
 {
@@ -18,9 +19,19 @@ namespace Agent.Plugins.Models
                 throw new ArgumentNullException(nameof(gitHubSettings), "GitHub settings cannot be null");
             }
 
-            Client = new Octokit.GitHubClient(new ProductHeaderValue("OperationsAgent"))
+            if (!string.IsNullOrEmpty(gitHubSettings.PatTokenOverride) && gitHubSettings.PatTokenOverride != "replace")
             {
-            };
+                var githubCredentialStore = new InMemoryCredentialStore(credentials: new Octokit.Credentials(gitHubSettings.PatTokenOverride));
+                Client = new Octokit.GitHubClient(new ProductHeaderValue("OperationsAgent"), credentialStore: githubCredentialStore)
+                {
+                };
+            }
+            else
+            {
+                Client = new Octokit.GitHubClient(new ProductHeaderValue("OperationsAgent"))
+                {
+                };
+            }
         }
     }
 }

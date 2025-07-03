@@ -19,6 +19,7 @@ public interface IAgentFactory<TContext>
 {
     public Agent<TContext> GetAgent(string name);
     public IReadOnlyDictionary<string, IPromptDescriptor> PromptDescriptors { get; }
+    public void LoadAgentsFromFolder(string folderPath);
 }
 
 public class AgentFactory<TContext> : IAgentFactory<TContext>
@@ -91,7 +92,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         }
     }
 
-    private void AddAgentDescriptor(IAgentDescriptor agentDescriptor)
+    private Agent<TContext> AddAgentDescriptor(IAgentDescriptor agentDescriptor)
     {
         try
         {
@@ -170,6 +171,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
 
         _agents[agentDescriptor.Name] = agent;
         _agentDescriptors[agentDescriptor.Name] = agentDescriptor;
+        return agent;
     }
 
     private Type? GetOutputType(IAgentDescriptor agentDescriptor)
@@ -264,6 +266,17 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         UpdateAgentTools();
     }
 
+    private void AddAgentToMetaAgentHandoffs(string agentName)
+    {
+        var metaAgentDescriptor = _agentDescriptors["meta_agent"];
+        if (metaAgentDescriptor != null)
+        {
+            metaAgentDescriptor.Handoffs.Add(agentName);
+            _agentDescriptors["meta_agent"] = metaAgentDescriptor;
+            UpdateHandoffs();
+        }
+    }
+
     private void LoadAgentFromAssembly()
     {
         var agentDescriptorType = typeof(IAgentDescriptor);
@@ -311,6 +324,23 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         }
     }
 
+    // Load yaml agents from a local folder
+    public void LoadAgentsFromFolder(string folderPath)
+    {
+        if (string.IsNullOrEmpty(folderPath) || !Directory.Exists(folderPath))
+        {
+            _logger.LogWarning("Folder path is null or does not exist: {folderPath}", folderPath);
+            return;
+        }
+        var yamlFiles = Directory.GetFiles(folderPath, "*.yaml", SearchOption.AllDirectories)
+            .Concat(Directory.GetFiles(folderPath, "*.yml", SearchOption.AllDirectories));
+        foreach (var yamlFile in yamlFiles)
+        {
+            var agentInfo = LoadAgentFromFile(yamlFile);
+            AddAgentToMetaAgentHandoffs(agentInfo.Name);
+        }
+    }
+
     private static YamlAgentDescriptor LoadAgentFromYaml(string yamlContent)
     {
         try
@@ -328,7 +358,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         }
     }
 
-    private void LoadAgentFromFile(string filePath)
+    private Agent<TContext> LoadAgentFromFile(string filePath)
     {
         try
         {
@@ -338,8 +368,9 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
             string yamlContent = File.ReadAllText(filePath);
 
             var agentDescriptor = AgentFactory<TContext>.LoadAgentFromYaml(yamlContent);
-            AddAgentDescriptor(agentDescriptor);
+            var agent = AddAgentDescriptor(agentDescriptor);
             _logger.LogInformation("Successfully loaded agent descriptor {descriptorName} from file {filePath}.", agentDescriptor.Name, filePath);
+            return agent;
         }
         catch (Exception ex)
         {

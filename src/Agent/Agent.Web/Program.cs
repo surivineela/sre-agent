@@ -104,6 +104,32 @@ public class Program
 
         WebApplication app = builder.Build();
 
+        using (var scope = app.Services.CreateScope())
+        {
+            var localFolderPath = "customAgents";
+            var githubSettings = app.Configuration.GetSection("AppSettings:Core:External:Github").Get<GitHubSettings>();
+            var githubFileService = scope.ServiceProvider.GetRequiredService<IGithubFileService>();
+            var agentFactory = scope.ServiceProvider.GetRequiredService<IAgentFactory<AgentContext>>();
+
+            if (!string.IsNullOrEmpty(githubSettings.CustomAgentsRepoPath))
+            {
+                try
+                {
+                    await githubFileService.DownloadYamlFilesInRepoPath(
+                    githubSettings.CustomAgentsRepoPath,
+                    localFolderPath);
+
+                    // Load agents from the downloaded folder
+                    agentFactory.LoadAgentsFromFolder(localFolderPath);
+                }
+                catch (Exception ex)
+                {
+                    // Log the error but do not fail the application startup
+                }
+            }
+        }
+
+
         var metricsService = app.Services.GetRequiredService<IGremlinMetricsService>();
         // Kick off metrics collection after the app has fully started
         app.Lifetime.ApplicationStarted.Register(() => metricsService.StartMetricsCollection());
@@ -381,6 +407,7 @@ public class Program
             .AddSingleton<AppInsightsPluginDefinition>()
             .AddSingleton<Agent.Plugins.Models.GitHubClient>()
             .AddTransient<IGithubIssuePlugin, GitHubIssuePlugin>()
+            .AddSingleton<IGithubFileService, GithubFileService>()
             .AddSingleton<IRemediationPlugin, RemediationPlugin>()
             .AddSingleton<AzureResourceGraphClient>()
             .AddSingleton<ArmHelper>()

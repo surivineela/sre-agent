@@ -9,6 +9,7 @@ namespace Agent.Core.Configuration
         public string ClientId { get; set; }
         public string PatTokenOverride { get; set; }
         public string RedirectUriFormat { get; set; }
+        public string CustomAgentsRepoPath { get; set; }
     }
 }
 
