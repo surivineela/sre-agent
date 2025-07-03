@@ -44,6 +44,7 @@ public class SearchHelper
             float[]? vector = null;
             if (_searchEndpointSettings.EnableVectorSearch)
             {
+                _logger.LogInternalInformation($"Generating embedding for '{searchText}'");
                 vector = await DocumentRetrieval.GenerateSearchVector(_embeddingGenerator, searchText, _searchEndpointSettings.VectorDimensions, _logger);
             }
 

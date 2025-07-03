@@ -1537,7 +1537,12 @@ public class ReasoningLoop : IDisposable
         span.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
         span.SetAttribute(TraceAttribute.OperationName, "retrieval.search.documents");
 
+        var subSpan = _tracer.StartSpan("generate_search_query", SpanKind.Internal, span);
+        subSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
+        subSpan.SetAttribute(TraceAttribute.OperationName, "retrieval.generate.query");
         var query = await DocumentRetrieval.GenerateSearchQuery(_chatClient, chatHistory, userMessage, _logger);
+        subSpan.End();
+
         if (string.IsNullOrWhiteSpace(query))
         {
             span.End();
@@ -1549,7 +1554,11 @@ public class ReasoningLoop : IDisposable
         IReadOnlyList<SearchDocument> results = [];
         try
         {
+            subSpan = _tracer.StartSpan("query_search_endpoint", SpanKind.Internal, span);
+            subSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
+            subSpan.SetAttribute(TraceAttribute.OperationName, "retrieval.query.search.endpoint");
             results = await _searchHelper.SearchAsync(query);
+            subSpan.End();
         }
         catch (Exception ex)
         {
@@ -1565,7 +1574,12 @@ public class ReasoningLoop : IDisposable
         }
         span.SetAttribute("search.results", JsonSerializer.Serialize(results));
 
+        subSpan = _tracer.StartSpan("llm_rerank", SpanKind.Internal, span);
+        subSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
+        subSpan.SetAttribute(TraceAttribute.OperationName, "retrieval.llm.rerank");
         var reranked = await DocumentRetrieval.RerankWithLLM(_chatClient, query, results, _logger);
+        subSpan.End();
+
         var rerankedDocuments = reranked.Select(id => results.FirstOrDefault(doc => doc.Id == id)).Where(doc => doc != null).Take(3).ToList();
         span.SetAttribute("search.reranked", JsonSerializer.Serialize(rerankedDocuments));
 

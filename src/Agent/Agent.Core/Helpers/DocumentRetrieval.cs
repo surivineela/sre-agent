@@ -17,6 +17,7 @@ public static class DocumentRetrieval
             var prompt = "Generate a search query based on the user's new question and the conversation history, ensuring it: \n" +
                     "- Concisely captures the user's intent or problem.\n" +
                     "- Avoids including entity names, IDs, source filenames, or document names.\n" +
+                    "- If the query pertains to yourself, reframe the question explicitly for Azure SRE Agent.\n" +
                     "- Excludes any text inside brackets ([]) or special characters.\n" +
                     "- Translates non-English questions into English before framing the search query.\n" +
                     "\n\n" +
@@ -74,7 +75,7 @@ public static class DocumentRetrieval
                     "Rank the documents from most relevant to least relevant. Drop documents that are not relevant.\n" +
                     "Return an array of Id of each document in the ranked order. Do not include any prefix or suffix to each id.\n" +
                     "Search query: " + searchQuery + "\n" +
-                    "Documents: " + string.Join("\n----------\n", searchResults.Select(d => $"Id:{d.Id}\nContent:{d.Content}"));
+                    "Documents: " + string.Join("\n----------\n", searchResults.Select(d => $"<Id>{d.Id}</Id>\n<Content>{d.Content}</Content>"));
 
             var systemMessage = new ChatMessage(ChatRole.System, prompt);
             var chatOptions = new ChatOptions
