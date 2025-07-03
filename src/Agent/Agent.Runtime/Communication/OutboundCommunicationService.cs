@@ -90,6 +90,25 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         return await _sinkService.SinkAgentMessageAsync(threadId, "Approval Request for Processing Azure SRE Agent Request", true, approval);
     }
 
+    public async Task NotifyAgentApprovalUpdate(Guid threadId, Approval approval)
+    {
+        if (threadId == Guid.Empty)
+        {
+            throw new ArgumentException("Thread ID cannot be empty.", nameof(threadId));
+        }
+
+        try
+        {
+            // send to stream but don't store the result in sinkservice
+            string jsonString = JsonSerializer.Serialize(approval, _serializerOptions);
+            await AppendAgentStreamMessage(threadId, jsonString, StreamMessageType.Approval);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to stream message directly for thread {ThreadId}", threadId);
+        }
+    }
+
     public async Task NotifyGenericAgentMessage(Guid threadId, Message message, StreamMessageType? type)
     {
         if (threadId == Guid.Empty)

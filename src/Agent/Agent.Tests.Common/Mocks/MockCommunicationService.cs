@@ -73,6 +73,13 @@ namespace Agent.Tests.Common.Mocks
             return Task.CompletedTask;
         }
 
+        public Task NotifyAgentApprovalUpdate(Guid threadId, Approval approval)
+        {
+            _logger?.LogInternalInformation($"ThreadId: {threadId}, ApprovalId: {approval.Id}, ApprovalStatus: {approval.Status}");
+            Messages.Add($"Approval update for ThreadId: {threadId}, ApprovalId: {approval.Id}, Status: {approval.Status}");
+            return Task.CompletedTask;
+        }
+
         public Task NotifyCompletionAsync(string threadId, string instanceId, string status, string? summary = null)
         {
             _logger?.LogInternalInformation($"ThreadId: {threadId}, InstanceId: {instanceId}, Status: {status}");
