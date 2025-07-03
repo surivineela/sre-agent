@@ -1,7 +1,6 @@
 import * as signalR from '@microsoft/signalr';
 import { ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { StreamingContext } from '../../Space/Contracts/Context';
-import AzPortalProxy from '../AzPortalProxy/AzPortalProxy';
 import { AzPortalContext } from '../AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../AzPortalProxy/Providers/StartupInfoContext';
 import { MessageRequestType, MessageResponseType, StreamingMessage } from '../Contracts/Azure/Streaming';
@@ -121,9 +120,7 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
 
             connectionRef.current = new signalR.HubConnectionBuilder()
                 // ToDo: Sanitize the endpoint
-                .withUrl(`${endpoint}/agentHub`, {
-                    accessTokenFactory: () => AzPortalProxy.envInfo.sreAgentToken || '',
-                })
+                .withUrl(`${endpoint}/agentHub`)
                 .withAutomaticReconnect()
                 .build();
 
