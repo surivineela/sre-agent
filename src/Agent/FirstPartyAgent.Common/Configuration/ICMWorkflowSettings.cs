@@ -6,6 +6,10 @@ using System.ComponentModel.DataAnnotations;
 
 namespace FirstPartyAgent.Common.Configuration
 {
+    public class GeneralSettings
+    {
+        public string PortalThreadIdLink { get; set; } = string.Empty;
+    }
 
     public class BaseIcmWorkflowSettings
     {

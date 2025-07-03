@@ -195,7 +195,7 @@ public class Program
      {
         var builder = WebApplication.CreateBuilder(args);
 
-        bool isFirstAgent = IsFirstParty(args);
+        bool isFirstPartyAgent = IsFirstParty(args);
         var agentType = Environment.GetEnvironmentVariable("AGENT_TYPE_NAME") ?? string.Empty;
 
         builder.LoadAppSettings(builder.Environment.IsDevelopment());
@@ -452,6 +452,7 @@ public class Program
             .AddTransient<UserInteractionPluginDefinition>()
             .AddTransient<AgentControlFlowPluginDefinition>()
             .AddTransient<APIManagementPluginDefinition>()
+            .AddTransient<RCAContainerAppsMetaAgentPluginDefinition>()
             .AddTransient<RCAContainerAppsIngressPluginDefinition>()
             .AddTransient<RCAContainerAppCorednsPluginDefinition>()
             .AddTransient<RCAContainerAppOutboundConnectionPluginDefinition>()
@@ -646,7 +647,7 @@ public class Program
                 var modeConfigurator = sp.GetRequiredService<IAgentModeConfigurator<AgentContext>>();
 
                 // Use ACA-FirstParty subfolder for first party agents, otherwise use full AgentsV2 directory
-                var agentsDirectory = isFirstAgent
+                var agentsDirectory = isFirstPartyAgent
                     ? Path.Combine(AppContext.BaseDirectory, "AgentsV2", "ACA-FirstParty")
                     : Path.Combine(AppContext.BaseDirectory, "AgentsV2");
 
@@ -700,7 +701,7 @@ public class Program
             .AddTransient<SourceCodeAgent>()
             ;
 
-        if (isFirstAgent)
+        if (isFirstPartyAgent)
         {
             builder.Services.AddSingleton<IAgentsFactory, FirstPartyAgentsFactory>();
             builder.Services.AddSingleton<IToolsRepository, FirstPartyToolsRepository>();
@@ -717,7 +718,7 @@ public class Program
         builder.ValidateAndRegisterFirstPartyTypes();
 
         //Overwrite KustoClient from ValidateAndRegisterFirstPartyTypes if is not Container FirstParty Agent
-        if (!isFirstAgent)
+        if (!isFirstPartyAgent)
         {
             builder.Services.AddSingleton<KustoClient>(sp =>
             {

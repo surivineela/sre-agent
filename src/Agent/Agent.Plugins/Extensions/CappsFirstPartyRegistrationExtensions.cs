@@ -20,14 +20,9 @@ public static class CappsFirstPartyRegistrationExtensions
 {
     public static void ValidateAndRegisterFirstPartyTypes(this IHostApplicationBuilder builder)
     {
-        // TODO: Load config dynamically
-        // 1. Read AppSettings:Core:External.*.* environment variables. Example:  "AppSettings__Core__External__ICMWorkflows__UserToken" : "keyVaultSecretUri"
-        // 2. Override specified properties with resolving AKV secret value if config key's value is AKV secret ID
         var secretResolvedEnvConfig = new { };
         builder.Configuration.AddJsonStream(new MemoryStream(JsonSerializer.SerializeToUtf8Bytes(secretResolvedEnvConfig)));
 
-        // ADD hard coded settings for now with keeping default in context of ACA for easy local testing and deployment.
-        //builder.Services.AddSingleton(new RevisionSettings());
 
         builder.Services.AddSingleton<IACAKustoPlugin, ACAKustoPlugin>();
         builder.Services.AddSingleton<IKustoPluginChat, KustoPluginChat>();
@@ -47,6 +42,10 @@ public static class CappsFirstPartyRegistrationExtensions
             .BindConfiguration("AppSettings:Core:External:Kusto")
             .ValidateDataAnnotations();
 
+        builder.Services.AddOptionsWithValidateOnStart<FirstPartyAgent.Common.Configuration.GeneralSettings>()
+        .BindConfiguration("AppSettings:Core:External:GeneralSettings")
+        .ValidateDataAnnotations();
+
         // keep multiple lines for better debugging
         builder.Services.AddSingleton(sp =>
         {
@@ -57,6 +56,11 @@ public static class CappsFirstPartyRegistrationExtensions
         {
             var kustoSettings = sp.GetRequiredService<IOptions<KustoSettings>>();
             return kustoSettings.Value;
+        });
+        builder.Services.AddSingleton(sp =>
+        {
+            var generalSettings = sp.GetRequiredService<IOptions<GeneralSettings>>();
+            return generalSettings.Value;
         });
     }
 
