@@ -117,12 +117,6 @@ export const ChatBoxV2 = ({ addThread, promoteThread, updateThreadLastReadTime, 
                                     threadId={currentThreadId || ''}
                                     toolCallText={toolCallText}
                                     isWaitingForStreamingMessages={isWaitingForStreamingMessages}
-                                    previousMessage={
-                                        temporaryUserMessage ||
-                                        newMessages[newMessages.length - 1] ||
-                                        chatMessagesFromExistingStreamingMessages[chatMessagesFromExistingStreamingMessages.length - 1] ||
-                                        chatHistory?.[chatHistory.length - 1]?.[chatHistory?.[chatHistory.length - 1]?.length - 1]
-                                    }
                                 />
                             )}
                         </CopilotChat>
