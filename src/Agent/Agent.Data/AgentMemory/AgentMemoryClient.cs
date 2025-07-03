@@ -26,7 +26,9 @@ public class AgentMemoryClient(ILogger<AgentMemoryClient> logger,
                                AgentMemorySettings agentMemorySettings,
                                OpenAISettings openAISettings) : IAgentMemoryClient
 {
-    private readonly string blobContainerName = agentMemorySettings.BlobStorageContainerName;
+    private readonly string blobContainerName = string.IsNullOrEmpty(agentMemorySettings.BlobStorageContainerName) 
+        ? AgentNameHelper.GetCustomerUploadedDocumentBlobContainerName(hostEnvironment.IsProduction())
+        : agentMemorySettings.BlobStorageContainerName;
     private readonly string aiSearchDataSourceName = agentMemorySettings.AzureAISearchDataSourceName;
     private readonly string aiSearchIndexName = agentMemorySettings.AzureAISearchIndexName;
     private readonly string aiSearchIndexerName = agentMemorySettings.AzureAISearchIndexerName;
@@ -66,7 +68,7 @@ public class AgentMemoryClient(ILogger<AgentMemoryClient> logger,
         {
             logger.LogInternalInformation($"Uploading document '{fileName}' ({documentStream.Length} bytes) to container '{blobContainerName}'");
 
-            var blobClient = agentBlobClient.GetBlobContainerClient(AgentNameHelper.GetCustomerUploadedDocumentBlobContainerName(hostEnvironment.IsProduction()))
+            var blobClient = agentBlobClient.GetBlobContainerClient(blobContainerName)
                 .GetBlobClient(fileName);
 
             var response = await blobClient.UploadAsync(documentStream, overwrite: true);

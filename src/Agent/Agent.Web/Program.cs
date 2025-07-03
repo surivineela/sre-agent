@@ -150,8 +150,17 @@ public class Program
                     var agentMemorySettings = app.Configuration.GetSection("AppSettings:Core:AgentMemory").Get<AgentMemorySettings>();
                     if (agentMemorySettings is not null && agentMemorySettings.Enabled)
                     {
-                        await app.Services.CreateDocumentBlobContainerIfNotExists();
-                        await app.Services.SetupAgentMemoryIndexAsync();
+                        // Only attempt setup if all required settings are configured
+                        if (IsAgentMemoryConfigurationValid(agentMemorySettings))
+                        {
+                            await app.Services.CreateDocumentBlobContainerIfNotExists();
+                            await app.Services.SetupAgentMemoryIndexAsync();
+                        }
+                        else
+                        {
+                            var logger = app.Services.GetRequiredService<ILogger<Program>>();
+                            logger.LogInternalWarning("Agent Memory is enabled but required configuration settings are missing or invalid. Skipping Agent Memory setup.");
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -1209,5 +1218,21 @@ public class Program
         }
 
         return azurePortalDomains.Split(',');
+    }
+
+    /// <summary>
+    /// Validates that required AgentMemory configuration settings are present
+    /// </summary>
+    /// <param name="settings">The AgentMemorySettings to validate</param>
+    /// <returns>True if configuration is valid, false otherwise</returns>
+    private static bool IsAgentMemoryConfigurationValid(AgentMemorySettings settings)
+    {
+        return !string.IsNullOrEmpty(settings.StorageAccountName) &&
+               !string.IsNullOrEmpty(settings.BlobStorageResourceId) &&
+               !string.IsNullOrEmpty(settings.AzureAISearchName) &&
+               !string.IsNullOrEmpty(settings.AzureAISearchIndexName) &&
+               !string.IsNullOrEmpty(settings.AzureAISearchIndexerName) &&
+               !string.IsNullOrEmpty(settings.AzureAISearchDataSourceName) &&
+               !string.IsNullOrEmpty(settings.ManagedIdentityResourceId);
     }
 }

@@ -8,7 +8,6 @@ using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Interfaces;
 using Agent.Graph.Schema;
-using Agent.Logging;
 using Agent.Plugins.Interface;
 using Gremlin.Net.Driver;
 using Microsoft.Extensions.Logging;
