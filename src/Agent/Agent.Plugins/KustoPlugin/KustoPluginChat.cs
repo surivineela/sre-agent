@@ -25,10 +25,9 @@ namespace Agent.Plugins.Kusto
             _kustoPlugin = kustoPlugin;
             _agentOutboundCommunicationService = agentOutboundCommunicationService;
         }
-
         public async Task<string> ExecuteLocalFunctionOnClusterAsync(string functionName, string clusterName, string databaseName, Dictionary<string, string> args)
         {
-            var fileName = Path.Combine(AppContext.BaseDirectory, "Plugins", "Definitions", "Queries", $"{functionName}.kql");
+            var fileName = GetKqlFilePath(functionName);
             KustoQueryResult queryResult;
             if (File.Exists(fileName))
             {
@@ -49,12 +48,11 @@ namespace Agent.Plugins.Kusto
 
             return queryResult.Result;
         }
-
         public async Task<string> ExecuteLocalFunctionAsync(string functionName, string region, Dictionary<string, string> args, string groupName = "ContainerApps", SamplingOptions? samplingOptions = null)
         {
             region = region.NormalizeLocation();
             SamplingParameterHelper.AddSamplingParameters(args, samplingOptions);
-            var fileName = Path.Combine(AppContext.BaseDirectory, "Plugins", "Definitions", "Queries", $"{functionName}.kql");
+            var fileName = GetKqlFilePath(functionName);
             KustoQueryResult queryResult;
 
             if (File.Exists(fileName))
@@ -97,6 +95,39 @@ namespace Agent.Plugins.Kusto
             }
 
             return formatted;
+        }
+        internal static string GetKqlFilePath(string functionName)
+        {
+            return GetKqlFilePath(functionName, AppContext.BaseDirectory);
+        }
+
+        internal static string GetKqlFilePath(string functionName, string baseDirectory)
+        {
+            var baseDir = Path.Combine(baseDirectory, "Plugins", "Definitions", "Queries");
+            
+            // Maintain existing behavior: direct file name search (backward compatibility)
+            var directPath = Path.Combine(baseDir, $"{functionName}.kql");
+            if (File.Exists(directPath))
+            {
+                return directPath;
+            }
+            
+            // New feature: namespace format only
+            if (functionName.Contains('.'))
+            {
+                var parts = functionName.Split('.');
+                var kqlFileName = parts.Last() + ".kql";
+                var subDirs = parts.Take(parts.Length - 1).ToArray();
+                
+                var namespacedFile = Path.Combine(new[] { baseDir }.Concat(subDirs).Concat(new[] { kqlFileName }).ToArray());
+                if (File.Exists(namespacedFile))
+                {
+                    return namespacedFile;
+                }
+            }
+
+            // Return the same path as existing behavior (File.Exists check is done by caller)
+            return directPath;
         }
 
         Task<KustoQueryResult> IACAKustoPlugin.ExecuteKustoQuery(string region, string query, string groupName = "ContainerApps")
