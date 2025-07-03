@@ -14,10 +14,18 @@ namespace Agent.Plugins.Definitions
             _kustoPlugin = kustoPlugin;
         }
 
-        [Description(@"List all the nodes names for the given Managed Cluster.
-This operation will return the names of all the nodes in the specified Managed Cluster within the given time range.
-These node names can be used to query the node heartbeat and Swift Network Container heartbeat of each node.
-")]
+        [Description(@"""
+        List all the nodes names for the given Managed Cluster.
+        This operation will return the names of all the nodes in the specified Managed Cluster within the given time range.
+        This tool can be helpful when you need to query the node heartbeat and Swift Network Container heartbeat of each node.
+
+        The tool returns table data in CSV format, using TAB separators. The first line contains the column headers.
+
+        Tool outputs:
+        - NodeName: The name of the node.
+        - StartTime: The start time of the node's status.
+        - EndTime: The end time of of the node's activity.
+        ")]
         public async Task<string> ListManagedClusterNodes(
             [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
@@ -33,16 +41,19 @@ These node names can be used to query the node heartbeat and Swift Network Conta
                 });
         }
 
-        [Description(@"Get the heartbeat status of all the nodes in the specified Managed Cluster.
-Tool outputs:
-- StartTime: The start time of the heartbeat data.
-- EndTime: The end time of the heartbeat data.
-- NodeName: The name of the node.
-- NodeHeartbeat: The heartbeat status of the node. It can be 'Ready' or 'Not Ready'.
+        [Description(@"""
+        Get the heartbeat status of all the nodes in the specified Managed Cluster.
+        This tool can help to identify which nodes are operational ('Ready') and when. Nodes marked 'Ready' are expected to have active NetworkContainers.
+        This tool is essential for detecting nodes that may lack corresponding container activity, indicating potential network issues.
 
-Important Notes:
-Use this tool to identify which nodes are operational ('Ready') and when. Nodes marked 'Ready' are expected to have active NetworkContainers. This tool is essential for detecting nodes that may lack corresponding container activity, indicating potential network issues.
-")]
+        The tool returns table data in CSV format, using TAB separators. The first line contains the column headers.
+
+        Tool outputs:
+        - StartTime: The start time of the heartbeat data.
+        - EndTime: The end time of the heartbeat data.
+        - NodeName: The name of the node.
+        - NodeHeartbeat: The heartbeat status of the node. It can be 'Ready' or 'Not Ready'.
+        ")]
         public async Task<string> GetManagedClusterNodesHeartbeat(
             [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
@@ -59,17 +70,19 @@ Use this tool to identify which nodes are operational ('Ready') and when. Nodes 
                 });
         }
 
-        [Description(@"Get the Swift Network Container heartbeat status of all the nodes in the specified Managed Cluster.
-Tool outputs:
-- StartTime: The start time of the heartbeat data.
-- EndTime: The end time of the heartbeat data.
-- NodeName: The name of the node where the Swift Network Container is running.
-- NetworkContainerID: The ID of the network container.
-- NetworkContainerHeartbeat: The heartbeat status of the Swift Network Container. It is expected to be 'Alive'.
+        [Description(@"""
+        Get the Swift Network Container heartbeat status of all the nodes in the specified Managed Cluster.
+        This tool is helpful to verify that each 'Ready' node has a corresponding 'Alive' NetworkContainer. Missing or mismatched time windows between node and container heartbeats indicates network connectivity failures.
 
-Important Notes:
-Use this tool to verify that each 'Ready' node has a corresponding 'Alive' NetworkContainer. Missing or mismatched time windows between node and container heartbeats indicates network connectivity failures.
-")]
+        The tool returns table data in CSV format, using TAB separators. The first line contains the column headers.
+
+        Tool outputs:
+        - StartTime: The start time of the heartbeat data.
+        - EndTime: The end time of the heartbeat data.
+        - NodeName: The name of the node runing the Swift Network Container.
+        - NetworkContainerID: The ID of the network container.
+        - NetworkContainerHeartbeat: The heartbeat status of the Swift Network Container. It is expected to be 'Alive'.
+        ")]
         public async Task<string> GetManagedClusterNodesSwiftNetworkContainersHeartbeat(
             [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
@@ -85,17 +98,19 @@ Use this tool to verify that each 'Ready' node has a corresponding 'Alive' Netwo
                 });
         }
 
-        [Description(@"Retrieves the Swift Network Container creation and deletion events for the specified Managed Cluster node.
-Tool outputs:
-- TimeStamp: The timestamp of the event.
-- OperationName: The name of the operation, such as 'CreateSwiftNetworkContainer' or 'DeleteSwiftNetworkContainer'. It can also be empty.
-- message: message describing the event.
-- Response: response of the operation, including httpStatusCode, networkContainerId, etc.
-- error: detailed error message if the operation failed.
+        [Description(@"""
+        Retrieves the Swift Network Container creation and deletion events for the specified Managed Cluster node.
+        It is expected that the Swift Network Container is deleted after the node is deleted.
 
-Important Notes:
-- It is expected that the Swift Network Container is deleted after the node is deleted.
-")]
+        The tool returns table data in CSV format, using TAB separators. The first line contains the column headers.
+
+        Tool outputs:
+        - TimeStamp: The timestamp of the event.
+        - OperationName: The name of the operation, such as 'CreateSwiftNetworkContainer' or 'DeleteSwiftNetworkContainer'. It can also be empty.
+        - message: message describing the event.
+        - Response: response of the operation, including httpStatusCode, networkContainerId, etc.
+        - error: detailed error message if the operation failed.
+        ")]
         public async Task<string> GetSwiftNetworkContainerCreateAndDeleteEventsLog(
             [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
@@ -113,12 +128,18 @@ Important Notes:
                 });
         }
 
-        [Description(@"Identify and list NetworkContainerID that might be leaked.
-This tool will list all NetworkContainerIDs that may be leaked (those network containers that were not deleted after their associated node was removed) in the specified Managed Cluster.
+        [Description(@"""
+        Identify and list NetworkContainerID that might be leaked.
+        This tool will list all NetworkContainerIDs that may be leaked (those network containers that were not deleted after their associated node was removed) in the specified Managed Cluster.
 
-Important Notes:
-This tool is not accurate and may return false positives. It is recommended to use the GetDeleteNetworkContainerOperation tool and GetAggregatedNetworkContainerHealthEvent tool to double-check the deletion status of each NetworkContainerID.
-")]
+        This tool is not accurate and may return false positives. It is recommended to use the GetDeleteNetworkContainerOperation tool and GetAggregatedNetworkContainerHealthEvent tool to double-check the deletion status of each NetworkContainerID.
+
+        The tool returns table data in CSV format, using TAB separators. The first line contains the column headers.
+
+        Tool outputs:
+        - NodeName: The name of the node where the NetworkContainerID was created.
+        - NetworkContainerID: The ID of the network container that may be leaked.
+        ")]
         public async Task<string> ListPotentialLeakedNetworkContainer(
             [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
@@ -134,11 +155,19 @@ This tool is not accurate and may return false positives. It is recommended to u
                 });
         }
 
-        [Description(@"Retrieves the delete operation details for a specific NetworkContainerID.
-This tool will return all the DeleteNetworkContainer operations with detailed Message.
-- If no results are returned, it means there is no delete operation for the specified NetworkContainerID within the given time range. You need to highlight it since no delete operation was found it may indicate that the NetworkContainerID is leaked.
-- If the results are not empty, it means the delete operation was performed successfully or failed. The Message field will provide more details about the operation. Always show timestamp, NodeId, ContainerId, OperationName and Message fields in the result.
-")]
+        [Description(@"""
+        Retrieves the delete operation details for a specific NetworkContainerID.
+        This tool will return all the DeleteNetworkContainer operations with detailed Message.
+        - If no results are returned, it means there is no delete operation for the specified NetworkContainerID within the given time range. It's important since no delete operation was found it may indicate that the NetworkContainerID is leaked.
+        - If the results are not empty, it means the delete operation was performed successfully or failed. The Message field will provide more details about the operation.
+
+        Tool outputs:
+        - TimeStamp: The timestamp of the delete operation.
+        - NodeId: The ID of the node where the delete operation was performed.
+        - ContainerId: The ID of the network container that was deleted.
+        - OperationName: The name of the operation.
+        - Message: A detailed message about the delete operation.
+        ")]
         public async Task<string> GetDeleteNetworkContainerOperation(
             [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
@@ -154,13 +183,19 @@ This tool will return all the DeleteNetworkContainer operations with detailed Me
                 });
         }
 
-        [Description(@"Retrieves the aggregated health event for a specific NetworkContainerID.
-The return results can be used to double-check whether the NetworkContainerID is leaked or not.
-- OwnDsMappingsStatus: If the field value is 0, it indicates that the NetworkContainerID is leaked.
-- CustomerAddress: If there are multiple customer addresses, it indicates that the NetworkContainerID is leaked.
-- HealthState: It shows the detailed message of the health event. It's usually empty if the NetworkContainerID is not leaked.
-- NodeId and ContainerId: these two fields are very important for the user to do further investigation. 
-")]
+        [Description(@"""
+        Retrieves the aggregated health event for a specific NetworkContainerID.
+        The return results can be used to double-check whether the NetworkContainerID is leaked or not.
+
+        Tool Outputs:
+        - StartTime: The start time of the health event.
+        - EndTime: The end time of the health event.
+        - NetworkContainerId: The ID of the network container.
+        - OwnDsMappingsStatus: If the field value is 0, it indicates that the NetworkContainerID is leaked.
+        - CustomerAddress: If there are multiple customer addresses, it indicates that the NetworkContainerID is leaked.
+        - HealthState: It shows the detailed message of the health event. It's usually empty if the NetworkContainerID is not leaked.
+        - NodeId and ContainerId: these two fields are very important for the user to do further investigation. 
+        ")]
         public async Task<string> GetAggregatedNetworkContainerHealthEvent(
             [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
@@ -176,9 +211,15 @@ The return results can be used to double-check whether the NetworkContainerID is
                 });
         }
 
-        [Description(@"This function queries the NetworkServiceManagerEvents table to identify Swift network container errors related to GRE key conflicts in environments using Internal Load Balancers (ILB).
-This is particularly useful for diagnosing issues where internal traffic fails to route correctly due to overlapping GRE keys.
-")]
+        [Description(@"""
+        This function queries the NetworkServiceManagerEvents table to identify Swift network container errors related to GRE key conflicts in environments using Internal Load Balancers (ILB).
+        This is particularly useful for diagnosing issues where internal traffic fails to route correctly due to overlapping GRE keys.
+
+        Tool Outputs:
+        - TIMESTAMP: The timestamp of the event.
+        - TaskName: The name of the task that generated the event.
+        - Message: A detailed message describing the event. 
+        ")]
         public async Task<string> TrackSwiftILBGreKeyConflicts(
             [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
@@ -194,7 +235,10 @@ This is particularly useful for diagnosing issues where internal traffic fails t
                 });
         }
 
-        [Description(@"Get ASI page URL for the Load Balancer of a Managed Cluster.")]
+        [Description(@"""
+        Get ASI page URL for the Load Balancer of a Managed Cluster.
+        Tool Outputs:
+        - The string of ASI page URL")]
         public Task<string> GetASIPageForManagedClusterLoadBalancer(
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
@@ -211,7 +255,11 @@ This is particularly useful for diagnosing issues where internal traffic fails t
             return Task.FromResult($"ASI Page for managed cluster loader balancer: {asiPageUri}");
         }
 
-        [Description(@"Get the managed cluster's load balancer VipAvailability_DataPathAvailability and DipAvailability_HealthProbeStatus page URLs")]
+        [Description(@"""
+        Get the managed cluster's load balancer VipAvailability_DataPathAvailability and DipAvailability_HealthProbeStatus page URLs
+        Tool Outputs:
+        - VipAvailability_DataPathAvailability: URL string of VipAvailability_DataPathAvailability
+        - DipAvailability_HealthProbeStatus: URL string of DipAvailability_HealthProbeStatus")]
         public async Task<string> GetVipAndDipAvailabilityUrls(
             [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
