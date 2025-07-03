@@ -41,21 +41,22 @@ Tool outputs:
             });
         }
 
-        [Description(@"Retrieves logs from Envoy pods in a Container Apps managed environment.
-Use this tool when troubleshooting Envoy pod issues, such as connectivity problems, routing issues, or unexpected behavior in the Envoy pods.
-The tool returns table data in CSV format, using TAB separators. The first line contains the column headers.
+        [Description(@"""
+        Retrieves Envoy pod logs from a specified Managed Cluster of container app.
+        Use this tool when diagnosing Envoy pod issues, such as connectivity failures, routing problems, or unexpected pod behavior.
 
-Tool outputs:
-- Timestamp: Envoy pod log timestamp.
-- Role: Cluster Node Id.
-- ContainerGroupName: Envoy container group Name.
-- logContent: Envoy pod log content.
-")]
+        Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+            - TimeStamp: UTC Time of the log event.
+            - NodeName: Name of the node running the Envoy pod.
+            - PodName: Name of the Envoy pod.
+            - Log: Content of the Envoy pod log entry.
+        """
+        )]
         public Task<string> GetEnvoyPodLogs(
-            [Description("Azure region.")] string region,
+            [Description("Azure region of the container app.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
-            [Description("Managed Cluster Name of the container app.")] string managedClusterName)
+            [Description("Managed Cluster name of the container app.")] string managedClusterName)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetEnvoyPodLogs", region,
             new Dictionary<string, string> {

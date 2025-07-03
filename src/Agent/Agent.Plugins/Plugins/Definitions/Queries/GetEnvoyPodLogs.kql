@@ -8,6 +8,5 @@ EnvoyFrontEndEvents
 | where Log !contains "\"GET /"
 | where Log !contains "\"POST /"
 //| where Log !contains ' to envoy_controller_cluster closed' // will print if controller was restarted
-| extend logtime = substring(Log, 1, 23), logContent = substring(Log, 25)
-| project Timestamp=logtime, Role, ContainerGroupName=_ContainerGroupName, logContent
+| project TimeStamp = substring(Log, 1, 23), NodeName = Role, PodName = _ContainerGroupName, Log = substring(Log, 25)
 | limit 1000
