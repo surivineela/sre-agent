@@ -254,7 +254,7 @@ namespace Agent.Plugins.Implementation
 
                 var options = new JsonSerializerOptions
                 {
-                    PropertyNamingPolicy = new LowerCaseNamingPolicy(),
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                     DictionaryKeyPolicy = new LowerCaseNamingPolicy(),
                     WriteIndented = true
                 };
@@ -522,7 +522,7 @@ namespace Agent.Plugins.Implementation
         {
             var options = new JsonSerializerOptions
             {
-                PropertyNamingPolicy = new LowerCaseNamingPolicy(),
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                 DictionaryKeyPolicy = new LowerCaseNamingPolicy(),
                 WriteIndented = true
             };
