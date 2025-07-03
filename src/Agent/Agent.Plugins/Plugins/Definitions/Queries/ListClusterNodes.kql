@@ -6,5 +6,5 @@ ContainerAppControllerEvents
 | where msg =='Node Heartbeat'
 | where EnvironmentName == managedCluster
 | where NodeName != "" and NodeName != "virtual-node-legion-linux"
-| summarize min(TIMESTAMP),max(TIMESTAMP) by NodeName
+| summarize StartTime = min(TIMESTAMP), EndTime = max(TIMESTAMP) by NodeName
 
