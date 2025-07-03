@@ -3,7 +3,7 @@ import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalPr
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { MessageAuthor } from '../../Common/Contracts/Azure/SreAgent';
 
-const DefaultUserIdAndDisplayName: Omit<MessageAuthor, 'role'> = {
+export const DefaultUserIdAndDisplayName: Omit<MessageAuthor, 'role'> = {
     displayName: 'Web Client User',
     userId: 'web-client-user',
 };

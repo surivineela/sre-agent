@@ -466,7 +466,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         }
     }
 
-    public async Task AppendUserStreamMessage(Guid threadId, string displayName, string message, Guid messageId, Guid? userId = null, CancellationToken cancellationToken = default)
+    public async Task AppendUserStreamMessage(Guid threadId, string displayName, string message, Guid messageId, string? userId = null, CancellationToken cancellationToken = default)
     {
         if (threadId == Guid.Empty)
         {

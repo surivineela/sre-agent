@@ -67,7 +67,7 @@ namespace Agent.Tests.Common.Mocks
             return Task.CompletedTask;
         }
 
-        public Task AppendUserStreamMessage(Guid threadId, string displayName, string message, Guid messageId, Guid? userId = null, CancellationToken cancellationToken = default)
+        public Task AppendUserStreamMessage(Guid threadId, string displayName, string message, Guid messageId, string? userId = null, CancellationToken cancellationToken = default)
         {
             Messages.Add(message);
             return Task.CompletedTask;

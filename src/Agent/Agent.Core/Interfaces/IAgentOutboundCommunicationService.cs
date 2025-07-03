@@ -57,7 +57,7 @@ public interface IAgentOutboundCommunicationService
     /// <summary>
     /// Appends a message to the user stream for a specific thread.
     /// </summary>
-    Task AppendUserStreamMessage(Guid threadId, string displayName, string message, Guid messageId, Guid? userId = null, CancellationToken cancellationToken = default);
+    Task AppendUserStreamMessage(Guid threadId, string displayName, string message, Guid messageId, string? userId = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Signals that signal processing is complete for a given message on a specific thread.

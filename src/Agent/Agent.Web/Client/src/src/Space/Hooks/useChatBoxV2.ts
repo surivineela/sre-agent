@@ -1,3 +1,4 @@
+import cloneDeep from 'lodash/cloneDeep';
 import debounce from 'lodash/debounce';
 import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -6,8 +7,10 @@ import { MessageRequestType, StreamingMessage } from '../../Common/Contracts/Azu
 import { Guid } from '../../Common/Helpers/Guid';
 import { PromptResources } from '../../Strings/SREAgentResources';
 import {
+    composeDefaultStreamingMessage,
+    composeUserMessage,
+    constructUserMessageFromStreamingMessage,
     convertStreamingMessagesToChatMessages,
-    getDefaultSREAgentAuthor,
     getStreamingMessageText,
     getToolCallText,
     isAgentMessage,
@@ -23,28 +26,6 @@ import { ChatMessage, MessageTypingCharactersPer10Ms, MessageTypingSpeedInMillis
 import { StreamingContext } from '../Contracts/Context';
 import { useAuthenticatedUserInfo } from './useAuthenticatedUserInfo';
 import { useChatHistoryDataCache } from './useChatHistoryDataCache';
-
-const composeUserMessage = (userId: string, userDisplayName: string, message: string): ChatMessage => {
-    return {
-        id: Guid.newGuid(),
-        timeStamp: new Date().toISOString(),
-        author: {
-            role: 'User',
-            userId: userId,
-            displayName: userDisplayName,
-        },
-        contents: [{ text: message }],
-    };
-};
-
-const composeDefaultStreamingMessage = (): ChatMessage => {
-    return {
-        id: Guid.newGuid(),
-        timeStamp: new Date().toISOString(),
-        author: getDefaultSREAgentAuthor(),
-        contents: [],
-    };
-};
 
 interface MessageCreateRequest {
     text: string;
@@ -78,9 +59,9 @@ export const useChatBoxV2 = (
     const [chatMessagesFromExistingStreamingMessages, setChatMessagesFromExistingStreamingMessages] = useState<ChatMessage[]>([]);
     const [newMessages, setNewMessages] = useState<ChatMessage[]>([]);
     const [existingStreamingMessages, setExistingStreamingMessages] = useState<StreamingMessage[]>([]);
-    const [isLoadingExistingStreamingMessages, setIsLoadingExistingStreamingMessages] = useState<boolean>(true);
     const [ignoreExistingStreamingMessages, setIgnoreExistingStreamingMessages] = useState<boolean>(false);
 
+    const [temporaryUserMessage, setTemporaryUserMessage] = useState<ChatMessage | null>(null);
     const [streamingMessage, setStreamingMessage] = useState<ChatMessage | null>(null);
     const [isCancellingStreaming, setIsCancellingStreaming] = useState<boolean>(false);
     const [toolCallText, setToolCallText] = useState<string | null>(null);
@@ -177,19 +158,22 @@ export const useChatBoxV2 = (
         }
     }, [existingStreamingMessages, ignoreExistingStreamingMessages, userId, displayName]);
 
-    const isLoading = useMemo(() => {
-        return isLoadingInitialChatHistory || (!ignoreExistingStreamingMessages && isLoadingExistingStreamingMessages);
-    }, [isLoadingInitialChatHistory, isLoadingExistingStreamingMessages, ignoreExistingStreamingMessages]);
-
     const isNewAndCleanThread = useMemo(
         () =>
-            !isLoading &&
+            !isLoadingInitialChatHistory &&
             !currentThreadId &&
             (chatHistory?.length ?? 0) === 0 &&
             chatMessagesFromExistingStreamingMessages.length === 0 &&
             newMessages.length === 0 &&
             !streamingMessage,
-        [isLoading, currentThreadId, chatHistory, chatMessagesFromExistingStreamingMessages, newMessages, streamingMessage]
+        [
+            isLoadingInitialChatHistory,
+            currentThreadId,
+            chatHistory,
+            chatMessagesFromExistingStreamingMessages,
+            newMessages,
+            streamingMessage,
+        ]
     );
 
     const scrollToBottom = (smooth: boolean) =>
@@ -276,15 +260,11 @@ export const useChatBoxV2 = (
             const currentStreamingMessage = streamingMessageRef.current;
             setStreamingMessage(null);
 
-            const messagesToAdd: ChatMessage[] = [];
             if (currentStreamingMessage && !isChatMessageEmpty(currentStreamingMessage)) {
-                messagesToAdd.push({ ...currentStreamingMessage });
+                setNewMessages(prev => [...prev, cloneDeep(currentStreamingMessage)]);
             }
-            const userMessage = composeUserMessage(userId, displayName, message);
-            messagesToAdd.push(userMessage);
 
-            setNewMessages(prev => [...prev, ...messagesToAdd]);
-
+            setTemporaryUserMessage(composeUserMessage(userId, displayName, message));
             setStreamingMessage(composeDefaultStreamingMessage());
             setIsAgentTyping(true);
             setIsWaitingForStreamingMessages(true);
@@ -362,6 +342,11 @@ export const useChatBoxV2 = (
                         isNewThreadAdded.current = true;
                     }
                 }
+
+                const userMessage = constructUserMessageFromStreamingMessage(currentMessageChunk);
+                setTemporaryUserMessage(null);
+                setNewMessages(prev => [...prev, userMessage]);
+
                 handleCompletedMessageChunk(currentMessageChunk);
             } else {
                 setToolCallText(isCancellingStreamingRef.current ? null : currentToolCallText);
@@ -441,7 +426,6 @@ export const useChatBoxV2 = (
             if (streamingMessages && streamingMessages.length > 0) {
                 setExistingStreamingMessages(streamingMessages);
             }
-            setIsLoadingExistingStreamingMessages(false);
         };
 
         const threadUpdateHandler = (messageChunk?: StreamingMessage) => {
@@ -479,14 +463,14 @@ export const useChatBoxV2 = (
                 loadOlderMessagesRef.current?.();
             }
         });
-        if (observer && intersectionObserverRef.current && !isLoading) {
+        if (observer && intersectionObserverRef.current && !isLoadingInitialChatHistory) {
             observer.observe(intersectionObserverRef.current);
         }
 
         return () => {
             observer?.disconnect();
         };
-    }, [isLoading]);
+    }, [isLoadingInitialChatHistory]);
 
     // When old messages are added at the top of the chat history, useLayoutEffect will calculate the new scroll top
     // to make sure the chat does not scroll to top before the next paint
@@ -515,6 +499,13 @@ export const useChatBoxV2 = (
         scrollToBottom(false);
     }, [chatMessagesFromExistingStreamingMessages]);
 
+    useEffect(() => {
+        // When new messages are added or the streaming message is initialized, scroll to the bottom
+        if (!!temporaryUserMessage && !!streamingMessage) {
+            scrollToBottom(true);
+        }
+    }, [temporaryUserMessage, !!streamingMessage]);
+
     const prompts = useMemo(
         () => [
             intl.formatMessage(PromptResources.bestPracticesPrompt),
@@ -540,11 +531,6 @@ export const useChatBoxV2 = (
             return message.contents[0].text || '';
         });
     }, [allMessages]);
-
-    useEffect(() => {
-        // When new messages are added or the streaming message is initialized or set to null, scroll to the bottom
-        scrollToBottom(true);
-    }, [newMessages.length, !!streamingMessage]);
 
     useEffect(() => {
         if (streamingMessage && !isChatMessageEmpty(streamingMessage)) {
@@ -582,9 +568,10 @@ export const useChatBoxV2 = (
         chatHistory,
         chatMessagesFromExistingStreamingMessages,
         newMessages,
-        isLoading,
+        isLoading: isLoadingInitialChatHistory,
         isAgentTyping,
         isWaitingForStreamingMessages,
+        temporaryUserMessage,
         streamingMessage,
         toolCallText,
         isCancellingStreaming,

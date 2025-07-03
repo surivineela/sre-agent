@@ -24,6 +24,7 @@ export interface StreamingMessage {
         messageId?: string | null;
         streamMessageType?: StreamingMessageType;
         isCancelled?: boolean | null;
+        userId?: string;
     } | null;
 }
 

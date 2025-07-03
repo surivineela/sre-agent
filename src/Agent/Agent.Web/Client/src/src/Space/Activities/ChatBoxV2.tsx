@@ -28,6 +28,7 @@ export const ChatBoxV2 = ({
         chatMessagesFromExistingStreamingMessages,
         newMessages,
         isAgentTyping,
+        temporaryUserMessage,
         streamingMessage,
         toolCallText,
         isCancellingStreaming,
@@ -111,6 +112,19 @@ export const ChatBoxV2 = ({
                                 }
                             />
 
+                            {temporaryUserMessage && (
+                                <ChatMessageV2
+                                    key={temporaryUserMessage.id}
+                                    message={temporaryUserMessage}
+                                    threadId={currentThreadId || ''}
+                                    previousMessage={
+                                        newMessages[newMessages.length - 1] ||
+                                        chatMessagesFromExistingStreamingMessages[chatMessagesFromExistingStreamingMessages.length - 1] ||
+                                        chatHistory?.[chatHistory.length - 1]?.[chatHistory?.[chatHistory.length - 1]?.length - 1]
+                                    }
+                                />
+                            )}
+
                             {streamingMessage && !isLoading && (
                                 <ChatMessageV2
                                     key={streamingMessage.id}
@@ -121,6 +135,7 @@ export const ChatBoxV2 = ({
                                     toolCallText={toolCallText}
                                     isWaitingForStreamingMessages={isWaitingForStreamingMessages}
                                     previousMessage={
+                                        temporaryUserMessage ||
                                         newMessages[newMessages.length - 1] ||
                                         chatMessagesFromExistingStreamingMessages[chatMessagesFromExistingStreamingMessages.length - 1] ||
                                         chatHistory?.[chatHistory.length - 1]?.[chatHistory?.[chatHistory.length - 1]?.length - 1]

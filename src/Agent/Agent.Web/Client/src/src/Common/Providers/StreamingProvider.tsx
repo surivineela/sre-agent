@@ -92,25 +92,7 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
         const onReceiveMessage = (methodName: MessageResponseType) => {
             connectionRef.current?.on(methodName, (message: StreamingMessage) => {
                 //Keep it for now for testing purpose. Will remove it once the streaming is not behind the feature flag
-                console.log(
-                    methodName,
-                    'Role: ',
-                    message.role,
-                    'Text: ',
-                    message.contents?.[0]?.text,
-                    'Text type: ',
-                    message.additionalProperties?.streamMessageType,
-                    'Tool call',
-                    message.contents?.[0]?.name,
-                    'thread Id',
-                    message.additionalProperties?.threadId,
-                    'messageId',
-                    message.additionalProperties?.messageId,
-                    'isCancelled',
-                    message.additionalProperties?.isCancelled,
-                    'Finish Reason: ',
-                    message.finishReason
-                );
+                console.log(message);
                 const threadId = message?.additionalProperties?.threadId;
                 if (threadId) {
                     storeMessage(threadId, message);

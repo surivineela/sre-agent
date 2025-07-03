@@ -102,7 +102,9 @@ public class ThreadManagementService(
             thread.Id,
             request.StartMessage.DisplayName,
             request.StartMessage.Text,
-            messageId);
+            messageId,
+            request.StartMessage.UserId
+        );
 
         foreach (var reasoningMessage in reasoningMessages)
         {

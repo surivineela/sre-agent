@@ -14,8 +14,10 @@ import {
 } from '../../Common/Contracts/Azure/SreAgent';
 import { StreamingMessage, StreamingMessageType } from '../../Common/Contracts/Azure/Streaming';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
+import { Guid } from '../../Common/Helpers/Guid';
 import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
 import { ChatMessage, ChatMessageContent, ThreadLoadingCounts } from '../Contracts/Activities';
+import { DefaultUserIdAndDisplayName } from '../Hooks/useAuthenticatedUserInfo';
 import { ThreadItemHeightInPx, ThreadItemPaddingTopBottomInPx } from '../Styles/Activities.styles';
 import { SelectedTimes } from './TimeDropdown';
 
@@ -385,6 +387,44 @@ export const isFinalStreamingMessage = (streamingMessage: StreamingMessage): boo
 
 export const isUserStreamingMessage = (streamingMessage: StreamingMessage): boolean => {
     return equals(streamingMessage.role || '', 'user', AntUxStringComparison.IgnoreCase);
+};
+
+export const constructUserMessageFromStreamingMessage = (streamingMessage: StreamingMessage): ChatMessage => {
+    const { additionalProperties, authorName, createdAt } = streamingMessage;
+    const { messageId, userId } = additionalProperties || {};
+
+    return {
+        id: messageId || Guid.newGuid(),
+        timeStamp: createdAt || new Date().toISOString(),
+        author: {
+            role: 'User',
+            userId: userId || DefaultUserIdAndDisplayName.userId,
+            displayName: authorName || DefaultUserIdAndDisplayName.displayName,
+        },
+        contents: [{ text: getStreamingMessageText(streamingMessage) }],
+    };
+};
+
+export const composeUserMessage = (userId: string, userDisplayName: string, message: string): ChatMessage => {
+    return {
+        id: Guid.newGuid(),
+        timeStamp: new Date().toISOString(),
+        author: {
+            role: 'User',
+            userId: userId,
+            displayName: userDisplayName,
+        },
+        contents: [{ text: message }],
+    };
+};
+
+export const composeDefaultStreamingMessage = (): ChatMessage => {
+    return {
+        id: Guid.newGuid(),
+        timeStamp: new Date().toISOString(),
+        author: getDefaultSREAgentAuthor(),
+        contents: [],
+    };
 };
 
 export const isChatMessageContentNonImageText = (chatMessageContent: ChatMessageContent): boolean => {
