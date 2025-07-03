@@ -175,8 +175,12 @@ export const SreAgentResources = defineMessages({
     goToMap: { defaultMessage: 'Go to map', id: 'UPybTw' },
     totalResources: { defaultMessage: 'Total resources', id: 'wkLkeE' },
     autonomous: { defaultMessage: 'Autonomous mode', id: 'U73T9e' },
+    autonomousDescription: { defaultMessage: 'Agent can execute actions automatically without approval', id: 'rjDAQw' },
     review: { defaultMessage: 'Review mode', id: '7Eq7I8' },
+    reviewDescription: { defaultMessage: 'Agent can propose actions but requires approval before execution', id: 'rd6YZk' },
     readonly: { defaultMessage: 'Read-only mode', id: 'eLvBmG' },
+    readonlyDescription: { defaultMessage: 'Agent can only view and analyze information without taking any actions', id: '9/ucRx' },
+    agentModeUnknownDescription: { defaultMessage: 'Unknown agent mode', id: 'w9tk1A' },
     enterADescription: { defaultMessage: 'Enter a description', id: 'QAVYIG' },
     dirtyStateConfirmationTitle: {
         defaultMessage: 'Discard changes?',
@@ -1062,4 +1066,32 @@ export const DailyReportResources = defineMessages({
 
     // Time formats
     notAvailable: { defaultMessage: 'N/A', id: 'PW+sL4' },
+});
+
+export const AgentModeResources = defineMessages({
+    agentMode: { defaultMessage: 'Agent mode', id: 'VtBCjG' },
+    updateAgentModeFailureDescription: {
+        defaultMessage: 'Failed to update the agent mode.',
+        id: 'wVpXzO',
+    },
+    fetchAgentModesFailureMessage: {
+        defaultMessage: 'Failed to fetch available agent modes',
+        id: 'az0OgB',
+    },
+    fetchAgentModeFailureMessage: {
+        defaultMessage: 'Failed to fetch agent mode',
+        id: 'CJEYfo',
+    },
+    agentsModesUnavailableMessage: {
+        defaultMessage: 'No agent modes available',
+        id: '+xLAmy',
+    },
+    agentModeRestrictionMessage: {
+        defaultMessage: 'Agent mode is restricted to Read Only by global configuration',
+        id: '+wotuJ',
+    },
+    agentModeTooltip: {
+        defaultMessage: 'Change agent mode for this thread',
+        id: '29xePt',
+    },
 });

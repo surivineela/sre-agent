@@ -20,7 +20,6 @@ const Activities: FC = () => {
         activeThreadId,
         threadPollingTriggerId,
         threadListHandleRef,
-        updateThread,
     } = useActivities();
 
     const [menuCollapsed, setMenuCollapsed] = useState<boolean>(false);
@@ -58,7 +57,6 @@ const Activities: FC = () => {
                     updateThreadLastReadTime={updateThreadLastReadTime}
                     actionsCollapsed={actionsCollapsed}
                     expandActions={() => setActionsCollapsed(false)}
-                    onThreadUpdate={updateThread}
                 />
                 <Resizable
                     position="right"

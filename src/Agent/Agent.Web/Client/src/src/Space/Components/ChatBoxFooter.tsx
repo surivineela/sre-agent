@@ -19,8 +19,6 @@ const ChatBoxFooter = ({
     prompts,
     messagePromptsUsed,
     threadId,
-    currentAgentMode,
-    onAgentModeChange,
 }: IChatBoxFooterProps) => {
     const intl = useIntl();
 
@@ -28,7 +26,8 @@ const ChatBoxFooter = ({
     const [historyIndex, setHistoryIndex] = useState<number>(-1);
     const [originalInput, setOriginalInput] = useState<string>('');
 
-    const { root, footer, chatStatement, sectionHeader, promptItem, lightbulbIcon, sectionDivider, popoverSurface } = useChatInputStyles();
+    const { root, footer, subFooter, chatStatement, sectionHeader, promptItem, lightbulbIcon, sectionDivider, popoverSurface } =
+        useChatInputStyles();
     const [open, setOpen] = useState(false);
 
     const chatInputHandleSendClick = useCallback(() => {
@@ -128,34 +127,34 @@ const ChatBoxFooter = ({
                     disabled={disableInput}
                 />
                 <div className={footer}>
-                    {threadId && (
-                        <AgentModeSelector threadId={threadId} currentAgentMode={currentAgentMode} onAgentModeChange={onAgentModeChange} />
-                    )}
-                    <Popover positioning={'after-top'} open={open} onOpenChange={(_e, data) => setOpen(data.open)}>
-                        <PopoverTrigger>
-                            <Button
-                                style={{ fontSize: '13px', padding: '2px 4px', paddingRight: '8px' }}
-                                appearance="outline"
-                                icon={<Lightbulb16Regular />}
-                                onClick={() => setOpen(!open)}
-                                disabled={disableInput}
-                            >
-                                {intl.formatMessage(PromptResources.promptLibrary)}
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverSurface className={popoverSurface}>
-                            {messagePromptsUsed.length > 0 && (
-                                <>
-                                    <PromptSection
-                                        title={intl.formatMessage(PromptResources.myRecentPrompts)}
-                                        prompts={messagePromptsUsed}
-                                    />
-                                    <div className={sectionDivider} />
-                                </>
-                            )}
-                            <PromptSection title={intl.formatMessage(PromptResources.suggestedPrompts)} prompts={prompts} />
-                        </PopoverSurface>
-                    </Popover>
+                    <div className={subFooter}>
+                        {threadId && <AgentModeSelector threadId={threadId} />}
+                        <Popover positioning={'after-top'} open={open} onOpenChange={(_e, data) => setOpen(data.open)}>
+                            <PopoverTrigger>
+                                <Button
+                                    style={{ fontSize: '13px', padding: '2px 4px', paddingRight: '8px' }}
+                                    appearance="outline"
+                                    icon={<Lightbulb16Regular />}
+                                    onClick={() => setOpen(!open)}
+                                    disabled={disableInput}
+                                >
+                                    {intl.formatMessage(PromptResources.promptLibrary)}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverSurface className={popoverSurface}>
+                                {messagePromptsUsed.length > 0 && (
+                                    <>
+                                        <PromptSection
+                                            title={intl.formatMessage(PromptResources.myRecentPrompts)}
+                                            prompts={messagePromptsUsed}
+                                        />
+                                        <div className={sectionDivider} />
+                                    </>
+                                )}
+                                <PromptSection title={intl.formatMessage(PromptResources.suggestedPrompts)} prompts={prompts} />
+                            </PopoverSurface>
+                        </Popover>
+                    </div>
                     <Button
                         icon={<SendFilled style={{ color: disableInput ? undefined : tokens.colorBrandForeground1 }} />}
                         disabled={disableInput}

@@ -1,123 +1,184 @@
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import useIntl from 'react-intl/src/components/useIntl';
+import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { ThreadClient } from '../../Common/Clients/ThreadClient';
-import { IAgentModeInfo } from '../Contracts/Activities';
+import { AgentMode } from '../../Common/Contracts/Azure/SreAgent';
+import { getAgentModeDescription, getAgentModeDisplayName } from '../../Common/Helpers/AgentMode';
+import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
+import { AgentModeResources } from '../../Strings/SREAgentResources';
+import { IAgentModeInfo, IAgentModeSelectorProps } from '../Contracts/Activities';
 
-export interface AgentModeValidationResult {
-    isValid: boolean;
-    availableModes: string[];
-    errorMessage?: string;
+export interface AgentModesInfo {
+    canEditAgentMode: boolean;
+    info?: string;
 }
 
-export const useAgentMode = () => {
+export const useAgentMode = ({ threadId }: IAgentModeSelectorProps) => {
     const [availableAgentModes, setAvailableAgentModes] = useState<string[]>([]);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [error, setError] = useState<string | null>(null);
+    const [isLoadingAgentModes, setIsLoadingAgentModes] = useState<boolean>(false);
+    const [isUpdatingAgentMode, setIsUpdatingAgentMode] = useState<boolean>(false);
+    const [loadingAgentModesError, setLoadingAgentModesError] = useState<string | null>(null);
+    const [updatingAgentModeError, setUpdatingAgentModeError] = useState<string | null>(null);
 
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const threadClient = ThreadClient.getInstance(sreAgentEndpoint);
 
-    // Fetch available agent modes from the server
-    const fetchAvailableAgentModes = useCallback(async () => {
-        setIsLoading(true);
-        setError(null);
+    const portalContext = useContext(AzPortalContext);
+    const queryClient = useQueryClient();
+    const intl = useIntl();
 
-        try {
-            const response = await threadClient.getAvailableAgentModes();
+    const {
+        data: threadAgentMode,
+        isLoading: isLoadingThreadAgentMode,
+        isFetching: isFetchingThreadAgentMode,
+        error: fetchThreadAgentModeError,
+    } = useQuery({
+        queryKey: ['getThreadAgentMode', threadId],
+        enabled: !!threadId,
+        queryFn: async () => {
+            const response = await threadClient.getThread(threadId);
             if (response.isSuccessful && response.content) {
-                setAvailableAgentModes(response.content);
+                return response.content.agentMode?.toLowerCase() || AgentMode.review;
             } else {
-                setError('Failed to fetch available agent modes');
-            }
-        } catch (e: any) {
-            setError(e?.message || 'Unknown error occurred');
-        } finally {
-            setIsLoading(false);
-        }
-    }, [threadClient]);
-
-    // Update thread agent mode
-    const updateThreadAgentMode = useCallback(
-        async (threadId: string, agentMode: string) => {
-            setIsLoading(true);
-            setError(null);
-
-            try {
-                const response = await threadClient.updateThreadAgentMode(threadId, agentMode);
-                if (response.isSuccessful) {
-                    return response.content;
-                } else {
-                    throw new Error('Failed to update agent mode');
-                }
-            } catch (e: any) {
-                const errorMessage = e?.response?.data?.error || e?.message || 'Failed to update agent mode';
-                setError(errorMessage);
-                throw new Error(errorMessage);
-            } finally {
-                setIsLoading(false);
+                throw new Error(response.error?.message || intl.formatMessage(AgentModeResources.fetchAgentModeFailureMessage));
             }
         },
-        [threadClient]
-    );
+        refetchOnWindowFocus: false,
+        refetchOnReconnect: false,
+        staleTime: Infinity,
+        gcTime: Infinity,
+    });
 
-    // Get agent mode information with display names and descriptions
-    const getAgentModeInfo = useCallback((mode: string): IAgentModeInfo => {
-        const agentModeDescriptions: Record<string, IAgentModeInfo> = {
-            ReadOnly: {
-                mode: 'ReadOnly',
-                displayName: 'Read Only',
-                description: 'Agent can only view and analyze information without taking any actions',
-            },
-            Review: {
-                mode: 'Review',
-                displayName: 'Review Mode',
-                description: 'Agent can propose actions but requires approval before execution',
-            },
-            Autonomous: {
-                mode: 'Autonomous',
-                displayName: 'Autonomous',
-                description: 'Agent can execute actions automatically without approval',
-            },
-        };
+    const agentModes = useMemo(() => {
+        return availableAgentModes || [];
+    }, [availableAgentModes]);
 
-        return (
-            agentModeDescriptions[mode] || {
-                mode,
-                displayName: mode,
-                description: 'Unknown agent mode',
-            }
-        );
-    }, []);
-
-    // Validate if mode change is allowed based on global restrictions
-    const validateAgentModeChange = useCallback((availableModes: string[]): AgentModeValidationResult => {
-        if (!availableModes || availableModes.length === 0) {
+    // Get agent modes information and editable state based on global restrictions
+    const agentModesInfo = useMemo<AgentModesInfo>(() => {
+        if (isLoadingAgentModes) {
             return {
-                isValid: false,
-                availableModes: [],
-                errorMessage: 'No agent modes available',
+                canEditAgentMode: false,
+            };
+        }
+
+        if (!availableAgentModes || availableAgentModes.length === 0) {
+            return {
+                canEditAgentMode: false,
+                info: intl.formatMessage(AgentModeResources.agentsModesUnavailableMessage),
             };
         }
 
         // If only one mode is available (ReadOnly), button should be disabled
-        if (availableModes.length === 1 && availableModes[0] === 'ReadOnly') {
+        if (availableAgentModes.length === 1 && equals(availableAgentModes[0], AgentMode.readonly, AntUxStringComparison.IgnoreCase)) {
             return {
-                isValid: false,
-                availableModes,
-                errorMessage: 'Agent mode is restricted to Read Only by global configuration',
+                canEditAgentMode: false,
+                info: intl.formatMessage(AgentModeResources.agentModeRestrictionMessage),
             };
         }
 
         return {
-            isValid: true,
-            availableModes,
+            canEditAgentMode: true,
         };
-    }, []);
+    }, [availableAgentModes, isLoadingAgentModes]);
 
-    // Get the effective current mode (thread-specific or global default)
-    const getEffectiveAgentMode = useCallback((threadAgentMode?: string, globalDefault: string = 'Review'): string => {
-        return threadAgentMode || globalDefault;
-    }, []);
+    const isButtonDisabled = useMemo(() => {
+        return !agentModesInfo.canEditAgentMode || isLoadingAgentModes || !!loadingAgentModesError || !!fetchThreadAgentModeError;
+    }, [agentModesInfo, isLoadingAgentModes, loadingAgentModesError, fetchThreadAgentModeError]);
+
+    const buttonTooltipText = useMemo(() => {
+        return (
+            loadingAgentModesError ||
+            fetchThreadAgentModeError?.message ||
+            agentModesInfo.info ||
+            intl.formatMessage(AgentModeResources.agentModeTooltip)
+        );
+    }, [loadingAgentModesError, agentModesInfo, fetchThreadAgentModeError]);
+
+    const showButtonLoadingSpinner = useMemo(() => {
+        return isLoadingAgentModes || isLoadingThreadAgentMode || isFetchingThreadAgentMode;
+    }, [isLoadingAgentModes, isLoadingThreadAgentMode, isFetchingThreadAgentMode]);
+
+    // Fetch available agent modes from the server
+    const fetchAvailableAgentModes = useCallback(async () => {
+        setIsLoadingAgentModes(true);
+        setLoadingAgentModesError(null);
+
+        const response = await threadClient.getAvailableAgentModes();
+        if (response.isSuccessful && response.content) {
+            setAvailableAgentModes(response.content);
+        } else {
+            setLoadingAgentModesError(response.error?.message || intl.formatMessage(AgentModeResources.fetchAgentModesFailureMessage));
+        }
+
+        setIsLoadingAgentModes(false);
+    }, [threadClient]);
+
+    // Update thread agent mode
+    const updateThreadAgentMode = useCallback(
+        async (agentMode: string) => {
+            if (!threadId || agentMode === threadAgentMode || isUpdatingAgentMode) {
+                return;
+            }
+
+            setIsUpdatingAgentMode(true);
+
+            const response = await threadClient.updateThreadAgentMode(threadId, agentMode);
+
+            if (response.isSuccessful) {
+                queryClient.invalidateQueries({
+                    queryKey: ['getThreadAgentMode', threadId],
+                });
+                setUpdatingAgentModeError(null);
+            } else {
+                portalContext.log({
+                    action: 'updateAgentMode',
+                    actionModifier: 'failed',
+                    logLevel: 'error',
+                    data: {
+                        message: `Failed to update agent mode`,
+                    },
+                });
+                setUpdatingAgentModeError(intl.formatMessage(AgentModeResources.updateAgentModeFailureDescription));
+            }
+
+            setIsUpdatingAgentMode(false);
+        },
+        [threadId, threadAgentMode, isUpdatingAgentMode]
+    );
+
+    // Get agent mode information with display names and descriptions
+    const getAgentModeInfo = useCallback(
+        (mode: string): IAgentModeInfo => {
+            const agentModeDescriptions: Record<string, IAgentModeInfo> = {
+                [AgentMode.readonly]: {
+                    mode: AgentMode.readonly,
+                    displayName: getAgentModeDisplayName(AgentMode.readonly, intl),
+                    description: getAgentModeDescription(AgentMode.readonly, intl),
+                },
+                [AgentMode.review]: {
+                    mode: AgentMode.review,
+                    displayName: getAgentModeDisplayName(AgentMode.review, intl),
+                    description: getAgentModeDescription(AgentMode.review, intl),
+                },
+                [AgentMode.autonomous]: {
+                    mode: AgentMode.autonomous,
+                    displayName: getAgentModeDisplayName(AgentMode.autonomous, intl),
+                    description: getAgentModeDescription(AgentMode.autonomous, intl),
+                },
+            };
+
+            return (
+                agentModeDescriptions[mode] || {
+                    mode,
+                    displayName: mode,
+                    description: getAgentModeDescription('', intl),
+                }
+            );
+        },
+        [intl]
+    );
 
     // Fetch available modes on component mount
     useEffect(() => {
@@ -125,13 +186,15 @@ export const useAgentMode = () => {
     }, [fetchAvailableAgentModes]);
 
     return {
-        availableAgentModes,
-        isLoading,
-        error,
+        threadAgentMode,
+        agentModes,
+        agentModesInfo,
+        isUpdatingAgentMode,
+        isButtonDisabled,
+        buttonTooltipText,
+        showButtonLoadingSpinner,
         updateThreadAgentMode,
+        updatingAgentModeError,
         getAgentModeInfo,
-        validateAgentModeChange,
-        getEffectiveAgentMode,
-        refetchAvailableAgentModes: fetchAvailableAgentModes,
     };
 };

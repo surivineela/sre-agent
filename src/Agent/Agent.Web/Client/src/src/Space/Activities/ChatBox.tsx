@@ -1,8 +1,8 @@
 import { CopilotChat, CopilotProvider } from '@fluentui-copilot/react-copilot';
 import { mergeClasses } from '@fluentui/react-components';
-import { memo, useCallback, useContext, useMemo } from 'react';
+import { memo, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
-import { Thread, ThreadSource } from '../../Common/Contracts/Azure/SreAgent';
+import { ThreadSource } from '../../Common/Contracts/Azure/SreAgent';
 import { KnowledgeGraphBuildStatusContext } from '../../Common/Providers/KnowledgeGraphBuildStatusProvider';
 import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
 import { ActivitiesResources } from '../../Strings/SREAgentResources';
@@ -22,8 +22,6 @@ export const ChatBox = ({
     updateThreadLastReadTime,
     threadId,
     threadSource,
-    thread,
-    onThreadUpdate,
 }: IChatBoxProps) => {
     const { hasChatPermissions } = useContext(KnowledgeGraphBuildStatusContext);
     const intl = useIntl();
@@ -46,15 +44,6 @@ export const ChatBox = ({
         showNewMessageButton,
         onClickNewMessageButton,
     } = useChatBox(addThread, promoteThread, updateThreadLastReadTime, threadId);
-
-    const handleAgentModeChange = useCallback(
-        (updatedThread: Thread) => {
-            console.log('Agent mode updated for thread:', updatedThread);
-            // Pass the updated thread to the parent component
-            onThreadUpdate?.(updatedThread);
-        },
-        [onThreadUpdate]
-    );
 
     const isWelcomeThread = threadSource === ThreadSource.welcomeMessage;
 
@@ -136,9 +125,7 @@ export const ChatBox = ({
                     onClickNewMessageButton={onClickNewMessageButton}
                     prompts={prompts}
                     messagePromptsUsed={messagePromptsUsed}
-                    threadId={threadId}
-                    currentAgentMode={thread?.agentMode}
-                    onAgentModeChange={handleAgentModeChange}
+                    threadId={currentThreadId}
                 />
             </CopilotProvider>
         </div>

@@ -240,6 +240,11 @@ export const useChatInputStyles = makeStyles({
         justifyContent: 'space-between',
         alignItems: 'center',
     },
+    subFooter: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: tokens.spacingHorizontalM
+    },
     chatStatement: {
         color: tokens.colorNeutralForeground3,
         maxWidth: textFieldMaxWidth,

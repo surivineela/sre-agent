@@ -15,3 +15,17 @@ export const getAgentModeDisplayName = (mode: string, intl: IntlShape): string =
             return '';
     }
 };
+
+export const getAgentModeDescription = (mode: string, intl: IntlShape): string => {
+    const lowercaseMode = mode?.toLowerCase() ?? '';
+    switch (lowercaseMode) {
+        case AgentMode.autonomous:
+            return intl.formatMessage(SreAgentResources.autonomousDescription);
+        case AgentMode.review:
+            return intl.formatMessage(SreAgentResources.reviewDescription);
+        case AgentMode.readonly:
+            return intl.formatMessage(SreAgentResources.readonlyDescription);
+        default:
+            return intl.formatMessage(SreAgentResources.agentModeUnknownDescription);
+    }
+};
