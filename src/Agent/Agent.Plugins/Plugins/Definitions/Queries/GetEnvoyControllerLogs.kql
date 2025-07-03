@@ -6,5 +6,5 @@ EnvoyControllerEvents
 | where EnvironmentName == managedClusterName
 | where isnotempty(Log) or isnotempty( error ) or isnotempty(msg)
 | extend LogMessage = coalesce(Log, msg)
-| project PreciseTimeStamp,LogMessage, error, Role, _ContainerGroupId, _ContainerGroupName, _ContainerId, _ContainerImage, caller
+| project PreciseTimeStamp,LogMessage, error, NodeName=Role, PodId=_ContainerGroupId, PodName=_ContainerGroupName, ContainerName=_ContainerName, ContainerImage=_ContainerImage, caller
 | limit 1000

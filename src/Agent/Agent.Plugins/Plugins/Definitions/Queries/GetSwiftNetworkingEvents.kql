@@ -7,4 +7,4 @@ SwiftNetworkingEvents
 | where _ContainerName == "swift-load-balancer"
 | where isnotempty(error) or isnotempty(Log) or isnotempty(msg)
 | extend LogMessage = coalesce(Log, msg)
-| project PreciseTimeStamp, logger, LogMessage, error, Role, _ContainerGroupId, _ContainerGroupName, _ContainerId, _ContainerImage, caller
+| project PreciseTimeStamp, logger, LogMessage, error, NodeName=Role, PodId=_ContainerGroupId, PodName=_ContainerGroupName, ContainerName=_ContainerName, ContainerImage=_ContainerImage, caller
