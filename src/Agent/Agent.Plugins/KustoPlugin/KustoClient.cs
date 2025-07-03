@@ -27,7 +27,7 @@ public class KustoClient
         _logger = logger;
         _kustoAuthSettings = kustoSettings.Auth;
 
-        _logger.LogInternalInformation($"Authentication type: {_kustoAuthSettings.AuthenticationType}");
+        _logger.LogInternalInformation($"Kusto Authentication type: {_kustoAuthSettings.AuthenticationType}");
     }
 
     public async Task<IDataReader> PerformQueryAsync(string clusterUri, string database, string query)
@@ -93,12 +93,13 @@ public class KustoClient
         if (!string.IsNullOrEmpty(_kustoAuthSettings.ManagedIdentityClientId))
         {
             defaultAzureCredentialOptions.ManagedIdentityClientId = _kustoAuthSettings.ManagedIdentityClientId;
+            _logger.LogInternalInformation($"Kusto using MI with ClientId: {_kustoAuthSettings.ManagedIdentityClientId}");
         } else if(!string.IsNullOrEmpty(_kustoAuthSettings.ManagedIdentityResourceId))
         {
+            _logger.LogInternalInformation($"Kusto using MI with ResourceId: {_kustoAuthSettings.ManagedIdentityResourceId}");
             defaultAzureCredentialOptions.ManagedIdentityResourceId = new Azure.Core.ResourceIdentifier(_kustoAuthSettings.ManagedIdentityResourceId);
         } else
         {
-
             throw new InvalidOperationException("Either ManagedIdentityClientId or ManagedIdentityResourceId must be provided.");
         }
         return new DefaultAzureCredential(defaultAzureCredentialOptions);
