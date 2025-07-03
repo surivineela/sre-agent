@@ -55,8 +55,7 @@ system_prompt: |
 
 
 handoff_description: "Handoff to this agent when you don't have tools to continue the next step"
-tools:
-- SearchDesignDocs
+
 
 handoffs:
   - rca_containerapp_icm_agent
@@ -74,6 +73,7 @@ handoffs:
   - rca_containerapp_swift_network_container_agent
 
 tools:
+  - SearchDesignDocs
   - GetAgentWebPortalThreadLink
 
 common_prompts:
