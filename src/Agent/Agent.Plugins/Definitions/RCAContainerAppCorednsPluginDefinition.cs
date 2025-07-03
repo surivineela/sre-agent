@@ -19,15 +19,21 @@ namespace Agent.Plugins.Definitions
         {
             _kustoPlugin = kustoPlugin;
         }
-
-        [Description(
-            @"Get list of custom DNS servers configured for the container app environment at start and end of time window. It also checks if custom DNS servers are configured or not.
-            If no data is returned then ask to validate inputs again as it should never be the case.")]
+        [Description(@"""
+Retrieves the list of custom DNS servers set for a container app environment at the start and end of a time window.
+Use this tool to check if custom DNS servers are configured or to compare DNS settings over time.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- DNSServers: Custom DNS servers found in the environment.
+- DNSStatus: Status message indicating if custom DNS servers are configured.
+- StartTime: The earliest time custom DNS servers were found in the time window.
+- EndTime: The latest time custom DNS servers were found in the time window.
+"""
+)]
         public Task<string> GetCustomDNSServers(
-            string region,
-            DateTime fromDate,
-            DateTime toDate,
-            string managedClusterName)
+            [Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed cluster.")] string managedClusterName)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetCustomDNSServersOverTime", region,
                 new Dictionary<string, string>
@@ -38,18 +44,21 @@ namespace Agent.Plugins.Definitions
                 });
         }
 
-        [Description(@"
-                Retrieve the health status of upstream custom DNS servers for a given managed Kubernetes cluster, segmented by node or VMSS, within a specified time range.
-                If the query returns results, it indicates that the corresponding upstream DNS server experienced health check failures (i.e., it is unhealthy).
-
-                What this metric measures:  If no results are returned, the upstream DNS server is considered healthy during that time frame.
-                When it is applicable: CoreDNS could not reach upstream DNS servers 
-            ")]
+        [Description(@"""
+Checks the health status of upstream custom DNS servers for a managed cluster, grouped by node or VMSS, within a time range.
+Use this tool to find out if any upstream DNS server had health check failures.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- PreciseTimeStamp: Time of the metric.
+- totalCount: Total count for the coredns_forward_healthcheck_failures_total metric in the time window.
+- VMNodeWhereMetricCaptured: Name of the node or VMSS.
+- PodName: Name of the pod (if applicable).
+"""
+)]
         public Task<string> GetUpstreamCustomDNSServerHealthStatus(
-            string region,
-            DateTime fromDate,
-            DateTime toDate,
-            string managedClusterName)
+            [Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed cluster.")] string managedClusterName)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetGenericMetricCountData", region.NormalizeLocation(),
                 new Dictionary<string, string>
@@ -63,19 +72,22 @@ namespace Agent.Plugins.Definitions
                 });
         }
 
-        [Description(@"
-                Retrieve the average latency (in seconds) of DNS resolution requests handled by CoreDNS within a given managed Kubernetes cluster, segmented by node or VMSS over a specified time range.
-                The query calculates the average time (in seconds) CoreDNS takes to resolve DNS queries by dividing the total duration of all DNS requests by the total number of requests.
-                This metric is useful for identifying performance degradation or latency spikes in DNS resolution.
-
-                What this metric measures: Measures total time CoreDNS takes to serve any DNS request, regardless of whether it uses cache, forwards it, or uses plugins. End-to-end latency from the client's perspective.
-                When it is applicable: Helps detect increased DNS resolution latency, which may impact application performance or indicate upstream DNS server slowness.
-            ")]
+        [Description(@"""
+Retrieves the average DNS resolution latency (in seconds) handled by CoreDNS for a managed cluster, grouped by node or VMSS, over a time range.
+Use this tool to monitor DNS performance and detect latency spikes.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- PreciseTimeStamp: Time of the metric.
+- avgValue: Average value for the coredns_dns_request_duration_seconds metric in the time window.
+- totalCount: Number of samples used for the average.
+- VMNodeWhereMetricCaptured: Name of the node or VMSS.
+- PodName: Name of the pod (if applicable).
+"""
+)]
         public Task<string> GetAverageLatencyOfDNSResolutionRequests(
-            string region,
-            DateTime fromDate,
-            DateTime toDate,
-            string managedClusterName)
+            [Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed cluster.")] string managedClusterName)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetGenericMetricAverageValueData", region.NormalizeLocation(),
                 new Dictionary<string, string>
@@ -89,18 +101,22 @@ namespace Agent.Plugins.Definitions
                 });
         }
 
-        [Description(@"
-                Retrieve the average forwarding latency (in seconds) of DNS resolution requests handled by CoreDNS within a managed Kubernetes cluster, segmented by node or VMSS over a specified time range.
-                The query calculates the average time (in seconds) CoreDNS takes to forward DNS queries to upstream servers and receive responses.
-
-                What this metric measures: Measures only the forwarding time, how long CoreDNS takes to send a DNS request to an upstream DNS server and receive a response.
-                When it is applicable: Helps detect increased DNS resolution latency, which may indicate upstream DNS server slowness or network issues.
-            ")]
+        [Description(@"""
+Retrieves the average forwarding latency (in seconds) for DNS requests sent by CoreDNS to upstream servers in a managed cluster, grouped by node or VMSS, over a time range.
+Use this tool to check for delays in DNS forwarding to upstream servers.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- PreciseTimeStamp: Time of the metric.
+- avgValue: Average value for the coredns_forward_request_duration_seconds metric in the time window.
+- totalCount: Number of samples used for the average.
+- VMNodeWhereMetricCaptured: Name of the node or VMSS.
+- PodName: Name of the pod (if applicable).
+"""
+)]
         public Task<string> GetAverageLatencyOfUpstreamDNSResolutionForwardRequests(
-            string region,
-            DateTime fromDate,
-            DateTime toDate,
-            string managedClusterName)
+            [Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed cluster.")] string managedClusterName)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetGenericMetricAverageValueData", region.NormalizeLocation(),
                 new Dictionary<string, string>
@@ -114,21 +130,21 @@ namespace Agent.Plugins.Definitions
                 });
         }
 
-        [Description(@"
-        Retrieve the number of panic events triggered by the CoreDNS process within a managed Kubernetes cluster, segmented by node or VMSS over a specified time range.
-        The query counts how many times CoreDNS encountered a runtime panic, which may result in process crashes or restarts.
-
-        What this metric measures:
-        Tracks the total number of CoreDNS panics caused by unexpected failures such as plugin bugs or misconfigurations.
-
-        When it is applicable:
-        Useful for identifying critical issues affecting CoreDNS stability that may lead to DNS resolution failures or service interruptions.
-                ")]
+        [Description(@"""
+Retrieves the number of CoreDNS process panics in a managed cluster, grouped by node or VMSS, over a time range.
+Use this tool to detect CoreDNS crashes or restarts due to panics.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- PreciseTimeStamp: Time of the metric.
+- totalCount: Total count for the coredns_panics_total metric in the time window.
+- VMNodeWhereMetricCaptured: Name of the node or VMSS.
+- PodName: Name of the pod (if applicable).
+"""
+)]
         public Task<string> GetCoreDNSProcessCrashesCount(
-            string region,
-            DateTime fromDate,
-            DateTime toDate,
-            string managedClusterName)
+            [Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed cluster.")] string managedClusterName)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetGenericMetricCountData", region.NormalizeLocation(),
                 new Dictionary<string, string>
@@ -142,21 +158,21 @@ namespace Agent.Plugins.Definitions
                 });
         }
 
-        [Description(@"
-        Retrieve the number of failed CoreDNS configuration reload attempts within a managed Kubernetes cluster, segmented by node or VMSS over a specified time range.
-        The query counts how often CoreDNS failed to apply a new configuration, which can impact DNS functionality.
-
-        What this metric measures:
-        Tracks the total number of times CoreDNS attempted but failed to reload its configuration.
-
-        When it is applicable:
-        Useful for detecting configuration issues or malformed updates that may prevent CoreDNS from functioning correctly after changes.
-                ")]
+        [Description(@"""
+Retrieves the number of failed CoreDNS configuration reloads in a managed cluster, grouped by node or VMSS, over a time range.
+Use this tool to find configuration reload issues that may affect DNS.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- PreciseTimeStamp: Time of the metric.
+- totalCount: Total count for the coredns_reload_failed_total metric in the time window.
+- VMNodeWhereMetricCaptured: Name of the node or VMSS.
+- PodName: Name of the pod (if applicable).
+"""
+)]
         public Task<string> GetCoreDNSConfigReloadFailuresCount(
-            string region,
-            DateTime fromDate,
-            DateTime toDate,
-            string managedClusterName)
+            [Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed cluster.")] string managedClusterName)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetGenericMetricCountData", region.NormalizeLocation(),
                 new Dictionary<string, string>
@@ -170,21 +186,21 @@ namespace Agent.Plugins.Definitions
                 });
         }
 
-        [Description(@"
-        Retrieve the total number of DNS requests handled by CoreDNS within a managed Kubernetes cluster, segmented by node or VMSS over a specified time range.
-        This query helps assess the DNS query load and usage trends across the cluster.
-
-        What this metric measures:
-        Tracks the cumulative number of DNS requests received by CoreDNS.
-
-        When it is applicable:
-        Useful for understanding DNS traffic volume, detecting sudden spikes or drops in request rates, and capacity planning.
-        ")]
+        [Description(@"""
+Retrieves the total number of DNS requests handled by CoreDNS in a managed cluster, grouped by node or VMSS, over a time range.
+Use this tool to monitor DNS traffic volume and trends.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- PreciseTimeStamp: Time of the metric.
+- totalCount: Total count for the coredns_dns_requests_total metric in the time window.
+- VMNodeWhereMetricCaptured: Name of the node or VMSS.
+- PodName: Name of the pod (if applicable).
+"""
+)]
         public Task<string> GetCoreDNSTotalDNSRequestCount(
-            string region,
-            DateTime fromDate,
-            DateTime toDate,
-            string managedClusterName)
+            [Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed cluster.")] string managedClusterName)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetGenericMetricCountData", region.NormalizeLocation(),
                 new Dictionary<string, string>
@@ -198,21 +214,21 @@ namespace Agent.Plugins.Definitions
                 });
         }
 
-        [Description(@"
-        Retrieve the number of DNS queries rejected by CoreDNS due to exceeding the maximum allowed concurrent upstream requests, within a managed Kubernetes cluster. 
-        Results are segmented by node or VMSS over a specified time range.
-
-        What this metric measures:
-        Counts the total number of DNS queries dropped when CoreDNS reached its limit for simultaneous upstream connections.
-
-        When it is applicable:
-        Useful for identifying DNS performance bottlenecks caused by concurrency limits, which may lead to dropped queries or degraded resolution performance.
-        ")]
+        [Description(@"""
+Retrieves the number of DNS queries rejected by CoreDNS due to reaching the maximum allowed concurrent upstream requests in a managed cluster, grouped by node or VMSS, over a time range.
+Use this tool to identify DNS performance issues caused by concurrency limits.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- PreciseTimeStamp: Time of the metric.
+- totalCount: Total count for the coredns_forward_max_concurrent_rejects_total metric in the time window.
+- VMNodeWhereMetricCaptured: Name of the node or VMSS.
+- PodName: Name of the pod (if applicable).
+"""
+)]
         public Task<string> GetCoreDNSForwardConcurrentRejectsCount(
-            string region,
-            DateTime fromDate,
-            DateTime toDate,
-            string managedClusterName)
+            [Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed cluster.")] string managedClusterName)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetGenericMetricCountData", region.NormalizeLocation(),
                 new Dictionary<string, string>
@@ -226,21 +242,22 @@ namespace Agent.Plugins.Definitions
                 });
         }
 
-        [Description(@"
-        Retrieve the average time (in seconds) taken by CoreDNS to program DNS records from Kubernetes service and endpoint objects, within a managed Kubernetes cluster. 
-        Results are segmented by node or VMSS over a specified time range.
-
-        What this metric measures:
-        Measures the duration CoreDNS takes to process Kubernetes object updates and make DNS records available.
-
-        When it is applicable:
-        Helps detect delays in DNS record propagation caused by slow synchronization between Kubernetes API and CoreDNS, which can lead to temporary name resolution failures.
-        ")]
+        [Description(@"""
+Retrieves the average time (in seconds) CoreDNS takes to program DNS records from Kubernetes service and endpoint objects in a managed cluster, grouped by node or VMSS, over a time range.
+Use this tool to detect delays in DNS record updates from Kubernetes.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- PreciseTimeStamp: Time of the metric.
+- avgValue: Average value for the coredns_kubernetes_dns_programming_duration_seconds metric in the time window.
+- totalCount: Number of samples used for the average.
+- VMNodeWhereMetricCaptured: Name of the node or VMSS.
+- PodName: Name of the pod (if applicable).
+"""
+)]
         public Task<string> GetAverageLatencyOfCoreDNSKubernetesDNSProgramming(
-            string region,
-            DateTime fromDate,
-            DateTime toDate,
-            string managedClusterName)
+            [Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed cluster.")] string managedClusterName)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetGenericMetricAverageValueData", region.NormalizeLocation(),
                 new Dictionary<string, string>
@@ -254,13 +271,24 @@ namespace Agent.Plugins.Definitions
                 });
         }
 
-        [Description(
-            @"Get coredns pod failure events for the container app environment per node/vmss for a given time frame")]
+        [Description(@"""
+Retrieves CoreDNS pod failure events for a container app environment, grouped by node or VMSS, over a time range.
+Use this tool to find CoreDNS pod failures in the environment.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- Pod: Name of the pod.
+- Node: Name of the node or VMSS.
+- msg: Failure message.
+- Reason: Reason for the failure.
+- FailureStartTime: Time of the first failure in the window.
+- FailureEndTime: Time of the last failure in the window.
+- FailureCount: Number of failures in the window.
+"""
+)]
         public Task<string> GetCorednsPodFailureEvents(
-            string region,
-            DateTime fromDate,
-            DateTime toDate,
-            string managedClusterName)
+            [Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed cluster.")] string managedClusterName)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetPodFailureEvents", region,
                 new Dictionary<string, string>
@@ -274,13 +302,24 @@ namespace Agent.Plugins.Definitions
                 });
         }
 
-        [Description(
-            @"Get swift bootstrap agent pod failure events for the container app environment per node/vmss for a given time frame")]
+        [Description(@"""
+Retrieves swift bootstrap agent pod failure events for a container app environment, grouped by node or VMSS, over a time range.
+Use this tool to find swift bootstrap agent pod failures in the environment.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- Pod: Name of the pod.
+- Node: Name of the node or VMSS.
+- msg: Failure message.
+- Reason: Reason for the failure.
+- FailureStartTime: Time of the first failure in the window.
+- FailureEndTime: Time of the last failure in the window.
+- FailureCount: Number of failures in the window.
+"""
+)]
         public Task<string> GetSwiftBootstrapAgentPodFailureEvents(
-            string region,
-            DateTime fromDate,
-            DateTime toDate,
-            string managedClusterName)
+            [Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed cluster.")] string managedClusterName)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetPodFailureEvents", region,
                 new Dictionary<string, string>
@@ -294,13 +333,27 @@ namespace Agent.Plugins.Definitions
                 });
         }
 
-        [Description(
-            @"Get swift bootstrap agent pod health status for the container app environment per node/vmss for a given time frame")]
+        [Description(@"""
+Retrieves swift bootstrap agent pod health status for a container app environment, grouped by node or VMSS, over a time range.
+Use this tool to check the health of swift bootstrap agent pods in the environment.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- StartTime: Time of the first health status record.
+- EndTime: Time of the last health status record.
+- PodName: Name of the pod.
+- NodeName: Name of the node or VMSS.
+- PodStatus: Status of the pod.
+- Health: Health state (Healthy/Degraded).
+- restartCount: Number of restarts.
+- ContainerName: Name of the container (if applicable).
+- ContainerState: State of the container (if applicable).
+- ContainerImage: Image of the container (if applicable).
+"""
+)]
         public Task<string> GetSwiftBootstrapAgentPodHealthStatus(
-            string region,
-            DateTime fromDate,
-            DateTime toDate,
-            string managedClusterName)
+            [Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed cluster.")] string managedClusterName)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetPodHealthStatus", region,
                 new Dictionary<string, string>
@@ -313,13 +366,22 @@ namespace Agent.Plugins.Definitions
                 });
         }
 
-        [Description(
-            @"Get DNS config update status for the container app environment for a given time frame")]
+        [Description(@"""
+Retrieves DNS config update status for a container app environment over a time range.
+Use this tool to check if DNS config updates were successful or failed.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- StartTime: Time when the status period started.
+- EndTime: Time when the status period ended.
+- DNSConfigStatus: Status of the DNS config (Healthy/Degraded).
+- SessionIndex: Index of the status session.
+- VMNode: Name of the node or VMSS.
+"""
+)]
         public Task<string> GetDNSConfigUpdateStatus(
-            string region,
-            DateTime fromDate,
-            DateTime toDate,
-            string managedClusterName)
+            [Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed cluster.")] string managedClusterName)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetDNSConfigUpdateStatus", region,
                 new Dictionary<string, string>
@@ -330,13 +392,20 @@ namespace Agent.Plugins.Definitions
                 });
         }
 
-        [Description(
-            @"Check if the Custom DNS server failed to resolve the dot (.) for the container app environment for a given time frame")]
+        [Description(@"""
+Checks if the custom DNS server failed to resolve the root domain (.) for a container app environment over a time range.
+Use this tool to detect DNS resolution failures for the root domain.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- FailureCount: Number of failures detected.
+- StartTime: Time of the first failure.
+- EndTime: Time of the last failure.
+"""
+)]
         public Task<string> CheckIfDNSServerFailedToResolveDot(
-            string region,
-            DateTime fromDate,
-            DateTime toDate,
-            string managedClusterName)
+            [Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed cluster.")] string managedClusterName)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("CheckIfDNSServerFailedToResolveDot", region,
                 new Dictionary<string, string>
@@ -347,7 +416,6 @@ namespace Agent.Plugins.Definitions
                     { "threshold", "0" }
                 });
         }
-
         private static string GetDuration(DateTime fromDate, DateTime toDate)
         {
             var totalHours = (toDate - fromDate).TotalHours;

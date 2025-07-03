@@ -20,21 +20,20 @@ namespace Agent.Plugins.Definitions
             _kustoPlugin = kustoPlugin;
         }
 
-        [Description(@"
-This operation will get if the container app CPU percentage is above specified threshold in the duration specified by fromDate and toDate.
-
-Input parameters:
-- region: The Azure region where the container app is hosted
-- fromDate: The start date for the query
-- toDate: The end date for the query
-- metricName: The name of the metric to check
-- containerAppArmId: The ARM ID of the container app
-- samplingType: The type of sampling to use (e.g., 'Max', 'Average', 'Min')
-- Threshold: The threshold value to compare against the metric (e.g., '80' for 80% CPU usage)
-
-Output:
-Returns true if the CPU percentage is above the specified threshold, otherwise false.")]
-        public Task<string> GetContainerAppCpuExceedsThreshold(string region, DateTime fromDate, DateTime toDate, string containerAppArmId, string samplingType, string Threshold)
+        [Description(@"""
+Checks if the container app CPU usage exceeds a specified threshold during a given time window.
+Use this tool to determine if CPU usage is above a threshold for a container app.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- hasRows: true if CPU usage exceeded the threshold, false otherwise.
+"""
+)]
+        public Task<string> GetContainerAppCpuExceedsThreshold(
+            [Description("Azure region in lower case. Example: 'westeurope'.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Relative URL specifying the ARM ID for the container app. Example: '/subscriptions/{SubscriptionId}/resourceGroups/{ResourceGroupName}/providers/Microsoft.App/containerApps/{ContainerAppName}'.")] string containerAppArmId,
+            [Description("Metric sampling type. Example: 'Max', 'Average', 'Min'.")] string samplingType,
+            [Description("Threshold as a percentage to check if metric equals or exceeds. Example: '80'.")] string Threshold)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetMdmResult", region,
                 new Dictionary<string, string>
@@ -49,27 +48,20 @@ Returns true if the CPU percentage is above the specified threshold, otherwise f
                 });
         }
 
-        [Description(@"
-This operation will get if the container app memory percentage is above specified threshold in the duration specified by fromDate and toDate.
-
-Input parameters:
-- region: The Azure region where the container app is hosted
-- fromDate: The start date for the query
-- toDate: The end date for the query
-- metricName: The name of the metric to check
-- containerAppArmId: The ARM ID of the container app
-- samplingType: The type of sampling to use (e.g., 'Max', 'Average', 'Min')
-- Threshold: The threshold value to compare against the metric (e.g., '80' for 80% CPU usage)
-
-Output:
-Returns true if the Memory percentage is above the specified threshold, otherwise false.")]
+        [Description(@"""
+Checks if the container app memory usage exceeds a specified threshold during a given time window.
+Use this tool to determine if memory usage is above a threshold for a container app.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- hasRows: true if memory usage exceeded the threshold, false otherwise.
+"""
+)]
         public Task<string> GetContainerAppMemoryExceedsThreshold(
-            [Description("Azure region in lower case. example: 'westeurope'")] string region,
+            [Description("Azure region in lower case. Example: 'westeurope'.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
-            [Description("Relative Url specifying the ARM Id for container app. example: '/subscriptions/{SubscriptionId}/resourceGroups/{ResourceGroupName}/providers/Microsoft.App/containerApps/{ContainerAppName}'")] string containerAppArmId,
-            [Description("Metric sampling type. example: 'Max', 'Average, 'Min'")] string samplingType,
-            [Description("Threshold as a percentage to check if Metric equals or exceeds. example: '90'")] string Threshold)
+            [Description("Relative URL specifying the ARM ID for the container app. Example: '/subscriptions/{SubscriptionId}/resourceGroups/{ResourceGroupName}/providers/Microsoft.App/containerApps/{ContainerAppName}'.")] string containerAppArmId,
+            [Description("Metric sampling type. Example: 'Max', 'Average', 'Min'.")] string samplingType,
+            [Description("Threshold as a percentage to check if metric equals or exceeds. Example: '90'.")] string Threshold)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetMdmResult", region,
                 new Dictionary<string, string>
@@ -84,31 +76,25 @@ Returns true if the Memory percentage is above the specified threshold, otherwis
                 });
         }
 
-    [Description(@"
-Retrieve Out of Memory (OOM) kill events for container apps within a managed cluster.This operation identifies instances where containers were terminated due to memory resource exhaustion.
-OOM kills indicate that a container exceeded its memory limits or that the node ran out of available memory.
-
-Input parameters:
-- region: The Azure region where the container app is hosted
-- fromDate: The start date for the query
-- toDate: The end date for the query
-- managedClusterName: Name of the managed Kubernetes cluster
-- containerAppOrJobName: Name of the container app or job (use empty string if not available)
-
-Output:
-- PreciseTimeStamp
-- ManagedClusterNam
-- ContainerAppName
-- RevisionName
-- ReplicaName
-- Count
-- resourceId")]
+        [Description(@"""
+Retrieves OOM (Out Of Memory) kill events for a container app or job in a managed cluster during a given time window.
+Use this tool to check for OOM kill events for a container app or job.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- PreciseTimeStamp: Time when the OOM kill event occurred.
+- ManagedClusterName: Name of the managed cluster.
+- ContainerAppName: Name of the container app.
+- RevisionName: Name of the revision.
+- ReplicaName: Name of the replica.
+- Count: Number of OOM kill events.
+- resourceId: Resource ID of the container app or job.
+"""
+)]
         public Task<string> GetContainerAppOOMKills(
-            [Description("Azure region in lower case. example: 'westeurope'")] string region,
+            [Description("Azure region in lower case. Example: 'westeurope'.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName,
-            [Description("Name of the container app or job. Use empty string if container app or job name is not available")] string containerAppOrJobName)
+            [Description("Name of the container app or job. Use empty string if not available.")] string containerAppOrJobName)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetEventProcessorOOMKills", region,
                 new Dictionary<string, string>

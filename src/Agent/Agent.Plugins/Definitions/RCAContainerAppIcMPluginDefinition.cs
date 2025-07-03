@@ -17,16 +17,18 @@ namespace Agent.Plugins.Definitions
             _plugin = plugin;
         }
 
-        [Description(@"
-        Calculates the effective time range for issue investigation based on the available input parameters. 
-        At least one of the following must be provided: issueFirstOccurrence, issueLastOccurrence, or reportedIssueObservedOnTime.
-        **Important:**
-        - Do NOT use this function if none of the input parameters are available.
-        ")]
+        [Description(@"""
+Calculates the effective time range for issue investigation based on available timestamps.
+Use this tool to determine the investigation window for an incident when at least one relevant timestamp is available.
+Output: Returns a tuple with two values: StartDate and EndDate, both in ISO 8601 format.
+- StartDate: The calculated start date of the investigation window.
+- EndDate: The calculated end date of the investigation window.
+"""
+)]
         public (DateTime StartDate, DateTime EndDate) GetIssueInvestigationTimeRangeRCAContainerApp(
-            [Description("ISO 8601 date format string of first occurrence of the issue. Skip if not available")] string? issueFirstOccurrence,
-            [Description("ISO 8601 date format string of the last occurrence of the issue. Skip if not available")] string? issueLastOccurrence,
-            [Description("ISO 8601 date format string  when the issue was observed and reported. Skip if not available")] string? reportedIssueObservedOnTime)
+            [Description("ISO 8601 string for the first occurrence of the issue, or leave null if not available.")] string? issueFirstOccurrence,
+            [Description("ISO 8601 string for the last occurrence of the issue, or leave null if not available.")] string? issueLastOccurrence,
+            [Description("ISO 8601 string for when the issue was observed and reported, or leave null if not available.")] string? reportedIssueObservedOnTime)
         {
             var issueFirstOccurrenceDate = issueFirstOccurrence.IsNotNullOrEmpty() ? DateTime.Parse(issueFirstOccurrence!) : (DateTime?)null;
             var issueLastOccurrenceDate = issueLastOccurrence.IsNotNullOrEmpty() ? DateTime.Parse(issueLastOccurrence!) : (DateTime?)null;
@@ -35,15 +37,14 @@ namespace Agent.Plugins.Definitions
             return _plugin.GetIssueInvestigationTimeRange(issueFirstOccurrenceDate, issueLastOccurrenceDate, reportedIssueObservedOnTimeDate);
         }
 
-        [Description(@"Get base ICM incident information.
-            Returns a JSON-formatted string containing:
-           - IncidentId
-           - Creation and last update time
-           - Status
-           - Severity level
-           - Summary")]
+        [Description(@"""
+Retrieves detailed information about a specific ICM incident.
+Use this tool to get all available data for a given incident ID.
+Output: Returns a JSON object containing incident details such as IncidentId, creation and last update time, status, severity level, and summary.
+"""
+)]
         public async Task<string?> GetIncidentInfoRCAContainerApp(
-        [Description("Incident ID")] string incidentId)
+            [Description("Unique identifier for the ICM incident.")] string incidentId)
         {
             var incident = await _plugin.GetIncidentInfo(incidentId);
             var incidentString = JsonConvert.SerializeObject(incident);
@@ -69,64 +70,57 @@ namespace Agent.Plugins.Definitions
         //    return discussionEntriesString;
         //}
 
-
-        [Description(@"Provide official RCA from container apps template
-        This operation will take the one liner RCA and use the below template to provide a official formatted RCA.
-        - oneLinerRCA: The one liner RCA that needs to be formatted into the RCA template.
-        ")]
+        [Description(@"""
+Formats a one-liner RCA statement into an official RCA template.
+Use this tool to generate a formal RCA document from a brief summary.
+Output: Returns a string containing the formatted RCA.
+- RCA: Officially formatted RCA text.
+"""
+)]
         public string OneLinerToRCA(
-         [Description("This is the one liner RCA that needs to be formatted into the RCA template")] string oneLinerRCA)
+            [Description("One-liner RCA statement to be formatted.")] string oneLinerRCA)
         {
             return _plugin.OneLinerToRCA(oneLinerRCA);
         }
 
-        [Description(@"
-        Submit feedback regarding the agent's assistance in debugging the issue.
-        clearly give both choices 'was agent helpful?' and 'is resolution accurate or close?'
-        Input parameters:
-        - IncidentId: The unique identifier of the incident.
-        - wasHelpful: Indicates whether the agent was helpful in debugging the issue (true/false). Use null to skip this feedback.
-        - isResolutionCorrect: Indicates whether the resolution provided by the agent was accurate (true/false). Use null to skip this feedback.
-        ")]
+        [Description(@"""
+Submits feedback about the agent's assistance in debugging an incident.
+Use this tool to record if the agent was helpful and if the resolution was accurate.
+Output: No return value.
+"""
+)]
         public async void WasAgentHelpfulInDebuggingIssueAsync(
-           [Description("The unique identifier of the incident.")] string incidentId,
-           [Description("Indicates if the agent was helpful in debugging the issue (true/false). Use null to skip.")] bool? wasHelpful,
-           [Description("Indicates if the resolution provided by the agent was accurate (true/false). Use null to skip.")] bool? isResolutionCorrect)
+            [Description("Unique identifier for the ICM incident.")] string incidentId,
+            [Description("Set to true if the agent was helpful, false if not, or null to skip.")] bool? wasHelpful,
+            [Description("Set to true if the resolution was accurate, false if not, or null to skip.")] bool? isResolutionCorrect)
         {
             await _plugin.WasAgentHelpfulInDebuggingIssueAsync(incidentId, wasHelpful, isResolutionCorrect);
         }
 
-        [Description(@"
-        **Note: DO NOT CALL IT AUTOMATICALLY. ALWAYS ASK USER BEFORE CALLING IT**
-        Add a valid HTML-formatted message discussion entry or summary of final investigate to an ICM incident
-        This operation will add a discussion entry to the given IcM Incident. 
-        input parameters:
-        - incidentId: The Id of the IcM incident. It is usually a integer number.
-        - text: A well HTML-formatted message to add as discussion to IcM.
-        NOTE:
-            - text MUST be always valid HTML formatted message
-            - Remove all emojis if any present. 
-        The operation will add a discussion entry to the given incident.
-        The return value is a boolean value for indicating if the operation is successful.
-        ")]
+        [Description(@"""
+Adds a new HTML-formatted discussion entry to an ICM incident.
+Use this tool to post a summary or message to the incident's discussion log.
+Output: Returns a boolean value indicating if the operation was successful.
+- Success: true if the entry was added, false otherwise.
+"""
+)]
         public async Task<bool> AddDiscussionEntryRCAContainerApp(
-        [Description("Incident ID")] string incidentId,
-        [Description("Discussion entry text")] string text)
+            [Description("Unique identifier for the ICM incident.")] string incidentId,
+            [Description("HTML-formatted discussion entry text to add.")] string text)
         {
             return await _plugin.AddDiscussionEntry(incidentId, text);
         }
 
-        [Description(@"Resolve an ICM incident. This operation will set the given IcM Incident to Resolved state. And you must give a reason of this resolve action.
-        **Note: Always confirm with the user before resolving the ICM incident, or proceed only if the user has already provided confirmation**
-
-        Input parameters:
-        - incidentId: The Id of the IcM incident.It is usually a integer number.
-        - reason: Usually it is a reason why you can resolve this incident.
-        The operation will mark the given incident as resolved. The return value is a boolean value for indicating if the operation is successful.
-        ")]
+        [Description(@"""
+Resolves an ICM incident and sets its status to resolved with a provided reason.
+Use this tool to mark an incident as resolved after confirmation.
+Output: Returns a boolean value indicating if the operation was successful.
+- Success: true if the incident was resolved, false otherwise.
+"""
+)]
         public async Task<bool> ResolveIncidentRCAContainerApp(
-        [Description("Incident ID")] string incidentId,
-        [Description("comment/reason for resolution action")] string reason)
+            [Description("Unique identifier for the ICM incident.")] string incidentId,
+            [Description("Reason or comment for resolving the incident.")] string reason)
         {
             return await _plugin.ResolveIncident(incidentId, reason);
         }

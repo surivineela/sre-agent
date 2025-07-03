@@ -19,100 +19,116 @@ namespace Agent.Plugins.Definitions
             _kustoPlugin = kustoPlugin;
         }
 
-        [Description(@"Get Subscription details, including BillingType, OfferType, OfferName, QuotaId, OrganizationName, etc.")]
-        public async Task<SubscriptionDetail?> GetSubscriptionDetail([Description("The subscription Id")] string subscriptionId)
+        [Description(@"""
+Retrieves subscription details including billing and organization information.
+Use this tool to get detailed information about a subscription.
+Output: Returns a JSON object with subscription details.
+- BillingType: Type of billing for the subscription.
+- OfferType: Offer type of the subscription.
+- OfferName: Name of the offer.
+- QuotaId: Quota identifier.
+- OrganizationName: Name of the organization.
+- Other subscription properties as available.
+"""
+)]
+        public async Task<SubscriptionDetail?> GetSubscriptionDetail(
+            [Description("Subscription ID.")] string subscriptionId)
         {
-               return await _icmWorkflowClient.GetSubscriptionDetail(subscriptionId);
+            return await _icmWorkflowClient.GetSubscriptionDetail(subscriptionId);
         }
 
-        [Description(@"Get Subscription Usage details, including the NumberOfEnvironments, NumberOfContainerApps, NumberOfJobs, TrustLevel of the subscription.")]
-        public async Task<AcaSubscriptionUsage?> GetSubscriptionUsage([Description("The subscription Id")] string subscriptionId)
+        [Description(@"""
+Retrieves usage details for a subscription, including environment and container app counts.
+Use this tool to get usage statistics for a subscription.
+Output: Returns a JSON object with usage statistics.
+- NumberOfEnvironments: Number of environments in the subscription.
+- NumberOfContainerApps: Number of container apps.
+- NumberOfJobs: Number of jobs.
+- TrustLevel: Trust level of the subscription.
+"""
+)]
+        public async Task<AcaSubscriptionUsage?> GetSubscriptionUsage(
+            [Description("Subscription ID.")] string subscriptionId)
         {
             return await _icmWorkflowClient.GetSubscriptionUsage(subscriptionId);
         }
 
-        [Description(@"Get Subscription Quota limit.
-        Input parameters:
-        - subscriptionId: The subscription Id.
-        - region: The region of the quota need to be retrieved.
-        - quotaType: The quota type.
-        The return value is a string containing the quota limit value for the specified subscription, region, and quota type.
-        ")]
+        [Description(@"""
+Retrieves the quota limit for a subscription in a specific region and quota type.
+Use this tool to get the current quota limit for a subscription.
+Output: Returns a string containing the quota limit value.
+- QuotaLimit: The quota limit value as a string.
+"""
+)]
         public async Task<string> GetSubscriptionQuota(
-            [Description("The subscription Id")] string subscriptionId,
-            [Description("The region")] string region,
-            [Description("The quota type")] string quotaType)
+            [Description("Subscription ID.")] string subscriptionId,
+            [Description("Azure region.")] string region,
+            [Description("Quota type.")] string quotaType)
         {
             return await _icmWorkflowClient.GetSubscriptionQuota(subscriptionId, region, quotaType);
         }
 
-        [Description(@"Set Subscription Quota limit.
-        Input parameters:
-        - subscriptionId: The subscription Id.
-        - region: The region of the quota need to be set.
-        - quotaType: The quota type. 
-        The return value is a boolean value for indicating if the operation is successful.
-        ")]
+        [Description(@"""
+Sets the quota limit for a subscription in a specific region and quota type.
+Use this tool to update the quota limit for a subscription.
+Output: Returns a string indicating if the operation was successful.
+- Success: String indicating success or failure of the operation.
+"""
+)]
         public async Task<string> SetSubscriptionQuota(
-            [Description("The subscription Id")] string subscriptionId,
-            [Description("The region")] string region,
-            [Description("The quota type")] string quotaType,
-            [Description("The target quota limit")] string quotaLimit)
+            [Description("Subscription ID.")] string subscriptionId,
+            [Description("Azure region.")] string region,
+            [Description("Quota type.")] string quotaType,
+            [Description("Target quota limit.")] string quotaLimit)
         {
             return await _icmWorkflowClient.SetSubscriptionQuota(subscriptionId, region, quotaType, quotaLimit);
         }
 
-
-        [Description(@"Get Container App Environment Quota limit.
-        Input parameters:
-        - environmentResourceURL: The resource url of the container app environment. Format `/subscriptions/[SubscriptionId]/resourceGroups/[resource group name]/providers/Microsoft.App/managedEnvironments/[environment name]`
-        - region: The region of the quota need to be set. example eastus
-        - quotaType: The quota type. example ManagedEnvironmentConsumptionCores
-        The return value is a string containing the quota limit value for the specified environment, region, and quota type.
-        ")]
+        [Description(@"""
+Retrieves the quota limit for a container app environment in a specific region and quota type.
+Use this tool to get the current quota limit for a container app environment.
+Output: Returns a string containing the quota limit value.
+- QuotaLimit: The quota limit value as a string.
+"""
+)]
         public async Task<string> GetEnvironmentQuota(
-            [Description("The resource URL of the container app environment")] string environmentResourceURL,
-            [Description("The region")] string region,
-            [Description("The quota type")] string quotaType)
+            [Description("Resource URL of the container app environment.")] string environmentResourceURL,
+            [Description("Azure region.")] string region,
+            [Description("Quota type.")] string quotaType)
         {
             return await _icmWorkflowClient.GetEnvironmentQuota(environmentResourceURL, region, quotaType);
         }
 
-        [Description(@"Set Managed Environment Quota limit.
-Input parameters:
-- incidentId: The incident id.
-- environmentResourceURL: The resource url of the container app environment.
-- region: The region of the quota need to be set.
-- quotaType: The quota type.
-- quotaLimit: The target quota limit.
-
-Output:
-- id: The trace id of te operation, which can be used to track the operation in the kusto table ContainerAppsAdminEvents.
-- message: Describes the set Managed Environment Quota limit operation result.
-")]
+        [Description(@"""
+Sets the quota limit for a managed environment.
+Use this tool to update the quota limit for a container app environment.
+Output: Returns a JSON object with operation details.
+- id: Trace ID of the operation.
+- message: Description of the operation result.
+"""
+)]
         public async Task<string> SetEnvironmentQuota(
-    [Description("The incident id")] string incidentId,
-    [Description("The resource URL of the container app environment")] string environmentResourceURL,
-    [Description("The region")] string region,
-    [Description("The quota type")] string quotaType,
-    [Description("The target quota limit")] string quotaLimit)
+            [Description("Incident ID.")] string incidentId,
+            [Description("Resource URL of the container app environment.")] string environmentResourceURL,
+            [Description("Azure region.")] string region,
+            [Description("Quota type.")] string quotaType,
+            [Description("Target quota limit.")] string quotaLimit)
         {
             return await _icmWorkflowClient.SetEnvironmentQuota(incidentId, environmentResourceURL, region, quotaType, quotaLimit);
         }
 
-        [Description(@"Get the operation result of setting Managed Environment Quota limit.
-Input parameters:
-- operationId: The trace id of the operation, which can be used to track the operation in the kusto table ContainerAppsAdminEvents.
-- region: The region of the quota need to be set.
-
-Output:
-- PreciseTimeStamp: the time when the operation is completed.
-- operationStatus: the status of the operation result.
-- message: Describes the set Managed Environment Quota limit operation result.
-")]
+        [Description(@"""
+Retrieves the result of a set quota operation for a managed environment.
+Use this tool to check the status and result of a quota update operation.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- PreciseTimeStamp: Time when the operation was completed.
+- operationStatus: Status of the operation result.
+- message: Description of the operation result.
+"""
+)]
         public Task<string> GetEnvironmentQuotaOperationResult(
-            [Description("The operation id")] string operationId,
-            [Description("The region")] string region)
+            [Description("Operation ID (trace ID).")] string operationId,
+            [Description("Azure region.")] string region)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetEnvironmentQuotaOperationResult", region,
             new Dictionary<string, string> {
@@ -120,26 +136,21 @@ Output:
             });
         }
 
-        [Description(@"validate quota request
-This function evaluates a quota request based on specified parameters, including quota type, region, target limit, and subscription id.
-This operation determines whether the quota request adheres to approval rules and returns a validation result.
-Output:
-1. ApprovalResult: The status of the quota request, which can be one of the following:
-   - Approved: The request has been successfully approved.
-   - Rejected: The request has been denied.
-   - Pending: Additional manual approval is required.
-   - NotStarted: The request is incomplete and requires more details.
-2. OfferType: The offer type of the subscription.
-3. Reason: Provides an explanation for the validation decision.
-
-This function helps ensure quota requests comply with predefined rules and provides a clear decision with supporting context.
-")]
+        [Description(@"""
+Validates a quota request based on quota type, region, target limit, and subscription.
+Use this tool to check if a quota request meets approval rules and get the validation result.
+Output: Returns a JSON object with validation details.
+- ApproveResult: Status of the quota request (Approved, Rejected, Pending, NotStarted).
+- OfferType: Offer type of the subscription.
+- Reason: Explanation for the validation decision.
+"""
+)]
         public async Task<string> ValidateQuotaRequest(
-            [Description("(Required) The quota type of the quota request")] string quotaType,
-            [Description("(Required) The subscription id of the quota request")] string subscriptionId,
-            [Description("(Required) The Azure region of the quota request")] string region,
-            [Description("(Required) The target quota limit of the quota request")] string targetQuotaLimit,
-            [Description("(Optional) The managed environment resource uri")] string environmentResourceURL = "")
+            [Description("Quota type.")] string quotaType,
+            [Description("Subscription ID.")] string subscriptionId,
+            [Description("Azure region.")] string region,
+            [Description("Target quota limit.")] string targetQuotaLimit,
+            [Description("Managed environment resource URI (optional).")] string environmentResourceURL = "")
         {
             var subscriptionDetails = await _icmWorkflowClient.GetSubscriptionDetail(subscriptionId);
 

@@ -20,21 +20,21 @@ namespace Agent.Plugins.Definitions
             _kustoPlugin = kustoPlugin;
         }
 
-        [Description(@"
-This operation will get the underlying infrastucture for the customer's container app
-
-Input parameters:
-- region: The Azure region where the container app is hosted
-- fromDate: The start date for the query
-- toDate: The end date for the query
-- subscriptionId: The Id of the Azure subscription
-- resourceGroupName: The name of the resource group where the container app is hosted
-- containerAppName: The name of the container app
-- managedClusterName: The name of the managed cluster
-
-Output:
-The return value will be either AKS or Legion, which is the underlying infrastructure layer")]
-        public Task<string> GetContainerAppInfraLayer(string region, DateTime fromDate, DateTime toDate, string subscriptionId, string resourceGroupName, string containerAppName, string managedClusterName)
+        [Description(@"""
+Retrieves the underlying infrastructure layer (AKS or Legion) for a container app.
+Use this tool to determine the infrastructure type for a specific container app.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- InfraLayer: The infrastructure layer, either 'AKS' or 'Legion'.
+"""
+)]
+        public Task<string> GetContainerAppInfraLayer(
+            [Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Azure subscription ID.")] string subscriptionId,
+            [Description("Resource group name.")] string resourceGroupName,
+            [Description("Container app name.")] string containerAppName,
+            [Description("Managed cluster name.")] string managedClusterName)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetContainerAppInfraLayer", region,
                 new Dictionary<string, string>
@@ -49,24 +49,19 @@ The return value will be either AKS or Legion, which is the underlying infrastru
                 });
         }
 
-        [Description(@"
-This operation identifies whether metrics were missed in the given time period
-
-Input parameters:
-- region: The Azure region where the container app is hosted
-- fromDate: The start date for the query
-- toDate: The end date for the query
-- metricName: The name of the metric to check
-- containerAppArmId: The ARM ID of the container app
-
-Returns true if the metric is missing, otherwise false.
-")]
+        [Description(@"""
+Checks if metrics were missed for a container app in the specified time range.
+Use this tool to identify if any metrics are missing for a given metric name and container app.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- MetricsMissed: 'True' if metrics were missed, otherwise 'False'.
+"""
+)]
         public Task<string> GetMetricsMdmCount(
-            string region,
-            DateTime fromDate,
-            DateTime toDate,
-            string metricName,
-            string containerAppArmId
+            [Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Metric name to check.")] string metricName,
+            [Description("ARM ID of the container app.")] string containerAppArmId
         )
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetMetricsMdmCount", region,
@@ -79,22 +74,18 @@ Returns true if the metric is missing, otherwise false.
              });
         }
 
-        [Description(@"
-This operation retrieves the missed times for MDM pod heartbeats in the specified time range.
-
-Input parameters:
-- region: The Azure region where the container app is hosted
-- fromDate: The start date for the query
-- toDate: The end date for the query
-- managedClusterName: The name of the managed cluster
-
-Returns a string containing the missed times for MDM pod heartbeats in the specified time range.
-")]
+        [Description(@"""
+Retrieves missed times for MDM pod heartbeats in a managed cluster within a time range.
+Use this tool to find times when MDM pod heartbeats were missed.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- PreciseTimeStamp: Timestamp when a heartbeat was missed.
+"""
+)]
         public Task<string> GetMdmPodHeartbeatMissedTimes(
-            string region,
-            DateTime fromDate,
-            DateTime toDate,
-            string managedClusterName
+            [Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Managed cluster name.")] string managedClusterName
         )
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetMdmPodHeartbeatMissedTimes", region,
@@ -106,24 +97,19 @@ Returns a string containing the missed times for MDM pod heartbeats in the speci
                 });
         }
 
-        [Description(@"
-This operation retrieves times where metrics were missed in the specified time range.
-
-Input parameters:
-- region: The Azure region where the container app is hosted
-- fromDate: The start date for the query
-- toDate: The end date for the query
-- metricName: The name of the metric to check
-- containerAppArmId: The ARM ID of the container app
-
-Returns a string containing the times where the specified metric was missed in the given time range. If empty, the metric was not missed.
-")]
+        [Description(@"""
+Retrieves times when a specific metric was missed for a container app in the specified time range.
+Use this tool to get timestamps where the specified metric was not reported.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- TimestampUtc: Timestamp when the metric was missed.
+"""
+)]
         public Task<string> GetMissedMdmMetricTimes(
-            string region,
-            DateTime fromDate,
-            DateTime toDate,
-            string metricName,
-            string containerAppArmId
+            [Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Metric name to check.")] string metricName,
+            [Description("ARM ID of the container app.")] string containerAppArmId
         )
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetMissedMdmMetricTimes", region,
@@ -137,22 +123,18 @@ Returns a string containing the times where the specified metric was missed in t
                 });
         }
 
-        [Description(@"
-This operation retrieves times when the billing pod was going through a leader election in the specified time range.
-
-Input parameters:
-- region: The Azure region where the container app is hosted
-- fromDate: The start date for the query
-- toDate: The end date for the query
-- managedClusterName: The name of the managed cluster
-
-Returns a string containing the times when the billing pod was going through a leader election in the specified time range. If empty, there were no leader elections.
-")]
+        [Description(@"""
+Retrieves times when the billing pod was undergoing leader election in a managed cluster within a time range.
+Use this tool to find leader election events for the billing pod.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- PreciseTimeStamp: Timestamp of the leader election event.
+"""
+)]
         public Task<string> GetBillingPodLeaderElection(
-            string region,
-            DateTime fromDate,
-            DateTime toDate,
-            string managedClusterName
+            [Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Managed cluster name.")] string managedClusterName
         )
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetBillingPodLeaderElection", region,
@@ -164,22 +146,18 @@ Returns a string containing the times when the billing pod was going through a l
                 });
         }
 
-        [Description(@"
-This operation retrieves times when the VK pod was going through a leader election in the specified time range.
-
-Input parameters:
-- region: The Azure region where the container app is hosted
-- fromDate: The start date for the query
-- toDate: The end date for the query
-- managedClusterName: The name of the managed cluster
-
-Returns a string containing the times when the VK pod was going through a leader election in the specified time range. If empty, there were no leader elections.
-")]
+        [Description(@"""
+Retrieves times when the VK pod was undergoing leader election in a managed cluster within a time range.
+Use this tool to find leader election events for the VK pod.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- TIMESTAMP: Timestamp of the leader election event.
+"""
+)]
         public Task<string> GetVKPodLeaderElection(
-            string region,
-            DateTime fromDate,
-            DateTime toDate,
-            string managedClusterName
+            [Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Managed cluster name.")] string managedClusterName
         )
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetVKPodLeaderElection", region,
@@ -191,28 +169,26 @@ Returns a string containing the times when the VK pod was going through a leader
             });
         }
 
-        [Description(@"
-This operation retrives AKS Kubelet runtime errors in the specified time range.
-
-Input parameters:
-- regionName: The Azure region where the AKS cluster is hosted
-- fromDate: The start date for the query
-- toDate: The end date for the query
-- resourceGroupName: The name of the resource group hosting the AKS cluster
-- subscriptionId: The Azure subscription ID
-- managedClusterName: The name of the managed cluster
-- ccpClusterId: The AKS Cluster Id, which consists of only numbers or letters (e.g., 666b5141d2007500010d60f3)
-
-Returns a string containing the AKS Kubelet runtime errors in the specified time range. If empty, there were no Kubelet runtime errors.
-")]
+        [Description(@"""
+Retrieves AKS Kubelet runtime errors for a managed cluster within a time range.
+Use this tool to get Kubelet runtime errors for a specific AKS cluster.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- Timestamp: Timestamp of the error.
+- Value: Error value (rate or count).
+- region: Azure region.
+- cluster_id: Cluster identifier.
+- scrape_job: Scrape job name.
+- operation_type: Type of Kubelet operation.
+"""
+)]
         public Task<string> GetAKSKubeletRuntimeErrors(
-            string regionName,
-            DateTime fromDate,
-            DateTime toDate,
-            string resourceGroupName,
-            string subscriptionId,
-            string managedClusterName,
-            string ccpClusterId
+            [Description("Azure region.")] string regionName,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Resource group name.")] string resourceGroupName,
+            [Description("Azure subscription ID.")] string subscriptionId,
+            [Description("Managed cluster name.")] string managedClusterName,
+            [Description("AKS cluster ID.")] string ccpClusterId
         )
         {
             return _kustoPlugin.ExecuteLocalFunctionOnClusterAsync("GetAKSKubeletRuntimeErrors", "akshuba.centralus", "AKSCCPMetrics",

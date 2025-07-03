@@ -20,25 +20,19 @@ namespace Agent.Plugins.Definitions
             _kustoPlugin = kustoPlugin;
         }
 
-        [Description("""
-            Analyze the distribution of connection states to identify patterns in connection termination for a specific container app pod.
-            This query examines TCP connection sequences to categorize connections by their termination state.
-
-            What this metric measures:
-            - TCP Handshake Failures: Connections that failed to establish properly
-            - Gracefully closed: Connections terminated with proper FIN handshake
-            - Reset connections: Connections terminated abruptly with RST packets
-            - Half-close scenarios: One-way connection terminations
-            - Idle timeouts: Connections that timed out without proper closure
-
-            When it is applicable:
-            Useful for identifying connection quality issues, network problems, or application-level connection handling issues.
-        """)]
+        [Description(@"""
+Analyzes the distribution of TCP connection states for a specific container app pod.
+Use this tool to identify patterns in connection termination and detect connection quality issues.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- connectionState: The type of connection termination (e.g., Gracefully closed, TCP Handshake Failure, Reset, Half-close, Idle timeout).
+- count_: Number of connections in each state.
+"""
+)]
         public Task<string> GracefulConnectionCount(
-            DateTime fromDate,
-            DateTime toDate,
-            string podGuid,
-            string region)
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Unique identifier (GUID) of the pod.")] string podGuid,
+            [Description("Azure region name.")] string region)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GracefulConnectionCount", region,
                 new Dictionary<string, string>
@@ -50,24 +44,30 @@ namespace Agent.Plugins.Definitions
                 }, groupName: "Legion");
         }
 
-        [Description("""
-            Retrieve details of connections that were not gracefully closed to identify problematic outbound connections for a specific container app pod.
-            This query filters out gracefully terminated connections and provides detailed information about problematic connections.
-
-            What this metric measures:
-            - Non-gracefully terminated connections with timing information
-            - Destination details including resolved domain names
-            - Connection duration and termination reasons
-            - Packet sequences showing connection behavior
-
-            When it is applicable:
-            Useful for identifying specific endpoints or connection patterns that are causing issues, network connectivity problems, or application bugs.
-        """)]
+        [Description(@"""
+Retrieves details of outbound connections that were not gracefully closed for a specific container app pod.
+Use this tool to identify problematic connections and analyze connection failures.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- StartTime: Connection start time (UTC).
+- EndTime: Connection end time (UTC).
+- Protocol: Network protocol used.
+- Direction: Connection direction (Inbound/Outbound).
+- RouteKind: Route type for the connection.
+- SourceIpAddress: Source IP address.
+- DestinationIpAddress: Destination IP address (masked).
+- DestinationDomain: Resolved domain name for the destination, if available.
+- SourcePort: Source port number.
+- DestinationPort: Destination port number.
+- PacketSequence: Sequence of packets observed.
+- Duration: Duration of the connection.
+- RemovalReason: Reason for connection removal.
+"""
+)]
         public Task<string> GetTerminatedConnectionsForPod(
-            DateTime fromDate,
-            DateTime toDate,
-            string podGuid,
-            string region)
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Unique identifier (GUID) of the pod.")] string podGuid,
+            [Description("Azure region name.")] string region)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetTerminatedConnectionsForPod", region,
                 new Dictionary<string, string>
@@ -79,25 +79,23 @@ namespace Agent.Plugins.Definitions
                 }, groupName: "Legion");
         }
 
-        [Description("""
-            Retrieve DNS server manager operations to identify any DNS resolution issues that might affect outbound connections for a specific container app pod.
-            This query examines logs from DNS-related components to identify configuration issues or operational problems.
-
-            What this metric measures:
-            - DNS server manager operations and their outcomes
-            - DNS listener manager activities
-            - CoreDNS manager operations
-            - Timing and trace information for DNS operations
-
-            When it is applicable:
-            Useful for correlating connection issues with DNS problems, identifying DNS configuration changes, or troubleshooting name resolution failures.
-        """)]
+        [Description(@"""
+Retrieves DNS server manager operations and related logs for a specific container app pod.
+Use this tool to identify DNS resolution issues that may affect outbound connections.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- TIMESTAMP: Date and time of the log entry.
+- Message: Log message content.
+- Operation: Name of the DNS operation.
+- Value: Value or result of the operation.
+- env_dt_traceId: Trace identifier for the log entry.
+"""
+)]
         public Task<string> DnsServerManagerOperation(
-            DateTime fromDate,
-            DateTime toDate,
-            string managedCluster,
-            string podName,
-            string region)
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Namespace of the managed cluster.")] string managedCluster,
+            [Description("Name of the pod.")] string podName,
+            [Description("Azure region name.")] string region)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("DnsServerManagerOperation", region,
                 new Dictionary<string, string>
@@ -110,18 +108,16 @@ namespace Agent.Plugins.Definitions
                 }, groupName: "Legion");
         }
 
-        [Description("""
-        Retrieve a direct ASI (App Service Insights) page URL for a specific Pod in a Legion cluster.
-        This link provides diagnostic insights into the specified Pod.
-
-        Inputs:
-        - podName: Name of the Pod.
-        - managedCluster: Namespace of the resource (e.g., ccpNamespace).
-        - fromDate / toDate: Time range for diagnostic analysis.
-        """)]
+        [Description(@"""
+Retrieves a direct App Service Insights (ASI) page URL for diagnostics of a specific pod in a Legion cluster.
+Use this tool to get a diagnostic insights link for a pod over a specified time range.
+Output: Returns a string containing the ASI page URL.
+- ASIPageUrl: Direct URL to the ASI diagnostics page for the specified pod.
+"""
+)]
         public Task<string> GetASIPageForLegionPod(
-            [Description("Name of the Pod.")] string podName,
-            [Description("Namespace of the resource (e.g., ccpNamespace).")] string managedCluster,
+            [Description("Name of the pod.")] string podName,
+            [Description("Namespace of the managed cluster.")] string managedCluster,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate)
         {
@@ -130,34 +126,35 @@ namespace Agent.Plugins.Definitions
 
             var query = $"PodName={Uri.EscapeDataString(podName.Trim())}" +
                         $"&ResourceNamespace={Uri.EscapeDataString(managedCluster.Trim())}" +
-                        $"&globalFrom={Uri.EscapeDataString(fromDate.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"))}" +
-                        $"&globalTo={Uri.EscapeDataString(toDate.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"))}";
+                        $"&globalFrom={Uri.EscapeUriString(fromDate.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"))}" +
+                        $"&globalTo={Uri.EscapeUriString(toDate.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"))}";
 
             var asiUri = $"https://asi.azure.ms{cleanPath}?{query}";
 
             return Task.FromResult($"ASI Page for Legion Pod {asiUri}");
         }
 
-        [Description("""
-            Retrieve PodGuid and related information for a specific container app pod using its name and namespace.
-            This query searches system logs to find the PodGuid which is required for subsequent connection analysis.
-
-            What this provides:
-            - PodGuid: Required identifier for connection queries
-            - LegionEnvironmentName: Environment information
-            - CenturionRoleId/NestedRoleId: Role identifiers
-            - Geneva trace URL: Direct link to trace logs
-            - KustoCluster: Cluster information for queries
-
-            When it is applicable:
-            Essential first step when you have pod name and namespace but need the PodGuid for connection analysis.
-        """)]
+        [Description(@"""
+Retrieves PodGuid and related information for a specific container app pod using its name and namespace.
+Use this tool to find the PodGuid and environment details required for connection analysis.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- LegionEnvironmentName: Name of the Legion environment.
+- PodName: Name of the pod.
+- ResourceNamespace: Namespace of the resource.
+- PodGuid: Unique identifier (GUID) of the pod.
+- CenturionRoleId: Centurion role identifier.
+- NestedRoleId: Nested role identifier.
+- geneva_url: Direct link to Geneva trace logs.
+- env_dt_traceId: Trace identifier for the log entry.
+- KustoCluster: Name of the Kusto cluster.
+"""
+)]
         public Task<string> GetPodGuidFromName(
-            DateTime fromDate,
-            DateTime toDate,
-            string podName,
-            string resourceNamespace,
-            string region)
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the pod.")] string podName,
+            [Description("Namespace of the resource.")] string resourceNamespace,
+            [Description("Azure region name.")] string region)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetPodGuidFromName", region,
                 new Dictionary<string, string>

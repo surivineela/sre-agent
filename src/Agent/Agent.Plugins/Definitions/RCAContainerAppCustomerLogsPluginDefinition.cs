@@ -16,20 +16,25 @@ namespace Agent.Plugins.Definitions
             _kustoPlugin = kustoPlugin;
         }
 
-        [Description(
-            @"Get list of Log Configuration for the container app environment at start and end of time window. It also checks if Log Configuration are configured or not. Outputs obtained are:
-            - ChageStatus for logDestination (whether log destination has changed or not)
-            - logDestination (value of log destination after change)
-            - PreviousLogDestination (value of log destination before change)
-            - hasDynamicJsonColumns (whether dynamic json columns are present or not)
-            If no data is returned then ask to validate inputs again as it should never be the case.")]
+        [Description(@"""
+Retrieves log configuration changes for a managed environment within a time range.
+Use this tool to check log destination changes and dynamic JSON column settings.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- StartTime: Start time of the configuration interval.
+- EndTime: End time of the configuration interval.
+- Value: Log destination after the change.
+- ChangeStatus: Indicates if the log destination changed.
+- PreviousValue: Log destination before the change.
+- hasDynamicJsonColumns: Indicates if dynamic JSON columns are present.
+"""
+)]
         public Task<string> GetLogConfiguration(
-            [Description("Azure region in lower case. example: 'westeurope'")] string region,
+            [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
-            [Description("Customer Subscription ID of the managed environment.")] Guid customerSubscriptionId,
-            [Description("Name of the customer Managed Environment.")] string managedEnvironmentName,
-            [Description("Name of the Managed Cluster. Use empty string if managed cluster is not available.")] string managedClusterName
+            [Description("Customer subscription ID of the managed environment.")] Guid customerSubscriptionId,
+            [Description("Name of the managed environment.")] string managedEnvironmentName,
+            [Description("Name of the managed cluster. Use empty string if not available.")] string managedClusterName
         )
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetCustomerLogConfiguration", region,
@@ -42,15 +47,22 @@ namespace Agent.Plugins.Definitions
             });
         }
 
-        [Description(
-            @"Get list of Event Processor Errors for the container app environment at start and end of time window. At least 1 output present means logs are present. No Warnings/Errors means no issues found.
-            If no data is returned then it may mean no warnings are present or there is an issue with the provided inputs. Please ensure those are correct otherwise re-run the tool.")]
+        [Description(@"""
+Retrieves event processor errors for a managed environment within a time range.
+Use this tool to find warnings and errors from event processor logs.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- Type: Type of event (e.g., Warning, Error, Normal).
+- msg: Event message.
+- Reason: Reason for the event.
+- count: Number of occurrences (for warnings/errors).
+"""
+)]
         public Task<string> GetEventProcessorErrors(
-            [Description("Azure region in lower case. example: 'westeurope'")] string region,
+            [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName,
-            [Description("Name of the container app or job. Use empty string if container app or job name is not available")] string containerAppOrJobName)
+            [Description("Name of the container app or job. Use empty string if not available.")] string containerAppOrJobName)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetEventProcessorErrors", region,
             new Dictionary<string, string> {
@@ -61,11 +73,16 @@ namespace Agent.Plugins.Definitions
             });
         }
 
-        [Description(
-            @"Get list of Event Processor Leader Election Events for the container app environment at start and end of time window.
-            If no data is returned then it may mean no leader election event happened during the interval or there is an issue with the provided inputs. Please ensure those are correct otherwise re-run the tool.")]
+        [Description(@"""
+Retrieves leader election events for event processors in a managed environment within a time range.
+Use this tool to check if leader election events occurred.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- PreciseTimeStamp: Timestamp of the leader election event.
+- msg: Event message.
+"""
+)]
         public Task<string> GetEventProcessorLeaderElectionEvents(
-            [Description("Azure region in lower case. example: 'westeurope'")] string region,
+            [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
@@ -78,11 +95,14 @@ namespace Agent.Plugins.Definitions
             });
         }
 
-        [Description(
-            @"Get list of Apps and Jobs Volume for the container app environment at start and end of time window.
-            If no data is returned then it may mean no apps and jobs volume data is present or there is an issue with the provided inputs. Please ensure those are correct otherwise re-run the tool.")]
+        [Description(@"""
+Retrieves apps and jobs volume for a managed environment within a time range.
+Use this tool to get the volume of apps and jobs in the environment.
+Output: Returns tab-separated table data in CSV format. The first line contains column headers.
+"""
+)]
         public Task<string> GetAppsAndjobsVolumeForEnv(
-            [Description("Azure region in lower case. example: 'westeurope'")] string region,
+            [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
@@ -95,12 +115,18 @@ namespace Agent.Plugins.Definitions
             });
         }
 
-
-        [Description(
-            @"Get list of Event Processor Pods for the container app environment at start and end of time window.
-            If no data is returned then it may mean no event processor pods are present or there is an issue with the provided inputs. Please ensure those are correct otherwise re-run the tool.")]
+        [Description(@"""
+Retrieves event processor pods for a managed environment within a time range.
+Use this tool to list event processor pods and their node assignments.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- StartTime: Start time of the pod's activity.
+- EndTime: End time of the pod's activity.
+- Node: Node name where the pod is running.
+- PodName: Name of the pod.
+"""
+)]
         public Task<string> GetEventProcessorPods(
-            [Description("Azure region in lower case. example: 'westeurope'")] string region,
+            [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
@@ -114,12 +140,18 @@ namespace Agent.Plugins.Definitions
             });
         }
 
-
-        [Description(
-            @"Get list of Log Processor Pods for the container app environment at start and end of time window.
-            If no data is returned then it may mean no log processor pods are present or there is an issue with the provided inputs. Please ensure those are correct otherwise re-run the tool.")]
+        [Description(@"""
+Retrieves log processor pods for a managed environment within a time range.
+Use this tool to list log processor pods and their node assignments.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- StartTime: Start time of the pod's activity.
+- EndTime: End time of the pod's activity.
+- Node: Node name where the pod is running.
+- PodName: Name of the pod.
+"""
+)]
         public Task<string> GetLogProcessorPods(
-            [Description("Azure region in lower case. example: 'westeurope'")] string region,
+            [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
@@ -133,12 +165,24 @@ namespace Agent.Plugins.Definitions
             });
         }
 
-
-        [Description(
-            @"Get list of Event Processor Pod Status for the container app environment at start and end of time window.
-            If no data is returned then it may mean no event processor pod status data is present or there is an issue with the provided inputs. Please ensure those are correct otherwise re-run the tool.")]
+        [Description(@"""
+Retrieves event processor pod status for a managed environment within a time range.
+Use this tool to get health and status of event processor pods.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- StartTime: Start time of the pod's activity.
+- EndTime: End time of the pod's activity.
+- PodName: Name of the pod.
+- NodeName: Name of the node.
+- PodStatus: Status of the pod.
+- Health: Health status (Healthy/Degraded).
+- restartCount: Number of restarts.
+- ContainerName: Name of the container (for failures).
+- ContainerState: State of the container (Ready/Not Ready).
+- ContainerImage: Image used by the container.
+"""
+)]
         public Task<string> GetEventProcessorPodStatus(
-            [Description("Azure region in lower case. example: 'westeurope'")] string region,
+            [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
@@ -153,11 +197,24 @@ namespace Agent.Plugins.Definitions
             });
         }
 
-        [Description(
-            @"Get list of Log Processor Pod Status for the container app environment at start and end of time window.
-            If no data is returned then it may mean no log processor pod status data is present or there is an issue with the provided inputs. Please ensure those are correct otherwise re-run the tool.")]
+        [Description(@"""
+Retrieves log processor pod status for a managed environment within a time range.
+Use this tool to get health and status of log processor pods.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- StartTime: Start time of the pod's activity.
+- EndTime: End time of the pod's activity.
+- PodName: Name of the pod.
+- NodeName: Name of the node.
+- PodStatus: Status of the pod.
+- Health: Health status (Healthy/Degraded).
+- restartCount: Number of restarts.
+- ContainerName: Name of the container (for failures).
+- ContainerState: State of the container (Ready/Not Ready).
+- ContainerImage: Image used by the container.
+"""
+)]
         public Task<string> GetLogProcessorPodStatus(
-            [Description("Azure region in lower case. example: 'westeurope'")] string region,
+            [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
@@ -172,14 +229,18 @@ namespace Agent.Plugins.Definitions
             });
         }
 
-        [Description(
-            @"Get type of Container App Workload Profile for the container app environment at start and end of time window.
-            If no data is returned then it may mean no container app workload profile data is present or there is an issue with the provided inputs. Please ensure those are correct otherwise re-run the tool.")]
+        [Description(@"""
+Retrieves the workload profile type for a container app or job within a time range.
+Use this tool to get the workload profile type.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- workloadProfileType: Type of workload profile.
+"""
+)]
         public Task<string> GetContainerAppWorkloadProfile(
-            [Description("Azure region in lower case. example: 'westeurope'")] string region,
+            [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
-            [Description("Name of the container app or job name.")] string containerAppOrJobName)
+            [Description("Name of the container app or job.")] string containerAppOrJobName)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetContainerAppWorkloadProfile", region,
             new Dictionary<string, string> {
@@ -189,15 +250,18 @@ namespace Agent.Plugins.Definitions
             });
         }
 
-        [Description(
-            @"Get Input Pressure on Log Processor for the managed Kubernetes cluster, segmented by node or VMSS over a specified time range.
-
-            What this metric measures: The query calculates the total records input to log-processor.
-
-            When it is applicable: Anomaly in this indicates high resource pressure on the log-processor.
-        ")]
+        [Description(@"""
+Retrieves input pressure metrics for log processor in a managed cluster within a time range.
+Use this tool to monitor total input records to log processor.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- PreciseTimeStamp: Timestamp of the metric.
+- totalCount: Total input records.
+- VMNodeWhereMetricCaptured: Node or VMSS where metric was captured.
+- PodName: Name of the pod.
+"""
+)]
         public Task<string> GetInputPressureOnLogProcessor(
-            [Description("Azure region in lower case. example: 'westeurope'")] string region,
+            [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
@@ -213,16 +277,18 @@ namespace Agent.Plugins.Definitions
             });
         }
 
-
-        [Description(
-            @"Get Memory Pressure on Fluentbit for the managed Kubernetes cluster, segmented by node or VMSS over a specified time range.
-
-            What this metric measures: The query calculates the total input storage memory used by fluentbit in bytes.
-
-            When it is applicable: Anomaly in this indicates high memory resource pressure on the fluentbit
-        ")]
+        [Description(@"""
+Retrieves memory pressure metrics for fluentbit in a managed cluster within a time range.
+Use this tool to monitor input storage memory usage by fluentbit.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- PreciseTimeStamp: Timestamp of the metric.
+- totalCount: Total memory used (bytes).
+- VMNodeWhereMetricCaptured: Node or VMSS where metric was captured.
+- PodName: Name of the pod.
+"""
+)]
         public Task<string> GetMemoryPressureOnFluentbit(
-            [Description("Azure region in lower case. example: 'westeurope'")] string region,
+            [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
@@ -238,15 +304,18 @@ namespace Agent.Plugins.Definitions
             });
         }
 
-        [Description(
-            @"Get count of output processed by Fluentbit for the managed Kubernetes cluster, segmented by node or VMSS over a specified time range.
-
-            What this metric measures: The query calculates the total output records processed by fluentbit.
-
-            When it is applicable: Significant drop in the value indicates flunetbit having issues. Manunal investigation is required.
-        ")]
+        [Description(@"""
+Retrieves output count metrics for fluentbit in a managed cluster within a time range.
+Use this tool to monitor total output records processed by fluentbit.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- PreciseTimeStamp: Timestamp of the metric.
+- totalCount: Total output records processed.
+- VMNodeWhereMetricCaptured: Node or VMSS where metric was captured.
+- PodName: Name of the pod.
+"""
+)]
         public Task<string> GetFluentbitOutputCount(
-            [Description("Azure region in lower case. example: 'westeurope'")] string region,
+            [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
@@ -262,15 +331,18 @@ namespace Agent.Plugins.Definitions
             });
         }
 
-        [Description(
-            @"Get buffer pressure experienced by Fluentbit for the managed Kubernetes cluster, segmented by node or VMSS over a specified time range.
-
-            What this metric measures: The query calculates input storage buffer overflow for fluentbit.
-
-            When it is applicable: Existence of this metric indicates that input storage has exceeded its configured limit. No records indicate healthy.
-        ")]
+        [Description(@"""
+Retrieves buffer pressure metrics for fluentbit in a managed cluster within a time range.
+Use this tool to monitor input storage buffer overflows for fluentbit.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- PreciseTimeStamp: Timestamp of the metric.
+- totalCount: Total buffer overflows.
+- VMNodeWhereMetricCaptured: Node or VMSS where metric was captured.
+- PodName: Name of the pod.
+"""
+)]
         public Task<string> GetFluentbitBufferPressure(
-            [Description("Azure region in lower case. example: 'westeurope'")] string region,
+            [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
@@ -286,13 +358,14 @@ namespace Agent.Plugins.Definitions
             });
         }
 
-        [Description(
-            @"Get any output errors faced by Fluentbit for the customer's container app or job in the managed Kubernetes cluster.
-            What this metric measures: The query calculates the total output errors for the customer's container app or job experienced by fluentbit.
-            When it is applicable: Existence of this metric indicates that fluentbit is having issues in processing the output. Manual investigation is required."
-        )]
+        [Description(@"""
+Retrieves output errors for fluentbit for a container app or job in a managed cluster within a time range.
+Use this tool to monitor output errors experienced by fluentbit.
+Output: Returns tab-separated table data in CSV format. The first line contains column headers.
+"""
+)]
         public Task<string> GetFluentbitOutputErrors(
-            [Description("Azure region in lower case. example: 'westeurope'")] string region,
+            [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)

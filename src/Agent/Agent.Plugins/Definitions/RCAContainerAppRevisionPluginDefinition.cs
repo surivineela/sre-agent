@@ -24,25 +24,45 @@ namespace Agent.Core.Plugins.Definitions
             _kustoDashboardPlugin = kustoDashboardPlugin;
         }
 
-        [Description(
-            """
-            Retrieve active revisions with configuration, workload profile, scaling settings, and app status.
-            Tool outputs:
-            - Name: Revision name.
-            - EnvironmentName: Cluster name.
-            - ContainerAppName: App name.
-            - Namespace: K8s namespace.
-            - ReadyReplicas: Current ready replicas.
-            - WorkloadProfileNameUpdated: Workload profile name.
-            - AppType: App type(e.g., HTTP/GRPC).
-            - HttpOptionsEnabled: HTTP enabled or not.
-            - MinReplicaCount/MaxReplicaCount: Scaling settings.
-            - RevisionProvisioningState: Provisioning status.
-            - RevisionRunningState: Running status.
-            - AppReadyForTrafficState: Traffic readiness status.
-            """
-        )]
-        public Task<string> ListRevisionsForRCA([Description("Azure region.")] string region, [Description("Start time of the query.")] DateTime fromDate, [Description("End time of the query.")] DateTime toDate, [Description("Name of the container app.")] string containerAppName, [Description("Name of the resource group.")] string resourceGroupName, [Description("Azure subscription ID.")] string subscriptionId)
+        [Description(@"""
+Retrieves active revisions with configuration, workload profile, scaling settings, and app status.
+Use this tool to list all active revisions and their configuration details for a container app.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- Name: Revision name.
+- ManagedClusterName: Cluster name.
+- ContainerAppName: App name.
+- Namespace: Kubernetes namespace.
+- ReadyReplicas
+- CreationTimestamp
+- WorkloadProfileNameUpdated
+- RestartTime
+- AppType
+- HttpOptionsEnabled
+- HttpOptionsExternal
+- HttpOptionsPort
+- Http2Enabled
+- HttpsOnly
+- Stopped
+- MinReplicaCount
+- MaxReplicaCount
+- HttpScalingRuleName
+- HttpScalingRuleConcurrentRequests
+- ObservedGeneration
+- RevisionProvisioningState
+- RevisionHealthStatus
+- RevisionRunningState
+- AppReadyForTrafficState
+- PreciseTimeStamp
+- legionRevisionName
+"""
+)]
+        public Task<string> ListRevisionsForRCA(
+            [Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the container app.")] string containerAppName,
+            [Description("Name of the resource group.")] string resourceGroupName,
+            [Description("Azure subscription ID.")] string subscriptionId)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("ListRevisions", region,
                 new Dictionary<string, string> {
@@ -54,31 +74,24 @@ namespace Agent.Core.Plugins.Definitions
                 });
         }
 
-        [Description(
-            """
-            Retrieve HttpScaler events and scaling-related activities for a specific container app within a selected time range.
-
-            This function is essential for diagnosing scaling issues, including:
-            - HTTP-based autoscaling behavior
-            - KEDA scaler failures
-            - Scale-in and scale-out events
-            - Missed scale-to-zero transitions
-            - Anomalous scaling patterns at revision or container app level.
-
-            Tool outputs:
-            - PreciseTimeStamp: When the scaling event occurred.
-            - EnvironmentName: Name of the cluster hosting the container app.
-            - Msg: Detailed message describing the scaling activity or failure reason.
-            """
-        )]
-        public Task<string> GetHttpScalerEventsForContainerApp([Description("Azure region.")] string region,
+        [Description(@"""
+Retrieves HTTP scaler events and scaling activities for a container app.
+Use this tool to diagnose scaling issues and review HTTP-based autoscaling events.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- PreciseTimeStamp: When the scaling event occurred.
+- EnvironmentName: Name of the cluster hosting the container app.
+- msg: Detailed message describing the scaling activity or failure reason.
+"""
+)]
+        public Task<string> GetHttpScalerEventsForContainerApp(
+            [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the container app.")] string containerAppName,
             [Description("Name of the resource group.")] string resourceGroupName,
             [Description("Azure subscription ID.")] string subscriptionId,
             [Description("Name of the managed cluster.")] string managedClusterName,
-            [Description("provide sampling inputs")] SamplingOptions samplingOptions)
+            [Description("Sampling options for the query.")] SamplingOptions samplingOptions)
         {
             var parm = new Dictionary<string, string> {
                     { "fromDate", fromDate.ToString() },
@@ -92,21 +105,21 @@ namespace Agent.Core.Plugins.Definitions
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetHttpScalerEventsForContainerApp", region, parm, samplingOptions: samplingOptions);
         }
 
-        [Description(
-            """
-            Retrieve KEDA Operator events related to scaling actions or failures for a container app.
-            Tool outputs:
-            - LogTime: Log timestamp.
-            - Level: Event severity(Info / Error).
-            - Msg: Operator event message.
-            - KedaVersion: Current KEDA version
-            """
-        )]
-        public Task<string> GetKedaOperatorEventsForContainerApp([Description("Azure region.")] string region,
+        [Description(@"""
+Retrieves KEDA Operator events related to scaling actions or failures for a container app.
+Use this tool to review KEDA Operator events and diagnose scaling issues.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- PreciseTimeStamp: Log timestamp.
+- Log: Operator event message.
+- KedaVersion: Current KEDA version.
+"""
+)]
+        public Task<string> GetKedaOperatorEventsForContainerApp(
+            [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
-            [Description("Name of the managed cluster name.")] string managedClusterName,
-            [Description("Name of the containerapp name.")] string containerAppName)
+            [Description("Name of the managed cluster.")] string managedClusterName,
+            [Description("Name of the container app.")] string containerAppName)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetKedaOperatorEventsForContainerApp", region,
                 new Dictionary<string, string> {
@@ -117,16 +130,19 @@ namespace Agent.Core.Plugins.Definitions
                 });
         }
 
-        [Description(
-            """
-            Retrieve ASI page url for revision
-            """
-        )]
-        public async Task<string> GetASIPageForRevision([Description("Azure region.")] string region,
+        [Description(@"""
+Retrieves a direct App Service Insights (ASI) page URL for a specific revision.
+Use this tool to get a diagnostic insights link for a container app revision over a specified time range.
+Output: Returns a string containing the ASI page URL.
+- ASIPageUrl: Direct URL to the ASI diagnostics page for the specified revision.
+"""
+)]
+        public async Task<string> GetASIPageForRevision(
+            [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the container app.")] string containerAppName,
-            [Description("Name of the container app revison.")] string revisionName,
+            [Description("Name of the container app revision.")] string revisionName,
             [Description("Name of the resource group.")] string resourceGroupName,
             [Description("Azure subscription ID.")] string subscriptionId)
         {
@@ -138,7 +154,7 @@ namespace Agent.Core.Plugins.Definitions
                 });
 
             var basePath = "/services/ACA Azure Container Apps/pages/Container App Revision";
-            var cleanPath = Uri.EscapeDataString(basePath); // encodes spaces etc.
+            var cleanPath = Uri.EscapeDataString(basePath);
 
             var query = $"EnvironmentName={Uri.EscapeDataString(clusterName.Result.Trim())}" +
                         $"&Name={Uri.EscapeDataString(revisionName)}" +
@@ -150,22 +166,24 @@ namespace Agent.Core.Plugins.Definitions
             return $"ASI Page for revsions {adxUri}";
         }
 
-        [Description(
-            """
-            Retrieve replica counts and HTTP request counts for a revision (or all revisions) over time to diagnose scaling issues.
-            Detect potential problems where replicas exist but no traffic is received.
-            Tool outputs:
-            - Timestamp: Timestamp for the data point.
-            - Revision: Name of the revision.
-            - ReplicaCount: Number of active replicas at the timestamp.
-            - Status: HTTP response status (e.g., 200, 503).
-            - Requests: Number of HTTP requests for that status.
-
-            ⚠️ Important Diagnostic Logic:
-            - If ReplicaCount > 0 and Requests == 0, it may indicate a scaling issue, a stuck scale-out, or a service issue requiring deeper investigation.
-            """
-        )]
-        public Task<string> GetRevisionTrafficWithReplicaCount([Description("Azure region.")] string region, [Description("Start time.")] DateTime fromDate, [Description("End time.")] DateTime toDate, [Description("Revision name.")] string revisionName, [Description("App name.")] string containerAppName, [Description("Resource group.")] string resourceGroupName, [Description("Subscription ID.")] string subscriptionId)
+        [Description(@"""
+Retrieves replica counts and HTTP request counts for a revision over time.
+Use this tool to diagnose scaling issues and detect periods where replicas exist but no traffic is received.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- Timestamp: Timestamp for the data point.
+- ReplicaCount: Number of active replicas at the timestamp.
+- Status: HTTP response status (e.g., 200, 503).
+- Requests: Number of HTTP requests for that status.
+"""
+)]
+        public Task<string> GetRevisionTrafficWithReplicaCount(
+            [Description("Azure region.")] string region,
+            [Description("Start time.")] DateTime fromDate,
+            [Description("End time.")] DateTime toDate,
+            [Description("Revision name.")] string revisionName,
+            [Description("App name.")] string containerAppName,
+            [Description("Resource group.")] string resourceGroupName,
+            [Description("Subscription ID.")] string subscriptionId)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetRevisionReplicaAndTraffic", region,
                 new Dictionary<string, string> {
@@ -178,12 +196,21 @@ namespace Agent.Core.Plugins.Definitions
                 });
         }
 
-        [Description(
-            """
-            Return Container Apps Revision Status for a given container app revision in a time range
-            """
-        )]
-        public Task<string> ContainerAppRevisionStatus([Description("Azure region.")] string region, [Description("Start time.")] DateTime fromDate, [Description("End time.")] DateTime toDate, [Description("Revision name.")] string revisionName, [Description("App name.")] string containerAppName, [Description("Resource group.")] string resourceGroupName, [Description("Subscription ID.")] string subscriptionId)
+        [Description(@"""
+Retrieves the status of a container app revision for a given time range.
+Use this tool to get the provisioning and running status of a revision.
+Output: Returns tab-separated table data in CSV format. The first line contains column headers:
+- Status and state columns as defined in the revision status query.
+"""
+)]
+        public Task<string> ContainerAppRevisionStatus(
+            [Description("Azure region.")] string region,
+            [Description("Start time.")] DateTime fromDate,
+            [Description("End time.")] DateTime toDate,
+            [Description("Revision name.")] string revisionName,
+            [Description("App name.")] string containerAppName,
+            [Description("Resource group.")] string resourceGroupName,
+            [Description("Subscription ID.")] string subscriptionId)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetRevisionStatus", region,
                 new Dictionary<string, string> {
@@ -196,8 +223,24 @@ namespace Agent.Core.Plugins.Definitions
                 });
         }
 
-        [Description("Return Replica Count of revision for a given time range")]
-        public async Task<string> GetReplicaCount([Description("Azure region.")] string region, [Description("Start time.")] DateTime fromDate, [Description("End time.")] DateTime toDate, [Description("Revision name.")] string revisionName, [Description("App name.")] string containerAppName, [Description("Resource group.")] string resourceGroupName, [Description("Subscription ID.")] string subscriptionId)
+        [Description(@"""
+Retrieves the replica count of a revision for a given time range.
+Use this tool to get the number of replicas for a revision over time.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- Timestamp: Timestamp of the data point.
+- Revision: Name of the revision.
+- Max: Maximum replica count at the timestamp.
+- appArmId: ARM ID of the app.
+"""
+)]
+        public async Task<string> GetReplicaCount(
+            [Description("Azure region.")] string region,
+            [Description("Start time.")] DateTime fromDate,
+            [Description("End time.")] DateTime toDate,
+            [Description("Revision name.")] string revisionName,
+            [Description("App name.")] string containerAppName,
+            [Description("Resource group.")] string resourceGroupName,
+            [Description("Subscription ID.")] string subscriptionId)
         {
             string query = $@"
     let startTime = datetime(""{fromDate}"");
@@ -246,18 +289,19 @@ namespace Agent.Core.Plugins.Definitions
             return result.Result;
         }
 
-        [Description(
-            """
-            Retrieve active sessions (start/stop/running changes) for a revision.
-            Tool outputs: 
-            - StartTime: Session start timestamp.
-            - EndTime: Session end timestamp.
-            - Content: The running state(e.g., Running, Stopped).
-            - GroupBy: The revision name.
-            - Health: Health status derived from state.
-            """
-        )]
-        public Task<string> GetActiveRevisionSessions([Description("Azure region.")] string region,
+        [Description(@"""
+Retrieves active sessions (start/stop/running changes) for a revision.
+Use this tool to get session state changes and health for a revision.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- StartTime: Session start timestamp.
+- EndTime: Session end timestamp.
+- Content: The running state (e.g., Running, Stopped).
+- GroupBy: The revision name.
+- Health: Health status derived from state.
+"""
+)]
+        public Task<string> GetActiveRevisionSessions(
+            [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the container app revision.")] string revisionName,
@@ -276,16 +320,17 @@ namespace Agent.Core.Plugins.Definitions
                 });
         }
 
-        [Description(
-            """
-            Retrieve HPA (Horizontal Pod Autoscaler) current and target metric values over time for a revision.
-            Tool outputs:
-            - Timestamp: The timestamp of metric capture.
-            - Legend: Metric type(e.g., cpu: current, memory: target).
-            - Value: The numeric value of the metric.
-            """
-        )]
-        public Task<string> GetHpaHeartbeatMetrics([Description("Azure region.")] string region,
+        [Description(@"""
+Retrieves HPA (Horizontal Pod Autoscaler) current and target metric values over time for a revision.
+Use this tool to get HPA metric values for a revision.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- metricName: Name of the metric.
+- max_value: Maximum value of the metric ratio.
+- min_value: Minimum value of the metric ratio.
+"""
+)]
+        public Task<string> GetHpaHeartbeatMetrics(
+            [Description("Azure region.")] string region,
             [Description("Start time for metrics.")] DateTime fromDate,
             [Description("End time for metrics.")] DateTime toDate,
             [Description("Name of the revision.")] string revisionName,
@@ -306,16 +351,17 @@ namespace Agent.Core.Plugins.Definitions
                 });
         }
 
-        [Description(
-            """
-            Retrieve HPA (Horizontal Pod Autoscaler) current and target metric values over time for a revision.
-            Tool outputs:
-            - Timestamp: The timestamp of metric capture.
-            - Legend: Metric type(e.g., cpu: current, memory: target).
-            - Value: The numeric value of the metric.
-            """
-        )]
-        public Task<string> GetRevisionSpecChanges([Description("Azure region.")] string region,
+        [Description(@"""
+Retrieves revision spec changes for a given revision and time range.
+Use this tool to get changes in the revision specification over time.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- TIMESTAMP: Time of the spec change.
+- PreviousSpec: Previous revision spec.
+- spec: Current revision spec.
+"""
+)]
+        public Task<string> GetRevisionSpecChanges(
+            [Description("Azure region.")] string region,
             [Description("Start time.")] DateTime fromDate,
             [Description("End time.")] DateTime toDate,
             [Description("Revision name.")] string revisionName,
@@ -334,16 +380,23 @@ namespace Agent.Core.Plugins.Definitions
                 });
         }
 
-        [Description(
-            """
-            Retrieves all ARM(Azure resource manager) operations for the container app. These include PUT,UPDATE,DELETE and the appropriate status codes pertaining to those operations.
-            Tool outputs:
-            - Timestamp: The timestamp of metric capture.
-            - Legend: Metric type(e.g., cpu: current, memory: target).
-            - Value: The numeric value of the metric.
-            """
-        )]
-        public Task<string> GetArmOperations([Description("Azure region.")] string region,
+        [Description(@"""
+Retrieves all ARM (Azure Resource Manager) operations for the container app.
+Use this tool to get ARM operation events and their health status for a container app.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- StartTime: Timestamp of the operation.
+- Content: Operation method and status code.
+- GroupBy: Managed cluster name.
+- requestBody: Request body content.
+- durationInMilliseconds: Duration of the operation.
+- env_dt_traceId: Trace ID.
+- env_dt_spanId: Span ID.
+- correlationId: Correlation ID.
+- Health: Health status of the operation.
+"""
+)]
+        public Task<string> GetArmOperations(
+            [Description("Azure region.")] string region,
             [Description("Start time.")] DateTime fromDate,
             [Description("End time.")] DateTime toDate,
             [Description("App name.")] string containerAppName,
@@ -360,17 +413,18 @@ namespace Agent.Core.Plugins.Definitions
                 });
         }
 
-        [Description(
-            """
-            Retrieve EventProcessor events for a revision where no replica is associated.
-            Tool outputs:
-            - PreciseTimeStamp: Timestamp of event.
-            - RevisionName: Revision associated.
-            - Reason: Why the event occurred.
-            - Msg: Additional event message details.
-            """
-        )]
-        public Task<string> GetEventProcessorEventsWithoutReplica([Description("Azure region.")] string region,
+        [Description(@"""
+Retrieves EventProcessor events for a revision where no replica is associated.
+Use this tool to get EventProcessor events without replica association for a revision.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- PreciseTimeStamp: Timestamp of event.
+- RevisionName: Name of the revision.
+- Reason: Reason for the event.
+- msg: Additional event message details.
+"""
+)]
+        public Task<string> GetEventProcessorEventsWithoutReplica(
+            [Description("Azure region.")] string region,
             [Description("Start time.")] DateTime fromDate,
             [Description("End time.")] DateTime toDate,
             [Description("Revision name.")] string revisionName,
@@ -389,18 +443,19 @@ namespace Agent.Core.Plugins.Definitions
                 });
         }
 
-        [Description(
-            """
-            Retrieve the latest pod heartbeat status for a revision.
-            Tool outputs:
-            - PodName: The pod's name.
-            - EnvironmentName: The cluster where the pod runs.
-            - Status: Current pod status or 'Shut Down'.
-            - PreciseTimeStamp: Last heartbeat timestamp.
-            - LegionPodName: If it's a 'consumption' workload pod.
-            """
-        )]
-        public Task<string> GetPodHeartbeatStatus([Description("Azure region.")] string region,
+        [Description(@"""
+Retrieves the latest pod heartbeat status for a revision.
+Use this tool to get the latest pod status and heartbeat timestamp for a revision.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- PodName: Name of the pod.
+- ManagedClusterName: Name of the cluster.
+- Status: Current pod status or 'Shut Down'.
+- PreciseTimeStamp: Last heartbeat timestamp.
+- legionPodName: Legion pod name if applicable.
+"""
+)]
+        public Task<string> GetPodHeartbeatStatus(
+            [Description("Azure region.")] string region,
             [Description("Start of the time range.")] DateTime fromDate,
             [Description("End of the time range.")] DateTime toDate,
             [Description("Revision name.")] string revisionName,
@@ -419,22 +474,23 @@ namespace Agent.Core.Plugins.Definitions
                 });
         }
 
-        [Description(
-            """
-            Retrieve internal EventProcessor events for a specific pod inside a revision.
-            Tool outputs:
-            - PreciseTimeStamp: Event timestamp.
-            - Type: Type of event (Normal/Error).
-            - Msg: Event message.
-            - Reason: Short reason description.
-            - Count: How many times occurred.
-            - EventSource: Event origin.
-            - ReplicaName: The pod's replica name.
-            - RevisionName: Associated revision.
-            - Level: Mapped to Info or Error.
-            """
-        )]
-        public Task<string> GetInternalEventProcessorEventsForPod([Description("Azure region.")] string region,
+        [Description(@"""
+Retrieves internal EventProcessor events for a specific pod inside a revision.
+Use this tool to get internal EventProcessor events for a pod in a revision.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- PreciseTimeStamp: Event timestamp.
+- Type: Type of event (Normal/Error).
+- msg: Event message.
+- Reason: Short reason description.
+- Count: Number of occurrences.
+- EventSource: Event origin.
+- ReplicaName: Name of the replica.
+- RevisionName: Name of the revision.
+- level: Info or Error.
+"""
+)]
+        public Task<string> GetInternalEventProcessorEventsForPod(
+            [Description("Azure region.")] string region,
             [Description("Start timestamp.")] DateTime fromDate,
             [Description("End timestamp.")] DateTime toDate,
             [Description("Name of the revision.")] string revisionName,
@@ -455,7 +511,15 @@ namespace Agent.Core.Plugins.Definitions
                 });
         }
 
-        [Description("Get Legion errors for a given revision")]
+        [Description(@"""
+Retrieves Legion errors for a given revision.
+Use this tool to get Legion error events for a revision.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- TIMESTAMP: Timestamp of the error event.
+- PodName: Name of the pod.
+- severityText: Severity of the error.
+"""
+)]
         public Task<string> GetLegionErrors(
             [Description("Azure region.")] string region,
             [Description("Start time.")] DateTime fromDate,
@@ -477,24 +541,22 @@ namespace Agent.Core.Plugins.Definitions
                 });
         }
 
-        [Description(
-            """
-            Retrieve readiness/liveness/startup probe failures for a specific Azure container app revision.
-            Tool outputs:
-            - msg: Log message of the probe failure.
-            - count: Number of times the probe failed with the same message consecutively.
-            - replicaName: Name of the replica where the failure occurred.
-            - revisionName: Name of the container app revision.
-            - level: Severity level of the failure (e.g., error, warning).
-            """
-        )]
+        [Description(@"""
+Retrieves readiness, liveness, or startup probe failures for a container app revision.
+Use this tool to get health probe failure events for a revision.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- msg: Log message of the probe failure.
+- ReplicaName: Name of the replica where the failure occurred.
+- Count: Number of times the probe failed with the same message consecutively.
+"""
+)]
         public Task<string> GetHealthProbeFailures(
             [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the container app.")] string containerAppName,
             [Description("Name of the revision.")] string revisionName,
-            [Description("provide sampling inputs")] SamplingOptions sampling)
+            [Description("Sampling options for the query.")] SamplingOptions sampling)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetHealthProbeFailures", region,
                 new Dictionary<string, string> {
@@ -505,14 +567,13 @@ namespace Agent.Core.Plugins.Definitions
                 });
         }
 
-        [Description(
-            """
-            Retrieve the latest health probe settings for the Azure container app within the specified period.
-        
-            Tool outputs:
-            - containers: List of containers in the container app with the each probe setting if set by the customer.
-            """
-        )]
+        [Description(@"""
+Retrieves the latest health probe settings for a container app.
+Use this tool to get the health probe configuration for a container app.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- containers: List of containers in the container app with each probe setting if set by the customer.
+"""
+)]
         public Task<string> GetHealthProbeSettings(
             [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
@@ -531,14 +592,15 @@ namespace Agent.Core.Plugins.Definitions
                 });
         }
 
-        [Description(
-            @"Retrieve node availability failure events for a specific Azure container app revision.
-            Tool outputs:
-            - preciseTimeStamp: Precise timestamp of the event.
-            - replicaName: Name of the replica where the failure occurred.
-            - revisionName: Name of the container app revision.
-            - msg: Log message of the node unavailability."
-        )]
+        [Description(@"""
+Retrieves node availability failure events for a container app revision.
+Use this tool to get node unavailability events for a revision.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- PreciseTimeStamp: Timestamp of the event.
+- ReplicaName: Name of the replica where the failure occurred.
+- msg: Log message of the node unavailability.
+"""
+)]
         public Task<string> GetNodeAvailabilityFailures(
             [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
@@ -555,23 +617,20 @@ namespace Agent.Core.Plugins.Definitions
               });
         }
 
-        [Description(@"
-        Get container app replica count changes over time for a given time frame and application.
-        This query tracks when replica counts change and groups consecutive periods with the same replica count.
-        Returns start time, end time, and replica value for each period where the replica count was constant.
-        The value is the count of replicas across all revisions of the container app.
-
-        What this metric measures:
-        Tracks replica count changes over time and identifies periods of stability or scaling events.
-
-        When it is applicable:
-        Useful for understanding scaling behavior, identifying scaling events, and correlating replica changes with performance issues.
-        ")]
+        [Description(@"""
+Retrieves container app replica count changes over time for a given time frame and application.
+Use this tool to track replica count changes and identify scaling events for a container app.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- StartTime: Start time of the period.
+- EndTime: End time of the period.
+- ReplicaCount: Number of replicas during the period.
+"""
+)]
         public Task<string> GetContainerAppReplicaCountChanges(
-            string region,
-            DateTime fromDate,
-            DateTime toDate,
-            string appName)
+            [Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("App name.")] string appName)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetContainerAppReplicaCountChanges", region,
                 new Dictionary<string, string>
@@ -583,7 +642,13 @@ namespace Agent.Core.Plugins.Definitions
                 });
         }
 
-        [Description("Generate a dashboard link for customer issues related to container app revisions.")]
+        [Description(@"""
+Generates a dashboard link for customer issues related to container app revisions.
+Use this tool to generate a dashboard link for revision-related investigations.
+Output: Returns a string containing the dashboard URL.
+- DashboardUrl: Direct URL to the dashboard for the specified revision.
+"""
+)]
         public string GenerateRevisionCustomerIssuesDashboardLink(
             [Description("Start time for the dashboard.")] string startTime,
             [Description("End time for the dashboard.")] string endTime,
