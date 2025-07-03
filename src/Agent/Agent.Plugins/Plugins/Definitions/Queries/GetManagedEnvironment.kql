@@ -11,7 +11,7 @@ ManagedEnvironmentDBState
 | where isempty(local_environmentSubscription) or subscription =~ local_environmentSubscription
 | where isempty(local_environmentLocation) or Tenant =~ local_environmentLocation
 | summarize arg_max(PreciseTimeStamp, subscription, resourceGroup, environmentName, environmentCreatedTime, environmentProvisioningState, environmentDeploymentErrors, powerState, targetPowerState,
-                    isLegionEnabled, isInternal, hasCustomerVnetForEnv, hasMaintenanceConfiguration, managedSubscription, managedClusterCreatedTime,managedClusterProvisioningState,  managedClusterProvisioningError,
+                    isLegionEnabled, isInternal, hasCustomerVnetForEnv,hasCustomerVnetForCluster,hasMaintenanceConfiguration, managedSubscription, managedClusterCreatedTime,managedClusterProvisioningState,  managedClusterProvisioningError,
                     chartVersion, targetChartVersion, chartVersionUpgradeErrors, kubernetesVersion, targetKubernetesVersion, kubernetesVersionUpgradeErrors, hasPrivateEndpoints, tier, customHelmValues) by Tenant, managedClusterName, loadBalancerId
 | extend environmentType = case(isLegionEnabled == true, "V2", "V1")
 | join kind=inner (GetRegions | project Name, KustoUrl) on $left.Tenant == $right.Name
@@ -22,11 +22,10 @@ ManagedEnvironmentDBState
     environmentResourceGroup = resourceGroup,
     environmentName,
     environmentType,
-    environmentProvisioningState,
-    environmentDeploymentErrors,
-    isLegionEnabled,
-    isInternal,
-    hasCustomerVnet = tostring(hasCustomerVnetForEnv),
+    isLegionEnabled = tostring(isLegionEnabled),
+    isInternal = tostring(isInternal),
+    hasCustomerVnetForEnv = tostring(hasCustomerVnetForEnv),
+    hasCustomerVnetForCluster = tostring(hasCustomerVnetForCluster),
     hasPrivateEndpoints = tostring(hasPrivateEndpoints),
     hasMaintenanceConfiguration = tostring(hasMaintenanceConfiguration),
     managedClusterCreatedTime,
@@ -34,15 +33,8 @@ ManagedEnvironmentDBState
     managedClusterName,
     customHelmValues,
     tier,
-    managedClusterProvisioningState,
-    managedClusterProvisioningError,
-    powerState,
-    targetPowerState,
     currentChartVersion = chartVersion,
     targetChartVersion,
-    chartVersionUpgradeErrors,
     currentKubernetesVersion = kubernetesVersion,
     targetKubernetesVersion,
-    kubernetesVersionUpgradeErrors,
-    KustoUrl,
     loadBalancerResourceUrl=loadBalancerId

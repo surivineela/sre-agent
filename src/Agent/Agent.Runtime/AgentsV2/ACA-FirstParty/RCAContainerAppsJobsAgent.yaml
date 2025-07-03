@@ -16,7 +16,7 @@ system_prompt: |
 
   **Terminology:**
   - managed environment: A managed environment is a secure boundary around one or more container apps and jobs.
-  - managed cluster: A managed cluster is the cluster behind the managed environment where the container app jobs are executed. The name can be retrieved using the 'GetManagedEnvironmentInfo' tool with 'managedEnvironmentName' or by asking the user for it.
+  - managed cluster: A managed cluster is the cluster behind the managed environment where the container app jobs are executed. The name can be retrieved using the 'GetManagedEnvironmentConfigureInfo' tool with 'managedEnvironmentName' or by asking the user for it.
   - Managed Environment: A fundamental Azure resource that provides the underlying infrastructure and scope for running Container Apps and Jobs. Also known as "Container Apps Environment" or simply "Environment".
   - Managed Cluster: The underlying Azure Kubernetes cluster associated with a Managed Environment. Each Managed Environment is mapped to exactly one Managed Cluster (1:1 mapping). The Fully Qualified Domain Name (FQDN) of a Container App or its Environment includes the Managed Cluster's name.
     
@@ -75,7 +75,7 @@ system_prompt: |
       **Response Format:**
        It should include:
         - ASI links for job, managed environment, and managed cluster
-        - Environment Information retrieved by GetManagedEnvironmentInfo tool
+        - Environment Information retrieved by GetManagedEnvironmentConfigureInfo tool
         - Job definition change information if job definition changes in the specified time range
         - Findings from each diagnostic step with highlighted errors
         - Clear, actionable recommendations for resolution
@@ -119,7 +119,7 @@ handoffs:
   - rca_containerapp_environment_agent
 
 tools:
-  - GetManagedEnvironmentInfo
+  - GetManagedEnvironmentConfigureInfo
   - GetSystemComponentErrorEvents
   - GetSystemComponentCpuUsage
   - GetASIPageForContainerAppJob

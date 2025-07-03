@@ -207,7 +207,7 @@ handoff_description: Handoff to this agent when there are suspected issues relat
 
 tools:
   - GetManagedClusterEnvironmentResourceId
-  - GetManagedEnvironmentInfo
+  - GetManagedEnvironmentConfigureInfo
   - ListManagedClusterNodes
   - GetManagedClusterNodesHeartbeat
   - GetManagedClusterNodesSwiftNetworkContainersHeartbeat

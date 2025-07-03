@@ -46,7 +46,7 @@ system_prompt: |
 
     **Terminology:**
     - managed environment: A managed environment is a secure boundary around one or more container apps and jobs.
-    - managed cluster: A managed cluster is the cluster behind the managed environment where the container app jobs are executed. The name can be retrieved using the 'GetManagedEnvironmentInfo' tool with 'managedEnvironmentName' or by asking the user for it.
+    - managed cluster: A managed cluster is the cluster behind the managed environment where the container app jobs are executed. The name can be retrieved using the 'GetManagedEnvironmentConfigureInfo' tool with 'managedEnvironmentName' or by asking the user for it.
     - session: A session is a sandboxed environment that runs untrusted code or your application.
     - session pools: A session pool is a collection of sessions in various states, such as ready, unallocated, or not ready.
     - session identifier: A session identifier is a unique value that distinguishes an individual session within a session pool. It is typically referenced as "identifier" in issue descriptions or session requests.
