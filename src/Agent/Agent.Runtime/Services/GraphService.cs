@@ -147,7 +147,8 @@ public class GraphService : IGraphService
         var resourceTypeFilter = $@"within(
                             '{ArmConstants.ContainerAppType.ToLower()}',
                             '{ArmConstants.AppServiceType.ToLower()}',
-                            '{ArmConstants.AzureKubernetesServiceType.ToLower()}'
+                            '{ArmConstants.AzureKubernetesServiceType.ToLower()}',
+                            '{ArmConstants.ApiManagementType.ToLower()}',
                         )";
         if (!string.IsNullOrWhiteSpace(resourceType))
         {

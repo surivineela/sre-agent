@@ -691,6 +691,7 @@ public class Program
             .AddSingleton<IResourceMetricsCollector, AppServiceMetricsCollector>()
             .AddSingleton<IResourceMetricsCollector, RedisMetricsCollector>()
             .AddSingleton<IResourceMetricsCollector, AKSMetricsCollector>()
+            .AddSingleton<IResourceMetricsCollector, APIManagementMetricsCollector>()
 
             // helper agents
             .AddTransient<HelperAgentsPluginDefinition>()

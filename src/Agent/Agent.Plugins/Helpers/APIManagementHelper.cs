@@ -22,8 +22,6 @@ public class APIManagementHelper
         public const string SecurityRuleAction = "securityRules";
         public const string SecurityRuleActionTitle = "Security Rule";
         public const string NRMSRulePrefix = "NRMS";
-
-        public const int SubnetResourceIdSegmentCount = 8;
     }
 
     public class NSGRuleDetails
@@ -66,26 +64,30 @@ public class APIManagementHelper
         public string VnetName { get; }
         public string SubnetName { get; }
 
-        public SubnetResourceInfo(string value)
+        public SubnetResourceInfo(string subnetResourceId)
         {
-            if (string.IsNullOrWhiteSpace(value))
-                throw new ArgumentException("SubnetResourceId cannot be null or empty.", nameof(value));
+            if (string.IsNullOrWhiteSpace(subnetResourceId))
+                throw new ArgumentException("SubnetResourceId cannot be null or empty.", nameof(subnetResourceId));
 
-            var parts = value.Split('/', StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length < Constants.SubnetResourceIdSegmentCount || !parts.Contains("virtualNetworks") || !parts.Contains("subnets"))
-                throw new FormatException($"Invalid subnet ID format: {value}");
+            // SubnetResourceId format: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{vnetName}/subnets/{subnetName}
+            var match = System.Text.RegularExpressions.Regex.Match(
+                subnetResourceId,
+                @"^/subscriptions/(?<subscriptionId>[^/]+)/resourceGroups/(?<resourceGroupName>[^/]+)/providers/Microsoft\.Network/virtualNetworks/(?<vnetName>[^/]+)/subnets/(?<subnetName>[^/]+)$",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
 
-        // SubnetResourceId format: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{vnetName}/subnets/{subnetName}
-        Value = value;
-        SubscriptionId = parts[1];
-        ResourceGroupName = parts[3];
-        VnetName = parts[7];
-        SubnetName = parts[9];
-    }
+            if (!match.Success)
+                throw new FormatException($"Invalid subnet ID format: {subnetResourceId}");
+
+            Value = subnetResourceId;
+            SubscriptionId = match.Groups["subscriptionId"].Value;
+            ResourceGroupName = match.Groups["resourceGroupName"].Value;
+            VnetName = match.Groups["vnetName"].Value;
+            SubnetName = match.Groups["subnetName"].Value;
+        }
 
         public override string ToString() => Value;
 
         public static implicit operator string(SubnetResourceInfo id) => id.Value;
-        public static implicit operator SubnetResourceInfo(string value) => new SubnetResourceInfo(value);
+        public static implicit operator SubnetResourceInfo(string subnetResourceId) => new SubnetResourceInfo(subnetResourceId);
     }
 }

@@ -353,6 +353,7 @@ public class ScoreCardService
                     '{Constants.AzureKubernetesServiceDeploymentType.ToLower()}',
                     '{Constants.AzureKubernetesServiceStatefulSetType.ToLower()}',
                     '{Constants.AzureKubernetesServicePodType.ToLower()}',
+                    '{Constants.ApiManagementType.ToLower()}',
                 ))
                 .project('id', 'name', 'type', 'properties')
                 .by(id())

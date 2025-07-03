@@ -98,7 +98,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
 
             HostNames = JsonSerializer.Serialize(hostnames);
 
-            ResourceType = apimInstance.ResourceType.ToString();
+            ResourceType = apimInstance.ResourceType.ToString().ToLower();
 
             // Networking and General
             VirtualNetworkType = apimInstance.VirtualNetworkType?.ToString();

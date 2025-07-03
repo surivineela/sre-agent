@@ -93,6 +93,7 @@ public class AppServiceScanner
                     '{Constants.ContainerAppType.ToLower()}',
                     '{Constants.AppServiceType.ToLower()}',
                     '{Constants.AzureRedisCacheType.ToLower()}',
+                    '{Constants.ApiManagementType.ToLower()}',
                 ))
                 .project('id', 'name', 'type', 'properties')
                 .by(id())

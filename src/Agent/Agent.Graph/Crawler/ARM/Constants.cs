@@ -120,5 +120,21 @@ public class Constants
     // Connection properties
     public const string ConnectionType = "connectionType";
     public const string ConnectionTypeNetwork = "network";
+
+    // App Health Info Constants
+    public const double AppHealthHealthyThreshold = 99.0;
+    public const double AppHealthDegradedThreshold = 95.0;
+    public const int AppHealthDecimalPlaces = 2;
+
+    // Azure Monitor Constants
+    public const string CpuPercentGateway = "CpuPercent_Gateway";
+    public const string MemoryPercentGateway = "MemoryPercent_Gateway";
+    public const string Requests = "Requests";
+
+    public const string UnitCount = "Count";
+    public const string UnitPercent = "Percent";
+
+    public const string AggregationAverage = "Average";
+    public const string AggregationTotal = "Total";
 }
 
