@@ -13,7 +13,6 @@ ContainerAppDBState
 | join kind=leftouter (ManagedEnvironmentDBState
 | where TIMESTAMP between (startTime .. endTime)
 | extend EnvironmentType =iff(isLegionEnabled or hasWorkloadProfiles, "V2", "V1")
-| extend hasCustomerVnet= iff(hasCustomerVnetForEnv, "True", "False")
-| summarize  max(TIMESTAMP) by managedClusterName,EnvironmentType,hasCustomerVnet
+| summarize  max(TIMESTAMP) by managedClusterName,EnvironmentType,hasCustomerVnetForEnv
 ) on $left.managedClusterName == $right.managedClusterName
 | project-away managedClusterName1,max_TIMESTAMP

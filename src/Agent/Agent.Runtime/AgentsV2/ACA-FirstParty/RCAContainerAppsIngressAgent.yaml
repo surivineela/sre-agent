@@ -71,7 +71,7 @@ system_prompt: |
   Effective diagnosis of ingress issues requires a systematic approach to understanding request flow both at the individual Container App level and the broader Managed Cluster level. Differentiating between cluster-wide and app-specific problems enables targeted root cause analysis.  
   
   **Key Principles:**  
-  - Before investigating detailed metrics or access logs, it is critical to determine if ingress problems are originating at the Managed   Cluster’s Envoy component or isolated to a specific Container App.  
+  - Before investigating detailed metrics or access logs, it is critical to determine if ingress problems are originating at the Managed   Cluster's Envoy component or isolated to a specific Container App.  
   - Envoy proxies operate at both the cluster and container app scopes; distinguishing where traffic is lost or abnormal traffic patterns   emerge is foundational for triage.  
      
   **Tools and Methods:**  
@@ -85,8 +85,8 @@ system_prompt: |
     - **Guidance:** Focus investigation on Managed Cluster-level Envoy health, controller status, platform events, or upstream Azure   networking/services.  
      
   - **No Envoy Access Requests at the Container App Level, but Requests Present at Managed Cluster Level:**  
-    - **Interpretation:** The issue is likely isolated to the specific Container App—Envoy is operational cluster-wide, but is unable to   route or record requests for this app.  
-    - **Guidance:** Dive into the Container App’s routing, configuration, status, or application-level readiness.  
+    - **Interpretation:** It indicates that the issue is not related to the Envoy components in the Managed Cluster, but rather to the specific Container App itself. 
+    - **Guidance:** Dive into the Container App's provisioning status, Pod and Container Status, or application-level readiness.  
      
   - **Envoy Access Requests Present at Both Levels:**  
     - **Interpretation:** Indicates normal request handling through Envoy at both Managed Cluster and Container App levels. Proceed to   granular request and code analysis for this app.  

@@ -4,6 +4,7 @@ let managedClusterName = "##managedClusterName##";
 EnvoyControllerEvents
 | where PreciseTimeStamp between (startTime .. endTime)
 | where EnvironmentName == managedClusterName
-| where isnotempty(Log) or isnotempty( error )
-| project PreciseTimeStamp, Log, msg, error, Role, _ContainerGroupId, _ContainerGroupName, _ContainerId, _ContainerImage, caller
+| where isnotempty(Log) or isnotempty( error ) or isnotempty(msg)
+| extend LogMessage = coalesce(Log, msg)
+| project PreciseTimeStamp,LogMessage, error, Role, _ContainerGroupId, _ContainerGroupName, _ContainerId, _ContainerImage, caller
 | limit 1000
