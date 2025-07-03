@@ -1646,17 +1646,19 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             // to do: temporary, add logic to generate based on agent host name
             var agentHost = "https://portal.azure.com/";
 
-            var flags = string.Empty;
+            var queryString = "?feature.customPortal=false&feature.canmodifystamps=true&feature.fastmanifest=false&nocdn=force&websitesextension_loglevel=verbose&Microsoft_Azure_PaasServerless=beta&microsoft_azure_paasserverless_assettypeoptions=%7B%22SreAgentCustomMenu%22%3A%7B%22options%22%3A%22%22%7D%7D";
 
             // if local then append local flag
             var environment = _configuration["ASPNETCORE_ENVIRONMENT"];
             if (string.Equals(environment, "Development", StringComparison.OrdinalIgnoreCase))
             {
-                flags = "Microsoft_Azure_PaasServerless_sre_local=true";
+                queryString += "&Microsoft_Azure_PaasServerless_sre_local=true";
             }
 
-            flags += "&feature.customPortal=false&feature.canmodifystamps=true&feature.fastmanifest=false&nocdn=force&websitesextension_loglevel=verbose&Microsoft_Azure_PaasServerless=beta&microsoft_azure_paasserverless_assettypeoptions=%7B%22SreAgentCustomMenu%22%3A%7B%22options%22%3A%22%22%7D%7D#view/Microsoft_Azure_PaasServerless/AgentFrameBlade/id/%2F";
-            return $"{agentHost}?Microsoft_Azure_PaasServerless_srelink=/views/activities/threads/{threadId}&{flags}";
+            var deepLinkPath = $"%2Fviews%2Factivities%2Fthreads%2F{threadId}";
+            var hash = $"#view/Microsoft_Azure_PaasServerless/AgentFrameBlade.ReactView/sreLink/{deepLinkPath}/id/%2F";
+
+            return $"{agentHost}{queryString}{hash}";
         }
 
         public class ScreenshotResponse

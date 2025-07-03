@@ -560,12 +560,13 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
             agentName = agentName.Substring(0, agentName.LastIndexOf("--"));
         }
 
-        var flags = string.Empty;
-        flags += "&feature.customPortal=false&feature.canmodifystamps=true&feature.fastmanifest=false&nocdn=force&websitesextension_loglevel=verbose&Microsoft_Azure_PaasServerless=beta&microsoft_azure_paasserverless_assettypeoptions=%7B%22SreAgentCustomMenu%22%3A%7B%22options%22%3A%22%22%7D%7D";
+        var queryString = "?feature.customPortal=false&feature.canmodifystamps=true&feature.fastmanifest=false&nocdn=force&websitesextension_loglevel=verbose&Microsoft_Azure_PaasServerless=beta&microsoft_azure_paasserverless_assettypeoptions=%7B%22SreAgentCustomMenu%22%3A%7B%22options%22%3A%22%22%7D%7D";
 
         var resourcePath = $"%2Fsubscriptions%2F{subscriptionId}%2FresourceGroups%2F{resourceGroup}%2Fproviders%2FMicrosoft.App%2Fagents%2F{agentName}";
+        var deepLinkPath = $"%2Fviews%2Factivities%2Fthreads%2F{threadId}";
+        var hash = $"#view/Microsoft_Azure_PaasServerless/AgentFrameBlade.ReactView/id/{resourcePath}/sreLink/{deepLinkPath}";
 
-        return $"{agentHost}?Microsoft_Azure_PaasServerless_srelink=/views/activities/threads/{threadId}{flags}#view/Microsoft_Azure_PaasServerless/AgentFrameBlade/id/{resourcePath}";
+        return $"{agentHost}{queryString}{hash}";
     }
 
     private async Task<T> SendGitHubCallAsync<T>(Func<Task<T>> githubCallFunc)
