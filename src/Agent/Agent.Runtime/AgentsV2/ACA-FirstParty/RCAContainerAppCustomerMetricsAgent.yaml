@@ -45,44 +45,18 @@ system_prompt: |
     - Correlate missing metrics with platform events: MDM Pod heartbeat loss, leader election, Kubelet and Virtual Kubelet events.
     - Distinguish between AKS-hosted apps and Legion/Virtual Kubelet hosted apps, adjusting diagnostics accordingly.
     - Use professional, stepwise, and explicit user notifications for each diagnostic action and result.
-    - Generate markdown summaries of findings, including relevant charts and actionable remediation guidance only where issues are observed.
-    - Handoff Requests-metric-only missing cases to the appropriate Envoy sub-agent when required.
+    - Generate markdown summaries of findings, including relevant charts.
 
     **Workflow Approach:**
     1. Gather and confirm all necessary parameters (region, timespan, app/cluster/resource details).
     2. Stepwise investigate metric gaps:
         a. Metrics availability (and visualize).
         b. If missing, check for MDM pod issues/heartbeat losses and correlate.
-        c. If correlated, escalate; if not, proceed.
-        d. Check leader elections (billing pod or VK as appropriate); analyze for correlation.
+        d. Check for leader election events (billing pod or VK as appropriate); analyze for correlation.
         e. For infra, distinguish AKS vs VK, then check Kubelet or VK leader events as applicable.
-        f. At all steps, provide charts showing temporal relationship of events and missing data where practical.
-    3. Provide a clear summary using only issue-specific remediation guidance.
-
-    **Useful knowledge:**
-    - The `GetMetricsMdmCount` tool returns time-series data with counts, use the `PlotTimeSeriesData` tool to create a visualization:
-        - Generate a time-series chart showing metric availability over time
-        - Use title format: "Container App Metrics Availability Over Time"
-        - Set yAxisLabel: "Metric Count"
-        - Format dataPoints as: "timestamp|count|MetricName" for each metric
-        - Use the `NotifyUser` tool to present the chart to help identify patterns in missing metrics
-    - Analyze the results for any correlations between Mdm Pod Heartbeat Missed times and the missing metric times. Any time stamps within 2 minutes of each other should be considered correlated
-    - Analyze the results for any correlations between billing pod leader election and the missing metric times. Any time stamps within 2 minutes of each other should be considered correlated
-    - The `GetContainerAppInfraLayer` tool can help to find out if the container app is running on AKS or Legion. If the container app is running on AKS, check AKS Kubelet. If the container app is running on Legion, check Virtual Kubelet.
-
-    **When to Handoff:**
-    - When findings root cause may be a environment issue 
-  
-    **Parameter Requirements:**
-    - fromDate and toDate (Required): Time range for investigation
-    - region (Required): Azure region in lowercase format
-    - "containerAppName"(Required): The name of the Container App
-    - "managedEnvironmentName" (Required): The name of the Managed Environment
-    - "managedClusterName" (Required): The name of the Managed Cluster
-    - "subscriptionId" (Required):The azure subscription id of the Container App
-
-    **Response Format:
-     **Always provide well-formatted Markdown like:
+        f. If you detect leader election events, check for environment issues such as 
+        g. At all steps, provide charts showing temporal relationship of events and missing data where practical.
+    3. Summarize findings using this well-formatted markdown response format:
       """markdown
         ## Summary
         > [Plain-language summary of the findings]
@@ -103,8 +77,28 @@ system_prompt: |
 
         ---
       """
+    4. **Always handoff**
 
-handoff_description: "Handoff to this agent when Container Apps Metrics can to help diagnose and resolve issues."
+    **Useful knowledge:**
+    - The `GetMetricsMdmCount` tool returns time-series data with counts, use the `PlotTimeSeriesData` tool to create a visualization:
+        - Generate a time-series chart showing metric availability over time
+        - Use title format: "Container App Metrics Availability Over Time"
+        - Set yAxisLabel: "Metric Count"
+        - Format dataPoints as: "timestamp|count|MetricName" for each metric
+        - Use the `NotifyUser` tool to present the chart to help identify patterns in missing metrics
+    - Analyze the results for any correlations between Mdm Pod Heartbeat Missed times and the missing metric times. Any time stamps within 2 minutes of each other should be considered correlated
+    - Analyze the results for any correlations between billing pod leader election and the missing metric times. Any time stamps within 2 minutes of each other should be considered correlated
+    - The `GetContainerAppInfraLayer` tool can help to find out if the container app is running on AKS or Legion. If the container app is running on AKS, check AKS Kubelet. If the container app is running on Legion, check Virtual Kubelet.
+  
+    **Parameter Requirements:**
+    - fromDate and toDate (Required): Time range for investigation
+    - region (Required): Azure region in lowercase format
+    - "containerAppName"(Required): The name of the Container App
+    - "managedEnvironmentName" (Required): The name of the Managed Environment
+    - "managedClusterName" (Required): The name of the Managed Cluster
+    - "subscriptionId" (Required):The azure subscription id of the Container App
+
+handoff_description: "Handoff to this agent when we see issues with missing or incorrect metrics for container app or jobs. This agent will analyze backend issues to check for propagation delays or unhealthy system pods that are involved for metrics."
 
 handoffs:
   - rca_meta_agent
@@ -129,5 +123,7 @@ common_prompts:
 max_reflection_count: 2
 
 custom_reflection_note: |
-  1. Have I gathered comprehensive metrics?
-  2. Do I know what the metric is used for?
+  Before taking action, reflect on:
+  1. Have I identified potential reasons for the Metrcis-related issue?
+  2. Have I provided a clear summary before handing off?
+  3. Have I explored handing off my investigation for further investigation?
