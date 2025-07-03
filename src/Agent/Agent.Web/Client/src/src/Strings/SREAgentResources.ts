@@ -645,6 +645,12 @@ export const PagerDutyResources = defineMessages({
             'This will permanently delete the connection to PagerDuty. The agent will no longer be able to manage tickets. Are you sure you want to disconnect?',
         id: 'r2x5ZI',
     },
+    changePlatformConfirmationTitle: { defaultMessage: 'Disconnect PagerDuty?', id: 'cTY8WU' },
+    changePlatformConfirmationMessage: {
+        defaultMessage:
+            'To change the incident platform, you need to disconnect from PagerDuty. The agent will no longer manage tickets. Are you sure you want to disconnect?',
+        id: 'CnouOe',
+    },
     connectedMessage: { defaultMessage: 'PagerDuty is connected.', id: '23nct0' },
     connectedMessageWithoutHandlers: {
         defaultMessage: 'PagerDuty connected. Your next step is to set up incident handlers.',
@@ -669,6 +675,12 @@ export const AzMonitorResources = defineMessages({
             'This will permanently delete the connection to Azure Monitor. The agent will no longer be integrated with Azure Monitor notifications. Are you sure you want to delete this connection?',
         id: 'w/UZrq',
     },
+    changePlatformConfirmationTitle: { defaultMessage: 'Disconnect Azure Monitor?', id: 'blSyDZ' },
+    changePlatformConfirmationMessage: {
+        defaultMessage:
+            'To change the incident platform, you need to disconnect from Azure Monitor. The agent will no longer receive Azure Monitor notifications. Are you sure you want to disconnect?',
+        id: 'obRqDQ',
+    },
     connectedMessage: { defaultMessage: 'Azure Monitor added', id: '14xQ4i' },
 });
 
@@ -679,13 +691,18 @@ export const IcMResources = defineMessages({
             'This will permanently delete the connection to IcM. The agent will no longer be able to manage incidents. Are you sure you want to delete this connection?',
         id: 'VwHnVH',
     },
+    changePlatformConfirmationTitle: { defaultMessage: 'Disconnect IcM?', id: 'vAWzLN' },
+    changePlatformConfirmationMessage: {
+        defaultMessage:
+            'To change the incident platform, you need to disconnect from IcM. The agent will no longer manage incidents. Are you sure you want to disconnect?',
+        id: 'X8SzJ6',
+    },
     connectedMessage: { defaultMessage: 'IcM is connected.', id: 'tyJNW5' },
     connectedMessageWithoutHandlers: {
         defaultMessage: 'IcM connected. Your next step is to set up incident handlers.',
         id: 'Dz+Iv9',
     },
     addedMessage: { defaultMessage: 'IcM connection added successfully', id: 'P3Xgmf' },
-
     connectionDescription: {
         defaultMessage: 'Connect to ICM so that the Agent can automatically listen and respond to your Incidents.',
         id: 'o7TUwc',

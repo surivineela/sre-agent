@@ -90,11 +90,18 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
         return dirty;
     }, [dirty, values.platform, initialValues.platform]);
 
-    const { disconnectConfirmationTitle, disconnectConfirmationMessage } = useMemo(() => {
+    const {
+        disconnectConfirmationTitle,
+        disconnectConfirmationMessage,
+        changePlatformConfirmationTitle,
+        changePlatformConfirmationMessage,
+    } = useMemo(() => {
         if (initialValues.platform === IncidentManagementPlatform.PagerDuty) {
             return {
                 disconnectConfirmationTitle: intl.formatMessage(PagerDutyResources.disconnectConfirmationTitle),
                 disconnectConfirmationMessage: intl.formatMessage(PagerDutyResources.disconnectConfirmationMessage),
+                changePlatformConfirmationTitle: intl.formatMessage(PagerDutyResources.changePlatformConfirmationTitle),
+                changePlatformConfirmationMessage: intl.formatMessage(PagerDutyResources.changePlatformConfirmationMessage),
             };
         }
 
@@ -102,6 +109,8 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
             return {
                 disconnectConfirmationTitle: intl.formatMessage(AzMonitorResources.disconnectConfirmationTitle),
                 disconnectConfirmationMessage: intl.formatMessage(AzMonitorResources.disconnectConfirmationMessage),
+                changePlatformConfirmationTitle: intl.formatMessage(AzMonitorResources.changePlatformConfirmationTitle),
+                changePlatformConfirmationMessage: intl.formatMessage(AzMonitorResources.changePlatformConfirmationMessage),
             };
         }
 
@@ -109,14 +118,20 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
             return {
                 disconnectConfirmationTitle: intl.formatMessage(IcMResources.disconnectConfirmationTitle),
                 disconnectConfirmationMessage: intl.formatMessage(IcMResources.disconnectConfirmationMessage),
+                changePlatformConfirmationTitle: intl.formatMessage(IcMResources.changePlatformConfirmationTitle),
+                changePlatformConfirmationMessage: intl.formatMessage(IcMResources.changePlatformConfirmationMessage),
             };
         }
 
         return {
             disconnectConfirmationTitle: '',
             disconnectConfirmationMessage: '',
+            changePlatformConfirmationTitle: '',
+            changePlatformConfirmationMessage: '',
         };
     }, [initialValues.platform, intl]);
+
+    const [showSwitchPlatformDisconnectDialog, setShowSwitchPlatformDisconnectDialog] = useState(false);
 
     const managedIdentityResourceName = useMemo(() => {
         if (!managedIdentityId) {
@@ -189,14 +204,18 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                                 value={selectedPlatformDisplayName}
                                 placeholder={intl.formatMessage(IncidentManagementPlatformResources.disconnected)}
                                 onOptionSelect={(_event, data) => {
-                                    setFieldTouched('platform', true, false);
-                                    setFieldValue('platform', data?.optionValue);
-                                    if (data?.optionValue !== IncidentManagementPlatform.PagerDuty) {
-                                        setFieldValue('connectionKey', undefined, false);
-                                        setFieldTouched('connectionKey', false, false);
+                                    if (!isSetupScenario && data?.optionValue !== values.platform) {
+                                        setShowSwitchPlatformDisconnectDialog(true);
+                                    } else {
+                                        setFieldTouched('platform', true, false);
+                                        setFieldValue('platform', data?.optionValue);
+                                        if (data?.optionValue !== IncidentManagementPlatform.PagerDuty) {
+                                            setFieldValue('connectionKey', undefined, false);
+                                            setFieldTouched('connectionKey', false, false);
+                                        }
                                     }
                                 }}
-                                disabled={loading || !!loadFailure || saving || !isSetupScenario}
+                                disabled={loading || !!loadFailure || saving}
                             >
                                 {incidentPlatformDropdownOptions.map(option => (
                                     <Option value={option.key} checkIcon={null}>
@@ -423,6 +442,37 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                                     </DialogSurface>
                                 </Dialog>
                             )}
+                            <Dialog modalType="alert" open={showSwitchPlatformDisconnectDialog}>
+                                <DialogSurface>
+                                    <DialogBody>
+                                        <DialogTitle>{changePlatformConfirmationTitle}</DialogTitle>
+                                        <DialogContent>{changePlatformConfirmationMessage}</DialogContent>
+                                        <DialogActions>
+                                            <DialogTrigger>
+                                                <Button
+                                                    className={dangerButton}
+                                                    onClick={() => {
+                                                        setShowSwitchPlatformDisconnectDialog(false);
+                                                        disconnect();
+                                                    }}
+                                                >
+                                                    {intl.formatMessage(SreAgentResources.yes)}
+                                                </Button>
+                                            </DialogTrigger>
+                                            <DialogTrigger disableButtonEnhancement>
+                                                <Button
+                                                    appearance="secondary"
+                                                    onClick={() => {
+                                                        setShowSwitchPlatformDisconnectDialog(false);
+                                                    }}
+                                                >
+                                                    {intl.formatMessage(SreAgentResources.no)}
+                                                </Button>
+                                            </DialogTrigger>
+                                        </DialogActions>
+                                    </DialogBody>
+                                </DialogSurface>
+                            </Dialog>
                         </div>
                     </>
                 )}
