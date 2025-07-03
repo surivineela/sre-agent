@@ -117,6 +117,25 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
             if (incidentDocument.Status == "resolved")
             {
                 logger.LogInternalInformation("Incident {incidentId} is resolved, skipping notification.", incidentDocument.Id);
+                // Update thread status if exists
+                try
+                {
+                    var existingThreadDocument = await GetIncidentThread(incidentDocument.Id);
+                    if (existingThreadDocument is not null)
+                    {
+                        if (existingThreadDocument.IncidentStatus != "resolved")
+                        {
+                            existingThreadDocument.IncidentStatus = "resolved";
+                            logger.LogInternalInformation("Updating thread status to resolved for incident {incidentId}", incidentDocument.Id);
+                            await container.UpsertItemAsync(existingThreadDocument, new PartitionKey(existingThreadDocument.Id));
+                            logger.LogInternalInformation("Updated thread status to resolved for incident {incidentId}", incidentDocument.Id);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.LogInternalError(ex, "Error updating thread status for incident {incidentId}", incidentDocument.Id);
+                }
                 return;
             }
 

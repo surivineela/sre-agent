@@ -18,6 +18,8 @@ public interface IPagerDutyIncidentPlugin
     Task ResolvePagerDutyIncidentAsync(string incidentId);
     Task AcknowledgePagerDutyIncidentAsync(string incidentId);
 
+    Task<string> AddNoteToIncident(string incidentId, string note);
+
     /// <summary>
     /// Close the Azure Monitor Alert.
     /// This only updates the Alert Status on SRE backend.

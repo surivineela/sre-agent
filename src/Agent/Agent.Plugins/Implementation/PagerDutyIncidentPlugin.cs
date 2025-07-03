@@ -89,6 +89,29 @@ public class PagerDutyIncidentPlugin(ILogger<PagerDutyIncidentPlugin> logger,
         await pagerDutyService.AcknowledgeIncident(incidentId);
     }
 
+    public async Task<string> AddNoteToIncident(string incidentId, string note)
+    {
+        if (string.IsNullOrEmpty(incidentId) || string.IsNullOrEmpty(note))
+        {
+            var message = "AddNoteToIncident: IncidentId or note is null or empty.";
+            logger.LogInternalWarning(message);
+            return message;
+        }
+        try
+        {
+            await pagerDutyService.AddNoteToIncident(incidentId, note);
+            var successResponse = $"AddNoteToIncident: Successfully added note to PagerDuty incident {incidentId}.";
+            logger.LogInternalInformation(successResponse);
+            return successResponse;
+        }
+        catch (Exception ex)
+        {
+            var errorMessage = $"Error adding note to PagerDuty incident {incidentId}: {ex.Message}";
+            logger.LogInternalError(ex, "AddNoteToIncident: Error adding note to PagerDuty incident {IncidentId}.", incidentId);
+            return errorMessage;
+        }
+    }
+
     private async Task<List<PagerDutyIncidentDocument>> GetIncidentById(List<string> incidentId, uint maxResults)
     {
         var iterator = container.GetItemLinqQueryable<PagerDutyIncidentDocument>()

@@ -246,6 +246,7 @@ public class CosmosDbThreadRepository : IThreadRepository
                             IncidentStatus = new IncidentStatus
                             {
                                 IncidentId = threadDoc.IncidentId,
+                                Status = threadDoc.IncidentStatus
                             }
                         };
                     }
@@ -1205,7 +1206,8 @@ public class CosmosDbThreadRepository : IThreadRepository
             {
                 HasCriticalActions = hasCriticalActions,
                 HasWarningActions = hasWarningActions
-            }
+            },
+            IncidentStatus = thread.Status.IncidentStatus
         };
 
         // add incident status

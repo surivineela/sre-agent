@@ -280,31 +280,32 @@ namespace Agent.Runtime.Services
 
     ### EXECUTION_PLAN ###
 
-        - Identify the 'Error' category from the 'Secondary Queries and results' section of the azure alerting discussion entry.,
-        - If the Error is not 'Keyset does not exist', then STOP and DO NOT PROCEED:,
-        - If the Error is 'Keyset does not exist' then proceed with following guidelines:,
-          - Post discussion Entry for with a table with three columns:,
-            - Error,
-            - Requests,
-            - Preliminary Mitigation,
-          - Then go ahead and fetch web app details for the web app 'diagacisdataprovider',
-          - Then restart the web app. Proceed to ALERT_SIGNAL_MONITORING steps.,
-        - ALERT_SIGNAL_MONITORING instructions:,
-          - Wait for 10 minutes.,
-          - Set MONITORING_ITERATION = 0,
-          - Repeat running run_alert_kusto_query 10 times with a gap of 10 minutes or until NUM_ROWS_RETURNED == 0. In each iteration:,
-            - Ensure that you've waited for 10 minutes after the last iteration.,
-            - run_alert_kusto_query and check if it returns any rows.,
-            - Post discussion Entry into ICM Incident with the following list details regarding the ALERT_SIGNAL: MONITORING_ITERATION, NUM_ROWS_RETURNED,
-            - If NUM_ROWS_RETURNED > 0, increase MONITORING_ITERATION by 1 and add wait_timer for 10 minutes.,
-            - If NUM_ROWS_RETURNED == 0, this confirms that the ALERT_SIGNAL has been cleared. EXIT THE LOOP.,
+        - Identify the 'Error' category from the 'Secondary Queries and results' section of the azure alerting discussion entry.
+        - If the Error is not 'Keyset does not exist', then STOP and DO NOT PROCEED:
+        - If the Error is 'Keyset does not exist' then proceed with following guidelines:
+          - Post discussion Entry for with a table with three columns:
+            - Error
+            - Requests
+            - Preliminary Mitigation
+          - Then go ahead and fetch web app details for the web app 'diagacisdataprovider'
+          - Then restart the web app. Proceed to ALERT_SIGNAL_MONITORING steps.
+        - ALERT_SIGNAL_MONITORING instructions:
+          - Wait for 10 minutes.
+          - Set MONITORING_ITERATION = 0
+          - Repeat running run_alert_kusto_query 10 times with a gap of 10 minutes or until NUM_ROWS_RETURNED == 0. In each iteration:
+            - Ensure that you've waited for 10 minutes after the last iteration.
+            - run_alert_kusto_query and check if it returns any rows.
+            - Post discussion Entry into ICM Incident with the following list details regarding the ALERT_SIGNAL: MONITORING_ITERATION, NUM_ROWS_RETURNED
+            - If NUM_ROWS_RETURNED > 0, increase MONITORING_ITERATION by 1 and add wait_timer for 10 minutes.
+            - If NUM_ROWS_RETURNED == 0, this confirms that the ALERT_SIGNAL has been cleared. EXIT THE LOOP.
+        - Once mitigation is confirmed and monitoring is finished, mitigate the incident with a summary of the incident and actions.
 
-        - Post a discussion Entry with a summary of stage-by-stage details:,
-            - Incident Details,
-            - Impacted Endpoint Details,
-            - Transient/Non-Transient check,
-            - Mitigation Actions,
-            - Confirmation of Recovery,
+        - Post a discussion Entry/incident note with a summary of stage-by-stage details:
+            - Incident Details
+            - Impacted Endpoint Details
+            - Transient/Non-Transient check
+            - Mitigation Actions
+            - Confirmation of Recovery
             - Iteration-by-Iteration results of the ALERT_SIGNAL_MONITORING in a table format.
 
     ### END OF EXECUTION_PLAN ###
@@ -320,20 +321,22 @@ namespace Agent.Runtime.Services
 
     # Here is a LIST_OF_AVAILABLE_TOOLS (capabilities) that the LLM-based Agent could use to fetch information or carry out actions. The EXECUTION_PLAN must adhere to instructions that involve actions that can be performed using these tools.
 
-    Available Tools that the Agent can use: {availableToolsPrompt}
+    LIST_OF_AVAILABLE_TOOLS that the Agent can use: {availableToolsPrompt}
 
     # You must follow the below GENERATION_GUIDELINES while generating the EXECUTION_PLAN:
     - Use the detailed steps and incident summaries to create a structured EXECUTION_PLAN
     - When including data/log query execution, include full semantically correct log queries in the instructions together with database/cluster names.
     - **Ensure that the EXECUTION_PLAN must adhere to instructions that involve actions that can be performed using these tools**
+    - Ensure that the EXECUTION_PLAN has specific instructions to post discussion entries/incident notes after each major step.
     - MITIGATION_CONFIRMATION instructions are needed only for issues where mitigation is required and applied.
+    - The EXECUTION_PLAN must have a conclusion in the form of mitigating or resolving the incident
     - DON'T include the 'Step X:' prefix in the instruction you generate
     - **If an EXISTING_EXECUTION_PLAN is provided, then extract new information from provided INCIDENT_SUMMARIES and CUSTOM_INSTRUCTIONS to improve the EXECUTION_PLAN.**
 
     EXISTING_EXECUTION_PLAN
     {existingInstructions ?? "No existing execution plan provided."}
 
-    **Your output will be a JSON object with two attributes ""executionPlan"" (the generated execution plan for the LLM) and ""toolsUsed"" (a definitive list of the tools mentioned in the execution plan)**
+    **Your output will be a JSON object with two attributes ""executionPlan"" (the generated execution plan for the LLM) and ""toolsUsed"" (a definitive list of the tools mentioned in the execution plan and any other helper tools to interact with the incident e.g. acknowledge, resolve, post discussion entry/notes)**
 
     Example output:
     {exampleOutput}

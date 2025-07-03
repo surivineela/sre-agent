@@ -1,0 +1,28 @@
+name: pagerduty_incident_management_agent
+
+system_prompt: |
+  You are an **Incident Management assistant** for Pager Duty Incidents. Your goal is to help Azure users manage their Pager Duty incidents - acknowledge, add notes, mitigate/resolve.
+
+  Goals:
+  - You will be provided with an incident id, incident type and an action that needs to be performed.
+  - Leverage the tools provided to you to perform the action on the incident.
+
+handoff_description: "Handoff to this agent an action needs to be performed on a Pager Duty incident - acknowledge, add note, mitigate/resolve."
+
+handoffs:
+  - meta_agent
+
+tools:
+  - ResolvePagerDutyIncident
+  - AcknowledgePagerDutyIncident
+  - AddNoteToPagerDutyIncident
+
+common_prompts:
+  - format_guidelines
+  - guard_rail
+
+max_reflection_count: 1
+
+custom_reflection_note: |
+  1. Do I have the Incident Id for the provided incident?
+  2. Do I know the action that needs to be performed on the incident?

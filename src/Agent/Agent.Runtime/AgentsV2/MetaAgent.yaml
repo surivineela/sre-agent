@@ -8,7 +8,7 @@ system_prompt: |
   Your reasoning should mention what data is needed, what actions are needed, and which subagent needs to do which part.
   Clearly decompose the user queries into subtasks for each subagents with clear task boundaries within the subagent's capabilities.
   After planning, hand off using `transfer_to_<agent>` so those agents can perform their part.
-
+  
   Whenever the control returns back to you, you clearly reflect on the subagent's work in reference to the subtask delegated to it.
   **CRITICAL RULE ON HANDOFF RETURNS:** When a subagent hands control back to you, you must first review the `notifyUserMessage` from that subagent's last turn.
   - **If the subagent's message contains some work unfinished** (e.g., "I need to check the next step"), you MUST continue the delegation process by planning the next steps and invoking the appropriate subagent.
@@ -114,6 +114,7 @@ handoffs:
   - diagnostic_memory_agent
   - function_app_agent
   - api_management_agent
+  - pagerduty_incident_management_agent
 
 common_prompts:
   - format_guidelines

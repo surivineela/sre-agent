@@ -24,6 +24,7 @@ public record ThreadDocument(
     public string PartitionKey => Id; // Use Thread Id as partition key
     public static string ContainerName => AgentDataConfiguration.ThreadContainerName;
     public string IncidentId { get; set; } = string.Empty; // Incident Id associated with the thread if the source of the thread is incident
+    public string IncidentStatus { get; set; } = string.Empty;
     public DateTime? LastReadTime { get; set; } = null; // The last time the thread was read
     public string? AgentMode { get; set; } = null; // Agent mode configuration for the thread
 
@@ -42,6 +43,7 @@ public record ThreadDocument(
         )
         {
             IncidentId = thread.Status?.IncidentStatus?.IncidentId ?? string.Empty,
+            IncidentStatus = thread.Status?.IncidentStatus?.Status,
             LastReadTime = thread.LastReadTime,
             AgentMode = thread.AgentMode
         };
@@ -60,6 +62,14 @@ public record ThreadDocument(
         {
             LastReadTime = LastReadTime,
             EvaluatedTimestamp = EvaluatedTimestamp,
-            AgentMode = AgentMode
+            AgentMode = AgentMode,
+            Status = new Status()
+            {
+                IncidentStatus = new IncidentStatus
+                {
+                    IncidentId = IncidentId,
+                    Status = IncidentStatus
+                }
+            }
         };
 }
