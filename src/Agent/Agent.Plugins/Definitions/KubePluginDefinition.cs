@@ -328,18 +328,19 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
 
         [KernelFunction("runKubectlWriteCommand")]
         [Description("""
-        Safely execute kubectl commands to update/create/delete Kubernetes resource. Several subcommands are supported, including 'create', 'apply', 'delete', 'patch', 'replace', 'scale', 'rollout', 'label' and 'annotate'.
-        USAGE: Provide the complete kubectl command as a string.
-        BASIC EXAMPLES:
-        - Create a deployment: 'kubectl create deployment my-deployment --image=my-image -n production'
-        - Apply a configuration: 'kubectl apply -f my-config.yaml -n default'
-        - Delete a pod: 'kubectl delete pod my-pod -n default'
-        - Scale a deployment: 'kubectl scale deployment my-deployment --replicas=3 -n production'
-        - Rollout restart a deployment: 'kubectl rollout restart deployment my-deployment -n default'
-        - Patch a resource: 'kubectl patch deployment my-deployment -p \"{\"spec\":{\"replicas\":3}}\" -n default'
-        - Label a resource: 'kubectl label pod my-pod my-label=my-value -n default'
-        BEST PRACTICES:
-        - Always specify the namespace you care about: 'kubectl get pods -n default'
+        Safely execute kubectl commands to update/create Kubernetes resources. Supports 'create', 'apply', 'patch', 'replace', 'scale', 'rollout', 'label', 'annotate'.
+
+        ⚠️ IMPORTANT: DELETE operations are NOT ALLOWED for safety reasons.
+
+        USAGE: Provide complete kubectl command as string.
+        EXAMPLES:
+        - Create: 'kubectl create deployment my-app --image=nginx -n production'
+        - Apply: 'kubectl apply -f config.yaml -n default'
+        - Scale: 'kubectl scale deployment my-app --replicas=3 -n production'
+        - Patch: 'kubectl patch deployment my-app -p "{\"spec\":{\"replicas\":3}}" -n default'
+        - Rollout: 'kubectl rollout restart deployment my-deployment -n default'
+
+        PROHIBITED: 'kubectl delete...' ❌ Manually execute kubectl or Use Azure Portal instead.
         """)]
         [WriteAction]
         public async Task<string> RunKubectlWriteCommandAsync(
