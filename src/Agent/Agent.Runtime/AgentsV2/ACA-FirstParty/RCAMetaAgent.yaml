@@ -71,6 +71,7 @@ handoffs:
   - rca_containerapp_quota_agent
   - rca_containerapp_resource_check_agent
   - rca_containerapp_swift_network_container_agent
+  - rca_containerapp_search_resource_agent
 
 tools:
   - SearchDesignDocs

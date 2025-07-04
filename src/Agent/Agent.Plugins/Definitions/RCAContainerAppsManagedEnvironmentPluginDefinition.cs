@@ -57,18 +57,25 @@ Tool Output:
     [Description("Name of the managed environment.")] string environmentName,
     [Description("Name of the resource group.")] string resourceGroupName,
     [Description("Azure subscription ID.")] string subscriptionId,
-     [Description("provide sampling inputs")] SamplingOptions sampling)
+    [Description("Name of the managed cluster")] string managedCluster)
         {
-            return await _kustoPlugin.ExecuteLocalFunctionAsync("GetManagedEnvironment", region,
+            // We use All("ManagedEnvironmentDBState") in the query, so if the region is not specified, we can default to an arbitrary region.
+            string kustoClientRegion = string.IsNullOrEmpty(region)
+                ? "centralus"
+                : region;
+
+            string environments =  await _kustoPlugin.ExecuteLocalFunctionAsync("GetManagedEnvironment", kustoClientRegion,
                  new Dictionary<string, string> {
                     { "fromDate", fromDate.ToString() },
                     { "toDate", toDate.ToString() },
                     { "region", region },
                     { "environmentName", environmentName },
                     { "resourceGroupName", resourceGroupName },
-                    { "subscriptionId", subscriptionId }
+                    { "subscriptionId", subscriptionId },
+                    { "managedClusterName", managedCluster } 
                  }
              );
+            return environments;
         }
 
         [Description(@"""

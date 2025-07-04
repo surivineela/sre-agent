@@ -4,11 +4,13 @@ let local_environmentLocation = "##region##";
 let local_environmentName = "##environmentName##";
 let local_environmentResourceGroup = "##resourceGroupName##";
 let local_environmentSubscription = "##subscriptionId##";
-ManagedEnvironmentDBState
+let local_managedClusterName = "##managedClusterName##";
+All("ManagedEnvironmentDBState")
 | where PreciseTimeStamp between (globalFrom .. globalTo)
 | where environmentName =~ local_environmentName
 | where isempty(local_environmentResourceGroup) or resourceGroup =~ local_environmentResourceGroup
 | where isempty(local_environmentSubscription) or subscription =~ local_environmentSubscription
+| where isempty(local_managedClusterName) or managedClusterName =~ local_managedClusterName
 | where isempty(local_environmentLocation) or Tenant =~ local_environmentLocation
 | summarize arg_max(PreciseTimeStamp, subscription, resourceGroup, environmentName, environmentCreatedTime, environmentProvisioningState, environmentDeploymentErrors, powerState, targetPowerState,
                     isLegionEnabled, isInternal, hasCustomerVnetForEnv,hasCustomerVnetForCluster,hasMaintenanceConfiguration, managedSubscription, managedClusterCreatedTime,managedClusterProvisioningState,  managedClusterProvisioningError,

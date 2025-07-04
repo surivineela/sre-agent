@@ -661,5 +661,48 @@ Output: Returns a string containing the dashboard URL.
         {
             return _kustoDashboardPlugin.GenerateDashboardLink("5563467d-adf2-4a55-b390-8d71e672e13b", startTime, endTime, region, subscriptionId, resourceGroupName, managedClusterName, containerAppName, revisionName);
         }
+
+        [Description("""
+        Retrieve the base information, configuration, and state for an Azure Container App or an Azure Container Apps job.
+        Use this tool when you need to search for a specific container app or job and gather its basic details.
+        The tool returns table data in CSV format, using TAB separators. The first line contains the column headers.
+            
+        Tool Output:
+        - Region: Azure region where the container app is hosted.
+        - ContainerAppName: Name of the container app.
+        - ResourceType: Resource type of the container app (e.g., containerApp or job).
+        - ResourceGroup: Name of the resource group containing the container app.
+        - Subscription: Azure subscription ID.
+        - ManagedEnvironmentId: Managed environment Resource ID for the container app.
+        - managedClusterName: Name of the managed cluster.
+        - createdTimeUtc: Time when the container app was created.
+        - provisioningState: Current provisioning state of the container app.
+        - workloadProfileType: Type of workload profile for the container app.
+        """
+        )]
+        public async Task<string> GetContainerAppInformation(
+            [Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the container app.")] string containerAppName,
+            [Description("Name of the resource group.")] string resourceGroupName,
+            [Description("Azure subscription ID.")] string subscriptionId)
+        {
+            // We use All("ContainerAppDBState") in the query, so if the region is not specified, we can default to an arbitrary region.
+            string kustoClientRegion = string.IsNullOrEmpty(region) 
+                ? "centralus" 
+                : region;
+
+            string containerApps = await _kustoPlugin.ExecuteLocalFunctionAsync("GetContainerApp", kustoClientRegion,
+                new Dictionary<string, string> {
+                        { "fromDate", fromDate.ToString() },
+                        { "toDate", toDate.ToString() },
+                        { "region", region },
+                        { "containerAppName", containerAppName },
+                        { "resourceGroupName", resourceGroupName },
+                        { "subscriptionId", subscriptionId }
+            });
+            return containerApps;
+        }
     }
 }

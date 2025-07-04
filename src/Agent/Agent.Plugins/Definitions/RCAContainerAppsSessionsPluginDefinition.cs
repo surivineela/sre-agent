@@ -45,10 +45,16 @@ Tool outputs:
             [Description("Resource group name.")] string resourceGroupName,
             [Description("Session pool name.")] string sessionPoolName)
         {
-            return await _kustoPlugin.ExecuteLocalFunctionAsync("GetSessionPoolInfo", region,
+            // We use AllSession("SessionPoolDBState") in the query, so if the region is not specified, we can default to an arbitrary region.
+            string kustoClientRegion = string.IsNullOrEmpty(region)
+                ? "centralus"
+                : region;
+
+            return await _kustoPlugin.ExecuteLocalFunctionAsync("GetSessionPoolInfo", kustoClientRegion,
              new Dictionary<string, string> {
                  { "fromDate", fromDate.ToString() },
                  { "toDate", toDate.ToString() },
+                 { "region", region },
                  { "subscriptionId", subscriptionId },
                  { "resourceGroupName", resourceGroupName },
                  { "sessionPoolName", sessionPoolName }

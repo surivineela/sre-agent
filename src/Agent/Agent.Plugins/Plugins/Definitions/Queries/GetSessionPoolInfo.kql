@@ -1,9 +1,14 @@
 let fromDate = datetime("##fromDate##");
 let endDate = datetime("##toDate##");
+let _region = "##region##";
 let _subscriptionId = "##subscriptionId##";
 let _resourceGroupName = "##resourceGroupName##";
 let _sessionPoolName =  "##sessionPoolName##";
-SessionPoolDBState
+AllSession("SessionPoolDBState")
 | where PreciseTimeStamp  between (fromDate-2h .. endDate)
-| where subscription == _subscriptionId and resourceGroup == _resourceGroupName and sessionPoolName == _sessionPoolName
-| summarize arg_max(PreciseTimeStamp, containerType, customContainerTemplate, dynamicPoolConfigurationJsonString, kubeEnvironment, managedClusterName,  maxConcurrentSessions, poolManagementType, legionPodPoolName) by sessionPoolName
+| where isempty(_region) or Tenant =~ _region
+| where isempty(_subscriptionId) or subscription =~ _subscriptionId
+| where isempty(_resourceGroupName) or resourceGroup =~ _resourceGroupName
+| where isempty(_sessionPoolName) or sessionPoolName =~ _sessionPoolName
+| summarize arg_max(Region=Tenant,PreciseTimeStamp, containerType, customContainerTemplate, dynamicPoolConfigurationJsonString, kubeEnvironment, managedClusterName,  maxConcurrentSessions, poolManagementType, legionPodPoolName) by sessionPoolName
+
