@@ -43,6 +43,9 @@ public static class ToolDescriptionHelper
             "RunAzCliReadCommandsAsync" => "Reading Azure resource information.",
             "RunAzCliWriteCommandsAsync" => "Making changes to Azure resources.",
             "GetAzCliHelpAsync" => "Getting Azure CLI command help.",
+            "RunAzCliWriteCommands" => "Making changes to Azure resources.",
+            "RunAzCliReadCommands" => "Reading Azure resource information.",
+            "GetAzCliHelp" => "Getting Azure CLI command help.",
 
             // Function App plugins
             "ListFunctionAppsAsync" => "Finding your Function Apps.",
@@ -58,6 +61,15 @@ public static class ToolDescriptionHelper
             "GetFunctionAppConfigurationChecks" => "Analyzing Function App configuration.",
             "GetFunctionAppDeploymentChecks" => "Checking deployment information.",
             "GetFunctionAppDeploymentHistory" => "Retrieving deployment history.",
+            "GetFunctionAppDeploymentFailureAnalysis" => "Analyzing deployment failure patterns and root causes.",
+            "GetFunctionAppSlotSwapHistory" => "Retrieving Function App slot swap history.",
+            "UpdateWebsiteRunFromPackageAsync" => "Updating Function App deployment package source.",
+            "UpdateWebsiteRunFromPackage" => "Updating Function App deployment package source.",
+            "ListStorageBlobsAsync" => "Listing files in storage container.",
+            "ListStorageBlobs" => "Listing files in storage container.",
+            "VerifyFilesInBlobContainerAsync" => "Verifying files in storage container.",
+            "VerifyFilesInBlobContainer" => "Verifying files in storage container.",
+            "GetFailedRequestsPerFunction" => "Analyzing failed requests per function.",
 
             // Role Assignment functions
             "GetRoleAssignments" => "Checking access permissions.",
@@ -115,6 +127,17 @@ public static class ToolDescriptionHelper
             "PlotHeatmapAsync" => "Creating heatmap visualization.",
             "PlotAreaChartWithCorrelationAsync" => "Creating area chart with correlation.",
             "GetPieChartBase64Image" => "Generating pie chart image.",
+
+            // Additional Chart/Visualization functions (missing from current list)
+            "PlotPieChart" => "Creating pie chart visualization.",
+            "plot_pie_chart" => "Creating pie chart visualization.",
+            "PlotBarChart" => "Creating bar chart visualization.",
+            "plot_bar_chart_async" => "Creating bar chart visualization.",
+            "PlotScatter" => "Creating scatter plot visualization.",
+            "plot_scatter" => "Creating scatter plot visualization.",
+            "plot_heatmap" => "Creating heatmap visualization.",
+            "plot_time_series_data_in_teams_chat" => "Creating time series chart for Teams.",
+            "plot_time_series_data_in_icm" => "Creating time series chart for ICM incident.",
 
             // Metrics functions
             "GetFunctionAppRequestAvailability" => "Checking Function App availability metrics.",
@@ -227,8 +250,110 @@ public static class ToolDescriptionHelper
             "GetNodeAvailabilityFailures" => "Getting node availability failure information.",
             "GenerateRevisionCustomerIssuesDashboardLink" => "Generating customer issues dashboard link.",
 
-            // Search Plugin functions
-            "SearchDocuments" => "Peforms a semantic search for documents in a knowledge base.",
+            // Handoff functions (transfer_to_* pattern from agent configurations)
+            "transfer_to_resource_discovery_agent" => "Discovering your resources.",
+            "transfer_to_metrics_and_chart_visualization_agent" => "Analyzing metrics and creating visualizations.",
+            "transfer_to_aks_general_agent" => "Analyzing Kubernetes cluster configuration.",
+            "transfer_to_github_issue_agent" => "Managing GitHub issues for incident tracking.",
+            "transfer_to_azure_cli_command_executor_agent" => "Executing Azure CLI commands.",
+            "HandoffBack" => "Continuing with the investigation.",
+
+            // GitHub Issue Plugin functions (from GithubIssueAgent.yaml)
+            "FetchGithubIssue" => "Fetching GitHub issue details.",
+            "FindConnectedRepo" => "Finding connected GitHub repository.",
+            "CreateGithubIssueComment" => "Adding comment to GitHub issue.",
+            "FetchGithubSecurityDependabotAlerts" => "Fetching GitHub security alerts.",
+
+            // Kubectl Plugin functions
+            "RunKubectlWriteCommand" => "Executing Kubernetes write command.",
+            "RunKubectlWriteCommandAsync" => "Executing Kubernetes write command.",
+            "RunKubectlReadCommand" => "Reading Kubernetes resource information.",
+            "RunKubectlReadCommandAsync" => "Reading Kubernetes resource information.",
+            "GetKubectlHelp" => "Getting Kubernetes command help.",
+            "GetKubectlHelpAsync" => "Getting Kubernetes command help.",
+
+            // Container Apps Environment functions
+            "GetContainerAppEnvironmentInfo" => "Getting Container App environment details.",
+            "GetManagedEnvironmentInfo" => "Getting managed environment information.",
+
+            // Additional ARM Plugin functions
+            "GetResourceIdFromStorageServiceUri" => "Getting resource ID from storage URI.",
+
+            // Additional Support functions (from agent plan files)
+            "GetSupportProductsFromArm" => "Getting Azure support products.",
+            "GetSupportProblemClassificationsForProduct" => "Getting support problem classifications.",
+            "GetAzureSupportCenterDiagnosticResultsForQuestion" => "Getting diagnostic results from Azure Support Center.",
+
+            // Additional Diagnosis functions
+            "AddNewSummary" => "Adding investigation summary.",
+
+            // Additional Function App functions (from agent plan files)
+            "CollectMemoryDumpForApp" => "Collecting memory dump for analysis.",
+            "ScaleUpAppServicePlanBySku" => "Scaling up App Service Plan.",
+            "AutoScaleApp" => "Setting up automatic scaling.",
+            "GetWebAppCpuMetrics" => "Getting web app CPU metrics.",
+            "GetFunctionAppConnectivityAgent" => "Starting Function App connectivity analysis.",
+            "FunctionAppConnectivityAgent" => "Starting Function App connectivity analysis.",
+
+            // Kubernetes and AKS functions
+            "KubectlGet" => "Retrieving Kubernetes resource information.",
+            "KubectlDescribe" => "Getting detailed Kubernetes resource description.",
+            "KubectlExplain" => "Getting Kubernetes resource schema information.",
+            "KubeApiResources" => "Listing available Kubernetes API resources.",
+            "GetPodLogs" => "Retrieving pod logs.",
+            "GetKubeEvents" => "Getting Kubernetes cluster events.",
+            "DiscoverPrometheusMetrics" => "Discovering available metrics in Prometheus.",
+            "GetMetricsLabels" => "Getting available metric labels.",
+            "QueryPrometheusMetrics" => "Querying Prometheus metrics.",
+
+            // Network and Security functions
+            "RemoveNSGRule" => "Removing network security group rule.",
+            "AddNSGRule" => "Adding network security group rule.",
+            "UpdateNSGRule" => "Updating network security group rule.",
+            "NSGRulePluginDefinition" => "Managing network security group rules.",
+
+            // Storage and Blob functions
+            "CheckBlobExists" => "Checking if blob exists in storage.",
+            "DownloadBlob" => "Downloading blob from storage.",
+            "UploadBlob" => "Uploading blob to storage.",
+
+            // Authentication and Identity functions
+            "GetIdentityInformation" => "Getting identity and authentication details.",
+            "ValidateIdentityConfiguration" => "Validating identity configuration.",
+            "GetManagedIdentityDetails" => "Getting managed identity information.",
+
+            // Monitoring and Alerting functions
+            "CreateAlert" => "Creating monitoring alert.",
+            "UpdateAlert" => "Updating monitoring alert.",
+            "DeleteAlert" => "Deleting monitoring alert.",
+            "GetAlertHistory" => "Getting alert history.",
+            "CloseAzureMonitorAlert" => "Closing Azure Monitor alert.",
+
+            // Documentation and Help functions
+            "SearchDocuments" => "Searching documentation.",
+            "SearchDocumentsAsync" => "Searching documentation.",
+            "GetDocumentation" => "Retrieving documentation.",
+
+            // Agent-specific tools from YAML files
+            "NetworkDiagnosisTool" => "Diagnosing network connectivity issues.",
+            "StartDiagnosisWorkflow" => "Starting comprehensive diagnosis workflow.",
+            "GetSystemHealth" => "Checking overall system health.",
+            "ValidateConfiguration" => "Validating resource configuration.",
+
+            // Error Analysis and Debugging
+            "AnalyzeErrorLogs" => "Analyzing error logs for patterns.",
+            "GetErrorDetails" => "Getting detailed error information.",
+            "TraceErrorFlow" => "Tracing error propagation flow.",
+            "GetDiagnosticSummary" => "Getting diagnostic summary.",
+
+            // Performance Analysis
+            "GetPerformanceMetrics" => "Getting performance metrics.",
+            "AnalyzePerformanceBottlenecks" => "Analyzing performance bottlenecks.",
+            "GetResourceUtilization" => "Getting resource utilization metrics.",
+            "MonitorPerformanceTrends" => "Monitoring performance trends.",
+
+            // Additional Complete functions
+            "Complete" => "Completing the operation.",
 
             // Default case
             _ => DefaultSafeDescription
