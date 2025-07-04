@@ -13,7 +13,7 @@ let vnetIdList = SwiftNetworkingEvents
 | where NodeName in (nodeList)
 | where VnetId != ""
 | distinct VnetId;
-cluster('azurecm.kusto.windows.net').database('AzureCM').NetworkServiceManagerEvents
+cluster("azcore.centralus").database('Fc').NetworkServiceManagerEvents
 | where PreciseTimeStamp between ( fromTime .. toTime)
 | where Tenant startswith "ZRH" 
 | where Message contains "Gre key 355 is already in use" 
