@@ -195,7 +195,7 @@ public class GenericArmResourceCrawler : IResourceCrawler
                         if (root.GetString() != "/")
                         {
                             var id = new ResourceIdentifier(root.GetString());
-                            node = new ArmResourceNode(id.ResourceType, root.GetString(), id.SubscriptionId, id.ResourceGroupName, id.Name);
+                            node = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(id);
                         }
                     }
                     catch { }
