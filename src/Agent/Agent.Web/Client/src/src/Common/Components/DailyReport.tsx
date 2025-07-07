@@ -260,6 +260,17 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
         return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
     };
 
+    // Helper function to format memory based on resource type
+    const formatMemory = (memoryValue: number, resourceType: string) => {
+        // API Management services report memory as percentages
+        const lowerType = resourceType.toLowerCase();
+        if (lowerType === 'microsoft.apimanagement/service' || lowerType === 'microsoft.apimanagement/gateways') {
+            return `${memoryValue.toFixed(2)}%`;
+        }
+        // Other services report memory as bytes
+        return formatBytes(memoryValue);
+    };
+
     // Resource health status counts
     const healthStatusCounts: Record<string, number> = {
         Healthy: 0,
@@ -368,7 +379,7 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                                                 : 'inherit',
                                     }}
                                 >
-                                    {resource.AppHealthInfo.Availability.toFixed(4)}%
+                                    {resource.AppHealthInfo.Availability.toFixed(2)}%
                                 </Text>
                             </div>
                         </div>
@@ -415,7 +426,7 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                                     {intl.formatMessage(DailyReportResources.memory)}
                                 </Text>
                                 <Text size={600} weight="semibold">
-                                    {formatBytes(resource.AppHealthInfo.AvgMemoryUsage)}
+                                    {formatMemory(resource.AppHealthInfo.AvgMemoryUsage, resource.Type)}
                                 </Text>
                             </div>
                         </div>
@@ -511,7 +522,7 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                     width={600}
                     margins={{ left: 30, top: 20, bottom: 50, right: 10 }}
                     hideLegend={true}
-                    yAxisTickFormat={(value: number) => `${value}K`}
+                    yAxisTickFormat={(value: number) => `${value}`}
                     yMaxValue={100}
                 />
                 <div
@@ -618,7 +629,7 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                     backgroundColor: tokens.colorNeutralBackground1,
                 }}
             >
-                <div className="header-container" style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 24px' }}>
+                <div className="header-container" style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 16px' }}>
                     <div className="report-header">
                         <Text as="h1" size={600} weight="semibold" style={{ margin: '0' }}>
                             {timestamp
@@ -645,13 +656,13 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
             {/* Main content */}
             <div
                 className="main-content"
-                style={{ maxWidth: '1400px', margin: '0 auto', padding: '24px', backgroundColor: tokens.colorNeutralBackground1 }}
+                style={{ maxWidth: '1400px', margin: '0 auto', padding: '16px', backgroundColor: tokens.colorNeutralBackground1 }}
             >
-                {/* Overview Cards */}
+                {/* Overview Cards - Responsive 3 Column Grid */}
                 <div
                     style={{
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(3, 1fr)',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
                         gap: '16px',
                         marginBottom: '32px',
                     }}
@@ -676,37 +687,37 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
 
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 'auto' }}>
                             <div style={{ textAlign: 'center' }}>
-                                <Text size={300} style={{ display: 'block', marginBottom: '4px' }}>
+                                <Text size={200} style={{ display: 'block', marginBottom: '4px', fontSize: '11px' }}>
                                     {intl.formatMessage(DailyReportResources.critical)}
                                 </Text>
-                                <Text weight="semibold" size={700} style={{ color: getSecuritySeverityColor('Critical') }}>
+                                <Text weight="semibold" size={600} style={{ color: getSecuritySeverityColor('Critical') }}>
                                     {data.Overview.SecurityFindings.Critical}
                                 </Text>
                             </div>
 
                             <div style={{ textAlign: 'center' }}>
-                                <Text size={300} style={{ display: 'block', marginBottom: '4px' }}>
+                                <Text size={200} style={{ display: 'block', marginBottom: '4px', fontSize: '11px' }}>
                                     {intl.formatMessage(DailyReportResources.high)}
                                 </Text>
-                                <Text weight="semibold" size={700} style={{ color: getSecuritySeverityColor('High') }}>
+                                <Text weight="semibold" size={600} style={{ color: getSecuritySeverityColor('High') }}>
                                     {data.Overview.SecurityFindings.High}
                                 </Text>
                             </div>
 
                             <div style={{ textAlign: 'center' }}>
-                                <Text size={300} style={{ display: 'block', marginBottom: '4px' }}>
+                                <Text size={200} style={{ display: 'block', marginBottom: '4px', fontSize: '11px' }}>
                                     {intl.formatMessage(DailyReportResources.moderate)}
                                 </Text>
-                                <Text weight="semibold" size={700} style={{ color: getSecuritySeverityColor('Moderate') }}>
+                                <Text weight="semibold" size={600} style={{ color: getSecuritySeverityColor('Moderate') }}>
                                     {data.Overview.SecurityFindings.Moderate}
                                 </Text>
                             </div>
 
                             <div style={{ textAlign: 'center' }}>
-                                <Text size={300} style={{ display: 'block', marginBottom: '4px' }}>
+                                <Text size={200} style={{ display: 'block', marginBottom: '4px', fontSize: '11px' }}>
                                     {intl.formatMessage(DailyReportResources.low)}
                                 </Text>
-                                <Text weight="semibold" size={700} style={{ color: getSecuritySeverityColor('Low') }}>
+                                <Text weight="semibold" size={600} style={{ color: getSecuritySeverityColor('Low') }}>
                                     {data.Overview.SecurityFindings.Low}
                                 </Text>
                             </div>
@@ -733,21 +744,21 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
 
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 'auto' }}>
                             <div style={{ textAlign: 'center' }}>
-                                <Text size={300} style={{ display: 'block', marginBottom: '4px' }}>
+                                <Text size={200} style={{ display: 'block', marginBottom: '4px', fontSize: '11px' }}>
                                     {intl.formatMessage(DailyReportResources.active)}
                                 </Text>
-                                <Text weight="semibold" size={700} style={{ color: getIncidentStatusColor('Active') }}>
+                                <Text weight="semibold" size={600} style={{ color: getIncidentStatusColor('Active') }}>
                                     {data.Overview.Incidents.Active}
                                 </Text>
                             </div>
 
                             <div style={{ textAlign: 'center' }}>
-                                <Text size={300} style={{ display: 'block', marginBottom: '4px' }}>
+                                <Text size={200} style={{ display: 'block', marginBottom: '4px', fontSize: '11px' }}>
                                     {intl.formatMessage(DailyReportResources.mitigated)}
                                 </Text>
                                 <Text
                                     weight="semibold"
-                                    size={700}
+                                    size={600}
                                     style={{
                                         color:
                                             data.Overview.Incidents.Mitigated > 0
@@ -760,10 +771,10 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                             </div>
 
                             <div style={{ textAlign: 'center' }}>
-                                <Text size={300} style={{ display: 'block', marginBottom: '4px' }}>
+                                <Text size={200} style={{ display: 'block', marginBottom: '4px', fontSize: '11px' }}>
                                     {intl.formatMessage(DailyReportResources.resolved)}
                                 </Text>
-                                <Text weight="semibold" size={700} style={{ color: getIncidentStatusColor('Resolved') }}>
+                                <Text weight="semibold" size={600} style={{ color: getIncidentStatusColor('Resolved') }}>
                                     {data.Overview.Incidents.Resolved}
                                 </Text>
                             </div>
@@ -790,28 +801,28 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
 
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 'auto' }}>
                             <div style={{ textAlign: 'center' }}>
-                                <Text size={300} style={{ display: 'block', marginBottom: '4px' }}>
+                                <Text size={200} style={{ display: 'block', marginBottom: '4px', fontSize: '11px' }}>
                                     {intl.formatMessage(DailyReportResources.unhealthy)}
                                 </Text>
-                                <Text weight="semibold" size={700} style={{ color: getHealthStatusColor('Unhealthy') }}>
+                                <Text weight="semibold" size={600} style={{ color: getHealthStatusColor('Unhealthy') }}>
                                     {data.Overview.HealthAndPerformance.Unhealthy}
                                 </Text>
                             </div>
 
                             <div style={{ textAlign: 'center' }}>
-                                <Text size={300} style={{ display: 'block', marginBottom: '4px' }}>
+                                <Text size={200} style={{ display: 'block', marginBottom: '4px', fontSize: '11px' }}>
                                     {intl.formatMessage(DailyReportResources.degraded)}
                                 </Text>
-                                <Text weight="semibold" size={700} style={{ color: getHealthStatusColor('Degraded') }}>
+                                <Text weight="semibold" size={600} style={{ color: getHealthStatusColor('Degraded') }}>
                                     {data.Overview.HealthAndPerformance.Degraded}
                                 </Text>
                             </div>
 
                             <div style={{ textAlign: 'center' }}>
-                                <Text size={300} style={{ display: 'block', marginBottom: '4px' }}>
+                                <Text size={200} style={{ display: 'block', marginBottom: '4px', fontSize: '11px' }}>
                                     {intl.formatMessage(DailyReportResources.healthy)}
                                 </Text>
-                                <Text weight="semibold" size={700} style={{ color: getHealthStatusColor('Healthy') }}>
+                                <Text weight="semibold" size={600} style={{ color: getHealthStatusColor('Healthy') }}>
                                     {data.Overview.HealthAndPerformance.Healthy}
                                 </Text>
                             </div>
