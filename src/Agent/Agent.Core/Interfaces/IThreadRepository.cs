@@ -13,7 +13,7 @@ public interface IThreadRepository
 {
     Task<Thread> GetThreadAsync(Guid threadId);
     Task<IEnumerable<Thread>> GetThreadsAsync(ODataQueryOptions? queryOptions = null, ActionSeverity? severity = null);
-    Task<IEnumerable<Thread>> GetThreadsBySourceAsync(ODataQueryOptions? queryOptions = null, ThreadSource? source = null, IncidentType? incidentType = null);
+    Task<IEnumerable<Thread>> GetThreadsBySourceAsync(ODataQueryOptions? queryOptions = null, ThreadSource? source = null, IncidentType? incidentType = null, DateTime? createdAfter = null);
     Task<Thread> CreateThreadAsync(Thread thread);
     Task<bool> DeleteThreadAsync(Guid threadId);
 

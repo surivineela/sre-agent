@@ -81,7 +81,7 @@ namespace Agent.Data.Repositories
             return Task.FromResult(threads.AsEnumerable());
         }
 
-        public Task<IEnumerable<Thread>> GetThreadsBySourceAsync(ODataQueryOptions? queryOptions = null, ThreadSource? source = null, IncidentType? incidentType = null)
+        public Task<IEnumerable<Thread>> GetThreadsBySourceAsync(ODataQueryOptions? queryOptions = null, ThreadSource? source = null, IncidentType? incidentType = null, DateTime? createdAfter = null)
         {
             IQueryable<Thread> threads = _threads.Values.AsQueryable().OrderBy(t => t.CreatedTimestamp);
 
@@ -93,6 +93,11 @@ namespace Agent.Data.Repositories
             if (incidentType != null)
             {
                 threads = threads.Where(t => t.IncidentSource.IncidentType == incidentType);
+            }
+
+            if (createdAfter.HasValue)
+            {
+                threads = threads.Where(t => t.CreatedTimestamp >= createdAfter.Value);
             }
 
             if (queryOptions is not null)

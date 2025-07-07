@@ -111,7 +111,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
     }
 
-    public async Task<IEnumerable<Thread>> GetThreadsBySourceAsync(ODataQueryOptions? queryOptins, ThreadSource? source = null, IncidentType? incidentType = null)
+    public async Task<IEnumerable<Thread>> GetThreadsBySourceAsync(ODataQueryOptions? queryOptins, ThreadSource? source = null, IncidentType? incidentType = null, DateTime? createdAfter = null)
     {
         var threads = new List<Thread>();
         // Query for thread documents
@@ -126,7 +126,12 @@ public class CosmosDbThreadRepository : IThreadRepository
 
         if (incidentType.HasValue)
         {
-            query.Where(t => t.IncidentSource != null && t.IncidentSource.IncidentType == incidentType.Value);
+            query = query.Where(t => t.IncidentSource != null && t.IncidentSource.IncidentType == incidentType.Value);
+        }
+
+        if (createdAfter.HasValue)
+        {
+            query = query.Where(t => t.CreatedTimestamp >= createdAfter.Value);
         }
 
         // Sort by creation timestamp

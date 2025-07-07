@@ -833,7 +833,8 @@ Remember: Quality findings with specific values are better than quantity. Exclud
             // Get all AzMonitor incident threads
             var azMonitorIncidentThreads = await _repository.GetThreadsBySourceAsync(
                 source: ThreadSource.Incident,
-                incidentType: IncidentType.AzMonitor);
+                incidentType: IncidentType.AzMonitor,
+                createdAfter: null);
 
             _logger.LogInternalInformation($"Found {azMonitorIncidentThreads.Count()} AzMonitor incident threads");
 
@@ -935,7 +936,13 @@ Remember: Quality findings with specific values are better than quantity. Exclud
 
             _logger.LogInternalInformation($"Looking for existing active thread for alert rule: {alertRuleName}, target resource: {targetResource}");
 
-            var allIncidentThreads = await _repository.GetThreadsBySourceAsync(source: ThreadSource.Incident, incidentType: IncidentType.AzMonitor);
+            // Get threads from last 7 days only
+            var sevenDaysAgo = DateTime.UtcNow.AddDays(-7);
+
+            var allIncidentThreads = await _repository.GetThreadsBySourceAsync(
+                source: ThreadSource.Incident,
+                incidentType: IncidentType.AzMonitor,
+                createdAfter: sevenDaysAgo);
 
             foreach (var thread in allIncidentThreads)
             {
