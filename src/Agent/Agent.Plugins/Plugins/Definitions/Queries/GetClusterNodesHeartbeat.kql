@@ -19,5 +19,5 @@ ContainerAppControllerEvents
 | extend SessionIndex = row_cumsum(iff(NodeHeartbeat != prev(NodeHeartbeat), 1, 0))
 | extend SessionIndex = strcat(NodeName,"#",row_cumsum(iff(NodeHeartbeat !=  prev(NodeHeartbeat) and NodeName == prev(NodeName), 1, 0)))
 | summarize StartTime=min( PreciseTimeStamp), EndTime=max(PreciseTimeStamp) by NodeName,NodeHeartbeat,SessionIndex
-| project StartTime, EndTime,NodeName,NodeHeartbeat
 | order by NodeName,StartTime asc
+| project StartTime, EndTime, NodeName, NodeHeartbeat=NodeHeartbeat

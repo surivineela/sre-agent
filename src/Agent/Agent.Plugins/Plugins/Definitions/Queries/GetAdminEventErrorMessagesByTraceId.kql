@@ -5,7 +5,8 @@ ContainerAppsAdminEvents
 | where PreciseTimeStamp between (fromDate .. toDate)
 | where Level < 4
 | where env_dt_traceId == queryTraceId
-| summarize FirstSeen=min(PreciseTimeStamp),LastSeen=max(PreciseTimeStamp) by message
-| project FirstSeen, LastSeen, message
-| order by FirstSeen asc
+| summarize StartTime=min(PreciseTimeStamp),EndTime=max(PreciseTimeStamp) by message
+| project StartTime, EndTime, Message=message
+| order by StartTime asc
 | limit 50
+| project StartTime, EndTime, Message

@@ -175,10 +175,10 @@ Use this tool to get Kubelet runtime errors for a specific AKS cluster.
 Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
 - Timestamp: Timestamp of the error.
 - Value: Error value (rate or count).
-- region: Azure region.
-- cluster_id: Cluster identifier.
-- scrape_job: Scrape job name.
-- operation_type: Type of Kubelet operation.
+- Region: Azure region.
+- AKSClusterID: Cluster identifier.
+- AKSScrapeJob: Scrape job name.
+- OperationType: Type of Kubelet operation.
 """
 )]
         public Task<string> GetAKSKubeletRuntimeErrors(

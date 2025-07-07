@@ -29,4 +29,4 @@ cluster("azslb.kusto.windows.net").database("azslbmds").SlbMetadataVersionRecord
 |summarize by Region, MdmAccountName
 | extend HPAccountName = strcat("slbhp", substring(MdmAccountName, 5))) on $left.Region == $right.Region
 | where AltAddress != "0.0.0.0"
-| project MdmAccountName,NrpLbId,Vip,AltAddress
+| project MdmAccountName,LoadBalancerID=NrpLbId,VirtualIP=Vip,AltAddress

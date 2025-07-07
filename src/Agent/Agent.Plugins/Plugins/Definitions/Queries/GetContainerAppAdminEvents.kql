@@ -11,4 +11,4 @@ ContainerAppsAdminEvents
 | where subscription =~ cappSubscription
 | where resourceGroup =~ cappResourceGroup
 | where resourceName =~ queryResourceName 
-| project PreciseTimeStamp,requestPath,requestMethod,statusCode,requestBody,durationInMilliseconds,env_dt_traceId
+| project PreciseTimeStamp, RequestPath=requestPath, RequestMethod=requestMethod, StatusCode=statusCode, RequestPayload=requestBody, DurationInMilliseconds=durationInMilliseconds, TraceID=env_dt_traceId

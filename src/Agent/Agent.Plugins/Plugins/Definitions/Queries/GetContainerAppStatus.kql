@@ -12,5 +12,5 @@ ContainerAppDBState
 | order by PreciseTimeStamp asc
 | extend SessionIndex = row_cumsum(iff(provisioningState != prev(provisioningState), 1, 0))
 | summarize StartTime = min(PreciseTimeStamp), EndTime = max(PreciseTimeStamp) by containerAppName,operationType,provisioningState,SessionIndex
-| project StartTime,EndTime,containerAppName,operationType,provisioningState
 | order by StartTime asc
+| project StartTime, EndTime, containerAppName, operationType, provisioningState

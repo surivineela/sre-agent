@@ -3,4 +3,5 @@ ContainerAppsAdminEvents
 | where PreciseTimeStamp > ago(10d)
 | where EventId == 123 or EventId == 125
 | where instanceId == operationTraceId
-| summarize arg_max(PreciseTimeStamp,operationStatus,message) 
+| summarize arg_max(PreciseTimeStamp,operationStatus,message)
+| project PreciseTimeStamp, OperationStatus=operationStatus, Message=message

@@ -295,9 +295,9 @@ Use this tool to get session state changes and health for a revision.
 Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
 - StartTime: Session start timestamp.
 - EndTime: Session end timestamp.
-- Content: The running state (e.g., Running, Stopped).
-- GroupBy: The revision name.
-- Health: Health status derived from state.
+- RevisionName: The revision name.
+- State: The running state (e.g., Running, Stopped).
+- HealthStatus: Health status derived from state.
 """
 )]
         public Task<string> GetActiveRevisionSessions(

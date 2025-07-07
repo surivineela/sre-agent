@@ -8,3 +8,4 @@ SwiftNetworkingEvents
 | where msg contains "failed to resolve . for dns server"
 | summarize FailureCount = count(), StartTime = min(TIMESTAMP), EndTime = max(TIMESTAMP)
 | where FailureCount > threshold
+| project StartTime, EndTime, FailureCount

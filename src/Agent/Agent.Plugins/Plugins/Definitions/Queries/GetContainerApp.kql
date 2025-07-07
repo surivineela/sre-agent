@@ -37,3 +37,4 @@ All("ContainerAppDBState")
     provisioningState,
     workloadProfileType
 | order by createdTimeUtc desc
+| project Region, ContainerAppName, ContainerAppType=ResourceType, ResourceGroupName=ResourceGroup, SubscriptionID=Subscription, ContainerAppEnvironmentID=ManagedEnvironmentId, managedClusterName, CreatedTime=createdTimeUtc, provisioningState, workloadProfileType

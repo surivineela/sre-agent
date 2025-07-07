@@ -1,5 +1,5 @@
 let fromDate = datetime("##fromDate##");
-let toDate = datetime("##toDate##"); 
+let toDate = datetime("##toDate##");
 let _subscriptionId = "##subscriptionId##";
 let _resourceGroupName = "##resourceGroupName##";
 let _sessionPoolName =  "##sessionPoolName##";
@@ -13,10 +13,10 @@ let traceIds = ContainerAppsAdminEvents
 | take 1
 | project env_dt_traceId;
 ContainerAppsAdminEvents
-| where PreciseTimeStamp between (fromDate .. toDate) 
+| where PreciseTimeStamp between (fromDate .. toDate)
 | where env_dt_traceId in (traceIds)
-| parse message with * "Begin extending lease for X-MS-Session-PodAllocationGuid-" podId 
-| where message has_any ("Begin GetInstance", "Allocating pods", "Legion API call status code", "End GetInstance", "Start", "End", "Begin ExecuteAsync", "Begin extending", "Error") 
-| project PreciseTimeStamp, Tenant, Level, message, podId, exception, poolType, env_dt_traceId, identifier, sessionPoolName, podName 
+| parse message with * "Begin extending lease for X-MS-Session-PodAllocationGuid-" podId
+| where message has_any ("Begin GetInstance", "Allocating pods", "Legion API call status code", "End GetInstance", "Start", "End", "Begin ExecuteAsync", "Begin extending", "Error")
 | order  by PreciseTimeStamp asc
 | where Level <= 2
+| project PreciseTimeStamp, ManagedClusterName=Tenant, LogLevel=Level, message, podId, exception, SessionPoolType=poolType, TraceID=env_dt_traceId, SessionIdentifier=identifier, sessionPoolName, podName

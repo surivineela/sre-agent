@@ -33,7 +33,7 @@ leBucketMetric
 | join kind=inner countMetric on PreciseTimeStamp, VMNodeWhereMetricCaptured, PodName
 | order by PreciseTimeStamp, VMNodeWhereMetricCaptured, PodName, le
 | project PreciseTimeStamp, VMNodeWhereMetricCaptured, PodName, le, bucketCount, totalCount
-| extend 
+| extend
     pct50Target = totalCount * 0.50,
     pct90Target = totalCount * 0.90,
     pct95Target = totalCount * 0.95
@@ -44,3 +44,4 @@ leBucketMetric
     by PreciseTimeStamp, VMNodeWhereMetricCaptured, PodName
 | where P50 > p50Threshold and P90 > p90Threshold and P95 > p95Threshold
 | order by PreciseTimeStamp
+| project PreciseTimeStamp, NodeName, PodName, P50Value=P50, P90Value=P90, P95Value=P95

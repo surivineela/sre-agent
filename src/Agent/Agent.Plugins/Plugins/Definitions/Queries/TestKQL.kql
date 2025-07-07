@@ -1,2 +1,3 @@
 AllCapps("ContainerAppDBState")
 | take 1
+| project PreciseTimeStamp

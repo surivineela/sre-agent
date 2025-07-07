@@ -3,7 +3,8 @@ let queryTo = datetime("##toDate##");
 let clusterName = "##managedClusterName##";
 K8SEBillingPodEvents
 | where PreciseTimeStamp between(queryFrom..queryTo)
-| where EnvironmentName == clusterName
+| where EnvironmentName =~ clusterName
 | where msg has "new leader elected"
 | project PreciseTimeStamp
 | take 1000
+| project PreciseTimeStamp

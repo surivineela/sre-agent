@@ -18,5 +18,6 @@ ContainerAppControllerEvents
 | extend current = iif(metric.currentValue  endswith "m", curr_raw   / 1000.0, curr_raw),
          target  = iif(metric.targetValue   endswith "m", target_raw / 1000.0, target_raw)
 | extend ratio = current/target
-| summarize max_value = max(ratio), min_value = min(ratio) by metricName
+| summarize MaxValue = max(ratio), MinValue = min(ratio) by metricName
 | take 100
+| project MetricName=metricName, MaxValue, MinValue

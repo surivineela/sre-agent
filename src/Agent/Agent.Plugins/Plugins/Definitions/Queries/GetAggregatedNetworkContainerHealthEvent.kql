@@ -6,4 +6,4 @@ cluster("aznwsdn").database("aznwmds").AggregatedNcHealthEvent
 | where OwningServiceInstanceId == "Microsoft.App"
 | where NcId == networkContainerID
 | summarize min(healthEventTime), max(healthEventTime) by NcId, VnetId, ContainerId,OwnDsMappingsStatus, CustomerAddress,HealthState,NodeId
-| project StartTime=min_healthEventTime,EndTime=max_healthEventTime,NetworkContainerId=NcId,ContainerId,NodeId,OwnDsMappingsStatus,CustomerAddress,HealthState
+| project StartTime=min_healthEventTime,EndTime=max_healthEventTime,NetworkContainerID=NcId,ContainerId,NodeId,OwnDsMappingsStatus,NodeIP=CustomerAddress,HealthStatus=HealthState

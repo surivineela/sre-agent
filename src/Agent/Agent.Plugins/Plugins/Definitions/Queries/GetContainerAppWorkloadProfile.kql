@@ -4,5 +4,5 @@ let containerAppOrJobName = "##containerAppOrJobName##";
 ContainerAppDBState
 | where TIMESTAMP between (queryFrom .. queryTo)
 | where containerAppName =~ containerAppOrJobName or containerAppsJobName =~ containerAppOrJobName
-| take 1
-| project  workloadProfileType
+| summarize StartTime=min(PreciseTimeStamp),EndTime=max(PreciseTimeStamp) by workloadProfileType
+| project  StartTime, EndTime, WorkloadProfileType = workloadProfileType

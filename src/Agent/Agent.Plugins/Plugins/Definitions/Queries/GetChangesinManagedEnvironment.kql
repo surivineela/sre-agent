@@ -18,7 +18,7 @@ let TrackChanges = (data: (ComponentType: string, PreciseTimeStamp: datetime, Co
     | extend PreviousContent = prev(Content)
     | extend SessionIndex = row_cumsum(iff(Content != PreviousContent, 1, 0))
     | summarize StartTime = min(PreciseTimeStamp), EndTime = max(PreciseTimeStamp) by Content, SessionIndex, ComponentType
-    | serialize 
+    | serialize
     | extend PreviousContent = prev(Content)
     | extend ChangeStatus = iff(SessionIndex == 1, "No change", "Change")
     | where SessionIndex > 1 // focus only on change
@@ -27,12 +27,12 @@ let TrackChanges = (data: (ComponentType: string, PreciseTimeStamp: datetime, Co
 };
 
 // Version-related columns
-let BuildVersionData = BaseData 
+let BuildVersionData = BaseData
 | where isnotempty(buildVersion)
 | extend ComponentType = "ACA Control plane Build Version"
 | project ComponentType, PreciseTimeStamp, Content = buildVersion;
 
-let AKSVersionData = BaseData 
+let AKSVersionData = BaseData
 | where isnotempty(kubernetesVersion)
 | extend ComponentType = "AKS Version"
 | project ComponentType, PreciseTimeStamp, Content = kubernetesVersion;
@@ -106,7 +106,7 @@ let TierData = BaseData
 | project ComponentType, PreciseTimeStamp, Content = tier;
 
 // Final union of all change-tracked components
-union 
+union
     // Versions
     TrackChanges(BuildVersionData),
     TrackChanges(AKSVersionData),
@@ -128,3 +128,4 @@ union
     TrackChanges(IngressIPData),
     TrackChanges(TierData)
 | order by StartTime asc, ComponentType asc
+| project StartTime, EndTime, ComponentType, Value, ChangeStatus, PreviousValue

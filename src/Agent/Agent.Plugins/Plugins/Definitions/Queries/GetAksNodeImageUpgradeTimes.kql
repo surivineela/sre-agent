@@ -76,4 +76,4 @@ union withsource=TS FrontEndQoSEvents, AsyncQoSEvents
     clientPrincipalName, 
     clientApplicationID,
     apiVersion
-| project StartTime, EndTime, suboperationName
+| project StartTime, EndTime, SubOperationName=suboperationName

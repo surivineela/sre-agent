@@ -73,4 +73,4 @@ defaultTimeline
 )
 | extend area ='Alerts: Node'
 | extend GroupBy = area
-| project StartTime, EndTime, Content, Tooltip, Health, GroupBy, warnings, criticals
+| project StartTime, EndTime, Message=Content, Tooltip, HealthStatus=Health, Area=GroupBy, WarningErrors=warnings, CriticalErrors=criticals

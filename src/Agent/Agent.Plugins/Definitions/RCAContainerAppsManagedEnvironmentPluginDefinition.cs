@@ -431,9 +431,9 @@ Tool outputs:
         The tool returns table data in CSV format, using TAB separators. The first line contains the column headers.
 
         Tool outputs:
-        - FirstSeen: First occurrence of the error message.
-        - LastSeen: Last occurrence of the error message.
-        - message: The operation error message.
+        - StartTime: First occurrence of the error message.
+        - EndTime: Last occurrence of the error message.
+        - Message: The operation error message.
         """
         )]
         public async Task<string> GetAdminEventErrorMessagesByTraceId(
@@ -459,12 +459,12 @@ Tool outputs:
         Tool outputs:
         - StartTime: Start time of the alert timeline.
         - EndTime: End time of the alert timeline.
-        - Content: Description of alert status (e.g., 'Healthy' or 'X Alerts').
+        - Message: Description of alert status (e.g., 'Healthy' or 'X Alerts').
         - Tooltip: Detailed information about critical and warning alerts.
-        - Health: Overall health status ('healthy', 'degraded', 'error').
-        - GroupBy: Alert categorization (e.g., 'Alerts: Node').
-        - warnings: List of warning-level alerts.
-        - criticals: List of critical-level alerts.
+        - HealthStatus: Overall health status ('healthy', 'degraded', 'error').
+        - Area: Alert categorization (e.g., 'Alerts: Node').
+        - WarningErrors: List of warning-level alerts.
+        - CriticalErrors: List of critical-level alerts.
         """
         )]
         public async Task<string> GetAKSNodeAlerts(

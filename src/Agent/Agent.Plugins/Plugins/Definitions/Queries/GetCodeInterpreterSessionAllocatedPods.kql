@@ -9,5 +9,5 @@ ContainerAppsAdminEvents
 | where subscription == _subscriptionId and resourceGroup == _resourceGroupName and sessionPoolName == _sessionPoolName
 | where message == "End New GetInstance Allocation"
 | where isempty(sessionIdentifier) or identifier == sessionIdentifier
-| project PreciseTimeStamp, identifier, podName, poolType
 | take 1
+| project PreciseTimeStamp, SessionIdentifier=identifier, podName, SessionPoolType=poolType

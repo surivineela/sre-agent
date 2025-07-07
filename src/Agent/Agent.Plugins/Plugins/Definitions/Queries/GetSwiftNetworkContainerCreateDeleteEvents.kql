@@ -11,4 +11,4 @@ SwiftNetworkingEvents
 or msg startswith 'Network container cleanup completed successfully' or msg startswith 'Starting network container cleanup'
 or msg startswith 'Attempting to create Swift NC'
 or msg startswith 'Error injecting node'
-| project TimeStamp=['time'],OperationName,message=msg,Response,error
+| project PreciseTimeStamp=['time'],OperationName,Message=msg,Response,Error=error

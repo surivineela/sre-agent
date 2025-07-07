@@ -37,7 +37,7 @@ namespace Agent.Plugins.Definitions
             }
             var currentThreadId = ToolStatic.AsyncLocalThreadId.Value;
             var threadLink = string.Format(templateUrl, currentThreadId);
-            var msg = new ChatMessage(ChatRole.Tool,
+            var msg = new ChatMessage(ChatRole.System, // setting system role to avoid LLM sending further information about this message
             [
                 new UriContent(threadLink, "text/html"),
                 new TextContent($"You can view this conversation in a more compact and user-friendly format using the [Azure portal thread link]({threadLink}).{Environment.NewLine + Environment.NewLine}**Thread ID:** {currentThreadId}")

@@ -13,5 +13,5 @@ ManagedClusterSnapshot
 | extend managedResourceGroup = nodeResourceGroup
 | summarize take_any(PreciseTimeStamp, clusterVersion, clusterName, resourceGroup, managedResourceGroup, RPTenant, createdTime, name) by clusterVersion
 | extend clusterBirthdate = todatetime(createdTime)
-| project clusterName, clusterVersion, resourceGroup, managedResourceGroup, RPTenant, clusterBirthdate, ccpNamespace=clusterVersion
 | top 100 by clusterBirthdate desc
+| project ManagedClusterName=clusterName, AKSClusterVersion=clusterVersion, ResourceGroupName=resourceGroup, ManagedResourceGroupName=managedResourceGroup, RPTenant, ManagedClusterCreationTime=clusterBirthdate, ccpNamespace=clusterVersion

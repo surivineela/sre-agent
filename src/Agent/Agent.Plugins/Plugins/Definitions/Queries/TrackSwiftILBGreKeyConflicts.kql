@@ -15,8 +15,8 @@ let vnetIdList = SwiftNetworkingEvents
 | distinct VnetId;
 cluster("azcore.centralus").database('Fc').NetworkServiceManagerEvents
 | where PreciseTimeStamp between ( fromTime .. toTime)
-| where Tenant startswith "ZRH" 
-| where Message contains "Gre key 355 is already in use" 
+| where Tenant startswith "ZRH"
+| where Message contains "Gre key 355 is already in use"
 | extend VnetId = extract(@"VnetId:\s*([a-f0-9\-]+)", 1, Message)
 | where VnetId in (vnetIdList)
-| project TIMESTAMP,TaskName,Message
+| project PreciseTimeStamp=TIMESTAMP,TaskName,Message

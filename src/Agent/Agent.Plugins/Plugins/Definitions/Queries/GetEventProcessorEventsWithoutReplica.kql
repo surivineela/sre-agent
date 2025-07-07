@@ -11,4 +11,4 @@ All("EventProcessorEvents")
 | where EnvironmentName == managedClusterName
 | where ReplicaName == ""
 | order by PreciseTimeStamp desc
-| project PreciseTimeStamp, RevisionName, Reason, msg
+| project PreciseTimeStamp, RevisionName, Reason, Message=msg

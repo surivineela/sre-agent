@@ -24,4 +24,4 @@ sumMetric
 | join kind=inner countMetric on PreciseTimeStamp, VMNodeWhereMetricCaptured, PodName
 | extend avgValue = (totalValues / totalCount)
 | where avgValue > threshold
-| project PreciseTimeStamp, avgValue, totalCount, VMNodeWhereMetricCaptured, PodName;
+| project PreciseTimeStamp, AvgValue=avgValue, TotalCount=totalCount, NodeName=VMNodeWhereMetricCaptured, PodName

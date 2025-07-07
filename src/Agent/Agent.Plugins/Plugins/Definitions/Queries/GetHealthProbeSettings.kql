@@ -15,4 +15,4 @@ ContainerAppControllerEvents
 | summarize arg_max(PreciseTimeStamp, json)
 | extend data=parse_json(json)
 | where data has "probes"
-| project containers=data.spec.template.containers
+| project PreciseTimeStamp, ContainersSpec=data.spec.template.containers

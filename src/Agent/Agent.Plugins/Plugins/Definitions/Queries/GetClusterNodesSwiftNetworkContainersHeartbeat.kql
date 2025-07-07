@@ -18,5 +18,5 @@ SwiftNetworkingEvents
 | order by NodeName,PreciseTimeStamp asc
 | extend SessionIndex = strcat(NodeName,"#",row_cumsum(iff(PreciseTimeStamp > prev(PreciseTimeStamp)+15m and NodeName == prev(NodeName), 1, 0)))
 | summarize StartTime=min( PreciseTimeStamp), EndTime=max(PreciseTimeStamp) by NodeName,NetworkContainerID,NetworkContainerHeartbeat,SessionIndex
-| project StartTime, EndTime,NodeName,NetworkContainerID,NetworkContainerHeartbeat
 | order by NodeName,StartTime asc
+| project StartTime, EndTime, NodeName, NetworkContainerID, NetworkContainerHeartbeat

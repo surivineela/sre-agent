@@ -8,3 +8,4 @@ SwiftNetworkingEvents
 | extend DNSServers = trim(" ", replace_string(msg, "Customer DNS Servers are >>", ""))
 | extend DNSStatus = iif(isempty(DNSServers), "No DNS server configured", "Custom DNS server(s) configured")
 | summarize StartTime = min(PreciseTimeStamp), EndTime = max(PreciseTimeStamp) by DNSServers, DNSStatus
+| project StartTime, EndTime, DNSServers, DNSStatus

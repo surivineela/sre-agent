@@ -16,4 +16,4 @@ ContainerAppControllerEvents
 | order by TIMESTAMP asc
 | extend PreviousSpec = prev(spec)
 | where PreviousSpec != spec
-| project TIMESTAMP, PreviousSpec, spec
+| project PreciseTimeStamp=TIMESTAMP, PreviousSpec, CurrentSpec=spec

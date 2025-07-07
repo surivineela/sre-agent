@@ -2,7 +2,7 @@ let fromDate = datetime("##fromDate##");
 let toDate = datetime("##toDate##");
 let podName = "##podName##";
 SessionPoolEvents
-| where TIMESTAMP between (fromDate .. toDate) 
-| where _ContainerGroupId != "" and _ContainerGroupId == podName 
-| project PreciseTimeStamp, ManagedClusterName = EnvironmentName, _ContainerGroupId, Log, Stream, _Region, Tenant 
+| where TIMESTAMP between (fromDate .. toDate)
+| where _ContainerGroupId != "" and _ContainerGroupId ~= podName
 | where  Level <= 2
+| project PreciseTimeStamp, ManagedClusterName = EnvironmentName, PodName=_ContainerGroupId, Message=Log

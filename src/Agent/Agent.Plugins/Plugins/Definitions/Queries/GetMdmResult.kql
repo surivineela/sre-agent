@@ -9,4 +9,4 @@ let whereClause = strcat("| where containerAppArmId == '", containerAppArmId, "'
 GetMdmResult(queryFrom, queryTo, regionalMdmAccount, "k4apps-metrics", metricName, "'containerAppArmId'", samplingType, whereClause)
 | where Max >= toint(Threshold)
 | summarize rowCount = count()
-| project hasRows = rowCount > 0
+| project HasData = rowCount > 0

@@ -11,5 +11,5 @@ Metrics
 | where MetricName == metricName
 | where Attributes has "name=\"Output_CustomerAppLogs\""
 | extend TotalValue=NumSamples*AverageValue
-| project Timestamp, MetricName, Attributes, TotalValue
 | where TotalValue != 0
+| project PreciseTimeStamp=Timestamp, MetricName, Attributes, TotalValue

@@ -85,9 +85,9 @@ Use this tool to identify DNS resolution issues that may affect outbound connect
 Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
 - TIMESTAMP: Date and time of the log entry.
 - Message: Log message content.
-- Operation: Name of the DNS operation.
+- OperationName: Name of the DNS operation.
 - Value: Value or result of the operation.
-- env_dt_traceId: Trace identifier for the log entry.
+- TraceID: Trace identifier for the log entry.
 """
 )]
         public Task<string> DnsServerManagerOperation(

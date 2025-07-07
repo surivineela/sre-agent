@@ -11,3 +11,4 @@ HttpScalerEvents
 | where msg != "Aggregated metrics"
 | where msg !has 'the object has been modified; please apply your changes to the latest version and try again'
 | take 100
+| project PreciseTimeStamp, ManagedClusterName=EnvironmentName, ScaledObjectName, Log, Message=msg

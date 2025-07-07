@@ -190,11 +190,11 @@ namespace Agent.Plugins.Definitions
         Tool Outputs:
         - StartTime: The start time of the health event.
         - EndTime: The end time of the health event.
-        - NetworkContainerId: The ID of the network container.
+        - NetworkContainerID: The ID of the network container.
         - OwnDsMappingsStatus: If the field value is 0, it indicates that the NetworkContainerID is leaked.
-        - CustomerAddress: If there are multiple customer addresses, it indicates that the NetworkContainerID is leaked.
-        - HealthState: It shows the detailed message of the health event. It's usually empty if the NetworkContainerID is not leaked.
-        - NodeId and ContainerId: these two fields are very important for the user to do further investigation. 
+        - NodeIP: If there are multiple NodeIPs, it indicates that the NetworkContainerID is leaked.
+        - NodeId and ContainerId: these two fields are very important for the user to do further investigation.
+        - HealthStatus: It shows the detailed message of the health event. It's usually empty if the NetworkContainerID is not leaked.
         ")]
         public async Task<string> GetAggregatedNetworkContainerHealthEvent(
             [Description("Azure region.")] string region,

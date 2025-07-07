@@ -16,3 +16,4 @@ ContainerAppDBState
 | summarize  max(TIMESTAMP) by managedClusterName,EnvironmentType,hasCustomerVnetForEnv
 ) on $left.managedClusterName == $right.managedClusterName
 | project-away managedClusterName1,max_TIMESTAMP
+| project ManagedClusterName=managedClusterName, EnvironmentType=EnvironmentType, HasCustomerVNet=hasCustomerVnetForEnv

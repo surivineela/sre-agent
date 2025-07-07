@@ -7,4 +7,5 @@ ContainerAppControllerEvents
 | where EnvironmentName == managedCluster
 | where NodeName != "" and NodeName != "virtual-node-legion-linux"
 | summarize StartTime = min(TIMESTAMP), EndTime = max(TIMESTAMP) by NodeName
+| project StartTime, EndTime, NodeName
 

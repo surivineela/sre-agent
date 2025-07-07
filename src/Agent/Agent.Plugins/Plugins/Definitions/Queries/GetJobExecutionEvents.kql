@@ -7,5 +7,5 @@ EventProcessorEvents
 | where EnvironmentName == environmentName
 | where ExecutionName == jobExecutionName
 //| where Type != "Normal"
-//| where Internal == true
-| project PreciseTimeStamp, msg, Reason, Count, Type//, JobName, ExecutionName, InvolvedObjectKind, InvolvedObjectName, InvolvedObjectNamespace
+| where Internal == true
+| project PreciseTimeStamp, Message=msg, Reason, Count, KubernetsEventType=Type

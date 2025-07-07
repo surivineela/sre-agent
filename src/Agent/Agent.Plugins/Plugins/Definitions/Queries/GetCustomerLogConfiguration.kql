@@ -17,5 +17,5 @@ ManagedEnvironmentDBState
 | extend PreviousLogDestination = prev(logsDestination)
 | extend ChangeStatus = iff(SessionIndex == 1, "No change", "Change")
 | project StartTime, EndTime, Value=logsDestination, ChangeStatus, PreviousValue=PreviousLogDestination, hasDynamicJsonColumns
-| order by StartTime asc
 | take 1000
+| project StartTime, EndTime, Value, ChangeStatus, PreviousValue, hasDynamicJsonColumns

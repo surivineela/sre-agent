@@ -10,7 +10,7 @@ Log
 | where LegionEnvironmentName == local_LegionEnvironmentName
 | where PodName == local_PodName
 | where ResourceNamespace == local_ResourceNamespace
-| where env_name == "Microsoft.Legion.Common.Podr.AbstractDnsServerManager"  
+| where env_name == "Microsoft.Legion.Common.Podr.AbstractDnsServerManager"
     or env_name == "Microsoft.Legion.Common.Podr.DnsListenerManager"
     or env_name == "Microsoft.Legion.Common.Podr.CoreDnsManager"
-| project TIMESTAMP, Message, Operation, Value, env_dt_traceId
+| project PreciseTimeStamp=TIMESTAMP, Message, OperationName=Operation, Value, TraceID=env_dt_traceId

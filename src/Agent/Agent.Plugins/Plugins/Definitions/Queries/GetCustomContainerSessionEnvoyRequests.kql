@@ -9,4 +9,4 @@ EnvoyFrontEndLogsTable
 | where Tenant == _managedClusterName
 | where Authority == _authority 
 | where Status != "200"
-| project PreciseTimeStamp, Method, Path, Status, UpstreamHost, ResponseCodeDetails
+| project PreciseTimeStamp, RequestMethod=Method, RequestPath=Path, StatusCode=Status, UpstreamHost, ResponseCodeDetails

@@ -16,4 +16,4 @@ let baseQuery = MetricsEvents
 baseQuery
 | summarize totalCount=sum(toint(Value)) by bin(PreciseTimeStamp, duration), VMNodeWhereMetricCaptured, PodName
 | where totalCount > threshold
-| project PreciseTimeStamp, totalCount, VMNodeWhereMetricCaptured, PodName;
+| project PreciseTimeStamp, TotalCount=totalCount, NodeName=VMNodeWhereMetricCaptured, PodName

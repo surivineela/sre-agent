@@ -36,3 +36,4 @@ KubeletRuntimeOperationsErrorsTotal1mIncrease
 | extend Value=Value*(period/1s)/60
 | where Value > 0
 | take 1000
+| project Timestamp, Value, Region=region, AKSClusterID=cluster_id, AKSScrapeJob=scrape_job, OperationType=operation_type

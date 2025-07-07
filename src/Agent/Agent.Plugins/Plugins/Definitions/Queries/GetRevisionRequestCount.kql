@@ -13,4 +13,4 @@ EnvoyFrontEndLogsTable
     on PreciseTimeStamp in range (fromDate, toDate, 5m) 
     by Status_string
 | mv-expand RequestsCount, PreciseTimeStamp
-| project todatetime(PreciseTimeStamp), requests = toint(RequestsCount), Status_string
+| project PreciseTimeStamp=todatetime(PreciseTimeStamp), TotalRequestsCount = toint(RequestsCount), StatusCode=Status_string

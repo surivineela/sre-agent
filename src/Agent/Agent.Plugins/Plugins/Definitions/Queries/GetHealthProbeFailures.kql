@@ -11,4 +11,4 @@ EventProcessorEvents
 | where Internal = true
 | order by PreciseTimeStamp desc
 | summarize arg_max(PreciseTimeStamp, Count) by msg, ReplicaName
-| project msg, ReplicaName, Count
+| project PreciseTimeStamp, Message=msg, ReplicaName, Count

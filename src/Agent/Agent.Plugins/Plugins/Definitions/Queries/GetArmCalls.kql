@@ -27,4 +27,5 @@ ContainerAppsAdminEvents
      | where subscription == cappSubscription
      | project managedClusterName, env_dt_spanId
 ) on env_dt_spanId
-| project StartTime=PreciseTimeStamp, Content =strcat(requestMethod, " - ", statusCode), GroupBy=managedClusterName1, requestBody, durationInMilliseconds, env_dt_traceId, env_dt_spanId, correlationId, Health
+| extend Message=strcat(requestMethod, " - ", statusCode)
+| project StartTime=PreciseTimeStamp, Message, ManagedClusterName=managedClusterName1, RequestPayload=requestBody, DurationInMilliseconds=durationInMilliseconds, TraceID=env_dt_traceId, SpanID=env_dt_spanId, CorrelationID=correlationId, HealthStatus=Health
