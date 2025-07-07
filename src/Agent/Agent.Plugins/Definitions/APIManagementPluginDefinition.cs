@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using Agent.Core.Attributes;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
 using static Agent.Plugins.Helpers.APIManagementHelper;
@@ -231,6 +232,7 @@ namespace Agent.Plugins.Definitions
 
         #region Virtual Network - Remediation 
 
+        [RequiresApproval("Your approval is required before I remove a Network Security Group (NSG) rule. Please confirm to proceed.")]
         [Description(
             "Removes a specified Network Security Group (NSG) rule from an Azure NSG resource. " +
             "This is typically used to unblock connectivity for an API Management instance or related resources. " +
@@ -245,6 +247,7 @@ namespace Agent.Plugins.Definitions
             return await _apiManagementPlugin.APIMRemoveNSGRuleAsync(nsgResourceId, ruleName);
         }
 
+        [RequiresApproval("Your approval is required before I modify a Network Security Group (NSG) rule. Please confirm to proceed.")]
         [Description(
             "Modifies properties of an existing Network Security Group (NSG) rule in an Azure NSG resource. " +
             "Use this to update firewall rules to unblock or adjust connectivity for an API Management instance or related resources. " +

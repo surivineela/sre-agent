@@ -807,9 +807,9 @@ namespace Agent.Plugins.Implementation
 
                     // Update only the provided parameters
                     if (!string.IsNullOrEmpty(priority)) data.Priority = int.Parse(priority);
-                    if (!string.IsNullOrEmpty(access)) data.Access = Enum.Parse<SecurityRuleAccess>(access, ignoreCase: true);
-                    if (!string.IsNullOrEmpty(direction)) data.Direction = Enum.Parse<SecurityRuleDirection>(direction, ignoreCase: true);
-                    if (!string.IsNullOrEmpty(protocol)) data.Protocol = Enum.Parse<SecurityRuleProtocol>(protocol, ignoreCase: true);
+                    if (!string.IsNullOrEmpty(access)) data.Access = access;
+                    if (!string.IsNullOrEmpty(direction)) data.Direction = direction;
+                    if (!string.IsNullOrEmpty(protocol)) data.Protocol = protocol;
                     if (!string.IsNullOrEmpty(sourcePortRange)) data.SourcePortRange = sourcePortRange;
                     if (!string.IsNullOrEmpty(destinationPortRange)) data.DestinationPortRange = destinationPortRange;
                     if (!string.IsNullOrEmpty(sourceAddressPrefix)) data.SourceAddressPrefix = sourceAddressPrefix;
