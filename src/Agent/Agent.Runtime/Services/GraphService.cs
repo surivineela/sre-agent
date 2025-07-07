@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
@@ -26,6 +27,7 @@ public class GraphService : IGraphService
     private readonly ICrawlerService _crawlerService;
     private readonly IThreadRepository _threadRepository;
     private readonly IGithubIssuePlugin _githubIssuePlugin;
+    private readonly IAzureDevOpsWorkItemPlugin _azureDevOpsWorkItemPlugin;
 
     private readonly Dictionary<string, string> _dashboardsToProcessByResourceType = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
@@ -40,7 +42,7 @@ public class GraphService : IGraphService
     // Define the allowed Kubernetes resource types
     private readonly string[] allowedTypes = { "namespaces", "deployments", "statefulsets" };
 
-    public GraphService(IGraphDatabaseClient graphDatabaseClient, DashboardSettings dashboardSettings, ILogger<GraphService> logger, IHttpClientFactory httpClientFactory, IAuthenticationService authenticationService, ICrawlerService crawlerService, IThreadRepository threadRepository, IGithubIssuePlugin githubIssuePlugin)
+    public GraphService(IGraphDatabaseClient graphDatabaseClient, DashboardSettings dashboardSettings, ILogger<GraphService> logger, IHttpClientFactory httpClientFactory, IAuthenticationService authenticationService, ICrawlerService crawlerService, IThreadRepository threadRepository, IGithubIssuePlugin githubIssuePlugin, IAzureDevOpsWorkItemPlugin azureDevOpsWorkItemPlugin)
     {
         _graphDatabaseClient = graphDatabaseClient;
         _logger = logger;
@@ -52,6 +54,7 @@ public class GraphService : IGraphService
         _crawlerService = crawlerService;
         _threadRepository = threadRepository;
         _githubIssuePlugin = githubIssuePlugin;
+        _azureDevOpsWorkItemPlugin = azureDevOpsWorkItemPlugin;
     }
 
     private async Task<HttpClient> GetHttpClient()
@@ -485,17 +488,38 @@ public class GraphService : IGraphService
                 var repoResults = await _graphDatabaseClient.Query<string>(repoQuery);
                 string repoUrl = repoResults?.FirstOrDefault()?.ToString() ?? "";
 
-                // Get GitHub access token status
+                // Get GitHub access token status - change this to test for AzDo token.
                 var githubAccessToken = await _threadRepository.GetGitHubAccessTokenAsync();
                 var githubAccessTokenConfigured = githubAccessToken != null &&
                     !string.IsNullOrEmpty(githubAccessToken.AccessToken) &&
                     (githubAccessToken.ExpiresOn is null || githubAccessToken.ExpiresOn > DateTime.UtcNow);
+                var azdoAccessToken = await _threadRepository.GetAzureDevOpsAccessTokenAsync(resourceId);
+                var azdoAccessTokenConfigured = azdoAccessToken != null &&
+                    !string.IsNullOrEmpty(azdoAccessToken.AccessToken) &&
+                    (azdoAccessToken.ExpiresOn is null || azdoAccessToken.ExpiresOn > DateTime.UtcNow);
+
+                var githubRepoRegex = new Regex(@"^https:\/\/github\.com\/[\w-]+\/[\w-]+\.git$", RegexOptions.Compiled);
+                var azdoRepoRegex = new Regex(@"^https:\/\/(?:dev\.azure\.com\/|[\w-]+\.visualstudio\.com\/)[\w-]+\/[\w-]+\/_git\/[\w.-]+$", RegexOptions.Compiled);
+
+                bool GithubRegexMatch(string url) => !string.IsNullOrEmpty(url) && githubRepoRegex.IsMatch(url);
+                bool AzdoRegexMatch(string url) => !string.IsNullOrEmpty(url) && azdoRepoRegex.IsMatch(url);
+
+                if (!string.IsNullOrEmpty(repoUrl) && AzdoRegexMatch(repoUrl))
+                {
+                    string loginUrl = $"/api/v1/azuredevops/auth/start?resourceId={resourceId}";
+                    var sourceCodeLinkageStatus = azdoAccessTokenConfigured
+                        ? new { Status = "Linked", RepositoryUrl = repoUrl, LoginCallbackUrl = (string)null }
+                        : new { Status = "RequiresAuth", RepositoryUrl = repoUrl, LoginCallbackUrl = loginUrl };
+
+                    ((IDictionary<string, object>)item)["sourceCodeLinkageStatus"] = sourceCodeLinkageStatus;
+                }
 
                 // Add GitHub login URL if needed
-                if (!string.IsNullOrEmpty(repoUrl))
+                if (!string.IsNullOrEmpty(repoUrl) && GithubRegexMatch(repoUrl))
                 {
                     var loginUrl = _githubIssuePlugin.GenerateLoginLink();
-                    var sourceCodeLinkageStatus = githubAccessTokenConfigured
+                    var sourceCodeLinkageStatus =
+                        githubAccessTokenConfigured
                         ? new { Status = "Linked", RepositoryUrl = repoUrl, LoginCallbackUrl = (string)null }
                         : new { Status = "RequiresAuth", RepositoryUrl = repoUrl, LoginCallbackUrl = loginUrl };
 

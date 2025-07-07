@@ -845,6 +845,22 @@ namespace Agent.Data.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<AzureDevOpsAccessToken> CreateOrUpdateAzureDevOpsAccessTokenAsync(AzureDevOpsAccessToken azDoToken, string resourceId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<AzureDevOpsAccessToken> GetAzureDevOpsAccessTokenAsync(string resourceId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> DeleteAzureDevOpsAccessTokenAsync(string resourceId)
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion
     }
 }

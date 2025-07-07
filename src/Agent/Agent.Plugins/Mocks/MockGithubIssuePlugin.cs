@@ -97,4 +97,14 @@ public class MockGithubIssuePlugin : IGithubIssuePlugin
     {
         throw new NotImplementedException();
     }
+
+    public Task<string> GetFilesFromRepo(string repoUrl, string branch = "main", string fileMatches = "*bicep")
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<string> GetIaCForGithub(string repoUrl, string branch = "main", string fileMatches = "*bicep")
+    {
+        throw new NotImplementedException();
+    }
 }

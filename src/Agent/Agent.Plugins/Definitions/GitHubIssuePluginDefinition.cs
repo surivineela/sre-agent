@@ -171,4 +171,13 @@ resolved
     {
         return await _gitHubIssuePlugin.FindConnectedRepo(resourceId);
     }
+
+    [Description("Gets the type of Infrastructure as Code (IaC) - this is the most likely type of IaC used.")] 
+    public async Task<string> GetIaCForGithub(
+        [Description("GitHub repository URL, e.g. https://github.com/owner/repo-name.git")] string repoUrl,
+        [Description("Branch - assume main unless otherwise specified.")] string branch = "main",
+        [Description("Comma separated file patterns to match for retrieving files (e.g. '*.bicep,*.json')")] string fileMatches = "*bicep,*yaml,*yml,*json,*tf*")
+    {
+        return await _gitHubIssuePlugin.GetIaCForGithub(repoUrl, branch, fileMatches);
+    }
 }

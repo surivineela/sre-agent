@@ -1,0 +1,458 @@
+using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
+using Agent.Core.Configuration;
+using Agent.Core.Interfaces;
+using Agent.Core.Models.Api.v1;
+using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Plugins.Interface;
+using Azure.Core;
+using Microsoft.Extensions.Logging;
+using Microsoft.TeamFoundation.WorkItemTracking.WebApi;
+using Microsoft.VisualStudio.Services.Common;
+using Microsoft.VisualStudio.Services.WebApi;
+using Microsoft.VisualStudio.Services.WebApi.Patch.Json;
+
+namespace Agent.Plugins.Implementation;
+
+public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
+{
+    private readonly ILogger<AzureDevOpsWorkItemPlugin> _logger;
+    private readonly TsgCrawlerSettings _tsgCrawlerSettings;
+    private readonly IAuthenticationService _authenticationService;
+    private readonly IThreadRepository _threadRepository;
+    private readonly IGraphDatabaseClient _graphDatabaseClient;
+
+    public AzureDevOpsWorkItemPlugin(ILogger<AzureDevOpsWorkItemPlugin> logger,
+                                     TsgCrawlerSettings tsgCrawlerSettings,
+                                     IAuthenticationService authenticationService,
+                                     IThreadRepository threadRepository,
+                                     IGraphDatabaseClient graphDatabaseClient)
+    {
+        _logger = logger;
+        _tsgCrawlerSettings = tsgCrawlerSettings;
+        _authenticationService = authenticationService;
+        _threadRepository = threadRepository;
+        _graphDatabaseClient = graphDatabaseClient;
+    }
+
+    private async Task<(bool, AzureDevOpsAccessToken?)> IsAzureDevOpsWorkItemPluginConfiguredAndValid(string resourceId)
+    {
+        resourceId = resourceId.Replace("/", "_");
+        // Check if the Azure DevOps Personal Access Token is configured
+        AzureDevOpsAccessToken? azdoAccessToken = await _threadRepository.GetAzureDevOpsAccessTokenAsync(resourceId);
+        return (azdoAccessToken != null &&
+               !string.IsNullOrEmpty(azdoAccessToken.AccessToken) &&
+               (azdoAccessToken.ExpiresOn is null || azdoAccessToken.ExpiresOn > DateTime.UtcNow), azdoAccessToken);
+    }
+
+    public async Task<string> FindConnectedRepository(string resourceId)
+    {
+        resourceId = resourceId.Replace("/", "_");
+        string repoQuery = $@"g.V().has('id', '{resourceId}').has('isDeleted', false)
+                                .outE('SERVES_CODE').inV().has('isDeleted', false)
+                                .values('resourceId')";
+        var repoResults = await _graphDatabaseClient.Query<string>(repoQuery);
+        string repoUrl = repoResults?.FirstOrDefault()?.ToString() ?? "";
+        return repoUrl;
+    }
+
+    public async Task<string> CreateWorkItem(string resourceId, string title, string description, string[] tags, string assignedTo = null, string areaPath = null, string iterationPath = null, string workItemType = "Task", string priority = "Medium", string severity = "None", string state = "New")
+    {
+        try
+        {
+            (bool isValid, AzureDevOpsAccessToken? token) = await IsAzureDevOpsWorkItemPluginConfiguredAndValid(resourceId);
+            if (!isValid)
+            {
+                throw new InvalidOperationException("Azure DevOps Personal Access Token is not configured. Please authenticate via Azure DevOps authentication flow.");
+            }
+
+            _logger.LogInternalInformation($"Creating issue: '{title}'");
+            string repoUrl = await FindConnectedRepository(resourceId);
+
+            // Parse the repository URL
+            var (orgUrl, project, _) = ParseRepositoryUrl(repoUrl);
+
+            // Create a connection to Azure DevOps
+            var connection = new VssConnection(
+                new Uri(orgUrl),
+                new VssBasicCredential(string.Empty, token.AccessToken));
+
+            // Get a client for work item tracking
+            var witClient = connection.GetClient<WorkItemTrackingHttpClient>();
+
+            // Update the code where the `Operation.Add` is used:
+            var patchDocument = new JsonPatchDocument
+            {
+                new JsonPatchOperation()
+                {
+                    Operation = Microsoft.VisualStudio.Services.WebApi.Patch.Operation.Add, // Correct enum reference
+                    Path = "/fields/System.Title",
+                    Value = title
+                },
+                new JsonPatchOperation()
+                {
+                    Operation = Microsoft.VisualStudio.Services.WebApi.Patch.Operation.Add, // Correct enum reference
+                    Path = "/fields/System.Description",
+                    Value = description
+                },
+                new JsonPatchOperation()
+                {
+                    Operation = Microsoft.VisualStudio.Services.WebApi.Patch.Operation.Add, // Correct enum reference
+                    Path = "/fields/System.Tags",
+                    Value = string.Join(";", tags ?? Array.Empty<string>())
+                },
+            };
+
+            // Create the issue
+            var workItem = await witClient.CreateWorkItemAsync(patchDocument, project, workItemType);
+
+            // Extract the HTML URL (user-friendly work item link)
+            var htmlUrl = workItem.Links.Links["html"] as ReferenceLink;
+
+            _logger.LogInternalInformation($"Issue created successfully. ID: {workItem.Id}, URL: {htmlUrl?.Href}");
+            return htmlUrl?.Href;
+        }
+
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, $"Error creating issue: {ex.Message}");
+            throw;
+        }
+    }
+
+
+    private async Task<string> GetIaCTypeFromFiles(string token, string repoUrl, string branch = "main", string fileMatches = "*bicep,*yaml,*yml,*json,*tf*")
+    {
+        Dictionary<string, string> StaticFileMap = new(StringComparer.OrdinalIgnoreCase)
+        {
+            [".bicep"] = "Bicep",
+            [".tf"] = "Terraform",
+            [".tf.json"] = "Terraform",
+        };
+
+        Dictionary<string, string> detectedTools = new();
+
+        // Get the files from the repo
+        Dictionary<string, string> filesContent = await GetFilesFromRepo(token, repoUrl, branch, fileMatches);
+        List<string> files = filesContent.Keys.ToList();
+
+        foreach (var f in filesContent)
+        {
+            string fileName = f.Key;
+            string fileContent = f.Value;
+            string ext = Path.GetExtension(fileName);
+
+            // Detect Helm
+            if (fileName.Equals("Chart.yaml", StringComparison.OrdinalIgnoreCase) ||
+                fileContent.Contains($"{Path.DirectorySeparatorChar}templates{Path.DirectorySeparatorChar}"))
+            {
+                detectedTools.Add("Helm", fileContent);
+            }
+
+            // Static file map (Terraform, Bicep)
+            if (StaticFileMap.TryGetValue(ext, out var tool))
+            {
+                if (tool == "Terraform" && fileContent.Contains("provider \"azurerm\""))
+                    detectedTools.Add("Terraform (Azure)", fileContent);
+                else if (tool == "Bicep")
+                    detectedTools.Add("Bicep", fileContent);
+            }
+
+            // ARM Templates
+            else if (ext is ".json")
+            {
+                if (fileContent.Contains("\"$schema\"") && fileContent.Contains("management.azure.com"))
+                {
+                    detectedTools.Add("ARM Template", fileContent);
+                }
+            }
+
+            // Ansible (Azure)
+            else if (ext is ".yaml" or ".yml")
+            {
+                if (Regex.IsMatch(fileContent, @"azure_rm_|community\.azure"))
+                {
+                    detectedTools.Add("Ansible (Azure)", fileContent);
+                }
+            }
+
+            // Pulumi - C#
+            else if (ext is ".cs")
+            {
+                if (fileContent.Contains("Pulumi") && fileContent.Contains("Azure"))
+                {
+                    detectedTools.Add("Pulumi (C#)", fileContent);
+                }
+            }
+
+            // Pulumi - TypeScript/JavaScript
+            else if (ext is ".ts" or ".js")
+            {
+                if (Regex.IsMatch(fileContent, @"@pulumi/azure", RegexOptions.IgnoreCase))
+                {
+                    detectedTools.Add("Pulumi (TypeScript/JavaScript)", fileContent);
+                }
+            }
+
+            // Pulumi - Python
+            else if (ext is ".py")
+            {
+                if (Regex.IsMatch(fileContent, @"import pulumi_azure", RegexOptions.IgnoreCase))
+                {
+                    detectedTools.Add("Pulumi (Python)", fileContent);
+                }
+            }
+        }
+
+        if (detectedTools.Count > 0)
+        {
+            return string.Join(" \n\n", detectedTools.Select(kvp => $"{kvp.Key}: {kvp.Value}"));
+        }
+
+        else
+        {
+            return "No IaC tools found";
+        }
+    }
+
+    public async Task<Dictionary<string, string>> GetFilesFromRepo(string token, string repoUrl, string branch = "main", string fileMatches = "*bicep")
+    {
+        try
+        {
+            _logger.LogInternalInformation($"Downloading files matching pattern '{fileMatches}' from branch '{branch}'");
+
+            // Parse the repository URL
+            var (orgUrl, project, repoName) = ParseRepositoryUrl(repoUrl);
+
+            // Create HttpClient with authentication
+            using var httpClient = new HttpClient();
+            var credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes($":{token}"));
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            // API URL for items
+            string apiVersion = "7.0";
+            string apiUrl = $"{orgUrl}/{project}/_apis/git/repositories/{repoName}/items?recursionLevel=Full&versionDescriptor.version={branch}&versionDescriptor.versionType=branch&api-version={apiVersion}";
+
+            // Get all items in the repository
+            var response = await httpClient.GetAsync(apiUrl);
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadAsStringAsync();
+            var itemsResponse = JsonSerializer.Deserialize<GitItemsResponse>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (itemsResponse?.Value == null)
+            {
+                throw new Exception("Failed to retrieve repository items");
+            }
+
+            // Helper method to match on a particular file pattern.
+            bool IsWildcardMatch(string path, string pattern)
+            {
+                string fileName = Path.GetFileName(path);
+
+                if (pattern.StartsWith("*"))
+                {
+                    string suffix = pattern.Substring(1);
+                    return fileName.EndsWith(suffix, StringComparison.OrdinalIgnoreCase);
+                }
+
+                else if (pattern.EndsWith("*"))
+                {
+                    string prefix = pattern.Substring(0, pattern.Length - 1);
+                    return fileName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase);
+                }
+
+                else if (pattern.Contains("*"))
+                {
+                    string[] parts = pattern.Split('*');
+                    return fileName.StartsWith(parts[0], StringComparison.OrdinalIgnoreCase) &&
+                           fileName.EndsWith(parts[1], StringComparison.OrdinalIgnoreCase);
+                }
+
+                return fileName.Equals(pattern, StringComparison.OrdinalIgnoreCase);
+            }
+
+            // Filter blobs by file patterns using wildcard matching.
+            IEnumerable<string> matches = fileMatches.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(pattern => pattern.Trim())
+                .Where(pattern => !string.IsNullOrWhiteSpace(pattern));
+
+            var filteredBlobs = itemsResponse.Value.Where(t => matches.Any(pattern => IsWildcardMatch(t.Path, pattern)));
+
+            if (filteredBlobs == null || !filteredBlobs.Any())
+            {
+                _logger.LogInternalInformation($"No files matching '{fileMatches}' found in repository {repoUrl} on branch {branch}");
+                return new Dictionary<string, string>();
+            }
+
+            Dictionary<string, string> fileContents = new(StringComparer.OrdinalIgnoreCase);
+
+            // Download each file
+            foreach (var file in filteredBlobs)
+            {
+                try
+                {
+                    // Remove leading slash and convert to OS-specific path
+                    var relativePath = file.Path.TrimStart('/').Replace('/', Path.DirectorySeparatorChar);
+                    var request = new HttpRequestMessage(HttpMethod.Get, file.Url);
+                    request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/octet-stream"));
+
+                    _logger.LogInternalInformation($"Downloading file: {file.Url}");
+                    var fileResponse = await httpClient.SendAsync(request);
+                    fileResponse.EnsureSuccessStatusCode();
+                    string fileContent = await fileResponse.Content.ReadAsStringAsync();
+                    fileContents[file.Path] = fileContent;
+                }
+                catch (Exception fileEx)
+                {
+                    _logger.LogInternalError(fileEx, $"Error downloading file {file.Path}: {fileEx.Message}");
+                }
+            }
+
+            return fileContents;
+        }
+
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, $"Error downloading files from {repoUrl} on branch {branch}: {ex.Message}");
+            throw;
+        }
+    }
+
+    internal static (string orgUrl, string project, string repo) ParseRepositoryUrl(string repoUrl)
+    {
+        try
+        {
+            var uri = new Uri(repoUrl);
+            string orgUrl, project, repo;
+
+            if (uri.Host == "dev.azure.com" || uri.Host.Contains(".dev.azure.com"))
+            {
+                // Format: https://dev.azure.com/{org}/{project}/_git/{repo}
+                var parts = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+
+                if (parts.Length < 4 || parts[parts.Length - 2] != "_git")
+                {
+                    throw new ArgumentException("Invalid repository URL format");
+                }
+
+                var org = parts[0];
+                project = parts[1];
+                repo = parts[parts.Length - 1];
+                orgUrl = $"https://dev.azure.com/{org}";
+            }
+            else if (uri.Host.EndsWith("visualstudio.com"))
+            {
+                // Format: https://{org}.visualstudio.com/{project}/_git/{repo}
+                var parts = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+
+                if (parts.Length < 3 || parts[1] != "_git")
+                {
+                    throw new ArgumentException("Invalid repository URL format");
+                }
+
+                var org = uri.Host.Split('.')[0];
+                project = parts[0];
+                repo = parts[2];
+                orgUrl = $"https://{uri.Host}";
+            }
+            else
+            {
+                throw new ArgumentException("Unsupported repository URL format");
+            }
+
+            return (orgUrl, project, repo);
+        }
+
+        catch (Exception ex)
+        {
+            throw new ArgumentException($"Failed to parse repository URL: {ex.Message}", ex);
+        }
+    }
+
+    public async Task<AzureDevOpsAccessToken> GetToken()
+    {
+        string token = "";
+        DateTime? expiresOnUTC = null; 
+
+        if (!string.IsNullOrEmpty(_tsgCrawlerSettings.DevOpsRepoSettings.PersonalAccessToken))
+        {
+            token = _tsgCrawlerSettings.DevOpsRepoSettings.PersonalAccessToken;
+            _logger.LogInternalInformation("Using personal access token for Azure DevOps authentication.");
+        }
+
+        else
+        {
+            TokenCredential credentials = await _authenticationService.GetArmOperationCredential();
+            const string scope = "499b84ac-1321-427f-aa17-267ca6975798/.default";
+            var tokenRequestContext = new TokenRequestContext(new[] { scope });
+            var accessToken = await credentials.GetTokenAsync(tokenRequestContext, CancellationToken.None);
+            token = accessToken.Token;
+            expiresOnUTC = accessToken.ExpiresOn.UtcDateTime;
+        }
+
+        return new AzureDevOpsAccessToken(token, expiresOnUTC);
+    }
+
+    public async Task<string> GetIaCForAzureDevOps(string resourceId, string branch, string fileMatches)
+    {
+        (bool isValid, AzureDevOpsAccessToken? token) = await IsAzureDevOpsWorkItemPluginConfiguredAndValid(resourceId);
+        if (!isValid)
+        {
+            throw new InvalidOperationException("Azure DevOps Personal Access Token is not configured. Please authenticate via Azure DevOps authentication flow.");
+        }
+
+        string repoUrl = await FindConnectedRepository(resourceId);
+        return await GetIaCTypeFromFiles(token.AccessToken, repoUrl, branch, fileMatches);
+    }
+
+    // Classes to deserialize the JSON response
+    class GitItemsResponse
+    {
+        public List<GitItem> Value { get; set; }
+    }
+
+    public class GitItem
+    {
+        [JsonPropertyName("objectId")]
+        public string ObjectId { get; set; }
+
+        [JsonPropertyName("gitObjectType")]
+        public string GitObjectType { get; set; }
+
+        [JsonPropertyName("commitId")]
+        public string CommitId { get; set; }
+
+        [JsonPropertyName("path")]
+        public string Path { get; set; }
+
+        [JsonPropertyName("url")]
+        public string Url { get; set; }
+
+        [JsonPropertyName("_links")]
+        public Links Links { get; set; }
+    }
+
+    public class Links
+    {
+        [JsonPropertyName("self")]
+        public Link Self { get; set; }
+
+        [JsonPropertyName("repository")]
+        public Link Repository { get; set; }
+
+        [JsonPropertyName("blob")]
+        public Link Blob { get; set; }
+    }
+
+    public class Link
+    {
+        [JsonPropertyName("href")]
+        public string Href { get; set; }
+    }
+
+}

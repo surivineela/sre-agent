@@ -26,6 +26,7 @@
 	  <PackageReference Include="Microsoft.Diagnostics.Runtime" />
 	  <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" />
 	  <PackageReference Include="Microsoft.Graph" />
+	  <PackageReference Include="Microsoft.TeamFoundationServer.Client" />
     <PackageReference Include="ScottPlot" />
     <PackageReference Include="Microsoft.SemanticKernel" />
     <PackageReference Include="Microsoft.SemanticKernel.Abstractions" />

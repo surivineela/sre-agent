@@ -308,6 +308,7 @@ namespace Agent.Web.Controllers.v1
 
             var githubAccessToken = await repository.GetGitHubAccessTokenAsync();
 
+            // TODO: Fix for AzDo.
             var githubAccessTokenConfigured = githubAccessToken != null && !string.IsNullOrEmpty(githubAccessToken.AccessToken) && (githubAccessToken.ExpiresOn is null || githubAccessToken.ExpiresOn > DateTime.UtcNow);
 
             var loginUrl = githubIssuePlugin.GenerateLoginLink();

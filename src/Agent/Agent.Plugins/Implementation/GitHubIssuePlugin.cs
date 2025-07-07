@@ -3,24 +3,25 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using Agent.Logging;
-using Agent.Plugins.Helpers;
-using Octokit;
-using Agent.Core.Configuration;
-using Newtonsoft.Json;
-using Microsoft.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
+using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
-using Agent.Graph.Crawler.ARM;
-using Azure.Core;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Graph.Crawler.ARM;
+using Agent.Plugins.Helpers;
 using Agent.Plugins.Interface;
+using Azure.Core;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.ChatCompletion;
+using Newtonsoft.Json;
+using Octokit;
 
 namespace Agent.Plugins;
 
@@ -46,6 +47,7 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
         _graphDatabaseClient = graphDatabaseClient;
 
         _gitHubClient = gitHubClient.Client;
+        _gitHubClient.Credentials = new Credentials(token: _gitHubSettings.PatTokenOverride, authenticationType: AuthenticationType.Bearer);
         _threadRepository = threadRepository;
     }
 
@@ -600,7 +602,412 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
             throw;
         }
     }
+
+    public async Task<Dictionary<string, string>> GetFilesFromRepo(string repoUrl, string branch = "main", string fileMatches = "*bicep")
+    {
+        // Based on the Repo and branch, get the Git Tree for the code.
+        var (owner, repo) = GitHubHelper.ParseGitHubUrl(repoUrl);
+        var branchInfo = await _gitHubClient.Repository.Branch.Get(owner, repo, branch);
+        var tree = await _gitHubClient.Git.Tree.GetRecursive(owner, repo, branchInfo.Commit.Sha);
+
+        // Helper method to match on a particular file pattern.
+        bool IsWildcardMatch(string path, string pattern)
+        {
+            string fileName = Path.GetFileName(path);
+
+            if (pattern.StartsWith("*"))
+            {
+                string suffix = pattern.Substring(1);
+                return fileName.EndsWith(suffix, StringComparison.OrdinalIgnoreCase);
+            }
+
+            else if (pattern.EndsWith("*"))
+            {
+                string prefix = pattern.Substring(0, pattern.Length - 1);
+                return fileName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase);
+            }
+
+            else if (pattern.Contains("*"))
+            {
+                string[] parts = pattern.Split('*');
+                return fileName.StartsWith(parts[0], StringComparison.OrdinalIgnoreCase) &&
+                       fileName.EndsWith(parts[1], StringComparison.OrdinalIgnoreCase);
+            }
+
+            return fileName.Equals(pattern, StringComparison.OrdinalIgnoreCase);
+        }
+
+        // Filter blobs by file patterns using wildcard matching.
+        IEnumerable<string> matches = fileMatches.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+            .Select(pattern => pattern.Trim())
+            .Where(pattern => !string.IsNullOrWhiteSpace(pattern));
+
+        var filteredBlobs = tree.Tree
+            .Where(t => t.Type == TreeType.Blob && matches.Any(pattern => IsWildcardMatch(t.Path, pattern)));
+
+        if (filteredBlobs == null || !filteredBlobs.Any())
+        {
+            _logger.LogInternalInformation($"No files matching '{fileMatches}' found in repository {repoUrl} on branch {branch}");
+            return new Dictionary<string, string>();
+        }
+
+        Dictionary<string, string> fileNameToContent = new Dictionary<string, string>();
+
+        foreach (var blob in filteredBlobs)
+        {
+            try
+            {
+                // download raw content by ref
+                var content = await _gitHubClient.Repository.Content
+                    .GetRawContentByRef(owner, repo, blob.Path, branch);
+                fileNameToContent[blob.Path] = Encoding.UTF8.GetString(content);
+                _logger.LogInternalInformation($"Downloaded: {blob.Path}");
+            }
+
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, $"Error downloading {blob.Path}");
+            }
+        }
+
+        return fileNameToContent;
+    }
+
+    public async Task<string> GetIaCForGithub(string repoUrl, string branch = "main", string fileMatches = "*bicep")
+    {
+        var (owner, repo) = GitHubHelper.ParseGitHubUrl(repoUrl);
+
+        // Step 1. Check the embeddings API for any existing IaC type for the repoUrl and branch.
+        using HttpClient client = new HttpClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _gitHubClient.Credentials.Password);
+        client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("GitHubEmbeddingSearchClient", "1.0"));
+        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        client.DefaultRequestHeaders.Add("X-GitHub-Api-Version", "2024-05-14");
+
+        // Create a valid request
+        var requestBody = new SemanticSearchRequest
+        {
+            Prompt = "List files that define infrastructure for Azure using Bicep, Terraform (azurerm), Pulumi (Azure), ARM templates, or Helm charts.",
+            ScopingQuery = $"repo:{owner}/{repo}",
+            IncludeEmbeddings = false,
+            //Limit = 10,
+            //EmbeddingModel = "text-embedding-3-small-512"
+        };
+
+        string json = System.Text.Json.JsonSerializer.Serialize(requestBody, new JsonSerializerOptions
+        {
+            WriteIndented = true
+        });
+
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        try
+        {
+            // Endpoint from the OpenAPI spec
+            var response = await client.PostAsync("https://api.github.com/embeddings/code/search", content);
+            var responseString = await response.Content.ReadAsStringAsync();
+            var res = System.Text.Json.JsonSerializer.Deserialize<SemanticSearchResponse>(responseString, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            // First check if the response is valid.
+            if (res != null && res!.Results != null && res.Results.Count > 0 && res.Results[0].Distance >= 0.5)
+            {
+                var detectedAzureIaCSystem = DetectAzureIaCSystem(res);
+                return detectedAzureIaCSystem;
+            }
+
+            else
+            {
+                var iacTypeFromFiles = await GetIaCTypeFromFiles(repoUrl, branch, fileMatches);
+                if (!string.IsNullOrEmpty(iacTypeFromFiles))
+                {
+                    return iacTypeFromFiles;
+                }
+
+                else
+                {
+                    return "No IaC Detected";
+                }
+            }
+        }
+
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, $"Error: {ex.Message}");
+        }
+
+        // Step 2. If not found, call GetFilesFromRepo to get the files and then use the IaC type detection logic to determine the IaC type.
+
+        var iacTypeFromFilesCheck = await GetIaCTypeFromFiles(repoUrl, branch, fileMatches);
+        if (!string.IsNullOrEmpty(iacTypeFromFilesCheck))
+        {
+            return iacTypeFromFilesCheck;
+        }
+
+        else
+        {
+            return "No IaC Detected";
+        }
+    }
+
+    private static readonly Dictionary<string, string[]> IaCSignatures = new Dictionary<string, string[]>
+    {
+        { "Bicep", new[] { ".bicep" } },
+        { "ARM", new[] { "schema.management.azure.com" } },
+        { "Terraform", new[] { ".tf", ".tfvars", "provider \"azurerm\"", "resource \"azurerm_" } },
+        { "Pulumi", new[] { "pulumi.yaml", "using pulumi.azurenative", "@pulumi/azure-native" } },
+        { "Helm", new[] { "chart.yaml", "/templates/", "values.yaml", "kind: deployment", "kind: service" } }
+    };
+
+    public static string DetectAzureIaCSystem(SemanticSearchResponse embeddingResult)
+    {
+        var score = new Dictionary<string, (int, string)>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var result in embeddingResult.Results)
+        {
+            string fileName = result.Location.Path.ToLower();
+            string content = result.Chunk.Text.ToLower();
+
+            foreach (var kvp in IaCSignatures)
+            {
+                foreach (var signature in kvp.Value)
+                {
+                    if (fileName.Contains(signature) || content.Contains(signature))
+                    {
+                        if (!score.ContainsKey(kvp.Key))
+                            score[kvp.Key] = (0, content);
+                        score[kvp.Key] = (score[kvp.Key].Item1 + 1, score[kvp.Key].Item2);
+                    }
+                }
+            }
+        }
+
+        if (score.Count == 0)
+        {
+            return "No recognizable Azure IaC system detected.";
+        }
+
+        var mostLikely = score.OrderByDescending(kvp => kvp.Value.Item1).First();
+        return $"Most likely Azure IaC system generated using the Github embeddings api: {mostLikely.Key} (score: {mostLikely.Value.Item1}) - content to use: {mostLikely.Value.Item2}";
+    }
+
+    private async Task<string> GetIaCTypeFromFiles(string repoUrl, string branch = "main", string fileMatches = "*bicep,*yaml,*yml,*json,*tf*")
+    {
+        Dictionary<string, string> StaticFileMap = new(StringComparer.OrdinalIgnoreCase)
+        {
+            [".bicep"] = "Bicep",
+            [".tf"] = "Terraform",
+            [".tf.json"] = "Terraform",
+        };
+
+        Dictionary<string, string> detectedTools = new();
+
+        // Get the files from the repo
+        Dictionary<string, string> filesContent = await GetFilesFromRepo(repoUrl, branch, fileMatches);
+        List<string> files = filesContent.Keys.ToList();
+
+        foreach (var f in filesContent)
+        {
+            string fileName = f.Key;
+            string fileContent = f.Value;
+            string ext = Path.GetExtension(fileName);
+
+            // Detect Helm
+            if (fileName.Equals("Chart.yaml", StringComparison.OrdinalIgnoreCase) ||
+                fileContent.Contains($"{Path.DirectorySeparatorChar}templates{Path.DirectorySeparatorChar}"))
+            {
+                detectedTools.Add("Helm", fileContent);
+            }
+
+            // Static file map (Terraform, Bicep)
+            if (StaticFileMap.TryGetValue(ext, out var tool))
+            {
+                if (tool == "Terraform" && fileContent.Contains("provider \"azurerm\""))
+                    detectedTools.Add("Terraform (Azure)", fileContent);
+                else if (tool == "Bicep")
+                    detectedTools.Add("Bicep", fileContent);
+            }
+
+            // ARM Templates
+            else if (ext is ".json")
+            {
+                if (fileContent.Contains("\"$schema\"") && fileContent.Contains("management.azure.com"))
+                {
+                    detectedTools.Add("ARM Template", fileContent);
+                }
+            }
+
+            // Ansible (Azure)
+            else if (ext is ".yaml" or ".yml")
+            {
+                if (Regex.IsMatch(fileContent, @"azure_rm_|community\.azure"))
+                {
+                    detectedTools.Add("Ansible (Azure)", fileContent);
+                }
+            }
+
+            // Pulumi - C#
+            else if (ext is ".cs")
+            {
+                if (fileContent.Contains("Pulumi") && fileContent.Contains("Azure"))
+                {
+                    detectedTools.Add("Pulumi (C#)", fileContent);
+                }
+            }
+
+            // Pulumi - TypeScript/JavaScript
+            else if (ext is ".ts" or ".js")
+            {
+                if (Regex.IsMatch(fileContent, @"@pulumi/azure", RegexOptions.IgnoreCase))
+                {
+                    detectedTools.Add("Pulumi (TypeScript/JavaScript)", fileContent);
+                }
+            }
+
+            // Pulumi - Python
+            else if (ext is ".py")
+            {
+                if (Regex.IsMatch(fileContent, @"import pulumi_azure", RegexOptions.IgnoreCase))
+                {
+                    detectedTools.Add("Pulumi (Python)", fileContent);
+                }
+            }
+        }
+
+        if (detectedTools.Count > 0)
+        {
+            return string.Join(" \n\n", detectedTools.Select(kvp => $"Generated through file grepping: {kvp.Key}: {kvp.Value}"));
+        }
+
+        else
+        {
+            return "No IaC tools found";
+        }
+    }
 }
+
+public class SemanticSearchResponse
+{
+    [JsonPropertyName("results")]
+    public List<SemanticSearchResult> Results { get; set; }
+
+    [JsonPropertyName("embedding_model")]
+    public string EmbeddingModel { get; set; }
+}
+
+public class SemanticSearchResult
+{
+    [JsonPropertyName("location")]
+    public LocationInfo Location { get; set; }
+
+    [JsonPropertyName("distance")]
+    public float Distance { get; set; }
+
+    [JsonPropertyName("chunk")]
+    public Chunk Chunk { get; set; }
+}
+
+public class LocationInfo
+{
+    [JsonPropertyName("path")]
+    public string Path { get; set; }
+
+    [JsonPropertyName("repo")]
+    public Repository Repo { get; set; }
+
+    [JsonPropertyName("commit_sha")]
+    public string CommitSha { get; set; }
+
+    [JsonPropertyName("ref_name")]
+    public string RefName { get; set; }
+
+    [JsonPropertyName("language")]
+    public Language Language { get; set; }
+}
+
+public class Repository
+{
+    [JsonPropertyName("id")]
+    public ulong Id { get; set; }
+
+    [JsonPropertyName("nwo")]
+    public string Nwo { get; set; }
+
+    [JsonPropertyName("owner_id")]
+    public ulong OwnerId { get; set; }
+
+    [JsonPropertyName("url")]
+    public string Url { get; set; }
+}
+
+public class Language
+{
+    [JsonPropertyName("id")]
+    public uint Id { get; set; }
+
+    [JsonPropertyName("name")]
+    public string Name { get; set; }
+
+    [JsonPropertyName("color")]
+    public string Color { get; set; }
+}
+
+public class Chunk
+{
+    [JsonPropertyName("hash")]
+    public string Hash { get; set; }
+
+    [JsonPropertyName("text")]
+    public string Text { get; set; }
+
+    [JsonPropertyName("range")]
+    public Range Range { get; set; }
+
+    [JsonPropertyName("line_range")]
+    public Range LineRange { get; set; }
+
+    [JsonPropertyName("embedding")]
+    public Embedding Embedding { get; set; }
+}
+
+public class Range
+{
+    [JsonPropertyName("start")]
+    public uint Start { get; set; }
+
+    [JsonPropertyName("end")]
+    public uint End { get; set; }
+}
+
+public class Embedding
+{
+    [JsonPropertyName("embedding")]
+    public List<float> Values { get; set; }
+}
+
+public class SemanticSearchRequest
+{
+    [JsonPropertyName("prompt")]
+    public string Prompt { get; set; }
+
+    [JsonPropertyName("scoping_query")]
+    public string ScopingQuery { get; set; }
+
+    [JsonPropertyName("include_embeddings")]
+    public bool? IncludeEmbeddings { get; set; }
+
+    [JsonPropertyName("limit")]
+    public int? Limit { get; set; }
+
+    [JsonPropertyName("experiments")]
+    public Dictionary<string, string> Experiments { get; set; }
+
+    [JsonPropertyName("embedding_model")]
+    public string EmbeddingModel { get; set; }
+}
+
 
 public struct DependabotAlert
 {

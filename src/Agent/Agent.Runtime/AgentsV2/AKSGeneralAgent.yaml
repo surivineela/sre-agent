@@ -104,6 +104,7 @@ handoffs:
     - github_issue_agent
     - diagnostic_cpu_agent
     - diagnostic_memory_agent
+    - change_propagation_agent 
 
 tools:
     - KubectlGet

@@ -8,3 +8,8 @@ public record GitHubAccessToken(
     string AccessToken,
     DateTime? ExpiresOn
 );
+
+public record AzureDevOpsAccessToken(
+    string AccessToken,
+    DateTime? ExpiresOn
+);

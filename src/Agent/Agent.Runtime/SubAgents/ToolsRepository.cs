@@ -40,6 +40,7 @@ public class ToolsRepository : IToolsRepository
         RegisterPlugin<AzureMonitorMetricsPluginDefinition>();
         RegisterPlugin<ChartPluginDefinition>();
         RegisterPlugin<RecordActionsPluginDefinition>();
+        RegisterPlugin<AzureDevOpsWorkItemPluginDefinition>();
 
         // Not all tools were registered, so registering individually
         Register200<GrafanaPluginDefinition>(x => x.ModifyGrafanaDashboard);

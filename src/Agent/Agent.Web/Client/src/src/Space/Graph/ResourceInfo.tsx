@@ -37,6 +37,7 @@ import HealthStatus from './HealthStatus';
 import { getAppHealthInfo } from './Utility';
 
 const githubRepoRegex = /^https:\/\/github\.com\/[\w-]+\/[\w-]+\.git$/;
+const azdoRepoRegex = /^https:\/\/(?:dev\.azure\.com\/|[\w-]+\.visualstudio\.com\/)[\w-]+\/[\w-]+\/_git\/[\w.-]+$/;
 
 const isNullOrUndefined = (input?: unknown): boolean => {
     return input === undefined || input === null;
@@ -113,7 +114,7 @@ const ResourceInfo = () => {
 
     const { root } = useStyles();
 
-    const handleGitHubLogin = async () => {
+    const handleRepositoryLogin = async () => {
         if (!selectedNode?.id) return;
 
         try {
@@ -124,7 +125,14 @@ const ResourceInfo = () => {
 
             const data = await response.json();
             if (data.loginCallbackUrl) {
-                window.open(data.loginCallbackUrl, 'githubAuth', 'width=600,height=700');
+                const w = window.open(data.loginCallbackUrl, 'githubAuth', 'width=600,height=700');
+                if (w) {
+                    const onLoad = () => {
+                        w.removeEventListener('load', onLoad);
+                        window.location.reload(); // Reload the page to reflect the login
+                    };
+                    w.addEventListener('load', onLoad);
+                }
             }
         } catch (err) {
             console.error('Failed to initiate GitHub login:', err);
@@ -133,7 +141,7 @@ const ResourceInfo = () => {
 
     return (
         <div className={root}>
-            <ResourceInfoContent selectedNode={selectedNode} onGitHubLogin={handleGitHubLogin} />
+            <ResourceInfoContent selectedNode={selectedNode} onGitHubLogin={handleRepositoryLogin} />
         </div>
     );
 };
@@ -157,31 +165,65 @@ const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode; onGit
         if (!selectedNode?.id || !repoUrl) return;
 
         setIsLinking(true);
-        try {
-            const response = await fetch(`${sreAgentEndpoint}/api/v1/github/link`, {
-                method: 'POST',
-                headers: {
-                    ...getAgentHeaders(),
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    resourceId: selectedNode.id,
-                    repoUrl: repoUrl,
-                    SubType: '',
-                    Namespace: '',
-                    ResourceName: '',
-                }),
-            });
 
-            if (!response.ok) throw new Error('Failed to link repository');
+        // If the url matches github fetch here.
+        if (githubRepoRegex.test(repoUrl)) {
+            try {
+                const response = await fetch(`${sreAgentEndpoint}/api/v1/github/link`, {
+                    method: 'POST',
+                    headers: {
+                        ...getAgentHeaders(),
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        resourceId: selectedNode.id,
+                        repoUrl: repoUrl,
+                        SubType: '',
+                        Namespace: '',
+                        ResourceName: '',
+                    }),
+                });
 
-            // Refresh the resource info
-            window.location.reload();
-        } catch (err) {
-            console.error('Failed to link repository:', err);
-        } finally {
+                if (!response.ok) throw new Error('Failed to link repository');
+
+                // Refresh the resource info
+                window.location.reload();
+            } catch (err) {
+                console.error('Failed to link repository:', err);
+            } finally {
+                setIsLinking(false);
+                setIsLinkDialogOpen(false);
+            }
+        } else if (azdoRepoRegex.test(repoUrl)) {
+            try {
+                const response = await fetch(`${sreAgentEndpoint}/api/v1/azuredevops/link`, {
+                    method: 'POST',
+                    headers: {
+                        ...getAgentHeaders(),
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        resourceId: selectedNode.id,
+                        repoUrl: repoUrl,
+                        SubType: '',
+                        Namespace: '',
+                        ResourceName: '',
+                    }),
+                });
+
+                if (!response.ok) throw new Error('Failed to link repository');
+
+                // Refresh the resource info
+                window.location.reload();
+            } catch (err) {
+                console.error('Failed to link repository:', err);
+            } finally {
+                setIsLinking(false);
+                setIsLinkDialogOpen(false);
+            }
+        } else {
+            setRepoUrlError(intl.formatMessage(ResourceInfoResources.repositoryUrlErrorMessage));
             setIsLinking(false);
-            setIsLinkDialogOpen(false);
         }
     };
 
@@ -255,7 +297,18 @@ const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode; onGit
                                                 onClick={() => {
                                                     const status = resource?.sourceCodeLinkageStatus;
                                                     if (status?.loginCallbackUrl) {
-                                                        window.open(status.loginCallbackUrl, 'githubAuth', 'width=600,height=700');
+                                                        const w = window.open(
+                                                            status.loginCallbackUrl,
+                                                            'githubAuth',
+                                                            'width=600,height=700'
+                                                        );
+                                                        if (w) {
+                                                            const onLoad = () => {
+                                                                w.removeEventListener('load', onLoad);
+                                                                window.location.reload(); // Reload the page to reflect the login
+                                                            };
+                                                            w.addEventListener('load', onLoad);
+                                                        }
                                                     }
                                                 }}
                                             >
@@ -286,11 +339,15 @@ const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode; onGit
                                                             validationMessage={repoUrlError}
                                                         >
                                                             <Textarea
-                                                                placeholder="https://github.com/owner/repo-name.git"
+                                                                placeholder="https://github.com/owner/repo-name.git or https://dev.azure.com/organization/project/_git/repo or https://organization.visualstudio.com/project/_git/repository-name"
                                                                 value={repoUrl}
                                                                 onChange={(_, data) => {
                                                                     setRepoUrl(data.value);
-                                                                    if (!githubRepoRegex.test(data.value)) {
+
+                                                                    if (
+                                                                        !azdoRepoRegex.test(data.value) &&
+                                                                        !githubRepoRegex.test(data.value)
+                                                                    ) {
                                                                         setRepoUrlError(
                                                                             intl.formatMessage(
                                                                                 ResourceInfoResources.repositoryUrlErrorMessage

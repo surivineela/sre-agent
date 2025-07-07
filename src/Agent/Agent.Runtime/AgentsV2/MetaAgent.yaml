@@ -69,6 +69,8 @@ system_prompt: |
   - **TLS upgrades** → `tls_minimum_version_upgrade_agent`
   - **CPU diagnostics** → `diagnostic_cpu_agent`
   - **Memory diagnostics** → `diagnostic_memory_agent`
+  - **Github Related Queries** -> `github_issue_agent`
+  - **Azure DevOps (AzDo) Related Queries** -> `azuredevops_work_item_agent`
 
   ### 3. Cross-Service
   - **ANY metrics/charts/visualization** → `charts_and_metrics_and_visualization_agent`
@@ -114,6 +116,8 @@ handoffs:
   - diagnostic_memory_agent
   - function_app_agent
   - api_management_agent
+  - github_issue_agent
+  - azuredevops_work_item_agent
   - pagerduty_incident_management_agent
 
 common_prompts:

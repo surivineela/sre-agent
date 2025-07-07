@@ -1023,6 +1023,12 @@
       "value": "Incident platform"
     }
   ],
+  "Eafn/i": [
+    {
+      "type": 0,
+      "value": "Repository URL must be like: https://github.com/owner/repo-name.git or Repository URL must be like: https://github.com/owner/repo-name.git or https://dev.azure.com/organization/project/_git/repository-name or https://organization.visualstudio.com/project/_git/repository-name"
+    }
+  ],
   "EiiZbj": [
     {
       "type": 0,
@@ -1147,12 +1153,6 @@
     {
       "type": 0,
       "value": "Pending approvals"
-    }
-  ],
-  "HekEs4": [
-    {
-      "type": 0,
-      "value": "Repository URL must be like: https://github.com/owner/repo-name.git"
     }
   ],
   "HjTHxo": [

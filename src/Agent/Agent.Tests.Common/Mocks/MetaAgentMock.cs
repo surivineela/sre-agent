@@ -51,7 +51,8 @@ public static class MetaAgentMock
         IMetaAgentFunctionAppDiagnosticsPlugin? functionAppDiagnosticsPlugin = null,
         IArmPlugin? armPlugin = null,
         ISearchPlugin? searchPlugin = null,
-        IRemediationPlugin? remediationPlugin = null
+        IRemediationPlugin? remediationPlugin = null,
+        IAzureDevOpsWorkItemPlugin azureDevOpsWorkItemPlugin = null
         ) // Added parameter
     {
         return new ThirdPartyAgentsFactory(
@@ -92,7 +93,8 @@ public static class MetaAgentMock
             functionAppDiagnosticsPlugin ?? Mock.Of<IMetaAgentFunctionAppDiagnosticsPlugin>(),
             armPlugin ?? Mock.Of<IArmPlugin>(),// Added argument
             searchPlugin ?? Mock.Of<ISearchPlugin>(),
-            remediationPlugin ?? Mock.Of<IRemediationPlugin>()
+            remediationPlugin ?? Mock.Of<IRemediationPlugin>(),
+            azureDevOpsWorkItemPlugin ?? Mock.Of<IAzureDevOpsWorkItemPlugin>()
         );
     }
 

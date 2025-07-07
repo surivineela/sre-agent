@@ -869,7 +869,11 @@ export const ResourceInfoResources = defineMessages({
     connectRepository: { defaultMessage: 'Connect repository', id: '1fNFGt' },
     linkRepositoryToResource: { defaultMessage: 'Link repository to resource', id: 'BV3Mir' },
     repositoryUrl: { defaultMessage: 'Repository URL', id: 'AA/tRJ' },
-    repositoryUrlErrorMessage: { defaultMessage: 'Repository URL must be like: https://github.com/owner/repo-name.git', id: 'HekEs4' },
+    repositoryUrlErrorMessage: {
+        defaultMessage:
+            'Repository URL must be like: https://github.com/owner/repo-name.git or Repository URL must be like: https://github.com/owner/repo-name.git or https://dev.azure.com/organization/project/_git/repository-name or https://organization.visualstudio.com/project/_git/repository-name',
+        id: 'Eafn/i',
+    },
     connecting: { defaultMessage: 'Connecting...', id: '5y2qWO' },
     annotation: { defaultMessage: 'Annotation', id: 'dQtJBl' },
     editAnnotation: { defaultMessage: 'Edit annotation', id: 'Qfec1M' },

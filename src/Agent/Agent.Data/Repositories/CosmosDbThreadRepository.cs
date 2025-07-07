@@ -7,7 +7,6 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
 using Agent.Data.Helpers;
-using Agent.Logging;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
@@ -1935,11 +1934,53 @@ public class CosmosDbThreadRepository : IThreadRepository
 
             return true;
         }
+
         catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
             return false;
         }
     }
+    #endregion
+
+    #region AzureDevOps
+
+    public async Task<AzureDevOpsAccessToken> GetAzureDevOpsAccessTokenAsync(string resourceId)
+    {
+        try
+        {
+            AzureDevOpsAccessTokenDocument azureDevOpsAccessTokenDocument = await GetDocumentAsync<AzureDevOpsAccessTokenDocument>($"{AzureDevOpsAccessTokenDocument.KeyName}_{resourceId}_{AzureDevOpsAccessTokenDocument._sessionGuid}", AzureDevOpsAccessTokenDocument.KeyName);
+            return azureDevOpsAccessTokenDocument?.ToDomainModel();
+        }
+
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+    }
+
+    public async Task<AzureDevOpsAccessToken> CreateOrUpdateAzureDevOpsAccessTokenAsync(AzureDevOpsAccessToken azureDevOpsAccessToken, string resourceId)
+    {
+        // Create the Azure DevOps access token document
+        AzureDevOpsAccessTokenDocument azureDevOpsAccessDoc = AzureDevOpsAccessTokenDocument.FromDomainModel(azureDevOpsAccessToken, resourceId);
+        await _client.GetContainer<AzureDevOpsAccessTokenDocument>(_databaseName).UpsertItemAsync(azureDevOpsAccessDoc, new PartitionKey(azureDevOpsAccessDoc.PartitionKey));
+        return azureDevOpsAccessToken;
+    }
+
+    public async Task<bool> DeleteAzureDevOpsAccessTokenAsync(string resourceId)
+    {
+        try
+        {
+            // Delete the Azure DevOps access token
+            await _client.GetContainer<AzureDevOpsAccessTokenDocument>(_databaseName).DeleteItemAsync<AzureDevOpsAccessTokenDocument>($"{AzureDevOpsAccessTokenDocument.KeyName}_{resourceId}", new PartitionKey(AzureDevOpsAccessTokenDocument.KeyName));
+            return true;
+        }
+
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return false;
+        }
+    }
+
     #endregion
 
     #region AzCliExecution Operations

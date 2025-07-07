@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
@@ -18,6 +19,7 @@ using Agent.Core.Services;
 using Agent.Logging;
 using Azure;
 using Azure.Core;
+using Azure.Identity;
 using Azure.ResourceManager.AppService;
 using Azure.ResourceManager.AppService.Models;
 using Azure.ResourceManager.Compute;
