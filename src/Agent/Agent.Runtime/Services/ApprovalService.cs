@@ -161,7 +161,6 @@ namespace Agent.Runtime.Services
             };
 
             await _threadRepository.UpdateApprovalAsync(newApproval);
-            await _agentOutboundCommunicationService.NotifyAgentApprovalUpdate(threadId, newApproval);
 
             if (_coreSettings.UseAgentFramework && agentContext != null)
             {

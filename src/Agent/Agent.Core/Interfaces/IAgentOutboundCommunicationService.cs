@@ -43,7 +43,6 @@ public interface IAgentOutboundCommunicationService
 
     Task<Guid> AppendAgentImageMessage(Guid threadId, string message);
     Task<Guid> AppendAgentApprovalMessage(Guid threadId, Approval approval);
-    Task NotifyAgentApprovalUpdate(Guid threadId, Approval approval);
 
     /// <summary>
     /// Streams a message directly to the reasoning loop, bypassing normal tool call flow
