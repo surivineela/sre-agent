@@ -37,25 +37,45 @@
 	</ItemGroup>
 
 	<ItemGroup>
-      <None Include="AlertDetails\245c5900-d024-479f-9768-8aa8f1beb28e.json">
+    <!-- Control Plane -->
+    <None Include="AlertDetails\245c5900-d024-479f-9768-8aa8f1beb28e.json">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
-      <None Include="AlertDetails\dbee4297-3491-4bac-92f8-5471208ff66d.json">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
+    <None Include="ICMAlertConfigs\245c5900-d024-479f-9768-8aa8f1beb28e.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="AlertDetails\dbee4297-3491-4bac-92f8-5471208ff66d.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="ICMAlertConfigs\dbee4297-3491-4bac-92f8-5471208ff66d.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="AlertDetails\934dd77b-34b3-47ce-aa91-9c99dbeec680.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="ICMAlertConfigs\934dd77b-34b3-47ce-aa91-9c99dbeec680.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="AlertDetails\892c5b12-2920-4b5b-adac-7ce2cc9191e0.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="ICMAlertConfigs\892c5b12-2920-4b5b-adac-7ce2cc9191e0.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="AlertDetails\b5e2939d-7996-46c1-8b98-9e17dcf13026.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="ICMAlertConfigs\b5e2939d-7996-46c1-8b98-9e17dcf13026.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <!-- End Control Plane -->
 	  <None Include="AlertDetails\7c5a4fca-bd4d-4272-baa1-6f4abe6f24a2.json">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
 	  <None Include="AlertDetails\97950ded-8bbc-4bda-bcfa-e74aa45c1381.json">
-		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
 	  <None Include="ICMAlertConfigs\7c5a4fca-bd4d-4272-baa1-6f4abe6f24a2.json">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
-      <None Include="ICMAlertConfigs\245c5900-d024-479f-9768-8aa8f1beb28e.json">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
-      <None Include="ICMAlertConfigs\dbee4297-3491-4bac-92f8-5471208ff66d.json">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
 	  <None Include="ICMAlertConfigs\97950ded-8bbc-4bda-bcfa-e74aa45c1381.json">

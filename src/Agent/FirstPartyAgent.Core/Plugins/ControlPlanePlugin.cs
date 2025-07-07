@@ -1,13 +1,15 @@
+using System.ComponentModel;
+using System.Reflection;
+using System.Text;
 using Agent.Core.Models;
+using FirstPartyAgent.Core.Extensions;
+using FirstPartyAgent.Core.Models;
 using FirstPartyAgent.Core.Plugins.Interfaces;
 using FirstPartyAgent.Core.Services;
 using FirstPartyAgent.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Newtonsoft.Json;
-using System.ComponentModel;
-using System.Reflection;
-using System.Text;
 
 namespace FirstPartyAgent.Core.Plugins
 {
@@ -83,70 +85,26 @@ namespace FirstPartyAgent.Core.Plugins
             [Description("Kusto Cluster Name")] string clusterName,
             [Description("ListOfAlertResults")] List<StampBelow90AlertResult> alertResults)
         {
-            const string logPrefix = "[run_sb90_validation_kusto_query]";
-            // Check of alertResults is null or empty
-            if (alertResults is null || alertResults.Count == 0)
-            {
-                return $"{logPrefix} Primary Kusto Query's results List (ListOfAlertResults) is empty. Need this to get started.";
-            }
-
-            // Safeguard against multiple stamps in the results
-            if (alertResults.Count > 1)
-            {
-                // select all the StampNames from the alertResults
-                var stampNames = string.Join(", ", alertResults.Select(x => x.StampName));
-                await LogInformation($"{logPrefix} HUMAN_INTERVENTION_REQUIRED More than one stamp found in the results. This LSI is unlikely to be transient. Stamps: {stampNames}");
-                return $"{logPrefix} HUMAN_INTERVENTION_REQUIRED More than one stamp found in the results. This LSI is unlikely to be transient. Stamps: ${stampNames}";
-            }
-
-            var checkableAlertResult = alertResults.First();
-            var affectedStamp = checkableAlertResult.StampName;
-            var eventStampName = checkableAlertResult.EventStampName;
-
-            var validationResults = ValidateSb90Inputs(affectedStamp, eventStampName);
-            if (!string.IsNullOrWhiteSpace(validationResults))
-            {
-                return $"{logPrefix} alertResults is invalid: {validationResults}";
-            }
-
-            await LogInformation($"{logPrefix} Invoked with impactStartDate: {impactStartDate}, affectedStamp: {affectedStamp}, eventStampName: {eventStampName}, alertId: {alertId}, clusterName: {clusterName}");
-
-            var alertConfig = await _alertHandlerService.GetICMAlertConfigAsync(alertId);
-            if (alertConfig == null)
-            {
-                return $"{logPrefix} Alert Config not found for alertId {alertId}";
-            }
-
-
-            var validationQueryStr = alertConfig.ValidationQuery;
-            if (string.IsNullOrWhiteSpace(validationQueryStr))
-            {
-                return $"{logPrefix} Validation query not found for alertId {alertId}";
-            }
-
-            validationQueryStr = validationQueryStr.Replace("<QueryExecutedAtTimeStamp>", $"datetime({impactStartDate})", StringComparison.OrdinalIgnoreCase);
-            validationQueryStr = validationQueryStr.Replace("<AffectedStamp>", $"{affectedStamp}", StringComparison.OrdinalIgnoreCase);
-            validationQueryStr = validationQueryStr.Replace("<EventStampName>", $"{eventStampName}", StringComparison.OrdinalIgnoreCase);
-
-            var kustoResultTask = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, _controlPlaneKustoDbName, validationQueryStr, null);
-            var preProcessedResults = Sb90CleanUpKustoResult(kustoResultTask.Result, affectedStamp);
-            return await preProcessedResults;
-        }
-
-        private string? ValidateSb90Inputs(string affectedStamp, string eventStampName)
-        {
-            var validationResults = new StringBuilder();
-            if (string.IsNullOrWhiteSpace(affectedStamp) || !affectedStamp.StartsWith("waws-prod"))
-            {
-                validationResults.Append($"StampName should start with 'waws-prod'");
-            }
-
-            if (string.IsNullOrWhiteSpace(eventStampName) || !eventStampName.StartsWith("rgm-prod"))
-            {
-                validationResults.Append($"EventStampName should start with 'rgm-prod'");
-            }
-
-            return validationResults.Length > 0 ? validationResults.ToString() : null;
+            return await RunValidationKustoQuery(
+                logPrefix: "[run_sb90_validation_kusto_query]",
+                impactStartDate: impactStartDate,
+                alertId: alertId,
+                clusterName: clusterName,
+                alertResults: alertResults,
+                multipleResultsCheck: results => results.Count > 1,
+                multipleResultsMessage: results => $"HUMAN_INTERVENTION_REQUIRED More than one stamp found in the results. This LSI is unlikely to be transient. Stamps: {string.Join(", ", results.Select(x => x.StampName))}",
+                buildQuery: (results, config) =>
+                {
+                    // For this LSI, the agent is designed to only handle one result for this alert type as we assume multiple stamps are not transient.
+                    var result = results.First();
+                    var query = config.ValidationQuery ?? string.Empty;
+                    query = query.Replace("<QueryExecutedAtTimeStamp>", $"datetime({impactStartDate})", StringComparison.OrdinalIgnoreCase);
+                    query = query.Replace("<AffectedStamp>", result.StampName, StringComparison.OrdinalIgnoreCase);
+                    query = query.Replace("<EventStampName>", result.EventStampName, StringComparison.OrdinalIgnoreCase);
+                    return query;
+                },
+                kustoResult => Sb90CleanUpKustoResult(kustoResult, alertResults.First().StampName)
+            );
         }
 
         private async Task<string> Sb90CleanUpKustoResult(string kustoResult, string affectedStamp)
@@ -204,37 +162,26 @@ namespace FirstPartyAgent.Core.Plugins
             [Description("Kusto Cluster Name")] string clusterName,
             [Description("Alert Id")] string alertId,
             [Description("ListOfAlertResults")] List<OpBelow90AlertResult> alertResults
-            )
+        )
         {
-            const string logPrefix = "[run_opBelow90_validation_kusto_query]";
-            await LogInformation($"{logPrefix} Invoked with impactStartDate: {impactStartDate}, clusterName: {clusterName}, alertId: {alertId}, alertResults: {JsonConvert.SerializeObject(alertResults)}");
-            if (alertResults == null || alertResults.Count == 0)
-            {
-                return $"{logPrefix} Primary Kusto Query's results List is empty. Need this to get started.";
-            }
-
-            var alertConfig = await _alertHandlerService.GetICMAlertConfigAsync(alertId);
-            if (alertConfig == null)
-            {
-                return $"{logPrefix} Alert Config not found for alertId {alertId}";
-            }
-
-
-            var validationQueryStr = alertConfig.ValidationQuery;
-            if (string.IsNullOrWhiteSpace(validationQueryStr))
-            {
-                return $"{logPrefix} Validation query not found for alertId {alertId}";
-            }
-
-            var kustoClauses = $"({string.Join(" or ", alertResults.Select(x => x.ToKustoClause))})";
-
-            validationQueryStr = validationQueryStr.Replace("<QueryExecutedAtTimeStamp>", $"datetime({impactStartDate})", StringComparison.OrdinalIgnoreCase);
-            validationQueryStr = validationQueryStr.Replace("<TargettedVerbTemplateCombinations>", kustoClauses, StringComparison.OrdinalIgnoreCase);
-
-            var kustoResultTask = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, _controlPlaneKustoDbName, validationQueryStr, null);
-            var preProcessedResults = OpBelow90CleanUpKustoResult(kustoResultTask.Result);
-
-            return await preProcessedResults;
+            return await RunValidationKustoQuery(
+                logPrefix: "[run_opBelow90_validation_kusto_query]",
+                impactStartDate: impactStartDate,
+                alertId: alertId,
+                clusterName: clusterName,
+                alertResults: alertResults,
+                multipleResultsCheck: _ => false, // No special handling for multiple results
+                multipleResultsMessage: _ => string.Empty,
+                buildQuery: (results, config) =>
+                {
+                    var query = config.ValidationQuery ?? string.Empty;
+                    var kustoClauses = $"({string.Join(" or ", results.Select(x => x.ToKustoClause))})";
+                    query = query.Replace("<QueryExecutedAtTimeStamp>", $"datetime({impactStartDate})", StringComparison.OrdinalIgnoreCase);
+                    query = query.Replace("<TargettedVerbTemplateCombinations>", kustoClauses, StringComparison.OrdinalIgnoreCase);
+                    return query;
+                },
+                cleanUpResult: kustoResult => OpBelow90CleanUpKustoResult(kustoResult)
+            );
         }
 
         private async Task<string> OpBelow90CleanUpKustoResult(string kustoResult)
@@ -307,6 +254,265 @@ namespace FirstPartyAgent.Core.Plugins
             return results;
         }
 
+        [KernelFunction("run_StampApiImpact_validation_kusto_query")]
+        [Description("Runs the kusto query for the StampApiSubscriptionImpact alert and returns the result.")]
+        public async Task<string> RunStampApiImpactValidationKustoQuery(
+            [Description("ImpactStartDate from the Incident Details")] string impactStartDate,
+            [Description("Kusto Cluster Name")] string clusterName,
+            [Description("Alert Id")] string alertId,
+            [Description("ListOfAlertResults")] List<StampApiImpactAlertResult> alertResults
+            )
+        {
+            return await RunValidationKustoQuery(
+                logPrefix: "[run_StampApiImpactValidationKustoQuery]",
+                impactStartDate: impactStartDate,
+                alertId: alertId,
+                clusterName: clusterName,
+                alertResults: alertResults,
+                multipleResultsCheck: results => results.Count > 1,
+                multipleResultsMessage: results => $"HUMAN_INTERVENTION_REQUIRED More than one stamp found in the results. This LSI is unlikely to be transient. Stamps: {string.Join(", ", results.Select(x => x.EventStampName))}",
+                buildQuery: (results, config) =>
+                {
+                    // For this LSI, the agent is designed to only handle one result for this alert type as we assume multiple stamps are not transient.
+                    var result = results.First();
+                    var query = config.ValidationQuery ?? string.Empty;
+                    query = query.Replace("<QueryExecutedAtTimeStamp>", $"datetime({impactStartDate})", StringComparison.OrdinalIgnoreCase);
+                    query = query.Replace("<EventStampName>", result.EventStampName, StringComparison.OrdinalIgnoreCase);
+                    query = query.Replace("<SourceNamespace>", result.SourceNamespace, StringComparison.OrdinalIgnoreCase);
+                    return query;
+                },
+                kustoResult => StampApiSubsImpactCleanUpKustoResult(kustoResult, 10 * 0.3, alertResults.First().SourceNamespace.Equals("WAWS", StringComparison.OrdinalIgnoreCase) ? 20 * 0.3 : 50 * 0.3) // these magic numbers come from the LSI alert query. 10% for WAWS, 20% for other namespaces, 50% for non-WAWS namespaces
+            );
+        }
+
+        private async Task<string> StampApiSubsImpactCleanUpKustoResult(string result, double generalSubsRecoveryThreshold, double subs409RecoveryThreshold)
+        {
+            if (IsKustoResultEmpty(result))
+            {
+                await LogInformation($"[{nameof(StampApiSubsImpactCleanUpKustoResult)}] Kusto result is empty.");
+                return result;
+            }
+
+            var stampApiImpactLogEntries = await CleanUpLogEntries<StampApiImpactLogEntry>(result, nameof(StampApiSubsImpactCleanUpKustoResult));
+            if (stampApiImpactLogEntries.Count == 0)
+            {
+                return result;
+            }
+
+            // sort the log entries by PreciseTimeStamp
+            stampApiImpactLogEntries.Sort((x, y) => x.Timestamp.CompareTo(y.Timestamp));
+            // locate the latest entry whose PercentImpactedSubs is above the recovery threshold and remove any entries before it
+            var latestEntryAboveGeneralThreshold = stampApiImpactLogEntries.LastOrDefault(e => e.PercentImpactedSubs > generalSubsRecoveryThreshold);
+            var latestEntryAbove409Threshold = stampApiImpactLogEntries.LastOrDefault(e => e.Percent409ImpactedSubs > subs409RecoveryThreshold);
+            if (latestEntryAboveGeneralThreshold == null && latestEntryAbove409Threshold == null)
+            {
+                // we found no entries with PercentImpactedSubs above the thresholds, so we return the results
+                var cleanResults = $"RECOVERY_CONFIRMED:\n{JsonConvert.SerializeObject(stampApiImpactLogEntries, Formatting.Indented)}";
+                await LogInformation($"[{nameof(StampApiSubsImpactCleanUpKustoResult)}] No entries with PercentImpactedSubs > {generalSubsRecoveryThreshold} or {subs409RecoveryThreshold} found. Returning all entries: {cleanResults}");
+                return cleanResults;
+            }
+
+            // if both are not null, we use the latest entry above their respective thresholds
+            if (latestEntryAboveGeneralThreshold != null && latestEntryAbove409Threshold != null)
+            {
+                // we take the latest of the two
+                var latestEntry = latestEntryAboveGeneralThreshold.Timestamp > latestEntryAbove409Threshold.Timestamp ? latestEntryAboveGeneralThreshold : latestEntryAbove409Threshold;
+                stampApiImpactLogEntries = stampApiImpactLogEntries.Where(e => e.Timestamp >= latestEntry.Timestamp).ToList();
+            }
+            else if (latestEntryAboveGeneralThreshold != null && latestEntryAbove409Threshold == null)
+            {
+                // we only have the general threshold entry
+                stampApiImpactLogEntries = stampApiImpactLogEntries.Where(e => e.Timestamp >= latestEntryAboveGeneralThreshold.Timestamp).ToList();
+            }
+            else if (latestEntryAboveGeneralThreshold == null && latestEntryAbove409Threshold != null)
+            {
+                // we only have the 409 threshold entry
+                stampApiImpactLogEntries = stampApiImpactLogEntries.Where(e => e.Timestamp >= latestEntryAbove409Threshold.Timestamp).ToList();
+            }
+
+            if (stampApiImpactLogEntries.Count <= 3)
+            {
+                var cleanResults = $"STILL_OCCURRING:\n{JsonConvert.SerializeObject(stampApiImpactLogEntries, Formatting.Indented)}";
+                await LogInformation($"[{nameof(StampApiSubsImpactCleanUpKustoResult)}] Insufficient entries above generalSubsRecoveryThreshold: {generalSubsRecoveryThreshold} or subs409RecoveryThreshold: {subs409RecoveryThreshold}. Returning: {cleanResults}");
+                return cleanResults;
+            }
+            else
+            {
+                // we have enough entries above the threshold that was not being met
+                var cleanResults = $"RECOVERY_CONFIRMED:\n{JsonConvert.SerializeObject(stampApiImpactLogEntries, Formatting.Indented)}";
+                await LogInformation($"[{nameof(StampApiSubsImpactCleanUpKustoResult)}] Enough entries above thresholds (generalSubsRecoveryThreshold: {generalSubsRecoveryThreshold} or subs409RecoveryThreshold: {subs409RecoveryThreshold}): {cleanResults}");
+                return cleanResults;
+            }
+        }
+
+        [KernelFunction("run_GeoApiSubsImpactAll_validation_query")]
+        [Description("Runs the kusto query for the GeomasterApiSubscriptionImpactAllRequests alert and returns the result.")]
+        public async Task<string> RunGeoApiSubsImpactAllValidationKustoQuery(
+            [Description("ImpactStartDate from the Incident Details")] string impactStartDate,
+            [Description("Kusto Cluster Name")] string clusterName,
+            [Description("Alert Id")] string alertId,
+            [Description("ListOfAlertResults")] List<GeoApiSubsImpactAlertResult> alertResults
+            )
+        {
+            return await RunGeoApiSubsImpactSharedValidationKustoQuery(
+                logPrefix: "[run_GeoApiSubsImpactAllValidationKustoQuery]",
+                impactStartDate: impactStartDate,
+                alertId: alertId,
+                clusterName: clusterName,
+                alertResults: alertResults
+            );
+        }
+
+        [KernelFunction("run_GeoApiSubsImpactNonGets_validation_query")]
+        [Description("Runs the kusto query for the GeomasterApiSubscriptionImpactNonGets alert and returns the result.")]
+        public async Task<string> RunGeoApiSubsImpactNonGetsValidationKustoQuery(
+            [Description("ImpactStartDate from the Incident Details")] string impactStartDate,
+            [Description("Kusto Cluster Name")] string clusterName,
+            [Description("Alert Id")] string alertId,
+            [Description("ListOfAlertResults")] List<GeoApiSubsImpactAlertResult> alertResults
+            )
+        {
+            return await RunGeoApiSubsImpactSharedValidationKustoQuery(
+                logPrefix: "[run_GeoApiSubsImpactNonGetsValidationKustoQuery]",
+                impactStartDate: impactStartDate,
+                alertId: alertId,
+                clusterName: clusterName,
+                alertResults: alertResults
+            );
+        }
+
+        // Two very similar alerts GeomasterApiSubscriptionImpactNonGets and GeomasterApiSubscriptionImpactAllRequests share near identical incident handling instructions.
+        // Their Validation Queries are also very similar, so we can share the logic for building the Kusto query and cleaning up the results.
+        private async Task<string> RunGeoApiSubsImpactSharedValidationKustoQuery(
+            string logPrefix,
+            string impactStartDate,
+            string alertId,
+            string clusterName,
+            List<GeoApiSubsImpactAlertResult> alertResults)
+        {
+            return await RunValidationKustoQuery(
+                logPrefix: logPrefix,
+                impactStartDate: impactStartDate,
+                alertId: alertId,
+                clusterName: clusterName,
+                alertResults: alertResults,
+                multipleResultsCheck: results => results.Count > 1,
+                multipleResultsMessage: results => $"HUMAN_INTERVENTION_REQUIRED More than one RGM found in the results. This LSI is unlikely to be transient. RGMs: {string.Join(", ", results.Select(x => x.EventStampName))}",
+                buildQuery: (results, config) =>
+                {
+                    // For this LSI, the agent is designed to only handle one result for this alert type as we assume multiple geomasters impacted are not transient.
+                    var result = results.First();
+                    var query = config.ValidationQuery ?? string.Empty;
+                    query = query.Replace("<QueryExecutedAtTimeStamp>", $"datetime({impactStartDate})", StringComparison.OrdinalIgnoreCase);
+                    query = query.Replace("<EventStampName>", result.EventStampName, StringComparison.OrdinalIgnoreCase);
+                    query = query.Replace("<TotalSubs>", result.TotalSubs.ToString(), StringComparison.OrdinalIgnoreCase);
+                    return query;
+                },
+                cleanUpResult: kustoResult => GeoApiSubsImpactCleanUpKustoResult(kustoResult, alertResults.First().ImpactThreshold * 0.3)
+            );
+        }
+
+        private async Task<string> RunValidationKustoQuery<TAlertResult>(
+            string logPrefix,
+            string impactStartDate,
+            string alertId,
+            string clusterName,
+            List<TAlertResult> alertResults,
+            Func<List<TAlertResult>, bool> multipleResultsCheck,
+            Func<List<TAlertResult>, string> multipleResultsMessage,
+            Func<List<TAlertResult>, ICMAlertConfig, string> buildQuery,
+            Func<string, Task<string>> cleanUpResult) where TAlertResult : IValidatableAlertResult
+        {
+            await LogInformation($"{logPrefix} Invoked with impactStartDate: {impactStartDate}, clusterName: {clusterName}, alertId: {alertId}, alertResults: {JsonConvert.SerializeObject(alertResults)}");
+            if (alertResults == null || alertResults.Count == 0)
+            {
+                return $"{logPrefix} Primary Kusto Query's results List is empty. Need this to get started.";
+            }
+
+            if (multipleResultsCheck(alertResults))
+            {
+                var msg = multipleResultsMessage(alertResults);
+                await LogInformation($"{logPrefix} {msg}");
+                return $"{logPrefix} {msg}";
+            }
+
+            var validationErrors = alertResults.GetValidationErrors();
+            if (validationErrors.Count > 0)
+            {
+                return $"{logPrefix} alertResults is invalid: {string.Join("; ", validationErrors)}";
+            }
+
+            var alertConfig = await _alertHandlerService.GetICMAlertConfigAsync(alertId);
+            if (alertConfig == null)
+            {
+                return $"{logPrefix} Alert Config not found for alertId {alertId}";
+            }
+
+            var validationQueryStr = alertConfig.ValidationQuery;
+            if (string.IsNullOrWhiteSpace(validationQueryStr))
+            {
+                return $"{logPrefix} Validation query not found for alertId {alertId}";
+            }
+
+            validationQueryStr = buildQuery(alertResults, alertConfig);
+            if (string.IsNullOrWhiteSpace(validationQueryStr))
+            {
+                return $"{logPrefix} error building validation query for alertId {alertId}. Raw query: {alertConfig.ValidationQuery}";
+            }
+
+            // Here we execute the Kusto query against the cluster
+            // Then we clean up the result using the provided cleanUpResult function
+            var kustoResultTask = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, _controlPlaneKustoDbName, validationQueryStr, null);
+            var preProcessedResults = cleanUpResult(kustoResultTask.Result);
+
+            return await preProcessedResults;
+        }
+
+        private async Task<string> GeoApiSubsImpactCleanUpKustoResult(string result, double recoveryThreshold)
+        {
+            if (IsKustoResultEmpty(result))
+            {
+                await LogInformation($"[{nameof(GeoApiSubsImpactCleanUpKustoResult)}] Kusto result is empty.");
+                return result;
+            }
+
+            var geoApiSubsImpactLogEntries = await CleanUpLogEntries<GeoApiSubsImpactAllLogEntry>(result, nameof(GeoApiSubsImpactCleanUpKustoResult));
+
+            if (geoApiSubsImpactLogEntries.Count == 0)
+            {
+                return result;
+            }
+
+            // sort the log entries by PreciseTimeStamp
+            geoApiSubsImpactLogEntries.Sort((x, y) => x.PreciseTimeStamp.CompareTo(y.PreciseTimeStamp));
+
+            // locate the latest entry whose PercentImpactedSubs is above the recovery threshold and remove any entries before it
+            var latestEntryAboveThreshold = geoApiSubsImpactLogEntries.LastOrDefault(e => e.PercentImpactedSubs > recoveryThreshold);
+
+            if (latestEntryAboveThreshold == null)
+            {
+                // we found no entries with PercentImpactedSubs above the threshold, so we return the results
+                var cleanResults = $"RECOVERY_CONFIRMED:\n{JsonConvert.SerializeObject(geoApiSubsImpactLogEntries, Formatting.Indented)}";
+                await LogInformation($"[{nameof(GeoApiSubsImpactCleanUpKustoResult)}] No entries with PercentImpactedSubs > {recoveryThreshold} found. Returning all entries: {cleanResults}");
+                return cleanResults;
+            }
+
+            geoApiSubsImpactLogEntries = geoApiSubsImpactLogEntries.Where(e => e.PreciseTimeStamp >= latestEntryAboveThreshold.PreciseTimeStamp).ToList();
+
+            if (geoApiSubsImpactLogEntries.Count <= 3)
+            {
+                var cleanResults = $"STILL_OCCURRING:\n{JsonConvert.SerializeObject(geoApiSubsImpactLogEntries, Formatting.Indented)}";
+                await LogInformation($"[{nameof(GeoApiSubsImpactCleanUpKustoResult)}] Not enough entries with PercentImpactedSubs above {recoveryThreshold}: {cleanResults}");
+                return cleanResults;
+            }
+            else
+            {
+                var cleanResults = $"RECOVERY_CONFIRMED:\n{JsonConvert.SerializeObject(geoApiSubsImpactLogEntries, Formatting.Indented)}";
+                await LogInformation($"[{nameof(GeoApiSubsImpactCleanUpKustoResult)}] Enough entries with PercentImpactedSubs above {recoveryThreshold}: {cleanResults}");
+                return cleanResults;
+            }
+        }
+
         private static string TrimStrToMaxLength(string str, int maxLength = 200)
         {
             if (string.IsNullOrWhiteSpace(str))
@@ -372,18 +578,103 @@ namespace FirstPartyAgent.Core.Plugins
             return result;
         }
 
-        public class StampBelow90AlertResult
+
+        public interface IValidatableAlertResult
+        {
+            /// <summary>
+            /// Returns null or empty if valid, otherwise a string describing the validation error.
+            /// </summary>
+            string? Validate();
+        }
+
+        public class StampBelow90AlertResult : IValidatableAlertResult
         {
             public string StampName { get; set; } = string.Empty;
             public string EventStampName { get; set; } = string.Empty;
+
+            public string? Validate()
+            {
+                if (string.IsNullOrWhiteSpace(StampName) || !StampName.StartsWith("waws-prod", StringComparison.OrdinalIgnoreCase))
+                {
+                    return "StampName should start with 'waws-prod'";
+                }
+                if (string.IsNullOrWhiteSpace(EventStampName) || !(EventStampName.StartsWith("rgm-prod", StringComparison.OrdinalIgnoreCase) || EventStampName.StartsWith("gm-prod", StringComparison.OrdinalIgnoreCase)))
+                {
+                    return "EventStampName should start with 'rgm-prod' or 'gm-prod'";
+                }
+                return null;
+            }
         }
 
-        public class OpBelow90AlertResult
+        public class OpBelow90AlertResult : IValidatableAlertResult
         {
             public string Verb { get; set; } = string.Empty;
             public string AddressTemplate { get; set; } = string.Empty;
             public string EventStampName { get; set; } = string.Empty;
             public string ToKustoClause => $@"Verb == ""{Verb}"" and AddressTemplate == ""{AddressTemplate}"" and EventStampName == ""{EventStampName}""";
+
+            public string? Validate()
+            {
+                if (string.IsNullOrWhiteSpace(Verb))
+                {
+                    return "Verb cannot be null or empty.";
+                }
+                if (string.IsNullOrWhiteSpace(AddressTemplate))
+                {
+                    return "AddressTemplate cannot be null or empty.";
+                }
+                if (string.IsNullOrWhiteSpace(EventStampName) || !(EventStampName.StartsWith("rgm-prod", StringComparison.OrdinalIgnoreCase) || EventStampName.StartsWith("gm-prod", StringComparison.OrdinalIgnoreCase)))
+                {
+                    return "EventStampName should start with 'rgm-prod' or 'gm-prod'";
+                }
+
+                return null;
+            }
+        }
+
+        public class GeoApiSubsImpactAlertResult : IValidatableAlertResult
+        {
+            public string EventStampName { get; set; } = string.Empty;
+            public int TotalSubs { get; set; } = 0;
+            public int ImpactThreshold { get; set; } = 0;
+
+            public string? Validate()
+            {
+                if (string.IsNullOrWhiteSpace(EventStampName) || !(EventStampName.StartsWith("rgm-prod", StringComparison.OrdinalIgnoreCase) || EventStampName.StartsWith("gm-prod", StringComparison.OrdinalIgnoreCase)))
+                {
+                    return "EventStampName should start with 'rgm-prod' or 'gm-prod'";
+                }
+                if (TotalSubs <= 0)
+                {
+                    return "TotalSubs should be greater than 0.";
+                }
+                if (ImpactThreshold <= 0)
+                {
+                    return "ImpactThreshold should be greater than 0.";
+                }
+
+                return null;
+            }
+        }
+
+        public class StampApiImpactAlertResult : IValidatableAlertResult
+        {
+            public string EventStampName { get; set; } = string.Empty;
+            public string SourceNamespace { get; set; } = string.Empty;
+
+            public string? Validate()
+            {
+                if (string.IsNullOrWhiteSpace(EventStampName) || !EventStampName.StartsWith("waws-prod", StringComparison.OrdinalIgnoreCase))
+                {
+                    return "EventStampName should start with 'waws-prod'";
+                }
+                if (string.IsNullOrWhiteSpace(SourceNamespace))
+                {
+                    return "SourceNamespace cannot be null or empty.";
+                }
+
+                return null;
+            }
         }
 
         [AttributeUsage(AttributeTargets.Property)]
@@ -394,6 +685,24 @@ namespace FirstPartyAgent.Core.Plugins
             {
                 Index = index;
             }
+        }
+
+        private class GeoApiSubsImpactAllLogEntry
+        {
+            [LogField(0)]
+            public DateTime PreciseTimeStamp { get; set; }
+
+            [LogField(1)]
+            public double PercentImpactedSubs { get; set; } = 0.0;
+
+            [LogField(2)]
+            public int IsLowImpact { get; set; } = 0;
+
+            [LogField(3)]
+            public int LowImpactStreak { get; set; } = 0;
+
+            [LogField(4)]
+            public int HasRecovered { get; set; } = 0;
         }
 
         private class OpBelow90LogEntry
@@ -436,5 +745,31 @@ namespace FirstPartyAgent.Core.Plugins
             [LogField(4)]
             public double Availability { get; set; }
         }
+
+
+        private class StampApiImpactLogEntry
+        {
+            [LogField(0)]
+            public DateTime Timestamp { get; set; } = DateTime.MinValue;
+
+            [LogField(1)]
+            public double PercentImpactedSubs { get; set; } = -1;
+
+            [LogField(2)]
+            public double Percent409ImpactedSubs { get; set; } = -1;
+
+            [LogField(3)]
+            public int IsLowImpactSubs { get; set; } = 0;
+
+            [LogField(4)]
+            public int IsLowImpactSubs409 { get; set; } = 0;
+
+            [LogField(5)]
+            public int LowImpactStreak { get; set; } = 0;
+
+            [LogField(6)]
+            public int HasRecovered { get; set; } = 0;
+        }
+
     }
 }

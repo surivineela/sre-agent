@@ -1,9 +1,11 @@
 {
+  // operation below 90 percent
+  // This is the Alert Configuration for https://azurealerting.trafficmanager.net/alert/dbee4297-3491-4bac-92f8-5471208ff66d
   "AgentName": "ControlPlaneAgent",
   "AlertingId": "dbee4297-3491-4bac-92f8-5471208ff66d",
   "AgentMode": "ControlPlane",
   "ActionTimeoutIntervalInMinutes": 15,
-  "DefaultHumanInterventionLoop": "App Service (Web Apps)/Windows Azure Websites Servicing",
+  "DefaultHumanInterventionLoop": "App Service (Web Apps)/App Service Sev 2 Triage",
   "UseCorrelationIdForKustoQuery": true,
   "IncidentTitleContains": "(operation below 90 percent)",
   "ValidationQuery": "let et = <QueryExecutedAtTimeStamp>;\nlet st = et - 1h;\nAntaresAdminGeoEvents\n| where PreciseTimeStamp > st\n| where PreciseTimeStamp < et\n| where EventId == 40006\n| where <TargettedVerbTemplateCombinations>\n| summarize totalReqs = count(), failedReqs = countif(StatusCode >= 500) by bin(PreciseTimeStamp, 5m), Verb, AddressTemplate, EventStampName\n| extend availability = 100 - (failedReqs * 100.0 / totalReqs)\n| extend isRegionalGeomaster = IsRegionalGeomasterByEventStampName(EventStampName)\n| extend availThreshold = iff(isRegionalGeomaster == true, 80, 90)\n| extend isBelowThreshold = availability < availThreshold\n| order by AddressTemplate asc, PreciseTimeStamp asc, Verb asc, EventStampName asc",

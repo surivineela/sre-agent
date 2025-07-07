@@ -1,9 +1,11 @@
 {
+  // Public Stamp below 90% API Success
+  // This is the Alert Configuration for https://azurealerting.trafficmanager.net/alert/245c5900-d024-479f-9768-8aa8f1beb28e
   "AgentName": "ControlPlaneAgent",
   "AlertingId": "245c5900-d024-479f-9768-8aa8f1beb28e",
   "AgentMode": "ControlPlane",
   "ActionTimeoutIntervalInMinutes": 15,
-  "DefaultHumanInterventionLoop": "App Service (Web Apps)/Windows Azure Websites Servicing",
+  "DefaultHumanInterventionLoop": "App Service (Web Apps)/App Service Sev 2 Triage",
   "UseCorrelationIdForKustoQuery": true,
   "IncidentTitleContains": "(Public Stamp below 90% API Success)",
   "ValidationQuery": "let timeEnd = <QueryExecutedAtTimeStamp>;\nlet timeSt = timeEnd - 1h;\nlet affectedStamp = '<AffectedStamp>';\nAntaresAdminGeoEvents\n| where PreciseTimeStamp > timeSt\n| where PreciseTimeStamp < timeEnd\n| where EventStampName == \"<EventStampName>\"\n| where EventId == 40006 and StampName == affectedStamp\n| project PreciseTimeStamp, StatusCode, StampName, SubscriptionId\n| summarize totalReqs = count() , failedReqs = countif(StatusCode >= 500) by bin(PreciseTimeStamp, 5m), StampName\n| extend availability = 100 - (failedReqs * 100.0 / totalReqs)\n| order by PreciseTimeStamp asc",

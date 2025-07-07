@@ -1,0 +1,460 @@
+{
+  "id": "934dd77b-34b3-47ce-aa91-9c99dbeec680",
+  "ServiceName": "App Service (Web Apps)",
+  "ServiceId": "10060",
+  "IsAutoApproved": false,
+  "CreatedBy": "shmani@microsoft.com",
+  "LastUpdated": "2025-02-07T22:55:54.4081596+00:00",
+  "Title": "GeomasterApiSubscriptionImpactAllRequests",
+  "Description": "<p>the number of impacted subscriptions exceeded the threshold in the last 30 minutes for alerting. <strong>This will create an auto-post</strong>. The thresholds are different. <strong>ARM data is used for comms</strong> and only subs with 5 or more request with status 429 or 5xx are notified. You can get this list by <strong>executing the function GeoSubImpact</strong> in our central or west us Kusto clusters. The call looks like the below, just update the datetime to the incident start time. This alert should correlate to the NonGet alert and only post once.</p><div class=\"ql-code-block-container\" spellcheck=\"false\"><div class=\"ql-code-block\" data-language=\"plain\">Execute: [Web] [Web (Lens)] [Desktop] [Desktop (SAW)] https://wawscus.kusto.windows.net:443/wawsprod GeoSubImpact(datetime(2018-11-07 20:00:00), now())</div></div><p><br></p><p>Geomaster dashboard link:&nbsp;<a href=\"https://jarvis-west.dc.ad.msft.net/dashboard/WAWS/Deployments/Regional%2520GeoMaster%2520check\" target=\"_blank\">https://jarvis-west.dc.ad.msft.net/dashboard/WAWS/Deployments/Regional%2520GeoMaster%2520check</a>&nbsp;(<strong>Make sure to select the correct cluster and eventstampname!!!</strong>)</p><p><br></p><p><strong style=\"color: rgb(80, 80, 80);\">Mitigation:&nbsp;</strong><a href=\"about:blank\" target=\"_blank\">TSG: GeomasterApiSubscriptionImpactAllRequests </a>&nbsp;(<a href=\"https://microsoft.sharepoint.com/teams/Antares/_layouts/OneNote.aspx?id=%2Fteams%2FAntares%2FShared%20Documents%2FServicing%2FWAWS%20Servicing%20Handbook&amp;wd=target%28Internal%20TSG.one%7C2F88A99A-3E89-45BA-82F7-EC793A605F47%2FTSG%3A%20GeomasterApiSubscriptionImpactAllRequests%7C3AA48510-C0C9-48CC-9935-7AC14FAE3F3B%2F%29\" target=\"_blank\">Web view</a>)</p><p>If the above mitigation does not help and the CPU usage on the geomaster or stamp database is very high - use this TSG to mitigate:</p><p><a href=\"about:blank\" target=\"_blank\">TSG: SQL investigations - High CPU usage on Hosting or Geomaster database</a>&nbsp;(<a href=\"https://microsoft.sharepoint.com/teams/Antares/_layouts/OneNote.aspx?id=%2Fteams%2FAntares%2FShared%20Documents%2FServicing%2FWAWS%20Servicing%20Handbook&amp;wd=target%28Internal%20TSG.one%7C2F88A99A-3E89-45BA-82F7-EC793A605F47%2FTSG%3A%20SQL%20investigations%20-%20High%20CPU%20usage%20on%20Hosting%20or%7CDA95536A-B80F-4C21-9656-7C3C3CF136B0%2F%29\" target=\"_blank\">Web view</a>)</p><p><br></p><p><span style=\"color: rgb(80, 80, 80);\">If this does not help then involve the Control Plane team - </span><strong>Antares Management Loop</strong> Team in ICM.</p>",
+  "Clouds": [],
+  "MinimumHitCount": 1,
+  "Tags": [
+    "v1migration",
+    "app service (web apps)",
+    "shmani",
+    "icm",
+    "sev2",
+    "qianxing",
+    "naveeda",
+    "suwatch",
+    "rukulkar",
+    "randerson",
+    "rohinisharma",
+    "joechung",
+    "benbyrd",
+    "vkarasala",
+    "trevorloula"
+  ],
+  "PrimaryKustoQuery": {
+    "Title": "Primary kusto query",
+    "KustoQuery": "AntaresAdminGeoEvents 
+| where TIMESTAMP > ago(30m)
+| where EventId == 40006
+| where Address !contains \"/resourceGroups/Learn-\" // Ignoring requests from internal customer until they finish cleanup (see ICM 136373940)
+| where Address !contains '/Microsoft.DomainRegistration'
+| where Address !contains '/Microsoft.Web/billingMeters'
+| where ClientAppId !in (\"8edd93e1-2103-40b4-bd70-6e34e586362d\", \"1d78a85d-813d-46f0-b496-dd72f50a3ec0\", \"83e638ef-7885-479f-bbe8-9150acccdb3d\", 
+                        \"8edd93e1-2103-40b4-bd70-6e34e586362d\", \"8bdebf23-c0fe-4187-a378-717ad86f6a53\", \"509e4652-da8d-478d-a730-e9d4a1996ca4\",
+                        \"11c174dc-1945-4a9a-a36b-c79a0f246b9b\", \"544c7d8d-0634-424d-a512-31de515f1108\" // Ignore 429s - IcM 357850558
+                        )
+| extend TargetHostName = replace_regex(TargetHostName, \":[0-9]+\", \"\") // Collapse target hostnames with and without ports into 1
+| where IsGeomasterByEventStampName(EventStampName)
+| project Verb, StatusCode, ApiType, EventId, SubscriptionId , EventStampName, AddressTemplate, SourceNamespace, TargetHostName, ExtendedErrorCode
+| summarize totalReqs = count() , failedReqs = countif(StatusCode >= 500 or (StatusCode == 429 and ExtendedErrorCode !in (51020,59207))) by SubscriptionId, EventStampName, SourceNamespace, TargetHostName
+| extend availability = 100-(failedReqs*100.0/totalReqs)
+| summarize totalSubs = count(), affectedSubs = countif(availability < 100) by EventStampName, SourceNamespace, TargetHostName
+| extend impact = affectedSubs*100.0/ totalSubs 
+| extend impactThreshold = GetSubImpactThresholdByEventStampNameAndTotalSubs(EventStampName, totalSubs)
+| where impact > impactThreshold and affectedSubs > 5
+| where totalSubs > 10
+| extend TargetLocation = substring(TargetHostName, 0, indexof(TargetHostName, \".\"))
+| where TargetLocation !endswith \"-cs\" // Exclude the -CS proxy endpoint - only used during IP migration for geomasters and can cause false alarms to fire
+| extend CorrelationId = iff(IsRegionalGeomasterByEventStampName(EventStampName) and TargetLocation != replace_string(EventStampName, \"rgm-prod-\", \"\")
+    , strcat(\"rgm-prod-\", TargetLocation), EventStampName)
+| extend MonitorId = strcat(SourceNamespace, iif(EventStampName contains \"int\", \"Not\", \"\")
+    , \"ApiAutoPost\")
+    , CorrelationId
+    , titlePrefix = iif(SourceNamespace startswith \"waws\" and EventStampName !contains \"int\", \"[AppServiceCP][AutoComms],\", \"[AppServiceCP],\")
+| project-away SourceNamespace",
+    "IsGraphInReport": false,
+    "Position": 0
+  },
+  "MooncakeKustoQuery": {
+    "Title": "Primary kusto query",
+    "KustoQuery": "AntaresAdminGeoEvents 
+| where TIMESTAMP > ago(30m)
+| where EventId == 40006
+| where Address !contains \"/resourceGroups/Learn-\" // Ignoring requests from internal customer until they finish cleanup (see ICM 136373940)
+| where Address !contains '/Microsoft.DomainRegistration'
+| where Address !contains '/Microsoft.Web/billingMeters'
+| where ClientAppId !in (\"8edd93e1-2103-40b4-bd70-6e34e586362d\", \"1d78a85d-813d-46f0-b496-dd72f50a3ec0\", \"83e638ef-7885-479f-bbe8-9150acccdb3d\", 
+                        \"8edd93e1-2103-40b4-bd70-6e34e586362d\", \"8bdebf23-c0fe-4187-a378-717ad86f6a53\", \"509e4652-da8d-478d-a730-e9d4a1996ca4\",
+                        \"11c174dc-1945-4a9a-a36b-c79a0f246b9b\", \"544c7d8d-0634-424d-a512-31de515f1108\" // Ignore 429s - IcM 357850558
+                        )
+| extend TargetHostName = replace_regex(TargetHostName, \":[0-9]+\", \"\") // Collapse target hostnames with and without ports into 1
+| where IsGeomasterByEventStampName(EventStampName)
+| project Verb, StatusCode, ApiType, EventId, SubscriptionId , EventStampName, AddressTemplate, SourceNamespace, TargetHostName, ExtendedErrorCode
+| summarize totalReqs = count() , failedReqs = countif(StatusCode >= 500 or (StatusCode == 429 and AddressTemplate != 'subscriptions/{subscriptionId}')) by SubscriptionId, EventStampName, SourceNamespace, TargetHostName
+| extend availability = 100-(failedReqs*100.0/totalReqs)
+| summarize totalSubs = count(), affectedSubs = countif(availability < 100) by EventStampName, SourceNamespace, TargetHostName
+| extend impact = affectedSubs*100.0/ totalSubs 
+| extend impactThreshold = GetSubImpactThresholdByEventStampNameAndTotalSubs(EventStampName, totalSubs)
+| where impact > impactThreshold and affectedSubs > 5
+| where totalSubs > 10
+| extend TargetLocation = substring(TargetHostName, 0, indexof(TargetHostName, \".\"))
+| where TargetLocation !endswith \"-cs\" // Exclude the -CS proxy endpoint - only used during IP migration for geomasters and can cause false alarms to fire
+| extend CorrelationId = iff(IsRegionalGeomasterByEventStampName(EventStampName) and TargetLocation != replace_string(EventStampName, \"rgm-prod-\", \"\")
+    , strcat(\"rgm-prod-\", TargetLocation), EventStampName)
+| extend MonitorId = strcat(SourceNamespace, iif(EventStampName contains \"int\", \"Not\", \"\")
+    , \"ApiAutoPost\")
+    , CorrelationId
+    , titlePrefix = iif(SourceNamespace startswith \"waws\" and EventStampName !contains \"int\", \"[AppServiceCP][AutoComms],\", \"[AppServiceCP],\")
+| project-away SourceNamespace",
+    "IsGraphInReport": false,
+    "Position": 0
+  },
+  "MooncakeKustoClusters": [
+    {
+      "Cloud": "Mooncake",
+      "ServiceName": "App Service (Web Apps)",
+      "Cluster": "cnwsbjs20",
+      "Database": "cnwsprod",
+      "Description": "Mooncake Kusto",
+      "BackupCluster": null,
+      "FollowerCluster": null,
+      "ClusterSuffix": "chinanorth2.kusto.chinacloudapi.cn",
+      "UseSts": null
+    }
+  ],
+  "FairfaxKustoQuery": {
+    "Title": "Primary kusto query",
+    "KustoQuery": "AntaresAdminGeoEvents 
+| where TIMESTAMP > ago(30m)
+| where EventId == 40006
+| where Address !contains \"/resourceGroups/Learn-\" // Ignoring requests from internal customer until they finish cleanup (see ICM 136373940)
+| where Address !contains '/Microsoft.DomainRegistration'
+| where Address !contains '/Microsoft.Web/billingMeters'
+| where ClientAppId !in (\"8edd93e1-2103-40b4-bd70-6e34e586362d\", \"1d78a85d-813d-46f0-b496-dd72f50a3ec0\", \"83e638ef-7885-479f-bbe8-9150acccdb3d\", 
+                        \"8edd93e1-2103-40b4-bd70-6e34e586362d\", \"8bdebf23-c0fe-4187-a378-717ad86f6a53\", \"509e4652-da8d-478d-a730-e9d4a1996ca4\",
+                        \"11c174dc-1945-4a9a-a36b-c79a0f246b9b\", \"544c7d8d-0634-424d-a512-31de515f1108\" // Ignore 429s - IcM 357850558
+                        )
+| extend TargetHostName = replace_regex(TargetHostName, \":[0-9]+\", \"\") // Collapse target hostnames with and without ports into 1
+| where IsGeomasterByEventStampName(EventStampName)
+| project Verb, StatusCode, ApiType, EventId, SubscriptionId , EventStampName, AddressTemplate, SourceNamespace, TargetHostName, ExtendedErrorCode
+| summarize totalReqs = count() , failedReqs = countif(StatusCode >= 500 or (StatusCode == 429 and AddressTemplate != 'subscriptions/{subscriptionId}')) by SubscriptionId, EventStampName, SourceNamespace, TargetHostName
+| extend availability = 100-(failedReqs*100.0/totalReqs)
+| summarize totalSubs = count(), affectedSubs = countif(availability < 100) by EventStampName, SourceNamespace, TargetHostName
+| extend impact = affectedSubs*100.0/ totalSubs 
+| extend impactThreshold = GetSubImpactThresholdByEventStampNameAndTotalSubs(EventStampName, totalSubs)
+| where impact > impactThreshold and affectedSubs > 5
+| where totalSubs > 10
+| extend TargetLocation = substring(TargetHostName, 0, indexof(TargetHostName, \".\"))
+| where TargetLocation !endswith \"-cs\" // Exclude the -CS proxy endpoint - only used during IP migration for geomasters and can cause false alarms to fire
+| extend CorrelationId = iff(IsRegionalGeomasterByEventStampName(EventStampName) and TargetLocation != replace_string(EventStampName, \"rgm-prod-\", \"\")
+    , strcat(\"rgm-prod-\", TargetLocation), EventStampName)
+| extend MonitorId = strcat(SourceNamespace, iif(EventStampName contains \"int\", \"Not\", \"\")
+    , \"ApiAutoPost\")
+    , CorrelationId
+    , titlePrefix = iif(SourceNamespace startswith \"waws\" and EventStampName !contains \"int\", \"[AppServiceCP][AutoComms],\", \"[AppServiceCP],\")
+| project-away SourceNamespace",
+    "IsGraphInReport": false,
+    "Position": 0
+  },
+  "FairfaxKustoClusters": [
+    {
+      "Cloud": "Fairfax",
+      "ServiceName": "App Service (Web Apps)",
+      "Cluster": "gcwsbn1ff",
+      "Database": "gcwsprod",
+      "Description": "Fairfax Kusto",
+      "BackupCluster": null,
+      "FollowerCluster": null,
+      "ClusterSuffix": "kusto.usgovcloudapi.net",
+      "UseSts": null
+    }
+  ],
+  "UssecKustoQuery": {
+    "Title": "Primary kusto query",
+    "KustoQuery": "AntaresAdminGeoEvents 
+| where TIMESTAMP > ago(30m)
+| where EventId == 40006
+| where Address !contains \"/resourceGroups/Learn-\" // Ignoring requests from internal customer until they finish cleanup (see ICM 136373940)
+| where Address !contains '/Microsoft.DomainRegistration'
+| where Address !contains '/Microsoft.Web/billingMeters'
+| where ClientAppId !in (\"8edd93e1-2103-40b4-bd70-6e34e586362d\", \"1d78a85d-813d-46f0-b496-dd72f50a3ec0\", \"83e638ef-7885-479f-bbe8-9150acccdb3d\", 
+                        \"8edd93e1-2103-40b4-bd70-6e34e586362d\", \"8bdebf23-c0fe-4187-a378-717ad86f6a53\", \"509e4652-da8d-478d-a730-e9d4a1996ca4\")
+| extend TargetHostName = replace(\":[0-9]+\", \"\", TargetHostName) // Collapse target hostnames with and without ports into 1
+| where IsGeomasterByEventStampName(EventStampName)
+| project Verb, StatusCode, ApiType, EventId, SubscriptionId , EventStampName, AddressTemplate, SourceNamespace, TargetHostName
+| summarize totalReqs = count() , failedReqs = countif(StatusCode >= 500 or (StatusCode == 429 and AddressTemplate != 'subscriptions/{subscriptionId}')) by SubscriptionId, EventStampName, SourceNamespace, TargetHostName
+| extend availability = 100-(failedReqs*100.0/totalReqs)
+| summarize totalSubs = count(), affectedSubs = countif(availability< 100) by EventStampName, SourceNamespace, TargetHostName
+| extend impact = affectedSubs*100.0/ totalSubs 
+| extend impactThreshold = GetSubImpactThresholdByEventStampNameAndTotalSubs(EventStampName, totalSubs)
+| where impact > impactThreshold and affectedSubs > 5
+| where totalSubs > 10
+| extend TargetLocation = substring(TargetHostName, 0, indexof(TargetHostName, \".\"))
+| extend CorrelationId = iff(IsRegionalGeomasterByEventStampName(EventStampName) and TargetLocation != replace(\"rgm-prod-\",\"\",EventStampName), strcat(\"rgm-prod-\", TargetLocation), EventStampName)
+| extend MonitorId = strcat(SourceNamespace, \"ApiAutoPost\"), CorrelationId, titlePrefix = iif(SourceNamespace startswith \"waws\", \"[AppServiceCP][AutoComms],\", \"[AppServiceCP],\")
+| project-away SourceNamespace",
+    "IsGraphInReport": false,
+    "Position": 0
+  },
+  "UssecKustoClusters": [
+    {
+      "Cloud": "USSec",
+      "ServiceName": "App Service (Web Apps)",
+      "Cluster": "antareseast.usseceast",
+      "Database": "antaresprod",
+      "Description": "USSec East Kusto",
+      "BackupCluster": null,
+      "FollowerCluster": null,
+      "ClusterSuffix": "kusto.core.microsoft.scloud",
+      "UseSts": null
+    },
+    {
+      "Cloud": "USSec",
+      "ServiceName": "App Service (Web Apps)",
+      "Cluster": "antareswest.ussecwest",
+      "Database": "antaresprod",
+      "Description": "USSec West Kusto",
+      "BackupCluster": null,
+      "FollowerCluster": null,
+      "ClusterSuffix": "kusto.core.microsoft.scloud",
+      "UseSts": null
+    }
+  ],
+  "UsnatKustoQuery": {
+    "Title": "Primary kusto query",
+    "KustoQuery": "AntaresAdminGeoEvents 
+| where TIMESTAMP > ago(30m)
+| where EventId == 40006
+| where Address !contains \"/resourceGroups/Learn-\" // Ignoring requests from internal customer until they finish cleanup (see ICM 136373940)
+| where Address !contains '/Microsoft.DomainRegistration'
+| where Address !contains '/Microsoft.Web/billingMeters'
+| where ClientAppId !in (\"8edd93e1-2103-40b4-bd70-6e34e586362d\", \"1d78a85d-813d-46f0-b496-dd72f50a3ec0\", \"83e638ef-7885-479f-bbe8-9150acccdb3d\", 
+                        \"8edd93e1-2103-40b4-bd70-6e34e586362d\", \"8bdebf23-c0fe-4187-a378-717ad86f6a53\", \"509e4652-da8d-478d-a730-e9d4a1996ca4\")
+| extend TargetHostName = replace(\":[0-9]+\", \"\", TargetHostName) // Collapse target hostnames with and without ports into 1
+| where IsGeomasterByEventStampName(EventStampName)
+| project Verb, StatusCode, ApiType, EventId, SubscriptionId , EventStampName, AddressTemplate, SourceNamespace, TargetHostName
+| summarize totalReqs = count() , failedReqs = countif(StatusCode >= 500 or (StatusCode == 429 and AddressTemplate != 'subscriptions/{subscriptionId}' and EventStampName != \"rgm-prod-cpt20\")) by SubscriptionId, EventStampName, SourceNamespace, TargetHostName
+| extend availability = 100-(failedReqs*100.0/totalReqs)
+| summarize totalSubs = count(), affectedSubs = countif(availability< 100) by EventStampName, SourceNamespace, TargetHostName
+| extend impact = affectedSubs*100.0/ totalSubs 
+| extend impactThreshold = GetSubImpactThresholdByEventStampNameAndTotalSubs(EventStampName, totalSubs)
+| where impact > impactThreshold and affectedSubs > 5
+| where totalSubs > 10
+| extend TargetLocation = substring(TargetHostName, 0, indexof(TargetHostName, \".\"))
+| extend CorrelationId = iff(IsRegionalGeomasterByEventStampName(EventStampName) and TargetLocation != replace(\"rgm-prod-\",\"\",EventStampName), strcat(\"rgm-prod-\", TargetLocation), EventStampName)
+| extend MonitorId = strcat(SourceNamespace, \"ApiAutoPost\"), CorrelationId, titlePrefix = iif(SourceNamespace startswith \"waws\", \"[AppServiceCP][AutoComms],\", \"[AppServiceCP],\")
+| project-away SourceNamespace",
+    "IsGraphInReport": false,
+    "Position": 0
+  },
+  "UsnatKustoClusters": [
+    {
+      "Cloud": "USNat",
+      "ServiceName": "App Service (Web Apps)",
+      "Cluster": "antareseast.usnateast",
+      "Database": "antaresprod",
+      "Description": "USNat East Kusto",
+      "BackupCluster": null,
+      "FollowerCluster": null,
+      "ClusterSuffix": "kusto.core.eaglex.ic.gov",
+      "UseSts": null
+    },
+    {
+      "Cloud": "USNat",
+      "ServiceName": "App Service (Web Apps)",
+      "Cluster": "antareswest.usnatwest",
+      "Database": "antaresprod",
+      "Description": "USNat West Kusto",
+      "BackupCluster": null,
+      "FollowerCluster": null,
+      "ClusterSuffix": "kusto.core.eaglex.ic.gov",
+      "UseSts": null
+    }
+  ],
+  "SecondaryKustoQueries": [
+    {
+      "Title": "Geomaster Dashboard",
+      "KustoQuery": "AntaresAdminGeoEvents | extend dashboardLink = iff(\"{correlationId}\" == \"gm-prod-sn1\", \"https://jarvis-west.dc.ad.msft.net/dashboard/WAWS/Deployments/WAWS%2520Geomaster%2520Check\",\"\") | extend dashboardLink = iff(\"{correlationId}\" startswith \"rgm\", strcat(\"https://jarvis-west.dc.ad.msft.net/dashboard/WAWS/Deployments/Regional%2520GeoMaster%2520check?overrides=[{%22query%22:%22//*[id=%27eventStampName%27]%22,%22key%22:%22value%22,%22replacement%22:%22\",\"{correlationId}\",\"%22}\"), dashboardLink) | project dashboardLink | take 1",
+      "IsGraphInReport": false,
+      "Position": 1
+    },
+    {
+      "Title": "Impacted Subscriptions 30 min aggregate",
+      "KustoQuery": "AntaresAdminGeoEvents | where TIMESTAMP > ago(6h) | where EventStampName == \"{correlationId}\" | where EventId == 40006 | project Verb, StatusCode, ApiType, EventId, SubscriptionId , PreciseTimeStamp , EventStampName | summarize totalReqs = count() , failedReqs = countif(StatusCode >= 500 or StatusCode == 429) by SubscriptionId , bin(PreciseTimeStamp, 30m), EventStampName | extend availability = 100-(failedReqs*100.0/totalReqs) | summarize affectedSubs = countif(availability< 100) by bin(PreciseTimeStamp, 30m), EventStampName",
+      "IsGraphInReport": false,
+      "Position": 2
+    },
+    {
+      "Title": "Geomaster Database CPU",
+      "KustoQuery": "DBStatsFiveMinuteTable | where TIMESTAMP > ago(6h) and DatabaseName == \"geomaster\" and CounterName == \"Avg CPU Percent\" | where Source==\"Primary\" | project EndTimeStamp , CounterValue, CorrelationId = EventStampName",
+      "IsGraphInReport": true,
+      "Position": 3
+    },
+    {
+      "Title": "Incoming Request rate",
+      "KustoQuery": "AntaresAdminGeoEvents | where TIMESTAMP > ago(6h) | where EventStampName == \"{correlationId}\" | where EventId == 40006 | summarize requests = count() by bin(TIMESTAMP, 1m), EventStampName",
+      "IsGraphInReport": true,
+      "Position": 4
+    },
+    {
+      "Title": "Geomaster Exceptions",
+      "KustoQuery": "AntaresAdminGeoEvents | where TIMESTAMP > ago(6h) | where EventStampName == \"{correlationId}\" | where Level == 2 | project TIMESTAMP , EventMessage, Exception, EventStampName | summarize ExceptionCount = count(), SqlExceptionCount = countif(Exception contains \"SqlException\") by bin(TIMESTAMP, 1m), EventStampName",
+      "IsGraphInReport": true,
+      "Position": 5
+    },
+    {
+      "Title": "SubscriptionImpact",
+      "KustoQuery": "AntaresAdminGeoEvents | where TIMESTAMP > ago(30m) | where EventStampName == \"{correlationId}\" | where EventId == 40006 | project Verb, StatusCode, ApiType, EventId, SubscriptionId , EventStampName | summarize totalReqs = count() , failedReqs = countif(StatusCode >= 500 or StatusCode == 429) by SubscriptionId , EventStampName | extend availability = 100-(failedReqs*100.0/totalReqs) | summarize totalSubs = count(), affectedSubs = countif(availability< 100) by EventStampName | extend impact = affectedSubs*100.0/ totalSubs",
+      "IsGraphInReport": false,
+      "Position": 6
+    },
+    {
+      "Title": "Geomaster CPU",
+      "KustoQuery": "StatsCounterFiveMinuteTable | where EventStampName == \"{correlationId}\" and TIMESTAMP > ago(6h) | where Role == \"GeoMasterRole\" | where CounterName contains \"Total\" and CounterName contains \"Processor Time\" | order by TIMESTAMP desc | summarize avg(CounterValue) by bin(TIMESTAMP, 5m)",
+      "IsGraphInReport": true,
+      "Position": 7
+    },
+    {
+      "Title": "Failures by Stamp",
+      "KustoQuery": "AntaresAdminGeoEvents | where TIMESTAMP > ago(30m) | where EventId == 40006 and EventStampName == \"{correlationId}\" and (StatusCode >= 500 or StatusCode == 429) | extend StampName = iff(StampName == \"\", \"Geomaster\", split(StampName, \".\")[0]) | summarize count() by StampName | order by count_ desc | where count_ > 50 | limit 5",
+      "IsGraphInReport": false,
+      "Position": 8
+    },
+    {
+      "Title": "Availability",
+      "KustoQuery": "AntaresAdminGeoEvents | where EventStampName == \"{correlationId}\" and TIMESTAMP > ago(6h) and EventId == 40006 | extend Ok=iif(StatusCode<500 and StatusCode != 429,100.0,0.0) | summarize avg(Ok) by bin(TIMESTAMP, 1m)",
+      "IsGraphInReport": true,
+      "Position": 9
+    }
+  ],
+  "UssecSecondaryKustoQueries": [
+    {
+      "Title": "Geomaster Dashboard",
+      "KustoQuery": "AntaresAdminGeoEvents | extend dashboardLink = iff(\"{correlationId}\" == \"gm-prod-sn1\", \"https://jarvis-west.dc.ad.msft.net/dashboard/WAWS/Deployments/WAWS%2520Geomaster%2520Check\",\"\") | extend dashboardLink = iff(\"{correlationId}\" startswith \"rgm\", strcat(\"https://jarvis-west.dc.ad.msft.net/dashboard/WAWS/Deployments/Regional%2520GeoMaster%2520check?overrides=[{%22query%22:%22//*[id=%27eventStampName%27]%22,%22key%22:%22value%22,%22replacement%22:%22\",\"{correlationId}\",\"%22}\"), dashboardLink) | project dashboardLink | take 1",
+      "IsGraphInReport": false,
+      "Position": 0
+    },
+    {
+      "Title": "Impacted Subscriptions 30 min aggregate",
+      "KustoQuery": "AntaresAdminGeoEvents | where TIMESTAMP > ago(6h) | where EventStampName == \"{correlationId}\" | where EventId == 40006 | project Verb, StatusCode, ApiType, EventId, SubscriptionId , PreciseTimeStamp , EventStampName | summarize totalReqs = count() , failedReqs = countif(StatusCode >= 500 or StatusCode == 429) by SubscriptionId , bin(PreciseTimeStamp, 30m), EventStampName | extend availability = 100-(failedReqs*100.0/totalReqs) | summarize affectedSubs = countif(availability< 100) by bin(PreciseTimeStamp, 30m), EventStampName",
+      "IsGraphInReport": false,
+      "Position": 1
+    },
+    {
+      "Title": "Geomaster Database CPU",
+      "KustoQuery": "DBStatsFiveMinuteTable | where TIMESTAMP > ago(6h) and DatabaseName == \"geomaster\" and CounterName == \"Avg CPU Percent\" | where Source==\"Primary\" | project EndTimeStamp , CounterValue, CorrelationId = EventStampName",
+      "IsGraphInReport": true,
+      "Position": 2
+    },
+    {
+      "Title": "Incoming Request rate",
+      "KustoQuery": "AntaresAdminGeoEvents | where TIMESTAMP > ago(6h) | where EventStampName == \"{correlationId}\" | where EventId == 40006 | summarize requests = count() by bin(TIMESTAMP, 1m), EventStampName",
+      "IsGraphInReport": true,
+      "Position": 3
+    },
+    {
+      "Title": "Geomaster Exceptions",
+      "KustoQuery": "AntaresAdminGeoEvents | where TIMESTAMP > ago(6h) | where EventStampName == \"{correlationId}\" | where Level == 2 | project TIMESTAMP , EventMessage, Exception, EventStampName | summarize ExceptionCount = count(), SqlExceptionCount = countif(Exception contains \"SqlException\") by bin(TIMESTAMP, 1m), EventStampName",
+      "IsGraphInReport": true,
+      "Position": 4
+    },
+    {
+      "Title": "SubscriptionImpact",
+      "KustoQuery": "AntaresAdminGeoEvents | where TIMESTAMP > ago(30m) | where EventStampName == \"{correlationId}\" | where EventId == 40006 | project Verb, StatusCode, ApiType, EventId, SubscriptionId , EventStampName | summarize totalReqs = count() , failedReqs = countif(StatusCode >= 500 or StatusCode == 429) by SubscriptionId , EventStampName | extend availability = 100-(failedReqs*100.0/totalReqs) | summarize totalSubs = count(), affectedSubs = countif(availability< 100) by EventStampName | extend impact = affectedSubs*100.0/ totalSubs",
+      "IsGraphInReport": false,
+      "Position": 5
+    },
+    {
+      "Title": "Geomaster CPU",
+      "KustoQuery": "StatsCounterFiveMinuteTable | where EventStampName == \"{correlationId}\" and TIMESTAMP > ago(6h) | where Role == \"GeoMasterRole\" | where CounterName contains \"Total\" and CounterName contains \"Processor Time\" | order by TIMESTAMP desc | summarize avg(CounterValue) by bin(TIMESTAMP, 5m)",
+      "IsGraphInReport": true,
+      "Position": 6
+    },
+    {
+      "Title": "Failures by Stamp",
+      "KustoQuery": "AntaresAdminGeoEvents | where TIMESTAMP > ago(30m) | where EventId == 40006 and EventStampName == \"{correlationId}\" and (StatusCode >= 500 or StatusCode == 429) | extend StampName = iff(StampName == \"\", \"Geomaster\", split(StampName, \".\")[0]) | summarize count() by StampName | order by count_ desc | where count_ > 50 | limit 5",
+      "IsGraphInReport": false,
+      "Position": 7
+    },
+    {
+      "Title": "Availability",
+      "KustoQuery": "AntaresAdminGeoEvents | where EventStampName == \"{correlationId}\" and TIMESTAMP > ago(6h) and EventId == 40006 | extend Ok=iif(StatusCode<500 and StatusCode != 429,100.0,0.0) | summarize avg(Ok) by bin(TIMESTAMP, 1m)",
+      "IsGraphInReport": true,
+      "Position": 8
+    }
+  ],
+  "UsnatSecondaryKustoQueries": [
+    {
+      "Title": "Geomaster Dashboard",
+      "KustoQuery": "AntaresAdminGeoEvents | extend dashboardLink = iff(\"{correlationId}\" == \"gm-prod-sn1\", \"https://jarvis-west.dc.ad.msft.net/dashboard/WAWS/Deployments/WAWS%2520Geomaster%2520Check\",\"\") | extend dashboardLink = iff(\"{correlationId}\" startswith \"rgm\", strcat(\"https://jarvis-west.dc.ad.msft.net/dashboard/WAWS/Deployments/Regional%2520GeoMaster%2520check?overrides=[{%22query%22:%22//*[id=%27eventStampName%27]%22,%22key%22:%22value%22,%22replacement%22:%22\",\"{correlationId}\",\"%22}\"), dashboardLink) | project dashboardLink | take 1",
+      "IsGraphInReport": false,
+      "Position": 0
+    },
+    {
+      "Title": "Impacted Subscriptions 30 min aggregate",
+      "KustoQuery": "AntaresAdminGeoEvents | where TIMESTAMP > ago(6h) | where EventStampName == \"{correlationId}\" | where EventId == 40006 | project Verb, StatusCode, ApiType, EventId, SubscriptionId , PreciseTimeStamp , EventStampName | summarize totalReqs = count() , failedReqs = countif(StatusCode >= 500 or StatusCode == 429) by SubscriptionId , bin(PreciseTimeStamp, 30m), EventStampName | extend availability = 100-(failedReqs*100.0/totalReqs) | summarize affectedSubs = countif(availability< 100) by bin(PreciseTimeStamp, 30m), EventStampName",
+      "IsGraphInReport": false,
+      "Position": 1
+    },
+    {
+      "Title": "Geomaster Database CPU",
+      "KustoQuery": "DBStatsFiveMinuteTable | where TIMESTAMP > ago(6h) and DatabaseName == \"geomaster\" and CounterName == \"Avg CPU Percent\" | where Source==\"Primary\" | project EndTimeStamp , CounterValue, CorrelationId = EventStampName",
+      "IsGraphInReport": true,
+      "Position": 2
+    },
+    {
+      "Title": "Incoming Request rate",
+      "KustoQuery": "AntaresAdminGeoEvents | where TIMESTAMP > ago(6h) | where EventStampName == \"{correlationId}\" | where EventId == 40006 | summarize requests = count() by bin(TIMESTAMP, 1m), EventStampName",
+      "IsGraphInReport": true,
+      "Position": 3
+    },
+    {
+      "Title": "Geomaster Exceptions",
+      "KustoQuery": "AntaresAdminGeoEvents | where TIMESTAMP > ago(6h) | where EventStampName == \"{correlationId}\" | where Level == 2 | project TIMESTAMP , EventMessage, Exception, EventStampName | summarize ExceptionCount = count(), SqlExceptionCount = countif(Exception contains \"SqlException\") by bin(TIMESTAMP, 1m), EventStampName",
+      "IsGraphInReport": true,
+      "Position": 4
+    },
+    {
+      "Title": "SubscriptionImpact",
+      "KustoQuery": "AntaresAdminGeoEvents | where TIMESTAMP > ago(30m) | where EventStampName == \"{correlationId}\" | where EventId == 40006 | project Verb, StatusCode, ApiType, EventId, SubscriptionId , EventStampName | summarize totalReqs = count() , failedReqs = countif(StatusCode >= 500 or StatusCode == 429) by SubscriptionId , EventStampName | extend availability = 100-(failedReqs*100.0/totalReqs) | summarize totalSubs = count(), affectedSubs = countif(availability< 100) by EventStampName | extend impact = affectedSubs*100.0/ totalSubs",
+      "IsGraphInReport": false,
+      "Position": 5
+    },
+    {
+      "Title": "Geomaster CPU",
+      "KustoQuery": "StatsCounterFiveMinuteTable | where EventStampName == \"{correlationId}\" and TIMESTAMP > ago(6h) | where Role == \"GeoMasterRole\" | where CounterName contains \"Total\" and CounterName contains \"Processor Time\" | order by TIMESTAMP desc | summarize avg(CounterValue) by bin(TIMESTAMP, 5m)",
+      "IsGraphInReport": true,
+      "Position": 6
+    },
+    {
+      "Title": "Failures by Stamp",
+      "KustoQuery": "AntaresAdminGeoEvents | where TIMESTAMP > ago(30m) | where EventId == 40006 and EventStampName == \"{correlationId}\" and (StatusCode >= 500 or StatusCode == 429) | extend StampName = iff(StampName == \"\", \"Geomaster\", split(StampName, \".\")[0]) | summarize count() by StampName | order by count_ desc | where count_ > 50 | limit 5",
+      "IsGraphInReport": false,
+      "Position": 7
+    },
+    {
+      "Title": "Availability",
+      "KustoQuery": "AntaresAdminGeoEvents | where EventStampName == \"{correlationId}\" and TIMESTAMP > ago(6h) and EventId == 40006 | extend Ok=iif(StatusCode<500 and StatusCode != 429,100.0,0.0) | summarize avg(Ok) by bin(TIMESTAMP, 1m)",
+      "IsGraphInReport": true,
+      "Position": 8
+    }
+  ],
+  "QueryType": 0,
+  "AlertState": 1,
+  "PRLink": null,
+  "StandardTime": 0,
+  "CustomTimes": null,
+  "Cron": "*/10 * * * *",
+  "Actions": [
+    {
+      "Severity": 2,
+      "RoutingID": "WAWS://Vendors",
+      "TeamAssignedTo": "Antares Vendors Loop"
+    }
+  ],
+  "skipValidation": false,
+  "KustoClusters": [
+    {
+      "Cloud": "Public",
+      "ServiceName": "",
+      "Cluster": "All",
+      "Database": "wawsprod",
+      "Description": "",
+      "BackupCluster": "",
+      "FollowerCluster": "",
+      "ClusterSuffix": "",
+      "UseSts": ""
+    }
+  ],
+  "ProdPipelineLink": null,
+  "ProdState": 0,
+  "AlertApprovers": null,
+  "ModifiedBy": "naveeda@microsoft.com",
+  "ApprovalDocumentId": null,
+  "ApprovalDocumentUri": null
+}
