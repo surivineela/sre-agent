@@ -100,9 +100,7 @@ public class Program
 {
     public static async Task Main(string[] args)
     {
-        var builder = CreateWebApplicationBuilder(args);
-
-        WebApplication app = builder.Build();
+        WebApplication app = CreateWebApplicationBuilder(args).Build();
 
         using (var scope = app.Services.CreateScope())
         {
@@ -198,18 +196,6 @@ public class Program
         });
 
         await app.RunAsync();
-
-        ResourceBuilder resourceBuilder = ResourceBuilder
-            .CreateDefault()
-            .AddService(serviceName: app.Environment.ApplicationName, serviceVersion: "0.0.1")
-            .AddAttributes(new Dictionary<string, object>
-            {
-                ["environment.name"] = app.Environment.EnvironmentName,
-                ["team.name"] = "backend"
-            });
-
-        using TracerProvider tracerProvider = GetTracerProvider(resourceBuilder, azureSettings, loggingSettings);
-        using MeterProvider meterProvider = GetMeterProvider(resourceBuilder, azureSettings);
     }
 
     public static WebApplicationBuilder CreateWebApplicationBuilder(string[] args)
