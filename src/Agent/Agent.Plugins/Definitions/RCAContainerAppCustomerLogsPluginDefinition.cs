@@ -101,13 +101,13 @@ Use this tool to get the volume of apps and jobs in the environment.
 Output: Returns tab-separated table data in CSV format. The first line contains column headers.
 """
 )]
-        public Task<string> GetAppsAndjobsVolumeForEnv(
+        public Task<string> GetAppOrJobVolumeForEnv(
             [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
         {
-            return _kustoPlugin.ExecuteLocalFunctionAsync("GetAppsAndjobsVolumeForEnv", region,
+            return _kustoPlugin.ExecuteLocalFunctionAsync("GetAppOrJobVolumeForEnv", region,
             new Dictionary<string, string> {
                 { "fromDate", fromDate.ToString() },
                 { "toDate", toDate.ToString() },
@@ -370,7 +370,7 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
         {
-            return _kustoPlugin.ExecuteLocalFunctionAsync("GetFluentbitOutputErrorsForApp", region,
+            return _kustoPlugin.ExecuteLocalFunctionAsync("GetFluentBitOutputErrorsForApp", region,
             new Dictionary<string, string> {
                 { "region", region.ToString() },
                 { "fromDate", fromDate.ToString() },
