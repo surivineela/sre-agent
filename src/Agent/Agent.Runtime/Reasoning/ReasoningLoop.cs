@@ -522,7 +522,7 @@ public class ReasoningLoop : IDisposable
         {
             var runHooks = CreateRunHooks();
 
-            ToolStatic.AsyncLocalThreadId.Value = _context.ThreadId;
+            Agent.Core.ToolStatic.AsyncLocalThreadId.Value = _context.ThreadId;
 
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -907,7 +907,7 @@ public class ReasoningLoop : IDisposable
                 _context.AgentHandoffChain.Add(handoffAgent.Name);
                 _context = await _threadRepository.UpdateAgentContextAsync(_context);
             },
-            OnToolStart = (context, agent, tool, input) =>
+            OnToolStart = async (context, agent, tool, input) =>
             {
                 _logger.LogInternalInformation("Trace Starting tool: {ToolName} for agent: {AgentName}", tool.Name, agent.Name);
                 _currentToolSpan = _tracer.StartActiveSpan($"tool.{tool.Name}", SpanKind.Internal, _currentAgentSpan);
@@ -926,15 +926,46 @@ public class ReasoningLoop : IDisposable
                     duration: 0,
                     threadId: _context.ThreadId.ToString(),
                     subagent: agent.Name);
-                return Task.CompletedTask;
+
+                // Stream auto tools to avoid missing them (manual tools are handled separately)
+                if (((AIFunction)tool).GetToolMode() == ToolMode.Auto)
+                {
+                    var callId = Agent.Framework.ToolStatic.AsyncLocalFunctionCallId.Value;
+                    if (!string.IsNullOrEmpty(callId))
+                    {
+                        _logger.LogInternalInformation("Streaming auto tool call: {ToolName} with CallId: {CallId}", tool.Name, callId);
+                        var toolCallMessageId = Guid.NewGuid();
+                        await _outboundCommunicationService.AppendAgentToolCallMessage(_context.ThreadId, (AIFunction)tool, toolCallMessageId, callId);
+                        
+                        // Store the message ID for OnToolEnd to use
+                        Agent.Framework.ToolStatic.AsyncLocalToolCallMessageId.Value = toolCallMessageId;
+                    }
+                }
             },
-            OnToolEnd = (context, agent, tool, output) =>
+            OnToolEnd = async (context, agent, tool, output) =>
             {
                 _logger.LogInternalInformation("Trace Ending tool: {ToolName} for agent: {AgentName}", tool.Name, agent.Name);
                 _currentToolSpan?.SetAttribute(TraceAttribute.ToolOutput, output?.ToString() ?? string.Empty);
                 _currentToolSpan?.End();
                 _currentToolSpan = null;
-                return Task.CompletedTask;
+
+                // Stream auto tool results to complete the streaming flow
+                if (((AIFunction)tool).GetToolMode() == ToolMode.Auto)
+                {
+                    var callId = Agent.Framework.ToolStatic.AsyncLocalFunctionCallId.Value;
+                    var toolCallMessageId = Agent.Framework.ToolStatic.AsyncLocalToolCallMessageId.Value;
+                    
+                    if (!string.IsNullOrEmpty(callId) && toolCallMessageId.HasValue)
+                    {
+                        _logger.LogInternalInformation("Streaming auto tool result: {ToolName} with CallId: {CallId}", tool.Name, callId);
+                        var result = new FunctionResultContent(callId, output);
+                        await _outboundCommunicationService.AppendAgentToolCallResult(_context.ThreadId, result, toolCallMessageId.Value);
+                        
+                        // Clear the stored IDs for next tool
+                        Agent.Framework.ToolStatic.AsyncLocalFunctionCallId.Value = null;
+                        Agent.Framework.ToolStatic.AsyncLocalToolCallMessageId.Value = null;
+                    }
+                }
             },
             OnModelGenerationStart = (context, agent, messages, chatOptions) =>
             {
@@ -1024,10 +1055,10 @@ public class ReasoningLoop : IDisposable
         try
         {
             // Set the cancellation token for plugins to use
-            ToolStatic.AsyncLocalCancellationToken.Value = cancellationToken;
+            Agent.Core.ToolStatic.AsyncLocalCancellationToken.Value = cancellationToken;
             Guid toolCallMessageId = Guid.NewGuid();
 
-            await _outboundCommunicationService.AppendAgentToolCallMessage(_context.ThreadId, aiTool, toolCallMessageId);
+            await _outboundCommunicationService.AppendAgentToolCallMessage(_context.ThreadId, aiTool, toolCallMessageId, functionCall.CallId);
             var functionResult = await aiTool.InvokeAsync(new AIFunctionArguments(functionCall.Arguments), cancellationToken);
             var result = new FunctionResultContent(functionCall.CallId, functionResult);
             var functionCallMessage = new ChatMessage(ChatRole.Tool, [result]);
@@ -1126,7 +1157,7 @@ public class ReasoningLoop : IDisposable
                             UseOboToken: approvalAttr.UseOboToken && string.Compare(_AgentRuntimeModifier.GetThreadAgentMode(_context), ActionMode.Review.ToString(), StringComparison.OrdinalIgnoreCase) == 0
                         );
 
-                        ToolStatic.AsyncLocalApprovalContext.Value = approvalContext;
+                        Agent.Core.ToolStatic.AsyncLocalApprovalContext.Value = approvalContext;
                     }
 
                     await ExecuteToolAsync(agentChatHistory, aiTool, functionCall, cancellationToken);
@@ -1349,8 +1380,8 @@ public class ReasoningLoop : IDisposable
     {
         try
         {
-            ToolStatic.AsyncLocalThreadId.Value = _context.ThreadId;
-            ToolStatic.AsyncLocalCancellationToken.Value = cancellationToken;
+            Agent.Core.ToolStatic.AsyncLocalThreadId.Value = _context.ThreadId;
+            Agent.Core.ToolStatic.AsyncLocalCancellationToken.Value = cancellationToken;
             return await toolCall.Tool.InvokeAsync(new AIFunctionArguments(toolCall.FunctionCall.Arguments), cancellationToken);
         }
         catch (Exception ex)

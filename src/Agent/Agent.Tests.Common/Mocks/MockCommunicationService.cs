@@ -55,7 +55,7 @@ namespace Agent.Tests.Common.Mocks
             return Task.CompletedTask;
         }
 
-        public Task AppendAgentToolCallMessage(Guid threadId, AIFunction aiTool, Guid? messageId = null, CancellationToken cancellationToken = default)
+        public Task AppendAgentToolCallMessage(Guid threadId, AIFunction aiTool, Guid? messageId = null, string? callId = null, CancellationToken cancellationToken = default)
         {
             Messages.Add(aiTool.Name);
             return Task.CompletedTask;

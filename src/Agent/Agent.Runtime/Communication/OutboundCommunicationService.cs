@@ -13,6 +13,7 @@ using Agent.Runtime.Helpers;
 using Microsoft.Bot.Schema;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
+using ToolStatic = Agent.Core.ToolStatic;
 
 namespace Agent.Runtime.Communication;
 
@@ -208,7 +209,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         return UpdateThreadWithAgentMessageAsync(context, new(ChatRole.Assistant, message));
     }
 
-    public async Task AppendAgentToolCallMessage(Guid threadId, AIFunction aiTool, Guid? messageId = null, CancellationToken cancellationToken = default)
+    public async Task AppendAgentToolCallMessage(Guid threadId, AIFunction aiTool, Guid? messageId = null, string? callId = null, CancellationToken cancellationToken = default)
     {
         if (threadId == Guid.Empty)
         {
@@ -245,7 +246,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
 
             // Use the streaming service abstraction to send the ChatUpdateResponse
             string userDisplayedToolDescription = ToolDescriptionHelper.GetUserDescriptionForFunctionCallName(aiTool.Name);
-            var functionCallContent = new FunctionCallContent(threadId.ToString(), "operation");
+            var functionCallContent = new FunctionCallContent(callId ?? threadId.ToString(), "operation");
             functionCallContent.AdditionalProperties = new AdditionalPropertiesDictionary
             {
                 { "userDescription", userDisplayedToolDescription }

@@ -640,6 +640,9 @@ public static class Runner
                         agentAsTool.RunConfig = runConfig;
                         agentAsTool.RunHooks = hooks;
 
+                        // Store CallId for streaming 
+                        ToolStatic.AsyncLocalFunctionCallId.Value = functionCall.CallId;
+
                         await hooks.OnToolStart(contextWrapper, agent, agentAsTool, functionCall.Arguments);
 
                         var toolResult = await agentAsTool.InvokeAsync(new AIFunctionArguments(functionCall.Arguments));
@@ -674,6 +677,9 @@ public static class Runner
                     }
                     else if (tool.GetToolMode() == ToolMode.Auto)
                     {
+                        // Store CallId for streaming correlation
+                        ToolStatic.AsyncLocalFunctionCallId.Value = functionCall.CallId;
+
                         // run auto tool
                         await hooks.OnToolStart(contextWrapper, agent, tool, functionCall.Arguments);
 
@@ -709,6 +715,9 @@ public static class Runner
                     }
                     else
                     {
+                        // Store CallId for streaming correlation
+                        ToolStatic.AsyncLocalFunctionCallId.Value = functionCall.CallId;
+
                         // return manual tool call result
                         await hooks.OnToolStart(contextWrapper, agent, tool, functionCall.Arguments);
 
