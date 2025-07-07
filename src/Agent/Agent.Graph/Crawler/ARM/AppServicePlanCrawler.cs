@@ -3,8 +3,6 @@
 // ------------------------------------------------------------
 
 using Agent.Data.DatabaseClients.GraphDbClient;
-using Agent.Logging;
-using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.AppService;
 using Azure.ResourceManager.Resources;
@@ -32,7 +30,7 @@ public class AppServicePlanCrawler : GenericArmResourceCrawler
         }
 
         var aspNode = (AppServicePlanNode)node;
-        _logger.LogDebug($"Crawling App Service Plan {aspNode.ResourceId}");
+        _logger.LogInternalInformation($"Crawling App Service Plan {aspNode.ResourceId}");
 
         var resourceGroupId = ResourceGroupResource.CreateResourceIdentifier(aspNode.SubscriptionId, aspNode.ResourceGroupName);
         var resourceGroup = _armClient.GetResourceGroupResource(resourceGroupId);

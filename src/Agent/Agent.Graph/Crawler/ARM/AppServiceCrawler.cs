@@ -4,7 +4,6 @@
 
 using System.Text.Json;
 using Agent.Data.DatabaseClients.GraphDbClient;
-using Agent.Logging;
 using Azure;
 using Azure.Core;
 using Azure.ResourceManager;
@@ -38,7 +37,7 @@ public class AppServiceCrawler : GenericArmResourceCrawler
         }
 
         var appServiceNode = (AppServiceNode)node;
-        _logger.LogDebug($"Crawling App Service {appServiceNode.ResourceId}");
+        _logger.LogInternalInformation($"Crawling App Service {appServiceNode.ResourceId}");
 
         var armResourceId = new ResourceIdentifier(appServiceNode.ResourceId);
         var resourceGroupId = ResourceGroupResource.CreateResourceIdentifier(armResourceId.SubscriptionId, armResourceId.ResourceGroupName);
@@ -99,7 +98,7 @@ public class AppServiceCrawler : GenericArmResourceCrawler
                 }
 
                 var metadata = GetStackVersion(webConfig.Data);
-                
+
                 appServiceNode.SkuName = appServicePlanData?.Sku?.Name;
                 appServiceNode.SkuTier = appServicePlanData?.Sku?.Tier;
                 appServiceNode.SkuSize = appServicePlanData?.Sku?.Size;
@@ -266,7 +265,7 @@ public class AppServiceCrawler : GenericArmResourceCrawler
         if (!string.IsNullOrEmpty(webApp.Data.AppServicePlanId))
         {
             AppServicePlanNode appServicePlanNode = null;
-            
+
             try
             {
                 var planId = new ResourceIdentifier(webApp.Data.AppServicePlanId);
@@ -298,7 +297,7 @@ public class AppServiceCrawler : GenericArmResourceCrawler
             {
                 _logger.LogInternalWarning($"Error processing app service plan for {appServiceNode.ResourceId}: {ex.Message}");
             }
-            
+
             if (appServicePlanNode != null)
             {
                 yield return appServicePlanNode;
@@ -310,7 +309,7 @@ public class AppServiceCrawler : GenericArmResourceCrawler
         {
             ArmResourceNode subnetNode = null;
             ArmResourceNode vnetNode = null;
-            
+
             try
             {
                 var subnetId = new ResourceIdentifier(webApp.Data.VirtualNetworkSubnetId);
@@ -335,24 +334,24 @@ public class AppServiceCrawler : GenericArmResourceCrawler
 
                 var vnetResourceId = subnetId.Parent;
                 vnetNode = new ArmResourceNode(
-                    vnetResourceId.ResourceType, 
-                    vnetResourceId.ToString(), 
-                    vnetResourceId.SubscriptionId, 
-                    vnetResourceId.ResourceGroupName, 
+                    vnetResourceId.ResourceType,
+                    vnetResourceId.ToString(),
+                    vnetResourceId.SubscriptionId,
+                    vnetResourceId.ResourceGroupName,
                     vnetResourceId.Name);
-                    
+
                 await _graphDbClient.AddOrUpdateNodeAsync(vnetNode);
             }
             catch (Exception ex)
             {
                 _logger.LogInternalWarning($"Error processing VNet for {appServiceNode.ResourceId}: {ex.Message}");
             }
-            
+
             if (subnetNode != null)
             {
                 yield return subnetNode;
             }
-            
+
             if (vnetNode != null)
             {
                 yield return vnetNode;
@@ -406,7 +405,7 @@ public class AppServiceCrawler : GenericArmResourceCrawler
             {
                 _logger.LogInternalWarning($"Error processing connection string in app setting {name} for {appServiceNode.ResourceId}: {ex.Message}");
             }
-            
+
             // Yield resources outside of the try/catch block
             if (sqlNode != null)
             {
@@ -417,7 +416,7 @@ public class AppServiceCrawler : GenericArmResourceCrawler
             {
                 yield return postgreSqlNode;
             }
-            
+
             if (redisNode != null)
             {
                 yield return redisNode;
@@ -553,10 +552,10 @@ public class AppServiceCrawler : GenericArmResourceCrawler
         try
         {
             // Fix for CS1503 error - Convert BinaryData to string if necessary
-            string configString = data.Config is BinaryData binaryData 
-                ? binaryData.ToString() 
+            string configString = data.Config is BinaryData binaryData
+                ? binaryData.ToString()
                 : data.Config?.ToString();
-                
+
             if (string.IsNullOrEmpty(configString))
             {
                 return new AppServiceNode.Function

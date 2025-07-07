@@ -11,7 +11,7 @@ public sealed class MetaAgentOutput : IAgentOutput
     [Description(
         """
         Use this space to think step-by-step about the problem you're solving, formulate a plan, your current trajectory, reflecting on agent handoff outputs, and deciding next steps.
-        You may mention other agents and handoffs etc in this field.
+        You may mention other agents, tool names, handoffs etc in this field.
         """)]
     public required string ReasoningScratchPad { get; set; }
 
@@ -20,7 +20,7 @@ public sealed class MetaAgentOutput : IAgentOutput
         Presented to the user. Use this space to keep the user posted of your activity. It may be summary of your plan, handoffs, ask for guidance, ask for option selection, or final answer to their query.
         While processing the query, it should be concise, to the point, and relevant to the user query investigation, within 2-3 sentences.
         When state is CompletedSuccessfully or RequestFailed, it should scale with the investigation. For short ones 2-3 sentence summary is fine. For more involved investigations it may be upto 7-8 sentences long explaining in detail the actions taken and result gathered and any help / guidance needed.
-        You must NOT mention other agents or the flow of control or handoffs in this field.
+        You must NOT mention other agents or the flow of control or handoffs or tool names in this field.
         """)]
     public required string NotifyUserMessage { get; set; }
 

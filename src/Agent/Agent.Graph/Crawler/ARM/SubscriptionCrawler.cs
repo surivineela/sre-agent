@@ -26,7 +26,7 @@ public class SubscriptionCrawler : IResourceCrawler
     public async IAsyncEnumerable<GraphNode> Crawl(GraphNode node)
     {
         var subNode = (SubscriptionNode)node;
-        _logger.LogDebug($"Crawling for subscription {subNode.SubscriptionId}");
+        _logger.LogInternalInformation($"Crawling for subscription {subNode.SubscriptionId}");
 
         var subArmId = SubscriptionResource.CreateResourceIdentifier(subNode.SubscriptionId);
         var subResource = _armClient.GetSubscriptionResource(subArmId);

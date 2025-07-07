@@ -6,7 +6,6 @@ using System.Net;
 using System.Text.Json;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Interfaces;
-using Agent.Logging;
 using Azure;
 using Azure.Core;
 using Azure.ResourceManager;
@@ -45,7 +44,7 @@ public class GenericArmResourceCrawler : IResourceCrawler
     public virtual async IAsyncEnumerable<GraphNode> Crawl(GraphNode node)
     {
         var armNode = (ArmResourceNode)node;
-        _logger.LogDebug($"Crawling generic ARM resource {armNode.ResourceId}");
+        _logger.LogInternalInformation($"Crawling generic ARM resource {armNode.ResourceId}");
         if (armNode.ResourceType.Contains("microsoft.containerservice/daemonSet") || armNode.ResourceType.Contains("microsoft.containerservice/deployment"))
         {
             yield break;

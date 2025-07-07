@@ -3,7 +3,6 @@
 // ------------------------------------------------------------
 
 using Agent.Data.DatabaseClients.GraphDbClient;
-using Agent.Logging;
 using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.PostgreSql.FlexibleServers;
@@ -30,7 +29,7 @@ public class PostgreSqlFlexServerCrawler : GenericArmResourceCrawler
             yield return n;
         }
         var postgreSqlNode = (PostgreSqlFlexServerNode)node;
-        _logger.LogDebug($"Crawling PostgreSQL Flexible Server {postgreSqlNode.ResourceId}");
+        _logger.LogInternalInformation($"Crawling PostgreSQL Flexible Server {postgreSqlNode.ResourceId}");
 
         var armResourceId = new ResourceIdentifier(postgreSqlNode.ResourceId);
         var databaseList = new List<ArmResourceNode>();

@@ -4,7 +4,6 @@
 
 using System.Text.Json;
 using Agent.Data.DatabaseClients.GraphDbClient;
-using Agent.Logging;
 using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.AppContainers;
@@ -35,7 +34,7 @@ public class ContainerAppEnvironmentCrawler : GenericArmResourceCrawler
         }
 
         var envNode = (ContainerAppEnvironmentNode)node;
-        _logger.LogDebug($"Crawling container app environment: {envNode.ResourceId}");
+        _logger.LogInternalInformation($"Crawling container app environment: {envNode.ResourceId}");
 
         var rgResourceId = ResourceGroupResource.CreateResourceIdentifier(envNode.SubscriptionId, envNode.ResourceGroupName);
         var rgResource = _armClient.GetResourceGroupResource(rgResourceId);

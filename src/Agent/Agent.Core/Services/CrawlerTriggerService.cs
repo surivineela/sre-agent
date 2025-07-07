@@ -5,10 +5,7 @@
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
-using Agent.Logging;
-using Azure.ResourceManager;
 using Microsoft.Extensions.Logging;
-using Octokit;
 
 namespace Agent.Core.Services
 {
@@ -16,6 +13,7 @@ namespace Agent.Core.Services
     {
         public abstract string GetResourceId();
     }
+
     public class ArmResourceTriggerItem : TriggerItem
     {
         public string ResourceId { get; }
@@ -67,6 +65,7 @@ namespace Agent.Core.Services
         {
             return $"{ClusterResourceId}/{Namespace}/{Group}/{ApiVersion}/{Kind}/{ResourceName}";
         }
+
         public override int GetHashCode()
         {
             return GetResourceId().GetHashCode(StringComparison.InvariantCultureIgnoreCase);

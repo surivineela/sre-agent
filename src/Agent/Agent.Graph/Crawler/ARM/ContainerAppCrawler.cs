@@ -5,7 +5,6 @@
 using System.Text.Json;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Helpers;
-using Agent.Logging;
 using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.AppContainers;
@@ -42,7 +41,7 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
         }
 
         var cappNode = (ContainerAppNode)node;
-        _logger.LogDebug($"Crawling Container App {cappNode.ResourceId}");
+        _logger.LogInternalInformation($"Crawling Container App {cappNode.ResourceId}");
 
         var rgResourceId = ResourceGroupResource.CreateResourceIdentifier(cappNode.SubscriptionId, cappNode.ResourceGroupName);
         var rgResource = _armClient.GetResourceGroupResource(rgResourceId);

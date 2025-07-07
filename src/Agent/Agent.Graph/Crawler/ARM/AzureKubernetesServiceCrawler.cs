@@ -2,16 +2,15 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json;
 using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
-using Agent.Logging;
-using Azure.ResourceManager;
 using Azure.Core;
+using Azure.ResourceManager;
+using Azure.ResourceManager.ContainerService;
 using k8s;
 using k8s.Models;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
-using Azure.ResourceManager.ContainerService;
 
 namespace Agent.Graph.Crawler.ARM;
 
@@ -43,7 +42,7 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
         await _graphDbClient.AddOrUpdateNodeAsync(clusterNode);
 
         var aksNode = (AksNode)clusterNode;
-        _logger.LogDebug($"Crawling Kubernetes cluster: {aksNode.GetNodeId()}");
+        _logger.LogInternalInformation($"Crawling Kubernetes cluster: {aksNode.GetNodeId()}");
 
         // Get AKS cluster details to extract network, identity, and disk information
         List<GraphNode> extractedNodes = new List<GraphNode>();

@@ -14,7 +14,6 @@ using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler;
 using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Schema;
-using Agent.Logging;
 using Agent.Plugins.Interface;
 using Azure.Core;
 using Gremlin.Net.Driver;
@@ -33,14 +32,14 @@ namespace Agent.Plugins
 {
     public class GraphDBPlugin : IGraphDBPlugin
     {
-        public IGraphDatabaseClient GraphDbClient { get; }
-        public IChatClient ChatClient { get; }
-
         // Using ThreadContext from your original code. When a thread ID is needed, we pull it from here.
         public Guid? ThreadId { get; set; }
 
+        private readonly IGraphDatabaseClient _graphDbClient;
+        private readonly AzureResourceGraphClient _azureResourceGraphClient;
+        private readonly IChatClient _chatClient;
         private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
-        public ILogger<GraphDBPlugin> _logger { get; }
+        private readonly ILogger<GraphDBPlugin> _logger;
 
         // Additional fields for health dashboard screenshot and LLM summarization
         private readonly string _grafanaUrl;
@@ -65,6 +64,7 @@ namespace Agent.Plugins
 
         public GraphDBPlugin(
             IGraphDatabaseClient graphDbClient,
+            AzureResourceGraphClient azureResourceGraphClient,
             IChatClient chatClient,
             DashboardSettings dashboardSettings,
             IAgentOutboundCommunicationService agentOutboundCommunicationService,
@@ -73,8 +73,9 @@ namespace Agent.Plugins
             CrawlerSettings crawlerSettings,
             IHostEnvironment hostEnvironment)
         {
-            GraphDbClient = graphDbClient;
-            ChatClient = chatClient;
+            _graphDbClient = graphDbClient;
+            _azureResourceGraphClient = azureResourceGraphClient;
+            _chatClient = chatClient;
             _agentOutboundCommunicationService = agentOutboundCommunicationService;
             _logger = logger;
             _dashboardSettings = dashboardSettings;
@@ -97,7 +98,7 @@ namespace Agent.Plugins
         [Description("Run a generic query against the graph database. Do NOT perform any write operations.")]
         public async Task<ResultSet<dynamic>> Query(string query)
         {
-            return await GraphDbClient.Query(query);
+            return await _graphDbClient.Query(query);
         }
 
         public async Task<string> FindAllNetworkConnectedResources(string resourceId = "")
@@ -125,7 +126,7 @@ namespace Agent.Plugins
       .by(valueMap())
 ";
 
-                var results = await GraphDbClient.Query(query);
+                var results = await _graphDbClient.Query(query);
                 return JsonSerializer.Serialize(results, new JsonSerializerOptions { WriteIndented = true });
             }
             catch (Exception ex)
@@ -283,7 +284,7 @@ Strict Requirements:
 Input JSON:
 {jsonResult}
 """;
-                    var response = await ChatClient.GetResponseAsync(prompt, new ChatOptions { Temperature = 0.2f });
+                    var response = await _chatClient.GetResponseAsync(prompt, new ChatOptions { Temperature = 0.2f });
                     var mermaidSpec = response.Text;
                     _logger.LogInternalInformation($"Generated Mermaid specification successfully: {mermaidSpec}");
 
@@ -396,7 +397,7 @@ graph LR
     A[Resource1] --> B[Resource2]
     B --> C[Resource3]
 Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'. Do not include any markdown formatting, code fences, or additional text.";
-                    var response = await ChatClient.GetResponseAsync(prompt);
+                    var response = await _chatClient.GetResponseAsync(prompt);
                     var mermaidSpec = response.Text;
                     _logger.LogInternalInformation("Generated Mermaid specification successfully");
 
@@ -501,7 +502,7 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
 .path().by(valueMap('resourceName', 'resourceType'))";
 
                 _logger.LogInternalInformation($"Executing AKS microservice topology query for resource: {resourceId}, namespace: {namespaceName}, deployment: {deploymentName ?? "all"}");
-                return await GraphDbClient.Query(query);
+                return await _graphDbClient.Query(query);
             }
             catch (Exception ex)
             {
@@ -694,7 +695,7 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
                 // Format the resource node ID
                 var resourceNodeId = CrawlerExtensions.GetSanitizedCosmosDBId(resourceId);                // Check if the resource node exists
                 string query = $@"g.V().hasId('{resourceNodeId}').has('isDeleted', false)";
-                var resourceNodeResults = await GraphDbClient.Query(query);
+                var resourceNodeResults = await _graphDbClient.Query(query);
 
                 if (!resourceNodeResults.Any())
                 {
@@ -722,14 +723,14 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
                 };
 
                 // Create the auth configuration node
-                await GraphDbClient.AddOrUpdateNodeAsync(
+                await _graphDbClient.AddOrUpdateNodeAsync(
                     "resource_auth_config",
                     configNodeId,
                     "resource_auth_config",
                     properties);
 
                 // Create an edge from the resource node to the auth configuration node
-                await GraphDbClient.AddOrUpdateEdgeAsync(
+                await _graphDbClient.AddOrUpdateEdgeAsync(
                     resourceNodeId,
                     configNodeId,
                     "HAS_AUTH_CONFIG");
@@ -751,14 +752,14 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
                 var containerAppNodeId = resourceId.ToLower().Replace("/", "_");
                 string vertexFilter = $"hasId('{containerAppNodeId}')";
                 string query = $@"g.V().{vertexFilter}.has('isDeleted', false)";
-                var containerAppNodeResults = await GraphDbClient.Query(query);
+                var containerAppNodeResults = await _graphDbClient.Query(query);
                 if (!containerAppNodeResults.Any())
                 {
                     return;
                 }
 
                 string sourceCodeNodeId = repoUrl.ToLower().Replace("/", "_"); string checkSourceCodeNodeQuery = $"g.V('{sourceCodeNodeId}').hasLabel('microsoft.source/repository').has('isDeleted', false)";
-                var sourceCodeNodeResults = await GraphDbClient.Query(checkSourceCodeNodeQuery);
+                var sourceCodeNodeResults = await _graphDbClient.Query(checkSourceCodeNodeQuery);
 
                 if (!sourceCodeNodeResults.Any())
                 {
@@ -771,10 +772,10 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
                         { "updateTs", DateTime.UtcNow.Ticks }
                     };
 
-                    await GraphDbClient.AddOrUpdateNodeAsync("microsoft.source/repository", sourceCodeNodeId, "microsoft.source/repository", properties);
+                    await _graphDbClient.AddOrUpdateNodeAsync("microsoft.source/repository", sourceCodeNodeId, "microsoft.source/repository", properties);
                 }
 
-                await GraphDbClient.AddOrUpdateEdgeAsync(containerAppNodeId, sourceCodeNodeId, Constants.Relationships.ServesCode);
+                await _graphDbClient.AddOrUpdateEdgeAsync(containerAppNodeId, sourceCodeNodeId, Constants.Relationships.ServesCode);
             }
             catch (Exception ex)
             {
@@ -784,7 +785,7 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
 
         public async Task<List<string>> GetContainerAppsWithNodesWithoutSourceCodeNodesAsync()
         {
-            var queryResults = await GraphDbClient.Query(@"                g.V().has('resourceType', 'microsoft.app/containerapps').has('isDeleted', false)
+            var queryResults = await _graphDbClient.Query(@"                g.V().has('resourceType', 'microsoft.app/containerapps').has('isDeleted', false)
                 .not(outE().hasLabel('SERVES_CODE').inV().has('resourceType', 'microsoft.source/repository').has('isDeleted', false))
                 .values('resourceId')");
 
@@ -795,7 +796,7 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
 
         public async Task UpdateRepoNodeWithLastScanTime(string repoUrl)
         {
-            var queryResults = await GraphDbClient.Query($@"                g.V().has('resourceId', '{repoUrl}').has('isDeleted', false)
+            var queryResults = await _graphDbClient.Query($@"                g.V().has('resourceId', '{repoUrl}').has('isDeleted', false)
                 .values('id', 'label', 'resourceId', 'subscriptionId', 'resourceGroupName', 'resourceName', 'updateTs', 'resourceType')");
             var propertiesArray = queryResults.ToList();
             var id = (string)propertiesArray[0];
@@ -817,7 +818,7 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
                 { "lastScanTime", DateTime.UtcNow }
             };
 
-            await GraphDbClient.AddOrUpdateNodeAsync(label, id, resourceType, properties);
+            await _graphDbClient.AddOrUpdateNodeAsync(label, id, resourceType, properties);
         }
 
         public async Task<Dictionary<string, object>> GetResourceBasicProperties(string resourceId)
@@ -832,7 +833,7 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
                 .by(coalesce(values('location'), constant('unknown')))
                 ";
 
-            var results = await GraphDbClient.Query<Dictionary<string, object>>(query);
+            var results = await _graphDbClient.Query<Dictionary<string, object>>(query);
 
             return results.FirstOrDefault(new Dictionary<string, object>());
         }
@@ -845,14 +846,14 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
             }
             var query = $@"g.V('{CrawlerExtensions.GetSanitizedCosmosDBId(resourceId.ToLower())}').has('isDeleted', false).properties().as('p').group().by(select('p').key()).by(select('p').value())";
 
-            var results = await GraphDbClient.Query<Dictionary<string, object>>(query);
+            var results = await _graphDbClient.Query<Dictionary<string, object>>(query);
             return results.FirstOrDefault(new Dictionary<string, object>());
         }
 
         public async Task<string> GetResourceIdForResourceName(string resourceName, string resourceType)
         {
             var query = $@"g.V().has(""resourceName"", ""{resourceName.ToLower()}"").has(""resourceType"", ""{resourceType.ToLower()}"").has('isDeleted', false).values('resourceId')";
-            var results = await GraphDbClient.Query<string>(query);
+            var results = await _graphDbClient.Query<string>(query);
             return results.FirstOrDefault("");
         }
 
@@ -1045,7 +1046,7 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
                     _logger.LogInternalInformation("Will take {take} resources of type '{ResourceType}'", take, actualGraphResourceType);
                 }
 
-                var result = await GraphDbClient.Query(sb.ToString());
+                var result = await _graphDbClient.Query(sb.ToString());
                 var resources = new List<Dictionary<string, object>>();
 
                 foreach (var item in result)
@@ -1101,7 +1102,7 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
                 .by(values('resourceId'))
 ";
 
-                var result = await GraphDbClient.Query(query);
+                var result = await _graphDbClient.Query(query);
                 var resources = new List<ArmResourceNode>();
 
                 foreach (var item in result)
@@ -1156,7 +1157,7 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
 ";
 
                 // Use the raw result directly
-                var result = await GraphDbClient.Query(query);
+                var result = await _graphDbClient.Query(query);
 
                 // Create a composite key for each resource considering multiple dimensions
                 // Resources are unique if they differ by any of: subscription, resource group, resource type,
@@ -1254,7 +1255,7 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
             {
                 string resourceIdFilter = string.Join(",", _crawlRoots.Select(r => $@"has('resourceId', startingWith('{r.ToLower()}'))"));
                 string query = !string.IsNullOrEmpty(resourceIdFilter) ? $@"g.V().has('isDeleted', false).or({resourceIdFilter}).groupCount().by(label())" : $@"g.V().has('isDeleted', false).groupCount().by(label())";
-                var result = await GraphDbClient.Query<Dictionary<string, object>>(query);
+                var result = await _graphDbClient.Query<Dictionary<string, object>>(query);
 
                 if (result is null || result.Count == 0)
                 {
@@ -1298,7 +1299,7 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
                 .count()
             ";
 
-                    var result = await GraphDbClient.Query(query);
+                    var result = await _graphDbClient.Query(query);
 
                     long count = 0;
                     if (result != null && result.Count > 0)
@@ -1327,7 +1328,7 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
     )
 ";
 
-                    var result = await GraphDbClient.Query(query);
+                    var result = await _graphDbClient.Query(query);
                     var groupedResults = new Dictionary<string, long>();
 
                     foreach (var item in result)
@@ -1465,7 +1466,7 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
                           .by('subscriptionName')
                           .by('subscriptionId')";
 
-                var result = await GraphDbClient.Query(query);
+                var result = await _graphDbClient.Query(query);
 
                 _logger.LogInternalInformation("Found {Count} subscriptions", result.Count);
 
@@ -1494,7 +1495,7 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
                          .by(coalesce(values('resourceId'), constant('')))
                          .by(coalesce(values('location'), constant('')))";
 
-                var result = await GraphDbClient.Query(query);
+                var result = await _graphDbClient.Query(query);
                 var resources = new List<Dictionary<string, object>>();
 
                 foreach (var item in result)
@@ -1679,7 +1680,7 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
 
                 string query = $"g.V().has('resourceId', '{sanitizedResourceId}').has('isDeleted', false).project('properties').by(valueMap()).by(unfold())";
 
-                var result = await GraphDbClient.Query<dynamic>(query);
+                var result = await _graphDbClient.Query<dynamic>(query);
 
                 if (result == null || !result.Any())
                 {
@@ -1867,7 +1868,7 @@ Here are the logs in JSON format:
 
 Please provide a highly concise summary with sections for each of the above points. Focus on who made changes (mention the name), when they were made, and what kinds of changes were made. Identify patterns and potential issues. Remember the summary should be very concise and to the point. Respond in a **minimalist, structured format** with no fluff. Using fewer words per point while preserving clarity.";
 
-                var response = await ChatClient.GetResponseAsync(prompt);
+                var response = await _chatClient.GetResponseAsync(prompt);
                 return response.Text;
             }
             catch (Exception ex)
@@ -1959,7 +1960,7 @@ Please provide a highly concise summary with sections for each of the above poin
                     }
                 };
 
-                var response = await ChatClient.GetResponseAsync(messages, options);
+                var response = await _chatClient.GetResponseAsync(messages, options);
                 string summary = response.Text;
 
                 _logger.LogInternalInformation("Dashboard summary generated successfully for {DashboardUrl}", dashboardUrl);

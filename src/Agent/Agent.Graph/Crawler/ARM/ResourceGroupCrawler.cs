@@ -5,7 +5,6 @@
 using System.Text.Json;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Interfaces;
-using Agent.Logging;
 using Azure.ResourceManager;
 using Azure.ResourceManager.Resources;
 using Microsoft.Extensions.Logging;
@@ -30,7 +29,7 @@ public class ResourceGroupCrawler : IResourceCrawler
     public async IAsyncEnumerable<GraphNode> Crawl(GraphNode node)
     {
         var rgNode = (ResourceGroupNode)node;
-        _logger.LogDebug($"Crawling resource group {rgNode.ResourceGroupName}");
+        _logger.LogInternalInformation($"Crawling resource group {rgNode.ResourceGroupName}");
 
         var rgResource = _armClient.GetResourceGroupResource(ResourceGroupResource.CreateResourceIdentifier(rgNode.SubscriptionId, rgNode.ResourceGroupName));
         var resp = await rgResource.GetAsync();
@@ -57,7 +56,7 @@ public class ResourceGroupCrawler : IResourceCrawler
         var resources = await _graphClient.Query(
             new[] { rgNode.SubscriptionId },
             $"resources | where resourceGroup =~ '{rgNode.ResourceGroupName}' | project id, type, subscriptionId, resourceGroup, name, location");
-        _logger.LogDebug($"Found {resources.Count} resources under {rgNode.ResourceGroupName}");
+        _logger.LogInternalInformation($"Found {resources.Count} resources under {rgNode.ResourceGroupName}");
 
         var resourcesJson = JsonSerializer.Deserialize<JsonElement>(resources.Data);
         foreach (var resource in resourcesJson.EnumerateArray())

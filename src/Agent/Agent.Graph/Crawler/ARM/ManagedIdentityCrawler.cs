@@ -5,7 +5,6 @@
 using System.Text.Json;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Interfaces;
-using Agent.Logging;
 using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.ManagedServiceIdentities;
@@ -32,7 +31,7 @@ public class ManagedIdentityCrawler : IResourceCrawler
     public async IAsyncEnumerable<GraphNode> Crawl(GraphNode node)
     {
         var identityNode = (ManagedIdentityNode)node;
-        _logger.LogDebug($"Crawling managed identity {identityNode.ResourceId}");
+        _logger.LogInternalInformation($"Crawling managed identity {identityNode.ResourceId}");
 
         var identityId = ResourceGroupResource.CreateResourceIdentifier(identityNode.SubscriptionId, identityNode.ResourceGroupName);
         var rgResource = _armClient.GetResourceGroupResource(identityId);

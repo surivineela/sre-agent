@@ -32,7 +32,7 @@ public class CosmosDbCrawler : GenericArmResourceCrawler
         }
 
         var cosmosDbNode = (CosmosDbNode)node;
-        _logger.LogDebug($"Crawling Cosmos DB Account {cosmosDbNode.ResourceId}");
+        _logger.LogInternalInformation($"Crawling Cosmos DB Account {cosmosDbNode.ResourceId}");
 
         var armResourceId = new ResourceIdentifier(cosmosDbNode.ResourceId);
         var resourceGroupId = ResourceGroupResource.CreateResourceIdentifier(armResourceId.SubscriptionId, armResourceId.ResourceGroupName);

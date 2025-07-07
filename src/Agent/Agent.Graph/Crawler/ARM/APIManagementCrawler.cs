@@ -32,7 +32,7 @@ namespace Agent.Graph.Crawler.ARM
                 yield return n;
             }
             var apiManagementNode = (APIManagementNode)node;
-            _logger.LogDebug($"Crawling API Management {apiManagementNode.ResourceId}");
+            _logger.LogInternalInformation($"Crawling API Management {apiManagementNode.ResourceId}");
 
             var armResourceId = new ResourceIdentifier(apiManagementNode.ResourceId);
             var resourceGroupId = ResourceGroupResource.CreateResourceIdentifier(armResourceId.SubscriptionId, armResourceId.ResourceGroupName);
