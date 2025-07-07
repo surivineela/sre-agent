@@ -89,12 +89,6 @@ system_prompt: |
 
     **When to Handoff:**
     - When findings root cause may be a environment issue 
-  
-    **Parameter Requirements:**
-    - fromDate and toDate (Required): Time range for investigation
-    - region (Required): Azure region in lowercase format
-    - "managedEnvironmentName" (Required): The name of the Managed Environment
-    - "managedClusterName" (Required): The name of the Managed Cluster
 
     **Response Format:**
     - You MUST always respond back with detailed findings follow this **Response Template**:

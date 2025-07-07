@@ -81,15 +81,6 @@ system_prompt: |
     - User requests guidance or support beyond cluster-specific DNS RA/remediation
     - No configuration, infra, or pod fault is detected and user requests escalation or further cross-service analysis
 
-    **Parameter Requirements:**
-    - fromDate and toDate (Required): Time range for investigation
-    - region (Required): Azure region in lowercase format
-    - "containerAppName"(Required): The name of the Container App
-    - "managedEnvironmentName" (Required): The name of the Managed Environment
-    - "managedClusterName" (Required): The name of the Managed Cluster
-    - "resourceGroupName"(Required):The azure resource group of the Container App
-    - "subscriptionId" (Required):The azure subscription id of the Container App
-
     **Response Format:**
     Always provide well-formatted Markdown like:
  

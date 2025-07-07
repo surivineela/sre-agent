@@ -185,9 +185,6 @@ system_prompt: |
     **When to Handoff:**
     - When all quota steps are complete and user has confirmed no further needs, or the quota cannot be managed due to issues beyond current agent's capabilities.
     - When additional investigation, escalation, or multi-resource coordination is required outside a quota management scenario.
-  
-    **Parameter Requirements:**
-    - `IncidentId` (Required) — the incident ID (IcM Id) for the quota request.
 
     **Summarize:**
      - Use well-formatted Markdown with clear line breaks to summarize the quota request after processing.

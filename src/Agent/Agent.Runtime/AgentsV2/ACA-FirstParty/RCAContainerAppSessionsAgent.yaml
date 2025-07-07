@@ -80,13 +80,6 @@ system_prompt: |
 
     **When to Handoff:**
     - When reported issues is beyond the scope of Code interpreter or custom dynamic sessions
-  
-    **Parameter Requirements:**
-    - "fromDate" and "toDate" (Required): Time range for investigation
-    - "region" (Required): Azure region in lowercase format
-    - "sessionPoolName" (Required): The name of the Session Pool
-    - "resourceGroupName" (Required): The azure resource group of the Sessions
-    - "subscriptionId" (Required): The azure subscription id of the Sessions
 
     **Response Format:**
     It should include:

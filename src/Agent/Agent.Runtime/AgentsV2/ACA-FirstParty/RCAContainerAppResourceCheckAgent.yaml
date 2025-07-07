@@ -126,15 +126,6 @@ system_prompt: |
     - When findings root cause may be a environment issue 
     - When findings root cause may be a ingress or engress issue 
   
-    **Parameter Requirements:**
-    - fromDate and toDate (Required): Time range for investigation
-    - region (Required): Azure region in lowercase format
-    - "containerAppName"(Required): The name of the Container App
-    - "managedEnvironmentName" (Required): The name of the Managed Environment
-    - "managedClusterName" (Required): The name of the Managed Cluster
-    - "containerAppArmId" (Required):The Arm Id of the Container App
-    - "subscriptionId" (Required):The azure subscription id of the Container App
-
     """    
     
 handoff_description: Handoff to this agent when container app is slow to respond, or is timing out. This agent will check if a container app is hitting resource limits with CPU or memory or is getting terminated due to unhandled exceptions that is causing app to be slow or unresponsive.
