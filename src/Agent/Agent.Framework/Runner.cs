@@ -379,7 +379,12 @@ public static class Runner
                 }
             }
 
-            if (criticResult.Contains("\"overall_assessment\": \"FAIL\""))
+            bool wasApproved = !criticResult.Contains("\"overall_assessment\": \"FAIL\"");
+            
+            // Invoke the critic end hook for tracing
+            await hooks.OnCriticEnd(contextWrapper, currentAgent, userQuery, criticResult, wasApproved);
+
+            if (!wasApproved)
             {
                 logger.LogWarning("Critic result indicates failure: {CriticResult}", criticResult);
 

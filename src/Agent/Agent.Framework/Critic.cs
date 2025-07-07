@@ -89,7 +89,7 @@ public static class Critic
         *   If handoff or more tool calls needed, mark this as PASS since the actor is not yet done.
         *   Otherwise, did the actor provide a complete answer to the user's query?
         *   **CRITICAL: Based on the structure output, the user can only see the answer from 'notifyUserMessage' field.**
-        *   If the actor mentioned to provide follow-up information, did it provide the answer? In some cases, it's acceptable if the answer is like 'the actor not has the capability to do something'. 
+        *   If the actor mentioned to provide follow-up information, did it provide the answer? In some cases, it's acceptable if the answer is like 'the actor not has the capability to do something'.
         *   Did the actor provide the specific information the user requested (e.g., actual resource property values to the point, not just resource identification)?
         *   Did the actor avoid prematurely marking the request as "complete" when only partial information was provided?
 

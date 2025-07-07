@@ -57,6 +57,7 @@ public class ReasoningLoop : IDisposable
     private TelemetrySpan? _currentAgentSpan;
     private TelemetrySpan? _currentToolSpan;
     private TelemetrySpan? _currentGenerationSpan;
+    private TelemetrySpan? _currentCriticSpan;
     private readonly IAgentRuntimeModifier<AgentContext> _AgentRuntimeModifier;
     private readonly object _userCancellationTokenSourceLock = new();
     private CancellationTokenSource _userCancellationTokenSource = new();
@@ -966,6 +967,28 @@ public class ReasoningLoop : IDisposable
                     subagent: agent?.Name ?? "Unknown",
                     inputToken: response?.Usage?.InputTokenCount ?? 0,
                     outputToken: response?.Usage?.OutputTokenCount ?? 0);
+                return Task.CompletedTask;
+            },
+            OnCriticEnd = (context, agent, userQuery, criticResult, wasApproved) =>
+            {
+                _logger.LogInternalInformation("Trace Ending critic for agent: {AgentName}, Approved: {WasApproved}", agent.Name, wasApproved);
+                _currentCriticSpan = _tracer.StartSpan($"critic", SpanKind.Internal, _currentAgentSpan);
+                _currentCriticSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
+                _currentCriticSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
+                _currentCriticSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.Critic);
+                _currentCriticSpan.SetAttribute("critic.user_query", userQuery);
+                _currentCriticSpan.SetAttribute("critic.result", criticResult);
+                _currentCriticSpan.SetAttribute("critic.was_approved", wasApproved.ToString());
+                _currentCriticSpan.End();
+                _currentCriticSpan = null;
+
+                _actionLogger.LogAction(
+                    action: "CriticEvaluation",
+                    parameter: wasApproved ? "Approved" : "Failed",
+                    status: "Success",
+                    duration: 0,
+                    threadId: _context.ThreadId.ToString(),
+                    subagent: agent.Name);
                 return Task.CompletedTask;
             }
         };

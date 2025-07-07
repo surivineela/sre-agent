@@ -50,5 +50,7 @@ public static class TraceOperationName
     public const string ChatMessage = "chat.message";
 
     public const string ModelGeneration = "model.generation";
+
+    public const string Critic = "critic";
 }
 
