@@ -3,19 +3,17 @@ import { FC } from 'react';
 import { useIntl } from 'react-intl';
 import { IncidentHandlerCreateResources } from '../../../Strings/SREAgentResources';
 import { QuickEditIncidentHandler } from '../QuickEditIncidentHandler/QuickEditIncidentHandler';
+import { HandlerCreateOrEditInfo, OperationStatus } from './Contracts';
 import { DirtyStateConfirmationWrapper } from './DirtyStateConfirmationDialog';
 import { FullEditIncidentHandler } from './FullEditIncidentHandler/FullEditIncidentHandler';
-import { IncidentHandlerCreateContext, OperationStatus } from './IncidentHandlerCreateContext';
+import { IncidentHandlerCreateContext } from './IncidentHandlerCreateContext';
 import { DirtyStateNavigationConfirmDialog } from './NavigationConfirmDialog';
 import { useCreateIncidentHandler } from './useCreateIncidentHandler';
 
 interface CreateIncidentHandlerProps {
     exitToHome: () => void;
     setHandlerOperationStatus: React.Dispatch<React.SetStateAction<OperationStatus | undefined>>;
-    handlerCreateOrEditInfo: {
-        filterId: string;
-        handlerId?: string;
-    };
+    handlerCreateOrEditInfo: HandlerCreateOrEditInfo;
 }
 
 const CreateIncidentHandler: FC<CreateIncidentHandlerProps> = ({ exitToHome, handlerCreateOrEditInfo, setHandlerOperationStatus }) => {

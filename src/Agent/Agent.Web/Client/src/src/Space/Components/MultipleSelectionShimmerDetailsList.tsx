@@ -110,6 +110,7 @@ export interface MultipleSelectionShimmerDetailsListProps<T extends object> {
     hasMoreItems?: boolean;
     loadMoreItems?: (overflowDiv: boolean) => Promise<boolean | undefined>;
     isPicker?: boolean;
+    disallowSelection?: boolean;
 }
 
 const useStyles = makeStyles({
@@ -168,6 +169,7 @@ export const MultipleSelectionShimmerDetailsList: MultipleSelectionShimmerDetail
             loadMoreItems,
             hasMoreItems,
             isPicker,
+            disallowSelection,
         } = props;
         const [listWrapperId] = useState(Guid.newShortGuid());
         const [searchTerm, setSearchTerm] = useState<string>('');
@@ -366,7 +368,7 @@ export const MultipleSelectionShimmerDetailsList: MultipleSelectionShimmerDetail
                     >
                         <ShimmeredDetailsList
                             items={filteredItems ?? []}
-                            columns={columnsWithCheckbox}
+                            columns={disallowSelection ? columns : columnsWithCheckbox}
                             selectionMode={SelectionMode.none}
                             layoutMode={DetailsListLayoutMode.justified}
                             enableShimmer={loading}

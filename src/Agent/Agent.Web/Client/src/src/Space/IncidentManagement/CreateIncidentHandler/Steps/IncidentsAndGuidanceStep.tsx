@@ -1,70 +1,41 @@
 import { IColumn } from '@fluentui/react';
-import { Button, Dropdown, Field, Input, Option, Spinner, Text, Textarea } from '@fluentui/react-components';
+import { Button, Dropdown, Option, Spinner, Text, Textarea } from '@fluentui/react-components';
+import { useFormikContext } from 'formik';
 import { useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
-import { IncidentDocument, ToolInfo } from '../../../../Common/Contracts/Azure/IncidentHandler';
+import { IncidentDocument } from '../../../../Common/Contracts/Azure/IncidentHandler';
 import { IncidentHandlerCreateResources } from '../../../../Strings/SREAgentResources';
 import { MultipleSelectionShimmerDetailsList } from '../../../Components/MultipleSelectionShimmerDetailsList';
 import { SelectedItemsList } from '../../../Components/SelectedItemsList';
 import { generateHandlerStyles } from '../../../Styles/IncidentManagement.styles';
-import { TimeDuration } from '../Contracts';
+import { IncidentTableFieldNames, TimeDuration, TimeDurationKey } from '../Contracts';
 import { DirtyStateConfirmationWrapper } from '../DirtyStateConfirmationDialog';
-import { IncidentHandlerCreateContext, IncidentHandlerCreateSteps } from '../IncidentHandlerCreateContext';
+import { IncidentHandlerConsolidatedCreateContext, IncidentHandlerCreateSteps } from '../IncidentHandlerConsolidatedCreateContext';
+import { IncidentHandlerCreateFormValues } from '../IncidentHandlerCreateFormValues';
 
-enum IncidentTableFieldNames {
-    Priority = 'priority',
-    CreatedAt = 'createdAt',
-    Title = 'title',
-    Id = 'id',
-    Status = 'status',
-}
-
-enum ToolTableFieldNames {
-    Name = 'name',
-    Description = 'description',
-}
-
-export enum TimeDurationKey {
-    Last15Days = 'last15Days',
-    Last30Days = 'last30Days',
-    Last60Days = 'last60Days',
-    Last90Days = 'last90Days',
-}
-
-export const GenerateHandler = () => {
+export const IncidentsAndGuidanceStep = () => {
     const intl = useIntl();
-    const context = useContext(IncidentHandlerCreateContext);
+    const context = useContext(IncidentHandlerConsolidatedCreateContext);
     const {
-        isDirty,
+        exitToHome,
         setCurrentStep,
         setGenerateInstructionsStepSkipped,
-        exitToHome,
-        name,
-        onNameChange,
-        description,
-        onDescriptionChange,
-        customInstructions,
-        onCustomInstructionsChange,
-        generatingInstructions,
         selectedTimespan,
         onSelectedTimespanChange,
         incidents,
-        selectedIncidentIds,
         selectedIncidents,
         onSelectedIncidentsChange,
-        toolsLoading,
-        tools,
-        selectedToolNames,
-        onSelectedToolsChange,
         loadingIncidents,
-        generateInstructions,
-        incidentProcessingGuide,
         handlerLoaded,
         incidentsListDivRef,
         isLoadingInitialIncidents,
         hasMoreOldIncidents,
         loadMoreOldIncidents,
+        generatingInstructions,
+        generateInstructions,
     } = context;
+
+    const { dirty, values, setFieldValue } = useFormikContext<IncidentHandlerCreateFormValues>();
 
     const timespanDropdownOptions = useMemo(
         () => [
@@ -147,27 +118,6 @@ export const GenerateHandler = () => {
         ];
     }, [intl]);
 
-    const toolsTableColumns: IColumn[] = useMemo(() => {
-        return [
-            {
-                key: ToolTableFieldNames.Name,
-                fieldName: ToolTableFieldNames.Name,
-                name: intl.formatMessage(IncidentHandlerCreateResources.tool),
-                minWidth: 100,
-                maxWidth: 200,
-                isResizable: true,
-            },
-            {
-                key: ToolTableFieldNames.Description,
-                fieldName: ToolTableFieldNames.Description,
-                name: intl.formatMessage(IncidentHandlerCreateResources.description),
-                minWidth: 200,
-                isMultiline: true,
-                isResizable: true,
-            },
-        ];
-    }, [intl]);
-
     return (
         <>
             {generatingInstructions && (
@@ -189,43 +139,12 @@ export const GenerateHandler = () => {
                 style={{
                     display: 'flex',
                     flexDirection: 'column',
-                    margin: '20px',
+                    margin: '20px 20px 0 20px',
                     gap: '20px',
+                    height: 'calc(100% - 20px)',
                 }}
             >
                 <Text size={300}>{intl.formatMessage(IncidentHandlerCreateResources.customHandlerCreateDescription)}</Text>
-                <Field
-                    id="handlerNameField"
-                    label={intl.formatMessage(IncidentHandlerCreateResources.customHandlerName)}
-                    orientation="vertical"
-                    required={true}
-                >
-                    <Input
-                        id="handlerName"
-                        style={{ width: 600 }}
-                        value={name}
-                        onChange={(_event, newValue) => {
-                            onNameChange(newValue?.value);
-                        }}
-                        disabled={generatingInstructions || !handlerLoaded}
-                    />
-                </Field>
-                <Field
-                    id="handlerDescriptionField"
-                    label={intl.formatMessage(IncidentHandlerCreateResources.customHandlerDescription)}
-                    orientation="vertical"
-                    required={false}
-                >
-                    <Input
-                        id="handlerDescription"
-                        style={{ width: 600 }}
-                        value={description}
-                        onChange={(_event, newValue) => {
-                            onDescriptionChange(newValue?.value);
-                        }}
-                        disabled={generatingInstructions || !handlerLoaded}
-                    />
-                </Field>
                 <Text size={400} weight="semibold">
                     {intl.formatMessage(IncidentHandlerCreateResources.chooseIncidentsTitle)}
                 </Text>
@@ -238,7 +157,7 @@ export const GenerateHandler = () => {
                         const selectedOption = timespanDropdownOptions.find(option => option.key === data.optionValue);
                         onSelectedTimespanChange(selectedOption?.value || TimeDuration.Last60Days);
                     }}
-                    disabled={generatingInstructions || loadingIncidents || !handlerLoaded}
+                    disabled={loadingIncidents || generatingInstructions || !handlerLoaded}
                 >
                     {timespanDropdownOptions.map(option => (
                         <Option value={option.key} checkIcon={null}>
@@ -251,10 +170,10 @@ export const GenerateHandler = () => {
                         listContainerStyle={{ width: '100%' }}
                         ref={incidentsListDivRef}
                         data={incidents}
-                        selectedKeys={selectedIncidentIds}
+                        selectedKeys={values.incidentIds || []}
                         loading={loadingIncidents}
                         columns={incidentTableColumns}
-                        disabled={generatingInstructions || !handlerLoaded}
+                        disabled={!handlerLoaded || generatingInstructions}
                         onChange={onSelectedIncidentsChange}
                         getKey={(item: IncidentDocument) => item.id}
                         selectionLimit={5}
@@ -266,71 +185,65 @@ export const GenerateHandler = () => {
                     <SelectedItemsList
                         items={selectedIncidents || []}
                         onRemove={removedIncident =>
-                            onSelectedIncidentsChange(selectedIncidentIds?.filter(incidentId => incidentId !== removedIncident.id) || [])
+                            onSelectedIncidentsChange(values.incidentIds?.filter(incidentId => incidentId !== removedIncident.id) || [])
                         }
                         getItemTitle={incident => incident.title}
                         getItemId={incident => incident.id}
                         title={intl.formatMessage(IncidentHandlerCreateResources.selectedIncidents)}
                         emptyText={intl.formatMessage(IncidentHandlerCreateResources.selectedIncidentsEmptyText)}
-                        disabled={generatingInstructions || !handlerLoaded}
+                        disabled={!handlerLoaded || generatingInstructions}
                     />
                 </div>
                 <Text size={400} weight="semibold">
-                    {intl.formatMessage(IncidentHandlerCreateResources.availableToolsTitle)}
-                </Text>
-                <Text size={300}>{intl.formatMessage(IncidentHandlerCreateResources.availableToolsDescription)}</Text>
-                <MultipleSelectionShimmerDetailsList
-                    data={tools}
-                    selectedKeys={selectedToolNames}
-                    loading={toolsLoading}
-                    columns={toolsTableColumns}
-                    disabled={generatingInstructions || !handlerLoaded}
-                    onChange={onSelectedToolsChange}
-                    getKey={(item: ToolInfo) => item.name}
-                    filter={(searchTerm, item) => {
-                        return (
-                            item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            !!item.description?.toLowerCase().includes(searchTerm.toLowerCase())
-                        );
-                    }}
-                />
-                <Text size={400} weight="semibold">
                     {intl.formatMessage(IncidentHandlerCreateResources.addCustomInstructionTitle)}
                 </Text>
+                <Text size={300}>{intl.formatMessage(IncidentHandlerCreateResources.addCustomInstructionDescription)}</Text>
                 <Textarea
                     placeholder={intl.formatMessage(IncidentHandlerCreateResources.customInstructionPlaceholder)}
-                    value={customInstructions}
-                    onChange={(_e, newValue) => onCustomInstructionsChange(newValue.value ?? '')}
+                    value={values.customInstructions}
+                    onChange={(_e, newValue) => setFieldValue('customInstructions', newValue.value ?? '')}
                     rows={4}
+                    disabled={!handlerLoaded || generatingInstructions}
                     className={generateHandlerStyles.textField}
-                    disabled={generatingInstructions || !handlerLoaded}
                 />
                 <div
                     style={{
                         display: 'flex',
                         gap: 10,
+                        marginTop: 'auto',
+                        paddingBottom: 20,
                     }}
                 >
                     <Button
+                        onClick={() => {
+                            setCurrentStep(IncidentHandlerCreateSteps.FilterStep);
+                        }}
+                        disabled={!handlerLoaded || generatingInstructions}
+                    >
+                        {intl.formatMessage(IncidentHandlerCreateResources.back)}
+                    </Button>
+                    <Button
                         appearance="primary"
-                        onClick={() => generateInstructions()}
-                        disabled={
-                            !name || (!customInstructions && !selectedIncidentIds?.length) || generatingInstructions || !handlerLoaded
-                        }
+                        onClick={() => {
+                            generateInstructions();
+                        }}
+                        disabled={!handlerLoaded || generatingInstructions}
                     >
                         {intl.formatMessage(IncidentHandlerCreateResources.generate)}
                     </Button>
                     <Button
                         onClick={() => {
                             setGenerateInstructionsStepSkipped(true);
-                            setCurrentStep(IncidentHandlerCreateSteps.ReviewAndEdit);
+                            setCurrentStep(IncidentHandlerCreateSteps.ReviewAndTestStep);
                         }}
-                        disabled={!name || (!customInstructions && !incidentProcessingGuide) || generatingInstructions || !handlerLoaded}
+                        disabled={!handlerLoaded || generatingInstructions}
                     >
                         {intl.formatMessage(IncidentHandlerCreateResources.skip)}
                     </Button>
-                    <DirtyStateConfirmationWrapper isDirty={isDirty} onConfirm={exitToHome}>
-                        <Button>{intl.formatMessage(IncidentHandlerCreateResources.cancel)}</Button>
+                    <DirtyStateConfirmationWrapper isDirty={dirty} onConfirm={exitToHome}>
+                        <Button disabled={!handlerLoaded || generatingInstructions}>
+                            {intl.formatMessage(IncidentHandlerCreateResources.cancel)}
+                        </Button>
                     </DirtyStateConfirmationWrapper>
                 </div>
             </div>

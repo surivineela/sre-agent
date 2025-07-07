@@ -131,6 +131,12 @@
       "value": " managed resource groups"
     }
   ],
+  "0VuGey": [
+    {
+      "type": 0,
+      "value": "This will overwrite your tool selections. Are you sure you want to continue?"
+    }
+  ],
   "0aN6iW": [
     {
       "type": 0,
@@ -141,6 +147,12 @@
     {
       "type": 0,
       "value": "View Alert Details"
+    }
+  ],
+  "0w0iFy": [
+    {
+      "type": 0,
+      "value": "Apply to all current and future active incidents"
     }
   ],
   "0wJ7N+": [
@@ -271,6 +283,12 @@
       "value": "Deleting selected managed resource groups in progress"
     }
   ],
+  "3PxUNi": [
+    {
+      "type": 0,
+      "value": "Review + test"
+    }
+  ],
   "3Rh7XU": [
     {
       "type": 0,
@@ -385,6 +403,12 @@
       "value": "Create new"
     }
   ],
+  "5fVEet": [
+    {
+      "type": 0,
+      "value": "Add tools"
+    }
+  ],
   "5kp1Ie": [
     {
       "type": 0,
@@ -395,6 +419,12 @@
     {
       "type": 0,
       "value": "Last 15 days"
+    }
+  ],
+  "5lBLYV": [
+    {
+      "type": 0,
+      "value": "Test handler"
     }
   ],
   "5pQrWI": [
@@ -439,6 +469,12 @@
     {
       "type": 0,
       "value": "What didn't you like about the agent's response? Your feedback helps us make the agent even better."
+    }
+  ],
+  "69FfbB": [
+    {
+      "type": 0,
+      "value": "Preview incidents"
     }
   ],
   "6ENgmY": [
@@ -597,12 +633,6 @@
       "value": "Backed by"
     }
   ],
-  "7y/qdT": [
-    {
-      "type": 0,
-      "value": "Add a custom handler to define how the agent should respond to specific incidents using custom instructions with your own knowledge base and mitigation logic."
-    }
-  ],
   "84MFOR": [
     {
       "type": 0,
@@ -745,6 +775,12 @@
       "value": "errorMessage"
     }
   ],
+  "AbpmRv": [
+    {
+      "type": 0,
+      "value": "Enter instructions"
+    }
+  ],
   "AfbqHj": [
     {
       "type": 0,
@@ -865,6 +901,12 @@
     {
       "type": 0,
       "value": "Settings"
+    }
+  ],
+  "D7U9Zo": [
+    {
+      "type": 0,
+      "value": "Custom instructions"
     }
   ],
   "DHc2gc": [
@@ -1113,6 +1155,12 @@
       "value": "Repository URL must be like: https://github.com/owner/repo-name.git"
     }
   ],
+  "HjTHxo": [
+    {
+      "type": 0,
+      "value": "Add instructions"
+    }
+  ],
   "I03XmI": [
     {
       "type": 0,
@@ -1199,12 +1247,6 @@
       "value": "Client"
     }
   ],
-  "Jbapt8": [
-    {
-      "type": 0,
-      "value": "Enter custom handler instructions"
-    }
-  ],
   "JgQ1gX": [
     {
       "type": 0,
@@ -1215,6 +1257,12 @@
     {
       "type": 0,
       "value": "Remove managed resource group"
+    }
+  ],
+  "JwHSD6": [
+    {
+      "type": 0,
+      "value": "Choose filter parameters"
     }
   ],
   "JxjlUE": [
@@ -1475,6 +1523,12 @@
     {
       "type": 0,
       "value": "View and search all monitoring data as well as view monitoring settings, including viewing the configuration of Azure diagnostics on all Azure resources."
+    }
+  ],
+  "OuEM6V": [
+    {
+      "type": 0,
+      "value": "Choose how to set up this incident handler"
     }
   ],
   "OvzONl": [
@@ -1749,6 +1803,12 @@
       "value": "Incident management"
     }
   ],
+  "T8mrCM": [
+    {
+      "type": 0,
+      "value": "Filters define which incidents the incident handler applies to. These apply to the list of incidents previewed in the next step."
+    }
+  ],
   "TAm7bB": [
     {
       "type": 0,
@@ -1813,12 +1873,6 @@
     {
       "type": 0,
       "value": "You can now view incidents, and create additional incident handlers and custom handlers."
-    }
-  ],
-  "TsW8Ed": [
-    {
-      "type": 0,
-      "value": "Custom handler instructions"
     }
   ],
   "TyvDrC": [
@@ -2091,6 +2145,12 @@
       "value": "Monitoring Data Reader Role"
     }
   ],
+  "Z5fLCi": [
+    {
+      "type": 0,
+      "value": "Add custom instructions"
+    }
+  ],
   "ZUXvHE": [
     {
       "type": 0,
@@ -2321,6 +2381,12 @@
       "value": "How valuable do you find the Azure SRE Agent features?"
     }
   ],
+  "ezP+aQ": [
+    {
+      "type": 0,
+      "value": "With incident handlers, the agent chooses the tools it needs to manage common types of incidents. Custom handlers replace this capability by giving the agent specific instructions that you provide."
+    }
+  ],
   "f0Y4Zr": [
     {
       "type": 0,
@@ -2535,6 +2601,12 @@
       "value": "Connect to Azure Monitor so that the agent can automatically monitor notifications from the resource groups it manages, without additional provisioning."
     }
   ],
+  "iFDVT4": [
+    {
+      "type": 0,
+      "value": "Deploy incident handler"
+    }
+  ],
   "iTTSax": [
     {
       "type": 0,
@@ -2685,6 +2757,24 @@
       "value": "Region"
     }
   ],
+  "loVng6": [
+    {
+      "type": 0,
+      "value": "This guidance helps generate the final prompt the agent uses when handling incidents. This might include additional incident context and resolution steps."
+    }
+  ],
+  "lyc2l+": [
+    {
+      "type": 0,
+      "value": "Apply only to incidents triggered after the handler is created"
+    }
+  ],
+  "m2z9LK": [
+    {
+      "type": 0,
+      "value": "Update tools"
+    }
+  ],
   "m57OnF": [
     {
       "type": 0,
@@ -2759,6 +2849,12 @@
     {
       "type": 0,
       "value": "Primary resource type"
+    }
+  ],
+  "nUT0Lv": [
+    {
+      "type": 0,
+      "value": "Tools"
     }
   ],
   "nmpevl": [

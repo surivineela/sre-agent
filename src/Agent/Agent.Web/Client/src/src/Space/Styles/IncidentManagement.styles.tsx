@@ -39,6 +39,12 @@ export const useIncidentManagementStyles = makeStyles({
         padding: '20px',
         paddingLeft: '0px',
     },
+    toolsToolbar: {
+        display: 'flex',
+        justifyContent: 'start',
+        gap: '8px',
+        padding: '0px',
+    },
     filters: {
         display: 'flex',
         gap: '16px',

@@ -10,7 +10,7 @@ import { IncidentFilter, IncidentHandler } from '../../Common/Contracts/Azure/In
 import { IncidentManagementResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { useIncidentManagementStyles } from '../Styles/IncidentManagement.styles';
 import { IncidentFilterFormProps } from './CreateIncidentFilterDialog';
-import { OperationStatus } from './CreateIncidentHandler/IncidentHandlerCreateContext';
+import { HandlerCreateOrEditInfo, OperationStatus } from './CreateIncidentHandler/Contracts';
 
 export type ISortedDetailsListColumn = IColumn & {
     sort?: (items: any[], isSortedDescending: boolean) => any[];
@@ -33,7 +33,7 @@ export type LabelValuePair = { label: string; value: string };
 
 export type IncidentFilterType = { incidentType: string; impactedService: string; priority: string };
 
-export type IncidentsTabProps = {
+export type IncidentsFiltersGridProps = {
     incidentFilters: IncidentFilter[];
     incidentFiltersLoading: boolean;
     setIsCreateIncidentFilterDialogOpen: Dispatch<React.SetStateAction<boolean>>;
@@ -41,16 +41,18 @@ export type IncidentsTabProps = {
     setSelectedFilter: Dispatch<React.SetStateAction<IncidentFilter | undefined>>;
     setIsEditFilterMode: Dispatch<React.SetStateAction<boolean>>;
     setInitialValues: Dispatch<React.SetStateAction<IncidentFilterFormProps | undefined>>;
-    openHandlerCreate: (handlerCreateOrEditInfo: { filterId: string; handlerId?: string }) => void;
+    openHandlerCreate: (handlerCreateOrEditInfo: HandlerCreateOrEditInfo) => void;
     handlerOperationStatus: OperationStatus | undefined;
+    useConsolidatedCreate: boolean;
 };
 
-const IncidentsFiltersGrid: FC<IncidentsTabProps> = (props: IncidentsTabProps) => {
+const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFiltersGridProps) => {
     const {
         incidentFilters,
         incidentFiltersLoading,
         openHandlerCreate,
         handlerOperationStatus,
+        useConsolidatedCreate,
         setIsCreateIncidentFilterDialogOpen,
         filterIdToHandlerMap,
         setSelectedFilter,
@@ -201,17 +203,22 @@ const IncidentsFiltersGrid: FC<IncidentsTabProps> = (props: IncidentsTabProps) =
 
     const onIdCLick = useCallback(
         (item: IncidentFilter) => {
-            setIsEditFilterMode(true);
-            setInitialValues({
-                id: item.id ?? '',
-                incidentType: item.incidentType ?? '',
-                impactedService: item.impactedService ?? '',
-                priority: item.priority ?? '',
-                titleContains: item.titleContains ?? '',
-            });
-            setIsCreateIncidentFilterDialogOpen(true);
+            if (useConsolidatedCreate) {
+                const handler = filterIdToHandlerMap[item.id ?? ''];
+                openHandlerCreate({ filter: item, handlerId: handler?.id });
+            } else {
+                setIsEditFilterMode(true);
+                setInitialValues({
+                    id: item.id ?? '',
+                    incidentType: item.incidentType ?? '',
+                    impactedService: item.impactedService ?? '',
+                    priority: item.priority ?? '',
+                    titleContains: item.titleContains ?? '',
+                });
+                setIsCreateIncidentFilterDialogOpen(true);
+            }
         },
-        [setInitialValues, setIsCreateIncidentFilterDialogOpen, setIsEditFilterMode]
+        [setInitialValues, setIsCreateIncidentFilterDialogOpen, setIsEditFilterMode, filterIdToHandlerMap]
     );
 
     const onRenderId = useCallback(
@@ -268,7 +275,7 @@ const IncidentsFiltersGrid: FC<IncidentsTabProps> = (props: IncidentsTabProps) =
                         <Link
                             style={{ fontSize: '13px' }}
                             onClick={() => {
-                                openHandlerCreate({ filterId: item.id, handlerId: handler.id });
+                                openHandlerCreate({ filter: item, handlerId: handler.id, quickEdit: true });
                             }}
                             disabled={handlerOperationStatus === 'inprogress'}
                         >{`(${intl.formatMessage(IncidentManagementResources.goToHandler)})`}</Link>
@@ -279,7 +286,7 @@ const IncidentsFiltersGrid: FC<IncidentsTabProps> = (props: IncidentsTabProps) =
                 <Link
                     style={{ fontSize: '13px' }}
                     onClick={() => {
-                        openHandlerCreate({ filterId: item.id });
+                        openHandlerCreate({ filter: item });
                     }}
                     disabled={handlerOperationStatus === 'inprogress'}
                 >

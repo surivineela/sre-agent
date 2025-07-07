@@ -1,100 +1,81 @@
 import React from 'react';
 import { IncidentDocument, ToolInfo } from '../../../Common/Contracts/Azure/IncidentHandler';
-import { HandlerMode, TimeDuration } from './Contracts';
+import { FilterMode, HandlerMode, TimeDuration } from './Contracts';
 
 export enum IncidentHandlerCreateSteps {
-    GenerateHandler = 'GenerateHandler',
-    ReviewAndEdit = 'ReviewAndEdit',
+    FilterStep = 'FilterStep',
+    PreviewIncidentsStep = 'PreviewIncidentsStep',
+    IncidentsAndGuidanceStep = 'IncidentsAndGuidanceStep',
+    ReviewAndTestStep = 'ReviewAndTestStep',
+    DeployStep = 'DeployStep',
 }
 
-export interface IncidentHandlerCreateMetadata {
-    agentName: string;
-    incidentFilterId: string | undefined;
+export interface IncidentHandlerConsolidatedCreateMetadata {
     exitToHome: () => void;
     goToFullEditMode: () => void;
-    isDirty: boolean;
     currentStep: IncidentHandlerCreateSteps;
     setCurrentStep: React.Dispatch<React.SetStateAction<IncidentHandlerCreateSteps>>;
     generateInstructionsStepSkipped: boolean;
     setGenerateInstructionsStepSkipped: React.Dispatch<React.SetStateAction<boolean>>;
-    name: string;
-    onNameChange: (value: string) => void;
-    description: string;
-    onDescriptionChange: (value: string) => void;
-    incidentProcessingGuide: string;
-    customInstructions: string;
-    onCustomInstructionsChange: (value: string) => void;
     incidents: IncidentDocument[] | undefined;
-    selectedIncidentIds: string[] | undefined;
     selectedIncidents: IncidentDocument[] | undefined;
     onSelectedIncidentsChange: (newSelectedIncidentIds: string[]) => void;
     loadingIncidents: boolean;
     tools: ToolInfo[];
-    selectedToolNames: string[] | undefined;
-    onSelectedToolsChange: (newSelectedToolNames: string[]) => void;
     toolsLoading: boolean;
     selectedTimespan: TimeDuration;
     onSelectedTimespanChange: (value: TimeDuration) => void;
     generatingInstructions: boolean;
     generateInstructions: () => void;
-    initializeEditorDisplayValue: () => void;
-    editorDisplayValue: string | undefined;
-    onEditorValueChange: (value: string | undefined) => void;
-    isEditorValueValid: boolean;
-    setIsEditorValueValid: React.Dispatch<React.SetStateAction<boolean>>;
-    saveHandler: () => void;
+    generatingUpdatedTools: boolean;
+    generateUpdatedTools: () => void;
     deleteHandler: () => void;
     exportHandler: () => void;
-    mode: HandlerMode | undefined;
+    saveHandler: () => Promise<void>;
+    filterMode: FilterMode | undefined;
+    handlerMode: HandlerMode | undefined;
     handlerLoaded: boolean;
     incidentsListDivRef: React.RefObject<HTMLDivElement | null>;
     isLoadingInitialIncidents: boolean;
     hasMoreOldIncidents: boolean;
     loadMoreOldIncidents: (overflowDiv: boolean) => Promise<boolean | undefined>;
+
+    priorityOptions: string[];
+    impactedServiceOptions: string[];
+    incidentTypeOptions: string[];
 }
 
-export const IncidentHandlerCreateContext = React.createContext<IncidentHandlerCreateMetadata>({
-    agentName: '',
-    incidentFilterId: undefined,
+export const IncidentHandlerConsolidatedCreateContext = React.createContext<IncidentHandlerConsolidatedCreateMetadata>({
     exitToHome: () => {},
-    goToFullEditMode: () => {},
-    isDirty: false,
-    currentStep: IncidentHandlerCreateSteps.GenerateHandler,
+    goToFullEditMode: () => {}, // only used in quick edit mode
+    currentStep: IncidentHandlerCreateSteps.FilterStep,
     setCurrentStep: () => {},
     generateInstructionsStepSkipped: false,
     setGenerateInstructionsStepSkipped: () => {},
-    name: '',
-    onNameChange: () => {},
-    description: '',
-    onDescriptionChange: () => {},
-    incidentProcessingGuide: '',
-    customInstructions: '',
-    onCustomInstructionsChange: () => {},
     incidents: [],
-    selectedIncidentIds: [],
     selectedIncidents: [],
     onSelectedIncidentsChange: () => {},
     loadingIncidents: false,
     tools: [],
-    selectedToolNames: [],
-    onSelectedToolsChange: () => {},
     toolsLoading: false,
     selectedTimespan: TimeDuration.Last60Days,
     onSelectedTimespanChange: () => {},
     generatingInstructions: false,
     generateInstructions: () => {},
-    initializeEditorDisplayValue: () => {},
-    editorDisplayValue: undefined,
-    onEditorValueChange: () => {},
-    isEditorValueValid: true,
-    setIsEditorValueValid: () => {},
-    saveHandler: () => {},
+    generatingUpdatedTools: false,
+    generateUpdatedTools: () => {},
     deleteHandler: () => {},
     exportHandler: () => {},
-    mode: undefined,
+    saveHandler: () => Promise.resolve(),
+    filterMode: undefined,
+    handlerMode: undefined,
     handlerLoaded: false,
     incidentsListDivRef: React.createRef<HTMLDivElement | null>(),
     isLoadingInitialIncidents: false,
     hasMoreOldIncidents: true,
     loadMoreOldIncidents: () => Promise.resolve(true),
+
+    priorityOptions: [],
+    impactedServiceOptions: [],
+    incidentTypeOptions: [],
 });

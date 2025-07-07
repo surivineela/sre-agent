@@ -68,20 +68,22 @@ const useSelectedIncidentsListStyles = makeStyles({
 
 interface SelectedItemsListProps<T> {
     title: string;
-    emtpyText: string;
+    emptyText: string;
     items: T[];
     getItemTitle: (item: T) => string;
     getItemId: (item: T) => string;
     onRemove: (item: T) => void;
+    disabled: boolean;
 }
 
 export const SelectedItemsList = <T extends object>({
     title,
-    emtpyText,
+    emptyText,
     items,
     getItemTitle: getTitle,
     getItemId: getId,
     onRemove,
+    disabled,
 }: SelectedItemsListProps<T>) => {
     const styles = useSelectedIncidentsListStyles();
     return (
@@ -97,7 +99,7 @@ export const SelectedItemsList = <T extends object>({
         >
             <div className={styles.root}>
                 <Text className={styles.header}>{title}</Text>
-                {!items?.length && <Text className={styles.emptyText}>{emtpyText}</Text>}
+                {!items?.length && <Text className={styles.emptyText}>{emptyText}</Text>}
                 {items?.map(item => (
                     <div key={getId(item)} className={styles.incidentItem}>
                         <div className={styles.incidentDetails}>
@@ -109,6 +111,7 @@ export const SelectedItemsList = <T extends object>({
                             icon={<Dismiss12Regular />}
                             appearance="subtle"
                             onClick={() => onRemove(item)}
+                            disabled={disabled}
                         />
                     </div>
                 ))}

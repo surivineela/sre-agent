@@ -923,17 +923,33 @@ export const IncidentHandlerCreateResources = defineMessages({
         defaultMessage: 'These previous incidents match the selected incident type. The agent can learn from a maximum of 5 incidents.',
         id: 'yDh8i7',
     },
-    chooseToolsTitle: { defaultMessage: 'Available tools', id: 'iukUKz' },
-    chooseToolsDescription: {
+    availableToolsTitle: { defaultMessage: 'Available tools', id: 'iukUKz' },
+    availableToolsDescription: {
         defaultMessage: `The agent uses these available tools to generate incident handler instructions, based on patterns it learned from the past incidents. You can remove any tools you don't want the agent to use.`,
         id: 'U4e+Yf',
     },
-    customInstructionTitle: { defaultMessage: 'Custom handler instructions', id: 'TsW8Ed' },
-    customInstructionPlaceholder: { defaultMessage: 'Enter custom handler instructions', id: 'Jbapt8' },
+    addCustomInstructionTitle: { defaultMessage: 'Add custom instructions', id: 'Z5fLCi' },
+    addCustomInstructionDescription: {
+        defaultMessage:
+            'This guidance helps generate the final prompt the agent uses when handling incidents. This might include additional incident context and resolution steps.',
+        id: 'loVng6',
+    },
+    customInstructionPlaceholder: { defaultMessage: 'Enter instructions', id: 'AbpmRv' },
+    reviewCustomInstructionsTitle: { defaultMessage: 'Custom instructions', id: 'D7U9Zo' },
+    reviewToolsTitle: { defaultMessage: 'Tools', id: 'nUT0Lv' },
+    updateTools: { defaultMessage: 'Update tools', id: 'm2z9LK' },
+    updateToolsConfirmationTitle: { defaultMessage: 'Update tools', id: 'm2z9LK' },
+    updateToolsConfirmationMessage: {
+        defaultMessage: 'This will overwrite your tool selections. Are you sure you want to continue?',
+        id: '0VuGey',
+    },
+    addToolsTitle: { defaultMessage: 'Add tools', id: '5fVEet' },
+    testHandlerTitle: { defaultMessage: 'Test handler', id: '5lBLYV' },
     next: { defaultMessage: 'Next', id: '9+Ddtu' },
     skip: { defaultMessage: 'Skip', id: '/4tOwT' },
     cancel: { defaultMessage: 'Cancel', id: '47FYwb' },
     previous: { defaultMessage: 'Previous', id: 'JJNc3c' },
+    back: { defaultMessage: 'Back', id: 'cyR7Kh' },
     generate: { defaultMessage: 'Generate', id: 'Pc+tM3' },
     save: { defaultMessage: 'Save', id: 'jvo0vs' },
     customHandlerAddNotificationTitle: { defaultMessage: 'Add custom incident handler', id: 'DWon+H' },
@@ -961,6 +977,8 @@ export const IncidentHandlerCreateResources = defineMessages({
     incidentManagement: { defaultMessage: 'Incident management', id: 'T7WpWs' },
     newCustomHandler: { defaultMessage: 'New custom handler', id: 'DHc2gc' },
     editCustomHandler: { defaultMessage: 'Edit custom handler', id: 'B9k+PB' },
+    newIncidentHandler: { defaultMessage: 'New incident handler', id: '1TlUPy' },
+    editIncidentHandler: { defaultMessage: 'Edit incident handler', id: 'mtUOcI' },
     regenerate: { defaultMessage: 'Regenerate', id: '6PgVSe' },
     regenerateTooltip: {
         defaultMessage: 'Regenerate will overwrite any edits made within the generated section of code.',
@@ -969,11 +987,26 @@ export const IncidentHandlerCreateResources = defineMessages({
     export: { defaultMessage: 'Export', id: 'SVwJTM' },
     customHandlerCreateDescription: {
         defaultMessage:
-            'Add a custom handler to define how the agent should respond to specific incidents using custom instructions with your own knowledge base and mitigation logic.',
-        id: '7y/qdT',
+            'With incident handlers, the agent chooses the tools it needs to manage common types of incidents. Custom handlers replace this capability by giving the agent specific instructions that you provide.',
+        id: 'ezP+aQ',
     },
     selectedIncidents: { defaultMessage: 'Selected incidents', id: 'DX7w9O' },
     selectedIncidentsEmptyText: { defaultMessage: 'No incidents selected', id: 'QQX4Pv' },
+    filterStep: { defaultMessage: 'Create incident handler', id: 'C3qF2+' },
+    previewIncidentsStep: { defaultMessage: 'Preview incidents', id: '69FfbB' },
+    incidentsAndGuidanceStep: { defaultMessage: 'Add instructions', id: 'HjTHxo' },
+    reviewAndTestStep: { defaultMessage: 'Review + test', id: '3PxUNi' },
+    deployStep: { defaultMessage: 'Deploy incident handler', id: 'iFDVT4' },
+    filterParametersTitle: { defaultMessage: 'Choose filter parameters', id: 'JwHSD6' },
+    filterParametersDescription: {
+        defaultMessage:
+            'Filters define which incidents the incident handler applies to. These apply to the list of incidents previewed in the next step.',
+        id: 'T8mrCM',
+    },
+    addCustomInstructions: { defaultMessage: 'Add custom instructions', id: 'Z5fLCi' },
+    includedIncidentsLabel: { defaultMessage: 'Choose how to set up this incident handler', id: 'OuEM6V' },
+    includedIncidentsFutureOnly: { defaultMessage: 'Apply only to incidents triggered after the handler is created', id: 'lyc2l+' },
+    includedIncidentsPastAndFuture: { defaultMessage: 'Apply to all current and future active incidents', id: '0w0iFy' },
 });
 
 export const WelcomeResources = defineMessages({

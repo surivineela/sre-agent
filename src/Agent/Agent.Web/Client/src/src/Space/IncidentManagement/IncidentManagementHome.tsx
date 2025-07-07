@@ -8,15 +8,16 @@ import { useIncidentFilters } from '../Hooks/useIncidentFilters';
 import { useIncidentHandlers } from '../Hooks/useIncidentHandlers';
 import { useIncidentManagementStyles } from '../Styles/IncidentManagement.styles';
 import { CreateOrUpdateIncidentFilterDialog, IncidentFilterFormProps } from './CreateIncidentFilterDialog';
-import { OperationStatus } from './CreateIncidentHandler/IncidentHandlerCreateContext';
+import { HandlerCreateOrEditInfo, OperationStatus } from './CreateIncidentHandler/Contracts';
 import IncidentFiltersToolbar from './IncidentFiltersToolbar';
 import IncidentsFiltersGrid from './IncidentsFiltersGrid';
 interface IncidentManagementHomeProps {
-    openHandlerCreate: (handlerCreateOrEditInfo: { filterId: string; handlerId?: string }) => void;
+    openHandlerCreate: (handlerCreateOrEditInfo: HandlerCreateOrEditInfo) => void;
     handlerOperationStatus: OperationStatus | undefined;
+    useConsolidatedCreate: boolean;
 }
 
-const IncidentManagementHome: FC<IncidentManagementHomeProps> = ({ openHandlerCreate, handlerOperationStatus }) => {
+const IncidentManagementHome: FC<IncidentManagementHomeProps> = ({ openHandlerCreate, handlerOperationStatus, useConsolidatedCreate }) => {
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
 
@@ -72,7 +73,11 @@ const IncidentManagementHome: FC<IncidentManagementHomeProps> = ({ openHandlerCr
                     onNewIncidentFilterClick={() => {
                         setIsEditFilterMode(false);
                         setInitialValues(undefined);
-                        setIsCreateIncidentFilterDialogOpen(true);
+                        if (useConsolidatedCreate) {
+                            openHandlerCreate({});
+                        } else {
+                            setIsCreateIncidentFilterDialogOpen(true);
+                        }
                     }}
                     onTurnOffIncidentFilterClick={() => {
                         if (selectedIncidentFilter?.isEnabled) {
@@ -94,6 +99,7 @@ const IncidentManagementHome: FC<IncidentManagementHomeProps> = ({ openHandlerCr
                     filterIdToHandlerMap={filterIdToHandlerMap}
                     setIsEditFilterMode={setIsEditFilterMode}
                     setInitialValues={setInitialValues}
+                    useConsolidatedCreate={useConsolidatedCreate}
                 />
                 <CreateOrUpdateIncidentFilterDialog
                     isDialogOpen={isCreateIncidentFilterDialogOpen}

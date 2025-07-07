@@ -1,16 +1,26 @@
+import { useFormikContext } from 'formik';
+import { isEqual } from 'lodash';
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getErrorMessage } from '../../../Common/Clients/ArmClient';
 import { IncidentHandlerClient } from '../../../Common/Clients/IncidentHandlerClient';
-import { IncidentDocument, IncidentHandler, IncidentQueryRequest, ToolInfo } from '../../../Common/Contracts/Azure/IncidentHandler';
+import {
+    IncidentDocument,
+    IncidentFilter,
+    IncidentFilterPayload,
+    IncidentHandler,
+    IncidentQueryRequest,
+    ToolInfo,
+} from '../../../Common/Contracts/Azure/IncidentHandler';
 import { IncidentStatus } from '../../../Common/Contracts/Azure/SreAgent';
 import { Guid } from '../../../Common/Helpers/Guid';
 import { ArmResourceDescriptor } from '../../../Common/Helpers/ResourceDescriptors';
-import { IncidentHandlerCreateResources } from '../../../Strings/SREAgentResources';
-import { HandlerCreateOrEditInfo, HandlerMode, OperationStatus, TimeDuration } from './Contracts';
-import { IncidentHandlerCreateSteps } from './IncidentHandlerCreateContext';
+import { IncidentHandlerCreateResources, IncidentManagementNotificationResources } from '../../../Strings/SREAgentResources';
+import { FilterMode, HandlerCreateOrEditInfo, HandlerMode, OperationStatus, TimeDuration } from './Contracts';
+import { IncidentHandlerCreateSteps } from './IncidentHandlerConsolidatedCreateContext';
+import { IncidentHandlerCreateFormValues } from './IncidentHandlerCreateFormValues';
 
 const pageSize = 10;
 
@@ -35,10 +45,64 @@ const getNumberOfincidentsToOverflowincidentsListDiv = (
     return Math.max(numberOfincidentsToLoad, defaultNumberOfIncidentsToLoad);
 };
 
-export const useCreateIncidentHandler = (
+const getSaveOrUpdateActionForFilter = (
+    originalFilter: IncidentFilter | undefined,
+    formValues: IncidentHandlerCreateFormValues
+): 'create-incidentFilter' | 'update-incidentFilter' | undefined => {
+    if (!originalFilter) return 'create-incidentFilter';
+
+    const originalFilterValues = {
+        incidentType: originalFilter.incidentType,
+        impactedService: originalFilter.impactedService,
+        priority: originalFilter.priority,
+        titleContains: originalFilter.titleContains,
+    };
+
+    const currentFilterValues = {
+        incidentType: formValues.incidentType === 'ALL' ? '' : formValues.incidentType || '',
+        impactedService: formValues.impactedService === 'ALL' ? '' : formValues.impactedService || '',
+        priority: formValues.priority === 'ALL' ? '' : formValues.priority || '',
+        titleContains: formValues.titleContains || '',
+    };
+    if (isEqual(originalFilterValues, currentFilterValues)) return undefined;
+
+    return 'update-incidentFilter';
+};
+
+const getSaveUpdateOrDeleteActionForHandler = (
+    originalHandler: IncidentHandler | undefined,
+    formValues: IncidentHandlerCreateFormValues
+): 'create-incidentHandler' | 'update-incidentHandler' | 'delete-incidentHandler' | undefined => {
+    if (!formValues.useCustomHandler) {
+        return !originalHandler ? undefined : 'delete-incidentHandler';
+    }
+
+    if (!originalHandler) return 'create-incidentHandler';
+
+    const originalHandlerValues = {
+        incidentProcessingGuide: originalHandler.incidentProcessingGuide,
+        tools: originalHandler.tools.sort((a, b) => a.localeCompare(b)),
+        incidents: originalHandler.incidents.sort((a, b) => a.localeCompare(b)),
+        customInstructions: originalHandler.customInstructions,
+    };
+
+    const currentHandlerValues = {
+        incidentProcessingGuide: formValues.incidentProcessingGuide?.replace('\r\n', '\n').replace('\r', '\n').split('\n') || [],
+        tools: (formValues.toolNames || []).sort((a, b) => a.localeCompare(b)),
+        incidents: (formValues.incidentIds || []).sort((a, b) => a.localeCompare(b)),
+        customInstructions: formValues.customInstructions,
+    };
+
+    if (isEqual(originalHandlerValues, currentHandlerValues)) return undefined;
+
+    return 'update-incidentHandler';
+};
+
+export const useConsolidatedCreateIncidentHandler = (
     exitToHome: () => void,
     setHandlerOperationStatus: React.Dispatch<React.SetStateAction<OperationStatus | undefined>>,
-    handlerCreateOrEditInfo: HandlerCreateOrEditInfo
+    handlerCreateOrEditInfo: HandlerCreateOrEditInfo,
+    setInitialValues: React.Dispatch<React.SetStateAction<IncidentHandlerCreateFormValues>>
 ) => {
     const intl = useIntl();
     const azPortalContext = useContext(AzPortalContext);
@@ -53,31 +117,19 @@ export const useCreateIncidentHandler = (
     const [handlerLoading, setHandlerLoading] = useState<boolean>(true);
     const [handlerLoaded, setHandlerLoaded] = useState<boolean>(false);
 
-    const [mode, setMode] = useState<HandlerMode | undefined>(handlerCreateOrEditInfo.handlerId ? 'quickEdit' : 'create');
-    const [currentStep, setCurrentStep] = useState<IncidentHandlerCreateSteps>(IncidentHandlerCreateSteps.GenerateHandler);
+    const filterMode = useMemo<FilterMode>(() => (handlerCreateOrEditInfo.filter ? 'edit' : 'create'), [handlerCreateOrEditInfo.filter]);
+    const [handlerMode, setHandlerMode] = useState<HandlerMode>(
+        !handlerCreateOrEditInfo.handlerId ? 'create' : handlerCreateOrEditInfo.quickEdit ? 'quickEdit' : 'edit'
+    );
+    const [currentStep, setCurrentStep] = useState<IncidentHandlerCreateSteps>(IncidentHandlerCreateSteps.FilterStep);
 
-    const [isDirty, setIsDirty] = useState<boolean>(false);
-
-    // Name field
-    const [name, setName] = useState<string>('');
-    const onNameChange = useCallback((value: string) => {
-        setIsDirty(true);
-        setName(value);
-    }, []);
-
-    // Description field
-    const [description, setDescription] = useState<string>('');
-    const onDescriptionChange = useCallback((value: string) => {
-        setIsDirty(true);
-        setDescription(value);
-    }, []);
+    const { values, setFieldValue } = useFormikContext<IncidentHandlerCreateFormValues>();
 
     // Timespan field
     const [selectedTimespan, setSelectedTimespan] = useState<TimeDuration>(
-        mode === 'create' ? TimeDuration.Last60Days : TimeDuration.Last90Days
+        handlerMode === 'create' ? TimeDuration.Last60Days : TimeDuration.Last90Days
     );
     const onSelectedTimespanChange = useCallback((value: TimeDuration) => {
-        setIsDirty(true);
         setSelectedTimespan(value);
     }, []);
 
@@ -86,7 +138,6 @@ export const useCreateIncidentHandler = (
     const [prefetchedIncidents, setPrefetchedIncidents] = useState<IncidentDocument[]>([]);
     const [incidents, setIncidents] = useState<IncidentDocument[]>();
     const [loadingIncidents, setLoadingIncidents] = useState<boolean>(true);
-    const [selectedIncidentIds, setSelectedIncidentIds] = useState<string[]>();
     const [selectedIncidents, setSelectedIncidents] = useState<IncidentDocument[]>();
 
     const incidentsInitialized = useRef(false);
@@ -94,8 +145,7 @@ export const useCreateIncidentHandler = (
 
     const onSelectedIncidentsChange = useCallback(
         (newSelectedIncidentIds: string[]) => {
-            setIsDirty(true);
-            setSelectedIncidentIds(newSelectedIncidentIds);
+            setFieldValue('incidentIds', newSelectedIncidentIds);
             setSelectedIncidents(previousSelectedIncidents => {
                 const allIncidents = [...(previousSelectedIncidents || []), ...prefetchedIncidents, ...(incidents || [])];
                 const newSelectedIncidents: IncidentDocument[] = [];
@@ -114,28 +164,64 @@ export const useCreateIncidentHandler = (
     // Tools field
     const [tools, setTools] = useState<ToolInfo[] | undefined>();
     const [toolsLoading, setToolsLoading] = useState<boolean>(true);
-    const [selectedToolNames, setSelectedToolNames] = useState<string[]>();
 
-    const onSelectedToolsChange = useCallback((newSelectedToolNames: string[]) => {
-        setIsDirty(true);
-        setSelectedToolNames(newSelectedToolNames);
-    }, []);
+    const [generatingUpdatedTools, setGeneratingUpdatedTools] = useState<boolean>(false);
 
-    useEffect(() => {
-        if (mode === 'create' && !selectedToolNames && tools) {
-            setSelectedToolNames(tools.map(tool => tool.name));
-        }
-    }, [tools, selectedToolNames, mode]);
+    const generateUpdatedTools = useCallback(() => {
+        setGeneratingUpdatedTools(true);
 
-    // Custom instructions field
-    const [customInstructions, setCustomInstructions] = useState<string>('');
-    const onCustomInstructionsChange = useCallback((value: string) => {
-        setIsDirty(true);
-        setCustomInstructions(value);
-    }, []);
+        const additionalInfo = {
+            incidentFilterId: handlerCreateOrEditInfo.filter?.id,
+        };
 
-    // Incident processing guide field
-    const [incidentProcessingGuide, setIncidentProcessingGuide] = useState<string>('');
+        azPortalContext.log({
+            action: 'generate-instructions',
+            actionModifier: 'start',
+            logLevel: 'info',
+            resourceId: resourceId,
+            data: additionalInfo,
+        });
+
+        return incidentHandlerClient
+            .generateInstructions({
+                agentName,
+                incidents: values.incidentIds ?? [],
+                tools: tools?.map(tool => tool.name) ?? [],
+                customInstructions: values.incidentProcessingGuide ?? '',
+            })
+            .then(toolsUpdateResult => {
+                setGeneratingUpdatedTools(false);
+                if (!toolsUpdateResult.isSuccessful || !toolsUpdateResult.content) {
+                    // TODO (andimarc): Surface errors to the user.
+                    const error = !toolsUpdateResult.isSuccessful ? getErrorMessage(toolsUpdateResult.error) : 'No content returned';
+                    azPortalContext.log({
+                        action: 'generate-updated-tools',
+                        actionModifier: 'failed',
+                        logLevel: 'error',
+                        resourceId: resourceId,
+                        data: { ...additionalInfo, error },
+                    });
+                } else {
+                    azPortalContext.log({
+                        action: 'generate-updated-tools',
+                        actionModifier: 'success',
+                        logLevel: 'info',
+                        resourceId: resourceId,
+                        data: additionalInfo,
+                    });
+                    setFieldValue('toolNames', toolsUpdateResult.content.tools);
+                }
+            });
+    }, [
+        handlerCreateOrEditInfo.filter?.id,
+        azPortalContext,
+        resourceId,
+        incidentHandlerClient.generateInstructions,
+        agentName,
+        tools,
+        values.incidentIds,
+        values.incidentProcessingGuide,
+    ]);
 
     const [generatingInstructions, setGeneratingInstructions] = useState<boolean>(false);
     const [generateInstructionsStepSkipped, setGenerateInstructionsStepSkipped] = useState<boolean>(false);
@@ -158,9 +244,9 @@ export const useCreateIncidentHandler = (
         return incidentHandlerClient
             .generateInstructions({
                 agentName,
-                incidents: selectedIncidentIds ?? [],
-                tools: selectedToolNames ?? [],
-                customInstructions: customInstructions,
+                incidents: values.incidentIds ?? [],
+                tools: tools?.map(tool => tool.name) ?? [],
+                customInstructions: values.customInstructions ?? '',
             })
             .then(instructionsResult => {
                 setGeneratingInstructions(false);
@@ -182,11 +268,10 @@ export const useCreateIncidentHandler = (
                         resourceId: resourceId,
                         data: additionalInfo,
                     });
-                    setIsDirty(true);
                     setGenerateInstructionsStepSkipped(false);
-                    setSelectedToolNames(instructionsResult.content.tools);
-                    setIncidentProcessingGuide(instructionsResult.content.generatedInstructions);
-                    setCurrentStep(IncidentHandlerCreateSteps.ReviewAndEdit);
+                    setFieldValue('toolNames', instructionsResult.content.tools);
+                    setFieldValue('incidentProcessingGuide', instructionsResult.content.generatedInstructions);
+                    setCurrentStep(IncidentHandlerCreateSteps.ReviewAndTestStep);
                 }
             });
     }, [
@@ -195,18 +280,10 @@ export const useCreateIncidentHandler = (
         resourceId,
         incidentHandlerClient.generateInstructions,
         agentName,
-        selectedIncidentIds,
-        selectedToolNames,
-        customInstructions,
+        tools,
+        values.incidentIds,
+        values.customInstructions,
     ]);
-
-    const [editorDisplayValue, setEditorDisplayValue] = useState<string>();
-    const [isEditorValueValid, setIsEditorValueValid] = useState<boolean>(true);
-
-    const onEditorValueChange = useCallback((value: string | undefined) => {
-        setIsDirty(true);
-        setEditorDisplayValue(value);
-    }, []);
 
     const deleteHandler = useCallback(() => {
         const {
@@ -275,133 +352,176 @@ export const useCreateIncidentHandler = (
         incidentHandlerClient,
     ]);
 
-    const save = useCallback(
-        (handler: IncidentHandler) => {
-            const [
-                action,
-                handlerPayload,
-                createOrUpdateHandler,
-                notificationTitle,
-                notificationDescription,
-                notificationErrorMessage,
-                notificationSuccessMessage,
-            ] = handler.id
+    const saveHandler = useCallback(async () => {
+        const saveOrUpdateFilterAction = getSaveOrUpdateActionForFilter(handlerCreateOrEditInfo?.filter, values);
+        const saveUpdateOrDeleteHandlerAction = getSaveUpdateOrDeleteActionForHandler(handler, values);
+
+        if (!saveOrUpdateFilterAction && !saveUpdateOrDeleteHandlerAction) {
+            exitToHome();
+            return;
+        }
+
+        const [notificationTitle, notificationDescription, notificationErrorMessage, notificationSuccessMessage] =
+            saveOrUpdateFilterAction === 'create-incidentFilter'
                 ? [
-                      'update-incidentHandler',
-                      handler,
-                      incidentHandlerClient.updateHandler,
-                      IncidentHandlerCreateResources.customHandlerUpdateNotificationTitle,
-                      IncidentHandlerCreateResources.customHandlerUpdateNotificationDescription,
-                      IncidentHandlerCreateResources.customHandlerUpdateNotificationError,
-                      IncidentHandlerCreateResources.customHandlerUpdateNotificationSuccess,
+                      IncidentManagementNotificationResources.createFilterTitle,
+                      IncidentManagementNotificationResources.createFilterInProgress,
+                      IncidentManagementNotificationResources.createFilterError,
+                      IncidentManagementNotificationResources.createFilterSuccess,
                   ]
                 : [
-                      'create-incidentHandler',
-                      { ...handler, id: Guid.newShortGuid() },
-                      incidentHandlerClient.createHandler,
-                      IncidentHandlerCreateResources.customHandlerAddNotificationTitle,
-                      IncidentHandlerCreateResources.customHandlerAddNotificationDescription,
-                      IncidentHandlerCreateResources.customHandlerAddNotificationError,
-                      IncidentHandlerCreateResources.customHandlerAddNotificationSuccess,
+                      IncidentManagementNotificationResources.updateFilterTitle,
+                      IncidentManagementNotificationResources.updateFilterInProgress,
+                      IncidentManagementNotificationResources.updateFilterError,
+                      IncidentManagementNotificationResources.updateFilterSuccess,
                   ];
 
-            const notificationId = azPortalContext.startNotification(
-                intl.formatMessage(notificationTitle),
-                intl.formatMessage(notificationDescription)
-            );
+        const notificationId = azPortalContext.startNotification(
+            intl.formatMessage(notificationTitle),
+            intl.formatMessage(notificationDescription)
+        );
 
-            exitToHome();
-            setHandlerOperationStatus('inprogress');
+        if (saveOrUpdateFilterAction) {
+            const filterPayload: IncidentFilterPayload = {
+                Id: values.filterName || '',
+                IncidentType: values.incidentType === 'ALL' ? undefined : values.incidentType,
+                ImpactedService: values.impactedService === 'ALL' ? undefined : values.impactedService,
+                Priority: values.priority === 'ALL' ? undefined : values.priority,
+                TitleContains: values.titleContains || '',
+            };
 
             const additionalInfo = {
-                handlerName: handlerPayload.name,
-                incidentFilterId: handlerPayload.incidentFilterId,
+                filterName: values.filterName || '',
             };
 
             azPortalContext.log({
-                action,
+                action: saveOrUpdateFilterAction,
                 actionModifier: 'start',
                 logLevel: 'info',
                 resourceId: resourceId,
                 data: additionalInfo,
             });
 
-            createOrUpdateHandler(handlerPayload).then(saveResult => {
-                if (!saveResult.isSuccessful) {
-                    azPortalContext.log({
-                        action,
-                        actionModifier: 'failed',
-                        logLevel: 'error',
-                        resourceId: resourceId,
-                        data: { ...additionalInfo, error: saveResult.error },
-                    });
-                    setHandlerOperationStatus('failed');
-                    azPortalContext.stopNotification(
-                        notificationId,
-                        false,
-                        intl.formatMessage(notificationErrorMessage, {
-                            errorMessage: getErrorMessage(saveResult.error),
-                        })
-                    );
-                } else {
-                    azPortalContext.log({
-                        action,
-                        actionModifier: 'success',
-                        logLevel: 'info',
-                        resourceId: resourceId,
-                        data: additionalInfo,
-                    });
-                    setHandlerOperationStatus('succeeded');
-                    azPortalContext.stopNotification(notificationId, true, intl.formatMessage(notificationSuccessMessage));
-                }
-            });
-        },
-        [
-            incidentHandlerClient.updateHandler,
-            incidentHandlerClient.createHandler,
-            azPortalContext,
-            intl,
-            exitToHome,
-            setHandlerOperationStatus,
-            resourceId,
-        ]
-    );
+            setHandlerOperationStatus('inprogress');
 
-    const saveHandler = useCallback(() => {
-        if (editorDisplayValue) {
-            let configObject: IncidentHandler | undefined;
+            const saveOrUpdateFilterFunction =
+                saveOrUpdateFilterAction === 'create-incidentFilter'
+                    ? incidentHandlerClient.createIncidentFilter
+                    : incidentHandlerClient.updateIncidentFilter;
 
-            try {
-                configObject = JSON.parse(editorDisplayValue) as IncidentHandler;
-                configObject.id = handlerCreateOrEditInfo?.handlerId || '';
-            } catch (error) {
-                // This should never happen because we block the user from saving invalid JSON in the editor.
+            const saveOrUpdateFilterResult = await saveOrUpdateFilterFunction(filterPayload);
+            if (!saveOrUpdateFilterResult.isSuccessful) {
+                azPortalContext.log({
+                    action: saveOrUpdateFilterAction,
+                    actionModifier: 'failed',
+                    logLevel: 'error',
+                    resourceId: resourceId,
+                    data: { ...additionalInfo, error: saveOrUpdateFilterResult.error },
+                });
+                setHandlerOperationStatus('failed');
+                azPortalContext.stopNotification(
+                    notificationId,
+                    false,
+                    intl.formatMessage(notificationErrorMessage, {
+                        errorMessage: getErrorMessage(saveOrUpdateFilterResult.error),
+                    })
+                );
                 return;
+            } else {
+                azPortalContext.log({
+                    action: saveOrUpdateFilterAction,
+                    actionModifier: 'success',
+                    logLevel: 'info',
+                    resourceId: resourceId,
+                    data: additionalInfo,
+                });
+                setHandlerOperationStatus('succeeded');
             }
-
-            save(configObject);
         }
-    }, [editorDisplayValue, save, handlerCreateOrEditInfo?.handlerId]);
 
-    const initializeEditorDisplayValue = useCallback(() => {
-        const config = {
-            name,
-            description,
-            incidentFilterId: handlerCreateOrEditInfo?.filter?.id,
-            incidentProcessingGuide: incidentProcessingGuide.replace('\r\n', '\n').replace('\r', '\n').split('\n'),
-            tools: selectedToolNames,
-            incidents: selectedIncidentIds || [],
-            customInstructions: customInstructions,
+        if (!saveUpdateOrDeleteHandlerAction) {
+            azPortalContext.stopNotification(notificationId, true, intl.formatMessage(notificationSuccessMessage));
+            exitToHome();
+            return;
+        }
+
+        const handlerPayload: IncidentHandler = {
+            id: handlerCreateOrEditInfo?.handlerId || `${values.filterName || ''}-custom-handler`,
+            name: '',
+            description: '',
+            incidentFilterId: values.filterName || '',
+            incidentProcessingGuide: values.incidentProcessingGuide?.replace('\r\n', '\n').replace('\r', '\n').split('\n') || [],
+            tools: values.toolNames || [],
+            incidents: values.incidentIds || [],
+            customInstructions: values.customInstructions || '',
         };
-        setEditorDisplayValue(JSON.stringify(config, null, 4));
+
+        const additionalInfo = {
+            filterName: values.filterName || '',
+        };
+
+        azPortalContext.log({
+            action: saveUpdateOrDeleteHandlerAction,
+            actionModifier: 'start',
+            logLevel: 'info',
+            resourceId: resourceId,
+            data: additionalInfo,
+        });
+
+        setHandlerOperationStatus('inprogress');
+
+        const saveUpdateOrDeleteHandlerFunction =
+            saveUpdateOrDeleteHandlerAction === 'delete-incidentHandler'
+                ? async () => await incidentHandlerClient.deleteHandler(handlerCreateOrEditInfo?.handlerId || '')
+                : saveUpdateOrDeleteHandlerAction === 'create-incidentHandler'
+                  ? async () => await incidentHandlerClient.createHandler(handlerPayload)
+                  : async () => await incidentHandlerClient.updateHandler(handlerPayload);
+
+        const saveUpdateOrDeleteHandlerResult = await saveUpdateOrDeleteHandlerFunction();
+        if (!saveUpdateOrDeleteHandlerResult.isSuccessful) {
+            azPortalContext.log({
+                action: saveUpdateOrDeleteHandlerAction,
+                actionModifier: 'failed',
+                logLevel: 'error',
+                resourceId: resourceId,
+                data: { ...additionalInfo, error: saveUpdateOrDeleteHandlerResult.error },
+            });
+            setHandlerOperationStatus('failed');
+            azPortalContext.stopNotification(
+                notificationId,
+                false,
+                intl.formatMessage(notificationErrorMessage, {
+                    errorMessage: getErrorMessage(saveUpdateOrDeleteHandlerResult.error),
+                })
+            );
+            // TODO (andimarc): Revert/delete the filter if it was created/updated.
+        } else {
+            azPortalContext.log({
+                action: saveUpdateOrDeleteHandlerAction,
+                actionModifier: 'success',
+                logLevel: 'info',
+                resourceId: resourceId,
+                data: additionalInfo,
+            });
+            setHandlerOperationStatus('succeeded');
+            azPortalContext.stopNotification(notificationId, true, intl.formatMessage(notificationSuccessMessage));
+            exitToHome();
+        }
     }, [
-        name,
-        description,
-        handlerCreateOrEditInfo?.filter?.id,
-        incidentProcessingGuide,
-        selectedToolNames,
-        selectedIncidentIds,
-        customInstructions,
+        handlerCreateOrEditInfo,
+        handler,
+        values.filterName,
+        values.incidentType,
+        values.impactedService,
+        values.priority,
+        values.titleContains,
+
+        values.incidentIds,
+        values.customInstructions,
+        values.toolNames,
+        values.incidentProcessingGuide,
+
+        values.useCustomHandler,
     ]);
 
     const exportHandler = useCallback(() => {
@@ -416,7 +536,10 @@ export const useCreateIncidentHandler = (
         }
     }, [handler]);
 
-    const goToFullEditMode = useCallback(() => setMode('edit'), []);
+    const goToFullEditMode = useCallback(() => {
+        setCurrentStep(IncidentHandlerCreateSteps.IncidentsAndGuidanceStep);
+        setHandlerMode('edit');
+    }, []);
 
     const incidentsListDivRef = useRef<HTMLDivElement | null>(null);
     const [isLoadingInitialIncidents, setIsLoadingInitialIncidents] = useState<boolean>(true);
@@ -437,7 +560,10 @@ export const useCreateIncidentHandler = (
 
                 const oldIncidentsResponse = await incidentHandlerClient.queryIncidents({
                     filter: {
-                        id: handlerCreateOrEditInfo?.filter?.id,
+                        impactedService: values.impactedService === 'ALL' ? undefined : values.impactedService,
+                        priority: values.priority === 'ALL' ? undefined : values.priority,
+                        incidentType: values.incidentType === 'ALL' ? undefined : values.incidentType,
+                        titleContains: values.titleContains,
                     },
                     durationInDays: selectedTimespan,
                     pageSize: pageSize,
@@ -474,8 +600,25 @@ export const useCreateIncidentHandler = (
                 }
             }
         },
-        [isLoadingInitialIncidents, incidentHandlerClient.queryIncidents, selectedTimespan, handlerCreateOrEditInfo?.filter?.id]
+        [
+            isLoadingInitialIncidents,
+            incidentHandlerClient.queryIncidents,
+            selectedTimespan,
+            values.impactedService,
+            values.priority,
+            values.incidentType,
+            values.titleContains,
+        ]
     );
+
+    useEffect(() => {
+        if (handlerMode === 'create' && !values.toolNames && tools) {
+            setFieldValue(
+                'toolNames',
+                tools.map(tool => tool.name)
+            );
+        }
+    }, [tools, values.toolNames, handlerMode]);
 
     useEffect(() => {
         let subscribed = true;
@@ -499,7 +642,7 @@ export const useCreateIncidentHandler = (
     useEffect(() => {
         let subscribed = true;
 
-        if (mode === 'create' || !!initialSelectedIncidentIds) {
+        if (handlerMode === 'create' || !!initialSelectedIncidentIds) {
             loadOldIncidentCallId.current = Guid.newShortGuid();
             setHasMoreOldIncidents(true);
             setIsLoadingInitialIncidents(true);
@@ -508,7 +651,10 @@ export const useCreateIncidentHandler = (
 
             const queryPayload: IncidentQueryRequest = {
                 filter: {
-                    id: handlerCreateOrEditInfo?.filter?.id,
+                    impactedService: values.impactedService === 'ALL' ? undefined : values.impactedService,
+                    priority: values.priority === 'ALL' ? undefined : values.priority,
+                    incidentType: values.incidentType === 'ALL' ? undefined : values.incidentType,
+                    titleContains: values.titleContains,
                 },
                 durationInDays: selectedTimespan,
                 pageSize: pageSize,
@@ -518,7 +664,7 @@ export const useCreateIncidentHandler = (
 
             const filteredIncidentsPromise = incidentHandlerClient.queryIncidents(queryPayload);
 
-            const shouldPrefetchIncidents = mode !== 'create' && !!initialSelectedIncidentIds && !incidentsInitialized.current;
+            const shouldPrefetchIncidents = handlerMode !== 'create' && !!initialSelectedIncidentIds && !incidentsInitialized.current;
 
             const initialSelectionsPromises = shouldPrefetchIncidents
                 ? Promise.all(initialSelectedIncidentIds.map(id => incidentHandlerClient.getIncident(id)))
@@ -547,11 +693,17 @@ export const useCreateIncidentHandler = (
                         });
                         setPrefetchedIncidents(prefetchedIncidents);
                         setSelectedIncidents(prefetchedIncidents);
-                        setSelectedIncidentIds(prefetchedIncidents.map(incident => incident.id));
+                        setFieldValue(
+                            'incidentIds',
+                            prefetchedIncidents.map(incident => incident.id)
+                        );
                     } else if (!incidentsInitialized.current) {
                         const latestThreeIncidents = filteredIncidents.slice(0, 3);
                         setSelectedIncidents(latestThreeIncidents);
-                        setSelectedIncidentIds(latestThreeIncidents.map(incident => incident.id));
+                        setFieldValue(
+                            'incidentIds',
+                            latestThreeIncidents.map(incident => incident.id)
+                        );
                     }
                 } else {
                     setIncidents([]);
@@ -566,15 +718,26 @@ export const useCreateIncidentHandler = (
         return () => {
             subscribed = false;
         };
-    }, [incidentHandlerClient, handlerCreateOrEditInfo?.filter?.id, selectedTimespan, mode, initialSelectedIncidentIds]);
+    }, [
+        incidentHandlerClient,
+        selectedTimespan,
+        handlerMode,
+        initialSelectedIncidentIds,
+        values.impactedService,
+        values.priority,
+        values.incidentType,
+        values.titleContains,
+    ]);
 
     useEffect(() => {
-        if (handlerCreateOrEditInfo.handlerId) {
-            setMode('quickEdit');
+        if (!handlerCreateOrEditInfo.handlerId) {
+            setHandlerMode('create');
+        } else if (handlerCreateOrEditInfo.quickEdit) {
+            setHandlerMode('quickEdit');
         } else {
-            setMode('create');
+            setHandlerMode('edit');
         }
-    }, [handlerCreateOrEditInfo.handlerId]);
+    }, [handlerCreateOrEditInfo.handlerId, handlerCreateOrEditInfo.quickEdit]);
 
     useEffect(() => {
         setHandlerOperationStatus(undefined);
@@ -612,9 +775,9 @@ export const useCreateIncidentHandler = (
                             data: { ...additionalInfo, error },
                         });
                         // TODO (andimarc): Surface errors to the user.
-                        setSelectedToolNames([]);
-                        setIncidentProcessingGuide('');
-                        setSelectedIncidentIds([]);
+                        setFieldValue('toolNames', []);
+                        setFieldValue('incidentProcessingGuide', '');
+                        setFieldValue('incidentIds', []);
                         setInitialSelectedIncidentIds([]);
                     } else {
                         azPortalContext.log({
@@ -626,14 +789,22 @@ export const useCreateIncidentHandler = (
                         });
                         setHandler(getResult.content);
 
-                        setSelectedToolNames(getResult.content.tools);
-                        setSelectedIncidentIds(getResult.content.incidents);
+                        setFieldValue('toolNames', getResult.content.tools);
+                        setFieldValue('incidentIds', getResult.content.incidents);
                         setInitialSelectedIncidentIds(getResult.content.incidents);
-                        setCustomInstructions(getResult.content.customInstructions || '');
-                        setIncidentProcessingGuide(getResult.content.incidentProcessingGuide.join('\n'));
-                        setName(getResult.content.name);
-                        setDescription(getResult.content.description || '');
-
+                        setFieldValue('customInstructions', getResult.content.customInstructions || '');
+                        setFieldValue('incidentProcessingGuide', getResult.content.incidentProcessingGuide.join('\n'));
+                        setFieldValue('name', getResult.content.name);
+                        setInitialValues(currentValue => {
+                            return {
+                                ...currentValue,
+                                toolNames: getResult.content!.tools,
+                                incidentIds: getResult.content!.incidents,
+                                customInstructions: getResult.content!.customInstructions || '',
+                                incidentProcessingGuide: getResult.content!.incidentProcessingGuide.join('\n'),
+                                name: getResult.content!.name,
+                            };
+                        });
                         setHandlerLoaded(true);
                     }
                     setHandlerLoading(false);
@@ -641,8 +812,8 @@ export const useCreateIncidentHandler = (
             });
         } else {
             setHandlerLoaded(true);
-            setSelectedToolNames(undefined);
-            setSelectedIncidentIds(undefined);
+            setFieldValue('toolNames', undefined);
+            setFieldValue('incidentIds', undefined);
             setInitialSelectedIncidentIds([]);
             setHandlerLoading(false);
         }
@@ -660,31 +831,48 @@ export const useCreateIncidentHandler = (
         incidentHandlerClient,
     ]);
 
+    useEffect(() => {
+        setInitialValues(currentValue => {
+            return {
+                ...currentValue,
+                filterName: handlerCreateOrEditInfo.filter?.id || '',
+                incidentType: handlerCreateOrEditInfo.filter?.incidentType,
+                impactedService: handlerCreateOrEditInfo.filter?.impactedService,
+                priority: handlerCreateOrEditInfo.filter?.priority,
+                titleContains: handlerCreateOrEditInfo.filter?.titleContains,
+                useCustomHandler: !!handlerCreateOrEditInfo.handlerId,
+            };
+        });
+    }, [
+        handlerCreateOrEditInfo.filter?.id,
+        handlerCreateOrEditInfo.filter?.incidentType,
+        handlerCreateOrEditInfo.filter?.impactedService,
+        handlerCreateOrEditInfo.filter?.priority,
+        handlerCreateOrEditInfo.filter?.titleContains,
+        handlerCreateOrEditInfo.handlerId,
+    ]);
+
     return {
         exitToHome,
         goToFullEditMode,
-        isDirty,
         agentName,
-        incidentFilterId: handlerCreateOrEditInfo?.filter?.id,
         currentStep,
         setCurrentStep,
         generateInstructionsStepSkipped,
         setGenerateInstructionsStepSkipped,
-        mode,
+        filterMode,
+        handlerMode,
         loadingIncidents,
         toolsLoading,
         handlerLoading,
         handlerLoaded,
         generatingInstructions,
         generateInstructions,
-        initializeEditorDisplayValue,
-        editorDisplayValue,
-        isEditorValueValid,
-        setIsEditorValueValid,
-        onEditorValueChange,
+        generatingUpdatedTools,
+        generateUpdatedTools,
         deleteHandler,
-        saveHandler,
         exportHandler,
+        saveHandler,
 
         // For paginating incidents on scroll
         incidentsListDivRef,
@@ -692,34 +880,11 @@ export const useCreateIncidentHandler = (
         hasMoreOldIncidents,
         loadMoreOldIncidents,
 
-        // Name field
-        name,
-        onNameChange,
-
-        // Description field
-        description,
-        onDescriptionChange,
-
-        // Timespan field
         selectedTimespan,
         onSelectedTimespanChange,
-
-        // Incidents field
         incidents,
-        selectedIncidentIds,
         selectedIncidents,
         onSelectedIncidentsChange,
-
-        // Tools field
         tools: tools || [],
-        selectedToolNames,
-        onSelectedToolsChange,
-
-        // Custom instructions field
-        customInstructions,
-        onCustomInstructionsChange,
-
-        // Incident processing guide field
-        incidentProcessingGuide,
     };
 };

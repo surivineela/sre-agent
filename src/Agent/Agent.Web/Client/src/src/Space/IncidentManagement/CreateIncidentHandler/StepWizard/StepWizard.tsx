@@ -1,6 +1,17 @@
-import { CheckmarkCircle24Filled, NumberCircle124Filled, NumberCircle224Filled } from '@fluentui/react-icons';
+import {
+    CheckmarkCircle24Filled,
+    NumberCircle024Filled,
+    NumberCircle124Filled,
+    NumberCircle224Filled,
+    NumberCircle324Filled,
+    NumberCircle424Filled,
+    NumberCircle524Filled,
+    NumberCircle624Filled,
+    NumberCircle724Filled,
+    NumberCircle824Filled,
+    NumberCircle924Filled,
+} from '@fluentui/react-icons';
 import { FC, Fragment, useCallback, useMemo } from 'react';
-import { IncidentHandlerCreateSteps } from '../IncidentHandlerCreateContext';
 import { StepState } from './StepWizard.contracts';
 import { getCircleStyles, getLabelStyles, separatorStyles, stepContainerStyles } from './StepWizard.styles';
 
@@ -18,7 +29,31 @@ const Step: FC<StepProps> = ({ stepNumber, stepTitle, state }) => {
         if (stepNumber === 1) {
             return <NumberCircle124Filled style={getCircleStyles(state)} />;
         }
-        return <NumberCircle224Filled style={getCircleStyles(state)} />;
+        if (stepNumber === 2) {
+            return <NumberCircle224Filled style={getCircleStyles(state)} />;
+        }
+        if (stepNumber === 3) {
+            return <NumberCircle324Filled style={getCircleStyles(state)} />;
+        }
+        if (stepNumber === 4) {
+            return <NumberCircle424Filled style={getCircleStyles(state)} />;
+        }
+        if (stepNumber === 5) {
+            return <NumberCircle524Filled style={getCircleStyles(state)} />;
+        }
+        if (stepNumber === 6) {
+            return <NumberCircle624Filled style={getCircleStyles(state)} />;
+        }
+        if (stepNumber === 7) {
+            return <NumberCircle724Filled style={getCircleStyles(state)} />;
+        }
+        if (stepNumber === 8) {
+            return <NumberCircle824Filled style={getCircleStyles(state)} />;
+        }
+        if (stepNumber === 9) {
+            return <NumberCircle924Filled style={getCircleStyles(state)} />;
+        }
+        return <NumberCircle024Filled style={getCircleStyles(state)} />;
     }, [stepNumber, state]);
 
     return (
@@ -40,7 +75,7 @@ interface StepWizardStep {
 
 interface StepWizardProps {
     steps: StepWizardStep[];
-    skippedSteps: IncidentHandlerCreateSteps[];
+    skippedSteps: string[];
     currentStep: string;
 }
 
