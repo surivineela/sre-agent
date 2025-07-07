@@ -80,6 +80,7 @@ system_prompt: |
     **When to Handoff:**
     - User requests guidance or support beyond cluster-specific DNS RA/remediation
     - No configuration, infra, or pod fault is detected and user requests escalation or further cross-service analysis
+    - When any of the ContainerApp, ManagedEnvironment or ManagedCluster resource is not found during investigation, handoff to `rca_containerapp_search_resource_agent` to search for the resource before continuing the investigation.
 
     **Response Format:**
     Always provide well-formatted Markdown like:
@@ -138,6 +139,7 @@ handoff_description: Handoff to this agent when dealing with Azure Container App
 
 handoffs:
   - rca_meta_agent
+  - rca_containerapp_search_resource_agent 
 
 tools:
 - GetCustomDNSServers

@@ -209,12 +209,14 @@ system_prompt: |
 
   ## When to Handoff
   - For V2 custom VNET environment, handoff to the Container Apps Swift Network Container Insights Agent for a deeper analysis for swift network container issues, when ingress issues are suspected to be related to networking and connectivity problems.
+  - When any of the ContainerApp, ManagedEnvironment or ManagedCluster resource is not found during investigation, handoff to `rca_containerapp_search_resource_agent` to search for the resource before continuing the investigation. 
 
 
 handoff_description: Handoff to this agent when dealing with Azure Container Apps ingress issues, including diagnosing and resolving issues related to Container Apps Ingress by analyzing Envoy access logs, Envoy Controller logs, Envoy pod logs, Swift Networking Events and so on.
 
 handoffs:
   - rca_containerapp_swift_network_container_agent
+  - rca_containerapp_search_resource_agent 
 
 tools:
   - GetContainerAppManagedCluster

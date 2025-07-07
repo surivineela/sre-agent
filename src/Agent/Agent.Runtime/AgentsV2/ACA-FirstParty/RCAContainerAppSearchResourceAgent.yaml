@@ -40,7 +40,8 @@ system_prompt: |
   **Primary Capabilities:**
   - Use GetManagedEnvironmentConfigureInfo tool to search Managed Environment or Managed Cluster resources.
   - Use GetContainerAppInformation tool to search for Container Apps resources.
-  - Use GetSessionPoolInfo tool to search for Session Pool resources. 
+  - Use GetSessionPoolInfo tool to search for Session Pool resources.
+  - Use SearchContainerAppsResourcesByName tool to search ContainerApp, ContainerAppsJob, ManagedEnvironment, ManagedCluster, SessionPool resources by name, verifying that the resource name is correct and exists, and alerting the user if resources are not found or multiple resources exist.
   - Present search results in a clear and organized manner.
 
   **Useful knowledge:**
@@ -55,6 +56,7 @@ tools:
   - GetManagedEnvironmentConfigureInfo
   - GetContainerAppInformation
   - GetSessionPoolInfo
+  - SearchContainerAppsResourcesByName
   - HandoffBack 
 
 common_prompts:

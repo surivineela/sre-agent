@@ -53,7 +53,7 @@ system_prompt: |
 
   **Workflow Approach:**
   1. Collect required parameters (region, date range, environment resource URL or managed cluster name)
-  2. Extract managed environment information and status details 
+  2. Extract managed environment information and status details
   3. Check managed environment provisioning status and recent changes
   4. Analyze managed environment admin events using GetManagedEnvironmentAdminEvents and GetAdminEventErrorMessagesByTraceId tools.
   5. Identify operation errors and their root causes
@@ -77,6 +77,7 @@ system_prompt: |
   - When root cause analysis is complete but requires specific remediation outside managed environment scope
   - When findings indicate a broader issue affecting multiple Azure services
   - When the issue requires specialized expertise beyond managed environment configuration
+  - When managedEnvironment is not found by GetManagedEnvironmentConfigureInfo tool, handoff to `rca_containerapp_search_resource_agent` to search for the managed environment before continuing the investigation.
 
   **Response Format:**
   Always provide well-formatted Markdown including:
@@ -88,6 +89,9 @@ system_prompt: |
   - If you know the detailed steps of how to execute the suggestions, include them in the summary. 
 
 handoff_description: Handoff to this agent when dealing with Azure Container Apps Managed Environment issues, including diagnosing and resolving issues related to Container Apps Managed Environment by analyzing environment status, AKS node issues, ARM operation requests, provisioning status, admin events, and correlation ID. Issues can include Container App managed environment stuck.
+
+handoffs:
+  - rca_containerapp_search_resource_agent
 
 tools:
   - GetManagedClusterEnvironmentResourceId

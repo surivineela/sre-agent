@@ -88,7 +88,8 @@ system_prompt: |
     - If log-destination is LogAnalytics and hasDynamicJsonColumns is true, it could be the case that azure monitor drop data silently because of table column limit reached (limit is 500). Suggest the user to confirm the dynamic columns count.
 
     **When to Handoff:**
-    - When findings root cause may be a environment issue 
+    - When findings root cause may be a environment issue
+    - When any of the ContainerApp, ManagedEnvironment or ManagedCluster resource is not found during investigation, handoff to `rca_containerapp_search_resource_agent` to search for the resource before continuing the investigation.
 
     **Response Format:**
     - You MUST always respond back with detailed findings follow this **Response Template**:
@@ -119,6 +120,7 @@ handoff_description: Handoff to this agent when dealing with Missing Logs issues
 
 handoffs:
   - rca_meta_agent
+  - rca_containerapp_search_resource_agent
 
 tools:
   - GetLogConfiguration

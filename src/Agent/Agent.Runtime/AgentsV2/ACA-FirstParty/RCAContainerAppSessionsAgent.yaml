@@ -80,6 +80,7 @@ system_prompt: |
 
     **When to Handoff:**
     - When reported issues is beyond the scope of Code interpreter or custom dynamic sessions
+    - When any of the Session Pool resource is not found during investigation, handoff to `rca_containerapp_search_resource_agent` to search for the resource before continuing the investigation.
 
     **Response Format:**
     It should include:
@@ -121,6 +122,7 @@ handoff_description: Handoff to this agent when session pool name is provided, d
 
 handoffs:
   - rca_meta_agent
+  - rca_containerapp_search_resource_agent
 
 tools:
   - GetSessionPoolInfo

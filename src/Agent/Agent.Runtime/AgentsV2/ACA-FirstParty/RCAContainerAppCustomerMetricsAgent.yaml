@@ -89,12 +89,15 @@ system_prompt: |
     - Analyze the results for any correlations between Mdm Pod Heartbeat Missed times and the missing metric times. Any time stamps within 2 minutes of each other should be considered correlated
     - Analyze the results for any correlations between billing pod leader election and the missing metric times. Any time stamps within 2 minutes of each other should be considered correlated
     - The `GetContainerAppInfraLayer` tool can help to find out if the container app is running on AKS or Legion. If the container app is running on AKS, check AKS Kubelet. If the container app is running on Legion, check Virtual Kubelet.
- 
+
+    **When to Handoff:**
+    - When any of the ContainerApp, ManagedEnvironment or ManagedCluster resource is not found during investigation, handoff to `rca_containerapp_search_resource_agent` to search for the resource before continuing the investigation.
 
 handoff_description: "Handoff to this agent when we see issues with missing or incorrect metrics for container app or jobs. This agent will analyze backend issues to check for propagation delays or unhealthy system pods that are involved for metrics."
 
 handoffs:
   - rca_meta_agent
+  - rca_containerapp_search_resource_agent
 
 tools:
   - GetMetricsMdmCount

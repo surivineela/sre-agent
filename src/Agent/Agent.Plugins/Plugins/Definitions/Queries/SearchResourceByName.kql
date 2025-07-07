@@ -1,0 +1,34 @@
+let fromTime = datetime("##fromDate##");
+let toTime = datetime("##toDate##");
+let resourceName = "##resourceName##";
+let containerAppSearchResult = All("ContainerAppDBState")
+| where TIMESTAMP between (fromTime-1d .. toTime)
+| where resourceName != ""
+| where containerAppName =~ resourceName or containerAppsJobName =~ resourceName
+| extend ResourceType = iif(isempty(containerAppName), "ContainerAppsJob", "ContainerApp")
+| extend managedEnvironmentResourceGroup = tostring(split(environmentId,"/")[4])
+| extend managedEnvironmentName = tostring(split(environmentId,"/")[8])
+| summarize arg_max(TIMESTAMP,ResourceType,region=Tenant,subscription,
+  containerAppResourceGroup=resourceGroup,
+  managedEnvironmentResourceGroup,
+  managedEnvironmentName,
+  provisioningState) by containerAppName,containerAppsJobName,managedClusterName;
+let environmentSearchResult = All("ManagedEnvironmentDBState")
+| where TIMESTAMP between (fromTime-1d .. toTime)
+| where resourceName != ""
+| where environmentName =~ resourceName or managedClusterName =~ resourceName
+| extend ResourceType = iif(managedClusterName =~ resourceName, "ManagedCluster", "ManagedEnvironment")
+| summarize arg_max(TIMESTAMP,ResourceType,region=Tenant,subscription,
+  managedEnvironmentName=environmentName,
+  managedEnvironmentResourceGroup=resourceGroup,
+  environmentProvisioningState) by managedClusterName;
+let sessionPoolSearchResult = AllSession("SessionPoolDBState")
+| where PreciseTimeStamp  between (fromTime-1d .. toTime)
+| where resourceName != ""
+| where sessionPoolName =~ resourceName
+| extend ResourceType = "SessionPool"
+| summarize arg_max(TIMESTAMP,ResourceType,region=Tenant,subscription,
+  sessionPoolResourceGroup=resourceGroup) by sessionPoolName;
+union containerAppSearchResult,environmentSearchResult,sessionPoolSearchResult
+| where ResourceType != ""
+| project ResourceType,region,subscription,managedClusterName,managedEnvironmentName,containerAppName,containerAppsJobName,provisioningState,sessionPoolName,containerAppResourceGroup,managedEnvironmentResourceGroup,environmentProvisioningState,sessionPoolResourceGroup

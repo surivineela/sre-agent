@@ -494,6 +494,7 @@ public class Program
             .AddTransient<RCAContainerAppRevisionPluginDefinition>()
             .AddSingleton<IKustoDashboardPlugin, KustoDashboardPlugin>()
             .AddTransient<RCAContainerAppResourceCheckPluginDefinition>()
+            .AddTransient<RCAContainerAppResourceSearchPluginDefinition>()
             .AddTransient<RCAContainerAppsSwiftNetworkContainerPluginDefinition>()
             .AddTransient<GenevaActionsPluginDefinition>()
             .AddTransient<ICMPluginDefinition>()

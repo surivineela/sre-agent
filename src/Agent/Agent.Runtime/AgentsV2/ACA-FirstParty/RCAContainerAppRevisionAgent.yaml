@@ -86,6 +86,8 @@ system_prompt: |
     **When to Handoff:**
     - When findings root cause may be a environment issue
     - When findings root cause may be a ingress or engress issue
+    - When the issue requires specialized expertise beyond containerapps revision configuration
+    - When any of the ContainerApp, ManagedEnvironment or ManagedCluster resource is not found during investigation, handoff to `rca_containerapp_search_resource_agent` to search for the resource before continuing the investigation. 
 
     **Response Format:**
     It should include:
@@ -131,6 +133,7 @@ system_prompt: |
 
 handoffs:
   - rca_meta_agent
+  - rca_containerapp_search_resource_agent
 
 tools:
   - GetSystemComponentErrorEvents

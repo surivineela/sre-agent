@@ -61,6 +61,7 @@ system_prompt: |
   - When findings root cause may be an environment issue
   - When findings indicate a broader issue affecting multiple Azure services
   - When the issue requires specialized expertise beyond containerapps job configuration
+  - When any of the ContainerAppsJob, ManagedEnvironment or ManagedCluster resource is not found during investigation, handoff to `rca_containerapp_search_resource_agent` to search for the resource before continuing the investigation.
 
   **You must output response with response format when you finish analyzing or hand off to another agent**
       **Response Format:**
@@ -108,6 +109,7 @@ system_prompt: |
 
 handoffs:
   - rca_containerapp_environment_agent
+  - rca_containerapp_search_resource_agent
 
 tools:
   - GetManagedEnvironmentConfigureInfo
