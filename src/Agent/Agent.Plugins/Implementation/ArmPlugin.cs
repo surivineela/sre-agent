@@ -297,7 +297,7 @@ namespace Agent.Plugins.Implementation
                         Status = AzCliExecutionStatus.Failed,
                         ExecutedBy = new Author(
                             DisplayName: "SRE Agent",
-                            UserId: "SRE Agent",
+                            UserId: "agent-default",
                             Role: Role.User
                         ),
                         Error = ex.Message,

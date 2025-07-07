@@ -5,8 +5,6 @@
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Interfaces;
 using Microsoft.Extensions.Logging;
-using Agent.Core.Helpers;
-using Agent.Logging;
 
 namespace Agent.Runtime.Communication;
 
@@ -36,7 +34,7 @@ public class SinkService
 
         try
         {
-            await _repository.AddMessageAsync(threadId, agentMessage);  
+            await _repository.AddMessageAsync(threadId, agentMessage);
         }
         catch (Exception ex)
         {
@@ -51,10 +49,11 @@ public class SinkService
         ThreadMessage message,
         bool? isVisibleInUserChatHistory = true)
     {
+        var role = string.Equals(message.UserId, "agent-default", StringComparison.OrdinalIgnoreCase) ? Role.SREAgent : Role.User;
         var userMessage = new Message(
             Id: message.MessageId,
             TimeStamp: DateTime.UtcNow,
-            Author: new Author(Role.User, message.UserId, message.DisplayName),
+            Author: new Author(role, message.UserId, message.DisplayName),
             Text: message.Message,
             IsImageContent: false,
             Posted: message.Posted ?? new Posted(false)

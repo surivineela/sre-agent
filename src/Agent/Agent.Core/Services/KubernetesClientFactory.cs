@@ -198,7 +198,7 @@ public class KubernetesClientFactory : IKubernetesClientFactory
 
     private async Task<CachedK8sConfiguration?> GetOrAddCachedK8sConfigurationInternal(string subscription, string resourceGroup, string clusterName, bool isCrawler)
     {
-        _logger.LogInternalInformation($"Getting k8s client for {subscription}/{resourceGroup}/{clusterName}. IsCrawler = {isCrawler}");
+        _logger.LogDebug($"Getting k8s client for {subscription}/{resourceGroup}/{clusterName}. IsCrawler = {isCrawler}");
         var key = $"{subscription}/{resourceGroup}/{clusterName}{(isCrawler ? "/crawler" : "")}";
         if (isCrawler)
         {

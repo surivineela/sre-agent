@@ -10,6 +10,7 @@ using Azure.ResourceManager.AlertsManagement.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Core.Services;
+
 public class AzMonitorAlertService : IAzMonitorAlertService
 {
     private readonly ILogger<AzMonitorAlertService> _logger;
@@ -69,8 +70,8 @@ public class AzMonitorAlertService : IAzMonitorAlertService
 
                         if (DateTimeOffset.TryParse(essentials.StartDateTime, out var startTime))
                         {
-                            if (essentials.MonitorCondition == "Fired" && 
-                                startTime >= cutoffTime && 
+                            if (essentials.MonitorCondition == "Fired" &&
+                                startTime >= cutoffTime &&
                                 essentials.AlertState == "New")
                             {
                                 _logger.LogInternalInformation($"Adding alert {alertItem.Id} to new alerts list - Rule: {essentials.AlertRule}, Time: {startTime}, State: {essentials.AlertState}");

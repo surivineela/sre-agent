@@ -831,7 +831,8 @@ public class TimerService : IHostedService, IDisposable
             try
             {
                 _azMonitorIncidentClosureTimerIsRunning = true;
-                await _azMonitorAlertScanner.CloseInActiveAzMonitorIncidentThreads(20, cancellationToken);
+                // Close any inactive Az Monitor incidents that have not been updated with new messages (or fired again) in the last 24 hours, we can modify this per needs
+                await _azMonitorAlertScanner.CloseInActiveAzMonitorIncidentThreads(24 * 60, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -845,7 +846,8 @@ public class TimerService : IHostedService, IDisposable
     }
 
     public void Dispose()
-    {        _logger.LogInternalInformation("Disposing Azure Resource Crawler Worker");
+    {
+        _logger.LogInternalInformation("Disposing Azure Resource Crawler Worker");
 
         _crawlerTimer?.Dispose();
         _threadEvaluatorTimer?.Dispose();

@@ -24,6 +24,7 @@ using Agent.Core.Configuration;
 using System.Diagnostics.Metrics;
 
 namespace Agent.Runtime.Services;
+
 public class ThreadManagementService(
     IAgentInboundCommunicationService agentInboundCommunicationService,
     IAgentOutboundCommunicationService outboundCommunicationService,
@@ -113,12 +114,14 @@ public class ThreadManagementService(
 
         agentChatHistory = await repository.CreateAgentChatHistoryAsync(agentChatHistory);
 
+        // TODO(jianbo): thread context is not used in the new agent framework, remove it later
         var threadContext = new ThreadContext(thread.Id, AgentTypeEnum.Meta);
         threadContext.AddMessage(thread.StartMessage);
         await repository.AddThreadContextAsync(threadContext);
 
         // Start the background title generation task (fire and forget)
-        _ = titleGenerationService.GenerateTitleAndUpdateThreadAsync( thread.Id, request.StartMessage.Text);        var response = await agentInboundCommunicationService.ProcessUserMessageAsync(new ThreadMessage
+        _ = titleGenerationService.GenerateTitleAndUpdateThreadAsync(thread.Id, request.StartMessage.Text);
+        var response = await agentInboundCommunicationService.ProcessUserMessageAsync(new ThreadMessage
         (
             ThreadId: thread.Id,
             AgentContextId: agentContext.Id,

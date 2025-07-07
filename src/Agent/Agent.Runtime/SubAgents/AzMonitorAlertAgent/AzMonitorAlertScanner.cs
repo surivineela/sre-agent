@@ -148,7 +148,31 @@ public class AzMonitorAlertScanner
 
             if (existingActiveThread != null)
             {
-                // return if an active incident thread exists
+                // Check if investigation has finished before appending recurring alert message
+                var investigationFinished = await IsInvestigationFinishedAsync(existingActiveThread.Id);
+
+                if (investigationFinished)
+                {
+                    // Investigation is complete, append message about recurring alert
+                    _logger.LogInternalInformation($"Found existing active thread {existingActiveThread.Id} with completed investigation for alert {alert.Id}. Appending recurring alert message.");
+                    var message = $"Another alert **{alert.Id}** is firing with the same alert rule. Merging the investigation.";
+                    var agentContexts = await _repository.GetAgentContextsForThreadAsync(existingActiveThread.Id);
+                    var existingAgentContext = agentContexts.First();
+                    await _inboundCommunicationService.ProcessAlertMessageAsync(new ThreadMessage(
+                       ThreadId: existingActiveThread.Id,
+                       AgentContextId: existingAgentContext.Id,
+                       MessageId: Guid.NewGuid(),
+                       Message: message,
+                       UserId: "agent-default",
+                       DisplayName: "Azure SRE Agent",
+                       Timestamp: DateTime.UtcNow
+                   ));
+                }
+                else
+                {
+                    // Investigation is still in progress, just log and don't append message
+                    _logger.LogInternalInformation($"Found existing active thread {existingActiveThread.Id} with ongoing investigation for alert {alert.Id}. Not appending message as investigation is still in progress.");
+                }
                 return;
             }
 
@@ -174,8 +198,8 @@ public class AzMonitorAlertScanner
                    AgentContextId: agentContext.Id,
                    MessageId: thread.StartMessage.Id,
                    Message: $"An automated investigation has been completed for this alert with the following hypotheses and findings: {investigationResult.Summary}\n\nPlease validate these hypotheses by checking the supporting evidence. If the hypotheses seem incomplete or insufficient, conduct additional targeted investigation focusing on metrics, logs, and recent changes. Your goal is to either confirm one of these hypotheses with high confidence or discover the actual root cause if it differs from what was identified by the automated analysis. Based on the initial findings, find an appropriate subagent to handle the remediation. CRITICAL: Be as autonomous as possible without asking for permission to take actions.",
-                   UserId: "incident-system",
-                   DisplayName: "Azure Monitor Investigation Summary",
+                   UserId: "agent-default",
+                   DisplayName: "Azure SRE Agent",
                    Timestamp: DateTime.UtcNow
                ));
         }
@@ -595,8 +619,65 @@ Remember: Quality findings with specific values are better than quantity. Exclud
         }
     }
 
-    // TODO: Duplicate method. Move to a common helper class.
-    private string GetAlertInfoAsPrompt(AlertItem alert)
+    /// <summary>
+    /// Checks if the investigation has finished by looking for final summary items in thread messages
+    /// </summary>
+    /// <param name="threadId">The thread ID to check</param>
+    /// <returns>True if investigation is finished, false if still in progress</returns>
+    private async Task<bool> IsInvestigationFinishedAsync(Guid threadId)
+    {
+        try
+        {
+            // Get all messages from the thread
+            var messages = await _repository.GetMessagesAsync(threadId);
+
+            foreach (var message in messages)
+            {
+                // Look for investigation summaries in the message text
+                if (message.Text.Contains("<investigation-summaries>") && message.Text.Contains("</investigation-summaries>"))
+                {
+                    // Extract JSON content between the tags using simple string operations
+                    int startIndex = message.Text.IndexOf("<investigation-summaries>") + "<investigation-summaries>".Length;
+                    int endIndex = message.Text.IndexOf("</investigation-summaries>");
+
+                    if (startIndex > 0 && endIndex > startIndex)
+                    {
+                        string jsonContent = message.Text.Substring(startIndex, endIndex - startIndex).Trim();
+
+                        try
+                        {
+                            var investigationSummaries = JsonSerializer.Deserialize<InvestigationSummaries>(jsonContent);
+
+                            if (investigationSummaries?.summaries != null)
+                            {
+                                // Check if there's any final summary item that's completed
+                                var hasFinalCompleted = investigationSummaries.summaries
+                                    .Any(s => s.isFinal && s.status == "completed");
+
+                                if (hasFinalCompleted)
+                                {
+                                    return true;
+                                }
+                            }
+                        }
+                        catch (JsonException ex)
+                        {
+                            _logger.LogInternalWarning(ex, "Failed to parse investigation summaries JSON in message {MessageId}", message.Id);
+                        }
+                    }
+                }
+            }
+
+            return false; // No finished investigation found
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error checking investigation status for thread {ThreadId}", threadId);
+            return false; // Assume not finished on error to be safe
+        }
+    }
+
+    private async Task<string> GetAlertInfoAsPrompt(AlertItem alert)
     {
         if (alert == null)
         {

@@ -237,6 +237,7 @@ public class ReasoningLoop : IDisposable
         var agentChatHistory = await _threadRepository.GetAgentChatHistoryAsync(_context.Id);
         if (agentChatHistory == null)
         {
+            _logger.LogInternalError("[{threadId}]No chat history found for agent context {agentContextId}, this should never happen.", _context.ThreadId, _context.Id);
             // should never happen
             _chatHistory = [];
             return;
@@ -1078,9 +1079,12 @@ public class ReasoningLoop : IDisposable
     {
         _userCancellationTokenSource.Token.ThrowIfCancellationRequested();
 
-        var lastMessage = _chatHistory?.LastOrDefault()?.Contents?.First();
-        // if lastMessage is a tool call, we need to invoke the tool first
-        if (lastMessage != null && lastMessage is FunctionCallContent functionCall)
+        var lastMessage = _chatHistory?.LastOrDefault();
+        // Check if lastMessage exists and has contents before accessing First()
+        var lastContent = lastMessage?.Contents?.FirstOrDefault();
+
+        // if lastContent is a tool call, we need to invoke the tool first
+        if (lastContent != null && lastContent is FunctionCallContent functionCall)
         {
             try
             {

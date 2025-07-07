@@ -2,8 +2,6 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Runtime.CompilerServices;
-using System.Text;
 using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
@@ -11,7 +9,6 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Logging;
 using Agent.Plugins.Interface;
-using Agent.Runtime.Helpers;
 using Agent.Runtime.IncidentHandlerAgent;
 using Agent.Runtime.MetaAgent;
 using Agent.Runtime.Reasoning;
@@ -83,7 +80,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         bool isDailyReport = false,
         List<string>? AllowedTools = null)
     {
-        return await CreateThread(title, message, source, agentTypeEnum, incidentId: incidentId, incidentSource: incidentSource, isDailyReport: isDailyReport, AllowedTools: AllowedTools);
+        return await CreateAgentInitiatedThread(title, message, source, agentTypeEnum, incidentId: incidentId, incidentSource: incidentSource, isDailyReport: isDailyReport, AllowedTools: AllowedTools);
     }
 
     public async Task<Core.Models.Api.v1.Thread> CreateAlertThreadWithTeams(
@@ -93,7 +90,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         ThreadSource source = ThreadSource.Alert)
     {
         var outboundConfig = new OutboundConfiguration { Teams = new Teams { Enabled = true } };
-        (var thread, var agentContext) = await CreateThread(title, message, source, agentTypeEnum, outboundConfig);
+        (var thread, var agentContext) = await CreateAgentInitiatedThread(title, message, source, agentTypeEnum, outboundConfig);
         await _teamsPlugin.CreateTeamsThread(thread.Id.ToString(), thread.StartMessage.Text, thread.StartMessage.Id.ToString());
 
         return thread;
@@ -116,6 +113,32 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         return await _sinkService.SinkAgentMessageAsync(threadId, message, isImageContent: true);
     }
 
+    private async Task<InboundServiceResponse> ProcessMessageWithAgentFrameworkAsync(ThreadMessage threadMessage)
+    {
+        AgentContext agentContext = await _repository.GetAgentContextAsync(agentContextId: threadMessage.AgentContextId, threadId: threadMessage.ThreadId);
+
+        // we don't need to sink user message if the message is the start message
+        var thread = await _repository.GetThreadAsync(threadMessage.ThreadId);
+        if (threadMessage?.MessageId != thread?.StartMessage?.Id)
+        {
+            await _sinkService.SinkUserMessageAsync(threadMessage);
+        }
+
+        var chatRole = ChatRole.User;
+        if (string.Equals(threadMessage?.UserId, "agent-default", StringComparison.OrdinalIgnoreCase))
+        {
+            // If the message is from the SRE agent, we treat it as a system message
+            chatRole = ChatRole.System;
+        }
+
+        await _reasoningLoopManager.AppendNewMessageAsync(
+            context: agentContext!,
+            msg: new ChatMessage(chatRole, threadMessage.Message),
+            cancellationToken: default);
+
+        return new InboundServiceResponse(threadMessage.ThreadId, Guid.Empty, string.Empty);
+    }
+
     public async Task<InboundServiceResponse> ProcessUserMessageAsync(ThreadMessage threadMessage)
     {
         _customerLogger.LogMessage($"[ChatThreadId {threadMessage.ThreadId}] Processing user message: {threadMessage.Message}");
@@ -127,21 +150,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
 
         if (_useAgentFramework)
         {
-            AgentContext agentContext = await _repository.GetAgentContextAsync(agentContextId: threadMessage.AgentContextId, threadId: threadMessage.ThreadId);
-
-            // we don't need to sink user message if the message is the start message
-            var thread = await _repository.GetThreadAsync(threadMessage.ThreadId);
-            if (threadMessage?.MessageId != thread?.StartMessage?.Id)
-            {
-                await _sinkService.SinkUserMessageAsync(threadMessage);
-            }
-
-            await _reasoningLoopManager.AppendNewMessageAsync(
-                context: agentContext!,
-                msg: new ChatMessage(ChatRole.User, threadMessage.Message),
-                cancellationToken: default);
-
-            return new InboundServiceResponse(threadMessage.ThreadId, Guid.Empty, string.Empty);
+            return await ProcessMessageWithAgentFrameworkAsync(threadMessage);
         }
 
         try
@@ -281,6 +290,10 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             { "ChatThreadId", threadMessage.ThreadId.ToString() },
             { "Message", threadMessage.Message }
         });
+        if (_useAgentFramework)
+        {
+            return await ProcessMessageWithAgentFrameworkAsync(threadMessage);
+        }
 
         try
         {
@@ -416,7 +429,8 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         }
     }
 
-    private async Task<(Core.Models.Api.v1.Thread, Core.Models.Api.v1.AgentContext)> CreateThread(
+    // CreateAgentInitiatedThread just creates a thread and agent context without triggering reasoning loop.
+    private async Task<(Core.Models.Api.v1.Thread, Core.Models.Api.v1.AgentContext)> CreateAgentInitiatedThread(
         string title,
         string message,
         ThreadSource source,
@@ -474,18 +488,19 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         var startReasoningMessage = new ReasoningMessage(
             Id: Guid.NewGuid(),
             AgentContextId: agentContext.Id,
-            Role: ReasoningMessageRoleEnum.Assistant,
-            SerializedChatMessage: JsonSerializer.Serialize(new ChatMessage(ChatRole.Assistant, message)));
+            Role: ReasoningMessageRoleEnum.System,
+            SerializedChatMessage: JsonSerializer.Serialize(new ChatMessage(ChatRole.System, message)));
 
         var agentChatHistory = new AgentChatHistory(AgentContextId: agentContext.Id, ReasoningMessageIds: new List<Guid> { startReasoningMessage.Id });
 
-        // TODO - how should we share implementation with process user message and make sure fan out occurs?
         await _repository.CreateThreadAsync(thread);
+        await _repository.AddMessageAsync(thread.Id, thread.StartMessage);
         await _repository.CreateAgentContextAsync(agentContext);
+
+        await _repository.CreateReasoningMessageAsync(startReasoningMessage);
+
         await _repository.CreateAgentChatHistoryAsync(agentChatHistory);
 
-        await _repository.AddMessageAsync(thread.Id, thread.StartMessage);
-        await _repository.CreateReasoningMessageAsync(startReasoningMessage);
 
         return (thread, agentContext);
     }

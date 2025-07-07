@@ -142,7 +142,7 @@ namespace Agent.Plugins
                         Status = KubectlExecutionStatus.Failed,
                         ExecutedBy = new Author(
                             DisplayName: "SRE Agent",
-                            UserId: "SRE Agent",
+                            UserId: "agent-default",
                             Role: Role.User
                         ),
                         Error = ex.Message,
