@@ -31,7 +31,7 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
         _armClient = armClient;
         _k8sService = k8sService;
         _graphClient = graphClient;
-    }    
+    }
     public override async IAsyncEnumerable<GraphNode> Crawl(GraphNode clusterNode)
     {
         await foreach (var n in base.Crawl(clusterNode))
@@ -110,7 +110,7 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
         {
             _logger.LogInternalWarning($"Failed to find connected Azure Monitor workspaces for {aksNode.ResourceId}: {ex.Message}");
         }
-        
+
         foreach (var workspaceNode in monitorWorkspaces)
         {
             _logger.LogDebug($"Found Azure Monitor workspace: {workspaceNode.ResourceName} connected to cluster: {aksNode.GetNodeId()}");
@@ -137,7 +137,18 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
 
         // non-namespaced resources
         // nodes
-        var nodes = await _k8sService.GetNodesAsync(aksNode.ResourceId);
+        var nodes = new V1NodeList([]);
+        try
+        {
+            nodes = await _k8sService.GetNodesAsync(aksNode.ResourceId);
+            _logger.LogDebug($"Found {nodes.Items?.Count} nodes in cluster: {aksNode.GetNodeId()}");
+        }
+        // Azure Kubernetes Service RBAC Reader role does not have permission to list nodes
+        catch (k8s.Autorest.HttpOperationException ex) when (ex.Response?.StatusCode == System.Net.HttpStatusCode.Forbidden)
+        {
+            _logger.LogInternalWarning($"No permission to list nodes under cluster {aksNode.ResourceId}");
+        }
+
         foreach (var node in nodes)
         {
             _logger.LogDebug($"Node: {node.Name()} in cluster: {aksNode.GetNodeId()}");
@@ -150,8 +161,18 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
 
         // pvcs
         // list all pvs
-        var persistentVolumes = await _k8sService.GetPersistentVolumesAsync(aksNode.ResourceId);
-        _logger.LogDebug($"Found {persistentVolumes.Items?.Count} persistent volumes in cluster: {aksNode.GetNodeId()}");
+        var persistentVolumes = new V1PersistentVolumeList([]);
+        try
+        {
+            persistentVolumes = await _k8sService.GetPersistentVolumesAsync(aksNode.ResourceId);
+            _logger.LogDebug($"Found {persistentVolumes.Items?.Count} persistent volumes in cluster: {aksNode.GetNodeId()}");
+        }
+        // Azure Kubernetes Service RBAC Reader role does not have permission to list persistent volumes
+        catch (k8s.Autorest.HttpOperationException ex) when (ex.Response?.StatusCode == System.Net.HttpStatusCode.Forbidden)
+        {
+            _logger.LogInternalWarning($"No permission to list persistent volumes under cluster {aksNode.ResourceId}");
+        }
+
         foreach (var pv in persistentVolumes.Items)
         {
             _logger.LogDebug($"PersistentVolume: {pv.Name()} in cluster: {aksNode.GetNodeId()}");
@@ -161,8 +182,8 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
             await _graphDbClient.AddOrUpdateEdgeAsync(edge);
             yield return pvNode;
         }
-    }    
-    
+    }
+
     /// <summary>
     /// Find Azure Monitor workspaces connected to an AKS cluster
     /// </summary>
@@ -206,24 +227,24 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
         | extend amwToGrafana = pack(""azureMonitorWorkspaceResourceId"", azureMonitorWorkspaceResourceId, ""prometheusQueryEndpoint"", prometheusQueryEndpoint, ""amwLocation"", amwLocation, ""associatedGrafanas"", associatedGrafanas)   
         | summarize amwToGrafanas=make_list(amwToGrafana) by dcrResourceId = dcrId, dcraName
         | order by dcrResourceId";
-        
+
         try
         {
             // We search in the cluster's subscription
             var subscriptions = new List<string> { aksNode.SubscriptionId };
             var queryResult = await _graphClient.Query(subscriptions, query);
-            
+
             if (queryResult != null && queryResult.Data != null)
             {
                 var jsonData = queryResult.Data.ToString();
                 var results = JsonDocument.Parse(jsonData).RootElement;
-                
+
                 if (results.ValueKind == JsonValueKind.Array)
                 {
                     foreach (var item in results.EnumerateArray())
                     {
                         // Get the list of Azure Monitor workspaces from the amwToGrafanas array
-                        if (item.TryGetProperty("amwToGrafanas", out var amwToGrafanas) && 
+                        if (item.TryGetProperty("amwToGrafanas", out var amwToGrafanas) &&
                             amwToGrafanas.ValueKind == JsonValueKind.Array)
                         {
                             foreach (var amw in amwToGrafanas.EnumerateArray())
@@ -233,19 +254,19 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
                                     amw.TryGetProperty("amwLocation", out var locationElement))
                                 {
                                     string resourceId = resourceIdElement.GetString();
-                                    string prometheusQueryEndpoint = prometheusEndpointElement.ValueKind != JsonValueKind.Null ? 
+                                    string prometheusQueryEndpoint = prometheusEndpointElement.ValueKind != JsonValueKind.Null ?
                                         prometheusEndpointElement.GetString() : null;
-                                    string location = locationElement.ValueKind != JsonValueKind.Null ? 
+                                    string location = locationElement.ValueKind != JsonValueKind.Null ?
                                         locationElement.GetString() : null;
-                                    
+
                                     // Parse the resource ID to extract necessary components
                                     var resourceIdentifier = new ResourceIdentifier(resourceId);
                                     string subscriptionId = resourceIdentifier.SubscriptionId;
                                     string resourceGroupName = resourceIdentifier.ResourceGroupName;
                                     string resourceName = resourceIdentifier.Name;
-                                    
+
                                     _logger.LogDebug($"Found Azure Monitor workspace: {resourceName} with Prometheus endpoint: {prometheusQueryEndpoint}");
-                                    
+
                                     var workspaceNode = new AzureMonitorWorkspaceNode(
                                         Constants.AzureMonitorWorkspaceType,
                                         resourceId,
@@ -255,7 +276,7 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
                                         prometheusQueryEndpoint,
                                         location
                                     );
-                                    
+
                                     workspaces.Add(workspaceNode);
                                 }
                             }
@@ -269,7 +290,7 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
             _logger.LogInternalWarning($"Error querying Azure Resource Graph for Monitor workspaces: {ex.Message}");
             throw;
         }
-        
+
         return workspaces;
     }
 
@@ -568,7 +589,7 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
         }
 
         List<GraphNode> acrNodes = new List<GraphNode>();
-        
+
         try
         {
             // Query for container registries that might be connected via role assignments
@@ -577,14 +598,14 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
             | where type == ""microsoft.containerregistry/registries""
             | where subscriptionId == ""{aksNode.SubscriptionId}""
             | project id, name, location";
-            
+
             var acrResults = await _graphClient.Query(new[] { aksNode.SubscriptionId }, acrQuery);
-            
+
             if (acrResults != null && acrResults.Data != null)
             {
                 var jsonData = acrResults.Data.ToString();
                 var results = JsonDocument.Parse(jsonData).RootElement;
-                
+
                 if (results.ValueKind == JsonValueKind.Array)
                 {
                     foreach (var acr in results.EnumerateArray())
@@ -592,10 +613,10 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
                         if (acr.TryGetProperty("id", out var acrIdElement))
                         {
                             var acrResourceId = acrIdElement.GetString();
-                            
+
                             // Check if this ACR has role assignments from the AKS identity
                             bool hasConnection = await CheckACRConnection(aksNode, clusterData, acrResourceId);
-                            
+
                             if (hasConnection)
                             {
                                 var acrNode = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(acrResourceId);

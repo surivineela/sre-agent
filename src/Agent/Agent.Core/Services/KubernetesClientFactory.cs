@@ -164,8 +164,16 @@ public class KubernetesClientFactory : IKubernetesClientFactory
             }
             else
             {
-                _logger.LogInternalInformation($"Admin credential will be used for {subscription}/{resourceGroup}/{clusterName}");
-                credResp = await cluster.GetClusterAdminCredentialsAsync();
+                try
+                {
+                    _logger.LogInternalInformation($"Admin credential will be used for {subscription}/{resourceGroup}/{clusterName}");
+                    credResp = await cluster.GetClusterAdminCredentialsAsync();
+                }
+                catch (Azure.RequestFailedException ex) when (ex.Status == 403)
+                {
+                    _logger.LogInternalInformation($"Does not have sufficient permissions to list admin credential, falling back to user credential for {subscription}/{resourceGroup}/{clusterName}");
+                    credResp = await cluster.GetClusterUserCredentialsAsync();
+                }
             }
             if (credResp?.Value?.Kubeconfigs == null || !credResp.Value.Kubeconfigs.Any())
             {

@@ -108,7 +108,17 @@ namespace Agent.Graph.Crawler.Kubernetes
             }
 
             // list all secrets
-            var secrets = await _k8sService.GetSecretsAsync(nsNode.ClusterResourceId, nsNode.ResourceName);
+            var secrets = new V1SecretList([]);
+            try
+            {
+                secrets = await _k8sService.GetSecretsAsync(nsNode.ClusterResourceId, nsNode.ResourceName);
+            }
+            // Azure Kubernetes Service RBAC Reader role does not have permission to list secrets
+            catch (k8s.Autorest.HttpOperationException ex) when (ex.Response?.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            {
+                _logger.LogInternalWarning($"No permission to list secrets under {nsNode.ResourceName} of cluster {nsNode.ClusterResourceId}");
+            }
+
             _logger.LogDebug($"Found {secrets.Items?.Count} secrets in namespace: {nsNode.GetNodeId()}");
             foreach (var secret in secrets.Items)
             {
@@ -119,6 +129,7 @@ namespace Agent.Graph.Crawler.Kubernetes
                 await _graphDbClient.AddOrUpdateEdgeAsync(edge);
                 yield return secretNode;
             }
+
 
             // list all pvcs
             var persistentVolumeClaims = await _k8sService.GetPersistentVolumeClaimsAsync(nsNode.ClusterResourceId, nsNode.ResourceName);
