@@ -72,7 +72,7 @@ public class ToolsRepository : IToolsRepository
         Register200<ArmPluginDefinition>(x => x.CheckTcpConnectivity);
         Register200<ArmPluginDefinition>(x => x.CheckDnsResolution);
         Register200<ArmPluginDefinition>(x => x.GetAppSetting);
-        Register200<ArmPluginDefinition>(x => x.UpdateAppSettingsAsync);
+        Register200<ArmPluginDefinition>(x => x.ConfigureAppSettingsForManagedIdentityStorage);
         Register200<ArmPluginDefinition>(x => x.ListKeysAndUpdateAppSettingsAsync);
 
         RegisterPlugin<TimePluginDefinition>();

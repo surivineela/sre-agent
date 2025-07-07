@@ -193,6 +193,11 @@ namespace Agent.Plugins.Implementation
             return await _armHelper.ListKeysAndUpdateAppSettingsAsync(storageResourceId, appServiceResourceId, appSettingKey);
         }
 
+        public async Task<bool> ConfigureAppSettingsForManagedIdentityStorage(string resourceId, string storageAccountName)
+        {
+            return await _armHelper.ConfigureAppSettingsForManagedIdentityStorage(resourceId, storageAccountName);
+        }
+
         public async Task<bool> UpdateAppSettingsAsync(string resourceId, IDictionary<string, string> appSettings)
         {
             return await _armHelper.UpdateAppSettingsAsync(resourceId, appSettings);

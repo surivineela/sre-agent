@@ -2065,6 +2065,19 @@ public class ArmHelper
         return await UpdateAppSettingsAsync(appServiceResourceId, appSettings);
     }
 
+    public async Task<bool> ConfigureAppSettingsForManagedIdentityStorage(string resourceId, string storageAccountName)
+    {
+        var appSettings = new Dictionary<string, string>
+        {
+            { "AzureWebJobsStorage__accountName", storageAccountName },
+            { "AzureWebJobsStorage__blobServiceUri", $"https://{storageAccountName}.blob.core.windows.net" },
+            { "AzureWebJobsStorage__queueServiceUri", $"https://{storageAccountName}.queue.core.windows.net" },
+            { "AzureWebJobsStorage__tableServiceUri", $"https://{storageAccountName}.table.core.windows.net" }
+        };
+
+        return await UpdateAppSettingsAsync(resourceId, appSettings);
+    }
+
     public static int GetNumberOfCoresFromSku(string sku)
     {
         // Map SKU to tier, e.g., "P1v2" -> "PremiumV2"

@@ -82,7 +82,7 @@ public sealed class FunctionAppDiagnosticsAgentFactory
             toolsRepository.GetSignature(() => armPluginDefinition.CheckDnsResolution),
             toolsRepository.GetSignature(() => armPluginDefinition.GetAppSetting),
             toolsRepository.GetSignature(() => armPluginDefinition.ListKeysAndUpdateAppSettingsAsync),
-            toolsRepository.GetSignature(() => armPluginDefinition.UpdateAppSettingsAsync)
+            toolsRepository.GetSignature(() => armPluginDefinition.ConfigureAppSettingsForManagedIdentityStorage)
         };
 
         connectivityAgentTools.Add(toolsRepository.GetSignature(() => chartPluginDefinition.PlotTimeSeriesData));

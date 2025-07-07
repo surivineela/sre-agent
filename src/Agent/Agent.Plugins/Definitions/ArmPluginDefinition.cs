@@ -83,7 +83,7 @@ namespace Agent.Plugins
             return await _armPlugin.GetVirtualMachineBootDiagnostics(resourceId);
         }
 
-        [Description("Tests connectivity from function app to AzureWebJobsStorage.")]
+        [Description("Tests connectivity from function app to AzureWebJobsStorage. Only use this for connection string based authentication scenarios.")]
         public async Task<string> CheckConnectivityToAzureWebJobsStorage(
             [Description("Full resource id of an Azure Function App")] string resourceId,
             [Description("The type of storage to connect to. Valid values: BlobStorage, QueueStorage, TableStorage")]
@@ -125,6 +125,15 @@ namespace Agent.Plugins
             [Description("The App Setting key to update with the storage account connection string")] string appSettingKey)
         {
             return await _armPlugin.ListKeysAndUpdateAppSettingsAsync(storageResourceId, appServiceResourceId, appSettingKey);
+        }
+
+        [RequiresApproval]
+        [Description("Configures App Settings to use managed identity authentication for Azure WebJobs Storage in a Function App.")]
+        public async Task<bool> ConfigureAppSettingsForManagedIdentityStorage(
+            [Description("Full resource id of an Azure Function App")] string resourceId,
+            [Description("The name of the Azure Storage account to use")] string storageAccountName)
+        {
+            return await _armPlugin.ConfigureAppSettingsForManagedIdentityStorage(resourceId, storageAccountName);
         }
 
         [Description("Retrieves the Azure resource ID for a storage account from its storage service URI")]
