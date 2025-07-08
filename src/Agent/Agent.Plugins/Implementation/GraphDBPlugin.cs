@@ -36,7 +36,6 @@ namespace Agent.Plugins
         public Guid? ThreadId { get; set; }
 
         private readonly IGraphDatabaseClient _graphDbClient;
-        private readonly AzureResourceGraphClient _azureResourceGraphClient;
         private readonly IChatClient _chatClient;
         private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
         private readonly ILogger<GraphDBPlugin> _logger;
@@ -64,7 +63,6 @@ namespace Agent.Plugins
 
         public GraphDBPlugin(
             IGraphDatabaseClient graphDbClient,
-            AzureResourceGraphClient azureResourceGraphClient,
             IChatClient chatClient,
             DashboardSettings dashboardSettings,
             IAgentOutboundCommunicationService agentOutboundCommunicationService,
@@ -74,7 +72,6 @@ namespace Agent.Plugins
             IHostEnvironment hostEnvironment)
         {
             _graphDbClient = graphDbClient;
-            _azureResourceGraphClient = azureResourceGraphClient;
             _chatClient = chatClient;
             _agentOutboundCommunicationService = agentOutboundCommunicationService;
             _logger = logger;
