@@ -2,15 +2,17 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
+using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
-using Agent.Core.Extensions;
+using Agent.Data.AgentMemory;
 using Agent.Logging;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
-using System.Text;
-using System.Text.Json;
 using ThreadModel = Agent.Core.Models.Api.v1.Thread;
 
 namespace Agent.Runtime.SubAgents.ThreadEvaluator;
@@ -26,14 +28,16 @@ public class ThreadEvaluator
     private readonly ILogger<ThreadEvaluator> _logger;
     private readonly IThreadRepository _threadRepository;
     private readonly IChatClient _chatClient;
+    private readonly IAgentMemoryClient _memory;
     private readonly Tracer _tracer;
     private readonly AgentActionLogger _actionLogger;    // Configurable time windows for thread filtering
     private readonly TimeSpan _evaluationHistoryRange; // How far back to search for threads
     private readonly TimeSpan _coolDownPeriod;         // Minimum time since last modification before evaluation
-      public ThreadEvaluator(
+    public ThreadEvaluator(
         ILogger<ThreadEvaluator> logger,
         IThreadRepository threadRepository,
         IChatClient chatClient,
+        IAgentMemoryClient memory,
         AgentActionLogger actionLogger,
         Tracer tracer,
         TimeSpan? evaluationHistoryRange = null,
@@ -44,6 +48,7 @@ public class ThreadEvaluator
         _chatClient = chatClient;
         _actionLogger = actionLogger;
         _tracer = tracer;
+        _memory = memory;
 
         // Allow overriding default time windows
         _evaluationHistoryRange = evaluationHistoryRange ?? TimeSpan.FromHours(24);
@@ -172,7 +177,7 @@ public class ThreadEvaluator
                         continue; // Skip threads outside the time window
                     }
 
-                    if(thread.EvaluatedTimestamp >= thread.ModifiedTimestamp)
+                    if (thread.EvaluatedTimestamp >= thread.ModifiedTimestamp)
                     {
                         // Skip threads that have already been evaluated after their last modification
                         continue;
@@ -235,6 +240,11 @@ public class ThreadEvaluator
             var llmEvaluation = await EvaluateThreadWithLLM(thread, chatHistory, reasoningHistory, toolCallMetrics, cancellationToken);// Calculate SAT Score from the individual criteria scores
             var satScore = llmEvaluation.Resolved + llmEvaluation.Satisfied + llmEvaluation.Automatic + llmEvaluation.Smooth + llmEvaluation.Concise;
 
+            // Trajectories
+            var trajectoryInfo = await GenerateTrajectoryAsync(thread, chatHistory, reasoningHistory, toolCallMetrics, cancellationToken);
+
+            await SaveTrajectoryAsync(thread.Id, trajectoryInfo.Trajectory, trajectoryInfo.PromptHash, cancellationToken);
+
             var evaluationResult = new ThreadEvaluateResult(
                 Id: Guid.NewGuid(),
                 ThreadId: thread.Id,
@@ -294,7 +304,7 @@ public class ThreadEvaluator
             {
                 // Get reasoning messages for this context to find tool calls
                 var reasoningMessages = await GetReasoningMessagesForContext(context.Id);
-                  foreach (var reasoningMessage in reasoningMessages)
+                foreach (var reasoningMessage in reasoningMessages)
                 {
                     // Look for tool calls in reasoning messages
                     if (reasoningMessage.Role == ReasoningMessageRoleEnum.Tool)
@@ -425,7 +435,7 @@ public class ThreadEvaluator
         {
             var prompt = BuildEvaluationPrompt(thread, chatHistory, reasoningHistory, toolCallMetrics);
 
-            _logger.LogInternalInformation("LLM Evaluation Prompt for thread {ThreadId}:\n{Prompt}", thread.Id, prompt);            var chatMessages = new List<ChatMessage>
+            _logger.LogInternalInformation("LLM Evaluation Prompt for thread {ThreadId}:\n{Prompt}", thread.Id, prompt); var chatMessages = new List<ChatMessage>
             {
                 new(ChatRole.System, """
                     You are an expert evaluator of AI agent conversations. Your task is to evaluate the quality and effectiveness of agent threads based on the provided conversation history and reasoning logs.
@@ -534,7 +544,7 @@ public class ThreadEvaluator
                     Priority = evaluationData?.Priority ?? "low",
                     PriorityReason = evaluationData?.PriorityReason ?? "Unable to determine priority"
                 };
-            }catch (JsonException ex)
+            } catch (JsonException ex)
             {
                 _logger.LogInternalWarning(ex, $"Error parsing LLM evaluation response. Original response: {jsonResponse}");
                 return new LLMEvaluationResult
@@ -634,7 +644,7 @@ public class ThreadEvaluator
         }
     }
 
-    internal class ToolCallMetrics
+    public class ToolCallMetrics
     {
         public int TotalToolCalls { get; set; }
         public int TotalSuccesses { get; set; }
@@ -659,9 +669,9 @@ public class ThreadEvaluator
         public int Concise { get; set; }
         public string Priority { get; set; } = "";
         public string PriorityReason { get; set; } = "";
-    }    internal class LLMEvaluationResponse
+    } internal class LLMEvaluationResponse
     {
-        public double SATScore { get; set; }        public int Resolved { get; set; }
+        public double SATScore { get; set; } public int Resolved { get; set; }
         public int Satisfied { get; set; }
         public int Automatic { get; set; }
         public int Smooth { get; set; }
@@ -715,4 +725,75 @@ public class ThreadEvaluator
         }
     }
 
+    public async Task<(string Trajectory, string PromptHash)> GenerateTrajectoryAsync(
+        ThreadModel thread,
+        string chatHistory,
+        string reasoningHistory,
+        ToolCallMetrics toolCallMetrics,
+        CancellationToken ct)
+    {
+        var promptPath = Path.Combine(
+           AppDomain.CurrentDomain.BaseDirectory,
+           "EvaluatorPrompts",
+           "TrajectorySummarizer.txt");
+
+        var summarizerPrompt = await File.ReadAllTextAsync(promptPath);
+
+        var promptHash = ComputeSHA256Hash(summarizerPrompt);
+
+        var chatTranscript = BuildEvaluationPrompt(thread, chatHistory, reasoningHistory, toolCallMetrics);
+
+        var prompt = new List<ChatMessage>
+        {
+            new(ChatRole.System, summarizerPrompt),
+            new(ChatRole.User,   chatTranscript)
+        };
+
+        var resp = await _chatClient.GetResponseAsync(
+            prompt,
+            new ChatOptions
+            {
+                ToolMode = ChatToolMode.None,
+                Temperature = 0,
+                ResponseFormat = ChatResponseFormat.Text
+            },
+            cancellationToken: ct);
+
+        return (resp.GetMessage().Text ?? string.Empty, promptHash);
+    }
+
+    private async Task SaveTrajectoryAsync(
+       Guid threadId,
+       string trajectory,
+       string promptHash,
+       CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(trajectory)) return;
+
+        try
+        {
+            using var ms = new MemoryStream(Encoding.UTF8.GetBytes(trajectory));
+            var blobName = $"{promptHash}/{threadId}.txt"; // store under prompt-hash folder
+            var ok = await _memory.UploadDocumentAsync(blobName, ms);
+
+            if (!ok)
+                _logger.LogInternalWarning($"UploadDocumentAsync returned false for {blobName}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning(ex, $"Failed to upload trajectory for {threadId}");
+        }
+    }
+
+    private static string ComputeSHA256Hash(string text)
+    {
+        if (string.IsNullOrEmpty(text)) return string.Empty;
+
+        const int lengthToKeep = 16;
+        
+        return Convert.ToHexString(
+                SHA256.HashData(
+                    Encoding.UTF8.GetBytes(text)))
+            .ToLowerInvariant()[..lengthToKeep]; 
+    }
 }
