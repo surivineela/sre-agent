@@ -1,6 +1,8 @@
 let fromTime = datetime("##fromDate##");
 let toTime = datetime("##toDate##");
-let resourceName = "##resourceName##";
+let resourceName = trim(@"^\s+|\s+$","##resourceName##");
+let searchRegin = "##region##";
+let searchSubscription = "##subscriptionId##";
 let containerAppSearchResult = All("ContainerAppDBState")
 | where TIMESTAMP between (fromTime-1d .. toTime)
 | where resourceName != ""
@@ -31,4 +33,6 @@ let sessionPoolSearchResult = AllSession("SessionPoolDBState")
   sessionPoolResourceGroup=resourceGroup) by sessionPoolName;
 union containerAppSearchResult,environmentSearchResult,sessionPoolSearchResult
 | where ResourceType != ""
+| where isempty(searchRegin) or region =~ searchRegin
+| where isempty(searchSubscription) or subscription =~ searchSubscription
 | project ResourceType,region,SubscriptionID=subscription,managedClusterName,managedEnvironmentName,containerAppName,containerAppsJobName,provisioningState,sessionPoolName,ContainerAppResourceGroupName=containerAppResourceGroup,ManagedEnvironmentResourceGroupName=managedEnvironmentResourceGroup,environmentProvisioningState,sessionPoolResourceGroupName=sessionPoolResourceGroup

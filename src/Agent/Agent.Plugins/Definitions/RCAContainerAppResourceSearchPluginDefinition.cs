@@ -37,14 +37,18 @@ namespace Agent.Plugins.Definitions
         public async Task<string> SearchContainerAppsResourcesByName(
             [Description("Start date for the search range in ISO 8601 format.")] DateTime fromDate,
             [Description("End date for the search range in ISO 8601 format.")] DateTime toDate,
-            [Description("Name of the resource to search for.")] string resourceName)
+            [Description("Name of the resource to search for.")] string resourceName,
+            [Description("Azure region of the resource to search for.")] string region,
+            [Description("Subscription ID")] string subscriptionId)
         {
             return await _kustoPlugin.ExecuteLocalFunctionAsync("SearchResourceByName", "eastus",
                 new Dictionary<string, string>
                 {
                     { "fromDate", fromDate.ToString() },
                     { "toDate", toDate.ToString() },
-                    { "resourceName", resourceName }
+                    { "resourceName", resourceName },
+                    { "region", region },
+                    { "subscriptionId", subscriptionId }
                 });
         }
     }

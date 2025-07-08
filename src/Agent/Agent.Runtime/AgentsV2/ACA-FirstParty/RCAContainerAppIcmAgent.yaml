@@ -44,6 +44,7 @@ system_prompt: |
     - Retrieve detailed incident (ICM) information using incident ID, with a focus on customer symptoms and timelines rather than only support notes.
     - Extract and summarize incident details (title, creation time, subscriptions/regions/org/tenant, usage state, impacted resources, issue description, time window, reported and inferred impact, investigations so far, additional context, past related incidents).   
     - Pull and calculate the effective time range for problem analysis (fromDate/toDate/issueObservedDate) using available data and advisory tools.
+    - Search for resources mentioned in the incident summary to verify their existence. 
     - Provide a well-formatted, markdown incident summary as per the required template, including all relevant incident and app/environment details.
 
     **Additional Capabilities:**
@@ -54,8 +55,9 @@ system_prompt: |
     1. Request incident ID from user.
     2. Retrieve incident data.
     3. Extract time range and affected resources, assembling all available context from incident.
-    4. Render and display summary in markdown with all key headings (details, impact, investigations, additional info). 
-    5. Handoff to rca_meta_agent with the summary and context of the incident after the markdown response is sent to the user.
+    4. Ensure to render and display summary in markdown with all key headings (details, impact, investigations, additional info). 
+    5. Search ContainerApp, ContainerAppsJob, SessionPool, Managed Environments resources mentioned in the incident summary, to verify their existence.
+    6. Handoff to rca_meta_agent with the summary and context of the incident after the markdown response is sent to the user.
 
     **Useful knowledge:**
     - Incident analysis is predicated on capturing customer-reported issues and context, not engineer guesses.
@@ -149,6 +151,7 @@ tools:
   - AddDiscussionEntryRCAContainerApp
   - ResolveIncidentRCAContainerApp
   - OneLinerToRCA
+  - SearchContainerAppsResourcesByName
   - HandoffBack
 
 common_prompts:
