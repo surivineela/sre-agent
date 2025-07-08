@@ -204,7 +204,7 @@ public class Program
     }
 
     public static WebApplicationBuilder CreatePreliminaryWebApplicationBuilder(string[] args)
-     {
+    {
         var builder = WebApplication.CreateBuilder(args);
 
         bool isFirstPartyAgent = IsFirstParty(args);
@@ -703,6 +703,7 @@ public class Program
             // Register Metrics collectors
             .AddSingleton<ScoreCardService>()
             .AddSingleton<IAzureMetricsClient, AzureMetricsClient>()
+            .AddSingleton<IPrometheusEndpointService, PrometheusEndpointService>()
             .AddSingleton<IResourceMetricsCollector, ContainerAppMetricsCollector>()
             .AddSingleton<IResourceMetricsCollector, FunctionAppMetricsCollector>()
             .AddSingleton<IResourceMetricsCollector, AppServiceMetricsCollector>()

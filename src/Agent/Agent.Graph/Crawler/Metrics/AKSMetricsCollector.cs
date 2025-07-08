@@ -3,27 +3,24 @@
 // ------------------------------------------------------------
 
 using System.Globalization;
-using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
-using Agent.Core.Models;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.ARM;
-using Agent.Logging;
+using Agent.Graph.Services;
 using Agent.Prometheus;
 using Agent.Prometheus.Services;
-using Gremlin.Net.Process.Traversal;
 using k8s;
 using Microsoft.Extensions.Logging;
-using Prometheus;
 
 namespace Agent.Graph.Crawler.Metrics;
+
 public class AKSMetricsCollector : IResourceMetricsCollector
 {
     private readonly ILogger<AKSMetricsCollector> _logger;
     private readonly IAzureMetricsClient _azureMetricsClient;
     private readonly IPrometheusQueryService _prometheusQueryService;
     private readonly IKubernetesClientFactory _kubernetesClientFactory;
-    private readonly string _prometheusQueryEndpoint;
+    private readonly IPrometheusEndpointService _prometheusEndpointService;
     public string ResourceType { get; set; } = Constants.AzureKubernetesServiceDeploymentType;
 
     public AKSMetricsCollector(
@@ -31,13 +28,13 @@ public class AKSMetricsCollector : IResourceMetricsCollector
         IAzureMetricsClient azureMetricsClient,
         IKubernetesClientFactory kubernetesClientFactory,
         IPrometheusQueryService prometheusQueryService,
-        DashboardSettings dashboardSettings)
+        IPrometheusEndpointService prometheusEndpointService)
     {
         _logger = logger;
         _kubernetesClientFactory = kubernetesClientFactory;
         _azureMetricsClient = azureMetricsClient;
         _prometheusQueryService = prometheusQueryService;
-        _prometheusQueryEndpoint = dashboardSettings.PrometheusUrl;
+        _prometheusEndpointService = prometheusEndpointService;
     }
 
     public async Task<AppHealthInfo> CollectMetricsAsync(GraphNode gnode)
@@ -63,8 +60,9 @@ public class AKSMetricsCollector : IResourceMetricsCollector
             var avgCpuUsage = await GetAvgCpuUsageAsync(node);
             var avgMemUsage = await GetAvgMemoryUsageAsync(node);
             var availability = await GetAvailabilityAsync(node);
-            var cost = await _azureMetricsClient.GetCostAsync(resourceId, now);
-
+            // For AKS resource (except nodes), we don't have cost information from Azure Metrics API. Plus cost API is usually throttled. So we set it to 0.0f here until we have a better solution.
+            // TODO(jianbosun): add cost information for AKS node
+            var cost = 0.0f;
             var appHealthInfo = new AppHealthInfo
             {
                 AvgMemoryUsage = Math.Round(avgMemUsage, 2),
@@ -93,7 +91,7 @@ public class AKSMetricsCollector : IResourceMetricsCollector
         string workloadType = node.Kind.TrimEnd('s').ToLowerInvariant();
         string workloadName = node.ResourceName;
         _logger.LogInternalInformation($"Getting average CPU usage for AKS {workloadType}: {_namespace}/{workloadName}");
-        return await GetAzureMonitorPrometheusMetricsAsync(_namespace, workloadType, workloadName, "cpu");
+        return await GetAzureMonitorPrometheusMetricsAsync(node, "cpu");
     }
 
     private async Task<double> GetAvgMemoryUsageAsync(KubernetesNamespacedResourceNode node)
@@ -102,7 +100,7 @@ public class AKSMetricsCollector : IResourceMetricsCollector
         string workloadType = node.Kind.TrimEnd('s').ToLowerInvariant();
         string workloadName = node.ResourceName;
         _logger.LogInternalInformation($"Getting average Memory usage for AKS {workloadType}: {_namespace}/{workloadName}");
-        return await GetAzureMonitorPrometheusMetricsAsync(_namespace, workloadType, workloadName, "memory");
+        return await GetAzureMonitorPrometheusMetricsAsync(node, "memory");
     }
 
     private async Task<double> GetAvailabilityAsync(KubernetesNamespacedResourceNode node)
@@ -113,8 +111,8 @@ public class AKSMetricsCollector : IResourceMetricsCollector
         var aksResourceId = node.ClusterResourceId;
         _logger.LogInternalInformation($"Getting availability for AKS {workloadType}: {_namespace}/{workloadName}");
         try
-        { 
-        
+        {
+
             switch (workloadType)
             {
                 case "deployment":
@@ -137,7 +135,7 @@ public class AKSMetricsCollector : IResourceMetricsCollector
         catch (Exception ex)
         {
             // Check if it's a 404 Not Found error (resource doesn't exist)
-            if (ex is k8s.Autorest.HttpOperationException httpEx && 
+            if (ex is k8s.Autorest.HttpOperationException httpEx &&
                 httpEx.Response?.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
                 // Resource not found (404), just return without logging
@@ -149,15 +147,21 @@ public class AKSMetricsCollector : IResourceMetricsCollector
     }
 
     private async Task<double> GetAzureMonitorPrometheusMetricsAsync(
-               string _namespace,
-               string workloadType,
-               string workloadName,
+               KubernetesNamespacedResourceNode node,
                string metricType)
     {
-        if (string.IsNullOrEmpty(_prometheusQueryEndpoint))
+        var aksResourceId = node.ClusterResourceId;
+        var prometheusQueryEndpoint = await _prometheusEndpointService.GetPrometheusEndpointAsync(aksResourceId);
+
+        if (string.IsNullOrEmpty(prometheusQueryEndpoint))
         {
+            _logger?.LogInternalWarning("No Prometheus endpoint found for AKS cluster {ResourceId}", aksResourceId);
             return 0;
         }
+
+        var _namespace = node.Namespace;
+        var workloadType = node.Kind.TrimEnd('s').ToLowerInvariant();
+        var workloadName = node.ResourceName;
 
         try
         {
@@ -175,10 +179,10 @@ public class AKSMetricsCollector : IResourceMetricsCollector
 
             _logger?.LogDebug(
                 "Executing PromQL against Azure Monitor Prometheus endpoint '{Endpoint}': {Query}",
-                _prometheusQueryEndpoint, query);
+                prometheusQueryEndpoint, query);
 
             // Query the Prometheus endpoint using the injected service
-            var response = await _prometheusQueryService.QueryInstantAsync(_prometheusQueryEndpoint, query);
+            var response = await _prometheusQueryService.QueryInstantAsync(prometheusQueryEndpoint, query);
 
             switch (response)
             {

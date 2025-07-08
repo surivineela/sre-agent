@@ -15,7 +15,7 @@ using Agent.Core.Services;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Framework;
 using Agent.Graph.Crawler.Metrics;
-using Agent.Logging;
+using Agent.Graph.Services;
 using Agent.Plugins.Interface;
 using Agent.Prometheus;
 using Agent.Prometheus.Services;
@@ -44,6 +44,7 @@ namespace Agent.Plugins
         private readonly ICrawlerTriggerService _crawlerTriggerService;
         private readonly ActionSettings _actionSettings;
         private readonly IAgentRuntimeModifier<AgentContext> _agentRuntimeModifier;
+        private readonly IPrometheusEndpointService _prometheusEndpointService;
 
         private static readonly ISerializer _configJsonSerializer = new SerializerBuilder().ConfigureDefaultValuesHandling(DefaultValuesHandling.OmitNull).Build();
 
@@ -65,7 +66,8 @@ namespace Agent.Plugins
             ILogger<KubePlugin>? logger,
             ICrawlerTriggerService crawlerTriggerService,
             ActionSettings actionSettings,
-            IAgentRuntimeModifier<AgentContext> agentRuntimeModifier)
+            IAgentRuntimeModifier<AgentContext> agentRuntimeModifier,
+            IPrometheusEndpointService prometheusEndpointService)
         {
             _logger = logger;
             _chatClient = chatClient;
@@ -80,6 +82,7 @@ namespace Agent.Plugins
             _crawlerTriggerService = crawlerTriggerService;
             _actionSettings = actionSettings;
             _agentRuntimeModifier = agentRuntimeModifier;
+            _prometheusEndpointService = prometheusEndpointService;
         }
 
         private static string GetAgentKubectlIdentity(
@@ -772,7 +775,7 @@ namespace Agent.Plugins
 
         public async Task<string> GetKubeResourceMetricsRangeAsync(string AKSClusterResourceId, string _namespace, string kind, string name, string metricsType, string startTime, string endTime)
         {
-            var prometheusQueryEndpoint = await GetPrometheusEndpoint(AKSClusterResourceId);
+            var prometheusQueryEndpoint = await _prometheusEndpointService.GetPrometheusEndpointAsync(AKSClusterResourceId);
             // If we still don't have an endpoint, cannot proceed
             if (string.IsNullOrEmpty(prometheusQueryEndpoint))
             {
@@ -893,53 +896,6 @@ namespace Agent.Plugins
         /// </summary>
         /// <param name="aksClusterResourceId">The AKS cluster resource ID</param>
         /// <returns>The Prometheus query endpoint URL if found, null otherwise</returns>
-        private async Task<string?> GetPrometheusQueryEndpointFromGraphDb(string aksClusterResourceId)
-        {
-            try
-            {
-                _logger?.LogInternalInformation("Looking for Azure Monitor Workspace connected to AKS cluster {ResourceId}", aksClusterResourceId);
-
-                if (_graphDbClient == null)
-                {
-                    _logger?.LogInternalWarning("Graph database client is not available");
-                    return null;
-                }
-
-                // Query to find Azure Monitor Workspace nodes that have an edge from the AKS cluster with relationship type "MonitoredBy"
-                var query = $@"g.V().has('resourceId', '{aksClusterResourceId.ToLowerInvariant()}').has('isDeleted', false)
-                             .out('MONITORED_BY')
-                             .hasLabel('microsoft.monitor/accounts').has('isDeleted', false)
-                             .has('prometheusQueryEndpoint')
-                             .values('prometheusQueryEndpoint')
-                             .limit(1)";
-                var result = await _graphDbClient.Query<string>(query);
-
-                // Process the result from the Gremlin query
-                if (result != null)
-                {
-                    // Iterate through the result set to find the endpoint
-                    foreach (var item in result)
-                    {
-                        if (item != null)
-                        {
-                            string prometheusEndpoint = item.ToString();
-                            _logger?.LogInternalInformation("Found Prometheus query endpoint {PrometheusEndpoint} for AKS cluster {ResourceId}",
-                                prometheusEndpoint, aksClusterResourceId);
-                            return prometheusEndpoint;
-                        }
-                    }
-                }
-
-                _logger?.LogInternalInformation("No Prometheus query endpoint found for AKS cluster {ResourceId}", aksClusterResourceId);
-                return null;
-            }
-            catch (Exception ex)
-            {
-                _logger?.LogInternalError(ex, "Error retrieving Prometheus query endpoint from graph database: {ErrorMessage}", ex.Message);
-                return null;
-            }
-        }
-
         public async Task<string> GetKubeResourceEventsAsync(string resourceId, string _namespace, string apiGroup, string kind, string name)
         {
             try
@@ -1172,9 +1128,7 @@ namespace Agent.Plugins
             string metricType,
             string timeRange)
         {
-            // Try to update the Prometheus endpoint from graph database if we don't have one
-
-            var prometheusQueryEndpoint = await GetPrometheusEndpoint(resourceId);
+            var prometheusQueryEndpoint = await _prometheusEndpointService.GetPrometheusEndpointAsync(resourceId);
             // If we still don't have an endpoint, cannot proceed
             if (string.IsNullOrEmpty(prometheusQueryEndpoint))
             {
@@ -1912,33 +1866,6 @@ namespace Agent.Plugins
             }
         }
 
-        /// <summary>
-        /// Updates the prometheusQueryEndpoint for a given AKS cluster resource ID if it's not already set
-        /// </summary>
-        /// <param name="aksClusterResourceId">AKS cluster resource ID</param>
-        /// <returns>True if the endpoint was found and updated, false otherwise</returns>
-        private async Task<string> GetPrometheusEndpoint(string aksClusterResourceId)
-        {
-            if (_graphDbClient == null)
-            {
-                _logger?.LogInternalWarning("Graph database client is not available to update Prometheus query endpoint");
-                return "";
-            }
-
-            try
-            {
-                // Get the Prometheus endpoint from the graph database
-                string? prometheusEndpoint = await GetPrometheusQueryEndpointFromGraphDb(aksClusterResourceId);
-                return prometheusEndpoint;
-
-            }
-            catch (Exception ex)
-            {
-                _logger?.LogInternalError(ex, "Error updating Prometheus query endpoint from graph database: {ErrorMessage}", ex.Message);
-                return "";
-            }
-        }
-
         private string LoadScriptContent(string scriptFileName)
         {
             var scriptPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SubAgents", "KubernetesAgent", scriptFileName);
@@ -2413,7 +2340,7 @@ namespace Agent.Plugins
             string? namePattern,
             string? metricType)
         {
-            var prometheusQueryEndpoint = await GetPrometheusEndpoint(AKSClusterResourceId);
+            var prometheusQueryEndpoint = await _prometheusEndpointService.GetPrometheusEndpointAsync(AKSClusterResourceId);
             // If we still don't have an endpoint, cannot proceed
             if (string.IsNullOrEmpty(prometheusQueryEndpoint))
             {
@@ -2428,7 +2355,7 @@ namespace Agent.Plugins
             string metricName,
             string? labelName)
         {
-            var prometheusQueryEndpoint = await GetPrometheusEndpoint(AKSClusterResourceId);
+            var prometheusQueryEndpoint = await _prometheusEndpointService.GetPrometheusEndpointAsync(AKSClusterResourceId);
             // If we still don't have an endpoint, cannot proceed
             if (string.IsNullOrEmpty(prometheusQueryEndpoint))
             {
@@ -2449,7 +2376,7 @@ namespace Agent.Plugins
             int? limit,
             double? minValue)
         {
-            var prometheusQueryEndpoint = await GetPrometheusEndpoint(AKSClusterResourceId);
+            var prometheusQueryEndpoint = await _prometheusEndpointService.GetPrometheusEndpointAsync(AKSClusterResourceId);
             // If we still don't have an endpoint, cannot proceed
             if (string.IsNullOrEmpty(prometheusQueryEndpoint))
             {
@@ -2479,7 +2406,7 @@ namespace Agent.Plugins
                 // Extract just the resource ID part after the prefix
                 identityResourceId = _agentKubeCtlIdentity.Substring("SRE Agent User-Assigned Identity ".Length).Trim();
             }
-            
+
             // Extract subscription and resource group from the identity
             var identityParts = identityResourceId.Split('/');
             var subscription = identityParts[2];

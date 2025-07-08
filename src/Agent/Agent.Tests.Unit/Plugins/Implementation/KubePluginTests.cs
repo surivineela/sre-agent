@@ -5,6 +5,7 @@ using Agent.Core.Services;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Framework;
 using Agent.Graph.Crawler.Metrics;
+using Agent.Graph.Services;
 using Agent.Plugins;
 using Agent.Prometheus.Services;
 using k8s;
@@ -50,7 +51,8 @@ namespace Agent.Tests.Unit.Plugins.Implementation
           new Mock<ILogger<KubePlugin>>().Object,
           new Mock<ICrawlerTriggerService>().Object,
           new Mock<ActionSettings>().Object,
-          new Mock<IAgentRuntimeModifier<AgentContext>>().Object
+          new Mock<IAgentRuntimeModifier<AgentContext>>().Object,
+          new Mock<IPrometheusEndpointService>().Object
           );
     }
 

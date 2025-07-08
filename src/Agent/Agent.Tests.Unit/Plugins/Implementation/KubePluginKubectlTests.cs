@@ -7,6 +7,7 @@ using Agent.Core.Services;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Framework;
 using Agent.Graph.Crawler.Metrics;
+using Agent.Graph.Services;
 using Agent.Plugins;
 using Agent.Prometheus.Services;
 using Microsoft.Extensions.AI;
@@ -37,6 +38,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             var mockAgentCommunicationService = new Mock<IAgentOutboundCommunicationService>();
             var mockActionSettings = new Mock<ActionSettings>();
             var mockAgentRuntimeModifier = new Mock<IAgentRuntimeModifier<AgentContext>>();
+            var mockPrometheusEndpointService = new Mock<IPrometheusEndpointService>();
             _mockLogger = new Mock<ILogger<KubePlugin>>();
 
             // Create an actual instance with our mocked dependencies
@@ -54,7 +56,8 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                 _mockLogger.Object,
                 mockCrawlerTriggerService.Object,
                 mockActionSettings.Object,
-                mockAgentRuntimeModifier.Object
+                mockAgentRuntimeModifier.Object,
+                mockPrometheusEndpointService.Object
             );
         }
 
