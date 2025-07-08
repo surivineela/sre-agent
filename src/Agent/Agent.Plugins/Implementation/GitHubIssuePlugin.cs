@@ -16,7 +16,6 @@ using Agent.Graph.Crawler.ARM;
 using Agent.Plugins.Helpers;
 using Agent.Plugins.Interface;
 using Azure.Core;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
@@ -29,7 +28,6 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
 {
     private const string AGENT_ID = nameof(GitHubIssuePlugin);
     private readonly ILogger<GitHubIssuePlugin> _logger;
-    private readonly IConfiguration _config;
     private readonly GitHubSettings _gitHubSettings;
     private Octokit.GitHubClient _gitHubClient;
     private readonly IThreadRepository _threadRepository;
@@ -47,7 +45,14 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
         _graphDatabaseClient = graphDatabaseClient;
 
         _gitHubClient = gitHubClient.Client;
-        _gitHubClient.Credentials = new Credentials(token: _gitHubSettings.PatTokenOverride, authenticationType: AuthenticationType.Bearer);
+        if (!string.IsNullOrEmpty(_gitHubSettings.PatTokenOverride))
+        {
+            _gitHubClient.Credentials = new Credentials(token: _gitHubSettings.PatTokenOverride, authenticationType: AuthenticationType.Bearer);
+        }
+        else
+        {
+            _logger.LogInternalError("GitHub PAT token override is not set. Please provide a valid token.");
+        }
         _threadRepository = threadRepository;
     }
 
@@ -71,7 +76,7 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
                 string agentName = Environment.GetEnvironmentVariable("AGENT_NAME") ?? "SRE Agent";
                 newBody.AppendLine($"*This issue was created by {agentName}*");
 
-                string agentDeepLink = GenerateThreadLink(this.ThreadId?.ToString());
+                string agentDeepLink = GenerateThreadLink(this.ThreadId?.ToString() ?? string.Empty);
                 newBody.AppendLine($"Tracked by the SRE agent [here]({agentDeepLink})");
 
                 var issue = new NewIssue(title)
@@ -307,7 +312,12 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
 
                 var endpoint = new Uri($"repos/{owner}/{repo}/dependabot/alerts", UriKind.Relative);
                 var response = await SendGitHubCallAsync(() => _gitHubClient.Connection.Get<string>(endpoint, null, "application/vnd.github+json"));
-                var responseObject = JsonConvert.DeserializeObject<DependabotAlert[]>(response.HttpResponse.Body.ToString());
+                var responseBody = response.HttpResponse.Body?.ToString();
+                if (string.IsNullOrEmpty(responseBody))
+                {
+                    return new List<GithubIssuePluginDependabotVulnerability>();
+                }
+                var responseObject = JsonConvert.DeserializeObject<DependabotAlert[]>(responseBody);
 
                 var dependabotAlerts = new List<DependabotAlert>(responseObject ?? new DependabotAlert[0]);
                 return dependabotAlerts.Select(
@@ -510,7 +520,7 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
             },
             kernel: kernel);
 
-                return result?.Content ?? string.Empty;
+            return result?.Content ?? string.Empty;
         }
         catch (Exception ex)
         {
