@@ -164,7 +164,7 @@ const ChatBoxFooterV2 = ({
                 />
                 <div className={footer}>
                     <div className={subFooter}>
-                        {threadId && <AgentModeSelector threadId={threadId} />}
+                        {threadId && <AgentModeSelector threadId={threadId} disabled={isTyping} />}
                         <Popover positioning={'after-top'} open={open} onOpenChange={(_e, data) => setOpen(data.open)}>
                             <PopoverTrigger>
                                 <Button

@@ -1,4 +1,3 @@
-import cloneDeep from 'lodash/cloneDeep';
 import { ThreadSeverity } from '../../Common/Clients/ThreadClient';
 import {
     Approval,
@@ -189,80 +188,6 @@ export const getDefaultSREAgentAuthor = (): MessageAuthor => {
 
 export const isAgentMessage = (message: ChatMessage): boolean => {
     return equals(message.author.role, 'SREAgent', AntUxStringComparison.IgnoreCase);
-};
-
-export const convertStreamingMessagesToChatMessages = (
-    ignoreExistingStreamingMessages: boolean,
-    streamingMessages: StreamingMessage[],
-    userId: string,
-    displayName: string
-): { messages: ChatMessage[]; lastChatMessageFinished: boolean; latestToolCall: string | null } => {
-    if (ignoreExistingStreamingMessages || !streamingMessages || streamingMessages.length === 0) {
-        return { messages: [], lastChatMessageFinished: false, latestToolCall: null };
-    }
-
-    const chatMessages: ChatMessage[] = [];
-    let currentChatMessage: ChatMessage | undefined;
-    let lastChatMessageFinished: boolean = false;
-    let latestToolCall: string | null = null;
-
-    const isValidStreamingMessage = (streamingMessage: StreamingMessage) => {
-        return streamingMessage && streamingMessage.contents && streamingMessage.contents.length > 0 && streamingMessage.contents[0].text;
-    };
-
-    const pushChatMessageIfApplicable = (chatMessage: ChatMessage | undefined) => {
-        if (chatMessage && chatMessage.id && chatMessage.timeStamp && chatMessage.contents && chatMessage.contents.length > 0) {
-            chatMessages.push(cloneDeep(chatMessage));
-        }
-    };
-
-    for (const streamingMessage of streamingMessages) {
-        const metadata = getMessageMetaDataFromChatMessage(streamingMessage, userId, displayName);
-        const toolCallText = getToolCallText(streamingMessage);
-        // If the current streaming message is not a user message, then push the streaming message content to the current chat message.
-        if (!isUserStreamingMessage(streamingMessage)) {
-            if (!currentChatMessage) {
-                // Initialize a new chat message and set lastChatMessageFinished to false when this is the first streaming chunk of a new agent message
-                currentChatMessage = {
-                    ...metadata,
-                    contents: [],
-                };
-                lastChatMessageFinished = false;
-            }
-
-            // In case the first streaming chunk of the current chat message misses message id or timeStamp, we add them if the metadata has them
-            if (metadata.id && !currentChatMessage.id) {
-                currentChatMessage.id = metadata.id;
-            }
-            if (metadata.timeStamp && !currentChatMessage.timeStamp) {
-                currentChatMessage.timeStamp = metadata.timeStamp;
-            }
-
-            if (isValidStreamingMessage(streamingMessage)) {
-                currentChatMessage.contents = processChatMessageContents(currentChatMessage.contents, streamingMessage);
-            }
-            // We treat the current chat message as completed as long as one of its streaming message is finished
-            lastChatMessageFinished = lastChatMessageFinished || isFinalStreamingMessage(streamingMessage);
-        }
-        // If the current streaming message is a user message, then push the current chat message (if exists) to chatMessages array, create a user chat message and push it to the chatMessages array too.
-        else {
-            pushChatMessageIfApplicable(currentChatMessage);
-            currentChatMessage = undefined;
-
-            const userMessage = constructUserMessageFromStreamingMessage(streamingMessage);
-            pushChatMessageIfApplicable(userMessage);
-
-            // A user message should not have a 'stop' finish reason, but if it does for some reason and this is the last streaming message, we set lastChatMessageFinished to true
-            lastChatMessageFinished = isFinalStreamingMessage(streamingMessage);
-        }
-        // update the latest tool call text
-        latestToolCall = toolCallText;
-    }
-
-    // When the loop ends, if the current chat message is defined and has contents, then push it to the chatMessages array
-    pushChatMessageIfApplicable(currentChatMessage);
-
-    return { messages: chatMessages, lastChatMessageFinished, latestToolCall };
 };
 
 export const getMessageMetaDataFromChatMessage = (

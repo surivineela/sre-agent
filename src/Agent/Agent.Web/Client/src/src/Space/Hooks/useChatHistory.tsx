@@ -1,4 +1,3 @@
-import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { MessageClient } from '../../Common/Clients/MessageClient';
@@ -12,100 +11,112 @@ import {
 } from '../Activities/Utility';
 import { ChatMessage, MessageLoadingCounts } from '../Contracts/Activities';
 
-const ChatMessagesQueryIdPrefix = 'usechatboxv2-chat-messages';
-
-export const useChatHistoryDataCache = (
+export const useChatHistory = (
     threadId: string | null | undefined,
-    userDefinedThreadId: string | null | undefined,
     threadSource: string | null | undefined,
     prepareForAddingChatHistory: () => void
 ) => {
     const [isIncidentInvestigationInProgress, setIsIncidentInvestigationInProgress] = useState<boolean>(
         threadSource === ThreadSource.incident
     );
-    const [newestMessageTimestampInOldMessages, setNewestMessageTimestampInOldMessages] = useState<string>('');
+    const [newestMessageTimestampInOldMessages, setNewestMessageTimestampInOldMessages] = useState<string | null>(null);
+    const [isLoadingInitialChatHistory, setIsLoadingInitialChatHistory] = useState<boolean>(true);
+    const [chatHistory, setChatHistory] = useState<ChatMessage[][]>([]);
 
     const exponentialBackoffDepth = useRef(-1);
     const timeout = useRef<NodeJS.Timeout | undefined>(undefined);
-
     const loadOlderMessagesRef = useRef<(() => void) | null>(null);
+    const isFetchingPreviousPage = useRef<boolean>(false);
+    const hasPreviousPage = useRef<boolean>(true);
 
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const threadClient = ThreadClient.getInstance(sreAgentEndpoint);
     const messageClient = MessageClient.getInstance(sreAgentEndpoint);
 
-    const queryClient = useQueryClient();
+    const timestampCutOffForFetchingLatestMessages = useMemo(() => {
+        return chatHistory[chatHistory.length - 1]?.[0]?.timeStamp;
+    }, [chatHistory]);
 
-    const { data, isLoading, isFetching, isFetchingPreviousPage, hasPreviousPage, fetchPreviousPage } = useInfiniteQuery({
-        queryKey: [ChatMessagesQueryIdPrefix, threadId || userDefinedThreadId],
-        enabled: !!threadId || !!userDefinedThreadId,
-        queryFn: async ({ pageParam }) => {
-            if (threadId) {
-                const messagesResponse = await messageClient.getMessages(threadId, {
-                    skip: 0,
-                    top: MessageLoadingCounts.default,
-                    descending: true,
-                    maxTimestamp: pageParam || undefined,
-                });
+    const fetchPage = async (
+        threadId: string | undefined | null,
+        maxTimestamp: string | null | undefined
+    ): Promise<ChatMessage[] | undefined> => {
+        if (threadId) {
+            const messagesResponse = await messageClient.getMessages(threadId, {
+                skip: 0,
+                top: MessageLoadingCounts.default,
+                descending: true,
+                maxTimestamp: maxTimestamp || undefined,
+            });
 
-                if (messagesResponse.isSuccessful) {
-                    return (messagesResponse.content || []).map(convertMessageToChatMessage).reverse();
-                } else {
-                    // This will trigger retry and prevent adding empty page to the cache.
-                    throw new Error(`Failed to load messages for thread ${threadId}`);
+            if (messagesResponse.isSuccessful) {
+                const page = (messagesResponse.content || []).map(convertMessageToChatMessage).reverse();
+
+                if (page.length < MessageLoadingCounts.default) {
+                    hasPreviousPage.current = false;
                 }
+
+                return page;
             } else {
-                // Cache an empty array of chat history for new thread
-                return [];
+                return undefined;
             }
-        },
-        getNextPageParam: lastPage => {
-            return lastPage?.[lastPage.length - 1]?.timeStamp || undefined;
-        },
-        getPreviousPageParam: firstPage => {
-            return firstPage?.[0]?.timeStamp || undefined;
-        },
-        initialPageParam: '',
-        refetchOnWindowFocus: false,
-        refetchOnReconnect: false,
-        staleTime: Infinity,
-        gcTime: Infinity,
-        select: data => {
-            prepareForAddingChatHistory();
-            return data.pages.filter(page => page !== undefined && page.length > 0);
-        },
-    });
+        }
+    };
 
-    const isLoadingInitialChatHistory = useMemo(() => {
-        return !!threadId && isLoading;
-    }, [threadId, isLoading]);
-
-    const loadOlderMessages = useCallback(() => {
-        if (isLoadingInitialChatHistory || isFetching || isFetchingPreviousPage || !hasPreviousPage) {
+    const loadOlderMessages = useCallback(async () => {
+        if (
+            isLoadingInitialChatHistory ||
+            isFetchingPreviousPage.current ||
+            !hasPreviousPage.current ||
+            !timestampCutOffForFetchingLatestMessages
+        ) {
             return;
         }
 
         const interval = exponentialBackoffDepth.current < 0 ? 0 : getIntervalBetweenLoading(exponentialBackoffDepth.current);
 
         timeout.current = setTimeout(async () => {
-            const result = await fetchPreviousPage();
-            if (result.isError || result.isFetchPreviousPageError) {
+            isFetchingPreviousPage.current = true;
+            const newPage = await fetchPage(threadId, timestampCutOffForFetchingLatestMessages);
+            if (!newPage) {
                 exponentialBackoffDepth.current += 1;
             } else {
+                if (newPage.length > 0) {
+                    prepareForAddingChatHistory();
+                    setChatHistory(prev => [newPage, ...prev]);
+                }
                 exponentialBackoffDepth.current = -1; // Reset on successful fetch
             }
+            isFetchingPreviousPage.current = false;
         }, interval);
-    }, [isLoadingInitialChatHistory, isFetching, isFetchingPreviousPage, hasPreviousPage, fetchPreviousPage]);
+    }, [threadId, timestampCutOffForFetchingLatestMessages, isLoadingInitialChatHistory]);
+
+    useEffect(() => {
+        if (threadId) {
+            const loadInitialPage = async () => {
+                setIsLoadingInitialChatHistory(true);
+                setChatHistory([]);
+                const initialPage = await fetchPage(threadId, undefined);
+                if (initialPage && initialPage.length > 0) {
+                    prepareForAddingChatHistory();
+                    setChatHistory([initialPage]);
+                }
+                setNewestMessageTimestampInOldMessages(initialPage?.[initialPage.length - 1]?.timeStamp || '');
+                setIsLoadingInitialChatHistory(false);
+            };
+
+            loadInitialPage();
+        } else {
+            setNewestMessageTimestampInOldMessages('');
+            setIsLoadingInitialChatHistory(false);
+            setChatHistory([]);
+            hasPreviousPage.current = false;
+        }
+    }, [threadId]);
 
     useEffect(() => {
         loadOlderMessagesRef.current = loadOlderMessages;
     }, [loadOlderMessages]);
-
-    useEffect(() => {
-        const lastPage = data?.[data.length - 1];
-        const newestMessage = lastPage?.[lastPage.length - 1];
-        setNewestMessageTimestampInOldMessages(newestMessage?.timeStamp || '');
-    }, [data]);
 
     // If this is an incident thread, periodically refresh the latest 5 old messages to check for the progress
     useEffect(() => {
@@ -134,20 +145,17 @@ export const useChatHistoryDataCache = (
                             setIsIncidentInvestigationInProgress(false);
                         }
                         if (updatedOldMessagesResponse.isSuccessful && updatedOldMessages.length > 0) {
-                            queryClient.setQueryData<ChatMessage[][] | undefined>([ChatMessagesQueryIdPrefix, threadId], oldData => {
-                                if (oldData && oldData.length > 0) {
-                                    const lastPage = oldData[oldData.length - 1];
-                                    const updatedLastPage = updateOldMessagesText(
-                                        lastPage,
-                                        updatedOldMessages.map(convertMessageToChatMessage).reverse()
-                                    );
-                                    if (updatedLastPage === lastPage) {
-                                        return oldData;
-                                    } else if (updatedLastPage) {
-                                        return [...oldData.slice(0, -1), updatedLastPage];
-                                    }
+                            setChatHistory(prev => {
+                                const lastPage = prev[prev.length - 1];
+                                const updatedLastPage = updateOldMessagesText(
+                                    lastPage,
+                                    updatedOldMessages.map(convertMessageToChatMessage).reverse()
+                                );
+
+                                if (updatedLastPage && updatedLastPage !== lastPage) {
+                                    return [...prev.slice(0, -1), updatedLastPage];
                                 }
-                                return oldData;
+                                return prev;
                             });
                         }
                     }
@@ -172,8 +180,9 @@ export const useChatHistoryDataCache = (
     }, []);
 
     return {
-        chatHistory: data,
+        chatHistory,
         isLoadingInitialChatHistory,
         loadOlderMessagesRef,
+        newestMessageTimestampInOldMessages,
     };
 };

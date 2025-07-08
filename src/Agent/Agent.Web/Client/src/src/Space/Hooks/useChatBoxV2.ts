@@ -4,16 +4,15 @@ import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, u
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { MessageRequestType, StreamingMessage } from '../../Common/Contracts/Azure/Streaming';
+import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { Guid } from '../../Common/Helpers/Guid';
 import { PromptResources } from '../../Strings/SREAgentResources';
 import {
     composeDefaultStreamingMessage,
     composeUserMessage,
     constructUserMessageFromStreamingMessage,
-    convertStreamingMessagesToChatMessages,
     getStreamingMessageText,
     getToolCallText,
-    isAgentMessage,
     isChatMessageContentNonImageText,
     isChatMessageEmpty,
     isDefaultStreamingMessageType,
@@ -25,7 +24,7 @@ import {
 import { ChatMessage, MessageTypingCharactersPer10Ms, MessageTypingSpeedInMilliseconds } from '../Contracts/Activities';
 import { StreamingContext } from '../Contracts/Context';
 import { useAuthenticatedUserInfo } from './useAuthenticatedUserInfo';
-import { useChatHistoryDataCache } from './useChatHistoryDataCache';
+import { useChatHistory } from './useChatHistory';
 
 interface MessageCreateRequest {
     text: string;
@@ -47,7 +46,7 @@ export const useChatBoxV2 = (
     const intl = useIntl();
 
     const proxy = useContext(AzPortalContext);
-    const { sendMessage, subscribeChatStreaming, deleteStreamingMessages: deleteExistingStreamingMessages } = useContext(StreamingContext);
+    const { sendMessage, subscribeChatStreaming } = useContext(StreamingContext);
 
     const {
         userIdAndDisplayName: { userId, displayName },
@@ -56,17 +55,14 @@ export const useChatBoxV2 = (
     const [currentThreadId, setCurrentThreadId] = useState<string | null>(threadId || null);
 
     const [allMessages, setAllMessages] = useState<ChatMessage[]>([]);
-    const [chatMessagesFromExistingStreamingMessages, setChatMessagesFromExistingStreamingMessages] = useState<ChatMessage[]>([]);
     const [newMessages, setNewMessages] = useState<ChatMessage[]>([]);
-    const [existingStreamingMessages, setExistingStreamingMessages] = useState<StreamingMessage[]>([]);
-    const [ignoreExistingStreamingMessages, setIgnoreExistingStreamingMessages] = useState<boolean>(false);
 
     const [temporaryUserMessage, setTemporaryUserMessage] = useState<ChatMessage | null>(null);
-    const [streamingMessage, setStreamingMessage] = useState<ChatMessage | null>(null);
+    const [streamingMessage, setStreamingMessage] = useState<ChatMessage | null | undefined>();
     const [isCancellingStreaming, setIsCancellingStreaming] = useState<boolean>(false);
-    const [toolCallText, setToolCallText] = useState<string | null>(null);
-    const [isAgentTyping, setIsAgentTyping] = useState<boolean>();
-    const [isWaitingForStreamingMessages, setIsWaitingForStreamingMessages] = useState<boolean>();
+    const [toolCallText, setToolCallText] = useState<string | null | undefined>();
+    const [isAgentTyping, setIsAgentTyping] = useState<boolean | undefined>();
+    const [isWaitingForStreamingMessages, setIsWaitingForStreamingMessages] = useState<boolean | undefined>();
 
     const [downButtonState, setDownButtonState] = useState<{ visible: boolean; flash: boolean }>({ visible: false, flash: false });
 
@@ -74,11 +70,12 @@ export const useChatBoxV2 = (
     const intersectionObserverRef = useRef<HTMLDivElement>(null);
     const currentScrollTop = useRef<number>(0);
     const currentScrollHeight = useRef<number>(0);
-    const streamingMessageRef = useRef<ChatMessage | null>(null);
+    const streamingMessageRef = useRef<ChatMessage | null | undefined>();
     const currentThreadIdRef = useRef<string>(threadId || '');
     const isNewThreadAdded = useRef<boolean>(false);
     // pass userDefinedThreadId to thread create for matching the thread id from the stream message
     const userDefinedThreadIdRef = useRef<string>(Guid.newGuid());
+    const streamingMessageTimestampFilterRef = useRef<string | null>(null);
 
     const messageChunkQueue = useRef<StreamingMessage[]>([]);
     const isTypingChars = useRef<boolean>(false);
@@ -88,92 +85,22 @@ export const useChatBoxV2 = (
     const addThreadRef = useRef(addThread);
     const promoteThreadRef = useRef(promoteThread);
 
-    const prepareForAddingChatHistory = () => {
-        currentScrollHeight.current = messagesDivRef.current?.scrollHeight || 0;
-    };
-
-    const { chatHistory, isLoadingInitialChatHistory, loadOlderMessagesRef } = useChatHistoryDataCache(
+    const { chatHistory, isLoadingInitialChatHistory, loadOlderMessagesRef, newestMessageTimestampInOldMessages } = useChatHistory(
         threadId,
-        userDefinedThreadIdRef.current,
         threadSource,
-        prepareForAddingChatHistory
+        () => {
+            currentScrollHeight.current = messagesDivRef.current?.scrollHeight || 0;
+        }
     );
-
-    useEffect(() => {
-        // If isLoadingInitialChatHistory is true, that means chat history data cache is not available.
-        // In this case, we should delete and ignore the existing streaming messages for this thread to avoid potential conflicts as some
-        // of the existing streaming messages might be already recorded in database that will be returned in the chat history
-        if (isLoadingInitialChatHistory) {
-            deleteExistingStreamingMessages(currentThreadIdRef.current || userDefinedThreadIdRef.current);
-            setIgnoreExistingStreamingMessages(true);
-        }
-    }, [isLoadingInitialChatHistory, deleteExistingStreamingMessages]);
-
-    // Handling existing streaming messages when landing on the thread chat box
-    useEffect(() => {
-        const { messages, lastChatMessageFinished, latestToolCall } = convertStreamingMessagesToChatMessages(
-            ignoreExistingStreamingMessages,
-            existingStreamingMessages,
-            userId,
-            displayName
-        );
-
-        if (messages.length > 0) {
-            const isLastChatMessageAgentMessage = isAgentMessage(messages[messages.length - 1]);
-            if (isLastChatMessageAgentMessage && lastChatMessageFinished) {
-                setChatMessagesFromExistingStreamingMessages(messages);
-            } else {
-                // If the last message is a user message, that means there are pending streaming messages. In this case, we create an empty streaming message
-                if (!isLastChatMessageAgentMessage) {
-                    setChatMessagesFromExistingStreamingMessages(messages);
-                    setStreamingMessage(prev => {
-                        // in case the latest streaming message is being handled before the existing streaming messages are loaded, we ignore creating a default streaming message
-                        return prev ? prev : composeDefaultStreamingMessage();
-                    });
-                }
-                // If the last message is an agent message, and not finished, we treat the last message as the streaming message, set isAgentTyping to true and set latest tool call text if any
-                else {
-                    setChatMessagesFromExistingStreamingMessages(messages.slice(0, -1));
-                    const currentExistingStreamingMessage = messages[messages.length - 1];
-                    setStreamingMessage(prev => {
-                        if (prev) {
-                            // In case the latest streaming message is being handled before the existing streaming messages are loaded, we merge the contents
-                            return {
-                                ...prev,
-                                id: prev.id || currentExistingStreamingMessage.id,
-                                timeStamp: prev.timeStamp || currentExistingStreamingMessage.timeStamp,
-                                contents: [...currentExistingStreamingMessage.contents, ...prev.contents],
-                            };
-                        } else {
-                            return { ...currentExistingStreamingMessage };
-                        }
-                    });
-                    // Set toolCallText if it has not been set yet
-                    setToolCallText(prev => prev ?? latestToolCall);
-                }
-                // Set isAgentTyping and isWaitingForStreamingMessages to true if they have not been set yet
-                setIsAgentTyping(prev => (prev === undefined ? true : prev));
-                setIsWaitingForStreamingMessages(prev => (prev === undefined ? true : prev));
-            }
-        }
-    }, [existingStreamingMessages, ignoreExistingStreamingMessages, userId, displayName]);
 
     const isNewAndCleanThread = useMemo(
         () =>
             !isLoadingInitialChatHistory &&
             !currentThreadId &&
             (chatHistory?.length ?? 0) === 0 &&
-            chatMessagesFromExistingStreamingMessages.length === 0 &&
             newMessages.length === 0 &&
             !streamingMessage,
-        [
-            isLoadingInitialChatHistory,
-            currentThreadId,
-            chatHistory,
-            chatMessagesFromExistingStreamingMessages,
-            newMessages,
-            streamingMessage,
-        ]
+        [isLoadingInitialChatHistory, currentThreadId, chatHistory, newMessages, streamingMessage]
     );
 
     const scrollToBottom = (smooth: boolean) =>
@@ -237,8 +164,11 @@ export const useChatBoxV2 = (
 
     const getGroupedChatMessages = useCallback(
         (message: ChatMessage, isStreamingMessage?: boolean): ChatMessage[] => {
-            // If the message is streaming message, the position should be the last index of the messagesRef plus one
-            const currentMessageIndex = isStreamingMessage ? allMessages.length : allMessages.findIndex(msg => msg.id === message.id);
+            if (isStreamingMessage) {
+                return [message];
+            }
+
+            const currentMessageIndex = allMessages.findIndex(msg => msg.id === message.id);
 
             const groupedMessages: ChatMessage[] = [message];
             for (let i = currentMessageIndex - 1; i >= 0; i--) {
@@ -306,139 +236,160 @@ export const useChatBoxV2 = (
         streamingMessageRef.current = streamingMessage;
     }, [streamingMessage]);
 
-    useEffect(() => {
-        let isSubscribed = true;
+    const handleMessageTyping = () => {
+        if (messageChunkQueue.current.length === 0) {
+            isTypingChars.current = false;
+            setIsWaitingForStreamingMessages(true);
+            return;
+        }
 
-        const handleMessageTyping = () => {
-            if (messageChunkQueue.current.length === 0) {
-                isTypingChars.current = false;
-                setIsWaitingForStreamingMessages(true);
-                return;
-            }
-
-            const handleCompletedMessageChunk = (messageChunk: StreamingMessage) => {
-                messageChunkQueue.current.shift();
-                if (isFinalStreamingMessage(messageChunk)) {
-                    finishStreaming();
-                } else {
-                    handleMessageTyping();
-                }
-            };
-
-            isTypingChars.current = true;
-            typingCharIndex.current = 0;
-            const currentMessageChunk = messageChunkQueue.current[0];
-            const currentMessageText = getStreamingMessageText(currentMessageChunk);
-            const currentToolCallText = getToolCallText(currentMessageChunk);
-            const threadIdFromStream = currentMessageChunk.additionalProperties?.threadId;
-
-            if (isUserStreamingMessage(currentMessageChunk)) {
-                if (currentThreadIdRef.current) {
-                    promoteThreadRef.current(currentThreadIdRef.current);
-                } else if (threadIdFromStream) {
-                    setCurrentThreadId(threadIdFromStream);
-                    if (!isNewThreadAdded.current) {
-                        addThreadRef.current(threadIdFromStream);
-                        isNewThreadAdded.current = true;
-                    }
-                }
-
-                const userMessage = constructUserMessageFromStreamingMessage(currentMessageChunk);
-                setTemporaryUserMessage(null);
-                setNewMessages(prev => [...prev, userMessage]);
-
-                handleCompletedMessageChunk(currentMessageChunk);
+        const handleCompletedMessageChunk = (messageChunk: StreamingMessage) => {
+            messageChunkQueue.current.shift();
+            if (isFinalStreamingMessage(messageChunk)) {
+                finishStreaming();
             } else {
-                setToolCallText(isCancellingStreamingRef.current ? null : currentToolCallText);
-                setIsWaitingForStreamingMessages(false);
-
-                if (currentMessageText && !isCancellingStreamingRef.current) {
-                    if (isDefaultStreamingMessageType(currentMessageChunk)) {
-                        const typeChar = () => {
-                            if (typingCharIndex.current < currentMessageText.length && !isCancellingStreamingRef.current) {
-                                const charIndex = typingCharIndex.current;
-                                typingCharIndex.current += MessageTypingCharactersPer10Ms;
-                                const newText = currentMessageText.slice(
-                                    charIndex,
-                                    Math.min(charIndex + MessageTypingCharactersPer10Ms, currentMessageText.length)
-                                );
-
-                                setStreamingMessage(prev => {
-                                    const newStreamingMessage = prev ? { ...prev } : composeDefaultStreamingMessage();
-                                    const latestContent = newStreamingMessage.contents[newStreamingMessage.contents.length - 1];
-
-                                    if (charIndex !== 0 && latestContent && isChatMessageContentNonImageText(latestContent)) {
-                                        // Append text to the lastest text messsage
-                                        const updatedLatestContent = {
-                                            ...latestContent,
-                                            text: latestContent.text + newText,
-                                        };
-                                        return {
-                                            ...newStreamingMessage,
-                                            contents: [...newStreamingMessage.contents.slice(0, -1), updatedLatestContent],
-                                        };
-                                    } else {
-                                        // Start a new content
-                                        return {
-                                            ...newStreamingMessage,
-                                            contents: [
-                                                ...newStreamingMessage.contents,
-                                                {
-                                                    text: newText,
-                                                },
-                                            ],
-                                        };
-                                    }
-                                });
-                                typingCharsTimeout.current = setTimeout(() => typeChar(), MessageTypingSpeedInMilliseconds);
-                            } else {
-                                handleCompletedMessageChunk(currentMessageChunk);
-                            }
-                        };
-                        typeChar();
-                    } else {
-                        setStreamingMessage(prev => {
-                            const newStreamingMessage = prev ? { ...prev } : composeDefaultStreamingMessage();
-                            return {
-                                ...newStreamingMessage,
-                                contents: processChatMessageContents(newStreamingMessage.contents, currentMessageChunk),
-                            };
-                        });
-                        handleCompletedMessageChunk(currentMessageChunk);
-                    }
-                } else {
-                    handleCompletedMessageChunk(currentMessageChunk);
-                }
+                handleMessageTyping();
             }
         };
+
+        isTypingChars.current = true;
+        typingCharIndex.current = 0;
+        const currentMessageChunk = messageChunkQueue.current[0];
+        const currentMessageText = getStreamingMessageText(currentMessageChunk);
+        const currentToolCallText = getToolCallText(currentMessageChunk);
+        const threadIdFromStream = currentMessageChunk.additionalProperties?.threadId;
+        const timestamp = currentMessageChunk.createdAt;
+
+        if (
+            timestamp &&
+            streamingMessageTimestampFilterRef.current &&
+            getSafeDateTime(timestamp).getTime() <= getSafeDateTime(streamingMessageTimestampFilterRef.current).getTime()
+        ) {
+            handleCompletedMessageChunk(currentMessageChunk);
+            return;
+        }
+
+        if (isUserStreamingMessage(currentMessageChunk)) {
+            if (currentThreadIdRef.current) {
+                promoteThreadRef.current(currentThreadIdRef.current);
+            } else if (threadIdFromStream) {
+                setCurrentThreadId(threadIdFromStream);
+                if (!isNewThreadAdded.current) {
+                    addThreadRef.current(threadIdFromStream);
+                    isNewThreadAdded.current = true;
+                }
+            }
+
+            const userMessage = constructUserMessageFromStreamingMessage(currentMessageChunk);
+            setTemporaryUserMessage(null);
+            setNewMessages(prev => [...prev, userMessage]);
+
+            handleCompletedMessageChunk(currentMessageChunk);
+        } else {
+            setToolCallText(isCancellingStreamingRef.current ? null : currentToolCallText);
+            setIsWaitingForStreamingMessages(false);
+
+            if (currentMessageText && !isCancellingStreamingRef.current) {
+                if (isDefaultStreamingMessageType(currentMessageChunk)) {
+                    const typeChar = () => {
+                        if (typingCharIndex.current < currentMessageText.length && !isCancellingStreamingRef.current) {
+                            const charIndex = typingCharIndex.current;
+                            typingCharIndex.current += MessageTypingCharactersPer10Ms;
+                            const newText = currentMessageText.slice(
+                                charIndex,
+                                Math.min(charIndex + MessageTypingCharactersPer10Ms, currentMessageText.length)
+                            );
+
+                            setStreamingMessage(prev => {
+                                const newStreamingMessage = prev ? { ...prev } : composeDefaultStreamingMessage();
+                                const latestContent = newStreamingMessage.contents[newStreamingMessage.contents.length - 1];
+
+                                if (charIndex !== 0 && latestContent && isChatMessageContentNonImageText(latestContent)) {
+                                    // Append text to the lastest text messsage
+                                    const updatedLatestContent = {
+                                        ...latestContent,
+                                        text: latestContent.text + newText,
+                                    };
+                                    return {
+                                        ...newStreamingMessage,
+                                        contents: [...newStreamingMessage.contents.slice(0, -1), updatedLatestContent],
+                                    };
+                                } else {
+                                    // Start a new content
+                                    return {
+                                        ...newStreamingMessage,
+                                        contents: [
+                                            ...newStreamingMessage.contents,
+                                            {
+                                                text: newText,
+                                            },
+                                        ],
+                                    };
+                                }
+                            });
+                            typingCharsTimeout.current = setTimeout(() => typeChar(), MessageTypingSpeedInMilliseconds);
+                        } else {
+                            handleCompletedMessageChunk(currentMessageChunk);
+                        }
+                    };
+                    typeChar();
+                } else {
+                    setStreamingMessage(prev => {
+                        const newStreamingMessage = prev ? { ...prev } : composeDefaultStreamingMessage();
+                        return {
+                            ...newStreamingMessage,
+                            contents: processChatMessageContents(newStreamingMessage.contents, currentMessageChunk),
+                        };
+                    });
+                    handleCompletedMessageChunk(currentMessageChunk);
+                }
+            } else {
+                handleCompletedMessageChunk(currentMessageChunk);
+            }
+        }
+    };
+
+    const attemptToProcessMessageChunk = () => {
+        if (!isTypingChars.current && streamingMessageTimestampFilterRef.current !== null && messageChunkQueue.current.length > 0) {
+            isTypingChars.current = true;
+            handleMessageTyping();
+        }
+    };
+
+    useEffect(() => {
+        let isSubscribed = true;
 
         const queueMessageChunk = (messageChunk?: StreamingMessage) => {
             if (messageChunk && isSubscribed) {
                 messageChunkQueue.current.push(messageChunk);
-
-                if (!isTypingChars.current) {
-                    handleMessageTyping();
-                }
+                attemptToProcessMessageChunk();
             }
         };
 
-        const existingStreamingMessagesHandler = (streamingMessages: StreamingMessage[] | null | undefined) => {
-            if (streamingMessages && streamingMessages.length > 0) {
-                setExistingStreamingMessages(streamingMessages);
+        const latestStreamingMessageHandler = (messageChunk?: StreamingMessage | null) => {
+            if (messageChunk && !isFinalStreamingMessage(messageChunk) && !isUserStreamingMessage(messageChunk)) {
+                setStreamingMessage(prev => {
+                    if (prev === undefined) {
+                        return composeDefaultStreamingMessage();
+                    }
+                });
+                setIsAgentTyping(prev => (prev === undefined ? true : prev));
+                setIsWaitingForStreamingMessages(prev => (prev === undefined ? true : prev));
+                setToolCallText(prev => (prev === undefined ? getToolCallText(messageChunk) : prev));
             }
-        };
-
-        const threadUpdateHandler = (messageChunk?: StreamingMessage) => {
-            queueMessageChunk(messageChunk);
         };
 
         const messageUpdateHandler = (messageChunk?: StreamingMessage) => {
             queueMessageChunk(messageChunk);
         };
 
+        const threadUpdateHandler = (messageChunk?: StreamingMessage) => {
+            queueMessageChunk(messageChunk);
+        };
+
         const unsubscribeChatStreaming = subscribeChatStreaming(
             currentThreadIdRef.current || userDefinedThreadIdRef.current,
-            existingStreamingMessagesHandler,
+            latestStreamingMessageHandler,
             messageUpdateHandler,
             threadUpdateHandler
         );
@@ -447,8 +398,15 @@ export const useChatBoxV2 = (
             isSubscribed = false;
             unsubscribeChatStreaming();
         };
-        // Ask owner to review if you need to add any dependencies here as the retriggering will cause potential message duplications due to calling existingStreamingMessagesHandler
+        // Ask owner to review if you need to add any dependencies here as the retriggering will cause potential message duplications
     }, [subscribeChatStreaming]);
+
+    useEffect(() => {
+        if (newestMessageTimestampInOldMessages !== null) {
+            streamingMessageTimestampFilterRef.current = newestMessageTimestampInOldMessages;
+            attemptToProcessMessageChunk();
+        }
+    }, [newestMessageTimestampInOldMessages]);
 
     useEffect(() => {
         if (threadId) {
@@ -494,10 +452,6 @@ export const useChatBoxV2 = (
             }
         };
     }, [chatHistory?.length]);
-
-    useEffect(() => {
-        scrollToBottom(false);
-    }, [chatMessagesFromExistingStreamingMessages]);
 
     useEffect(() => {
         // When new messages are added or the streaming message is initialized, scroll to the bottom
@@ -552,8 +506,8 @@ export const useChatBoxV2 = (
     }, [currentThreadId]);
 
     useEffect(() => {
-        setAllMessages([...(chatHistory?.flat() || []), ...chatMessagesFromExistingStreamingMessages, ...newMessages]);
-    }, [chatHistory, chatMessagesFromExistingStreamingMessages, newMessages]);
+        setAllMessages([...(chatHistory?.flat() || []), ...newMessages]);
+    }, [chatHistory, newMessages]);
 
     // Record the last read time and cache all the old messages when the component is unmounted
     useEffect(() => {
@@ -566,7 +520,6 @@ export const useChatBoxV2 = (
 
     return {
         chatHistory,
-        chatMessagesFromExistingStreamingMessages,
         newMessages,
         isLoading: isLoadingInitialChatHistory,
         isAgentTyping,

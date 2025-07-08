@@ -17,7 +17,6 @@ import { ChatSuggestions } from './ChatSuggestions';
 export const ChatBoxV2 = ({ addThread, promoteThread, updateThreadLastReadTime, threadId, threadSource }: IChatBoxProps) => {
     const {
         chatHistory,
-        chatMessagesFromExistingStreamingMessages,
         newMessages,
         isAgentTyping,
         temporaryUserMessage,
@@ -60,40 +59,35 @@ export const ChatBoxV2 = ({ addThread, promoteThread, updateThreadLastReadTime, 
                             {isWelcomeThread && <AzureSREWelcome threadId={currentThreadId} addThread={addThread} />}
 
                             {/* Chat history */}
-                            {chatHistory?.map((messages, index) => {
-                                return (
-                                    <ChatMessages
-                                        // set key to chathistory.length - index to ensure the existing page always has the same key to prevent re-rendering
-                                        key={chatHistory.length - index}
-                                        messages={messages}
-                                        threadId={currentThreadId || ''}
-                                        prevMessageBeforeTheFirstMessage={chatHistory?.[index - 1]?.[chatHistory?.[index - 1]?.length - 1]}
-                                        nextMessageAfterTheLastMessage={
-                                            chatHistory?.[index + 1]?.[0] || chatMessagesFromExistingStreamingMessages[0] || newMessages[0]
-                                        }
-                                    />
-                                );
-                            })}
-
-                            {/* Existing streaming messages */}
-                            <ChatMessages
-                                messages={chatMessagesFromExistingStreamingMessages}
-                                threadId={currentThreadId || ''}
-                                prevMessageBeforeTheFirstMessage={
-                                    chatHistory?.[chatHistory.length - 1]?.[chatHistory?.[chatHistory.length - 1]?.length - 1]
-                                }
-                                nextMessageAfterTheLastMessage={newMessages[0]}
-                            />
+                            {!isLoading &&
+                                chatHistory?.map((messages, index) => {
+                                    return (
+                                        <ChatMessages
+                                            // set key to chathistory.length - index to ensure the existing page always has the same key to prevent re-rendering
+                                            key={chatHistory.length - index}
+                                            messages={messages}
+                                            threadId={currentThreadId || ''}
+                                            prevMessageBeforeTheFirstMessage={
+                                                chatHistory?.[index - 1]?.[chatHistory?.[index - 1]?.length - 1]
+                                            }
+                                            nextMessageAfterTheLastMessage={
+                                                chatHistory?.[index + 1]?.[0] || newMessages[0] || temporaryUserMessage
+                                            }
+                                        />
+                                    );
+                                })}
 
                             {/* New messages */}
-                            <ChatMessages
-                                messages={newMessages}
-                                threadId={currentThreadId || ''}
-                                prevMessageBeforeTheFirstMessage={
-                                    chatMessagesFromExistingStreamingMessages[chatMessagesFromExistingStreamingMessages.length - 1] ||
-                                    chatHistory?.[chatHistory.length - 1]?.[chatHistory?.[chatHistory.length - 1]?.length - 1]
-                                }
-                            />
+                            {!isLoading && (
+                                <ChatMessages
+                                    messages={newMessages}
+                                    threadId={currentThreadId || ''}
+                                    prevMessageBeforeTheFirstMessage={
+                                        chatHistory?.[chatHistory.length - 1]?.[chatHistory?.[chatHistory.length - 1]?.length - 1]
+                                    }
+                                    nextMessageAfterTheLastMessage={temporaryUserMessage || undefined}
+                                />
+                            )}
 
                             {temporaryUserMessage && (
                                 <ChatMessageV2
@@ -102,13 +96,12 @@ export const ChatBoxV2 = ({ addThread, promoteThread, updateThreadLastReadTime, 
                                     threadId={currentThreadId || ''}
                                     previousMessage={
                                         newMessages[newMessages.length - 1] ||
-                                        chatMessagesFromExistingStreamingMessages[chatMessagesFromExistingStreamingMessages.length - 1] ||
                                         chatHistory?.[chatHistory.length - 1]?.[chatHistory?.[chatHistory.length - 1]?.length - 1]
                                     }
                                 />
                             )}
 
-                            {streamingMessage && !isLoading && (
+                            {!isLoading && streamingMessage && (
                                 <ChatMessageV2
                                     key={streamingMessage.id}
                                     message={streamingMessage}

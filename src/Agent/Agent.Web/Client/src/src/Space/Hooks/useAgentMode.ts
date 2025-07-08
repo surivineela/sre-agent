@@ -15,7 +15,7 @@ export interface AgentModesInfo {
     info?: string;
 }
 
-export const useAgentMode = ({ threadId }: IAgentModeSelectorProps) => {
+export const useAgentMode = ({ threadId, disabled }: IAgentModeSelectorProps) => {
     const [availableAgentModes, setAvailableAgentModes] = useState<string[]>([]);
     const [isLoadingAgentModes, setIsLoadingAgentModes] = useState<boolean>(false);
     const [isUpdatingAgentMode, setIsUpdatingAgentMode] = useState<boolean>(false);
@@ -84,8 +84,10 @@ export const useAgentMode = ({ threadId }: IAgentModeSelectorProps) => {
     }, [availableAgentModes, isLoadingAgentModes]);
 
     const isButtonDisabled = useMemo(() => {
-        return !agentModesInfo.canEditAgentMode || isLoadingAgentModes || !!loadingAgentModesError || !!fetchThreadAgentModeError;
-    }, [agentModesInfo, isLoadingAgentModes, loadingAgentModesError, fetchThreadAgentModeError]);
+        return (
+            !agentModesInfo.canEditAgentMode || isLoadingAgentModes || !!loadingAgentModesError || !!fetchThreadAgentModeError || disabled
+        );
+    }, [agentModesInfo, isLoadingAgentModes, loadingAgentModesError, fetchThreadAgentModeError, disabled]);
 
     const buttonTooltipText = useMemo(() => {
         return (

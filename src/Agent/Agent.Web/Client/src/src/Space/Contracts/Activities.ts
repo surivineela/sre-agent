@@ -175,6 +175,7 @@ export interface IAgentModeInfo {
 
 export interface IAgentModeSelectorProps {
     threadId: string;
+    disabled?: boolean;
 }
 
 export class AgentMessageRegex {

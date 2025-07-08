@@ -11,8 +11,8 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
     const [isConnecting, setIsConnecting] = useState(true);
     const [isConnected, setIsConnected] = useState(false);
     const isConnectedRef = useRef(false);
-    // key: threadId, value: array of streaming messages of this thread in current session
-    const streamingMessagesRef = useRef<Map<string, StreamingMessage[]>>(new Map());
+    // key: threadId, value: the latest streaming messages for that thread in the current session
+    const latestStreamingMessageRef = useRef<Map<string, StreamingMessage | null | undefined>>(new Map());
     // key: method name, value: map of threadId to handler function
     const handlersRef = useRef<Map<MessageResponseType, Map<string, (...args: any[]) => void>>>(new Map());
 
@@ -57,11 +57,11 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
     const subscribeChatStreaming = useCallback(
         (
             threadId: string,
-            existingStreamingMessageHandler: (streamingMessages: StreamingMessage[] | null | undefined) => void,
+            latestStreamingMessageHandler: (latestStreamingMessage: StreamingMessage | null | undefined) => void,
             messageUpdateHandler: (...args: any[]) => void,
             threadUpdateHandler: (...args: any[]) => void
         ) => {
-            existingStreamingMessageHandler(streamingMessagesRef.current.get(threadId));
+            latestStreamingMessageHandler(latestStreamingMessageRef.current.get(threadId));
 
             const removeMessageUpdateHandler = subscribeStreaming(MessageResponseType.MessageUpdate, threadId, messageUpdateHandler);
             const removeThreadUpdateHandler = subscribeStreaming(MessageResponseType.ThreadUpdate, threadId, threadUpdateHandler);
@@ -74,19 +74,9 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
         []
     );
 
-    const deleteStreamingMessages = useCallback((threadId: string) => {
-        streamingMessagesRef.current.delete(threadId);
-    }, []);
-
     const onChatMessage = () => {
-        const storeMessage = (threadId: string, message: StreamingMessage) => {
-            const messages = streamingMessagesRef.current.get(threadId);
-
-            if (messages) {
-                messages.push(message);
-            } else {
-                streamingMessagesRef.current.set(threadId, [message]);
-            }
+        const storeLatestMessage = (threadId: string, message: StreamingMessage) => {
+            latestStreamingMessageRef.current.set(threadId, message);
         };
 
         const onReceiveMessage = (methodName: MessageResponseType) => {
@@ -95,7 +85,7 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
                 console.log(message);
                 const threadId = message?.additionalProperties?.threadId;
                 if (threadId) {
-                    storeMessage(threadId, message);
+                    storeLatestMessage(threadId, message);
                     handlersRef.current.get(methodName)?.get(threadId)?.(message);
                 }
             });
@@ -145,7 +135,7 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
 
         return () => {
             connectionRef.current?.stop();
-            streamingMessagesRef.current = new Map();
+            latestStreamingMessageRef.current = new Map();
             handlersRef.current = new Map();
             offChatMessage();
             setIsConnected(false);
@@ -153,7 +143,7 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
     }, [proxy.log, sreAgentEndpoint]);
 
     return (
-        <StreamingContext.Provider value={{ sendMessage, subscribeChatStreaming, deleteStreamingMessages, isConnecting, isConnected }}>
+        <StreamingContext.Provider value={{ sendMessage, subscribeChatStreaming, isConnecting, isConnected }}>
             {children}
         </StreamingContext.Provider>
     );

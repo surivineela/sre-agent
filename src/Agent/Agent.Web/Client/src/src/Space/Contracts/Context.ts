@@ -27,11 +27,10 @@ type StreamingContextProps = {
     sendMessage: (message: MessageRequestType, ...args: any[]) => void;
     subscribeChatStreaming: (
         threadId: string,
-        existingStreamingMessageHandler: (streamingMessages: StreamingMessage[] | null | undefined) => void,
+        latestStreamingMessageHandler: (latestStreamingMessage: StreamingMessage | null | undefined) => void,
         messageUpdateHandler: (...args: any[]) => void,
         threadUpdateHandler: (...args: any[]) => void
     ) => () => void;
-    deleteStreamingMessages: (threadId: string) => void;
     isConnecting: boolean;
     isConnected: boolean;
 };
@@ -71,12 +70,11 @@ export const StreamingContext = createContext<StreamingContextProps>({
     subscribeChatStreaming:
         (
             _threadId: string,
-            _existingStreamingMessageHandler: (streamingMessages: StreamingMessage[] | null | undefined) => void,
+            _latestStreamingMessageHandler: (latestStreamingMessage: StreamingMessage | null | undefined) => void,
             _messageUpdateHandler: (...args: any[]) => void,
             _threadUpdateHandler: (...args: any[]) => void
         ) =>
         () => {},
-    deleteStreamingMessages: (_threadId: string) => {},
     isConnecting: true,
     isConnected: false,
 });
