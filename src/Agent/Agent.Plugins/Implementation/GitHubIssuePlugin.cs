@@ -16,6 +16,7 @@ using Agent.Graph.Crawler.ARM;
 using Agent.Plugins.Helpers;
 using Agent.Plugins.Interface;
 using Azure.Core;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;

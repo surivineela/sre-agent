@@ -7,6 +7,7 @@ using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Plugins.Interface;
 using Azure.Core;
 using Microsoft.Extensions.Logging;
@@ -410,6 +411,73 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
         return await GetIaCTypeFromFiles(token.AccessToken, repoUrl, branch, fileMatches);
     }
 
+    public async Task<string> LinkRepository(string resourceId, string repoUrl, string @namespace = null, string resourceName = null, string subType = null)
+    {
+        try
+        {
+            var appNodeId = resourceId.ToLower().Replace("/", "_");
+            string vertexFilter = $"hasId('{appNodeId}')";
+            string query = $@"g.V().{vertexFilter}.has('isDeleted', false)";
+
+            // if app has a namespace and subType starts with "k8s", this is a k8s resource
+            if (!string.IsNullOrEmpty(@namespace) && !string.IsNullOrEmpty(resourceName) && !string.IsNullOrEmpty(subType) && subType.StartsWith("k8s", StringComparison.OrdinalIgnoreCase))
+            {
+                // for AKS resources, resourceId is the AKS cluster resource id, not the specific object resource id in graph
+                query = $@"g.V().has('resourceName','{resourceName}').has('namespace','{@namespace}').has('resourceType','{subType}').has('clusterResourceId','{resourceId}').has('isDeleted', false).values('id')";
+                var appResult = await _graphDatabaseClient.Query(query);
+                var appidList = appResult.ToList();
+                if (appidList.Count == 0)
+                {
+                    throw new ArgumentException($"the resource {resourceId} {resourceName} is not found.");
+                }
+                appNodeId = appidList[0].ToString();
+            }
+            else
+            {
+                var appNodeResults = await _graphDatabaseClient.Query(query);
+                if (!appNodeResults.Any())
+                {
+                    throw new ArgumentException($"the resource {resourceId} {resourceName} is not found.");
+                }
+            }
+
+            var sourceCodeNode = new SourceCodeRepoNode(repoUrl);
+            var sourceCodeNodeResults = await _graphDatabaseClient.Query($"g.V('{sourceCodeNode.GetNodeId()}').hasLabel('{sourceCodeNode.GetNodeLabel()}').has('isDeleted', false)");
+
+            if (!sourceCodeNodeResults.Any())
+            {
+                await _graphDatabaseClient.AddOrUpdateNodeAsync(sourceCodeNode);
+            }
+
+            var edge = new NonCrawledEdge(appNodeId, sourceCodeNode.GetNodeId(), "SERVES_CODE");
+            await _graphDatabaseClient.AddOrUpdateEdgeAsync(edge);
+            return $"Source code repo with url: {repoUrl} linked successfully for resourceId: {resourceId}.";
+        }
+
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error linking source code");
+            throw;
+        }
+    }
+
+    public async Task<string> ConnectRepository(string resourceId, string repositoryUrl)
+    {
+        var azdoRepoRegex = new Regex(@"^https:\/\/(?:dev\.azure\.com\/|[\w-]+\.visualstudio\.com\/)[\w-]+\/[\w-]+\/_git\/[\w.-]+$", RegexOptions.Compiled);
+        bool AzdoRegexMatch(string url) => !string.IsNullOrEmpty(url) && azdoRepoRegex.IsMatch(url);
+
+        if (!AzdoRegexMatch(repositoryUrl))
+        {
+            throw new ArgumentException("Repository URL must be a valid Azure DevOps HTTPS Git URL.", nameof(repositoryUrl));
+        }
+
+        resourceId = resourceId.Replace("/", "_").ToLowerInvariant();
+        string linkedRepository = await LinkRepository(resourceId, repositoryUrl);
+        AzureDevOpsAccessToken authToken = await GetToken();
+        var token = await _threadRepository.CreateOrUpdateAzureDevOpsAccessTokenAsync(new(authToken.AccessToken, ExpiresOn: authToken.ExpiresOn), resourceId);
+        return $"Successfully linked {resourceId} to {repositoryUrl}";
+    }
+
     // Classes to deserialize the JSON response
     class GitItemsResponse
     {
@@ -454,5 +522,4 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
         [JsonPropertyName("href")]
         public string Href { get; set; }
     }
-
 }

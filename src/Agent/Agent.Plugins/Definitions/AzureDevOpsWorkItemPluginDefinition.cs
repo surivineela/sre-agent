@@ -28,6 +28,13 @@ public class AzureDevOpsWorkItemPluginDefinition
         return await _azureDevOpsWorkItemPlugin.FindConnectedRepository(resourceId);
     }
 
+    [Description("Connects an Azure Resource to an Azure DevOps (AzDo) repository. For example: Connect the albumapicsharp-2 app with the https://dev.azure.com/iactest7758/TestApp/_git/TestApp repository")]
+    public async Task<string> ConnectRepositoryToResource([Description("The resource ID of the Azure Resource for example:  /subscriptions/be8d491e-109c-4ee1-aaee-dc7615af0a42/resourceGroups/mrsharm-operations-agent-3p-rg/providers/Microsoft.App/containerApps/memory-leak-app/containerapp")] string resourceId,
+                                                          [Description("The Azure DevOps repository url.")] string repositoryUrl)
+    {
+        return await _azureDevOpsWorkItemPlugin.ConnectRepository(resourceId, repositoryUrl);
+    }
+
     [Description("Gets the type of Infrastructure as Code (IaC) - this is the most likely type of IaC used.")]
     public async Task<string> GetIaCForAzureDevOps([Description("The resource ID of the Azure Resource for example: /subscriptions/be8d491e-109c-4ee1-aaee-dc7615af0a42/resourceGroups/mrsharm-operations-agent-3p-rg/providers/Microsoft.App/containerApps/memory-leak-app/containerapp")] string resourceId,
                                                    [Description("The branch - if no value is provided, assume 'main'")] string branch,

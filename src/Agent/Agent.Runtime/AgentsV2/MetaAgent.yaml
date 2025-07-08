@@ -70,7 +70,7 @@ system_prompt: |
   - **CPU diagnostics** → `diagnostic_cpu_agent`
   - **Memory diagnostics** → `diagnostic_memory_agent`
   - **Github Related Queries** -> `github_issue_agent`
-  - **Azure DevOps (AzDo) Related Queries** -> `azuredevops_work_item_agent`
+  - **Azure DevOps (AzDo) Related Queries and Connecting Repository and Resources** -> `azuredevops_work_item_agent`
 
   ### 3. Cross-Service
   - **ANY metrics/charts/visualization** → `charts_and_metrics_and_visualization_agent`
