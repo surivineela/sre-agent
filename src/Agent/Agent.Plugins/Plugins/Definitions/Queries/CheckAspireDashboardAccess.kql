@@ -1,0 +1,32 @@
+let fromTime     = datetime("##fromDate##");
+let toTime       = datetime("##toDate##");
+let region       = "##region##";
+let clusterName  = "##managedClusterName##";
+let baseLogs = EnvoyFrontEndLogsTable
+| where TIMESTAMP       between (fromTime .. toTime)
+| where Authority       contains "aspire"
+| where Method          in~ ("GET", "POST")
+| where EnvironmentName == clusterName
+| where _Region         == region;
+// 2) Compute counts and status‐set
+let successCount = toscalar(
+    baseLogs
+    | where Status in~ ("200", "302")
+    | count
+);
+let count403 = toscalar(
+    baseLogs
+    | where Status == "403"
+    | count
+);
+let otherCount = toscalar(
+    baseLogs
+    | where Status !in~ ("200", "302", "403")
+    | count
+);
+// 3) Emit a single row without any bare 'contains'
+print
+    successCount = successCount,
+    count403     = count403,
+    otherCount   = otherCount
+| project successCount, count403, otherCount

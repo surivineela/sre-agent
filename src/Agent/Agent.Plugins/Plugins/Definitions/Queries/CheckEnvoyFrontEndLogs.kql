@@ -1,0 +1,20 @@
+let region = "##region##";
+let clusterName = "##managedClusterName##";
+let fromTime = datetime("##fromDate##");
+let toTime = datetime("##toDate##");
+// Pre-filter the data as much as possible before the join
+let filteredLogs = EnvoyFrontEndLogsTable
+| where TIMESTAMP between (fromTime .. toTime)
+| where _Region == region
+| where EnvironmentName == clusterName
+| where Status == "404"
+| where Authority contains "aspire";
+// Perform join only on the filtered dataset
+filteredLogs
+| join kind = inner (
+    GetRegions 
+    | where Name == region 
+    | project Region = Name, endpoint = Region
+) on $left._Region == $right.Region
+| summarize count = count() by EnvironmentName
+| project EnvironmentName, Count404Errors = count

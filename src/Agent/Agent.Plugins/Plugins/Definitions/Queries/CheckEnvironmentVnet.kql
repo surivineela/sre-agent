@@ -1,0 +1,20 @@
+let queryFrom = datetime("##fromDate##");
+let queryTo = datetime("##toDate##");
+let local_managedClusterName = "##managedClusterName##";
+let region = "##region##";
+
+ManagedEnvironmentDBState
+| where TIMESTAMP between (queryFrom .. queryTo)
+| where managedClusterName == local_managedClusterName
+| where Tenant == region
+| extend envType = case(hasWorkloadProfiles == true or isLegionEnabled == true, "V2", "V1")
+| extend customVnet = case(hasCustomerVnetForEnv == true and envType == "V1", true, 
+                           subnetResourceId != "", true, 
+                           false)
+| summarize envType = max(envType), customVnet = max(customVnet), subnetResourceId = max(subnetResourceId)
+| extend vnetResourceUri = iff(customVnet and isnotnull(subnetResourceId), split(subnetResourceId,"/subnets/")[0], "")
+| extend subnetName = iff(customVnet and isnotnull(subnetResourceId), split(subnetResourceId,"/subnets/")[1], "")
+| extend vnetSubscriptionId = iff(customVnet and isnotnull(subnetResourceId), split(subnetResourceId,"/")[2], "")
+| extend vnetResourcegroup = iff(customVnet and isnotnull(subnetResourceId), split(subnetResourceId,"/")[4], "")
+| extend vnetName = iff(customVnet and isnotnull(subnetResourceId), split(subnetResourceId,"/")[8], "")
+| project customVnet, vnetSubscriptionId, vnetResourcegroup, vnetName, subnetName

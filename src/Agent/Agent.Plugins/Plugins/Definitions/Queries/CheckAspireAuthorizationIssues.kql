@@ -1,0 +1,15 @@
+let region = "##region##";
+let clusterName = "##managedClusterName##";
+let fromDate = datetime(##fromDate##);
+let toDate = datetime(##toDate##);
+ExternalAuthEvents
+| where PreciseTimeStamp between (fromDate .. toDate)
+| where _Region == region
+| where EnvironmentName == clusterName
+| where Authority contains "aspire"
+| where logger == "ExternalAuthentication"
+| where RequestMethod == "POST"
+| where msg contains "failed to validate auth code"
+| where error contains "external auth endpoint returned non-successful status code '403'. body: Could not authorize user."
+| summarize AuthFailureCount = count()
+| project AuthFailureCount

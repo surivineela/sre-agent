@@ -356,6 +356,16 @@ public static class ToolDescriptionHelper
             // Additional Complete functions
             "Complete" => "Completing the operation.",
 
+            // Container Apps Aspire Agent tools
+            "CheckContainerAppWorkloadProfileExists" => "Checking if the container app environment has a workload profile which determines if it's a V1 or V2 environment.",
+            "GetContainerAppEnvironmentName" => "Retrieving the environment name associated with a managed container app cluster.",
+            "CheckIfAspireIsEnabled" => "Verifying if Aspire is enabled for the specified container app environment.",
+            "CheckEnvoyFrontEndLogs" => "Examining Envoy controller logs for 404 errors related to Aspire endpoints.",
+            "CheckAspireDashboardAccess" => "Analyzing access logs for the Aspire dashboard to check for authentication issues.",
+            "CheckEnvironmentVnet" => "Verifying if the container app environment has VNET integration configured.",
+            "CheckAspireAuthorizationIssues" => "Checking for authorization failures when accessing the Aspire dashboard.",
+            "CheckAspireStateVerificationIssues" => "Analyzing state verification issues in the external authentication for Aspire dashboard access.",
+
             // Default case
             _ => DefaultSafeDescription
         };

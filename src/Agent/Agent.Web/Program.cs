@@ -469,6 +469,7 @@ public class Program
             .AddTransient<APIManagementPluginDefinition>()
             .AddTransient<RCAContainerAppsMetaAgentPluginDefinition>()
             .AddTransient<RCAContainerAppsIngressPluginDefinition>()
+            .AddTransient<RCAContainerAppAspirePluginDefinition>()
             .AddTransient<RCAContainerAppCorednsPluginDefinition>()
             .AddTransient<RCAContainerAppOutboundConnectionPluginDefinition>()
             .AddTransient<RCAContainerAppsManagedEnvironmentPluginDefinition>()

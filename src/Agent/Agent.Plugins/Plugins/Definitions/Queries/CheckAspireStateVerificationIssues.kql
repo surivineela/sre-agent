@@ -1,0 +1,15 @@
+let region = "##region##";
+let clusterName = "##managedClusterName##";
+let fromDate = datetime(##fromDate##);
+let toDate = datetime(##toDate##);
+ExternalAuthEvents
+| where PreciseTimeStamp between (fromDate .. toDate)
+| where _Region == region
+| where EnvironmentName == clusterName
+| where Authority contains "aspire"
+| where logger == "ExternalAuthentication"
+| where RequestMethod == "POST"
+| where msg contains "could not retrieve or verify state"
+| where error contains strcat("failed to perform request: Post \"https://", region, ".ext.azurecontainerapps.dev/sso/state")
+| summarize StateVerificationFailureCount = count()
+| project StateVerificationFailureCount

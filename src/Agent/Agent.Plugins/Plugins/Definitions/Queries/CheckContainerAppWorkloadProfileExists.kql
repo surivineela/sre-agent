@@ -1,0 +1,9 @@
+let fromTime = datetime("##fromDate##");
+let endTime = datetime("##toDate##");
+let region = "##region##";
+let maagedClusterName = "##managedClusterName##";
+ManagedEnvironmentDBState
+| where PreciseTimeStamp between (fromTime .. endTime)
+| where Tenant == region
+| where managedClusterName == maagedClusterName
+| distinct hasWorkloadProfiles

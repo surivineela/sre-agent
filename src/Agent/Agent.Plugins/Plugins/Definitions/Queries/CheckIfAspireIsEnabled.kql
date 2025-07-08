@@ -1,0 +1,16 @@
+let region = "##region##";
+let envName = "##environmentName##";
+// Check if there are any DotNet components in this environment with successful creation
+let recordsCount = toscalar(
+    DotNetComponentDBState
+    | where environmentName contains envName
+    // Sort by ascending timestamp to get the first records
+    | sort by PreciseTimeStamp asc
+    // Check for successful Create operations
+    | where operationType == "Create" and provisioningState == "Succeeded"
+    | take 1
+    | count
+);
+// Return a clear boolean flag
+print IsAspireEnabled = iff(recordsCount > 0, true, false)
+| project IsAspireEnabled
