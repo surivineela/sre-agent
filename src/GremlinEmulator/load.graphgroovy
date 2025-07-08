@@ -1,40 +1,76 @@
 import org.apache.tinkerpop.gremlin.structure.io.graphml.GraphMLIo
 import org.slf4j.LoggerFactory
+import java.nio.file.*
 
 // grab an SLF4J logger
 def logger = LoggerFactory.getLogger("gremlin-script")
 
+// Function to convert filename to camelCase graph name
+def toCamelCase(String filename) {
+    // Remove .graphml extension
+    def name = filename.replaceAll('\\.graphml$', '')
+    // Split on hyphens and underscores, then camelCase
+    def parts = name.split('[-_]')
+    def result = parts[0].toLowerCase()
+    for (int i = 1; i < parts.length; i++) {
+        result += parts[i].toLowerCase().capitalize()
+    }
+    return result
+}
+
 try {
-  logger.info("🔄 Starting GraphML load")
-
-  // load the GraphML file
-  functionsBadFlexApps.io(GraphMLIo.build()).readGraph('/opt/graphs/functions-bad-flex-apps.graphml')
-
-  // verify by counting vertices and edges
-  def vCount = functionsBadFlexApps.traversal().V().count().next()
-  def eCount = functionsBadFlexApps.traversal().E().count().next()
-  logger.info("✅ Functions graph loaded successfully: ${vCount} vertices, ${eCount} edges")
-  simpleWebApps.io(GraphMLIo.build()).readGraph('/opt/graphs/simple-webapps.graphml')
-  funcScenarios1.io(GraphMLIo.build()).readGraph('/opt/graphs/func-scenarios1.graphml')
-  mrsharmAcaDiag.io(GraphMLIo.build()).readGraph('/opt/graphs/mrsharm-aca-diag.graphml')
-
-  vCount = simpleWebApps.traversal().V().count().next()
-  eCount = simpleWebApps.traversal().E().count().next()
-  logger.info("✅ Simple Web Apps graph loaded successfully: ${vCount} vertices, ${eCount} edges")
-
-  vCount = funcScenarios1.traversal().V().count().next()
-  eCount = funcScenarios1.traversal().E().count().next()
-  logger.info("✅ Func Scenarios 1 graph loaded successfully: ${vCount} vertices, ${eCount} edges")
-
-  vCount = mrsharmAcaDiag.traversal().V().count().next()
-  eCount = mrsharmAcaDiag.traversal().E().count().next()
-  logger.info("✅ MrSharm ACA Diag graph loaded successfully: ${vCount} vertices, ${eCount} edges")
-  // bind the traversal source 'g' globally after loading
-  def globals = [:]
-  globals << [gfuncbad : traversal().withEmbedded(functionsBadFlexApps)]
-  globals << [gsimpleweb : traversal().withEmbedded(simpleWebApps)]
-  globals << [gfuncscenarios1 : traversal().withEmbedded(funcScenarios1)]
-  globals << [gmrsharmacadiag : traversal().withEmbedded(mrsharmAcaDiag)]
+    logger.info("🔄 Starting dynamic GraphML discovery and load")
+    
+    // Discover all .graphml files in the graphs directory
+    def graphsDir = Paths.get('/opt/graphs')
+    def graphmlFiles = []
+    
+    if (Files.exists(graphsDir) && Files.isDirectory(graphsDir)) {
+        Files.list(graphsDir).forEach { path ->
+            if (path.toString().endsWith('.graphml')) {
+                graphmlFiles.add(path.fileName.toString())
+            }
+        }
+    }
+    
+    logger.info("📁 Discovered ${graphmlFiles.size()} GraphML files: ${graphmlFiles}")
+    
+    def globals = [:]
+    
+    // Load each discovered graph
+    graphmlFiles.each { filename ->
+        def graphName = toCamelCase(filename)
+        def traversalSourceName = 'g' + graphName
+        
+        logger.info("📂 Loading graph: ${filename} -> ${graphName} (traversal: ${traversalSourceName})")
+        
+        try {
+            // Get the graph instance by name (it should be defined in gremlin-server.yaml)
+            def graph = this.binding.getVariable(graphName)
+            
+            if (graph != null) {
+                // Load the GraphML file
+                graph.io(GraphMLIo.build()).readGraph("/opt/graphs/${filename}")
+                
+                // Verify by counting vertices and edges
+                def vCount = graph.traversal().V().count().next()
+                def eCount = graph.traversal().E().count().next()
+                logger.info("✅ ${graphName} loaded successfully: ${vCount} vertices, ${eCount} edges")
+                
+                // Create traversal source
+                globals[traversalSourceName] = traversal().withEmbedded(graph)
+                logger.info("🎯 Traversal source '${traversalSourceName}' created")
+            } else {
+                logger.warn("⚠️  Graph '${graphName}' not found in server configuration - skipping ${filename}")
+            }
+            
+        } catch (Exception ex) {
+            logger.error("❌ Failed to load ${filename}: ${ex.message}", ex)
+        }
+    }
+    
+    logger.info("🎉 Dynamic graph loading complete! Available traversal sources: ${globals.keySet()}")
+    return globals
 
 } catch (FileNotFoundException fnf) {
   logger.error("❌ File not found: ${fnf.message}", fnf)

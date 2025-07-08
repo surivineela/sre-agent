@@ -1,0 +1,76 @@
+testSuite:
+  name: "FunctionsGraphEvals"
+  description: "Test function graph queries"
+
+  configuration:
+    timeout: "120s"
+    database: "gfunctionsBadFlexApps"
+    toolReplay:
+      skipReplayFunctions:
+        - "GraphDBPluginDefinition.*"
+
+  plugins:
+    - "ContainerAppPluginDefinition"
+    - "NSGRulePluginDefinition"
+    - "ArmPluginDefinition"
+    - "PagerDutyIncidentPluginDefinition"
+    - "GraphDBPluginDefinition"
+
+  evaluation:
+    assertions:
+      equivalence:
+        minimumScore: 4
+      groundedness:
+        minimumScore: 4
+    autoReply:
+      defaultReply: "Please do your best to figure it out."
+
+  testCases:
+    - name: "ListAppsByZoneRedundancy"
+      startMessages:
+        - "which of my function apps have zone redundancy configured and which do not?"
+      evaluation:
+        groundedContext: |
+          ## Ground Truth:
+          1. The user has 14 function apps. Their names are:
+              - pbatum-sre-flexbad-swc-net-noclientid
+              - pbatum-sre-flexbad-swc-net-http-novnet
+              - pbatum-sre-flexbad-swc-net-oom
+              - pbatum-sre-flexbad-swc-net-http-nostoragelocalauth
+              - pbatum-sre-flexbad-swc-net-queue-working
+              - pbatum-sre-flexbad-swc-net-queue-noprivateendpoint
+              - pbatum-sre-flexbad-swc-net-http-working
+              - pbatum-sre-flexbad-swc-net-timer-working
+              - pbatum-sre-flexbad-swc-net-timeroverdue
+              - pbatum-sre-flexbad-swc-net-timeoutexceeded
+              - pbatum-sre-flexbad-swc-net-http-nostoragerole
+              - pbatum-sre-flexbad-swc-py-badasync
+              - pbatum-sre-flexbad-swc-net-no-sbconnstring
+              - pbatum-sre-flexbad-swc-net-http-throwonstartup
+          2. None of these apps have zone redundancy configured.
+
+          ## Expected Response Characteristics
+          - The response must include all of the listed app names and indicate that none of them have zone redundancy configured.
+        exampleResponse: |
+            None of your function apps have zone redundancy configured. Here are the details:
+
+            Zone redundancy enabled:
+                **NONE**
+
+            No zone redundancy:
+                - pbatum-sre-flexbad-swc-net-noclientid
+                - pbatum-sre-flexbad-swc-net-http-novnet
+                - pbatum-sre-flexbad-swc-net-oom
+                - pbatum-sre-flexbad-swc-net-http-nostoragelocalauth
+                - pbatum-sre-flexbad-swc-net-queue-working
+                - pbatum-sre-flexbad-swc-net-queue-noprivateendpoint
+                - pbatum-sre-flexbad-swc-net-http-working
+                - pbatum-sre-flexbad-swc-net-timer-working
+                - pbatum-sre-flexbad-swc-net-timeroverdue
+                - pbatum-sre-flexbad-swc-net-timeoutexceeded
+                - pbatum-sre-flexbad-swc-net-http-nostoragerole
+                - pbatum-sre-flexbad-swc-py-badasync
+                - pbatum-sre-flexbad-swc-net-no-sbconnstring
+                - pbatum-sre-flexbad-swc-net-http-throwonstartup
+
+            Let me know if you need help with anything else!

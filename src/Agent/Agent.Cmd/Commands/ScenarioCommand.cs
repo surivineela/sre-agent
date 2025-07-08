@@ -47,7 +47,8 @@ namespace Agent.Cmd
             
             var countArg = command.Argument("count", "Number of scenario runs");
             var messageArg = command.Argument("message", "Start message for the scenario");
-            var baseUrlOption = command.Option("-u|--url", "Base URL (default: http://localhost:5073)", CommandOptionType.SingleValue);
+            var staggerSecondsOption = command.Option("-s|--staggerSeconds", "Number of seconds to wait before starting the next scenario", CommandOptionType.SingleValue);
+            var baseUrlOption = command.Option("-u|--url", "Base URL (default: https://localhost:7023)", CommandOptionType.SingleValue);
 
             command.OnExecute(async () =>
             {
@@ -57,20 +58,23 @@ namespace Agent.Cmd
                     return 1;
                 }
 
+                
+
                 if (string.IsNullOrEmpty(messageArg.Value))
                 {
                     Console.WriteLine("Error: Start message must be provided.");
                     return 1;
                 }
 
-                var baseUrl = baseUrlOption.HasValue() ? baseUrlOption.Value() : "http://localhost:5073";
+                var baseUrl = baseUrlOption.HasValue() ? baseUrlOption.Value() : "https://localhost:7023";
+                var stagger = TimeSpan.FromSeconds(staggerSecondsOption.HasValue() ? int.Parse(staggerSecondsOption.Value()) : 1);
                 
-                await RunScenariosAsync(count, messageArg.Value, baseUrl);
+                await RunScenariosAsync(count, messageArg.Value, baseUrl, stagger);
                 return 0;
             });
         }
 
-        private async Task RunScenariosAsync(int totalCount, string startMessage, string baseUrl)
+        private async Task RunScenariosAsync(int totalCount, string startMessage, string baseUrl, TimeSpan stagger)
         {
             const int batchSize = 5; // Reasonable batch size for concurrency
             var batches = (int)Math.Ceiling((double)totalCount / batchSize);
@@ -87,14 +91,15 @@ namespace Agent.Cmd
             for (int batchIndex = 0; batchIndex < batches; batchIndex++)
             {
                 var runsInThisBatch = Math.Min(batchSize, totalCount - (batchIndex * batchSize));
-                Console.WriteLine($"Starting batch {batchIndex + 1}/{batches} with {runsInThisBatch} runs...");                // Start all runs in this batch concurrently
+                Console.WriteLine($"Starting batch {batchIndex + 1}/{batches} with {runsInThisBatch} runs...");
+
                 var batchTasks = new List<Task<string?>>();
                 for (int i = 0; i < runsInThisBatch; i++)
                 {
                     batchTasks.Add(StartScenarioRunAsync(startMessage, baseUrl));
 
                     // stagger
-                    await Task.Delay(TimeSpan.FromSeconds(1));
+                    await Task.Delay(stagger);
                 }
 
                 // Wait for all runs in the batch to start and get their thread IDs
@@ -192,7 +197,7 @@ namespace Agent.Cmd
                     await SaveThreadResultAsync(threadId, responseJson);
                     
                     var messages = JsonSerializer.Deserialize<List<ChatMessage>>(responseJson, _serializerOptions);
-                    var reply = await autoReplyHelper.GetReply(messages);
+                    var reply = await autoReplyHelper.AssessAndGetReply(messages);
 
                     if(reply != null)
                     {
@@ -214,7 +219,7 @@ namespace Agent.Cmd
                         }
                     }
 
-                    if(autoReplyHelper.AssessedState == AutoReplyHelper.AssessedAgentState.Findings)
+                    if(autoReplyHelper.AssessedState == AutoReplyHelper.AssessedAgentState.Complete)
                     {
                         break;
                     }

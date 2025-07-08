@@ -10,8 +10,22 @@ build-web:
 run:
   dotnet run --project ./src/Agent/Agent.Web/Agent.Web.csproj
 
-run-cmd *args='':
-  dotnet run --project ./src/Agent/Agent.Cmd/Agent.Cmd.csproj -- {{args}}
+run-cmd *args:
+  #!/usr/bin/env bash
+  set -- {{args}}
+  dotnet run --project ./src/Agent/Agent.Cmd/Agent.Cmd.csproj -- "$@"
+
+generate-eval *args:
+  #!/usr/bin/env bash  
+  set -- {{args}}
+  dotnet run --no-restore --project ./src/Agent/Agent.Cmd/Agent.Cmd.csproj -- GenerateEval "$@"
+
+export-graph-to-gremlin *args='':
+  dotnet run --project ./src/Agent/Agent.Cmd/Agent.Cmd.csproj -- ExportGraphML {{args}}
+  bash ./src/run-gremlin-emulator.sh
+
+run-gremlin:
+  bash ./src/run-gremlin-emulator.sh
 
 alias build-react := react
 react:

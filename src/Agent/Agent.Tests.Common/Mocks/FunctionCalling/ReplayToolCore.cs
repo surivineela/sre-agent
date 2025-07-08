@@ -34,7 +34,8 @@ public class ReplayToolCore
     private readonly HashSet<string> _loggedCallIdsWithNoResult = new();
     private readonly JsonSerializerOptions _serializerOptions;
 
-    public List<string> FunctionNamesSkippedForReplay { get; } = new();
+    public HashSet<string> FunctionNamesAllowingFuzzyMatch { get; } = new();
+    public HashSet<string> FunctionNamesSkippedForReplay { get; } = new();
     public List<ReplayEntry> FunctionCallsWithReplayFailure { get; } = new();
     public HashSet<string> FunctionNamesEnabledForReplay { get; } = new();
 
@@ -139,15 +140,30 @@ public class ReplayToolCore
     /// </summary>
     public ReplayEntry? FindReplayMatch(string functionName, string inputArgsJson)
     {
-        return _replayEntries.FirstOrDefault(e =>
-            e.FunctionName == functionName &&
-            AreJsonStringsEquivalent(e.FunctionArgumentsJson, inputArgsJson));
+        var nameMatches = _replayEntries.Where(e => e.FunctionName == functionName || e.FunctionName + "Async" == functionName);
+
+        var exactMatch = nameMatches.FirstOrDefault(e => AreJsonStringsEquivalent(e.FunctionArgumentsJson, inputArgsJson));
+
+        if (exactMatch != null)
+        {
+            return exactMatch;
+        }
+        
+        if (FunctionNamesAllowingFuzzyMatch.Contains(functionName, StringComparer.OrdinalIgnoreCase) ||
+            FunctionNamesAllowingFuzzyMatch.Contains(functionName + "Async", StringComparer.OrdinalIgnoreCase))
+        {
+            // Try fuzzy match if enabled
+            return nameMatches.FirstOrDefault();
+        }
+
+        return null;
     }
 
     /// <summary>
     /// Public accessor for serializer options.
     /// </summary>
     public JsonSerializerOptions SerializerOptions => _serializerOptions;
+
 
     private void ProcessLogContent(string logContent)
     {
@@ -326,7 +342,9 @@ public class ReplayToolCore
                 _loggedCallIdsWithNoResult.Add(callId);
             }
         }
-    }    /// <summary>
+    }
+
+    /// <summary>
     /// Validates that there are no incomplete calls for this function and arguments combination.
     /// Throws InvalidOperationException if any incomplete calls are found.
     /// </summary>

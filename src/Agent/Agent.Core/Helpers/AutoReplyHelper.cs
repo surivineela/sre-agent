@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Agent.Core.Models.Api.v1;
+using Agent.Framework;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Core.Helpers;
@@ -31,55 +33,61 @@ public class AutoReplyHelper
 
     public string GroundedContext { get; set; } = "No ground truth provided";
     public string DefaultReply { get; set; } = "Please do your best to figure it out.";
-    public AssessedAgentState AssessedState { get; private set; } = AssessedAgentState.Ambiguous;
+    public AssessedAgentState AssessedState { get; set; } = AssessedAgentState.Ambiguous;
 
-    public async Task<string?> GetReply(List<ChatMessage> messages)
+    public async Task<string?> AssessAndGetReply(List<ChatMessage> messages)
     {
-        var lastMessage = messages?.LastOrDefault();
+        var lastMessage = messages?.LastOrDefault(x => x.Role == ChatRole.Assistant);
 
+        // Need to wait until we have a message from the assistant.
         if (lastMessage == null)
             return null;
 
+        // If the last message is the same as the previous one, we do not need to assess again.
         if (JsonSerializer.Serialize(lastMessage) == _mostRecentMessageJson)
             return null;
 
         _mostRecentMessageJson = JsonSerializer.Serialize(lastMessage);
 
-        if(string.IsNullOrEmpty(lastMessage.Text))
-        {
-            // We do not assess tool calls yet.
-            return null;
-        }
-
-        await RunStateAssessment(lastMessage.Text);
+        await RunStateAssessment(messages);
 
         return AssessedState switch
         {
             AssessedAgentState.Ambiguous => null,
             AssessedAgentState.Working => null,
-            AssessedAgentState.Findings => null,
+            AssessedAgentState.Complete => null,
             AssessedAgentState.WaitingForUserInput => DefaultReply,
             _ => throw new Exception($"Unexpected assessed state: {AssessedState}")
         };
     }
 
-    private async Task RunStateAssessment(string message)
+    private async Task RunStateAssessment(List<ChatMessage> messages)
     {
-        await _chatClient.GetResponseAsync($"""
-            You are assisting with evaluation of AI software, your task is to determine the current state of the agent based on the last message in the conversation.
-            There are a few possibilities:
-            1. the agent is still working and is sending updates as that work proceeds
-            2. the agent has performed some analysis and has findings
-            3. the agent has asked the user a question and is waiting for input
-            4. the agent state is highly ambiguous
-                
-            The above is in assessment priority order.
-            For example, the agent might report some initial findings (2) but indicate that it will perform additional analysis (1).
-            In this case (1) takes priority, so the agent is still working.
+        var systemPrompt = """
+            You are assisting with evaluation of AI software.
+            You will be provided with a conversation history where the the user has asked the agent a question or given it a task, and your task is to determine the current state of the agent based on the last message in the conversation.
 
-            To help with your assessment, here are some notes about the ground truth of this scenario:
+            There are a few possibilities:
+            
+            1. [WaitingForUserInput] The agent is still working on their task but has asked the user a question and is waiting for input
+            2. [Working] The agent is still working on their task. This might include sending intermediate updates. No user input is required.
+            3. [Complete] The agent has completed the task and it is unlikely to send further updates unless the user asks a follow-up question.
+            4. [Ambiguous] The agent state is highly ambiguous
+
+            In general, even when the agent completes a task, it will offer to help further by asking a follow-up question. In this case you can ignore the followup, because the original task is complete.
+
+            Example of the task being complete:
             ```
-            {this.GroundedContext}
+            [user] list my linux webapps
+            [assistant] ▶️ Starting discovery of your Linux web apps. First, I'll look up your available subscriptions and web apps, then filter for Linux-based ones.
+            [assistant] ✅ Here are your Linux web apps:
+
+            | Idx | Name                   | Subscription                             | Resource Group           | Location  | Resource ID |
+            |-----|------------------------|------------------------------------------|--------------------------|-----------|-------------|
+            | 1   | **pbatum-sre-web-eas3** | 29e3378b-0aaf-45da-b3c6-6fd0eea164e4     | pbatum-sre-web-eas-lin   | eastasia  | /subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourceGroups/pbatum-sre-web-eas-lin/providers/Microsoft.Web/sites/pbatum-sre-web-eas3 |
+            | 2   | **pbatum-sre-web-eas4** | 29e3378b-0aaf-45da-b3c6-6fd0eea164e4     | pbatum-sre-web-eas-lin   | eastasia  | /subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourceGroups/pbatum-sre-web-eas-lin/providers/Microsoft.Web/sites/pbatum-sre-web-eas4 |
+
+            Is there anything I can help you with for these apps?
             ```
 
             Example of the agent waiting for user input:
@@ -94,12 +102,34 @@ public class AutoReplyHelper
             The application is failing due to memory exhaustion in the main business logic (Program.cs:526).
             I will now perform a deep memory analysis to identify the root cause and begin remediation.
             ```
-                
-            Read the message below and perform your assessment:
+
+            You will now be provided with the full conversation history, including the last message from the agent.
+        """;
+
+        var conversationBuilder = new StringBuilder();
+        foreach (var m in messages)
+        {
+            if (!string.IsNullOrEmpty(m.Text))
+            {
+                conversationBuilder.AppendLine($"[{m.Role}] {m.Text}");
+            }
+        }
+
+        var conversationMessageText = $"""
+            Please perform your assessment based on the following conversation history:
             ```
-            {message}
+            {conversationBuilder.ToString()}
             ```
-            """, _chatOptions);
+            """;
+
+        var assessmentMessages = new List<ChatMessage>
+        {
+            new ChatMessage(ChatRole.System, systemPrompt),
+            new ChatMessage(ChatRole.User, conversationMessageText),
+        };
+
+        // The agent will update the assessed state with the provided tool.
+        await _chatClient.GetResponseAsync(assessmentMessages, _chatOptions);
     }
 
     private void ProvideAssessment(AssessedAgentState state, string reasoning)
@@ -107,10 +137,11 @@ public class AutoReplyHelper
         Debug.WriteLine($"Assessed agent state is `{state}`: {reasoning}");
         AssessedState = state;
     }
+
     public enum AssessedAgentState
     {
         Working,
-        Findings,
+        Complete,
         WaitingForUserInput,
         Ambiguous
     }

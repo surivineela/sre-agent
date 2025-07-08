@@ -1,0 +1,117 @@
+testSuite:
+  name: "SimpleWebApp"
+  description: "Various simple queries about the user's web apps"
+
+  configuration:
+    timeout: "60s"
+    database: "gsimpleWebapps"
+    toolReplay:
+      skipReplayFunctions:
+        - "GraphDBPluginDefinition.*"
+
+  plugins:
+    - "ContainerAppPluginDefinition"
+    - "NSGRulePluginDefinition"
+    - "ArmPluginDefinition"
+    - "PagerDutyIncidentPluginDefinition"
+    - "GraphDBPluginDefinition"
+
+  evaluation:
+    assertions:
+      equivalence:
+        minimumScore: 4
+      groundedness:
+        minimumScore: 4
+    autoReply:
+      defaultReply: "Please do your best to figure it out."
+
+  testCases:
+    - name: "ListAppsBySku"
+      startMessages:
+        - "list my webapps by sku"
+      evaluation:
+        groundedContext: |
+          ## Ground Truth:
+          1. The user has four web apps in the `eastasia` region
+          2. Apps `pbatum-sre-web-eas1` and `pbatum-sre-web-eas2` are in the `Standard` SKU, size S1
+          3. Apps `pbatum-sre-web-eas3` and `pbatum-sre-web-eas4` are in the `Premium0V3` SKU, size P0v3
+
+          ## Expected Response Characteristics
+          - The response must include the full name of four applications, clearly show their size, and group them by SKU.
+        exampleResponse: |
+          Here are your web apps categorized by their SKU:
+
+          ### **Standard SKU:**
+          1. **App Name:** pbatum-sre-web-eas1
+             **Location:** eastasia
+             **SKU Size:** S1
+             **Resource Group:** pbatum-sre-web-eas
+
+          2. **App Name:** pbatum-sre-web-eas2
+             **Location:** eastasia
+             **SKU Size:** S1
+             **Resource Group:** pbatum-sre-web-eas
+
+          ### **Premium0V3 SKU:**
+          1. **App Name:** pbatum-sre-web-eas3
+             **Location:** eastasia
+             **SKU Size:** P0v3
+             **Resource Group:** pbatum-sre-web-eas-lin
+
+          2. **App Name:** pbatum-sre-web-eas4
+             **Location:** eastasia
+             **SKU Size:** P0v3
+             **Resource Group:** pbatum-sre-web-eas-lin
+
+          Let me know if you'd like further information or assistance with any of these apps!
+
+    - name: "ListLinuxApps"
+      startMessages:
+        - "list my linux webapps"
+      evaluation:
+        groundedContext: |
+          ## Ground Truth:
+          1. The user has two linux webapps, `pbatum-sre-web-eas3` and `pbatum-sre-web-eas4`
+
+          ## Expected Response Characteristics
+          - The response must include the full name of both applications, and clearly indicate that they are linux web apps.
+        exampleResponse: |
+          Here are your Linux Web Apps:
+
+          1. **pbatum-sre-web-eas3** (Resource Group: **pbatum-sre-web-eas-lin**, Subscription ID: **29e3378b-0aaf-45da-b3c6-6fd0eea164e4**)
+          2. **pbatum-sre-web-eas4** (Resource Group: **pbatum-sre-web-eas-lin**, Subscription ID: **29e3378b-0aaf-45da-b3c6-6fd0eea164e4**)
+
+          Let me know if you need further details or assistance with any of these web apps!
+
+    - name: "ShareAppServicePlan"
+      startMessages:
+        - "what web apps share an appservice plan with pbatum-sre-web-eas1?"
+      evaluation:
+        groundedContext: |
+          ## Ground Truth:
+          1. Apps `pbatum-sre-web-eas1` and `pbatum-sre-web-eas2` are on the same app service plan named `ASP-pbatumsrewebeas-8754`.
+
+          ## Expected Response Characteristics
+          - The response must include the full name of both applications and clearly explain that they are on the same app service plan.
+        exampleResponse: |
+          There is one other app that shares an App Service plan with pbatum-sre-web-eas1, that app is **pbatum-sre-web-eas2** and the plan is **ASP-pbatumsrewebeas-8754**.
+
+    - name: "VMCount"
+      startMessages:
+        - "how many VMs is pbatum-sre-web-eas1 running on?"
+        - "how many instances does pbatum-sre-web-eas1 have?"
+        - "what is the VM count for pbatum-sre-web-eas1?"
+        - "how many servers are running pbatum-sre-web-eas1?"
+        - "number of machines hosting pbatum-sre-web-eas1?"
+      evaluation:
+        groundedContext: |
+          ## Ground Truth:
+          1. The app `pbatum-sre-web-eas1` is running on App Service plan `ASP-pbatumsrewebeas-8754` which has 1 instance.
+          2. Customers will sometimes use the term "VM" to refer to an instance of an App Service plan.
+
+          ## Expected Response Characteristics
+          - The response must include the full name of the application and clearly state that its running on 1 instance.
+        exampleResponse: |
+          The app pbatum-sre-web-eas1 is on App Service plan ASP-pbatumsrewebeas-8754 which has **1** instance.
+
+

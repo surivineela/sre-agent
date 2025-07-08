@@ -207,32 +207,32 @@ namespace Agent.Cmd
                     keyForVertexLabel.SetAttribute("for", "node");
                     keyForVertexLabel.SetAttribute("attr.name", "label");
                     keyForVertexLabel.SetAttribute("attr.type", "string");
-                    graphml.AppendChild(keyForVertexLabel);
-
-                    // Discover and define keys for other vertex properties
-                    var vertexPropertyKeys = new HashSet<string>();
+                    graphml.AppendChild(keyForVertexLabel);                    // Discover and define keys for other vertex properties with proper types
+                    var vertexPropertyKeys = new Dictionary<string, string>(); // property name -> GraphML type
                     foreach (Dictionary<string, object> vertexDict in verticesList)
                     {
                         foreach (var kvp in vertexDict)
                         {
                             string keyStr = kvp.Key;
                             if (!keyStr.Equals("id", StringComparison.OrdinalIgnoreCase) &&
-                                !keyStr.Equals("label", StringComparison.OrdinalIgnoreCase) &&
-                                !keyStr.Equals("id", StringComparison.OrdinalIgnoreCase) &&
                                 !keyStr.Equals("label", StringComparison.OrdinalIgnoreCase))
                             {
-                                vertexPropertyKeys.Add(keyStr);
+                                if (!vertexPropertyKeys.ContainsKey(keyStr))
+                                {
+                                    string graphMLType = GetGraphMLDataType(kvp.Value);
+                                    vertexPropertyKeys[keyStr] = graphMLType;
+                                }
                             }
                         }
                     }
 
-                    foreach (var propKeyName in vertexPropertyKeys)
+                    foreach (var propKeyEntry in vertexPropertyKeys)
                     {
                         var keyElement = doc.CreateElement("key");
-                        keyElement.SetAttribute("id", $"prop_{propKeyName}");
+                        keyElement.SetAttribute("id", $"prop_{propKeyEntry.Key}");
                         keyElement.SetAttribute("for", "node");
-                        keyElement.SetAttribute("attr.name", propKeyName);
-                        keyElement.SetAttribute("attr.type", "string");
+                        keyElement.SetAttribute("attr.name", propKeyEntry.Key);
+                        keyElement.SetAttribute("attr.type", propKeyEntry.Value);
                         graphml.AppendChild(keyElement);
                     }
                     _logger.LogInformation($"Defined {vertexPropertyKeys.Count} additional vertex property keys.");
@@ -267,12 +267,13 @@ namespace Agent.Cmd
                             dataElement.SetAttribute("key", "labelV");
                             dataElement.InnerText = nodeLabelStr;
                             nodeElement.AppendChild(dataElement);
-                        }
-
-                        // Add other properties
-                        foreach (string propKeyName in vertexPropertyKeys)
+                        }                        // Add other properties
+                        foreach (var propKeyEntry in vertexPropertyKeys)
                         {
-                            if (vdict.TryGetValue(propKeyName, out object propValueObj))
+                            string propKeyName = propKeyEntry.Key;
+                            string propGraphMLType = propKeyEntry.Value;
+                            
+                            if (vdict.TryGetValue(propKeyName, out object? propValueObj) && propValueObj != null)
                             {
                                 // This timestamp will constantly dirty the exported graph, so strip it.
                                 if (propKeyName == "updateTs")
@@ -280,7 +281,7 @@ namespace Agent.Cmd
 
                                 var dataElement = doc.CreateElement("data");
                                 dataElement.SetAttribute("key", $"prop_{propKeyName}");
-                                dataElement.InnerText = GetStringValue(propValueObj);
+                                dataElement.InnerText = FormatValueForGraphML(propValueObj, propGraphMLType);
                                 nodeElement.AppendChild(dataElement);
                             }
                         }
@@ -296,7 +297,7 @@ namespace Agent.Cmd
                         edgeElement.SetAttribute("source", edict.TryGetValue("source", out var edgeSourceVal) ? GetStringValue(edgeSourceVal) : string.Empty);
                         edgeElement.SetAttribute("target", edict.TryGetValue("target", out var edgeTargetVal) ? GetStringValue(edgeTargetVal) : string.Empty);
 
-                        if (edict.TryGetValue("label", out object labelObj))
+                        if (edict.TryGetValue("label", out object? labelObj) && labelObj != null)
                         {
                             var dataElement = doc.CreateElement("data");
                             dataElement.SetAttribute("key", "edge_label");
@@ -337,12 +338,10 @@ namespace Agent.Cmd
             if (propertyValue is Property p)
             {
                 return GetStringValue(p.Value);
-            }
-
-            // Handle Newtonsoft.Json.Linq types
+            }            // Handle Newtonsoft.Json.Linq types
             if (propertyValue is Newtonsoft.Json.Linq.JArray jArray)
             {
-                if (jArray.Count > 0)
+                if (jArray.Count > 0 && jArray.First != null)
                 {
                     return GetStringValue(jArray.First);
                 }
@@ -370,14 +369,12 @@ namespace Agent.Cmd
                     return jsonElement.GetString() ?? string.Empty;
                 }
                 return jsonElement.ToString();
-            }
-
-            // Handle generic System.Collections.IList (this should come after specific list types like JArray)
+            }            // Handle generic System.Collections.IList (this should come after specific list types like JArray)
             if (propertyValue is System.Collections.IList list)
             {
-                if (list.Count > 0)
+                if (list.Count > 0 && list[0] != null)
                 {
-                    object firstItem = list[0];
+                    object firstItem = list[0]!;
                     return GetStringValue(firstItem);
                 }
                 return string.Empty;
@@ -385,11 +382,11 @@ namespace Agent.Cmd
             // Handle other IEnumerable types that are not IList or string (e.g., the LINQ iterator)
             else if (propertyValue is System.Collections.IEnumerable enumerable)
             {
-                System.Collections.IEnumerator enumerator = null;
+                System.Collections.IEnumerator? enumerator = null;
                 try
                 {
                     enumerator = enumerable.GetEnumerator();
-                    if (enumerator.MoveNext())
+                    if (enumerator.MoveNext() && enumerator.Current != null)
                     {
                         object firstItem = enumerator.Current;
                         return GetStringValue(firstItem);
@@ -405,7 +402,174 @@ namespace Agent.Cmd
                 }
             }
 
-            return propertyValue.ToString();
+            return propertyValue?.ToString() ?? string.Empty;
+        }        private string GetGraphMLDataType(object value)
+        {
+            if (value == null) return "string";
+
+            // Handle Gremlin.Net specific types first
+            if (value is VertexProperty vp)
+            {
+                return GetGraphMLDataType(vp.Value);
+            }
+            if (value is Property p)
+            {
+                return GetGraphMLDataType(p.Value);
+            }
+
+            // Handle Newtonsoft.Json.Linq types
+            if (value is Newtonsoft.Json.Linq.JArray jArray)
+            {
+                if (jArray.Count > 0 && jArray.First != null)
+                {
+                    return GetGraphMLDataType(jArray.First);
+                }
+                return "string";
+            }
+
+            if (value is Newtonsoft.Json.Linq.JValue jValue)
+            {
+                return jValue.Value != null ? GetGraphMLDataType(jValue.Value) : "string";
+            }
+
+            // Handle System.Text.Json.JsonElement
+            if (value is JsonElement jsonElement)
+            {
+                return jsonElement.ValueKind switch
+                {
+                    JsonValueKind.True or JsonValueKind.False => "boolean",
+                    JsonValueKind.Number => DetermineNumberType(jsonElement),
+                    JsonValueKind.String => "string",
+                    JsonValueKind.Array => jsonElement.GetArrayLength() > 0 
+                        ? GetGraphMLDataType(jsonElement.EnumerateArray().First()) 
+                        : "string",
+                    _ => "string"
+                };
+            }            // Handle collections - take type from first element
+            if (value is System.Collections.IList list && list.Count > 0 && list[0] != null)
+            {
+                return GetGraphMLDataType(list[0]!);
+            }
+
+            if (value is System.Collections.IEnumerable enumerable)
+            {
+                System.Collections.IEnumerator? enumerator = null;
+                try
+                {
+                    enumerator = enumerable.GetEnumerator();
+                    if (enumerator.MoveNext() && enumerator.Current != null)
+                    {
+                        return GetGraphMLDataType(enumerator.Current);
+                    }
+                }
+                finally
+                {
+                    (enumerator as IDisposable)?.Dispose();
+                }
+                return "string";
+            }
+
+            // Handle primitive types
+            return value switch
+            {
+                bool => "boolean",
+                byte or sbyte or short or ushort or int or uint => "int",
+                long or ulong => "long",
+                float => "float",
+                double or decimal => "double",
+                _ => "string"
+            };
+        }
+
+        private string DetermineNumberType(JsonElement jsonElement)
+        {
+            if (jsonElement.TryGetInt32(out _))
+                return "int";
+            if (jsonElement.TryGetInt64(out _))
+                return "long";
+            if (jsonElement.TryGetSingle(out _))
+                return "float";
+            if (jsonElement.TryGetDouble(out _))
+                return "double";
+            return "string";
+        }        private string FormatValueForGraphML(object value, string graphMLType)
+        {
+            if (value == null) return string.Empty;
+
+            // Handle strings early to prevent IEnumerable<char> processing by collection handlers
+            if (value is string str)
+            {
+                return str;
+            }
+
+            // Handle Gremlin.Net specific types first
+            if (value is VertexProperty vp)
+            {
+                return FormatValueForGraphML(vp.Value, graphMLType);
+            }
+            if (value is Property p)
+            {
+                return FormatValueForGraphML(p.Value, graphMLType);
+            }
+
+            // Handle Newtonsoft.Json.Linq types
+            if (value is Newtonsoft.Json.Linq.JArray jArray)
+            {
+                if (jArray.Count > 0 && jArray.First != null)
+                {
+                    return FormatValueForGraphML(jArray.First, graphMLType);
+                }
+                return string.Empty;
+            }
+
+            if (value is Newtonsoft.Json.Linq.JValue jValue)
+            {
+                return jValue.Value != null ? FormatValueForGraphML(jValue.Value, graphMLType) : string.Empty;
+            }
+
+            // Handle System.Text.Json.JsonElement
+            if (value is JsonElement jsonElement)
+            {
+                return graphMLType switch
+                {
+                    "boolean" => jsonElement.GetBoolean().ToString().ToLowerInvariant(),
+                    "int" => jsonElement.GetInt32().ToString(),
+                    "long" => jsonElement.GetInt64().ToString(),
+                    "float" => jsonElement.GetSingle().ToString("G", System.Globalization.CultureInfo.InvariantCulture),
+                    "double" => jsonElement.GetDouble().ToString("G", System.Globalization.CultureInfo.InvariantCulture),
+                    _ => jsonElement.ValueKind == JsonValueKind.String ? jsonElement.GetString() ?? string.Empty : jsonElement.ToString()
+                };
+            }            // Handle collections - take first element
+            if (value is System.Collections.IList list && list.Count > 0 && list[0] != null)
+            {
+                return FormatValueForGraphML(list[0]!, graphMLType);
+            }            if (value is System.Collections.IEnumerable enumerable)
+            {
+                System.Collections.IEnumerator? enumerator = null;
+                try
+                {
+                    enumerator = enumerable.GetEnumerator();
+                    if (enumerator.MoveNext() && enumerator.Current != null)
+                    {
+                        return FormatValueForGraphML(enumerator.Current, graphMLType);
+                    }
+                }
+                finally
+                {
+                    (enumerator as IDisposable)?.Dispose();
+                }
+                return string.Empty;
+            }
+
+            // Handle primitive types with proper formatting
+            return graphMLType switch
+            {
+                "boolean" when value is bool boolVal => boolVal.ToString().ToLowerInvariant(),
+                "int" when value is byte or sbyte or short or ushort or int or uint => value.ToString() ?? string.Empty,
+                "long" when value is long or ulong => value.ToString() ?? string.Empty,                "float" when value is float floatVal => floatVal.ToString("G", System.Globalization.CultureInfo.InvariantCulture),
+                "double" when value is double or decimal => value.ToString() ?? string.Empty,
+                _ => value.ToString() ?? string.Empty
+            };
         }
     }
 }

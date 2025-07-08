@@ -2,10 +2,11 @@ host: 172.17.0.2
 port: 8182
 graphs: {
   empty: /opt/gremlin-server/custom-conf/tinkergraph-stringid.properties,
-  functionsBadFlexApps: /opt/gremlin-server/custom-conf/tinkergraph-stringid.properties,
-  simpleWebApps: /opt/gremlin-server/custom-conf/tinkergraph-stringid.properties,
   funcScenarios1: /opt/gremlin-server/custom-conf/tinkergraph-stringid.properties,
-  mrsharmAcaDiag: /opt/gremlin-server/custom-conf/tinkergraph-stringid.properties
+  functionsBadFlexApps: /opt/gremlin-server/custom-conf/tinkergraph-stringid.properties,
+  mrsharmAcaDiag: /opt/gremlin-server/custom-conf/tinkergraph-stringid.properties,
+  simpleWebapps: /opt/gremlin-server/custom-conf/tinkergraph-stringid.properties,
+  sreAgentPbatumDev: /opt/gremlin-server/custom-conf/tinkergraph-stringid.properties,
 }
 serializers:
   - { className: org.apache.tinkerpop.gremlin.util.ser.GraphSONMessageSerializerV2, config: { ioRegistries: [org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerIoRegistryV2] }}  

@@ -1,0 +1,103 @@
+[
+  {
+    "authorName": null,
+    "role": "user",
+    "contents": [
+      {
+        "$type": "text",
+        "text": "Try your best to answer the user\u0027s questions. Keep in mind:\r\n - If you find a suitable agent to handoff to, call transfer_to_{agentName} tool directly\r\n - If there\u0027s no suitable agent to handoff to, call HandoffBack directly\r\n - Use transfer_to_{agentName} or HandoffBack if you are done solving an issue\r\nUser question goes below:\r\nsummarize when the secrets in my keyvaults were last updated\r\n",
+        "additionalProperties": null
+      }
+    ],
+    "messageId": null,
+    "additionalProperties": null
+  },
+  {
+    "authorName": null,
+    "role": "assistant",
+    "contents": [
+      {
+        "$type": "text",
+        "text": "{\u0022reasoningScratchPad\u0022:\u0022User wants a summary of when the secrets in their Key Vaults were last updated. To do this, I need to:\\n1. Identify all Key Vault resources accessible to the user (requires subscription/resource group context).\\n2. For each Key Vault, retrieve the list of secrets and their last updated timestamps.\\n\\nSince the user did not specify a subscription or resource group, I must first discover their Key Vault resources. The resource_discovery_agent is the correct agent to handle this initial step, as it can enumerate Key Vaults and provide the necessary context for further queries.\u0022,\u0022notifyUserMessage\u0022:\u0022\u25B6\uFE0F To summarize when your Key Vault secrets were last updated, I\u0027ll first locate all your Key Vault resources and gather their details. Once I have this information, I\u0027ll proceed to retrieve the last updated timestamps for each secret.\u0022,\u0022state\u0022:\u0022HandOff_Continue\u0022,\u0022stateExplanation\u0022:\u0022User did not provide subscription/resource group. Need to discover Key Vault resources first. Handing off to resource discovery agent to enumerate Key Vaults and provide context for further steps.\u0022}",
+        "additionalProperties": null
+      },
+      {
+        "$type": "functionCall",
+        "callId": "call_Eq4TYPhgiHzZjY63sxDy4DId",
+        "name": "transfer_to_resource_discovery_agent",
+        "arguments": {},
+        "additionalProperties": null
+      }
+    ],
+    "messageId": "chatcmpl-Bp1AdTuyV7J1KkcYdF5Jaqv3DoqRE",
+    "additionalProperties": null
+  },
+  {
+    "authorName": null,
+    "role": "tool",
+    "contents": [
+      {
+        "$type": "functionResult",
+        "callId": "call_Eq4TYPhgiHzZjY63sxDy4DId",
+        "result": "Handoff is complete. Analyze the current state of the conversation, think about the required next steps, and continue handling the task",
+        "additionalProperties": null
+      }
+    ],
+    "messageId": null,
+    "additionalProperties": null
+  },
+  {
+    "authorName": null,
+    "role": "assistant",
+    "contents": [
+      {
+        "$type": "functionCall",
+        "callId": "call_1QFx6bNT3KbCXNfywJslVq1E",
+        "name": "ListResourcesByType",
+        "arguments": {
+          "resourceType": "Microsoft.KeyVault/vaults",
+          "propertyName": "",
+          "propertyValue": "",
+          "skip": 0,
+          "take": -1
+        },
+        "additionalProperties": null
+      }
+    ],
+    "messageId": "chatcmpl-Bp1AgS2iZXwarqLL09KHmdoGu9ABZ",
+    "additionalProperties": null
+  },
+  {
+    "authorName": null,
+    "role": "tool",
+    "contents": [
+      {
+        "$type": "functionResult",
+        "callId": "call_1QFx6bNT3KbCXNfywJslVq1E",
+        "result": [
+          {
+            "subscriptionId": "29e3378b-0aaf-45da-b3c6-6fd0eea164e4",
+            "resourceGroupName": "pbatum-sre3-operations-agent-3p-rg",
+            "resourceName": "pbatum-sre3-kv",
+            "resourceType": "microsoft.keyvault/vaults"
+          },
+          {
+            "subscriptionId": "29e3378b-0aaf-45da-b3c6-6fd0eea164e4",
+            "resourceGroupName": "pbatum-sre2-operations-agent-3p-rg",
+            "resourceName": "pbatum-sre2-kv",
+            "resourceType": "microsoft.keyvault/vaults"
+          },
+          {
+            "subscriptionId": "29e3378b-0aaf-45da-b3c6-6fd0eea164e4",
+            "resourceGroupName": "pbatum-sre4-operations-agent-3p-rg",
+            "resourceName": "pbatum-sre4-kv",
+            "resourceType": "microsoft.keyvault/vaults"
+          }
+        ],
+        "additionalProperties": null
+      }
+    ],
+    "messageId": null,
+    "additionalProperties": null
+  }
+]

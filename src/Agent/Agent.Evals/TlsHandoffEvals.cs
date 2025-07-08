@@ -51,7 +51,7 @@ public class TlsHandoffEvals
         builder.RegisterDefaultServices();
         builder.ConfigureDurable();
 
-        _mocks = new E2EMockSetup(DateTimeOffset.Parse("2025-02-24T01:00:00Z"), graphName: "gsimpleweb", logger: null);
+        _mocks = new E2EMockSetup(DateTimeOffset.Parse("2025-02-24T01:00:00Z"), graphName: "gsimpleWebapps", logger: null);
         builder.Services.AddServices(_mocks);
 
         builder.Services.AddPluginDefinitionsForGenericSubAgent();

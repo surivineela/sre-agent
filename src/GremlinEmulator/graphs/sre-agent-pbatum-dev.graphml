@@ -1,0 +1,428 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<graphml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd" xmlns="http://graphml.graphdrawing.org/xmlns">
+  <key id="labelV" for="node" attr.name="label" attr.type="string" xmlns="" />
+  <key id="prop_resourceType" for="node" attr.name="resourceType" attr.type="string" xmlns="" />
+  <key id="prop_updateTs" for="node" attr.name="updateTs" attr.type="long" xmlns="" />
+  <key id="prop_resourceId" for="node" attr.name="resourceId" attr.type="string" xmlns="" />
+  <key id="prop_subscriptionId" for="node" attr.name="subscriptionId" attr.type="string" xmlns="" />
+  <key id="prop_resourceGroupName" for="node" attr.name="resourceGroupName" attr.type="string" xmlns="" />
+  <key id="prop_isDeleted" for="node" attr.name="isDeleted" attr.type="boolean" xmlns="" />
+  <key id="prop_location" for="node" attr.name="location" attr.type="string" xmlns="" />
+  <key id="prop_subscriptionName" for="node" attr.name="subscriptionName" attr.type="string" xmlns="" />
+  <key id="prop_resourceName" for="node" attr.name="resourceName" attr.type="string" xmlns="" />
+  <key id="edge_label" for="edge" attr.name="label" attr.type="string" xmlns="" />
+  <graph id="G" edgedefault="directed" xmlns="">
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg">
+      <data key="labelV">resourcegroups</data>
+      <data key="prop_resourceType">resourcegroups</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre2-operations-agent-3p-rg</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre2-operations-agent-3p-rg</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_location">westus</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg">
+      <data key="labelV">resourcegroups</data>
+      <data key="prop_resourceType">resourcegroups</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre4-operations-agent-3p-rg</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre4-operations-agent-3p-rg</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_location">swedencentral</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg">
+      <data key="labelV">resourcegroups</data>
+      <data key="prop_resourceType">resourcegroups</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre3-operations-agent-3p-rg</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre3-operations-agent-3p-rg</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_location">westus</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4">
+      <data key="labelV">subscriptions</data>
+      <data key="prop_resourceType">subscriptions</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_subscriptionName">Private Test Sub PBATUM</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg_providers_microsoft.alertsmanagement_smartdetectoralertrules_failure_anomalies_-_pbatum-sre2-app-insights">
+      <data key="labelV">microsoft.alertsmanagement/smartdetectoralertrules</data>
+      <data key="prop_resourceType">microsoft.alertsmanagement/smartdetectoralertrules</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre2-operations-agent-3p-rg/providers/microsoft.alertsmanagement/smartdetectoralertrules/failure anomalies - pbatum-sre2-app-insights</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre2-operations-agent-3p-rg</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_location">global</data>
+      <data key="prop_resourceName">failure anomalies - pbatum-sre2-app-insights</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg_providers_microsoft.alertsmanagement_smartdetectoralertrules_failure_anomalies_-_pbatum-sre3-app-insights">
+      <data key="labelV">microsoft.alertsmanagement/smartdetectoralertrules</data>
+      <data key="prop_resourceType">microsoft.alertsmanagement/smartdetectoralertrules</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre3-operations-agent-3p-rg/providers/microsoft.alertsmanagement/smartdetectoralertrules/failure anomalies - pbatum-sre3-app-insights</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre3-operations-agent-3p-rg</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_location">global</data>
+      <data key="prop_resourceName">failure anomalies - pbatum-sre3-app-insights</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg_providers_microsoft.appconfiguration_configurationstores_pbatum-sre2-appconfig">
+      <data key="labelV">microsoft.appconfiguration/configurationstores</data>
+      <data key="prop_resourceType">microsoft.appconfiguration/configurationstores</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre2-operations-agent-3p-rg/providers/microsoft.appconfiguration/configurationstores/pbatum-sre2-appconfig</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre2-operations-agent-3p-rg</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_location">westus</data>
+      <data key="prop_resourceName">pbatum-sre2-appconfig</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg_providers_microsoft.appconfiguration_configurationstores_pbatum-sre3-appconfig">
+      <data key="labelV">microsoft.appconfiguration/configurationstores</data>
+      <data key="prop_resourceType">microsoft.appconfiguration/configurationstores</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre3-operations-agent-3p-rg/providers/microsoft.appconfiguration/configurationstores/pbatum-sre3-appconfig</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre3-operations-agent-3p-rg</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_location">westus</data>
+      <data key="prop_resourceName">pbatum-sre3-appconfig</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg_providers_microsoft.cognitiveservices_accounts_pbatum-sre2-openai">
+      <data key="labelV">microsoft.cognitiveservices/accounts</data>
+      <data key="prop_resourceType">microsoft.cognitiveservices/accounts</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre2-operations-agent-3p-rg/providers/microsoft.cognitiveservices/accounts/pbatum-sre2-openai</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre2-operations-agent-3p-rg</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_location">westus</data>
+      <data key="prop_resourceName">pbatum-sre2-openai</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg_providers_microsoft.cognitiveservices_accounts_pbatum-sre3-openai">
+      <data key="labelV">microsoft.cognitiveservices/accounts</data>
+      <data key="prop_resourceType">microsoft.cognitiveservices/accounts</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre3-operations-agent-3p-rg/providers/microsoft.cognitiveservices/accounts/pbatum-sre3-openai</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre3-operations-agent-3p-rg</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_location">westus</data>
+      <data key="prop_resourceName">pbatum-sre3-openai</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg_providers_microsoft.documentdb_databaseaccounts_pbatum-sre2-cosmosdb-docs">
+      <data key="labelV">microsoft.documentdb/databaseaccounts</data>
+      <data key="prop_resourceType">microsoft.documentdb/databaseaccounts</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre2-operations-agent-3p-rg/providers/microsoft.documentdb/databaseaccounts/pbatum-sre2-cosmosdb-docs</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre2-operations-agent-3p-rg</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_location">westus</data>
+      <data key="prop_resourceName">pbatum-sre2-cosmosdb-docs</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg_providers_microsoft.documentdb_databaseaccounts_pbatum-sre3-cosmosdb-docs">
+      <data key="labelV">microsoft.documentdb/databaseaccounts</data>
+      <data key="prop_resourceType">microsoft.documentdb/databaseaccounts</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre3-operations-agent-3p-rg/providers/microsoft.documentdb/databaseaccounts/pbatum-sre3-cosmosdb-docs</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre3-operations-agent-3p-rg</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_location">westus</data>
+      <data key="prop_resourceName">pbatum-sre3-cosmosdb-docs</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg_providers_microsoft.documentdb_databaseaccounts_pbatum-sre2-cosmosdb-graph">
+      <data key="labelV">microsoft.documentdb/databaseaccounts</data>
+      <data key="prop_resourceType">microsoft.documentdb/databaseaccounts</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre2-operations-agent-3p-rg/providers/microsoft.documentdb/databaseaccounts/pbatum-sre2-cosmosdb-graph</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre2-operations-agent-3p-rg</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_location">westus</data>
+      <data key="prop_resourceName">pbatum-sre2-cosmosdb-graph</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg_providers_microsoft.documentdb_databaseaccounts_pbatum-sre3-cosmosdb-graph">
+      <data key="labelV">microsoft.documentdb/databaseaccounts</data>
+      <data key="prop_resourceType">microsoft.documentdb/databaseaccounts</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre3-operations-agent-3p-rg/providers/microsoft.documentdb/databaseaccounts/pbatum-sre3-cosmosdb-graph</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre3-operations-agent-3p-rg</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_location">westus</data>
+      <data key="prop_resourceName">pbatum-sre3-cosmosdb-graph</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_providers_microsoft.alertsmanagement_smartdetectoralertrules_failure_anomalies_-_pbatum-sre4-app-insights">
+      <data key="labelV">microsoft.alertsmanagement/smartdetectoralertrules</data>
+      <data key="prop_resourceType">microsoft.alertsmanagement/smartdetectoralertrules</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre4-operations-agent-3p-rg/providers/microsoft.alertsmanagement/smartdetectoralertrules/failure anomalies - pbatum-sre4-app-insights</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre4-operations-agent-3p-rg</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_location">global</data>
+      <data key="prop_resourceName">failure anomalies - pbatum-sre4-app-insights</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg_providers_microsoft.durabletask_schedulers_pbatum-sre2-dts">
+      <data key="labelV">microsoft.durabletask/schedulers</data>
+      <data key="prop_resourceType">microsoft.durabletask/schedulers</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre2-operations-agent-3p-rg/providers/microsoft.durabletask/schedulers/pbatum-sre2-dts</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre2-operations-agent-3p-rg</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_location">westus2</data>
+      <data key="prop_resourceName">pbatum-sre2-dts</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg_providers_microsoft.durabletask_schedulers_pbatum-sre3-dts">
+      <data key="labelV">microsoft.durabletask/schedulers</data>
+      <data key="prop_resourceType">microsoft.durabletask/schedulers</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre3-operations-agent-3p-rg/providers/microsoft.durabletask/schedulers/pbatum-sre3-dts</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre3-operations-agent-3p-rg</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_location">westus2</data>
+      <data key="prop_resourceName">pbatum-sre3-dts</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_providers_microsoft.appconfiguration_configurationstores_pbatum-sre4-appconfig">
+      <data key="labelV">microsoft.appconfiguration/configurationstores</data>
+      <data key="prop_resourceType">microsoft.appconfiguration/configurationstores</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre4-operations-agent-3p-rg/providers/microsoft.appconfiguration/configurationstores/pbatum-sre4-appconfig</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre4-operations-agent-3p-rg</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_location">swedencentral</data>
+      <data key="prop_resourceName">pbatum-sre4-appconfig</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg_providers_microsoft.insights_components_pbatum-sre3-app-insights">
+      <data key="labelV">microsoft.insights/components</data>
+      <data key="prop_resourceType">microsoft.insights/components</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre3-operations-agent-3p-rg/providers/microsoft.insights/components/pbatum-sre3-app-insights</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre3-operations-agent-3p-rg</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_location">westus</data>
+      <data key="prop_resourceName">pbatum-sre3-app-insights</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg_providers_microsoft.insights_components_pbatum-sre2-app-insights">
+      <data key="labelV">microsoft.insights/components</data>
+      <data key="prop_resourceType">microsoft.insights/components</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre2-operations-agent-3p-rg/providers/microsoft.insights/components/pbatum-sre2-app-insights</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre2-operations-agent-3p-rg</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_location">westus</data>
+      <data key="prop_resourceName">pbatum-sre2-app-insights</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_providers_microsoft.cognitiveservices_accounts_pbatum-sre4-openai">
+      <data key="labelV">microsoft.cognitiveservices/accounts</data>
+      <data key="prop_resourceType">microsoft.cognitiveservices/accounts</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre4-operations-agent-3p-rg/providers/microsoft.cognitiveservices/accounts/pbatum-sre4-openai</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre4-operations-agent-3p-rg</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_location">swedencentral</data>
+      <data key="prop_resourceName">pbatum-sre4-openai</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg_providers_microsoft.keyvault_vaults_pbatum-sre3-kv">
+      <data key="labelV">microsoft.keyvault/vaults</data>
+      <data key="prop_resourceType">microsoft.keyvault/vaults</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre3-operations-agent-3p-rg/providers/microsoft.keyvault/vaults/pbatum-sre3-kv</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre3-operations-agent-3p-rg</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_location">westus</data>
+      <data key="prop_resourceName">pbatum-sre3-kv</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg_providers_microsoft.keyvault_vaults_pbatum-sre2-kv">
+      <data key="labelV">microsoft.keyvault/vaults</data>
+      <data key="prop_resourceType">microsoft.keyvault/vaults</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre2-operations-agent-3p-rg/providers/microsoft.keyvault/vaults/pbatum-sre2-kv</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre2-operations-agent-3p-rg</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_location">westus</data>
+      <data key="prop_resourceName">pbatum-sre2-kv</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_providers_microsoft.dashboard_grafana_pbatum-sre4-grafana">
+      <data key="labelV">microsoft.dashboard/grafana</data>
+      <data key="prop_resourceType">microsoft.dashboard/grafana</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre4-operations-agent-3p-rg/providers/microsoft.dashboard/grafana/pbatum-sre4-grafana</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre4-operations-agent-3p-rg</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_location">swedencentral</data>
+      <data key="prop_resourceName">pbatum-sre4-grafana</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg_providers_microsoft.operationalinsights_workspaces_pbatum-sre3-log-analytics">
+      <data key="labelV">microsoft.operationalinsights/workspaces</data>
+      <data key="prop_resourceType">microsoft.operationalinsights/workspaces</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre3-operations-agent-3p-rg/providers/microsoft.operationalinsights/workspaces/pbatum-sre3-log-analytics</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre3-operations-agent-3p-rg</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_location">westus</data>
+      <data key="prop_resourceName">pbatum-sre3-log-analytics</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg_providers_microsoft.operationalinsights_workspaces_pbatum-sre2-log-analytics">
+      <data key="labelV">microsoft.operationalinsights/workspaces</data>
+      <data key="prop_resourceType">microsoft.operationalinsights/workspaces</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre2-operations-agent-3p-rg/providers/microsoft.operationalinsights/workspaces/pbatum-sre2-log-analytics</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre2-operations-agent-3p-rg</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_location">westus</data>
+      <data key="prop_resourceName">pbatum-sre2-log-analytics</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_providers_microsoft.documentdb_databaseaccounts_pbatum-sre4-cosmosdb-docs">
+      <data key="labelV">microsoft.documentdb/databaseaccounts</data>
+      <data key="prop_resourceType">microsoft.documentdb/databaseaccounts</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre4-operations-agent-3p-rg/providers/microsoft.documentdb/databaseaccounts/pbatum-sre4-cosmosdb-docs</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre4-operations-agent-3p-rg</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_location">swedencentral</data>
+      <data key="prop_resourceName">pbatum-sre4-cosmosdb-docs</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_providers_microsoft.documentdb_databaseaccounts_pbatum-sre4-cosmosdb-graph">
+      <data key="labelV">microsoft.documentdb/databaseaccounts</data>
+      <data key="prop_resourceType">microsoft.documentdb/databaseaccounts</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre4-operations-agent-3p-rg/providers/microsoft.documentdb/databaseaccounts/pbatum-sre4-cosmosdb-graph</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre4-operations-agent-3p-rg</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_location">swedencentral</data>
+      <data key="prop_resourceName">pbatum-sre4-cosmosdb-graph</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_providers_microsoft.durabletask_schedulers_pbatum-sre4-dts">
+      <data key="labelV">microsoft.durabletask/schedulers</data>
+      <data key="prop_resourceType">microsoft.durabletask/schedulers</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre4-operations-agent-3p-rg/providers/microsoft.durabletask/schedulers/pbatum-sre4-dts</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre4-operations-agent-3p-rg</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_location">westus2</data>
+      <data key="prop_resourceName">pbatum-sre4-dts</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_providers_microsoft.insights_components_pbatum-sre4-app-insights">
+      <data key="labelV">microsoft.insights/components</data>
+      <data key="prop_resourceType">microsoft.insights/components</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre4-operations-agent-3p-rg/providers/microsoft.insights/components/pbatum-sre4-app-insights</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre4-operations-agent-3p-rg</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_location">swedencentral</data>
+      <data key="prop_resourceName">pbatum-sre4-app-insights</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_providers_microsoft.keyvault_vaults_pbatum-sre4-kv">
+      <data key="labelV">microsoft.keyvault/vaults</data>
+      <data key="prop_resourceType">microsoft.keyvault/vaults</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre4-operations-agent-3p-rg/providers/microsoft.keyvault/vaults/pbatum-sre4-kv</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre4-operations-agent-3p-rg</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_location">swedencentral</data>
+      <data key="prop_resourceName">pbatum-sre4-kv</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_providers_microsoft.monitor_accounts_pbatum-sre4-monitor-workspace">
+      <data key="labelV">microsoft.monitor/accounts</data>
+      <data key="prop_resourceType">microsoft.monitor/accounts</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre4-operations-agent-3p-rg/providers/microsoft.monitor/accounts/pbatum-sre4-monitor-workspace</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre4-operations-agent-3p-rg</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_location">swedencentral</data>
+      <data key="prop_resourceName">pbatum-sre4-monitor-workspace</data>
+    </node>
+    <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_providers_microsoft.operationalinsights_workspaces_pbatum-sre4-log-analytics">
+      <data key="labelV">microsoft.operationalinsights/workspaces</data>
+      <data key="prop_resourceType">microsoft.operationalinsights/workspaces</data>
+      <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre4-operations-agent-3p-rg/providers/microsoft.operationalinsights/workspaces/pbatum-sre4-log-analytics</data>
+      <data key="prop_subscriptionId">29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
+      <data key="prop_resourceGroupName">pbatum-sre4-operations-agent-3p-rg</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_location">swedencentral</data>
+      <data key="prop_resourceName">pbatum-sre4-log-analytics</data>
+    </node>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg_providers_microsoft.alertsmanagement_smartdetectoralertrules_failure_anomalies_-_pbatum-sre2-app-insights" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg_providers_microsoft.alertsmanagement_smartdetectoralertrules_failure_anomalies_-_pbatum-sre2-app-insights">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg_providers_microsoft.appconfiguration_configurationstores_pbatum-sre2-appconfig" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg_providers_microsoft.appconfiguration_configurationstores_pbatum-sre2-appconfig">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg_providers_microsoft.cognitiveservices_accounts_pbatum-sre2-openai" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg_providers_microsoft.cognitiveservices_accounts_pbatum-sre2-openai">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg_providers_microsoft.documentdb_databaseaccounts_pbatum-sre2-cosmosdb-docs" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg_providers_microsoft.documentdb_databaseaccounts_pbatum-sre2-cosmosdb-docs">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg_providers_microsoft.documentdb_databaseaccounts_pbatum-sre2-cosmosdb-graph" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg_providers_microsoft.documentdb_databaseaccounts_pbatum-sre2-cosmosdb-graph">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg_providers_microsoft.durabletask_schedulers_pbatum-sre2-dts" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg_providers_microsoft.durabletask_schedulers_pbatum-sre2-dts">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg_providers_microsoft.insights_components_pbatum-sre2-app-insights" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg_providers_microsoft.insights_components_pbatum-sre2-app-insights">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg_providers_microsoft.keyvault_vaults_pbatum-sre2-kv" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg_providers_microsoft.keyvault_vaults_pbatum-sre2-kv">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg_providers_microsoft.operationalinsights_workspaces_pbatum-sre2-log-analytics" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre2-operations-agent-3p-rg_providers_microsoft.operationalinsights_workspaces_pbatum-sre2-log-analytics">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg_providers_microsoft.alertsmanagement_smartdetectoralertrules_failure_anomalies_-_pbatum-sre3-app-insights" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg_providers_microsoft.alertsmanagement_smartdetectoralertrules_failure_anomalies_-_pbatum-sre3-app-insights">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg_providers_microsoft.appconfiguration_configurationstores_pbatum-sre3-appconfig" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg_providers_microsoft.appconfiguration_configurationstores_pbatum-sre3-appconfig">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg_providers_microsoft.cognitiveservices_accounts_pbatum-sre3-openai" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg_providers_microsoft.cognitiveservices_accounts_pbatum-sre3-openai">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg_providers_microsoft.documentdb_databaseaccounts_pbatum-sre3-cosmosdb-docs" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg_providers_microsoft.documentdb_databaseaccounts_pbatum-sre3-cosmosdb-docs">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg_providers_microsoft.documentdb_databaseaccounts_pbatum-sre3-cosmosdb-graph" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg_providers_microsoft.documentdb_databaseaccounts_pbatum-sre3-cosmosdb-graph">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg_providers_microsoft.durabletask_schedulers_pbatum-sre3-dts" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg_providers_microsoft.durabletask_schedulers_pbatum-sre3-dts">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg_providers_microsoft.insights_components_pbatum-sre3-app-insights" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg_providers_microsoft.insights_components_pbatum-sre3-app-insights">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg_providers_microsoft.keyvault_vaults_pbatum-sre3-kv" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg_providers_microsoft.keyvault_vaults_pbatum-sre3-kv">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg_providers_microsoft.operationalinsights_workspaces_pbatum-sre3-log-analytics" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre3-operations-agent-3p-rg_providers_microsoft.operationalinsights_workspaces_pbatum-sre3-log-analytics">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_providers_microsoft.alertsmanagement_smartdetectoralertrules_failure_anomalies_-_pbatum-sre4-app-insights" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_providers_microsoft.alertsmanagement_smartdetectoralertrules_failure_anomalies_-_pbatum-sre4-app-insights">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_providers_microsoft.appconfiguration_configurationstores_pbatum-sre4-appconfig" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_providers_microsoft.appconfiguration_configurationstores_pbatum-sre4-appconfig">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_providers_microsoft.cognitiveservices_accounts_pbatum-sre4-openai" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_providers_microsoft.cognitiveservices_accounts_pbatum-sre4-openai">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_providers_microsoft.dashboard_grafana_pbatum-sre4-grafana" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_providers_microsoft.dashboard_grafana_pbatum-sre4-grafana">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_providers_microsoft.documentdb_databaseaccounts_pbatum-sre4-cosmosdb-docs" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_providers_microsoft.documentdb_databaseaccounts_pbatum-sre4-cosmosdb-docs">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_providers_microsoft.documentdb_databaseaccounts_pbatum-sre4-cosmosdb-graph" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_providers_microsoft.documentdb_databaseaccounts_pbatum-sre4-cosmosdb-graph">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_providers_microsoft.durabletask_schedulers_pbatum-sre4-dts" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_providers_microsoft.durabletask_schedulers_pbatum-sre4-dts">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_providers_microsoft.insights_components_pbatum-sre4-app-insights" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_providers_microsoft.insights_components_pbatum-sre4-app-insights">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_providers_microsoft.keyvault_vaults_pbatum-sre4-kv" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_providers_microsoft.keyvault_vaults_pbatum-sre4-kv">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_providers_microsoft.monitor_accounts_pbatum-sre4-monitor-workspace" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_providers_microsoft.monitor_accounts_pbatum-sre4-monitor-workspace">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+    <edge id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_CONTAINS__subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_providers_microsoft.operationalinsights_workspaces_pbatum-sre4-log-analytics" source="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg" target="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre4-operations-agent-3p-rg_providers_microsoft.operationalinsights_workspaces_pbatum-sre4-log-analytics">
+      <data key="edge_label">CONTAINS</data>
+    </edge>
+  </graph>
+</graphml>

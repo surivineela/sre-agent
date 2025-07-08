@@ -18,11 +18,13 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" />
+    <PackageReference Include="YamlDotNet" />
   </ItemGroup>
 
   <ItemGroup>
 	  <ProjectReference Include="..\Agent.Core\Agent.Core.csproj" />
+	  <ProjectReference Include="..\Agent.Evals\Agent.Evals.csproj" />
 	  <ProjectReference Include="..\Agent.Graph\Agent.Graph.csproj" />
 	  <ProjectReference Include="..\Agent.Runtime\Agent.Runtime.csproj" />
-  </ItemGroup>  
+  </ItemGroup>
 </Project>

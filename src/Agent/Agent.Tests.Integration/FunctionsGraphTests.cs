@@ -18,7 +18,7 @@ public class FunctionsGraphTests
     public FunctionsGraphTests(ITestOutputHelper testOutputHelper)
     {
         var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { EnvironmentName = Environments.Development });
-        builder.Services.AddLocalGremlin("gfuncbad");
+        builder.Services.AddLocalGremlin("gfunctionsBadFlexApps");
 
         _logger = testOutputHelper.ToLogger<ILogger>();
         _host = builder.Build();

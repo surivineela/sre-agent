@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <graphml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd" xmlns="http://graphml.graphdrawing.org/xmlns">
   <key id="labelV" for="node" attr.name="label" attr.type="string" xmlns="" />
-  <key id="prop_updateTs" for="node" attr.name="updateTs" attr.type="string" xmlns="" />
+  <key id="prop_updateTs" for="node" attr.name="updateTs" attr.type="long" xmlns="" />
   <key id="prop_resourceId" for="node" attr.name="resourceId" attr.type="string" xmlns="" />
   <key id="prop_subscriptionId" for="node" attr.name="subscriptionId" attr.type="string" xmlns="" />
   <key id="prop_resourceGroupName" for="node" attr.name="resourceGroupName" attr.type="string" xmlns="" />
@@ -48,9 +48,11 @@
   <key id="prop_tenantId" for="node" attr.name="tenantId" attr.type="string" xmlns="" />
   <key id="prop_principalId" for="node" attr.name="principalId" attr.type="string" xmlns="" />
   <key id="prop_clientId" for="node" attr.name="clientId" attr.type="string" xmlns="" />
+  <key id="prop_isDeleted" for="node" attr.name="isDeleted" attr.type="boolean" xmlns="" />
   <key id="edge_label" for="edge" attr.name="label" attr.type="string" xmlns="" />
   <graph id="G" edgedefault="directed" xmlns="">
     <node id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">resourcegroups</data>
       <data key="prop_resourceId">/subscriptions/a2c49f0f-548f-4f3b-86a4-39c8eafc0780/resourcegroups/mybuggyfunctionapp-rg</data>
       <data key="prop_subscriptionId">a2c49f0f-548f-4f3b-86a4-39c8eafc0780</data>
@@ -59,6 +61,7 @@
       <data key="prop_resourceType">resourcegroups</data>
     </node>
     <node id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">subscriptions</data>
       <data key="prop_resourceId">/subscriptions/a2c49f0f-548f-4f3b-86a4-39c8eafc0780</data>
       <data key="prop_subscriptionId">a2c49f0f-548f-4f3b-86a4-39c8eafc0780</data>
@@ -66,6 +69,7 @@
       <data key="prop_subscriptionName">Private Test Sub CURIBE</data>
     </node>
     <node id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.alertsmanagement_smartdetectoralertrules_failure_anomalies_-_alsobuggyfunctionapp">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">microsoft.alertsmanagement/smartdetectoralertrules</data>
       <data key="prop_resourceId">/subscriptions/a2c49f0f-548f-4f3b-86a4-39c8eafc0780/resourcegroups/mybuggyfunctionapp-rg/providers/microsoft.alertsmanagement/smartdetectoralertrules/failure anomalies - alsobuggyfunctionapp</data>
       <data key="prop_subscriptionId">a2c49f0f-548f-4f3b-86a4-39c8eafc0780</data>
@@ -75,6 +79,7 @@
       <data key="prop_resourceName">failure anomalies - alsobuggyfunctionapp</data>
     </node>
     <node id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.alertsmanagement_smartdetectoralertrules_failure_anomalies_-_mybuggyfunctionapp">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">microsoft.alertsmanagement/smartdetectoralertrules</data>
       <data key="prop_resourceId">/subscriptions/a2c49f0f-548f-4f3b-86a4-39c8eafc0780/resourcegroups/mybuggyfunctionapp-rg/providers/microsoft.alertsmanagement/smartdetectoralertrules/failure anomalies - mybuggyfunctionapp</data>
       <data key="prop_subscriptionId">a2c49f0f-548f-4f3b-86a4-39c8eafc0780</data>
@@ -84,6 +89,7 @@
       <data key="prop_resourceName">failure anomalies - mybuggyfunctionapp</data>
     </node>
     <node id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.alertsmanagement_smartdetectoralertrules_failure_anomalies_-_notafunctionapp">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">microsoft.alertsmanagement/smartdetectoralertrules</data>
       <data key="prop_resourceId">/subscriptions/a2c49f0f-548f-4f3b-86a4-39c8eafc0780/resourcegroups/mybuggyfunctionapp-rg/providers/microsoft.alertsmanagement/smartdetectoralertrules/failure anomalies - notafunctionapp</data>
       <data key="prop_subscriptionId">a2c49f0f-548f-4f3b-86a4-39c8eafc0780</data>
@@ -93,6 +99,7 @@
       <data key="prop_resourceName">failure anomalies - notafunctionapp</data>
     </node>
     <node id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.insights_components_alsobuggyfunctionapp">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">microsoft.insights/components</data>
       <data key="prop_resourceId">/subscriptions/a2c49f0f-548f-4f3b-86a4-39c8eafc0780/resourcegroups/mybuggyfunctionapp-rg/providers/microsoft.insights/components/alsobuggyfunctionapp</data>
       <data key="prop_subscriptionId">a2c49f0f-548f-4f3b-86a4-39c8eafc0780</data>
@@ -102,6 +109,7 @@
       <data key="prop_resourceName">alsobuggyfunctionapp</data>
     </node>
     <node id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.insights_components_mybuggyfunctionapp">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">microsoft.insights/components</data>
       <data key="prop_resourceId">/subscriptions/a2c49f0f-548f-4f3b-86a4-39c8eafc0780/resourcegroups/mybuggyfunctionapp-rg/providers/microsoft.insights/components/mybuggyfunctionapp</data>
       <data key="prop_subscriptionId">a2c49f0f-548f-4f3b-86a4-39c8eafc0780</data>
@@ -111,6 +119,7 @@
       <data key="prop_resourceName">mybuggyfunctionapp</data>
     </node>
     <node id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.insights_components_notafunctionapp">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">microsoft.insights/components</data>
       <data key="prop_resourceId">/subscriptions/a2c49f0f-548f-4f3b-86a4-39c8eafc0780/resourcegroups/mybuggyfunctionapp-rg/providers/microsoft.insights/components/notafunctionapp</data>
       <data key="prop_subscriptionId">a2c49f0f-548f-4f3b-86a4-39c8eafc0780</data>
@@ -120,6 +129,7 @@
       <data key="prop_resourceName">notafunctionapp</data>
     </node>
     <node id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.storage_storageaccounts_alsobuggyfunctionappstrg">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">microsoft.storage/storageaccounts</data>
       <data key="prop_resourceId">/subscriptions/a2c49f0f-548f-4f3b-86a4-39c8eafc0780/resourcegroups/mybuggyfunctionapp-rg/providers/microsoft.storage/storageaccounts/alsobuggyfunctionappstrg</data>
       <data key="prop_subscriptionId">a2c49f0f-548f-4f3b-86a4-39c8eafc0780</data>
@@ -129,6 +139,7 @@
       <data key="prop_resourceName">alsobuggyfunctionappstrg</data>
     </node>
     <node id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.storage_storageaccounts_mybuggyfunctionappra9c8">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">microsoft.storage/storageaccounts</data>
       <data key="prop_resourceId">/subscriptions/a2c49f0f-548f-4f3b-86a4-39c8eafc0780/resourcegroups/mybuggyfunctionapp-rg/providers/microsoft.storage/storageaccounts/mybuggyfunctionappra9c8</data>
       <data key="prop_subscriptionId">a2c49f0f-548f-4f3b-86a4-39c8eafc0780</data>
@@ -138,6 +149,7 @@
       <data key="prop_resourceName">mybuggyfunctionappra9c8</data>
     </node>
     <node id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.web_serverfarms_mybuggyfunctionapp-asp">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">microsoft.web/serverfarms</data>
       <data key="prop_resourceId">/subscriptions/a2c49f0f-548f-4f3b-86a4-39c8eafc0780/resourcegroups/mybuggyfunctionapp-rg/providers/microsoft.web/serverfarms/mybuggyfunctionapp-asp</data>
       <data key="prop_subscriptionId">a2c49f0f-548f-4f3b-86a4-39c8eafc0780</data>
@@ -155,6 +167,7 @@
       <data key="prop_zoneRedundant">False</data>
     </node>
     <node id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.web_serverfarms_notafunctionappasp">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">microsoft.web/serverfarms</data>
       <data key="prop_resourceId">/subscriptions/a2c49f0f-548f-4f3b-86a4-39c8eafc0780/resourcegroups/mybuggyfunctionapp-rg/providers/microsoft.web/serverfarms/notafunctionappasp</data>
       <data key="prop_subscriptionId">a2c49f0f-548f-4f3b-86a4-39c8eafc0780</data>
@@ -172,6 +185,7 @@
       <data key="prop_zoneRedundant">False</data>
     </node>
     <node id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.web_sites_alsobuggyfunctionapp">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">microsoft.web/sites</data>
       <data key="prop_resourceId">/subscriptions/a2c49f0f-548f-4f3b-86a4-39c8eafc0780/resourcegroups/mybuggyfunctionapp-rg/providers/microsoft.web/sites/alsobuggyfunctionapp</data>
       <data key="prop_subscriptionId">a2c49f0f-548f-4f3b-86a4-39c8eafc0780</data>
@@ -191,6 +205,7 @@
       <data key="prop_appHealthInfo">{"LastDataCaptureTimeStampInUTC":"2025-05-22T01:41:47.1715068Z","Health":"Healthy","Availability":100,"Transactions":0,"Costs":0,"AvgLatencyInMs":null,"AvgMemoryUsage":0,"AvgCpuUsage":0,"AdditionalMetrics":{},"TimeSinceLastActivity":null}</data>
     </node>
     <node id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.web_sites_mybuggyfunctionapp">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">microsoft.web/sites</data>
       <data key="prop_resourceId">/subscriptions/a2c49f0f-548f-4f3b-86a4-39c8eafc0780/resourcegroups/mybuggyfunctionapp-rg/providers/microsoft.web/sites/mybuggyfunctionapp</data>
       <data key="prop_subscriptionId">a2c49f0f-548f-4f3b-86a4-39c8eafc0780</data>
@@ -229,6 +244,7 @@
       <data key="prop_function_3_triggerType">Unknown</data>
     </node>
     <node id="_subscriptions_a2c49f0f-548f-4f3b-86a4-39c8eafc0780_resourcegroups_mybuggyfunctionapp-rg_providers_microsoft.web_sites_notafunctionapp">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">microsoft.web/sites</data>
       <data key="prop_resourceId">/subscriptions/a2c49f0f-548f-4f3b-86a4-39c8eafc0780/resourcegroups/mybuggyfunctionapp-rg/providers/microsoft.web/sites/notafunctionapp</data>
       <data key="prop_subscriptionId">a2c49f0f-548f-4f3b-86a4-39c8eafc0780</data>
@@ -256,6 +272,7 @@
       <data key="prop_skuCapacity">1</data>
     </node>
     <node id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">resourcegroups</data>
       <data key="prop_resourceId">/subscriptions/5c75d2a9-b911-4d50-9939-bacb68fdac97/resourcegroups/echo-sre-agent-test-rg</data>
       <data key="prop_subscriptionId">5c75d2a9-b911-4d50-9939-bacb68fdac97</data>
@@ -264,6 +281,7 @@
       <data key="prop_resourceType">resourcegroups</data>
     </node>
     <node id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">subscriptions</data>
       <data key="prop_resourceId">/subscriptions/5c75d2a9-b911-4d50-9939-bacb68fdac97</data>
       <data key="prop_subscriptionId">5c75d2a9-b911-4d50-9939-bacb68fdac97</data>
@@ -271,6 +289,7 @@
       <data key="prop_subscriptionName">Private Test Sub EUNSEOCHO</data>
     </node>
     <node id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.alertsmanagement_smartdetectoralertrules_failure_anomalies_-_echosretestappins">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">microsoft.alertsmanagement/smartdetectoralertrules</data>
       <data key="prop_resourceId">/subscriptions/5c75d2a9-b911-4d50-9939-bacb68fdac97/resourcegroups/echo-sre-agent-test-rg/providers/microsoft.alertsmanagement/smartdetectoralertrules/failure anomalies - echosretestappins</data>
       <data key="prop_subscriptionId">5c75d2a9-b911-4d50-9939-bacb68fdac97</data>
@@ -280,6 +299,7 @@
       <data key="prop_resourceName">failure anomalies - echosretestappins</data>
     </node>
     <node id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.containerregistry_registries_echosreagenttestacr">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">microsoft.containerregistry/registries</data>
       <data key="prop_resourceId">/subscriptions/5c75d2a9-b911-4d50-9939-bacb68fdac97/resourcegroups/echo-sre-agent-test-rg/providers/microsoft.containerregistry/registries/echosreagenttestacr</data>
       <data key="prop_subscriptionId">5c75d2a9-b911-4d50-9939-bacb68fdac97</data>
@@ -289,6 +309,7 @@
       <data key="prop_resourceName">echosreagenttestacr</data>
     </node>
     <node id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.insights_components_echosretestappins">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">microsoft.insights/components</data>
       <data key="prop_resourceId">/subscriptions/5c75d2a9-b911-4d50-9939-bacb68fdac97/resourcegroups/echo-sre-agent-test-rg/providers/microsoft.insights/components/echosretestappins</data>
       <data key="prop_subscriptionId">5c75d2a9-b911-4d50-9939-bacb68fdac97</data>
@@ -298,6 +319,7 @@
       <data key="prop_resourceName">echosretestappins</data>
     </node>
     <node id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.managedidentity_userassignedidentities_echo-sre-agent-test-fhrwkm47nzicm">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">microsoft.managedidentity/userassignedidentities</data>
       <data key="prop_resourceId">/subscriptions/5c75d2a9-b911-4d50-9939-bacb68fdac97/resourcegroups/echo-sre-agent-test-rg/providers/microsoft.managedidentity/userassignedidentities/echo-sre-agent-test-fhrwkm47nzicm</data>
       <data key="prop_subscriptionId">5c75d2a9-b911-4d50-9939-bacb68fdac97</data>
@@ -307,6 +329,7 @@
       <data key="prop_resourceName">echo-sre-agent-test-fhrwkm47nzicm</data>
     </node>
     <node id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.managedidentity_userassignedidentities_echo-sre-agent-test-j2kr5xvbgy2kc">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">microsoft.managedidentity/userassignedidentities</data>
       <data key="prop_resourceId">/subscriptions/5c75d2a9-b911-4d50-9939-bacb68fdac97/resourcegroups/echo-sre-agent-test-rg/providers/microsoft.managedidentity/userassignedidentities/echo-sre-agent-test-j2kr5xvbgy2kc</data>
       <data key="prop_subscriptionId">5c75d2a9-b911-4d50-9939-bacb68fdac97</data>
@@ -316,6 +339,7 @@
       <data key="prop_resourceName">echo-sre-agent-test-j2kr5xvbgy2kc</data>
     </node>
     <node id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.managedidentity_userassignedidentities_echo-sre-agent-test-ozgnwrv2scn74">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">microsoft.managedidentity/userassignedidentities</data>
       <data key="prop_resourceId">/subscriptions/5c75d2a9-b911-4d50-9939-bacb68fdac97/resourcegroups/echo-sre-agent-test-rg/providers/microsoft.managedidentity/userassignedidentities/echo-sre-agent-test-ozgnwrv2scn74</data>
       <data key="prop_subscriptionId">5c75d2a9-b911-4d50-9939-bacb68fdac97</data>
@@ -325,6 +349,7 @@
       <data key="prop_resourceName">echo-sre-agent-test-ozgnwrv2scn74</data>
     </node>
     <node id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.managedidentity_userassignedidentities_echo-sre-agent-test-vqcu7dohijspc">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">microsoft.managedidentity/userassignedidentities</data>
       <data key="prop_resourceId">/subscriptions/5c75d2a9-b911-4d50-9939-bacb68fdac97/resourcegroups/echo-sre-agent-test-rg/providers/microsoft.managedidentity/userassignedidentities/echo-sre-agent-test-vqcu7dohijspc</data>
       <data key="prop_subscriptionId">5c75d2a9-b911-4d50-9939-bacb68fdac97</data>
@@ -334,6 +359,7 @@
       <data key="prop_resourceName">echo-sre-agent-test-vqcu7dohijspc</data>
     </node>
     <node id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.operationalinsights_workspaces_workspacefhrwkm47nzicm">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">microsoft.operationalinsights/workspaces</data>
       <data key="prop_resourceId">/subscriptions/5c75d2a9-b911-4d50-9939-bacb68fdac97/resourcegroups/echo-sre-agent-test-rg/providers/microsoft.operationalinsights/workspaces/workspacefhrwkm47nzicm</data>
       <data key="prop_subscriptionId">5c75d2a9-b911-4d50-9939-bacb68fdac97</data>
@@ -343,6 +369,7 @@
       <data key="prop_resourceName">workspacefhrwkm47nzicm</data>
     </node>
     <node id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.operationalinsights_workspaces_workspacej2kr5xvbgy2kc">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">microsoft.operationalinsights/workspaces</data>
       <data key="prop_resourceId">/subscriptions/5c75d2a9-b911-4d50-9939-bacb68fdac97/resourcegroups/echo-sre-agent-test-rg/providers/microsoft.operationalinsights/workspaces/workspacej2kr5xvbgy2kc</data>
       <data key="prop_subscriptionId">5c75d2a9-b911-4d50-9939-bacb68fdac97</data>
@@ -352,6 +379,7 @@
       <data key="prop_resourceName">workspacej2kr5xvbgy2kc</data>
     </node>
     <node id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.operationalinsights_workspaces_workspaceozgnwrv2scn74">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">microsoft.operationalinsights/workspaces</data>
       <data key="prop_resourceId">/subscriptions/5c75d2a9-b911-4d50-9939-bacb68fdac97/resourcegroups/echo-sre-agent-test-rg/providers/microsoft.operationalinsights/workspaces/workspaceozgnwrv2scn74</data>
       <data key="prop_subscriptionId">5c75d2a9-b911-4d50-9939-bacb68fdac97</data>
@@ -361,6 +389,7 @@
       <data key="prop_resourceName">workspaceozgnwrv2scn74</data>
     </node>
     <node id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.operationalinsights_workspaces_workspacevqcu7dohijspc">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">microsoft.operationalinsights/workspaces</data>
       <data key="prop_resourceId">/subscriptions/5c75d2a9-b911-4d50-9939-bacb68fdac97/resourcegroups/echo-sre-agent-test-rg/providers/microsoft.operationalinsights/workspaces/workspacevqcu7dohijspc</data>
       <data key="prop_subscriptionId">5c75d2a9-b911-4d50-9939-bacb68fdac97</data>
@@ -370,6 +399,7 @@
       <data key="prop_resourceName">workspacevqcu7dohijspc</data>
     </node>
     <node id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.storage_storageaccounts_echostoragetest">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">microsoft.storage/storageaccounts</data>
       <data key="prop_resourceId">/subscriptions/5c75d2a9-b911-4d50-9939-bacb68fdac97/resourcegroups/echo-sre-agent-test-rg/providers/microsoft.storage/storageaccounts/echostoragetest</data>
       <data key="prop_subscriptionId">5c75d2a9-b911-4d50-9939-bacb68fdac97</data>
@@ -379,6 +409,7 @@
       <data key="prop_resourceName">echostoragetest</data>
     </node>
     <node id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.web_serverfarms_eastusplan">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">microsoft.web/serverfarms</data>
       <data key="prop_resourceId">/subscriptions/5c75d2a9-b911-4d50-9939-bacb68fdac97/resourcegroups/echo-sre-agent-test-rg/providers/microsoft.web/serverfarms/eastusplan</data>
       <data key="prop_subscriptionId">5c75d2a9-b911-4d50-9939-bacb68fdac97</data>
@@ -396,6 +427,7 @@
       <data key="prop_zoneRedundant">False</data>
     </node>
     <node id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.web_sites_echofunctioninvalidconnstr">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">microsoft.web/sites</data>
       <data key="prop_resourceId">/subscriptions/5c75d2a9-b911-4d50-9939-bacb68fdac97/resourcegroups/echo-sre-agent-test-rg/providers/microsoft.web/sites/echofunctioninvalidconnstr</data>
       <data key="prop_subscriptionId">5c75d2a9-b911-4d50-9939-bacb68fdac97</data>
@@ -428,6 +460,7 @@
       <data key="prop_skuCapacity">0</data>
     </node>
     <node id="_subscriptions_5c75d2a9-b911-4d50-9939-bacb68fdac97_resourcegroups_echo-sre-agent-test-rg_providers_microsoft.web_sites_echofunctionminotconfigured">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">microsoft.web/sites</data>
       <data key="prop_resourceId">/subscriptions/5c75d2a9-b911-4d50-9939-bacb68fdac97/resourcegroups/echo-sre-agent-test-rg/providers/microsoft.web/sites/echofunctionminotconfigured</data>
       <data key="prop_subscriptionId">5c75d2a9-b911-4d50-9939-bacb68fdac97</data>

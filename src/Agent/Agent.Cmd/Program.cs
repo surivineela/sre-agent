@@ -37,7 +37,9 @@ namespace Agent.Cmd
             builder.Services.AddSingleton<ArmResourceCrawlerFactory>();
             builder.Services.AddSingleton<AzureResourceGraphClient>();
             builder.Services.AddSingleton<ICrawlerService, ResourceGraphCrawlerService>();
-            builder.Services.AddSingleton<IWatchEventService, ActivityLogService>();
+            builder.Services.AddKeyedSingleton<IWatchEventService, ActivityLogService>("ActivityLog");
+            builder.Services.AddKeyedSingleton<IWatchEventService, KubernetesWatchService>("Kubernetes");
+            builder.Services.AddSingleton<ICrawlerTriggerService, CrawlerTriggerService>();
             builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
             builder.Services.AddSingleton<IArmClientFactory, ArmClientFactory>();
             builder.Services.AddSingleton<IKubernetesClientFactory, KubernetesClientFactory>();
@@ -45,6 +47,9 @@ namespace Agent.Cmd
             builder.Services.AddSingleton<CrawlerCommand>();
             builder.Services.AddSingleton<GraphCommand>();
             builder.Services.AddSingleton<ScenarioCommand>();
+            builder.Services.AddSingleton<GenerateEvalCommand>();
+
+
 
             builder.Services.AddCrawlerHttpClient();
             builder.Services.AddHttpClient();
@@ -91,6 +96,13 @@ namespace Agent.Cmd
                 {
                     var cmd = host.Services.GetRequiredService<ScenarioCommand>();
                     cmd.RunScenario(command);
+                });
+
+            commandLineApplication.Command("GenerateEval",
+                (command) =>
+                {
+                    var cmd = host.Services.GetRequiredService<GenerateEvalCommand>();
+                    cmd.GenerateEval(command);
                 });
 
             commandLineApplication.OnExecute(() =>

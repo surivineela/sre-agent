@@ -1,17 +1,17 @@
 using System.ClientModel;
 using System.Text.Json;
 using Agent.Core.Configuration;
+using Agent.Core.Extensions;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Core.Services;
+using Agent.Data.AgentMemory;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.Repositories;
 using Agent.Framework;
 using Agent.Graph.Crawler.Legacy;
 using Agent.Logging;
-using Agent.Core.Extensions;
-using Agent.Core.Services;
-using Agent.Data.AgentMemory;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Interface;
@@ -187,6 +187,7 @@ public static class TestHelpers
         builder.Services.AddSingleton<IAgentFactory<AgentContext>, AgentFactory<AgentContext>>(sp =>
         {
             var modeConfigurator = sp.GetRequiredService<IAgentModeConfigurator<AgentContext>>();
+
             return new AgentFactory<AgentContext>(
                 logger: sp.GetRequiredService<ILogger<AgentFactory<AgentContext>>>(),
                 toolFactory: sp.GetRequiredService<IToolFactory<AgentContext>>(),
@@ -195,7 +196,10 @@ public static class TestHelpers
                     .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true),
                 modeConfigurator: modeConfigurator,
                 agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "AgentsV2"),
-                commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonPrompts")
+                commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonPrompts"),
+                promptStarters: [Core.Constants.SREAgentPromptStarter],
+                promptEnders: [Core.Constants.SREAgentFinalInstructions],
+                defaultOutputType: typeof(DefaultAgentOutput)
             );
         });
 

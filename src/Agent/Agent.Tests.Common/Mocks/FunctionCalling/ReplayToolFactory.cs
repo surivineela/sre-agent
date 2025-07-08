@@ -19,7 +19,9 @@ public class ReplayToolFactory<TContext> : IToolFactory<TContext> where TContext
     private readonly ReplayToolCore _replayCore;
 
     public IEnumerable<string> FunctionNames => _replayCore.FunctionNames;
+    public HashSet<string> FunctionNamesAllowingFuzzyMatch => _replayCore.FunctionNamesAllowingFuzzyMatch;
     public HashSet<string> FunctionNamesEnabledForReplay => _replayCore.FunctionNamesEnabledForReplay;
+    public HashSet<string> FunctionNamesSkippedForReplay => _replayCore.FunctionNamesSkippedForReplay;
     public List<ReplayEntry> FunctionCallsWithReplayFailure => _replayCore.FunctionCallsWithReplayFailure;
 
     public ReplayToolFactory(IToolFactory<TContext> innerFactory, JsonSerializerOptions serializerOptions)

@@ -1,0 +1,88 @@
+testSuite:
+  name: "ContainerAppsCpuMemory"
+  description: "Evaluates agent's ability to diagnose memory leak issues in container apps causing 500 errors"
+  configuration:
+    timeout: "2m"
+    database: "gmrsharmAcaDiag"
+    toolReplay:
+      logDirectory: "ContainerAppsMemoryEvals"
+      skipReplayFunctions:
+        - "GraphDBPluginDefinition.*"
+      fuzzyMatchFunctions:
+        - "ChartPluginDefinition.*"
+
+  plugins:
+    - "ContainerAppPluginDefinition"
+    - "DiagnosticsPluginDefinition" 
+    - "NSGRulePluginDefinition"
+    - "ArmPluginDefinition"
+    - "PagerDutyIncidentPluginDefinition"
+    - "ChartPluginDefinition"  
+
+  testCases:
+    - name: "Diagnose500Errors"
+      startMessages:
+        - "My container app is experiencing a bunch of 500 errors, can you diagnose: /subscriptions/be8d491e-109c-4ee1-aaee-dc7615af0a42/resourceGroups/mrsharm-operations-agent-3p-rg/providers/Microsoft.App/containerApps/diagnosticbench-app-202504091010"
+        - "What's wrong with my container app? I see responses with status code 500. /subscriptions/be8d491e-109c-4ee1-aaee-dc7615af0a42/resourceGroups/mrsharm-operations-agent-3p-rg/providers/Microsoft.App/containerApps/diagnosticbench-app-202504091010"
+        - "Help me diagnose why my container app is returning 500 errors: /subscriptions/be8d491e-109c-4ee1-aaee-dc7615af0a42/resourceGroups/mrsharm-operations-agent-3p-rg/providers/Microsoft.App/containerApps/diagnosticbench-app-202504091010"
+        - "I'm getting HTTP 500 responses from my container app. Can you investigate? /subscriptions/be8d491e-109c-4ee1-aaee-dc7615af0a42/resourceGroups/mrsharm-operations-agent-3p-rg/providers/Microsoft.App/containerApps/diagnosticbench-app-202504091010"
+        - "My container app keeps failing with 500 status codes. Need help troubleshooting: /subscriptions/be8d491e-109c-4ee1-aaee-dc7615af0a42/resourceGroups/mrsharm-operations-agent-3p-rg/providers/Microsoft.App/containerApps/diagnosticbench-app-202504091010"
+
+  evaluation:
+    groundedContext: |
+      ## Ground Truth:
+      1. The user asks the agent to assist with diagnosis of 500 errors in their container app /subscriptions/be8d491e-109c-4ee1-aaee-dc7615af0a42/resourceGroups/mrsharm-operations-agent-3p-rg/providers/Microsoft.App/containerApps/diagnosticbench-app-202504091010
+      2. The application has critical memory issues, details include:
+         - The app is experiencing persistent System.OutOfMemoryException errors causing the 500 errors
+         - Memory analysis reveals the heap is dominated by System.Byte[] objects (~1.5 GB, 400-700 objects)
+         - The memory leak has a clear GC root chain starting from AsyncTaskMethodBuilder through WebApplication, ServiceProvider, and eventually to large byte arrays
+         - The issue is specifically related to a memory leak in the main business logic in Program.cs around line 525
+         - GC root chains point to large System.Byte[] arrays, with multiple reference chains
+      3. Immediate remediation involves restarting the container app to temporarily restore service
+      4. Long-term fix requires engineering to address the underlying memory leak by implementing proper cleanup of byte arrays in the code
+
+    exampleResponse: |
+      Memory Analysis Report for Container App
+
+      Overview
+      Type that occupies the most space on the heap: System.Byte[]
+      - Total memory: ~1,529,000,000 bytes (~1.5 GB)
+      - Object count: 400-700 objects
+
+      Root Reference Analysis (Top GC Chains)
+
+      1. **Main Reference Chain**
+         AsyncTaskMethodBuilder → WebApplication → Host → ServiceProvider → ... →
+         Program+<>c__DisplayClass0_0 → List<System.Byte[]> → System.Byte[]
+
+      2. **Alternative Chain**
+         WebApplication → Host → ServiceProvider → ... → 
+         Reflection.Emit.DynamicScope → List<System.Object> → System.Object[] → System.Byte[]
+
+      3. **Shorter Chain**
+         System.Object[] → System.Object[] → System.Byte[]
+
+      Analysis
+      All reference chains lead back to large System.Byte[] arrays being held in memory. 
+      This is causing excessive memory consumption with a relatively small number of objects, 
+      eventually triggering OutOfMemoryException and resulting in HTTP 500 errors.
+
+      Root Cause
+      The application is experiencing out-of-memory errors due to code in Program.cs:525 
+      that allocates byte arrays without proper cleanup, causing memory exhaustion.
+
+      Recommendations
+      1. Review Program.cs (line 525) where byte arrays are created/managed
+      2. Implement proper disposal of large arrays after use
+      3. Consider using memory pooling techniques to reduce allocations
+      4. Increase the container's memory allocation if larger arrays are necessary
+      5. Monitor memory usage during operations to catch issues early
+
+    assertions:
+      equivalence:
+        minimumScore: 4
+      groundedness:
+        minimumScore: 4
+
+    autoReply:
+      defaultReply: "Please do your best to figure it out."

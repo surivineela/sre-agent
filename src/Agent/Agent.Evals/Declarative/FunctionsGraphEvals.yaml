@@ -1,0 +1,157 @@
+testSuite:
+  name: "FunctionsGraphEvals"
+  description: "Test function graph queries"
+
+  configuration:
+    timeout: "30s"
+    database: "gfunctionsBadFlexApps"
+    toolReplay:
+      skipReplayFunctions:
+        - "GraphDBPluginDefinition.*"
+
+  plugins:
+    - "ContainerAppPluginDefinition"
+    - "NSGRulePluginDefinition"
+    - "ArmPluginDefinition"
+    - "PagerDutyIncidentPluginDefinition"
+    - "GraphDBPluginDefinition"
+
+  evaluation:
+    assertions:
+      equivalence:
+        minimumScore: 4
+      groundedness:
+        minimumScore: 4
+    autoReply:
+      defaultReply: "Please do your best to figure it out."
+
+  testCases:
+    - name: "FindAppFullName"
+      startMessages:
+        - "find my function app pbatum-sre-flexbad-swc-net-http-working. what region is it in?"
+        - "where is the function app pbatum-sre-flexbad-swc-net-http-working located?"
+      evaluation:
+        groundedContext: |
+          ## Ground Truth:
+          1. The full name of the function app that the user is referring to is `pbatum-sre-flexbad-swc-net-http-working`
+          2. The app is in the `Sweden Central` region
+          3. The terms region and location are used interchangeably
+
+          ## Expected Response Characteristics
+          - The response must include the full name of the function app and its location
+        exampleResponse: |
+          I found the app `pbatum-sre-flexbad-swc-net-http-working` which is located in the `Sweden Central` region:
+
+          Function App Name: pbatum-sre-flexbad-swc-net-http-working
+          Resource Group: pbatum-sre-flexbad-swc-net-http-working
+          Subscription ID: 29e3378b-0aaf-45da-b3c6-6fd0eea164e4
+          Location: Sweden Central
+          Resource ID: /subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-flexbad-swc-net-http-working/providers/microsoft.web/sites/pbatum-sre-flexbad-swc-net-http-working
+
+          Let me know if you were looking for something else or if you need assistance with this app!
+    - name: "FindAppPartialName"
+      startMessages:
+        - "find my net-http-working function app. what region is it in?"
+      evaluation:
+        groundedContext: |
+          ## Ground Truth:
+          1. The full name of the function app that the user is referring to is `pbatum-sre-flexbad-swc-net-http-working`
+          2. The app is in the `Sweden Central` region
+          3. The terms region and location are used interchangeably
+
+          ## Expected Response Characteristics
+          - The response must include the full name of the function app and its location
+        exampleResponse: |
+          I found the app `pbatum-sre-flexbad-swc-net-http-working` which is located in the `Sweden Central` region:
+
+          Function App Name: pbatum-sre-flexbad-swc-net-http-working
+          Resource Group: pbatum-sre-flexbad-swc-net-http-working
+          Subscription ID: 29e3378b-0aaf-45da-b3c6-6fd0eea164e4
+          Location: Sweden Central
+          Resource ID: /subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-flexbad-swc-net-http-working/providers/microsoft.web/sites/pbatum-sre-flexbad-swc-net-http-working
+
+          Let me know if you were looking for something else or if you need assistance with this app!
+    - name: "ListApps"
+      startMessages:
+        - "list my function apps"
+      evaluation:
+        groundedContext: |
+          ## Ground Truth:
+          1. The user has 14 function apps. Their names are:
+              - pbatum-sre-flexbad-swc-net-noclientid
+              - pbatum-sre-flexbad-swc-net-http-novnet
+              - pbatum-sre-flexbad-swc-net-oom
+              - pbatum-sre-flexbad-swc-net-http-nostoragelocalauth
+              - pbatum-sre-flexbad-swc-net-queue-working
+              - pbatum-sre-flexbad-swc-net-queue-noprivateendpoint
+              - pbatum-sre-flexbad-swc-net-http-working
+              - pbatum-sre-flexbad-swc-net-timer-working
+              - pbatum-sre-flexbad-swc-net-timeroverdue
+              - pbatum-sre-flexbad-swc-net-timeoutexceeded
+              - pbatum-sre-flexbad-swc-net-http-nostoragerole
+              - pbatum-sre-flexbad-swc-py-badasync
+              - pbatum-sre-flexbad-swc-net-no-sbconnstring
+              - pbatum-sre-flexbad-swc-net-http-throwonstartup
+
+          ## Expected Response Characteristics
+          - The response must include all of the listed app names.
+        exampleResponse: |
+          Here is the list of your **Function Apps**:
+
+          1. **pbatum-sre-flexbad-swc-net-noclientid**
+             - **Resource ID**: `/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-flexbad-swc-net-noclientid/providers/microsoft.web/sites/pbatum-sre-flexbad-swc-net-noclientid`
+             - **Location**: Sweden Central
+
+          2. **pbatum-sre-flexbad-swc-net-http-novnet**
+             - **Resource ID**: `/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-flexbad-swc-net-http-novnet/providers/microsoft.web/sites/pbatum-sre-flexbad-swc-net-http-novnet`
+             - **Location**: Sweden Central
+
+          3. **pbatum-sre-flexbad-swc-net-oom**
+             - **Resource ID**: `/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-flexbad-swc-net-oom/providers/microsoft.web/sites/pbatum-sre-flexbad-swc-net-oom`
+             - **Location**: Sweden Central
+
+          4. **pbatum-sre-flexbad-swc-net-http-nostoragelocalauth**
+             - **Resource ID**: `/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-flexbad-swc-net-http-nostoragelocalauth/providers/microsoft.web/sites/pbatum-sre-flexbad-swc-net-http-nostoragelocalauth`
+             - **Location**: Sweden Central
+
+          5. **pbatum-sre-flexbad-swc-net-queue-working**
+             - **Resource ID**: `/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-flexbad-swc-net-queue-working/providers/microsoft.web/sites/pbatum-sre-flexbad-swc-net-queue-working`
+             - **Location**: Sweden Central
+
+          6. **pbatum-sre-flexbad-swc-net-queue-noprivateendpoint**
+             - **Resource ID**: `/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-flexbad-swc-net-queue-noprivateendpoint/providers/microsoft.web/sites/pbatum-sre-flexbad-swc-net-queue-noprivateendpoint`
+             - **Location**: Sweden Central
+
+          7. **pbatum-sre-flexbad-swc-net-http-working**
+             - **Resource ID**: `/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-flexbad-swc-net-http-working/providers/microsoft.web/sites/pbatum-sre-flexbad-swc-net-http-working`
+             - **Location**: Sweden Central
+
+          8. **pbatum-sre-flexbad-swc-net-timer-working**
+             - **Resource ID**: `/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-flexbad-swc-net-timer-working/providers/microsoft.web/sites/pbatum-sre-flexbad-swc-net-timer-working`
+             - **Location**: Sweden Central
+
+          9. **pbatum-sre-flexbad-swc-net-timeroverdue**
+             - **Resource ID**: `/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-flexbad-swc-net-timeroverdue/providers/microsoft.web/sites/pbatum-sre-flexbad-swc-net-timeroverdue`
+             - **Location**: Sweden Central
+
+          10. **pbatum-sre-flexbad-swc-net-timeoutexceeded**
+              - **Resource ID**: `/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-flexbad-swc-net-timeoutexceeded/providers/microsoft.web/sites/pbatum-sre-flexbad-swc-net-timeoutexceeded`
+              - **Location**: Sweden Central
+
+          11. **pbatum-sre-flexbad-swc-net-http-nostoragerole**
+              - **Resource ID**: `/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-flexbad-swc-net-http-nostoragerole/providers/microsoft.web/sites/pbatum-sre-flexbad-swc-net-http-nostoragerole`
+              - **Location**: Sweden Central
+
+          12. **pbatum-sre-flexbad-swc-py-badasync**
+              - **Resource ID**: `/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-flexbad-swc-py-badasync/providers/microsoft.web/sites/pbatum-sre-flexbad-swc-py-badasync`
+              - **Location**: Sweden Central
+
+          13. **pbatum-sre-flexbad-swc-net-no-sbconnstring**
+              - **Resource ID**: `/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-flexbad-swc-net-no-sbconnstring/providers/microsoft.web/sites/pbatum-sre-flexbad-swc-net-no-sbconnstring`
+              - **Location**: Sweden Central
+
+          14. **pbatum-sre-flexbad-swc-net-http-throwonstartup**
+              - **Resource ID**: `/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-flexbad-swc-net-http-throwonstartup/providers/microsoft.web/sites/pbatum-sre-flexbad-swc-net-http-throwonstartup`
+              - **Location**: Sweden Central
+
+          Let me know if you'd like further information or assistance with any of these apps!

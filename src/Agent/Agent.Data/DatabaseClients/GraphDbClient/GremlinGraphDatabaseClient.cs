@@ -262,8 +262,8 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
                 else
                 {
                     // Lets us override which graph we are querying.
-                    // For example, if we have a graph called "gfuncbad" that we want this client to query, but all the queries are still written using "g".
-                    // Then we can use ArgsAliases to redirect queries on "g" to "gfuncbad".
+                    // For example, if we have a graph called "gfunctionsBadFlexApps" that we want this client to query, but all the queries are still written using "g".
+                    // Then we can use ArgsAliases to redirect queries on "g" to "gfunctionsBadFlexApps".
                     var msgBuilder = Gremlin.Net.Driver.Messages.RequestMessage.Build(Tokens.OpsEval)
                         .AddArgument(Tokens.ArgsAliases, new Dictionary<string, string> { { "g", this.GraphName } })
                         .AddArgument(Tokens.ArgsGremlin, query);

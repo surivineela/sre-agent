@@ -44,14 +44,20 @@ public static class ThreadHelpers
 
     public static async Task<(ChatResponse agentResponse, List<ChatMessage> fullConversation)> WaitForAgentResponse(this IThreadRepository threadRepository, Core.Models.Api.v1.Thread thread, CancellationToken cancellationToken)
     {
-        IEnumerable<Message> threadMessages = null;
+        IList<Message> threadMessages = null;
         while (threadMessages == null || !threadMessages.Any() || threadMessages.Last().Author.Role == Role.User)
         {
             await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
-            threadMessages = await threadRepository.GetMessagesAsync(thread.Id);
+            threadMessages = (await threadRepository.GetMessagesAsync(thread.Id)).ToList();
         }
 
-        var agentResponse = new ChatResponse(new ChatMessage(ChatRole.Assistant, threadMessages.Last().Text));
+        // Workaround - somehow we are ending up with an empty message at the end of the thread?
+        if (string.IsNullOrEmpty(threadMessages.Last().Text))
+        {
+            threadMessages = threadMessages.SkipLast(1).ToList();
+        }
+
+        var agentResponse = new ChatResponse(new ChatMessage(ChatRole.Assistant, threadMessages.Last(x => x.Author.Role != Role.User).Text));
         List<ChatMessage> fullConversation = threadMessages.ToChatMessages();
         return (agentResponse, fullConversation);
     }

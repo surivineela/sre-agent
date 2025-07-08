@@ -2,7 +2,7 @@
 <graphml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd" xmlns="http://graphml.graphdrawing.org/xmlns">
   <key id="labelV" for="node" attr.name="label" attr.type="string" xmlns="" />
   <key id="prop_resourceType" for="node" attr.name="resourceType" attr.type="string" xmlns="" />
-  <key id="prop_updateTs" for="node" attr.name="updateTs" attr.type="string" xmlns="" />
+  <key id="prop_updateTs" for="node" attr.name="updateTs" attr.type="long" xmlns="" />
   <key id="prop_resourceId" for="node" attr.name="resourceId" attr.type="string" xmlns="" />
   <key id="prop_subscriptionId" for="node" attr.name="subscriptionId" attr.type="string" xmlns="" />
   <key id="prop_resourceGroupName" for="node" attr.name="resourceGroupName" attr.type="string" xmlns="" />
@@ -32,9 +32,11 @@
   <key id="prop_skuCapacity" for="node" attr.name="skuCapacity" attr.type="string" xmlns="" />
   <key id="prop_hostNames" for="node" attr.name="hostNames" attr.type="string" xmlns="" />
   <key id="prop_hostname_0" for="node" attr.name="hostname_0" attr.type="string" xmlns="" />
+  <key id="prop_isDeleted" for="node" attr.name="isDeleted" attr.type="boolean" xmlns="" />
   <key id="edge_label" for="edge" attr.name="label" attr.type="string" xmlns="" />
   <graph id="G" edgedefault="directed" xmlns="">
     <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">resourcegroups</data>
       <data key="prop_resourceType">resourcegroups</data>
       <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-web-eas</data>
@@ -43,6 +45,7 @@
       <data key="prop_location">eastasia</data>
     </node>
     <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">subscriptions</data>
       <data key="prop_resourceType">subscriptions</data>
       <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4</data>
@@ -50,6 +53,7 @@
       <data key="prop_subscriptionName">Private Test Sub PBATUM</data>
     </node>
     <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.alertsmanagement_smartdetectoralertrules_failure_anomalies_-_pbatum-sre-web-eas1">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">microsoft.alertsmanagement/smartdetectoralertrules</data>
       <data key="prop_resourceType">microsoft.alertsmanagement/smartdetectoralertrules</data>
       <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-web-eas/providers/microsoft.alertsmanagement/smartdetectoralertrules/failure anomalies - pbatum-sre-web-eas1</data>
@@ -59,6 +63,7 @@
       <data key="prop_resourceName">failure anomalies - pbatum-sre-web-eas1</data>
     </node>
     <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.alertsmanagement_smartdetectoralertrules_failure_anomalies_-_pbatum-sre-web-eas2">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">microsoft.alertsmanagement/smartdetectoralertrules</data>
       <data key="prop_resourceType">microsoft.alertsmanagement/smartdetectoralertrules</data>
       <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-web-eas/providers/microsoft.alertsmanagement/smartdetectoralertrules/failure anomalies - pbatum-sre-web-eas2</data>
@@ -68,6 +73,7 @@
       <data key="prop_resourceName">failure anomalies - pbatum-sre-web-eas2</data>
     </node>
     <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.insights_components_pbatum-sre-web-eas1">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">microsoft.insights/components</data>
       <data key="prop_resourceType">microsoft.insights/components</data>
       <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-web-eas/providers/microsoft.insights/components/pbatum-sre-web-eas1</data>
@@ -77,6 +83,7 @@
       <data key="prop_resourceName">pbatum-sre-web-eas1</data>
     </node>
     <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.insights_components_pbatum-sre-web-eas2">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">microsoft.insights/components</data>
       <data key="prop_resourceType">microsoft.insights/components</data>
       <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-web-eas/providers/microsoft.insights/components/pbatum-sre-web-eas2</data>
@@ -86,6 +93,7 @@
       <data key="prop_resourceName">pbatum-sre-web-eas2</data>
     </node>
     <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.web_serverfarms_asp-pbatumsrewebeas-8754">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">microsoft.web/serverfarms</data>
       <data key="prop_resourceType">microsoft.web/serverfarms</data>
       <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-web-eas/providers/microsoft.web/serverfarms/asp-pbatumsrewebeas-8754</data>
@@ -103,6 +111,7 @@
       <data key="prop_zoneRedundant">False</data>
     </node>
     <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.web_sites_pbatum-sre-web-eas1">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">microsoft.web/sites</data>
       <data key="prop_resourceType">microsoft.web/sites</data>
       <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-web-eas/providers/microsoft.web/sites/pbatum-sre-web-eas1</data>
@@ -130,6 +139,7 @@
       <data key="prop_hostname_0">pbatum-sre-web-eas1-cuacc0fzb3e2dtb6.eastasia-01.azurewebsites.net</data>
     </node>
     <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas_providers_microsoft.web_sites_pbatum-sre-web-eas2">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">microsoft.web/sites</data>
       <data key="prop_resourceType">microsoft.web/sites</data>
       <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-web-eas/providers/microsoft.web/sites/pbatum-sre-web-eas2</data>
@@ -157,6 +167,7 @@
       <data key="prop_hostname_0">pbatum-sre-web-eas2-d6evckbqhdbecrg3.eastasia-01.azurewebsites.net</data>
     </node>
     <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">resourcegroups</data>
       <data key="prop_resourceType">resourcegroups</data>
       <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-web-eas-lin</data>
@@ -165,6 +176,7 @@
       <data key="prop_location">eastasia</data>
     </node>
     <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_providers_microsoft.alertsmanagement_smartdetectoralertrules_failure_anomalies_-_pbatum-sre-web-eas4">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">microsoft.alertsmanagement/smartdetectoralertrules</data>
       <data key="prop_resourceType">microsoft.alertsmanagement/smartdetectoralertrules</data>
       <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-web-eas-lin/providers/microsoft.alertsmanagement/smartdetectoralertrules/failure anomalies - pbatum-sre-web-eas4</data>
@@ -174,6 +186,7 @@
       <data key="prop_resourceName">failure anomalies - pbatum-sre-web-eas4</data>
     </node>
     <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_providers_microsoft.insights_components_pbatum-sre-web-eas4">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">microsoft.insights/components</data>
       <data key="prop_resourceType">microsoft.insights/components</data>
       <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-web-eas-lin/providers/microsoft.insights/components/pbatum-sre-web-eas4</data>
@@ -183,6 +196,7 @@
       <data key="prop_resourceName">pbatum-sre-web-eas4</data>
     </node>
     <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_providers_microsoft.web_serverfarms_asp-pbatumsrewebeaslin-91de">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">microsoft.web/serverfarms</data>
       <data key="prop_resourceType">microsoft.web/serverfarms</data>
       <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-web-eas-lin/providers/microsoft.web/serverfarms/asp-pbatumsrewebeaslin-91de</data>
@@ -200,6 +214,7 @@
       <data key="prop_zoneRedundant">False</data>
     </node>
     <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_providers_microsoft.web_sites_pbatum-sre-web-eas3">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">microsoft.web/sites</data>
       <data key="prop_resourceType">microsoft.web/sites</data>
       <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-web-eas-lin/providers/microsoft.web/sites/pbatum-sre-web-eas3</data>
@@ -227,6 +242,7 @@
       <data key="prop_hostname_0">pbatum-sre-web-eas3-hme5h8grh8fcgucw.eastasia-01.azurewebsites.net</data>
     </node>
     <node id="_subscriptions_29e3378b-0aaf-45da-b3c6-6fd0eea164e4_resourcegroups_pbatum-sre-web-eas-lin_providers_microsoft.web_sites_pbatum-sre-web-eas4">
+      <data key="prop_isDeleted">false</data>
       <data key="labelV">microsoft.web/sites</data>
       <data key="prop_resourceType">microsoft.web/sites</data>
       <data key="prop_resourceId">/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-web-eas-lin/providers/microsoft.web/sites/pbatum-sre-web-eas4</data>

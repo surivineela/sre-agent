@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Text.Json;
+using Microsoft.Bot.Builder.Adapters;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Tests.Common.Mocks.FunctionCalling;
@@ -32,17 +33,10 @@ internal class ReplayAIFunctionWrapper : AIFunction
         AIFunctionArguments arguments,
         CancellationToken cancellationToken = default)
     {
-        try
+        if (_replayCore.FunctionNamesSkippedForReplay.Contains(_functionName, StringComparer.OrdinalIgnoreCase))
         {
-            if (_replayCore.FunctionNamesSkippedForReplay.Contains(_functionName, StringComparer.OrdinalIgnoreCase))
-            {
-                // We specifically know that this function should not be replayed.
-                return await _originalFunction.InvokeAsync(arguments, cancellationToken);
-            }
-        }
-        catch (Exception e)
-        {
-            throw;
+            // We specifically know that this function should not be replayed.
+            return await _originalFunction.InvokeAsync(arguments, cancellationToken);
         }
 
         // Convert arguments to dictionary for replay matching
@@ -55,7 +49,8 @@ internal class ReplayAIFunctionWrapper : AIFunction
         if (matchingEntry != null)
         {
             // Return cached result from replay
-            return JsonSerializer.Deserialize<object>(matchingEntry.FunctionResultJson, _replayCore.SerializerOptions);
+            var replayResult = JsonSerializer.Deserialize<object>(matchingEntry.FunctionResultJson, _replayCore.SerializerOptions);
+            return replayResult;
         }
 
         _replayCore.FunctionCallsWithReplayFailure.Add(new ReplayEntry

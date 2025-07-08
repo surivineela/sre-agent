@@ -7,7 +7,8 @@
   <key id="prop_resourceName" for="node" attr.name="resourceName" attr.type="string" xmlns="" />
   <key id="prop_location" for="node" attr.name="location" attr.type="string" xmlns="" />
   <key id="prop_appHealthInfo" for="node" attr.name="appHealthInfo" attr.type="string" xmlns="" />
-  <key id="prop_updateTs" for="node" attr.name="updateTs" attr.type="string" xmlns="" />
+  <key id="prop_updateTs" for="node" attr.name="updateTs" attr.type="long" xmlns="" />
+  <key id="prop_isDeleted" for="node" attr.name="isDeleted" attr.type="boolean" xmlns="" />
   <key id="prop_identityType" for="node" attr.name="identityType" attr.type="string" xmlns="" />
   <key id="prop_tenantId" for="node" attr.name="tenantId" attr.type="string" xmlns="" />
   <key id="prop_principalId" for="node" attr.name="principalId" attr.type="string" xmlns="" />
@@ -15,14 +16,14 @@
   <key id="prop_provisioningState" for="node" attr.name="provisioningState" attr.type="string" xmlns="" />
   <key id="prop_runningStatus" for="node" attr.name="runningStatus" attr.type="string" xmlns="" />
   <key id="prop_workloadProfileName" for="node" attr.name="workloadProfileName" attr.type="string" xmlns="" />
-  <key id="prop_external" for="node" attr.name="external" attr.type="string" xmlns="" />
+  <key id="prop_external" for="node" attr.name="external" attr.type="boolean" xmlns="" />
   <key id="prop_transport" for="node" attr.name="transport" attr.type="string" xmlns="" />
-  <key id="prop_allowInsecure" for="node" attr.name="allowInsecure" attr.type="string" xmlns="" />
-  <key id="prop_minReplicas" for="node" attr.name="minReplicas" attr.type="string" xmlns="" />
-  <key id="prop_maxReplicas" for="node" attr.name="maxReplicas" attr.type="string" xmlns="" />
+  <key id="prop_allowInsecure" for="node" attr.name="allowInsecure" attr.type="boolean" xmlns="" />
+  <key id="prop_minReplicas" for="node" attr.name="minReplicas" attr.type="int" xmlns="" />
+  <key id="prop_maxReplicas" for="node" attr.name="maxReplicas" attr.type="int" xmlns="" />
   <key id="prop_environmentId" for="node" attr.name="environmentId" attr.type="string" xmlns="" />
   <key id="prop_activeRevisionMode" for="node" attr.name="activeRevisionMode" attr.type="string" xmlns="" />
-  <key id="prop_targetPort" for="node" attr.name="targetPort" attr.type="string" xmlns="" />
+  <key id="prop_targetPort" for="node" attr.name="targetPort" attr.type="int" xmlns="" />
   <key id="prop_hostNames" for="node" attr.name="hostNames" attr.type="string" xmlns="" />
   <key id="prop_hostname_0" for="node" attr.name="hostname_0" attr.type="string" xmlns="" />
   <key id="prop_container_0_name" for="node" attr.name="container_0_name" attr.type="string" xmlns="" />
@@ -30,9 +31,9 @@
   <key id="prop_container_0_cpu" for="node" attr.name="container_0_cpu" attr.type="string" xmlns="" />
   <key id="prop_container_0_memory" for="node" attr.name="container_0_memory" attr.type="string" xmlns="" />
   <key id="prop_traffic_0_revisionName" for="node" attr.name="traffic_0_revisionName" attr.type="string" xmlns="" />
-  <key id="prop_traffic_0_weight" for="node" attr.name="traffic_0_weight" attr.type="string" xmlns="" />
+  <key id="prop_traffic_0_weight" for="node" attr.name="traffic_0_weight" attr.type="int" xmlns="" />
   <key id="prop_traffic_0_label" for="node" attr.name="traffic_0_label" attr.type="string" xmlns="" />
-  <key id="prop_traffic_0_latestRevision" for="node" attr.name="traffic_0_latestRevision" attr.type="string" xmlns="" />
+  <key id="prop_traffic_0_latestRevision" for="node" attr.name="traffic_0_latestRevision" attr.type="boolean" xmlns="" />
   <key id="prop_registry_0_server" for="node" attr.name="registry_0_server" attr.type="string" xmlns="" />
   <key id="prop_registry_0_username" for="node" attr.name="registry_0_username" attr.type="string" xmlns="" />
   <key id="prop_registry_0_passwordSecretRef" for="node" attr.name="registry_0_passwordSecretRef" attr.type="string" xmlns="" />
@@ -44,13 +45,13 @@
   <key id="prop_resourceType" for="node" attr.name="resourceType" attr.type="string" xmlns="" />
   <key id="prop_name" for="node" attr.name="name" attr.type="string" xmlns="" />
   <key id="prop_appName" for="node" attr.name="appName" attr.type="string" xmlns="" />
-  <key id="prop_trafficWeight" for="node" attr.name="trafficWeight" attr.type="string" xmlns="" />
+  <key id="prop_trafficWeight" for="node" attr.name="trafficWeight" attr.type="int" xmlns="" />
   <key id="prop_createdOn" for="node" attr.name="createdOn" attr.type="string" xmlns="" />
   <key id="prop_lastActiveOn" for="node" attr.name="lastActiveOn" attr.type="string" xmlns="" />
   <key id="prop_fqdn" for="node" attr.name="fqdn" attr.type="string" xmlns="" />
   <key id="prop_template" for="node" attr.name="template" attr.type="string" xmlns="" />
-  <key id="prop_isActive" for="node" attr.name="isActive" attr.type="string" xmlns="" />
-  <key id="prop_replicas" for="node" attr.name="replicas" attr.type="string" xmlns="" />
+  <key id="prop_isActive" for="node" attr.name="isActive" attr.type="boolean" xmlns="" />
+  <key id="prop_replicas" for="node" attr.name="replicas" attr.type="int" xmlns="" />
   <key id="prop_labels" for="node" attr.name="labels" attr.type="string" xmlns="" />
   <key id="prop_healthState" for="node" attr.name="healthState" attr.type="string" xmlns="" />
   <key id="prop_runningState" for="node" attr.name="runningState" attr.type="string" xmlns="" />
@@ -63,7 +64,8 @@
       <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
       <data key="prop_resourceName">diagnosticbench-app-202504091010</data>
       <data key="prop_location">eastus2</data>
-      <data key="prop_appHealthInfo">{"LastDataCaptureTimeStampInUTC":"2025-06-02T23:59:55.2244795Z","Health":"Healthy","Availability":100,"Transactions":0,"Costs":0,"AvgLatencyInMs":null,"AvgMemoryUsage":1,"AvgCpuUsage":0,"AdditionalMetrics":{},"TimeSinceLastActivity":null}</data>
+      <data key="prop_appHealthInfo">{"LastDataCaptureTimeStampInUTC":"2025-06-23T23:11:25.961255Z","Health":"Healthy","Availability":100,"Transactions":0,"Costs":0,"AvgLatencyInMs":null,"AvgMemoryUsage":65.15,"AvgCpuUsage":0.82,"AdditionalMetrics":{},"TimeSinceLastActivity":null}</data>
+      <data key="prop_isDeleted">false</data>
       <data key="prop_identityType">System</data>
       <data key="prop_tenantId">72f988bf-86f1-41af-91ab-2d7cd011db47</data>
       <data key="prop_principalId">f6be4806-3b75-4c9b-9aec-c92fa2d0932e</data>
@@ -71,11 +73,11 @@
       <data key="prop_provisioningState">Succeeded</data>
       <data key="prop_runningStatus">Running</data>
       <data key="prop_workloadProfileName">Consumption</data>
-      <data key="prop_external">True</data>
+      <data key="prop_external">true</data>
       <data key="prop_transport">Auto</data>
-      <data key="prop_allowInsecure">False</data>
-      <data key="prop_minReplicas">2</data>
-      <data key="prop_maxReplicas">5</data>
+      <data key="prop_allowInsecure">false</data>
+      <data key="prop_minReplicas">1</data>
+      <data key="prop_maxReplicas">1</data>
       <data key="prop_environmentId">/subscriptions/be8d491e-109c-4ee1-aaee-dc7615af0a42/resourceGroups/approval-service-rg/providers/Microsoft.App/managedEnvironments/approvalservice</data>
       <data key="prop_activeRevisionMode">Single</data>
       <data key="prop_targetPort">80</data>
@@ -83,14 +85,13 @@
       <data key="prop_hostname_0">diagnosticbench-app-202504091010.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
       <data key="prop_container_0_name">diagnosticbench</data>
       <data key="prop_container_0_image">acaalbumsmrsharm.azurecr.io/albumapi_csharp:20250512211602</data>
-      <data key="prop_container_0_cpu">2</data>
-      <data key="prop_container_0_memory">4Gi</data>
-      <data key="prop_traffic_0_revisionName">
-      </data>
+      <data key="prop_container_0_cpu">0.75</data>
+      <data key="prop_container_0_memory">1.5Gi</data>
+      <data key="prop_traffic_0_revisionName">diagnosticbench-app-202504091010--0000035</data>
       <data key="prop_traffic_0_weight">100</data>
       <data key="prop_traffic_0_label">
       </data>
-      <data key="prop_traffic_0_latestRevision">True</data>
+      <data key="prop_traffic_0_latestRevision">false</data>
       <data key="prop_registry_0_server">diagnosticbench20250409101207.azurecr.io</data>
       <data key="prop_registry_0_username">DiagnosticBench20250409101207</data>
       <data key="prop_registry_0_passwordSecretRef">diagnosticbench20250409101207</data>
@@ -110,6 +111,7 @@
       <data key="prop_resourceGroupName">approval-service-rg</data>
       <data key="prop_resourceName">approvalservice</data>
       <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
       <data key="prop_identityType">System</data>
       <data key="prop_tenantId">72f988bf-86f1-41af-91ab-2d7cd011db47</data>
       <data key="prop_principalId">a213bd37-6c36-4e86-82e8-07e292b01567</data>
@@ -123,6 +125,7 @@
       <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
       <data key="prop_resourceName">diagnosticbench-app-202504091010--7fsuycs</data>
       <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
       <data key="prop_provisioningState">Provisioned</data>
       <data key="prop_resourceType">microsoft.app/containerapps/revisions</data>
       <data key="prop_name">diagnosticbench-app-202504091010--7fsuycs</data>
@@ -132,7 +135,7 @@
       <data key="prop_lastActiveOn">4/23/2025 5:48:28 PM +00:00</data>
       <data key="prop_fqdn">diagnosticbench-app-202504091010--7fsuycs.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
       <data key="prop_template">"{"RevisionSuffix":null,"TerminationGracePeriodSeconds":null,"InitContainers":[],"Containers":[{"Probes":[],"Image":"mcr.microsoft.com/azuredocs/containerapps-helloworld:latest","ImageType":{},"Name":"diagnosticbench","Command":[],"Args":[],"Env":[],"Resources":{"Cpu":0.5,"Memory":"1Gi","EphemeralStorage":null,"Gpu":null},"VolumeMounts":[]}],"Scale":{"MinReplicas":1,"MaxReplicas":1,"CooldownPeriod":null,"PollingInterval":null,"Rules":[]},"Volumes":[],"ServiceBinds":[]}"</data>
-      <data key="prop_isActive">False</data>
+      <data key="prop_isActive">false</data>
       <data key="prop_replicas">0</data>
       <data key="prop_labels">
       </data>
@@ -146,6 +149,7 @@
       <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
       <data key="prop_resourceName">diagnosticbench-app-202504091010--nqbykab</data>
       <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
       <data key="prop_provisioningState">Provisioned</data>
       <data key="prop_resourceType">microsoft.app/containerapps/revisions</data>
       <data key="prop_name">diagnosticbench-app-202504091010--nqbykab</data>
@@ -155,7 +159,7 @@
       <data key="prop_lastActiveOn">4/23/2025 5:51:43 PM +00:00</data>
       <data key="prop_fqdn">diagnosticbench-app-202504091010--nqbykab.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
       <data key="prop_template">"{"RevisionSuffix":null,"TerminationGracePeriodSeconds":null,"InitContainers":[],"Containers":[{"Probes":[],"Image":"acaalbumsmrsharm.azurecr.io/albumapi_csharp:20250423174734","ImageType":{},"Name":"diagnosticbench","Command":[],"Args":[],"Env":[],"Resources":{"Cpu":0.5,"Memory":"1Gi","EphemeralStorage":null,"Gpu":null},"VolumeMounts":[]}],"Scale":{"MinReplicas":1,"MaxReplicas":1,"CooldownPeriod":null,"PollingInterval":null,"Rules":[]},"Volumes":[],"ServiceBinds":[]}"</data>
-      <data key="prop_isActive">False</data>
+      <data key="prop_isActive">false</data>
       <data key="prop_replicas">0</data>
       <data key="prop_labels">
       </data>
@@ -169,6 +173,7 @@
       <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
       <data key="prop_resourceName">diagnosticbench-app-202504091010--u8j7bdt</data>
       <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
       <data key="prop_provisioningState">Provisioned</data>
       <data key="prop_resourceType">microsoft.app/containerapps/revisions</data>
       <data key="prop_name">diagnosticbench-app-202504091010--u8j7bdt</data>
@@ -178,7 +183,7 @@
       <data key="prop_lastActiveOn">4/23/2025 5:59:20 PM +00:00</data>
       <data key="prop_fqdn">diagnosticbench-app-202504091010--u8j7bdt.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
       <data key="prop_template">"{"RevisionSuffix":null,"TerminationGracePeriodSeconds":null,"InitContainers":[],"Containers":[{"Probes":[],"Image":"acaalbumsmrsharm.azurecr.io/albumapi_csharp:20250423175039","ImageType":{},"Name":"diagnosticbench","Command":[],"Args":[],"Env":[],"Resources":{"Cpu":0.5,"Memory":"1Gi","EphemeralStorage":null,"Gpu":null},"VolumeMounts":[]}],"Scale":{"MinReplicas":1,"MaxReplicas":1,"CooldownPeriod":null,"PollingInterval":null,"Rules":[]},"Volumes":[],"ServiceBinds":[]}"</data>
-      <data key="prop_isActive">False</data>
+      <data key="prop_isActive">false</data>
       <data key="prop_replicas">0</data>
       <data key="prop_labels">
       </data>
@@ -192,6 +197,7 @@
       <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
       <data key="prop_resourceName">diagnosticbench-app-202504091010--lms9xcn</data>
       <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
       <data key="prop_provisioningState">Provisioned</data>
       <data key="prop_resourceType">microsoft.app/containerapps/revisions</data>
       <data key="prop_name">diagnosticbench-app-202504091010--lms9xcn</data>
@@ -201,7 +207,7 @@
       <data key="prop_lastActiveOn">5/2/2025 12:50:50 PM +00:00</data>
       <data key="prop_fqdn">diagnosticbench-app-202504091010--lms9xcn.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
       <data key="prop_template">"{"RevisionSuffix":null,"TerminationGracePeriodSeconds":null,"InitContainers":[],"Containers":[{"Probes":[],"Image":"acaalbumsmrsharm.azurecr.io/albumapi_csharp:20250423175828","ImageType":{},"Name":"diagnosticbench","Command":[],"Args":[],"Env":[],"Resources":{"Cpu":0.5,"Memory":"1Gi","EphemeralStorage":null,"Gpu":null},"VolumeMounts":[]}],"Scale":{"MinReplicas":1,"MaxReplicas":1,"CooldownPeriod":null,"PollingInterval":null,"Rules":[]},"Volumes":[],"ServiceBinds":[]}"</data>
-      <data key="prop_isActive">False</data>
+      <data key="prop_isActive">false</data>
       <data key="prop_replicas">0</data>
       <data key="prop_labels">
       </data>
@@ -215,6 +221,7 @@
       <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
       <data key="prop_resourceName">diagnosticbench-app-202504091010--0m956wl</data>
       <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
       <data key="prop_provisioningState">Provisioned</data>
       <data key="prop_resourceType">microsoft.app/containerapps/revisions</data>
       <data key="prop_name">diagnosticbench-app-202504091010--0m956wl</data>
@@ -224,7 +231,7 @@
       <data key="prop_lastActiveOn">5/6/2025 11:35:24 PM +00:00</data>
       <data key="prop_fqdn">diagnosticbench-app-202504091010--0m956wl.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
       <data key="prop_template">"{"RevisionSuffix":null,"TerminationGracePeriodSeconds":null,"InitContainers":[],"Containers":[{"Probes":[],"Image":"acaalbumsmrsharm.azurecr.io/albumapi_csharp:20250423175828","ImageType":{},"Name":"diagnosticbench","Command":[],"Args":[],"Env":[],"Resources":{"Cpu":0.75,"Memory":"1.5Gi","EphemeralStorage":null,"Gpu":null},"VolumeMounts":[]}],"Scale":{"MinReplicas":1,"MaxReplicas":1,"CooldownPeriod":null,"PollingInterval":null,"Rules":[]},"Volumes":[],"ServiceBinds":[]}"</data>
-      <data key="prop_isActive">False</data>
+      <data key="prop_isActive">false</data>
       <data key="prop_replicas">0</data>
       <data key="prop_labels">
       </data>
@@ -238,6 +245,7 @@
       <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
       <data key="prop_resourceName">diagnosticbench-app-202504091010--0000001</data>
       <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
       <data key="prop_provisioningState">Provisioned</data>
       <data key="prop_resourceType">microsoft.app/containerapps/revisions</data>
       <data key="prop_name">diagnosticbench-app-202504091010--0000001</data>
@@ -247,7 +255,7 @@
       <data key="prop_lastActiveOn">5/7/2025 12:39:39 AM +00:00</data>
       <data key="prop_fqdn">diagnosticbench-app-202504091010--0000001.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
       <data key="prop_template">"{"RevisionSuffix":null,"TerminationGracePeriodSeconds":null,"InitContainers":[],"Containers":[{"Probes":[],"Image":"acaalbumsmrsharm.azurecr.io/contosochat2:20250506233355","ImageType":{},"Name":"diagnosticbench","Command":[],"Args":[],"Env":[],"Resources":{"Cpu":0.75,"Memory":"1.5Gi","EphemeralStorage":null,"Gpu":null},"VolumeMounts":[]}],"Scale":{"MinReplicas":1,"MaxReplicas":1,"CooldownPeriod":null,"PollingInterval":null,"Rules":[]},"Volumes":[],"ServiceBinds":[]}"</data>
-      <data key="prop_isActive">False</data>
+      <data key="prop_isActive">false</data>
       <data key="prop_replicas">0</data>
       <data key="prop_labels">
       </data>
@@ -261,6 +269,7 @@
       <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
       <data key="prop_resourceName">diagnosticbench-app-202504091010--0000002</data>
       <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
       <data key="prop_provisioningState">Provisioned</data>
       <data key="prop_resourceType">microsoft.app/containerapps/revisions</data>
       <data key="prop_name">diagnosticbench-app-202504091010--0000002</data>
@@ -270,7 +279,7 @@
       <data key="prop_lastActiveOn">5/7/2025 12:50:56 AM +00:00</data>
       <data key="prop_fqdn">diagnosticbench-app-202504091010--0000002.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
       <data key="prop_template">"{"RevisionSuffix":null,"TerminationGracePeriodSeconds":null,"InitContainers":[],"Containers":[{"Probes":[],"Image":"acaalbumsmrsharm.azurecr.io/contosochat2:20250507003833","ImageType":{},"Name":"diagnosticbench","Command":[],"Args":[],"Env":[],"Resources":{"Cpu":0.75,"Memory":"1.5Gi","EphemeralStorage":null,"Gpu":null},"VolumeMounts":[]}],"Scale":{"MinReplicas":1,"MaxReplicas":1,"CooldownPeriod":null,"PollingInterval":null,"Rules":[]},"Volumes":[],"ServiceBinds":[]}"</data>
-      <data key="prop_isActive">False</data>
+      <data key="prop_isActive">false</data>
       <data key="prop_replicas">0</data>
       <data key="prop_labels">
       </data>
@@ -284,6 +293,7 @@
       <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
       <data key="prop_resourceName">diagnosticbench-app-202504091010--0000003</data>
       <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
       <data key="prop_provisioningState">Provisioned</data>
       <data key="prop_resourceType">microsoft.app/containerapps/revisions</data>
       <data key="prop_name">diagnosticbench-app-202504091010--0000003</data>
@@ -293,7 +303,7 @@
       <data key="prop_lastActiveOn">5/7/2025 3:18:49 AM +00:00</data>
       <data key="prop_fqdn">diagnosticbench-app-202504091010--0000003.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
       <data key="prop_template">"{"RevisionSuffix":null,"TerminationGracePeriodSeconds":null,"InitContainers":[],"Containers":[{"Probes":[],"Image":"acaalbumsmrsharm.azurecr.io/albumapi_csharp:20250507004957","ImageType":{},"Name":"diagnosticbench","Command":[],"Args":[],"Env":[],"Resources":{"Cpu":0.75,"Memory":"1.5Gi","EphemeralStorage":null,"Gpu":null},"VolumeMounts":[]}],"Scale":{"MinReplicas":1,"MaxReplicas":1,"CooldownPeriod":null,"PollingInterval":null,"Rules":[]},"Volumes":[],"ServiceBinds":[]}"</data>
-      <data key="prop_isActive">False</data>
+      <data key="prop_isActive">false</data>
       <data key="prop_replicas">0</data>
       <data key="prop_labels">
       </data>
@@ -307,6 +317,7 @@
       <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
       <data key="prop_resourceName">diagnosticbench-app-202504091010--0000004</data>
       <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
       <data key="prop_provisioningState">Provisioned</data>
       <data key="prop_resourceType">microsoft.app/containerapps/revisions</data>
       <data key="prop_name">diagnosticbench-app-202504091010--0000004</data>
@@ -316,7 +327,7 @@
       <data key="prop_lastActiveOn">5/9/2025 12:53:18 AM +00:00</data>
       <data key="prop_fqdn">diagnosticbench-app-202504091010--0000004.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
       <data key="prop_template">"{"RevisionSuffix":null,"TerminationGracePeriodSeconds":null,"InitContainers":[],"Containers":[{"Probes":[],"Image":"acaalbumsmrsharm.azurecr.io/albumapi_csharp:20250507031736","ImageType":{},"Name":"diagnosticbench","Command":[],"Args":[],"Env":[],"Resources":{"Cpu":0.75,"Memory":"1.5Gi","EphemeralStorage":null,"Gpu":null},"VolumeMounts":[]}],"Scale":{"MinReplicas":1,"MaxReplicas":1,"CooldownPeriod":null,"PollingInterval":null,"Rules":[]},"Volumes":[],"ServiceBinds":[]}"</data>
-      <data key="prop_isActive">False</data>
+      <data key="prop_isActive">false</data>
       <data key="prop_replicas">0</data>
       <data key="prop_labels">
       </data>
@@ -330,6 +341,7 @@
       <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
       <data key="prop_resourceName">diagnosticbench-app-202504091010--0000005</data>
       <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
       <data key="prop_provisioningState">Provisioned</data>
       <data key="prop_resourceType">microsoft.app/containerapps/revisions</data>
       <data key="prop_name">diagnosticbench-app-202504091010--0000005</data>
@@ -339,7 +351,7 @@
       <data key="prop_lastActiveOn">5/9/2025 2:11:51 PM +00:00</data>
       <data key="prop_fqdn">diagnosticbench-app-202504091010--0000005.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
       <data key="prop_template">"{"RevisionSuffix":null,"TerminationGracePeriodSeconds":null,"InitContainers":[],"Containers":[{"Probes":[],"Image":"acaalbumsmrsharm.azurecr.io/albumapi_csharp:20250507031736","ImageType":{},"Name":"diagnosticbench","Command":[],"Args":[],"Env":[],"Resources":{"Cpu":1,"Memory":"2Gi","EphemeralStorage":null,"Gpu":null},"VolumeMounts":[]}],"Scale":{"MinReplicas":1,"MaxReplicas":3,"CooldownPeriod":null,"PollingInterval":null,"Rules":[]},"Volumes":[],"ServiceBinds":[]}"</data>
-      <data key="prop_isActive">False</data>
+      <data key="prop_isActive">false</data>
       <data key="prop_replicas">0</data>
       <data key="prop_labels">
       </data>
@@ -353,6 +365,7 @@
       <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
       <data key="prop_resourceName">diagnosticbench-app-202504091010--0000006</data>
       <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
       <data key="prop_provisioningState">Provisioned</data>
       <data key="prop_resourceType">microsoft.app/containerapps/revisions</data>
       <data key="prop_name">diagnosticbench-app-202504091010--0000006</data>
@@ -362,7 +375,7 @@
       <data key="prop_lastActiveOn">5/9/2025 2:43:39 PM +00:00</data>
       <data key="prop_fqdn">diagnosticbench-app-202504091010--0000006.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
       <data key="prop_template">"{"RevisionSuffix":null,"TerminationGracePeriodSeconds":null,"InitContainers":[],"Containers":[{"Probes":[],"Image":"acaalbumsmrsharm.azurecr.io/albumapi_csharp:20250507031736","ImageType":{},"Name":"diagnosticbench","Command":[],"Args":[],"Env":[],"Resources":{"Cpu":0.75,"Memory":"1.5Gi","EphemeralStorage":null,"Gpu":null},"VolumeMounts":[]}],"Scale":{"MinReplicas":1,"MaxReplicas":3,"CooldownPeriod":null,"PollingInterval":null,"Rules":[]},"Volumes":[],"ServiceBinds":[]}"</data>
-      <data key="prop_isActive">False</data>
+      <data key="prop_isActive">false</data>
       <data key="prop_replicas">0</data>
       <data key="prop_labels">
       </data>
@@ -376,6 +389,7 @@
       <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
       <data key="prop_resourceName">diagnosticbench-app-202504091010--0000007</data>
       <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
       <data key="prop_provisioningState">Provisioned</data>
       <data key="prop_resourceType">microsoft.app/containerapps/revisions</data>
       <data key="prop_name">diagnosticbench-app-202504091010--0000007</data>
@@ -385,7 +399,7 @@
       <data key="prop_lastActiveOn">5/9/2025 4:06:43 PM +00:00</data>
       <data key="prop_fqdn">diagnosticbench-app-202504091010--0000007.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
       <data key="prop_template">"{"RevisionSuffix":null,"TerminationGracePeriodSeconds":null,"InitContainers":[],"Containers":[{"Probes":[],"Image":"acaalbumsmrsharm.azurecr.io/albumapi_csharp:20250507031736","ImageType":{},"Name":"diagnosticbench","Command":[],"Args":[],"Env":[],"Resources":{"Cpu":1,"Memory":"2Gi","EphemeralStorage":null,"Gpu":null},"VolumeMounts":[]}],"Scale":{"MinReplicas":1,"MaxReplicas":3,"CooldownPeriod":null,"PollingInterval":null,"Rules":[]},"Volumes":[],"ServiceBinds":[]}"</data>
-      <data key="prop_isActive">False</data>
+      <data key="prop_isActive">false</data>
       <data key="prop_replicas">0</data>
       <data key="prop_labels">
       </data>
@@ -399,6 +413,7 @@
       <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
       <data key="prop_resourceName">diagnosticbench-app-202504091010--0000008</data>
       <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
       <data key="prop_provisioningState">Provisioned</data>
       <data key="prop_resourceType">microsoft.app/containerapps/revisions</data>
       <data key="prop_name">diagnosticbench-app-202504091010--0000008</data>
@@ -408,7 +423,7 @@
       <data key="prop_lastActiveOn">5/9/2025 4:23:12 PM +00:00</data>
       <data key="prop_fqdn">diagnosticbench-app-202504091010--0000008.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
       <data key="prop_template">"{"RevisionSuffix":null,"TerminationGracePeriodSeconds":null,"InitContainers":[],"Containers":[{"Probes":[],"Image":"acaalbumsmrsharm.azurecr.io/albumapi_csharp:20250507031736","ImageType":{},"Name":"diagnosticbench","Command":[],"Args":[],"Env":[],"Resources":{"Cpu":1,"Memory":"2Gi","EphemeralStorage":null,"Gpu":null},"VolumeMounts":[]}],"Scale":{"MinReplicas":1,"MaxReplicas":1,"CooldownPeriod":null,"PollingInterval":null,"Rules":[{"Name":"http-scaler","AzureQueue":null,"Custom":null,"Http":{"Metadata":{"concurrentRequests":"10"},"Auth":[],"Identity":null},"Tcp":null}]},"Volumes":[],"ServiceBinds":[]}"</data>
-      <data key="prop_isActive">False</data>
+      <data key="prop_isActive">false</data>
       <data key="prop_replicas">0</data>
       <data key="prop_labels">
       </data>
@@ -422,6 +437,7 @@
       <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
       <data key="prop_resourceName">diagnosticbench-app-202504091010--0000009</data>
       <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
       <data key="prop_provisioningState">Provisioned</data>
       <data key="prop_resourceType">microsoft.app/containerapps/revisions</data>
       <data key="prop_name">diagnosticbench-app-202504091010--0000009</data>
@@ -431,7 +447,7 @@
       <data key="prop_lastActiveOn">5/9/2025 4:33:48 PM +00:00</data>
       <data key="prop_fqdn">diagnosticbench-app-202504091010--0000009.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
       <data key="prop_template">"{"RevisionSuffix":null,"TerminationGracePeriodSeconds":null,"InitContainers":[],"Containers":[{"Probes":[],"Image":"acaalbumsmrsharm.azurecr.io/albumapi_csharp:20250507031736","ImageType":{},"Name":"diagnosticbench","Command":[],"Args":[],"Env":[],"Resources":{"Cpu":1,"Memory":"2Gi","EphemeralStorage":null,"Gpu":null},"VolumeMounts":[]}],"Scale":{"MinReplicas":1,"MaxReplicas":3,"CooldownPeriod":null,"PollingInterval":null,"Rules":[{"Name":"http-scaler","AzureQueue":null,"Custom":null,"Http":{"Metadata":{"concurrentRequests":"10"},"Auth":[],"Identity":null},"Tcp":null}]},"Volumes":[],"ServiceBinds":[]}"</data>
-      <data key="prop_isActive">False</data>
+      <data key="prop_isActive">false</data>
       <data key="prop_replicas">0</data>
       <data key="prop_labels">
       </data>
@@ -445,6 +461,7 @@
       <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
       <data key="prop_resourceName">diagnosticbench-app-202504091010--0000010</data>
       <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
       <data key="prop_provisioningState">Provisioned</data>
       <data key="prop_resourceType">microsoft.app/containerapps/revisions</data>
       <data key="prop_name">diagnosticbench-app-202504091010--0000010</data>
@@ -454,7 +471,7 @@
       <data key="prop_lastActiveOn">5/9/2025 4:42:13 PM +00:00</data>
       <data key="prop_fqdn">diagnosticbench-app-202504091010--0000010.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
       <data key="prop_template">"{"RevisionSuffix":null,"TerminationGracePeriodSeconds":null,"InitContainers":[],"Containers":[{"Probes":[],"Image":"acaalbumsmrsharm.azurecr.io/albumapi_csharp:20250507031736","ImageType":{},"Name":"diagnosticbench","Command":[],"Args":[],"Env":[],"Resources":{"Cpu":1,"Memory":"2Gi","EphemeralStorage":null,"Gpu":null},"VolumeMounts":[]}],"Scale":{"MinReplicas":1,"MaxReplicas":1,"CooldownPeriod":null,"PollingInterval":null,"Rules":[{"Name":"http-scaler","AzureQueue":null,"Custom":null,"Http":{"Metadata":{"concurrentRequests":"10"},"Auth":[],"Identity":null},"Tcp":null}]},"Volumes":[],"ServiceBinds":[]}"</data>
-      <data key="prop_isActive">False</data>
+      <data key="prop_isActive">false</data>
       <data key="prop_replicas">0</data>
       <data key="prop_labels">
       </data>
@@ -468,6 +485,7 @@
       <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
       <data key="prop_resourceName">diagnosticbench-app-202504091010--0000011</data>
       <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
       <data key="prop_provisioningState">Provisioned</data>
       <data key="prop_resourceType">microsoft.app/containerapps/revisions</data>
       <data key="prop_name">diagnosticbench-app-202504091010--0000011</data>
@@ -477,7 +495,7 @@
       <data key="prop_lastActiveOn">5/9/2025 5:52:20 PM +00:00</data>
       <data key="prop_fqdn">diagnosticbench-app-202504091010--0000011.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
       <data key="prop_template">"{"RevisionSuffix":null,"TerminationGracePeriodSeconds":null,"InitContainers":[],"Containers":[{"Probes":[],"Image":"acaalbumsmrsharm.azurecr.io/albumapi_csharp:20250507031736","ImageType":{},"Name":"diagnosticbench","Command":[],"Args":[],"Env":[],"Resources":{"Cpu":1,"Memory":"2Gi","EphemeralStorage":null,"Gpu":null},"VolumeMounts":[]}],"Scale":{"MinReplicas":1,"MaxReplicas":3,"CooldownPeriod":null,"PollingInterval":null,"Rules":[{"Name":"http-scaler","AzureQueue":null,"Custom":null,"Http":{"Metadata":{"concurrentRequests":"10"},"Auth":[],"Identity":null},"Tcp":null}]},"Volumes":[],"ServiceBinds":[]}"</data>
-      <data key="prop_isActive">False</data>
+      <data key="prop_isActive">false</data>
       <data key="prop_replicas">0</data>
       <data key="prop_labels">
       </data>
@@ -491,6 +509,7 @@
       <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
       <data key="prop_resourceName">diagnosticbench-app-202504091010--0000012</data>
       <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
       <data key="prop_provisioningState">Provisioned</data>
       <data key="prop_resourceType">microsoft.app/containerapps/revisions</data>
       <data key="prop_name">diagnosticbench-app-202504091010--0000012</data>
@@ -500,7 +519,7 @@
       <data key="prop_lastActiveOn">5/9/2025 6:17:55 PM +00:00</data>
       <data key="prop_fqdn">diagnosticbench-app-202504091010--0000012.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
       <data key="prop_template">"{"RevisionSuffix":null,"TerminationGracePeriodSeconds":null,"InitContainers":[],"Containers":[{"Probes":[],"Image":"acaalbumsmrsharm.azurecr.io/albumapi_csharp:20250507031736","ImageType":{},"Name":"diagnosticbench","Command":[],"Args":[],"Env":[],"Resources":{"Cpu":1,"Memory":"2Gi","EphemeralStorage":null,"Gpu":null},"VolumeMounts":[]}],"Scale":{"MinReplicas":1,"MaxReplicas":1,"CooldownPeriod":null,"PollingInterval":null,"Rules":[{"Name":"http-scaler","AzureQueue":null,"Custom":null,"Http":{"Metadata":{"concurrentRequests":"10"},"Auth":[],"Identity":null},"Tcp":null}]},"Volumes":[],"ServiceBinds":[]}"</data>
-      <data key="prop_isActive">False</data>
+      <data key="prop_isActive">false</data>
       <data key="prop_replicas">0</data>
       <data key="prop_labels">
       </data>
@@ -514,6 +533,7 @@
       <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
       <data key="prop_resourceName">diagnosticbench-app-202504091010--0000013</data>
       <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
       <data key="prop_provisioningState">Provisioned</data>
       <data key="prop_resourceType">microsoft.app/containerapps/revisions</data>
       <data key="prop_name">diagnosticbench-app-202504091010--0000013</data>
@@ -523,7 +543,7 @@
       <data key="prop_lastActiveOn">5/9/2025 11:00:10 PM +00:00</data>
       <data key="prop_fqdn">diagnosticbench-app-202504091010--0000013.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
       <data key="prop_template">"{"RevisionSuffix":null,"TerminationGracePeriodSeconds":null,"InitContainers":[],"Containers":[{"Probes":[],"Image":"acaalbumsmrsharm.azurecr.io/albumapi_csharp:20250507031736","ImageType":{},"Name":"diagnosticbench","Command":[],"Args":[],"Env":[],"Resources":{"Cpu":0.5,"Memory":"1Gi","EphemeralStorage":null,"Gpu":null},"VolumeMounts":[]}],"Scale":{"MinReplicas":1,"MaxReplicas":1,"CooldownPeriod":null,"PollingInterval":null,"Rules":[{"Name":"http-scaler","AzureQueue":null,"Custom":null,"Http":{"Metadata":{"concurrentRequests":"10"},"Auth":[],"Identity":null},"Tcp":null}]},"Volumes":[],"ServiceBinds":[]}"</data>
-      <data key="prop_isActive">False</data>
+      <data key="prop_isActive">false</data>
       <data key="prop_replicas">0</data>
       <data key="prop_labels">
       </data>
@@ -537,6 +557,7 @@
       <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
       <data key="prop_resourceName">diagnosticbench-app-202504091010--0000014</data>
       <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
       <data key="prop_provisioningState">Provisioned</data>
       <data key="prop_resourceType">microsoft.app/containerapps/revisions</data>
       <data key="prop_name">diagnosticbench-app-202504091010--0000014</data>
@@ -546,7 +567,7 @@
       <data key="prop_lastActiveOn">5/9/2025 11:33:55 PM +00:00</data>
       <data key="prop_fqdn">diagnosticbench-app-202504091010--0000014.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
       <data key="prop_template">"{"RevisionSuffix":null,"TerminationGracePeriodSeconds":null,"InitContainers":[],"Containers":[{"Probes":[],"Image":"acaalbumsmrsharm.azurecr.io/albumapi_csharp:20250509233323","ImageType":{},"Name":"diagnosticbench","Command":[],"Args":[],"Env":[],"Resources":{"Cpu":0.5,"Memory":"1Gi","EphemeralStorage":null,"Gpu":null},"VolumeMounts":[]}],"Scale":{"MinReplicas":1,"MaxReplicas":1,"CooldownPeriod":null,"PollingInterval":null,"Rules":[{"Name":"http-scaler","AzureQueue":null,"Custom":null,"Http":{"Metadata":{"concurrentRequests":"10"},"Auth":[],"Identity":null},"Tcp":null}]},"Volumes":[],"ServiceBinds":[]}"</data>
-      <data key="prop_isActive">False</data>
+      <data key="prop_isActive">false</data>
       <data key="prop_replicas">0</data>
       <data key="prop_labels">
       </data>
@@ -560,6 +581,7 @@
       <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
       <data key="prop_resourceName">diagnosticbench-app-202504091010--0000015</data>
       <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
       <data key="prop_provisioningState">Provisioned</data>
       <data key="prop_resourceType">microsoft.app/containerapps/revisions</data>
       <data key="prop_name">diagnosticbench-app-202504091010--0000015</data>
@@ -569,7 +591,7 @@
       <data key="prop_lastActiveOn">5/10/2025 8:04:45 PM +00:00</data>
       <data key="prop_fqdn">diagnosticbench-app-202504091010--0000015.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
       <data key="prop_template">"{"RevisionSuffix":null,"TerminationGracePeriodSeconds":null,"InitContainers":[],"Containers":[{"Probes":[],"Image":"acaalbumsmrsharm.azurecr.io/albumapi_csharp:20250507031736","ImageType":{},"Name":"diagnosticbench","Command":[],"Args":[],"Env":[],"Resources":{"Cpu":0.75,"Memory":"1.5Gi","EphemeralStorage":null,"Gpu":null},"VolumeMounts":[]}],"Scale":{"MinReplicas":1,"MaxReplicas":1,"CooldownPeriod":null,"PollingInterval":null,"Rules":[{"Name":"http-scaler","AzureQueue":null,"Custom":null,"Http":{"Metadata":{"concurrentRequests":"10"},"Auth":[],"Identity":null},"Tcp":null}]},"Volumes":[],"ServiceBinds":[]}"</data>
-      <data key="prop_isActive">False</data>
+      <data key="prop_isActive">false</data>
       <data key="prop_replicas">0</data>
       <data key="prop_labels">
       </data>
@@ -583,6 +605,7 @@
       <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
       <data key="prop_resourceName">diagnosticbench-app-202504091010--0000016</data>
       <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
       <data key="prop_provisioningState">Provisioned</data>
       <data key="prop_resourceType">microsoft.app/containerapps/revisions</data>
       <data key="prop_name">diagnosticbench-app-202504091010--0000016</data>
@@ -592,7 +615,7 @@
       <data key="prop_lastActiveOn">5/12/2025 5:26:59 PM +00:00</data>
       <data key="prop_fqdn">diagnosticbench-app-202504091010--0000016.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
       <data key="prop_template">"{"RevisionSuffix":null,"TerminationGracePeriodSeconds":null,"InitContainers":[],"Containers":[{"Probes":[],"Image":"acaalbumsmrsharm.azurecr.io/albumapi_csharp:20250507031736","ImageType":{},"Name":"diagnosticbench","Command":[],"Args":[],"Env":[],"Resources":{"Cpu":1,"Memory":"2Gi","EphemeralStorage":null,"Gpu":null},"VolumeMounts":[]}],"Scale":{"MinReplicas":1,"MaxReplicas":3,"CooldownPeriod":null,"PollingInterval":null,"Rules":[{"Name":"http-scaler","AzureQueue":null,"Custom":null,"Http":{"Metadata":{"concurrentRequests":"10"},"Auth":[],"Identity":null},"Tcp":null}]},"Volumes":[],"ServiceBinds":[]}"</data>
-      <data key="prop_isActive">False</data>
+      <data key="prop_isActive">false</data>
       <data key="prop_replicas">0</data>
       <data key="prop_labels">
       </data>
@@ -606,6 +629,7 @@
       <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
       <data key="prop_resourceName">diagnosticbench-app-202504091010--0000017</data>
       <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
       <data key="prop_provisioningState">Provisioned</data>
       <data key="prop_resourceType">microsoft.app/containerapps/revisions</data>
       <data key="prop_name">diagnosticbench-app-202504091010--0000017</data>
@@ -615,7 +639,7 @@
       <data key="prop_lastActiveOn">5/12/2025 5:30:14 PM +00:00</data>
       <data key="prop_fqdn">diagnosticbench-app-202504091010--0000017.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
       <data key="prop_template">"{"RevisionSuffix":null,"TerminationGracePeriodSeconds":null,"InitContainers":[],"Containers":[{"Probes":[],"Image":"acaalbumsmrsharm.azurecr.io/albumapi_csharp:20250512172600","ImageType":{},"Name":"diagnosticbench","Command":[],"Args":[],"Env":[],"Resources":{"Cpu":1,"Memory":"2Gi","EphemeralStorage":null,"Gpu":null},"VolumeMounts":[]}],"Scale":{"MinReplicas":1,"MaxReplicas":3,"CooldownPeriod":null,"PollingInterval":null,"Rules":[{"Name":"http-scaler","AzureQueue":null,"Custom":null,"Http":{"Metadata":{"concurrentRequests":"10"},"Auth":[],"Identity":null},"Tcp":null}]},"Volumes":[],"ServiceBinds":[]}"</data>
-      <data key="prop_isActive">False</data>
+      <data key="prop_isActive">false</data>
       <data key="prop_replicas">0</data>
       <data key="prop_labels">
       </data>
@@ -629,6 +653,7 @@
       <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
       <data key="prop_resourceName">diagnosticbench-app-202504091010--0000018</data>
       <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
       <data key="prop_provisioningState">Provisioned</data>
       <data key="prop_resourceType">microsoft.app/containerapps/revisions</data>
       <data key="prop_name">diagnosticbench-app-202504091010--0000018</data>
@@ -638,7 +663,7 @@
       <data key="prop_lastActiveOn">5/12/2025 9:05:23 PM +00:00</data>
       <data key="prop_fqdn">diagnosticbench-app-202504091010--0000018.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
       <data key="prop_template">"{"RevisionSuffix":null,"TerminationGracePeriodSeconds":null,"InitContainers":[],"Containers":[{"Probes":[],"Image":"acaalbumsmrsharm.azurecr.io/albumapi_csharp:20250512172913","ImageType":{},"Name":"diagnosticbench","Command":[],"Args":[],"Env":[],"Resources":{"Cpu":1,"Memory":"2Gi","EphemeralStorage":null,"Gpu":null},"VolumeMounts":[]}],"Scale":{"MinReplicas":1,"MaxReplicas":3,"CooldownPeriod":null,"PollingInterval":null,"Rules":[{"Name":"http-scaler","AzureQueue":null,"Custom":null,"Http":{"Metadata":{"concurrentRequests":"10"},"Auth":[],"Identity":null},"Tcp":null}]},"Volumes":[],"ServiceBinds":[]}"</data>
-      <data key="prop_isActive">False</data>
+      <data key="prop_isActive">false</data>
       <data key="prop_replicas">0</data>
       <data key="prop_labels">
       </data>
@@ -652,6 +677,7 @@
       <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
       <data key="prop_resourceName">diagnosticbench-app-202504091010--0000019</data>
       <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
       <data key="prop_provisioningState">Provisioned</data>
       <data key="prop_resourceType">microsoft.app/containerapps/revisions</data>
       <data key="prop_name">diagnosticbench-app-202504091010--0000019</data>
@@ -661,7 +687,7 @@
       <data key="prop_lastActiveOn">5/12/2025 9:17:09 PM +00:00</data>
       <data key="prop_fqdn">diagnosticbench-app-202504091010--0000019.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
       <data key="prop_template">"{"RevisionSuffix":null,"TerminationGracePeriodSeconds":null,"InitContainers":[],"Containers":[{"Probes":[],"Image":"acaalbumsmrsharm.azurecr.io/albumapi_csharp:20250512210312","ImageType":{},"Name":"diagnosticbench","Command":[],"Args":[],"Env":[],"Resources":{"Cpu":1,"Memory":"2Gi","EphemeralStorage":null,"Gpu":null},"VolumeMounts":[]}],"Scale":{"MinReplicas":1,"MaxReplicas":3,"CooldownPeriod":null,"PollingInterval":null,"Rules":[{"Name":"http-scaler","AzureQueue":null,"Custom":null,"Http":{"Metadata":{"concurrentRequests":"10"},"Auth":[],"Identity":null},"Tcp":null}]},"Volumes":[],"ServiceBinds":[]}"</data>
-      <data key="prop_isActive">False</data>
+      <data key="prop_isActive">false</data>
       <data key="prop_replicas">0</data>
       <data key="prop_labels">
       </data>
@@ -675,6 +701,7 @@
       <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
       <data key="prop_resourceName">diagnosticbench-app-202504091010--0000020</data>
       <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
       <data key="prop_provisioningState">Provisioned</data>
       <data key="prop_resourceType">microsoft.app/containerapps/revisions</data>
       <data key="prop_name">diagnosticbench-app-202504091010--0000020</data>
@@ -684,7 +711,7 @@
       <data key="prop_lastActiveOn">5/15/2025 4:18:55 PM +00:00</data>
       <data key="prop_fqdn">diagnosticbench-app-202504091010--0000020.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
       <data key="prop_template">"{"RevisionSuffix":null,"TerminationGracePeriodSeconds":null,"InitContainers":[],"Containers":[{"Probes":[],"Image":"acaalbumsmrsharm.azurecr.io/albumapi_csharp:20250512211602","ImageType":{},"Name":"diagnosticbench","Command":[],"Args":[],"Env":[],"Resources":{"Cpu":1,"Memory":"2Gi","EphemeralStorage":null,"Gpu":null},"VolumeMounts":[]}],"Scale":{"MinReplicas":1,"MaxReplicas":3,"CooldownPeriod":null,"PollingInterval":null,"Rules":[{"Name":"http-scaler","AzureQueue":null,"Custom":null,"Http":{"Metadata":{"concurrentRequests":"10"},"Auth":[],"Identity":null},"Tcp":null}]},"Volumes":[],"ServiceBinds":[]}"</data>
-      <data key="prop_isActive">False</data>
+      <data key="prop_isActive">false</data>
       <data key="prop_replicas">0</data>
       <data key="prop_labels">
       </data>
@@ -698,6 +725,7 @@
       <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
       <data key="prop_resourceName">diagnosticbench-app-202504091010--0000021</data>
       <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
       <data key="prop_provisioningState">Provisioned</data>
       <data key="prop_resourceType">microsoft.app/containerapps/revisions</data>
       <data key="prop_name">diagnosticbench-app-202504091010--0000021</data>
@@ -707,7 +735,7 @@
       <data key="prop_lastActiveOn">5/20/2025 2:29:18 PM +00:00</data>
       <data key="prop_fqdn">diagnosticbench-app-202504091010--0000021.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
       <data key="prop_template">"{"RevisionSuffix":null,"TerminationGracePeriodSeconds":null,"InitContainers":[],"Containers":[{"Probes":[],"Image":"acaalbumsmrsharm.azurecr.io/albumapi_csharp:20250512211602","ImageType":{},"Name":"diagnosticbench","Command":[],"Args":[],"Env":[],"Resources":{"Cpu":0.5,"Memory":"1Gi","EphemeralStorage":null,"Gpu":null},"VolumeMounts":[]}],"Scale":{"MinReplicas":1,"MaxReplicas":3,"CooldownPeriod":null,"PollingInterval":null,"Rules":[{"Name":"http-scaler","AzureQueue":null,"Custom":null,"Http":{"Metadata":{"concurrentRequests":"10"},"Auth":[],"Identity":null},"Tcp":null}]},"Volumes":[],"ServiceBinds":[]}"</data>
-      <data key="prop_isActive">False</data>
+      <data key="prop_isActive">false</data>
       <data key="prop_replicas">0</data>
       <data key="prop_labels">
       </data>
@@ -721,6 +749,7 @@
       <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
       <data key="prop_resourceName">diagnosticbench-app-202504091010--0000022</data>
       <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
       <data key="prop_provisioningState">Provisioned</data>
       <data key="prop_resourceType">microsoft.app/containerapps/revisions</data>
       <data key="prop_name">diagnosticbench-app-202504091010--0000022</data>
@@ -730,7 +759,7 @@
       <data key="prop_lastActiveOn">5/22/2025 5:39:08 PM +00:00</data>
       <data key="prop_fqdn">diagnosticbench-app-202504091010--0000022.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
       <data key="prop_template">"{"RevisionSuffix":null,"TerminationGracePeriodSeconds":null,"InitContainers":[],"Containers":[{"Probes":[],"Image":"acaalbumsmrsharm.azurecr.io/albumapi_csharp:20250512211602","ImageType":{},"Name":"diagnosticbench","Command":[],"Args":[],"Env":[],"Resources":{"Cpu":0.75,"Memory":"1.5Gi","EphemeralStorage":null,"Gpu":null},"VolumeMounts":[]}],"Scale":{"MinReplicas":1,"MaxReplicas":3,"CooldownPeriod":null,"PollingInterval":null,"Rules":[{"Name":"http-scaler","AzureQueue":null,"Custom":null,"Http":{"Metadata":{"concurrentRequests":"10"},"Auth":[],"Identity":null},"Tcp":null}]},"Volumes":[],"ServiceBinds":[]}"</data>
-      <data key="prop_isActive">False</data>
+      <data key="prop_isActive">false</data>
       <data key="prop_replicas">0</data>
       <data key="prop_labels">
       </data>
@@ -744,6 +773,7 @@
       <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
       <data key="prop_resourceName">diagnosticbench-app-202504091010--0000023</data>
       <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
       <data key="prop_provisioningState">Provisioned</data>
       <data key="prop_resourceType">microsoft.app/containerapps/revisions</data>
       <data key="prop_name">diagnosticbench-app-202504091010--0000023</data>
@@ -753,7 +783,7 @@
       <data key="prop_lastActiveOn">5/22/2025 5:57:21 PM +00:00</data>
       <data key="prop_fqdn">diagnosticbench-app-202504091010--0000023.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
       <data key="prop_template">"{"RevisionSuffix":null,"TerminationGracePeriodSeconds":null,"InitContainers":[],"Containers":[{"Probes":[],"Image":"acaalbumsmrsharm.azurecr.io/albumapi_csharp:20250512211602","ImageType":{},"Name":"diagnosticbench","Command":[],"Args":[],"Env":[],"Resources":{"Cpu":1,"Memory":"2Gi","EphemeralStorage":null,"Gpu":null},"VolumeMounts":[]}],"Scale":{"MinReplicas":1,"MaxReplicas":3,"CooldownPeriod":null,"PollingInterval":null,"Rules":[{"Name":"http-scaler","AzureQueue":null,"Custom":null,"Http":{"Metadata":{"concurrentRequests":"10"},"Auth":[],"Identity":null},"Tcp":null}]},"Volumes":[],"ServiceBinds":[]}"</data>
-      <data key="prop_isActive">False</data>
+      <data key="prop_isActive">false</data>
       <data key="prop_replicas">0</data>
       <data key="prop_labels">
       </data>
@@ -767,20 +797,22 @@
       <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
       <data key="prop_resourceName">diagnosticbench-app-202504091010--0000024</data>
       <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
       <data key="prop_provisioningState">Provisioned</data>
       <data key="prop_resourceType">microsoft.app/containerapps/revisions</data>
       <data key="prop_name">diagnosticbench-app-202504091010--0000024</data>
       <data key="prop_appName">diagnosticbench-app-202504091010</data>
-      <data key="prop_trafficWeight">100</data>
+      <data key="prop_trafficWeight">0</data>
       <data key="prop_createdOn">2025-05-22 17:56:50Z</data>
+      <data key="prop_lastActiveOn">6/11/2025 7:53:52 PM +00:00</data>
       <data key="prop_fqdn">diagnosticbench-app-202504091010--0000024.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
       <data key="prop_template">"{"RevisionSuffix":null,"TerminationGracePeriodSeconds":null,"InitContainers":[],"Containers":[{"Probes":[],"Image":"acaalbumsmrsharm.azurecr.io/albumapi_csharp:20250512211602","ImageType":{},"Name":"diagnosticbench","Command":[],"Args":[],"Env":[],"Resources":{"Cpu":2,"Memory":"4Gi","EphemeralStorage":null,"Gpu":null},"VolumeMounts":[]}],"Scale":{"MinReplicas":2,"MaxReplicas":5,"CooldownPeriod":null,"PollingInterval":null,"Rules":[{"Name":"http-scaler","AzureQueue":null,"Custom":null,"Http":{"Metadata":{"concurrentRequests":"10"},"Auth":[],"Identity":null},"Tcp":null}]},"Volumes":[],"ServiceBinds":[]}"</data>
-      <data key="prop_isActive">True</data>
-      <data key="prop_replicas">2</data>
+      <data key="prop_isActive">false</data>
+      <data key="prop_replicas">0</data>
       <data key="prop_labels">
       </data>
       <data key="prop_healthState">Healthy</data>
-      <data key="prop_runningState">Running</data>
+      <data key="prop_runningState">Stopped</data>
     </node>
     <node id="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_approval-service-rg_providers_microsoft.containerregistry_registries_sreagent">
       <data key="labelV">microsoft.containerregistry/registries</data>
@@ -791,9 +823,269 @@
       <data key="prop_location">eastus2</data>
       <data key="prop_resourceType">microsoft.containerregistry/registries</data>
     </node>
-    <edge id="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_LINKED__subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_approval-service-rg_providers_microsoft.app_managedenvironments_approvalservice" source="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010" target="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_approval-service-rg_providers_microsoft.app_managedenvironments_approvalservice">
-      <data key="edge_label">LINKED</data>
-    </edge>
+    <node id="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_revisions_diagnosticbench-app-202504091010--0000025">
+      <data key="labelV">microsoft.app/containerapps/revisions</data>
+      <data key="prop_resourceId">/subscriptions/be8d491e-109c-4ee1-aaee-dc7615af0a42/resourcegroups/mrsharm-operations-agent-3p-rg/providers/microsoft.app/containerapps/diagnosticbench-app-202504091010/revisions/diagnosticbench-app-202504091010--0000025</data>
+      <data key="prop_subscriptionId">be8d491e-109c-4ee1-aaee-dc7615af0a42</data>
+      <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
+      <data key="prop_resourceName">diagnosticbench-app-202504091010--0000025</data>
+      <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_provisioningState">Provisioned</data>
+      <data key="prop_resourceType">microsoft.app/containerapps/revisions</data>
+      <data key="prop_name">diagnosticbench-app-202504091010--0000025</data>
+      <data key="prop_appName">diagnosticbench-app-202504091010</data>
+      <data key="prop_trafficWeight">0</data>
+      <data key="prop_createdOn">2025-06-06 00:18:17Z</data>
+      <data key="prop_lastActiveOn">6/11/2025 7:54:26 PM +00:00</data>
+      <data key="prop_fqdn">diagnosticbench-app-202504091010--0000025.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
+      <data key="prop_template">"{"RevisionSuffix":null,"TerminationGracePeriodSeconds":null,"InitContainers":[],"Containers":[{"Probes":[],"Image":"acaalbumsmrsharm.azurecr.io/albumapi_csharp:20250512211602","ImageType":{},"Name":"diagnosticbench","Command":[],"Args":[],"Env":[],"Resources":{"Cpu":4,"Memory":"8Gi","EphemeralStorage":null,"Gpu":null},"VolumeMounts":[]}],"Scale":{"MinReplicas":2,"MaxReplicas":5,"CooldownPeriod":null,"PollingInterval":null,"Rules":[{"Name":"http-scaler","AzureQueue":null,"Custom":null,"Http":{"Metadata":{"concurrentRequests":"10"},"Auth":[],"Identity":null},"Tcp":null}]},"Volumes":[],"ServiceBinds":[]}"</data>
+      <data key="prop_isActive">false</data>
+      <data key="prop_replicas">0</data>
+      <data key="prop_labels">
+      </data>
+      <data key="prop_healthState">Healthy</data>
+      <data key="prop_runningState">Stopped</data>
+    </node>
+    <node id="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_revisions_diagnosticbench-app-202504091010--0000026">
+      <data key="labelV">microsoft.app/containerapps/revisions</data>
+      <data key="prop_resourceId">/subscriptions/be8d491e-109c-4ee1-aaee-dc7615af0a42/resourcegroups/mrsharm-operations-agent-3p-rg/providers/microsoft.app/containerapps/diagnosticbench-app-202504091010/revisions/diagnosticbench-app-202504091010--0000026</data>
+      <data key="prop_subscriptionId">be8d491e-109c-4ee1-aaee-dc7615af0a42</data>
+      <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
+      <data key="prop_resourceName">diagnosticbench-app-202504091010--0000026</data>
+      <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_provisioningState">Provisioned</data>
+      <data key="prop_resourceType">microsoft.app/containerapps/revisions</data>
+      <data key="prop_name">diagnosticbench-app-202504091010--0000026</data>
+      <data key="prop_appName">diagnosticbench-app-202504091010</data>
+      <data key="prop_trafficWeight">0</data>
+      <data key="prop_createdOn">2025-06-11 19:53:50Z</data>
+      <data key="prop_lastActiveOn">6/11/2025 8:02:01 PM +00:00</data>
+      <data key="prop_fqdn">diagnosticbench-app-202504091010--0000026.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
+      <data key="prop_template">"{"RevisionSuffix":null,"TerminationGracePeriodSeconds":null,"InitContainers":[],"Containers":[{"Probes":[],"Image":"acaalbumsmrsharm.azurecr.io/albumapi_csharp:20250512211602","ImageType":{},"Name":"diagnosticbench","Command":[],"Args":[],"Env":[],"Resources":{"Cpu":4,"Memory":"8Gi","EphemeralStorage":null,"Gpu":null},"VolumeMounts":[]}],"Scale":{"MinReplicas":3,"MaxReplicas":8,"CooldownPeriod":null,"PollingInterval":null,"Rules":[{"Name":"http-scaler","AzureQueue":null,"Custom":null,"Http":{"Metadata":{"concurrentRequests":"10"},"Auth":[],"Identity":null},"Tcp":null}]},"Volumes":[],"ServiceBinds":[]}"</data>
+      <data key="prop_isActive">false</data>
+      <data key="prop_replicas">0</data>
+      <data key="prop_labels">
+      </data>
+      <data key="prop_healthState">Healthy</data>
+      <data key="prop_runningState">Stopped</data>
+    </node>
+    <node id="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_revisions_diagnosticbench-app-202504091010--0000027">
+      <data key="labelV">microsoft.app/containerapps/revisions</data>
+      <data key="prop_resourceId">/subscriptions/be8d491e-109c-4ee1-aaee-dc7615af0a42/resourcegroups/mrsharm-operations-agent-3p-rg/providers/microsoft.app/containerapps/diagnosticbench-app-202504091010/revisions/diagnosticbench-app-202504091010--0000027</data>
+      <data key="prop_subscriptionId">be8d491e-109c-4ee1-aaee-dc7615af0a42</data>
+      <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
+      <data key="prop_resourceName">diagnosticbench-app-202504091010--0000027</data>
+      <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_provisioningState">Provisioned</data>
+      <data key="prop_resourceType">microsoft.app/containerapps/revisions</data>
+      <data key="prop_name">diagnosticbench-app-202504091010--0000027</data>
+      <data key="prop_appName">diagnosticbench-app-202504091010</data>
+      <data key="prop_trafficWeight">0</data>
+      <data key="prop_createdOn">2025-06-11 20:01:30Z</data>
+      <data key="prop_lastActiveOn">6/11/2025 8:14:23 PM +00:00</data>
+      <data key="prop_fqdn">diagnosticbench-app-202504091010--0000027.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
+      <data key="prop_template">"{"RevisionSuffix":null,"TerminationGracePeriodSeconds":null,"InitContainers":[],"Containers":[{"Probes":[],"Image":"acaalbumsmrsharm.azurecr.io/albumapi_csharp:20250512211602","ImageType":{},"Name":"diagnosticbench","Command":[],"Args":[],"Env":[],"Resources":{"Cpu":1,"Memory":"2Gi","EphemeralStorage":null,"Gpu":null},"VolumeMounts":[]}],"Scale":{"MinReplicas":3,"MaxReplicas":8,"CooldownPeriod":null,"PollingInterval":null,"Rules":[{"Name":"http-scaler","AzureQueue":null,"Custom":null,"Http":{"Metadata":{"concurrentRequests":"10"},"Auth":[],"Identity":null},"Tcp":null}]},"Volumes":[],"ServiceBinds":[]}"</data>
+      <data key="prop_isActive">false</data>
+      <data key="prop_replicas">0</data>
+      <data key="prop_labels">
+      </data>
+      <data key="prop_healthState">Healthy</data>
+      <data key="prop_runningState">Stopped</data>
+    </node>
+    <node id="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_revisions_diagnosticbench-app-202504091010--0000028">
+      <data key="labelV">microsoft.app/containerapps/revisions</data>
+      <data key="prop_resourceId">/subscriptions/be8d491e-109c-4ee1-aaee-dc7615af0a42/resourcegroups/mrsharm-operations-agent-3p-rg/providers/microsoft.app/containerapps/diagnosticbench-app-202504091010/revisions/diagnosticbench-app-202504091010--0000028</data>
+      <data key="prop_subscriptionId">be8d491e-109c-4ee1-aaee-dc7615af0a42</data>
+      <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
+      <data key="prop_resourceName">diagnosticbench-app-202504091010--0000028</data>
+      <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_provisioningState">Provisioned</data>
+      <data key="prop_resourceType">microsoft.app/containerapps/revisions</data>
+      <data key="prop_name">diagnosticbench-app-202504091010--0000028</data>
+      <data key="prop_appName">diagnosticbench-app-202504091010</data>
+      <data key="prop_trafficWeight">0</data>
+      <data key="prop_createdOn">2025-06-18 21:26:49Z</data>
+      <data key="prop_lastActiveOn">6/19/2025 9:01:35 AM +00:00</data>
+      <data key="prop_fqdn">diagnosticbench-app-202504091010--0000028.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
+      <data key="prop_template">"{"RevisionSuffix":null,"TerminationGracePeriodSeconds":null,"InitContainers":[],"Containers":[{"Probes":[],"Image":"acaalbumsmrsharm.azurecr.io/albumapi_csharp:20250512211602","ImageType":{},"Name":"diagnosticbench","Command":[],"Args":[],"Env":[],"Resources":{"Cpu":2,"Memory":"4Gi","EphemeralStorage":null,"Gpu":null},"VolumeMounts":[]}],"Scale":{"MinReplicas":3,"MaxReplicas":8,"CooldownPeriod":null,"PollingInterval":null,"Rules":[{"Name":"http-scaler","AzureQueue":null,"Custom":null,"Http":{"Metadata":{"concurrentRequests":"10"},"Auth":[],"Identity":null},"Tcp":null}]},"Volumes":[],"ServiceBinds":[]}"</data>
+      <data key="prop_isActive">false</data>
+      <data key="prop_replicas">0</data>
+      <data key="prop_labels">
+      </data>
+      <data key="prop_healthState">Healthy</data>
+      <data key="prop_runningState">Stopped</data>
+    </node>
+    <node id="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_revisions_diagnosticbench-app-202504091010--0000029">
+      <data key="labelV">microsoft.app/containerapps/revisions</data>
+      <data key="prop_resourceId">/subscriptions/be8d491e-109c-4ee1-aaee-dc7615af0a42/resourcegroups/mrsharm-operations-agent-3p-rg/providers/microsoft.app/containerapps/diagnosticbench-app-202504091010/revisions/diagnosticbench-app-202504091010--0000029</data>
+      <data key="prop_subscriptionId">be8d491e-109c-4ee1-aaee-dc7615af0a42</data>
+      <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
+      <data key="prop_resourceName">diagnosticbench-app-202504091010--0000029</data>
+      <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_provisioningState">Provisioned</data>
+      <data key="prop_resourceType">microsoft.app/containerapps/revisions</data>
+      <data key="prop_name">diagnosticbench-app-202504091010--0000029</data>
+      <data key="prop_appName">diagnosticbench-app-202504091010</data>
+      <data key="prop_trafficWeight">0</data>
+      <data key="prop_createdOn">2025-06-18 23:29:26Z</data>
+      <data key="prop_lastActiveOn">6/19/2025 9:02:05 AM +00:00</data>
+      <data key="prop_fqdn">diagnosticbench-app-202504091010--0000029.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
+      <data key="prop_template">"{"RevisionSuffix":null,"TerminationGracePeriodSeconds":null,"InitContainers":[],"Containers":[{"Probes":[],"Image":"acaalbumsmrsharm.azurecr.io/albumapi_csharp:20250512211602","ImageType":{},"Name":"diagnosticbench","Command":[],"Args":[],"Env":[],"Resources":{"Cpu":2,"Memory":"4Gi","EphemeralStorage":null,"Gpu":null},"VolumeMounts":[]}],"Scale":{"MinReplicas":1,"MaxReplicas":1,"CooldownPeriod":null,"PollingInterval":null,"Rules":[{"Name":"http-scaler","AzureQueue":null,"Custom":null,"Http":{"Metadata":{"concurrentRequests":"10"},"Auth":[],"Identity":null},"Tcp":null}]},"Volumes":[],"ServiceBinds":[]}"</data>
+      <data key="prop_isActive">false</data>
+      <data key="prop_replicas">0</data>
+      <data key="prop_labels">
+      </data>
+      <data key="prop_healthState">Healthy</data>
+      <data key="prop_runningState">Stopped</data>
+    </node>
+    <node id="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_revisions_diagnosticbench-app-202504091010--0000030">
+      <data key="labelV">microsoft.app/containerapps/revisions</data>
+      <data key="prop_resourceId">/subscriptions/be8d491e-109c-4ee1-aaee-dc7615af0a42/resourcegroups/mrsharm-operations-agent-3p-rg/providers/microsoft.app/containerapps/diagnosticbench-app-202504091010/revisions/diagnosticbench-app-202504091010--0000030</data>
+      <data key="prop_subscriptionId">be8d491e-109c-4ee1-aaee-dc7615af0a42</data>
+      <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
+      <data key="prop_resourceName">diagnosticbench-app-202504091010--0000030</data>
+      <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_provisioningState">Provisioned</data>
+      <data key="prop_resourceType">microsoft.app/containerapps/revisions</data>
+      <data key="prop_name">diagnosticbench-app-202504091010--0000030</data>
+      <data key="prop_appName">diagnosticbench-app-202504091010</data>
+      <data key="prop_trafficWeight">0</data>
+      <data key="prop_createdOn">2025-06-19 09:01:34Z</data>
+      <data key="prop_lastActiveOn">6/19/2025 9:08:25 AM +00:00</data>
+      <data key="prop_fqdn">diagnosticbench-app-202504091010--0000030.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
+      <data key="prop_template">"{"RevisionSuffix":null,"TerminationGracePeriodSeconds":null,"InitContainers":[],"Containers":[{"Probes":[],"Image":"acaalbumsmrsharm.azurecr.io/albumapi_csharp:20250512211602","ImageType":{},"Name":"diagnosticbench","Command":[],"Args":[],"Env":[],"Resources":{"Cpu":2.25,"Memory":"4.5Gi","EphemeralStorage":null,"Gpu":null},"VolumeMounts":[]}],"Scale":{"MinReplicas":1,"MaxReplicas":1,"CooldownPeriod":null,"PollingInterval":null,"Rules":[{"Name":"http-scaler","AzureQueue":null,"Custom":null,"Http":{"Metadata":{"concurrentRequests":"10"},"Auth":[],"Identity":null},"Tcp":null}]},"Volumes":[],"ServiceBinds":[]}"</data>
+      <data key="prop_isActive">false</data>
+      <data key="prop_replicas">0</data>
+      <data key="prop_labels">
+      </data>
+      <data key="prop_healthState">Healthy</data>
+      <data key="prop_runningState">Stopped</data>
+    </node>
+    <node id="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_revisions_diagnosticbench-app-202504091010--0000031">
+      <data key="labelV">microsoft.app/containerapps/revisions</data>
+      <data key="prop_resourceId">/subscriptions/be8d491e-109c-4ee1-aaee-dc7615af0a42/resourcegroups/mrsharm-operations-agent-3p-rg/providers/microsoft.app/containerapps/diagnosticbench-app-202504091010/revisions/diagnosticbench-app-202504091010--0000031</data>
+      <data key="prop_subscriptionId">be8d491e-109c-4ee1-aaee-dc7615af0a42</data>
+      <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
+      <data key="prop_resourceName">diagnosticbench-app-202504091010--0000031</data>
+      <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_provisioningState">Provisioned</data>
+      <data key="prop_resourceType">microsoft.app/containerapps/revisions</data>
+      <data key="prop_name">diagnosticbench-app-202504091010--0000031</data>
+      <data key="prop_appName">diagnosticbench-app-202504091010</data>
+      <data key="prop_trafficWeight">0</data>
+      <data key="prop_createdOn">2025-06-19 09:08:00Z</data>
+      <data key="prop_lastActiveOn">6/19/2025 9:13:30 AM +00:00</data>
+      <data key="prop_fqdn">diagnosticbench-app-202504091010--0000031.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
+      <data key="prop_template">"{"RevisionSuffix":null,"TerminationGracePeriodSeconds":null,"InitContainers":[],"Containers":[{"Probes":[],"Image":"acaalbumsmrsharm.azurecr.io/albumapi_csharp:20250512211602","ImageType":{},"Name":"diagnosticbench","Command":[],"Args":[],"Env":[],"Resources":{"Cpu":2.25,"Memory":"4.5Gi","EphemeralStorage":null,"Gpu":null},"VolumeMounts":[]}],"Scale":{"MinReplicas":2,"MaxReplicas":3,"CooldownPeriod":null,"PollingInterval":null,"Rules":[{"Name":"http-scaler","AzureQueue":null,"Custom":null,"Http":{"Metadata":{"concurrentRequests":"10"},"Auth":[],"Identity":null},"Tcp":null}]},"Volumes":[],"ServiceBinds":[]}"</data>
+      <data key="prop_isActive">false</data>
+      <data key="prop_replicas">0</data>
+      <data key="prop_labels">
+      </data>
+      <data key="prop_healthState">Healthy</data>
+      <data key="prop_runningState">Stopped</data>
+    </node>
+    <node id="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_revisions_diagnosticbench-app-202504091010--0000032">
+      <data key="labelV">microsoft.app/containerapps/revisions</data>
+      <data key="prop_resourceId">/subscriptions/be8d491e-109c-4ee1-aaee-dc7615af0a42/resourcegroups/mrsharm-operations-agent-3p-rg/providers/microsoft.app/containerapps/diagnosticbench-app-202504091010/revisions/diagnosticbench-app-202504091010--0000032</data>
+      <data key="prop_subscriptionId">be8d491e-109c-4ee1-aaee-dc7615af0a42</data>
+      <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
+      <data key="prop_resourceName">diagnosticbench-app-202504091010--0000032</data>
+      <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_provisioningState">Provisioned</data>
+      <data key="prop_resourceType">microsoft.app/containerapps/revisions</data>
+      <data key="prop_name">diagnosticbench-app-202504091010--0000032</data>
+      <data key="prop_appName">diagnosticbench-app-202504091010</data>
+      <data key="prop_trafficWeight">0</data>
+      <data key="prop_createdOn">2025-06-19 09:12:53Z</data>
+      <data key="prop_lastActiveOn">6/19/2025 9:15:14 AM +00:00</data>
+      <data key="prop_fqdn">diagnosticbench-app-202504091010--0000032.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
+      <data key="prop_template">"{"RevisionSuffix":null,"TerminationGracePeriodSeconds":null,"InitContainers":[],"Containers":[{"Probes":[],"Image":"acaalbumsmrsharm.azurecr.io/albumapi_csharp:20250512211602","ImageType":{},"Name":"diagnosticbench","Command":[],"Args":[],"Env":[],"Resources":{"Cpu":2.25,"Memory":"4.5Gi","EphemeralStorage":null,"Gpu":null},"VolumeMounts":[]}],"Scale":{"MinReplicas":3,"MaxReplicas":4,"CooldownPeriod":null,"PollingInterval":null,"Rules":[{"Name":"http-scaler","AzureQueue":null,"Custom":null,"Http":{"Metadata":{"concurrentRequests":"10"},"Auth":[],"Identity":null},"Tcp":null}]},"Volumes":[],"ServiceBinds":[]}"</data>
+      <data key="prop_isActive">false</data>
+      <data key="prop_replicas">0</data>
+      <data key="prop_labels">
+      </data>
+      <data key="prop_healthState">Healthy</data>
+      <data key="prop_runningState">Stopped</data>
+    </node>
+    <node id="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_revisions_diagnosticbench-app-202504091010--0000033">
+      <data key="labelV">microsoft.app/containerapps/revisions</data>
+      <data key="prop_resourceId">/subscriptions/be8d491e-109c-4ee1-aaee-dc7615af0a42/resourcegroups/mrsharm-operations-agent-3p-rg/providers/microsoft.app/containerapps/diagnosticbench-app-202504091010/revisions/diagnosticbench-app-202504091010--0000033</data>
+      <data key="prop_subscriptionId">be8d491e-109c-4ee1-aaee-dc7615af0a42</data>
+      <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
+      <data key="prop_resourceName">diagnosticbench-app-202504091010--0000033</data>
+      <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_provisioningState">Provisioned</data>
+      <data key="prop_resourceType">microsoft.app/containerapps/revisions</data>
+      <data key="prop_name">diagnosticbench-app-202504091010--0000033</data>
+      <data key="prop_appName">diagnosticbench-app-202504091010</data>
+      <data key="prop_trafficWeight">0</data>
+      <data key="prop_createdOn">2025-06-19 09:14:37Z</data>
+      <data key="prop_lastActiveOn">6/19/2025 4:00:23 PM +00:00</data>
+      <data key="prop_fqdn">diagnosticbench-app-202504091010--0000033.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
+      <data key="prop_template">"{"RevisionSuffix":null,"TerminationGracePeriodSeconds":null,"InitContainers":[],"Containers":[{"Probes":[],"Image":"acaalbumsmrsharm.azurecr.io/albumapi_csharp:20250512211602","ImageType":{},"Name":"diagnosticbench","Command":[],"Args":[],"Env":[],"Resources":{"Cpu":3,"Memory":"6Gi","EphemeralStorage":null,"Gpu":null},"VolumeMounts":[]}],"Scale":{"MinReplicas":3,"MaxReplicas":4,"CooldownPeriod":null,"PollingInterval":null,"Rules":[{"Name":"http-scaler","AzureQueue":null,"Custom":null,"Http":{"Metadata":{"concurrentRequests":"10"},"Auth":[],"Identity":null},"Tcp":null}]},"Volumes":[],"ServiceBinds":[]}"</data>
+      <data key="prop_isActive">false</data>
+      <data key="prop_replicas">0</data>
+      <data key="prop_labels">
+      </data>
+      <data key="prop_healthState">Healthy</data>
+      <data key="prop_runningState">Stopped</data>
+    </node>
+    <node id="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_revisions_diagnosticbench-app-202504091010--0000034">
+      <data key="labelV">microsoft.app/containerapps/revisions</data>
+      <data key="prop_resourceId">/subscriptions/be8d491e-109c-4ee1-aaee-dc7615af0a42/resourcegroups/mrsharm-operations-agent-3p-rg/providers/microsoft.app/containerapps/diagnosticbench-app-202504091010/revisions/diagnosticbench-app-202504091010--0000034</data>
+      <data key="prop_subscriptionId">be8d491e-109c-4ee1-aaee-dc7615af0a42</data>
+      <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
+      <data key="prop_resourceName">diagnosticbench-app-202504091010--0000034</data>
+      <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_provisioningState">Provisioned</data>
+      <data key="prop_resourceType">microsoft.app/containerapps/revisions</data>
+      <data key="prop_name">diagnosticbench-app-202504091010--0000034</data>
+      <data key="prop_appName">diagnosticbench-app-202504091010</data>
+      <data key="prop_trafficWeight">0</data>
+      <data key="prop_createdOn">2025-06-19 15:59:42Z</data>
+      <data key="prop_lastActiveOn">6/19/2025 3:59:58 PM +00:00</data>
+      <data key="prop_fqdn">diagnosticbench-app-202504091010--0000034.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
+      <data key="prop_template">"{"RevisionSuffix":null,"TerminationGracePeriodSeconds":null,"InitContainers":[],"Containers":[{"Probes":[],"Image":"acaalbumsmrsharm.azurecr.io/albumapi_csharp:20250512211602","ImageType":{},"Name":"diagnosticbench","Command":[],"Args":[],"Env":[],"Resources":{"Cpu":0.75,"Memory":"1.5Gi","EphemeralStorage":null,"Gpu":null},"VolumeMounts":[]}],"Scale":{"MinReplicas":3,"MaxReplicas":4,"CooldownPeriod":null,"PollingInterval":null,"Rules":[{"Name":"http-scaler","AzureQueue":null,"Custom":null,"Http":{"Metadata":{"concurrentRequests":"10"},"Auth":[],"Identity":null},"Tcp":null}]},"Volumes":[],"ServiceBinds":[]}"</data>
+      <data key="prop_isActive">false</data>
+      <data key="prop_replicas">0</data>
+      <data key="prop_labels">
+      </data>
+      <data key="prop_healthState">Healthy</data>
+      <data key="prop_runningState">Stopped</data>
+    </node>
+    <node id="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_revisions_diagnosticbench-app-202504091010--0000035">
+      <data key="labelV">microsoft.app/containerapps/revisions</data>
+      <data key="prop_resourceId">/subscriptions/be8d491e-109c-4ee1-aaee-dc7615af0a42/resourcegroups/mrsharm-operations-agent-3p-rg/providers/microsoft.app/containerapps/diagnosticbench-app-202504091010/revisions/diagnosticbench-app-202504091010--0000035</data>
+      <data key="prop_subscriptionId">be8d491e-109c-4ee1-aaee-dc7615af0a42</data>
+      <data key="prop_resourceGroupName">mrsharm-operations-agent-3p-rg</data>
+      <data key="prop_resourceName">diagnosticbench-app-202504091010--0000035</data>
+      <data key="prop_location">eastus2</data>
+      <data key="prop_isDeleted">false</data>
+      <data key="prop_provisioningState">Provisioned</data>
+      <data key="prop_resourceType">microsoft.app/containerapps/revisions</data>
+      <data key="prop_name">diagnosticbench-app-202504091010--0000035</data>
+      <data key="prop_appName">diagnosticbench-app-202504091010</data>
+      <data key="prop_trafficWeight">100</data>
+      <data key="prop_createdOn">2025-06-19 15:59:57Z</data>
+      <data key="prop_fqdn">diagnosticbench-app-202504091010--0000035.ambitiousrock-3d9beb0f.eastus2.azurecontainerapps.io</data>
+      <data key="prop_template">"{"RevisionSuffix":null,"TerminationGracePeriodSeconds":null,"InitContainers":[],"Containers":[{"Probes":[],"Image":"acaalbumsmrsharm.azurecr.io/albumapi_csharp:20250512211602","ImageType":{},"Name":"diagnosticbench","Command":[],"Args":[],"Env":[],"Resources":{"Cpu":0.75,"Memory":"1.5Gi","EphemeralStorage":null,"Gpu":null},"VolumeMounts":[]}],"Scale":{"MinReplicas":1,"MaxReplicas":1,"CooldownPeriod":null,"PollingInterval":null,"Rules":[{"Name":"http-scaler","AzureQueue":null,"Custom":null,"Http":{"Metadata":{"concurrentRequests":"10"},"Auth":[],"Identity":null},"Tcp":null}]},"Volumes":[],"ServiceBinds":[]}"</data>
+      <data key="prop_isActive">true</data>
+      <data key="prop_replicas">1</data>
+      <data key="prop_labels">
+      </data>
+      <data key="prop_healthState">Healthy</data>
+      <data key="prop_runningState">RunningAtMaxScale</data>
+    </node>
     <edge id="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_REVISION_OF__subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_revisions_diagnosticbench-app-202504091010--7fsuycs" source="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010" target="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_revisions_diagnosticbench-app-202504091010--7fsuycs">
       <data key="edge_label">REVISION_OF</data>
     </edge>
@@ -879,6 +1171,42 @@
       <data key="edge_label">REVISION_OF</data>
     </edge>
     <edge id="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_REVISION_OF__subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_revisions_diagnosticbench-app-202504091010--0000024" source="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010" target="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_revisions_diagnosticbench-app-202504091010--0000024">
+      <data key="edge_label">REVISION_OF</data>
+    </edge>
+    <edge id="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_REVISION_OF__subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_revisions_diagnosticbench-app-202504091010--0000025" source="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010" target="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_revisions_diagnosticbench-app-202504091010--0000025">
+      <data key="edge_label">REVISION_OF</data>
+    </edge>
+    <edge id="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_LINKED__subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_approval-service-rg_providers_microsoft.app_managedenvironments_approvalservice" source="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010" target="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_approval-service-rg_providers_microsoft.app_managedenvironments_approvalservice">
+      <data key="edge_label">LINKED</data>
+    </edge>
+    <edge id="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_REVISION_OF__subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_revisions_diagnosticbench-app-202504091010--0000026" source="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010" target="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_revisions_diagnosticbench-app-202504091010--0000026">
+      <data key="edge_label">REVISION_OF</data>
+    </edge>
+    <edge id="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_REVISION_OF__subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_revisions_diagnosticbench-app-202504091010--0000027" source="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010" target="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_revisions_diagnosticbench-app-202504091010--0000027">
+      <data key="edge_label">REVISION_OF</data>
+    </edge>
+    <edge id="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_REVISION_OF__subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_revisions_diagnosticbench-app-202504091010--0000028" source="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010" target="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_revisions_diagnosticbench-app-202504091010--0000028">
+      <data key="edge_label">REVISION_OF</data>
+    </edge>
+    <edge id="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_REVISION_OF__subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_revisions_diagnosticbench-app-202504091010--0000029" source="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010" target="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_revisions_diagnosticbench-app-202504091010--0000029">
+      <data key="edge_label">REVISION_OF</data>
+    </edge>
+    <edge id="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_REVISION_OF__subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_revisions_diagnosticbench-app-202504091010--0000030" source="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010" target="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_revisions_diagnosticbench-app-202504091010--0000030">
+      <data key="edge_label">REVISION_OF</data>
+    </edge>
+    <edge id="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_REVISION_OF__subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_revisions_diagnosticbench-app-202504091010--0000031" source="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010" target="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_revisions_diagnosticbench-app-202504091010--0000031">
+      <data key="edge_label">REVISION_OF</data>
+    </edge>
+    <edge id="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_REVISION_OF__subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_revisions_diagnosticbench-app-202504091010--0000032" source="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010" target="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_revisions_diagnosticbench-app-202504091010--0000032">
+      <data key="edge_label">REVISION_OF</data>
+    </edge>
+    <edge id="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_REVISION_OF__subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_revisions_diagnosticbench-app-202504091010--0000033" source="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010" target="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_revisions_diagnosticbench-app-202504091010--0000033">
+      <data key="edge_label">REVISION_OF</data>
+    </edge>
+    <edge id="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_REVISION_OF__subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_revisions_diagnosticbench-app-202504091010--0000034" source="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010" target="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_revisions_diagnosticbench-app-202504091010--0000034">
+      <data key="edge_label">REVISION_OF</data>
+    </edge>
+    <edge id="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_REVISION_OF__subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_revisions_diagnosticbench-app-202504091010--0000035" source="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010" target="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_mrsharm-operations-agent-3p-rg_providers_microsoft.app_containerapps_diagnosticbench-app-202504091010_revisions_diagnosticbench-app-202504091010--0000035">
       <data key="edge_label">REVISION_OF</data>
     </edge>
     <edge id="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_approval-service-rg_providers_microsoft.app_managedenvironments_approvalservice_HAS_ROLE__subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_approval-service-rg_providers_microsoft.containerregistry_registries_sreagent" source="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_approval-service-rg_providers_microsoft.app_managedenvironments_approvalservice" target="_subscriptions_be8d491e-109c-4ee1-aaee-dc7615af0a42_resourcegroups_approval-service-rg_providers_microsoft.containerregistry_registries_sreagent">
