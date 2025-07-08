@@ -15,8 +15,8 @@ namespace Agent.Tests.Unit.Plugins
         public void AllProjectedColumns_AreAllowed_AndNotDisallowed()
         {
             // Arrange
-            var baseDir = Path.GetFullPath(Path.Combine("..", "..", "..", ".."));
-            var pluginsDefinitionsDir = Path.Combine(baseDir, "Agent.Plugins", "Plugins", "Definitions", "Queries");
+            // Use AppContext.BaseDirectory to ensure compatibility in remote/test environments
+            var pluginsDefinitionsDir = Path.Combine(AppContext.BaseDirectory, "Plugins", "Definitions", "Queries");
             var columnsFileBaseDir = Path.Combine(AppContext.BaseDirectory, "Plugins", "ACA-FirstParty");
             var allowedColumnsPath = Path.Combine(columnsFileBaseDir, "allowedColumns.txt");
 
