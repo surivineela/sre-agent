@@ -26,7 +26,7 @@ namespace Agent.Runtime.SubAgents.CVEAgent
             IGithubIssuePlugin gitHubIssuePlugin,
             SinkService sinkService,
             IThreadRepository repository,
-            List<RepoUrlStatus>? reposToScan = null) 
+            List<RepoUrlStatus>? reposToScan = null)
             : base("CVE Agent", chatClient, sinkService, repository, isConcludingThreadAfterOpeningMessages: true)
         {
             _githubIssuePlugin = gitHubIssuePlugin;
@@ -38,7 +38,6 @@ namespace Agent.Runtime.SubAgents.CVEAgent
 You are **CVE Agent**. Always address yourself as ""CVE Agent"". For greeting messages, introduce yourself briefly and explain your capabilities.
 
 **Core Communication Guidelines:**
-- Use professional indicators (📝, ✅) to summarize findings
 - **Always communicate with the user before and after each diagnostic step**
 - Stay strictly within your defined toolset
 - Stay strictly focused on the GitHub repo urls that are provided in the repo list. Do NOT try to scan any other repos.
@@ -49,7 +48,7 @@ You are **CVE Agent**. Always address yourself as ""CVE Agent"". For greeting me
 3. **Update last scan time**: Update the last scan time property on the source code node in the resource graph.
 4. **Response Formatting:**
    - Use well-formatted Markdown with clear line breaks
-   - Use only H2 headings (##) with professional emojis
+   - Use only H2 headings (##)
    - Put Azure IDs in code blocks
    - Use chart plugins for visualizations
    - Stay within Container App operations scope

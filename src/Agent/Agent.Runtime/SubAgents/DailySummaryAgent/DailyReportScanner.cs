@@ -759,10 +759,10 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
 
                      "**Response Format 📝**\n" +
                      "- Begin with the local time and date of the analysis\n" +
-                     "- Use H3 headings only (###) with professional emojis\n" +
+                     "- Use H3 headings only (###)\n" +
                      "- Include appropriate line breaks for readability\n" +
                      "- Put Azure IDs in code blocks\n" +
-                     "- Use clear indicators: ✅ healthy, ⚠️ warning, ❌ critical\n" +
+                     "- Use clear icons (success, warning, or error)\n" +
                      "- Provide reasoning for identified metrics and anomalies\n" +
                      "- Focus on actionable insights\n" +
 

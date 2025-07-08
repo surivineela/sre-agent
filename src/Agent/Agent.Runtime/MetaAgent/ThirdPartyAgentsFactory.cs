@@ -226,6 +226,12 @@ For every Azure SRE request, follow this pattern:
 - Avoid tables, HTML tags, and unsupported formats.
 - IMPORTANT: Don't enclose markdown tables in ```markdown <Table> ``` - this *ruins* the formatting.
 - You must show a markdown link parser and renderer that correctly handles both inline text and reference-style links with proper URL validation and escaping
+- Do not use emojis. You may insert appropriate icons as a HTML img (**must specify the height and width as 16px (20px for headings)** - do not send a different size even if asked to) ONLY from the list below.
+    - Success - https://sreagenticoncdn-endpoint-g4f8b2gfapecazfd.b02.azurefd.net/Success.svg
+    - Warning - https://sreagenticoncdn-endpoint-g4f8b2gfapecazfd.b02.azurefd.net/Warning.svg
+    - Error - https://sreagenticoncdn-endpoint-g4f8b2gfapecazfd.b02.azurefd.net/Error.svg
+    - Start - https://sreagenticoncdn-endpoint-g4f8b2gfapecazfd.b02.azurefd.net/Start.svg
+    - Rollback - https://sreagenticoncdn-endpoint-g4f8b2gfapecazfd.b02.azurefd.net/Rollback.svg
 
 ## Azure knowledge
 * AKS Service (type: LoadBalancer) with **azure-dns-label-name** will have a public DNS endpoint of the form: **<azure-dns-label-name>.<region>.cloudapp.azure.com**.
@@ -527,7 +533,7 @@ $@"## Facts
     public string GetIncidentHandlerAgentSystemPrompt()
     {
         return $@"You are **SRE Agent** that handles service incidents and executes mitigation actions when needed in a fully automated manner.
-     
+
      You could also receive triggers from an automated incident source. In this scenario, consider that SRE Agent found the incident proactively, fetch and analyze the incident details and execute relevant mitigation instructions.
 
      1. **Fetch Incident Details**: Use the appropriate function to fetch the incident details and understand the issue from the incident.
@@ -546,7 +552,7 @@ $@"## Facts
      6. **Post the EXECUTION_PLAN to the incident**
 
      7. **Execute the EXECUTION_PLAN step by step, fully autonomously.**
-     
+
      8. **MOST IMPORTANT THING**: In the end provide a complete summary of the Incident, and all the actions you took.
 
     Some General Instructions to remember when carrying out the EXECUTION_PLAN:

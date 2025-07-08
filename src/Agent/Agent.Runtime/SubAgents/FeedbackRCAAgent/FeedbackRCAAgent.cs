@@ -21,7 +21,7 @@ namespace Agent.Runtime.SubAgents.FeedbackRCAAgent
             IChatClient chatClient,
             SinkService sinkService,
             IThreadRepository repository,
-            MessageFeedback? messageFeedback = null) 
+            MessageFeedback? messageFeedback = null)
             : base("Feedback RCA Agent", chatClient)
         {
             _messageFeedback = messageFeedback;
@@ -31,7 +31,6 @@ namespace Agent.Runtime.SubAgents.FeedbackRCAAgent
 You are **Feedback RCA Agent**. Always address yourself as ""Feedback RCA"". For greeting messages, introduce yourself briefly and explain your capabilities.
 
 **Core Communication Guidelines:**
-- Use professional indicators (📝, ✅) to summarize findings
 - **Always communicate with the user before and after each diagnostic step**
 - Stay strictly within your defined toolset
 - Stay strictly focused on the GitHub repo urls that are provided in the repo list. Do NOT try to scan any other repos.

@@ -84,7 +84,7 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
                                             - Deployments or updates that could have introduced issues and happened closely preceding the alert
                                             - Evaluate the correlation of each activity based on timeline. The closer to the alert trigger time, the more likely it's correlated
                                             - ONLY mention activities that likely caused the alert
-                                            - CRITICAL: Focus on WRITE actions, e.g., Create, Update. READ Actions such as ListSecrets etc. are most likely not relevant. 
+                                            - CRITICAL: Focus on WRITE actions, e.g., Create, Update. READ Actions such as ListSecrets etc. are most likely not relevant.
                                             - Ignore routine operations unrelated to the issue";
 
             var promptWithPlaceholders = ChainPrompt
@@ -179,7 +179,7 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
 3. Note any correlation between component health and alert timing
 4. Specify numeric values for important metrics where available
 
-CRITICAL: 
+CRITICAL:
 - Missing health data for some components is NORMAL and does NOT indicate the resource is deleted or inaccessible
 - Focus ONLY on significant deviations from normal metrics
 - Quantify the deviation where possible (e.g., '95% CPU vs normal 60%')
@@ -261,9 +261,9 @@ CRITICAL:
                     - Your analysis: The app is not having high traffic but is still experiencing high CPU usage, indicating a potential performance issue, like deadlocks, infinite loops or inefficient queries.
 
                     Example analysis - 3:
-                    - App health info: The availability is low (less than 50%) while the memory percentage is high (over 70%), the request metrics are normal 
+                    - App health info: The availability is low (less than 50%) while the memory percentage is high (over 70%), the request metrics are normal
                     - Your analysis: The high memory consumption is likely causing the app to be unavailable, indicating potential memory leaks or resource constraint.
-                     
+
                     Avoid general observations. Include specific times, durations, and metric values.";
 
                 var appHealthPromptWithPlaceholders = ChainPrompt
@@ -374,7 +374,7 @@ CRITICAL:
                   }},
                   ...
                 ]
-                DONOT Add any other text or else my JSON deserialization is going to fail. 
+                DONOT Add any other text or else my JSON deserialization is going to fail.
                 Limit your selection to the 5 most relevant queries. If none are relevant, return an empty array.";
 
             _logger.LogDebug($"Sending prompt to LLM to identify relevant queries");
@@ -551,7 +551,7 @@ ONLY mention findings directly relevant to this alert condition.";
 
 **Detailed Metric Findings:**
 • **CPU METRICS:** [Describe what you observed - e.g., 'NOTICED A spike to 95% around 2:30PM, normally runs at 45%']
-• **MEMORY METRICS:** [Describe pattern - e.g., 'Memory usage climbed from 60% to 85% starting at 2:28PM']  
+• **MEMORY METRICS:** [Describe pattern - e.g., 'Memory usage climbed from 60% to 85% starting at 2:28PM']
 • **REQUEST METRICS:** [Describe behavior - e.g., 'Request count dropped from 500/min to 50/min after 2:32PM']
 • **ERROR METRICS:** [Describe errors - e.g., 'HTTP 500 errors jumped from 2/min to 45/min at 2:30PM']
 
@@ -907,7 +907,7 @@ Produce a concise investigation report with:
 - One critical insight (max 1-2 sentences)
 - 2-3 key data points that matter most
 
-## Hypotheses  
+## Hypotheses
 For each hypothesis (max 2):
 - **Hypothesis:** One-sentence statement with **Confidence:** High/Medium/Low
 
@@ -915,7 +915,7 @@ For each hypothesis (max 2):
 BE VERY CRITICAL ABOUT HYPOTHESIS FORMATION. ONLY INCLUDE THE INFORMATION THAT MIGHT HELP WITH FURTHER INVESTIGATION AND REMEDIATION.
 IF YOU ARE NOT CONFIDENT, YOU CAN JUST LEAVE IT OUT COMPLETELY. Imagine you are convincing a jury, and you need to provide a proof for the proposed hypothesis.
 DO NOT provide generic suggestions. BE SPECIFIC to this alert and its context.
-Avoid duplicate information. Use emojis sparingly for readability.
+Avoid duplicate information.
 Keep the entire response under 150-200 words.
 </CRITICAL>
 ";

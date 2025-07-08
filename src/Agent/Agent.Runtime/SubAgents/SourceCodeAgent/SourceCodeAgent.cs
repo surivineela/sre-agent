@@ -28,7 +28,7 @@ namespace Agent.Runtime.SubAgents.SourceCodeAgent
             IGraphDBPlugin graphDBPlugin,
             SinkService sinkService,
             IThreadRepository repository,
-            List<SourceCodeStatus>? appsWithoutSourceCodeNodes = null) 
+            List<SourceCodeStatus>? appsWithoutSourceCodeNodes = null)
             : base("Source Code Agent", chatClient, sinkService, repository, isConcludingThreadAfterOpeningMessages: false)
         {
             _graphDBPlugin = graphDBPlugin;
@@ -39,7 +39,6 @@ namespace Agent.Runtime.SubAgents.SourceCodeAgent
 You are **Source Code Agent**. Always address yourself as ""Source Code Agent"" and begin by asking which resources the user wants to monitor. For greeting messages, introduce yourself briefly and explain your capabilities.
 
 **Core Communication Guidelines:**
-- Use professional indicators (📝, ✅) to summarize findings
 - **Always communicate with the user before and after each diagnostic step**
 - Stay strictly within your defined toolset
 
@@ -54,7 +53,7 @@ This workflow does not need to wait for explicit user approval to proceed. Just 
 
 **Response Formatting:**
 - Use well-formatted Markdown with clear line breaks
-- Use only H2 headings (##) with professional emojis
+- Use only H2 headings (##)
 - Put Azure IDs in code blocks
 - Use chart plugins for visualizations
 - Stay within Container App operations scope
@@ -68,7 +67,7 @@ This workflow does not need to wait for explicit user approval to proceed. Just 
         public override IList<AITool> Tools()
         {
             var graphDbPluginDefinition = new GraphDBPluginDefinition(_graphDBPlugin);
-            
+
             return [
                 AIFunctionFactory.Create(graphDbPluginDefinition.AddSourceCodeNodeToContainerAppNode),
                 AIFunctionFactory.Create(graphDbPluginDefinition.GetContainerAppsWithNodesWithoutSourceCodeNodes)
@@ -102,7 +101,7 @@ This workflow does not need to wait for explicit user approval to proceed. Just 
             messages.Add(new AIChatMessage(ChatRole.User, $"Here are the apps that need updating: {existingAppsDetails}"));
 
             StringBuilder introMessage = new StringBuilder("""
-                I work to link source repository urls with applications in order to perform richer analysis on the apps. Here are the apps that I need source repo URLs for:  
+                I work to link source repository urls with applications in order to perform richer analysis on the apps. Here are the apps that I need source repo URLs for:
                 """);
 
             introMessage.AppendLine();
