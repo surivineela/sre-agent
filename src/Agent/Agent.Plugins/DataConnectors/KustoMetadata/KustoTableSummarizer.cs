@@ -9,17 +9,18 @@ using System.Text.Json;
 using Agent.Core.Models.Search;
 using Agent.Plugins.Kusto;
 using Agent.Plugins.KustoPlugin;
+using Kusto.Data.Exceptions;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 
-namespace Agent.Runtime.Indexing.KustoQueryGeneration
+namespace Agent.Plugins.DataConnectors.KustoMetadata
 {
     public class KustoTableSummarizer
     {
         private const string SystemPrompt =
             """
-            You are a Kusto (Azure Data Explorer) master that understands table data from Kusto.
+            You are a log data specialist that understands log data stored in Kusto tables.
             You will answer any questions about the data from Kusto tables that are provided to you in an authoritative and confident manner.
             Do NOT give broad or general statements about the data. For example, do NOT say general things like the data is useful for troubleshooting, monitoring, or any other generic terms.
             Be specific about the data, its use cases, and what kind of questions it can answer.
@@ -46,26 +47,195 @@ namespace Agent.Runtime.Indexing.KustoQueryGeneration
 
         public async Task<IDataReader> PerformQueryAsync(string database, string query)
         {
-            return await _kustoClient.PerformQueryAsync(_clusterUri.ToString(), database, query);
-        }
+            const int MaxAttempts = 3;
+            KustoClientException? lastException = null;
 
-        public async Task<string> SummarizeTableAsync(string tableName, IEnumerable<KustoColumnMetadata> columnMetadata)
-        {
-            StringBuilder query = new StringBuilder(
-                """
-                Provide a summary of the following Kusto table based on the table name and information about the data in each column.
-                Include details about the kind of data found in the table, use cases for the data, and what kind of questions the data can answer.
-                Be concise. Limit the summary to no more than a paragraph or two.
-                """);
-
-            query.AppendLine();
-            query.AppendLine(CultureInfo.InvariantCulture, $"Table `{tableName}");
-            foreach (KustoColumnMetadata column in columnMetadata)
+            for (int i = 0; i < MaxAttempts; ++i)
             {
-                query.AppendLine(CultureInfo.InvariantCulture, $"Column: {column.Name}, Type: {column.Type}, Description: {column.Description}");
+                try
+                {
+                    return await _kustoClient.PerformQueryAsync(_clusterUri.ToString(), database, query);
+                }
+                catch (KustoClientException ex)
+                {
+                    _logger.LogInternalWarning($"An error occurred while executing PerformQueryAsync: {ex.Message}");
+
+                    lastException = ex;
+                }
             }
 
-            return await SendToModel(query.ToString());
+            if (lastException != null)
+            {
+                throw lastException;
+            }
+
+            throw new InvalidOperationException("Failed to execute query after multiple attempts.");
+        }
+
+        public async Task<string> GetLogMessageSamplesAsync(string databaseName, string tableName, string logMessageColumnName)
+        {
+            const string columnSummaryPrompt =
+                $$"""
+                # Instructions
+                Using the log table data below, return a new-line separated list of semantically unique rows with no duplicates and nothing else in your response.
+
+                # Examples
+                Duplicate rows can by identified by having a similar pattern with differing values filled in for things like names, IDs, dates, etc. For example, the following would be considered duplicates:
+
+                Example 1:
+                "volume: static-files-volume is emptyDir for container app or job f3d3580e-bcee-464f-8e3e-b10aa98b2bc"
+                "volume: pgdata is emptyDir for container app or job 613b1415-ab36-4f08-9558-48f5b9d46edd"
+
+                Example 2:
+                "Cluster yellowsky-d51538f5 was created on 2025-02-03 at 11:24:42Z"
+                "Cluster thankfulwave-d0b9e1d6 was created on 2025-02-04 at 03:10:02Z"
+
+                Example 3:
+                I0627 23:20:07.831154 1 request.go:697] Waited for 2.582681249s due to client-side throttling, not priority and fairness, request: PUT:https://100.100.224.1:443/api/v1/namespaces/k8se-apps/events/worker11antsscale010-l6x9e71-gnw95.cad96cea6fd8d5444487337t48z2
+                I0628 00:26:53.826876 1 request.go:697] Waited for 1.033386051s due to client-side throttling, not priority and fairness, request: PUT:https://100.100.128.1:443/api/v1/namespaces/k8se-apps/events/largereplicasapp--gwleybt-bc7745f66-4rfz4.4743d8502854de8fbtlnn
+
+                Notice how in each of these examples, the rows looks like they're saying the same thing but with different values such as IDs, names, dates, or other values.
+                The duplicates should be removed, and only unique rows should be returned.
+
+                # Log table data
+
+                """;
+
+            if (string.IsNullOrEmpty(logMessageColumnName))
+            {
+                return string.Empty;
+            }
+
+            // This query does some de-duplication of log messages by taking the first 10 characters of the log message and summarizing by that substring
+            // The LLM will further de-duplicate the messages based on the context it has
+            using IDataReader dataReader = await PerformQueryAsync(
+                databaseName,
+                $$"""
+                {{tableName}}
+                    | where PreciseTimeStamp > ago (7d)
+                    | where isnotempty({{logMessageColumnName}})
+                    | project {{logMessageColumnName}}
+                    | extend sub1 = substring({{logMessageColumnName}}, 0, 15)
+                    | summarize take_any(*) by sub1
+                    | project {{logMessageColumnName}}, sub2 = substring({{logMessageColumnName}}, strlen({{logMessageColumnName}})-15)
+                    | summarize take_any(*) by sub2
+                    | project {{logMessageColumnName}}
+                    | sample 1000
+                    | sort by {{logMessageColumnName}} asc
+                """);
+
+            StringBuilder sb = new StringBuilder();
+            List<string> batchResults = new List<string>();
+
+            while (dataReader.Read())
+            {
+                string? line = dataReader[0].ToString();
+                if (!string.IsNullOrEmpty(line))
+                {
+                    int newLineIndex = line.IndexOf('\n');
+                    if (newLineIndex >= 0)
+                    {
+                        line = line[..newLineIndex];
+                    }
+
+                    line = line[..Math.Min(line.Length, 1000)]; // Limit to 1000 characters to avoid too long lines
+
+                    sb.AppendLine(line);
+
+                    // Check if we need to send a batch
+                    if (sb.Length > 30000)
+                    {
+                        // Send current batch
+                        string batchPrompt = columnSummaryPrompt + Environment.NewLine + sb.ToString();
+                        string batchResult = await SendToModel(batchPrompt);
+                        batchResults.Add(batchResult);
+                        
+                        // Clear the buffer for next batch
+                        sb.Clear();
+                    }
+                }
+            }
+
+            // Process any remaining data
+            if (sb.Length > 0)
+            {
+                string finalPrompt = columnSummaryPrompt + Environment.NewLine + sb.ToString();
+                string finalResult = await SendToModel(finalPrompt);
+                batchResults.Add(finalResult);
+            }
+
+            if (batchResults.Count > 0)
+            {
+                return string.Join(Environment.NewLine, batchResults);
+            }
+
+            return string.Empty;
+        }
+
+        public async Task<string> SummarizeTableAsync(string tableName, List<KustoLogMessageSamples> logMessageSamples, IEnumerable<KustoColumnMetadata> columnMetadata)
+        {
+            StringBuilder logData = new StringBuilder();
+
+            if (logMessageSamples.Count > 0)
+            {
+                foreach (KustoLogMessageSamples sample in logMessageSamples)
+                {
+                    if (sample.UniqueMessages.Count > 0)
+                    {
+                        logData.AppendLine($"## {sample.LogColumnName}");
+                        logData.AppendLine();
+                        logData.AppendLine(string.Join(Environment.NewLine, sample.UniqueMessages));
+                        logData.AppendLine();
+                    }
+                }
+            }
+
+            StringBuilder finalPrompt = new StringBuilder(
+                $$"""
+                Provide a summary of the following log table named {{tableName}}.
+                Include details about the kind of data found in the table and what kind of questions the data can answer.
+                """);
+
+            if (logData.Length > 0)
+            {
+                finalPrompt.Append(
+                    """
+                    Use the sample of unique log messages as the pimary context for your summary, followed by the table schema as additional context.
+                    Be concise and specific in your answer. Start with a concise summary paragraph and then follow that with a longer summary about the log messages.
+                    """);
+            }
+            else
+            {
+                finalPrompt.Append(
+                    """
+                    Use the table schema as the pimary context for your summary.
+                    Be concise and specific in your answer. Limit your summary to two paragraphs or less.
+                    """);
+            }
+
+            finalPrompt.AppendLine(
+                $$"""
+                Include details about the kind of data found in the table and what kind of questions the data can answer.
+                Be concise and specific in your answer.
+                """);
+
+            finalPrompt.AppendLine("# Sample of unique log messages");
+            finalPrompt.AppendLine();
+            finalPrompt.AppendLine("The following data shows a comprehensive sample of unique log messages in the table. Use this as the primary context for your summary.");
+            finalPrompt.AppendLine();
+            finalPrompt.AppendLine(logData.ToString());
+
+            finalPrompt.AppendLine();
+            finalPrompt.AppendLine("# Table schema");
+            finalPrompt.AppendLine();
+            finalPrompt.AppendLine("The following schema shows all of the columns in the table, their data types, and a brief summary of the data they contain.");
+
+            foreach (KustoColumnMetadata column in columnMetadata)
+            {
+                finalPrompt.AppendLine(CultureInfo.InvariantCulture, $"Column: {column.Name}, Type: {column.Type}, Description: {column.Description}");
+            }
+
+            return await SendToModel(finalPrompt.ToString());
         }
 
         public async Task<string> GenerateQueryDescriptionAsync(string tableDescription, string queryText)
@@ -189,13 +359,13 @@ namespace Agent.Runtime.Indexing.KustoQueryGeneration
                 {
                     query.AppendLine("Note: The following columns are not in the schema: " + badColumns);
                 }
-                
+
                 query.AppendLine();
                 query.AppendLine(kustoSampleData.Result);
 
                 string result = await SendToModel(query.ToString());
 
-                _logger.LogInternalInformation($"Table '{tableName}' column results: {result}");
+                _logger.LogInternalDebug($"Table '{tableName}' column results: {result}");
 
                 string[] columns = result.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
@@ -230,7 +400,7 @@ namespace Agent.Runtime.Indexing.KustoQueryGeneration
             };
 
             ChatResponse response = await _chatClient.GetResponseAsync(messages, _chatOptions);
-
+            
             return response.Messages.Last().Text;
         }
 

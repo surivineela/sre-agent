@@ -149,4 +149,26 @@ public static class LoggerExtensions
         args = args.Prepend(AzureDataExplorerLogger.InternalLogType).ToArray();
         logger.LogError($"{{{AzureDataExplorerLogger.LogTypeName}}}>>> {message}", args);
     }
+
+
+    public static void LogInternalDebug<T>(this ILogger<T> logger, string message, params object?[] args)
+    {
+        LogInternalDebugHelper(logger, message, args);
+    }
+
+    public static void LogInternalDebug(this ILogger logger, string message, params object?[] args)
+    {
+        LogInternalDebugHelper(logger, message, args);
+    }
+
+    private static void LogInternalDebugHelper(ILogger logger, string message, params object?[] args)
+    {
+        if (args.Length == 0)
+        {
+            message = message.Replace("{", "{{").Replace("}", "}}");
+        }
+
+        args = args.Prepend(AzureDataExplorerLogger.InternalLogType).ToArray();
+        logger.LogDebug($"{{{AzureDataExplorerLogger.LogTypeName}}}>>> {message}", args);
+    }
 }

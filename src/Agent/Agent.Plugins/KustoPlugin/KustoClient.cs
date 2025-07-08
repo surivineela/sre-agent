@@ -30,7 +30,7 @@ public class KustoClient
         _logger.LogInternalInformation($"Kusto Authentication type: {_kustoAuthSettings.AuthenticationType}");
     }
 
-    public async Task<IDataReader> PerformQueryAsync(string clusterUri, string database, string query)
+    public async Task<IDataReader> PerformQueryAsync(string clusterUri, string database, string query, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -43,8 +43,9 @@ public class KustoClient
 
             _logger.LogExternalInformation($"Executing query: {query}, request Id: {properties.ClientRequestId}");
 
-            return await queryProvider.ExecuteQueryAsync(database, query, properties);
-        } catch(Exception ex)
+            return await queryProvider.ExecuteQueryAsync(database, query, properties, cancellationToken);
+        }
+        catch (Exception ex)
         {
             _logger.LogInternalError($"An error occurred while executing PerformQueryAsync: {ex.Message}");
             throw;

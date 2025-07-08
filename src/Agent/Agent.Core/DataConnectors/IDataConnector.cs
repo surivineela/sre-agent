@@ -4,7 +4,7 @@
 
 using Agent.Core.Configuration;
 
-namespace Agent.Runtime.DataConnectors;
+namespace Agent.Core.DataConnectors;
 
 public interface IDataConnector
 {

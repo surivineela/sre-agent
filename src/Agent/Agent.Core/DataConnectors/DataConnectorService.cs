@@ -5,7 +5,7 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace Agent.Runtime.DataConnectors;
+namespace Agent.Core.DataConnectors;
 
 /// <summary>
 /// Background service that manages and runs multiple data connectors based on their configuration settings.

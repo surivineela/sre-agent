@@ -7,7 +7,7 @@ using Agent.Core.Configuration;
 using Azure.Core;
 using Azure.Search.Documents.Indexes.Models;
 
-namespace Agent.Runtime.Indexing.Documentation;
+namespace Agent.Plugins.DataConnectors.Documentation;
 
 public class DocumentationIndex
 {

@@ -2,14 +2,14 @@
 // Copyright (c) Microsoft Corporation.  All rights reserved.
 // -----------------------------------------------------------
 
-namespace Agent.Runtime.Indexing.KustoQueryGeneration
+namespace Agent.Plugins.DataConnectors.KustoMetadata
 {
     using System.Threading;
     using Agent.Core.Clients.Storage;
     using Agent.Core.Configuration;
+    using Agent.Core.DataConnectors;
     using Agent.Core.Interfaces;
     using Agent.Core.Models.Search;
-    using Agent.Runtime.DataConnectors;
     using Azure.Core;
     using Microsoft.DurableTask;
     using Microsoft.DurableTask.Client;
@@ -24,7 +24,8 @@ namespace Agent.Runtime.Indexing.KustoQueryGeneration
         private readonly ILogger<KustoTableIndexerDataConnector> _logger;
         private readonly IChatClient _chatClient;
         private readonly ILoggerFactory _loggerFactory;
-        private readonly KustoMetadataIndex _kustoMetadataIndex;
+        private readonly KustoMetadataIndex<KustoTableMetadata> _kustoMetadataIndex;
+        private readonly KustoMetadataIndex<KustoExampleQueryDocument> _kustExampleQueryIndex;
         private readonly IAzureBlobStorageClient _azureBlobStorageClient;
 
         private DataConnectorSettings? _dataConnectorSettings;
@@ -40,7 +41,8 @@ namespace Agent.Runtime.Indexing.KustoQueryGeneration
         public KustoTableIndexerDataConnector(
             IChatClient chatClient,
             ILoggerFactory loggerFactory,
-            KustoMetadataIndex kustmetadataindex,
+            KustoMetadataIndex<KustoTableMetadata> kustoMetadataIndex,
+            KustoMetadataIndex<KustoExampleQueryDocument> kustExampleQueryIndex,
             IAuthenticationService authService,
             IOptions<StorageSettings> storageSettings,
             DurableTaskClient durableTaskClient)
@@ -49,7 +51,8 @@ namespace Agent.Runtime.Indexing.KustoQueryGeneration
             _logger = loggerFactory.CreateLogger<KustoTableIndexerDataConnector>();
             _chatClient = chatClient ?? throw new ArgumentNullException(nameof(chatClient));
             _durableTaskClient = durableTaskClient ?? throw new ArgumentNullException(nameof(durableTaskClient));
-            _kustoMetadataIndex = kustmetadataindex ?? throw new ArgumentNullException(nameof(kustmetadataindex));
+            _kustoMetadataIndex = kustoMetadataIndex ?? throw new ArgumentNullException(nameof(kustoMetadataIndex));
+            _kustExampleQueryIndex = kustExampleQueryIndex ?? throw new ArgumentNullException(nameof(kustExampleQueryIndex));
 
             TokenCredential credential = authService.GetStorageCredential();
             _azureBlobStorageClient = new AzureBlobStorageClient(new Uri(storageSettings.Value.BlobEndpoint), credential);
@@ -85,16 +88,14 @@ namespace Agent.Runtime.Indexing.KustoQueryGeneration
                 await _azureBlobStorageClient.CreateContainerIfNotExistAsync("kustometadata", Azure.Storage.Blobs.Models.PublicAccessType.None);
                 await _azureBlobStorageClient.CreateContainerIfNotExistAsync("kustometadataexamplequeries", Azure.Storage.Blobs.Models.PublicAccessType.None);
 
-                await _kustoMetadataIndex.CreateOrUpdateIndex<KustoTableMetadata>(
-                    indexName: "kustometadata-index",
+                await _kustoMetadataIndex.CreateOrUpdateIndex(
                     blobContainer: "kustometadata");
 
-                await _kustoMetadataIndex.CreateOrUpdateIndex<KustoExampleQueryDocument>(
-                    indexName: "kustoexamplequery-index",
+                await _kustExampleQueryIndex.CreateOrUpdateIndex(
                     blobContainer: "kustometadataexamplequeries");
 
                 // Create a unique orchestration instance ID for this table
-                string orchestrationInstanceId = $"KustoTableIndexer-{clusterUri.Host}";
+                string orchestrationInstanceId = $"KustoTableIndexer-{clusterUri.Host}-local";
 
                 // Check if there is an orchestration running for this table
                 OrchestrationMetadata? existingInstance = await _durableTaskClient.GetInstanceAsync(orchestrationInstanceId, stoppingToken);
@@ -102,7 +103,9 @@ namespace Agent.Runtime.Indexing.KustoQueryGeneration
                 KustoConnectionInfo kustoTableIndexInput = new KustoConnectionInfo
                 (
                     ClusterUri: clusterUri,
-                    ManagedIdentityClientId: string.Empty
+                    ManagedIdentityClientId: string.Empty,
+                    DatabaseFilter: [ ],
+                    TableFilter: []
                 );
 
                 StartOrchestrationOptions startOptions = new StartOrchestrationOptions(orchestrationInstanceId);
@@ -116,7 +119,7 @@ namespace Agent.Runtime.Indexing.KustoQueryGeneration
                 else if (existingInstance.RuntimeStatus == OrchestrationRuntimeStatus.Completed)
                 {
                     // Check if the last update time is older than 12 hours
-                    if (existingInstance.LastUpdatedAt < DateTimeOffset.UtcNow.Subtract(TimeSpan.FromHours(12)))
+                    if (existingInstance.LastUpdatedAt < DateTimeOffset.UtcNow.Subtract(TimeSpan.FromHours(24)))
                     {
                         _logger.LogInternalInformation("Restarting completed orchestration for table: {ClusterUri}", clusterUri);
 

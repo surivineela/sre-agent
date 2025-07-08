@@ -4,8 +4,7 @@
 
 using System.Reflection;
 using Agent.Core.Configuration;
-using Agent.Runtime.DataConnectors;
-using Microsoft.Extensions.Configuration;
+using Agent.Core.DataConnectors;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;

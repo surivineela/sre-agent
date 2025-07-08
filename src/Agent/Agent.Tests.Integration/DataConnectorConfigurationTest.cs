@@ -4,7 +4,7 @@
 
 using System.Reflection;
 using Agent.Core.Configuration;
-using Agent.Runtime.DataConnectors;
+using Agent.Core.DataConnectors;
 using Agent.Tests.Common.TestApplication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

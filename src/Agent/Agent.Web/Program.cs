@@ -9,6 +9,7 @@ using Agent.Core.Extensions;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Core.Models.Search;
 using Agent.Core.Plugins.Definitions;
 using Agent.Core.Services;
 using Agent.Core.Services.TokenService;
@@ -24,6 +25,8 @@ using Agent.Graph.Services;
 using Agent.Logging;
 using Agent.Plugins;
 using Agent.Plugins.Clients;
+using Agent.Plugins.DataConnectors.Documentation;
+using Agent.Plugins.DataConnectors.KustoMetadata;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Implementation;
 using Agent.Plugins.Implementation.DiagnosticsPlugin;
@@ -37,8 +40,6 @@ using Agent.Runtime;
 using Agent.Runtime.Communication;
 using Agent.Runtime.HelperAgents;
 using Agent.Runtime.IncidentHandlerAgent;
-using Agent.Runtime.Indexing.Documentation;
-using Agent.Runtime.Indexing.KustoQueryGeneration;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.MetaAgent;
 using Agent.Runtime.MetaAgent.Interfaces;
@@ -494,6 +495,7 @@ public class Program
             .AddTransient<IAzureSearchClient, AzureSearchClient>()
             .AddTransient<AzureDocSearchPlugin>()
             .AddTransient<SearchPluginDefinition>()
+            .AddTransient<LogsPluginDefinition>()
             // Conditionally register AzureSearchPluginDefinition based on settings.Enabled
             .AddTransient<AzureSearchPluginDefinition>(sp =>
             {
@@ -640,7 +642,8 @@ public class Program
             .AddSingleton<DocumentationIndex>()
             .AddSingleton<OneBranchApprovalService>()
             .AddSingleton<ISearchEndpointService, SearchEndpointService>()
-            .AddSingleton<KustoMetadataIndex>()
+            .AddSingleton<KustoMetadataIndex<KustoTableMetadata>>()
+            .AddSingleton<KustoMetadataIndex<KustoExampleQueryDocument>>()
             .AddSingleton<IKeyVaultService, KeyVaultService>()
             .AddSingleton<ObserverClientService>()
 
@@ -845,6 +848,7 @@ public class Program
             b.AddTasks(r =>
             {
                 DurableHelper.AddAllGeneratedTasks(r);
+                KustoMetadataExtensions.AddAllGeneratedTasks(r);  // every assembly that has durable tasks needs to register explicitly.
             });
 
             string durableConnectionString = builder.ResolveDtsConnectionString();

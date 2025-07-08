@@ -4,7 +4,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 
-namespace Agent.Runtime.DataConnectors;
+namespace Agent.Core.DataConnectors;
 
 public class DataConnectorAttribute : Attribute
 {

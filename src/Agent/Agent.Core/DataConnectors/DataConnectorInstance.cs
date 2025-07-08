@@ -5,7 +5,7 @@
 using System.ComponentModel;
 using Agent.Core.Configuration;
 
-namespace Agent.Runtime.DataConnectors;
+namespace Agent.Core.DataConnectors;
 
 /// <summary>
 /// Used internally to pass the data connector and its settings to the data connector service.
