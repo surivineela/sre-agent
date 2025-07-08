@@ -2,7 +2,6 @@ import axios from 'axios';
 import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 import { AzPortalContext } from '../AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../AzPortalProxy/Providers/StartupInfoContext';
-import { getErrorMessage } from '../Clients/ArmClient';
 import { KnowledgeGraphBuildStatus } from '../Contracts/Azure/SreAgent';
 import { getAgentHeaders } from '../Helpers/headers';
 
@@ -28,14 +27,15 @@ export const KnowledgeGraphBuildStatusProvider = ({ children }: { children?: Rea
         let consecutivePermissionErrors = 0;
 
         for (let attempt = 0; attempt < maxRetries; attempt++) {
+            const requestUrl = `${sreAgentEndpoint}/api/v1/graph/progress`;
             try {
-                const response = await axios.get(`${sreAgentEndpoint}/api/v1/graph/progress`, {
+                const response = await axios.get(requestUrl, {
                     headers: getAgentHeaders(),
                 });
 
                 return { data: response.data, permissionsError: false };
-            } catch (error) {
-                const permissionsError = axios.isAxiosError(error) && error.response?.status === 403;
+            } catch (error: any) {
+                const permissionsError = error.response?.status === 403;
                 const errorMessage = permissionsError
                     ? 'Permissions error while fetching knowledge graph build progress'
                     : 'Error fetching knowledge graph build progress';
@@ -43,7 +43,12 @@ export const KnowledgeGraphBuildStatusProvider = ({ children }: { children?: Rea
                 proxy.log({
                     action: 'GetKnowledgeGraphBuildProgress',
                     actionModifier: 'failed',
-                    data: getErrorMessage(error) || errorMessage,
+                    data: {
+                        errorMessage: errorMessage,
+                        permissionsError: permissionsError,
+                        requestUrl: requestUrl,
+                        statusCode: error.response?.status,
+                    },
                 });
 
                 if (permissionsError) {
