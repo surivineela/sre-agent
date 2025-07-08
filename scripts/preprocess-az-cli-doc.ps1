@@ -81,8 +81,18 @@ function Process-YamlFile {
     try {
         Write-Host "Processing: $FilePath"
         
-        # Read and parse YAML file
-        $yamlContent = Get-Content -Path $FilePath -Raw -Encoding UTF8
+        # Use -LiteralPath for Test-Path and Get-Content when the path might contain special characters.
+        if (-not (Test-Path -LiteralPath $FilePath)) {
+            Write-Error "File does not exist or cannot be accessed literally: $FilePath"
+            return # Exit this function for this file
+        }
+        
+        $yamlContent = Get-Content -LiteralPath $FilePath -Raw
+
+        if ([string]::IsNullOrWhiteSpace($yamlContent)) {
+            Write-Warning "Skipping empty YAML file: $FilePath"
+            return
+        }
         $yamlObject = ConvertFrom-Yaml $yamlContent
         
         # Check if directCommands property exists
@@ -99,7 +109,11 @@ function Process-YamlFile {
         }
         
         # Create output directory maintaining folder structure
-        $outputDir = Join-Path $OutputRoot (Split-Path $RelativePath -Parent)
+        # Sanitize the relative directory path (remove invalid characters like brackets)
+        $relativeDir = Split-Path $RelativePath -Parent -ErrorAction SilentlyContinue
+        $sanitizedDir = $relativeDir -replace '[<>:"/\\|?*\[\]]', '_'
+        $outputDir = Join-Path $OutputRoot $sanitizedDir
+
         if (-not (Test-Path $outputDir)) {
             New-Item -ItemType Directory -Path $outputDir -Force | Out-Null
         }
@@ -113,7 +127,7 @@ function Process-YamlFile {
                 # Write each segment to a separate file
                 for ($i = 0; $i -lt $segments.Count; $i++) {
                     # Sanitize filename (remove invalid characters)
-                    $safeFileName = $uid -replace '[<>:"/\\|?*]', '_'
+                    $safeFileName = $uid -replace '[<>:"/\\|?*\[\]]', '_'
                     $outputFile = Join-Path $outputDir "$safeFileName-$i.yaml"
                     
                     Set-Content -Path $outputFile -Value $segments[$i] -Encoding UTF8
@@ -159,11 +173,18 @@ if ($sourceItem.PSIsContainer) {
     
     Write-Host "Found $($yamlFiles.Count) YAML file(s) to process."
     
-    foreach ($file in $yamlFiles) {        # Calculate relative path to maintain folder structure
-        $relativePath = $file.FullName.Substring($Source.Length).TrimStart('\', '/')
-        
+    foreach ($file in $yamlFiles) {
+    # Calculate relative path to maintain folder structure
+    $relativePath = $file.FullName.Substring($Source.Length).TrimStart('\', '/')
+    
+    try {
         Process-YamlFile -FilePath $file.FullName -RelativePath $relativePath -OutputRoot $OutputFolder -MaxChunkSize $MaxChunkSize
     }
+    catch {
+        Write-Error "Failed to process file '$($file.FullName)': $($_.Exception.Message)"
+        continue # Skip to next file
+    }
+}
 }
 else {
     # Processing single file
