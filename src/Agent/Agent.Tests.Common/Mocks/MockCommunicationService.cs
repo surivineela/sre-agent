@@ -29,7 +29,7 @@ namespace Agent.Tests.Common.Mocks
             return Task.FromResult(Guid.NewGuid());
         }
 
-        public Task<Guid> AppendAgentImageMessage(Guid threadId, string message)
+        public Task<Guid> AppendAgentImageMessage(Guid threadId, string message, Guid messageId = default)
         {
             Messages.Add(message);
             return Task.FromResult(Guid.NewGuid());
@@ -47,7 +47,7 @@ namespace Agent.Tests.Common.Mocks
             return Task.CompletedTask;
         }
 
-        public Task AppendAgentStreamMessage(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, CancellationToken cancellationToken = default)
+        public Task AppendAgentStreamMessage(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             _logger?.LogInternalInformation($"Mock: Streaming message for thread {threadId} with type {type}: {message}");
@@ -67,7 +67,7 @@ namespace Agent.Tests.Common.Mocks
             return Task.CompletedTask;
         }
 
-        public Task AppendUserStreamMessage(Guid threadId, string displayName, string message, Guid messageId, string? userId = null, CancellationToken cancellationToken = default)
+        public Task AppendUserStreamMessage(Guid threadId, string displayName, string message, Guid messageId, string? userId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
         {
             Messages.Add(message);
             return Task.CompletedTask;

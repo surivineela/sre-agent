@@ -266,7 +266,7 @@ namespace Agent.Plugins.Implementation
                 options.Converters.Add(new JsonStringEnumConverter());
 
                 // Stream the whole az cli execution to render the special AzCliExecution component
-                await _outboundCommunicationService.AppendAgentStreamMessage(ThreadId.Value, JsonSerializer.Serialize(execution, options), StreamMessageType.AzCli);
+                await _outboundCommunicationService.AppendAgentStreamMessage(ThreadId.Value, JsonSerializer.Serialize(execution, options), StreamMessageType.AzCli, message.Id);
                 try
                 {
                     // Execute the actual command synchronously - crawler triggering happens inside ArmHelper
@@ -287,7 +287,7 @@ namespace Agent.Plugins.Implementation
 
                     await _threadRepository.UpdateAzCliExecutionAsync(ThreadId.Value, execution);
 
-                    await _outboundCommunicationService.AppendAgentStreamMessage(ThreadId.Value, JsonSerializer.Serialize(execution, options), StreamMessageType.AzCli);
+                    await _outboundCommunicationService.AppendAgentStreamMessage(ThreadId.Value, JsonSerializer.Serialize(execution, options), StreamMessageType.AzCli, message.Id);
 
                     // Return the actual output
                     return $"Azure CLI command completed successfully. Output: {output}";
@@ -311,7 +311,7 @@ namespace Agent.Plugins.Implementation
 
                     await _threadRepository.UpdateAzCliExecutionAsync(ThreadId.Value, execution);
 
-                    await _outboundCommunicationService.AppendAgentStreamMessage(ThreadId.Value, JsonSerializer.Serialize(execution, options), StreamMessageType.AzCli);
+                    await _outboundCommunicationService.AppendAgentStreamMessage(ThreadId.Value, JsonSerializer.Serialize(execution, options), StreamMessageType.AzCli, message.Id);
 
                     throw; // Re-throw to let the caller handle the error
                 }
@@ -400,7 +400,7 @@ namespace Agent.Plugins.Implementation
             var message = CreateAzCliExecutionMessage(execution);
             await _threadRepository.AddMessageAsync(ThreadId.Value, message);
 
-            await NotifyAzCliExecutionCreated(execution);
+            await NotifyAzCliExecutionCreated(execution, message.Id);
 
             return execution;
         }
@@ -505,13 +505,14 @@ namespace Agent.Plugins.Implementation
             );
         }
 
-        private async Task NotifyAzCliExecutionCreated(AzCliExecution execution)
+        private async Task NotifyAzCliExecutionCreated(AzCliExecution execution, Guid messageId)
         {
             var options = GetJsonSerializerOptions();
             await _outboundCommunicationService.AppendAgentStreamMessage(
                 ThreadId!.Value,
                 JsonSerializer.Serialize(execution, options),
-                StreamMessageType.AzCli);
+                StreamMessageType.AzCli,
+                messageId);
         }
 
         private async Task NotifyAzCliExecutionUpdated(AzCliExecution execution)

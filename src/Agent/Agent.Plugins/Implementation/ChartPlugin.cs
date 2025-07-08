@@ -291,12 +291,14 @@ namespace Agent.Plugins
                     base64Image = $"data:image/png;base64,{base64Image}";
                 }
                 var chartMessage = $"![Chart Graph]({base64Image})\r";
-                
+
+                Guid messageId = Guid.NewGuid();
+
                 // Save to database via the outbound service
-                await _outboundService.AppendAgentImageMessage(ThreadId.Value, chartMessage);
+                await _outboundService.AppendAgentImageMessage(ThreadId.Value, chartMessage, messageId);
 
                 // Stream the complete image message directly to bypass tool call limitations
-                await _outboundService.AppendAgentStreamMessage(ThreadId.Value, chartMessage, StreamMessageType.Image);
+                await _outboundService.AppendAgentStreamMessage(ThreadId.Value, chartMessage, StreamMessageType.Image, messageId);
 
                 return $"Successfully generated the chart, image description: {description}";
             }

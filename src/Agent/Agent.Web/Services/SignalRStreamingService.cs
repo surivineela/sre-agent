@@ -28,7 +28,7 @@ namespace Agent.Web.Services
         }
 
 
-        public async Task StreamMessageAsync(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, CancellationToken cancellationToken = default)
+        public async Task StreamMessageAsync(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -42,7 +42,7 @@ namespace Agent.Web.Services
                 {
                     AuthorName = "Azure SRE Agent",
                     Role = ChatRole.Assistant,
-                    CreatedAt = DateTime.UtcNow,
+                    CreatedAt = recordedDateTime ?? DateTime.UtcNow,
                     Contents = [new TextContent(message)],
                     AdditionalProperties = new AdditionalPropertiesDictionary
                     {

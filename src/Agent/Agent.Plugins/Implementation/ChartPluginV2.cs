@@ -354,7 +354,7 @@ namespace Agent.Plugins
                 var latestDate = groupedByTimestamp.Last().Key.Date;
 
                 var timeDelta = latestDate - earliestDate;
-                
+
                 // Within a day.
                 if (timeDelta.TotalDays <= 0)
                 {
@@ -570,11 +570,13 @@ namespace Agent.Plugins
                 // Create the chart message format that the front-end will recognize
                 var chartMessage = $"```chart-data\n{chartDataJson}\n```\n{description}";
 
+                Guid chartMessageId = Guid.NewGuid();
+
                 // Save to database via the outbound service
-                await _outboundService.AppendAgentImageMessage(ThreadId.Value, chartMessage);
+                await _outboundService.AppendAgentImageMessage(ThreadId.Value, chartMessage, chartMessageId);
 
                 // Stream the chart data directly to bypass tool call limitations
-                await _outboundService.AppendAgentStreamMessage(ThreadId.Value, chartMessage, StreamMessageType.Chart);
+                await _outboundService.AppendAgentStreamMessage(ThreadId.Value, chartMessage, StreamMessageType.Chart, chartMessageId);
 
                 return $"Successfully generated the chart data, description: {description}";
             }

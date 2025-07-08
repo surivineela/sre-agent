@@ -290,11 +290,13 @@ Input JSON:
 
                     string mermaidMessage = $"```mermaid\n{mermaidSpec}\n```";
 
-                    // Save to database via the outbound service
-                    await _agentOutboundCommunicationService.AppendAgentImageMessage(threadId.Value, mermaidMessage);
+                    Guid messageId = Guid.NewGuid();
 
-                    // Stream the mermaid data directly to bypass tool call limitations  
-                    await _agentOutboundCommunicationService.AppendAgentStreamMessage(threadId.Value, mermaidMessage, StreamMessageType.Mermaid);
+                    // Save to database via the outbound service
+                    await _agentOutboundCommunicationService.AppendAgentImageMessage(threadId.Value, mermaidMessage, messageId);
+
+                    // Stream the mermaid data directly to bypass tool call limitations
+                    await _agentOutboundCommunicationService.AppendAgentStreamMessage(threadId.Value, mermaidMessage, StreamMessageType.Mermaid, messageId);
 
                     // Construct the final response string for the LLM, this helps the LLM to further answer questions regarding the topology
                     string llmResponse = $@"I have analyzed the microservice topology starting from '{deploymentName}' in the '{_namespace}' namespace within the cluster '{AKSClusterResourceId}'.
@@ -403,11 +405,13 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
 
                     string mermaidMessage = $"```mermaid\n{mermaidSpec}\n```";
 
+                    Guid messageId = Guid.NewGuid();
+
                     // Save to database via the outbound service
-                    await _agentOutboundCommunicationService.AppendAgentImageMessage(threadId.Value, mermaidMessage);
+                    await _agentOutboundCommunicationService.AppendAgentImageMessage(threadId.Value, mermaidMessage, messageId);
 
                     // Stream the mermaid data directly to bypass tool call limitations
-                    await _agentOutboundCommunicationService.AppendAgentStreamMessage(threadId.Value, mermaidMessage, StreamMessageType.Mermaid);
+                    await _agentOutboundCommunicationService.AppendAgentStreamMessage(threadId.Value, mermaidMessage, StreamMessageType.Mermaid, messageId);
 
                     return "Visualization Ready! Your frontend will render the Mermaid diagram.";
                 }
@@ -965,11 +969,13 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
                     // TODO: read threadcontext from cosmos db
                     var dashboardMessage = $"![DailyReport Dashboard](data:image/png;base64,{screenshotResponse.Screenshot})\r";
 
+                    Guid messageId = Guid.NewGuid();
+
                     // Save to database via the outbound service
-                    await _agentOutboundCommunicationService.AppendAgentImageMessage(ThreadId.Value, dashboardMessage);
+                    await _agentOutboundCommunicationService.AppendAgentImageMessage(ThreadId.Value, dashboardMessage, messageId);
 
                     // Stream the complete image message directly to bypass tool call limitations
-                    await _agentOutboundCommunicationService.AppendAgentStreamMessage(ThreadId.Value, dashboardMessage, StreamMessageType.Image);
+                    await _agentOutboundCommunicationService.AppendAgentStreamMessage(ThreadId.Value, dashboardMessage, StreamMessageType.Image, messageId);
                 }
 
                 string healthSummary = await SummarizeDashboardScreenshotAsync(screenshotResponse.Screenshot, dashboardUrl);

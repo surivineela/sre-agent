@@ -41,13 +41,13 @@ public interface IAgentOutboundCommunicationService
 
     Task PostActivity(string threadId, Microsoft.Bot.Schema.Activity activity, string messageId = "");
 
-    Task<Guid> AppendAgentImageMessage(Guid threadId, string message);
+    Task<Guid> AppendAgentImageMessage(Guid threadId, string message, Guid messageId = default);
     Task<Guid> AppendAgentApprovalMessage(Guid threadId, Approval approval);
 
     /// <summary>
     /// Streams a message directly to the reasoning loop, bypassing normal tool call flow
     /// </summary>
-    Task AppendAgentStreamMessage(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, CancellationToken cancellationToken = default);
+    Task AppendAgentStreamMessage(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default);
 
     Task AppendAgentToolCallMessage(Guid threadId, AIFunction aiTool, Guid? messageId = null, string? callId = null, CancellationToken cancellationToken = default);
     Task AppendAgentManualToolCallMessage(Guid threadId, List<ManualToolCall>? manualToolCalls, Guid? messageId = null, CancellationToken cancellationToken = default);
@@ -57,7 +57,7 @@ public interface IAgentOutboundCommunicationService
     /// <summary>
     /// Appends a message to the user stream for a specific thread.
     /// </summary>
-    Task AppendUserStreamMessage(Guid threadId, string displayName, string message, Guid messageId, string? userId = null, CancellationToken cancellationToken = default);
+    Task AppendUserStreamMessage(Guid threadId, string displayName, string message, Guid messageId, string? userId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Signals that signal processing is complete for a given message on a specific thread.

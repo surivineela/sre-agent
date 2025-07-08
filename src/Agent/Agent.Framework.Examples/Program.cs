@@ -108,7 +108,7 @@ class MockStreamingService : IStreamingService
         _logger = logger;
     }
 
-    public Task StreamMessageAsync(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, CancellationToken cancellationToken = default)
+    public Task StreamMessageAsync(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Mock: Streaming message for thread {ThreadId} with type {Type}: {Message}",
             threadId, type, message);

@@ -24,7 +24,7 @@ namespace Agent.Tests.Common.Mocks
             _logger = logger;
         }
 
-        public Task StreamMessageAsync(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, CancellationToken cancellationToken = default)
+        public Task StreamMessageAsync(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
         {
             var streamedMessage = new StreamedMessage
             {

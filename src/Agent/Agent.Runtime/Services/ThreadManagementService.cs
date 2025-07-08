@@ -104,7 +104,8 @@ public class ThreadManagementService(
             request.StartMessage.DisplayName,
             request.StartMessage.Text,
             messageId,
-            request.StartMessage.UserId
+            request.StartMessage.UserId,
+            message.TimeStamp
         );
 
         foreach (var reasoningMessage in reasoningMessages)

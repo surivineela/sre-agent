@@ -20,7 +20,7 @@ namespace Agent.Core.Interfaces
         /// <param name="type">The type of message being streamed, if null just pure normal text</param>
         /// <param name="cancellationToken">Cancellation token to cancel the streaming operation</param>
         /// <returns>Task representing the async operation</returns>
-        Task StreamMessageAsync(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, CancellationToken cancellationToken = default);
+        Task StreamMessageAsync(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Streams a ChatResponseUpdate message to clients for the specified thread

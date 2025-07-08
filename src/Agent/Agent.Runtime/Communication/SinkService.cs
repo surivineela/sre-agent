@@ -19,12 +19,12 @@ public class SinkService
         _logger = logger;
     }
 
-    public async Task<Guid> SinkAgentMessageAsync(Guid threadId, string messageText, bool isImageContent = false, Approval approval = null, Guid agentResponseMessageId = default)
+    public async Task<Guid> SinkAgentMessageAsync(Guid threadId, string messageText, bool isImageContent = false, Approval approval = null, Guid agentResponseMessageId = default, DateTime? recordedDateTime = null)
     {
         var messageId = agentResponseMessageId == default ? Guid.NewGuid() : agentResponseMessageId;
         var agentMessage = new Message(
             Id: messageId,
-            TimeStamp: DateTime.UtcNow,
+            TimeStamp: recordedDateTime ?? DateTime.UtcNow,
             Author: new Author(Role.SREAgent, "agent-default", "Azure SRE Agent"),
             IsImageContent: isImageContent,
             Text: messageText,
@@ -47,12 +47,13 @@ public class SinkService
 
     public async Task SinkUserMessageAsync(
         ThreadMessage message,
-        bool? isVisibleInUserChatHistory = true)
+        bool? isVisibleInUserChatHistory = true,
+        DateTime? recordedMessageTime = null)
     {
         var role = string.Equals(message.UserId, "agent-default", StringComparison.OrdinalIgnoreCase) ? Role.SREAgent : Role.User;
         var userMessage = new Message(
             Id: message.MessageId,
-            TimeStamp: DateTime.UtcNow,
+            TimeStamp: recordedMessageTime ?? DateTime.UtcNow,
             Author: new Author(role, message.UserId, message.DisplayName),
             Text: message.Message,
             IsImageContent: false,

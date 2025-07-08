@@ -54,11 +54,12 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         _logger.LogExternalInformation("orchestrationInstanceId {orchestrationInstanceId} message to thread {ThreadId}: {Message}",
             orchestrationInstanceId, threadId, message.Text);
         Guid agentMessageId = messageId ?? Guid.NewGuid();
-        await AppendAgentStreamMessage(threadId ?? Guid.Empty, message.Text ?? string.Empty, null, agentMessageId);
-        await _sinkService.SinkAgentMessageAsync(threadId.Value, message.Text ?? string.Empty, agentResponseMessageId: agentMessageId);
+        DateTime recordedDateTime = DateTime.UtcNow;
+        await AppendAgentStreamMessage(threadId ?? Guid.Empty, message.Text ?? string.Empty, null, agentMessageId, recordedDateTime);
+        await _sinkService.SinkAgentMessageAsync(threadId.Value, message.Text ?? string.Empty, agentResponseMessageId: agentMessageId, recordedDateTime: recordedDateTime);
     }
 
-    public async Task<Guid> AppendAgentImageMessage(Guid threadId, string message)
+    public async Task<Guid> AppendAgentImageMessage(Guid threadId, string message, Guid messageId = default)
     {
         if (threadId == Guid.Empty)
         {
@@ -66,7 +67,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         }
 
         // Use SinkService to add the image message
-        return await _sinkService.SinkAgentMessageAsync(threadId, message, true);
+        return await _sinkService.SinkAgentMessageAsync(threadId, message, true, agentResponseMessageId: messageId);
     }
 
     public async Task<Guid> AppendAgentApprovalMessage(Guid threadId, Approval approval)
@@ -76,11 +77,12 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
             throw new ArgumentException("Thread ID cannot be empty.", nameof(threadId));
         }
 
+        Guid messageId = Guid.NewGuid();
         try
         {
             string jsonString = JsonSerializer.Serialize(approval, _serializerOptions);
             // Use the streaming service abstraction to send the message
-            await AppendAgentStreamMessage(threadId, jsonString, StreamMessageType.Approval);
+            await AppendAgentStreamMessage(threadId, jsonString, StreamMessageType.Approval, messageId);
         }
         catch (Exception ex)
         {
@@ -88,7 +90,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         }
 
         // Use SinkService to add the image message
-        return await _sinkService.SinkAgentMessageAsync(threadId, "Approval Request for Processing Azure SRE Agent Request", true, approval);
+        return await _sinkService.SinkAgentMessageAsync(threadId, "Approval Request for Processing Azure SRE Agent Request", true, approval, messageId);
     }
 
     public async Task NotifyGenericAgentMessage(Guid threadId, Message message, StreamMessageType? type)
@@ -113,7 +115,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         }
     }
 
-    public async Task AppendAgentStreamMessage(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, CancellationToken cancellationToken = default)
+    public async Task AppendAgentStreamMessage(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
     {
         if (threadId == Guid.Empty)
         {
@@ -133,7 +135,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
             cancellationToken.ThrowIfCancellationRequested();
 
             // Use the streaming service abstraction to send the message
-            await _streamingService.StreamMessageAsync(threadId, message, type, messageId, cancellationToken);
+            await _streamingService.StreamMessageAsync(threadId, message, type, messageId, recordedDateTime: recordedDateTime, cancellationToken: cancellationToken);
 
             _logger.LogExternalInformation("Successfully sent direct stream message for thread {ThreadId} with type {Type}",
                 threadId, type);
@@ -174,8 +176,9 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
             context.Id, context.AgentType.ToString(), context.ThreadId, message.Text);
 
         Guid agentMessageId = messageId ?? Guid.NewGuid();
-        await AppendAgentStreamMessage(context.ThreadId, message.Text ?? string.Empty, null, agentMessageId);
-        await _sinkService.SinkAgentMessageAsync(context.ThreadId, message.Text ?? string.Empty, agentResponseMessageId: agentMessageId);
+        DateTime recordedDateTime = DateTime.UtcNow;
+        await AppendAgentStreamMessage(context.ThreadId, message.Text ?? string.Empty, null, agentMessageId, recordedDateTime);
+        await _sinkService.SinkAgentMessageAsync(context.ThreadId, message.Text ?? string.Empty, agentResponseMessageId: agentMessageId, recordedDateTime: recordedDateTime);
     }
 
     public Task NotifyCompletionAsync(AgentContext context, string subAgentIdentifier, string status, string? summary = null)
@@ -467,7 +470,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         }
     }
 
-    public async Task AppendUserStreamMessage(Guid threadId, string displayName, string message, Guid messageId, string? userId = null, CancellationToken cancellationToken = default)
+    public async Task AppendUserStreamMessage(Guid threadId, string displayName, string message, Guid messageId, string? userId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
     {
         if (threadId == Guid.Empty)
         {
@@ -490,7 +493,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
             {
                 AuthorName = displayName,
                 Role = ChatRole.User,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = recordedDateTime ?? DateTime.UtcNow,
                 Contents = [new TextContent(message)],
                 AdditionalProperties = new AdditionalPropertiesDictionary
                 {

@@ -83,11 +83,11 @@ namespace Agent.Plugins
                 );
 
                 await _threadRepository.CreateKubectlExecutionAsync(ThreadId.Value, execution);
-
+                DateTime createdTimestamp = DateTime.UtcNow;
                 // Create a new message with the execution
                 var message = new Message(
                     Id: Guid.NewGuid(),
-                    TimeStamp: DateTime.UtcNow,
+                    TimeStamp: createdTimestamp,
                     Author: new Author(
                         DisplayName: "SRE Agent",
                         UserId: "agent-default",
@@ -105,12 +105,14 @@ namespace Agent.Plugins
 
                 await _threadRepository.AddMessageAsync(ThreadId.Value, message);
 
-                await _agentOutboundCommunicationService.AppendAgentStreamMessage(ThreadId.Value, JsonSerializer.Serialize(execution, options), StreamMessageType.Kubectl);
+                await _agentOutboundCommunicationService.AppendAgentStreamMessage(ThreadId.Value, JsonSerializer.Serialize(execution, options), StreamMessageType.Kubectl, message.Id, createdTimestamp);
 
                 try
                 {
                     // Execute the actual command
                     var output = await ExecuteKubectlCommandSafely(resourceId, command, null);
+
+                    DateTime completedTimestamp = DateTime.UtcNow;
 
                     // Update execution with success
                     execution = execution with
@@ -122,12 +124,12 @@ namespace Agent.Plugins
                             Role: Role.User
                         ),
                         Output = output,
-                        CompletedTimestamp = DateTime.UtcNow
+                        CompletedTimestamp = completedTimestamp
                     };
 
                     await _threadRepository.UpdateKubectlExecutionAsync(ThreadId.Value, execution);
 
-                    await _agentOutboundCommunicationService.AppendAgentStreamMessage(ThreadId.Value, JsonSerializer.Serialize(execution, options), StreamMessageType.Kubectl);
+                    await _agentOutboundCommunicationService.AppendAgentStreamMessage(ThreadId.Value, JsonSerializer.Serialize(execution, options), StreamMessageType.Kubectl, recordedDateTime: completedTimestamp);
 
                     // Return the actual output
                     return $"Kubectl command completed successfully. Output:\n{output}";
@@ -240,7 +242,7 @@ namespace Agent.Plugins
             var message = CreateExecutionMessage(execution);
             await _threadRepository.AddMessageAsync(ThreadId.Value, message);
 
-            await NotifyExecutionCreated(execution);
+            await NotifyExecutionCreated(execution, message.Id);
 
             return execution;
         }
@@ -353,13 +355,14 @@ namespace Agent.Plugins
             );
         }
 
-        private async Task NotifyExecutionCreated(KubectlExecution execution)
+        private async Task NotifyExecutionCreated(KubectlExecution execution, Guid messageId)
         {
             var options = GetJsonSerializerOptions();
             await _agentOutboundCommunicationService.AppendAgentStreamMessage(
                 ThreadId!.Value,
                 JsonSerializer.Serialize(execution, options),
-                StreamMessageType.Kubectl);
+                StreamMessageType.Kubectl,
+                messageId);
         }
 
         private async Task NotifyExecutionUpdated(KubectlExecution execution)
