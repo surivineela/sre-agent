@@ -49,10 +49,7 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
         {
             _gitHubClient.Credentials = new Credentials(token: _gitHubSettings.PatTokenOverride, authenticationType: AuthenticationType.Bearer);
         }
-        else
-        {
-            _logger.LogInternalError("GitHub PAT token override is not set. Please provide a valid token.");
-        }
+
         _threadRepository = threadRepository;
     }
 
