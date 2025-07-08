@@ -4,6 +4,7 @@
 
 using System.Text.Json.Serialization;
 using Agent.Core.Services;
+using OpenTelemetry.Trace;
 namespace Agent.Runtime.Models;
 
 /// <summary>
@@ -19,6 +20,12 @@ public class InvestigationContext
     public int IterationCount { get; set; } = 0;
     public List<string> CompletedSteps { get; set; } = new();
     public ReflexionResult LastReflexion { get; set; }
+
+    /// <summary>
+    /// The root investigation span for OpenTelemetry tracing
+    /// </summary>
+    [JsonIgnore]
+    public TelemetrySpan? RootSpan { get; set; }
     public InvestigationContext(Guid threadId, Guid agentContextId, AlertItem alert)
     {
         ThreadId = threadId;

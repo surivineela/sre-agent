@@ -4,6 +4,7 @@
 
 using System.Text;
 using System.Text.Json;
+using System.Diagnostics;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
@@ -12,6 +13,8 @@ using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry.Trace;
+using OpenTelemetry;
 using Thread = Agent.Core.Models.Api.v1.Thread;
 
 namespace Agent.Runtime.Services.AzMonitorAlertInvestigation;
@@ -27,6 +30,7 @@ public class InvestigationOrchestrator : IInvestigationOrchestrator
     private readonly IThreadRepository _repository;
     private readonly IChatClient _chatClient;
     private readonly ILogger<InvestigationOrchestrator> _logger;
+    private readonly Tracer _tracer;
 
     public InvestigationOrchestrator(
         IEnumerable<IReasoningStep> reasoningSteps,
@@ -34,7 +38,8 @@ public class InvestigationOrchestrator : IInvestigationOrchestrator
         IHypothesisGenerator hypothesisGenerator,
         IThreadRepository repository,
         IChatClient chatClient,
-        ILogger<InvestigationOrchestrator> logger)
+        ILogger<InvestigationOrchestrator> logger,
+        Tracer tracer)
     {
         _reasoningSteps = reasoningSteps;
         _reflexionEvaluator = reflexionEvaluator;
@@ -42,6 +47,7 @@ public class InvestigationOrchestrator : IInvestigationOrchestrator
         _repository = repository;
         _chatClient = chatClient;
         _logger = logger;
+        _tracer = tracer;
     }
 
     public async Task<InvestigationSummary> InvestigateAlertAsync(
@@ -49,6 +55,16 @@ public class InvestigationOrchestrator : IInvestigationOrchestrator
         Thread alertThread,
         CancellationToken cancellationToken = default)
     {
+        // Create a root span for this investigation - each investigation gets its own isolated trace
+        // The span will be properly processed by AgentTraceProcessor due to the "operation.name" attribute
+        using var span = _tracer.StartSpan("investigate.alert", SpanKind.Internal);
+        span.SetAttribute("operation.name", "investigate.alert");
+        span.SetAttribute("alert.id", alert.Id ?? "unknown");
+        span.SetAttribute("alert.name", alert.Name ?? "unknown");
+        span.SetAttribute("alert.type", alert.Type ?? "unknown");
+        span.SetAttribute("alert.properties", alert.Properties != null ? JsonSerializer.Serialize(alert.Properties) : "unknown");
+        span.SetAttribute("thread.id", alertThread.Id.ToString());
+
         _logger.LogInternalInformation($"Starting investigation loop for alert {alert.Id}");
 
         var agentContexts = await _repository.GetAgentContextsForThreadAsync(alertThread.Id);
@@ -56,6 +72,7 @@ public class InvestigationOrchestrator : IInvestigationOrchestrator
         if (!agentContexts.Any())
         {
             _logger.LogInternalError("No agent context found for thread");
+            span.SetStatus(OpenTelemetry.Trace.Status.Error.WithDescription("No agent context found for thread"));
 
             return new InvestigationSummary
             {
@@ -68,6 +85,9 @@ public class InvestigationOrchestrator : IInvestigationOrchestrator
             alertThread.Id,
             agentContexts.First().Id,
             alert);
+
+        // Store the root span in the investigation context for tracing
+        context.RootSpan = span;
 
         // Create an initial investigation progress message
         var progressMessageId = await InitProgressMessageAsync(alertThread.Id);
@@ -96,10 +116,17 @@ public class InvestigationOrchestrator : IInvestigationOrchestrator
 
                 _logger.LogInternalInformation($"Executing step: {nextStep.StepName}");
 
-                // Execute the step
+                // Execute the step with tracing
+                using var stepSpan = _tracer.StartActiveSpan("reasoning.step", SpanKind.Internal, span);
+                stepSpan.SetAttribute("operation.name", "reasoning.step");
+                stepSpan.SetAttribute("thread.id", alertThread.Id.ToString());
+                stepSpan.SetAttribute("step.name", nextStep.StepName);
+
                 var result = await nextStep.ExecuteAsync(alert, context, cancellationToken);
                 context.CollectedEvidence[nextStep.StepName] = result;
                 context.CompletedSteps.Add(nextStep.StepName);
+                stepSpan.SetAttribute("step.success", true);
+                stepSpan.SetAttribute("step.output", result.RawOutput ?? "No output");
 
                 _logger.LogInternalInformation($"Step {nextStep.StepName} completed successfully");
 
@@ -108,14 +135,22 @@ public class InvestigationOrchestrator : IInvestigationOrchestrator
                     alertThread.Id,
                     progressMessageId,
                     $"Finished {GetFriendlyStepName(nextStep.StepName)}",
-                    result.RawOutput);
+                    result.RawOutput ?? "No output available");
 
                 // Evaluate the investigation progress (but only after we've executed at least 2 steps)
                 if (context.IterationCount > 0 || context.CompletedSteps.Count >= 2)
                 {
+                    using var reflexionSpan = _tracer.StartActiveSpan("evaluate.investigation", SpanKind.Internal, span);
+                    reflexionSpan.SetAttribute("operation.name", "evaluate.investigation");
+                    reflexionSpan.SetAttribute("thread.id", alertThread.Id.ToString());
                     var reflexionResult = await _reflexionEvaluator.EvaluateInvestigationAsync(context, cancellationToken);
 
                     context.LastReflexion = reflexionResult;
+                    reflexionSpan.SetAttribute("reflexion.confidence", reflexionResult.OverallConfidence);
+                    reflexionSpan.SetAttribute("reflexion.continue_investigation", reflexionResult.ContinueInvestigation);
+                    reflexionSpan.SetAttribute("reflexion.feedback_suggestions", string.Join("; ", reflexionResult.FeedbackSuggestions ?? new List<string>()));
+                    reflexionSpan.SetAttribute("reflexion.recommended_next_steps", string.Join("; ", reflexionResult.RecommendedNextSteps ?? new List<string>()));
+
 
                     // Only allow reflexion to stop investigation if all reasoning steps have been executed at least once
                     if (context.CompletedSteps.Count >= totalReasoningSteps)
@@ -144,6 +179,9 @@ public class InvestigationOrchestrator : IInvestigationOrchestrator
             _logger.LogInternalInformation("All investigation steps completed. Generating final summary and hypotheses...");
             var finalSummary = await GenerateFinalSummaryAsync(context, cancellationToken);
 
+            // Track final investigation metrics
+            span.SetStatus(OpenTelemetry.Trace.Status.Ok);
+
             // Update the progress message with completion (this will show final hypotheses)
             await UpdateProgressMessageAsync(
                 alertThread.Id,
@@ -157,6 +195,9 @@ public class InvestigationOrchestrator : IInvestigationOrchestrator
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "Error during investigation loop");
+            span.SetStatus(OpenTelemetry.Trace.Status.Error.WithDescription($"Error during investigation: {ex.Message}"));
+            span.SetAttribute("error.type", ex.GetType().Name);
+            span.SetAttribute("error.message", ex.Message);
 
             return new InvestigationSummary
 
@@ -184,7 +225,7 @@ public class InvestigationOrchestrator : IInvestigationOrchestrator
             return unexecutedSteps.First();
         }
 
-        // Priority 2: If all steps have been executed at least once, 
+        // Priority 2: If all steps have been executed at least once,
         // consider reflexion recommendations for re-execution
         if (context.LastReflexion?.RecommendedNextSteps?.Any() == true)
         {
@@ -204,11 +245,23 @@ public class InvestigationOrchestrator : IInvestigationOrchestrator
         InvestigationContext context,
         CancellationToken cancellationToken)
     {
+        using var span = _tracer.StartActiveSpan("generate.summary", SpanKind.Internal, context.RootSpan);
+        span.SetAttribute("operation.name", "generate.summary");
+        span.SetAttribute("thread.id", context.ThreadId.ToString());
+
         try
         {
             // generate hypotheses based on all collected evidence
             _logger.LogInternalInformation("Generating final hypotheses based on all collected evidence");
+
+            using var hypothesesSpan = _tracer.StartActiveSpan("generate.hypotheses", SpanKind.Internal, context.RootSpan);
+            hypothesesSpan.SetAttribute("operation.name", "generate.hypotheses");
+            hypothesesSpan.SetAttribute("thread.id", context.ThreadId.ToString());
             var hypotheses = await _hypothesisGenerator.GenerateHypothesesAsync(context, cancellationToken);
+            hypothesesSpan.SetAttribute("hypotheses.count", hypotheses.Count);
+            hypothesesSpan.SetAttribute("hypotheses.descriptions", string.Join("; ", hypotheses.Select(h => $"{h.Description} (confidence: {h.Confidence:F2})")));
+
+
             if (hypotheses.Any())
             {
                 context.CurrentHypotheses = hypotheses;
@@ -231,9 +284,12 @@ public class InvestigationOrchestrator : IInvestigationOrchestrator
 
             string recommendedAction = DetermineRecommendedAction(context);
 
+            span.SetAttribute("summary.content", response.Text);
+            span.SetStatus(OpenTelemetry.Trace.Status.Ok);
+
             return new InvestigationSummary
             {
-                Summary = response.Text,
+                Summary = response.Text ?? "No summary generated",
                 FinalHypotheses = context.CurrentHypotheses,
                 OverallConfidence = context.LastReflexion?.OverallConfidence ?? 0.5f,
                 InvestigationSteps = context.CompletedSteps,
@@ -243,6 +299,9 @@ public class InvestigationOrchestrator : IInvestigationOrchestrator
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "Error generating final summary");
+            span.SetStatus(OpenTelemetry.Trace.Status.Error.WithDescription($"Error generating final summary: {ex.Message}"));
+            span.SetAttribute("error.type", ex.GetType().Name);
+            span.SetAttribute("error.message", ex.Message);
 
             return new InvestigationSummary
             {
@@ -279,7 +338,7 @@ The following context contains the results of an automated investigation into an
         sb.AppendLine(@"---
 Based on the initial investigation summary, analyze the evidence and provide:
 ## Summary of Findings
-- [Specific finding with exact metric/timestamp/error] 
+- [Specific finding with exact metric/timestamp/error]
 - [Specific finding with exact metric/timestamp/error]
 ## Hypotheses
 ### Hypothesis 1 (Confidence: XX%)
@@ -340,7 +399,7 @@ Remember: Quality findings with specific values are better than quantity. Exclud
 
             if (existingMessage == null) return;
 
-            //// Update message text 
+            //// Update message text
             string updatedText = ChatMessageService.AppendInvestigationSummary(
                 existingMessage.Text, title, summary, status: status, isFinal: isFinal);
 
