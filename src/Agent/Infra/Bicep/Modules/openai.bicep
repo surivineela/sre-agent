@@ -168,3 +168,17 @@ resource storageIdentityRoleAssignment 'Microsoft.Authorization/roleAssignments@
     )
   }
 }
+
+// Additional role assignment for embeddings access
+resource cognitiveServicesUserRoleAssignment 'Microsoft.Authorization/roleAssignments@2018-09-01-preview' = {
+  name: guid(openAIName, identity.name, consts.CognitiveServicesUser)
+  scope: openai
+  properties: {
+    principalId: identity.properties.principalId
+    principalType: 'ServicePrincipal'
+    roleDefinitionId: subscriptionResourceId(
+      'Microsoft.Authorization/roleDefinitions',
+      consts.CognitiveServicesUser
+    )
+  }
+}

@@ -43,6 +43,7 @@
     "StorageBlobDataContributorRoleDefinition": "ba92f5b4-2d11-453d-a403-e96b0029c9fe",
     "StorageBlobDataReaderRoleDefinition": "2a2b9908-6ea1-4ae2-8e65-a410df84e7d1",
     "CognitiveServicesOpenAIContributor": "a001fd3d-188f-4b5d-821b-7da978bf7442",
+    "CognitiveServicesUser": "a97b65f3-24c7-4388-baec-2e87135dc908",
     "SearchIndexDataContributorRoleDefinition": "8ebe5a00-799e-43f5-93ac-243d3dce84a7",
 
     // Azure Monitor Workspace
