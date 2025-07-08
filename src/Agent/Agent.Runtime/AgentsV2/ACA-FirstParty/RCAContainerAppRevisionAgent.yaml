@@ -131,6 +131,8 @@ system_prompt: |
     - [Cluster Insights](<cluster-url>)
     """
 
+handoff_description: Handoff to this agent when dealing with Azure Container Apps issues such as application provisioning, scaling, and health checks. The agent can diagnose and resolve problems related to Container Apps by analyzing app definitions, provisioning processes, scaling events, and system component logs.
+
 handoffs:
   - rca_meta_agent
   - rca_containerapp_search_resource_agent

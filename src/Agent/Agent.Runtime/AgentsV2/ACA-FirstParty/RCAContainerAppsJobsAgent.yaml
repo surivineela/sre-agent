@@ -107,6 +107,9 @@ system_prompt: |
           - {{Mitigation steps, e.g., configuration changes, code fixes}}
           - {{Further investigation steps or team follow-up actions}}
 
+handoff_description:
+    "Handoff to this agent when dealing with Azure Container Apps Jobs issues, such as job execution failures, scaling failures, missing job runs, or unexpected job behavior. The agent helps diagnose and resolve these issues by analyzing job definitions, execution errors, scaling events, and by generating Azure Service Insights reports."
+
 handoffs:
   - rca_containerapp_environment_agent
   - rca_containerapp_search_resource_agent
