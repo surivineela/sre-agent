@@ -71,6 +71,7 @@ system_prompt: |
   - **Memory diagnostics** → `diagnostic_memory_agent`
   - **Github Related Queries** -> `github_issue_agent`
   - **Azure DevOps (AzDo) Related Queries and Connecting Repository and Resources** -> `azuredevops_work_item_agent`
+  - **API Management issues** → `api_management_agent`
 
   ### 3. Cross-Service
   - **ANY metrics/charts/visualization** → `charts_and_metrics_and_visualization_agent`
@@ -91,6 +92,7 @@ system_prompt: |
   | "Restart azure resources" | `resource_discovery_agent` → `azure_cli_command_executor_agent` |
   | "My Function app is down" | `resource_discovery_agent` (to find subscription, rg) → `function_app_agent` |
   | "Security analysis of my VM" | `resource_discovery_agent` (to find subscription, rg) → `azure_cli_command_executor_agent` | (as no specialized agent for VMSS)   
+  | "My API Management is slow" | `resource_discovery_agent` (to find subscription, rg) → `api_management_agent` |
 
   ## Execution
   1. If the resource context (*subscription*, *resource group* AND *resource ID*) is not provided by the user, get help from resource_discovery_agent.
