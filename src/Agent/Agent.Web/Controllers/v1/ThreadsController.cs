@@ -220,41 +220,6 @@ namespace Agent.Web.Controllers.v1
             );
         }
 
-        [HttpGet("{threadId}/context")]
-        public async Task<ActionResult<ThreadContext>> GetContext(Guid threadId)
-        {
-            var threadContext = await repository.GetThreadContextAsync(threadId);
-
-            if (threadContext == null)
-                return NotFound();
-
-            logger.LogInternalInformation($"Get context for thread {threadId}: {JsonSerializer.Serialize(threadContext.OrchestrationState)}");
-
-            if (threadContext.OrchestrationState != null &&
-                !string.IsNullOrEmpty(threadContext.OrchestrationState.OrchestrationInstanceId) &&
-                threadContext.OrchestrationState.ReasoningState != ReasoningState.OrchestrationCompleted &&
-                threadContext.OrchestrationState.ReasoningState != ReasoningState.Error &&
-                (DateTime.UtcNow - threadContext.OrchestrationState.TimeStamp > TimeSpan.FromSeconds(30)))
-            {
-                var orchestrationState = await durableTaskClient.GetInstanceAsync(threadContext.OrchestrationState.OrchestrationInstanceId);
-                if (orchestrationState?.RuntimeStatus == OrchestrationRuntimeStatus.Failed || orchestrationState?.RuntimeStatus == OrchestrationRuntimeStatus.Terminated)
-                {
-                    threadContext.OrchestrationState.ReasoningState = ReasoningState.Error;
-                    // TODO(jianbosun): need to find way to get detailed DTS error here.
-                    threadContext.OrchestrationState.StateMessage = $"Unexpected orchestration runtime status: {orchestrationState.RuntimeStatus} {(orchestrationState.FailureDetails != null ? orchestrationState.FailureDetails.ToString() : "")}";
-                    threadContext.OrchestrationState.TimeStamp = DateTime.UtcNow;
-                    await repository.UpdateThreadContextAsync(threadContext);
-                }
-            }
-            if (threadContext.OrchestrationState != null)
-            {
-                // mask the StateMessage to avoid leak details
-                threadContext.OrchestrationState.StateMessage = "";
-            }
-
-            return Ok(threadContext);
-        }
-
         [HttpGet("{threadId}/actions")]
         public async Task<ActionResult<PagedResponse<Action>>> GetActions(Guid threadId, ODataQueryOptions<ActionDocument> queryOptions)
         {
