@@ -65,6 +65,7 @@ using Agent.Runtime.SubAgents.FunctionAppDiagnosticsAgent;
 using Agent.Runtime.SubAgents.FunctionAppExecutionFailuresAgent;
 using Agent.Runtime.SubAgents.IcmScanner;
 using Agent.Runtime.SubAgents.KubernetesAgent;
+using Agent.Runtime.SubAgents.LocalAuthAgent;
 using Agent.Runtime.SubAgents.ManagedIdentityMigration;
 using Agent.Runtime.SubAgents.PagerDutyAgent;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
@@ -584,7 +585,7 @@ public class Program
             .AddSingleton<ThreadEvaluator>()
             .AddSingleton<TlsBestPracticeAgentFactory>()
             .AddSingleton<TlsBestPracticesScanner>()
-            .AddTransient<IMetaAgentLocalAuthPlugin, LocalAuthAgentPlugin>()
+            .AddTransient<LocalAuthScanner>()
             .AddSingleton<WebAppDownAgentFactory>()
             .AddSingleton<CPUAnalysisAgentFactory>()
             .AddSingleton<AppCodeAnalysisAgentFactory>()
@@ -760,26 +761,6 @@ public class Program
                 };
                 return new KustoClient(logger, kustoSetting);
             });
-        }
-
-
-        // Register all subagent factories that derive from the shared impl
-        var genericSubAgentFactories = TypeReflectionHelpers.GetClassesDerivedFromGeneric(typeof(MetaAgent).Assembly, typeof(SimpleResourceSubAgentFactoryBase<,,,>));
-        foreach (var type in genericSubAgentFactories)
-        {
-            builder.Services.AddSingleton(type);
-        }
-        // Register all subagent plugins that derive from the shared impl
-        var genericSubAgentPlugins = TypeReflectionHelpers.GetClassesDerivedFromGeneric(typeof(MetaAgent).Assembly, typeof(SimpleResourceSubAgentPluginBase<,,,,>));
-        foreach (var type in genericSubAgentPlugins)
-        {
-            builder.Services.AddTransient(type);
-        }
-        // Register all subagent scanners that derive from the shared impl
-        var genericSubAgentScanners = TypeReflectionHelpers.GetClassesDerivedFromGeneric(typeof(MetaAgent).Assembly, typeof(SimpleResourceSubAgentScannerBase<,,,>));
-        foreach (var type in genericSubAgentScanners)
-        {
-            builder.Services.AddSingleton(type);
         }
 
         builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();

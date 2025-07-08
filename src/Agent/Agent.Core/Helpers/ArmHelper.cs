@@ -23,6 +23,7 @@ using Azure.Identity;
 using Azure.ResourceManager.AppService;
 using Azure.ResourceManager.AppService.Models;
 using Azure.ResourceManager.Compute;
+using Azure.ResourceManager.ContainerService;
 using Azure.ResourceManager.CosmosDB;
 using Azure.ResourceManager.CosmosDB.Models;
 using Azure.ResourceManager.EventHubs;
@@ -739,6 +740,11 @@ public class ArmHelper
         return await GetResourceSettings(resourceIds, FetchAppServiceStatusAsync);
     }
 
+    public async Task<List<KubernetesLocalAuthStatus>> GetKubernetesSettings(List<string> resourceIds)
+    {
+        return await GetResourceSettings(resourceIds, FetchKubernetesStatusAsync);
+    }
+
     /// <summary>
     /// Checks if a given string is a valid resource identifier.
     /// </summary>
@@ -843,6 +849,13 @@ public class ArmHelper
         var armClient = await _armClientFactory.GetArmOperationClient();
         var webSiteResource = armClient.GetWebSiteResource(new ResourceIdentifier(resourceId));
         return await webSiteResource.GetAsync();
+    }
+
+    public async Task<ContainerServiceManagedClusterResource> GetKubernetesClusterAsync(string resourceId)
+    {
+        var armClient = await _armClientFactory.GetArmOperationClient();
+        var kubernetesClusterResource = armClient.GetContainerServiceManagedClusterResource(new ResourceIdentifier(resourceId));
+        return await kubernetesClusterResource.GetAsync();
     }
 
     public async Task SetStorageAccountSharedKeySupportAsync(string resourceId, FeatureState featureState)
@@ -1272,6 +1285,17 @@ public class ArmHelper
             FTPBasicAuthEnabled: ftpPublishingCredentialsPolicy.Value.Data.Allow ?? true,
             SCMBasicAuthEnabled: scmPublishingCredentialsPolicy.Value.Data.Allow ?? true
             );
+    }
+
+    public async Task<KubernetesLocalAuthStatus> FetchKubernetesStatusAsync(string resourceId)
+    {
+        var kubernetesClusterResource = await GetKubernetesClusterAsync(resourceId);
+        return new KubernetesLocalAuthStatus(
+            ResourceId: resourceId,
+            Name: kubernetesClusterResource.Data.Name,
+            Location: kubernetesClusterResource.Data.Location,
+            DisableLocalAccounts: kubernetesClusterResource.Data.DisableLocalAccounts ?? false
+        );
     }
 
     public async Task SetWebSiteFtpAuthenticationSupport(string resourceId, FeatureState featureState)

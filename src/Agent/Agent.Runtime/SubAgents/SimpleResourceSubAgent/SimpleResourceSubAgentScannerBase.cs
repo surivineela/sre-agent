@@ -109,7 +109,7 @@ namespace Agent.Runtime.SubAgents
                     var reasoningMessage = "\n\nHere are the resources in violation:\n\n" + string.Join("\n\n", group.Select(a => a.ResourceId));
                     (var thread, var agentContext) = await _agentInboundCommunicationService.CreateAgentThread(
                         $"{agentName} for {resourceProviderName} found issues",
-                        this.MessageWhenFoundResourcesInViolation + reasoningMessage,
+                        this.MessageWhenFoundResourcesInViolation,
                         AgentTypeEnum.Meta,
                         ThreadSource.Conversation
                     );

@@ -21,6 +21,7 @@ using Agent.Runtime.SubAgents.AzMonitorAlertAgent;
 using Agent.Runtime.SubAgents.CVEAgent;
 using Agent.Runtime.SubAgents.DailyReportSummary;
 using Agent.Runtime.SubAgents.FeedbackRCAAgent;
+using Agent.Runtime.SubAgents.LocalAuthAgent;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
 using Agent.Runtime.SubAgents.ThreadEvaluator;
 using Agent.Runtime.SubAgents.TlsBestPracticesAgent;
@@ -84,6 +85,7 @@ public class TimerService : IHostedService, IDisposable
     private AzureDataExplorerLogger _azureDataExplorerLogger;
     private CustomerLogger _customerLogger;
     private CustomerAuditLogger _customerAuditLogger;
+    private LocalAuthScanner _localAuthScanner;
 
     private Timer? _crawlerTimer = null;
     private bool _crawlerTimerIsRunning = false;
@@ -140,6 +142,10 @@ public class TimerService : IHostedService, IDisposable
     private bool _logFlushTimerIsRunning = false;
     private TimeSpan _logFlushTimerInterval = TimeSpan.FromSeconds(30);
 
+    private Timer? _localAuthScannerTimer = null;
+    private bool _localAuthScannerTimerIsRunning = false;
+    private TimeSpan _localAuthScannerTimerInterval = TimeSpan.FromDays(1);
+
     private List<ScannerTimerInformation> GenericSubAgentScannerTimers = new();
 
     private bool _pagerDutyWelcomeSent = false;
@@ -172,7 +178,8 @@ public class TimerService : IHostedService, IDisposable
         AzureDataExplorerLogger azureDataExplorerLogger,
         CustomerLogger customerLogger,
         CustomerAuditLogger customerAuditLogger,
-        IIncidentScanner incidentScanner)
+        IIncidentScanner incidentScanner,
+        LocalAuthScanner localAuthScanner)
     {
         _logger = logger;
         _crawlerService = crawlerService;
@@ -199,6 +206,7 @@ public class TimerService : IHostedService, IDisposable
         _customerLogger = customerLogger;
         _customerAuditLogger = customerAuditLogger;
         _incidentScanner = incidentScanner;
+        _localAuthScanner = localAuthScanner;
 
         // Register all the scanners that implement this base type
         var scannerSubClasses = TypeReflectionHelpers.GetClassesDerivedFromGeneric(typeof(MetaAgent).Assembly, typeof(SimpleResourceSubAgentScannerBase<,,,>));
@@ -266,6 +274,9 @@ public class TimerService : IHostedService, IDisposable
         _logger.LogInternalInformation("Starting GitHub access token timer...");
         //StartGitHubAccessTokenTimer(cancellationToken);
 
+        _logger.LogInternalInformation("Starting Local Auth scanner timer...");
+        StartLocalAuthScannerTimer(cancellationToken);
+
         if (_incidentManagementSettings != null)
         {
             switch (_incidentManagementSettings.Type)
@@ -297,6 +308,7 @@ public class TimerService : IHostedService, IDisposable
 
         _crawlerTimer?.Change(Timeout.Infinite, 0); // Stop the timer
         _threadEvaluatorTimer?.Change(Timeout.Infinite, 0); // Stop the ThreadEvaluator timer
+        _localAuthScannerTimer?.Change(Timeout.Infinite, 0); // Stop the Local Auth scanner timer
 
         // Stop all generic timers
         foreach (var scanner in GenericSubAgentScannerTimers)
@@ -845,12 +857,44 @@ public class TimerService : IHostedService, IDisposable
         }, null, TimeSpan.Zero, _azMonitorIncidentClosureTimerInterval);
     }
 
+    public void StartLocalAuthScannerTimer(CancellationToken cancellationToken)
+    {
+        _localAuthScannerTimer = new Timer(async _ =>
+        {
+            if (!_crawlerFinishedOnce)
+            {
+                _logger.LogInternalInformation("StartLocalAuthScannerTimer: Resource crawler still in progress, wait for one round of scan to complete..");
+                return; // Wait for the first crawl to finish
+            }
+
+            if (_localAuthScannerTimerIsRunning)
+            {
+                _logger.LogInternalInformation("Local Auth scanner is already running. Skip this round.");
+                return;
+            }
+            try
+            {
+                _localAuthScannerTimerIsRunning = true;
+                await _localAuthScanner.ScanAsync(cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Error executing Local Auth scanner timer.");
+            }
+            finally
+            {
+                _localAuthScannerTimerIsRunning = false;
+            }
+        }, null, TimeSpan.FromMinutes(5), _localAuthScannerTimerInterval);
+    }
+
     public void Dispose()
     {
         _logger.LogInternalInformation("Disposing Azure Resource Crawler Worker");
 
         _crawlerTimer?.Dispose();
         _threadEvaluatorTimer?.Dispose();
+        _localAuthScannerTimer?.Dispose();
 
         // Dispose generic timers
         foreach (var scanner in GenericSubAgentScannerTimers)
