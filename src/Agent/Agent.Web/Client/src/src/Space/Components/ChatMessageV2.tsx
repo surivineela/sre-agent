@@ -19,6 +19,7 @@ import { ChatBoxV2Styles as ChatBoxStyles, nameAndTimestampContainerStyle, useCh
 import AgentMessage from './AgentMessage';
 import AgentMessageLoadingComponent from './AgentMessageLoadingComponent';
 import ChatMessageFooter from './ChatMessageFooter';
+import ConnectionErrorComponent from './ConnectionErrorComponent';
 import ReactMarkdownComponent from './ReactMarkdownComponent';
 
 const chatMessageStyles = mergeStyleSets({
@@ -248,6 +249,7 @@ const ChatMessageV2 = ({
                             );
                         })}
 
+                        <ConnectionErrorComponent key={`${message.id}-connection-error`} showError={isStreamingMessage} />
                         <ToolCallTextComponent key={`${message.id}-tool-call-text`} />
                         <Loading key={`${message.id}-loading`} />
                         <ChatMessageFooter
@@ -256,7 +258,6 @@ const ChatMessageV2 = ({
                             threadId={threadId}
                             nextMessage={nextMessage}
                             isTyping={isTyping}
-                            isStreamingMessage={isStreamingMessage}
                         />
                     </CopilotMessage>
                 </div>

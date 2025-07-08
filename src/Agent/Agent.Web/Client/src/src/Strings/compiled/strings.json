@@ -71,6 +71,12 @@
       "value": "Your agent is in autonomous mode. The following permissions are required for the agent to build knowledge about your resources. The agent will use some of these permissions to perform write operations autonomously based on your requests."
     }
   ],
+  "/wdD42": [
+    {
+      "type": 0,
+      "value": "Connection Error."
+    }
+  ],
   "/zQv2D": [
     {
       "type": 0,
@@ -3141,6 +3147,12 @@
     {
       "type": 0,
       "value": "The custom incident handler was successfully added"
+    }
+  ],
+  "sd1Vy+": [
+    {
+      "type": 0,
+      "value": "Reconnecting to the agent..."
     }
   ],
   "slxYbm": [

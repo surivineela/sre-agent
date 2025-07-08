@@ -386,6 +386,14 @@ export const ActivitiesResources = defineMessages({
         defaultMessage: 'Hide thread menu',
         id: 'OWBgF9',
     },
+    connectionErrorTitle: {
+        defaultMessage: 'Connection Error.',
+        id: '/wdD42',
+    },
+    reconnecting: {
+        defaultMessage: 'Reconnecting to the agent...',
+        id: 'sd1Vy+',
+    },
 });
 
 export const ActivitiesThreadHeaderResources = defineMessages({

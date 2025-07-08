@@ -33,10 +33,11 @@ type StreamingContextProps = {
     ) => () => void;
     isConnecting: boolean;
     isConnected: boolean;
+    isReconnecting: boolean;
 };
 
 type ChatBoxContextProps = {
-    getGroupedChatMessages: (message: ChatMessage, isStreamingMessage?: boolean) => ChatMessage[];
+    getGroupedChatMessages: (message: ChatMessage) => ChatMessage[];
 };
 
 export const SreAgentContext = createContext<SreAgentContextProps>({
@@ -77,8 +78,9 @@ export const StreamingContext = createContext<StreamingContextProps>({
         () => {},
     isConnecting: true,
     isConnected: false,
+    isReconnecting: false,
 });
 
 export const ChatBoxContext = createContext<ChatBoxContextProps>({
-    getGroupedChatMessages: (_message: ChatMessage, _isStreamingMessage?: boolean) => [],
+    getGroupedChatMessages: (_message: ChatMessage) => [],
 });

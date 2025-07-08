@@ -10,6 +10,7 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
     const connectionRef = useRef<signalR.HubConnection | null>(null);
     const [isConnecting, setIsConnecting] = useState(true);
     const [isConnected, setIsConnected] = useState(false);
+    const [isReconnecting, setIsReconnecting] = useState(false);
     const isConnectedRef = useRef(false);
     // key: threadId, value: the latest streaming messages for that thread in the current session
     const latestStreamingMessageRef = useRef<Map<string, StreamingMessage | null | undefined>>(new Map());
@@ -117,8 +118,19 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
                 .withAutomaticReconnect()
                 .build();
 
-            connectionRef.current.onclose(() => setIsConnected(false));
-            connectionRef.current.onreconnected(() => setIsConnected(true));
+            connectionRef.current.onclose(() => {
+                setIsConnected(false);
+                setIsConnecting(false);
+                setIsReconnecting(false);
+            });
+
+            connectionRef.current.onreconnecting(() => {
+                setIsReconnecting(true);
+            });
+
+            connectionRef.current.onreconnected(() => {
+                setIsReconnecting(false);
+            });
 
             try {
                 await connectionRef.current.start();
@@ -143,7 +155,7 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
     }, [proxy.log, sreAgentEndpoint]);
 
     return (
-        <StreamingContext.Provider value={{ sendMessage, subscribeChatStreaming, isConnecting, isConnected }}>
+        <StreamingContext.Provider value={{ sendMessage, subscribeChatStreaming, isConnecting, isConnected, isReconnecting }}>
             {children}
         </StreamingContext.Provider>
     );
