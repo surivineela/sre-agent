@@ -222,7 +222,8 @@ Output: Returns a JSON object with validation details.
                      && !quotaType.Equals("ManagedEnvironmentConsumptionCores", StringComparison.OrdinalIgnoreCase)
                      && !quotaType.Equals("ManagedEnvironmentGeneralPurposeCores", StringComparison.OrdinalIgnoreCase)
                      && !quotaType.Equals("ManagedEnvironmentMemoryOptimizedCores", StringComparison.OrdinalIgnoreCase)
-                     && !quotaType.Equals("ContainerAppAdditionalPorts", StringComparison.OrdinalIgnoreCase))
+                     && !quotaType.Equals("SessionPools", StringComparison.OrdinalIgnoreCase)
+                     )
             {
                 return (ApprovalState.NotSupported, string.Format(MessageTemplates.QuotaTypeNotSupported, quotaType));
             }
@@ -329,6 +330,7 @@ Output: Returns a JSON object with validation details.
                 || quotaTypeEnum.Equals(QuotaType.ManagedEnvironmentGeneralPurposeCores)
                 || quotaTypeEnum.Equals(QuotaType.ManagedEnvironmentMemoryOptimizedCores)
                 || quotaTypeEnum.Equals(QuotaType.ContainerAppAdditionalPorts)
+                || quotaTypeEnum.Equals(QuotaType.SessionPools)
                 )
             {
                 return (ApprovalState.Pending, string.Format(MessageTemplates.RequireManualApproveForEnvCoreQuota, quotaType));
@@ -344,7 +346,7 @@ Output: Returns a JSON object with validation details.
         {
             public const string RegionNotSupported = @"Quota type {0} is not supported in this region {1}. For QuotaType {0}, the valid region should be {2}. Ask the user to provide the correct region.";
 
-            public const string QuotaTypeNotSupported = @"Quota type {0} is not supported. The valid quota types are SubscriptionNCA100Gpus, SubscriptionConsumptionNCA100Gpus, SubscriptionConsumptionT4Gpus, ManagedEnvironmentCount, ManagedEnvironmentConsumptionCores, ManagedEnvironmentGeneralPurposeCores, ManagedEnvironmentMemoryOptimizedCores, ContainerAppAdditionalPorts. Ask the user to provide the correct quota type.";
+            public const string QuotaTypeNotSupported = @"Quota type {0} is not supported. The valid quota types are SubscriptionNCA100Gpus, SubscriptionConsumptionNCA100Gpus, SubscriptionConsumptionT4Gpus, ManagedEnvironmentCount, ManagedEnvironmentConsumptionCores, ManagedEnvironmentGeneralPurposeCores, ManagedEnvironmentMemoryOptimizedCores, ContainerAppAdditionalPorts, SessionPools. Ask the user to provide the correct quota type.";
 
             public const string NorthEuropeNotSupported = "There is no SubscriptionNCA100Gpus quota available in NorthEurope. Please ask the user if the customer can use SubscriptionConsumptionNCA100Gpus/SubscriptionConsumptionT4Gpus in WestUS3/SwedenCentral/AustraliaEast or SubscriptionNCA100Gpus in WestUS3.";
 
@@ -362,7 +364,7 @@ Output: Returns a JSON object with validation details.
 
             public const string InvalidQuotaLimit = @"Invalid target limit number. Ask the user to provide a valid target limit.";
 
-            public const string InvalidQuotaType = @"Invalid quota type. Ask the customer to provide one of the following quota type: SubscriptionNCA100Gpus, SubscriptionConsumptionNCA100Gpus, SubscriptionConsumptionT4Gpus, ManagedEnvironmentCount, ManagedEnvironmentConsumptionCores, ManagedEnvironmentGeneralPurposeCores, ManagedEnvironmentMemoryOptimizedCores, ContainerAppAdditionalPorts";
+            public const string InvalidQuotaType = @"Invalid quota type. Ask the customer to provide one of the following quota type: SubscriptionNCA100Gpus, SubscriptionConsumptionNCA100Gpus, SubscriptionConsumptionT4Gpus, ManagedEnvironmentCount, ManagedEnvironmentConsumptionCores, ManagedEnvironmentGeneralPurposeCores, ManagedEnvironmentMemoryOptimizedCores, ContainerAppAdditionalPorts, SessionPools";
 
             public const string RequireManualApproveDueToShortage = @"Manual approval is required for {0} offer type in {1} region due to a capacity shortage.";
         }
