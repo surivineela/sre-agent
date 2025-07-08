@@ -2098,7 +2098,7 @@ const ChatMessage = ({
                 Scope: scope,
             },
             {
-                headers: getAgentHeaders(),
+                headers: getAgentHeaders(scope),
             }
         );
 

@@ -36,7 +36,7 @@ const ApprovalMessage = ({ approval, messageId, threadId }: { approval?: Approva
                 Scope: scope,
             },
             {
-                headers: getAgentHeaders(),
+                headers: getAgentHeaders(scope),
             }
         );
 

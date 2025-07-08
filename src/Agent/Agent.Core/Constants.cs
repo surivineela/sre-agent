@@ -14,6 +14,8 @@ namespace Agent.Core
 
         public const string DefaultOboTokenScope = "https://management.core.windows.net/.default";
 
+        public const string AksOboTokenScope = "6dae42f8-4368-4678-94ff-3960e28e3630/.default";
+
         public const string HttpClientForRazor = "Razor";
 
         public const string HttpClientForCrawler = "Crawler";

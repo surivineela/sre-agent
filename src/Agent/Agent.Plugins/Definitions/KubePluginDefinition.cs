@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
+using Agent.Core;
 using Agent.Core.Attributes;
 using Agent.Framework;
 using Agent.Plugins.Helpers;
@@ -66,7 +67,7 @@ Used whenever user wants to restart or rollout restart a deployment, it can also
 eg: restart the 'nginx-deployment' in the 'default' namespace.
 If user didn't specify namespace in the context, try to use 'default' namespace")]
         [WriteAction]
-        [RequiresApproval("Requires approval to rollout restart a deployment.", useOboToken: false)]
+        [RequiresApproval("Requires approval to rollout restart a deployment.", scope: Constants.AksOboTokenScope)]
         public async Task<string> RolloutRestartDeploymentAsync(
             [Description("The resource ID of the Azure Kubernetes Service. e.g. '/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ContainerService/managedClusters/{cluster-name}'")] string AKSClusterResourceId,
             [Description($"Kubernetes namespace, e.g. 'default', 'kube-system'")] string _namespace,
@@ -81,7 +82,7 @@ If user didn't specify namespace in the context, try to use 'default' namespace"
 Used whenever user wants to scale a deployment, it can also be used by scale pod if the pod belongs to the deployment.
 eg: scale the 'nginx-deployment' in the 'default' namespace to 3 replicas.
 If user didn't specify namespace in the context, try to use 'default' namespace")]
-        [RequiresApproval("Requires approval to scale a deployment.", useOboToken: false)]
+        [RequiresApproval("Requires approval to scale a deployment.", scope: Constants.AksOboTokenScope)]
         [WriteAction]
         public async Task<string> ScaleDeploymentAsync(
             [Description("The resource ID of the Azure Kubernetes Service. e.g. '/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ContainerService/managedClusters/{cluster-name}'")] string AKSClusterResourceId,
@@ -201,7 +202,7 @@ Used whenever user wants to scale a StatefulSet, it can also be used to scale po
 eg: scale the 'redis' StatefulSet in the 'default' namespace to 3 replicas.
 If user didn't specify namespace in the context, try to use 'default' namespace")]
         [WriteAction]
-        [RequiresApproval("Requires approval to scale a StatefulSet.", useOboToken: false)]
+        [RequiresApproval("Requires approval to scale a StatefulSet.", scope: Constants.AksOboTokenScope)]
         public async Task<string> ScaleStatefulSetAsync(
             [Description("The resource ID of the Azure Kubernetes Service. e.g. '/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ContainerService/managedClusters/{cluster-name}'")] string AKSClusterResourceId,
               [Description($"Kubernetes namespace, e.g. 'default', 'kube-system'")] string _namespace,
@@ -260,7 +261,7 @@ Used whenever user wants to create or update resources in a Kubernetes cluster u
 eg: please apply this YAML object to my AKS cluster to create a new deployment.
 eg: update my service with this YAML manifest.")]
         [WriteAction]
-        [RequiresApproval("Requires approval to apply Kubernetes YAML.", useOboToken: false)]
+        [RequiresApproval("Requires approval to apply Kubernetes YAML.", scope: Constants.AksOboTokenScope)]
         public async Task<string> PatchKubernetesYamlAsync(
             [Description("The resource ID of the Azure Kubernetes Service. e.g. '/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ContainerService/managedClusters/{cluster-name}'")] string AKSClusterResourceId,
             [Description("The YAML manifest content to apply to the cluster")] string yamlContent)
@@ -736,7 +737,7 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
             Failures during tool installation or profiling will be reported in the output.
             eg: 'Profile CPU of 'my-app-pod' in 'default' for 60s.'"
         )]
-        [RequiresApproval("Requires approval to execute CPU profiling tools within the specified pod and container.", useOboToken: false)]
+        [RequiresApproval("Requires approval to execute CPU profiling tools within the specified pod and container.", scope: Constants.AksOboTokenScope)]
         public async Task<string> ProfileDotnetAppCpuInAKSContainerAsync(
         [Description("The resource ID of the Azure Kubernetes Service (AKS) cluster.")] string AKSClusterResourceId,
         [Description("Kubernetes namespace where the pod is located.")] string _namespace,
@@ -756,7 +757,7 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
     eg: 'Analyze the memory of the .NET app in pod 'cart-service-pod-abc789' in the 'e-commerce' namespace.'
     eg: 'My .NET app 'order-processor' in pod 'proc-pod-123' seems to be using too much memory, can you analyze it?'"
     )]
-        [RequiresApproval("Requires approval to execute memory dump collection and analysis tools within the specified pod and container. This involves running scripts and potentially installing diagnostic tools inside the container.", useOboToken: false)]
+        [RequiresApproval("Requires approval to execute memory dump collection and analysis tools within the specified pod and container. This involves running scripts and potentially installing diagnostic tools inside the container.", scope: Constants.AksOboTokenScope)]
         public async Task<string> AnalyzeDotnetAppMemoryInAKSContainerAsync(
             [Description("The resource ID of the Azure Kubernetes Service (AKS) cluster.")] string AKSClusterResourceId,
             [Description("Kubernetes namespace where the pod is located.")] string _namespace,
