@@ -369,9 +369,7 @@ export const useChatBoxV2 = (
         const latestStreamingMessageHandler = (messageChunk?: StreamingMessage | null) => {
             if (messageChunk && !isFinalStreamingMessage(messageChunk) && !isUserStreamingMessage(messageChunk)) {
                 setStreamingMessage(prev => {
-                    if (prev === undefined) {
-                        return composeDefaultStreamingMessage();
-                    }
+                    return prev === undefined ? composeDefaultStreamingMessage() : prev;
                 });
                 setIsAgentTyping(prev => (prev === undefined ? true : prev));
                 setIsWaitingForStreamingMessages(prev => (prev === undefined ? true : prev));
