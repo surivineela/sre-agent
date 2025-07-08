@@ -1,3 +1,4 @@
+using System;
 using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Logging;
@@ -92,6 +93,14 @@ public class KubernetesDeploymentCrawler : IResourceCrawler
                             continue;
                         }
                     }
+
+                    // Process PostgreSQL environment variables for this container
+                    var postgreSqlEnvNode = await container.TryProcessPostgreSqlEnvironmentVariablesAsync(
+                        deploymentNode, _postgresHelper, "k8s:deployment:environmentVariables", _logger);
+                    if (postgreSqlEnvNode != null)
+                    {
+                        yield return postgreSqlEnvNode;
+                    }
                 }
 
                 if (container.VolumeMounts != null)
@@ -109,32 +118,6 @@ public class KubernetesDeploymentCrawler : IResourceCrawler
                             }
                         }
                     }
-                }
-            }
-
-            // After processing individual environment variables, scan for Individual Variables patterns (PostgreSQL environment variables)
-            var allEnvVars = deployment.Spec.Template.Spec.Containers
-                .Where(c => c.Env != null)
-                .SelectMany(c => c.Env)
-                .Where(env => !string.IsNullOrEmpty(env.Value))
-                .ToDictionary(env => env.Name, env => env.Value);
-
-            if (_postgresHelper.HasPostgreSqlEnvironmentVariables(allEnvVars))
-            {
-                ArmResourceNode postgreSqlEnvNode = null;
-                try
-                {
-                    postgreSqlEnvNode = await _postgresHelper.GetPostgreSqlResourceFromEnvironmentVariablesAsync(
-                        deploymentNode, allEnvVars, "k8s:deployment:environmentVariables");
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogInternalWarning($"Error processing PostgreSQL environment variables for {deploymentNode.GetNodeId()}: {ex.Message}");
-                }
-
-                if (postgreSqlEnvNode != null)
-                {
-                    yield return postgreSqlEnvNode;
                 }
             }
         }

@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
@@ -95,6 +96,14 @@ public class KubernetesDaemonSetCrawler : IResourceCrawler
                             continue;
                         }
                     }
+
+                    // Process PostgreSQL environment variables for this container
+                    var postgreSqlEnvNode = await container.TryProcessPostgreSqlEnvironmentVariablesAsync(
+                        daemonSetNode, _postgresHelper, "k8s:daemonset:environmentVariables", _logger);
+                    if (postgreSqlEnvNode != null)
+                    {
+                        yield return postgreSqlEnvNode;
+                    }
                 }
                 if (container.VolumeMounts != null)
                 {
@@ -111,32 +120,6 @@ public class KubernetesDaemonSetCrawler : IResourceCrawler
                             }
                         }
                     }
-                }
-            }
-
-            // After processing individual environment variables, scan for Individual Variables patterns (PostgreSQL environment variables)
-            var allEnvVars = daemonSet.Spec.Template.Spec.Containers
-                .Where(c => c.Env != null)
-                .SelectMany(c => c.Env)
-                .Where(env => !string.IsNullOrEmpty(env.Value))
-                .ToDictionary(env => env.Name, env => env.Value);
-
-            if (_postgresHelper.HasPostgreSqlEnvironmentVariables(allEnvVars))
-            {
-                ArmResourceNode postgreSqlEnvNode = null;
-                try
-                {
-                    postgreSqlEnvNode = await _postgresHelper.GetPostgreSqlResourceFromEnvironmentVariablesAsync(
-                        daemonSetNode, allEnvVars, "k8s:daemonset:environmentVariables");
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogInternalWarning($"Error processing PostgreSQL environment variables for {daemonSetNode.GetNodeId()}: {ex.Message}");
-                }
-
-                if (postgreSqlEnvNode != null)
-                {
-                    yield return postgreSqlEnvNode;
                 }
             }
         }

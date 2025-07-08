@@ -158,59 +158,45 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
             yield break;
         }
 
-        foreach (var env in capp.Template.Containers.Select(c => c.Env).SelectMany(e => e))
+        foreach (var container in capp.Template.Containers)
         {
-            if (env.SecretRef != null)
+            foreach (var env in container.Env)
             {
-                if (secrets.ContainsKey(env.SecretRef))
+                if (env.SecretRef != null)
                 {
-                    var secretValue = secrets[env.SecretRef];
-                    if (string.IsNullOrEmpty(secretValue)) continue;
-
-                    await foreach (var resourceNode in ProcessConnectionString(cappNode, env.Name, secretValue, "secret"))
+                    if (secrets.ContainsKey(env.SecretRef))
                     {
-                        yield return resourceNode;
+                        var secretValue = secrets[env.SecretRef];
+                        if (string.IsNullOrEmpty(secretValue)) continue;
+
+                        await foreach (var resourceNode in ProcessConnectionString(cappNode, env.Name, secretValue, "secret"))
+                        {
+                            yield return resourceNode;
+                        }
+                    }
+                }
+                else if (!string.IsNullOrEmpty(env.Value))
+                {
+                    if (env.Name.Equals("REDIS_HOST", StringComparison.OrdinalIgnoreCase))
+                    {
+                        await foreach (var resourceNode in ProcessRedisHost(cappNode, env.Name, env.Value, "env"))
+                        {
+                            yield return resourceNode;
+                        }
+                    }
+                    else
+                    {
+                        await foreach (var resourceNode in ProcessConnectionString(cappNode, env.Name, env.Value, "env"))
+                        {
+                            yield return resourceNode;
+                        }
                     }
                 }
             }
-            else if (!string.IsNullOrEmpty(env.Value))
-            {
-                if (env.Name.Equals("REDIS_HOST", StringComparison.OrdinalIgnoreCase))
-                {
-                    await foreach (var resourceNode in ProcessRedisHost(cappNode, env.Name, env.Value, "env"))
-                    {
-                        yield return resourceNode;
-                    }
-                }
-                else
-                {
-                    await foreach (var resourceNode in ProcessConnectionString(cappNode, env.Name, env.Value, "env"))
-                    {
-                        yield return resourceNode;
-                    }
-                }
-            }
-        }
 
-        // After processing individual environment variables, scan for Individual Variables patterns (PostgreSQL environment variables)
-        var allEnvVars = capp.Template.Containers
-            .SelectMany(c => c.Env)
-            .Where(env => !string.IsNullOrEmpty(env.Value))
-            .ToDictionary(env => env.Name, env => env.Value);
-
-        if (_postgreSqlHelper.HasPostgreSqlEnvironmentVariables(allEnvVars))
-        {
-            ArmResourceNode postgreSqlEnvNode = null;
-            try
-            {
-                postgreSqlEnvNode = await _postgreSqlHelper.GetPostgreSqlResourceFromEnvironmentVariablesAsync(
-                    cappNode, allEnvVars, "containerApp:environmentVariables");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogInternalWarning($"Error processing PostgreSQL environment variables for {cappNode.ResourceId}: {ex.Message}");
-            }
-
+            // Process PostgreSQL environment variables for this container
+            var postgreSqlEnvNode = await container.TryProcessPostgreSqlEnvironmentVariablesAsync(
+                cappNode, _postgreSqlHelper, "containerApp:environmentVariables", _logger);
             if (postgreSqlEnvNode != null)
             {
                 yield return postgreSqlEnvNode;

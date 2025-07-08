@@ -1,9 +1,11 @@
+using System;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
 using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.ARM;
+using Azure.ResourceManager.AppContainers.Models;
 using k8s.Models;
 using Microsoft.Extensions.Logging;
 
@@ -312,5 +314,69 @@ public static partial class KubernetesExtensions
 
         var edge = new ArmResourceEdge(pNode.GetNodeId(), node.GetNodeId(), Constants.Relationships.Contains);
         await graphDbClient.AddOrUpdateEdgeAsync(edge);
+    }
+
+    public static async Task<ArmResourceNode> TryProcessPostgreSqlEnvironmentVariablesAsync(
+        this V1Container container,
+        GraphNode parentNode,
+        PostgreSqlConnectionStringHelper postgresHelper,
+        string sourceType,
+        ILogger logger)
+    {
+        if (container.Env == null)
+        {
+            return null;
+        }
+
+        var containerEnvVars = container.Env
+            .Where(env => !string.IsNullOrEmpty(env.Value))
+            .ToDictionary(env => env.Name, env => env.Value);
+
+        if (postgresHelper.HasPostgreSqlEnvironmentVariables(containerEnvVars))
+        {
+            try
+            {
+                return await postgresHelper.GetPostgreSqlResourceFromEnvironmentVariablesAsync(
+                    parentNode, containerEnvVars, sourceType);
+            }
+            catch (Exception ex)
+            {
+                logger.LogInternalWarning($"Error processing PostgreSQL environment variables for container in {parentNode.GetNodeId()}: {ex.Message}");
+            }
+        }
+
+        return null;
+    }
+
+    public static async Task<ArmResourceNode> TryProcessPostgreSqlEnvironmentVariablesAsync(
+        this Azure.ResourceManager.AppContainers.Models.ContainerAppContainer container,
+        GraphNode parentNode,
+        PostgreSqlConnectionStringHelper postgresHelper,
+        string sourceType,
+        ILogger logger)
+    {
+        if (container.Env == null)
+        {
+            return null;
+        }
+
+        var containerEnvVars = container.Env
+            .Where(env => !string.IsNullOrEmpty(env.Value))
+            .ToDictionary(env => env.Name, env => env.Value);
+
+        if (postgresHelper.HasPostgreSqlEnvironmentVariables(containerEnvVars))
+        {
+            try
+            {
+                return await postgresHelper.GetPostgreSqlResourceFromEnvironmentVariablesAsync(
+                    parentNode, containerEnvVars, sourceType);
+            }
+            catch (Exception ex)
+            {
+                logger.LogInternalWarning($"Error processing PostgreSQL environment variables for container in {parentNode.GetNodeId()}: {ex.Message}");
+            }
+        }
+
+        return null;
     }
 }

@@ -98,6 +98,14 @@ public class KubernetesStatefulSetCrawler : IResourceCrawler
                             continue;
                         }
                     }
+
+                    // Process PostgreSQL environment variables for this container
+                    var postgreSqlEnvNode = await container.TryProcessPostgreSqlEnvironmentVariablesAsync(
+                        statefulSetNode, _postgresHelper, "k8s:statefulset:environmentVariables", _logger);
+                    if (postgreSqlEnvNode != null)
+                    {
+                        yield return postgreSqlEnvNode;
+                    }
                 }
                 if (container.VolumeMounts != null)
                 {
@@ -114,32 +122,6 @@ public class KubernetesStatefulSetCrawler : IResourceCrawler
                             }
                         }
                     }
-                }
-            }
-
-            // After processing individual environment variables, scan for Individual Variables patterns (PostgreSQL environment variables)
-            var allEnvVars = statefulSet.Spec.Template.Spec.Containers
-                .Where(c => c.Env != null)
-                .SelectMany(c => c.Env)
-                .Where(env => !string.IsNullOrEmpty(env.Value))
-                .ToDictionary(env => env.Name, env => env.Value);
-
-            if (_postgresHelper.HasPostgreSqlEnvironmentVariables(allEnvVars))
-            {
-                ArmResourceNode postgreSqlEnvNode = null;
-                try
-                {
-                    postgreSqlEnvNode = await _postgresHelper.GetPostgreSqlResourceFromEnvironmentVariablesAsync(
-                        statefulSetNode, allEnvVars, "k8s:statefulset:environmentVariables");
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogInternalWarning($"Error processing PostgreSQL environment variables for {statefulSetNode.GetNodeId()}: {ex.Message}");
-                }
-
-                if (postgreSqlEnvNode != null)
-                {
-                    yield return postgreSqlEnvNode;
                 }
             }
         }
