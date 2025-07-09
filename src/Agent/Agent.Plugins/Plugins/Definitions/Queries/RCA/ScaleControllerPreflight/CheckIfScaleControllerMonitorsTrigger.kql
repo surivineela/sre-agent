@@ -1,0 +1,13 @@
+let start = datetime("##startTime##");
+let end = datetime("##endTime##");
+let stampName = "##eventPrimaryStampName##";
+let siteName = "##siteName##";
+let triggerName = "##triggerName##";
+ScaleControllerEvents
+| where PreciseTimeStamp between(start .. end)
+| where EventPrimaryStampName == stampName
+| where SiteName == siteName
+| where Message startswith "Agg"
+| where Message matches regex strcat('"', triggerName, '"') 
+| summarize Count = count() by bin(PreciseTimeStamp, 1h)
+| project Count, PreciseTimeStamp

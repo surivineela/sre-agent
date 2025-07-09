@@ -1,0 +1,10 @@
+let siteName = "##siteName##";
+let abbreviation = AntaresAnalyticsEvents
+| where PreciseTimeStamp > ago(2h)
+| where RuntimeSiteName == siteName
+| parse EventPrimaryStampName with "waws-prod-" abbreviation "-" *
+| project abbreviation
+| take 1;
+GetRegions
+| where AntaresAbbreviation in (abbreviation)
+| project KustoCluster

@@ -1,0 +1,15 @@
+let start = datetime("##startTime##");
+let end = datetime("##endTime##");
+let stampName = "##eventPrimaryStampName##";
+let siteName = "##siteName##";
+// summarizationTimeBucket = 1m by default
+let summarizationTimeBucket = ##summarizationTimeBucket##;
+AntaresDataServiceApiTransactions
+| where PreciseTimeStamp between(start .. end)
+| where EventPrimaryStampName == stampName
+| where OperationName == "EnsureWorkersForSite"
+| parse RequestUrl with * "sites/" AppName "/" * "count=" CountString "&" *
+| where AppName == siteName
+| extend Count = toint(CountString)
+| summarize MaxCount = max(Count) by bin(PreciseTimeStamp, 1m), SiteName=AppName
+| project MaxCount, PreciseTimeStamp, SiteName

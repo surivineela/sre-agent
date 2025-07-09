@@ -1,0 +1,15 @@
+let start = datetime("##startTime##");
+let end = datetime("##endTime##");
+let stampName = "##eventPrimaryStampName##";
+let siteName = "##siteName##";
+let functionName = "##functionName##";
+// summarizationTimeBucket = 5m by default
+let summarizationTimeBucket = ##summarizationTimeBucket##;
+FunctionsLogs
+| where PreciseTimeStamp between(start .. end)
+| where EventPrimaryStampName == stampName
+| where AppName == siteName
+| where FunctionName == functionName
+| where EventName == "FunctionStarted"
+| summarize Count = count() by bin(PreciseTimeStamp, summarizationTimeBucket)
+| project Count, PreciseTimeStamp

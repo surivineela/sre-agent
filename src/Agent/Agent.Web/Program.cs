@@ -495,6 +495,7 @@ public class Program
             .AddTransient<IAzureSearchClient, AzureSearchClient>()
             .AddTransient<AzureDocSearchPlugin>()
             .AddTransient<SearchPluginDefinition>()
+            .AddTransient<ScaleControllerRCAPreflightPluginDefinition>()
             .AddTransient<LogsPluginDefinition>()
             // Conditionally register AzureSearchPluginDefinition based on settings.Enabled
             .AddTransient<AzureSearchPluginDefinition>(sp =>

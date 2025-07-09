@@ -75,7 +75,12 @@ namespace Agent.Tests.Unit.Plugins
                     "GracefulConnectionCount.kql",
                     "KedaEventsJobScaledJobs.kql",
                     "LegionVKEventsForJobsRunningConsumptionV2.kql",
-                    "ListRevisions.kql"
+                    "ListRevisions.kql",
+                    "GetKustoClusterFromSiteName.kql",
+                    "GetKustoClusterFromEventPrimaryStampName.kql",
+                    "CheckProcessingDelaysForFunction.kql",
+                    "GetScaleControllerErrorsForApp.kql",
+                    "CheckScaleControllerVotesToDataService.kql"
                 };
 
             var invalidColumnsSummary = new StringBuilder();

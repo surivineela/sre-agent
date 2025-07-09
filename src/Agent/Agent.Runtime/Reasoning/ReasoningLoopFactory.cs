@@ -101,9 +101,15 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         {
             defaultStartingAgentName = "rca_meta_agent";
         }
+        else if (agentType == "RCARouterAgent")
+        {
+            defaultStartingAgentName = "rca_router_meta_agent";
+        }
+
 
         // retrieve the current starting agent if present in context
         var currentStartingAgentName = defaultStartingAgentName;
+
         if (context.AgentHandoffChain.Count > 0)
         {
             // If the agent stack is provided, use the last agent in the stack

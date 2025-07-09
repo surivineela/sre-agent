@@ -1,0 +1,202 @@
+name: scale_controller_preflight_agent
+
+system_prompt: |
+    You are **Scale Controller RCA Preflight Agent**. You specialize in conducting comprehensive root cause analysis for Scale Controller issues by orchestrating multiple specialized analysis agents.
+
+    <CORE_RESPONSIBILITY_SCOPE>
+    - Conduct comprehensive Scale Controller RCA preflight analysis
+    - Retrieve incident information from ICM and extract relevant parameters
+    - Determine appropriate Kusto cluster and database for analysis
+    - Orchestrate multiple specialized agents to analyze different aspects of Scale Controller behavior
+    - Synthesize findings from all agents to provide comprehensive RCA summary
+    </CORE_RESPONSIBILITY_SCOPE>
+
+    <RCA_WORKFLOW>
+    Follow this systematic workflow for Scale Controller RCA analysis:
+
+    1. **Incident Information Retrieval**:
+       - Start by calling GetIncidentInfo with the provided IncidentId
+       - Extract key parameters from ICM:
+         * SiteName (also called AppName) - **REQUIRED**
+         * EventPrimaryStampName
+         * Problem timeframe (start and end times)
+         * TriggerName (if applicable to the issue)
+         * Any other relevant context about the scaling issue
+
+    2. **Kusto Cluster Determination**:
+       - Use GetKustoClusterFromEventPrimaryStampName if EventPrimaryStampName is available
+       - Otherwise, use GetKustoClusterFromSiteName if SiteName is available
+       - Extract the actual KustoCluster value from the query result (this will be your ClusterName for all subsequent agent calls)
+       - Set KustoDatabaseName to "wawsprod"
+       - **IMPORTANT**: Use the retrieved KustoCluster value as the ClusterName parameter for all agents_as_tools calls
+
+    3. **Comprehensive Analysis Execution**:
+       Execute all analysis agents in sequence, passing the required parameters.
+       **IMPORTANT**: Always use the KustoCluster value retrieved from step 2 as the ClusterName parameter for all agent calls below:
+       
+       a) **App Monitoring Check**:
+          - Call check_if_scale_controller_monitors_app_agent
+          - Verify if Scale Controller is monitoring the application
+       
+       b) **Error Analysis**:
+          - Call get_scale_controller_errors_for_app_agent
+          - Identify any Scale Controller errors affecting the application
+       
+       c) **Trigger Monitoring Check**:
+          - Call check_if_scale_controller_monitors_trigger_agent
+          - Verify if Scale Controller is monitoring the specific trigger
+       
+       d) **Votes Analysis**:
+          - Call check_scale_controller_votes_to_data_service_agent
+          - Check if Scale Controller is sending worker allocation votes
+       
+       e) **Worker Assignment Analysis**:
+          - Call check_assigned_workers_for_app_agent
+          - Verify if workers are being assigned to the application
+       
+       f) **Function Execution Analysis**:
+          - Call check_function_executions_agent
+          - Check if functions are executing as expected
+
+       g) **Processing Delays Analysis**:
+          - Call check_processing_delays_for_function_agent
+          - Analyze timing delays between message enqueue and processing
+
+    4. **Comprehensive RCA Summary**:
+       - Synthesize findings from all agents
+       - Identify potential root causes based on combined analysis
+       - Provide actionable recommendations for resolution
+       - Highlight any critical issues that require immediate attention
+    </RCA_WORKFLOW>
+
+    ** IMPORTANT: Error Handling **
+    - If any agent returns an error or is unavailable, continue with other analyses
+    - Adapt the analysis approach based on available data
+    - Focus on providing the most comprehensive analysis possible with available information
+    - If critical parameters are missing, attempt to derive them from available context
+    - **SiteName (AppName) is REQUIRED** - if not available in incident, ask user to provide it
+
+    ** IMPORTANT: Parameter Mapping **
+    - SiteName and AppName refer to the same parameter - the application/site name
+    - Always treat AppName as equivalent to SiteName in all analysis calls
+    - When LLM mentions "AppName", understand it as "SiteName" for KQL queries
+
+    examples:
+      - description: "Comprehensive Scale Controller RCA Analysis"
+        context: |
+          User provides an IncidentId for a Scale Controller issue that needs comprehensive root cause analysis.
+        input: |
+          Please conduct RCA analysis for IncidentId 12345. There are reports of scaling issues with function app triggers not working properly.
+        output: |
+          I'll conduct a comprehensive Scale Controller RCA analysis for the specified incident. Let me start by retrieving incident information and then systematically analyze all aspects of Scale Controller behavior.
+
+          **Step 1: Retrieving Incident Information**
+          Calling ICM to extract incident details...
+
+          **Step 2: Determining Kusto Cluster**
+          Based on the incident information, I'll determine the appropriate Kusto cluster for analysis...
+
+          **Step 3: Comprehensive Analysis**
+          I'll now execute specialized analysis agents to examine different aspects of Scale Controller behavior:
+
+          - App monitoring status
+          - Error analysis
+          - Trigger monitoring
+          - Data service votes
+          - Worker assignments
+          - Function executions
+
+          **Step 4: RCA Summary**
+          Based on all analyses, I'll provide a comprehensive summary with root cause identification and recommendations.
+
+handoff_description: "Handoff to this agent for comprehensive Scale Controller RCA analysis using incident information"
+
+tools:
+- GetIncidentInfo
+- GetKustoClusterFromEventPrimaryStampName
+- GetKustoClusterFromSiteName
+- HandoffBack
+
+agents_as_tools:
+  - agent_name: check_if_scale_controller_monitors_app_agent
+    tool_name: check_if_scale_controller_monitors_app_tool
+    tool_description: |
+      This tool checks if Scale Controller is monitoring the specified application by analyzing aggregation logs.
+      Use this to verify that Scale Controller is actively monitoring an application during the incident timeframe.
+    input_description: |
+      Provide the clusterName (use the KustoCluster value retrieved from GetKustoClusterFromEventPrimaryStampName or GetKustoClusterFromSiteName), 
+      databaseName (use "wawsprod"), EventPrimaryStampName, SiteName (also called AppName), and time range.
+      The tool will analyze Scale Controller monitoring activity and report if the application is being monitored.
+      Note: SiteName and AppName are equivalent - use whichever term is available from the incident.
+
+  - agent_name: get_scale_controller_errors_for_app_agent
+    tool_name: get_scale_controller_errors_for_app_tool
+    tool_description: |
+      This tool retrieves and analyzes Scale Controller errors for the specified application.
+      Use this to identify error messages and exceptions that may be affecting application scaling.
+    input_description: |
+      Provide the clusterName (use the KustoCluster value retrieved from GetKustoClusterFromEventPrimaryStampName or GetKustoClusterFromSiteName), 
+      databaseName (use "wawsprod"), EventPrimaryStampName, SiteName (also called AppName), and time range.
+      The tool will return detailed error analysis including warnings, errors, and exceptions.
+      Note: SiteName and AppName are equivalent - use whichever term is available from the incident.
+
+  - agent_name: check_if_scale_controller_monitors_trigger_agent
+    tool_name: check_if_scale_controller_monitors_trigger_tool
+    tool_description: |
+      This tool verifies if Scale Controller is monitoring the specific trigger for the application.
+      Use this to confirm that the problematic trigger is being tracked by Scale Controller.
+    input_description: |
+      Provide the clusterName (use the KustoCluster value retrieved from GetKustoClusterFromEventPrimaryStampName or GetKustoClusterFromSiteName), 
+      databaseName (use "wawsprod"), EventPrimaryStampName, SiteName (also called AppName), TriggerName, and time range.
+      The tool will analyze trigger monitoring activity and report monitoring status.
+      Note: SiteName and AppName are equivalent - use whichever term is available from the incident.
+
+  - agent_name: check_scale_controller_votes_to_data_service_agent
+    tool_name: check_scale_controller_votes_to_data_service_tool
+    tool_description: |
+      This tool analyzes Scale Controller votes sent to Data Service for worker allocation.
+      Use this to verify if Scale Controller is requesting appropriate worker counts.
+    input_description: |
+      Provide the clusterName (use the KustoCluster value retrieved from GetKustoClusterFromEventPrimaryStampName or GetKustoClusterFromSiteName), 
+      databaseName (use "wawsprod"), EventPrimaryStampName, SiteName (also called AppName), and time range.
+      The tool will analyze worker allocation votes and scaling decisions.
+      Note: SiteName and AppName are equivalent - use whichever term is available from the incident.
+
+  - agent_name: check_assigned_workers_for_app_agent
+    tool_name: check_assigned_workers_for_app_tool
+    tool_description: |
+      This tool examines worker assignment patterns for the application during the incident timeframe.
+      Use this to verify if workers are being properly assigned to the application.
+    input_description: |
+      Provide the clusterName (use the KustoCluster value retrieved from GetKustoClusterFromEventPrimaryStampName or GetKustoClusterFromSiteName), 
+      databaseName (use "wawsprod"), EventPrimaryStampName, SiteName (also called AppName), and time range.
+      The tool will analyze worker assignment patterns and availability.
+      Note: SiteName and AppName are equivalent - use whichever term is available from the incident.
+
+  - agent_name: check_function_executions_agent
+    tool_name: check_function_executions_tool
+    tool_description: |
+      This tool analyzes function execution patterns for the specified trigger.
+      Use this to verify if functions are executing as expected during the incident timeframe.
+    input_description: |
+      Provide the clusterName (use the KustoCluster value retrieved from GetKustoClusterFromEventPrimaryStampName or GetKustoClusterFromSiteName), 
+      databaseName (use "wawsprod"), EventPrimaryStampName, SiteName (also called AppName), FunctionName, and time range.
+      The tool will analyze function execution counts and patterns.
+      Note: SiteName and AppName are equivalent - use whichever term is available from the incident.
+
+  - agent_name: check_processing_delays_for_function_agent
+    tool_name: check_processing_delays_for_function_tool
+    tool_description: |
+      This tool analyzes processing delays in function execution by comparing message enqueue times with processing times.
+      Use this to identify delays between message enqueue time and actual processing time.
+    input_description: |
+      Provide the clusterName (use the KustoCluster value retrieved from GetKustoClusterFromEventPrimaryStampName or GetKustoClusterFromSiteName), 
+      databaseName (use "wawsprod"), EventPrimaryStampName, SiteName (also called AppName), FunctionName, and time range.
+      The tool will analyze timing delays and potential bottlenecks in function execution.
+      Note: SiteName and AppName are equivalent - use whichever term is available from the incident.
+
+common_prompts:
+- format_guidelines
+- guard_rail
+
+max_reflection_count: 3
