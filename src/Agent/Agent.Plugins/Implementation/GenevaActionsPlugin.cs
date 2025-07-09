@@ -143,6 +143,9 @@ public class GenevaActionsPlugin : IGenevaActionsPlugin
         var genevaAction = (await GetGenevaActions()).Where(x => x.ActionName == actionName).FirstOrDefault();
         if (genevaAction == null)
         {
+            _logger.LogInternalWarning($"No Geneva Action found for actionName: {actionName}");
+            var availableActions = string.Join(", ", (await GetGenevaActions()).Select(x => x.ActionName));
+            _logger.LogInternalInformation($"Available Geneva Actions: {availableActions}");
             return $"No Geneva Action found for actionName: {actionName}";
         }
         return $"For actionName: {actionName}. Required parameters are: {string.Join(", ", genevaAction.WorkflowInputParameters)}";

@@ -16,13 +16,7 @@ import AzureSREWelcome from './AzureSREWelcome';
 import { ChatSuggestions } from './ChatSuggestions';
 import { getGroupedMessages } from './Utility';
 
-export const ChatBox = ({
-    addThread,
-    promoteThread,
-    updateThreadLastReadTime,
-    threadId,
-    threadSource,
-}: IChatBoxProps) => {
+export const ChatBox = ({ addThread, promoteThread, updateThreadLastReadTime, threadId, threadSource }: IChatBoxProps) => {
     const { hasChatPermissions } = useContext(KnowledgeGraphBuildStatusContext);
     const intl = useIntl();
 

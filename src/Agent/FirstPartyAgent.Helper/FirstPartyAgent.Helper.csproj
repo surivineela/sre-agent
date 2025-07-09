@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.ApplicationInsights" />
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" />
     <PackageReference Include="Microsoft.Identity.ServiceEssentials.Extensions.AspNetCoreMiddleware.S2S" />
     <PackageReference Include="Microsoft.IdentityModel.S2S" />
     <PackageReference Include="Microsoft.IdentityModel.S2S.Configuration" />

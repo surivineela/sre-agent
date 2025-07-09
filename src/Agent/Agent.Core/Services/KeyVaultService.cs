@@ -14,15 +14,18 @@ using Microsoft.Extensions.Logging;
 using Microsoft.OperationalAgent.Core.Extensions;
 
 namespace Agent.Core.Services;
+
 public interface IKeyVaultService
 {
     Task<string> ReadSecretAsync(string secretName);
     bool IsEnabled { get; }
+    string KeyVaultUri { get; }
 }
 
 public class KeyVaultServiceDisabled : IKeyVaultService
 {
     public bool IsEnabled => false;
+    public string KeyVaultUri => string.Empty;
 
     public Task<string> ReadSecretAsync(string secretName)
     {
@@ -33,6 +36,7 @@ public class KeyVaultServiceDisabled : IKeyVaultService
 public class KeyVaultService : IKeyVaultService
 {
     public bool IsEnabled { get; set; } = false;
+    public string KeyVaultUri { get; set; } = string.Empty;
     private readonly SecretClient _secretClient;
     private ILogger<KeyVaultService> _logger;
 
@@ -47,6 +51,7 @@ public class KeyVaultService : IKeyVaultService
         }
 
         IsEnabled = true;
+        KeyVaultUri = keyVaultSettings.VaultUri;
         _logger = logger;
 
         if (hostEnvironment.IsDevelopment())

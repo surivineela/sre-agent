@@ -7,9 +7,11 @@ using System.Text;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Models.ICM;
+using Agent.Core.Services;
 using Agent.Logging;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.OperationalAgent.Core.Extensions;
 using Newtonsoft.Json;
 
 namespace Agent.Plugins.IcmPlugin
@@ -17,24 +19,29 @@ namespace Agent.Plugins.IcmPlugin
     public class ICMWorkflowClient : IICMWorkflowClient
     {
         private readonly bool IsDevelopment;
-        private static HttpClient _httpClient;
+        private static Lazy<Task<HttpClient>>? _httpClientLazy;
         private readonly ILogger<ICMWorkflowClient> _logger;
         private readonly ICMWorkflowSettings _icmWorkflowSettings;
+        private readonly IKeyVaultService _keyVaultService;
         private const string ActionPath = "triggers/manual/execute";
         private readonly int TimeoutInSeconds = 600;
         private bool _processImages = true;
         public bool ProcessImages => _processImages;
 
-        public ICMWorkflowClient(IHostEnvironment environment, ILogger<ICMWorkflowClient> logger, ICMWorkflowSettings icmWorkflowSettings)
+        public ICMWorkflowClient(IHostEnvironment environment, ILogger<ICMWorkflowClient> logger, ICMWorkflowSettings icmWorkflowSettings, IKeyVaultService keyVaultService)
         {
-            if (!icmWorkflowSettings.Enabled)
-            {
-                return;
-            }
             _icmWorkflowSettings = icmWorkflowSettings;
             _processImages = _icmWorkflowSettings.ProcessImages;
             IsDevelopment = environment.IsDevelopment();
             _logger = logger;
+            _keyVaultService = keyVaultService;
+
+            if (!icmWorkflowSettings.Enabled)
+            {
+                return;
+            }
+
+            _httpClientLazy = new Lazy<Task<HttpClient>>(() => InitializeHttpClientAsync(icmWorkflowSettings, keyVaultService, environment.IsDevelopment(), logger));
 
             if (_icmWorkflowSettings.UseFunctionApp)
             {
@@ -63,67 +70,105 @@ namespace Agent.Plugins.IcmPlugin
                 }
             }
 
-            InitializeHttpClient();
         }
 
-        private void InitializeHttpClient()
+        private static async Task<HttpClient> InitializeHttpClientAsync(ICMWorkflowSettings icmWorkflowSettings, IKeyVaultService userKeyVaultService, bool isDevelopment, ILogger<ICMWorkflowClient> logger)
         {
-            if (_icmWorkflowSettings.UseFunctionApp)
+            const int TimeoutInSeconds = 600;
+
+            if (icmWorkflowSettings.UseFunctionApp)
             {
-                _httpClient = new HttpClient()
+                var httpClient = new HttpClient()
                 {
                     Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
                 };
-                _httpClient.DefaultRequestHeaders.Add("x-functions-key", _icmWorkflowSettings.FunctionAppKey);
+                httpClient.DefaultRequestHeaders.Add("x-functions-key", icmWorkflowSettings.FunctionAppKey);
+                return httpClient;
             }
             else
             {
-                if (IsDevelopment && !string.IsNullOrWhiteSpace(_icmWorkflowSettings.UserToken))
+                if (isDevelopment && !string.IsNullOrWhiteSpace(icmWorkflowSettings.UserToken))
                 {
-                    _httpClient = new HttpClient()
+                    var httpClient = new HttpClient()
                     {
                         Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
                     };
-                    _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_icmWorkflowSettings.UserToken}");
+                    httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {icmWorkflowSettings.UserToken}");
+                    return httpClient;
                 }
-                else if ((!string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateSubjectName) || !string.IsNullOrEmpty(_icmWorkflowSettings.CertificateKeyVaultSecretName))
-                        && (!string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateKeyVaultUri)))
+
+                if (userKeyVaultService.IsEnabled)
                 {
-                    string certKvSecretName = _icmWorkflowSettings.CertificateKeyVaultSecretName;
+                    string certificateKeyVaultSecretName = string.Empty;
+                    var settingName = "ICMWorkflowSettings--CertificateKeyVaultSecretName";
+                    try
+                    {
+                        logger.LogInternalInformation($"KeyVaultService is enabled. Attempting to read {settingName} from KeyVault {userKeyVaultService.KeyVaultUri}.");
+                        certificateKeyVaultSecretName = await userKeyVaultService.ReadSecretAsync(settingName);
+                    }
+                    catch (Azure.RequestFailedException ex)
+                    {
+                        logger.LogInternalError(ex, $"Error reading {settingName} from KeyVault. Continue without using the users certificate.");
+                    }
 
-                    string keyVaultUri = _icmWorkflowSettings.CertificateKeyVaultUri;
+                    if (!string.IsNullOrWhiteSpace(certificateKeyVaultSecretName))
+                    {
+                        var certificate = CertLoader.LoadCertFromKeyVault(
+                            KeyVaultConfigurationExtension.GetPlatformKeyVaultSettingFromEnvironment("KeyVaultUri"),
+                            certificateKeyVaultSecretName,
+                            KeyVaultConfigurationExtension.GetPlatformKeyVaultSettingFromEnvironment("Identity"),
+                        null,
+                        logger);
 
-                    string certMsi = _icmWorkflowSettings.ManagedIdentityClientId ?? string.Empty;
+                        var handler = new HttpClientHandler();
+                        handler.ClientCertificates.Add(certificate);
+                        logger.LogExternalInformation("Successfully loaded Cert from keyvault for ICMWorkflowClient.");
+                        return new HttpClient(handler)
+                        {
+                            Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
+                        };
+                    }
+                }
 
-                    var certificate = CertLoader.LoadCertFromKeyVault(keyVaultUri, certKvSecretName, certMsi, null, _logger);
+
+                if ((!string.IsNullOrWhiteSpace(icmWorkflowSettings.CertificateSubjectName) || !string.IsNullOrEmpty(icmWorkflowSettings.CertificateKeyVaultSecretName)) && (!string.IsNullOrWhiteSpace(icmWorkflowSettings.CertificateKeyVaultUri)))
+                {
+                    string certKvSecretName = icmWorkflowSettings.CertificateKeyVaultSecretName;
+
+                    string keyVaultUri = icmWorkflowSettings.CertificateKeyVaultUri;
+
+                    string certMsi = icmWorkflowSettings.ManagedIdentityClientId ?? string.Empty;
+
+                    logger.LogInternalInformation($"Loading cert from Key Vault: {keyVaultUri}, Certificate Name: {certKvSecretName}, Managed Identity Client Id: {certMsi}");
+                    var certificate = CertLoader.LoadCertFromKeyVault(keyVaultUri, certKvSecretName, certMsi, null, logger);
 
                     var handler = new HttpClientHandler();
                     handler.ClientCertificates.Add(certificate);
-                    _logger.LogExternalInformation("Successfully loaded Cert from keyvault for ICMWorkflowClient.");
-                    _httpClient = new HttpClient(handler)
+                    logger.LogExternalInformation("Successfully loaded Cert from keyvault for ICMWorkflowClient.");
+                    return new HttpClient(handler)
                     {
                         Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
                     };
 
                 }
-                else if (!string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateKeyVaultUri) && !string.IsNullOrEmpty(_icmWorkflowSettings.CertificateKeyVaultSecretName))
+                else if (!string.IsNullOrWhiteSpace(icmWorkflowSettings.CertificateKeyVaultUri) && !string.IsNullOrEmpty(icmWorkflowSettings.CertificateKeyVaultSecretName))
                 {
                     var handler = new HttpClientHandler();
-                    var certificate = CertLoader.LoadCertFromKeyVault(_icmWorkflowSettings.CertificateKeyVaultUri, _icmWorkflowSettings.CertificateKeyVaultSecretName, _icmWorkflowSettings.ManagedIdentityClientId, null, _logger);
+                    var certificate = CertLoader.LoadCertFromKeyVault(icmWorkflowSettings.CertificateKeyVaultUri, icmWorkflowSettings.CertificateKeyVaultSecretName, icmWorkflowSettings.ManagedIdentityClientId, null, logger);
                     handler.ClientCertificates.Add(certificate);
-                    _logger.LogExternalInformation("Successfully loaded Cert from keyvault for ICMWorkflowClient.");
-                    _httpClient = new HttpClient(handler)
+                    logger.LogExternalInformation("Successfully loaded Cert from keyvault for ICMWorkflowClient.");
+                    return new HttpClient(handler)
                     {
                         Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
                     };
                 }
-                else if (!string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateFilePath))
+                else if (!string.IsNullOrWhiteSpace(icmWorkflowSettings.CertificateFilePath))
                 {
                     var handler = new HttpClientHandler();
-                    var certificate = CertLoader.LoadCertFromFile(_icmWorkflowSettings.CertificateFilePath);
+                    var certificate = CertLoader.LoadCertFromFile(icmWorkflowSettings.CertificateFilePath);
                     handler.ClientCertificates.Add(certificate);
-                    _logger.LogExternalInformation("Successfully loaded Cert file for ICMWorkflowClient.");
-                    _httpClient = new HttpClient(handler)
+                    logger.LogExternalInformation("Successfully loaded Cert file for ICMWorkflowClient.");
+                    return new HttpClient(handler)
                     {
                         Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
                     };
@@ -138,17 +183,17 @@ namespace Agent.Plugins.IcmPlugin
                         store.Open(OpenFlags.ReadOnly);
 
                         // Locate the certificate by matching the subject name.
-                        var certificates = store.Certificates.Find(X509FindType.FindBySubjectName, _icmWorkflowSettings.CertificateSubjectName, validOnly: false);
+                        var certificates = store.Certificates.Find(X509FindType.FindBySubjectName, icmWorkflowSettings.CertificateSubjectName, validOnly: false);
                         if (certificates == null || certificates.Count == 0)
                         {
-                            throw new Exception($"Certificate with subject matching '{_icmWorkflowSettings.CertificateSubjectName}' not found.");
+                            throw new Exception($"Certificate with subject matching '{icmWorkflowSettings.CertificateSubjectName}' not found.");
                         }
 
                         // Use the first matching certificate.
                         handler.ClientCertificates.Add(certificates[0]);
                     }
 
-                    _httpClient = new HttpClient(handler)
+                    return new HttpClient(handler)
                     {
                         Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
                     };
@@ -158,6 +203,7 @@ namespace Agent.Plugins.IcmPlugin
 
         public async Task<HttpResponseMessage> SendICMWorkflowRequest(string workflowName, string body, string tenantId = null)
         {
+            var httpClient = await _httpClientLazy!.Value;
             _logger.LogExternalInformation($"Sending ICM Workflow Request. WorkflowName: {workflowName}, Body: {body}");
             if (string.IsNullOrWhiteSpace(workflowName))
                 throw new ArgumentException("Workflow name must be provided.", nameof(workflowName));
@@ -182,7 +228,7 @@ namespace Agent.Plugins.IcmPlugin
                 // Send the HTTP POST request.
                 using (var content = new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json"))
                 {
-                    var response = await _httpClient.PostAsync(requestUri, content);
+                    var response = await httpClient.PostAsync(requestUri, content);
                     return response;
                 }
             }
@@ -197,7 +243,7 @@ namespace Agent.Plugins.IcmPlugin
                 {
                     // Send the HTTP POST request.
                     _logger.LogExternalInformation("Sending request to ICM Workflow API: {requestUri}", requestUri);
-                    var response = await _httpClient.PostAsync(requestUri, content);
+                    var response = await httpClient.PostAsync(requestUri, content);
                     return response;
                 }
             }
@@ -431,7 +477,14 @@ namespace Agent.Plugins.IcmPlugin
 
         public void Dispose()
         {
-            _httpClient?.Dispose();
+            if (_httpClientLazy?.IsValueCreated == true)
+            {
+                var httpClientTask = _httpClientLazy.Value;
+                if (httpClientTask.IsCompletedSuccessfully)
+                {
+                    httpClientTask.Result?.Dispose();
+                }
+            }
         }
     }
     public class NullableICMWorkflowClient : IICMWorkflowClient
@@ -472,7 +525,7 @@ namespace Agent.Plugins.IcmPlugin
         public bool ProcessImages => false;
         public bool IsEnabled() { return false; }
 
-        public Task<HttpResponseMessage> SendICMWorkflowRequest(string workflowName, string body, string tenantId = null) => 
+        public Task<HttpResponseMessage> SendICMWorkflowRequest(string workflowName, string body, string tenantId = null) =>
             Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.NotImplemented));
     }
     public interface IICMWorkflowClient : IDisposable

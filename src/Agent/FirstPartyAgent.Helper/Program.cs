@@ -19,6 +19,8 @@ using FirstPartyAgent.Core.Services;
 using FirstPartyAgent.Helper.Services;
 using FirstPartyAgent.Plugins;
 using FirstPartyAgent.Plugins;
+using Microsoft.ApplicationInsights.AspNetCore.Extensions;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -78,6 +80,8 @@ public class Program
         builder.Services.AddControllers();
 
         builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = 100 * 1024 * 1024);
+
+        builder.Services.AddApplicationInsightsTelemetry(builder.Configuration);
 
         var app = builder.Build();
 

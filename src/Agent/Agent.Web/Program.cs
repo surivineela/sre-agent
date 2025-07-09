@@ -1000,6 +1000,11 @@ public class Program
 
     private static bool IsFirstParty(string[] args)
     {
+        if(Environment.GetEnvironmentVariable("AGENT_TYPE_NAME") == "IcmAgent")
+        {
+            return false; // IcmAgent is not a container app first-party agent
+        }
+
         if (args.Any(x => string.Equals(x.Trim(), "--is-first-party=true", StringComparison.OrdinalIgnoreCase)))
         {
             return true;

@@ -63,17 +63,8 @@ namespace Agent.Tests.Integration.External
               .BindConfiguration("AppSettings:Core:External:Kusto")
               .ValidateDataAnnotations();
 
-            services.AddSingleton<IICMWorkflowClient>(sp =>
-            {
-                var icmWorkflowSettings = sp.GetRequiredService<ICMWorkflowSettings>();
-                if (icmWorkflowSettings.Enabled)
-                {
-                    var logger = sp.GetRequiredService<ILogger<ICMWorkflowClient>>();
-                    return new ICMWorkflowClient(_environment, logger, icmWorkflowSettings);
-                }
-                return new NullableICMWorkflowClient();
-            });
-            services.AddSingleton<ICMWorkflowClient, ICMWorkflowClient>();
+            services.AddSingleton<IICMWorkflowClient,ICMWorkflowClient>();
+            services.AddSingleton<ICMWorkflowClient>();
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<AzureSettings>>().Value.CosmosDB);
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<AzureSettings>>().Value.Crawler);
             // add IOption<CrawlerSettings> by using Crawler

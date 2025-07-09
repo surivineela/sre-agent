@@ -243,7 +243,7 @@ export const useChatInputStyles = makeStyles({
     subFooter: {
         display: 'flex',
         alignItems: 'center',
-        gap: tokens.spacingHorizontalM
+        gap: tokens.spacingHorizontalM,
     },
     chatStatement: {
         color: tokens.colorNeutralForeground3,
