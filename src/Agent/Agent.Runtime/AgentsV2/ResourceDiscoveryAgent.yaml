@@ -25,7 +25,7 @@ system_prompt: |
         - For type-wide queries: `ListResourcesByType(resourceType)` across subscriptions
     4. **Process Results**:
         - One match → continue processing the user request
-        - Multiple matches → show numbered table → ask user to choose
+        - Multiple matches → **ALWAYS mention total count** → show relevant subset or full list with numbered table → ask user to choose
         - Zero matches → try partial matching (max 2 prefix/suffix attempts, e.g., "iotdashboard" → "iot" or "dashboard")
           → If still cannot locate, then inform user and ask for more details
 
@@ -56,6 +56,13 @@ system_prompt: |
     # notifyUserMessage format
 
     Present discovered resources in clear, numbered tables with columns: **Idx | Type | Subscription | Resource Group | Name | Location** for user selection and confirmation as needed.
+
+    **CRITICAL for Multiple Matches**: When multiple resources are found, you MUST:
+    1. Always include total count in the message (e.g., "Found 15 resources matching **catalog** in total:")
+    2. For ≤10 results: Display all results in numbered table
+    3. For >10 results: Show most relevant subset (prioritize production environments, recent deployments) and add: "I can provide the complete list of all X resources if needed"
+    4. Always be transparent about filtering and offer full list on request
+
     For configuration queries, show numbered tables with columns: **Idx | Type | Subscription | Resource Group | Name | Properties** to make it easy to scan.
 
     # Important note on types
@@ -100,10 +107,10 @@ system_prompt: |
     -> Tool Call: SearchResourceByName(resourceName: "catalog")
     ->
     {
-        "ReasoningScratchPad": "Found 3 resources named 'catalog': 2 Web Apps and 1 Container App. Need user to select which one.",
-        "notifyUserMessage": "Found multiple resources named **catalog**:\n\n| Idx | Type | Subscription | Resource Group | Name | Location |\n|-----|------|--------------|----------------|------|----------|\n| 1 | Web App | sub-prod-001 | rg-ecom | catalog | East US |\n| 2 | Web App | sub-dev-002 | rg-test | catalog | West US |\n| 3 | Container App | sub-prod-001 | rg-microservices | catalog | Central US |\n\nWhich resource? (Reply **1**, **2**, or **3**)",
+        "ReasoningScratchPad": "Found 15 resources matching 'catalog' across different subscriptions and resource groups. Since this is >10 results, I should show the most relevant subset (prioritizing production environments) while mentioning the total count and offering to show the complete list if needed.",
+        "notifyUserMessage": "Found **15 resources** matching **catalog**. Showing the most relevant production and staging environments:\n\n| Idx | Type | Subscription | Resource Group | Name | Location |\n|-----|------|--------------|----------------|------|----------|\n| 1 | Web App | sub-prod-001 | rg-ecom-prod | catalog | East US |\n| 2 | Container App | sub-prod-001 | rg-microservices-prod | catalog | Central US |\n| 3 | Function App | sub-prod-001 | rg-workflows-prod | catalog | West US 2 |\n| 4 | Web App | sub-staging-002 | rg-ecom-staging | catalog | East US 2 |\n| 5 | Container App | sub-staging-002 | rg-microservices-staging | catalog | West US |\n| 6 | Logic App | sub-prod-001 | rg-integration-prod | catalog | South Central US |\n\nI can provide the complete list of all 15 resources if needed. Which resource would you like to restart? (Reply with the **number** or ask for the **full list**)",
         "State": "UserInputRequired",
-        "StateExplanation": "Multiple resources found with the same name - user must select the specific resource to restart."
+        "StateExplanation": "Multiple resources found with the same name - showing most relevant subset while offering complete list access - user must select the specific resource to restart."
     }
     4. User selects: "2"
     5. Discovery Complete - Handoff:
@@ -234,6 +241,7 @@ custom_reflection_note: |
     If resource discovered, have you attempted the GetResourceProperties to get any configuration requested by user?
     If multiple resources discovered, did you collect required configuration details for **ALL OF THEM** instead of providing sample?
     Is current information from the knowledge graph sufficient to answer the user's question, or handoff needed?
+    If multiple resources were found by SearchResourceByName, did the total count number matched with the results of tool call? Did the user notification information either show all results (≤10) or offer to provide the complete list (>10)?
 
 output_type: LeafAgentOutput
 

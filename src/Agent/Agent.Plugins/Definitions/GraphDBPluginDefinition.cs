@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
+using System.Text.Json;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Framework;
 using Agent.Graph.Schema;
@@ -174,10 +175,21 @@ namespace Agent.Plugins
             "3) Verify if resources exist before performing operations on them. " +
             "Returns a list of matching resources with their details.")]
         [AgentTool(ToolMode.Auto)]
-        public async Task<dynamic> SearchResourceByName(
+        public async Task<string> SearchResourceByName(
         [Description("Partial or complete name of the resource to search for. The search is case-insensitive and will match any resource containing this string.")] string resourceName)
         {
-            return await _plugin.SearchResourceByNameAsync(resourceName);
+            var result = await _plugin.SearchResourceByNameAsync(resourceName);
+
+            // Check if the result is an array/list
+            if (result is System.Collections.IEnumerable enumerable && !(result is string))
+            {
+                var items = enumerable.Cast<object>().ToList();
+                var jsonString = JsonSerializer.Serialize(items, new JsonSerializerOptions { WriteIndented = true });
+                return $"{jsonString}\n\nTotal number of matching resources found: {items.Count}";
+            }
+
+            // If it's not a list, serialize as-is
+            return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
         }
 
         [Description("Gets the count of Azure resources of a specified type in the knowledge graph. " +
