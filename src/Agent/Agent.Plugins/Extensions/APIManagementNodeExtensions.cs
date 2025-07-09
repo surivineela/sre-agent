@@ -1,12 +1,13 @@
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Plugins.Models;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Agent.Plugins.Extensions
 {
     public static class APIManagementNodeExtensions
     {
         public static APIManagementDescriptor ToDescriptor(this APIManagementNode apiManagementNode, bool verbose = true)
-
         {
             if (!verbose)
             {
@@ -17,6 +18,19 @@ namespace Agent.Plugins.Extensions
                     Location: apiManagementNode.Location,
                     ResourceGroup: apiManagementNode.ResourceGroupName
                 );
+            }
+
+            // Build backend info if present
+            List<APIManagementBackendDescriptor>? backendDescriptors = null;
+            if (apiManagementNode.BackendResourceMap != null && apiManagementNode.BackendResourceMap.Any())
+            {
+                backendDescriptors = apiManagementNode.BackendResourceMap.Select(kvp =>
+                    new APIManagementBackendDescriptor(
+                        BackendName: kvp.Key,
+                        ResourceUri: kvp.Value.ResourceUri,
+                        ArmResourceId: kvp.Value.ArmResourceId,
+                        Connections: kvp.Value.Connections?.Select(c => new APIManagementBackendConnectionDescriptor(c.Name, c.Level.ToString())).ToList() ?? new List<APIManagementBackendConnectionDescriptor>()    )
+                ).ToList();
             }
 
             return new APIManagementDescriptor(
@@ -78,7 +92,10 @@ namespace Agent.Plugins.Extensions
                         LastModifiedBy: apiManagementNode.LastModifiedBy,
                         LastModifiedByType: apiManagementNode.LastModifiedByType
                     )
-                    : null
+                    : null,
+
+                AppHealthInfo: apiManagementNode.AppHealthInfo,
+                Backends: backendDescriptors
             );
         }
     }

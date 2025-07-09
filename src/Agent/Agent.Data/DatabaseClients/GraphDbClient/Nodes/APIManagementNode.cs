@@ -1,5 +1,7 @@
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Agent.Data.DatabaseClients.Attributes;
+using Azure;
 using Azure.ResourceManager.ApiManagement;
 
 namespace Agent.Data.DatabaseClients.GraphDbClient
@@ -46,10 +48,35 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         [GraphProperty("subnetName")] public string? SubnetName { get; set; }
         [GraphProperty("subnetResourceId")] public string? SubnetResourceId { get; set; }
         [GraphProperty("vnetId")] public Guid? VnetId { get; set; }
-        
+
+        public class BackendConnection
+        {
+            // API name or API:Operation name
+            public string Name { get; set; } = string.Empty;
+            public PolicyLevel Level { get; set; } = PolicyLevel.ApiLevel;
+        }
+        public enum PolicyLevel
+        {
+            ApiLevel,
+            OperationLevel
+        }
+
+        public class BackendResourceInfo
+        {
+            public string? ArmResourceId { get; set; } // Only valid for Azure backends
+            public string? ResourceUri { get; set; }
+            public List<BackendConnection> Connections { get; set; } = new List<BackendConnection>();
+        }
+
+        public Dictionary<string, BackendResourceInfo>? BackendResourceMap { get; set; }
+
         public APIManagementNode(IDictionary<string, object> properties)
             : base(properties)
         {
+            if (properties.TryGetValue("appHealthInfo", out var appHealthInfoObj) && appHealthInfoObj is string appHealthInfoJson)
+            {
+                AppHealthInfo = JsonSerializer.Deserialize<AppHealthInfo>(appHealthInfoJson);
+            }
         }
 
         public APIManagementNode(
@@ -138,6 +165,99 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             ProvisioningState = apimInstance.ProvisioningState?.ToString();
             PlatformVersion = apimInstance.PlatformVersion?.ToString();
             CreatedAtUtc = apimInstance.CreatedAtUtc?.ToString("o");
+        }
+
+        public void PopulateFromApiManagementServiceResource(ApiManagementServiceResource apimResource)
+        {
+            // Populate standard properties from Data
+            PopulateFromApiManagementServiceData(apimResource.Data);
+
+            // Extract backend connections from policies
+            var connectionMap = BuildBackendUsageMapFromPolicies(apimResource);
+            var backendResourceMap = BuildBackendResourceMap(apimResource, connectionMap);
+
+            BackendResourceMap = backendResourceMap;
+        }
+
+        private Dictionary<string, List<BackendConnection>> BuildBackendUsageMapFromPolicies(ApiManagementServiceResource apimResource)
+        {
+            var connectionMap = new Dictionary<string, List<BackendConnection>>();
+            
+            foreach (ApiResource api in apimResource.GetApis().GetAll())
+            {
+                string apiName = api.Data.Name;
+                CollectApiLevelBackendConnections(api, apiName, connectionMap);
+                CollectOperationLevelBackendConnections(api, apiName, connectionMap);
+            }
+            
+            return connectionMap;
+        }
+
+        private void CollectApiLevelBackendConnections(ApiResource api, string apiName, Dictionary<string, List<BackendConnection>> connectionMap)
+        {
+            Pageable<ApiPolicyResource> policies = api.GetApiPolicies().GetAll();
+            foreach (ApiPolicyResource policy in policies)
+            {
+                ExtractBackendConnectionsFromPolicy(policy.Data.Value, apiName, PolicyLevel.ApiLevel, connectionMap);
+            }
+        }
+
+        private void CollectOperationLevelBackendConnections(ApiResource api, string apiName, Dictionary<string, List<BackendConnection>> connectionMap)
+        {
+            foreach (ApiOperationResource op in api.GetApiOperations().GetAll())
+            {
+                string operationName = op.Data.Name;
+
+                Pageable<ApiOperationPolicyResource> policies = op.GetApiOperationPolicies().GetAll();
+                foreach (ApiOperationPolicyResource policy in policies)
+                {
+                    ExtractBackendConnectionsFromPolicy(policy.Data.Value, $"{apiName}:{operationName}", PolicyLevel.OperationLevel, connectionMap);
+                }
+            }
+        }
+
+        private void ExtractBackendConnectionsFromPolicy(string policyXml, string name, PolicyLevel level, Dictionary<string, List<BackendConnection>> connectionMap)
+        {
+            var matches = Regex.Matches(policyXml,
+                @"<set-backend-service[^>]*(?:backend-id|base-url)\s*=\s*""([^""]+)""",
+                RegexOptions.IgnoreCase);
+
+            foreach (Match match in matches)
+            {
+                string backendId = match.Groups[1].Value;
+                if (!connectionMap.ContainsKey(backendId))
+                    connectionMap[backendId] = new List<BackendConnection>();
+                connectionMap[backendId].Add(new BackendConnection { Name = name, Level = level });
+            }
+        }
+
+        private Dictionary<string, BackendResourceInfo> BuildBackendResourceMap(
+            ApiManagementServiceResource apimResource, 
+            Dictionary<string, List<BackendConnection>> connectionMap)
+        {
+            var backendResourceMap = new Dictionary<string, BackendResourceInfo>();
+            
+            foreach (var backend in apimResource.GetApiManagementBackends().GetAll())
+            {
+                var resourceUri = backend.Data.ResourceUri?.ToString() ?? string.Empty;
+                var backendId = backend.Data.Id?.ToString() ?? string.Empty;
+                var backendType = backend.Data.ResourceType.ToString();
+                var backendName = backend.Data.Name?.ToString() ?? string.Empty;
+                var isAzureType = backendType.StartsWith("microsoft.", StringComparison.OrdinalIgnoreCase);
+
+                // Only add to backendResourceMap if used in connectionMap
+                if (connectionMap.ContainsKey(backendName))
+                {
+                    backendResourceMap[backendName] = new BackendResourceInfo
+                    {
+                        ResourceUri = resourceUri,
+                        ArmResourceId = isAzureType ? backendId : null,
+                        Connections = connectionMap[backendName]
+                    };
+                }
+            }
+            
+            return backendResourceMap;
         }
     }
 }

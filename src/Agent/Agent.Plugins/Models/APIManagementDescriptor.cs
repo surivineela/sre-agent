@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Agent.Data.DatabaseClients.GraphDbClient;
 
 namespace Agent.Plugins.Models
 {
@@ -30,10 +31,11 @@ namespace Agent.Plugins.Models
         string? NatGatewayState = null,
         string? LegacyPortalStatus = null,
         string? HostNames = null,
-
         SkuDescriptor? SkuData = null,
         VNetConfigDescriptor? VNetConfig = null,
-        SystemDataDescriptor? SystemData = null
+        SystemDataDescriptor? SystemData = null,
+        AppHealthInfo? AppHealthInfo = null,
+        List<APIManagementBackendDescriptor>? Backends = null
     );
 
     public sealed record SystemDataDescriptor(
@@ -153,5 +155,17 @@ namespace Agent.Plugins.Models
 
     public record APIMApiExample(
         [property: JsonPropertyName("value")] object Value
+    );
+
+    public record APIManagementBackendDescriptor(
+        [property: JsonPropertyName("backendName")] string BackendName,
+        [property: JsonPropertyName("resourceUri")] string? ResourceUri,
+        [property: JsonPropertyName("armResourceId")] string? ArmResourceId,
+        [property: JsonPropertyName("connections")] List<APIManagementBackendConnectionDescriptor> Connections
+    );
+
+    public record APIManagementBackendConnectionDescriptor(
+        [property: JsonPropertyName("name")] string Name,
+        [property: JsonPropertyName("level")] string Level
     );
 }

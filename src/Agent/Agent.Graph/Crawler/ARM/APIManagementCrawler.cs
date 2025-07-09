@@ -2,7 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient; 
 using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.ApiManagement;
@@ -51,8 +51,7 @@ namespace Agent.Graph.Crawler.ARM
                 yield break;
             }
 
-            var apiManagementInstance = apiManagementResponse.Value.Data;
-            apiManagementNode.PopulateFromApiManagementServiceData(apiManagementInstance);
+            apiManagementNode.PopulateFromApiManagementServiceResource(apiManagementResponse.Value);
 
             // Create or update the API Management node in the graph database
             await _graphDbClient.AddOrUpdateNodeAsync(apiManagementNode);
@@ -60,6 +59,11 @@ namespace Agent.Graph.Crawler.ARM
             await foreach (var connectedNode in ExtractNetworkConnections(apiManagementNode))
             {
                 _logger.LogDebug($"Discovered network connection API Management instance: {apiManagementNode.ResourceName} | Connected node: {connectedNode}");
+            }
+
+            await foreach (var backendNode in ExtractBackendConnections(apiManagementNode))
+            {
+                _logger.LogDebug($"Discovered Azure backend connection API Management instance: {apiManagementNode.ResourceName} | Backend node: {backendNode}");
             }
         }
 
@@ -100,6 +104,40 @@ namespace Agent.Graph.Crawler.ARM
                     await _graphDbClient.AddOrUpdateEdgeAsync(vnetToSubnetEdge);
                     _logger.LogDebug($"Connected VNet {vnetNode.ResourceName} to Subnet {subnetNode.ResourceName}");
                     yield return subnetNode;
+                }
+            }
+        }
+
+        private async IAsyncEnumerable<GraphNode> ExtractBackendConnections(APIManagementNode apiManagementNode)
+        {
+            if (apiManagementNode.BackendResourceMap != null)
+            {
+                foreach (var kvp in apiManagementNode.BackendResourceMap)
+                {
+                    var backendName = kvp.Key;
+                    var backendInfo = kvp.Value;
+                    if (string.IsNullOrEmpty(backendInfo.ArmResourceId))
+                        continue;
+
+                    var resourceIdObj = new ResourceIdentifier(backendInfo.ArmResourceId);
+                    var apimBackendNode = new APIManagementAzureBackendNode(
+                        resourceIdObj.ResourceType,
+                        backendInfo.ArmResourceId,
+                        resourceIdObj.SubscriptionId,
+                        resourceIdObj.ResourceGroupName,
+                        resourceIdObj.Name,
+                        resourceIdObj.Location
+                    );
+
+                    apimBackendNode.PopulateAPIMBackendResource(backendInfo);
+                    await _graphDbClient.AddOrUpdateNodeAsync(apimBackendNode);
+
+                    // Connect APIM -> Backend
+                    var apimToBackendEdge = new ArmResourceEdge(apiManagementNode.GetNodeId(), apimBackendNode.GetNodeId(), Constants.Relationships.Connected);
+                    apimToBackendEdge.AddOrUpdateEdgeProperty(Constants.ConnectionType, "AzureBackend");
+                    await _graphDbClient.AddOrUpdateEdgeAsync(apimToBackendEdge);
+                    _logger.LogDebug($"Connected API Management {apiManagementNode.ResourceName} to Backend {apimBackendNode.ResourceName}");
+                    yield return apimBackendNode;
                 }
             }
         }
