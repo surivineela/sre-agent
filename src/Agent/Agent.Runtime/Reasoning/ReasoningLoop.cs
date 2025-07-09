@@ -59,7 +59,7 @@ public class ReasoningLoop : IDisposable
     private TelemetrySpan? _currentToolSpan;
     private TelemetrySpan? _currentGenerationSpan;
     private TelemetrySpan? _currentCriticSpan;
-    private readonly IAgentRuntimeModifier<AgentContext> _AgentRuntimeModifier;
+    private readonly IAgentRuntimeModifier<AgentContext> _agentRuntimeModifier;
     private readonly object _userCancellationTokenSourceLock = new();
     private CancellationTokenSource _userCancellationTokenSource = new();
     private readonly SemaphoreSlim _semaphore = new(initialCount: 1, maxCount: 1);
@@ -139,31 +139,33 @@ public class ReasoningLoop : IDisposable
         _agentMemoryClient = agentMemoryClient;
         _agentMemoryEnabled = agentMemoryEnabled;
         _autoHandOffEnabled = autoHandoffEnabled;
-        _AgentRuntimeModifier = agentRuntimeModifier;
+        _agentRuntimeModifier = agentRuntimeModifier;
 
         var globalDefaultMode = actionSettings.Mode.ToString() ?? AgentModes.Review;
         if (!string.IsNullOrEmpty(context.AgentMode) && !string.Equals(context.AgentMode, globalDefaultMode, StringComparison.OrdinalIgnoreCase))
         {
-
             // Validate if the requested agent mode is allowed based on the global default mode
             if (AgentModes.IsValidModeChange(globalDefaultMode, context.AgentMode))
             {
                 _logger.LogInternalInformation("Setting agent mode to {AgentMode} for thread {ThreadId} (global default: {GlobalMode})",
                     context.AgentMode, context.ThreadId, globalDefaultMode);
-                _ = Task.Run(async () => await _AgentRuntimeModifier.SetAgentMode(context, context.AgentMode, notifyUser: false));
+                _ = Task.Run(async () => await _agentRuntimeModifier.SetAgentMode(context, context.AgentMode, notifyUser: false));
             }
             else
             {
                 _logger.LogInternalWarning("Invalid agent mode '{RequestedMode}' for thread {ThreadId}. {ValidationMessage}",
                     context.AgentMode, context.ThreadId, AgentModes.GetValidationErrorMessage(globalDefaultMode));
 
-                _ = Task.Run(async () => await _AgentRuntimeModifier.SetAgentMode(context, globalDefaultMode, notifyUser: true));
+                _ = Task.Run(async () => await _agentRuntimeModifier.SetAgentMode(context, globalDefaultMode, notifyUser: true));
 
                 // Don't set the invalid mode, keep the global default
                 _logger.LogInternalInformation("Keeping global default mode '{GlobalMode}' for thread {ThreadId}",
                     globalDefaultMode, context.ThreadId);
             }
         }
+
+        _logger.LogInternalInformation("Experimental Flag: AgentMemoryEnabled: {agentMemoryEnabled}", _agentMemoryEnabled);
+        _logger.LogInternalInformation("Experimental Flag: AutoHandOffEnabled: {autoHandOffEnabled}", _autoHandOffEnabled);
     }
     public void CancelCurrentOperation()
     {
@@ -536,7 +538,7 @@ public class ReasoningLoop : IDisposable
                 startingAgent: _currentAgent,
                 input: _chatHistory!,
                 config: runConfig,
-                runtimeModifier: _AgentRuntimeModifier,
+                runtimeModifier: _agentRuntimeModifier,
                 context: _context,
                 hooks: runHooks,
                 displayModelOutput: DisplayModelResponse,
@@ -598,7 +600,7 @@ public class ReasoningLoop : IDisposable
                 else
                 {
                     var checkWriteActionResult = CheckWriteActionInReadOnlyMode(toolCall);
-                    var currentAgentMode = _AgentRuntimeModifier.GetThreadAgentMode(_context);
+                    var currentAgentMode = _agentRuntimeModifier.GetThreadAgentMode(_context);
                     if (string.Compare(currentAgentMode, ActionMode.ReadOnly.ToString(), StringComparison.OrdinalIgnoreCase) == 0 && checkWriteActionResult.NeedSkip)
                     {
                         var chatMessage = new ChatMessage(ChatRole.System, checkWriteActionResult.Prompt);
@@ -793,6 +795,8 @@ public class ReasoningLoop : IDisposable
                 if (_autoHandOffEnabled
                     && endingState == AgentProcessingState.CompletedSuccessfully)
                 {
+                    _logger.LogInternalInformation("Autohandoff is enabled. Handing back to {startAgent}.", _defaultStartingAgent.Name);
+
                     // todo: add a user message to show handoff path to previous agent
                     // if(_currentAgent.Name != _defaultStartingAgent.Name)
 
@@ -1191,7 +1195,7 @@ public class ReasoningLoop : IDisposable
                         var approvalContext = new ApprovalContext(
                             ThreadId: _context.ThreadId,
                             ApprovalId: approval.Id,
-                            UseOboToken: approvalAttr.UseOboToken && string.Compare(_AgentRuntimeModifier.GetThreadAgentMode(_context), ActionMode.Review.ToString(), StringComparison.OrdinalIgnoreCase) == 0
+                            UseOboToken: approvalAttr.UseOboToken && string.Compare(_agentRuntimeModifier.GetThreadAgentMode(_context), ActionMode.Review.ToString(), StringComparison.OrdinalIgnoreCase) == 0
                         );
 
                         Agent.Core.ToolStatic.AsyncLocalApprovalContext.Value = approvalContext;
@@ -1272,7 +1276,7 @@ public class ReasoningLoop : IDisposable
             }
 
             // if in agent mode, return auto approved
-            var currentAgentMode = _AgentRuntimeModifier.GetThreadAgentMode(_context);
+            var currentAgentMode = _agentRuntimeModifier.GetThreadAgentMode(_context);
             if (string.Compare(currentAgentMode, ActionMode.Autonomous.ToString(), StringComparison.OrdinalIgnoreCase) == 0)
             {
                 return new CheckApprovalActivityOutput()
