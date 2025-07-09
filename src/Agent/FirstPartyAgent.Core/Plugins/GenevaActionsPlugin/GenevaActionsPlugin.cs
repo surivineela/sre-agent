@@ -4,10 +4,8 @@
 
 using System.ComponentModel;
 using System.Threading.Tasks;
-using Agent.Core.Models;
-using Agent.Core.Services;
-using FirstPartyAgent.Core.Configuration;
 using Agent.Core.Configuration;
+using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Core.Extensions;
 using FirstPartyAgent.Core.Models;
 using FirstPartyAgent.Core.Plugins.Interfaces;
@@ -33,7 +31,6 @@ namespace FirstPartyAgent.Core.Plugins
         private readonly string genevaActionsConfigName = "GenevaActions";
 
         private Lazy<Task<List<GenevaActionConfig>>> _lazyGenevaActions;
-        private OneBranchApprovalService _oneBranchApprovalService;
 
         public GenevaActionsPlugin(
             IBaseIcmWorkflowClient icmWorkflowClient,
@@ -43,8 +40,7 @@ namespace FirstPartyAgent.Core.Plugins
             StorageAccountSettings storageAccountSettings,
             IStorageService storageService,
             ICosmosDBService cosmosDBService,
-            ISessionMessageService sessionMessageService,
-            OneBranchApprovalService oneBranchApprovalService)
+            ISessionMessageService sessionMessageService)
         {
             _sessionMessageService = sessionMessageService;
             _logger = logger;
@@ -59,7 +55,6 @@ namespace FirstPartyAgent.Core.Plugins
             }
 
             _lazyGenevaActions = new Lazy<Task<List<GenevaActionConfig>>>(() => InitializeGenevaActionsConfig());
-            _oneBranchApprovalService = oneBranchApprovalService;
         }
 
         private async Task<List<GenevaActionConfig>> GetGenevaActions()
@@ -72,6 +67,26 @@ namespace FirstPartyAgent.Core.Plugins
             var allGenevaActions = new List<GenevaActionConfig>();
             var logMessage = $"Initializing Geneva Actions Config";
             _logger.LogInformation(logMessage);
+
+            if (_cosmosDbService != null && _cosmosDbService.IsEnabled)
+            {
+                try
+                {
+                    var genevaActionsContainer = _cosmosDbService.GetQueryableContainer<GenevaActionsConfigCosmos>(_cosmosDbService.IcmAgentDatabaseName, cosmosGenevaActionsContainerName);
+                    var genevaActionsConfig = await genevaActionsContainer.ToListAsync();
+
+                    allGenevaActions = genevaActionsConfig
+                        .SelectMany(c => c.GenevaActions)
+                        .GroupBy(a => a.ActionName)
+                        .Select(g => g.First())
+                        .ToList();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Error reading alert details from CosmosDB: {ex.Message}");
+                }
+            }
+
 
             if (_storageService.IsEnabled)
             {
@@ -92,28 +107,6 @@ namespace FirstPartyAgent.Core.Plugins
                     return allGenevaActions;
                 }
             }
-            else if (_cosmosDbService != null && _cosmosDbService.IsEnabled)
-            {
-                // pending update, it's more reasonable to store all geneva actions in one document instead of multiple ones in its own container
-                try
-                {
-                    var genevaActionsContainer = _cosmosDbService.GetQueryableContainer<GenevaActionsConfigCosmos>(_cosmosDbService.IcmAgentDatabaseName, cosmosGenevaActionsContainerName);
-                    var genevaActionsConfig = await genevaActionsContainer.ToListAsync();
-            
-                    allGenevaActions = genevaActionsConfig
-                        .SelectMany(c => c.GenevaActions)
-                        .GroupBy(a => a.ActionName)
-                        .Select(g => g.First())
-                        .ToList();
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError($"Error reading alert details from CosmosDB: {ex.Message}");
-                }
-            }
-
-
-            
 
             logMessage = $"Geneva Actions Config not found in CosmosDB or Storage. Reading from local file.";
             _logger.LogInformation(logMessage);
@@ -235,52 +228,6 @@ namespace FirstPartyAgent.Core.Plugins
             if (_icmWorkflowClient.ReadOnly && genevaAction.IsWriteAction)
             {
                 return "Success. ICM Workflow Client is in ReadOnly mode.";
-            }
-
-            if (_oneBranchApprovalService.IsEnabled && genevaAction.IsApprovalNeeded)
-            {
-                logMessage = $"[execute_geneva_action][{DateTime.UtcNow}] Geneva action requires approval. Creating approval document.";
-                await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
-
-                try
-                {
-                    // Create approval request with detailed information about the action
-                    var approvalRequest = new OneBranchApprovalRequest
-                    {
-                        CorrelationId = Guid.NewGuid().ToString(),
-                        Title = $"Geneva Action Approval: {actionName}",
-                        RequestDescription = $"Request to execute Geneva Action '{actionName}' with parameters: {JsonConvert.SerializeObject(inputParameters)}",
-                        Submitter = "SRE ICM Agent",
-                        ServiceTreeGuid = genevaAction.ServiceTreeId?.ToString() ?? "00000000-0000-0000-0000-000000000000",
-                        ReleaseApproversAllowed = new List<string> { "AME\\AZURE-ALL-PSV" } // FTE AME account, see https://dev.azure.com/mseng/AzureDevOps/_wiki/wikis/AzureDevOps.wiki/1113/TSG-Azure-Network-Troubleshooting?anchor=security-groups-that-you-need-to-join
-                    };
-
-                    // Create the approval document
-                    var approvalResponse = await _oneBranchApprovalService.CreateApprovalDocumentAsync(approvalRequest);
-
-                    logMessage = $"[execute_geneva_action][{DateTime.UtcNow}] Approval document created, please approve {approvalResponse.ApprovalDocumentUri} to continue.";
-                    await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
-
-                    // Poll for approval with binary exponential backoff
-                    var approvalStatus = await _oneBranchApprovalService.PollForApprovalAsync(approvalResponse.ApprovalDocumentId);
-
-                    string status = approvalStatus?.Data?.ApprovalDocumentCompleteDetails?.Action;
-                    if (status != "Approve")
-                    {
-                        string message = $"Geneva Action execution was rejected by {approvalStatus?.Data?.ApprovalDocumentCompleteDetails?.Principal}. Status: {status}. Comments: {approvalStatus?.Data?.ApprovalDocumentCompleteDetails?.Comments}";
-                        await kernel.LogInformation(message, _logger, _teamsClient, _sessionMessageService);
-                        return message;
-                    }
-
-                    logMessage = $"[execute_geneva_action][{DateTime.UtcNow}] Geneva Action approved by {approvalStatus?.Data?.ApprovalDocumentCompleteDetails?.Principal}. Proceeding with execution.";
-                    await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
-                }
-                catch (Exception ex)
-                {
-                    var errorMessage = $"[execute_geneva_action][{DateTime.UtcNow}] Error in approval workflow: {ex.Message}";
-                    await kernel.LogInformation(errorMessage, _logger, _teamsClient, _sessionMessageService);
-                    return errorMessage;
-                }
             }
 
             var subscriptionId = inputParameters.ContainsKey("subscriptionId") ? inputParameters["subscriptionId"] : (inputParameters.ContainsKey("subscription") ? inputParameters["subscription"] : null);

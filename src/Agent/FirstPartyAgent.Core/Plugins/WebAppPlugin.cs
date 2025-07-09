@@ -11,6 +11,7 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Newtonsoft.Json;
 using System.ComponentModel;
+using ObserverClientService = FirstPartyAgent.Core.Services.ObserverClientService;
 
 namespace FirstPartyAgent.Core.Plugins
 {

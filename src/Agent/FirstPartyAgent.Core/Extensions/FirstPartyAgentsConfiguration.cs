@@ -35,6 +35,7 @@ using Agent.Core.Services;
 // Add alias for FirstPartyAgent's AzureSearchPlugin
 using FirstPartyAzureSearchPlugin = FirstPartyAgent.Core.Plugins.AzureSearchPlugin;
 using Agent.Core.Helpers;
+using ObserverClientService = FirstPartyAgent.Core.Services.ObserverClientService;
 using WebAppPlugin = FirstPartyAgent.Core.Plugins.WebAppPlugin;
 
 namespace FirstPartyAgent.Core.Extensions
@@ -195,7 +196,6 @@ namespace FirstPartyAgent.Core.Extensions
             services.AddSingleton<DevOpsHelperService>();
             services.AddSingleton<TsgFetcherService>();
             services.AddSingleton<HandoffToAgentPlugin>();
-            services.AddSingleton<OneBranchApprovalService>();
         }
 
         public static IServiceCollection ConfigureSemanticKernel(this IServiceCollection services)
