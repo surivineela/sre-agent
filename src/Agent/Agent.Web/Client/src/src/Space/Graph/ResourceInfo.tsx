@@ -489,10 +489,16 @@ const AppHealthInfo = memo(({ resource }: { resource?: ResourceExtended }) => {
                     label={intl.formatMessage(ResourceInfoResources.appHealthInfoAverageMemoryUsage)}
                     value={
                         !isNullOrUndefined(appHealthInfo.AvgMemoryUsage)
-                            ? getPropertyValue(resource?.properties?.resourceType) === 'k8s/apps/v1/deployments' ||
-                              getPropertyValue(resource?.properties?.resourceType) === 'k8s/apps/v1/statefulsets'
-                                ? `${appHealthInfo.AvgMemoryUsage}%`
-                                : `${appHealthInfo.AvgMemoryUsage} bytes`
+                            ? (() => {
+                                  const resourceType = getPropertyValue(resource?.properties?.resourceType).toLowerCase();
+                                  return [
+                                      'k8s/apps/v1/deployments',
+                                      'k8s/apps/v1/statefulsets',
+                                      'microsoft.apimanagement/service',
+                                  ].includes(resourceType)
+                                      ? `${appHealthInfo.AvgMemoryUsage}%`
+                                      : `${appHealthInfo.AvgMemoryUsage} bytes`;
+                              })()
                             : undefined
                     }
                 />
