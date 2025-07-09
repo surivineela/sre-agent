@@ -90,6 +90,7 @@ ManagedClusterCreationTime
 KedaVersion
 HasDynamicJsonColumns
 InfraLayer
+IsInternalEnvironment
 
 # Container App
 ContainerAppResourceGroupName
@@ -97,6 +98,8 @@ ContainerAppName
 ContainerAppType
 RevisionName
 ScaledObjectName
+IngressEnabled
+IsInternalApp
 TriggeredScaleUp
 TriggeredScaleDown
 TargetValue

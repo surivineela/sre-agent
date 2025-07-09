@@ -1,0 +1,22 @@
+let fromTime = datetime("##fromDate##");
+let endTime = datetime("##toDate##");
+let queryManagedCluster = "##managedClusterName##";
+let cappName = "##containerAppName##";
+Heartbeats
+| where TIMESTAMP between (fromTime .. endTime)
+| where ContainerAppName == cappName
+| where isempty(queryManagedCluster) or Tenant == queryManagedCluster
+| where msg == "Container Apps Heartbeat"
+| extend IngressSetting = parse_json(AppJson).spec.configuration.ingress
+| extend IngressEnabled = iff(isempty(IngressSetting),"False","True")
+| extend IsInternalApp = iff(tostring(IngressSetting.external)=~"true","False","True")
+| project TIMESTAMP,IngressEnabled,IsInternalApp,ManagedClusterName=Tenant
+| join kind=leftouter (ManagedEnvironmentDBState
+| where TIMESTAMP between (fromTime .. endTime)
+| project TIMESTAMP,managedClusterName,IsInternalEnvironment=isInternal
+) on $left.ManagedClusterName==$right.managedClusterName
+| order by TIMESTAMP asc
+| extend SessionIndex = row_cumsum(iff((IngressEnabled != prev(IngressEnabled) or IsInternalApp != prev(IsInternalApp)), 1, 0))
+| summarize StartTime = min(TIMESTAMP), EndTime = max(TIMESTAMP) by IsInternalEnvironment,IngressEnabled,IsInternalApp,SessionIndex
+| order by StartTime asc
+| project StartTime, EndTime, IsInternalEnvironment,IngressEnabled,IsInternalApp

@@ -44,10 +44,40 @@ namespace Agent.Plugins.Definitions
         }
 
         [Description("""
-        Retrieves Envoy pod logs from a specified Managed Cluster of container app.
-        Use this tool when diagnosing Envoy pod issues, such as connectivity failures, routing problems, or unexpected pod behavior.
+        Retrieves ingress configuration details for a specified Container App.
+        Use this tool when you need to determine how a Container App is exposed, whether it's accessible from the internet, a virtual network (VNet), or only within its managed environment. 
+        The tool returns table data in CSV format, using TAB separators. The first line contains the column headers.
 
-        Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+        Tool outputs:
+        - StartTime: Start time of the current ingress configuration.
+        - EndTime: End time of the current ingress configuration.
+        - IngressEnabled: Indicates whether ingress is enabled for the Container App.
+        - IsInternalApp: Specifies whether the app is configured for external access or restricted to its managed environment.
+        - IsInternalEnvironment: Indicates whether the managed environment is configured for internet access or limited to a virtual network.
+        """
+        )]
+        public Task<string> GetContainerAppIngressConfig(
+            [Description("Azure region of the container app.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the container app.")] string containerAppName,
+            [Description("Managed Cluster Name of the container app.")] string managedClusterName)
+        {
+            return _kustoPlugin.ExecuteLocalFunctionAsync("GetContainerAppIngressConfig", region,
+            new Dictionary<string, string> {
+                { "fromDate", fromDate.ToString() },
+                { "toDate", toDate.ToString() },
+                { "managedClusterName", managedClusterName },
+                { "containerAppName", containerAppName }
+            });
+        }
+
+        [Description("""
+        Retrieves Envoy pod logs from a specified Managed Cluster of container app.
+        Use this tool when diagnosing Envoy pod issues, such as connectivity failures, routing problems, or unexpected envoy pod behavior.
+        The tool returns table data in CSV format, using TAB separators. The first line contains the column headers.
+
+        Tool outputs:
             - TimeStamp: UTC Time of the log event.
             - NodeName: Name of the node running the Envoy pod.
             - PodName: Name of the Envoy pod.
@@ -69,8 +99,7 @@ namespace Agent.Plugins.Definitions
         }
 
         [Description("""
-        Retrieves Container Apps Envoy Controller Logs to troubleshoot ingress and network routing issues.
-                    
+        Retrieves Container Apps Envoy Controller Logs to troubleshoot ingress and network routing issues.         
         Use this tool when investigating Envoy controller events, such as envoy resources reconciler errors.
         The tool returns table data in CSV format, using TAB separators. The first line contains the column headers.
         
@@ -252,17 +281,17 @@ namespace Agent.Plugins.Definitions
         }
 
         [Description("""
-        Retrieves pod status information for a specified Container App.            
-        Use this tool when checking the health and status of a Container App.
+        Retrieves pod status information for a specified Container App.
+        Use this tool when troubleshooting HTTP errors to determine if they're caused by container app pod issues, such as unhealthy pods or pod container failures.
         The tool returns table data in CSV format, using TAB separators. The first line contains the column headers.
-                    
+
         Tool outputs:
         - StartTime: Start time of the Container App pod status.
         - EndTime: End time of the Container App pod status.
         - PodName: Name of the Container App pod.
         - NodeName: Name of the node where the envoy pod is running.
         - PodStatus: Status of the Container App pod.
-        - restartCount: Number of times the Container App pod has been restarted.
+        - restartCount: Pod restart count.
         - ContainerName: Pod container name. There can be multiple containers in a pod.
         - ContainerStatus: Status of the pod container. The value can be Ready or NotReady. If the value is NotReady, even if the pod is in running state, it indicates that the pod container is not ready to serve traffic.
          ContainerImage: The docker image used by the container.
@@ -288,8 +317,7 @@ namespace Agent.Plugins.Definitions
 
         [Description("""
         Retrieves the provisioning status and operation details for a specified Container App.
-                    
-        Use this tool when checking the Container App provisioning status, and operation details.
+        Use this tool when troubleshooting HTTP errors or ingress failures to determine if they're caused by container app unhealthy provisioning states, failed deployments, or operation issues.
         The tool returns table data in CSV format, using TAB separators. The first line contains the column headers.
         
         Tool outputs:
@@ -320,7 +348,7 @@ namespace Agent.Plugins.Definitions
 
         [Description("""
         Retrieves admin events for a specified Container App.
-        Use this tool when investigating Container App administrative operations, API calls, or troubleshooting deployment and configuration changes.
+        Use this tool when you need to check the ingress log missing events, http errors, or ingress failures were caused by administrative operations,  API calls, or deployment and configuration changes.
         The tool returns table data in CSV format, using TAB separators. The first line contains the column headers.
                     
         Tool outputs:

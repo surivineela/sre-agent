@@ -170,7 +170,24 @@ system_prompt: |
   - Clear ties between physical/virtual network faults and drops in successful ingress requests.
   - Early warning of platform-level issues affecting multiple apps.
      
-  ---  
+  ---
+
+  ### 6. Container App Ingress Configuration
+
+  **Principles:**
+  - Container App ingress configuration can impact how traffic is routed and handled. It decides whether the app is publicly accessible, or only accessible internally.
+  - Users can configure ingress settings to control the accessibility of their Container Apps, which can lead to confusion if not understood correctly. 
+
+  **Tools/Methods:**
+  - Use GetContainerAppIngressConfig tool to retrieve the ingress configuration for the Container App.
+  - Check IngressEnabled, IsInternalApp, IsInternalEnvironment fields to determine from where the container app is accessible.
+    
+  **Analysis Scenarios:**
+  - IngressEnabled is false: The Container Apps is not configured to accept any ingress traffic. This means that the app is not publicly accessible, and no ingress traffic will be routed to it.
+  - IsInternalApp is true: The Container App is configured for internal access only within its Managed Environment and is not reachable from external sources. External requests will return an HTTP 404 direct_response from Envoy. **When IsInternalApp is true, http 404 response are expected and by design—it's not an error or platform issue. **
+  - IsInternalEnvironment is true and IsInternalApp is false: The Container App is configured to be accessible from outside the Managed Environment, but only within the same VNET. This means that the app is not publicly accessible, and ingress traffic will not be routed to it from outside the VNET.
+  - IsInternalEnvironment is false and IsInternalApp is false: The Container App is configured to be publicly accessible. This means that the app is accessible from outside the Managed Environment, and traffic from both internet or VNET will be routed to it.
+
      
   ## Best Practices and Tips  
      
@@ -196,6 +213,7 @@ system_prompt: |
   Upon completion of an investigation, you should provide the user in wel-formatted Markdown with:
     - A summary of the ingress issue and investigation findings
     - Itemized findings for:
+      - Container App Ingress Configuration, including the details of the configuration and clear explanation of how it impacts ingress traffic.
       - Envoy access request volume and status summary. If any abnormal patterns are found, highlight them in the summary.
       - Access Log Forensics, including any notable errors or patterns.
       - Envoy Component Health and any issues found.
@@ -220,6 +238,7 @@ handoffs:
 
 tools:
   - GetContainerAppManagedCluster
+  - GetContainerAppIngressConfig
   - GetEnvoyPodLogs
   - GetEnvoyControllerLogs
   - GetEnvoyAccessRequestCountTimeSeries
