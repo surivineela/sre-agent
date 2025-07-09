@@ -5,11 +5,6 @@ name: Pull Agent Search Docs
 on:
   workflow_dispatch:
     inputs:
-      github_repo:
-        description: 'The GitHub repository to pull CLI docs'
-        required: true
-        type: string
-        default: 'MicrosoftDocs/azure-docs-cli'
       storage_account:
         description: 'Azure Storage Account name'
         required: true
@@ -20,21 +15,14 @@ on:
         required: true
         type: string
         default: 'test1'
-      script_path:
-        description: 'Path to the PowerShell script within the script_repo (e.g., script/preprocess-az-cli-doc.ps1)'
-        required: true
-        type: string
-        default: 'scripts/preprocess-az-cli-doc.ps1'
-      script_source_path:
-        description: 'Source path for the script (e.g., azure-docs-cli/docs-ref-autogen/Latest-version/latest)'
-        required: true
-        type: string
-        default: 'azure-docs-cli/docs-ref-autogen/Latest-version/latest'
-      script_output_folder:
-        description: 'Relative output folder for processed files (e.g., azclidoc-full-2)'
-        required: true
-        type: string
-        default: 'azclidoc-full-2'
+      pull_doc_option:
+            description: 'Predefined setup (overrides script_path, source_path, and output_folder)'
+            required: false
+            default: ''
+            type: choice
+            options:
+              - azure-cli-docs
+              - sre-agent-docs
       script_max_chunk_size:
         description: 'Max chunk size parameter for the PowerShell script (e.g., 1800)'
         required: false
@@ -54,18 +42,47 @@ jobs:
     environment: production
 
     steps:
+    - name: 'Determine effective parameters from pull_doc_option'
+      id: resolve-option
+      run: |
+        echo "Pull Doc Option: ${{ github.event.inputs.pull_doc_option }}"
+
+        # Set defaults from pull_doc_option if inputs are empty or bundled option selected
+        if [ "${{ github.event.inputs.pull_doc_option }}" = "sre-agent-docs" ]; then
+          DOC_REPO="MicrosoftDocs/azure-docs"
+          SCRIPT_PATH="scripts/preprocess-azure-docs.ps1"
+          SCRIPT_SOURCE_PATH="azure-docs-cli/articles/sre-agent"
+          SCRIPT_OUTPUT_FOLDER="azuredocs"
+        else
+          # Default to azure-cli-docs
+          DOC_REPO="MicrosoftDocs/azure-docs-cli"
+          SCRIPT_PATH="scripts/preprocess-az-cli-doc.ps1"
+          SCRIPT_SOURCE_PATH="azure-docs-cli/docs-ref-autogen/Latest-version/latest"
+          SCRIPT_OUTPUT_FOLDER="azclidoc-full-2"
+        fi
+
+        echo "Resolved script_path: $SCRIPT_PATH"
+        echo "Resolved script_source_path: $SCRIPT_SOURCE_PATH"
+        echo "Resolved script_output_folder: $SCRIPT_OUTPUT_FOLDER"
+        echo "Resolved github_repo: $DOC_REPO"
+
+        echo "script_path=$SCRIPT_PATH" >> $GITHUB_OUTPUT
+        echo "script_source_path=$SCRIPT_SOURCE_PATH" >> $GITHUB_OUTPUT
+        echo "script_output_folder=$SCRIPT_OUTPUT_FOLDER" >> $GITHUB_OUTPUT
+        echo "github_repo=$DOC_REPO" >> $GITHUB_OUTPUT
+
     - name: 'Echo Workflow Inputs and Variables'
       run: |
-        echo "AZURE_CLIENT_ID=${{ vars.AZURE_CLIENT_ID }}"
-        echo "AZURE_TENANT_ID=${{ vars.AZURE_TENANT_ID }}"
-        echo "AZURE_SUBSCRIPTION_ID=${{ vars.AZURE_SUBSCRIPTION_ID }}"
-        echo "STORAGE_ACCOUNT_NAME=${{ github.event.inputs.storage_account }}"
-        echo "CONTAINER_NAME=${{ github.event.inputs.container_name }}"
-        echo "SCRIPT_REPO=${{ github.event.inputs.script_repo }}"
-        echo "SCRIPT_PATH=${{ github.event.inputs.script_path }}"
-        echo "SCRIPT_SOURCE_PATH=${{ github.event.inputs.script_source_path }}"
-        echo "SCRIPT_OUTPUT_FOLDER=${{ github.event.inputs.script_output_folder }}"
-        echo "SCRIPT_MAX_CHUNK_SIZE=${{ github.event.inputs.script_max_chunk_size }}"
+            echo "AZURE_CLIENT_ID=${{ vars.AZURE_CLIENT_ID }}"
+            echo "AZURE_TENANT_ID=${{ vars.AZURE_TENANT_ID }}"
+            echo "AZURE_SUBSCRIPTION_ID=${{ vars.AZURE_SUBSCRIPTION_ID }}"
+            echo "STORAGE_ACCOUNT_NAME=${{ github.event.inputs.storage_account }}"
+            echo "CONTAINER_NAME=${{ github.event.inputs.container_name }}"
+            echo "DOC_REPO=${{steps.resolve-option.outputs.github_repo}}"
+            echo "SCRIPT_PATH=${{ steps.resolve-option.outputs.script_path }}"
+            echo "SCRIPT_SOURCE_PATH=${{ steps.resolve-option.outputs.script_source_path }}"
+            echo "SCRIPT_OUTPUT_FOLDER=${{ steps.resolve-option.outputs.script_output_folder }}"
+            echo "SCRIPT_MAX_CHUNK_SIZE=${{ github.event.inputs.script_max_chunk_size }}"
 
     - name: 'Azure Login using OIDC'
       uses: azure/login@v1
@@ -87,16 +104,23 @@ jobs:
     - name: 'Checkout Docs Repository'
       uses: actions/checkout@v4
       with:
-        repository: ${{ github.event.inputs.github_repo || 'MicrosoftDocs/azure-docs-cli' }}
+        repository: ${{ steps.resolve-option.outputs.github_repo }}
         ref: main
-        path: azure-docs-cli
         fetch-depth: 1 # Shallow clone for speed
+        path: azure-docs-cli
+
+    - name: 'List files to debug'
+      run: |
+        echo "Listing contents of workspace..."
+        ls -R ${{ github.workspace }}
+
 
     - name: 'Run PowerShell Preprocessing Script'
       shell: pwsh # Specifies PowerShell Core as the shell
       run: |
-        $SourceFolder = "${{ github.workspace }}/${{ github.event.inputs.script_source_path }}"
-        $OutputFolder = "${{ github.workspace }}/${{ github.event.inputs.script_output_folder }}"
+        $ScriptPath = "${{ github.workspace }}/${{ steps.resolve-option.outputs.script_path }}"
+        $SourceFolder = "${{ github.workspace }}/${{ steps.resolve-option.outputs.script_source_path }}"
+        $OutputFolder = "${{ github.workspace }}/${{ steps.resolve-option.outputs.script_output_folder }}"
         $MaxChunkSize = ${{ github.event.inputs.script_max_chunk_size }}
 
         # The PowerShell script itself handles creating the output folder if it doesn't exist.
@@ -107,7 +131,7 @@ jobs:
         Write-Host "Max Chunk Size: $MaxChunkSize"
 
         # Execute the PowerShell script using the configurable path
-        & "${{ github.workspace }}/${{ github.event.inputs.script_path }}" `
+        & $ScriptPath `
           -Source $SourceFolder `
           -OutputFolder $OutputFolder `
           -MaxChunkSize $MaxChunkSize
@@ -118,24 +142,21 @@ jobs:
       uses: azure/cli@v1
       with:
         inlineScript: |
-          echo "Starting sync of processed files to Azure Blob Storage..."
-          STORAGE_ACCOUNT_NAME="${{ github.event.inputs.storage_account }}"
-          CONTAINER_NAME="${{ github.event.inputs.container_name }}"
-          # The source directory for upload is now the output folder created by the PowerShell script
-          SOURCE_DIRECTORY="${{ github.workspace }}/${{ github.event.inputs.script_output_folder }}"
+          DEST_PREFIX="${{ steps.resolve-option.outputs.script_output_folder }}"
+          SOURCE_DIRECTORY="${{ github.workspace }}/${{ steps.resolve-option.outputs.script_output_folder }}"
 
-          # Check if the SOURCE_DIRECTORY exists and contains files before attempting upload
           if [ -d "$SOURCE_DIRECTORY" ] && [ "$(ls -A "$SOURCE_DIRECTORY")" ]; then
             az storage blob upload-batch \
-              --account-name "$STORAGE_ACCOUNT_NAME" \
-              --destination "$CONTAINER_NAME" \
-              --source "${SOURCE_DIRECTORY}" \
+              --account-name "${{ github.event.inputs.storage_account }}" \
+              --destination "${{ github.event.inputs.container_name }}/$DEST_PREFIX" \
+              --source "$SOURCE_DIRECTORY" \
               --overwrite \
               --auth-mode login
-            echo "Sync of processed files complete."
+            echo "Synced to Azure Blob: $DEST_PREFIX/"
           else
-            echo "Skipping blob upload: Source directory '$SOURCE_DIRECTORY' does not exist or is empty."
+            echo "No files found to sync at: $SOURCE_DIRECTORY"
           fi
+
 
     - name: Azure logout
       if: always()

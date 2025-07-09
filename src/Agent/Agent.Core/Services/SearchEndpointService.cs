@@ -6,7 +6,6 @@ using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Models.Api.v1;
 using Microsoft.Extensions.Logging;
-using Agent.Logging;
 using Agent.Core.Interfaces;
 using System.Text;
 using System.Text.Json.Serialization;
