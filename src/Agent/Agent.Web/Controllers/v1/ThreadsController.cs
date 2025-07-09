@@ -21,7 +21,7 @@ using Agent.Web.Models.WelcomeMessage;
 using Agent.Runtime.Services;
 using Agent.Plugins.Interface;
 using Agent.Runtime.Reasoning;
-using Agent.Runtime.SubAgents.ThreadEvaluator;
+using Agent.Runtime.ThreadEvaluator;
 
 namespace Agent.Web.Controllers.v1
 {

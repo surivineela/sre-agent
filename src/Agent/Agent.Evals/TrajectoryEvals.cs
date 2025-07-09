@@ -1,3 +1,5 @@
+using Agent.Framework;
+using Agent.Runtime.ThreadEvaluator;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Evals;
@@ -14,8 +16,8 @@ public class TrajectoryEvals
 
     private static ModelGenerationContent[] LoadTestCasesFromFiles()
     {
-        var dataFolderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data\\Trajectory");
-        var data = ModelGenerationDataLoader.LoadChatMessagesFromJsonFilesAsync().GetAwaiter().GetResult();
+        var dataFolderPath = Path.Combine(AppContext.BaseDirectory, "Data", "Trajectory");
+        var data = ModelGenerationDataLoader.LoadChatMessagesFromJsonFilesAsync(dataFolderPath);
         return data.Values.ToArray();
     }
 
@@ -25,34 +27,26 @@ public class TrajectoryEvals
     [DynamicData(nameof(PromptQualityTestCases))]
     public async Task PromptQuality_EvaluateResponses(ModelGenerationContent content)
     {
+        var chatTrajectory = new Trajectory();
+
         // 1. Build the conversation that the model originally saw
-        var conversationMessages = content.ModelInput.ToList();
+        var conversationMessages = content.ModelInput
+            .Concat(content.ModelOutput)
+            .Where(m => m.Role != ChatRole.System)
+            .ToList();
 
         // 2. Build the text block that will be fed to the summariser in a <chat>…</chat> wrapper
-        string chatTranscript = string.Join("\n", conversationMessages.Select(m => $"[{m.Role}] {m.Text ?? string.Join("", m.Contents)}"));
-
-        // 3. Grabbing the prompt
-        var promptPath = Path.Combine(
-           AppDomain.CurrentDomain.BaseDirectory,
-           "EvaluatorPrompts",
-           "TrajectorySummarizer.txt");
-
-        var prompt = await File.ReadAllTextAsync(promptPath);
-
-        // 4. Send to the model using the custom system-prompt
-        var chatClient = TestHost.RunConfig.ChatClient;
-        var messages = new List<ChatMessage>
+        foreach (var msg in conversationMessages)
         {
-            new ChatMessage(ChatRole.System, prompt),
-            new ChatMessage(ChatRole.User, chatTranscript)
-        };
+            chatTrajectory.Append(msg);
+        }
 
-        var chatOptions = new ChatOptions {
-            ToolMode = ChatToolMode.None,
-            Temperature = 0,
-            ResponseFormat = ChatResponseFormat.Text
-        };
-        var summaryResponse = await chatClient.GetResponseAsync(messages, chatOptions);
+        string chatTranscript = chatTrajectory.GetFullTrajectory();
+
+        // 3. Compute the trajectory
+        (var extractedTrajectory, var _) = await TrajectoryExtractor.GenerateTrajectoryAsync(
+            TestHost.RunConfig.ChatClient,
+            chatTranscript);
 
         // 5. Provide evaluation context (place-holders for now)
         //string groundedContext = "TODO: supply ground-truth context for this trajectory";

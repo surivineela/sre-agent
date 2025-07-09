@@ -4,7 +4,6 @@
 
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
-using Agent.Logging;
 using Azure.Core;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Indexes;
@@ -26,7 +25,7 @@ public class AgentMemoryClient(ILogger<AgentMemoryClient> logger,
                                AgentMemorySettings agentMemorySettings,
                                OpenAISettings openAISettings) : IAgentMemoryClient
 {
-    private readonly string blobContainerName = string.IsNullOrEmpty(agentMemorySettings.BlobStorageContainerName) 
+    private readonly string blobContainerName = string.IsNullOrEmpty(agentMemorySettings.BlobStorageContainerName)
         ? AgentNameHelper.GetCustomerUploadedDocumentBlobContainerName(hostEnvironment.IsProduction())
         : agentMemorySettings.BlobStorageContainerName;
     private readonly string aiSearchDataSourceName = agentMemorySettings.AzureAISearchDataSourceName;
@@ -293,7 +292,14 @@ public class AgentMemoryClient(ILogger<AgentMemoryClient> logger,
         return searchIndex;
     }
 
-    public async Task<IList<SearchDocumentResult>> SearchCustomerDocumentsAsync(string query, uint k = 5, float? vectorSimilarityThreshold = null, bool exhaustiveKnn = false, string? filter = null, bool enableHybridSearch = false, CancellationToken cancellationToken = default)
+    public async Task<IList<SearchDocumentResult>> SearchCustomerDocumentsAsync(
+        string query,
+        uint k = 5,
+        float? vectorSimilarityThreshold = null,
+        bool exhaustiveKnn = false,
+        string? filter = null,
+        bool enableHybridSearch = false,
+        CancellationToken cancellationToken = default)
     {
         var searchOptions = new SearchOptions
         {

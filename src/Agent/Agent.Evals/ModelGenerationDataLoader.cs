@@ -6,15 +6,21 @@ namespace Agent.Evals;
 
 public static class ModelGenerationDataLoader
 {
+    private static JsonSerializerOptions _jsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        Converters = { new JsonStringEnumConverter() }
+    };
+
     /// <summary>
     /// Loads all JSON files from the specified data folder and deserializes them into ChatMessages.
     /// </summary>
-    /// <param name="dataFolderPath">The path to the data folder containing JSON files. Defaults to "Data" folder relative to the application base directory.</param>
+    /// <param name="dataFolderPath">The path to the data folder containing JSON files.</param>
     /// <returns>A dictionary with file names as keys and ChatMessages as values.</returns>
-    public static async Task<Dictionary<string, ModelGenerationContent>> LoadChatMessagesFromJsonFilesAsync(string? dataFolderPath = null)
+    public static Dictionary<string, ModelGenerationContent> LoadChatMessagesFromJsonFilesAsync(string dataFolderPath)
     {
-        dataFolderPath ??= Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data");
-
         if (!Directory.Exists(dataFolderPath))
         {
             throw new DirectoryNotFoundException($"The specified data folder path does not exist: {dataFolderPath}");
@@ -22,14 +28,13 @@ public static class ModelGenerationDataLoader
 
         var jsonFiles = Directory.GetFiles(dataFolderPath, "*.json", SearchOption.AllDirectories);
         var result = new Dictionary<string, ModelGenerationContent>();
-        var jsonOptions = CreateJsonSerializerOptions();
 
         foreach (var jsonFile in jsonFiles)
         {
             try
             {
                 var fileName = Path.GetFileName(jsonFile);
-                var jsonContent = await File.ReadAllTextAsync(jsonFile);
+                var jsonContent = File.ReadAllText(jsonFile);
                 var modelGeneration = ParseModelGenerationContent(jsonContent);
 
                 if (modelGeneration != null)
@@ -54,9 +59,7 @@ public static class ModelGenerationDataLoader
 
     public static ModelGenerationContent? ParseModelGenerationContent(string content)
     {
-        var jsonOptions = CreateJsonSerializerOptions();
-
-        var raw = JsonSerializer.Deserialize<ModelGenerationContentRaw>(content, jsonOptions);
+        var raw = JsonSerializer.Deserialize<ModelGenerationContentRaw>(content, _jsonOptions)!;
 
         var result = new ModelGenerationContent
         {
@@ -74,20 +77,5 @@ public static class ModelGenerationDataLoader
         };
 
         return result;
-    }
-
-    /// <summary>
-    /// Creates JSON serializer options with appropriate settings for ChatMessage deserialization.
-    /// </summary>
-    /// <returns>Configured JsonSerializerOptions object.</returns>
-    private static JsonSerializerOptions CreateJsonSerializerOptions()
-    {
-        return new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            Converters = { new JsonStringEnumConverter() }
-        };
     }
 }

@@ -2,7 +2,6 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Agent.Core.Extensions;
@@ -15,7 +14,7 @@ using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
 using ThreadModel = Agent.Core.Models.Api.v1.Thread;
 
-namespace Agent.Runtime.SubAgents.ThreadEvaluator;
+namespace Agent.Runtime.ThreadEvaluator;
 
 /// <summary>
 /// Scanner that periodically evaluates completed threads to assess their behavior and performance.
@@ -92,7 +91,7 @@ public class ThreadEvaluator
                     // Handle error case - if we can't determine evaluation status, log and skip
                     if (isEvaluationUpToDate == null)
                     {
-                        _logger.LogInternalWarning($"Could not determine evaluation status for thread '{thread.Id}', this can happen if a thread was deleted,skipping");
+                        _logger.LogInternalWarning($"Could not determine evaluation status for thread '{thread.Id}', this can happen if a thread was deleted, skipping");
                         continue;
                     }
 
@@ -112,41 +111,6 @@ public class ThreadEvaluator
             _logger.LogInternalError(ex, $"Error during thread behavior evaluation: {ex.Message}");
         }
     }
-
-    /// <summary>
-    /// Evaluate a specific thread by its ID
-    /// </summary>
-    /// <param name="threadId">The ID of the thread to evaluate</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The evaluation result or null if thread not found or evaluation failed</returns>
-    public async Task<ThreadEvaluateResult?> EvaluateThreadById(Guid threadId, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            _logger.LogInternalInformation($"Starting evaluation for thread {threadId}");
-
-            // Get the specific thread
-            var thread = await _threadRepository.GetThreadAsync(threadId);
-
-            if (thread == null)
-            {
-                _logger.LogInternalWarning($"Thread {threadId} not found");
-                return null;
-            }
-
-            // Use the existing EvaluateThread method
-            var evaluationResult = await EvaluateThread(thread, cancellationToken);
-
-            _logger.LogInternalInformation($"Completed evaluation for thread {threadId}");
-            return evaluationResult;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalError(ex, $"Error evaluating thread {threadId}: {ex.Message}");
-            return null;
-        }
-    }
-
 
     /// <summary>
     /// List all completed threads from the past calendar day that need evaluation
@@ -169,7 +133,7 @@ public class ThreadEvaluator
                 try
                 {
                     // First check if thread is within the time window
-                    bool isInTimeWindow = thread.ModifiedTimestamp >= earliestTime &&
+                    var isInTimeWindow = thread.ModifiedTimestamp >= earliestTime &&
                                          thread.ModifiedTimestamp <= latestTime;
 
                     if (!isInTimeWindow)
@@ -236,12 +200,12 @@ public class ThreadEvaluator
             var toolCallMetrics = await CalculateToolCallMetrics(thread.Id, agentContexts);
 
             // Get chat and reasoning message history for LLM evaluation
-            (string chatHistory, string reasoningHistory) = await GetMessageHistories(thread.Id, agentContexts);            // Call LLM to evaluate thread quality
+            (var chatHistory, var reasoningHistory) = await GetMessageHistories(thread.Id, agentContexts);            // Call LLM to evaluate thread quality
             var llmEvaluation = await EvaluateThreadWithLLM(thread, chatHistory, reasoningHistory, toolCallMetrics, cancellationToken);// Calculate SAT Score from the individual criteria scores
             var satScore = llmEvaluation.Resolved + llmEvaluation.Satisfied + llmEvaluation.Automatic + llmEvaluation.Smooth + llmEvaluation.Concise;
 
             // Trajectories
-            var trajectoryInfo = await GenerateTrajectoryAsync(thread, chatHistory, reasoningHistory, toolCallMetrics, cancellationToken);
+            var trajectoryInfo = await TrajectoryExtractor.GenerateTrajectoryAsync(_chatClient, reasoningHistory, cancellationToken);
 
             await SaveTrajectoryAsync(thread.Id, trajectoryInfo.Trajectory, trajectoryInfo.PromptHash, cancellationToken);
 
@@ -312,7 +276,7 @@ public class ThreadEvaluator
                         metrics.TotalToolCalls++;
 
                         // Deserialize the chat message to get content
-                        string content = GetContentFromReasoningMessage(reasoningMessage);
+                        var content = GetContentFromReasoningMessage(reasoningMessage);
 
                         // Determine tool type and success based on message content
                         var isSuccess = !content.ToLower().Contains("error") &&
@@ -544,7 +508,8 @@ public class ThreadEvaluator
                     Priority = evaluationData?.Priority ?? "low",
                     PriorityReason = evaluationData?.PriorityReason ?? "Unable to determine priority"
                 };
-            } catch (JsonException ex)
+            }
+            catch (JsonException ex)
             {
                 _logger.LogInternalWarning(ex, $"Error parsing LLM evaluation response. Original response: {jsonResponse}");
                 return new LLMEvaluationResult
@@ -669,9 +634,12 @@ public class ThreadEvaluator
         public int Concise { get; set; }
         public string Priority { get; set; } = "";
         public string PriorityReason { get; set; } = "";
-    } internal class LLMEvaluationResponse
+    }
+
+    internal class LLMEvaluationResponse
     {
-        public double SATScore { get; set; } public int Resolved { get; set; }
+        public double SATScore { get; set; }
+        public int Resolved { get; set; }
         public int Satisfied { get; set; }
         public int Automatic { get; set; }
         public int Smooth { get; set; }
@@ -702,7 +670,7 @@ public class ThreadEvaluator
             }
 
             // If thread has never been evaluated, it needs evaluation
-            if (thread.EvaluatedTimestamp == default(DateTime))
+            if (thread.EvaluatedTimestamp == default)
             {
                 _logger.LogInternalInformation($"Thread {threadId} has never been evaluated, needs evaluation");
                 return false;
@@ -723,43 +691,6 @@ public class ThreadEvaluator
             _logger.LogInternalError(ex, $"Error checking evaluation status for thread {threadId}");
             return null;
         }
-    }
-
-    public async Task<(string Trajectory, string PromptHash)> GenerateTrajectoryAsync(
-        ThreadModel thread,
-        string chatHistory,
-        string reasoningHistory,
-        ToolCallMetrics toolCallMetrics,
-        CancellationToken ct)
-    {
-        var promptPath = Path.Combine(
-           AppDomain.CurrentDomain.BaseDirectory,
-           "EvaluatorPrompts",
-           "TrajectorySummarizer.txt");
-
-        var summarizerPrompt = await File.ReadAllTextAsync(promptPath);
-
-        var promptHash = ComputeSHA256Hash(summarizerPrompt);
-
-        var chatTranscript = BuildEvaluationPrompt(thread, chatHistory, reasoningHistory, toolCallMetrics);
-
-        var prompt = new List<ChatMessage>
-        {
-            new(ChatRole.System, summarizerPrompt),
-            new(ChatRole.User,   chatTranscript)
-        };
-
-        var resp = await _chatClient.GetResponseAsync(
-            prompt,
-            new ChatOptions
-            {
-                ToolMode = ChatToolMode.None,
-                Temperature = 0,
-                ResponseFormat = ChatResponseFormat.Text
-            },
-            cancellationToken: ct);
-
-        return (resp.GetMessage().Text ?? string.Empty, promptHash);
     }
 
     private async Task SaveTrajectoryAsync(
@@ -783,17 +714,5 @@ public class ThreadEvaluator
         {
             _logger.LogInternalWarning(ex, $"Failed to upload trajectory for {threadId}");
         }
-    }
-
-    private static string ComputeSHA256Hash(string text)
-    {
-        if (string.IsNullOrEmpty(text)) return string.Empty;
-
-        const int lengthToKeep = 16;
-        
-        return Convert.ToHexString(
-                SHA256.HashData(
-                    Encoding.UTF8.GetBytes(text)))
-            .ToLowerInvariant()[..lengthToKeep]; 
     }
 }

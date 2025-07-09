@@ -152,27 +152,40 @@ public sealed class Trajectory
     {
         foreach (var msg in modelResponse.Messages)
         {
-            foreach (var content in msg.Contents)
+            Append(msg);
+        }
+    }
+
+    public void Append(ChatMessage message)
+    {
+        foreach (var content in message.Contents)
+        {
+            if (content is TextContent textContent)
             {
-                if (content is TextContent textContent)
+                _trajectoryItems.Add(new TextTrajectoryItem(message.Role, textContent.Text));
+            }
+            else if (content is FunctionCallContent functionCallContent)
+            {
+                var parameters = "";
+                if (functionCallContent.RawRepresentation is not null)
                 {
-                    _trajectoryItems.Add(new TextTrajectoryItem(msg.Role, textContent.Text));
+                    parameters = (functionCallContent.RawRepresentation as OpenAI.Chat.ChatToolCall)!.FunctionArguments.ToString();
                 }
-                else if (content is FunctionCallContent functionCallContent)
+                else if (functionCallContent.Arguments is not null)
                 {
-                    var parameters = (functionCallContent.RawRepresentation as OpenAI.Chat.ChatToolCall)!.FunctionArguments.ToString();
-                    _trajectoryItems.Add(new FunctionCallTrajectoryItem(msg.Role, functionCallContent.Name, parameters));
+                    parameters = JsonSerializer.Serialize(functionCallContent.Arguments);
                 }
-                // don't expect this in general as tool calls are handled manually
-                // however for parallel tool call we use functionInvokingChatClient, which will inline the results
-                else if (content is FunctionResultContent functionResultContent)
-                {
-                    Append(functionResultContent);
-                }
-                else
-                {
-                    throw new Exception($"Unknown content type: {content.GetType()}");
-                }
+                _trajectoryItems.Add(new FunctionCallTrajectoryItem(message.Role, functionCallContent.Name, parameters));
+            }
+            // don't expect this in general as tool calls are handled manually
+            // however for parallel tool call we use functionInvokingChatClient, which will inline the results
+            else if (content is FunctionResultContent functionResultContent)
+            {
+                Append(functionResultContent);
+            }
+            else
+            {
+                throw new Exception($"Unknown content type: {content.GetType()}");
             }
         }
     }

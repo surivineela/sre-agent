@@ -1,4 +1,3 @@
-using System.Linq;
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
 using Microsoft.Extensions.AI;
@@ -14,7 +13,8 @@ public class HandOffEvals
 
     private static HandOffTestCase[] LoadTestCasesFromFiles()
     {
-        var data = ModelGenerationDataLoader.LoadChatMessagesFromJsonFilesAsync().GetAwaiter().GetResult();
+        var dataFolderPath = Path.Combine(AppContext.BaseDirectory, "Data", "HandOff");
+        var data = ModelGenerationDataLoader.LoadChatMessagesFromJsonFilesAsync(dataFolderPath);
         var result = data.Values.Select(HandOffTestCase.FromModelGenerationContent).ToArray();
         return result;
     }
