@@ -95,7 +95,7 @@ public static class Summarizer
 
     private const string Marker = "User question goes below:";
 
-    private static string ExtractUserQuestion(string text)
+    public static string ExtractUserQuestion(string text)
     {
         return text.IndexOf(Marker, StringComparison.OrdinalIgnoreCase) is var i && i >= 0
             ? text[(i + Marker.Length)..].Trim()

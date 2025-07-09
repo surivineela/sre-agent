@@ -32,6 +32,8 @@ public class ThreadEvaluator
     private readonly AgentActionLogger _actionLogger;    // Configurable time windows for thread filtering
     private readonly TimeSpan _evaluationHistoryRange; // How far back to search for threads
     private readonly TimeSpan _coolDownPeriod;         // Minimum time since last modification before evaluation
+    private readonly bool _agentMemoryEnabled;
+
     public ThreadEvaluator(
         ILogger<ThreadEvaluator> logger,
         IThreadRepository threadRepository,
@@ -48,6 +50,8 @@ public class ThreadEvaluator
         _actionLogger = actionLogger;
         _tracer = tracer;
         _memory = memory;
+
+        _agentMemoryEnabled = _memory is not DummyAgentMemoryClient;
 
         // Allow overriding default time windows
         _evaluationHistoryRange = evaluationHistoryRange ?? TimeSpan.FromHours(24);
@@ -205,9 +209,13 @@ public class ThreadEvaluator
             var satScore = llmEvaluation.Resolved + llmEvaluation.Satisfied + llmEvaluation.Automatic + llmEvaluation.Smooth + llmEvaluation.Concise;
 
             // Trajectories
-            var trajectoryInfo = await TrajectoryExtractor.GenerateTrajectoryAsync(_chatClient, reasoningHistory, cancellationToken);
+            if (_agentMemoryEnabled)
+            {
+                var chatMessages = await GetChatMessages(agentContexts.First());
+                var trajectoryInfo = await TrajectoryExtractor.GenerateTrajectoryAsync(_chatClient, chatMessages, cancellationToken);
 
-            await SaveTrajectoryAsync(thread.Id, trajectoryInfo.Trajectory, trajectoryInfo.PromptHash, cancellationToken);
+                await SaveTrajectoryAsync(thread.Id, trajectoryInfo.Trajectory, trajectoryInfo.PromptHash, cancellationToken);
+            }
 
             var evaluationResult = new ThreadEvaluateResult(
                 Id: Guid.NewGuid(),
@@ -309,14 +317,14 @@ public class ThreadEvaluator
     /// <summary>
     /// Get reasoning messages for a specific agent context
     /// </summary>
-    private async Task<IEnumerable<ReasoningMessage>> GetReasoningMessagesForContext(Guid agentContextId)
+    private async Task<IReadOnlyList<ReasoningMessage>> GetReasoningMessagesForContext(Guid agentContextId)
     {
         try
         {
             var chatHistory = await _threadRepository.GetAgentChatHistoryAsync(agentContextId);
             if (chatHistory?.ReasoningMessageIds == null || !chatHistory.ReasoningMessageIds.Any())
             {
-                return Enumerable.Empty<ReasoningMessage>();
+                return [];
             }
 
             var reasoningMessages = new List<ReasoningMessage>();
@@ -341,8 +349,21 @@ public class ThreadEvaluator
         catch (Exception ex)
         {
             _logger.LogInternalWarning(ex, $"Error getting reasoning messages for context {agentContextId}");
-            return Enumerable.Empty<ReasoningMessage>();
+            return [];
         }
+    }
+
+    private async Task<IReadOnlyList<ChatMessage>> GetChatMessages(AgentContext agentContext)
+    {
+        var agentChatHistory = await _threadRepository.GetAgentChatHistoryAsync(agentContext.Id);
+        if (agentChatHistory == null)
+        {
+            _logger.LogInternalError("No chat history found for agent context {agentContextId}, this should never happen.", agentContext.Id);
+            return [];
+        }
+
+        var reasoningMessages = await agentChatHistory.GetReasoningMessagesAsync(_threadRepository);
+        return reasoningMessages.GetChatMessages();
     }
 
     /// <summary>

@@ -1,4 +1,3 @@
-using Agent.Framework;
 using Agent.Runtime.ThreadEvaluator;
 using Microsoft.Extensions.AI;
 
@@ -27,26 +26,15 @@ public class TrajectoryEvals
     [DynamicData(nameof(PromptQualityTestCases))]
     public async Task PromptQuality_EvaluateResponses(ModelGenerationContent content)
     {
-        var chatTrajectory = new Trajectory();
-
         // 1. Build the conversation that the model originally saw
         var conversationMessages = content.ModelInput
             .Concat(content.ModelOutput)
-            .Where(m => m.Role != ChatRole.System)
-            .ToList();
+            .Where(m => m.Role != ChatRole.System);
 
-        // 2. Build the text block that will be fed to the summariser in a <chat>…</chat> wrapper
-        foreach (var msg in conversationMessages)
-        {
-            chatTrajectory.Append(msg);
-        }
-
-        string chatTranscript = chatTrajectory.GetFullTrajectory();
-
-        // 3. Compute the trajectory
+        // 2. Extract the trajectory
         (var extractedTrajectory, var _) = await TrajectoryExtractor.GenerateTrajectoryAsync(
             TestHost.RunConfig.ChatClient,
-            chatTranscript);
+            conversationMessages);
 
         // 5. Provide evaluation context (place-holders for now)
         //string groundedContext = "TODO: supply ground-truth context for this trajectory";

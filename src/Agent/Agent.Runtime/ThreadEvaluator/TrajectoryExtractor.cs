@@ -4,6 +4,7 @@
 
 using System.Security.Cryptography;
 using System.Text;
+using Agent.Framework;
 using Microsoft.Extensions.AI;
 using ChatClientExtensions = Agent.Framework.ChatClientExtensions;
 
@@ -19,16 +20,25 @@ public static class TrajectoryExtractor
 {
     public static async Task<(string Trajectory, string PromptHash)> GenerateTrajectoryAsync(
         IChatClient chatClient,
-        string chatTranscript,
+        IEnumerable<ChatMessage> chatMessages,
         CancellationToken cancellationToken = default)
     {
+        var chatTrajectory = new Trajectory();
+
+        foreach (var msg in chatMessages)
+        {
+            chatTrajectory.Append(msg);
+        }
+
+        var chatTranscript = chatTrajectory.GetFullTrajectory();
+
         var modelInput = new List<ChatMessage>
         {
             new(ChatRole.System, TrajectoryExtractionPrompt),
             new(ChatRole.User, "<chat>\n" + chatTranscript + "\n</chat>")
         };
 
-        (var resp, var _) = await ChatClientExtensions.GetResponseAsync(
+        (var extractedTrajectory, var _) = await ChatClientExtensions.GetResponseAsync(
             client: chatClient,
             messages: modelInput,
             outputType: typeof(TrajectoryOutput),
@@ -39,12 +49,12 @@ public static class TrajectoryExtractor
             },
             cancellationToken: cancellationToken);
 
-        return (resp.Text, TrajectoryPromptHash);
+        return (extractedTrajectory.Text, LkgPromptHash);
     }
 
     private const string TrajectoryExtractionPrompt =
         """
-        You are **Trajectory-Exractor**, a senior SRE who distils long agent chats
+        You are **Trajectory-Extractor**, a senior SRE who distills long agent chats
         into a compact investigation playbook.
         You MUST rely **only** on the messages provided between <chat> … </chat>.
         NO external knowledge. NO new facts. If data is missing, write "Unknown". Be concise.
@@ -62,6 +72,37 @@ public static class TrajectoryExtractor
         7. Decide the most likely root cause & recommended next actions. Think step by step on why they are the most likely root cause or recommended next actions.  
         8. Document pitfalls and unlikely paths that the agent has explored and that the team should remember next time.  
 
+        ### More guidance how to generate StepsFollowed
+
+        It should be end-to-end decision flow for the investigation, written as a **linear or lightly branched playbook** that another agent can follow.
+        It must be presented as a numbered list.
+
+        • One line per step, formatted:
+            "<action> - <tool> – <expected signal / observation placeholder>"
+
+          – *Tool*  → the interface to use (kubectl, az, kusto, ping, curl…).  
+          – *Medium-grain action*  
+              · Specific enough to be executable (“list NSG rules”, “run test-connectivity”),  
+                but NOT tied to a single instance name or ID unless essential.  
+              · Avoid vague verbs like “investigate networking” (too broad) and
+                over-specific commands like “check inbound rule port 6379 on
+                vnet-prod-westus-subnet-app” (too narrow).  
+          – *Expected signal* → what to look for; keeps the agent outcome-oriented.
+
+        • Keep nouns generic where possible (“target Redis cache”, “app subnet NSG”),
+          letting the executing agent substitute actual resource identifiers.
+
+        • Omit chatter, acknowledgments, or user guidance - only actionable steps.
+
+        • Preserve chronological order; if you collapse minor retries, ensure the
+          logical flow still reads coherently.
+
+        • If the plan forks, show the **condition** that dictates the branch right in
+          the line (e.g. “if test-connectivity fails → …”).
+
+        The resulting plan should let a peer agent replay or simulate the
+        investigation with minimal additional context.
+
         ### Few-shot example  (to lock the style)
 
         <chat>
@@ -71,7 +112,7 @@ public static class TrajectoryExtractor
         *… (handoff chatter & tool calls as in real logs) …*
         </chat>
 
-        <expected>
+        Expected Output:
         {
           "ReasoningScratchPad": "Quick skim of transcript:\n• Lines 3-6 – user shows timeout logs → record as initial symptom.\n• Lines 8-10 – assistant asks for VNets; confirm both resources in same VNet.\n\nStep mapping:\n1. az resource show (ln 11-14) → collected subnet IDs.\n2. az network watcher test-connectivity (ln 15-21) → timeout + “no external IP found” → flag NSG/quota branch.\n3. az network nsg rule list (ln 22-28) → rule <NSG-Rule> Deny 6379 TCP → likely culprit.\n4. az network list-usages (ln 29-32) → public-IP quota 60 % used → not blocking.\n\nObserved symptoms noted:\n• Redis inbound connections = 0 (ln 25)\n\nRoot-cause judgment:\n• Deny rule matches port 6379 exactly; no other blocks; quota fine → confident RCA.\n\nSystem design knowledge:\n• Only brief note that container app traffics privately to Redis; NSG sits on subnet.\n\nResources collected:\n• Container App ID, Redis Cache ID, NSG ID (ln 11-13, 22-23).\n• Resource types deduped to Container App; Azure Cache for Redis; Network Security Group.\n\nPitfalls captured:\n• Transcript warns no networking specialist agent; must rely on AzCli agent. Ensure every NSG rule enumerated.\n\nSelf-check: all output fields non-empty; initial vs observed symptoms distinct; root cause concise.",
 
@@ -79,7 +120,16 @@ public static class TrajectoryExtractor
 
           "InitialSymptoms": "- Timeout logs in container-app",
 
-          "StepsFollowed": "- az resource show – locate VNets/subnets for both resources\n- az network watcher test-connectivity – container-app → Redis:6379 – timeout; no external IP; quota exhaustion flagged\n- az network nsg rule list – inspect NSG rules – rule <NSG-Rule> blocks 6379\n- az network list-usages – check public-IP quota – within limits (not root cause)",
+          "StepsFollowed": "
+          1. Locate network context - az resource show – source and target subnet/VNet IDs obtained
+          2. Verify VNet connectivity - az network vnet peering list – peering state = Connected
+          3. Test reachability - az network watcher test-connectivity – verdict = Reachable → if verdict = Unreachable → go to step 4
+          4. List security rules - az network nsg rule list – Deny rule for TCP 6379 present
+          5. Show effective routes - az network nic show-effective-route-table – black-hole or UDR to NVA detected
+          6. Check service firewall - az redis firewall-rules list – source subnet CIDR allowed
+          7. Verify DNS resolution - nslookup target Redis cache – private IP resolves
+          8. Assess platform quotas - az network list-usages – usage below limit (no exhaustion)
+          9. Retest reachability post-fix - az network watcher test-connectivity – verdict = Reachable with acceptable latency",
 
           "SymptomsObserved": "- Redis inbound connections = 0 during tests",
 
@@ -93,8 +143,6 @@ public static class TrajectoryExtractor
 
           "Pitfalls": "- No networking specialist agent; must use AzCli agent for NSG inspection\n- Risk of overlooking blocking rule if each NSG rule not listed individually"
         }
-
-        </expected>
         """;
 
     private const int HashBytesToKeep = 16;
@@ -103,4 +151,9 @@ public static class TrajectoryExtractor
         SHA256.HashData(
             Encoding.UTF8.GetBytes(TrajectoryExtractionPrompt)))
         .ToLowerInvariant()[..HashBytesToKeep];
+
+    private const string PreviousPromptHash = "307a921f76161949";
+
+    // only update this if significant changes made to the prompt. Otherwise keep to PreviousPromptHash
+    public static readonly string LkgPromptHash = TrajectoryPromptHash;
 }

@@ -7,7 +7,6 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Channels;
-using Agent.Core;
 using Agent.Core.Attributes;
 using Agent.Core.Configuration;
 using Agent.Core.Extensions;

@@ -21,7 +21,9 @@ public class TextTrajectoryItem : TrajectoryItem
     public TextTrajectoryItem(ChatRole role, string text)
     {
         Role = role;
-        Text = text;
+        Text = role == ChatRole.User
+            ? Summarizer.ExtractUserQuestion(text)
+            : text;
     }
 
     public override string ToString(bool filterResults)

@@ -53,9 +53,7 @@ public sealed class TrajectoryOutput
 
     [Description(
         """
-        Ordered list or decision-tree of investigative steps, including the tool
-        used for each step.  Indentation or arrows (“├─”) may be used to show
-        branching, but the entire structure must be encoded in this single string.
+        Numbered list of investigative steps performed by the agent.
         """)]
     public required string StepsFollowed { get; set; }
 
@@ -92,11 +90,16 @@ public sealed class TrajectoryOutput
         deduplicated and presented in a semicolon separated list.
         Example: Azure App Service; SQL Database
         """)]
-    public string? ResourceTypesInvolved { get; set; }
+    public required string ResourceTypesInvolved { get; set; }
 
     [Description(
         """
         Missteps, dead-ends, wrong inferences, or other pitfalls encountered by the assistant.
+        One bullet per pitfall.
+        Describe what went wrong and (optionally) why.
+        Example:
+        - Assumed global outage; lost 10 min checking CDN status
+        - Mis-read CPU metric (percentile vs average)
         """)]
-    public string? Pitfalls { get; set; }
+    public required string Pitfalls { get; set; }
 }
