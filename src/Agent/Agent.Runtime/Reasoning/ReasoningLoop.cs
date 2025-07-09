@@ -46,9 +46,11 @@ public class ReasoningLoop : IDisposable
     private readonly bool _enableDocumentRetrieval;
     private readonly bool _enableVectorSearch;
     private readonly bool _agentMemoryEnabled;
+    private readonly bool _autoHandOffEnabled;
 
     private readonly Channel<ReasoningLoopMessage> _msgCh;
     private AgentContext _context;
+    private Agent<AgentContext> _defaultStartingAgent;
     private Agent<AgentContext> _currentAgent;
     private List<ChatMessage>? _chatHistory;
 
@@ -89,6 +91,7 @@ public class ReasoningLoop : IDisposable
         IChatClient chatClient,
         IEmbeddingGenerator<string, Embedding<float>> embeddingGenerator,
         IAgentOutboundCommunicationService outboundCommunicationService,
+        Agent<AgentContext> defaultStartingAgent, // for autohandoff
         Agent<AgentContext> startingAgent,
         IThreadRepository threadRepository,
         AgentContext context,
@@ -104,7 +107,8 @@ public class ReasoningLoop : IDisposable
         bool enableVectorSearch,
         IAgentMemoryClient agentMemoryClient,
         bool agentMemoryEnabled,
-        IAgentRuntimeModifier<AgentContext> AgentRuntimeModifier)
+        bool autoHandoffEnabled,
+        IAgentRuntimeModifier<AgentContext> agentRuntimeModifier)
     {
         _loggerFactory = loggerFactory;
         _logger = _loggerFactory.CreateLogger<ReasoningLoop>();
@@ -119,6 +123,7 @@ public class ReasoningLoop : IDisposable
         _threadRepository = threadRepository;
         _context = context;
         _toolFactory = toolFactory;
+        _defaultStartingAgent = startingAgent;
         _currentAgent = startingAgent;
         _actionSettings = actionSettings;
         _tracer = tracer;
@@ -133,7 +138,8 @@ public class ReasoningLoop : IDisposable
         _enableVectorSearch = enableVectorSearch;
         _agentMemoryClient = agentMemoryClient;
         _agentMemoryEnabled = agentMemoryEnabled;
-        _AgentRuntimeModifier = AgentRuntimeModifier;
+        _autoHandOffEnabled = autoHandoffEnabled;
+        _AgentRuntimeModifier = agentRuntimeModifier;
 
         var globalDefaultMode = actionSettings.Mode.ToString() ?? AgentModes.Review;
         if (!string.IsNullOrEmpty(context.AgentMode) && !string.Equals(context.AgentMode, globalDefaultMode, StringComparison.OrdinalIgnoreCase))
@@ -705,6 +711,7 @@ public class ReasoningLoop : IDisposable
                 _context = await _threadRepository.UpdateAgentContextAsync(_context);
             }
 
+            var endingState = AgentProcessingState.Unknown;
             if (runResult.Output != null)
             {
                 if (runResult.Output is string outputString)
@@ -725,14 +732,14 @@ public class ReasoningLoop : IDisposable
                     //    _context,
                     //    new ChatMessage(ChatRole.Assistant, agentOutput.notifyUserMessage));
 
-                    var state = Enum.TryParse<AgentProcessingState>(agentOutput.State, out var parsed)
+                    endingState = Enum.TryParse<AgentProcessingState>(agentOutput.State, out var parsed)
                         ? parsed
                         : AgentProcessingState.Unknown;
 
-                    var needsHandOff = state == AgentProcessingState.HandOff_OutOfScope
-                        || state == AgentProcessingState.HandOff_Continue;
+                    var needsHandOff = endingState == AgentProcessingState.HandOff_OutOfScope
+                        || endingState == AgentProcessingState.HandOff_Continue;
 
-                    var needsReiteration = state == AgentProcessingState.Processing;
+                    var needsReiteration = endingState == AgentProcessingState.Processing;
 
                     if (needsHandOff)
                     {
@@ -743,7 +750,7 @@ public class ReasoningLoop : IDisposable
                             _logger.LogInternalInformation("Agent set handoff state without handoff tool call. AgentHandoffChain has more agents, asking agent to do the right handoff.");
 
                             var userPromptMessage = new ChatMessage(ChatRole.User,
-                                $"You mentioned the request is in state {state}, but did not actually perform any handoffs (transfer_to_* or HandOffBack). " +
+                                $"You mentioned the request is in state {endingState}, but did not actually perform any handoffs (transfer_to_* or HandOffBack). " +
                                 $"Reflect if any more processing work is required. If yes, set the state to {AgentProcessingState.Processing} and continue taking actions in your scope. " +
                                 $"Otherwise if you are actually done, then call the right handoff tool.");
                             await PersistReasoningMessageAsync(agentChatHistory, userPromptMessage);
@@ -780,6 +787,23 @@ public class ReasoningLoop : IDisposable
                             IsContinuation = true
                         };
                     }
+                }
+
+                // auto handoff to our default starting agent, if previous turn was completed successfully
+                if (_autoHandOffEnabled
+                    && endingState == AgentProcessingState.CompletedSuccessfully)
+                {
+                    // todo: add a user message to show handoff path to previous agent
+                    // if(_currentAgent.Name != _defaultStartingAgent.Name)
+
+                    _currentAgent = _defaultStartingAgent;
+                    // clear the handoff chain
+                    _context = _context with
+                    {
+                        CurrentAgent = _currentAgent.Name,
+                        AgentHandoffChain = [_currentAgent.Name]
+                    };
+                    _context = await _threadRepository.UpdateAgentContextAsync(_context);
                 }
 
                 await ChangeAgentContextStateAsync(ContextStateEnum.Idle);

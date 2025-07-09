@@ -29,20 +29,24 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
     private readonly IEmbeddingGenerator<string, Embedding<float>> _embeddingGenerator;
     private readonly IAgentOutboundCommunicationService _outboundCommunicationService;
     private readonly IAgentFactory<AgentContext> _agentFactory;
-    private readonly IAgentRuntimeModifier<AgentContext> _AgentRuntimeModifier;
+    private readonly IAgentRuntimeModifier<AgentContext> _agentRuntimeModifier;
     private readonly IToolFactory<AgentContext> _toolFactory;
     private readonly IThreadRepository _threadRepository;
     private readonly ActionSettings _actionSettings;
     private readonly IAgentActionLogExporter _actionLogExporter;
-    private readonly bool _enableReasoningDebugOutput;
+
+    private readonly Tracer _tracer;
+
     private readonly ISearchEndpointService _searchEndpointService;
     private readonly SearchHelper _searchHelper;
     private readonly bool _enableDocumentRetrieval;
     private readonly bool _enableVectorSearch;
-
-    private readonly Tracer _tracer;
     private readonly IAgentMemoryClient _agentMemoryClient;
     private readonly bool _agentMemoryEnabled;
+
+    private readonly bool _enableAutoHandOff;
+
+    private readonly bool _enableReasoningDebugOutput;
 
     public ReasoningLoopFactory(
         ILoggerFactory loggerFactory,
@@ -70,7 +74,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         _embeddingGenerator = embeddingGenerator;
         _outboundCommunicationService = outboundCommunicationService;
         _agentFactory = agentFactory;
-        _AgentRuntimeModifier = AgentRuntimeModifier;
+        _agentRuntimeModifier = AgentRuntimeModifier;
         _threadRepository = threadRepository;
         _toolFactory = toolFactory;
         _actionSettings = actionSettings;
@@ -84,32 +88,39 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         _enableVectorSearch = azureSettings.SearchEndpoint.EnableVectorSearch;
         _agentMemoryClient = agentMemoryClient;
         _agentMemoryEnabled = agentMemorySettings.Enabled;
+        _enableAutoHandOff = coreSettings.Experimental is not null
+            && coreSettings.Experimental.AutoHandoffToMeta;
     }
 
     public async Task<ReasoningLoop> Create(AgentContext context)
     {
-        var agentName = "meta_agent";
-
+        // get the default start agent based on settings
+        var defaultStartingAgentName = "meta_agent";
         var agentType = Environment.GetEnvironmentVariable("AGENT_TYPE_NAME") ?? string.Empty;
         if (agentType == "ACAAgent")
         {
-            agentName = "rca_meta_agent";
+            defaultStartingAgentName = "rca_meta_agent";
         }
+
+        // retrieve the current starting agent if present in context
+        var currentStartingAgentName = defaultStartingAgentName;
         if (context.AgentHandoffChain.Count > 0)
         {
             // If the agent stack is provided, use the last agent in the stack
-            agentName = context.AgentHandoffChain[^1];
+            currentStartingAgentName = context.AgentHandoffChain[^1];
         }
         else
         {
             if (context.CurrentAgent != null)
             {
-                agentName = context.CurrentAgent;
+                currentStartingAgentName = context.CurrentAgent;
             }
 
-            context.AgentHandoffChain.Add(agentName);
+            context.AgentHandoffChain.Add(currentStartingAgentName);
         }
-        var agent = _agentFactory.GetAgent(agentName);
+
+        var defaultStartingAgent = _agentFactory.GetAgent(defaultStartingAgentName);
+        var currentStartingAgent = _agentFactory.GetAgent(currentStartingAgentName);
 
         // Create and return a new instance of ReasoningLoop
         var loop = new ReasoningLoop(
@@ -117,7 +128,8 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
             chatClient: _chatClient,
             embeddingGenerator: _embeddingGenerator,
             outboundCommunicationService: _outboundCommunicationService,
-            startingAgent: agent,
+            defaultStartingAgent: defaultStartingAgent,
+            startingAgent: currentStartingAgent,
             threadRepository: _threadRepository,
             context: context,
             toolFactory: _toolFactory,
@@ -132,7 +144,8 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
             enableVectorSearch: _enableVectorSearch,
             agentMemoryClient: _agentMemoryClient,
             agentMemoryEnabled: _agentMemoryEnabled,
-            AgentRuntimeModifier: _AgentRuntimeModifier);
+            autoHandoffEnabled: _enableAutoHandOff,
+            agentRuntimeModifier: _agentRuntimeModifier);
 
         await loop.LoadChatHistoryAsync();
         return loop;

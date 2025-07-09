@@ -568,6 +568,7 @@ public class ThreadEvaluator
             };
         }
     }
+
     /// <summary>
     /// Build the evaluation prompt for the LLM
     /// </summary>
