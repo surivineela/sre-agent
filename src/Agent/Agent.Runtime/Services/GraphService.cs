@@ -506,12 +506,29 @@ public class GraphService : IGraphService
 
                 if (!string.IsNullOrEmpty(repoUrl) && AzdoRegexMatch(repoUrl))
                 {
-                    string loginUrl = $"/api/v1/azuredevops/auth/start?resourceId={resourceId}";
-                    var sourceCodeLinkageStatus = azdoAccessTokenConfigured
-                        ? new { Status = "Linked", RepositoryUrl = repoUrl, LoginCallbackUrl = (string)null }
-                        : new { Status = "RequiresAuth", RepositoryUrl = repoUrl, LoginCallbackUrl = loginUrl };
+                    // If the Azure DevOps access token is not configured but the repo is linked, we need to get the token.
+                    if (!azdoAccessTokenConfigured)
+                    {
+                        try
+                        {
+                            var token = await _azureDevOpsWorkItemPlugin.GetToken();
+                            var authToken = await _threadRepository.CreateOrUpdateAzureDevOpsAccessTokenAsync(new(token.AccessToken, ExpiresOn: token.ExpiresOn), resourceId);
+                            var sourceCodeLinkageStatus = new { Status = "Linked", RepositoryUrl = repoUrl, LoginCallbackUrl = (string)null };
+                            ((IDictionary<string, object>)item)["sourceCodeLinkageStatus"] = sourceCodeLinkageStatus;
+                        }
 
-                    ((IDictionary<string, object>)item)["sourceCodeLinkageStatus"] = sourceCodeLinkageStatus;
+                        catch (Exception ex)
+                        {
+                            _logger.LogInternalError(ex, "Failed to get Azure DevOps access token");
+                        }
+                    }
+
+                    else
+                    {
+                        // No-Op since the the azDoAccessTokenConfigured is true. Ensure the repo is linked.
+                        var sourceCodeLinkageStatus = new { Status = "Linked", RepositoryUrl = repoUrl, LoginCallbackUrl = (string)null };
+                        ((IDictionary<string, object>)item)["sourceCodeLinkageStatus"] = sourceCodeLinkageStatus;
+                    }
                 }
 
                 // Add GitHub login URL if needed

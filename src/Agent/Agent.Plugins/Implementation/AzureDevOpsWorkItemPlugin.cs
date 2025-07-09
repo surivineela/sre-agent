@@ -51,7 +51,7 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
 
     public async Task<string> FindConnectedRepository(string resourceId)
     {
-        resourceId = resourceId.Replace("/", "_");
+        resourceId = resourceId.Replace("/", "_").ToLowerInvariant();
         string repoQuery = $@"g.V().has('id', '{resourceId}').has('isDeleted', false)
                                 .outE('SERVES_CODE').inV().has('isDeleted', false)
                                 .values('resourceId')";
