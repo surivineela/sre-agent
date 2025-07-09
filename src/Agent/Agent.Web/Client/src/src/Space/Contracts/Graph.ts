@@ -28,6 +28,7 @@ export type ResourceExtended = {
         runningStatus: string;
         remarks: string[];
         appHealthInfo?: string[]; // Convert the json string to ScoreCardObject
+        connectedApis?: string[];
     };
 };
 

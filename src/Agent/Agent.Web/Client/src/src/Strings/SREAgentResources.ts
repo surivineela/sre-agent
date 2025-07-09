@@ -874,6 +874,7 @@ export const ResourceInfoResources = defineMessages({
     grafanaLogo: { defaultMessage: 'Grafana logo', id: 'mzRg+7' },
     repositoryConnection: { defaultMessage: 'Repository connection', id: 'FLm/x4' },
     authorizeRepositoryAccess: { defaultMessage: 'Authorize repository access', id: 'wru3Di' },
+    connectedApis: { defaultMessage: 'Connected APIs', id: 'VKbBsK' },
     connectRepository: { defaultMessage: 'Connect repository', id: '1fNFGt' },
     linkRepositoryToResource: { defaultMessage: 'Link repository to resource', id: 'BV3Mir' },
     repositoryUrl: { defaultMessage: 'Repository URL', id: 'AA/tRJ' },

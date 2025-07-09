@@ -254,6 +254,14 @@ const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode; onGit
                             label={intl.formatMessage(SreAgentResources.subscriptionId)}
                             value={getPropertyValue(properties?.subscriptionId)}
                         />
+                        {resource?.type?.toLowerCase() === 'microsoft.apimanagement/service/backends' && (
+                            <>
+                                <SummaryField
+                                    label={intl.formatMessage(ResourceInfoResources.connectedApis)}
+                                    value={getPropertyValue(properties?.connectedApis)}
+                                />
+                            </>
+                        )}
                         <AppHealthInfo resource={resource} />
                         <SummaryField label={intl.formatMessage(ResourceInfoResources.dashboard)}>
                             {resource?.dashboardUrl ? (
