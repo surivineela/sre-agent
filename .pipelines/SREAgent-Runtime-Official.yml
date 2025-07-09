@@ -20,9 +20,9 @@ parameters:
 
 variables:
 - name: MAJOR
-  value: 25
+  value: $[format('{0:yy}', pipeline.startTime)]
 - name: MINOR
-  value: 6
+  value: $[format('{0:M}', pipeline.startTime)]
 - name: BUILD
   value: $[counter(variables['MINOR'], 0)]
 - name: REVISION
