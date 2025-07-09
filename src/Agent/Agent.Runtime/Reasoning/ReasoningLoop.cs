@@ -561,6 +561,7 @@ public class ReasoningLoop : IDisposable
                 // TODO: move handoff back to Agent.Framework so we don't have to manipulate the chat history so much outside the runner
                 if (toolCall.Tool.UnderlyingMethod?.Name == nameof(AgentControlFlowPluginDefinition.HandoffBack))
                 {
+                    string output;
                     if (_context.AgentHandoffChain.Count > 1)
                     {
                         // pop agent off the chain
@@ -572,15 +573,16 @@ public class ReasoningLoop : IDisposable
 
                         _context = await _threadRepository.UpdateAgentContextAsync(_context);
 
+                        output = Handoff<AgentContext>.HandoffMessage;
                         toolResults.Add(new ManualToolCallResult()
                         {
                             FunctionCall = toolCall.FunctionCall,
-                            Output = Handoff<AgentContext>.HandoffMessage
+                            Output = output
                         });
                     }
                     else
                     {
-                        var output = "There are no agents to handoff back to, a different handoff must be used instead.";
+                        output = "There are no agents to handoff back to, a different handoff must be used instead.";
                         toolResults.Add(new ManualToolCallResult()
                         {
                             FunctionCall = toolCall.FunctionCall,
@@ -828,6 +830,14 @@ public class ReasoningLoop : IDisposable
         }
         catch (Exception ex)
         {
+            var parentSpan = _currentAgentSpan ?? _rootSpan;
+            var errorSpan = _tracer.StartActiveSpan("error", SpanKind.Internal, parentSpan);
+            errorSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
+            errorSpan.SetAttribute(TraceAttribute.OperationName, "error");
+            errorSpan.SetAttribute("error.message", $"{ex.GetType()}: {ex.Message}");
+            errorSpan.SetAttribute("error.stacktrace", ex.StackTrace);
+            errorSpan.End();
+
             _logger.LogInternalError(ex, "[{threadId}]An error occurred during reasoning loop.", _context.ThreadId);
         }
         finally
@@ -937,7 +947,7 @@ public class ReasoningLoop : IDisposable
                         _logger.LogInternalInformation("Streaming auto tool call: {ToolName} with CallId: {CallId}", tool.Name, callId);
                         var toolCallMessageId = Guid.NewGuid();
                         await _outboundCommunicationService.AppendAgentToolCallMessage(_context.ThreadId, (AIFunction)tool, toolCallMessageId, callId);
-                        
+
                         // Store the message ID for OnToolEnd to use
                         Agent.Framework.ToolStatic.AsyncLocalToolCallMessageId.Value = toolCallMessageId;
                     }
@@ -955,13 +965,13 @@ public class ReasoningLoop : IDisposable
                 {
                     var callId = Agent.Framework.ToolStatic.AsyncLocalFunctionCallId.Value;
                     var toolCallMessageId = Agent.Framework.ToolStatic.AsyncLocalToolCallMessageId.Value;
-                    
+
                     if (!string.IsNullOrEmpty(callId) && toolCallMessageId.HasValue)
                     {
                         _logger.LogInternalInformation("Streaming auto tool result: {ToolName} with CallId: {CallId}", tool.Name, callId);
                         var result = new FunctionResultContent(callId, output);
                         await _outboundCommunicationService.AppendAgentToolCallResult(_context.ThreadId, result, toolCallMessageId.Value);
-                        
+
                         // Clear the stored IDs for next tool
                         Agent.Framework.ToolStatic.AsyncLocalFunctionCallId.Value = null;
                         Agent.Framework.ToolStatic.AsyncLocalToolCallMessageId.Value = null;

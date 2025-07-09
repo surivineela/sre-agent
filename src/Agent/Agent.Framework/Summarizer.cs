@@ -49,7 +49,12 @@ public static class Summarizer
 
             if (message.Role == ChatRole.Assistant)
             {
-                var op = JsonSerializer.Deserialize<Dictionary<string, string>>(message.Text);
+                Dictionary<string, string>? op = null;
+                try
+                {
+                    op = JsonSerializer.Deserialize<Dictionary<string, string>>(message.Text);
+                }
+                catch { }
                 if (op is not null
                     && op.TryGetValue("notifyUserMessage", out var text))
                 {
