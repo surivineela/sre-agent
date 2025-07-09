@@ -177,7 +177,14 @@ public static class TestHelpers
         });
         builder.Services.AddSingleton<IIncidentHandlerAgent, IncidentHandlerAgent>();
         builder.Services.AddSingleton<IAgentOutboundCommunicationService, OutboundCommunicationService>();
+        builder.Services.AddSingleton<Agent.Plugins.Interface.IChartPlugin>(sp =>
+        {
+            var logger = sp.GetRequiredService<ILoggerFactory>().CreateLogger<Agent.Plugins.ChartPlugin>();
+            var outboundService = sp.GetRequiredService<IAgentOutboundCommunicationService>();
+            return new Agent.Plugins.ChartPlugin(logger, outboundService);
+        });
         builder.Services.AddTransient<IAgent, MetaAgent>();
+        builder.Services.AddSingleton<Agent.Plugins.ChartPluginDefinition>();
         builder.Services.AddSingleton(Mock.Of<IAuthenticationService>());
         builder.Services.AddSingleton<ITitleGenerationService, TitleGenerationService>();
 
