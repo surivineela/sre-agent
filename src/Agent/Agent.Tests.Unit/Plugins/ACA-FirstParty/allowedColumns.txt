@@ -97,6 +97,9 @@ ContainerAppName
 ContainerAppType
 RevisionName
 ScaledObjectName
+TriggeredScaleUp
+TriggeredScaleDown
+TargetValue
 
 # Container App Job
 ContainerAppsJobName

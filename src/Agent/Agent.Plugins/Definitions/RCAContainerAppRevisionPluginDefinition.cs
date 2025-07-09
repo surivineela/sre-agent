@@ -75,8 +75,8 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
         }
 
         [Description(@"""
-Retrieves HTTP scaler events and scaling activities for a container app.
-Use this tool to diagnose scaling issues and review HTTP-based autoscaling events.
+Retrieves events that is about HTTP scaler for a container app.
+Use this tool to diagnose scaling issues when a container app has HTTP scaler.
 Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
 - PreciseTimeStamp: When the scaling event occurred.
 - EnvironmentName: Name of the cluster hosting the container app.
@@ -321,12 +321,21 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
         }
 
         [Description(@"""
-Retrieves HPA (Horizontal Pod Autoscaler) current and target metric values over time for a revision.
-Use this tool to get HPA metric values for a revision.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+Purpose:
+Retrieves the maximum and minimum ratios of the current to target metric values of different scaler in HPA  (Horizontal Pod Autoscaler)
+
+When to use:
+Use this tool to check whether HPA triggers the scale-up or scale-down when analysis scaling issue.
+Please mention if HPA triggers the scale-up or scale-down when use this tool
+
+Output:
+Returns tab-separated table data in CSV format. The first line contains these column headers:
 - metricName: Name of the metric.
-- max_value: Maximum value of the metric ratio.
-- min_value: Minimum value of the metric ratio.
+- MaxRatio: Maximum ratio of the current value to the target value of the metric.
+- MinRatio: Minimum ratio of the current value to the target value of the metric.
+- TriggeredScaleUp: scaling up event is triggered
+- TriggeredScaleDown: A scaling down event may be triggered. However, this should be verified against the replica count, because scaling down will not be triggered if the number of replicas is already low (at or near the minimum allowed).
+- TargetValue: the target value to trigger scaling
 """
 )]
         public Task<string> GetHpaHeartbeatMetrics(
