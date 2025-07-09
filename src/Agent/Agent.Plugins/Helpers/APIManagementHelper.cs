@@ -12,6 +12,7 @@ public class APIManagementHelper
     {
         public const string ActivityLogApiVer = "2015-04-01";
         public const string AppInsightsApiVer = "2018-05-01-preview";
+        public const string MetricsInsightsApiVer = "2024-02-01";
         public const string LoggersApiVer = "2020-06-01-preview";
         public const string VirtualNetworkAPIVer = "2024-05-01";
         public const string APIMAPIVersion = "2024-06-01-preview";
@@ -22,6 +23,13 @@ public class APIManagementHelper
         public const string SecurityRuleAction = "securityRules";
         public const string SecurityRuleActionTitle = "Security Rule";
         public const string NRMSRulePrefix = "NRMS";
+
+        public const double SpikeMultiplier = 2.0; // Defining a spike as 2x the average
+        public const double CPUThreshold = 80.0; // Defining the CPU Threshold as 80.0
+
+        public const string AppInsightsTimeInterval = "PT30M"; // 30-minute granularity
+        public const string LatencyAggregations = "Average,Maximum";
+        public const string CPUAggregations = "Average,Maximum";
     }
 
     public class NSGRuleDetails

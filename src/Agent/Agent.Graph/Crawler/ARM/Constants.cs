@@ -126,13 +126,21 @@ public class Constants
     public const double AppHealthDegradedThreshold = 95.0;
     public const int AppHealthDecimalPlaces = 2;
 
-    // Azure Monitor Constants
-    public const string CpuPercentGateway = "CpuPercent_Gateway";
-    public const string MemoryPercentGateway = "MemoryPercent_Gateway";
+    // API Management Azure Monitor Constants
+    public const string GatewayCpuPercent = "CpuPercent_Gateway";
+    public const string GatewayMemoryPercent = "MemoryPercent_Gateway";
+    public const string GatewayRequestsDuration = "Duration";
+    public const string BackendRequestsDuration = "BackendDuration";
+
+    // General Azure Monitor Constants
     public const string Requests = "Requests";
+    public const string Capacity = "Capacity";
+    public const string BackendDuration = "BackendDuration";
+    public const string NetworkConnectivity = "NetworkConnectivity";
 
     public const string UnitCount = "Count";
     public const string UnitPercent = "Percent";
+    public const string UnitMilliSeconds = "MilliSeconds";
 
     public const string AggregationAverage = "Average";
     public const string AggregationTotal = "Total";

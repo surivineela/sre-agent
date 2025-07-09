@@ -69,7 +69,7 @@ namespace Agent.Graph.Crawler.Metrics
             {
                 var metrics = new List<Metric>
                     {
-                        new() { Name = Constants.CpuPercentGateway, Unit = Constants.UnitPercent, Aggregation = Constants.AggregationAverage },
+                        new() { Name = Constants.GatewayCpuPercent, Unit = Constants.UnitPercent, Aggregation = Constants.AggregationAverage },
                     };
 
                 var metricsData = await _azureMetricsClient.GetMetricsAsync(
@@ -92,7 +92,7 @@ namespace Agent.Graph.Crawler.Metrics
             {
                 var metrics = new List<Metric>
                     {
-                        new() { Name = Constants.MemoryPercentGateway, Unit = Constants.UnitPercent, Aggregation = Constants.AggregationAverage },
+                        new() { Name = Constants.GatewayMemoryPercent, Unit = Constants.UnitPercent, Aggregation = Constants.AggregationAverage },
                     };
 
                 var metricsData = await _azureMetricsClient.GetMetricsAsync(
