@@ -1,5 +1,6 @@
 using System.ClientModel;
 using System.Text.Json;
+using Agent.Data.AgentMemory;
 using Agent.Core.Configuration;
 using Agent.Core.Extensions;
 using Agent.Core.Helpers;
@@ -15,6 +16,7 @@ using Agent.Logging;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Interface;
+using Agent.Prometheus.Services;
 using Agent.Runtime;
 using Agent.Runtime.Communication;
 using Agent.Runtime.IncidentHandlerAgent;
@@ -33,6 +35,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
 using OpenTelemetry.Trace;
+using Agent.Core.Services;
+using Agent.Graph.Crawler.Metrics;
 
 namespace Agent.Evals;
 
@@ -85,6 +89,8 @@ public static class TestHelpers
 
         builder.Services.AddChatClient(sp => sp.GetRequiredService<AzureOpenAIClient>().GetChatClient(llmDeploymentName).AsIChatClient());
 
+        builder.Services.ConfigureIEmbeddingGenerator();
+
         builder.Services.AddKeyedSingleton("function-invocation-enabled", (sp, _) =>
         {
             var client = sp.GetRequiredService<AzureOpenAIClient>();
@@ -129,12 +135,40 @@ public static class TestHelpers
         builder.Services.AddSingleton(sp => new Mock<IPostToTeamsPlugin>().Object);
 
         return builder;
-    }
-
-    public static HostApplicationBuilder RegisterServicesForAgentFrameworkEval(this HostApplicationBuilder builder, JsonSerializerOptions? toolReplaySerializerOptions = null)
+    }    public static HostApplicationBuilder RegisterServicesForAgentFrameworkEval(this HostApplicationBuilder builder, JsonSerializerOptions? toolReplaySerializerOptions = null)
     {
+        // Add HTTP client factory - required by various services
+        builder.Services.AddHttpClient();
+
+        // Add mock Azure services for testing
+        builder.Services.AddSingleton(Mock.Of<Azure.Storage.Blobs.BlobServiceClient>());
+        builder.Services.AddKeyedSingleton("agentMemoryBlobClient", (sp, _) => Mock.Of<Azure.Storage.Blobs.BlobServiceClient>());
+        builder.Services.AddKeyedSingleton("agentMemoryAISearchClient", (sp, _) => Mock.Of<Azure.Search.Documents.SearchClient>());
+        builder.Services.AddKeyedSingleton("agentMemoryIndexClient", (sp, _) => Mock.Of<Azure.Search.Documents.Indexes.SearchIndexClient>());
+        builder.Services.AddKeyedSingleton("agentMemoryIndexerClient", (sp, _) => Mock.Of<Azure.Search.Documents.Indexes.SearchIndexerClient>());
+
+        // Add mock agent memory client
+        builder.Services.AddSingleton(Mock.Of<IAgentMemoryClient>());
+
+        // Add mock Prometheus service
+        builder.Services.AddSingleton(Mock.Of<IPrometheusQueryService>());
+        builder.Services.AddSingleton(Mock.Of<Agent.Graph.Services.IPrometheusEndpointService>());
+
+        builder.Services.AddSingleton(Mock.Of<IAzureMetricsClient>());
+
+        // Add mock Kubernetes client factory
+        builder.Services.AddSingleton(Mock.Of<IKubernetesClientFactory>());
+
+        // Add mock ARM client factory
+        builder.Services.AddSingleton(Mock.Of<IArmClientFactory>());
+
+        // Add mock Crawler Trigger Service
+        builder.Services.AddSingleton(Mock.Of<ICrawlerTriggerService>());
+
+        builder.Services.AddSingleton<IIncidentHandlerAgent, IncidentHandlerAgent>();
         builder.Services.AddSingleton<ThreadManagementService>();
         builder.Services.AddSingleton<IAgentInboundCommunicationService, InboundCommunicationService>();
+        builder.Services.AddSingleton<IAgentRuntimeModifier<AgentContext>, AgentRuntimeModifier>();
         builder.Services.AddSingleton<IStreamingService>(sp =>
         {
             var logger = sp.GetRequiredService<ILoggerFactory>()
@@ -147,7 +181,9 @@ public static class TestHelpers
         builder.Services.AddSingleton(Mock.Of<IAuthenticationService>());
         builder.Services.AddSingleton<ITitleGenerationService, TitleGenerationService>();
 
-        builder.Services.AddSingleton<GraphDBPlugin>();
+        builder.Services.AddSingleton<Agent.Plugins.Interface.IGraphDBPlugin, GraphDBPlugin>();
+        // builder.Services.AddSingleton<Agent.Plugins.Interface.IGraphDBPlugin>(sp => sp.GetRequiredService<GraphDBPlugin>());
+        builder.Services.AddSingleton<GraphDBPluginDefinition>();
         builder.Services.AddSingleton<UserInteractionPluginDefinition>();
         builder.Services.AddSingleton<AgentControlFlowPluginDefinition>();
 
@@ -210,6 +246,18 @@ public static class TestHelpers
                 graphDBPlugin: sp.GetRequiredService<GraphDBPlugin>()
                 );
         });
+
+        builder.Services.AddSingleton<ISearchEndpointService, SearchEndpointService>();
+        builder.Services.AddSingleton<AgentActionLogger>();
+        builder.Services.AddSingleton<IAgentActionLogExporter>(sp =>
+        {
+            var logger = sp.GetRequiredService<ILogger<AgentActionLogConsoleExporter>>();
+            return new AgentActionLogConsoleExporter(logger, false); // Enable batch processing for better performance
+        });
+
+        builder.Services.AddSingleton<SearchHelper>();
+        builder.Services.AddTransient<KubePluginDefinition>();
+        builder.Services.AddTransient<IKubePlugin, KubePlugin>();
 
         // should be removed later - currently required because ThreadManagementService has code for handling UseAgentFramework=false
         // required because InboundCommunicationService has code for handling durable
