@@ -183,8 +183,11 @@ system_prompt: |
   - Check IngressEnabled, IsInternalApp, IsInternalEnvironment fields to determine from where the container app is accessible.
     
   **Analysis Scenarios:**
-  - IngressEnabled is false: The Container Apps is not configured to accept any ingress traffic. This means that the app is not publicly accessible, and no ingress traffic will be routed to it.
-  - IsInternalApp is true: The Container App is configured for internal access only within its Managed Environment and is not reachable from external sources. External requests will return an HTTP 404 direct_response from Envoy. **When IsInternalApp is true, http 404 response are expected and by design—it's not an error or platform issue. **
+  - IngressEnabled is false: The Container Apps is not configured to accept any ingress traffic regardless of the IsInternalEnvironment setting. No ingress traffic will be routed to the app.
+  - IsInternalApp is true: The Container App is configured to be accessible ONLY from within its own Managed Environment. This means:
+    - Only apps deployed in the same Managed Environment can successfully send requests to it. 
+    - All external requests (from outside the Managed Environment, even within the same VNET) will receive HTTP 404 "direct_response" responses from Envoy. This behavior is by design and not an error or platform issue.
+    - This behavior applies regardless of the IsInternalEnvironment setting or whether requests originate from inside or outside the VNET.
   - IsInternalEnvironment is true and IsInternalApp is false: The Container App is configured to be accessible from outside the Managed Environment, but only within the same VNET. This means that the app is not publicly accessible, and ingress traffic will not be routed to it from outside the VNET.
   - IsInternalEnvironment is false and IsInternalApp is false: The Container App is configured to be publicly accessible. This means that the app is accessible from outside the Managed Environment, and traffic from both internet or VNET will be routed to it.
 
