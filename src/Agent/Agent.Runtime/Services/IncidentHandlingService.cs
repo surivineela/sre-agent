@@ -300,7 +300,7 @@ namespace Agent.Runtime.Services
                     UserId: "incident-system",
                     DisplayName: "Incident System",
                     Timestamp: DateTime.UtcNow
-                ));
+                ), defaultHandler: false);
 
                 return thread;
             }
@@ -365,7 +365,7 @@ namespace Agent.Runtime.Services
                     UserId: "incident-system",
                     DisplayName: request.Source ?? "Incident System",
                     Timestamp: DateTime.UtcNow
-                ));
+                ), defaultHandler: true);
 
                 return thread;
             }

@@ -53,7 +53,7 @@ public interface IAgentInboundCommunicationService
         string title,
         string message,
         IncidentSource incidentSource,
-        List<IncidentDiscussion> discussions);
+        List<IncidentDiscussion> discussions, bool defaultHandler = true);
 
     Task AddNewDiscussionsToIncidentThread(
         Guid incidentThreadId,
@@ -63,7 +63,7 @@ public interface IAgentInboundCommunicationService
     /// <summary>
     /// Processes a thread that has been created for an alert, and starts the orchestration
     /// </summary>
-    Task ProcessAlertMessageAsync(ThreadMessage message);
+    Task ProcessAlertMessageAsync(ThreadMessage message, bool defaultHandler = true);
 
     /// <summary>
     /// Appends a message from the agent to the specified thread
@@ -79,7 +79,7 @@ public interface IAgentInboundCommunicationService
     /// </summary>
     Task<InboundServiceResponse> ProcessUserMessageAsync(ThreadMessage message);
 
-    Task<InboundServiceResponse> ProcessIncidentMessageAsync(ThreadMessage message);
+    Task<InboundServiceResponse> ProcessIncidentMessageAsync(ThreadMessage message, bool defaultHandler = true);
 
     /// <summary>
     /// Processes a user's feedback on a message, which can be positive or negative.

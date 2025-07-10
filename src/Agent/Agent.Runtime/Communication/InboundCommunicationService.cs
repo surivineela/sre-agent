@@ -96,11 +96,11 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         return thread;
     }
 
-    public async Task ProcessAlertMessageAsync(ThreadMessage message)
+    public async Task ProcessAlertMessageAsync(ThreadMessage message, bool defaultHandler = true)
     {
         // TODO(jianbosun) - this is a placeholder for the alert message processing
         // In the future, we may want to add some logic here to handle alert messages differently
-        await ProcessIncidentMessageAsync(message);
+        await ProcessIncidentMessageAsync(message, defaultHandler);
     }
 
     public async Task<Guid> AppendAgentImageMessage(Guid threadId, string message)
@@ -281,7 +281,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         }
     }
 
-    public async Task<InboundServiceResponse> ProcessIncidentMessageAsync(ThreadMessage threadMessage)
+    public async Task<InboundServiceResponse> ProcessIncidentMessageAsync(ThreadMessage threadMessage, bool defaultHandler = true)
     {
         _logger.LogInternalInformation($"ProcessIncidentMessageAsync: Started processing incident message: {threadMessage.Message}. ThreadId: {threadMessage.ThreadId}");
         _customerLogger.LogMessage($"[ChatThreadId {threadMessage.ThreadId}] Processing incident message: {threadMessage.Message}");
@@ -290,7 +290,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             { "ChatThreadId", threadMessage.ThreadId.ToString() },
             { "Message", threadMessage.Message }
         });
-        if (_useAgentFramework)
+        if (_useAgentFramework && defaultHandler)
         {
             return await ProcessMessageWithAgentFrameworkAsync(threadMessage);
         }
@@ -505,7 +505,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         return (thread, agentContext);
     }
 
-    public async Task<Core.Models.Api.v1.Thread> CreateAndProcessIncidentThread(string title, string message, IncidentSource incidentSource, List<IncidentDiscussion> discussions)
+    public async Task<Core.Models.Api.v1.Thread> CreateAndProcessIncidentThread(string title, string message, IncidentSource incidentSource, List<IncidentDiscussion> discussions, bool defaultHandler = true)
     {
         (var thread, var agentContext) = await CreateAgentThread(
             title: title,
@@ -537,7 +537,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             UserId: "incident-system",
             DisplayName: incidentSource.IncidentType.ToString(),
             Timestamp: DateTime.UtcNow
-        ));
+        ), defaultHandler);
 
         return thread;
     }

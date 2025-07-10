@@ -222,9 +222,9 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
             selectedTools?.Count ?? 0, agentContext.Id, threadGuid);
 
         // Always use the latest System Prompt in case we have some urgent fix to patch for the old chat history.
-        if (chatHistory[0].Role == ChatRole.System)
+        if (chatHistory[0].Role != ChatRole.System || !string.Equals(chatHistory[0].Text, systemPrompt, StringComparison.OrdinalIgnoreCase))
         {
-            chatHistory[0] = new Microsoft.Extensions.AI.ChatMessage(ChatRole.System, systemPrompt);
+            chatHistory.Insert(0, new Microsoft.Extensions.AI.ChatMessage(ChatRole.System, systemPrompt));
             _logger.LogInternalInformation(
                 "[IncidentHandlerAgent] GetModelResponse: Updated system prompt in chat history for ThreadId: {ThreadId}",
                 threadGuid);
