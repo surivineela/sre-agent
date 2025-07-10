@@ -241,18 +241,22 @@ public class GraphService : IGraphService
     {
         string query = $@"g.V().has('id', '{resourceId.ToLower().Replace("/", "_")}').has('isDeleted', false)
                      .union(
-                        outE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'POSTGRESQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS', 'SERVES_CODE').project('edge', 'direction', 'node')
+                        outE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'POSTGRESQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS', 'SERVES_CODE')
+                          .where(inV().not(has('resourceType', within('resourcegroups', 'subscription'))).not(has('isDeleted', true)))
+                          .project('edge', 'direction', 'node')
                           .by(label())
                           .by(constant('outgoing'))
-                          .by(inV().not(has('resourceType', within('resourcegroups', 'subscription'))).has('isDeleted', false).project('id', 'name', 'type', 'properties')
+                          .by(inV().project('id', 'name', 'type', 'properties')
                               .by(id())
                               .by(coalesce(values('resourceName'), constant('')))
                               .by(label())
                               .by(valueMap())),
-                        inE('LINKED', 'CONNECTED', 'HOSTED_ON').project('edge', 'direction', 'node')
+                        inE('LINKED', 'CONNECTED', 'HOSTED_ON')
+                          .where(outV().not(has('resourceType', within('resourcegroups', 'subscription'))).not(has('isDeleted', true)))
+                          .project('edge', 'direction', 'node')
                           .by(label())
                           .by(constant('incoming'))
-                          .by(outV().not(has('resourceType', within('resourcegroups', 'subscription'))).has('isDeleted', false).project('id', 'name', 'type', 'properties')
+                          .by(outV().project('id', 'name', 'type', 'properties')
                               .by(id())
                               .by(coalesce(values('resourceName'), constant('')))
                               .by(label())
@@ -264,10 +268,12 @@ public class GraphService : IGraphService
         if (resourceId.Contains("microsoft.containerservice_managedclusters"))
         {
             query = $@"g.V().has('id', '{resourceId.ToLower().Replace("/", "_")}').has('isDeleted', false)
-                    .outE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'POSTGRESQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS', 'SERVES_CODE', 'REFERENCES', 'BACKED_BY').project('edge', 'direction', 'node')
+                    .outE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'POSTGRESQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS', 'SERVES_CODE', 'REFERENCES', 'BACKED_BY')
+                        .where(inV().not(has('resourceType', within('resourcegroups', 'subscription'))).not(has('isDeleted', true)))
+                        .project('edge', 'direction', 'node')
                         .by(label())
                         .by(constant('outgoing'))
-                        .by(inV().not(has('resourceType', within('resourcegroups', 'subscription'))).has('isDeleted', false).project('id', 'name', 'type', 'properties')
+                        .by(inV().project('id', 'name', 'type', 'properties')
                             .by(id())
                             .by(coalesce(values('resourceName'), constant('')))
                             .by(label())
@@ -483,7 +489,7 @@ public class GraphService : IGraphService
 
                 // Check for repository connection
                 string repoQuery = $@"g.V().has('id', '{resourceId}').has('isDeleted', false)
-                                .outE('{ArmConstants.Relationships.ServesCode}').inV().has('isDeleted', false)
+                                .outE('{ArmConstants.Relationships.ServesCode}').inV().not(has('isDeleted', true))
                                 .values('resourceId')";
                 var repoResults = await _graphDatabaseClient.Query<string>(repoQuery);
                 string repoUrl = repoResults?.FirstOrDefault()?.ToString() ?? "";
