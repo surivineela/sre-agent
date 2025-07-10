@@ -4,7 +4,6 @@
 
 using System.Reflection;
 using Agent.Core.Attributes;
-using Agent.Logging;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.AI;
@@ -28,7 +27,8 @@ public class WriteActionActivity : TaskActivity<WriteActionActivityInput, WriteA
         _logger = logger;
         _toolsRepository = toolsRepository;
         _actionSettings = actionSettings;
-    }    public override Task<WriteActionActivityOutput> RunAsync(TaskActivityContext context, WriteActionActivityInput input)
+    }
+    public override Task<WriteActionActivityOutput> RunAsync(TaskActivityContext context, WriteActionActivityInput input)
     {
         try
         {
@@ -67,8 +67,8 @@ public class WriteActionActivity : TaskActivity<WriteActionActivityInput, WriteA
 
             _logger.LogInternalInformation("WriteActionActivity Found function with WriteAction attribute: {FunctionName} with {Arguments}", targetFunction, input.FunctionCall.Arguments);
 
-            // Check if actionMode is ReadOnly
-            if (_actionSettings.Mode == ActionMode.ReadOnly)
+            // Check if actionMode is Chat (previously ReadOnly)
+            if (_actionSettings.Mode == ActionMode.Chat || _actionSettings.Mode == ActionMode.ReadOnly)
             {
                 var prompt = $"You are in read-only mode. You should provide suggestions to user for what to do next. " +
                 "Please format your suggestions in a user-friendly way:\n" +

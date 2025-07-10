@@ -9,12 +9,10 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
-using Agent.Logging;
 using Agent.Runtime.Helpers;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using ModelContextProtocol.Protocol.Types;
 
 namespace Agent.Runtime.SubAgents.Core;
 
@@ -71,7 +69,7 @@ public class CheckApprovalActivity : TaskActivity<CheckApprovalActivityInput, Ch
                 };
             }
 
-            if (_actionSettings.Mode == ActionMode.ReadOnly)
+            if (_actionSettings.Mode == ActionMode.Chat || _actionSettings.Mode == ActionMode.ReadOnly)
             {
                 _logger.LogInternalInformation("[{ThreadId}] approval is not required for tool {FunctionName} in read-only mode", input.ThreadId, targetFunction);
 

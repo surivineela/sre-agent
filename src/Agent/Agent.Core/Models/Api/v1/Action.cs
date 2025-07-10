@@ -22,7 +22,8 @@ public enum ActionMode
     // Write actions will be taken without user approval
     Autonomous,  // used to be agent mode
     // No write actions will be taken by agent
-    ReadOnly
+    Chat,        // used to be readonly mode
+    ReadOnly   // keep for migration
 }
 
 public enum ActionSeverity

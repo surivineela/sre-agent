@@ -489,7 +489,7 @@ namespace Agent.Plugins
         {
             try
             {
-                if (agentmode == ActionMode.ReadOnly.ToString())
+                if (agentmode == ActionMode.Chat.ToString() || agentmode == ActionMode.ReadOnly.ToString())
                 {
                     return $"kubectl -n <>{_namespace}> scale deployment {deployment} --replicas={replicaCount}";
                 }
@@ -2434,8 +2434,11 @@ namespace Agent.Plugins
 
             var baseMessage = "Failed to run kubectl command. Error from AKS API Server: Forbidden.\n\n";
 
-            // Determine roles based on current mode
-            bool isReadOnlyMode = string.Equals(threadAgentMode, ActionMode.ReadOnly.ToString(), StringComparison.OrdinalIgnoreCase);
+            // Determine roles based on current agent mode
+            bool isReadOnlyMode =
+                string.Equals(threadAgentMode, ActionMode.Chat.ToString(), StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(threadAgentMode, ActionMode.ReadOnly.ToString(), StringComparison.OrdinalIgnoreCase);
+
 
             if (isReadOnlyMode)
             {

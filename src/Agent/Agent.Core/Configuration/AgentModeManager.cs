@@ -4,7 +4,6 @@
 
 using Microsoft.Extensions.Logging;
 using Agent.Framework;
-using Agent.Logging;
 
 namespace Agent.Core.Configuration;
 
