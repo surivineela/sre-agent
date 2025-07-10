@@ -12,14 +12,24 @@
 1. Open `./src/Agent/Agent.Web.sln` to open up Visual Studio
 1. On the debug button on the top of VS (it looks like a "play" button), choose the `react` profile. Then click on it to build and run.
     1. A browser window will automatically open pointing to the vite server and you should be good to go.
+        - localhost:5173 for `npm run watch` UX server; localhost:7023 for `npm run build` UX and backend server
+
+### Check deployment status of agent site
+
+1. https://github.com/serverless-paas-balam/sreagent-infra/actions/workflows/build-deploy.yml
+2. "Deploy to Cluster" step -> build number appended to the image (will align with build pipeline) -> what region it reached (Ex: australiaeast)
 
 ### Portal (PaasServerless extension) entrypoint
 
 1. Register your subscription (probably not needed post-BUILD?): `az feature register -n SREAgentPreview --namespace Microsoft.App`
 1. Links:
     - [Local Paas SRE Agent Home/Browse](https://portal.azure.com/?Microsoft_Azure_PaasServerless_clientoptimizations=false&feature.customportal=false&feature.canmodifyextensions=true#view/Microsoft_Azure_PaasServerless/SreAgentHome.ReactView?testExtensions=%7B%22Microsoft_Azure_PaasServerless%22:%22https://localhost:1338/paasserverless%22%7D)
-    - https://aka.ms/sreagent-portal
-    - https://aka.ms/sreagent-local (local agent site in canary(?) Paas)
+    - Beta Paas:
+        - Prod agent site: https://aka.ms/sreagent-portal
+        - Local agent site: https://aka.ms/sreagent-local // `sre_local=true`
+        - Local agent site UX + Prod agent backend: TODO // `sre_ux_local=true` (must not also have `sre_local=true`)
+    - Misc:
+        - AKA link used for "copy link to thread" to persist FFs: https://aka.ms/sreagent-prefixonly
 
 ## Localization
 
