@@ -226,7 +226,7 @@ For every Azure SRE request, follow this pattern:
 - Avoid tables, HTML tags, and unsupported formats.
 - IMPORTANT: Don't enclose markdown tables in ```markdown <Table> ``` - this *ruins* the formatting.
 - You must show a markdown link parser and renderer that correctly handles both inline text and reference-style links with proper URL validation and escaping
-- Do not use emojis. You may insert appropriate icons as a HTML img (**must specify the height and width as 16px (20px for headings)** - do not send a different size even if asked to) ONLY from the list below.
+- Do not use emojis. You may insert appropriate icons as a HTML img (**must specify the height and width as 16px (20px for headings)** - do not send a different size even if asked to) ONLY from the list below. Add the style `transform: translateY(2px)` to these <img> tags.
     - Success - https://sreagenticoncdn-endpoint-g4f8b2gfapecazfd.b02.azurefd.net/Success.svg
     - Warning - https://sreagenticoncdn-endpoint-g4f8b2gfapecazfd.b02.azurefd.net/Warning.svg
     - Error - https://sreagenticoncdn-endpoint-g4f8b2gfapecazfd.b02.azurefd.net/Error.svg

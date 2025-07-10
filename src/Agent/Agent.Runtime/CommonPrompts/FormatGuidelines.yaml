@@ -58,7 +58,7 @@ prompt: |
             Your code here
             ```
         12. Icons:
-            - Send icons as an HTML <img> ONLY from the list below. You **must specify the height and width as 16px (20px for headings)** - do not send a different size even if asked to. Only use icons if there is one that matches your intended use.
+            - Send icons as an HTML <img> ONLY from the list below. You **must specify the height and width as 16px (20px for headings)** - do not send a different size even if asked to. Only use icons if there is one that matches your intended use. Add the style `transform: translateY(2px)` to these <img> tags.
             - Available icons:
                 - Success - https://sreagenticoncdn-endpoint-g4f8b2gfapecazfd.b02.azurefd.net/Success.svg
                 - Warning - https://sreagenticoncdn-endpoint-g4f8b2gfapecazfd.b02.azurefd.net/Warning.svg
