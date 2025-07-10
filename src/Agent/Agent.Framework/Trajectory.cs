@@ -285,6 +285,108 @@ public sealed class Trajectory
         return trajectory;
     }
 
+    /// <summary>
+    /// Detects if there's a handoff loop pattern in the trajectory
+    /// </summary>
+    /// <param name="loopThreshold">Number of transfer->handoffback cycles to consider as a loop</param>
+    /// <returns>True if a handoff loop is detected</returns>
+    public bool HasHandoffLoop(int loopThreshold = 3)
+    {
+        var handoffEvents = new List<(string eventType, string? agentName)>();
+
+        // Extract handoff patterns from trajectory items
+        foreach (var item in _trajectoryItems)
+        {
+            if (item is FunctionCallTrajectoryItem fcItem)
+            {
+                // Check if it's a transfer_to_* call
+                if (fcItem.FunctionName.StartsWith("transfer_to_", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Try to extract agent name from function name (e.g., "transfer_to_AgentB" -> "AgentB")
+                    var agentName = fcItem.FunctionName.Substring("transfer_to_".Length);
+                    handoffEvents.Add(("transfer", agentName));
+                }
+                else if (fcItem.FunctionName.Equals("handoffback", StringComparison.OrdinalIgnoreCase))
+                {
+                    handoffEvents.Add(("handoffback", null));
+                }
+            }
+        }
+
+        return DetectLoopPattern(handoffEvents, loopThreshold);
+    }
+
+    /// <summary>
+    /// Detects repeating transfer->handoffback patterns
+    /// </summary>
+    private bool DetectLoopPattern(List<(string eventType, string? agentName)> handoffEvents, int loopThreshold)
+    {
+        if (handoffEvents.Count < loopThreshold * 2)
+        {
+            return false;
+        }
+
+        int consecutivePatterns = 0;
+        string? lastTransferAgent = null;
+
+        for (int i = 0; i < handoffEvents.Count - 1; i++)
+        {
+            var current = handoffEvents[i];
+            var next = i + 1 < handoffEvents.Count ? handoffEvents[i + 1] : (eventType: "", agentName: null);
+
+            if (current.eventType == "transfer" && next.eventType == "handoffback")
+            {
+                // Check if we're transferring to the same agent repeatedly
+                if (lastTransferAgent == current.agentName && lastTransferAgent != null)
+                {
+                    consecutivePatterns++;
+
+                    if (consecutivePatterns >= loopThreshold - 1) // -1 because we count pairs
+                    {
+                        return true;
+                    }
+                }
+                else
+                {
+                    lastTransferAgent = current.agentName;
+                    consecutivePatterns = 1;
+                }
+
+                i++; // Skip the handoffback since we've processed the pair
+            }
+            else
+            {
+                // Pattern broken, reset
+                consecutivePatterns = 0;
+                lastTransferAgent = null;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Gets a summary of recent handoff activity for debugging
+    /// </summary>
+    public string GetHandoffSummary()
+    {
+        var handoffs = new List<string>();
+
+        foreach (var item in _trajectoryItems)
+        {
+            if (item is FunctionCallTrajectoryItem fcItem)
+            {
+                if (fcItem.FunctionName.StartsWith("transfer", StringComparison.OrdinalIgnoreCase) ||
+                    fcItem.FunctionName.Equals("handoffback", StringComparison.OrdinalIgnoreCase))
+                {
+                    handoffs.Add(fcItem.FunctionName);
+                }
+            }
+        }
+
+        return $"Recent handoffs: {string.Join(" → ", handoffs.TakeLast(10))}";
+    }
+
     public string GetFilteredTrajectory()
     {
         // Apply filtering strategy: keep all content but filter function results to reduce context size, and return the trajectory

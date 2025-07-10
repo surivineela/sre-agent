@@ -546,6 +546,56 @@ public static class Runner
 
             foreach (var functionCall in functionCalls)
             {
+                // Check for handoff loops BEFORE processing the handoff
+                bool isHandoff = agent.HandoffNames.Contains(functionCall.Name) ||
+                               functionCall.Name.Equals("handoffback", StringComparison.OrdinalIgnoreCase);
+
+                if (isHandoff && trajectory.HasHandoffLoop(loopThreshold: 3))
+                {
+                    logger.LogWarning(
+                        "Handoff loop detected for {AgentName}. {HandoffSummary}",
+                        agent.Name,
+                        trajectory.GetHandoffSummary());
+
+                    var criticApproval = await CriticAsync(
+                        config,
+                        runtimeModifier,
+                        hooks,
+                        trajectory,
+                        displayModelOutput,
+                        agent,
+                        originalInput,
+                        newStepItems,
+                        contextWrapper,
+                        logger,
+                        failureHook: () =>
+                        {
+                            // Add feedback about the loop
+                            var loopDetectedMessage = $"Handoff loop detected: {trajectory.GetHandoffSummary()}. " +
+                                                    "There appears to be transferring between agents repeatedly without making progress. " +
+                                                    "Please review the conversation history and provide a substantive response to the user's query.";
+                            newStepItems.Add(modelResponseMessage);
+                            var errorResult = new FunctionResultContent(functionCall.CallId, loopDetectedMessage);
+                            newStepItems.Add(new ChatMessage(ChatRole.Tool, [errorResult]));
+                        });
+
+                    if (!criticApproval)
+                    {
+                        logger.LogInformation("Critic intervened to break handoff loop for {AgentName}", agent.Name);
+                        return new SingleStepResult<TContext>
+                        {
+                            OriginalInput = originalInput,
+                            ModelResponse = modelResponse,
+                            PreStepItems = preStepItems,
+                            NewStepItems = newStepItems,
+                            NextStep = new NextStep<TContext>
+                            {
+                                Type = NextStepType.RunAgain,
+                            }
+                        };
+                    }
+                }
+
                 // critic on handoff attempt
                 if (agent.CriticOnHandOff
                     && IsAllowedHandOff(functionCall, agent, tools))
@@ -827,5 +877,70 @@ public static class Runner
             (tools.FirstOrDefault(t => t.Name == functionCall.Name) is var resolvedTool
             && resolvedTool is not null
             && resolvedTool.UnderlyingMethod?.Name == "HandoffBack");
+    }
+
+    private class HandoffTracker
+    {
+        private readonly List<(string action, string? agentName)> _recentHandoffs = new();
+
+        public void AddHandoff(string action, string? agentName)
+        {
+            _recentHandoffs.Add((action, agentName));
+
+            // Keep only recent handoffs to avoid unbounded growth
+            if (_recentHandoffs.Count > 20)
+            {
+                _recentHandoffs.RemoveAt(0);
+            }
+        }
+
+        public (bool isLoop, string? loopingAgentName) DetectConsecutiveLoop(int requiredRepetitions = 3)
+        {
+            // Need at least the pattern length
+            if (_recentHandoffs.Count < requiredRepetitions * 2)
+            {
+                return (false, null);
+            }
+
+            // Check the most recent handoffs for consecutive pattern
+            var recentPattern = _recentHandoffs.TakeLast(requiredRepetitions * 2).ToList();
+
+            // Verify alternating pattern and same agent
+            string? targetAgent = null;
+
+            for (int i = 0; i < recentPattern.Count; i++)
+            {
+                if (i % 2 == 0) // Should be transfer_to_
+                {
+                    if (recentPattern[i].action != "transfer")
+                    {
+                        return (false, null);
+                    }
+
+                    if (targetAgent == null)
+                    {
+                        targetAgent = recentPattern[i].agentName;
+                    }
+                    else if (recentPattern[i].agentName != targetAgent)
+                    {
+                        return (false, null);
+                    }
+                }
+                else // Should be HandoffBack
+                {
+                    if (recentPattern[i].action != "handoffback")
+                    {
+                        return (false, null);
+                    }
+                }
+            }
+
+            return (true, targetAgent);
+        }
+
+        public void Clear()
+        {
+            _recentHandoffs.Clear();
+        }
     }
 }
