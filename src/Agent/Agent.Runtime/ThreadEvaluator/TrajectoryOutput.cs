@@ -102,4 +102,18 @@ public sealed class TrajectoryOutput
         - Mis-read CPU metric (percentile vs average)
         """)]
     public required string Pitfalls { get; set; }
+
+    [Description(
+       """
+        Boolean indicating whether this trajectory represents an investigation thread worth saving.
+        Should be true for multi-step investigations, root cause analysis,
+        system insights, or reusable troubleshooting patterns.
+        """)]
+    public required bool IsInvestigationThread { get; set; }
+
+    [Description(
+        """
+        Brief explanation of why this trajectory is or isn't classified as an investigation thread.
+        """)]
+    public required string InvestigationReason { get; set; }
 }

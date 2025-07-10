@@ -48,7 +48,7 @@ public static class TrajectoryExtractor
                 Temperature = 0,
             },
             cancellationToken: cancellationToken);
-
+        
         return (extractedTrajectory.Text, LkgPromptHash);
     }
 
@@ -71,6 +71,20 @@ public static class TrajectoryExtractor
         6. Capture any system design or general knowledge explained in the chat
         7. Decide the most likely root cause & recommended next actions. Think step by step on why they are the most likely root cause or recommended next actions.  
         8. Document pitfalls and unlikely paths that the agent has explored and that the team should remember next time.  
+        9. **EVALUATE USEFULNESS**: Determine if this trajectory contains valuable knowledge worth saving for future reference.
+
+        A trajectory is **USEFUL** if it contains:
+        - **Problem-solving methodology**: Multi-step investigation with diagnostic tools
+        - **Root cause analysis**: Identified actual issues with reasoning
+        - **System design insights**: Architecture patterns, dependencies, configurations
+        - **Reusable investigation patterns**: Steps that could apply to similar problems
+
+        A trajectory is **NOT USEFUL** if it's primarily:
+        - Simple status checks (single az/kubectl command with basic output)
+        - Basic informational queries (list resources, show configuration)
+        - Routine monitoring without issues detected
+        - Trivial lookups or confirmations
+        - Conversations with no actionable investigation steps
 
         ### More guidance how to generate StepsFollowed
 
@@ -141,7 +155,11 @@ public static class TrajectoryExtractor
 
           "ResourceTypesInvolved": "Container App; Azure Cache for Redis; Network Security Group",
 
-          "Pitfalls": "- No networking specialist agent; must use AzCli agent for NSG inspection\n- Risk of overlooking blocking rule if each NSG rule not listed individually"
+          "Pitfalls": "- No networking specialist agent; must use AzCli agent for NSG inspection\n- Risk of overlooking blocking rule if each NSG rule not listed individually",
+
+          "IsInvestigationThread": "true",
+
+          "InvestigationReason": "Contains multi-step network troubleshooting methodology with root cause identification and reusable NSG investigation pattern."
         }
         """;
 

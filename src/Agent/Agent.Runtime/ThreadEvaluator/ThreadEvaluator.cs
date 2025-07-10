@@ -33,6 +33,7 @@ public class ThreadEvaluator
     private readonly TimeSpan _evaluationHistoryRange; // How far back to search for threads
     private readonly TimeSpan _coolDownPeriod;         // Minimum time since last modification before evaluation
     private readonly bool _agentMemoryEnabled;
+    private readonly bool _saveOnlyUsefulTrajectories = false;
 
     public ThreadEvaluator(
         ILogger<ThreadEvaluator> logger,
@@ -725,6 +726,14 @@ public class ThreadEvaluator
 
         try
         {
+            var trajectoryData = System.Text.Json.JsonSerializer.Deserialize<TrajectoryOutput>(trajectory);
+
+            if (_saveOnlyUsefulTrajectories && !trajectoryData.IsInvestigationThread)
+            {
+                _logger.LogInternalWarning($"Skipping non-investigation thread. Reason: {trajectoryData.InvestigationReason}");
+                return;
+            }
+
             using var ms = new MemoryStream(Encoding.UTF8.GetBytes(trajectory));
             var blobName = $"{promptHash}/{threadId}.txt"; // store under prompt-hash folder
             var ok = await _memory.UploadDocumentAsync(blobName, ms);
