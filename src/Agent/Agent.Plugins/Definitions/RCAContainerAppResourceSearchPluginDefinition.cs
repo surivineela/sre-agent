@@ -15,23 +15,27 @@ namespace Agent.Plugins.Definitions
         }
 
         [Description("""
+        Purpose:
         Searches ContainerApp, ContainerAppsJob, ManagedEnvironment, ManagedCluster, SessionPool resources by the given resource name.
+
+        Scenario:
         Use this tool to search resources that match the specified name. Verify that the resource name is correct and exists.
-        The tool returns table data in CSV format, using TAB separators. The first line contains the column headers.
-        Tool Output:
+
+        Output:
+        Returns table data in CSV format with TAB separators. Column headers:
         - ResourceType: Type of the resource (ContainerApp, ContainerAppsJob, ManagedEnvironment, ManagedCluster, SessionPool)
         - region: region of the resource
         - subscription: subscriptionId of the resource
-        - managedClusterName: 
-        - managedEnvironmentName: 
-        - containerAppName: 
-        - containerAppsJobName: 
+        - managedClusterName
+        - managedEnvironmentName
+        - containerAppName
+        - containerAppsJobName
+        - sessionPoolName
         - provisioningState: Provisioning state of the container app
-        - sessionPoolName: 
-        - containerAppResourceGroup: ContainerApp resource group
-        - managedEnvironmentResourceGroup: ManagedEnvironment resource group
+        - containerAppResourceGroup
+        - managedEnvironmentResourceGroup
+        - sessionPoolResourceGroup
         - environmentProvisioningState: Provisioning state of the managed environment
-        - sessionPoolResourceGroup: SessionPool resource group
         """
         )]
         public async Task<string> SearchContainerAppsResourcesByName(

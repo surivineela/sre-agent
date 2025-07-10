@@ -23,12 +23,17 @@ namespace Agent.Plugins.Definitions
         }
 
         [Description(@"""
-Retrieves a direct App Service Insights (ASI) page URL for a specific managed cluster associated with an Azure Container Apps environment.
-Use this tool to get a diagnostic insights link for a managed cluster when the container app name is known.
-Output: Returns a string containing the ASI page URL.
-- ASIPageUrl: Direct URL to the ASI diagnostics page for the specified managed cluster.
-"""
-)]
+        Purpose:
+        Retrieves a direct App Service Insights (ASI) page URL for a specific managed cluster associated with an Azure Container Apps environment.
+
+        Scenario:
+        Use this tool to get a diagnostic insights link for a managed cluster when the container app name is known.
+
+        Output:
+        Returns a string containing the ASI page URL:
+        - ASIPageUrl: Direct URL to the ASI diagnostics page for the specified managed cluster
+        """
+        )]
         public async Task<string> GetASIPageForManagedClusterForApp(
          [Description("Azure region.")] string region,
          [Description("Start time of the query.")] DateTime fromDate,
@@ -47,12 +52,17 @@ Output: Returns a string containing the ASI page URL.
         }
 
         [Description(@"""
-Retrieves a direct App Service Insights (ASI) page URL for a specific managed cluster associated with an Azure Container Apps environment.
-Use this tool to get a diagnostic insights link for a managed cluster when the managed cluster name is already known.
-Output: Returns a string containing the ASI page URL.
-- ASIPageUrl: Direct URL to the ASI diagnostics page for the specified managed cluster.
-"""
-)]
+        Purpose:
+        Retrieves a direct App Service Insights (ASI) page URL for a specific managed cluster associated with an Azure Container Apps environment.
+
+        Scenario:
+        Use this tool to get a diagnostic insights link for a managed cluster when the managed cluster name is already known.
+
+        Output:
+        Returns a string containing the ASI page URL:
+        - ASIPageUrl: Direct URL to the ASI diagnostics page for the specified managed cluster
+        """
+        )]
         public Task<string> GetASIPageForManagedCluster(
         [Description("Azure region in lower case.")] string region,
         [Description("Start time of the query.")] DateTime fromDate,
@@ -72,18 +82,23 @@ Output: Returns a string containing the ASI page URL.
         }
 
         [Description(@"""
-Retrieves the ccpNamespace of an ACA's managed cluster, required for other AKS queries.
-Use this tool to get the ccpNamespace for a managed cluster.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- clusterName: Name of the managed cluster.
-- clusterVersion: Version of the cluster.
-- resourceGroup: Resource group of the cluster.
-- managedResourceGroup: Managed resource group.
-- RPTenant: Resource provider tenant.
-- clusterBirthdate: Cluster creation date.
-- ccpNamespace: CCP namespace of the cluster.
-"""
-)]
+        Purpose:
+        Retrieves the ccpNamespace of an ACA's managed cluster, required for other AKS queries.
+
+        Scenario:
+        Use this tool to get the ccpNamespace for a managed cluster.
+
+        Output:
+        Returns tab-separated table data in CSV format. Column headers:
+        - clusterName: Name of the managed cluster
+        - clusterVersion: Version of the cluster
+        - resourceGroup: Resource group of the cluster
+        - managedResourceGroup: Managed resource group
+        - RPTenant: Resource provider tenant
+        - clusterBirthdate: Cluster creation date
+        - ccpNamespace: CCP namespace of the cluster
+        """
+        )]
         public Task<string> GetAksClusterCcpNamespace(
         [Description("Azure region.")] string region,
         [Description("Start time of the query.")] DateTime fromDate,
@@ -103,18 +118,23 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
         }
 
         [Description(@"""
-Retrieves system component error events for the given managed cluster.
-Use this tool to get error events from system components to help diagnose root causes.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- PodName: Name of the pod.
-- ContainerName: Name of the container.
-- RestartCount: Number of restarts.
-- LastStateReason: Reason for the last state.
-- LastStateExitCode: Exit code for the last state.
-- StateWaitingMessage: Waiting state message.
-- StateWaitingReason: Waiting state reason.
-"""
-)]
+        Purpose:
+        Retrieves system component error events for the given managed cluster.
+
+        Scenario:
+        Use this tool to get error events from system components to help diagnose root causes.
+
+        Output:
+        Returns tab-separated table data in CSV format. Column headers:
+        - PodName: Name of the pod
+        - ContainerName: Name of the container
+        - RestartCount: Number of restarts
+        - LastStateReason: Reason for the last state
+        - LastStateExitCode: Exit code for the last state
+        - StateWaitingMessage: Waiting state message
+        - StateWaitingReason: Waiting state reason
+        """
+        )]
         public Task<string> GetSystemComponentErrorEvents(
             [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
@@ -130,16 +150,21 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
         }
 
         [Description(@"""
-Retrieves system component CPU usage for the given managed cluster.
-Use this tool to identify system components consuming more than 50% of their allocated CPU limits.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- TimestampUtc: Timestamp of the metric.
-- podName: Name of the pod.
-- cores: CPU cores used.
-- limit: CPU limit for the pod.
-- pct: Percentage of CPU used relative to the limit.
-"""
-)]
+        Purpose:
+        Retrieves system component CPU usage for the given managed cluster.
+
+        Scenario:
+        Use this tool to identify system components consuming more than 50% of their allocated CPU limits.
+
+        Output:
+        Returns tab-separated table data in CSV format. Column headers:
+        - TimestampUtc: Timestamp of the metric
+        - podName: Name of the pod
+        - cores: CPU cores used
+        - limit: CPU limit for the pod
+        - pct: Percentage of CPU used relative to the limit
+        """
+        )]
         public Task<string> GetSystemComponentCpuUsage(
             [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,

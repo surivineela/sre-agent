@@ -27,7 +27,16 @@ namespace Agent.Plugins.Definitions
             _generalSettings = generalSettings.Value ?? new GeneralSettings();
         }
 
-        [Description(@"Generates a thread link for the current conversation in the Agent Azure Portal.")]
+        [Description(@"
+        Purpose:
+        Generates a thread link for the current conversation in the Agent Azure Portal.
+
+        Scenario:
+        Use this tool to provide a user-friendly portal link for the current conversation.
+
+        Output:
+        No direct return value. Updates the thread with a portal link message.
+        ")]
         public async Task GetAgentWebPortalThreadLink()
         {
             var templateUrl = _generalSettings.PortalThreadIdLink;

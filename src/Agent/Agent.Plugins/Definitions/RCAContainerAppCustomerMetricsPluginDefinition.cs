@@ -21,12 +21,17 @@ namespace Agent.Plugins.Definitions
         }
 
         [Description(@"""
-Retrieves the underlying infrastructure layer (AKS or Legion) for a container app.
-Use this tool to determine the infrastructure type for a specific container app.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- InfraLayer: The infrastructure layer, either 'AKS' or 'Legion'.
-"""
-)]
+        Purpose:
+        Retrieves the underlying infrastructure layer (AKS or Legion) for a container app.
+
+        Scenario:
+        Use this tool to determine the infrastructure type for a specific container app.
+
+        Output:
+        Returns tab-separated table data in CSV format. Column headers:
+        - InfraLayer: The infrastructure layer, either 'AKS' or 'Legion'
+        """
+        )]
         public Task<string> GetContainerAppInfraLayer(
             [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
@@ -50,12 +55,17 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
         }
 
         [Description(@"""
-Checks if metrics were missed for a container app in the specified time range.
-Use this tool to identify if any metrics are missing for a given metric name and container app.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- MetricsMissed: 'True' if metrics were missed, otherwise 'False'.
-"""
-)]
+        Purpose:
+        Checks if metrics were missed for a container app in the specified time range.
+
+        Scenario:
+        Use this tool to identify if any metrics are missing for a given metric name and container app.
+
+        Output:
+        Returns tab-separated table data in CSV format. Column headers:
+        - MetricsMissed: 'True' if metrics were missed, otherwise 'False'
+        """
+        )]
         public Task<string> GetMetricsMdmCount(
             [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
@@ -75,12 +85,17 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
         }
 
         [Description(@"""
-Retrieves missed times for MDM pod heartbeats in a managed cluster within a time range.
-Use this tool to find times when MDM pod heartbeats were missed.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- PreciseTimeStamp: Timestamp when a heartbeat was missed.
-"""
-)]
+        Purpose:
+        Retrieves missed times for MDM pod heartbeats in a managed cluster within a time range.
+
+        Scenario:
+        Use this tool to find times when MDM pod heartbeats were missed.
+
+        Output:
+        Returns tab-separated table data in CSV format. Column headers:
+        - PreciseTimeStamp: Timestamp when a heartbeat was missed
+        """
+        )]
         public Task<string> GetMdmPodHeartbeatMissedTimes(
             [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
@@ -98,12 +113,17 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
         }
 
         [Description(@"""
-Retrieves times when a specific metric was missed for a container app in the specified time range.
-Use this tool to get timestamps where the specified metric was not reported.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- TimestampUtc: Timestamp when the metric was missed.
-"""
-)]
+        Purpose:
+        Retrieves times when a specific metric was missed for a container app in the specified time range.
+
+        Scenario:
+        Use this tool to get timestamps where the specified metric was not reported.
+
+        Output:
+        Returns tab-separated table data in CSV format. Column headers:
+        - TimestampUtc: Timestamp when the metric was missed
+        """
+        )]
         public Task<string> GetMissedMdmMetricTimes(
             [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
@@ -124,12 +144,17 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
         }
 
         [Description(@"""
-Retrieves times when the billing pod was undergoing leader election in a managed cluster within a time range.
-Use this tool to find leader election events for the billing pod.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- PreciseTimeStamp: Timestamp of the leader election event.
-"""
-)]
+        Purpose:
+        Retrieves times when the billing pod was undergoing leader election in a managed cluster within a time range.
+
+        Scenario:
+        Use this tool to find leader election events for the billing pod.
+
+        Output:
+        Returns tab-separated table data in CSV format. Column headers:
+        - PreciseTimeStamp: Timestamp of the leader election event
+        """
+        )]
         public Task<string> GetBillingPodLeaderElection(
             [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
@@ -147,12 +172,17 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
         }
 
         [Description(@"""
-Retrieves times when the VK pod was undergoing leader election in a managed cluster within a time range.
-Use this tool to find leader election events for the VK pod.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- TIMESTAMP: Timestamp of the leader election event.
-"""
-)]
+        Purpose:
+        Retrieves times when the VK pod was undergoing leader election in a managed cluster within a time range.
+
+        Scenario:
+        Use this tool to find leader election events for the VK pod.
+
+        Output:
+        Returns tab-separated table data in CSV format. Column headers:
+        - TIMESTAMP: Timestamp of the leader election event
+        """
+        )]
         public Task<string> GetVKPodLeaderElection(
             [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
@@ -170,17 +200,22 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
         }
 
         [Description(@"""
-Retrieves AKS Kubelet runtime errors for a managed cluster within a time range.
-Use this tool to get Kubelet runtime errors for a specific AKS cluster.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- Timestamp: Timestamp of the error.
-- Value: Error value (rate or count).
-- Region: Azure region.
-- AKSClusterID: Cluster identifier.
-- AKSScrapeJob: Scrape job name.
-- OperationType: Type of Kubelet operation.
-"""
-)]
+        Purpose:
+        Retrieves AKS Kubelet runtime errors for a managed cluster within a time range.
+
+        Scenario:
+        Use this tool to get Kubelet runtime errors for a specific AKS cluster.
+
+        Output:
+        Returns tab-separated table data in CSV format. Column headers:
+        - Timestamp: Timestamp of the error
+        - Value: Error value (rate or count)
+        - Region: Azure region
+        - AKSClusterID: Cluster identifier
+        - AKSScrapeJob: Scrape job name
+        - OperationType: Type of Kubelet operation
+        """
+        )]
         public Task<string> GetAKSKubeletRuntimeErrors(
             [Description("Azure region.")] string regionName,
             [Description("Start time of the query.")] DateTime fromDate,

@@ -16,16 +16,21 @@ namespace Agent.Plugins.Definitions
             _kustoPlugin = kustoPlugin;
         }
 
-        [Description(@"""
+                [Description("""
+Purpose:
 Retrieves log configuration changes for a managed environment within a time range.
+
+Scenario:
 Use this tool to check log destination changes and dynamic JSON column settings.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- StartTime: Start time of the configuration interval.
-- EndTime: End time of the configuration interval.
-- Value: Log destination after the change.
-- ChangeStatus: Indicates if the log destination changed.
-- PreviousValue: Log destination before the change.
-- hasDynamicJsonColumns: Indicates if dynamic JSON columns are present.
+
+Output:
+Returns tab-separated table data in CSV format. Column headers:
+- StartTime: Start time of the configuration interval
+- EndTime: End time of the configuration interval
+- Value: Log destination after the change
+- ChangeStatus: Indicates if the log destination changed
+- PreviousValue: Log destination before the change
+- hasDynamicJsonColumns: Indicates if dynamic JSON columns are present
 """
 )]
         public Task<string> GetLogConfiguration(
@@ -47,14 +52,19 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
             });
         }
 
-        [Description(@"""
+                [Description("""
+Purpose:
 Retrieves event processor errors for a managed environment within a time range.
+
+Scenario:
 Use this tool to find warnings and errors from event processor logs.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- Type: Type of event (e.g., Warning, Error, Normal).
-- msg: Event message.
-- Reason: Reason for the event.
-- count: Number of occurrences (for warnings/errors).
+
+Output:
+Returns tab-separated table data in CSV format. Column headers:
+- Type: Type of event (e.g., Warning, Error, Normal)
+- msg: Event message
+- Reason: Reason for the event
+- count: Number of occurrences (for warnings/errors)
 """
 )]
         public Task<string> GetEventProcessorErrors(
@@ -73,12 +83,17 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
             });
         }
 
-        [Description(@"""
+                [Description("""
+Purpose:
 Retrieves leader election events for event processors in a managed environment within a time range.
+
+Scenario:
 Use this tool to check if leader election events occurred.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- PreciseTimeStamp: Timestamp of the leader election event.
-- msg: Event message.
+
+Output:
+Returns tab-separated table data in CSV format. Column headers:
+- PreciseTimeStamp: Timestamp of the leader election event
+- msg: Event message
 """
 )]
         public Task<string> GetEventProcessorLeaderElectionEvents(
@@ -95,10 +110,15 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
             });
         }
 
-        [Description(@"""
+                [Description("""
+Purpose:
 Retrieves apps and jobs volume for a managed environment within a time range.
+
+Scenario:
 Use this tool to get the volume of apps and jobs in the environment.
-Output: Returns tab-separated table data in CSV format. The first line contains column headers.
+
+Output:
+Returns tab-separated table data in CSV format with column headers.
 """
 )]
         public Task<string> GetAppOrJobVolumeForEnv(
@@ -115,14 +135,19 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
             });
         }
 
-        [Description(@"""
+                [Description("""
+Purpose:
 Retrieves event processor pods for a managed environment within a time range.
+
+Scenario:
 Use this tool to list event processor pods and their node assignments.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- StartTime: Start time of the pod's activity.
-- EndTime: End time of the pod's activity.
-- Node: Node name where the pod is running.
-- PodName: Name of the pod.
+
+Output:
+Returns tab-separated table data in CSV format. Column headers:
+- StartTime: Start time of the pod's activity
+- EndTime: End time of the pod's activity
+- Node: Node name where the pod is running
+- PodName: Name of the pod
 """
 )]
         public Task<string> GetEventProcessorPods(
@@ -140,14 +165,19 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
             });
         }
 
-        [Description(@"""
+                [Description("""
+Purpose:
 Retrieves log processor pods for a managed environment within a time range.
+
+Scenario:
 Use this tool to list log processor pods and their node assignments.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- StartTime: Start time of the pod's activity.
-- EndTime: End time of the pod's activity.
-- Node: Node name where the pod is running.
-- PodName: Name of the pod.
+
+Output:
+Returns tab-separated table data in CSV format. Column headers:
+- StartTime: Start time of the pod's activity
+- EndTime: End time of the pod's activity
+- Node: Node name where the pod is running
+- PodName: Name of the pod
 """
 )]
         public Task<string> GetLogProcessorPods(
@@ -165,20 +195,25 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
             });
         }
 
-        [Description(@"""
+                [Description("""
+Purpose:
 Retrieves event processor pod status for a managed environment within a time range.
+
+Scenario:
 Use this tool to get health and status of event processor pods.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- StartTime: Start time of the pod's activity.
-- EndTime: End time of the pod's activity.
-- PodName: Name of the pod.
-- NodeName: Name of the node.
-- PodStatus: Status of the pod.
-- Health: Health status (Healthy/Degraded).
-- restartCount: Number of restarts.
-- ContainerName: Name of the container (for failures).
-- ContainerState: State of the container (Ready/Not Ready).
-- ContainerImage: Image used by the container.
+
+Output:
+Returns tab-separated table data in CSV format. Column headers:
+- StartTime: Start time of the pod's activity
+- EndTime: End time of the pod's activity
+- PodName: Name of the pod
+- NodeName: Name of the node
+- PodStatus: Status of the pod
+- Health: Health status (Healthy/Degraded)
+- restartCount: Number of restarts
+- ContainerName: Name of the container (for failures)
+- ContainerState: State of the container (Ready/Not Ready)
+- ContainerImage: Image used by the container
 """
 )]
         public Task<string> GetEventProcessorPodStatus(
@@ -197,20 +232,25 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
             });
         }
 
-        [Description(@"""
+                [Description("""
+Purpose:
 Retrieves log processor pod status for a managed environment within a time range.
+
+Scenario:
 Use this tool to get health and status of log processor pods.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- StartTime: Start time of the pod's activity.
-- EndTime: End time of the pod's activity.
-- PodName: Name of the pod.
-- NodeName: Name of the node.
-- PodStatus: Status of the pod.
-- Health: Health status (Healthy/Degraded).
-- restartCount: Number of restarts.
-- ContainerName: Name of the container (for failures).
-- ContainerState: State of the container (Ready/Not Ready).
-- ContainerImage: Image used by the container.
+
+Output:
+Returns tab-separated table data in CSV format. Column headers:
+- StartTime: Start time of the pod's activity
+- EndTime: End time of the pod's activity
+- PodName: Name of the pod
+- NodeName: Name of the node
+- PodStatus: Status of the pod
+- Health: Health status (Healthy/Degraded)
+- restartCount: Number of restarts
+- ContainerName: Name of the container (for failures)
+- ContainerState: State of the container (Ready/Not Ready)
+- ContainerImage: Image used by the container
 """
 )]
         public Task<string> GetLogProcessorPodStatus(
@@ -229,11 +269,16 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
             });
         }
 
-        [Description(@"""
+                [Description("""
+Purpose:
 Retrieves the workload profile type for a container app or job within a time range.
+
+Scenario:
 Use this tool to get the workload profile type.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- workloadProfileType: Type of workload profile.
+
+Output:
+Returns tab-separated table data in CSV format. Column headers:
+- workloadProfileType: Type of workload profile
 """
 )]
         public Task<string> GetContainerAppWorkloadProfile(
@@ -250,14 +295,19 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
             });
         }
 
-        [Description(@"""
+                [Description("""
+Purpose:
 Retrieves input pressure metrics for log processor in a managed cluster within a time range.
+
+Scenario:
 Use this tool to monitor total input records to log processor.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- PreciseTimeStamp: Timestamp of the metric.
-- totalCount: Total input records.
-- VMNodeWhereMetricCaptured: Node or VMSS where metric was captured.
-- PodName: Name of the pod.
+
+Output:
+Returns tab-separated table data in CSV format. Column headers:
+- PreciseTimeStamp: Timestamp of the metric
+- totalCount: Total input records
+- VMNodeWhereMetricCaptured: Node or VMSS where metric was captured
+- PodName: Name of the pod
 """
 )]
         public Task<string> GetInputPressureOnLogProcessor(
@@ -277,14 +327,19 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
             });
         }
 
-        [Description(@"""
+                [Description("""
+Purpose:
 Retrieves memory pressure metrics for fluentbit in a managed cluster within a time range.
+
+Scenario:
 Use this tool to monitor input storage memory usage by fluentbit.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- PreciseTimeStamp: Timestamp of the metric.
-- totalCount: Total memory used (bytes).
-- VMNodeWhereMetricCaptured: Node or VMSS where metric was captured.
-- PodName: Name of the pod.
+
+Output:
+Returns tab-separated table data in CSV format. Column headers:
+- PreciseTimeStamp: Timestamp of the metric
+- totalCount: Total memory used (bytes)
+- VMNodeWhereMetricCaptured: Node or VMSS where metric was captured
+- PodName: Name of the pod
 """
 )]
         public Task<string> GetMemoryPressureOnFluentbit(
@@ -304,14 +359,19 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
             });
         }
 
-        [Description(@"""
+                [Description("""
+Purpose:
 Retrieves output count metrics for fluentbit in a managed cluster within a time range.
+
+Scenario:
 Use this tool to monitor total output records processed by fluentbit.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- PreciseTimeStamp: Timestamp of the metric.
-- totalCount: Total output records processed.
-- VMNodeWhereMetricCaptured: Node or VMSS where metric was captured.
-- PodName: Name of the pod.
+
+Output:
+Returns tab-separated table data in CSV format. Column headers:
+- PreciseTimeStamp: Timestamp of the metric
+- totalCount: Total output records processed
+- VMNodeWhereMetricCaptured: Node or VMSS where metric was captured
+- PodName: Name of the pod
 """
 )]
         public Task<string> GetFluentbitOutputCount(
@@ -331,14 +391,19 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
             });
         }
 
-        [Description(@"""
+                [Description("""
+Purpose:
 Retrieves buffer pressure metrics for fluentbit in a managed cluster within a time range.
+
+Scenario:
 Use this tool to monitor input storage buffer overflows for fluentbit.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- PreciseTimeStamp: Timestamp of the metric.
-- totalCount: Total buffer overflows.
-- VMNodeWhereMetricCaptured: Node or VMSS where metric was captured.
-- PodName: Name of the pod.
+
+Output:
+Returns tab-separated table data in CSV format. Column headers:
+- PreciseTimeStamp: Timestamp of the metric
+- totalCount: Total buffer overflows
+- VMNodeWhereMetricCaptured: Node or VMSS where metric was captured
+- PodName: Name of the pod
 """
 )]
         public Task<string> GetFluentbitBufferPressure(
@@ -358,10 +423,15 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
             });
         }
 
-        [Description(@"""
+                [Description("""
+Purpose:
 Retrieves output errors for fluentbit for a container app or job in a managed cluster within a time range.
+
+Scenario:
 Use this tool to monitor output errors experienced by fluentbit.
-Output: Returns tab-separated table data in CSV format. The first line contains column headers.
+
+Output:
+Returns tab-separated table data in CSV format with column headers.
 """
 )]
         public Task<string> GetFluentbitOutputErrors(

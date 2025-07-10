@@ -21,12 +21,17 @@ namespace Agent.Plugins.Definitions
         }
 
         [Description(@"""
-Checks if the container app CPU usage exceeds a specified threshold during a given time window.
-Use this tool to determine if CPU usage is above a threshold for a container app.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- hasRows: true if CPU usage exceeded the threshold, false otherwise.
-"""
-)]
+        Purpose:
+        Checks if the container app CPU usage exceeds a specified threshold during a given time window.
+
+        Scenario:
+        Use this tool to determine if CPU usage is above a threshold for a container app.
+
+        Output:
+        Returns tab-separated table data in CSV format. Column headers:
+        - hasRows: true if CPU usage exceeded the threshold, false otherwise
+        """
+        )]
         public Task<string> GetContainerAppCpuExceedsThreshold(
             [Description("Azure region in lower case. Example: 'westeurope'.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
@@ -49,12 +54,17 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
         }
 
         [Description(@"""
-Checks if the container app memory usage exceeds a specified threshold during a given time window.
-Use this tool to determine if memory usage is above a threshold for a container app.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- hasRows: true if memory usage exceeded the threshold, false otherwise.
-"""
-)]
+        Purpose:
+        Checks if the container app memory usage exceeds a specified threshold during a given time window.
+
+        Scenario:
+        Use this tool to determine if memory usage is above a threshold for a container app.
+
+        Output:
+        Returns tab-separated table data in CSV format. Column headers:
+        - hasRows: true if memory usage exceeded the threshold, false otherwise
+        """
+        )]
         public Task<string> GetContainerAppMemoryExceedsThreshold(
             [Description("Azure region in lower case. Example: 'westeurope'.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
@@ -77,18 +87,23 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
         }
 
         [Description(@"""
-Retrieves OOM (Out Of Memory) kill events for a container app or job in a managed cluster during a given time window.
-Use this tool to check for OOM kill events for a container app or job.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- PreciseTimeStamp: Time when the OOM kill event occurred.
-- ManagedClusterName: Name of the managed cluster.
-- ContainerAppName: Name of the container app.
-- RevisionName: Name of the revision.
-- ReplicaName: Name of the replica.
-- Count: Number of OOM kill events.
-- resourceId: Resource ID of the container app or job.
-"""
-)]
+        Purpose:
+        Retrieves OOM (Out Of Memory) kill events for a container app or job in a managed cluster during a given time window.
+
+        Scenario:
+        Use this tool to check for OOM kill events for a container app or job.
+
+        Output:
+        Returns tab-separated table data in CSV format. Column headers:
+        - PreciseTimeStamp: Time when the OOM kill event occurred
+        - ManagedClusterName: Name of the managed cluster
+        - ContainerAppName: Name of the container app
+        - RevisionName: Name of the revision
+        - ReplicaName: Name of the replica
+        - Count: Number of OOM kill events
+        - resourceId: Resource ID of the container app or job
+        """
+        )]
         public Task<string> GetContainerAppOOMKills(
             [Description("Azure region in lower case. Example: 'westeurope'.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,

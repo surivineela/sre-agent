@@ -24,14 +24,19 @@ namespace Agent.Core.Plugins.Definitions
             _kustoDashboardPlugin = kustoDashboardPlugin;
         }
 
-        [Description(@"""
+                [Description("""
+Purpose:
 Retrieves active revisions with configuration, workload profile, scaling settings, and app status.
+
+Scenario:
 Use this tool to list all active revisions and their configuration details for a container app.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- Name: Revision name.
-- ManagedClusterName: Cluster name.
-- ContainerAppName: App name.
-- Namespace: Kubernetes namespace.
+
+Output:
+Returns tab-separated table data in CSV format. Column headers:
+- Name
+- ManagedClusterName
+- ContainerAppName
+- Namespace
 - ReadyReplicas
 - CreationTimestamp
 - WorkloadProfileNameUpdated
@@ -46,12 +51,12 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
 - MinReplicaCount
 - MaxReplicaCount
 - HttpScalingRuleName
-- HttpScalingRuleConcurrentRequests
-- ObservedGeneration
+- HttpScalingRuleConcurrentRequests: Concurrent requests limit
+- ObservedGeneration: Observed generation
 - RevisionProvisioningState
 - RevisionHealthStatus
 - RevisionRunningState
-- AppReadyForTrafficState
+- AppReadyForTrafficState: Traffic readiness state
 - PreciseTimeStamp
 - legionRevisionName
 """
@@ -74,13 +79,18 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
                 });
         }
 
-        [Description(@"""
+                [Description("""
+Purpose:
 Retrieves events that is about HTTP scaler for a container app.
+
+Scenario:
 Use this tool to diagnose scaling issues when a container app has HTTP scaler.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- PreciseTimeStamp: When the scaling event occurred.
-- EnvironmentName: Name of the cluster hosting the container app.
-- msg: Detailed message describing the scaling activity or failure reason.
+
+Output:
+Returns tab-separated table data in CSV format. Column headers:
+- PreciseTimeStamp: When the scaling event occurred
+- EnvironmentName: Name of the cluster hosting the container app
+- msg: Detailed message describing the scaling activity or failure reason
 """
 )]
         public Task<string> GetHttpScalerEventsForContainerApp(
@@ -105,13 +115,18 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetHttpScalerEventsForContainerApp", region, parm, samplingOptions: samplingOptions);
         }
 
-        [Description(@"""
+                [Description("""
+Purpose:
 Retrieves KEDA Operator events related to scaling actions or failures for a container app.
+
+Scenario:
 Use this tool to review KEDA Operator events and diagnose scaling issues.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- PreciseTimeStamp: Log timestamp.
-- Log: Operator event message.
-- KedaVersion: Current KEDA version.
+
+Output:
+Returns tab-separated table data in CSV format. Column headers:
+- PreciseTimeStamp: Log timestamp
+- Log: Operator event message
+- KedaVersion: Current KEDA version
 """
 )]
         public Task<string> GetKedaOperatorEventsForContainerApp(
@@ -130,11 +145,16 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
                 });
         }
 
-        [Description(@"""
+                [Description("""
+Purpose:
 Retrieves a direct App Service Insights (ASI) page URL for a specific revision.
+
+Scenario:
 Use this tool to get a diagnostic insights link for a container app revision over a specified time range.
-Output: Returns a string containing the ASI page URL.
-- ASIPageUrl: Direct URL to the ASI diagnostics page for the specified revision.
+
+Output:
+Returns a string containing the ASI page URL:
+- ASIPageUrl: Direct URL to the ASI diagnostics page for the specified revision
 """
 )]
         public async Task<string> GetASIPageForRevision(
@@ -166,14 +186,19 @@ Output: Returns a string containing the ASI page URL.
             return $"ASI Page for revsions {adxUri}";
         }
 
-        [Description(@"""
+                [Description("""
+Purpose:
 Retrieves replica counts and HTTP request counts for a revision over time.
+
+Scenario:
 Use this tool to diagnose scaling issues and detect periods where replicas exist but no traffic is received.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- Timestamp: Timestamp for the data point.
-- ReplicaCount: Number of active replicas at the timestamp.
-- Status: HTTP response status (e.g., 200, 503).
-- Requests: Number of HTTP requests for that status.
+
+Output:
+Returns tab-separated table data in CSV format. Column headers:
+- Timestamp: Timestamp for the data point
+- ReplicaCount: Number of active replicas at the timestamp
+- Status: HTTP response status (e.g., 200, 503)
+- Requests: Number of HTTP requests for that status
 """
 )]
         public Task<string> GetRevisionTrafficWithReplicaCount(
@@ -196,11 +221,15 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
                 });
         }
 
-        [Description(@"""
+                [Description("""
+Purpose:
 Retrieves the status of a container app revision for a given time range.
+
+Scenario:
 Use this tool to get the provisioning and running status of a revision.
-Output: Returns tab-separated table data in CSV format. The first line contains column headers:
-- Status and state columns as defined in the revision status query.
+
+Output:
+Returns tab-separated table data in CSV format with status and state columns as defined in the revision status query.
 """
 )]
         public Task<string> ContainerAppRevisionStatus(
@@ -223,14 +252,19 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
                 });
         }
 
-        [Description(@"""
+                [Description("""
+Purpose:
 Retrieves the replica count of a revision for a given time range.
+
+Scenario:
 Use this tool to get the number of replicas for a revision over time.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- Timestamp: Timestamp of the data point.
-- Revision: Name of the revision.
-- Max: Maximum replica count at the timestamp.
-- appArmId: ARM ID of the app.
+
+Output:
+Returns tab-separated table data in CSV format. Column headers:
+- Timestamp: Timestamp of the data point
+- Revision: Name of the revision
+- Max: Maximum replica count at the timestamp
+- appArmId: ARM ID of the app
 """
 )]
         public async Task<string> GetReplicaCount(
@@ -672,22 +706,25 @@ Output: Returns a string containing the dashboard URL.
         }
 
         [Description("""
-        Retrieve the base information, configuration, and state for an Azure Container App or an Azure Container Apps job.
-        Use this tool when you need to search for a specific container app or job and gather its basic details.
-        The tool returns table data in CSV format, using TAB separators. The first line contains the column headers.
-            
-        Tool Output:
-        - Region: Azure region where the container app is hosted.
-        - ContainerAppName: Name of the container app.
-        - ResourceType: Resource type of the container app (e.g., containerApp or job).
-        - ResourceGroup: Name of the resource group containing the container app.
-        - Subscription: Azure subscription ID.
-        - ManagedEnvironmentId: Managed environment Resource ID for the container app.
-        - managedClusterName: Name of the managed cluster.
-        - createdTimeUtc: Time when the container app was created.
-        - provisioningState: Current provisioning state of the container app.
-        - workloadProfileType: Type of workload profile for the container app.
-        """
+Purpose:
+Retrieve the base information, configuration, and state for an Azure Container App or an Azure Container Apps job.
+
+Scenario:
+Use this tool when you need to search for a specific container app or job and gather its basic details.
+
+Output:
+Returns table data in CSV format with TAB separators. Column headers:
+- Region
+- ContainerAppName
+- ResourceType
+- ResourceGroup
+- Subscription
+- ManagedEnvironmentId
+- managedClusterName
+- createdTimeUtc
+- provisioningState: Current provisioning state
+- workloadProfileType: Type of workload profile
+"""
         )]
         public async Task<string> GetContainerAppInformation(
             [Description("Azure region.")] string region,

@@ -19,16 +19,21 @@ namespace Agent.Plugins.Definitions
             _kustoPlugin = kustoPlugin;
         }
 
-        [Description(@"""
+                [Description("""
+Purpose:
 Retrieves subscription details including billing and organization information.
+
+Scenario:
 Use this tool to get detailed information about a subscription.
-Output: Returns a JSON object with subscription details.
-- BillingType: Type of billing for the subscription.
-- OfferType: Offer type of the subscription.
-- OfferName: Name of the offer.
-- QuotaId: Quota identifier.
-- OrganizationName: Name of the organization.
-- Other subscription properties as available.
+
+Output:
+Returns a JSON object with subscription details:
+- BillingType: Type of billing for the subscription
+- OfferType: Offer type of the subscription
+- OfferName: Name of the offer
+- QuotaId: Quota identifier
+- OrganizationName: Name of the organization
+- Other subscription properties as available
 """
 )]
         public async Task<SubscriptionDetail?> GetSubscriptionDetail(
@@ -37,14 +42,19 @@ Output: Returns a JSON object with subscription details.
             return await _icmWorkflowClient.GetSubscriptionDetail(subscriptionId);
         }
 
-        [Description(@"""
+                [Description("""
+Purpose:
 Retrieves usage details for a subscription, including environment and container app counts.
+
+Scenario:
 Use this tool to get usage statistics for a subscription.
-Output: Returns a JSON object with usage statistics.
-- NumberOfEnvironments: Number of environments in the subscription.
-- NumberOfContainerApps: Number of container apps.
-- NumberOfJobs: Number of jobs.
-- TrustLevel: Trust level of the subscription.
+
+Output:
+Returns a JSON object with usage statistics:
+- NumberOfEnvironments: Number of environments in the subscription
+- NumberOfContainerApps: Number of container apps
+- NumberOfJobs: Number of jobs
+- TrustLevel: Trust level of the subscription
 """
 )]
         public async Task<AcaSubscriptionUsage?> GetSubscriptionUsage(
@@ -53,11 +63,16 @@ Output: Returns a JSON object with usage statistics.
             return await _icmWorkflowClient.GetSubscriptionUsage(subscriptionId);
         }
 
-        [Description(@"""
+                [Description("""
+Purpose:
 Retrieves the quota limit for a subscription in a specific region and quota type.
+
+Scenario:
 Use this tool to get the current quota limit for a subscription.
-Output: Returns a string containing the quota limit value.
-- QuotaLimit: The quota limit value as a string.
+
+Output:
+Returns a string containing the quota limit value:
+- QuotaLimit: The quota limit value as a string
 """
 )]
         public async Task<string> GetSubscriptionQuota(
@@ -68,11 +83,16 @@ Output: Returns a string containing the quota limit value.
             return await _icmWorkflowClient.GetSubscriptionQuota(subscriptionId, region, quotaType);
         }
 
-        [Description(@"""
+                [Description("""
+Purpose:
 Sets the quota limit for a subscription in a specific region and quota type.
+
+Scenario:
 Use this tool to update the quota limit for a subscription.
-Output: Returns a string indicating if the operation was successful.
-- Success: String indicating success or failure of the operation.
+
+Output:
+Returns a string indicating if the operation was successful:
+- Success: String indicating success or failure of the operation
 """
 )]
         public async Task<string> SetSubscriptionQuota(
@@ -84,11 +104,16 @@ Output: Returns a string indicating if the operation was successful.
             return await _icmWorkflowClient.SetSubscriptionQuota(subscriptionId, region, quotaType, quotaLimit);
         }
 
-        [Description(@"""
+                [Description("""
+Purpose:
 Retrieves the quota limit for a container app environment in a specific region and quota type.
+
+Scenario:
 Use this tool to get the current quota limit for a container app environment.
-Output: Returns a string containing the quota limit value.
-- QuotaLimit: The quota limit value as a string.
+
+Output:
+Returns a string containing the quota limit value:
+- QuotaLimit: The quota limit value as a string
 """
 )]
         public async Task<string> GetEnvironmentQuota(
@@ -99,12 +124,17 @@ Output: Returns a string containing the quota limit value.
             return await _icmWorkflowClient.GetEnvironmentQuota(environmentResourceURL, region, quotaType);
         }
 
-        [Description(@"""
+                [Description("""
+Purpose:
 Sets the quota limit for a managed environment.
+
+Scenario:
 Use this tool to update the quota limit for a container app environment.
-Output: Returns a JSON object with operation details.
-- id: Trace ID of the operation.
-- message: Description of the operation result.
+
+Output:
+Returns a JSON object with operation details:
+- id: Trace ID of the operation
+- message: Description of the operation result
 """
 )]
         public async Task<string> SetEnvironmentQuota(
@@ -117,13 +147,18 @@ Output: Returns a JSON object with operation details.
             return await _icmWorkflowClient.SetEnvironmentQuota(incidentId, environmentResourceURL, region, quotaType, quotaLimit);
         }
 
-        [Description(@"""
+                [Description("""
+Purpose:
 Retrieves the result of a set quota operation for a managed environment.
+
+Scenario:
 Use this tool to check the status and result of a quota update operation.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- PreciseTimeStamp: Time when the operation was completed.
-- operationStatus: Status of the operation result.
-- message: Description of the operation result.
+
+Output:
+Returns tab-separated table data in CSV format. Column headers:
+- PreciseTimeStamp: Time when the operation was completed
+- operationStatus: Status of the operation result
+- message: Description of the operation result
 """
 )]
         public Task<string> GetEnvironmentQuotaOperationResult(
@@ -136,13 +171,18 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
             });
         }
 
-        [Description(@"""
+                [Description("""
+Purpose:
 Validates a quota request based on quota type, region, target limit, and subscription.
+
+Scenario:
 Use this tool to check if a quota request meets approval rules and get the validation result.
-Output: Returns a JSON object with validation details.
-- ApproveResult: Status of the quota request (Approved, Rejected, Pending, NotStarted).
-- OfferType: Offer type of the subscription.
-- Reason: Explanation for the validation decision.
+
+Output:
+Returns a JSON object with validation details:
+- ApproveResult: Status of the quota request (Approved, Rejected, Pending, NotStarted)
+- OfferType: Offer type of the subscription
+- Reason: Explanation for the validation decision
 """
 )]
         public async Task<string> ValidateQuotaRequest(

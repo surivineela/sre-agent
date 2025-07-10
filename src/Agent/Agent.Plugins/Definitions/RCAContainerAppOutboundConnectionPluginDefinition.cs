@@ -21,13 +21,18 @@ namespace Agent.Plugins.Definitions
         }
 
         [Description(@"""
-Analyzes the distribution of TCP connection states for a specific container app pod.
-Use this tool to identify patterns in connection termination and detect connection quality issues.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- connectionState: The type of connection termination (e.g., Gracefully closed, TCP Handshake Failure, Reset, Half-close, Idle timeout).
-- count_: Number of connections in each state.
-"""
-)]
+        Purpose:
+        Analyzes the distribution of TCP connection states for a specific container app pod.
+
+        Scenario:
+        Use this tool to identify patterns in connection termination and detect connection quality issues.
+
+        Output:
+        Returns tab-separated table data in CSV format. Column headers:
+        - connectionState: The type of connection termination (e.g., Gracefully closed, TCP Handshake Failure, Reset, Half-close, Idle timeout)
+        - count_: Number of connections in each state
+        """
+        )]
         public Task<string> GracefulConnectionCount(
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
@@ -45,24 +50,29 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
         }
 
         [Description(@"""
-Retrieves details of outbound connections that were not gracefully closed for a specific container app pod.
-Use this tool to identify problematic connections and analyze connection failures.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- StartTime: Connection start time (UTC).
-- EndTime: Connection end time (UTC).
-- Protocol: Network protocol used.
-- Direction: Connection direction (Inbound/Outbound).
-- RouteKind: Route type for the connection.
-- SourceIpAddress: Source IP address.
-- DestinationIpAddress: Destination IP address (masked).
-- DestinationDomain: Resolved domain name for the destination, if available.
-- SourcePort: Source port number.
-- DestinationPort: Destination port number.
-- PacketSequence: Sequence of packets observed.
-- Duration: Duration of the connection.
-- RemovalReason: Reason for connection removal.
-"""
-)]
+        Purpose:
+        Retrieves details of outbound connections that were not gracefully closed for a specific container app pod.
+
+        Scenario:
+        Use this tool to identify problematic connections and analyze connection failures.
+
+        Output:
+        Returns tab-separated table data in CSV format. Column headers:
+        - StartTime: Connection start time (UTC)
+        - EndTime: Connection end time (UTC)
+        - Protocol: Network protocol used
+        - Direction: Connection direction (Inbound/Outbound)
+        - RouteKind: Route type for the connection
+        - SourceIpAddress: Source IP address
+        - DestinationIpAddress: Destination IP address (masked)
+        - DestinationDomain: Resolved domain name for the destination, if available
+        - SourcePort: Source port number
+        - DestinationPort: Destination port number
+        - PacketSequence: Sequence of packets observed
+        - Duration
+        - RemovalReason
+        """
+        )]
         public Task<string> GetTerminatedConnectionsForPod(
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
@@ -80,16 +90,21 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
         }
 
         [Description(@"""
-Retrieves DNS server manager operations and related logs for a specific container app pod.
-Use this tool to identify DNS resolution issues that may affect outbound connections.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- TIMESTAMP: Date and time of the log entry.
-- Message: Log message content.
-- OperationName: Name of the DNS operation.
-- Value: Value or result of the operation.
-- TraceID: Trace identifier for the log entry.
-"""
-)]
+        Purpose:
+        Retrieves DNS server manager operations and related logs for a specific container app pod.
+
+        Scenario:
+        Use this tool to identify DNS resolution issues that may affect outbound connections.
+
+        Output:
+        Returns tab-separated table data in CSV format. Column headers:
+        - TIMESTAMP: Date and time of the log entry
+        - Message: Log message content
+        - OperationName: Name of the DNS operation
+        - Value: Value or result of the operation
+        - TraceID: Trace identifier for the log entry
+        """
+        )]
         public Task<string> DnsServerManagerOperation(
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
@@ -109,12 +124,17 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
         }
 
         [Description(@"""
-Retrieves a direct App Service Insights (ASI) page URL for diagnostics of a specific pod in a Legion cluster.
-Use this tool to get a diagnostic insights link for a pod over a specified time range.
-Output: Returns a string containing the ASI page URL.
-- ASIPageUrl: Direct URL to the ASI diagnostics page for the specified pod.
-"""
-)]
+        Purpose:
+        Retrieves a direct App Service Insights (ASI) page URL for diagnostics of a specific pod in a Legion cluster.
+
+        Scenario:
+        Use this tool to get a diagnostic insights link for a pod over a specified time range.
+
+        Output:
+        Returns a string containing the ASI page URL:
+        - ASIPageUrl: Direct URL to the ASI diagnostics page for the specified pod
+        """
+        )]
         public Task<string> GetASIPageForLegionPod(
             [Description("Name of the pod.")] string podName,
             [Description("Namespace of the managed cluster.")] string managedCluster,
@@ -135,20 +155,25 @@ Output: Returns a string containing the ASI page URL.
         }
 
         [Description(@"""
-Retrieves PodGuid and related information for a specific container app pod using its name and namespace.
-Use this tool to find the PodGuid and environment details required for connection analysis.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- LegionEnvironmentName: Name of the Legion environment.
-- PodName: Name of the pod.
-- ResourceNamespace: Namespace of the resource.
-- PodGuid: Unique identifier (GUID) of the pod.
-- CenturionRoleId: Centurion role identifier.
-- NestedRoleId: Nested role identifier.
-- geneva_url: Direct link to Geneva trace logs.
-- env_dt_traceId: Trace identifier for the log entry.
-- KustoCluster: Name of the Kusto cluster.
-"""
-)]
+        Purpose:
+        Retrieves PodGuid and related information for a specific container app pod using its name and namespace.
+
+        Scenario:
+        Use this tool to find the PodGuid and environment details required for connection analysis.
+
+        Output:
+        Returns tab-separated table data in CSV format. Column headers:
+        - LegionEnvironmentName: Name of the Legion environment
+        - PodName: Name of the pod
+        - ResourceNamespace: Namespace of the resource
+        - PodGuid: Unique identifier (GUID) of the pod
+        - CenturionRoleId: Centurion role identifier
+        - NestedRoleId: Nested role identifier
+        - geneva_url: Direct link to Geneva trace logs
+        - env_dt_traceId: Trace identifier for the log entry
+        - KustoCluster: Name of the Kusto cluster
+        """
+        )]
         public Task<string> GetPodGuidFromName(
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,

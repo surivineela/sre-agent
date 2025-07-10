@@ -15,16 +15,21 @@ namespace Agent.Plugins.Definitions
         }
 
         [Description(@"""
-Retrieves the Container Apps job definition (spec) for a given Container App Job.
-Use this tool to get the job definition, configuration, template, labels, and status for a container app job.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- Timestamp: Timestamp of the job definition.
-- Configuration: Configuration details for the job.
-- Template: Job template with container and resource details.
-- Labels: Labels for the job, including environment and workload profile.
-- Status: Status of the container app job.
-"""
-)]
+        Purpose:
+        Retrieves the Container Apps job definition (spec) for a given Container App Job.
+
+        Scenario:
+        Use this tool to get the job definition, configuration, template, labels, and status for a container app job.
+
+        Output:
+        Returns tab-separated table data in CSV format. Column headers:
+        - Timestamp: Timestamp of the job definition
+        - Configuration: Configuration details for the job
+        - Template: Job template with container and resource details
+        - Labels: Labels for the job, including environment and workload profile
+        - Status: Status of the container app job
+        """
+        )]
         public Task<string> GetJobDefinition(
             [Description("Name of the Container App Job.")] string containerAppJobName,
             [Description("Azure region.")] string region,
@@ -43,15 +48,20 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
         }
 
         [Description(@"""
-Retrieves the final status for a specific job execution of a Container App Job.
-Use this tool to get the final status and details for a job execution.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- PreciseTimeStamp: Timestamp of the event.
-- JobExecutionName: Name of the job execution.
-- JobExecutionStatus: Status of the job execution (e.g., Succeeded, Failed).
-- JobExecutionStatusDetails: Detailed status or failure reason.
-"""
-)]
+        Purpose:
+        Retrieves the final status for a specific job execution of a Container App Job.
+
+        Scenario:
+        Use this tool to get the final status and details for a job execution.
+
+        Output:
+        Returns tab-separated table data in CSV format. Column headers:
+        - PreciseTimeStamp: Timestamp of the event
+        - JobExecutionName: Name of the job execution
+        - JobExecutionStatus: Status of the job execution (e.g., Succeeded, Failed)
+        - JobExecutionStatusDetails: Detailed status or failure reason
+        """
+        )]
         public Task<string> GetJobExecutionFinalStatus(
             [Description("Azure region.")] string region,
             [Description("Name of the managed cluster.")] string managedClusterName,
@@ -70,16 +80,21 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
         }
 
         [Description(@"""
-Retrieves full lifecycle events for a specific Container App Job execution.
-Use this tool to get all EventProcessorEvents for a job execution.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- PreciseTimeStamp: Timestamp of the event.
-- msg: Log message of the event.
-- Reason: Reason for the event.
-- Count: Count of the event.
-- Type: Type of the event (e.g., Warning, Normal, Error).
-"""
-)]
+        Purpose:
+        Retrieves full lifecycle events for a specific Container App Job execution.
+
+        Scenario:
+        Use this tool to get all EventProcessorEvents for a job execution.
+
+        Output:
+        Returns tab-separated table data in CSV format. Column headers:
+        - PreciseTimeStamp: Timestamp of the event
+        - msg: Log message of the event
+        - Reason: Reason for the event
+        - Count: Count of the event
+        - Type: Type of the event (e.g., Warning, Normal, Error)
+        """
+        )]
         public Task<string> GetJobExecutionEvents(
             [Description("Azure region.")] string region,
             [Description("Name of the job execution.")] string jobExecutionName,
@@ -98,14 +113,19 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
         }
 
         [Description(@"""
-Retrieves all error events for all job executions of a given Container App Job.
-Use this tool to get error events for all executions of a container app job.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- msg: Log message of the error event.
-- Reason: Reason for the error event.
-- Count: Number of occurrences.
-"""
-)]
+        Purpose:
+        Retrieves all error events for all job executions of a given Container App Job.
+
+        Scenario:
+        Use this tool to get error events for all executions of a container app job.
+
+        Output:
+        Returns tab-separated table data in CSV format. Column headers:
+        - msg: Log message of the error event
+        - Reason: Reason for the error event
+        - Count: Number of occurrences
+        """
+        )]
         public Task<string> GetAllJobExecutionsErrorEvents(
             [Description("Azure region.")] string region,
             [Description("Name of the managed cluster.")] string managedClusterName,
@@ -124,14 +144,19 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
         }
 
         [Description(@"""
-Retrieves the final status for all job executions of a given Container App Job.
-Use this tool to get the final status for all executions of a container app job.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- JobExecutionName: Name of the job execution.
-- JobExecutionStatus: Status of the job execution.
-- JobExecutionStatusDetails: Detailed status or failure reason.
-"""
-)]
+        Purpose:
+        Retrieves the final status for all job executions of a given Container App Job.
+
+        Scenario:
+        Use this tool to get the final status for all executions of a container app job.
+
+        Output:
+        Returns tab-separated table data in CSV format. Column headers:
+        - JobExecutionName: Name of the job execution
+        - JobExecutionStatus: Status of the job execution
+        - JobExecutionStatusDetails: Detailed status or failure reason
+        """
+        )]
         public Task<string> GetAllJobExecutionsFinalStatus(
             [Description("Azure region.")] string region,
             [Description("Name of the managed cluster.")] string managedClusterName,
@@ -150,16 +175,21 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
         }
 
         [Description(@"""
-Retrieves KEDA events for job scaled jobs.
-Use this tool to get KEDA scaler events for jobs.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- PreciseTimeStamp: Event timestamp.
-- LogInfo: Log information array.
-- LogLevel: Log level.
-- LogCategory: KEDA component logger.
-- _ContainerGroupName: Container group name.
-"""
-)]
+        Purpose:
+        Retrieves KEDA events for job scaled jobs.
+
+        Scenario:
+        Use this tool to get KEDA scaler events for jobs.
+
+        Output:
+        Returns tab-separated table data in CSV format. Column headers:
+        - PreciseTimeStamp: Event timestamp
+        - LogInfo: Log information array
+        - LogLevel: Log level
+        - LogCategory: KEDA component logger
+        - _ContainerGroupName: Container group name
+        """
+        )]
         public Task<string> GetKedaEventsForJobScaledJobs(
             [Description("Azure region.")] string region,
             [Description("Name of the managed cluster.")] string managedClusterName,
@@ -178,16 +208,21 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
         }
 
         [Description(@"""
-Retrieves Legion VK events for jobs running on Consumption V2 workload profile.
-Use this tool to get Legion VK events for jobs running on Consumption V2.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- phase: Pod lifecycle phase.
-- msg: Legion VK event message.
-- error: Error message if present.
-- RequestMethod: HTTP request method.
-- ResponseHttpStatusCode: HTTP response status code.
-"""
-)]
+        Purpose:
+        Retrieves Legion VK events for jobs running on Consumption V2 workload profile.
+
+        Scenario:
+        Use this tool to get Legion VK events for jobs running on Consumption V2.
+
+        Output:
+        Returns tab-separated table data in CSV format. Column headers:
+        - phase: Pod lifecycle phase
+        - msg: Legion VK event message
+        - error: Error message if present
+        - RequestMethod: HTTP request method
+        - ResponseHttpStatusCode: HTTP response status code
+        """
+        )]
         public Task<string> GetLegionVKEventsForJobsRunningConsumptionV2(
             [Description("Azure region.")] string region,
             [Description("Name of the managed cluster.")] string managedClusterName,
@@ -206,14 +241,19 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
         }
 
         [Description(@"""
-Retrieves container app job execution errors from Legion System Logs for consumption workload profile jobs.
-Use this tool to get error details for job executions from Legion System Logs.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- Message: Error message.
-- Value: Error value.
-- count_: Error count.
-"""
-)]
+        Purpose:
+        Retrieves container app job execution errors from Legion System Logs for consumption workload profile jobs.
+
+        Scenario:
+        Use this tool to get error details for job executions from Legion System Logs.
+
+        Output:
+        Returns tab-separated table data in CSV format. Column headers:
+        - Message: Error message
+        - Value: Error value
+        - count_: Error count
+        """
+        )]
         public Task<string> GetLegionSystemLogsForJobExecutionErrors(
             [Description("Azure region.")] string region,
             [Description("Name of the managed cluster.")] string managedClusterName,
@@ -238,12 +278,17 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
         }
 
         [Description(@"""
-Retrieves the Azure Service Insights (ASI) page link for the specified Container App Job.
-Use this tool to get a direct link to the ASI portal for a container app job over a specified time range.
-Output: Returns a string containing the ASI page URL.
-- ASIPageUrl: Direct URL to the ASI diagnostics page for the specified job.
-"""
-)]
+        Purpose:
+        Retrieves the Azure Service Insights (ASI) page link for the specified Container App Job.
+
+        Scenario:
+        Use this tool to get a direct link to the ASI portal for a container app job over a specified time range.
+
+        Output:
+        Returns a string containing the ASI page URL:
+        - ASIPageUrl: Direct URL to the ASI diagnostics page for the specified job
+        """
+        )]
         public Task<string> GetASIPageForContainerAppJob(
            [Description("Azure region.")] string region,
            [Description("Start of the time range for the query (UTC datetime).")] DateTime fromDate,

@@ -18,13 +18,18 @@ namespace Agent.Plugins.Definitions
         }
 
         [Description(@"""
-Calculates the effective time range for issue investigation based on available timestamps.
-Use this tool to determine the investigation window for an incident when at least one relevant timestamp is available.
-Output: Returns a tuple with two values: StartDate and EndDate, both in ISO 8601 format.
-- StartDate: The calculated start date of the investigation window.
-- EndDate: The calculated end date of the investigation window.
-"""
-)]
+        Purpose:
+        Calculates the effective time range for issue investigation based on available timestamps.
+
+        Scenario:
+        Use this tool to determine the investigation window for an incident when at least one relevant timestamp is available.
+
+        Output:
+        Returns a tuple with two values:
+        - StartDate: The calculated start date of the investigation window
+        - EndDate: The calculated end date of the investigation window
+        """
+        )]
         public (DateTime StartDate, DateTime EndDate) GetIssueInvestigationTimeRangeRCAContainerApp(
             [Description("ISO 8601 string for the first occurrence of the issue, or leave null if not available.")] string? issueFirstOccurrence,
             [Description("ISO 8601 string for the last occurrence of the issue, or leave null if not available.")] string? issueLastOccurrence,
@@ -38,11 +43,16 @@ Output: Returns a tuple with two values: StartDate and EndDate, both in ISO 8601
         }
 
         [Description(@"""
-Retrieves detailed information about a specific ICM incident.
-Use this tool to get all available data for a given incident ID.
-Output: Returns a JSON object containing incident details such as IncidentId, creation and last update time, status, severity level, and summary.
-"""
-)]
+        Purpose:
+        Retrieves detailed information about a specific ICM incident.
+
+        Scenario:
+        Use this tool to get all available data for a given incident ID.
+
+        Output:
+        Returns a JSON object containing incident details such as IncidentId, creation and last update time, status, severity level, and summary.
+        """
+        )]
         public async Task<string?> GetIncidentInfoRCAContainerApp(
             [Description("Unique identifier for the ICM incident.")] string incidentId)
         {
@@ -71,12 +81,17 @@ Output: Returns a JSON object containing incident details such as IncidentId, cr
         //}
 
         [Description(@"""
-Formats a one-liner RCA statement into an official RCA template.
-Use this tool to generate a formal RCA document from a brief summary.
-Output: Returns a string containing the formatted RCA.
-- RCA: Officially formatted RCA text.
-"""
-)]
+        Purpose:
+        Formats a one-liner RCA statement into an official RCA template.
+
+        Scenario:
+        Use this tool to generate a formal RCA document from a brief summary.
+
+        Output:
+        Returns a string containing the formatted RCA:
+        - RCA: Officially formatted RCA text
+        """
+        )]
         public string OneLinerToRCA(
             [Description("One-liner RCA statement to be formatted.")] string oneLinerRCA)
         {
@@ -84,11 +99,16 @@ Output: Returns a string containing the formatted RCA.
         }
 
         [Description(@"""
-Submits feedback about the agent's assistance in debugging an incident.
-Use this tool to record if the agent was helpful and if the resolution was accurate.
-Output: No return value.
-"""
-)]
+        Purpose:
+        Submits feedback about the agent's assistance in debugging an incident.
+
+        Scenario:
+        Use this tool to record if the agent was helpful and if the resolution was accurate.
+
+        Output:
+        No return value.
+        """
+        )]
         public async void WasAgentHelpfulInDebuggingIssueAsync(
             [Description("Unique identifier for the ICM incident.")] string incidentId,
             [Description("Set to true if the agent was helpful, false if not, or null to skip.")] bool? wasHelpful,
@@ -98,12 +118,17 @@ Output: No return value.
         }
 
         [Description(@"""
-Adds a new HTML-formatted discussion entry to an ICM incident.
-Use this tool to post a summary or message to the incident's discussion log.
-Output: Returns a boolean value indicating if the operation was successful.
-- Success: true if the entry was added, false otherwise.
-"""
-)]
+        Purpose:
+        Adds a new HTML-formatted discussion entry to an ICM incident.
+
+        Scenario:
+        Use this tool to post a summary or message to the incident's discussion log.
+
+        Output:
+        Returns a boolean value indicating if the operation was successful:
+        - Success: true if the entry was added, false otherwise
+        """
+        )]
         public async Task<bool> AddDiscussionEntryRCAContainerApp(
             [Description("Unique identifier for the ICM incident.")] string incidentId,
             [Description("HTML-formatted discussion entry text to add.")] string text)
@@ -112,12 +137,17 @@ Output: Returns a boolean value indicating if the operation was successful.
         }
 
         [Description(@"""
-Resolves an ICM incident and sets its status to resolved with a provided reason.
-Use this tool to mark an incident as resolved after confirmation.
-Output: Returns a boolean value indicating if the operation was successful.
-- Success: true if the incident was resolved, false otherwise.
-"""
-)]
+        Purpose:
+        Resolves an ICM incident and sets its status to resolved with a provided reason.
+
+        Scenario:
+        Use this tool to mark an incident as resolved after confirmation.
+
+        Output:
+        Returns a boolean value indicating if the operation was successful:
+        - Success: true if the incident was resolved, false otherwise
+        """
+        )]
         public async Task<bool> ResolveIncidentRCAContainerApp(
             [Description("Unique identifier for the ICM incident.")] string incidentId,
             [Description("Reason or comment for resolving the incident.")] string reason)
