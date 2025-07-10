@@ -24,9 +24,9 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
 
     public record KustoTableIndexInput(string DatabaseName, string TableName);
 
-    public record KustoTableIndexColumnMetadata(IEnumerable<string> LogMessageColumnNames, IEnumerable<KustoColumnMetadata> ColumnMetadata);
+    public record KustoTableIndexColumnMetadata(IEnumerable<string> LogMessageColumnNames, IEnumerable<KustoColumnMetadata> ColumnMetadata, string TimeStampColumn);
 
-    public record KustoTableIndexColumnDescriptionInput(string DatabaseName, string TableName, string ColumnName, IEnumerable<string> ContextColumnNames);
+    public record KustoTableIndexColumnDescriptionInput(string DatabaseName, string TableName, string ColumnName, IEnumerable<string> ContextColumnNames, string TimeStampColumn);
 
     public record KustoTableIndexSummaryInput(Uri ClusterUri, string DatabaseName, string TableName, KustoTableIndexColumnMetadata Columns);
 
@@ -78,7 +78,8 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
                                                 tableIndexInput.DatabaseName,
                                                 tableIndexInput.TableName,
                                                 column.Name,
-                                                columnMetadata.LogMessageColumnNames));
+                                                columnMetadata.LogMessageColumnNames,
+                                                columnMetadata.TimeStampColumn));
 
                                         if (!string.IsNullOrEmpty(description))
                                         {
@@ -104,7 +105,7 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
                                     }
                                 }
 
-                                KustoTableIndexColumnMetadata updatedMetaData = new KustoTableIndexColumnMetadata(columnMetadata.LogMessageColumnNames, updatedColumnMetaData);
+                                KustoTableIndexColumnMetadata updatedMetaData = new KustoTableIndexColumnMetadata(columnMetadata.LogMessageColumnNames, updatedColumnMetaData, columnMetadata.TimeStampColumn);
 
                                 await context.CallKustoTableIndexSummarizeAndUploadActivityAsync(new KustoTableIndexSummaryInput(clusterDetails.ClusterUri, tableIndexInput.DatabaseName, tableIndexInput.TableName, updatedMetaData));
 
@@ -212,11 +213,18 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
 
             IEnumerable<KustoColumnMetadata> columnMetadata = await KustoTableIndexerDataConnector.KustoSummarizer!.GetTableSchemaAsync(input.DatabaseName, input.TableName);
 
+            string timeStampColumn = await KustoTableIndexerDataConnector.KustoSummarizer!.DiscoverTimeStampColumnsAsync(input.DatabaseName, input.TableName, columnMetadata);
+
+            if (string.IsNullOrEmpty(timeStampColumn))
+            {
+                throw new InvalidOperationException($"No timestamp column found for {input.DatabaseName}, {input.TableName}.");
+            }
+
             _logger.LogInternalInformation("Getting log message column names for {DatabaseName}, {TableName}", input.DatabaseName, input.TableName);
 
-            IEnumerable<string> logMessageColumnNames = await KustoTableIndexerDataConnector.KustoSummarizer!.DiscoverLogMessageColumnsAsync(input.DatabaseName, input.TableName, columnMetadata.Select(x => x.Name));
+            IEnumerable<string> logMessageColumnNames = await KustoTableIndexerDataConnector.KustoSummarizer!.DiscoverLogMessageColumnsAsync(input.DatabaseName, input.TableName, columnMetadata.Select(x => x.Name), timeStampColumn);
 
-            return new KustoTableIndexColumnMetadata(logMessageColumnNames, columnMetadata);
+            return new KustoTableIndexColumnMetadata(logMessageColumnNames, columnMetadata, timeStampColumn);
         }
     }
 
@@ -234,7 +242,7 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
         {
             _logger.LogInternalInformation("Getting description for column {ColumnName} for {DatabaseName}, {TableName}", input.ColumnName, input.DatabaseName, input.TableName);
 
-            return await KustoTableIndexerDataConnector.KustoSummarizer!.CreateColumnDescriptionAsync(input.DatabaseName, input.TableName, input.ColumnName, input.ContextColumnNames);
+            return await KustoTableIndexerDataConnector.KustoSummarizer!.CreateColumnDescriptionAsync(input.DatabaseName, input.TableName, input.ColumnName, input.ContextColumnNames, input.TimeStampColumn);
         }
     }
 
@@ -263,7 +271,7 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
             List<KustoLogMessageSamples> logMessageSamples = new List<KustoLogMessageSamples>(input.Columns.LogMessageColumnNames.Count());
             foreach (string logMessageColumn in input.Columns.LogMessageColumnNames)
             {
-                string logData = await KustoTableIndexerDataConnector.KustoSummarizer!.GetLogMessageSamplesAsync(input.DatabaseName, input.TableName, logMessageColumn);
+                string logData = await KustoTableIndexerDataConnector.KustoSummarizer!.GetLogMessageSamplesAsync(input.DatabaseName, input.TableName, logMessageColumn, input.Columns.TimeStampColumn);
 
                 if (!string.IsNullOrEmpty(logData))
                 {

@@ -72,7 +72,7 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
             throw new InvalidOperationException("Failed to execute query after multiple attempts.");
         }
 
-        public async Task<string> GetLogMessageSamplesAsync(string databaseName, string tableName, string logMessageColumnName)
+        public async Task<string> GetLogMessageSamplesAsync(string databaseName, string tableName, string logMessageColumnName, string timestampColumnName)
         {
             const string columnSummaryPrompt =
                 $$"""
@@ -106,13 +106,13 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
                 return string.Empty;
             }
 
-            // This query does some de-duplication of log messages by taking the first 10 characters of the log message and summarizing by that substring
+            // This query does some de-duplication of log messages by taking the first 15 characters of the log message and summarizing by that substring
             // The LLM will further de-duplicate the messages based on the context it has
             using IDataReader dataReader = await PerformQueryAsync(
                 databaseName,
                 $$"""
                 {{tableName}}
-                    | where PreciseTimeStamp > ago (7d)
+                    | where {{timestampColumnName}} > ago (7d)
                     | where isnotempty({{logMessageColumnName}})
                     | project {{logMessageColumnName}}
                     | extend sub1 = substring({{logMessageColumnName}}, 0, 15)
@@ -296,7 +296,7 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
             return $"['{columnName}']";
         }
 
-        public async Task<string> CreateColumnDescriptionAsync(string databaseName, string tableName, string columnName, IEnumerable<string> contextColumns)
+        public async Task<string> CreateColumnDescriptionAsync(string databaseName, string tableName, string columnName, IEnumerable<string> contextColumns, string timestampColumnName)
         {
             IEnumerable<string> contextColumnsWrapped = contextColumns
                     .Where(x => !string.Equals(x, columnName))
@@ -309,7 +309,7 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
 
             using IDataReader dataReader = await PerformQueryAsync(
                 databaseName,
-                $"{tableName} | where isnotempty({WrapColumnName(columnName)}) and TIMESTAMP > ago(14d) | project {selectColumns} | sample 1000 | distinct {selectColumns} | take 100");
+                $"{tableName} | where isnotempty({WrapColumnName(columnName)}) and {timestampColumnName} > ago(14d) | project {selectColumns} | sample 1000 | distinct {selectColumns} | take 100");
 
             KustoQueryResult result = new KustoQueryResult(dataReader, string.Empty);
 
@@ -333,23 +333,123 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
             return await SendToModel(query.ToString());
         }
 
-        public async Task<IEnumerable<string>> DiscoverLogMessageColumnsAsync(string databaseName, string tableName, IEnumerable<string> columnNames)
+        public async Task<string> DiscoverTimeStampColumnsAsync(string databaseName, string tableName, IEnumerable<KustoColumnMetadata> columnMetadata, CancellationToken cancellationToken = default)
+        {
+            _logger.LogInternalInformation("Getting timestamp columns for table: {TableName}", tableName);
+
+            List<string> badColumns = new List<string>();
+            for (int i = 0; i < 3; ++i)
+            {
+                StringBuilder sb = new StringBuilder(
+                    """
+                    # Instructions
+                    Given the following list of Kusto table column schema and sample data, identify the column that is most likely to represent a timestamp indicating the exact moment the log entry was generated.
+
+                    If there are multiple columns that could represent a timestamp, use the following preferences in order of priority:
+                    1. Prefer a column that has a type of 'datetime' over any other type.
+                    2. If there are multiple columns of type 'datetime', prefer a column that has a high precision.
+
+                    Return ONLY the name of ONE column wrapped in ['']. If the only column that could represent a timestamp is not of type 'datetime', return the name of that column anyway and wrap it in todatetime([''])
+
+                    If no column can be identified as a timestamp, return an empty string.
+
+                    """);
+
+                if (badColumns.Count > 0)
+                {
+                    sb.AppendLine($"Note: Ignore the following columns as they are not good timestamp columns: {string.Join(',', badColumns)}");
+                }
+
+                sb.AppendLine();
+                sb.AppendLine("# Column schema");
+                sb.AppendLine();
+
+                foreach (KustoColumnMetadata column in columnMetadata)
+                {
+                    sb.AppendLine(CultureInfo.InvariantCulture, $"Column: {column.Name}, Type: {column.Type}");
+                }
+
+                using (IDataReader dataReader = await _kustoClient.PerformQueryAsync(
+                    _clusterUri.ToString(),
+                    databaseName,
+                    $"{tableName} | take 1",
+                    cancellationToken))
+                {
+                    KustoQueryResult kustoSampleData = new KustoQueryResult(dataReader, string.Empty);
+
+                    sb.AppendLine();
+                    sb.AppendLine("# Sample data from the table");
+                    sb.AppendLine();
+                    sb.AppendLine(kustoSampleData.Result);
+                }
+
+                string timeStampColumn = await SendToModel(sb.ToString());
+
+                _logger.LogInternalInformation("Iteration {Iteration}: Got timestamp column: {Column}. Trying it out..", i, timeStampColumn);
+
+                // test the timeStampColumn to make sure it's valid
+                try
+                {
+                    using IDataReader dataReader = await _kustoClient.PerformQueryAsync(
+                        _clusterUri.ToString(),
+                        databaseName,
+                        $"{tableName} | where {timeStampColumn} > ago(7d) | take 1",
+                        cancellationToken);
+
+                    int rowCount = 0;
+                    while (dataReader.Read())
+                    {
+                        ++rowCount;
+                    }
+
+                    if (rowCount == 1)
+                    {
+                        _logger.LogInternalInformation("Iteration {Iteration}: Timestamp column: {Column} looks good.", i, timeStampColumn);
+
+                        return timeStampColumn;
+                    }
+
+                    _logger.LogInternalInformation("Iteration {Iteration}: Timestamp column: {Column} - no rows returned. Trying again.", i, timeStampColumn);
+
+                    badColumns.Add(timeStampColumn);
+                }
+                catch (OperationCanceledException ex) when (ex.CancellationToken == cancellationToken)
+                {
+                    throw;
+                }
+                catch (KustoRequestException ex)
+                {
+                    _logger.LogInternalInformation("Iteration {Iteration}: Query with timestamp column: {Column} was invalid. Reason: {Message}", i, timeStampColumn, ex.Message);
+
+                    badColumns.Add(timeStampColumn);
+                }
+                catch (Exception ex)
+                {
+                    // some other error, try again
+                    _logger.LogInternalWarning(ex, "Iteration {Iteration}: Failed to run query with timestamp column: {Column}. Reason: {Message}", i, timeStampColumn, ex.Message);
+                }
+            }
+
+            return string.Empty;
+        }
+
+        public async Task<IEnumerable<string>> DiscoverLogMessageColumnsAsync(string databaseName, string tableName, IEnumerable<string> columnNames, string timeStampColumnName)
         {
             _logger.LogInternalInformation("Getting message columns for table: {TableName}", tableName);
 
             using IDataReader dataReader = await _kustoClient.PerformQueryAsync(
                 _clusterUri.ToString(),
                 databaseName,
-                $" {tableName} | where TIMESTAMP > ago(7d) | sample 100");
+                $" {tableName} | where {timeStampColumnName} > ago(7d) | sample 100");
 
             KustoQueryResult kustoSampleData = new KustoQueryResult(dataReader, string.Empty);
 
             string badColumns = string.Empty;
             string question =
                 """
-                    Based on the provided data, which columns in the following table data have a textual log message that describes in plain language what happened in each event?
-                    There may be more than one, or there may be none. Respond with only the names of the column separated by commas and nothing else.
-                    """;
+                Based on the provided data, which columns in the following table data have a textual log message that describes in plain language what happened in each event?
+                There may be more than one, or there may be none. Respond with only the names of the column separated by commas and nothing else.
+                """;
 
             for (int i = 0; i < 3; ++i)
             {
