@@ -127,7 +127,7 @@ public class AuthenticationService : IAuthenticationService
             return GetDefaultAzureCredential();
         }
 
-        return GetWorkloadIdentityCredential(_federationSettings.ClientId, _federationSettings.TenantId, _federationSettings.AuthorityHost);
+        return GetManagedIdentityCredential(GetActionIdentity());
     }
 
     public TokenCredential GetAgentHelperCredential()
@@ -137,7 +137,7 @@ public class AuthenticationService : IAuthenticationService
             return GetDefaultAzureCredential();
         }
 
-        return GetWorkloadIdentityCredential(_federationSettings.ClientId, _federationSettings.TenantId, _federationSettings.AuthorityHost);
+        return GetManagedIdentityCredential(GetActionIdentity());
     }
     #endregion
 
