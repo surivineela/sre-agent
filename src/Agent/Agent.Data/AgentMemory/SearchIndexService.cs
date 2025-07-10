@@ -13,8 +13,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Agent.Data.AgentMemory;
 
-
-public class SearchIndexService
+public class SearchIndexService : ISearchIndexService
 {
     private readonly SearchClient _searchClient;
     private readonly SearchIndexClient _indexClient;

@@ -86,14 +86,14 @@ public static class AgentMemoryConfiguration
             });
 
             serviceCollection.AddSingleton<IAgentMemoryClient, AgentMemoryClient>();
-            serviceCollection.AddSingleton<SearchIndexService>();
+            serviceCollection.AddSingleton<ISearchIndexService, SearchIndexService>();
         }
         else
         {
             // If agent memory is not enabled, register a dummy implementation
             serviceCollection.AddSingleton<IAgentMemoryClient, DummyAgentMemoryClient>();
-            // TODO: Register a dummy search service, or DI would fail when trying to resolve SearchIndexService
-            serviceCollection.AddSingleton<SearchIndexService>();
+
+            serviceCollection.AddSingleton<ISearchIndexService, DummySearchIndexService>();
         }
 
 

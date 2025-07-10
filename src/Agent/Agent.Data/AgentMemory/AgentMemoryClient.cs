@@ -23,7 +23,7 @@ public class AgentMemoryClient(ILogger<AgentMemoryClient> logger,
                                IHostEnvironment hostEnvironment,
                                AgentMemorySettings agentMemorySettings,
                                OpenAISettings openAISettings,
-                               SearchIndexService searchIndexService) : IAgentMemoryClient
+                               ISearchIndexService searchIndexService) : IAgentMemoryClient
 {
     private readonly string blobContainerName = string.IsNullOrEmpty(agentMemorySettings.BlobStorageContainerName)
         ? AgentNameHelper.GetCustomerUploadedDocumentBlobContainerName(hostEnvironment.IsProduction())

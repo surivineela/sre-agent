@@ -36,7 +36,7 @@ public class ThreadEvaluator
     private readonly bool _agentMemoryEnabled;
     private readonly bool _saveOnlyUsefulTrajectories = false;
 
-    private readonly SearchIndexService _searchIndexService;
+    private readonly ISearchIndexService _searchIndexService;
 
     public ThreadEvaluator(
         ILogger<ThreadEvaluator> logger,
@@ -45,7 +45,7 @@ public class ThreadEvaluator
         IAgentMemoryClient memory,
         AgentActionLogger actionLogger,
         Tracer tracer,
-        SearchIndexService searchIndexService,
+        ISearchIndexService searchIndexService,
         TimeSpan? evaluationHistoryRange = null,
         TimeSpan? coolDownPeriod = null)
     {
