@@ -24,6 +24,7 @@ import {
 import axios from 'axios';
 import { memo, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
 import { FaGithub } from 'react-icons/fa';
+import { VscAzureDevops } from 'react-icons/vsc'; // Azure DevOps icon
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
@@ -113,7 +114,6 @@ const ResourceInfo = () => {
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
 
     const { root } = useStyles();
-
     const handleRepositoryLogin = async () => {
         if (!selectedNode?.id) return;
 
@@ -227,6 +227,16 @@ const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode; onGit
         }
     };
 
+    const getRepoIcon = (url: string) => {
+        if (githubRepoRegex.test(url)) {
+            return <FaGithub className={githubIcon} />;
+        }
+        if (azdoRepoRegex.test(url)) {
+            return <VscAzureDevops className={githubIcon} />;
+        }
+        return null;
+    };
+
     return selectedNode ? (
         <div className={infoContent}>
             <Text as="h2" size={600} weight="semibold" className={title}>
@@ -283,7 +293,7 @@ const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode; onGit
                                 {resource?.sourceCodeLinkageStatus ? (
                                     resource.sourceCodeLinkageStatus.status === 'Linked' ? (
                                         <div className={githubButton}>
-                                            <FaGithub className={githubIcon} />
+                                            {getRepoIcon(resource.sourceCodeLinkageStatus.repositoryUrl)}
                                             <Link href={resource.sourceCodeLinkageStatus.repositoryUrl} target="_blank">
                                                 {resource.sourceCodeLinkageStatus.repositoryUrl}
                                             </Link>
@@ -292,7 +302,7 @@ const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode; onGit
                                         <div>
                                             {resource.sourceCodeLinkageStatus.repositoryUrl && (
                                                 <div className={githubButton} style={{ marginBottom: '8px' }}>
-                                                    <FaGithub className={githubIcon} />
+                                                    {getRepoIcon(resource.sourceCodeLinkageStatus.repositoryUrl)}
                                                     <Link href={resource.sourceCodeLinkageStatus.repositoryUrl} target="_blank">
                                                         {resource.sourceCodeLinkageStatus.repositoryUrl}
                                                     </Link>
@@ -301,7 +311,7 @@ const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode; onGit
                                             <Button
                                                 appearance="primary"
                                                 size="small"
-                                                icon={<FaGithub className={githubIcon} />}
+                                                icon={getRepoIcon(resource.sourceCodeLinkageStatus.repositoryUrl)}
                                                 onClick={() => {
                                                     const status = resource?.sourceCodeLinkageStatus;
                                                     if (status?.loginCallbackUrl) {
@@ -329,7 +339,7 @@ const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode; onGit
                                         <Button
                                             appearance="primary"
                                             size="small"
-                                            icon={<FaGithub className={githubIcon} />}
+                                            icon={getRepoIcon(repoUrl)}
                                             onClick={() => setIsLinkDialogOpen(true)}
                                         >
                                             <FormattedMessage {...ResourceInfoResources.connectRepository} />

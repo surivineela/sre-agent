@@ -471,10 +471,21 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
             throw new ArgumentException("Repository URL must be a valid Azure DevOps HTTPS Git URL.", nameof(repositoryUrl));
         }
 
-        resourceId = resourceId.Replace("/", "_").ToLowerInvariant();
-        string linkedRepository = await LinkRepository(resourceId, repositoryUrl);
-        AzureDevOpsAccessToken authToken = await GetToken();
-        var token = await _threadRepository.CreateOrUpdateAzureDevOpsAccessTokenAsync(new(authToken.AccessToken, ExpiresOn: authToken.ExpiresOn), resourceId);
+        // Check if there is already an AzDo token available.
+        var azdoAccessToken = await _threadRepository.GetAzureDevOpsAccessTokenAsync(resourceId);
+        var azdoAccessTokenConfigured = azdoAccessToken != null &&
+            !string.IsNullOrEmpty(azdoAccessToken.AccessToken) &&
+            (azdoAccessToken.ExpiresOn is null || azdoAccessToken.ExpiresOn > DateTime.UtcNow);
+
+        // If not, create one.
+        if (!azdoAccessTokenConfigured)
+        {
+            resourceId = resourceId.Replace("/", "_").ToLowerInvariant();
+            string linkedRepository = await LinkRepository(resourceId, repositoryUrl);
+            AzureDevOpsAccessToken authToken = await GetToken();
+            var token = await _threadRepository.CreateOrUpdateAzureDevOpsAccessTokenAsync(new(authToken.AccessToken, ExpiresOn: authToken.ExpiresOn), resourceId);
+        }
+
         return $"Successfully linked {resourceId} to {repositoryUrl}";
     }
 
