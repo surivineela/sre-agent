@@ -4,6 +4,8 @@ import { IStyle, mergeStyles } from '@fluentui/react/lib/Styling';
 import { TextField } from '@fluentui/react/lib/TextField';
 import { memo, useCallback, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { showAgentMode } from '../../Common/Constants/FeatureFlags';
+import { useFeatureFlag } from '../../Common/Hooks/useFeatureFlag';
 import { ActivitiesResources, PromptResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { IChatBoxFooterProps } from '../Contracts/Activities';
 import { chatInputTextStyles, sendButtonStyles, useChatInputStyles } from '../Styles/Activities.styles';
@@ -25,6 +27,8 @@ const ChatBoxFooter = ({
     const [input, setInput] = useState<string>();
     const [historyIndex, setHistoryIndex] = useState<number>(-1);
     const [originalInput, setOriginalInput] = useState<string>('');
+
+    const showAgentModeSelector = useFeatureFlag(showAgentMode);
 
     const { root, footer, subFooter, chatStatement, sectionHeader, promptItem, lightbulbIcon, sectionDivider, popoverSurface } =
         useChatInputStyles();
@@ -128,7 +132,7 @@ const ChatBoxFooter = ({
                 />
                 <div className={footer}>
                     <div className={subFooter}>
-                        {threadId && <AgentModeSelector threadId={threadId} />}
+                        {showAgentModeSelector && threadId && <AgentModeSelector threadId={threadId} />}
                         <Popover positioning={'after-top'} open={open} onOpenChange={(_e, data) => setOpen(data.open)}>
                             <PopoverTrigger>
                                 <Button
