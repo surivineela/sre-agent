@@ -152,8 +152,8 @@ namespace Agent.Plugins.Definitions
 
         #endregion
 
-        // For Jay's Demo - don't require approvals -- [RequiresApproval]
         [WriteAction]
+        [RequiresApproval]
         [Description(
             "Scales a Container App by adjusting its memory allocation and replica count. Use this to resolve performance or availability issues by increasing resources or scaling out the application.")]
         public async Task<bool> ScaleContainerApp(
