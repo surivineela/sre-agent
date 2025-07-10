@@ -169,6 +169,7 @@ public class Program
         {
             _ = Task.Run(async () =>
             {
+                var logger = app.Services.GetRequiredService<ILogger<Program>>();
                 try
                 {
                     await app.Services.CreateCosmosContainerIfNotExists(app.Configuration);
@@ -179,19 +180,19 @@ public class Program
                         // Only attempt setup if all required settings are configured
                         if (IsAgentMemoryConfigurationValid(agentMemorySettings))
                         {
+                            logger.LogInternalInformation("Agent Memory is enabled and configured. Setting up Agent Memory services...");
                             await app.Services.CreateDocumentBlobContainerIfNotExists();
                             await app.Services.SetupAgentMemoryIndexAsync();
+                            logger.LogInternalInformation("Agent Memory setup completed successfully.");
                         }
                         else
                         {
-                            var logger = app.Services.GetRequiredService<ILogger<Program>>();
                             logger.LogInternalWarning("Agent Memory is enabled but required configuration settings are missing or invalid. Skipping Agent Memory setup.");
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    var logger = app.Services.GetRequiredService<ILogger<Program>>();
                     logger.LogInternalError(ex, "Error during application startup tasks");
                 }
             });
@@ -1243,6 +1244,7 @@ public class Program
                !string.IsNullOrEmpty(settings.AzureAISearchName) &&
                !string.IsNullOrEmpty(settings.AzureAISearchIndexName) &&
                !string.IsNullOrEmpty(settings.AzureAISearchIndexerName) &&
+               !string.IsNullOrEmpty(settings.AzureAISearchSkillSetName) &&
                !string.IsNullOrEmpty(settings.AzureAISearchDataSourceName) &&
                !string.IsNullOrEmpty(settings.ManagedIdentityResourceId);
     }

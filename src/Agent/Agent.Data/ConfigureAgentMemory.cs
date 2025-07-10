@@ -2,13 +2,16 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Data.AgentMemory;
+using Azure.Core.Serialization;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Indexes;
 using Azure.Storage.Blobs;
+using Gremlin.Net.Structure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -46,10 +49,16 @@ public static class AgentMemoryConfiguration
 
                 var hostEnvironment = serviceProvider.GetRequiredService<IHostEnvironment>();
 
+                var searchClientOptions = new SearchClientOptions()
+                {
+                    Serializer = Constants.JsonSerializer
+                };
+
                 return new SearchClient(
                     new Uri($"https://{agentMemorySettings.AzureAISearchName}.{agentMemorySettings.AzureAISearchDomainSuffix}"),
-                    AgentNameHelper.GetCustomerUploadedDocumentIndexName(hostEnvironment.IsProduction()),
-                    tokenCredential);
+                    agentMemorySettings.AzureAISearchIndexName,
+                    tokenCredential,
+                    searchClientOptions);
             });
 
             serviceCollection.AddKeyedSingleton(AgentMemoryIndexClient, (serviceProvider, _) =>
@@ -77,12 +86,16 @@ public static class AgentMemoryConfiguration
             });
 
             serviceCollection.AddSingleton<IAgentMemoryClient, AgentMemoryClient>();
+            serviceCollection.AddSingleton<SearchIndexService>();
         }
         else
         {
             // If agent memory is not enabled, register a dummy implementation
             serviceCollection.AddSingleton<IAgentMemoryClient, DummyAgentMemoryClient>();
+            // TODO: Register a dummy search service, or DI would fail when trying to resolve SearchIndexService
+            serviceCollection.AddSingleton<SearchIndexService>();
         }
+
 
         return serviceCollection;
     }

@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
+using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.AgentMemory;
 using Agent.Logging;
@@ -35,6 +36,8 @@ public class ThreadEvaluator
     private readonly bool _agentMemoryEnabled;
     private readonly bool _saveOnlyUsefulTrajectories = false;
 
+    private readonly SearchIndexService _searchIndexService;
+
     public ThreadEvaluator(
         ILogger<ThreadEvaluator> logger,
         IThreadRepository threadRepository,
@@ -42,6 +45,7 @@ public class ThreadEvaluator
         IAgentMemoryClient memory,
         AgentActionLogger actionLogger,
         Tracer tracer,
+        SearchIndexService searchIndexService,
         TimeSpan? evaluationHistoryRange = null,
         TimeSpan? coolDownPeriod = null)
     {
@@ -53,6 +57,7 @@ public class ThreadEvaluator
         _memory = memory;
 
         _agentMemoryEnabled = _memory is not DummyAgentMemoryClient;
+        _searchIndexService = searchIndexService;
 
         // Allow overriding default time windows
         _evaluationHistoryRange = evaluationHistoryRange ?? TimeSpan.FromHours(24);
@@ -216,6 +221,29 @@ public class ThreadEvaluator
                 var trajectoryInfo = await TrajectoryExtractor.GenerateTrajectoryAsync(_chatClient, chatMessages, cancellationToken);
 
                 await SaveTrajectoryAsync(thread.Id, trajectoryInfo.Trajectory, trajectoryInfo.PromptHash, cancellationToken);
+
+                // Index the trajectory right away
+                try
+                {
+                    var trajectoryOutput = JsonSerializer.Deserialize<TrajectoryOutput>(trajectoryInfo.Trajectory);
+                    if (trajectoryOutput != null)
+                    {
+                        var trajectoryContent = new TrajectoryContent(
+                            conversationId: thread.Id.ToString(),
+                            trajectoryData: trajectoryOutput,
+                            additionalMetadata: new Dictionary<string, object>
+                            {
+                                ["indexed_at"] = DateTime.UtcNow,
+                                ["parent_id"] = thread.Id.ToString()
+                            });
+
+                        await _searchIndexService.IndexContentAsync(trajectoryContent);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalWarning(ex, $"Failed to index trajectory for thread {thread.Id}");
+                }
             }
 
             var evaluationResult = new ThreadEvaluateResult(

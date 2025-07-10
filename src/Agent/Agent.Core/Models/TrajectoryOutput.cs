@@ -4,7 +4,7 @@
 
 using System.ComponentModel;
 
-namespace Agent.Runtime.ThreadEvaluator;
+namespace Agent.Core.Models;
 
 public sealed class TrajectoryOutput
 {

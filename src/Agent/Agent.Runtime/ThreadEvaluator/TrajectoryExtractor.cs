@@ -5,6 +5,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using Agent.Framework;
+using Agent.Core.Models;
 using Microsoft.Extensions.AI;
 using ChatClientExtensions = Agent.Framework.ChatClientExtensions;
 
@@ -48,7 +49,7 @@ public static class TrajectoryExtractor
                 Temperature = 0,
             },
             cancellationToken: cancellationToken);
-        
+
         return (extractedTrajectory.Text, LkgPromptHash);
     }
 
@@ -58,19 +59,19 @@ public static class TrajectoryExtractor
         into a compact investigation playbook.
         You MUST rely **only** on the messages provided between <chat> … </chat>.
         NO external knowledge. NO new facts. If data is missing, write "Unknown". Be concise.
-        Generalise away low-level or sensitive detail (e.g., IPs, NSG rule text, full resource IDs). 
-        Replace with placeholders like <NSG-Rule>, <ResourceID>, <IP-Addr>.  
+        Generalise away low-level or sensitive detail (e.g., IPs, NSG rule text, full resource IDs).
+        Replace with placeholders like <NSG-Rule>, <ResourceID>, <IP-Addr>.
 
         Think step-by-step using ReasoningScratchPad to capture your thoughts:
 
-        1. Parse the user's final intent from the last user message.  
+        1. Parse the user's final intent from the last user message.
         2. Extract the *initial symptoms* explicity mentioned by the user.
-        3. Skim the entire chat for key facts, decisions, tool calls, errors, fixes.  
-        4. Map the **investigation steps** into a **decision tree** (tool used + branch logic). 
-        5. Document the additional symptoms of problems that you observe.  
+        3. Skim the entire chat for key facts, decisions, tool calls, errors, fixes.
+        4. Map the **investigation steps** into a **decision tree** (tool used + branch logic).
+        5. Document the additional symptoms of problems that you observe.
         6. Capture any system design or general knowledge explained in the chat
-        7. Decide the most likely root cause & recommended next actions. Think step by step on why they are the most likely root cause or recommended next actions.  
-        8. Document pitfalls and unlikely paths that the agent has explored and that the team should remember next time.  
+        7. Decide the most likely root cause & recommended next actions. Think step by step on why they are the most likely root cause or recommended next actions.
+        8. Document pitfalls and unlikely paths that the agent has explored and that the team should remember next time.
         9. **EVALUATE USEFULNESS**: Determine if this trajectory contains valuable knowledge worth saving for future reference.
 
         A trajectory is **USEFUL** if it contains:
@@ -94,13 +95,13 @@ public static class TrajectoryExtractor
         • One line per step, formatted:
             "<action> - <tool> – <expected signal / observation placeholder>"
 
-          – *Tool*  → the interface to use (kubectl, az, kusto, ping, curl…).  
-          – *Medium-grain action*  
-              · Specific enough to be executable (“list NSG rules”, “run test-connectivity”),  
-                but NOT tied to a single instance name or ID unless essential.  
+          – *Tool*  → the interface to use (kubectl, az, kusto, ping, curl…).
+          – *Medium-grain action*
+              · Specific enough to be executable (“list NSG rules”, “run test-connectivity”),
+                but NOT tied to a single instance name or ID unless essential.
               · Avoid vague verbs like “investigate networking” (too broad) and
                 over-specific commands like “check inbound rule port 6379 on
-                vnet-prod-westus-subnet-app” (too narrow).  
+                vnet-prod-westus-subnet-app” (too narrow).
           – *Expected signal* → what to look for; keeps the agent outcome-oriented.
 
         • Keep nouns generic where possible (“target Redis cache”, “app subnet NSG”),

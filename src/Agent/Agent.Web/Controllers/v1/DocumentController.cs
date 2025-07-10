@@ -2,9 +2,11 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json;
+using Agent.Core.Models;
 using Agent.Data.AgentMemory;
-using Agent.Logging;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.AI;
 
 namespace Agent.Web.Controllers.v1
 {
@@ -12,7 +14,9 @@ namespace Agent.Web.Controllers.v1
     [ApiController]
     [Route("api/v1/[controller]")]
     public class DocumentController(ILogger<DocumentController> logger,
-                                    IAgentMemoryClient agentMemoryClient) : ControllerBase
+                                    IAgentMemoryClient agentMemoryClient,
+                                    IEmbeddingGenerator<string, Embedding<float>> embeddingGenerator,
+                                    SearchIndexService searchIndexService) : ControllerBase
     {
         private HashSet<string> allowedExtensions = [".md", ".txt"];
 
@@ -120,11 +124,56 @@ namespace Agent.Web.Controllers.v1
             }
         }
 
+        [HttpPost("indexTrajectory")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> IndexTrajectory([FromBody] TrajectoryOutput trajectoryOutput)
+        {
+            logger.LogInternalInformation($"Received trajectory for indexing");
+
+            try
+            {
+                var embedding = await embeddingGenerator.GenerateVectorAsync(trajectoryOutput.SymptomsObserved);
+                var memory = new AgentMemory
+                {
+                    Id = Guid.NewGuid().ToString(), // Generate a new ID since we don't have thread context
+                    Type = "trajectory",
+                    Title = trajectoryOutput.Title,
+                    ChunkId = "",
+                    ParentId = "",
+                    Chunk = JsonSerializer.Serialize(trajectoryOutput, new JsonSerializerOptions { WriteIndented = true }),
+                    ResourceIds = trajectoryOutput.ResourcesInvolved?.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList() ?? [],
+                    ResourceTypes = trajectoryOutput.ResourceTypesInvolved?.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList() ?? [],
+                    RootCause = trajectoryOutput.RootCause ?? string.Empty,
+                    SymptomsObserved = trajectoryOutput.SymptomsObserved ?? string.Empty,
+                    InitialSymptoms = trajectoryOutput.InitialSymptoms ?? string.Empty,
+                    StepsFollowed = trajectoryOutput.StepsFollowed ?? string.Empty,
+                    IndexedAt = DateTimeOffset.UtcNow,
+                    Vector = [..embedding.Span],
+                };
+
+                var result = await searchIndexService.IndexContentAsync(memory);
+
+                if (!result)
+                {
+                    return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Failed to index trajectory content." });
+                }
+
+                return Ok(new { message = "Trajectory indexed successfully." });
+            }
+            catch (Exception ex)
+            {
+                logger.LogInternalError(ex, "Failed to index trajectory.");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { error = $"Failed to index trajectory: {ex.Message}" });
+            }
+        }
+
         [HttpGet()]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> SearchDocuments([FromQuery] string query, [FromQuery] uint k = 5, [FromQuery] float? vectorSimilarityThreshold = null, [FromQuery] bool enableHybridSearch = false)
+        public async Task<IActionResult> SearchDocuments([FromQuery] string query, [FromQuery] string? filter = null, [FromQuery] uint k = 5, [FromQuery] float? vectorSimilarityThreshold = null, [FromQuery] bool enableHybridSearch = false)
         {
             if (string.IsNullOrWhiteSpace(query) || k <= 0)
             {
@@ -133,7 +182,30 @@ namespace Agent.Web.Controllers.v1
 
             try
             {
-                var results = await agentMemoryClient.SearchCustomerDocumentsAsync(query: query, k: k, vectorSimilarityThreshold: vectorSimilarityThreshold, enableHybridSearch: enableHybridSearch);
+                var results = await agentMemoryClient.SearchCustomerDocumentsAsync(query: query, k: k, filter: filter, vectorSimilarityThreshold: vectorSimilarityThreshold, enableHybridSearch: enableHybridSearch);
+                return Ok(new { results });
+            }
+            catch (Exception ex)
+            {
+                logger.LogInternalError(ex, "Failed to search documents.");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Failed to search documents." });
+            }
+        }
+
+        [HttpGet("trajectories")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> SearchTrajectories([FromQuery] string query, [FromQuery] string? filter = null, [FromQuery] uint k = 5, [FromQuery] float? vectorSimilarityThreshold = null, [FromQuery] bool enableHybridSearch = false)
+        {
+            if (string.IsNullOrWhiteSpace(query) || k <= 0)
+            {
+                return BadRequest(new { error = "Query must be provided and k must be greater than 0." });
+            }
+
+            try
+            {
+                var results = await agentMemoryClient.SearchTrajectoriesAsync(query: query, k: k, filter: filter, vectorSimilarityThreshold: vectorSimilarityThreshold, enableHybridSearch: enableHybridSearch);
                 return Ok(new { results });
             }
             catch (Exception ex)

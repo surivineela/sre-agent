@@ -12,7 +12,6 @@ public class DummyAgentMemoryClient() : IAgentMemoryClient
         // Dummy implementation for testing purposes
         return Task.FromResult(true);
     }
-
     public Task SetupIndexerAsync()
     {
         // Dummy implementation for testing purposes
@@ -36,5 +35,10 @@ public class DummyAgentMemoryClient() : IAgentMemoryClient
     {
         // Dummy implementation for testing purposes
         return Task.FromResult<IList<SearchDocumentResult>>(new List<SearchDocumentResult>());
+    }
+
+    public Task<IList<SearchDocumentResult>> SearchTrajectoriesAsync(string query, uint k = 5, float? vectorSimilarityThreshold = null, bool exhaustiveKnn = false, string? filter = null, bool enableHybridSearch = false, CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult<IList<SearchDocumentResult>>([]);
     }
 }

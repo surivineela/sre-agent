@@ -1,0 +1,58 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Azure.Search.Documents.Indexes;
+using Azure.Search.Documents.Indexes.Models;
+
+namespace Agent.Data.AgentMemory;
+
+public class AgentMemory
+{
+    [SearchableField(IsKey = true, IsFilterable = true, AnalyzerName = LexicalAnalyzerName.Values.Keyword)]
+    public string Id { get; set; } = string.Empty;
+
+    // The type of content this represents (e.g., "document", "trajectory")
+    [SearchableField(IsFilterable = true, IsSortable = true, IsFacetable = true)]
+    public string Type { get; set; } = string.Empty;
+
+    [SearchableField(IsFilterable = true, IsFacetable = true, IsSortable = true, AnalyzerName = LexicalAnalyzerName.Values.EnLucene)]
+    public string Title { get; set; } = string.Empty;
+
+    [SearchableField(IsFilterable = true, IsSortable = true, IsFacetable = true, AnalyzerName = LexicalAnalyzerName.Values.Keyword)]
+    public string ChunkId { get; set; } = string.Empty;
+
+    [SearchableField(IsFilterable = true, IsFacetable = true)]
+    public string ParentId { get; set; } = string.Empty;
+
+    // document or trajectory content
+    [SearchableField]
+    public string Chunk { get; set; } = string.Empty;
+
+    [VectorSearchField(VectorSearchDimensions = 1536, VectorSearchProfileName = Constants.VectorSearchHnswProfile, IsHidden = true)]
+    public List<float> Vector { get; set; } = [];
+
+    // Fields for trajectory-specific metadata
+    [SearchableField(IsFilterable = true, IsFacetable = true)]
+    public List<string> ResourceTypes { get; set; } = [];
+
+    [SearchableField(IsFilterable = true, IsFacetable = true)]
+    public List<string> ResourceIds { get; set; } = [];
+
+    [SearchableField]
+    public string RootCause { get; set; } = string.Empty;
+
+    [SearchableField]
+    public string InitialSymptoms { get; set; } = string.Empty;
+
+    [SearchableField]
+    public string StepsFollowed { get; set; } = string.Empty;
+
+    [SearchableField]
+    public string SymptomsObserved { get; set; } = string.Empty;
+
+    // Common metadata field for all indexable content
+    [SimpleField(IsSortable = true)]
+    public DateTimeOffset IndexedAt { get; set; } = DateTimeOffset.UtcNow;
+}
+

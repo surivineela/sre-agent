@@ -18,12 +18,12 @@ namespace Agent.Data.AgentMemory;
 
 public class AgentMemoryClient(ILogger<AgentMemoryClient> logger,
                                [FromKeyedServices(AgentMemoryConfiguration.AgentMemoryBlobClient)] BlobServiceClient agentBlobClient,
-                               [FromKeyedServices(AgentMemoryConfiguration.AgentMemoryIndexClient)] SearchIndexClient indexClient,
                                [FromKeyedServices(AgentMemoryConfiguration.AgentMemoryIndexerClient)] SearchIndexerClient indexerClient,
                                [FromKeyedServices(AgentMemoryConfiguration.AgentMemoryAISearchClient)] SearchClient searchClient,
                                IHostEnvironment hostEnvironment,
                                AgentMemorySettings agentMemorySettings,
-                               OpenAISettings openAISettings) : IAgentMemoryClient
+                               OpenAISettings openAISettings,
+                               SearchIndexService searchIndexService) : IAgentMemoryClient
 {
     private readonly string blobContainerName = string.IsNullOrEmpty(agentMemorySettings.BlobStorageContainerName)
         ? AgentNameHelper.GetCustomerUploadedDocumentBlobContainerName(hostEnvironment.IsProduction())
@@ -32,7 +32,6 @@ public class AgentMemoryClient(ILogger<AgentMemoryClient> logger,
     private readonly string aiSearchIndexName = agentMemorySettings.AzureAISearchIndexName;
     private readonly string aiSearchIndexerName = agentMemorySettings.AzureAISearchIndexerName;
     private readonly string aiSearchSkillsetName = agentMemorySettings.AzureAISearchSkillSetName;
-    private const string semanticSearchConfig = "semanticConfig";
     // Maximum number of results to return in a search query
     private const uint maxK = 100;
 
@@ -108,8 +107,7 @@ public class AgentMemoryClient(ILogger<AgentMemoryClient> logger,
         {
             // Create or update the search index
             logger.LogInternalInformation("Creating/updating search index...");
-            var index = GetDocumentIndex();
-            await indexClient.CreateOrUpdateIndexAsync(index);
+            await searchIndexService.CreateOrUpdateIndexAsync();
             logger.LogInternalInformation("Search index created/updated successfully");
 
             // Create or update data source connection
@@ -165,7 +163,7 @@ public class AgentMemoryClient(ILogger<AgentMemoryClient> logger,
             {
                 IndexProjection = new SearchIndexerIndexProjection(new[]
                 {
-                    new SearchIndexerIndexProjectionSelector(index.Name, parentKeyFieldName: "parent_id", sourceContext: "/document/pages/*", mappings: new[]
+                    new SearchIndexerIndexProjectionSelector(aiSearchIndexName, parentKeyFieldName: "parent_id", sourceContext: "/document/pages/*", mappings: new[]
                     {
                         new InputFieldMappingEntry("chunk")
                         {
@@ -193,7 +191,7 @@ public class AgentMemoryClient(ILogger<AgentMemoryClient> logger,
 
             // Create or update indexer
             logger.LogInternalInformation("Creating/updating indexer...");
-            var indexer = new SearchIndexer(aiSearchIndexerName, dataSource.Name, index.Name)
+            var indexer = new SearchIndexer(aiSearchIndexerName, dataSource.Name, aiSearchIndexName)
             {
                 Description = "Indexer to chunk documents, generate embeddings, and add to the index",
                 Schedule = new IndexingSchedule(TimeSpan.FromDays(1))
@@ -218,79 +216,6 @@ public class AgentMemoryClient(ILogger<AgentMemoryClient> logger,
         }
     }
 
-
-    internal SearchIndex GetDocumentIndex()
-    {
-        const string vectorSearchHnswProfile = "hnswProfile";
-        const string vectorSearchExhasutiveKnnProfile = "exhaustiveKnnProfile";
-        const string vectorSearchHnswConfig = "hnswConfig";
-        const string vectorSearchExhaustiveKnnConfig = "exhaustiveKnn";
-        const string vectorSearchVectorizer = "openAIVectorizer";
-        const int modelDimensions = 1536;
-
-        SearchIndex searchIndex = new(aiSearchIndexName)
-        {
-            VectorSearch = new()
-            {
-                Profiles =
-                {
-                    new VectorSearchProfile(vectorSearchHnswProfile, vectorSearchHnswConfig)
-                    {
-                        VectorizerName = vectorSearchVectorizer
-                    },
-                    new VectorSearchProfile(vectorSearchExhasutiveKnnProfile, vectorSearchExhaustiveKnnConfig)
-                },
-                Algorithms =
-                {
-                    new HnswAlgorithmConfiguration(vectorSearchHnswConfig),
-                    new ExhaustiveKnnAlgorithmConfiguration(vectorSearchExhaustiveKnnConfig)
-                },
-                Vectorizers =
-                {
-                    new AzureOpenAIVectorizer(vectorSearchVectorizer)
-                    {
-                        Parameters = new AzureOpenAIVectorizerParameters()
-                        {
-                            ResourceUri = new Uri(openAISettings.Endpoint),
-                            DeploymentName = openAISettings.EmbeddingGeneratorDeploymentName,
-                            ModelName = openAISettings.EmbeddingGeneratorModelName,
-                            AuthenticationIdentity = new SearchIndexerDataUserAssignedIdentity(new ResourceIdentifier(agentMemorySettings.ManagedIdentityResourceId))
-                        }
-                    }
-                }
-            },
-            SemanticSearch = new()
-            {
-                Configurations =
-                {
-                    new SemanticConfiguration(semanticSearchConfig, new()
-                    {
-                        TitleField = new SemanticField(fieldName: "title"),
-                        ContentFields =
-                        {
-                            new SemanticField(fieldName: "chunk")
-                        },
-                    })
-                },
-            },
-            Fields =
-            {
-                new SearchableField("parent_id") { IsFilterable = true, IsSortable = true, IsFacetable = true },
-                new SearchableField("chunk_id") { IsKey = true, IsFilterable = true, IsSortable = true, IsFacetable = true, AnalyzerName = LexicalAnalyzerName.Keyword },
-                new SearchableField("title"),
-                new SearchableField("chunk"),
-                new SearchField("vector", SearchFieldDataType.Collection(SearchFieldDataType.Single))
-                {
-                    IsSearchable = true,
-                    VectorSearchDimensions = modelDimensions,
-                    VectorSearchProfileName = vectorSearchHnswProfile
-                },
-                new SearchableField("category") { IsFilterable = true, IsSortable = true, IsFacetable = true },
-            },
-        };
-
-        return searchIndex;
-    }
 
     public async Task<IList<SearchDocumentResult>> SearchCustomerDocumentsAsync(
         string query,
@@ -323,7 +248,7 @@ public class AgentMemoryClient(ILogger<AgentMemoryClient> logger,
         searchOptions.QueryType = SearchQueryType.Semantic;
         searchOptions.SemanticSearch = new SemanticSearchOptions
         {
-            SemanticConfigurationName = semanticSearchConfig,
+            SemanticConfigurationName = Constants.SemanticSearchConfig,
             // QueryCaption = new QueryCaption(QueryCaptionType.Extractive),
             // QueryAnswer = new QueryAnswer(QueryAnswerType.Extractive)
         };
@@ -341,5 +266,50 @@ public class AgentMemoryClient(ILogger<AgentMemoryClient> logger,
         }
 
         return results;
+    }
+
+    public async Task<IList<SearchDocumentResult>> SearchTrajectoriesAsync(string query, uint k = 5, float? vectorSimilarityThreshold = null, bool exhaustiveKnn = false, string? filter = null, bool enableHybridSearch = false, CancellationToken cancellationToken = default)
+    {
+        var searchOptions = new SearchOptions
+        {
+            Filter = "type eq 'trajectory' " + (string.IsNullOrEmpty(filter) ? "" : $"and ({filter})"),
+            Size = (int)Math.Min(k, maxK),
+            Select = { "title", "chunk_id", "chunk", "symptoms_observed", "root_cause", "indexed_at", "steps_followed" },
+            IncludeTotalCount = true,
+            VectorSearch = new VectorSearchOptions(),
+        };
+
+        searchOptions.VectorSearch.Queries.Add(new VectorizableTextQuery(query)
+        {
+            KNearestNeighborsCount = (int)Math.Min(k, maxK),
+            Exhaustive = exhaustiveKnn,
+            Fields = { "vector" },
+            Threshold = vectorSimilarityThreshold.HasValue && vectorSimilarityThreshold.Value >= -1 && vectorSimilarityThreshold.Value <= 1
+                ? new VectorSimilarityThreshold(vectorSimilarityThreshold.Value)
+                : null,
+        });
+
+        searchOptions.QueryType = SearchQueryType.Semantic;
+        searchOptions.SemanticSearch = new SemanticSearchOptions
+        {
+            SemanticConfigurationName = Constants.SemanticSearchConfig,
+            // QueryCaption = new QueryCaption(QueryCaptionType.Extractive),
+            // QueryAnswer = new QueryAnswer(QueryAnswerType.Extractive)
+        };
+
+
+        var response = await searchClient.SearchAsync<SearchDocumentResult>(
+                searchText: enableHybridSearch ? query : "*",
+                options: searchOptions,
+                cancellationToken: cancellationToken);
+        var results = new List<SearchDocumentResult>();
+        await foreach (var result in response.Value.GetResultsAsync())
+        {
+            logger.LogInternalInformation($"Found document: {result.Document.Title} with chunk_id: {result.Document.ChunkId}, parent_id: {result.Document.ParentId}, score: {result.Document.SearchScore}, reranker score: {result.Document.RerankerScore}");
+            results.Add(result.Document);
+        }
+
+        return results;
+
     }
 }
