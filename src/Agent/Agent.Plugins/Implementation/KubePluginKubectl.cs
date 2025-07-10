@@ -562,13 +562,18 @@ namespace Agent.Plugins
                 var user = kubeConfig.Configuration.Users.FirstOrDefault();
                 if (user != null)
                 {
-                    bool useAAD = false;
-                    foreach (var ext in user.UserCredentials.Extensions)
+                    if (user.UserCredentials != null &&
+                        user.UserCredentials.Extensions != null)
                     {
-                        if (ext.Name.Equals("UseAADAuth", StringComparison.OrdinalIgnoreCase) && bool.TryParse(ext.Extension.ToString(), out useAAD) && useAAD)
+                        bool useAAD = false;
+                        foreach (var ext in user.UserCredentials.Extensions)
                         {
-                            _logger?.LogInternalInformation("Using OBO token for kubectl command execution.");
-                            user.UserCredentials.Token = oboToken;
+                            if (ext.Name.Equals("UseAADAuth", StringComparison.OrdinalIgnoreCase) && bool.TryParse(ext.Extension.ToString(), out useAAD) && useAAD)
+                            {
+                                _logger?.LogInternalInformation("Using OBO token for kubectl command execution.");
+                                user.UserCredentials.Token = oboToken;
+                                break;
+                            }
                         }
                     }
                 }
