@@ -1,0 +1,72 @@
+let PastNumberOfDays = 120;
+let StartTime = datetime_add('day', -PastNumberOfDays, now());
+let Regions = GetRegions
+| where Cloud == "Azure"
+| distinct Stage, AntaresAbbreviation;
+cluster("wawsaneus.eastus").database("wawsanprod").WawsAn_dailyfunctionscoldstart
+| where pdate >= StartTime
+| where SiteName has_all ("sla-ws-func-prod", "v4-cold")
+| where SiteName !contains "histogram" 
+| where Sc_status == int(200)
+| extend S_sitename = SiteName
+| where OperatingSystem in ("Windows", "Legion")
+| invoke GetFunctionsSlaSiteProperties()
+| where Scenario !contains "-ps"
+| parse Stamp with "waws-prod-" AntaresAbbreviation "-" *
+| join kind=leftouter Regions on AntaresAbbreviation
+| summarize percentiles(FETimeTakenMs, 50, 99) by bin(pdate, 1d), OperatingSystem, Scenario, Stage, AntaresAbbreviation
+| order by pdate asc
+| summarize
+    P50Percentile = percentile(percentile_FETimeTakenMs_50, 50),
+    P99Percentile = percentile(percentile_FETimeTakenMs_99, 99),
+    P50List = make_list(percentile_FETimeTakenMs_50),
+    P99List = make_list(percentile_FETimeTakenMs_99)
+    by OperatingSystem, Scenario, Stage, AntaresAbbreviation
+| order by OperatingSystem, Scenario, Stage asc
+| extend series_decompose_anomalies(P50List), series_decompose_anomalies(P99List, 2.5)
+| mv-expand
+     idx = range(0, array_length(P50List), 1),
+     P50List, series_decompose_anomalies_P50List_ad_flag,
+     P99List, series_decompose_anomalies_P99List_ad_flag
+| extend day = datetime_add('day', toint(idx), StartTime)
+| where  day >= ago(3d)        // only the last 2 days
+| where series_decompose_anomalies_P50List_ad_flag  == 1  or series_decompose_anomalies_P99List_ad_flag == 1
+| extend IsP50Regression = tobool(series_decompose_anomalies_P50List_ad_flag)
+| extend IsP99Regression = tobool(series_decompose_anomalies_P99List_ad_flag)
+| summarize P50Number = max(todouble(P50List)), P50ExpectedNumber = min(P50Percentile), P99Number = max(todouble(P99List)), P99ExpectedNumber = min(P99Percentile) by OperatingSystem, Scenario, Stage, AntaresAbbreviation, IsP50Regression, IsP99Regression
+| order by IsP50Regression desc, P50Number desc, OperatingSystem desc, Stage asc, Scenario asc, IsP99Regression desc, P99Number desc
+| union
+(
+cluster("wawsaneus.eastus").database("wawsanprod").WawsAn_dailyfunctionscoldstart
+| where pdate >= StartTime
+| where SiteName has_all ("sla-ws-func-prod", "v4-cold")
+| where SiteName !contains "histogram"
+| where Sc_status == int(200)
+| extend S_sitename = SiteName
+| where OperatingSystem in ("Windows", "Legion")
+| invoke GetFunctionsSlaSiteProperties()
+| where Scenario !contains "-ps"
+| parse Stamp with "waws-prod-" AntaresAbbreviation "-" *
+| join kind=leftouter Regions on AntaresAbbreviation
+| summarize percentiles(FETimeTakenMs, 50, 99) by bin(pdate, 1d), OperatingSystem, Scenario, Stage, AntaresAbbreviation
+| order by pdate asc
+| summarize
+    P50Percentile = percentile(percentile_FETimeTakenMs_50, 50),
+    P99Percentile = percentile(percentile_FETimeTakenMs_99, 99),
+    P50List = make_list(percentile_FETimeTakenMs_50),
+    P99List = make_list(percentile_FETimeTakenMs_99)
+    by OperatingSystem, Scenario, Stage, AntaresAbbreviation
+| order by OperatingSystem, Scenario, Stage asc
+| extend series_decompose_anomalies(P50List), series_decompose_anomalies(P99List, 2.5)
+| mv-expand
+     idx = range(0, array_length(P50List), 1),
+     P50List, series_decompose_anomalies_P50List_ad_flag,
+     P99List, series_decompose_anomalies_P99List_ad_flag
+| extend day = datetime_add('day', toint(idx), StartTime)
+| where  day >= ago(3d)        // only the last 2 days
+| where series_decompose_anomalies_P50List_ad_flag  == -1  or series_decompose_anomalies_P99List_ad_flag == -1
+| extend IsP50Improvement = tobool(series_decompose_anomalies_P50List_ad_flag)
+| extend IsP99Improvement = tobool(series_decompose_anomalies_P99List_ad_flag)
+| summarize P50Number = min(todouble(P50List)), P50ExpectedNumber = max(P50Percentile), P99Number = min(todouble(P99List)), P99ExpectedNumber = max(P99Percentile) by OperatingSystem, Scenario, Stage, AntaresAbbreviation, IsP50Improvement, IsP99Improvement
+| order by IsP50Improvement desc, P50Number desc, OperatingSystem desc, Stage asc, Scenario asc, IsP99Improvement desc, P99Number desc
+)

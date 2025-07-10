@@ -80,7 +80,18 @@ namespace Agent.Tests.Unit.Plugins
                     "GetKustoClusterFromEventPrimaryStampName.kql",
                     "CheckProcessingDelaysForFunction.kql",
                     "GetScaleControllerErrorsForApp.kql",
-                    "CheckScaleControllerVotesToDataService.kql"
+                    "CheckScaleControllerVotesToDataService.kql",
+                    "GetColdStartProfileData.kql",
+                    "GetColdStartProfileDataDetails.kql",
+                    "GetColdStartQueryForSlaSites.kql",
+                    "GetColdStartRequestDetailsForFlexConsumption.kql",
+                    "GetColdStartRequestDetailsForFlexConsumptionFromLegion.kql",
+                    "GetColdStartRequestDetailsForLinuxConsumption.kql",
+                    "GetColdStartRequestDetailsForWindowsConsumption.kql",
+                    "GetColdStartStatusByRegion.kql",
+                    "GetColdStartStatusByStage.kql",
+                    "GetRequestGeneralInfoQueryFromAnalytics.kql",
+                    "GetRequestGeneralInfoQueryFromWaws.kql",
                 };
 
             var invalidColumnsSummary = new StringBuilder();

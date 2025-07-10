@@ -1,0 +1,17 @@
+let approxDateTime = datetime("##utcDateTime##");
+let activityId = "##activityId##";
+let siteName = "##siteName##";
+let url = "##url##";
+All("AntaresIISLogFrontEndTable")
+| where TIMESTAMP between (approxDateTime - 1h .. approxDateTime + 1h)
+| where (isnotempty(activityId) and ActivityId contains activityId)
+        or (isnotempty(siteName) and S_sitename contains siteName and (isempty(url) or Cs_uri_stem contains url))
+| extend ConsumptionType = case(
+    EventPrimaryStampName in (GetWindowsVmssStamps()), "Windows Consumption",
+    EventPrimaryStampName in (AllFlexConsumptionAntaresStamps()), "Flex Consumption",
+    EventPrimaryStampName in (GetLinuxStamps()), "Linux Consumption",
+    "Unknown"
+)
+| project KustoCluster, ConsumptionType, TIMESTAMP, S_sitename, ActivityId, Time_taken, UrlRewriteTime, ArrTime, DSCallTime, Sc_status, Cs_method, Cs_uri_stem, EventPrimaryStampName
+| order by Time_taken desc
+| take 10

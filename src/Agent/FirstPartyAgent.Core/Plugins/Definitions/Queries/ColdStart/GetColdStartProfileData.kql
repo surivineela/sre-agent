@@ -1,0 +1,25 @@
+FunctionsColdStartAnalyzer
+| where TIMESTAMP > ago(60d)
+| where AppName startswith "sla-ws-func" and AppName contains "cold"
+| extend S_sitename = AppName
+| invoke GetFunctionsSlaSiteProperties()
+| summarize
+    count(),
+    ColdStartTime = percentile(ColdStartTime, 50),
+    FuncHostJitTime = percentile(JitTime, 50),
+    FuncHostJitCount = percentile(JitCount, 50),
+    FuncHostMemoryHardFaultTime = percentile(FunctionsMemoryHardFaultTime, 50),
+    LanguageWorkerJitTime = percentile(LanguageWorkerJitTime, 50),
+    LanguageWorkerJitCount = percentile(LanguageWorkerJitCount, 50),
+    DiskReadTime = percentile(DiskReadTime, 50),
+    LanguageWorkerMemoryHardFaultTime = percentile(LanguageWorkerMemoryHardFaultTime, 50),
+    FuncHostGCTime = percentile(FunctionsGCTime, 50),
+    FuncHostGCAllocationInBytes = percentile(GCAllocationInBytes, 50),
+    LanguageWorkerAssemblyLoaderTime = percentile(LanguageWorkerAssemblyLoaderTime, 50),
+    LanguageWorkerAssemblyLoaderCount = percentile(LanguageWorkerAssemblyLoaderCount, 50),
+    LanguageWorkerGCTime = percentile(LanguageWorkerGCTime, 50),
+    percentile(TotalDwasOutboundCallsTime, 50),
+    percentile(TotalDwasProvisioningTime, 50),
+    percentile(DwasJitTime, 50),
+    percentile(MiniYarpJitTime, 50)
+    by Stack

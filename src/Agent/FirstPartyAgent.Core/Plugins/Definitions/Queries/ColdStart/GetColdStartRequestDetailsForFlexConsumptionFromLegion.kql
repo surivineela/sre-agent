@@ -1,0 +1,14 @@
+let approxDateTime = datetime("##utcDateTime##");
+let podName = "##podName##";
+SystemLogs
+    | where TIMESTAMP between(approxDateTime - 1h .. approxDateTime + 1h)
+    | where PodName contains podName
+    | where LegionComponent == "HostNodeAgent"
+    | where Message == "HNA pod specialize finished."
+    | where Value contains "nestednodeagent.specialize"
+    | extend json = parse_json(Value)
+    | extend SpecializationTime =  todatetime(json["hostrole.specialize.public-start"])
+    | project SpecializationTime, PodName, Tenant, json, LegionStampName, CenturionRoleId, env_dt_traceId
+    | extend PADownloadAndUnzip = round(todouble(json["podagent.downloadandunzipconnectionstring-duration"]))
+    | extend PADownloadContentBody = round(todouble(json["podagent.downloadcontentbody-duration"]))
+    | extend PAUnzip = round(todouble(json["podagent.unzip-duration"]))

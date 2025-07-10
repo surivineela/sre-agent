@@ -1,0 +1,23 @@
+let approxDateTime = datetime("##utcDateTime##");
+let activityId = "##activityId##";
+AzureContainers
+| where TIMESTAMP between(approxDateTime - 1h .. approxDateTime + 1h)
+| where ActivityId contains activityId
+| where isnotempty(Address)
+| extend SiteName = tolower(SiteName)
+| extend ContainerName = tolower(ContainerName)
+| project TIMESTAMP, SiteName, Verb, ContainerName, LatencyInMilliseconds, Address
+| summarize ACIAssignLatency = sum(LatencyInMilliseconds) by SiteName, ContainerName
+| join(
+    FunctionsMetrics
+    | where TIMESTAMP between((approxDateTime - 1h) .. (approxDateTime + 1h))
+    | where Role == "Microsoft.ContainerInstance"
+    | where EventName in ("linux.container.specialization.zip.download", "linux.container.specialization.zip.extract")
+    | extend AppName = tolower(AppName)
+    | extend RoleInstance = replace_string(tolower(RoleInstance), "app-", "")
+    )
+    on $left.ContainerName == $right.RoleInstance, $left.SiteName == $right.AppName
+| summarize
+    AssignTime = take_any(ACIAssignLatency),
+    DownalodTime = maxif(Maximum, EventName == "linux.container.specialization.zip.download"),
+    ExtractionTime = maxif(Maximum, EventName == "linux.container.specialization.zip.extract")

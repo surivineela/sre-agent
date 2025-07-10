@@ -1,0 +1,35 @@
+let approxDateTime = datetime("##utcDateTime##");
+let activityId = "##activityId##";
+let siteName = "##siteName##";
+let url = "##url##";
+let Regions = GetRegions
+| where Cloud == "Azure"
+| distinct KustoCluster, Region = AntaresAbbreviation;
+cluster("wawsaneus.eastus").database("wawsanprod").WawsAn_dailyfunctionscoldstart
+| where HttpRequestUTC between (approxDateTime - 1h .. approxDateTime + 1h)
+| where (isnotempty(activityId) and ActivityId contains activityId)
+    or (isnotempty(siteName) and SiteName contains siteName and (isempty(url) or Cs_uri_stem contains url))
+| extend Region = tostring(split(Stamp, '-')[2])
+| extend ConsumptionType = case(
+                               OperatingSystem == "Windows", "Windows Consumption",
+                               OperatingSystem == "Legion", "Flex Consumption",
+                               OperatingSystem == "Linux", "Linux Consumption",
+                               "Unknown"
+                           )
+| join kind=leftouter Regions on Region
+| project
+    KustoCluster,
+    ConsumptionType,
+    TIMESTAMP = HttpRequestUTC,
+    SiteName,
+    ActivityId,
+    Time_taken = FETimeTakenMs,
+    UrlRewriteTimeMs,
+    //ArrTime
+    DSCallTime,
+    Sc_status,
+    //Cs_method,
+    Cs_uri_stem,
+    EventPrimaryStampName = Stamp
+| order by Time_taken desc
+| take 10

@@ -1,0 +1,23 @@
+let approxDateTime = datetime("##utcDateTime##");
+let activityId = "##activityId##";
+AntaresRuntimeFrontEndEvents
+| where TIMESTAMP between(approxDateTime - 1h .. approxDateTime + 1h)
+| where ActivityId contains activityId
+| where Details contains "FirstAcquiredActivityId"
+| parse Details with * "FirstAcquiredActivityId: " FirstAcquiredActivityId
+| project FirstAcquiredActivityId, ActivityId
+| join(
+    FunctionsPlatformLogs
+    | where TIMESTAMP between((approxDateTime - 1h) .. (approxDateTime + 1h))
+    | where Address endswith "/specialize"
+    | project FirstAcquiredActivityId = ActivityId, SpecializationTimeInMs = LatencyInMilliseconds, PodName, ImageName, AllocationLabel
+    ) on FirstAcquiredActivityId
+| join(
+    FunctionsPlatformLogs
+    | where TIMESTAMP between((approxDateTime - 1h) .. (approxDateTime + 1h))
+    | where Address endswith "/allocate"
+    | project FirstAcquiredActivityId = ActivityId, AllocateTimeInMs = LatencyInMilliseconds, PodName, EventPrimaryStampName
+) on FirstAcquiredActivityId
+| join cluster("wawscus").database("wawsprod").FlexConsumptionClusterStampMapping() on $left.EventPrimaryStampName == $right.AntaresStamp
+| parse LegionKustoCluster with LegionCluster ".kusto.windows.net"
+| project  AllocateTimeInMs, SpecializationTimeInMs, ImageName, PodName, AllocationLabel, EventPrimaryStampName, LegionCluster

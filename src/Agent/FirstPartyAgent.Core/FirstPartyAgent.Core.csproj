@@ -140,6 +140,39 @@
 	  <None Update="ICMAlertConfigs\f9110571-1b04-484b-b10f-ee3d130b1447.json">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
+	  <None Update="Plugins\Definitions\Queries\ColdStart\GetColdStartProfileData.kql">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Plugins\Definitions\Queries\ColdStart\GetColdStartProfileDataDetails.kql">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Plugins\Definitions\Queries\ColdStart\GetColdStartQueryForSlaSites.kql">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Plugins\Definitions\Queries\ColdStart\GetColdStartRequestDetailsForFlexConsumption.kql">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Plugins\Definitions\Queries\ColdStart\GetColdStartRequestDetailsForFlexConsumptionFromLegion.kql">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Plugins\Definitions\Queries\ColdStart\GetColdStartRequestDetailsForLinuxConsumption.kql">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Plugins\Definitions\Queries\ColdStart\GetColdStartRequestDetailsForWindowsConsumption.kql">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Plugins\Definitions\Queries\ColdStart\GetColdStartStatusByRegion.kql">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Plugins\Definitions\Queries\ColdStart\GetColdStartStatusByStage.kql">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Plugins\Definitions\Queries\ColdStart\GetRequestGeneralInfoQueryFromAnalytics.kql">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Plugins\Definitions\Queries\ColdStart\GetRequestGeneralInfoQueryFromWaws.kql">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
 	  <None Update="Plugins\GenevaActionsPlugin\GenevaActions.json">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>

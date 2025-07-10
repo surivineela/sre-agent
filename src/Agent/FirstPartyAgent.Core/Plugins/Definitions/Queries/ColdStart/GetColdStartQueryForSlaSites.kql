@@ -1,0 +1,12 @@
+let operatingSystem = "##platform##";
+let stack = "##stack##";
+WawsAn_dailyfunctionscoldstart
+| where pdate >= ago(##days##d)
+| where IsSLACold == int(1)
+| where FunctionMajorVersion == int(4)
+| where OperatingSystem contains operatingSystem
+| where isempty(stack) or (stack =~ 'dotnet' and Stack =~ stack) or (stack !~ 'dotnet' and Stack contains stack)
+| where Sc_status == int(200)
+| extend pdate = format_datetime(pdate, "yyyy-MM-dd")
+| summarize P50 = percentile(FETimeTakenMs, 50), P99 = percentile(FETimeTakenMs, 99) by pdate
+| order by pdate asc

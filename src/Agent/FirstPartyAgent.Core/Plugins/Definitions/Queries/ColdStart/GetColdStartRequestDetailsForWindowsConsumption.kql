@@ -1,0 +1,20 @@
+let approxDateTime = datetime("##utcDateTime##");
+let activityId = "##activityId##";
+AntaresRuntimeWorkerEvents
+| where TIMESTAMP between(approxDateTime - 1h .. approxDateTime + 1h)
+| where RequestId contains activityId
+| where EventId == 15005
+| parse AppHostConfig with * "DWASFiles\\Sites\\" PlaceholderProcessName "\\" *
+| extend IsExactMatch = iff(PlaceholderMatchScore == 2147483647, 1, 0)
+| project
+    TIMESTAMP,
+    RoleInstance,
+    PlaceholderProcessName,
+    TotalTimeTakenForProvisioning,
+    PlaceholderUsed,
+    IsExactMatch,
+    PlaceholderMatchScore,
+    FcaZipUsed,
+    FcaZipUseFailed,
+    FcaZipWaitMs,
+    ColdStartPerfData

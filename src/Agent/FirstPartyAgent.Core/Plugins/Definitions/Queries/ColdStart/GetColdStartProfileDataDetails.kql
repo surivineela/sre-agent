@@ -1,0 +1,14 @@
+FunctionsColdStartAnalyzer
+| where TIMESTAMP > ago(7d)
+| where AppName startswith "sla-ws-func" and AppName contains "cold"
+| extend S_sitename = AppName
+| invoke GetFunctionsSlaSiteProperties()
+| summarize
+    take_any(DetailedJIT),
+    take_any(DetailedDiskRead),
+    take_any(FunctionsHostVersion),
+    take_any(FunctionsDetailedMemoryHardFaults),
+    take_any(LanguageWorkerDetailedJIT),
+    take_any(LanguageWorkerDetailedAssemblyLoader),
+    take_any(LanguageWorkerMemoryHardFaults)
+    by Stack

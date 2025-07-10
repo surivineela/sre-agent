@@ -58,11 +58,25 @@ namespace FirstPartyAgent.Plugins
                 // If the UTC date time is older than 18 hours, use the analytics query for better performance
                 if (utcDateTimeParsed <= DateTime.Now.AddHours(-30))
                 {
-                    kustoQuery = GetRequestGeneralInfoQueryFromAnalytics(siteName, url, activityId, utcDateTime);
+                    var parameters = new Dictionary<string, string>
+                    {
+                        ["siteName"] = siteName,
+                        ["url"] = url,
+                        ["activityId"] = activityId,
+                        ["utcDateTime"] = utcDateTime
+                    };
+                    kustoQuery = ReadAndFormatKqlQuery("GetRequestGeneralInfoQueryFromAnalytics", parameters);
                 }
                 else
                 {
-                    kustoQuery = GetRequestGeneralInfoQueryFromWaws(siteName, url, activityId, utcDateTime);
+                    var parameters = new Dictionary<string, string>
+                    {
+                        ["siteName"] = siteName,
+                        ["url"] = url,
+                        ["activityId"] = activityId,
+                        ["utcDateTime"] = utcDateTime
+                    };
+                    kustoQuery = ReadAndFormatKqlQuery("GetRequestGeneralInfoQueryFromWaws", parameters);
                 }
 
                 var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, nowOverride);
@@ -95,15 +109,30 @@ namespace FirstPartyAgent.Plugins
                 string kustoQuery = string.Empty;
                 if (consumptionType.Contains("Windows Consumption", StringComparison.OrdinalIgnoreCase))
                 {
-                    kustoQuery = GetColdStartRequestDetailsForWindowsConsumption(activityId, utcDateTime);
+                    var parameters = new Dictionary<string, string>
+                    {
+                        ["activityId"] = activityId,
+                        ["utcDateTime"] = utcDateTime
+                    };
+                    kustoQuery = ReadAndFormatKqlQuery("GetColdStartRequestDetailsForWindowsConsumption", parameters);
                 }
                 else if (consumptionType.Contains("Flex Consumption", StringComparison.OrdinalIgnoreCase))
                 {
-                    kustoQuery = GetColdStartRequestDetailsForFlexConsumption(activityId, utcDateTime);
+                    var parameters = new Dictionary<string, string>
+                    {
+                        ["activityId"] = activityId,
+                        ["utcDateTime"] = utcDateTime
+                    };
+                    kustoQuery = ReadAndFormatKqlQuery("GetColdStartRequestDetailsForFlexConsumption", parameters);
                 }
                 else if (consumptionType.Contains("Linux Consumption", StringComparison.OrdinalIgnoreCase))
                 {
-                    kustoQuery = GetColdStartRequestDetailsForLinuxConsumption(activityId, utcDateTime);
+                    var parameters = new Dictionary<string, string>
+                    {
+                        ["activityId"] = activityId,
+                        ["utcDateTime"] = utcDateTime
+                    };
+                    kustoQuery = ReadAndFormatKqlQuery("GetColdStartRequestDetailsForLinuxConsumption", parameters);
                 }
                 else
                 {
@@ -133,7 +162,12 @@ namespace FirstPartyAgent.Plugins
                 var databaseName = "legion";
                 DateTime? nowOverride = null;
 
-                var kustoQuery = GetColdStartRequestDetailsForFlexConsumptionFromLegion(podName, utcDateTime);
+                var parameters = new Dictionary<string, string>
+                {
+                    ["podName"] = podName,
+                    ["utcDateTime"] = utcDateTime
+                };
+                var kustoQuery = ReadAndFormatKqlQuery("GetColdStartRequestDetailsForFlexConsumptionFromLegion", parameters);
 
                 var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(legionClusterName, databaseName, kustoQuery, nowOverride);
                 return new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result };
@@ -159,7 +193,13 @@ namespace FirstPartyAgent.Plugins
                 var databaseName = "wawsanprod";
                 DateTime? nowOverride = null;
 
-                var kustoQuery = GetColdStartQueryForSlaSites(days, platform, stack);
+                var parameters = new Dictionary<string, string>
+                {
+                    ["days"] = days.ToString(),
+                    ["platform"] = platform,
+                    ["stack"] = stack
+                };
+                var kustoQuery = ReadAndFormatKqlQuery("GetColdStartQueryForSlaSites", parameters);
 
                 var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, nowOverride);
                 return new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result };
@@ -182,7 +222,8 @@ namespace FirstPartyAgent.Plugins
                 var databaseName = "wawsprod";
                 DateTime? nowOverride = null;
 
-                var kustoQuery = GetColdStartProfileDataQuery();
+                var parameters = new Dictionary<string, string>();
+                var kustoQuery = ReadAndFormatKqlQuery("GetColdStartProfileData", parameters);
 
                 var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, nowOverride);
                 return new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result };
@@ -205,7 +246,8 @@ namespace FirstPartyAgent.Plugins
                 var databaseName = "wawsprod";
                 DateTime? nowOverride = null;
 
-                var kustoQuery = GetColdStartProfileDataQueryDetails();
+                var parameters = new Dictionary<string, string>();
+                var kustoQuery = ReadAndFormatKqlQuery("GetColdStartProfileDataDetails", parameters);
 
                 var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, nowOverride);
                 return new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result };
@@ -273,7 +315,8 @@ namespace FirstPartyAgent.Plugins
                 var databaseName = "wawsprod";
                 DateTime? nowOverride = null;
 
-                var kustoQuery = GetColdStartStatusByStage();
+                var parameters = new Dictionary<string, string>();
+                var kustoQuery = ReadAndFormatKqlQuery("GetColdStartStatusByStage", parameters);
 
                 var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, nowOverride);
                 return new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result };
@@ -296,7 +339,8 @@ namespace FirstPartyAgent.Plugins
                 var databaseName = "wawsprod";
                 DateTime? nowOverride = null;
 
-                var kustoQuery = GetColdStartStatusByRegion();
+                var parameters = new Dictionary<string, string>();
+                var kustoQuery = ReadAndFormatKqlQuery("GetColdStartStatusByRegion", parameters);
 
                 var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, nowOverride);
                 return new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result };
@@ -351,392 +395,53 @@ namespace FirstPartyAgent.Plugins
             }
         }
 
-        private static string GetColdStartQueryForSlaSites(int days, string platform, string stack)
+        /// <summary>
+        /// Reads a KQL query from a file and formats it with the provided parameters.
+        /// </summary>
+        /// <param name="fileName">The name of the KQL file (without extension)</param>
+        /// <param name="parameters">Dictionary of parameter names and values to replace in the query</param>
+        /// <returns>Formatted query string</returns>
+        private static string ReadAndFormatKqlQuery(string fileName, Dictionary<string, string> parameters)
         {
-            var query = $@"
-                let operatingSystem = '{platform}';
-                let stack = '{stack}';
-                WawsAn_dailyfunctionscoldstart
-                | where pdate >= ago({days}d)
-                | where IsSLACold == int(1)
-                | where FunctionMajorVersion == int(4)
-                | where OperatingSystem contains operatingSystem
-                | where isempty(stack) or (stack =~ 'dotnet' and Stack =~ stack) or (stack !~ 'dotnet' and Stack contains stack)
-                | where Sc_status == int(200)
-                | extend pdate = format_datetime(pdate, ""yyyy-MM-dd"")
-                | summarize P50 = percentile(FETimeTakenMs, 50), P99 = percentile(FETimeTakenMs, 99) by pdate
-                | order by pdate asc";
-            return query;
+            var kqlFilePath = GetKqlFilePath(fileName);
+
+            if (!File.Exists(kqlFilePath))
+            {
+                throw new FileNotFoundException($"KQL file not found: {kqlFilePath}");
+            }
+
+            var queryTemplate = File.ReadAllText(kqlFilePath);
+            return FormatQuery(parameters, queryTemplate);
         }
 
-        private static string GetRequestGeneralInfoQueryFromWaws(string siteName, string url, string activityId, string utcDateTime)
+        /// <summary>
+        /// Gets the full path to a KQL file in the ColdStart queries directory.
+        /// </summary>
+        /// <param name="fileName">The name of the KQL file (without extension)</param>
+        /// <returns>Full path to the KQL file</returns>
+        private static string GetKqlFilePath(string fileName)
         {
-            var query = $@"
-                let approxDateTime = datetime({utcDateTime});
-                let activityId = '{activityId}';
-                let siteName = '{siteName}';
-                let url = '{url}';
-                All(""AntaresIISLogFrontEndTable"")
-                | where TIMESTAMP between (approxDateTime - 1h .. approxDateTime + 1h)
-                | where (isnotempty(activityId) and ActivityId contains activityId)
-                        or (isnotempty(siteName) and S_sitename contains siteName and (isempty(url) or Cs_uri_stem contains url))
-                | extend ConsumptionType = case(
-                    EventPrimaryStampName in (GetWindowsVmssStamps()), ""Windows Consumption"",
-                    EventPrimaryStampName in (AllFlexConsumptionAntaresStamps()), ""Flex Consumption"",
-                    EventPrimaryStampName in (GetLinuxStamps()), ""Linux Consumption"",
-                    ""Unknown""
-                )
-                | project KustoCluster, ConsumptionType, TIMESTAMP, S_sitename, ActivityId, Time_taken, UrlRewriteTime, ArrTime, DSCallTime, Sc_status, Cs_method, Cs_uri_stem, EventPrimaryStampName
-                | order by Time_taken desc
-                | take 10";
-            return query;
+            var baseDirectory = AppContext.BaseDirectory;
+            return Path.Combine(baseDirectory, "Plugins", "Definitions", "Queries", "ColdStart", $"{fileName}.kql");
         }
 
-        private static string GetRequestGeneralInfoQueryFromAnalytics(string siteName, string url, string activityId, string utcDateTime)
+        /// <summary>
+        /// Replaces ##parameter## placeholders in the query template with actual values.
+        /// </summary>
+        /// <param name="parameters">Dictionary of parameter names and values</param>
+        /// <param name="queryTemplate">The query template with ##parameter## placeholders</param>
+        /// <returns>Formatted query with parameters replaced</returns>
+        private static string FormatQuery(Dictionary<string, string> parameters, string queryTemplate)
         {
-            var query = $@"
-                let approxDateTime = datetime({utcDateTime});
-                let activityId = '{activityId}';
-                let siteName = '{siteName}';
-                let url = '{url}';
-                let Regions = GetRegions
-                | where Cloud == ""Azure""
-                | distinct KustoCluster, Region = AntaresAbbreviation;
-                cluster(""wawsaneus.eastus"").database(""wawsanprod"").WawsAn_dailyfunctionscoldstart
-                | where HttpRequestUTC between (approxDateTime - 1h .. approxDateTime + 1h)
-                | where (isnotempty(activityId) and ActivityId contains activityId)
-                    or (isnotempty(siteName) and SiteName contains siteName and (isempty(url) or Cs_uri_stem contains url))
-                | extend Region = tostring(split(Stamp, '-')[2])
-                | extend ConsumptionType = case(
-                                               OperatingSystem == ""Windows"", ""Windows Consumption"",
-                                               OperatingSystem == ""Legion"", ""Flex Consumption"",
-                                               OperatingSystem == ""Linux"", ""Linux Consumption"",
-                                               ""Unknown""
-                                           )
-                | join kind=leftouter Regions on Region
-                | project
-                    KustoCluster,
-                    ConsumptionType,
-                    TIMESTAMP = HttpRequestUTC,
-                    SiteName,
-                    ActivityId,
-                    Time_taken = FETimeTakenMs,
-                    UrlRewriteTimeMs,
-                    //ArrTime
-                    DSCallTime,
-                    Sc_status,
-                    //Cs_method,
-                    Cs_uri_stem,
-                    EventPrimaryStampName = Stamp
-                | order by Time_taken desc
-                | take 10";
-            return query;
+            var formatted = queryTemplate;
+
+            foreach (var param in parameters)
+            {
+                var placeholder = $"##{param.Key}##";
+                formatted = formatted.Replace(placeholder, param.Value);
+            }
+
+            return formatted;
         }
-
-
-        private static string GetColdStartRequestDetailsForWindowsConsumption(string activityId, string utcDateTime)
-        {
-            var query = $@"
-                let approxDateTime = datetime({utcDateTime});
-                let activityId = '{activityId}';
-                AntaresRuntimeWorkerEvents
-                | where TIMESTAMP between (approxDateTime - 1h .. approxDateTime + 1h)
-                | where RequestId contains activityId
-                | where EventId == 15005
-                | parse AppHostConfig with * ""DWASFiles\\Sites\\"" PlaceholderProcessName ""\\"" *
-                | extend IsExactMatch = iff(PlaceholderMatchScore == 2147483647, 1, 0)
-                | project TIMESTAMP, RoleInstance, PlaceholderProcessName, TotalTimeTakenForProvisioning, PlaceholderUsed, IsExactMatch, PlaceholderMatchScore, FcaZipUsed, FcaZipUseFailed, FcaZipWaitMs, ColdStartPerfData";
-            return query;
-        }
-
-        private static string GetColdStartRequestDetailsForLinuxConsumption(string activityId, string utcDateTime)
-        {
-            var query = $@"
-                let approxDateTime = datetime({utcDateTime});
-                let activityId = '{activityId}';
-                AzureContainers
-                | where TIMESTAMP between(approxDateTime -1h..approxDateTime + 1h)
-                | where ActivityId contains activityId
-                | where isnotempty(Address)
-                            | extend SiteName = tolower(SiteName)
-                | extend ContainerName = tolower(ContainerName)
-                | project TIMESTAMP, SiteName, Verb, ContainerName, LatencyInMilliseconds, Address
-                | summarize ACIAssignLatency = sum(LatencyInMilliseconds) by SiteName, ContainerName
-                | join(
-                    FunctionsMetrics
-                    | where TIMESTAMP between(approxDateTime - 1h..approxDateTime + 1h)
-                    | where Role == ""Microsoft.ContainerInstance""
-                    | where EventName in (""linux.container.specialization.zip.download"", ""linux.container.specialization.zip.extract"")
-                            | extend AppName = tolower(AppName)
-                            | extend RoleInstance = replace_string(tolower(RoleInstance), ""app-"", """")
-                    )
-                    on $left.ContainerName == $right.RoleInstance, $left.SiteName == $right.AppName
-                | summarize
-                    AssignTime = take_any(ACIAssignLatency),
-                    DownalodTime = maxif(Maximum, EventName == ""linux.container.specialization.zip.download""),
-                    ExtractionTime = maxif(Maximum, EventName == ""linux.container.specialization.zip.extract"")";
-                return query;
-        }
-
-        private static string GetColdStartRequestDetailsForFlexConsumption(string activityId, string utcDateTime)
-        {
-            var query = $@"
-                let approxDateTime = datetime({utcDateTime});
-                let activityId = '{activityId}';
-                AntaresRuntimeFrontEndEvents
-                | where TIMESTAMP between (approxDateTime - 1h .. approxDateTime + 1h)
-                | where ActivityId contains activityId
-                | where Details contains ""FirstAcquiredActivityId""
-                | parse Details with * ""FirstAcquiredActivityId: "" FirstAcquiredActivityId
-                | project FirstAcquiredActivityId, ActivityId
-                | join(
-                    FunctionsPlatformLogs
-                    | where TIMESTAMP between(approxDateTime - 1h..approxDateTime + 1h)
-                    | where Address endswith ""/specialize""
-                    | project FirstAcquiredActivityId = ActivityId, SpecializationTimeInMs = LatencyInMilliseconds, PodName, ImageName, AllocationLabel
-                    ) on FirstAcquiredActivityId
-                | join(
-                    FunctionsPlatformLogs
-                    | where TIMESTAMP between(approxDateTime - 1h..approxDateTime + 1h)
-                    | where Address endswith ""/allocate""
-                    | project FirstAcquiredActivityId = ActivityId, AllocateTimeInMs = LatencyInMilliseconds, PodName, EventPrimaryStampName
-                ) on FirstAcquiredActivityId
-                | join cluster(""wawscus"").database(""wawsprod"").FlexConsumptionClusterStampMapping() on $left.EventPrimaryStampName == $right.AntaresStamp
-                | parse LegionKustoCluster with LegionCluster "".kusto.windows.net""
-                | project  AllocateTimeInMs, SpecializationTimeInMs, ImageName, PodName, AllocationLabel, EventPrimaryStampName, LegionCluster";
-            return query;
-        }
-
-        private static string GetColdStartRequestDetailsForFlexConsumptionFromLegion(string podName, string utcDateTime)
-        {
-            var query = $@"
-                let approxDateTime = datetime({utcDateTime});
-                let podName = '{podName}';
-                SystemLogs
-                    | where TIMESTAMP between (approxDateTime - 1h .. approxDateTime + 1h)
-                    | where PodName contains podName
-                    | where LegionComponent == ""HostNodeAgent""
-                    | where Message == ""HNA pod specialize finished.""
-                    | where Value contains ""nestednodeagent.specialize""
-                    | extend json = parse_json(Value)
-                    | extend SpecializationTime =  todatetime(json[""hostrole.specialize.public-start""])
-                    | project SpecializationTime, PodName, Tenant, json, LegionStampName, CenturionRoleId, env_dt_traceId    
-                    | extend PADownloadAndUnzip = round(todouble(json[""podagent.downloadandunzipconnectionstring-duration""]))
-                    | extend PADownloadContentBody = round(todouble(json[""podagent.downloadcontentbody-duration""]))
-                    | extend PAUnzip = round(todouble(json[""podagent.unzip-duration""]))";
-            return query;
-        }
-
-        private static string GetColdStartProfileDataQuery()
-        {
-            var query = $@"
-            FunctionsColdStartAnalyzer
-            | where TIMESTAMP > ago(60d)
-            | where AppName startswith ""sla-ws-func"" and AppName contains ""cold""
-            | extend S_sitename = AppName
-            | invoke GetFunctionsSlaSiteProperties()
-            | summarize
-                count(),
-                ColdStartTime = percentile(ColdStartTime, 50),
-                FuncHostJitTime = percentile(JitTime, 50),
-                FuncHostJitCount = percentile(JitCount, 50),
-                FuncHostMemoryHardFaultTime = percentile(FunctionsMemoryHardFaultTime, 50),
-                LanguageWorkerJitTime = percentile(LanguageWorkerJitTime, 50),
-                LanguageWorkerJitCount = percentile(LanguageWorkerJitCount, 50),
-                DiskReadTime = percentile(DiskReadTime, 50),
-                LanguageWorkerMemoryHardFaultTime = percentile(LanguageWorkerMemoryHardFaultTime, 50),
-                FuncHostGCTime = percentile(FunctionsGCTime, 50),
-                FuncHostGCAllocationInBytes = percentile(GCAllocationInBytes, 50),
-                LanguageWorkerAssemblyLoaderTime = percentile(LanguageWorkerAssemblyLoaderTime, 50),
-                LanguageWorkerAssemblyLoaderCount = percentile(LanguageWorkerAssemblyLoaderCount, 50),
-                LanguageWorkerGCTime = percentile(LanguageWorkerGCTime, 50),
-                percentile(TotalDwasOutboundCallsTime, 50),
-                percentile(TotalDwasProvisioningTime, 50),
-                percentile(DwasJitTime, 50),
-                percentile(MiniYarpJitTime, 50)
-                by Stack
-                ";
-            return query;
-        }
-
-        private static string GetColdStartProfileDataQueryDetails()
-        {
-            var query = $@"
-            FunctionsColdStartAnalyzer
-            | where TIMESTAMP > ago(7d)
-            | where AppName startswith ""sla-ws-func"" and AppName contains ""cold""
-            | extend S_sitename = AppName
-            | invoke GetFunctionsSlaSiteProperties()
-            | summarize
-                take_any(DetailedJIT),
-                take_any(DetailedDiskRead),
-                take_any(FunctionsHostVersion),
-                take_any(FunctionsDetailedMemoryHardFaults),
-                take_any(LanguageWorkerDetailedJIT),
-                take_any(LanguageWorkerDetailedAssemblyLoader),
-                take_any(LanguageWorkerMemoryHardFaults)
-                by Stack
-            ";
-            return query;
-        }
-
-        private static string GetColdStartStatusByStage()
-        {
-            var query = $@"
-            let PastNumberOfDays = 120;
-            let StartTime = datetime_add('day', -PastNumberOfDays, now());
-            let Regions = GetRegions
-            | where Cloud == ""Azure""
-            | distinct Stage, AntaresAbbreviation;
-            cluster(""wawsaneus.eastus"").database(""wawsanprod"").WawsAn_dailyfunctionscoldstart
-            | where pdate >= StartTime
-            | where SiteName has_all (""sla-ws-func-prod"", ""v4-cold"")
-            | where SiteName !contains ""histogram"" and SiteName !contains ""msftint""
-            | where Sc_status == int(200)
-            | extend S_sitename = SiteName
-            | where OperatingSystem in (""Windows"", ""Flex"")
-            | invoke GetFunctionsSlaSiteProperties()
-            | where Scenario !contains ""-ps""
-            | parse Stamp with ""waws-prod-"" AntaresAbbreviation ""-"" *
-            | join kind=leftouter Regions on AntaresAbbreviation
-            | summarize percentiles(FETimeTakenMs, 50, 99) by bin(pdate, 1d), OperatingSystem, Scenario, Stage
-            | order by pdate asc
-            | summarize
-                P50Percentile = percentile(percentile_FETimeTakenMs_50, 50),
-                P99Percentile = percentile(percentile_FETimeTakenMs_99, 99),
-                P50List = make_list(percentile_FETimeTakenMs_50),
-                P99List = make_list(percentile_FETimeTakenMs_99)
-                by OperatingSystem, Scenario, Stage
-            | order by OperatingSystem, Scenario, Stage asc
-            | extend series_decompose_anomalies(P50List), series_decompose_anomalies(P99List, 2.5)
-            | mv-expand
-                 idx = range(0, array_length(P50List), 1),
-                 P50List, series_decompose_anomalies_P50List_ad_flag,
-                 P99List, series_decompose_anomalies_P99List_ad_flag
-            | extend day = datetime_add('day', toint(idx), StartTime)
-            | where  day >= ago(3d)        // only the last 3 days
-            | where series_decompose_anomalies_P50List_ad_flag  == 1  or series_decompose_anomalies_P99List_ad_flag == 1
-            | extend IsP50Regression = tobool(series_decompose_anomalies_P50List_ad_flag)
-            | extend IsP99Regression = tobool(series_decompose_anomalies_P99List_ad_flag)
-            | summarize P50Number = max(todouble(P50List)), P50ExpectedNumber = min(P50Percentile), P99Number = max(todouble(P99List)), P99ExpectedNumber = min(P99Percentile) by OperatingSystem, Scenario, Stage, IsP50Regression, IsP99Regression
-            | order by IsP50Regression desc, P50Number desc, OperatingSystem desc, Stage asc, Scenario asc, IsP99Regression desc, P99Number desc
-            | union
-            (
-            cluster(""wawsaneus.eastus"").database(""wawsanprod"").WawsAn_dailyfunctionscoldstart
-            | where pdate >= StartTime
-            | where SiteName has_all (""sla-ws-func-prod"", ""v4-cold"")
-            | where SiteName !contains ""histogram"" and SiteName !contains ""msftint""
-            | where Sc_status == int(200)
-            | extend S_sitename = SiteName
-            | where OperatingSystem in (""Windows"", ""Flex"")
-            | invoke GetFunctionsSlaSiteProperties()
-            | where Scenario !contains ""-ps""
-            | parse Stamp with ""waws-prod-"" AntaresAbbreviation ""-"" *
-            | join kind=leftouter Regions on AntaresAbbreviation
-            | summarize percentiles(FETimeTakenMs, 50, 99) by bin(pdate, 1d), OperatingSystem, Scenario, Stage
-            | order by pdate asc
-            | summarize
-                P50Percentile = percentile(percentile_FETimeTakenMs_50, 50),
-                P99Percentile = percentile(percentile_FETimeTakenMs_99, 99),
-                P50List = make_list(percentile_FETimeTakenMs_50),
-                P99List = make_list(percentile_FETimeTakenMs_99)
-                by OperatingSystem, Scenario, Stage
-            | order by OperatingSystem, Scenario, Stage asc
-            | extend series_decompose_anomalies(P50List), series_decompose_anomalies(P99List, 2.5)
-            | mv-expand
-                 idx = range(0, array_length(P50List), 1),
-                 P50List, series_decompose_anomalies_P50List_ad_flag,
-                 P99List, series_decompose_anomalies_P99List_ad_flag
-            | extend day = datetime_add('day', toint(idx), StartTime)
-            | where  day >= ago(3d)        // only the last 3 days
-            | where series_decompose_anomalies_P50List_ad_flag  == -1  or series_decompose_anomalies_P99List_ad_flag == -1
-            | extend IsP50Improvement = tobool(series_decompose_anomalies_P50List_ad_flag)
-            | extend IsP99Improvement = tobool(series_decompose_anomalies_P99List_ad_flag)
-            | summarize P50Number = min(todouble(P50List)), P50ExpectedNumber = max(P50Percentile), P99Number = min(todouble(P99List)), P99ExpectedNumber = max(P99Percentile) by OperatingSystem, Scenario, Stage, IsP50Improvement, IsP99Improvement
-            | order by IsP50Improvement desc, P50Number desc, OperatingSystem desc, Stage asc, Scenario asc, IsP99Improvement desc, P99Number desc
-            )
-            ";
-            return query;
-        }
-
-        private static string GetColdStartStatusByRegion()
-        {
-            var query = $@"
-            let PastNumberOfDays = 120;
-            let StartTime = datetime_add('day', -PastNumberOfDays, now());
-            let Regions = GetRegions
-            | where Cloud == ""Azure""
-            | distinct Stage, AntaresAbbreviation;
-            cluster(""wawsaneus.eastus"").database(""wawsanprod"").WawsAn_dailyfunctionscoldstart
-            | where pdate >= StartTime
-            | where SiteName has_all (""sla-ws-func-prod"", ""v4-cold"")
-            | where SiteName !contains ""histogram"" and SiteName !contains ""msftint""
-            | where Sc_status == int(200)
-            | extend S_sitename = SiteName
-            | where OperatingSystem in (""Windows"", ""Flex"")
-            | invoke GetFunctionsSlaSiteProperties()
-            | where Scenario !contains ""-ps""
-            | parse Stamp with ""waws-prod-"" AntaresAbbreviation ""-"" *
-            | join kind=leftouter Regions on AntaresAbbreviation
-            | summarize percentiles(FETimeTakenMs, 50, 99) by bin(pdate, 1d), OperatingSystem, Scenario, Stage, AntaresAbbreviation
-            | order by pdate asc
-            | summarize
-                P50Percentile = percentile(percentile_FETimeTakenMs_50, 50),
-                P99Percentile = percentile(percentile_FETimeTakenMs_99, 99),
-                P50List = make_list(percentile_FETimeTakenMs_50),
-                P99List = make_list(percentile_FETimeTakenMs_99)
-                by OperatingSystem, Scenario, Stage, AntaresAbbreviation
-            | order by OperatingSystem, Scenario, Stage asc
-            | extend series_decompose_anomalies(P50List), series_decompose_anomalies(P99List, 2.5)
-            | mv-expand
-                 idx = range(0, array_length(P50List), 1),
-                 P50List, series_decompose_anomalies_P50List_ad_flag,
-                 P99List, series_decompose_anomalies_P99List_ad_flag
-            | extend day = datetime_add('day', toint(idx), StartTime)
-            | where  day >= ago(3d)        // only the last 2 days
-            | where series_decompose_anomalies_P50List_ad_flag  == 1  or series_decompose_anomalies_P99List_ad_flag == 1
-            | extend IsP50Regression = tobool(series_decompose_anomalies_P50List_ad_flag)
-            | extend IsP99Regression = tobool(series_decompose_anomalies_P99List_ad_flag)
-            | summarize P50Number = max(todouble(P50List)), P50ExpectedNumber = min(P50Percentile), P99Number = max(todouble(P99List)), P99ExpectedNumber = min(P99Percentile) by OperatingSystem, Scenario, Stage, AntaresAbbreviation, IsP50Regression, IsP99Regression
-            | order by IsP50Regression desc, P50Number desc, OperatingSystem desc, Stage asc, Scenario asc, IsP99Regression desc, P99Number desc
-            | union
-            (
-            cluster(""wawsaneus.eastus"").database(""wawsanprod"").WawsAn_dailyfunctionscoldstart
-            | where pdate >= StartTime
-            | where SiteName has_all (""sla-ws-func-prod"", ""v4-cold"")
-            | where SiteName !contains ""histogram"" and SiteName !contains ""msftint""
-            | where Sc_status == int(200)
-            | extend S_sitename = SiteName
-            | where OperatingSystem in (""Windows"", ""Flex"")
-            | invoke GetFunctionsSlaSiteProperties()
-            | where Scenario !contains ""-ps""
-            | parse Stamp with ""waws-prod-"" AntaresAbbreviation ""-"" *
-            | join kind=leftouter Regions on AntaresAbbreviation
-            | summarize percentiles(FETimeTakenMs, 50, 99) by bin(pdate, 1d), OperatingSystem, Scenario, Stage, AntaresAbbreviation
-            | order by pdate asc
-            | summarize
-                P50Percentile = percentile(percentile_FETimeTakenMs_50, 50),
-                P99Percentile = percentile(percentile_FETimeTakenMs_99, 99),
-                P50List = make_list(percentile_FETimeTakenMs_50),
-                P99List = make_list(percentile_FETimeTakenMs_99)
-                by OperatingSystem, Scenario, Stage, AntaresAbbreviation
-            | order by OperatingSystem, Scenario, Stage asc
-            | extend series_decompose_anomalies(P50List), series_decompose_anomalies(P99List, 2.5)
-            | mv-expand
-                 idx = range(0, array_length(P50List), 1),
-                 P50List, series_decompose_anomalies_P50List_ad_flag,
-                 P99List, series_decompose_anomalies_P99List_ad_flag
-            | extend day = datetime_add('day', toint(idx), StartTime)
-            | where  day >= ago(3d)        // only the last 2 days
-            | where series_decompose_anomalies_P50List_ad_flag  == -1  or series_decompose_anomalies_P99List_ad_flag == -1
-            | extend IsP50Improvement = tobool(series_decompose_anomalies_P50List_ad_flag)
-            | extend IsP99Improvement = tobool(series_decompose_anomalies_P99List_ad_flag)
-            | summarize P50Number = min(todouble(P50List)), P50ExpectedNumber = max(P50Percentile), P99Number = min(todouble(P99List)), P99ExpectedNumber = max(P99Percentile) by OperatingSystem, Scenario, Stage, AntaresAbbreviation, IsP50Improvement, IsP99Improvement
-            | order by IsP50Improvement desc, P50Number desc, OperatingSystem desc, Stage asc, Scenario asc, IsP99Improvement desc, P99Number desc
-            )
-            ";
-            return query;
-        }
-
     }
 }
