@@ -628,7 +628,7 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
 
         [Description(@"""
 Retrieves container app replica count changes over time for a given time frame and application.
-Use this tool to track replica count changes and identify scaling events for a container app.
+Use this tool to directly confirm if and when the container app scaled out or in, especially during suspected autoscaling issue. The output will display different time periods with corresponding replica counts.
 Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
 - StartTime: Start time of the period.
 - EndTime: End time of the period.
