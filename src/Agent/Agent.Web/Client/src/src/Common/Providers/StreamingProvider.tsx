@@ -11,6 +11,7 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
     const [isConnecting, setIsConnecting] = useState(true);
     const [isConnected, setIsConnected] = useState(false);
     const [isReconnecting, setIsReconnecting] = useState(false);
+    const [noPermission, setNoPermission] = useState(false);
     const isConnectedRef = useRef(false);
     // key: threadId, value: the latest streaming messages for that thread in the current session
     const latestStreamingMessageRef = useRef<Map<string, StreamingMessage | null | undefined>>(new Map());
@@ -105,6 +106,8 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
     }, [isConnected]);
 
     useEffect(() => {
+        let isSubscribed = true;
+
         const connect = async () => {
             setIsConnecting(true);
             const isReactLocalhost = window.location.hostname.toLowerCase() === 'localhost' && window.location.port === '5173';
@@ -134,11 +137,34 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
 
             try {
                 await connectionRef.current.start();
-                offChatMessage();
-                onChatMessage();
-                setIsConnected(true);
+
+                if (isSubscribed) {
+                    offChatMessage();
+                    onChatMessage();
+                    setIsConnected(true);
+                    setNoPermission(false);
+                }
             } catch (e) {
-                setIsConnected(false);
+                if (isSubscribed) {
+                    const isPermissionError =
+                        (e instanceof signalR.HttpError && (e.statusCode === 403 || e.statusCode === 401)) ||
+                        (e instanceof Error && (e.message.includes('403') || e.message.includes('401')));
+
+                    if (isPermissionError) {
+                        proxy.log({
+                            action: 'ConnectToSignalR',
+                            actionModifier: 'failed',
+                            logLevel: 'error',
+                            data: {
+                                // !important: Do not log the entire error as it may contain access token
+                                message: `Failed to connect to SignalR hub from agent url: ${sreAgentEndpoint}. Please check your permissions.`,
+                            },
+                        });
+                    }
+
+                    setNoPermission(isPermissionError);
+                    setIsConnected(false);
+                }
             }
             setIsConnecting(false);
         };
@@ -151,11 +177,15 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
             handlersRef.current = new Map();
             offChatMessage();
             setIsConnected(false);
+            setNoPermission(false);
+            setIsConnecting(true);
+            setIsReconnecting(false);
+            isSubscribed = false;
         };
     }, [proxy.log, sreAgentEndpoint]);
 
     return (
-        <StreamingContext.Provider value={{ sendMessage, subscribeChatStreaming, isConnecting, isConnected, isReconnecting }}>
+        <StreamingContext.Provider value={{ sendMessage, subscribeChatStreaming, isConnecting, isConnected, isReconnecting, noPermission }}>
             {children}
         </StreamingContext.Provider>
     );

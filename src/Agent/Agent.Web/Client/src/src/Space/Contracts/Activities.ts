@@ -2,6 +2,7 @@ import {
     AgentMode,
     Approval,
     AzCliExecution,
+    ChatMessageError,
     KubectlExecution,
     Message,
     MessageContent,
@@ -79,6 +80,7 @@ export interface IChatMessageV2Props {
 
 export interface ChatMessageContent extends MessageContent {
     isImage?: boolean;
+    error?: ChatMessageError;
 }
 
 export interface ChatMessage extends MessageMetaData {
@@ -96,7 +98,7 @@ export interface ChatMessageComponentInput
 }
 
 export interface IAgentMessageProps {
-    messageContent: MessageContent;
+    messageContent: ChatMessageContent;
     messageId: string;
     timeStamp: string;
     isTyping?: boolean;

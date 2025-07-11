@@ -7,6 +7,7 @@ import ChatBoxFooterV2 from '../Components/ChatBoxFooterV2';
 import ChatLoading from '../Components/ChatLoading';
 import ChatMessages from '../Components/ChatMessages';
 import ChatMessageV2 from '../Components/ChatMessageV2';
+import PermissionErrorChatMessage from '../Components/PermissionErrorChatMessage';
 import { IChatBoxProps } from '../Contracts/Activities';
 import { ChatBoxContext } from '../Contracts/Context';
 import { useChatBoxV2 } from '../Hooks/useChatBoxV2';
@@ -57,6 +58,9 @@ export const ChatBoxV2 = ({ addThread, promoteThread, updateThreadLastReadTime, 
 
                             {/* Insert the richer welcome experience once at the top for welcome threads */}
                             {isWelcomeThread && <AzureSREWelcome threadId={currentThreadId} addThread={addThread} />}
+
+                            {/* Display permission error message if any*/}
+                            <PermissionErrorChatMessage key={'permission-error-chat-message'} isLoading={isLoading} />
 
                             {/* Chat history */}
                             {!isLoading &&

@@ -358,7 +358,7 @@ export const composeUserMessage = (userId: string, userDisplayName: string, mess
     };
 };
 
-export const composeDefaultStreamingMessage = (): ChatMessage => {
+export const composeDefaultAgentMessage = (): ChatMessage => {
     return {
         id: Guid.newGuid(),
         timeStamp: new Date().toISOString(),

@@ -34,6 +34,7 @@ type StreamingContextProps = {
     isConnecting: boolean;
     isConnected: boolean;
     isReconnecting: boolean;
+    noPermission: boolean;
 };
 
 type ChatBoxContextProps = {
@@ -79,6 +80,7 @@ export const StreamingContext = createContext<StreamingContextProps>({
     isConnecting: true,
     isConnected: false,
     isReconnecting: false,
+    noPermission: false,
 });
 
 export const ChatBoxContext = createContext<ChatBoxContextProps>({

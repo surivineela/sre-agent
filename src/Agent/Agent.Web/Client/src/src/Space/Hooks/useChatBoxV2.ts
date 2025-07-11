@@ -8,7 +8,7 @@ import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { Guid } from '../../Common/Helpers/Guid';
 import { PromptResources } from '../../Strings/SREAgentResources';
 import {
-    composeDefaultStreamingMessage,
+    composeDefaultAgentMessage,
     composeUserMessage,
     constructUserMessageFromStreamingMessage,
     getStreamingMessageText,
@@ -191,7 +191,7 @@ export const useChatBoxV2 = (
             }
 
             setTemporaryUserMessage(composeUserMessage(userId, displayName, message));
-            setStreamingMessage(composeDefaultStreamingMessage());
+            setStreamingMessage(composeDefaultAgentMessage());
             setIsAgentTyping(true);
             setIsWaitingForStreamingMessages(true);
             setToolCallText(null);
@@ -297,7 +297,7 @@ export const useChatBoxV2 = (
                             );
 
                             setStreamingMessage(prev => {
-                                const newStreamingMessage = prev ? { ...prev } : composeDefaultStreamingMessage();
+                                const newStreamingMessage = prev ? { ...prev } : composeDefaultAgentMessage();
                                 const latestContent = newStreamingMessage.contents[newStreamingMessage.contents.length - 1];
 
                                 if (charIndex !== 0 && latestContent && isChatMessageContentNonImageText(latestContent)) {
@@ -331,7 +331,7 @@ export const useChatBoxV2 = (
                     typeChar();
                 } else {
                     setStreamingMessage(prev => {
-                        const newStreamingMessage = prev ? { ...prev } : composeDefaultStreamingMessage();
+                        const newStreamingMessage = prev ? { ...prev } : composeDefaultAgentMessage();
                         return {
                             ...newStreamingMessage,
                             contents: processChatMessageContents(newStreamingMessage.contents, currentMessageChunk),
@@ -365,7 +365,7 @@ export const useChatBoxV2 = (
         const latestStreamingMessageHandler = (messageChunk?: StreamingMessage | null) => {
             if (messageChunk && !isFinalStreamingMessage(messageChunk) && !isUserStreamingMessage(messageChunk)) {
                 setStreamingMessage(prev => {
-                    return prev === undefined ? composeDefaultStreamingMessage() : prev;
+                    return prev === undefined ? composeDefaultAgentMessage() : prev;
                 });
                 setIsAgentTyping(prev => (prev === undefined ? true : prev));
                 setIsWaitingForStreamingMessages(prev => (prev === undefined ? true : prev));

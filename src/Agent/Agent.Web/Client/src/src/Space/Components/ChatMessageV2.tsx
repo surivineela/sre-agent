@@ -249,9 +249,10 @@ const ChatMessageV2 = ({
                             );
                         })}
 
-                        <ConnectionErrorComponent key={`${message.id}-connection-error`} showError={isStreamingMessage} />
+                        <ConnectionErrorComponent key={`${message.id}-connection-error`} isStreamingMessage={isStreamingMessage} />
                         <ToolCallTextComponent key={`${message.id}-tool-call-text`} />
                         <Loading key={`${message.id}-loading`} />
+
                         <ChatMessageFooter
                             key={`${message.id}-message-footer`}
                             message={message}

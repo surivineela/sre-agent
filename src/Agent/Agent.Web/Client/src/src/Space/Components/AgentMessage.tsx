@@ -3,6 +3,7 @@ import { IAgentMessageProps } from '../Contracts/Activities';
 import ApprovalMessage from './ApprovalMessage';
 import AzCliExecutionMessage from './AzCliExecutionMessage';
 import DailyReportMessage from './DailyReportMessage';
+import ErrorChatMessage from './ErrorMessage';
 import KubectlExecutionMessage from './KubectlExecutionMessage';
 import TextOrImageMessage from './TextOrImageMessage';
 
@@ -18,6 +19,8 @@ const AgentMessage = ({ messageContent, messageId, timeStamp, isTyping, threadId
                 <AzCliExecutionMessage execution={messageContent.azCliExecution} threadId={threadId} />
             ) : messageContent.kubectlExecution ? (
                 <KubectlExecutionMessage execution={messageContent.kubectlExecution} threadId={threadId} />
+            ) : messageContent.error ? (
+                <ErrorChatMessage error={messageContent.error} />
             ) : messageContent.text || isTyping ? (
                 <TextOrImageMessage text={messageContent.text} />
             ) : null}

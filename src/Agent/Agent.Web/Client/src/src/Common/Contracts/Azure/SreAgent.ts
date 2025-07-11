@@ -130,6 +130,8 @@ export interface MessageMetaData {
     title?: string;
 }
 
+export type ChatMessageError = 'PermissionDenied' | 'UnknownError';
+
 export interface MessageContent {
     text: string;
     approval?: Approval;
