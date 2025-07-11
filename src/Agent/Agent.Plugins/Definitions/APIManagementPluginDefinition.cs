@@ -2,6 +2,8 @@ using System.ComponentModel;
 using Agent.Core.Attributes;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
+using Azure.ResourceManager.ApiManagement;
+using Azure.ResourceManager.ApiManagement.Models;
 using static Agent.Plugins.Helpers.APIManagementHelper;
 
 namespace Agent.Plugins.Definitions
@@ -172,6 +174,34 @@ namespace Agent.Plugins.Definitions
         {
             return await _apiManagementPlugin.GetAPIOperationDetailedInfoAsync(apiManagementResourceId, apiName, operationName, workspaceName);
         }
+
+        [Description("Gets policies for a specific API in the API Management instance.")]
+        public async Task<ApiPolicyResource> GetPoliciesByApiAsync(
+            [Description("Full Azure resource ID of the API Management instance (e.g. /subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.ApiManagement/service/{serviceName})")] string apiManagementResourceId,
+            [Description("The name of the API.")] string apiName)
+        {
+            return await _apiManagementPlugin.GetPoliciesByApiAsync(apiManagementResourceId, apiName);
+        }
+
+        [Description("Gets policies for a specific operation in the API Management instance.")]
+        public async Task<ApiOperationPolicyResource> GetPoliciesByOperationAsync(
+            [Description("Full Azure resource ID of the API Management instance (e.g. /subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.ApiManagement/service/{serviceName})")] string apiManagementResourceId,
+            [Description("The name of the API.")] string apiName,
+            [Description("The name of the operation.")] string operationId)
+        {
+            return await _apiManagementPlugin.GetPoliciesByOperationAsync(apiManagementResourceId, apiName, operationId);
+        }
+        [Description(
+            "Gets the global policies for an Azure API Management instance. " +
+            "These are tenant-level policies that apply to all APIs and operations within the service. " +
+            "Returns the policy resource containing the XML policy configuration. " +
+            "Note: This only retrieves global/tenant-level policies, not API-specific or operation-level policies.")]
+        public async Task<ApiManagementPolicyResource> GetGlobalApimPolicyAsync(
+            [Description("Full Azure resource ID of the API Management instance (e.g. /subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.ApiManagement/service/{serviceName})")] string apiManagementResourceId)
+        {
+            return await _apiManagementPlugin.GetGlobalApimPolicyAsync(apiManagementResourceId);
+        }
+
         #endregion
 
         #region Virtual Networking - Diagnostics

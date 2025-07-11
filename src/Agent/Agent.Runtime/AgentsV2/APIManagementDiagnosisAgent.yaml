@@ -54,6 +54,9 @@ tools:
   - GetNSGRulesForApiManagement
   - GetNSGActivityLogs
   - CheckForVirtualNetworkIssues
+  - GetPoliciesByApi
+  - GetPoliciesByOperation
+  - GetGlobalApimPolicy
 
 common_prompts:
   - format_guidelines

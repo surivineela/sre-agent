@@ -15,6 +15,7 @@
     <PackageReference Include="antares.kubectl" GeneratePathProperty="true" />
     <PackageReference Include="Azure.AI.OpenAI" />
 	  <PackageReference Include="Azure.Monitor.Query" />
+	  <PackageReference Include="Azure.ResourceManager.ApiManagement" />
 	  <PackageReference Include="Azure.ResourceManager.AppContainers" />
     <PackageReference Include="Azure.ResourceManager.Authorization" />
 	  <PackageReference Include="Azure.ResourceManager.ContainerRegistry" />

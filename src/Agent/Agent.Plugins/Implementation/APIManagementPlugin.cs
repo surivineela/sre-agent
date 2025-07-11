@@ -10,6 +10,8 @@ using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
 using Azure;
 using Azure.Core;
+using Azure.ResourceManager.ApiManagement;
+using Azure.ResourceManager.ApiManagement.Models;
 using Azure.ResourceManager.Network;
 using Azure.ResourceManager.Network.Models;
 using Microsoft.Extensions.Logging;
@@ -138,6 +140,7 @@ namespace Agent.Plugins.Implementation
                 | top {top} by TimeGenerated desc
                 | project
                     TimeGenerated,
+                    BackendId,
                     ApiId,
                     OperationId,
                     Url,
@@ -146,6 +149,7 @@ namespace Agent.Plugins.Implementation
                     LastErrorReason,
                     LastErrorMessage,
                     BackendUrl,
+                    BackendTime,
                     BackendResponseBody,
                     BackendResponseCode,
                     Category
@@ -365,6 +369,115 @@ namespace Agent.Plugins.Implementation
             catch (Exception ex)
             {
                 _logger.LogInternalError(ex, $"GetAPIDetailsByNameAsync: Exception occurred while fetching API '{apiName}' for resourceId {apiManagementResourceId}: {ex.Message}");
+                return null;
+            }
+        }
+
+        public async Task<ApiPolicyResource> GetPoliciesByApiAsync(string apiManagementResourceId, string apiName)
+        {
+            _logger.LogInternalInformation($"[GetPoliciesByApiAsync] Invoked with resourceId: {apiManagementResourceId}, apiName: {apiName}");
+
+            try
+            {
+                var armClient = await _armClientFactory.GetArmOperationClient();
+                var subResource = new ResourceIdentifier(apiManagementResourceId);
+                string subscriptionId = subResource.SubscriptionId;
+                string resourceGroupName = subResource.ResourceGroupName;
+                string serviceName = subResource.Name;
+                string apiId = apiName.ToLower().Replace(" ", "-");
+
+                ResourceIdentifier apiResourceId = ApiResource.CreateResourceIdentifier(subscriptionId, resourceGroupName, serviceName, apiId);
+                ApiResource api = armClient.GetApiResource(apiResourceId);
+
+                // Get the collection of this ApiPolicyResource
+                ApiPolicyCollection collection = api.GetApiPolicies();
+
+                PolicyName policyId = PolicyName.Policy;
+                NullableResponse<ApiPolicyResource> response = await collection.GetIfExistsAsync(policyId);
+                if (response.Value == null)
+                {
+                    _logger.LogInternalError($"No policies found for API: {apiName} with resourceId: {apiManagementResourceId}");
+                }
+                ApiPolicyResource result = response.HasValue ? response.Value : null;
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, $"Error in GetPoliciesByApiAsync with resourceId: {apiManagementResourceId}, apiName: {apiName}");
+                return null;
+            }
+        }
+
+        public async Task<ApiOperationPolicyResource> GetPoliciesByOperationAsync(string apiManagementResourceId, string apiName, string operationId)
+        {
+            _logger.LogInternalInformation($"[GetPoliciesByOperationAsync] Invoked with resourceId: {apiManagementResourceId}, apiName: {apiName}, operationId: {operationId}");
+
+            try
+            {
+                var armClient = await _armClientFactory.GetArmOperationClient();
+                var subResource = new ResourceIdentifier(apiManagementResourceId);
+                string subscriptionId = subResource.SubscriptionId;
+                string resourceGroupName = subResource.ResourceGroupName;
+                string serviceName = subResource.Name;
+                string normalizedApiId = apiName.ToLower().Replace(" ", "-");
+                string normalizedOperationId = operationId.ToLower().Replace(" ", "-");
+
+                ResourceIdentifier apiResourceId = ApiResource.CreateResourceIdentifier(
+                    subscriptionId, resourceGroupName, serviceName, normalizedApiId);
+                ApiResource api = armClient.GetApiResource(apiResourceId);
+
+                ResourceIdentifier operationResourceId = ApiOperationResource.CreateResourceIdentifier(
+                    subscriptionId, resourceGroupName, serviceName, normalizedApiId, normalizedOperationId);
+                ApiOperationResource operation = armClient.GetApiOperationResource(operationResourceId);
+
+                // Get the collection of this ApiOperationPolicyResource
+                ApiOperationPolicyCollection collection = operation.GetApiOperationPolicies();
+
+                PolicyName policyId = PolicyName.Policy;
+                NullableResponse<ApiOperationPolicyResource> response = await collection.GetIfExistsAsync(policyId);
+                if (response.Value == null)
+                {
+                    _logger.LogInternalError($"No policies found for operation: {operationId} in API: {apiName} with resourceId: {apiManagementResourceId}");
+                }
+                ApiOperationPolicyResource result = response.HasValue ? response.Value : null;
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, $"Error in GetPoliciesByOperationAsync with resourceId: {apiManagementResourceId}, apiName: {apiName}, operationId: {operationId}");
+                return null;
+            }
+        }
+
+        public async Task<ApiManagementPolicyResource> GetGlobalApimPolicyAsync(string apiManagementResourceId)
+        {
+            _logger.LogInternalInformation($"[GetGlobalApimPolicies] Invoked with resourceId: {apiManagementResourceId}");
+
+            try
+            {
+                var armClient = await _armClientFactory.GetArmOperationClient();
+                // Get the API Management service resource
+                ApiManagementServiceResource apimService = armClient.GetApiManagementServiceResource(new ResourceIdentifier(apiManagementResourceId));
+
+                // Get the collection of policies at the API Management service level
+                ApiManagementPolicyCollection policyCollection = apimService.GetApiManagementPolicies();
+
+                // Get the global policy (if it exists)
+                PolicyName policyId = PolicyName.Policy;
+                NullableResponse<ApiManagementPolicyResource> response = await policyCollection.GetIfExistsAsync(policyId);
+
+                if (response.Value == null)
+                {
+                    _logger.LogInternalError($"No global policies found for API Management service: {apiManagementResourceId}");
+                }
+
+                return response.HasValue ? response.Value : null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, $"Error in GetAllApimPolicies with resourceId: {apiManagementResourceId}");
                 return null;
             }
         }
