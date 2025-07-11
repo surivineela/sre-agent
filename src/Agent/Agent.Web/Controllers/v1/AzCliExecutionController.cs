@@ -146,13 +146,13 @@ namespace Agent.Web.Controllers.v1
                         try
                         {
                             // Execute the Azure CLI command
-                            var output = await _armHelper.RunAzCliCommandsAsync(execution.Command, token);
+                            var result = await _armHelper.RunAzCliCommandsAsync(execution.Command, token);
 
                             // Update execution with success
                             execution = execution with
                             {
-                                Status = AzCliExecutionStatus.Completed,
-                                Output = output,
+                                Status = result.ErrorOccurred ? AzCliExecutionStatus.Failed : AzCliExecutionStatus.Completed,
+                                Output = result.Output,
                                 CompletedTimestamp = DateTime.UtcNow
                             };
 
@@ -167,7 +167,7 @@ namespace Agent.Web.Controllers.v1
                                     new(ChatRole.Tool,
                                     new List<AIContent>
                                     {
-                                        new FunctionResultContent(functionCall?.CallId, output)
+                                        new FunctionResultContent(functionCall?.CallId, result.Output)
                                     })
                                 });
                             }

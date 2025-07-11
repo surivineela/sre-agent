@@ -628,17 +628,19 @@ public class ReasoningLoop : IDisposable
                     else
                     {
                         var checkApprovalResult = await CheckApprovalAsync(toolCall);
-                        var checkAzCliWrite = CheckAzCliWriteToolCall(toolCall);
+                        var checkAzCli = CheckAzCliToolCall(toolCall);
                         var checkKubectlWrite = CheckKubectlWriteToolCall(toolCall);
 
-                        if (checkAzCliWrite)
+                        if (checkAzCli)
                         {
                             var functionResult = await InvokeToolWithErrorHandlingAsync(toolCall, cancellationToken);
 
                             var cliExecution = await _threadRepository.ListPendingAzCliExecutionAsync(_context.ThreadId);
                             if (cliExecution == null)
                             {
-                                // if cliExecution is null, it means no pending execution, which means something (e.g. validation failed)
+                                // 2 cases:
+                                // 1. The tool call is read command and no authorization error occurred.
+                                // 2. There expects to be one pending execution, but something (e.g. validation failed) happened.
                                 // we need to return the error message to LLM.
                                 toolResults.Add(new ManualToolCallResult()
                                 {
@@ -1366,14 +1368,15 @@ public class ReasoningLoop : IDisposable
         }
     }
 
-    private static bool CheckAzCliWriteToolCall(ManualToolCall toolCall)
+    private static bool CheckAzCliToolCall(ManualToolCall toolCall)
     {
         if (toolCall.Tool == null)
         {
             return false;
         }
 
-        if (toolCall.Tool.UnderlyingMethod?.Name != "RunAzCliWriteCommandsAsync")
+        if (toolCall.Tool.UnderlyingMethod?.Name != "RunAzCliWriteCommandsAsync" &&
+            toolCall.Tool.UnderlyingMethod?.Name != "RunAzCliReadCommandsAsync")
         {
             return false;
         }

@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Agent.Core.Configuration;
+using Agent.Core.Exceptions;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
@@ -37,7 +38,7 @@ namespace Agent.Plugins.Implementation
 
         private static readonly string _allowedReadVerbString = string.Join(", ", _allowedReadVerbs);
 
-        private static readonly ImmutableArray<string> _allowedWriteVerbs = [            
+        private static readonly ImmutableArray<string> _allowedWriteVerbs = [
             "add",
             "create",
             "register", // for RPs and Features
@@ -252,104 +253,7 @@ namespace Agent.Plugins.Implementation
                     return "Error: ThreadId is not set. Please set the ThreadId before running commands.";
                 }
 
-                var executionId = Guid.NewGuid();
-
-                // Create execution record in Pending state
-                var execution = new AzCliExecution(
-                    Id: executionId,
-                    Command: command,
-                    Description: GetCommandDescription(command),
-                    Status: AzCliExecutionStatus.Running,
-                    OriginalFunctionCall: null, // temporary, will be set later
-                    Output: null,
-                    Error: null,
-                    CreatedTimestamp: DateTime.UtcNow,
-                    StartedTimestamp: DateTime.UtcNow,
-                    CompletedTimestamp: null,
-                    ExecutedBy: null,
-                    AgentContextId: null
-                );
-
-                await _threadRepository.CreateAzCliExecutionAsync(ThreadId.Value, execution);
-
-                // Create a new message with the execution
-                var message = new Message(
-                    Id: Guid.NewGuid(),
-                    TimeStamp: DateTime.UtcNow,
-                    Author: new Author(
-                        DisplayName: "SRE Agent",
-                        UserId: "agent-default",
-                        Role: Role.SREAgent
-                    ),
-                    Text: "",
-                    IsImageContent: false,
-                    Posted: new Posted(false),
-                    Approval: null,
-                    AzCliExecution: execution,
-                    IncidentDiscussionId: null,
-                    IsDailyReport: false
-                );
-
-                await _threadRepository.AddMessageAsync(ThreadId.Value, message);
-
-                var options = new JsonSerializerOptions
-                {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    DictionaryKeyPolicy = new LowerCaseNamingPolicy(),
-                    WriteIndented = true
-                };
-                options.Converters.Add(new JsonStringEnumConverter());
-
-                // Stream the whole az cli execution to render the special AzCliExecution component
-                await _outboundCommunicationService.AppendAgentStreamMessage(ThreadId.Value, JsonSerializer.Serialize(execution, options), StreamMessageType.AzCli, message.Id);
-                try
-                {
-                    // Execute the actual command synchronously - crawler triggering happens inside ArmHelper
-                    var output = await _armHelper.RunAzCliCommandsAsync(command);
-
-                    // Update execution with success
-                    execution = execution with
-                    {
-                        Status = AzCliExecutionStatus.Completed,
-                        ExecutedBy = new Author(
-                            DisplayName: "SRE Agent",
-                            UserId: "agent-default",
-                            Role: Role.User
-                        ),
-                        Output = output,
-                        CompletedTimestamp = DateTime.UtcNow
-                    };
-
-                    await _threadRepository.UpdateAzCliExecutionAsync(ThreadId.Value, execution);
-
-                    await _outboundCommunicationService.AppendAgentStreamMessage(ThreadId.Value, JsonSerializer.Serialize(execution, options), StreamMessageType.AzCli, message.Id);
-
-                    // Return the actual output
-                    return $"Azure CLI command completed successfully. Output: {output}";
-                }
-                catch (Exception ex)
-                {
-                    _logger?.LogInternalError(ex, "Failed to execute read command: {Command}", command);
-
-                    // Update execution with failure
-                    execution = execution with
-                    {
-                        Status = AzCliExecutionStatus.Failed,
-                        ExecutedBy = new Author(
-                            DisplayName: "SRE Agent",
-                            UserId: "agent-default",
-                            Role: Role.User
-                        ),
-                        Error = ex.Message,
-                        CompletedTimestamp = DateTime.UtcNow
-                    };
-
-                    await _threadRepository.UpdateAzCliExecutionAsync(ThreadId.Value, execution);
-
-                    await _outboundCommunicationService.AppendAgentStreamMessage(ThreadId.Value, JsonSerializer.Serialize(execution, options), StreamMessageType.AzCli, message.Id);
-
-                    throw; // Re-throw to let the caller handle the error
-                }
+                return await ExecuteAzCliCommandWithApprovalFallback(command, writeCommand: false);
             }
             catch (Exception ex)
             {
@@ -386,14 +290,15 @@ namespace Agent.Plugins.Implementation
                 }
 
                 isAutonomousMode = string.Equals(threadAgentMode, ActionMode.Autonomous.ToString(), StringComparison.OrdinalIgnoreCase);
-
-                // Create and persist execution record
-                var execution = await CreateAndPersistAzCliExecution(executionId, command, isAutonomousMode);
-
-                // Handle execution based on mode
-                return isAutonomousMode
-                    ? await ExecuteAutonomousAzCliCommand(command, execution)
-                    : "Azure CLI write command has been prepared for approval. Please click 'Run' to execute or 'Cancel' to dismiss.";
+                if (isAutonomousMode)
+                {
+                    return await ExecuteAzCliCommandWithApprovalFallback(command, writeCommand: true);
+                }
+                else
+                {
+                    var execution = await CreateAndPersistAzCliExecution(executionId, command, requiresApproval: true);
+                    return "Azure CLI write command has been prepared for approval. Please click 'Run' to execute or 'Cancel' to dismiss.";
+                }
             }
             catch (Exception ex)
             {
@@ -426,9 +331,9 @@ namespace Agent.Plugins.Implementation
         private async Task<AzCliExecution> CreateAndPersistAzCliExecution(
             Guid executionId,
             string command,
-            bool isAutonomousMode)
+            bool requiresApproval)
         {
-            var execution = CreateAzCliExecution(executionId, command, isAutonomousMode);
+            var execution = CreateAzCliExecution(executionId, command, requiresApproval);
 
             await _threadRepository.CreateAzCliExecutionAsync(ThreadId!.Value, execution);
 
@@ -443,18 +348,18 @@ namespace Agent.Plugins.Implementation
         private AzCliExecution CreateAzCliExecution(
             Guid executionId,
             string command,
-            bool isAutonomousMode)
+            bool requiresApproval)
         {
             return new AzCliExecution(
                 Id: executionId,
                 Command: command,
                 Description: GetCommandDescription(command),
-                Status: isAutonomousMode ? AzCliExecutionStatus.Running : AzCliExecutionStatus.Pending,
+                Status: !requiresApproval ? AzCliExecutionStatus.Running : AzCliExecutionStatus.Pending,
                 OriginalFunctionCall: null,
                 Output: null,
                 Error: null,
                 CreatedTimestamp: DateTime.UtcNow,
-                StartedTimestamp: isAutonomousMode ? DateTime.UtcNow : null,
+                StartedTimestamp: !requiresApproval ? DateTime.UtcNow : null,
                 CompletedTimestamp: null,
                 ExecutedBy: null,
                 AgentContextId: null
@@ -481,25 +386,45 @@ namespace Agent.Plugins.Implementation
             );
         }
 
-        private async Task<string> ExecuteAutonomousAzCliCommand(
+        private async Task<string> ExecuteAzCliCommandWithApprovalFallback(
             string command,
-            AzCliExecution execution)
+            bool writeCommand)
         {
+            var executionId = Guid.NewGuid();
+            var execution = await CreateAndPersistAzCliExecution(executionId, command, requiresApproval: false);
+
+            string cmdType = writeCommand ? "write" : "read";
             try
             {
-                var output = await _armHelper.RunAzCliCommandsAsync(command);
+                var result = await _armHelper.RunAzCliCommandsAsync(command);
 
-                await UpdateAzCliExecutionWithSuccess(execution, output);
+                if (result.ErrorOccurred)
+                {
+                    if (result.ErrorType == CliErrorType.AuthorizationError)
+                    {
+                        await UpdateAzCliExecutionWithApproval(execution);
+                        return $"Azure CLI {cmdType} command has been prepared for approval. Please click 'Run' to execute or 'Cancel' to dismiss.";
+                    }
+                    else
+                    {
+                        await UpdateAzCliExecutionWithFailure(execution, result.Output);
 
-                return $"Azure CLI command completed successfully. Output: {output}";
+                        return $"Azure CLI {cmdType} command failed. Output: {result.Output}";
+                    }
+                }
+                else
+                {
+                    await UpdateAzCliExecutionWithSuccess(execution, result.Output);
+
+                    return $"Azure CLI {cmdType} command completed successfully. Output: {result.Output}";
+                }
             }
             catch (Exception ex)
             {
-                _logger?.LogInternalError(ex, "Failed to execute write command: {Command}", command);
+                _logger?.LogInternalError(ex, $"Failed to execute {cmdType} command: {command}");
 
                 await UpdateAzCliExecutionWithFailure(execution, ex.Message);
-
-                return $"Failed to execute command: {ex.Message}";
+                throw;
             }
         }
 
@@ -525,6 +450,23 @@ namespace Agent.Plugins.Implementation
                 ExecutedBy = CreateAgentAuthor(),
                 Error = errorMessage,
                 CompletedTimestamp = DateTime.UtcNow
+            };
+
+            await _threadRepository.UpdateAzCliExecutionAsync(ThreadId!.Value, updatedExecution);
+            await NotifyAzCliExecutionUpdated(updatedExecution);
+        }
+
+        private async Task UpdateAzCliExecutionWithApproval(AzCliExecution execution)
+        {
+            var updatedExecution = execution with
+            {
+                Status = AzCliExecutionStatus.Pending,
+                Description = $"{execution.Description} (I will use your credential to run this command because I don't have permission.)",
+                Output = null,
+                ExecutedBy = null,
+                Error = null,
+                StartedTimestamp = null,
+                CompletedTimestamp = null,
             };
 
             await _threadRepository.UpdateAzCliExecutionAsync(ThreadId!.Value, updatedExecution);
@@ -577,7 +519,8 @@ namespace Agent.Plugins.Implementation
             {
                 // Use the ArmHelper to get help information
                 var helpCommand = $"az {helpTopic} --help";
-                var helpOutput = await _armHelper.RunAzCliCommandsAsync(helpCommand);
+                var result = await _armHelper.RunAzCliCommandsAsync(helpCommand);
+                var helpOutput = result.Output;
 
                 // If grep pattern is provided, filter the output
                 if (!string.IsNullOrEmpty(grepPattern))

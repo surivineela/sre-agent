@@ -11,6 +11,7 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Web;
 using Agent.Core.Configuration;
+using Agent.Core.Exceptions;
 using Agent.Core.Helpers.ArmModels;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
@@ -34,6 +35,7 @@ using Azure.ResourceManager.Sql;
 using Azure.ResourceManager.Sql.Models;
 using Azure.ResourceManager.Storage;
 using Azure.ResourceManager.Storage.Models;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
@@ -61,6 +63,7 @@ public class ArmHelper
     private readonly IAuthenticationService _authService;
     private readonly AzureSettings _azureSettings;
     private readonly IHostEnvironment _hostEnvironment;
+    private readonly IChatClient _chatClient;
 
     private readonly ICrawlerTriggerService _crawlerTriggerService;
 
@@ -72,7 +75,8 @@ public class ArmHelper
         IAuthenticationService authService,
         AzureSettings azureSettings,
         IHostEnvironment hostEnvironment,
-        ICrawlerTriggerService crawlerTriggerService)
+        ICrawlerTriggerService crawlerTriggerService,
+        IChatClient chatClient)
     {
         _logger = logger;
         _httpClientFactory = httpClientFactory;
@@ -81,6 +85,7 @@ public class ArmHelper
         _azureSettings = azureSettings;
         _hostEnvironment = hostEnvironment;
         _crawlerTriggerService = crawlerTriggerService;
+        _chatClient = chatClient;
     }
 
     public async Task<List<AzureSubscription>> GetSubscriptionsAsync()
@@ -2406,7 +2411,7 @@ public class ArmHelper
         }
     }
 
-    public async Task<string> RunAzCliCommandsAsync(string command, string oboToken = "")
+    public async Task<CliExecutionResult> RunAzCliCommandsAsync(string command, string oboToken = "")
     {
         _logger.LogInternalInformation($"[RunAzCliCommandsAsync] command: {command}");
         // Trim any leading/trailing whitespace
@@ -2417,7 +2422,11 @@ public class ArmHelper
         if (validationSummary != null)
         {
             _logger.LogInternalError($"[RunAzCliCommandsAsync] Validation failed: {validationSummary}");
-            return validationSummary;
+            return new CliExecutionResult
+            {
+                ErrorType = CliErrorType.ValidationError,
+                Output = validationSummary,
+            };
         }
 
         // Execute the command
@@ -2436,18 +2445,23 @@ public class ArmHelper
             var cliExecution = new AzCliExecution(_logger, command, oboToken, identity, _hostEnvironment.IsDevelopment());
             var result = await cliExecution.ExecuteAsync();
 
-            if (!string.IsNullOrEmpty(oboToken))
+            var executionResult = await CliExecutionHelper.ParseCliExecutionResult(_chatClient, result);
+            if (!executionResult.ErrorOccurred && !string.IsNullOrEmpty(oboToken))
             {
                 // If the command is executed successfully and an OBO token is provided, trigger a re-crawl
                 // because the OBO token is only required for WRITE operations, and the command is expected to modify resources.
                 _crawlerTriggerService.TriggerArmCrawl(result);
             }
 
-            return result;
+            return executionResult;
         }
         catch (Exception ex)
         {
-            return $"[Exception encountered]: Failed to execute command: {ex.ToString()}";
+            return new CliExecutionResult
+            {
+                ErrorType = CliErrorType.Other,
+                Output = $"[Exception encountered]: Failed to execute command: {ex}",
+            };
         }
     }
 
@@ -2512,8 +2526,8 @@ public class ArmHelper
     /// <returns>The resource ID of the storage account if it exists, otherwise null</returns>
     public async Task<string> GetStorageAccountResourceIdAsync(string subscriptionId, string resourceGroupName, string storageAccountName)
     {
-        if (string.IsNullOrWhiteSpace(subscriptionId) || 
-            string.IsNullOrWhiteSpace(resourceGroupName) || 
+        if (string.IsNullOrWhiteSpace(subscriptionId) ||
+            string.IsNullOrWhiteSpace(resourceGroupName) ||
             string.IsNullOrWhiteSpace(storageAccountName))
         {
             return null;
@@ -2523,10 +2537,10 @@ public class ArmHelper
         {
             // Construct the resource ID for the storage account
             string resourceId = $"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{storageAccountName}";
-            
+
             // Check if the resource exists
             bool exists = await CheckIfResourceExistsAsync(resourceId);
-            
+
             return exists ? resourceId : null;
         }
         catch (Exception ex)

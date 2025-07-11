@@ -70,6 +70,7 @@ public class AzCliExecution
         }
         catch (Exception ex)
         {
+            _logger.LogInternalError($"AzCliExecution failed for command '{_command}': {ex}");
             return $"[Exception encountered]: Failed to execute command: {ex}";
         }
     }
