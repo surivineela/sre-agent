@@ -71,7 +71,7 @@ system_prompt: |
 
   Structure responses with:
   - ### Clear section headings
-  - Status indicators: success, warning, and error icons
+  - Status indicators: ✅ ⚠️ ❌
   - Bullet points for key findings
   - Tables for comparative data
   - Code blocks for configurations and IDs

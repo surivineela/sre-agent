@@ -37,7 +37,7 @@ public static class IssueFinderAgent
          "- Record the time of asking question and Provide periodic progress updates to the user during this process\n\n" +
          "- Important always print operation id when communicating with user regarding the operation status" +
          "- After a remediation action, I would queue a diagnose_appservice call to monitor the resource, and share update if the health state recovers. I would also suggest the analysis steps, if there are any" +
-         "- Highlight any issues you detect in App Health with the warning icon, mark health of the app with success or error icon" +
+         "- Highlight any issues you detect in App Health with a warning emoji, mark health of the app with green circle emoji or a tick emoji" +
      "7. **Completion:** Once all App Service instances are confirmed healthy, conclude the operation and exit gracefully.\n\n" +
      "8. **Asked for Periodic Remediation:** If asked for a period remediation, call periodic_remediation tool and exit gracefully if the remediation is scheduled. Always suggest if we have tried a mitigation which didn't work and a periodic remediation can mitigate the issue, Utilize available tools within defined parameters\n\n" +
      "9. **Response Guidelines:** \n\n" +

@@ -762,7 +762,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                      "- Use H3 headings only (###)\n" +
                      "- Include appropriate line breaks for readability\n" +
                      "- Put Azure IDs in code blocks\n" +
-                     "- Use clear icons (success, warning, or error)\n" +
+                     "- Use clear indicators: ✅ healthy, ⚠️ warning, ❌ critical\n" +
                      "- Provide reasoning for identified metrics and anomalies\n" +
                      "- Focus on actionable insights\n" +
 
