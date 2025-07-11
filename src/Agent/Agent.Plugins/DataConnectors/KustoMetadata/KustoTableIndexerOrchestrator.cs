@@ -11,24 +11,25 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
     using Agent.Core.Configuration;
     using Agent.Core.Interfaces;
     using Agent.Core.Models.Search;
+    using Azure;
     using Azure.Core;
     using Microsoft.DurableTask;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
 
-    public record KustoConnectionInfo(Uri ClusterUri, string ManagedIdentityClientId, IEnumerable<string> DatabaseFilter, IEnumerable<string> TableFilter);
+    public record KustoConnectionInfo(string DataConnectorName, Uri ClusterUri, string ManagedIdentityClientId, IEnumerable<string> DatabaseFilter, IEnumerable<string> TableFilter);
 
-    public record KustoDatabaseInput(string DatabaseName);
+    public record KustoDatabaseInput(KustoConnectionInfo ConnectionInfo, string DatabaseName);
 
     public record ExampleQuery(string Description, string QueryText);
 
-    public record KustoTableIndexInput(string DatabaseName, string TableName);
+    public record KustoTableIndexInput(KustoConnectionInfo ConnectionInfo, string DatabaseName, string TableName);
 
-    public record KustoTableIndexColumnMetadata(IEnumerable<string> LogMessageColumnNames, IEnumerable<KustoColumnMetadata> ColumnMetadata, string TimeStampColumn);
+    public record KustoTableIndexColumnMetadata(KustoConnectionInfo ConnectionInfo, IEnumerable<string> LogMessageColumnNames, IEnumerable<KustoColumnMetadata> ColumnMetadata, string TimeStampColumn);
 
-    public record KustoTableIndexColumnDescriptionInput(string DatabaseName, string TableName, string ColumnName, IEnumerable<string> ContextColumnNames, string TimeStampColumn);
+    public record KustoTableIndexColumnDescriptionInput(KustoConnectionInfo ConnectionInfo, string DatabaseName, string TableName, string ColumnName, IEnumerable<string> ContextColumnNames, string TimeStampColumn);
 
-    public record KustoTableIndexSummaryInput(Uri ClusterUri, string DatabaseName, string TableName, KustoTableIndexColumnMetadata Columns);
+    public record KustoTableIndexSummaryInput(KustoConnectionInfo ConnectionInfo, string DatabaseName, string TableName, KustoTableIndexColumnMetadata Columns);
 
     [DurableTask]
     public class KustoTableIndexerOrchestrator : TaskOrchestrator<KustoConnectionInfo, bool>
@@ -50,7 +51,7 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
                 {
                     try
                     {
-                        KustoDatabaseInput databaseDetails = new KustoDatabaseInput(database);
+                        KustoDatabaseInput databaseDetails = new KustoDatabaseInput(clusterDetails, database);
 
                         IEnumerable<string> tableNames = await context.CallKustoTableIndexTableDiscoveryActivityAsync(databaseDetails);
 
@@ -63,7 +64,7 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
                         {
                             try
                             {
-                                KustoTableIndexInput tableIndexInput = new KustoTableIndexInput(databaseDetails.DatabaseName, table);
+                                KustoTableIndexInput tableIndexInput = new KustoTableIndexInput(clusterDetails, databaseDetails.DatabaseName, table);
 
                                 KustoTableIndexColumnMetadata columnMetadata = await context.CallKustoTableIndexTableSchemaActivityAsync(tableIndexInput);
 
@@ -75,6 +76,7 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
                                     {
                                         string description = await context.CallKustoTableIndexColumnDescriptionActivityAsync(
                                             new KustoTableIndexColumnDescriptionInput(
+                                                clusterDetails,
                                                 tableIndexInput.DatabaseName,
                                                 tableIndexInput.TableName,
                                                 column.Name,
@@ -105,9 +107,9 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
                                     }
                                 }
 
-                                KustoTableIndexColumnMetadata updatedMetaData = new KustoTableIndexColumnMetadata(columnMetadata.LogMessageColumnNames, updatedColumnMetaData, columnMetadata.TimeStampColumn);
+                                KustoTableIndexColumnMetadata updatedMetaData = new KustoTableIndexColumnMetadata(clusterDetails, columnMetadata.LogMessageColumnNames, updatedColumnMetaData, columnMetadata.TimeStampColumn);
 
-                                await context.CallKustoTableIndexSummarizeAndUploadActivityAsync(new KustoTableIndexSummaryInput(clusterDetails.ClusterUri, tableIndexInput.DatabaseName, tableIndexInput.TableName, updatedMetaData));
+                                await context.CallKustoTableIndexSummarizeAndUploadActivityAsync(new KustoTableIndexSummaryInput(clusterDetails, tableIndexInput.DatabaseName, tableIndexInput.TableName, updatedMetaData));
 
                             }
                             catch (Exception ex)
@@ -121,10 +123,41 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
                         logger.LogInternalError(ex, "Failed to process database {DatabaseName} in cluster {ClusterUri}. Skipping it.", database, clusterDetails.ClusterUri);
                     }
                 }
+
+                // Start the indexer after processing all databases and tables
+                await context.CallKustoIndexerStartActivityAsync(clusterDetails);
             }
             catch (Exception ex)
             {
                 logger.LogInternalError(ex, "Failed to process cluster {ClusterUri}.", clusterDetails.ClusterUri);
+                return false;
+            }
+
+            return true;
+        }
+    }
+
+    [DurableTask]
+    public class KustoIndexerStartActivity : TaskActivity<KustoConnectionInfo, bool>
+    {
+        private readonly ILogger<KustoDatabaseDiscoveryActivity> _logger;
+
+        public KustoIndexerStartActivity(ILogger<KustoDatabaseDiscoveryActivity> logger)
+        {
+            _logger = logger;
+        }
+
+        public override async Task<bool> RunAsync(TaskActivityContext context, KustoConnectionInfo input)
+        {
+            _logger.LogInternalInformation("Running indexer for cluster {ClusterUri}", input.ClusterUri);
+
+            try
+            {
+                await KustoTableIndexerDataConnector.GetDataConnector(input.DataConnectorName).RunIndexerAsync();
+            }
+            catch (RequestFailedException ex)
+            {
+                _logger.LogInternalError(ex, "Failed to run indexer for cluster {ClusterUri}.", input.ClusterUri);
                 return false;
             }
 
@@ -149,7 +182,7 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
 
             const string query = ".show databases";
 
-            using IDataReader databasesData = await KustoTableIndexerDataConnector.KustoSummarizer!.PerformQueryAsync(string.Empty, query);
+            using IDataReader databasesData = await KustoTableIndexerDataConnector.GetDataConnector(input.DataConnectorName).KustoSummarizer!.PerformQueryAsync(string.Empty, query);
 
             List<string> databaseNames = new List<string>();
             while (databasesData.Read())
@@ -181,7 +214,7 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
 
             const string query = ".show tables";
 
-            using IDataReader tablesData = await KustoTableIndexerDataConnector.KustoSummarizer!.PerformQueryAsync(input.DatabaseName, query);
+            using IDataReader tablesData = await KustoTableIndexerDataConnector.GetDataConnector(input.ConnectionInfo.DataConnectorName).KustoSummarizer!.PerformQueryAsync(input.DatabaseName, query);
 
             List<string> tableNames = new List<string>();
             while (tablesData.Read())
@@ -209,11 +242,13 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
 
         public override async Task<KustoTableIndexColumnMetadata> RunAsync(TaskActivityContext context, KustoTableIndexInput input)
         {
+            KustoTableSummarizer summarizer = KustoTableIndexerDataConnector.GetDataConnector(input.ConnectionInfo.DataConnectorName).KustoSummarizer!;
+
             _logger.LogInternalInformation("Getting table schema for {DatabaseName}, {TableName}", input.DatabaseName, input.TableName);
 
-            IEnumerable<KustoColumnMetadata> columnMetadata = await KustoTableIndexerDataConnector.KustoSummarizer!.GetTableSchemaAsync(input.DatabaseName, input.TableName);
+            IEnumerable<KustoColumnMetadata> columnMetadata = await summarizer.GetTableSchemaAsync(input.DatabaseName, input.TableName);
 
-            string timeStampColumn = await KustoTableIndexerDataConnector.KustoSummarizer!.DiscoverTimeStampColumnsAsync(input.DatabaseName, input.TableName, columnMetadata);
+            string timeStampColumn = await summarizer.DiscoverTimeStampColumnsAsync(input.DatabaseName, input.TableName, columnMetadata);
 
             if (string.IsNullOrEmpty(timeStampColumn))
             {
@@ -222,9 +257,9 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
 
             _logger.LogInternalInformation("Getting log message column names for {DatabaseName}, {TableName}", input.DatabaseName, input.TableName);
 
-            IEnumerable<string> logMessageColumnNames = await KustoTableIndexerDataConnector.KustoSummarizer!.DiscoverLogMessageColumnsAsync(input.DatabaseName, input.TableName, columnMetadata.Select(x => x.Name), timeStampColumn);
+            IEnumerable<string> logMessageColumnNames = await summarizer.DiscoverLogMessageColumnsAsync(input.DatabaseName, input.TableName, columnMetadata.Select(x => x.Name), timeStampColumn);
 
-            return new KustoTableIndexColumnMetadata(logMessageColumnNames, columnMetadata, timeStampColumn);
+            return new KustoTableIndexColumnMetadata(input.ConnectionInfo, logMessageColumnNames, columnMetadata, timeStampColumn);
         }
     }
 
@@ -242,7 +277,7 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
         {
             _logger.LogInternalInformation("Getting description for column {ColumnName} for {DatabaseName}, {TableName}", input.ColumnName, input.DatabaseName, input.TableName);
 
-            return await KustoTableIndexerDataConnector.KustoSummarizer!.CreateColumnDescriptionAsync(input.DatabaseName, input.TableName, input.ColumnName, input.ContextColumnNames, input.TimeStampColumn);
+            return await KustoTableIndexerDataConnector.GetDataConnector(input.ConnectionInfo.DataConnectorName).KustoSummarizer!.CreateColumnDescriptionAsync(input.DatabaseName, input.TableName, input.ColumnName, input.ContextColumnNames, input.TimeStampColumn);
         }
     }
 
@@ -266,12 +301,14 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
 
         public override async Task<bool> RunAsync(TaskActivityContext context, KustoTableIndexSummaryInput input)
         {
+            KustoTableIndexerDataConnector dataConnector = KustoTableIndexerDataConnector.GetDataConnector(input.ConnectionInfo.DataConnectorName);
+
             _logger.LogInternalInformation("Getting table summary for {DatabaseName}, {TableName}", input.DatabaseName, input.TableName);
 
             List<KustoLogMessageSamples> logMessageSamples = new List<KustoLogMessageSamples>(input.Columns.LogMessageColumnNames.Count());
             foreach (string logMessageColumn in input.Columns.LogMessageColumnNames)
             {
-                string logData = await KustoTableIndexerDataConnector.KustoSummarizer!.GetLogMessageSamplesAsync(input.DatabaseName, input.TableName, logMessageColumn, input.Columns.TimeStampColumn);
+                string logData = await dataConnector.KustoSummarizer!.GetLogMessageSamplesAsync(input.DatabaseName, input.TableName, logMessageColumn, input.Columns.TimeStampColumn);
 
                 if (!string.IsNullOrEmpty(logData))
                 {
@@ -285,11 +322,11 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
                 }
             }
 
-            string tableSummary = await KustoTableIndexerDataConnector.KustoSummarizer!.SummarizeTableAsync(input.TableName, logMessageSamples, input.Columns.ColumnMetadata);
+            string tableSummary = await dataConnector.KustoSummarizer!.SummarizeTableAsync(input.TableName, logMessageSamples, input.Columns.ColumnMetadata);
 
             _logger.LogInternalInformation("Getting example queries and description for {DatabaseName}", input.DatabaseName);
 
-            IEnumerable<KustoExampleQueryAndDescription> exampleQueries = await GetExampleQueriesForTableAsync(input.DatabaseName, input.TableName, tableSummary);
+            IEnumerable<KustoExampleQueryAndDescription> exampleQueries = await GetExampleQueriesForTableAsync(dataConnector, input.DatabaseName, input.TableName, tableSummary);
 
             // Log each example query and its description
             foreach (var example in exampleQueries)
@@ -302,21 +339,26 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
 
             _logger.LogInternalInformation("Uploading table summary and example queries and description for {DatabaseName}, {TableName}", input.DatabaseName, input.TableName);
 
-            await UploadJsonDocumentationAsync(input.ClusterUri, input.DatabaseName, input.TableName, tableSummary, logMessageSamples, input.Columns.ColumnMetadata, exampleQueries);
+            await UploadJsonDocumentationAsync(dataConnector, input, tableSummary, logMessageSamples,  exampleQueries);
 
             return true;
         }
 
         private async Task UploadJsonDocumentationAsync(
-            Uri clusterUri,
-            string databaseName,
-            string tableName,
+             KustoTableIndexerDataConnector dataConnector,
+            KustoTableIndexSummaryInput input,
             string tableDescription,
             IEnumerable<KustoLogMessageSamples> logMessageSamples,
-            IEnumerable<KustoColumnMetadata> columns,
             IEnumerable<KustoExampleQueryAndDescription> exampleQueries)
         {
-            _logger.LogInternalInformation("Generating JSON documentation for {DatabaseName}_{TableName}", databaseName, tableName);
+
+            string clusterName = KustoTableIndexerDataConnector.GetSafeKustoClusterName(input.ConnectionInfo.ClusterUri);
+            string databaseName = input.DatabaseName;
+            string tableName = input.TableName;
+            Uri clusterUri = input.ConnectionInfo.ClusterUri;
+            IEnumerable<KustoColumnMetadata> columns = input.Columns.ColumnMetadata;
+
+            _logger.LogInternalInformation("Generating JSON documentation for {Cluster}_{DatabaseName}_{TableName}", clusterName, databaseName, tableName);
 
             StringBuilder sb = new StringBuilder();
 
@@ -353,7 +395,7 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
 
             KustoTableMetadata tableMetadata = new KustoTableMetadata
             {
-                Id = $"{databaseName}_{tableName}", //id cannot have a ".", causes indexer to fail index the data from blob
+                Id = $"{clusterName}_{databaseName}_{tableName}", //id cannot have a ".", causes indexer to fail index the data from blob
                 ClusterUri = clusterUri.ToString(),
                 DatabaseName = databaseName,
                 TableName = tableName,
@@ -363,11 +405,12 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
                 MetadataConcat = sb.ToString()
             };
 
-            await UploadJSONToBlob("kustometadata", $"{databaseName}/{tableName}.json", tableMetadata);
+            await dataConnector.UploadKustoMetadataToBlob(tableMetadata);
 
             var exampleQueryDoc = new KustoExampleQueryDocument
             {
-                Id = $"{databaseName}_{tableName}_examplequeries",
+                Id = $"{clusterName}_{databaseName}_{tableName}_examplequeries",
+                ClusterUri = clusterUri.ToString(),
                 DatabaseName = databaseName,
                 TableName = tableName,
                 ExampleQueries = exampleQueries.Any()
@@ -384,17 +427,11 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
                 MetadataConcat = $"{tableDescription} {string.Join(" ", exampleQueries.Select(q => $"{q.Description} {q.Query}"))}"
             };
 
-            await UploadJSONToBlob("kustometadataexamplequeries", $"{databaseName}/{tableName}_example_queries.json", exampleQueryDoc);
-
+            await dataConnector.UploadKustoExampleQueriesToBlob(exampleQueryDoc);
         }
 
-        private async Task UploadJSONToBlob(string container, string blobName, object data)
-        {
-            await _blogStorageClient.UploadBlobContentsAsync(container, blobName, BinaryData.FromObjectAsJson(data));
-            _logger.LogInternalInformation("Uploaded JSON documentation for {BlobName} to container {Container}", blobName, container);
-        }
 
-        public async Task<IEnumerable<KustoExampleQueryAndDescription>> GetExampleQueriesForTableAsync(string databaseName, string tableName, string tableDescription)
+        public async Task<IEnumerable<KustoExampleQueryAndDescription>> GetExampleQueriesForTableAsync(KustoTableIndexerDataConnector dataConnector, string databaseName, string tableName, string tableDescription)
         {
             var baseDir = AppContext.BaseDirectory;
             var queriesFolder = Path.Combine(baseDir, "Plugins", "Definitions", "Queries");
@@ -427,7 +464,7 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
                 else
                 {
                     // Generate description using AI if not present
-                    description = await KustoTableIndexerDataConnector.KustoSummarizer!.GenerateQueryDescriptionAsync(tableDescription, queryText);
+                    description = await dataConnector.KustoSummarizer!.GenerateQueryDescriptionAsync(tableDescription, queryText);
                 }
                 // Use a deterministic Id, e.g., databaseName_tableName_{i} or a hash of the query
                 string id = $"{databaseName}_{tableName}_{Path.GetFileNameWithoutExtension(file)}";

@@ -17,4 +17,5 @@ public interface ISearchIndexingClient
     Task<Response<SearchIndexer>> CreateOrUpdateIndexerAsync(SearchIndexer indexerDefinition);
     Task<Response<SearchIndexerSkillset>> CreateOrUpdateSkillsetAsync(SearchIndexerSkillset skillsetDefinition);
     Task<SearchResults<TResult>> SearchAsync<TResult>(string indexName, string searchText, SearchOptions searchOptions, CancellationToken cancellationToken = default);
+    Task RunIndexerAsync(string indexerName, CancellationToken cancellationToken = default);
 }

@@ -35,6 +35,14 @@ public class KustoMetadataIndex<T>
         }
     }
 
+    public string IndexerName
+    {
+        get
+        {
+            return $"{_indexNamePrefix}-indexer";
+        }
+    }
+
     public SearchField? SemanticSearchTitleField
     {
         get;
@@ -232,10 +240,10 @@ public class KustoMetadataIndex<T>
             new ResourceIdentifier(managedIdentityResourceId)
         );
 
-        string indexerName = $"{_indexNamePrefix}-indexer";
-        SearchIndexer indexer = new SearchIndexer(indexerName, dataSourceName, IndexName)
+        SearchIndexer indexer = new SearchIndexer(IndexerName, dataSourceName, IndexName)
         {
             SkillsetName = skillsetName,
+            Schedule = new IndexingSchedule(TimeSpan.FromHours(1)),
             Parameters = new IndexingParameters
             {
                 IndexingParametersConfiguration = new IndexingParametersConfiguration
@@ -255,5 +263,10 @@ public class KustoMetadataIndex<T>
         );
 
         await _searchIndexingClient.CreateOrUpdateIndexerAsync(indexer);
+    }
+
+    public async Task RunIndexerAsync(CancellationToken cancellationToken = default)
+    {
+        await _searchIndexingClient.RunIndexerAsync(IndexerName, cancellationToken);
     }
 }

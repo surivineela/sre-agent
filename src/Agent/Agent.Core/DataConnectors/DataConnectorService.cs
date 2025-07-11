@@ -50,6 +50,12 @@ public class DataConnectorService : BackgroundService
 
         await instance.DataConnector.InitAsync(instance.Settings, stoppingToken);
 
+        TimeSpan interval = instance.DataConnector.Interval;
+        if (interval < TimeSpan.FromSeconds(5))
+        {
+            interval = TimeSpan.FromSeconds(5);
+        }
+
         while (true)
         {
             try
@@ -58,25 +64,19 @@ public class DataConnectorService : BackgroundService
 
                 await instance.DataConnector.RunAsync(stoppingToken);
 
-                TimeSpan interval = instance.DataConnector.Interval;
-                if (interval < TimeSpan.FromSeconds(5))
-                {
-                    interval = TimeSpan.FromSeconds(5);
-                }
-
-                await Task.Delay(interval, stoppingToken);
-
-                _logger.LogInternalInformation("Data connector iteration completed successfully: {Name}, {DataConnectorType}, {ImplementationType}", instance.Settings.Name, instance.Settings.DataConnectorType, implementationTypeName);
+                _logger.LogInternalInformation("Data connector iteration completed successfully. {Name}, {DataConnectorType}, {ImplementationType}", instance.Settings.Name, instance.Settings.DataConnectorType, implementationTypeName);
             }
             catch (OperationCanceledException ex) when (ex.CancellationToken == stoppingToken)
             {
-                _logger.LogInternalInformation("Data connector  {Name}, {DataConnectorType}, {ImplementationType}", instance.Settings.Name, instance.Settings.DataConnectorType, implementationTypeName);
+                _logger.LogInternalInformation("Data connector shutting down. {Name}, {DataConnectorType}, {ImplementationType}", instance.Settings.Name, instance.Settings.DataConnectorType, implementationTypeName);
                 return;
             }
             catch (Exception ex)
             {
                 _logger.LogInternalError(ex, "Error during data connector iteration: {Message}, {Name}, {DataConnectorType}, {ImplementationType}", ex.Message, instance.Settings.Name, instance.Settings.DataConnectorType, implementationTypeName);
             }
+
+            await Task.Delay(interval, stoppingToken);
         }
     }
 }

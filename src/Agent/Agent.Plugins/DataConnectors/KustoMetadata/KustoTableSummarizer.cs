@@ -2,6 +2,7 @@
 // Copyright (c) Microsoft Corporation.  All rights reserved.
 // -----------------------------------------------------------
 
+using System.ClientModel;
 using System.Data;
 using System.Globalization;
 using System.Text;
@@ -106,67 +107,82 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
                 return string.Empty;
             }
 
-            // This query does some de-duplication of log messages by taking the first 15 characters of the log message and summarizing by that substring
-            // The LLM will further de-duplicate the messages based on the context it has
-            using IDataReader dataReader = await PerformQueryAsync(
-                databaseName,
-                $$"""
+            for (int i = 0; i < 3; ++i)
+            {
+                // start with a substring length of 15 characters and reduce it if there are too many duplicates. A smaller substring will result in more aggressive de-duping at the cost of potentially losing unique records that happen to start or end with the same substring.
+                int subStringLength = 15 - i * 3;
+
+                try
+                {
+
+                    // This query does some de-duplication of log messages by taking the first x characters of the log message and summarizing by that substring, then summarizing again by the last x characters.
+                    // The LLM will further de-duplicate the messages based on the context it has
+                    using IDataReader dataReader = await PerformQueryAsync(
+                        databaseName,
+                        $$"""
                 {{tableName}}
                     | where {{timestampColumnName}} > ago (7d)
                     | where isnotempty({{logMessageColumnName}})
                     | project {{logMessageColumnName}}
-                    | extend sub1 = substring({{logMessageColumnName}}, 0, 15)
-                    | summarize take_any(*) by sub1
-                    | project {{logMessageColumnName}}, sub2 = substring({{logMessageColumnName}}, strlen({{logMessageColumnName}})-15)
-                    | summarize take_any(*) by sub2
+                    | extend sub1 = substring({{logMessageColumnName}}, 0, {{subStringLength}})
+                    | summarize take_any({{logMessageColumnName}}) by sub1
+                    | project {{logMessageColumnName}}, sub2 = substring({{logMessageColumnName}}, strlen({{logMessageColumnName}})-{{subStringLength}})
+                    | summarize take_any({{logMessageColumnName}}) by sub2
                     | project {{logMessageColumnName}}
                     | sample 1000
                     | sort by {{logMessageColumnName}} asc
                 """);
 
-            StringBuilder sb = new StringBuilder();
-            List<string> batchResults = new List<string>();
+                    StringBuilder sb = new StringBuilder();
+                    List<string> batchResults = new List<string>();
 
-            while (dataReader.Read())
-            {
-                string? line = dataReader[0].ToString();
-                if (!string.IsNullOrEmpty(line))
-                {
-                    int newLineIndex = line.IndexOf('\n');
-                    if (newLineIndex >= 0)
+                    while (dataReader.Read())
                     {
-                        line = line[..newLineIndex];
+                        string? line = dataReader[0].ToString();
+                        if (!string.IsNullOrEmpty(line))
+                        {
+                            int newLineIndex = line.IndexOf('\n');
+                            if (newLineIndex >= 0)
+                            {
+                                line = line[..newLineIndex];
+                            }
+
+                            line = line[..Math.Min(line.Length, 1000)]; // Limit to 1000 characters to avoid too long lines
+
+                            sb.AppendLine(line);
+
+                            // Check if we need to send a batch
+                            if (sb.Length > 30000)
+                            {
+                                // Send current batch
+                                string batchPrompt = columnSummaryPrompt + Environment.NewLine + sb.ToString();
+                                string batchResult = await SendToModel(batchPrompt);
+                                batchResults.Add(batchResult);
+
+                                // Clear the buffer for next batch
+                                sb.Clear();
+                            }
+                        }
                     }
 
-                    line = line[..Math.Min(line.Length, 1000)]; // Limit to 1000 characters to avoid too long lines
-
-                    sb.AppendLine(line);
-
-                    // Check if we need to send a batch
-                    if (sb.Length > 30000)
+                    // Process any remaining data
+                    if (sb.Length > 0)
                     {
-                        // Send current batch
-                        string batchPrompt = columnSummaryPrompt + Environment.NewLine + sb.ToString();
-                        string batchResult = await SendToModel(batchPrompt);
-                        batchResults.Add(batchResult);
-                        
-                        // Clear the buffer for next batch
-                        sb.Clear();
+                        string finalPrompt = columnSummaryPrompt + Environment.NewLine + sb.ToString();
+                        string finalResult = await SendToModel(finalPrompt);
+                        batchResults.Add(finalResult);
+                    }
+
+                    if (batchResults.Count > 0)
+                    {
+                        return string.Join(Environment.NewLine, batchResults);
                     }
                 }
-            }
-
-            // Process any remaining data
-            if (sb.Length > 0)
-            {
-                string finalPrompt = columnSummaryPrompt + Environment.NewLine + sb.ToString();
-                string finalResult = await SendToModel(finalPrompt);
-                batchResults.Add(finalResult);
-            }
-
-            if (batchResults.Count > 0)
-            {
-                return string.Join(Environment.NewLine, batchResults);
+                catch (KustoServicePartialQueryFailureException ex)
+                {
+                    // this typically means the de-duped set was still too large to summarize.
+                    _logger.LogInternalWarning(ex, $"Partial query failure when getting example log mesages with substring size {subStringLength}. {ex.Message}");
+                }
             }
 
             return string.Empty;
@@ -240,9 +256,8 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
 
         public async Task<string> GenerateQueryDescriptionAsync(string tableDescription, string queryText)
         {
-
             // in this prompt , we can also add column metadata, a refinement would be to parse the query for the columns it projects and then use only that speicifc metadata
-            var prompt = $@"
+            string prompt = $@"
                     Given the following Kusto table description and query, provide a concise description of what the query does and what kind of insight it provides.
 
                         Table Description:
@@ -252,7 +267,7 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
                         {queryText}
 
                         Description:";
-            // Use your AI chat client to get the description
+
             return await SendToModel(prompt);
         }
 
@@ -491,17 +506,43 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
 
         private async Task<string> SendToModel(string prompt)
         {
-            ChatMessage userMessage = new ChatMessage(ChatRole.User, prompt);
-
-            List<ChatMessage> messages = new List<ChatMessage>
+            int maxRetryAttempts = 5;
+            int throttleDelaySeconds = 5;
+            for (int i = 1; ; ++i)
             {
-                new ChatMessage(ChatRole.System, SystemPrompt),
-                userMessage
-            };
+                try
+                {
+                    ChatMessage userMessage = new ChatMessage(ChatRole.User, prompt);
 
-            ChatResponse response = await _chatClient.GetResponseAsync(messages, _chatOptions);
-            
-            return response.Messages.Last().Text;
+                    List<ChatMessage> messages = new List<ChatMessage>
+                    {
+                        new ChatMessage(ChatRole.System, SystemPrompt),
+                        userMessage
+                    };
+
+                    ChatResponse response = await _chatClient.GetResponseAsync(messages, _chatOptions);
+
+                    return response.Messages.Last().Text;
+                }
+                catch (ClientResultException ex)
+                {
+                    if (i >= maxRetryAttempts)
+                    {
+                        _logger.LogInternalError(ex, "Failed to get response from model after {MaxRetryAttempts} attempts. Last error: {Message}", maxRetryAttempts, ex.Message);
+                        throw;
+                    }
+
+                    if (ex.Status == 429)
+                    {
+                        // getting throttled by Open AI
+                        await Task.Delay(TimeSpan.FromSeconds(throttleDelaySeconds * i));
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+            }
         }
 
         private static KustoClient BuildKustoClient(ILoggerFactory loggerFactory, string managedIdentityResourceId)

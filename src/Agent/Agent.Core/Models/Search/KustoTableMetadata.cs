@@ -61,6 +61,9 @@ public record KustoExampleQueryDocument
     [SimpleField(IsKey = true, IsFilterable = true)] // <-- Add this!
     public required string Id { get; init; }
 
+    [SimpleField]
+    public required string ClusterUri { get; init; }
+
     [SimpleField(IsFilterable = true)]
     public required string DatabaseName { get; init; }
 

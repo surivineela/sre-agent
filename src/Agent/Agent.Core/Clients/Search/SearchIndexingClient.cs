@@ -97,4 +97,11 @@ public class SearchIndexingClient : ISearchIndexingClient
 
         return results.Value;
     }
+
+    public async Task RunIndexerAsync(string indexerName, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInternalInformation("Running search indexer {Name}", indexerName);
+
+        await _searchIndexerClient.RunIndexerAsync(indexerName, cancellationToken);
+    }
 }
