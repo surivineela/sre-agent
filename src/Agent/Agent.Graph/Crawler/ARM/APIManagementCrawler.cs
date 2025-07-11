@@ -59,11 +59,13 @@ namespace Agent.Graph.Crawler.ARM
             await foreach (var connectedNode in ExtractNetworkConnections(apiManagementNode))
             {
                 _logger.LogDebug($"Discovered network connection API Management instance: {apiManagementNode.ResourceName} | Connected node: {connectedNode}");
+                yield return connectedNode;
             }
 
             await foreach (var backendNode in ExtractBackendConnections(apiManagementNode))
             {
                 _logger.LogDebug($"Discovered Azure backend connection API Management instance: {apiManagementNode.ResourceName} | Backend node: {backendNode}");
+                yield return backendNode;
             }
         }
 
@@ -116,13 +118,13 @@ namespace Agent.Graph.Crawler.ARM
                 {
                     var backendName = kvp.Key;
                     var backendInfo = kvp.Value;
-                    if (string.IsNullOrEmpty(backendInfo.ArmResourceId))
+                    if (string.IsNullOrEmpty(backendInfo.BackendResourceId))
                         continue;
 
-                    var resourceIdObj = new ResourceIdentifier(backendInfo.ArmResourceId);
+                    var resourceIdObj = new ResourceIdentifier(backendInfo.BackendResourceId);
                     var apimBackendNode = new APIManagementAzureBackendNode(
                         resourceIdObj.ResourceType,
-                        backendInfo.ArmResourceId,
+                        backendInfo.BackendResourceId,
                         resourceIdObj.SubscriptionId,
                         resourceIdObj.ResourceGroupName,
                         resourceIdObj.Name,

@@ -103,6 +103,10 @@ public class ArmResourceCrawlerFactory
             {
                 return new APIManagementCrawler(_loggerFactory.CreateLogger<APIManagementCrawler>(), _graphDbClient, _graphClient, armClient);
             }
+            if (Constants.ApiManagementBackendType.Equals(armNode.ResourceType, StringComparison.OrdinalIgnoreCase))
+            {
+                return new APIManagementBackendCrawler(_loggerFactory.CreateLogger<APIManagementBackendCrawler>(), _graphDbClient, _graphClient, armClient);
+            }
 
             return new GenericArmResourceCrawler(_loggerFactory.CreateLogger<GenericArmResourceCrawler>(), _graphDbClient, armClient);
         }
@@ -207,6 +211,10 @@ public class ArmResourceCrawlerFactory
         if (Constants.ApiManagementType.Equals(id.ResourceType, StringComparison.OrdinalIgnoreCase))
         {
             return new APIManagementNode(id.ResourceType, id.ToString(), id.SubscriptionId, id.ResourceGroupName, id.Name);
+        }
+        if (Constants.ApiManagementBackendType.Equals(id.ResourceType, StringComparison.OrdinalIgnoreCase))
+        {
+            return new APIManagementAzureBackendNode(id.ResourceType, id.ToString(), id.SubscriptionId, id.ResourceGroupName, id.Name);
         }
 
         return new ArmResourceNode(id.ResourceType, id.ToString(), id.SubscriptionId, id.ResourceGroupName, id.Name);

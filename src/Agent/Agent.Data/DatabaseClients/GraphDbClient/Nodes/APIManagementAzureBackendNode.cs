@@ -34,8 +34,6 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             {
                 ConnectedApis = string.Empty;
             }
-
-            this.Remarks = BuildRemarks(backendInfo);
         }
 
         private string BuildRemarks(APIManagementNode.BackendResourceInfo backendInfo)

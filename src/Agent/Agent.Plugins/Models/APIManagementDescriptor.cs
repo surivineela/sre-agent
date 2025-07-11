@@ -161,6 +161,7 @@ namespace Agent.Plugins.Models
         [property: JsonPropertyName("backendName")] string BackendName,
         [property: JsonPropertyName("resourceUri")] string? ResourceUri,
         [property: JsonPropertyName("armResourceId")] string? ArmResourceId,
+        [property: JsonPropertyName("backendResourceId")] string? BackendResourceId,
         [property: JsonPropertyName("connections")] List<APIManagementBackendConnectionDescriptor> Connections
     );
 

@@ -63,7 +63,8 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
 
         public class BackendResourceInfo
         {
-            public string? ArmResourceId { get; set; } // Only valid for Azure backends
+            public string? BackendResourceId { get; set; }
+            public string? ArmResourceId { get; set; }
             public string? ResourceUri { get; set; }
             public List<BackendConnection> Connections { get; set; } = new List<BackendConnection>();
         }
@@ -243,15 +244,17 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
                 var backendId = backend.Data.Id?.ToString() ?? string.Empty;
                 var backendType = backend.Data.ResourceType.ToString();
                 var backendName = backend.Data.Name?.ToString() ?? string.Empty;
-                var isAzureType = backendType.StartsWith("microsoft.", StringComparison.OrdinalIgnoreCase);
+                const string managementUriPrefix = "https://management.azure.com";
+                var isAzureType = !string.IsNullOrEmpty(resourceUri) && resourceUri.StartsWith(managementUriPrefix, StringComparison.OrdinalIgnoreCase);
 
                 // Only add to backendResourceMap if used in connectionMap
                 if (connectionMap.ContainsKey(backendName))
                 {
                     backendResourceMap[backendName] = new BackendResourceInfo
                     {
+                        BackendResourceId = backendId,
                         ResourceUri = resourceUri,
-                        ArmResourceId = isAzureType ? backendId : null,
+                        ArmResourceId = isAzureType ? resourceUri.Substring(managementUriPrefix.Length) : null,
                         Connections = connectionMap[backendName]
                     };
                 }
