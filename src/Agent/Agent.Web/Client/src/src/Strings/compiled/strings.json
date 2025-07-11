@@ -771,6 +771,12 @@
       "value": "DocumentDB Account Contributor"
     }
   ],
+  "AC5nsM": [
+    {
+      "type": 0,
+      "value": "Agent autonomy level"
+    }
+  ],
   "ACfSSZ": [
     {
       "type": 0,
@@ -1687,6 +1693,12 @@
       "value": "Custom handler name"
     }
   ],
+  "R+J5ox": [
+    {
+      "type": 0,
+      "value": "Review"
+    }
+  ],
   "R/6nsx": [
     {
       "type": 0,
@@ -1797,10 +1809,22 @@
       "value": "Export"
     }
   ],
+  "Sdc+Dp": [
+    {
+      "type": 0,
+      "value": "Autonomy level"
+    }
+  ],
   "Sr4IbA": [
     {
       "type": 0,
       "value": "Monitoring Reader"
+    }
+  ],
+  "Sr5R7d": [
+    {
+      "type": 0,
+      "value": "Autonomous"
     }
   ],
   "T7WpWs": [
@@ -1965,6 +1989,12 @@
       "value": "Degraded"
     }
   ],
+  "Ve40iX": [
+    {
+      "type": 0,
+      "value": "Review (Default)"
+    }
+  ],
   "VlBNux": [
     {
       "type": 0,
@@ -2077,6 +2107,12 @@
     {
       "type": 0,
       "value": "Linking Grafana dashboard"
+    }
+  ],
+  "XKhlZF": [
+    {
+      "type": 0,
+      "value": "The fully autonomous mode. With the required permissions, the agent analyzes incidents and independently performs mitigation or resource modifications."
     }
   ],
   "XUVR/7": [
@@ -2355,6 +2391,12 @@
     {
       "type": 0,
       "value": "Memory"
+    }
+  ],
+  "dhqlRa": [
+    {
+      "type": 0,
+      "value": "The semiautonomous mode. The agent diagnoses incidents, then mitigates or modifies resources only after its proposed actions are reviewed and approved."
     }
   ],
   "dnXgff": [

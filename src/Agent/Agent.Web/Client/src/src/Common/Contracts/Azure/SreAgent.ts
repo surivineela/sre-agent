@@ -23,7 +23,13 @@ export enum ProvisioningState {
 export enum AgentMode {
     autonomous = 'autonomous',
     review = 'review',
+    /** renamed to "chat" (but back-compatible for now); double check usage in incident handlers (API: IncidentPlayground/filterFieldOptions) */
     readonly = 'readonly',
+}
+
+export enum AgentAccessLevel {
+    low = 'Low',
+    high = 'High',
 }
 
 export interface DashboardConfiguration {
@@ -46,6 +52,7 @@ export interface KnowledgeGraphConfiguration {
 export interface ActionConfiguration {
     identity?: string;
     mode?: string;
+    accessLevel?: AgentAccessLevel;
 }
 
 export interface OutboundConnectionConfiguration {

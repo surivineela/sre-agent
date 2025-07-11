@@ -518,6 +518,21 @@ export const IncidentManagementResources = defineMessages({
             'After the platform is connected, create incident handlers and custom handlers so that the agent can respond to incidents.',
         id: 'msMJVt',
     },
+    autonomyLevel: { defaultMessage: 'Autonomy level', id: 'Sdc+Dp' },
+    agentAutonomyLevel: { defaultMessage: 'Agent autonomy level', id: 'AC5nsM' },
+    reviewDefault: { defaultMessage: 'Review (Default)', id: 'Ve40iX' },
+    reviewWord: { defaultMessage: 'Review', id: 'R+J5ox' },
+    autonomousWord: { defaultMessage: 'Autonomous', id: 'Sr5R7d' },
+    autonomyLevelReviewDescription: {
+        defaultMessage:
+            'The semiautonomous mode. The agent diagnoses incidents, then mitigates or modifies resources only after its proposed actions are reviewed and approved.',
+        id: 'dhqlRa',
+    },
+    autonomyLevelAutonomousDescription: {
+        defaultMessage:
+            'The fully autonomous mode. With the required permissions, the agent analyzes incidents and independently performs mitigation or resource modifications.',
+        id: 'XKhlZF',
+    },
 });
 
 export const IncidentManagementPlatformResources = defineMessages({

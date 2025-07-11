@@ -1,4 +1,4 @@
-import { IncidentStatus } from './SreAgent';
+import { AgentMode, IncidentStatus } from './SreAgent';
 
 export interface InstructionGenerationRequest {
     agentName: string;
@@ -68,6 +68,7 @@ export interface IncidentHandler {
     incidents: string[];
     customInstructions: string;
 }
+
 export interface IncidentFilter {
     id: string;
     alertId: string;
@@ -81,6 +82,8 @@ export interface IncidentFilter {
     partitionKey: string;
     priority: string;
     titleContains: string;
+    /** If no value, will be empty string */
+    agentMode?: AgentMode;
 }
 
 export interface IncidentFilterPayload {
@@ -90,6 +93,7 @@ export interface IncidentFilterPayload {
     IncidentType?: string;
     AlertId?: string;
     TitleContains?: string;
+    AgentMode?: AgentMode;
 }
 
 export type WithSelection<T> = T & {

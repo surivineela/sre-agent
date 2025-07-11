@@ -7,6 +7,7 @@ import { debounce } from 'lodash';
 import { Dispatch, FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { IncidentFilter, IncidentHandler } from '../../Common/Contracts/Azure/IncidentHandler';
+import { AgentMode } from '../../Common/Contracts/Azure/SreAgent';
 import { IncidentManagementResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { useIncidentManagementStyles } from '../Styles/IncidentManagement.styles';
 import { IncidentFilterFormProps } from './CreateIncidentFilterDialog';
@@ -25,6 +26,7 @@ enum IncidentsListColumnKey {
     type = 'incidentType',
     titleContains = 'titleContains',
     customHandler = 'customHandler',
+    agentMode = 'agentMode',
 }
 
 const all = 'all';
@@ -44,6 +46,8 @@ export type IncidentsFiltersGridProps = {
     openHandlerCreate: (handlerCreateOrEditInfo: HandlerCreateOrEditInfo) => void;
     handlerOperationStatus: OperationStatus | undefined;
     useConsolidatedCreate: boolean;
+    isAgentHighAccessLevel: boolean;
+    isNewIncidentFilterDisabled: boolean;
 };
 
 const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFiltersGridProps) => {
@@ -58,6 +62,8 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
         setSelectedFilter,
         setIsEditFilterMode,
         setInitialValues,
+        isAgentHighAccessLevel,
+        isNewIncidentFilterDisabled,
     } = props;
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
@@ -201,7 +207,7 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
         })
     );
 
-    const onIdCLick = useCallback(
+    const onIdClick = useCallback(
         (item: IncidentFilter) => {
             if (useConsolidatedCreate) {
                 const handler = filterIdToHandlerMap[item.id ?? ''];
@@ -214,22 +220,30 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
                     impactedService: item.impactedService ?? '',
                     priority: item.priority ?? '',
                     titleContains: item.titleContains ?? '',
+                    agentMode: item.agentMode,
                 });
                 setIsCreateIncidentFilterDialogOpen(true);
             }
         },
-        [setInitialValues, setIsCreateIncidentFilterDialogOpen, setIsEditFilterMode, filterIdToHandlerMap]
+        [
+            setInitialValues,
+            setIsCreateIncidentFilterDialogOpen,
+            setIsEditFilterMode,
+            filterIdToHandlerMap,
+            openHandlerCreate,
+            useConsolidatedCreate,
+        ]
     );
 
     const onRenderId = useCallback(
         (item: IncidentFilter) => {
             return (
-                <Link style={{ userSelect: 'text', fontSize: '13px' }} onClick={() => onIdCLick(item)}>
+                <Link style={{ userSelect: 'text', fontSize: '13px' }} onClick={() => onIdClick(item)}>
                     {item.id ?? ''}
                 </Link>
             );
         },
-        [onIdCLick]
+        [onIdClick]
     );
 
     const onRenderStatus = useCallback(
@@ -260,6 +274,18 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
     const onRenderTitleContains = useCallback((item: IncidentFilter) => {
         return <div style={{ userSelect: 'text' }}>{item.titleContains ?? ''}</div>;
     }, []);
+
+    const onRenderAgentMode = useCallback(
+        (item: IncidentFilter) => {
+            // Uses AgentMode enum, but can only be review or autonomous for IncidentFilters
+            const displayName =
+                item.agentMode === AgentMode.autonomous
+                    ? intl.formatMessage(IncidentManagementResources.autonomousWord)
+                    : intl.formatMessage(IncidentManagementResources.reviewWord);
+            return <div style={{ userSelect: 'text' }}>{displayName}</div>;
+        },
+        [intl]
+    );
 
     const onRenderIncidentHandler = useCallback(
         (item: IncidentFilter) => {
@@ -320,7 +346,8 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
 
     const columns = useMemo<ISortedDetailsListColumn[]>(() => {
         const columnWidth = '14';
-        return [
+
+        const columns: ISortedDetailsListColumn[] = [
             {
                 key: IncidentsListColumnKey.id,
                 name: intl.formatMessage(IncidentManagementResources.incidentHandler),
@@ -416,6 +443,25 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
                 styles: { root: { width: `${columnWidth}%` } },
             },
         ];
+
+        if (isAgentHighAccessLevel) {
+            columns.push({
+                key: IncidentsListColumnKey.agentMode,
+                name: intl.formatMessage(IncidentManagementResources.autonomyLevel),
+                fieldName: IncidentsListColumnKey.agentMode,
+                isResizable: true,
+                minWidth: 150,
+                maxWidth: 250,
+                onRender: onRenderAgentMode,
+                isSorted: sortColumnKey === (IncidentsListColumnKey.agentMode as keyof IncidentFilter),
+                isSortedDescending:
+                    sortColumnKey === (IncidentsListColumnKey.agentMode as keyof IncidentFilter) ? isSortedDescending : undefined,
+                onColumnClick: (_, col) => handleColumnClick(col),
+                styles: { root: { width: `${columnWidth}%` } },
+            });
+        }
+
+        return columns;
     }, [
         intl,
         onRenderId,
@@ -425,9 +471,11 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
         onRenderImpactedService,
         onRenderPriority,
         onRenderTitleContains,
+        onRenderAgentMode,
         onRenderIncidentHandler,
         onRenderStatus,
         handleColumnClick,
+        isAgentHighAccessLevel,
     ]);
 
     return (
@@ -517,6 +565,7 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
                                 setIsCreateIncidentFilterDialogOpen(true);
                             }}
                             className={styles.newIncidentFilterButton}
+                            disabled={isNewIncidentFilterDisabled}
                         >
                             {intl.formatMessage(IncidentManagementResources.newIncidentHandler)}
                         </Button>

@@ -21,6 +21,7 @@ export type IncidentsFilterToolbarProps = {
     onTurnOffIncidentFilterClick: () => void;
     isFilterSelected: boolean;
     isFilterEnabled: boolean;
+    isNewIncidentFilterDisabled: boolean;
 };
 
 const IncidentFiltersToolbar: FC<IncidentsFilterToolbarProps> = ({
@@ -30,13 +31,20 @@ const IncidentFiltersToolbar: FC<IncidentsFilterToolbarProps> = ({
     onTurnOffIncidentFilterClick,
     isFilterSelected,
     isFilterEnabled,
+    isNewIncidentFilterDisabled,
 }) => {
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
 
     return (
         <div className={styles.toolbar}>
-            <Button icon={<Add16Regular />} appearance="transparent" className={styles.button} onClick={() => onNewIncidentFilterClick()}>
+            <Button
+                icon={<Add16Regular />}
+                appearance="transparent"
+                className={styles.button}
+                onClick={() => onNewIncidentFilterClick()}
+                disabled={isNewIncidentFilterDisabled}
+            >
                 {intl.formatMessage(IncidentManagementResources.newIncidentHandler)}
             </Button>
             <Button icon={<ArrowClockwise16Regular />} appearance="transparent" className={styles.button} onClick={() => onRefreshClick()}>

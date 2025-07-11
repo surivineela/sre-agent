@@ -11,12 +11,16 @@ import {
     Input,
     MessageBar,
     Option,
+    Radio,
+    RadioGroup,
+    Text,
 } from '@fluentui/react-components';
 import { Dismiss24Regular } from '@fluentui/react-icons';
 import { Formik, FormikHelpers, useFormikContext } from 'formik';
 import { Dispatch, FC, useCallback, useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { IncidentFilterPayload } from '../../Common/Contracts/Azure/IncidentHandler';
+import { AgentMode } from '../../Common/Contracts/Azure/SreAgent';
 import { IncidentManagementResources, SreAgentResources } from '../../Strings/SREAgentResources';
 
 interface CreateIncidentFilterProps {
@@ -29,6 +33,7 @@ interface CreateIncidentFilterProps {
     incidentTypeOptions: string[];
     initialValues?: IncidentFilterFormProps;
     isEditMode: boolean;
+    isAgentHighAccessLevel: boolean;
 }
 
 interface CreateOrUpdateIncidentFilterFormProps {
@@ -38,6 +43,7 @@ interface CreateOrUpdateIncidentFilterFormProps {
     impactedServiceOptions: string[];
     incidentTypeOptions: string[];
     isEditMode: boolean;
+    isAgentHighAccessLevel: boolean;
 }
 
 export interface IncidentFilterFormProps {
@@ -46,6 +52,7 @@ export interface IncidentFilterFormProps {
     priority: string;
     incidentType: string;
     titleContains?: string;
+    agentMode?: AgentMode;
 }
 
 export const CreateOrUpdateIncidentFilterDialog: FC<CreateIncidentFilterProps> = ({
@@ -58,6 +65,7 @@ export const CreateOrUpdateIncidentFilterDialog: FC<CreateIncidentFilterProps> =
     incidentTypeOptions,
     initialValues,
     isEditMode = false,
+    isAgentHighAccessLevel,
 }) => {
     const initialFormValues = useMemo((): IncidentFilterFormProps => {
         if (isEditMode && initialValues) {
@@ -67,6 +75,8 @@ export const CreateOrUpdateIncidentFilterDialog: FC<CreateIncidentFilterProps> =
                 priority: initialValues.priority || '',
                 incidentType: initialValues.incidentType || '',
                 titleContains: initialValues.titleContains || '',
+                // NOTE: May need to set this back to undefined if user switches from high to low access level
+                agentMode: initialValues.agentMode,
             };
         }
 
@@ -76,8 +86,9 @@ export const CreateOrUpdateIncidentFilterDialog: FC<CreateIncidentFilterProps> =
             impactedService: '',
             priority: '',
             incidentType: '',
+            agentMode: isAgentHighAccessLevel ? AgentMode.review : undefined,
         };
-    }, [isEditMode, initialValues]);
+    }, [isEditMode, initialValues, isAgentHighAccessLevel]);
 
     const handleSubmit = useCallback(
         async (values: IncidentFilterFormProps, formikHelpers: FormikHelpers<IncidentFilterFormProps>) => {
@@ -87,6 +98,7 @@ export const CreateOrUpdateIncidentFilterDialog: FC<CreateIncidentFilterProps> =
                 Priority: values.priority === 'ALL' ? undefined : values.priority,
                 IncidentType: values.incidentType === 'ALL' ? undefined : values.incidentType,
                 TitleContains: values.titleContains,
+                AgentMode: values.agentMode,
             };
 
             if (isEditMode) {
@@ -110,6 +122,7 @@ export const CreateOrUpdateIncidentFilterDialog: FC<CreateIncidentFilterProps> =
                 incidentTypeOptions={incidentTypeOptions}
                 impactedServiceOptions={impactedServiceOptions}
                 priorityOptions={priorityOptions}
+                isAgentHighAccessLevel={isAgentHighAccessLevel}
             />
         </Formik>
     );
@@ -122,6 +135,7 @@ const CreateOrUpdateFilterForm = ({
     incidentTypeOptions,
     impactedServiceOptions,
     priorityOptions,
+    isAgentHighAccessLevel,
 }: CreateOrUpdateIncidentFilterFormProps) => {
     const intl = useIntl();
 
@@ -169,7 +183,8 @@ const CreateOrUpdateFilterForm = ({
             : initialValues.impactedService === values.impactedService &&
                   initialValues.priority === values.priority &&
                   initialValues.incidentType === values.incidentType &&
-                  initialValues.titleContains === values.titleContains;
+                  initialValues.titleContains === values.titleContains &&
+                  initialValues.agentMode === values.agentMode;
     }, [
         isEditMode,
         values.id,
@@ -177,10 +192,12 @@ const CreateOrUpdateFilterForm = ({
         values.priority,
         values.incidentType,
         values.titleContains,
+        values.agentMode,
         initialValues.impactedService,
         initialValues.priority,
         initialValues.incidentType,
         initialValues.titleContains,
+        initialValues.agentMode,
     ]);
 
     return (
@@ -278,6 +295,41 @@ const CreateOrUpdateFilterForm = ({
                                     placeholder={intl.formatMessage(IncidentManagementResources.titlePlaceholder)}
                                 />
                             </Field>
+
+                            {isAgentHighAccessLevel && (
+                                <Field label={intl.formatMessage(IncidentManagementResources.agentAutonomyLevel)}>
+                                    <RadioGroup
+                                        name="agentMode"
+                                        value={values.agentMode}
+                                        onChange={(_, data) => setFieldValue('agentMode', data.value)}
+                                    >
+                                        <Radio
+                                            value={AgentMode.review}
+                                            label={
+                                                <>
+                                                    {intl.formatMessage(IncidentManagementResources.reviewDefault)}
+                                                    <br />
+                                                    <Text size={200}>
+                                                        {intl.formatMessage(IncidentManagementResources.autonomyLevelReviewDescription)}
+                                                    </Text>
+                                                </>
+                                            }
+                                        />
+                                        <Radio
+                                            value={AgentMode.autonomous}
+                                            label={
+                                                <>
+                                                    {intl.formatMessage(IncidentManagementResources.autonomousWord)}
+                                                    <br />
+                                                    <Text size={200}>
+                                                        {intl.formatMessage(IncidentManagementResources.autonomyLevelAutonomousDescription)}
+                                                    </Text>
+                                                </>
+                                            }
+                                        />
+                                    </RadioGroup>
+                                </Field>
+                            )}
                         </form>
                     </DialogContent>
                     <DialogActions>
