@@ -24,8 +24,15 @@ namespace Agent.Core.Models.Api.v1
         AzMonitor
     }
 
+    public enum ThreadType
+    {
+        Prod,
+        Test  // For testing purposes, agent will run in Readonly mode
+    }
+
     public record IncidentSource(IncidentType IncidentType, string IncidentId);
 
+    //Theread type: PROD/TEST
     public record Thread(
         Guid Id,
         string Title,
@@ -36,7 +43,8 @@ namespace Agent.Core.Models.Api.v1
         ThreadSource Source = ThreadSource.Conversation,
         string? WaitReason = null,
         DateTime? WaitUntil = null,
-        IncidentSource? IncidentSource = null
+        IncidentSource? IncidentSource = null,
+        ThreadType? Type = ThreadType.Prod
     )
     {
         public Status? Status { get; set; } = null;

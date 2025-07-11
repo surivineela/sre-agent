@@ -4,6 +4,7 @@
 
 using System.Text;
 using Agent.Core;
+using Agent.Core.Configuration;
 using Agent.Core.Extensions;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
@@ -31,7 +32,7 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
 
     private readonly IAgentsFactory _agentsFactory;
     private readonly IToolFactory<AgentContext> _toolFactory;
-
+    private readonly ActionSettings _actionSettings;
 
     public IncidentHandlerAgent(
         [FromKeyedServices("function-invocation-enabled")] IChatClient chatClient,
@@ -39,7 +40,8 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
         IToolFactory<AgentContext> toolFactory,
         ILogger<IncidentHandlerAgent> logger,
         ThreadService threadService,
-        IThreadRepository threadRepository
+        IThreadRepository threadRepository,
+        ActionSettings actionSettings
         )
     {
         _chatClient = chatClient;
@@ -52,6 +54,7 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
         _logger.LogInternalInformation(
             "IncidentHandlerAgent: Constructor invoked. Loading agent factory of type: {AgentFactoryType}",
             _agentsFactory.GetType());
+        _actionSettings = actionSettings;
     }
 
     public async IAsyncEnumerable<ChatResponseUpdate> ProcessIncidentStream(AgentContext agentContext, AgentChatHistory agentChatHistory)
@@ -68,7 +71,8 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
         using var _ = await _lock.AcquireWriterAsync();
 
         Guid threadGuid = agentContext.ThreadId;
-        string systemPrompt = _agentsFactory.GetIncidentHandlerAgentSystemPrompt();
+        var mode = GetModeForSystemPrompt(agentContext);
+        string systemPrompt = _agentsFactory.GetIncidentHandlerAgentSystemPrompt(mode);
         var _aiTools = _agentsFactory.GetSubAgentsAITools(threadGuid, agentContext);
 
         _logger.LogInternalInformation(
@@ -89,7 +93,8 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
         // Always use the latest System Prompt in case we have some urgent fix to patch for the old chat history.
         if (chatHistory[0].Role == ChatRole.System)
         {
-            chatHistory[0] = new Microsoft.Extensions.AI.ChatMessage(ChatRole.System, systemPrompt);
+            //chatHistory[0] = new Microsoft.Extensions.AI.ChatMessage(ChatRole.System, systemPrompt);
+            chatHistory.Insert(1, new Microsoft.Extensions.AI.ChatMessage(ChatRole.System, systemPrompt));
             _logger.LogInternalInformation(
                 "[IncidentHandlerAgent] ProcessIncidentStream: Updated system prompt in chat history for ThreadId: {ThreadId}",
                 threadGuid);
@@ -209,9 +214,10 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
             "[IncidentHandlerAgent] GetModelResponse: Invoked for AgentContextId: {AgentContextId}, ThreadId: {ThreadId}",
             agentContext.Id, threadGuid);
 
-        string systemPrompt = _agentsFactory.GetIncidentHandlerAgentSystemPrompt();
+        var mode = GetModeForSystemPrompt(agentContext);
+        string systemPrompt = _agentsFactory.GetIncidentHandlerAgentSystemPrompt(mode);
         var _aiTools = _agentsFactory.GetSubAgentsAITools(threadGuid, agentContext);
-        var _toolFactoryTools = agentContext.AllowedTools != null ? agentContext.AllowedTools.Select(x => (AITool)_toolFactory.GetTool(x, threadGuid)).ToList(): new List<AITool>();
+        var _toolFactoryTools = agentContext.AllowedTools != null ? agentContext.AllowedTools.Select(x => (AITool)_toolFactory.GetTool(x, threadGuid)).ToList() : new List<AITool>();
 
         var selectedTools = agentContext.AllowedTools != null && agentContext.AllowedTools.Count > 0
             ? _aiTools.Where(x => x.Name != null && agentContext.AllowedTools.Contains(x.Name))?.ToList().Concat(_toolFactoryTools).ToList()
@@ -226,10 +232,10 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
         {
             chatHistory.Insert(0, new Microsoft.Extensions.AI.ChatMessage(ChatRole.System, systemPrompt));
             _logger.LogInternalInformation(
-                "[IncidentHandlerAgent] GetModelResponse: Updated system prompt in chat history for ThreadId: {ThreadId}",
-                threadGuid);
+           "[IncidentHandlerAgent] GetModelResponse: Updated system prompt in chat history for ThreadId: {ThreadId}",
+           threadGuid);
         }
-
+       
         try
         {
             _logger.LogInternalInformation(
@@ -265,6 +271,23 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
                 "[IncidentHandlerAgent] GetModelResponse: Exception occurred for AgentContextId: {AgentContextId}, ThreadId: {ThreadId}",
                 agentContext.Id, threadGuid);
             throw;
+        }
+    }
+
+    /// <summary>
+    /// In future, mode can be overridden by the request.
+    /// </summary>
+    /// <param name="context">AgentContext</param>
+    /// <returns></returns>
+    private string GetModeForSystemPrompt(AgentContext context)
+    {
+        if (!string.IsNullOrEmpty(context.AgentMode))
+        {
+            return context.AgentMode;
+        }
+        else
+        {
+            return _actionSettings.Mode.ToString();
         }
     }
 }

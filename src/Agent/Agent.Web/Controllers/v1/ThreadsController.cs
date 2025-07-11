@@ -63,8 +63,17 @@ namespace Agent.Web.Controllers.v1
         [HttpGet]
         public async Task<ActionResult<PagedResponse<Thread>>> GetThreads(ODataQueryOptions<ThreadDocument> queryOptions,
         [FromQuery] ActionSeverity? severity = null)
+        {       
+            var threads = await repository.GetThreadsAsync(queryOptions, severity, ThreadType.Prod);
+
+            return Ok(new PagedResponse<Thread>(threads));
+        }
+
+        [HttpGet("testThreads")]
+        public async Task<ActionResult<PagedResponse<Thread>>> GetTestThreads(ODataQueryOptions<ThreadDocument> queryOptions,
+        [FromQuery] ActionSeverity? severity = null)
         {
-            var threads = await repository.GetThreadsAsync(queryOptions, severity);
+            var threads = await repository.GetThreadsAsync(queryOptions, severity, ThreadType.Test);
 
             return Ok(new PagedResponse<Thread>(threads));
         }

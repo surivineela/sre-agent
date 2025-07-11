@@ -102,6 +102,7 @@ public static class Summarizer
             : text;
     }
 
+
     public static async Task<string> SummarizeActorTrajectoryAsync(
         string userQuery,
         string trajectory,

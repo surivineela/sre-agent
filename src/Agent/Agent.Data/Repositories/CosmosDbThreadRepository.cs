@@ -195,7 +195,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         return threads;
     }
 
-    public async Task<IEnumerable<Thread>> GetThreadsAsync(ODataQueryOptions? queryOptions, ActionSeverity? severity = null)
+    public async Task<IEnumerable<Thread>> GetThreadsAsync(ODataQueryOptions? queryOptions, ActionSeverity? severity = null, ThreadType? threadType = ThreadType.Prod)
     {
         var threads = new List<Thread>();
 
@@ -203,6 +203,18 @@ public class CosmosDbThreadRepository : IThreadRepository
         var query = _client.GetContainer<ThreadDocument>(_databaseName).GetItemLinqQueryable<ThreadDocument>()
             .Where(t => t.DocumentType == "Thread")
             .OrderBy(t => t.CreatedTimestamp);
+
+        if (threadType is not null)
+        {
+            if (threadType == ThreadType.Prod)
+            {
+                query = query.Where(t => t.ThreadType == null || t.ThreadType == threadType) as IOrderedQueryable<ThreadDocument>;
+            }
+            else
+            {
+                query = query.Where(t => t.ThreadType == threadType) as IOrderedQueryable<ThreadDocument>;
+            }
+        }
 
         if (queryOptions is not null)
         {

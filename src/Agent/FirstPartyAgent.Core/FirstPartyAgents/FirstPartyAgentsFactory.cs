@@ -64,7 +64,7 @@ public class FirstPartyAgentsFactory : IAgentsFactory
         return systemPrompt;
     }
 
-    public string GetIncidentHandlerAgentSystemPrompt()
+    public string GetIncidentHandlerAgentSystemPrompt(string? agentMode)
     {
         return string.Empty;
     }

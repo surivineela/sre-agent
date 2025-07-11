@@ -140,6 +140,7 @@ public class IncidentWebhookController : ControllerBase
                 Severity = request.Severity,
                 Source = request.Source,
                 AdditionalProperties = request.AdditionalProperties,
+                IsTest = request.IsTest
             }
         );
 
@@ -205,6 +206,11 @@ public class IncidentRequest
     public string? Severity { get; set; }
     public string? Source { get; set; }
     public Dictionary<string, string>? AdditionalProperties { get; set; }
+
+    /// <summary>
+    /// For "test incident", IsTest will be true so set Agent to test mode.
+    /// </summary>
+    public bool IsTest { get; set; } = false; 
 }
 
 public interface IIncidentAdapter

@@ -17,7 +17,8 @@ public record ThreadDocument(
     DateTime ModifiedTimestamp,
     ThreadSource Source = ThreadSource.Conversation,
     DateTime EvaluatedTimestamp = default,
-    IncidentSource? IncidentSource = null
+    IncidentSource? IncidentSource = null,
+    ThreadType? ThreadType = ThreadType.Prod
 ) : ICosmosDocument
 {
     public string DocumentType => "Thread";
@@ -39,7 +40,8 @@ public record ThreadDocument(
             thread.ModifiedTimestamp,
             thread.Source,
             thread.EvaluatedTimestamp,
-            IncidentSource: thread.IncidentSource
+            IncidentSource: thread.IncidentSource,
+            ThreadType: thread.Type
         )
         {
             IncidentId = thread.Status?.IncidentStatus?.IncidentId ?? string.Empty,
@@ -57,7 +59,8 @@ public record ThreadDocument(
             CreatedTimestamp,
             ModifiedTimestamp,
             Source,
-            IncidentSource: IncidentSource
+            IncidentSource: IncidentSource,
+            Type: ThreadType
         )
         {
             LastReadTime = LastReadTime,

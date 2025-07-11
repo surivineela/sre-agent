@@ -36,6 +36,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
     private readonly ThreadService _threadService;
     private readonly IPostToTeamsPlugin _teamsPlugin;
     private readonly IReasoningLoopManager _reasoningLoopManager;
+    private readonly ActionSettings _actionSettings;
     private readonly bool _useAgentFramework;
 
     private readonly AgentActionLogger _actionLogger;
@@ -53,7 +54,8 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         IServiceProvider serviceProvider,
         IReasoningLoopManager reasoningLoopManager,
         CoreSettings coreSettings,
-        AgentActionLogger actionLogger)
+        AgentActionLogger actionLogger,
+        ActionSettings actionSettings)
     {
         _metaAgent = metaAgent;
         _incidentHandlerAgent = incidentHandlerAgent;
@@ -68,6 +70,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         _reasoningLoopManager = reasoningLoopManager;
         _useAgentFramework = coreSettings.UseAgentFramework;
         _actionLogger = actionLogger;
+        _actionSettings = actionSettings;
     }
 
     public async Task<(Core.Models.Api.v1.Thread, AgentContext)> CreateAgentThread(
@@ -78,9 +81,10 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         string incidentId = "",
         IncidentSource? incidentSource = null,
         bool isDailyReport = false,
-        List<string>? AllowedTools = null)
+        List<string>? AllowedTools = null,
+        ThreadType threadMode = ThreadType.Prod)
     {
-        return await CreateAgentInitiatedThread(title, message, source, agentTypeEnum, incidentId: incidentId, incidentSource: incidentSource, isDailyReport: isDailyReport, AllowedTools: AllowedTools);
+        return await CreateAgentInitiatedThread(title, message, source, agentTypeEnum, incidentId: incidentId, incidentSource: incidentSource, isDailyReport: isDailyReport, AllowedTools: AllowedTools, threadType: threadMode);
     }
 
     public async Task<Core.Models.Api.v1.Thread> CreateAlertThreadWithTeams(
@@ -439,7 +443,8 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         string incidentId = "",
         IncidentSource? incidentSource = null,
         bool isDailyReport = false,
-        List<string>? AllowedTools = null)
+        List<string>? AllowedTools = null,
+        ThreadType threadType = ThreadType.Prod)
     {
         var now = DateTime.UtcNow;
         var startMessage = new Message(
@@ -460,7 +465,8 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             CreatedTimestamp: now,
             ModifiedTimestamp: now,
             Source: source,
-            IncidentSource: incidentSource
+            IncidentSource: incidentSource,
+            Type: threadType
         );
 
         if (incidentId != string.Empty)
@@ -496,6 +502,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         await _repository.CreateThreadAsync(thread);
         await _repository.AddMessageAsync(thread.Id, thread.StartMessage);
         await _repository.CreateAgentContextAsync(agentContext);
+        (thread,agentContext) = await UpdateAgentModeIfNecessary(thread, agentContext);
 
         await _repository.CreateReasoningMessageAsync(startReasoningMessage);
 
@@ -554,5 +561,36 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                 IncidentDiscussionId: discussion.Id);
             await _repository.AddMessageAsync(incidentThreadId, discussionMessage);
         }
+    }
+
+    /// <summary>
+    /// Update agent to read-only if the thread is in Test mode.
+    /// </summary>
+    /// <param name="thread">thread</param>
+    /// <param name="agentContext">AgentContext</param>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException"></exception>
+    private async Task<(Core.Models.Api.v1.Thread, Core.Models.Api.v1.AgentContext)> UpdateAgentModeIfNecessary(Core.Models.Api.v1.Thread thread, Core.Models.Api.v1.AgentContext agentContext)
+    {
+        var globalDefaultMode = _actionSettings.Mode?.ToString() ?? AgentModes.Review;
+        if (thread.Type == ThreadType.Test)
+        {
+            bool isValidChange = AgentModes.IsValidModeChange(globalDefaultMode, AgentModes.ReadOnly);
+            if(!isValidChange)
+            {
+                var errorMessage = AgentModes.GetValidationErrorMessage(globalDefaultMode);
+                throw new InvalidOperationException($"Cannot change thread mode to ReadOnly from {globalDefaultMode}. Details: {errorMessage}");
+            }
+            var updatedThread = await _repository.UpdateThreadAgentModeAsync(thread.Id, AgentModes.ReadOnly);
+            var updatedAgentContext = await _repository.GetAgentContextAsync(agentContext.Id, thread.Id);
+
+            if(updatedThread == null)
+            {
+                throw new InvalidOperationException($"Failed to update thread {thread.Id} to ReadOnly mode.");
+            }
+
+            return (updatedThread, updatedAgentContext);
+        }
+        return (thread, agentContext);
     }
 }

@@ -52,9 +52,21 @@ namespace Agent.Data.Repositories
             return Task.FromResult(thread);
         }
 
-        public Task<IEnumerable<Thread>> GetThreadsAsync(ODataQueryOptions? queryOptions, ActionSeverity? severity = null)
+        public Task<IEnumerable<Thread>> GetThreadsAsync(ODataQueryOptions? queryOptions, ActionSeverity? severity = null, ThreadType? threadType = ThreadType.Prod)
         {
             IQueryable<Thread> threads = _threads.Values.AsQueryable().OrderBy(t => t.CreatedTimestamp);
+
+            if (threadType is not null)
+            {
+                if (threadType == ThreadType.Prod)
+                {
+                    threads = threads.Where(t => t.Type == null || t.Type == threadType);
+                }
+                else
+                {
+                    threads = threads.Where(t => t.Type == threadType);
+                }
+            }
 
             if (queryOptions is not null)
             {
@@ -78,6 +90,10 @@ namespace Agent.Data.Repositories
                 }
             }
 
+            if (threadType is not null)
+            {
+                threads = threads.Where(t => t.Type == threadType);
+            }
             return Task.FromResult(threads.AsEnumerable());
         }
 

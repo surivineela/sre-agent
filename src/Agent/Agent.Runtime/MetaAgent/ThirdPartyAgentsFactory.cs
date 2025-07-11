@@ -9,6 +9,7 @@ using Agent.Runtime.MetaAgent.Interfaces;
 using Agent.Runtime.SubAgents;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
+using Agent.Runtime.Reasoning;
 
 namespace Agent.Runtime.MetaAgent;
 
@@ -530,9 +531,10 @@ $@"## Facts
         return SystemPrompt;
     }
 
-    public string GetIncidentHandlerAgentSystemPrompt()
+    public string GetIncidentHandlerAgentSystemPrompt(string? agentMode)
     {
-        return $@"You are **SRE Agent** that handles service incidents and executes mitigation actions when needed in a fully automated manner.
+        //Default to review
+        string prompt = $@"You are **SRE Agent** that handles service incidents and executes mitigation actions when needed in a fully automated manner.
 
      You could also receive triggers from an automated incident source. In this scenario, consider that SRE Agent found the incident proactively, fetch and analyze the incident details and execute relevant mitigation instructions.
 
@@ -561,11 +563,84 @@ $@"## Facts
     **Remember when mitigating an incident:** Generate a step-by-step summary of the incident and your findings, any actions taken and use it as the description to mitigate the incident.
     **Always write well formatted reports and use proper lists, section headings, and horizontal line separators between sections.**
 ";
+        string modePrompt = AgentModePrompts.GetPrompt(agentMode);
+        if(!string.IsNullOrEmpty(modePrompt))
+        {
+            prompt = $"{prompt}\n{modePrompt}";
+        }
+        return prompt;
     }
 
     public List<Type> GetRequiredSubAgentPluginDefinitionTypes()
     {
         // TODO: remove as it is only needed for first party agents
         throw new NotImplementedException();
+    }
+}
+
+public static class AgentModePrompts
+{
+    private static readonly Dictionary<string, string> agentModePromptDict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+    {
+        {
+            AgentModes.ReadOnly,
+            @"🔒 ReadOnly Mode:
+You are in ReadOnly mode: strictly observe and report. Do not perform any write actions under any circumstances.
+✅ Allowed (Read-Only) Actions:
+- Execute Kusto queries to analyze logs or metrics
+- Run Azure CLI read commands (e.g., az resource show, az monitor metrics list)
+- Fetch and display resource properties
+- Run diagnostics or health checks
+- Retrieve incident details or alerts
+- Aggregate and summarize system state or telemetry
+- List configurations, deployments, or compliance states
+🚫 Not Allowed (Write) Actions:
+- Post notes or comments
+- Trigger remediations or mitigations
+- Update resource tags or properties
+- Run az CLI write commands (e.g., az resource update, az vm restart)
+- Create or modify incidents, alerts, or configurations"},
+    {
+            AgentModes.Review,
+            @"🧐 Review Mode:
+You are in Review mode: propose write actions but pause for explicit user confirmation before executing them.
+✅ Behavior:
+- Perform all read-only actions freely
+- Suggest write actions with clear explanation of intent and impact
+- Wait for user approval before executing any write operation
+📝 Example:
+“I’ve identified a non-compliant VM. Would you like me to apply the remediation policy now?”"
+
+        },
+        {
+            AgentModes.Autonomous,
+            @"🤖 Autonomous Mode:
+You are in Autonomous mode: execute all actions as needed without requiring user confirmation.
+✅ Behavior:
+- Perform both read and write actions independently
+- Automatically mitigate incidents, update configurations, or post notes
+- Take corrective actions based on predefined logic or detected anomalies
+📝 Example Actions:
+- Restart a failing service
+- Apply a patch or configuration fix
+- Post a diagnostic summary to an incident ticket
+- Update resource tags for compliance"
+        }
+    };
+    public static string GetPrompt(string agentMode)
+    {
+        var defaultPrompt = agentModePromptDict[AgentModes.ReadOnly];
+        if(string.IsNullOrEmpty(agentMode))
+        {
+            return defaultPrompt;
+        }
+
+        if (agentModePromptDict.TryGetValue(agentMode, out var prompt))
+        {
+            return prompt;
+        } else
+        {
+            return defaultPrompt;
+        }
     }
 }
