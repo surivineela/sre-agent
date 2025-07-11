@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
@@ -841,6 +842,8 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
 
         public async Task<Dictionary<string, object>> GetResourceDetailedProperties(string resourceId)
         {
+            resourceId = Regex.Replace(resourceId, $"^{Regex.Escape(Constants.AzureManagementPrefix)}", "", RegexOptions.IgnoreCase);
+
             if (!ResourceIdentifier.TryParse(resourceId, out _))
             {
                 throw new Exception("Invalid Azure resource Id, should be of form /subscriptions/<>/resourceGroups/<>/providers/<providerName>/<resourceType>/<resourceName>");

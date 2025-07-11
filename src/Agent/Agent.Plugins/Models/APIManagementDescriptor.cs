@@ -162,11 +162,12 @@ namespace Agent.Plugins.Models
         [property: JsonPropertyName("resourceUri")] string? ResourceUri,
         [property: JsonPropertyName("armResourceId")] string? ArmResourceId,
         [property: JsonPropertyName("backendResourceId")] string? BackendResourceId,
-        [property: JsonPropertyName("connections")] List<APIManagementBackendConnectionDescriptor> Connections
+        [property: JsonPropertyName("connectedAPIInfo")] List<APIManagementBackendConnectionDescriptor>? ConnectedAPIInfo = null,
+        [property: JsonPropertyName("connections")] string? Connections = null
     );
 
     public record APIManagementBackendConnectionDescriptor(
         [property: JsonPropertyName("name")] string Name,
-        [property: JsonPropertyName("level")] string Level
+        [property: JsonPropertyName("connectionLevel")] string connectionLevel
     );
 }

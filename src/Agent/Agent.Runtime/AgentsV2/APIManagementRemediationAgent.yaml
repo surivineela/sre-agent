@@ -66,10 +66,9 @@ handoffs:
   - api_management_diagnosis_agent
 
 tools:
-  - GetAPIManagementInfo
-  - VisualizeApplicationComponents
   - APIMModifyNSGRule
   - APIMRemoveNSGRule
+  - HandoffBack
 
 common_prompts:
   - format_guidelines

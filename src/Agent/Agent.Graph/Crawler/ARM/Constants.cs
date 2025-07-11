@@ -46,6 +46,13 @@ public class Constants
     // groups
     public const string KubernetesCoreGroup = "core";
 
+    // api management
+    public const string AzureBackend = "AzureBackend";
+    public const string ResourceName = "resourceName";
+    public const string ResourceUri = "requestUri";
+    public const string ArmResourceId = "armResourceId";
+    public const string ConnectedAPIs = "connectedApis";
+
     // versions
     public const string KubernetesV1Version = "v1";
 
@@ -132,7 +139,7 @@ public class Constants
     public const string GatewayMemoryPercent = "MemoryPercent_Gateway";
     public const string GatewayRequestsDuration = "Duration";
     public const string BackendRequestsDuration = "BackendDuration";
-
+    
     // General Azure Monitor Constants
     public const string Requests = "Requests";
     public const string Capacity = "Capacity";
@@ -140,6 +147,7 @@ public class Constants
     public const string NetworkConnectivity = "NetworkConnectivity";
     public const string Gateway = "gateway";
     public const string Backend = "backend";
+    public const string AzureManagementPrefix = "https://management.azure.com";
 
     public const string UnitCount = "Count";
     public const string UnitPercent = "Percent";

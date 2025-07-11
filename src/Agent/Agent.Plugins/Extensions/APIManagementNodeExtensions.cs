@@ -30,7 +30,7 @@ namespace Agent.Plugins.Extensions
                         ResourceUri: kvp.Value.ResourceUri,
                         BackendResourceId: kvp.Value.BackendResourceId,
                         ArmResourceId: kvp.Value.ArmResourceId,
-                        Connections: kvp.Value.Connections?.Select(c => new APIManagementBackendConnectionDescriptor(c.Name, c.Level.ToString())).ToList() ?? new List<APIManagementBackendConnectionDescriptor>()    )
+                        ConnectedAPIInfo: kvp.Value.Connections?.Select(c => new APIManagementBackendConnectionDescriptor(c.Name, c.Level.ToString())).ToList() ?? new List<APIManagementBackendConnectionDescriptor>()    )
                 ).ToList();
             }
 

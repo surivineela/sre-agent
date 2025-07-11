@@ -21,7 +21,7 @@ system_prompt: |
       - If the issue needs investigation (e.g., failures, slowness, errors), route to the diagnosis agent.
       - If the user knows the problem and wants a fix, route to the remediation agent.
 
-handoff_description: "Handoff to this agent for any Azure API Management related questions, issues, or tasks. This is the primary entry point that intelligently routes users to specialized API Management agents based on their specific needs—whether informational queries, troubleshooting problems, HTTP errors, or auto-scaling configuration. The agent quickly assesses the request and delegates to the most appropriate specialist."
+handoff_description: "Handoff to this agent for any Azure API Management related questions, issues, or tasks. This primary entry point intelligently routes users to specialized API Management agents based on their specific needs—including informational queries, troubleshooting problems, HTTP errors, and auto-scaling configuration. The agent quickly assesses the request and delegates to the most appropriate specialist. It will also handoff back to the Meta Agent if the identified problem is not API Management related, but rather requires a different specialized subagent."
 
 handoffs:
   - api_management_diagnosis_agent
@@ -32,6 +32,7 @@ tools:
   - ListAPIManagement
   - ListSubscriptions
   - ListResourceGroups
+  - HandoffBack
 
 common_prompts:
   - format_guidelines

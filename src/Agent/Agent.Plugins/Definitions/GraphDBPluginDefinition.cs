@@ -330,6 +330,7 @@ namespace Agent.Plugins
             "\n- For App Service/Web/Function Apps: hosting plan, VNET, TLS, workers, auto-heal, health checks, runtime stack, App Insights. " +
             "\n- For App Service Plans: workers, status, zone redundancy, region, kind. " +
             "\n- For Container Apps: state, profile, access, containers, scaling. " +
+            "\n- For API Management Services: status, Gateway & Management API URI, capacity. " +
             "Note: Some properties may be in associated resources (e.g., App Service Plan) and need separate queries (example zone redundancy, sku etc).This function will return all properties directly attached to the requested resource. Also retuns Health Scorecard for the resource if available")]
         [AgentTool(ToolMode.Auto)]
         public async Task<Dictionary<string, object>> GetResourceDetailedProperties(

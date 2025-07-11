@@ -126,17 +126,18 @@ namespace Agent.Plugins.Implementation
 
             var queryString = new StringBuilder($@"
                 ApiManagementGatewayLogs
+                | where _ResourceId == '{apimInstanceResourceId}'
                 | where TimeGenerated between(datetime('{startIso}') .. datetime('{endIso}'))
                 | where IsRequestSuccess == 0");
 
-                            if (!string.IsNullOrWhiteSpace(statusCode))
-                            {
-                                queryString.Append($@"
+            if (!string.IsNullOrWhiteSpace(statusCode))
+            {
+                queryString.Append($@"
                 | where ResponseCode == '{statusCode}'");
-                            }
+            }
 
-                            // Now add top and project
-                            queryString.Append($@"
+            // Now add top and project
+            queryString.Append($@"
                 | top {top} by TimeGenerated desc
                 | project
                     TimeGenerated,
@@ -238,6 +239,7 @@ namespace Agent.Plugins.Implementation
 
                 string queryString = $@"
                     ApiManagementGatewayLogs
+                        | where _ResourceId == '{apiManagementResourceId}'
                         | where TimeGenerated between(datetime('{startIso}') ..datetime('{endIso}'))
                         | summarize
                             TotalCount = count(),
@@ -249,6 +251,7 @@ namespace Agent.Plugins.Implementation
                             FailureRatePercent = iif(TotalCount == 0, 0.0, todouble(FailedCount) / todouble(TotalCount) * 100)
                         | order by FailureRatePercent desc
                         | project
+                            BackendId,
                             ApiId,
                             OperationId,
                             ResponseCode,
@@ -285,6 +288,7 @@ namespace Agent.Plugins.Implementation
                 // Query retrieves the most recent failures with full details
                 string queryString = $@"
                 ApiManagementGatewayLogs
+                    | where _ResourceId == '{apiManagementResourceId}'
                     | where TimeGenerated between (datetime({startIso}) .. datetime({endIso}))
                     | where IsRequestSuccess == 0
                     | order by TimeGenerated desc
@@ -292,6 +296,7 @@ namespace Agent.Plugins.Implementation
                     | project
                         TimeGenerated,
                         CorrelationId,
+                        BackendId,
                         ApiId,
                         OperationId,
                         Url,
