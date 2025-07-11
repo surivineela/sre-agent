@@ -380,7 +380,7 @@ public static class Runner
             }
 
             bool wasApproved = !criticResult.Contains("\"overall_assessment\": \"FAIL\"");
-            
+
             // Invoke the critic end hook for tracing
             await hooks.OnCriticEnd(contextWrapper, currentAgent, userQuery, criticResult, wasApproved);
 
@@ -546,101 +546,100 @@ public static class Runner
 
             foreach (var functionCall in functionCalls)
             {
-                // Check for handoff loops BEFORE processing the handoff
-                bool isHandoff = agent.HandoffNames.Contains(functionCall.Name) ||
-                               functionCall.Name.Equals("handoffback", StringComparison.OrdinalIgnoreCase);
-
-                if (isHandoff && trajectory.HasHandoffLoop(loopThreshold: 3))
+                if (IsAllowedHandOff(functionCall, agent, tools))
                 {
-                    logger.LogWarning(
-                        "Handoff loop detected for {AgentName}. {HandoffSummary}",
-                        agent.Name,
-                        trajectory.GetHandoffSummary());
-
-                    var criticApproval = await CriticAsync(
-                        config,
-                        runtimeModifier,
-                        hooks,
-                        trajectory,
-                        displayModelOutput,
-                        agent,
-                        originalInput,
-                        newStepItems,
-                        contextWrapper,
-                        logger,
-                        failureHook: () =>
-                        {
-                            // Add feedback about the loop
-                            var loopDetectedMessage = $"Handoff loop detected: {trajectory.GetHandoffSummary()}. " +
-                                                    "There appears to be transferring between agents repeatedly without making progress. " +
-                                                    "Please review the conversation history and provide a substantive response to the user's query.";
-                            newStepItems.Add(modelResponseMessage);
-                            var errorResult = new FunctionResultContent(functionCall.CallId, loopDetectedMessage);
-                            newStepItems.Add(new ChatMessage(ChatRole.Tool, [errorResult]));
-                        });
-
-                    if (!criticApproval)
+                    // Check for handoff loops BEFORE processing the handoff
+                    if (trajectory.HasHandoffLoop(loopThreshold: 3))
                     {
-                        logger.LogInformation("Critic intervened to break handoff loop for {AgentName}", agent.Name);
-                        return new SingleStepResult<TContext>
-                        {
-                            OriginalInput = originalInput,
-                            ModelResponse = modelResponse,
-                            PreStepItems = preStepItems,
-                            NewStepItems = newStepItems,
-                            NextStep = new NextStep<TContext>
+                        logger.LogWarning(
+                            "Handoff loop detected for {AgentName}. {HandoffSummary}",
+                            agent.Name,
+                            trajectory.GetHandoffSummary());
+
+                        var criticApproval = await CriticAsync(
+                            config,
+                            runtimeModifier,
+                            hooks,
+                            trajectory,
+                            displayModelOutput,
+                            agent,
+                            originalInput,
+                            newStepItems,
+                            contextWrapper,
+                            logger,
+                            failureHook: () =>
                             {
-                                Type = NextStepType.RunAgain,
-                            }
-                        };
+                                // Add feedback about the loop
+                                var loopDetectedMessage = $"Handoff loop detected: {trajectory.GetHandoffSummary()}. " +
+                                                        "There appears to be transferring between agents repeatedly without making progress. " +
+                                                        "Please review the conversation history and provide a substantive response to the user's query.";
+                                newStepItems.Add(modelResponseMessage);
+                                var errorResult = new FunctionResultContent(functionCall.CallId, loopDetectedMessage);
+                                newStepItems.Add(new ChatMessage(ChatRole.Tool, [errorResult]));
+                            });
+
+                        if (!criticApproval)
+                        {
+                            logger.LogInformation("Critic intervened to break handoff loop for {AgentName}", agent.Name);
+                            return new SingleStepResult<TContext>
+                            {
+                                OriginalInput = originalInput,
+                                ModelResponse = modelResponse,
+                                PreStepItems = preStepItems,
+                                NewStepItems = newStepItems,
+                                NextStep = new NextStep<TContext>
+                                {
+                                    Type = NextStepType.RunAgain,
+                                }
+                            };
+                        }
                     }
-                }
 
-                // critic on handoff attempt
-                if (agent.CriticOnHandOff
-                    && IsAllowedHandOff(functionCall, agent, tools))
-                {
-                    logger.LogInformation(
-                        "HandOff received from {AgentName}, Critic: {criticCount}/{MaxReflectionCount}",
-                        agent.Name,
-                        trajectory.CriticCount,
-                        agent.MaxReflectionCount);
-
-                    var criticApproval = await CriticAsync(
-                        config,
-                        runtimeModifier,
-                        hooks,
-                        trajectory,
-                        displayModelOutput,
-                        agent,
-                        originalInput,
-                        newStepItems,
-                        contextWrapper,
-                        logger,
-                        failureHook: () =>
-                        {
-                            // add fn result to deny
-                            var handOffDeniedMessage = $"HandOff denied because of unsatisfactory response.";
-                            newStepItems.Add(modelResponseMessage);
-                            var errorResult = new FunctionResultContent(functionCall.CallId, handOffDeniedMessage);
-                            newStepItems.Add(new ChatMessage(ChatRole.Tool, [errorResult]));
-                        });
-
-                    if (!criticApproval)
+                    // trigger critic on handoff attempt if configured
+                    if (agent.CriticOnHandOff)
                     {
-                        logger.LogInformation("Critic failure {AgentName}. Running reasoning step again.", agent.Name);
+                        logger.LogInformation(
+                            "HandOff received from {AgentName}, Critic: {criticCount}/{MaxReflectionCount}",
+                            agent.Name,
+                            trajectory.CriticCount,
+                            agent.MaxReflectionCount);
 
-                        return new SingleStepResult<TContext>
-                        {
-                            OriginalInput = originalInput,
-                            ModelResponse = modelResponse,
-                            PreStepItems = preStepItems,
-                            NewStepItems = newStepItems,
-                            NextStep = new NextStep<TContext>
+                        var criticApproval = await CriticAsync(
+                            config,
+                            runtimeModifier,
+                            hooks,
+                            trajectory,
+                            displayModelOutput,
+                            agent,
+                            originalInput,
+                            newStepItems,
+                            contextWrapper,
+                            logger,
+                            failureHook: () =>
                             {
-                                Type = NextStepType.RunAgain,
-                            }
-                        };
+                                // add fn result to deny
+                                var handOffDeniedMessage = $"HandOff denied because of unsatisfactory response.";
+                                newStepItems.Add(modelResponseMessage);
+                                var errorResult = new FunctionResultContent(functionCall.CallId, handOffDeniedMessage);
+                                newStepItems.Add(new ChatMessage(ChatRole.Tool, [errorResult]));
+                            });
+
+                        if (!criticApproval)
+                        {
+                            logger.LogInformation("Critic failure {AgentName}. Running reasoning step again.", agent.Name);
+
+                            return new SingleStepResult<TContext>
+                            {
+                                OriginalInput = originalInput,
+                                ModelResponse = modelResponse,
+                                PreStepItems = preStepItems,
+                                NewStepItems = newStepItems,
+                                NextStep = new NextStep<TContext>
+                                {
+                                    Type = NextStepType.RunAgain,
+                                }
+                            };
+                        }
                     }
                 }
 
@@ -870,13 +869,13 @@ public static class Runner
         List<AIFunction> tools
         ) where TContext : class
     {
-        // either in agent handoffs
+        // either in agent handoffs (transfer_to_*)
         return agent.HandoffNames.Contains(functionCall.Name)
             ||
             // or calling handoffback
             (tools.FirstOrDefault(t => t.Name == functionCall.Name) is var resolvedTool
             && resolvedTool is not null
-            && resolvedTool.UnderlyingMethod?.Name == "HandoffBack");
+            && string.Equals(resolvedTool.UnderlyingMethod?.Name, "HandoffBack", StringComparison.OrdinalIgnoreCase));
     }
 
     private class HandoffTracker
