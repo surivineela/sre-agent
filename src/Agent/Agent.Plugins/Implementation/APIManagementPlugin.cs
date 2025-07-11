@@ -953,6 +953,175 @@ namespace Agent.Plugins.Implementation
 
         #endregion
 
+        #region APIM Latency Trends
+
+        public async Task<string> GetApiManagementGatewayLatencyTrendAsync(string apimResourceId, DateTime startTime, DateTime endTime)
+        {
+            var metrics = await GetLatencyMetricsAsync(apimResourceId, startTime, endTime, Constants.GatewayRequestsDuration, Constants.Gateway);
+
+            if (!metrics.HasData)
+            {
+                return "No latency data available for the specified period.";
+            }
+
+            var sb = new StringBuilder();
+            sb.AppendLine("=== API Management Gateway Latency Diagnostic Report ===");
+            sb.AppendLine($"Resource ID: {apimResourceId}");
+            sb.AppendLine($"Timeframe: {startTime:u} - {endTime:u}");
+            sb.AppendLine($"Diagnostic Run At: {DateTime.UtcNow:u}");
+            sb.AppendLine("--------------------------------------------------");
+
+            // Summary
+            sb.AppendLine("\n[Summary]");
+            sb.AppendLine($"- Average Gateway Request Duration: {metrics.OverallAvg:F2} ms");
+            sb.AppendLine($"- Maximum Gateway Request Duration: {metrics.OverallMax:F2} ms");
+            sb.AppendLine($"- Number of Spikes (>{APIManagementHelper.Constants.SpikeMultiplier}x average): {metrics.SpikeCount}");
+            if (metrics.SpikeCount > 0)
+                sb.AppendLine($"⚠️  High latency detected. Spikes above {APIManagementHelper.Constants.SpikeMultiplier}x the average may indicate performance or backend issues.");
+            else
+                sb.AppendLine("✅ No significant latency spikes detected.");
+
+            // Trend Details
+            sb.AppendLine("\n[Gateway Latency Trend Details]");
+            sb.AppendLine("Timestamp                 | Avg (ms) | Max (ms)");
+            sb.AppendLine("--------------------------|----------|---------");
+            foreach (var p in metrics.LatencyPoints)
+            {
+                sb.AppendLine($"{p.Time:u} | {p.Avg,8:F2} | {p.Max,8:F2}");
+            }
+
+            // Spike Analysis
+            sb.AppendLine("\n[Spike Analysis]");
+            if (metrics.SpikePoints.Any())
+            {
+                foreach (var p in metrics.SpikePoints)
+                {
+                    sb.AppendLine($"⚠️  Spike at {p.Time:u}: Max Gateway Latency = {p.Max:F2} ms");
+                }
+                // If spikes, check backend latency
+                sb.AppendLine("\n[Backend Latency Analysis]");
+                sb.AppendLine(await GetApiManagementBackendLatencyTrendAsync(apimResourceId, startTime, endTime));
+            }
+            else
+            {
+                sb.AppendLine("No latency spikes above relative threshold detected.");
+            }
+
+            // Recommendations
+            sb.AppendLine("\n[Recommendations]");
+            sb.AppendLine("- Consider scaling up the instance.");
+
+            sb.AppendLine("\n--------------------------------------------------");
+            sb.AppendLine("End of diagnostic report.");
+            return sb.ToString();
+        }
+
+        public async Task<string> GetApiManagementBackendLatencyTrendAsync(string apimResourceId, DateTime startTime, DateTime endTime)
+        {
+            var metrics = await GetLatencyMetricsAsync(apimResourceId, startTime, endTime, Constants.BackendRequestsDuration, Constants.Backend);
+
+            if (!metrics.HasData)
+            {
+                return "No backend latency data available for the specified period.";
+            }
+
+            var sb = new StringBuilder();
+            sb.AppendLine("--- Backend Latency Diagnostic Report ---");
+            sb.AppendLine($"- Average Backend Request Duration: {metrics.OverallAvg:F2} ms");
+            sb.AppendLine($"- Maximum Backend Request Duration: {metrics.OverallMax:F2} ms");
+            sb.AppendLine($"- Number of Spikes (>{APIManagementHelper.Constants.SpikeMultiplier}x average): {metrics.SpikeCount}");
+            if (metrics.SpikeCount > 0)
+                sb.AppendLine($"⚠️  High backend latency detected. Spikes above {APIManagementHelper.Constants.SpikeMultiplier}x the average may indicate backend performance issues.");
+            else
+                sb.AppendLine("✅ No significant backend latency spikes detected.");
+
+            sb.AppendLine("\n[Backend Latency Trend Details]");
+            sb.AppendLine("Timestamp                 | Avg (ms) | Max (ms)");
+            sb.AppendLine("--------------------------|----------|---------");
+            foreach (var p in metrics.LatencyPoints)
+            {
+                sb.AppendLine($"{p.Time:u} | {p.Avg,8:F2} | {p.Max,8:F2}");
+            }
+
+            sb.AppendLine("\n[Backend Spike Analysis]");
+            if (metrics.SpikePoints.Any())
+            {
+                foreach (var p in metrics.SpikePoints)
+                {
+                    sb.AppendLine($"⚠️  Backend spike at {p.Time:u}: Max Backend Latency = {p.Max:F2} ms");
+                }
+            }
+            else
+            {
+                sb.AppendLine("No backend latency spikes above relative threshold detected.");
+            }
+
+            sb.AppendLine("------------------------------------------");
+            return sb.ToString();
+        }
+
+        private async Task<LatencyMetricsData> GetLatencyMetricsAsync(string apimResourceId, DateTime startTime, DateTime endTime, string metricName, string logType)
+        {
+            string apiVersion = APIManagementHelper.Constants.MetricsInsightsApiVer;
+            string interval = APIManagementHelper.Constants.AppInsightsTimeInterval;
+            string aggregations = APIManagementHelper.Constants.LatencyAggregations;
+            string managementAzureBaseUrl = APIManagementHelper.Constants.ManagementAzureBaseUrl;
+            string timespan = $"{startTime:o}/{endTime:o}";
+
+            string requestUrl = $"{managementAzureBaseUrl}{apimResourceId}/providers/microsoft.insights/metrics" +
+                                $"?api-version={apiVersion}" +
+                                $"&metricnames={metricName}" +
+                                $"&timespan={timespan}" +
+                                $"&interval={interval}" +
+                                $"&aggregation={aggregations}";
+
+            var metricsResponse = await _armHelper.GetResourceByURL(requestUrl);
+            var metrics = JObject.Parse(metricsResponse);
+
+            var data = metrics["value"]?[0]?["timeseries"]?[0]?["data"];
+            if (data == null || !data.Any())
+            {
+                _logger.LogInternalWarning($"No {logType} latency data found for apimResourceId: {apimResourceId} in the specified time range.");
+                return new LatencyMetricsData();
+            }
+
+            var metricsData = new LatencyMetricsData();
+            foreach (var point in data)
+            {
+                var avg = point["average"]?.Value<double?>();
+                var max = point["maximum"]?.Value<double?>();
+                var time = point["timeStamp"]?.Value<DateTime?>();
+                if (time.HasValue)
+                    metricsData.LatencyPoints.Add(new LatencyDataPoint(time.Value, avg, max));
+            }
+
+            // Calculate summary statistics
+            var avgValues = metricsData.LatencyPoints.Where(p => p.Avg.HasValue).Select(p => p.Avg.Value).ToList();
+            var maxValues = metricsData.LatencyPoints.Where(p => p.Max.HasValue).Select(p => p.Max.Value).ToList();
+            metricsData.OverallAvg = avgValues.Any() ? avgValues.Average() : 0.0;
+            metricsData.OverallMax = maxValues.Any() ? maxValues.Max() : 0.0;
+
+            IdentifySpikePoints(metricsData);
+
+            return metricsData;
+        }
+
+        private void IdentifySpikePoints(LatencyMetricsData metricsData)
+        {
+            if (metricsData.OverallAvg <= 0)
+                return;
+
+            double threshold = metricsData.OverallAvg * APIManagementHelper.Constants.SpikeMultiplier;
+
+            metricsData.SpikePoints = metricsData.LatencyPoints
+                .Where(p => p.Max.HasValue && p.Max.Value >= threshold)
+                .ToList();
+
+            metricsData.SpikeCount = metricsData.SpikePoints.Count;
+        }
+
+        #endregion
+
         #region APIM Connected Resource Helpers
 
         public async Task<string> GetAPIMConnectedAppInsightsAsync(string apiManagementResourceId)

@@ -138,6 +138,8 @@ public class Constants
     public const string Capacity = "Capacity";
     public const string BackendDuration = "BackendDuration";
     public const string NetworkConnectivity = "NetworkConnectivity";
+    public const string Gateway = "gateway";
+    public const string Backend = "backend";
 
     public const string UnitCount = "Count";
     public const string UnitPercent = "Percent";

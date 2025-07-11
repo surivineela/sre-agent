@@ -98,4 +98,29 @@ public class APIManagementHelper
         public static implicit operator string(SubnetResourceInfo id) => id.Value;
         public static implicit operator SubnetResourceInfo(string subnetResourceId) => new SubnetResourceInfo(subnetResourceId);
     }
+
+    public class LatencyMetricsData
+    {
+        public List<LatencyDataPoint> LatencyPoints { get; set; } = new();
+        public List<LatencyDataPoint> SpikePoints { get; set; } = new();
+        public double OverallAvg { get; set; }
+        public double OverallMax { get; set; }
+        public int SpikeCount { get; set; }
+
+        public bool HasData => LatencyPoints.Any();
+    }
+
+    public class LatencyDataPoint
+    {
+        public DateTime Time { get; set; }
+        public double? Avg { get; set; }
+        public double? Max { get; set; }
+
+        public LatencyDataPoint(DateTime time, double? avg, double? max)
+        {
+            Time = time;
+            Avg = avg;
+            Max = max;
+        }
+    }
 }
