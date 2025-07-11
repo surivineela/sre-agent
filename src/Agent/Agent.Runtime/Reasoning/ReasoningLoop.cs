@@ -589,7 +589,17 @@ public class ReasoningLoop : IDisposable
                     }
                     else
                     {
-                        output = "There are no agents to handoff back to, a different handoff must be used instead.";
+                        // Handoff to the default starting agent when no other agents are in the chain
+                        runResult = runResult.WithNewAgent(_defaultStartingAgent);
+
+                        // Update the context to reflect the handoff to default agent
+                        _context = _context with
+                        {
+                            AgentHandoffChain = [_defaultStartingAgent.Name]
+                        };
+                        _context = await _threadRepository.UpdateAgentContextAsync(_context);
+
+                        output = Handoff<AgentContext>.HandoffMessage;
                         toolResults.Add(new ManualToolCallResult()
                         {
                             FunctionCall = toolCall.FunctionCall,
