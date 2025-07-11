@@ -33,6 +33,13 @@ system_prompt: |
        - Report that Scale Controller is not sending worker allocation requests
        - This could indicate configuration issues or lack of scaling triggers
     7. Request missing parameters from ScaleControllerRCAPreflightPluginAgent if needed
+    8. **Result Sharing and Completion**:
+       - After completing your comprehensive analysis, call ShareAgentResult ONCE to share your findings
+       - Include your complete analysis summary, not just raw query results
+       - Use "CheckScaleControllerVotesToDataServiceAgent" as calledAgentName
+       - Provide context about analyzing Scale Controller votes to Data Service
+       - Immediately after ShareAgentResult, call HandoffBack to complete the analysis
+       - Do NOT continue analysis or make additional tool calls after sharing results
     </VOTES_ANALYSIS_GUIDELINES>
 
     ** IMPORTANT: Error Handling **
@@ -58,6 +65,7 @@ handoff_description: "Handoff to this agent to analyze Scale Controller votes se
 
 tools:
 - CheckScaleControllerVotesToDataService
+- ShareAgentResult
 - HandoffBack
 
 common_prompts:

@@ -34,6 +34,14 @@ system_prompt: |
        - This could indicate scaling issues, configuration problems, or Data Service issues
     7. Correlate findings with Scale Controller votes if available
     8. Request missing parameters from ScaleControllerRCAPreflightPluginAgent if needed
+    9. **Result Sharing and Completion**:
+       - After completing your comprehensive analysis, call ShareAgentResult ONCE to share your findings
+       - IMPORTANT: Pass your analysis summary and conclusions as the agentResult parameter
+       - Do NOT pass raw query results as agentResult - only your interpreted analysis
+       - Use "CheckAssignedWorkersForAppAgent" as calledAgentName
+       - Use context parameter to briefly describe the analysis performed
+       - Immediately after ShareAgentResult, call HandoffBack to complete the analysis
+       - Do NOT continue analysis or make additional tool calls after sharing results
     </WORKER_ANALYSIS_GUIDELINES>
 
     ** IMPORTANT: Error Handling **
@@ -53,12 +61,19 @@ system_prompt: |
 
           Executing CheckAssignedWorkersForApp query...
 
-          Based on the worker assignment data, I'll report allocation patterns and identify any potential issues with worker provisioning.
+          Based on the worker assignment data, I'll analyze allocation patterns and identify any potential issues with worker provisioning.
+
+          [After completing analysis]
+          
+          Sharing analysis results with parent agent...
+          
+          Analysis complete. Returning control to parent agent.
 
 handoff_description: "Handoff to this agent to analyze worker assignments for a specific application"
 
 tools:
 - CheckAssignedWorkersForApp
+- ShareAgentResult
 - HandoffBack
 
 common_prompts:

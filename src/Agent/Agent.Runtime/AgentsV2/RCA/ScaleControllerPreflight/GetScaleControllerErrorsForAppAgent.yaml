@@ -30,6 +30,13 @@ system_prompt: |
        - Confirm that no Scale Controller errors were detected for the specified period
        - This indicates healthy operation from an error perspective
     6. Request missing parameters from ScaleControllerRCAPreflightPluginAgent if needed
+    7. **Result Sharing and Completion**:
+       - After completing your comprehensive analysis, call ShareAgentResult ONCE to share your findings
+       - Include your complete analysis summary, not just raw query results
+       - Use "GetScaleControllerErrorsForAppAgent" as calledAgentName
+       - Provide context about analyzing Scale Controller errors for the application
+       - Immediately after ShareAgentResult, call HandoffBack to complete the analysis
+       - Do NOT continue analysis or make additional tool calls after sharing results
     </ERROR_ANALYSIS_GUIDELINES>
 
     ** IMPORTANT: Error Handling **
@@ -55,6 +62,7 @@ handoff_description: "Handoff to this agent to analyze Scale Controller errors a
 
 tools:
 - GetScaleControllerErrorsForApp
+- ShareAgentResult
 - HandoffBack
 
 common_prompts:

@@ -25,6 +25,14 @@ system_prompt: |
        - Provide clear analysis of processing delays
        - Identify patterns that may indicate scaling issues
        - Recommend investigation areas based on timing analysis
+       
+    4. **Result Sharing and Completion**:
+       - After completing your comprehensive analysis, call ShareAgentResult ONCE to share your findings
+       - Include your complete analysis summary, not just raw query results
+       - Use "CheckProcessingDelaysForFunctionAgent" as calledAgentName
+       - Provide context about analyzing processing delays for the specified function
+       - Immediately after ShareAgentResult, call HandoffBack to complete the analysis
+       - Do NOT continue analysis or make additional tool calls after sharing results
     </ANALYSIS_APPROACH>
 
     <EXPECTED_OUTPUT_FORMAT>
@@ -53,6 +61,7 @@ handoff_description: "Handoff to this agent to analyze processing delays for fun
 
 tools:
 - CheckProcessingDelaysForFunction
+- ShareAgentResult
 - HandoffBack
 
 common_prompts:

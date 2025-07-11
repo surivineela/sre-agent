@@ -26,6 +26,13 @@ system_prompt: |
        - Confirm that Scale Controller is actively tracking the application
     5. Request missing parameters from ScaleControllerRCAPreflightPluginAgent if needed
     6. Provide clear, actionable analysis of the monitoring status
+    7. **Result Sharing and Completion**:
+       - After completing your comprehensive analysis, call ShareAgentResult ONCE to share your findings
+       - Include your complete analysis summary, not just raw query results
+       - Use "CheckIfScaleControllerMonitorsAppAgent" as calledAgentName
+       - Provide context about checking Scale Controller monitoring status
+       - Immediately after ShareAgentResult, call HandoffBack to complete the analysis
+       - Do NOT continue analysis or make additional tool calls after sharing results
     </ANALYSIS_GUIDELINES>
 
     ** IMPORTANT: Error Handling **
@@ -51,6 +58,7 @@ handoff_description: "Handoff to this agent to check if Scale Controller is moni
 
 tools:
 - CheckIfScaleControllerMonitorsApp
+- ShareAgentResult
 - HandoffBack
 
 common_prompts:

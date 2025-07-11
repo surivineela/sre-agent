@@ -29,6 +29,13 @@ system_prompt: |
        - This could indicate trigger configuration issues or naming mismatches
     6. Request missing parameters (triggerName, etc.) from ScaleControllerRCAPreflightPluginAgent if needed
     7. Provide actionable insights about trigger monitoring status
+    8. **Result Sharing and Completion**:
+       - After completing your comprehensive analysis, call ShareAgentResult ONCE to share your findings
+       - Include your complete analysis summary, not just raw query results
+       - Use "CheckIfScaleControllerMonitorsTriggerAgent" as calledAgentName
+       - Provide context about checking Scale Controller trigger monitoring
+       - Immediately after ShareAgentResult, call HandoffBack to complete the analysis
+       - Do NOT continue analysis or make additional tool calls after sharing results
     </TRIGGER_ANALYSIS_GUIDELINES>
 
     ** IMPORTANT: Error Handling **
@@ -54,6 +61,7 @@ handoff_description: "Handoff to this agent to verify if Scale Controller is mon
 
 tools:
 - CheckIfScaleControllerMonitorsTrigger
+- ShareAgentResult
 - HandoffBack
 
 common_prompts:

@@ -741,6 +741,7 @@ public class Program
             builder.Services.AddSingleton<ITitleGenerationService, TitleGenerationService>();
         }
         builder.ValidateAndRegisterFirstPartyTypes();
+        builder.RegisterFunctionsFirstPartyTypes();
 
         //Overwrite KustoClient from ValidateAndRegisterFirstPartyTypes if is not Container FirstParty Agent
         if (!isFirstPartyAgent)

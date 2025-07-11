@@ -1,5 +1,5 @@
 let siteName = "##siteName##";
-let abbreviation = AntaresAnalyticsEvents
+let abbreviation = All("AntaresAnalyticsEvents")
 | where PreciseTimeStamp > ago(2h)
 | where RuntimeSiteName == siteName
 | parse EventPrimaryStampName with "waws-prod-" abbreviation "-" *

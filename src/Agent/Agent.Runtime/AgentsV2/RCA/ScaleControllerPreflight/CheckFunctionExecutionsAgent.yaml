@@ -37,6 +37,13 @@ system_prompt: |
        - Compare execution patterns with worker assignments
        - Look for relationships between scaling and execution patterns
     7. Request missing parameters (triggerName, functionName) from ScaleControllerRCAPreflightPluginAgent if needed
+    8. **Result Sharing and Completion**:
+       - After completing your comprehensive analysis, call ShareAgentResult ONCE to share your findings
+       - Include your complete analysis summary, not just raw query results
+       - Use "CheckFunctionExecutionsAgent" as calledAgentName
+       - Provide context about analyzing function executions for the specified trigger
+       - Immediately after ShareAgentResult, call HandoffBack to complete the analysis
+       - Do NOT continue analysis or make additional tool calls after sharing results
     </EXECUTION_ANALYSIS_GUIDELINES>
 
     ** IMPORTANT: Error Handling **
@@ -62,6 +69,7 @@ handoff_description: "Handoff to this agent to analyze function executions for s
 
 tools:
 - CheckFunctionExecutions
+- ShareAgentResult
 - HandoffBack
 
 common_prompts:
