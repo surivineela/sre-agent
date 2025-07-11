@@ -129,10 +129,24 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
 
             connectionRef.current.onreconnecting(() => {
                 setIsReconnecting(true);
+                proxy.log({
+                    action: 'ReconnectToSignalR',
+                    actionModifier: 'started',
+                    data: {
+                        message: `Reconnecting to SignalR hub from agent url: ${sreAgentEndpoint}`,
+                    },
+                });
             });
 
             connectionRef.current.onreconnected(() => {
                 setIsReconnecting(false);
+                proxy.log({
+                    action: 'ReconnectToSignalR',
+                    actionModifier: 'stopped',
+                    data: {
+                        message: `Reconnected to SignalR hub from agent url: ${sreAgentEndpoint}`,
+                    },
+                });
             });
 
             try {
