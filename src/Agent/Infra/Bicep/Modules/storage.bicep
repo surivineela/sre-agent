@@ -85,20 +85,6 @@ resource storageIdentityRoleAssignment 'Microsoft.Authorization/roleAssignments@
   }
 }
 
-// AI search service access to blob storage for AgentMemory
-resource searchStorageRoleAssignment 'Microsoft.Authorization/roleAssignments@2018-09-01-preview' = {
-  name: guid(storageAccountName, 'search-blob-reader', consts.StorageBlobDataReaderRoleDefinition)
-  scope: storageAccount
-  properties: {
-    principalId: identity.properties.principalId
-    principalType: 'ServicePrincipal'
-    roleDefinitionId: subscriptionResourceId(
-      'Microsoft.Authorization/roleDefinitions',
-      consts.StorageBlobDataReaderRoleDefinition
-    )
-  }
-}
-
 // local user access to blob storage for local deployments
 resource storageDeployerRoleAssignment 'Microsoft.Authorization/roleAssignments@2018-09-01-preview' = {
   name: guid(storageAccountName, deployer().objectId, consts.StorageBlobDataContributorRoleDefinition)

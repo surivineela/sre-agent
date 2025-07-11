@@ -155,20 +155,6 @@ resource openaiApiKeySetting 'Microsoft.AppConfiguration/configurationStores/key
   }
 }
 
-// user-assigned identity access to Open AI for Azure deployments
-resource storageIdentityRoleAssignment 'Microsoft.Authorization/roleAssignments@2018-09-01-preview' = {
-  name: guid(openAIName, identity.name, consts.CognitiveServicesOpenAIContributor)
-  scope: openai
-  properties: {
-    principalId: identity.properties.principalId
-    principalType: 'ServicePrincipal'
-    roleDefinitionId: subscriptionResourceId(
-      'Microsoft.Authorization/roleDefinitions',
-      consts.CognitiveServicesOpenAIContributor
-    )
-  }
-}
-
 // Additional role assignment for embeddings access
 resource cognitiveServicesUserRoleAssignment 'Microsoft.Authorization/roleAssignments@2018-09-01-preview' = {
   name: guid(openAIName, identity.name, consts.CognitiveServicesUser)
