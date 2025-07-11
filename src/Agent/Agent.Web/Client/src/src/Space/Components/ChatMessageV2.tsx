@@ -13,7 +13,7 @@ import { formatDateTimeWithShortYear, getSafeDateTime } from '../../Common/Helpe
 import { SreAgentResources } from '../../Strings/SREAgentResources';
 import { shouldGroupWithPreviousMessageV2 } from '../Activities/Utility';
 import { IChatMessageV2Props } from '../Contracts/Activities';
-import { SreAgentContext } from '../Contracts/Context';
+import { ThreadAgentModeContext } from '../Contracts/Context';
 import { useAuthenticatedUserInfo } from '../Hooks/useAuthenticatedUserInfo';
 import { ChatBoxV2Styles as ChatBoxStyles, nameAndTimestampContainerStyle, useChatBoxStyles } from '../Styles/Activities.styles';
 import AgentMessage from './AgentMessage';
@@ -153,14 +153,10 @@ const ChatMessageV2 = ({
 }: IChatMessageV2Props) => {
     const chatStyles = useChatBoxStyles();
     const intl = useIntl();
-    const sreAgentContext = useContext(SreAgentContext);
-    const {
-        agent: { mode },
-    } = sreAgentContext;
 
     const { userIdAndDisplayName } = useAuthenticatedUserInfo();
 
-    const agentMode = useMemo(() => getAgentModeDisplayName(mode, intl), [intl, mode]);
+    const { threadAgentModeToDisplay } = useContext(ThreadAgentModeContext);
 
     const agentMessageProps = useMemo(() => {
         const messageProps: CopilotMessageProps = {
@@ -170,7 +166,9 @@ const ChatMessageV2 = ({
             name: (
                 <div style={nameAndTimestampContainerStyle}>
                     <span>{intl.formatMessage(SreAgentResources.sreAgent)}</span>
-                    {mode && <span className={chatStyles.modePill}>{agentMode}</span>}
+                    {threadAgentModeToDisplay && (
+                        <span className={chatStyles.modePill}>{getAgentModeDisplayName(threadAgentModeToDisplay, intl)}</span>
+                    )}
                     {!isTyping && message.timeStamp && (
                         <Text size={200} color={tokens.colorNeutralForeground3}>
                             {formatDateTimeWithShortYear(getSafeDateTime(message.timeStamp))}
@@ -182,7 +180,7 @@ const ChatMessageV2 = ({
         };
 
         return messageProps;
-    }, [intl, mode, chatStyles.modePill, agentMode, isTyping, message.timeStamp]);
+    }, [intl, threadAgentModeToDisplay, chatStyles.modePill, isTyping, message.timeStamp]);
 
     // Hide message's icon, name and timestamp if the message is grouped with the previous one
     const hideMessageHeader = useMemo(() => shouldGroupWithPreviousMessageV2(message, previousMessage), [message, previousMessage]);

@@ -15,6 +15,8 @@ import { ChatBoxStyles } from '../Styles/Activities.styles';
 import AzureSREWelcome from './AzureSREWelcome';
 import { ChatSuggestions } from './ChatSuggestions';
 import { getGroupedMessages } from './Utility';
+import { useThreadAgentMode } from '../Hooks/useThreadAgentMode';
+import { ThreadAgentModeContext } from '../Contracts/Context';
 
 export const ChatBox = ({ addThread, promoteThread, updateThreadLastReadTime, threadId, threadSource }: IChatBoxProps) => {
     const { hasChatPermissions } = useContext(KnowledgeGraphBuildStatusContext);
@@ -38,6 +40,8 @@ export const ChatBox = ({ addThread, promoteThread, updateThreadLastReadTime, th
         showNewMessageButton,
         onClickNewMessageButton,
     } = useChatBox(addThread, promoteThread, updateThreadLastReadTime, threadId);
+
+    const threadAgentModeData = useThreadAgentMode(threadId, threadSource);
 
     const isWelcomeThread = threadSource === ThreadSource.welcomeMessage;
 
@@ -68,61 +72,63 @@ export const ChatBox = ({ addThread, promoteThread, updateThreadLastReadTime, th
     }, [messages, insufficientPermissionsMessage]);
 
     return (
-        <div className={ChatBoxStyles.chatBox}>
-            <CopilotProvider mode="canvas" className={ChatBoxStyles.chatBoxInner}>
-                <div className={mergeClasses(scrollable, ChatBoxStyles.chatContainer)} ref={messagesDivRef} onScroll={onScroll}>
-                    <CopilotChat className={ChatBoxStyles.chat}>
-                        <div ref={intersectionObserverRef} />
+        <ThreadAgentModeContext.Provider value={{ ...threadAgentModeData }}>
+            <div className={ChatBoxStyles.chatBox}>
+                <CopilotProvider mode="canvas" className={ChatBoxStyles.chatBoxInner}>
+                    <div className={mergeClasses(scrollable, ChatBoxStyles.chatContainer)} ref={messagesDivRef} onScroll={onScroll}>
+                        <CopilotChat className={ChatBoxStyles.chat}>
+                            <div ref={intersectionObserverRef} />
 
-                        {isLoadingInitialChatHistory && !isWelcomeThread && <ChatLoading />}
+                            {isLoadingInitialChatHistory && !isWelcomeThread && <ChatLoading />}
 
-                        {isNewAndCleanThread && !isWelcomeThread && <ChatSuggestions sendMessage={sendMessage} />}
+                            {isNewAndCleanThread && !isWelcomeThread && <ChatSuggestions sendMessage={sendMessage} />}
 
-                        {/* Insert the richer welcome experience once at the top for welcome threads */}
-                        {isWelcomeThread && <AzureSREWelcome threadId={currentThreadId} addThread={addThread} />}
+                            {/* Insert the richer welcome experience once at the top for welcome threads */}
+                            {isWelcomeThread && <AzureSREWelcome threadId={currentThreadId} addThread={addThread} />}
 
-                        {/* Render the remaining chat history */}
-                        {displayMessages.map((message, index) => (
-                            <ChatMessage
-                                key={index}
-                                message={message}
-                                previousMessage={displayMessages[index - 1]}
-                                nextMessage={displayMessages[index + 1]}
-                                getGroupedMessages={() => getGroupedMessages(displayMessages, index)}
-                                threadId={currentThreadId || ''}
-                            />
-                        ))}
+                            {/* Render the remaining chat history */}
+                            {displayMessages.map((message, index) => (
+                                <ChatMessage
+                                    key={index}
+                                    message={message}
+                                    previousMessage={displayMessages[index - 1]}
+                                    nextMessage={displayMessages[index + 1]}
+                                    getGroupedMessages={() => getGroupedMessages(displayMessages, index)}
+                                    threadId={currentThreadId || ''}
+                                />
+                            ))}
 
-                        {hasChatPermissions && temporaryUserMessage && (
-                            <ChatMessage
-                                message={temporaryUserMessage}
-                                previousMessage={displayMessages[displayMessages.length - 1]}
-                                threadId={currentThreadId || ''}
-                            />
-                        )}
+                            {hasChatPermissions && temporaryUserMessage && (
+                                <ChatMessage
+                                    message={temporaryUserMessage}
+                                    previousMessage={displayMessages[displayMessages.length - 1]}
+                                    threadId={currentThreadId || ''}
+                                />
+                            )}
 
-                        {hasChatPermissions && agentTypingMessage && (
-                            <ChatMessage
-                                message={agentTypingMessage}
-                                isTyping
-                                threadId={currentThreadId || ''}
-                                cancelResponse={cancelResponse}
-                            />
-                        )}
-                    </CopilotChat>
-                </div>
+                            {hasChatPermissions && agentTypingMessage && (
+                                <ChatMessage
+                                    message={agentTypingMessage}
+                                    isTyping
+                                    threadId={currentThreadId || ''}
+                                    cancelResponse={cancelResponse}
+                                />
+                            )}
+                        </CopilotChat>
+                    </div>
 
-                <ChatBoxFooter
-                    sendMessage={sendMessage}
-                    disableInput={disableInput || !hasChatPermissions}
-                    isNewMessageButtonVisible={showNewMessageButton && hasChatPermissions}
-                    onClickNewMessageButton={onClickNewMessageButton}
-                    prompts={prompts}
-                    messagePromptsUsed={messagePromptsUsed}
-                    threadId={currentThreadId}
-                />
-            </CopilotProvider>
-        </div>
+                    <ChatBoxFooter
+                        sendMessage={sendMessage}
+                        disableInput={disableInput || !hasChatPermissions}
+                        isNewMessageButtonVisible={showNewMessageButton && hasChatPermissions}
+                        onClickNewMessageButton={onClickNewMessageButton}
+                        prompts={prompts}
+                        messagePromptsUsed={messagePromptsUsed}
+                        threadId={currentThreadId}
+                    />
+                </CopilotProvider>
+            </div>
+        </ThreadAgentModeContext.Provider>
     );
 };
 

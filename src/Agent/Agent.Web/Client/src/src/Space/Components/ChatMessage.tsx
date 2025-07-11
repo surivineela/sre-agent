@@ -36,7 +36,7 @@ import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
 import { shouldGroupWithPreviousMessage } from '../Activities/Utility';
 import { IChatMessageProps } from '../Contracts/Activities';
-import { SreAgentContext } from '../Contracts/Context';
+import { ThreadAgentModeContext } from '../Contracts/Context';
 import { useAuthenticatedUserInfo } from '../Hooks/useAuthenticatedUserInfo';
 import { ChatBoxStyles, nameAndTimestampContainerStyle, useChatBoxStyles } from '../Styles/Activities.styles';
 import AgentChart from './Charts';
@@ -1885,10 +1885,6 @@ const ChatMessage = ({
     const intl = useIntl();
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const proxy = useContext(AzPortalContext);
-    const sreAgentContext = useContext(SreAgentContext);
-    const {
-        agent: { mode },
-    } = sreAgentContext;
 
     const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
     const [selectedFeedback, setSelectedFeedback] = useState<'positive' | 'negative'>();
@@ -1898,6 +1894,8 @@ const ChatMessage = ({
     const [loadingButton, setLoadingButton] = useState<'approve' | 'deny' | null>(null);
 
     const { userIdAndDisplayName } = useAuthenticatedUserInfo();
+
+    const { threadAgentModeToDisplay } = useContext(ThreadAgentModeContext);
 
     const messageContent = useMemo(() => {
         // Make sure we have a text property and it's not empty
@@ -1916,8 +1914,6 @@ const ChatMessage = ({
         return Array.isArray(content) ? content : message.text;
     }, [message.text, isTyping, message.azCliExecution, message.kubectlExecution, message.approval, message.isDailyReport]);
 
-    const agentMode = useMemo(() => getAgentModeDisplayName(mode, intl), [intl, mode]);
-
     const agentMessageProps = useMemo(() => {
         const messageProps: CopilotMessageProps = {
             avatar: <Image src="./SreAgent.svg" width={28} height={28} alt={intl.formatMessage(SreAgentResources.azureSreAgent)} />,
@@ -1926,7 +1922,9 @@ const ChatMessage = ({
             name: (
                 <div style={nameAndTimestampContainerStyle}>
                     <span>{intl.formatMessage(SreAgentResources.sreAgent)}</span>
-                    {mode && <span className={chatStyles.modePill}>{agentMode}</span>}
+                    {threadAgentModeToDisplay && (
+                        <span className={chatStyles.modePill}>{getAgentModeDisplayName(threadAgentModeToDisplay, intl)}</span>
+                    )}
                     {!isTyping && (
                         <Text size={200} color={tokens.colorNeutralForeground3}>
                             {formatDateTimeWithShortYear(getSafeDateTime(message.timeStamp))}
@@ -1938,7 +1936,7 @@ const ChatMessage = ({
         };
 
         return messageProps;
-    }, [agentMode, chatStyles.modePill, intl, isTyping, message.timeStamp, mode]);
+    }, [threadAgentModeToDisplay, chatStyles.modePill, intl, isTyping, message.timeStamp, threadAgentModeToDisplay]);
 
     // Hide message's icon, name and timestamp if the message is grouped with the previous one
     const hideMessageHeader = useMemo(() => shouldGroupWithPreviousMessage(message, previousMessage), [message, previousMessage]);

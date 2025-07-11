@@ -10,7 +10,7 @@ import { FormattedMessage } from 'react-intl';
 import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
 import { AgentModeResources } from '../../Strings/SREAgentResources';
 import { IAgentModeSelectorProps } from '../Contracts/Activities';
-import { useAgentMode } from '../Hooks/useAgentMode';
+import { useAgentModeSelector } from '../Hooks/useAgentModeSelector';
 
 const useAgentModeSelectorStyles = makeStyles({
     menuSurface: {
@@ -52,7 +52,7 @@ const AgentModeSelector = (props: IAgentModeSelectorProps) => {
         updateThreadAgentMode,
         updatingAgentModeError,
         getAgentModeInfo,
-    } = useAgentMode(props);
+    } = useAgentModeSelector(props);
 
     const { menuSurface, restrictionMessage, currentModeValue, errorMessage } = useAgentModeSelectorStyles();
 

@@ -1,4 +1,3 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import useIntl from 'react-intl/src/components/useIntl';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
@@ -9,13 +8,14 @@ import { getAgentModeDescription, getAgentModeDisplayName } from '../../Common/H
 import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
 import { AgentModeResources } from '../../Strings/SREAgentResources';
 import { IAgentModeInfo, IAgentModeSelectorProps } from '../Contracts/Activities';
+import { ThreadAgentModeContext } from '../Contracts/Context';
 
 export interface AgentModesInfo {
     canEditAgentMode: boolean;
     info?: string;
 }
 
-export const useAgentMode = ({ threadId, disabled }: IAgentModeSelectorProps) => {
+export const useAgentModeSelector = ({ threadId, disabled }: IAgentModeSelectorProps) => {
     const [availableAgentModes, setAvailableAgentModes] = useState<string[]>([]);
     const [isLoadingAgentModes, setIsLoadingAgentModes] = useState<boolean>(false);
     const [isUpdatingAgentMode, setIsUpdatingAgentMode] = useState<boolean>(false);
@@ -26,30 +26,9 @@ export const useAgentMode = ({ threadId, disabled }: IAgentModeSelectorProps) =>
     const threadClient = ThreadClient.getInstance(sreAgentEndpoint);
 
     const portalContext = useContext(AzPortalContext);
-    const queryClient = useQueryClient();
     const intl = useIntl();
 
-    const {
-        data: threadAgentMode,
-        isLoading: isLoadingThreadAgentMode,
-        isFetching: isFetchingThreadAgentMode,
-        error: fetchThreadAgentModeError,
-    } = useQuery({
-        queryKey: ['getThreadAgentMode', threadId],
-        enabled: !!threadId,
-        queryFn: async () => {
-            const response = await threadClient.getThread(threadId);
-            if (response.isSuccessful && response.content) {
-                return response.content.agentMode?.toLowerCase() || AgentMode.review;
-            } else {
-                throw new Error(response.error?.message || intl.formatMessage(AgentModeResources.fetchAgentModeFailureMessage));
-            }
-        },
-        refetchOnWindowFocus: false,
-        refetchOnReconnect: false,
-        staleTime: Infinity,
-        gcTime: Infinity,
-    });
+    const { threadAgentMode, isLoadingThreadAgentMode, isFetchingThreadAgentMode, fetchThreadAgentModeError, invalidateThreadAgentModeDataCache } = useContext(ThreadAgentModeContext)
 
     const agentModes = useMemo(() => {
         return availableAgentModes || [];
@@ -92,7 +71,7 @@ export const useAgentMode = ({ threadId, disabled }: IAgentModeSelectorProps) =>
     const buttonTooltipText = useMemo(() => {
         return (
             loadingAgentModesError ||
-            fetchThreadAgentModeError?.message ||
+            (fetchThreadAgentModeError ? intl.formatMessage(AgentModeResources.fetchAgentModeFailureMessage) : undefined) ||
             agentModesInfo.info ||
             intl.formatMessage(AgentModeResources.agentModeTooltip)
         );
@@ -129,9 +108,7 @@ export const useAgentMode = ({ threadId, disabled }: IAgentModeSelectorProps) =>
             const response = await threadClient.updateThreadAgentMode(threadId, agentMode);
 
             if (response.isSuccessful) {
-                queryClient.invalidateQueries({
-                    queryKey: ['getThreadAgentMode', threadId],
-                });
+                invalidateThreadAgentModeDataCache();
                 setUpdatingAgentModeError(null);
             } else {
                 portalContext.log({

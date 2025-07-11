@@ -41,6 +41,15 @@ type ChatBoxContextProps = {
     getGroupedChatMessages: (message: ChatMessage) => ChatMessage[];
 };
 
+type ThreadAgentModeContextProps = {
+    threadAgentMode?: string;
+    threadAgentModeToDisplay?: string;
+    isLoadingThreadAgentMode: boolean;
+    isFetchingThreadAgentMode: boolean;
+    fetchThreadAgentModeError?: Error | null;
+    invalidateThreadAgentModeDataCache: () => void;
+};
+
 export const SreAgentContext = createContext<SreAgentContextProps>({
     grafana: {
         isGrafanaUpdating: false,
@@ -85,4 +94,13 @@ export const StreamingContext = createContext<StreamingContextProps>({
 
 export const ChatBoxContext = createContext<ChatBoxContextProps>({
     getGroupedChatMessages: (_message: ChatMessage) => [],
+});
+
+export const ThreadAgentModeContext = createContext<ThreadAgentModeContextProps>({
+    threadAgentMode: undefined,
+    threadAgentModeToDisplay: undefined,
+    isLoadingThreadAgentMode: false,
+    isFetchingThreadAgentMode: false,
+    fetchThreadAgentModeError: null,
+    invalidateThreadAgentModeDataCache: () => {},
 });
