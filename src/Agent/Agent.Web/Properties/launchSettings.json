@@ -18,10 +18,11 @@
       "launchUrl": "static/",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "AGENT_ENDPOINT": "https://localhost:7023/",
+        "AGENT_ENDPOINT": "https://localhost:7023/"
       },
       "dotnetRunMessages": true,
-      "applicationUrl": "https://localhost:7023;http://localhost:5073"
+      "applicationUrl": "https://localhost:7023;http://localhost:5073",
+      "hotReloadEnabled": false
     },
     "react": {
       "commandName": "Project",

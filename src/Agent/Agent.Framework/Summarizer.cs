@@ -49,23 +49,8 @@ public static class Summarizer
 
             if (message.Role == ChatRole.Assistant)
             {
-                Dictionary<string, string>? op = null;
-                try
-                {
-                    op = JsonSerializer.Deserialize<Dictionary<string, string>>(message.Text);
-                }
-                catch { }
-                if (op is not null
-                    && op.TryGetValue("notifyUserMessage", out var text))
-                {
-                    sb.AppendLine(text);
-                    sb.AppendLine();
-                }
-                else
-                {
-                    sb.AppendLine(message.Text);
-                    sb.AppendLine();
-                }
+                sb.AppendLine(ExtractNotifyUserMessage(message.Text));
+                sb.AppendLine();
             }
             else if (message.Role == ChatRole.User)
             {
@@ -127,6 +112,23 @@ public static class Summarizer
         var trajectorySummary = await chatClient.GetResponseAsync(summarizerChat, summarizerChatOptions);
 
         return trajectorySummary.Text;
+    }
+
+    public static string ExtractNotifyUserMessage(string contentText)
+    {
+        var extractedText = contentText;
+        try
+        {
+            var op = JsonSerializer.Deserialize<Dictionary<string, string>>(contentText);
+            if (op is not null
+                && op.TryGetValue("notifyUserMessage", out var notifyText))
+            {
+                extractedText = notifyText;
+            }
+        }
+        catch { }
+
+        return extractedText;
     }
 
     public const string TrajectorySummarizerPrompt = """

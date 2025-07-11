@@ -807,7 +807,7 @@ public class ReasoningLoop : IDisposable
                 if (_autoHandOffEnabled
                     && endingState == AgentProcessingState.CompletedSuccessfully)
                 {
-                    _logger.LogInternalInformation("Autohandoff is enabled. Handing back to {startAgent}.", _defaultStartingAgent.Name);
+                    _logger.LogInternalInformation("Autohandoff is enabled. Resetting control to {startAgent}. Previous ending agent: {lastAgent}", _defaultStartingAgent.Name, _currentAgent.Name);
 
                     // todo: add a user message to show handoff path to previous agent
                     // if(_currentAgent.Name != _defaultStartingAgent.Name)

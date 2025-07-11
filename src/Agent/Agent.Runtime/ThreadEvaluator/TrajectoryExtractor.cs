@@ -46,7 +46,7 @@ public static class TrajectoryExtractor
             options: new ChatOptions
             {
                 ToolMode = ChatToolMode.None,
-                Temperature = 0,
+                Temperature = 0.2f,
             },
             cancellationToken: cancellationToken);
 

@@ -2,7 +2,6 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Text.Json;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
@@ -194,16 +193,8 @@ public static class Runner
                     {
                         foreach (var content in message.Contents.OfType<TextContent>())
                         {
-                            var op = JsonSerializer.Deserialize<Dictionary<string, string>>(content.Text);
-                            if (op is not null
-                                && op.TryGetValue("notifyUserMessage", out var text))
-                            {
-                                await displayModelOutput(text);
-                            }
-                            else
-                            {
-                                await displayModelOutput(content.Text);
-                            }
+                            var text = Summarizer.ExtractNotifyUserMessage(content.Text);
+                            await displayModelOutput(text);
                         }
                     }
                 }
@@ -314,7 +305,11 @@ public static class Runner
             // todo: log
             throw;
         }
+
+
     }
+
+
 
     private static async Task<bool> CriticAsync<TContext>(
         RunConfig config,
@@ -379,20 +374,15 @@ public static class Runner
                 }
             }
 
-            bool wasApproved = !criticResult.Contains("\"overall_assessment\": \"FAIL\"");
+            var rejected = criticResult.Contains("\"overall_assessment\": \"FAIL\"")
+                || criticResult.Contains("\"overall_assessment\":\"FAIL\"");
 
             // Invoke the critic end hook for tracing
-            await hooks.OnCriticEnd(contextWrapper, currentAgent, userQuery, criticResult, wasApproved);
+            await hooks.OnCriticEnd(contextWrapper, currentAgent, userQuery, criticResult, !rejected);
 
-            if (!wasApproved)
+            if (rejected)
             {
                 logger.LogWarning("Critic result indicates failure: {CriticResult}", criticResult);
-
-                //// mention to user we are reviewing work
-                //if (displayModelOutput is not null)
-                //{
-                //    await displayModelOutput($"Reviewing my work for completeness and correctness...");
-                //}
 
                 if (failureHook is not null)
                 {
