@@ -234,7 +234,7 @@ namespace Agent.Runtime.Services
                         IsTest = request.IsTest
                     };
 
-                    var defaultThread = await CreateIncidentMetaAgentThread(incidentRequest);
+                    var defaultThread = await CreateIncidentMetaAgentThread(incidentRequest, matchingFilter);
                     _logger.LogInternalInformation("HandleIncidentAsync: Created MetaAgent thread with ThreadId: {ThreadId} for IncidentId: {IncidentId}", defaultThread.Id, incidentId);
 
                     response.StatusCode = 200;
@@ -243,7 +243,7 @@ namespace Agent.Runtime.Services
                 }
 
                 _logger.LogInternalInformation("HandleIncidentAsync: Matched Handler. Creating IncidentHandlerAgent thread for IncidentId: {IncidentId}, FilterId: {FilterId} and HandlerId: {HandlerId}", incidentId, matchingFilter.Id, matchingHandler.Id);
-                var thread = await CreateIncidentHandlerAgentThread(incidentDetails, matchingHandler, request.IsTest ?? false);
+                var thread = await CreateIncidentHandlerAgentThread(incidentDetails, matchingHandler, matchingFilter, request);
                 _logger.LogInternalInformation("HandleIncidentAsync: Created IncidentHandlerAgent thread with ThreadId: {ThreadId} for IncidentId: {IncidentId} and HandlerId: {HandlerId}", thread.Id, incidentId, matchingHandler.Id);
 
                 response.StatusCode = 200;
@@ -258,8 +258,8 @@ namespace Agent.Runtime.Services
                 return response;
             }
         }
-        
-        private async Task<Core.Models.Api.v1.Thread> CreateIncidentHandlerAgentThread(IIncidentDocument incidentDetails, IncidentHandlerDocument incidentHandler, bool isTest)
+
+        private async Task<Core.Models.Api.v1.Thread> CreateIncidentHandlerAgentThread(IIncidentDocument incidentDetails, IncidentHandlerDocument incidentHandler, IncidentFilterDocument incidentFilterDocument, IncidentHandlingRequestModel request)
         {
             _logger.LogInternalInformation("CreateIncidentHandlerAgentThread: Invoked for IncidentId: {IncidentId}, HandlerId: {HandlerId}", incidentDetails.Id, incidentHandler.Id);
             try
@@ -281,7 +281,7 @@ namespace Agent.Runtime.Services
                     $"**Custom Instructions for Incident Processing:**\n" +
                     $"{customInstructionsForAlert}\n\n" +
                     $"**Incident Handler:** {incidentHandler.Name}";
-
+                bool isTest = request.IsTest ?? false;
                 (var thread, var agentContext) = await _inboundCommunicationService.CreateAgentThread(
                     title: $"Incident - {title}",
                     message: alertMessage,
@@ -289,7 +289,8 @@ namespace Agent.Runtime.Services
                     source: ThreadSource.Incident,
                     incidentId: incidentDetails.Id ?? string.Empty,
                     AllowedTools: incidentHandler.Tools,
-                    threadType: isTest ? ThreadType.Test : ThreadType.Prod
+                    threadType: isTest ? ThreadType.Test : ThreadType.Prod,
+                    overrideAgentMode: incidentFilterDocument.AgentMode
                 );
 
                 _logger.LogInternalInformation("CreateIncidentHandlerAgentThread: Created thread with ThreadId: {ThreadId} for IncidentId: {IncidentId}", thread.Id, incidentDetails.Id);
@@ -315,8 +316,8 @@ namespace Agent.Runtime.Services
                 throw;
             }
         }
-        
-        private async Task<Core.Models.Api.v1.Thread> CreateIncidentMetaAgentThread(IncidentHandlingRequestModel request)
+
+        private async Task<Core.Models.Api.v1.Thread> CreateIncidentMetaAgentThread(IncidentHandlingRequestModel request, IncidentFilterDocument incidentFilterDocument)
         {
             _logger.LogInternalInformation("CreateIncidentMetaAgentThread: Invoked for IncidentId: {IncidentId}", request.IncidentId);
             try
@@ -355,7 +356,8 @@ namespace Agent.Runtime.Services
                     agentTypeEnum: AgentTypeEnum.Meta,
                     source: ThreadSource.Incident,
                     incidentId: request.IncidentId ?? string.Empty,
-                    threadType: isTest ? ThreadType.Test : ThreadType.Prod
+                    threadType: isTest ? ThreadType.Test : ThreadType.Prod,
+                    overrideAgentMode: incidentFilterDocument.AgentMode
                 );
 
                 _logger.LogInternalInformation("CreateIncidentMetaAgentThread: Created thread with ThreadId: {ThreadId} for IncidentId: {IncidentId}", thread.Id, request.IncidentId);

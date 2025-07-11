@@ -82,9 +82,10 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         IncidentSource? incidentSource = null,
         bool isDailyReport = false,
         List<string>? AllowedTools = null,
-        ThreadType threadMode = ThreadType.Prod)
+        ThreadType threadMode = ThreadType.Prod,
+        string overrideAgentMode = "")
     {
-        return await CreateAgentInitiatedThread(title, message, source, agentTypeEnum, incidentId: incidentId, incidentSource: incidentSource, isDailyReport: isDailyReport, AllowedTools: AllowedTools, threadType: threadMode);
+        return await CreateAgentInitiatedThread(title, message, source, agentTypeEnum, incidentId: incidentId, incidentSource: incidentSource, isDailyReport: isDailyReport, AllowedTools: AllowedTools, threadType: threadMode, overrideAgentMode: overrideAgentMode);
     }
 
     public async Task<Core.Models.Api.v1.Thread> CreateAlertThreadWithTeams(
@@ -444,7 +445,8 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         IncidentSource? incidentSource = null,
         bool isDailyReport = false,
         List<string>? AllowedTools = null,
-        ThreadType threadType = ThreadType.Prod)
+        ThreadType threadType = ThreadType.Prod,
+        string overrideAgentMode = "")
     {
         var now = DateTime.UtcNow;
         var startMessage = new Message(
@@ -502,7 +504,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         await _repository.CreateThreadAsync(thread);
         await _repository.AddMessageAsync(thread.Id, thread.StartMessage);
         await _repository.CreateAgentContextAsync(agentContext);
-        (thread,agentContext) = await UpdateAgentModeIfNecessary(thread, agentContext);
+        (thread, agentContext) = await UpdateAgentModeIfNeed(thread, agentContext, overrideAgentMode);
 
         await _repository.CreateReasoningMessageAsync(startReasoningMessage);
 
@@ -570,27 +572,70 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
     /// <param name="agentContext">AgentContext</param>
     /// <returns></returns>
     /// <exception cref="InvalidOperationException"></exception>
-    private async Task<(Core.Models.Api.v1.Thread, Core.Models.Api.v1.AgentContext)> UpdateAgentModeIfNecessary(Core.Models.Api.v1.Thread thread, Core.Models.Api.v1.AgentContext agentContext)
+    private async Task<(Core.Models.Api.v1.Thread, Core.Models.Api.v1.AgentContext)> UpdateAgentModeIfNeed(Core.Models.Api.v1.Thread thread, Core.Models.Api.v1.AgentContext agentContext, string overrideAgentMode)
     {
-        var globalDefaultMode = _actionSettings.Mode?.ToString() ?? AgentModes.Review;
-        if (thread.Type == ThreadType.Test)
+        //If is Prod thread, mode can be override by filter
+        //If is Test thread, change mode to read-only
+        if (thread.Type == ThreadType.Prod && !string.IsNullOrEmpty(overrideAgentMode))
         {
-            bool isValidChange = AgentModes.IsValidModeChange(globalDefaultMode, AgentModes.ReadOnly);
-            if(!isValidChange)
-            {
-                var errorMessage = AgentModes.GetValidationErrorMessage(globalDefaultMode);
-                throw new InvalidOperationException($"Cannot change thread mode to ReadOnly from {globalDefaultMode}. Details: {errorMessage}");
-            }
-            var updatedThread = await _repository.UpdateThreadAgentModeAsync(thread.Id, AgentModes.ReadOnly);
-            var updatedAgentContext = await _repository.GetAgentContextAsync(agentContext.Id, thread.Id);
-
-            if(updatedThread == null)
-            {
-                throw new InvalidOperationException($"Failed to update thread {thread.Id} to ReadOnly mode.");
-            }
-
-            return (updatedThread, updatedAgentContext);
+            _logger.LogInternalInformation($"[InboundCommunicationService]UpdateAgentModeIfNeed.ThreadId:{thread.Id}, ThreadType:{thread.Type},RequestedAgentMode:{overrideAgentMode}");
+            //In PROD, it can override thread by incidentFilter with any types
+            return await ValidateAndUpdateAgentMode(thread, agentContext, overrideAgentMode, false);
         }
-        return (thread, agentContext);
+        else if (thread.Type == ThreadType.Test)
+        {
+            _logger.LogInternalInformation($"[InboundCommunicationService]UpdateAgentModeIfNeed.ThreadId:{thread.Id}, ThreadType:{thread.Type},RequestedAgentMode:{AgentModes.ReadOnly}");
+            return await ValidateAndUpdateAgentMode(thread, agentContext, AgentModes.ReadOnly, true);
+        }
+        else
+        {
+            return (thread, agentContext);
+        }
+    }
+
+    /// <summary>
+    /// This is to validate requested agent type based on thread type
+    /// </summary>
+    /// <param name="thread">Agent Thread</param>
+    /// <param name="agentContext">Agent Context</param>
+    /// <param name="requestedMode">Requested agent mode</param>
+    /// <param name="isUpdateUponGlobalDefaultMode">True will validate against globalDefaultMode(only lower priviliage than it will be allowed). False will just check if requestedAgentMode is available</param>
+    /// <returns>Updated Thread and Agent Context</returns>
+    /// <exception cref="InvalidOperationException">Throw exception if validation failed</exception>
+    private async Task<(Core.Models.Api.v1.Thread, Core.Models.Api.v1.AgentContext)> ValidateAndUpdateAgentMode(Core.Models.Api.v1.Thread thread, Core.Models.Api.v1.AgentContext agentContext, string requestedMode, bool isUpdateUponGlobalDefaultMode = true)
+    {
+        _logger.LogInternalInformation($"[InboundCommunicationService]Updating AgentMode with ThreadId:{thread.Id},RequestedMode: {requestedMode}");
+        bool isValidChange = true;
+        string errorMessage = "";
+        if (isUpdateUponGlobalDefaultMode)
+        {
+            string globalDefaultMode = _actionSettings.Mode?.ToString() ?? AgentModes.Review;
+            isValidChange = AgentModes.IsValidModeChange(globalDefaultMode, requestedMode);
+
+            string validationError = AgentModes.GetValidationErrorMessage(globalDefaultMode);
+            errorMessage = isValidChange ? string.Empty : $"[InboundCommunicationService]Cannot change thread mode to ReadOnly from {globalDefaultMode}. Details: {validationError}";
+        }
+        else
+        {
+            isValidChange = AgentModes.IsModeValid(requestedMode);
+            errorMessage = isValidChange ? string.Empty : $"[InboundCommunicationService]Request Agent mode: {requestedMode} does not exist";
+        }
+
+        if (!isValidChange && !string.IsNullOrEmpty(errorMessage))
+        {
+            _logger.LogInternalError(errorMessage);
+            throw new InvalidOperationException(errorMessage);
+        }
+        var updatedThread = await _repository.UpdateThreadAgentModeAsync(thread.Id, requestedMode);
+        var updatedAgentContext = await _repository.GetAgentContextAsync(agentContext.Id, thread.Id);
+
+        if (updatedThread == null)
+        {
+            errorMessage = $"[InboundCommunicationService]Failed to update thread {thread.Id} to {requestedMode} mode.";
+            _logger.LogInternalError(errorMessage);
+            throw new InvalidOperationException(errorMessage);
+        }
+        _logger.LogInternalInformation($"[InboundCommunicationService]Updated AgentMode for Thread and AgentContext");
+        return (updatedThread, updatedAgentContext);
     }
 }

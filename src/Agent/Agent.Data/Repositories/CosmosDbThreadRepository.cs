@@ -208,7 +208,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         {
             if (threadType == ThreadType.Prod)
             {
-                query = query.Where(t => t.ThreadType == null || t.ThreadType == threadType) as IOrderedQueryable<ThreadDocument>;
+                query = query.Where(t => t.ThreadType.IsDefined() == false || t.ThreadType == null || t.ThreadType == threadType) as IOrderedQueryable<ThreadDocument>;
             }
             else
             {

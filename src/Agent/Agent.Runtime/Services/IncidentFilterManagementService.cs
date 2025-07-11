@@ -8,6 +8,7 @@ using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
 using Agent.Core.Services;
+using Agent.Runtime.Reasoning;
 
 namespace Agent.Runtime.Services
 {
@@ -26,6 +27,7 @@ namespace Agent.Runtime.Services
         Task<IncidentFilterDocument?> GetIncidentFilter(string filterId);
         Task<IncidentFilterDocument> SaveIncidentFilter(IncidentFilterDocument IncidentFilterDocument);
         Task<bool> DeleteIncidentFilter(string filterId);
+        bool ValidateAgentMode(string agentMode);
     }
 
     public class IncidentFilterManagementService : IIncidentFilterManagementService
@@ -220,6 +222,19 @@ namespace Agent.Runtime.Services
                 Options = new List<KeyValuePair<string, string>>()
             });
 
+            var agentModeOptions = new List<KeyValuePair<string, string>>
+                {
+                    new KeyValuePair<string, string>(AgentModes.Review, AgentModes.Review),
+                    new KeyValuePair<string, string>(AgentModes.Autonomous, AgentModes.Autonomous),
+                };
+
+            result.Add(new IncidentFilterFieldOption
+            {
+                FieldName = "AgentMode",
+                DisplayName = "Agent Mode",
+                Options = agentModeOptions
+            });
+
             _logger.LogInternalInformation("ListIcmIncidentFilterFieldOptions: Returning {OptionCount} field options.", result.Count);
             return result;
         }
@@ -338,6 +353,16 @@ namespace Agent.Runtime.Services
                 _logger.LogInternalError(ex, "DeleteIncidentFilter: Exception occurred for FilterId: {FilterId}", filterId);
                 throw;
             }
+        }
+
+        public bool ValidateAgentMode(string agentMode)
+        {
+            bool isValid = AgentModes.IsModeValid(agentMode);
+            if (!isValid)
+            {
+                _logger.LogInternalInformation($"[IncidentFilterManagementService] Validating Agent Mode failed, RequestAgentMode: {agentMode}");
+            }
+            return isValid;
         }
     }
 }

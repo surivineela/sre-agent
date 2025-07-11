@@ -5,7 +5,6 @@
 using Agent.Core.Configuration;
 using Agent.Data;
 using Agent.Data.DataModels;
-using Agent.Logging;
 using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents.IcmScanner;
 using Microsoft.AspNetCore.Mvc;
@@ -234,6 +233,7 @@ public class IncidentPlaygroundController : ControllerBase
             _logger.LogInternalWarning("CreateIncidentFilter: Filter already exists for FilterId: {FilterId}", payload.Id);
             return Conflict("Incident filter with the same ID already exists. Use POST to update.");
         }
+
         var filterDoc = new IncidentFilterDocument(
             payload.Id,
             $"IncidentFilter{_incidentManagementSettings.Type.ToString()}",
@@ -246,6 +246,20 @@ public class IncidentPlaygroundController : ControllerBase
             payload.TitleContains,
             true
         );
+
+        if (!string.IsNullOrWhiteSpace(payload.AgentMode))
+        {
+            bool isValid = _incidentFilterManagementService.ValidateAgentMode(payload.AgentMode);
+            if (isValid)
+            {
+                filterDoc.AgentMode = payload.AgentMode;
+            }
+            else
+            {
+                return BadRequest($"Cannot create filter with {payload.AgentMode}");
+            }
+        }
+
         _logger.LogInternalInformation("CreateIncidentFilter: Saving new filter for FilterId: {FilterId}", payload.Id);
         var saved = await _incidentFilterManagementService.SaveIncidentFilter(filterDoc);
         _logger.LogInternalInformation("CreateIncidentFilter: Filter created successfully for FilterId: {FilterId}", payload.Id);
@@ -269,6 +283,19 @@ public class IncidentPlaygroundController : ControllerBase
             return NotFound("Incident filter not found. Use PUT to create a new filter.");
         }
 
+        if (!string.IsNullOrWhiteSpace(payload.AgentMode))
+        {
+            bool validateRes = _incidentFilterManagementService.ValidateAgentMode(payload.AgentMode);
+            if (validateRes)
+            {
+                existingFilter.AgentMode = payload.AgentMode;
+            }
+            else
+            {
+                return BadRequest($"Cannot update handler with {payload.AgentMode}");
+            }
+        }
+
         existingFilter.ImpactedService = payload.ImpactedService;
         existingFilter.Name = payload.Name;
         existingFilter.Priority = payload.Priority;
@@ -276,6 +303,10 @@ public class IncidentPlaygroundController : ControllerBase
         existingFilter.AlertId = payload.AlertId;
         existingFilter.TitleContains = payload.TitleContains;
         existingFilter.UpdatedAt = DateTime.UtcNow;
+        if (!string.IsNullOrEmpty(payload.AgentMode))
+        {
+            existingFilter.AgentMode = payload.AgentMode;
+        }
 
         _logger.LogInternalInformation("SaveIncidentFilter: Saving filter for FilterId: {FilterId}", payload.Id);
         var saved = await _incidentFilterManagementService.SaveIncidentFilter(existingFilter);
@@ -309,7 +340,7 @@ public class IncidentPlaygroundController : ControllerBase
         return Ok(saved);
     }
 
-    // Enable an existing incident filter (POST)
+    // Disable an existing incident filter (POST)
     [HttpPost("filters/{filterId}/disable")]
     public async Task<IActionResult> DisableIncidentFilter(string filterId)
     {
@@ -436,7 +467,8 @@ public class IncidentPlaygroundController : ControllerBase
         {
             await _container.UpsertItemAsync(doc);
             return Ok("Reset to last 30 days");
-        } catch(Exception ex)
+        }
+        catch (Exception ex)
         {
             return StatusCode(500, "Failed to reset LastScanTimeIcm");
         }
@@ -474,7 +506,8 @@ public class IncidentPlaygroundController : ControllerBase
         else if (_incidentManagementSettings.Type == IncidentManagementType.Icm)
         {
             _logger.LogInternalInformation("GetIncident: Fetching ICM incident");
-            try {
+            try
+            {
                 var incident = await _icmIncidentManagementService.GetIncidentDetails(incidentId);
                 if (incident == null)
                 {

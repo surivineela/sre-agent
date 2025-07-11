@@ -211,8 +211,8 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
     public async Task<ChatResponse> GetModelResponse(AgentContext agentContext, Guid threadGuid, List<ChatMessage> chatHistory)
     {
         _logger.LogInternalInformation(
-            "[IncidentHandlerAgent] GetModelResponse: Invoked for AgentContextId: {AgentContextId}, ThreadId: {ThreadId}",
-            agentContext.Id, threadGuid);
+            "[IncidentHandlerAgent] GetModelResponse: Invoked for AgentContextId: {AgentContextId}, ThreadId: {ThreadId}, AgentMode: {AgentMode}",
+            agentContext.Id, threadGuid, agentContext.AgentMode);
 
         var mode = GetModeForSystemPrompt(agentContext);
         string systemPrompt = _agentsFactory.GetIncidentHandlerAgentSystemPrompt(mode);
@@ -235,7 +235,7 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
            "[IncidentHandlerAgent] GetModelResponse: Updated system prompt in chat history for ThreadId: {ThreadId}",
            threadGuid);
         }
-       
+
         try
         {
             _logger.LogInternalInformation(
@@ -275,13 +275,13 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
     }
 
     /// <summary>
-    /// In future, mode can be overridden by the request.
+    /// Get agentMode from agentContext, if not exist fallback to defaultGlobalAgentMode
     /// </summary>
     /// <param name="context">AgentContext</param>
     /// <returns></returns>
     private string GetModeForSystemPrompt(AgentContext context)
     {
-        if (!string.IsNullOrEmpty(context.AgentMode))
+        if (!string.IsNullOrWhiteSpace(context.AgentMode))
         {
             return context.AgentMode;
         }
