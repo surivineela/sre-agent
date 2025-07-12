@@ -126,7 +126,7 @@ namespace Agent.Plugins.Implementation
 
             var queryString = new StringBuilder($@"
                 ApiManagementGatewayLogs
-                | where _ResourceId == '{apimInstanceResourceId}'
+                | where _ResourceId == '{apimInstanceResourceId.ToLower()}'
                 | where TimeGenerated between(datetime('{startIso}') .. datetime('{endIso}'))
                 | where IsRequestSuccess == 0");
 
@@ -239,14 +239,14 @@ namespace Agent.Plugins.Implementation
 
                 string queryString = $@"
                     ApiManagementGatewayLogs
-                        | where _ResourceId == '{apiManagementResourceId}'
+                        | where _ResourceId == '{apiManagementResourceId.ToLower()}'
                         | where TimeGenerated between(datetime('{startIso}') ..datetime('{endIso}'))
                         | summarize
                             TotalCount = count(),
                             FailedCount = countif(IsRequestSuccess == 0),
                             ResponseCode = arg_max(TimeGenerated, ResponseCode),
                             LastErrorReason = arg_max(TimeGenerated, LastErrorReason)
-                            by ApiId, OperationId
+                            by BackendId, ApiId, OperationId
                         | extend
                             FailureRatePercent = iif(TotalCount == 0, 0.0, todouble(FailedCount) / todouble(TotalCount) * 100)
                         | order by FailureRatePercent desc
