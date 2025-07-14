@@ -117,8 +117,6 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
                 // ToDo: Sanitize the endpoint
                 .withUrl(`${endpoint}/agentHub`, {
                     accessTokenFactory: () => AzPortalProxy.envInfo.sreAgentToken || '',
-                    skipNegotiation: true,
-                    transport: signalR.HttpTransportType.WebSockets,
                     logMessageContent: isLocalHost,
                 })
                 .configureLogging({
