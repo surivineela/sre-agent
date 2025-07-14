@@ -1,0 +1,10 @@
+script:
+  prompt: |
+    In the multi-container-test namespace in aks cluster {{.aksClusterName}}, run a pod called communication-pod with two containers: a web server called "web-server" that serves traffic and writes access logs to /var/log/nginx/access.log, and a logger called "logger" that processes those logs from a shared volume called "logs-volume". The shared volume should be mounted at /var/log/nginx in both containers. The logger should only start once the web server is ready. The pod should be considered ready when the web server is serving traffic.
+setup: "setup.sh"
+setupWindows: "setup.ps1"
+verifier: "verify.sh"
+verifierWindows: "verify.ps1"
+cleanup: "cleanup.sh"
+cleanupWindows: "cleanup.ps1"
+disabled: true

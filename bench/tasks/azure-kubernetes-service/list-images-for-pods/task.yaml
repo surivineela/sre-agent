@@ -1,0 +1,11 @@
+script:
+  prompt: "What images are my pods running in aks cluster {{.aksClusterName}} ?"
+setup: "setup.sh"
+setupWindows: "setup.ps1"
+cleanup: "cleanup.sh"
+cleanupWindows: "cleanup.ps1"
+disabled: true
+llmVerification:
+  enabled: true
+  skipScriptVerify: true
+  prompt: "The agent should successfully list images for all pods and include docker.io/bitnami/mysql:8.4.4-debian-12-r4."

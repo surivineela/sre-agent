@@ -1,0 +1,9 @@
+script:
+  prompt: "Scale up the replicas of deployment 'web-app' in namespace 'scale-test' in aks cluster {{.aksClusterName}} by 100%"
+setup: "setup.sh"
+setupWindows: "setup.ps1"
+verifier: "verify.sh"
+verifierWindows: "verify.ps1"
+cleanup: "cleanup.sh"
+cleanupWindows: "cleanup.ps1"
+disabled: true

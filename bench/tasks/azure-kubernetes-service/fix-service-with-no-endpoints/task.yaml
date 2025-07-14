@@ -1,0 +1,9 @@
+script:
+  prompt: "Our frontend application in the webshop-frontend namespace in aks cluster {{.aksClusterName}} is reporting connection errors. The logs show: 'Error: connection to web-app-service.webshop-frontend.svc.cluster.local failed: connection refused'. Can you help diagnose and fix this issue?"
+setup: "setup.sh"
+setupWindows: "setup.ps1"
+verifier: "verify.sh"
+verifierWindows: "verify.ps1"
+cleanup: "cleanup.sh"
+cleanupWindows: "cleanup.ps1"
+disabled: true

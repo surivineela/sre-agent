@@ -1,0 +1,9 @@
+script:
+  prompt: "Please fix the health check issue with the deployment named 'webapp' in namespace 'health-check' in aks cluster {{.aksClusterName}}."
+setup: "setup.sh"
+setupWindows: "setup.ps1"
+verifier: "verify.sh"
+verifierWindows: "verify.ps1"
+cleanup: "cleanup.sh"
+cleanupWindows: "cleanup.ps1"
+disabled: true

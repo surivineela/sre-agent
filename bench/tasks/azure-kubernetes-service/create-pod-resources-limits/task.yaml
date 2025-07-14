@@ -1,0 +1,9 @@
+script:
+  prompt: "Create namespace 'limits-test' in aks cluster {{.aksClusterName}} with a pod 'resource-limits-pod' using httpd:alpine image. Container 'my-container' should have CPU request 60m, limit 600m, and memory request/limit of 62Mi."
+setup: setup.sh
+setupWindows: setup.ps1
+verifier: verify.sh
+verifierWindows: verify.ps1
+cleanup: cleanup.sh 
+cleanupWindows: cleanup.ps1
+disabled: true

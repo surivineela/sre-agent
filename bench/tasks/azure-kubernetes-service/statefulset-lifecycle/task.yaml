@@ -1,0 +1,9 @@
+script:
+  prompt: "Deploy a 5-replica StatefulSet db in namespace statefulset-test (already available) in aks cluster {{.aksClusterName}} with each pod mounting a 1Gi PVC at /data containing a test file. Scale back to 2, verifying pods db-0 and db-1 retain /data/test."
+setup: "setup.sh"
+setupWindows: "setup.ps1"
+verifier: "verify.sh"
+verifierWindows: "verify.ps1"
+cleanup: "cleanup.sh"
+cleanupWindows: "cleanup.ps1"
+disabled: true

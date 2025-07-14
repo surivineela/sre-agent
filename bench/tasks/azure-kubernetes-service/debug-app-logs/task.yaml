@@ -1,0 +1,11 @@
+script:
+  prompt: "How's the health of my app running in the calc-app namespace in aks cluster {{.aksClusterName}} ?"
+setup: "setup.sh"
+setupWindows: "setup.ps1"
+verifier: "verify.sh"
+verifierWindows: "verify.ps1"
+cleanup: "cleanup.sh"
+cleanupWindows: "cleanup.ps1"
+expect:
+- contains: "division by zero"
+disabled: true

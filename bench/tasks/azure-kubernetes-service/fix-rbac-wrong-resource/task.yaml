@@ -1,0 +1,9 @@
+script:
+  prompt: "Why can't I list pods with my pod-reader service account in aks cluster {{.aksClusterName}}? Please fix it."
+setup: "setup.sh"
+setupWindows: "setup.ps1"
+verifier: "verify.sh"
+verifierWindows: "verify.ps1"
+cleanup: "cleanup.sh"
+cleanupWindows: "cleanup.ps1"
+disabled: true

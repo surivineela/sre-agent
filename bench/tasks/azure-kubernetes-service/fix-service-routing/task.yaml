@@ -1,0 +1,9 @@
+script:
+  prompt: "Please diagnose and fix why the nginx service in namespace 'web' in aks cluster {{.aksClusterName}} isn't accessible"
+setup: "setup.sh"
+setupWindows: "setup.ps1"
+verifier: "verify.sh"
+verifierWindows: "verify.ps1"
+cleanup: "cleanup.sh"
+cleanupWindows: "cleanup.ps1"
+disabled: true

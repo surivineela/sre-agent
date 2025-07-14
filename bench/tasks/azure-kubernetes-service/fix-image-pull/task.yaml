@@ -1,0 +1,9 @@
+script:
+  prompt: "Please fix the error in the deployment named 'app' in namespace 'debug' in aks cluster {{.aksClusterName}}."
+setup: "setup.sh"
+setupWindows: "setup.ps1"
+verifier: "verify.sh"
+verifierWindows: "verify.ps1"
+cleanup: "cleanup.sh"
+cleanupWindows: "cleanup.ps1"
+disabled: true

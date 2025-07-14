@@ -1,0 +1,9 @@
+script:
+  prompt: "There is a pod with name \"homepage-pod\" in aks cluster {{.aksClusterName}} which is stuck in pending state. can you fix the issue so that pod status is in running state?"
+setup: "setup.sh"
+setupWindows: "setup.ps1"
+verifier: "verify.sh"
+verifierWindows: "verify.ps1"
+cleanup: "cleanup.sh"
+cleanupWindows: "cleanup.ps1"
+disabled: true
