@@ -23,6 +23,12 @@
       "value": "Type"
     }
   ],
+  "+bJIWo": [
+    {
+      "type": 0,
+      "value": "Agent permissions level"
+    }
+  ],
   "+k5t/y": [
     {
       "type": 0,
@@ -1367,12 +1373,6 @@
       "value": "Deleting incident handler"
     }
   ],
-  "MFofa3": [
-    {
-      "type": 0,
-      "value": "Run mode"
-    }
-  ],
   "MlX0aZ": [
     {
       "type": 0,
@@ -1849,6 +1849,12 @@
     {
       "type": 0,
       "value": "Get more info"
+    }
+  ],
+  "TDoBlx": [
+    {
+      "type": 0,
+      "value": "Privileged"
     }
   ],
   "TIDNOO": [
@@ -2427,12 +2433,6 @@
     {
       "type": 0,
       "value": "Read-only mode"
-    }
-  ],
-  "efI6Ev": [
-    {
-      "type": 0,
-      "value": "How valuable do you find the Azure SRE Agent features?"
     }
   ],
   "ezP+aQ": [
@@ -3075,12 +3075,6 @@
     {
       "type": 0,
       "value": "Disconnect"
-    }
-  ],
-  "qjx8Lm": [
-    {
-      "type": 0,
-      "value": "How easy or difficult is it to use the Azure SRE Agent?"
     }
   ],
   "qlcuNQ": [

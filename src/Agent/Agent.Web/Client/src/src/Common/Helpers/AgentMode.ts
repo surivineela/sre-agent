@@ -1,6 +1,6 @@
 import { IntlShape } from 'react-intl';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
-import { AgentMode } from '../Contracts/Azure/SreAgent';
+import { AgentAccessLevel, AgentMode } from '../Contracts/Azure/SreAgent';
 
 export const getAgentModeDisplayName = (mode: string, intl: IntlShape): string => {
     const lowercaseMode = mode?.toLowerCase() ?? '';
@@ -27,5 +27,18 @@ export const getAgentModeDescription = (mode: string, intl: IntlShape): string =
             return intl.formatMessage(SreAgentResources.readonlyDescription);
         default:
             return intl.formatMessage(SreAgentResources.agentModeUnknownDescription);
+    }
+};
+
+/** AKA "Permissions level" */
+export const getAgentAccessLevelDisplayName = (accessLevel: AgentAccessLevel | undefined, intl: IntlShape): string => {
+    const lowercaseLevel = accessLevel?.toLowerCase() ?? '';
+    switch (lowercaseLevel) {
+        case AgentAccessLevel.high:
+            return intl.formatMessage(SreAgentResources.privileged);
+        case AgentAccessLevel.low:
+            return intl.formatMessage(SreAgentResources.reader);
+        default:
+            return '-';
     }
 };

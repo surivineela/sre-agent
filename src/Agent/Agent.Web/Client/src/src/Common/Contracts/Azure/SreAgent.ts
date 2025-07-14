@@ -28,8 +28,8 @@ export enum AgentMode {
 }
 
 export enum AgentAccessLevel {
-    low = 'Low',
-    high = 'High',
+    low = 'low',
+    high = 'high',
 }
 
 export interface DashboardConfiguration {

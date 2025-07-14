@@ -3,7 +3,7 @@ import { defineMessages } from 'react-intl';
 export const SreAgentResources = defineMessages({
     all: { defaultMessage: 'All', id: 'zQvVDJ' },
     azureSreAgent: { defaultMessage: 'Azure SRE Agent', id: 'Erci0g' },
-    runMode: { defaultMessage: 'Run mode', id: 'MFofa3' },
+    agentPermissionsLevel: { defaultMessage: 'Agent permissions level', id: '+bJIWo' },
     deleteAgentTitle: { defaultMessage: 'Delete SRE Agent', id: 'ThSX0k' },
     deleteAgentDescription: {
         defaultMessage: 'Are you sure you want to delete this SRE Agent? This action cannot be undone.',
@@ -202,8 +202,8 @@ export const SreAgentResources = defineMessages({
         defaultMessage: 'Thread info',
         id: 'srG8e2',
     },
-    sreAgentCESFeedbackQuestion: { defaultMessage: 'How easy or difficult is it to use the Azure SRE Agent?', id: 'qjx8Lm' },
-    sreAgentCVAFeedbackQuestion: { defaultMessage: 'How valuable do you find the Azure SRE Agent features?', id: 'efI6Ev' },
+    reader: { defaultMessage: 'Reader', id: '3nhWFW' },
+    privileged: { defaultMessage: 'Privileged', id: 'TDoBlx' },
 });
 
 export const SreAgentTabResources = defineMessages({
