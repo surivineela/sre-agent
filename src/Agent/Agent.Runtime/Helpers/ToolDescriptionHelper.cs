@@ -238,7 +238,7 @@ public static class ToolDescriptionHelper
             "GetRevisionTrafficWithReplicaCount" => "Getting revision traffic and replica data...",
             "ContainerAppRevisionStatus" => "Getting revision status information...",
             "GetReplicaCount" => "Getting revision replica count...",
-            "GetActiveRevisionSessions" => "Getting active revision sessions...",
+            "GetActiveRevisions" => "Getting active revisions...",
             "GetHpaHeartbeatMetrics" => "Getting horizontal pod autoscaler metrics...",
             "GetRevisionSpecChanges" => "Getting revision specification changes...",
             "GetArmOperations" => "Getting ARM operations for Container App...",

@@ -324,30 +324,32 @@ Returns tab-separated table data in CSV format. Column headers:
         }
 
         [Description(@"""
-Retrieves active sessions (start/stop/running changes) for a revision.
-Use this tool to get session state changes and health for a revision.
+Purpose:
+Retrieves active revisions for the given container app.
+
+Scenario:
+Use this tool to get all active revisions for a container app within a specified time range.
+
 Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- StartTime: Session start timestamp.
-- EndTime: Session end timestamp.
-- RevisionName: The revision name.
+- StartTime: start timestamp 
+- EndTime: end timestamp.
+- RevisionName: The active revision name.
 - State: The running state (e.g., Running, Stopped).
 - HealthStatus: Health status derived from state.
 """
 )]
-        public Task<string> GetActiveRevisionSessions(
+        public Task<string> GetActiveRevisions(
             [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
-            [Description("Name of the container app revision.")] string revisionName,
             [Description("Name of the container app.")] string containerAppName,
             [Description("Name of the resource group.")] string resourceGroupName,
             [Description("Azure subscription ID.")] string subscriptionId)
         {
-            return _kustoPlugin.ExecuteLocalFunctionAsync("GetActiveRevisionSessions", region,
+            return _kustoPlugin.ExecuteLocalFunctionAsync("GetActiveRevisions", region,
                 new Dictionary<string, string> {
                         { "fromDate", fromDate.ToString() },
                         { "toDate", toDate.ToString() },
-                        { "revisionName", revisionName },
                         { "containerAppName", containerAppName },
                         { "resourceGroupName", resourceGroupName },
                         { "subscriptionId", subscriptionId }

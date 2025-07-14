@@ -147,7 +147,7 @@ tools:
   - GetHealthProbeFailures
   - GetHealthProbeSettings
   - GetNodeAvailabilityFailures
-  - GetActiveRevisionSessions
+  - GetActiveRevisions
   - GetHpaHeartbeatMetrics
   - GetHttpScalerEventsForContainerApp
   - GetPodHeartbeatStatus
