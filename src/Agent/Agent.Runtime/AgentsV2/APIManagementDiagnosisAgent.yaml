@@ -75,6 +75,7 @@ handoffs:
   - api_management_remediation_agent
   - function_app_agent
   - container_apps_agent
+  - metrics_and_chart_visualization_agent
 
 tools:
   - GetAPIMErrorLogs
