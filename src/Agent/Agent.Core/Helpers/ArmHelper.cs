@@ -35,10 +35,12 @@ using Azure.ResourceManager.Sql;
 using Azure.ResourceManager.Sql.Models;
 using Azure.ResourceManager.Storage;
 using Azure.ResourceManager.Storage.Models;
+using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
+using OpenTelemetry.Resources;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Agent.Core.Helpers;
@@ -369,6 +371,11 @@ public class ArmHelper
 
         if (!response.IsSuccessStatusCode)
         {
+            if (CheckForUnauthorizedAccess(response))
+            {
+                throw new ToolExecutionUnauthorizedException($"Unauthorized access to resource {resourceId}");
+            }
+
             throw new Exception($"Failed to fetch metrics: {content}");
         }
 
@@ -1496,6 +1503,17 @@ public class ArmHelper
 
         HttpResponseMessage responseMessage = await httpClient.SendAsync(request);
 
+        if (!responseMessage.IsSuccessStatusCode)
+        {
+            _logger.LogInternalWarning($"Failed to fetch app settings for {resourceId}: {responseMessage.ReasonPhrase}");
+            if (CheckForUnauthorizedAccess(responseMessage))
+            {
+                throw new ToolExecutionUnauthorizedException($"Unauthorized access to resource {resourceId}");
+            }
+
+            throw new Exception($"Failed to retrieve app settings for resource {resourceId}");
+        }
+
         var appSettings = await responseMessage.Content.ReadAsStringAsync();
 
         return appSettings;
@@ -1532,6 +1550,11 @@ public class ArmHelper
             }
             else
             {
+                if (CheckForUnauthorizedAccess(responseMessage))
+                {
+                    throw new ToolExecutionUnauthorizedException($"Unauthorized access to subscription {subscriptionId}");
+                }
+
                 // Handle unsuccessful response
                 var errorContent = await responseMessage.Content.ReadAsStringAsync();
                 throw new InvalidOperationException($"Failed to get App Insights resource ID. Response: {errorContent}");
@@ -1555,6 +1578,11 @@ public class ArmHelper
 
             if (!responseMessage.IsSuccessStatusCode)
             {
+                if (CheckForUnauthorizedAccess(responseMessage))
+                {
+                    throw new ToolExecutionUnauthorizedException($"Unauthorized access to resource {resourceId}");
+                }
+
                 // Handle unsuccessful response
                 var errorContent = await responseMessage.Content.ReadAsStringAsync();
                 throw new InvalidOperationException($"Failed to retrieve diagnostic settings. Response: {errorContent}");
@@ -1632,8 +1660,14 @@ public class ArmHelper
             }
             else
             {
+                _logger.LogInternalWarning($"Failed to query App Insights");
+                if (CheckForUnauthorizedAccess(response))
+                {
+                    throw new ToolExecutionUnauthorizedException($"Unauthorized access to App Insights resource {url}");
+                }
+                
                 var message = await response.Content.ReadAsStringAsync();
-                return $"FAILED! Querying {url} Failed: Status {response.StatusCode}, Message: {message}";
+                throw new InvalidOperationException($"FAILED! Querying {url} Failed: Status {response.StatusCode}, Message: {message}");
             }
         }
         catch (Exception)
@@ -1731,6 +1765,11 @@ public class ArmHelper
 
             if (!response.IsSuccessStatusCode)
             {
+                if (CheckForUnauthorizedAccess(response))
+                {
+                    throw new ToolExecutionUnauthorizedException($"Unauthorized access to subscription {subId}");
+                }
+
                 throw new Exception($"Failed to retrieve deployment activity: {response.StatusCode}, {await response.Content.ReadAsStringAsync()}");
             }
 
@@ -2759,6 +2798,12 @@ public class ArmHelper
         }
 
         return null; // No validation errors
+    }
+
+    private bool CheckForUnauthorizedAccess(HttpResponseMessage response)
+    {
+        return (response.StatusCode == System.Net.HttpStatusCode.Unauthorized ||
+                response.StatusCode == System.Net.HttpStatusCode.Forbidden);
     }
 
     #endregion
