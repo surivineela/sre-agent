@@ -172,6 +172,12 @@ resolved
         return await _gitHubIssuePlugin.FindConnectedRepo(resourceId);
     }
 
+    [Description("Disconnects or unlinks an Azure Resource from a Github repository. For example: 'Disconnect the albumapicsharp-2 app from the connected Github repository' or 'Unlink the memory-leak-app app from the from the connected github repository'.")]
+    public async Task<string> DisconnectRepositoryFromResourceForGitHub([Description("The resource ID of the Azure Resource for example: /subscriptions/be8d491e-109c-4ee1-aaee-dc7615af0a42/resourceGroups/mrsharm-operations-agent-3p-rg/providers/Microsoft.App/containerApps/memory-leak-app/containerapp")] string resourceId)
+    {
+        return await _gitHubIssuePlugin.DisconnectRepository(resourceId);
+    }
+
     [Description("Gets the type of Infrastructure as Code (IaC) - this is the most likely type of IaC used.")] 
     public async Task<string> GetIaCForGithub(
         [Description("GitHub repository URL, e.g. https://github.com/owner/repo-name.git")] string repoUrl,

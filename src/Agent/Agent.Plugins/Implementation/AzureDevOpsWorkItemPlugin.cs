@@ -25,6 +25,7 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
     private readonly IAuthenticationService _authenticationService;
     private readonly IThreadRepository _threadRepository;
     private readonly IGraphDatabaseClient _graphDatabaseClient;
+    private readonly static HttpClient _httpClient = new HttpClient();
 
     public AzureDevOpsWorkItemPlugin(ILogger<AzureDevOpsWorkItemPlugin> logger,
                                      TsgCrawlerSettings tsgCrawlerSettings,
@@ -39,9 +40,12 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
         _graphDatabaseClient = graphDatabaseClient;
     }
 
+    internal static string ProcessResourceId(string resourceId)
+        => resourceId.Replace("/", "_").ToLowerInvariant();
+
     private async Task<(bool, AzureDevOpsAccessToken?)> IsAzureDevOpsWorkItemPluginConfiguredAndValid(string resourceId)
     {
-        resourceId = resourceId.Replace("/", "_");
+        resourceId = ProcessResourceId(resourceId);
         // Check if the Azure DevOps Personal Access Token is configured
         AzureDevOpsAccessToken? azdoAccessToken = await _threadRepository.GetAzureDevOpsAccessTokenAsync(resourceId);
         return (azdoAccessToken != null &&
@@ -51,7 +55,7 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
 
     public async Task<string> FindConnectedRepository(string resourceId)
     {
-        resourceId = resourceId.Replace("/", "_").ToLowerInvariant();
+        resourceId = ProcessResourceId(resourceId);
         string repoQuery = $@"g.V().has('id', '{resourceId}').has('isDeleted', false)
                                 .outE('SERVES_CODE').inV().has('isDeleted', false)
                                 .values('resourceId')";
@@ -64,6 +68,7 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
     {
         try
         {
+            resourceId = ProcessResourceId(resourceId);
             (bool isValid, AzureDevOpsAccessToken? token) = await IsAzureDevOpsWorkItemPluginConfiguredAndValid(resourceId);
             if (!isValid)
             {
@@ -123,7 +128,6 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
             throw;
         }
     }
-
 
     private async Task<string> GetIaCTypeFromFiles(string token, string repoUrl, string branch = "main", string fileMatches = "*bicep,*yaml,*yml,*json,*tf*")
     {
@@ -228,18 +232,17 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
             // Parse the repository URL
             var (orgUrl, project, repoName) = ParseRepositoryUrl(repoUrl);
 
-            // Create HttpClient with authentication
-            using var httpClient = new HttpClient();
-            var credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes($":{token}"));
-            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
-            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
             // API URL for items
             string apiVersion = "7.0";
             string apiUrl = $"{orgUrl}/{project}/_apis/git/repositories/{repoName}/items?recursionLevel=Full&versionDescriptor.version={branch}&versionDescriptor.versionType=branch&api-version={apiVersion}";
 
+            var credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes($":{token}"));
+            var itemsRequest = new HttpRequestMessage(HttpMethod.Get, apiUrl);
+            itemsRequest.Headers.Authorization = new AuthenticationHeaderValue("Basic", credentials);
+            itemsRequest.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
             // Get all items in the repository
-            var response = await httpClient.GetAsync(apiUrl);
+            var response = await _httpClient.SendAsync(itemsRequest);
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
@@ -299,11 +302,11 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
                 {
                     // Remove leading slash and convert to OS-specific path
                     var relativePath = file.Path.TrimStart('/').Replace('/', Path.DirectorySeparatorChar);
-                    var request = new HttpRequestMessage(HttpMethod.Get, file.Url);
-                    request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/octet-stream"));
+                    var fileDownloadRequest = new HttpRequestMessage(HttpMethod.Get, file.Url);
+                    fileDownloadRequest.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/octet-stream"));
 
                     _logger.LogInternalInformation($"Downloading file: {file.Url}");
-                    var fileResponse = await httpClient.SendAsync(request);
+                    var fileResponse = await _httpClient.SendAsync(fileDownloadRequest);
                     fileResponse.EnsureSuccessStatusCode();
                     string fileContent = await fileResponse.Content.ReadAsStringAsync();
                     fileContents[file.Path] = fileContent;
@@ -401,21 +404,30 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
 
     public async Task<string> GetIaCForAzureDevOps(string resourceId, string branch, string fileMatches)
     {
-        (bool isValid, AzureDevOpsAccessToken? token) = await IsAzureDevOpsWorkItemPluginConfiguredAndValid(resourceId);
-        if (!isValid)
+        try
         {
-            throw new InvalidOperationException("Azure DevOps Personal Access Token is not configured. Please authenticate via Azure DevOps authentication flow.");
+            (bool isValid, AzureDevOpsAccessToken? token) = await IsAzureDevOpsWorkItemPluginConfiguredAndValid(resourceId);
+            if (!isValid)
+            {
+                throw new InvalidOperationException("Azure DevOps Personal Access Token is not configured. Please authenticate via Azure DevOps authentication flow.");
+            }
+
+            string repoUrl = await FindConnectedRepository(resourceId);
+            return await GetIaCTypeFromFiles(token.AccessToken, repoUrl, branch, fileMatches);
         }
 
-        string repoUrl = await FindConnectedRepository(resourceId);
-        return await GetIaCTypeFromFiles(token.AccessToken, repoUrl, branch, fileMatches);
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, $"Error getting IaC for Azure DevOps: {ex.Message}");
+            throw;
+        }
     }
 
     public async Task<string> LinkRepository(string resourceId, string repoUrl, string @namespace = null, string resourceName = null, string subType = null)
     {
         try
         {
-            var appNodeId = resourceId.ToLower().Replace("/", "_");
+            var appNodeId = resourceId = ProcessResourceId(resourceId);
             string vertexFilter = $"hasId('{appNodeId}')";
             string query = $@"g.V().{vertexFilter}.has('isDeleted', false)";
 
@@ -471,7 +483,16 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
             throw new ArgumentException("Repository URL must be a valid Azure DevOps HTTPS Git URL.", nameof(repositoryUrl));
         }
 
+        string connectedRepository = await FindConnectedRepository(resourceId);
+        bool alreadyConnectedToSameRepository = connectedRepository.Equals(repositoryUrl, StringComparison.OrdinalIgnoreCase);
+        if (!string.IsNullOrEmpty(connectedRepository) && !alreadyConnectedToSameRepository)
+        {
+            string message = $"Resource Id: {resourceId} is already connected to: {connectedRepository}. Please disconnect the repository before connecting again.";
+            throw new ArgumentException(message);
+        }
+
         // Check if there is already an AzDo token available.
+        resourceId = ProcessResourceId(resourceId);
         var azdoAccessToken = await _threadRepository.GetAzureDevOpsAccessTokenAsync(resourceId);
         var azdoAccessTokenConfigured = azdoAccessToken != null &&
             !string.IsNullOrEmpty(azdoAccessToken.AccessToken) &&
@@ -480,22 +501,82 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
         // If not, create one.
         if (!azdoAccessTokenConfigured)
         {
-            resourceId = resourceId.Replace("/", "_").ToLowerInvariant();
             string linkedRepository = await LinkRepository(resourceId, repositoryUrl);
             AzureDevOpsAccessToken authToken = await GetToken();
-            var token = await _threadRepository.CreateOrUpdateAzureDevOpsAccessTokenAsync(new(authToken.AccessToken, ExpiresOn: authToken.ExpiresOn), resourceId);
+            azdoAccessToken = await _threadRepository.CreateOrUpdateAzureDevOpsAccessTokenAsync(new(authToken.AccessToken, ExpiresOn: authToken.ExpiresOn), resourceId);
         }
 
-        return $"Successfully linked {resourceId} to {repositoryUrl}";
+        if (!await CanCreateWorkItemsAsync(repositoryUrl, azdoAccessToken.AccessToken!))
+        {
+            throw new InvalidOperationException("The provided Azure DevOps token has been linked but does not have permission to create work items in the repository. Please check the permissions.");
+        }
+
+        DateTime? localTimeOfTokenExpiration = azdoAccessToken.ExpiresOn.GetValueOrDefault().ToLocalTime();
+        string action = alreadyConnectedToSameRepository ? "relinked i.e., refreshed token" : "linked";
+        string loggedMessage = $"Successfully {action}: {resourceId} -> {repositoryUrl} - the expiration time of the token is: {azdoAccessToken?.ExpiresOn.GetValueOrDefault()} UTC or {localTimeOfTokenExpiration} Local Time.";
+        _logger.LogInternalInformation(loggedMessage);
+        return loggedMessage;
+    }
+
+    public async Task<bool> CanCreateWorkItemsAsync(string repositoryUrl, string token)
+    {
+        // Regex to extract organization and project from AzDO URL
+        var match = Regex.Match(repositoryUrl,
+            @"^https:\/\/(?:(?<org1>dev\.azure\.com)\/(?<organization>[^\/]+)\/(?<project>[^\/]+)\/|(?<organization>[^\/]+)\.visualstudio\.com\/(?<project>[^\/]+)\/)",
+            RegexOptions.IgnoreCase);
+
+        if (!match.Success)
+            throw new ArgumentException("Invalid Azure DevOps repository URL format.", nameof(repositoryUrl));
+
+        string organization = match.Groups["organization"].Value;
+        string project = match.Groups["project"].Value;
+
+        var url = $"https://dev.azure.com/{organization}/{project}/_apis/wit/workitemtypes?api-version=7.1-preview.2";
+        var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var response = await _httpClient.SendAsync(request);
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<string> DisconnectRepository(string resourceId)
+    {
+        // First get the connected repository url.
+        string connectedRepositoryUrl = await FindConnectedRepository(resourceId);
+        if (string.IsNullOrEmpty(connectedRepositoryUrl))
+        {
+            return $"No connected repository found for resource ID: {resourceId} to disconnect.";
+        }
+
+        resourceId = ProcessResourceId(resourceId);
+
+        // First unlink the repository from the resource and then, delete the Azure DevOps access token.
+        await _graphDatabaseClient.SoftDeleteConnectedRepositoryByResourceId(resourceId);
+        string connectedRepository = await FindConnectedRepository(resourceId);
+        bool noConnectedRepository = string.IsNullOrEmpty(connectedRepository);
+
+        bool successfullyDeletedToken = await _threadRepository.DeleteAzureDevOpsAccessTokenAsync(resourceId);
+        if (noConnectedRepository && successfullyDeletedToken)
+        {
+            string loggedMessage = $"Successfully unlinked / disconnected {resourceId} to {connectedRepositoryUrl}";
+            _logger.LogInternalInformation(loggedMessage);
+            return loggedMessage;
+        }
+
+        else
+        {
+            string errorMessage = $"Failed to unlink / disconnect {resourceId} from {connectedRepositoryUrl}. The Azure DevOps access token may not exist or may have already been deleted.";
+            _logger.LogInternalError(errorMessage);
+            return errorMessage;
+        }
     }
 
     // Classes to deserialize the JSON response
-    class GitItemsResponse
+    internal class GitItemsResponse
     {
         public List<GitItem> Value { get; set; }
     }
 
-    public class GitItem
+    internal class GitItem
     {
         [JsonPropertyName("objectId")]
         public string ObjectId { get; set; }
@@ -516,7 +597,7 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
         public Links Links { get; set; }
     }
 
-    public class Links
+    internal class Links
     {
         [JsonPropertyName("self")]
         public Link Self { get; set; }
@@ -528,7 +609,7 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
         public Link Blob { get; set; }
     }
 
-    public class Link
+    internal class Link
     {
         [JsonPropertyName("href")]
         public string Href { get; set; }

@@ -69,8 +69,8 @@ system_prompt: |
   - **TLS upgrades** → `tls_minimum_version_upgrade_agent`
   - **CPU diagnostics** → `diagnostic_cpu_agent`
   - **Memory diagnostics** → `diagnostic_memory_agent`
-  - **Github Related Queries** -> `github_issue_agent`
-  - **Azure DevOps (AzDo) Related Queries and Connecting Repository and Resources** -> `azuredevops_work_item_agent`
+  - **Github Related Queries and Unlinking Repository** -> `github_issue_agent`
+  - **Azure DevOps (AzDo) Related Queries and Connecting/Linking AzDo Repository and Resources** -> `azuredevops_work_item_agent`
   - **API Management issues** → `api_management_agent`
 
   ### 3. Cross-Service

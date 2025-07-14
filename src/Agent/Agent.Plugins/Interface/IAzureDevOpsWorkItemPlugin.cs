@@ -8,5 +8,6 @@ public interface IAzureDevOpsWorkItemPlugin
     Task<string> GetIaCForAzureDevOps(string resourceId, string branch, string fileMatches);
     Task<string> FindConnectedRepository(string resourceId);
     Task<string> ConnectRepository(string resourceId, string repositoryUrl);
+    Task<string> DisconnectRepository(string resourceId);
     Task<AzureDevOpsAccessToken> GetToken();
 }

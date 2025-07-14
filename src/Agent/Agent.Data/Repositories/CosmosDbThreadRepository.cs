@@ -1983,7 +1983,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         try
         {
             // Delete the Azure DevOps access token
-            await _client.GetContainer<AzureDevOpsAccessTokenDocument>(_databaseName).DeleteItemAsync<AzureDevOpsAccessTokenDocument>($"{AzureDevOpsAccessTokenDocument.KeyName}_{resourceId}", new PartitionKey(AzureDevOpsAccessTokenDocument.KeyName));
+            await _client.GetContainer<AzureDevOpsAccessTokenDocument>(_databaseName).DeleteItemAsync<AzureDevOpsAccessTokenDocument>($"{AzureDevOpsAccessTokenDocument.KeyName}_{resourceId}_{AzureDevOpsAccessTokenDocument._sessionGuid}", new PartitionKey(AzureDevOpsAccessTokenDocument.KeyName));
             return true;
         }
 

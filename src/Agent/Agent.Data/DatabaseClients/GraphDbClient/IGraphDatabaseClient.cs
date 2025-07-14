@@ -63,5 +63,6 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         Task<string> GetNodeId(string resourceId);
 
         Task SoftDeleteResourceById(string resourceId);
+        Task<string> SoftDeleteConnectedRepositoryByResourceId(string resourceId);
     }
 }

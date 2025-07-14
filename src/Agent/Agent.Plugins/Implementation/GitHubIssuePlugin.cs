@@ -16,7 +16,6 @@ using Agent.Graph.Crawler.ARM;
 using Agent.Plugins.Helpers;
 using Agent.Plugins.Interface;
 using Azure.Core;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
@@ -893,6 +892,13 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
         {
             return "No IaC tools found";
         }
+    }
+
+    public async Task<string> DisconnectRepository(string resourceId)
+    {
+        var resourceNodeId = resourceId.ToLower().Replace("/", "_");
+        string result = await _graphDatabaseClient.SoftDeleteConnectedRepositoryByResourceId(resourceNodeId);
+        return result;
     }
 }
 

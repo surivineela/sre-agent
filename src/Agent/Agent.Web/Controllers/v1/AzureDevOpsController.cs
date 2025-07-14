@@ -5,7 +5,6 @@ using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Graph.Crawler.ARM;
 using Agent.Plugins.Interface;
-using Agent.Runtime.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Agent.Web.Controllers.v1;
@@ -111,6 +110,22 @@ public class AzureDevOpsController(
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "Error linking source code");
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    [HttpPost("unlink")]
+    public async Task<IActionResult> UnlinkSourceCode([FromBody] LinkSourceCodeRequest request)
+    {
+        try
+        {
+            string disconnectRepository = await _azureDevOpsWorkItemPlugin.DisconnectRepository(request.ResourceId);
+            return Ok("Source code unlinked successfully.");
+        }
+
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error unlinking source code");
             return StatusCode(500, "Internal server error");
         }
     }

@@ -154,6 +154,11 @@ namespace Agent.Graph.Crawler.Legacy
         {
             throw new NotImplementedException();
         }
+
+        public Task<string> SoftDeleteConnectedRepositoryByResourceId(string resourceId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
 

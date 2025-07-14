@@ -23,8 +23,8 @@ namespace Agent.Plugins.Interface
         Task<IEnumerable<string>> GetUserOrganizations(string username);
         Task<string> ExtractTextFromImageInGitHubIssue(string imageUrl, Kernel kernel);
         Task<string> FindConnectedRepo(string resourceId);
-        Task<string> GetIaCForGithub(string repoUrl, string branch, string fileMatches); 
-
+        Task<string> DisconnectRepository(string resourceId);
+        Task<string> GetIaCForGithub(string repoUrl, string branch, string fileMatches);
         string GenerateLoginLink();
     }
 }

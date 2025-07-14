@@ -4,8 +4,8 @@
 
 using System.Text.Json;
 using Agent.Core.Configuration;
-using Agent.Logging;
 using Gremlin.Net.Driver;
+using Gremlin.Net.Driver.Exceptions;
 using Gremlin.Net.Structure.IO.GraphSON;
 using Microsoft.Extensions.Logging;
 using Polly;
@@ -336,6 +336,45 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             catch (Exception ex)
             {
                 _logger.LogInternalError(ex, $"Error soft deleting node: {ex.Message}. Query: {query}");
+            }
+        }
+
+        public async Task<string> SoftDeleteConnectedRepositoryByResourceId(string resourceId)
+        {
+            try
+            {
+                // Current timestamp in .NET ticks
+                long updateTs = DateTime.UtcNow.Ticks;
+
+                // Gremlin query to soft-delete the connected repository
+                string query = $@"
+                g.V().has('id', '{resourceId}')
+                     .has('isDeleted', false)
+                     .outE('SERVES_CODE')
+                     .inV()
+                     .has('isDeleted', false)
+                     .property('isDeleted', true)
+                     .property('updateTs', {updateTs})";
+
+                var result = await SubmitWithRetry(query);
+                if (result == null || result?.Count == 0)
+                {
+                    string message = $"Soft delete connected repository for resource {resourceId} did not find any matching repository.";
+                    _logger.LogInternalWarning(message);
+                    return message;
+                }
+
+                else
+                {
+                    string message = $"Soft deleted connected repository for resource {resourceId} successfully.";
+                    return message;
+                }
+            }
+
+            catch (ResponseException ex)
+            {
+                _logger.LogInternalError(ex, $"Gremlin query failed while trying to delete the source repository for resource: {resourceId}");
+                throw;
             }
         }
     }

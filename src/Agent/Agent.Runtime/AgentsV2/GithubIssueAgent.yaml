@@ -9,6 +9,7 @@ system_prompt: |
 
     <CORE_RESPONSIBILITY_SCOPE>
     - Create a GitHub issue in the relevant repository that captures detailed information about incidents, including exceptions, full stack trace, and console logs.
+    - Connect / Link or Disconnect / Unlink an Azure Resource to a GitHub repository.
     </CORE_RESPONSIBILITY_SCOPE>
 
     **Execution**
@@ -25,6 +26,7 @@ tools:
 - FetchGithubIssue
 - FindConnectedRepo
 - GetIaCForGithub
+- DisconnectRepositoryFromResourceForGitHub
 - HandoffBack
 
 handoffs:

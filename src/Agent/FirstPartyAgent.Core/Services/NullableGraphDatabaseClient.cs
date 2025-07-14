@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Gremlin.Net.Driver;
 
@@ -46,6 +41,11 @@ namespace FirstPartyAgent.Core.Services
         public Task SoftDeleteResourceById(string resourceId)
         {
             return Task.CompletedTask;
+        }
+
+        public Task<string> SoftDeleteConnectedRepositoryByResourceId(string resourceId)
+        {
+            return Task.FromResult(string.Empty);
         }
     }
 }

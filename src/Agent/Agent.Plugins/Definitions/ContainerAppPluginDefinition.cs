@@ -208,7 +208,8 @@ namespace Agent.Plugins.Definitions
             return await _containerAppPlugin.ModifyContainerAppScaleRuleAsync(resourceId, ruleName, modificationType, scaleRuleType, parsedMetadata);
         }
 
-        [Description("Get the logs of a specific revision of a Container App instance.")]
+        [Description("Get the logs of a specific revision of a Container App instance, highlighting configuration, errors, and diagnostic issues." + 
+        "This method also surfaces port forwarding errors and other connectivity problems in the log output, making it easier to troubleshoot deployment and runtime issues.")]
         [AgentTool(ToolMode.Auto)]
         public async Task<string> GetRevisionLogsAsync(
             [Description("The resource ID of the Container App instance.")]
@@ -219,7 +220,8 @@ namespace Agent.Plugins.Definitions
             return await _containerAppPlugin.GetContainerAppLogsAsync(resourceId, revisionName);
         }
 
-        [Description("Get the logs of the latest revision of a Container App instance.")]
+        [Description("Get the logs the latest revision of a Container App instance, highlighting configuration, errors, and diagnostic issues." + 
+        "This method also surfaces port forwarding errors and other connectivity problems in the log output, making it easier to troubleshoot deployment and runtime issues.")]
         public async Task<string> GetContainerAppLogsAsync(
             [Description("The resource ID of the Container App instance.")]
             string resourceId)

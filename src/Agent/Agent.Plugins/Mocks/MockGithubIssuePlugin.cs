@@ -107,4 +107,9 @@ public class MockGithubIssuePlugin : IGithubIssuePlugin
     {
         throw new NotImplementedException();
     }
+
+    public Task<string> DisconnectRepository(string resourceId)
+    {
+        throw new NotImplementedException();
+    }
 }
