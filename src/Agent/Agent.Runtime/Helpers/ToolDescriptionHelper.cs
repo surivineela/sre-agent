@@ -366,6 +366,26 @@ public static class ToolDescriptionHelper
             "CheckAspireAuthorizationIssues" => "Checking for authorization failures when accessing the Aspire dashboard...",
             "CheckAspireStateVerificationIssues" => "Analyzing state verification issues in the external authentication for Aspire dashboard access...",
 
+            // APIManagement tools
+            "GetAPIMErrorLogs" => "Retrieving API Management error logs...",
+            "GetAPIMFailureRateByApiOperation" => "Analyzing failure rates by API operation...",
+            "GetAPIMRecentFailedRequests" => "Fetching recent failed requests in API Management...",
+            "GetAPIMApis" => "Listing APIs in API Management...",
+            "GetAPIDetailsByName" => "Fetching details of the API by name...",
+            "GetAPIOperationsByApi" => "Listing operations for the specified API...",
+            "GetAPIOperationDetailedInfo" => "Fetching detailed information for the API operation...",
+            "GetAPIMActivityLogs" => "Retrieving activity logs for API Management...",
+            "GetAPIManagementInfo" => "Getting API Management service details...",
+            "GetVNetConfigurationForApiManagement" => "Fetching virtual network configuration for API Management...",
+            "GetNSGRulesForApiManagement" => "Retrieving network security group rules for API Management...",
+            "GetNSGActivityLogs" => "Fetching network security group activity logs...",
+            "CheckForVirtualNetworkIssues" => "Checking for virtual network configuration issues...",
+            "GetPoliciesByApi" => "Retrieving policies applied to the API...",
+            "GetPoliciesByOperation" => "Fetching policies applied to the API operation...",
+            "GetGlobalApimPolicy" => "Retrieving global policy for API Management...",
+            "APIMModifyNSGRule" => "Modifying network security group rule for API Management...",
+            "APIMRemoveNSGRule" => "Removing network security group rule for API Management...",
+
             // Default case
             _ => DefaultSafeDescription
         };
