@@ -257,6 +257,7 @@ const ChatMessageV2 = ({
                             threadId={threadId}
                             nextMessage={nextMessage}
                             isTyping={isTyping}
+                            isStreamingMessage={isStreamingMessage}
                         />
                     </CopilotMessage>
                 </div>

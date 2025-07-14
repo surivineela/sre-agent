@@ -14,11 +14,13 @@ const MessageFooter = ({
     message,
     nextMessage,
     isTyping,
+    isStreamingMessage,
 }: {
     threadId: string;
     message: ChatMessage;
     nextMessage?: ChatMessage;
     isTyping?: boolean;
+    isStreamingMessage?: boolean;
 }) => {
     const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
     const [selectedFeedback, setSelectedFeedback] = useState<'positive' | 'negative'>();
@@ -30,7 +32,10 @@ const MessageFooter = ({
     // Do not use useEffect to calculate groupedMessages, canShowFooter, hasFooterContentToShow, and messagesToCopy because it will
     // compute after the render which might cause incorrect predefined scroll position handled by useLayoutEffect in ChatBoxV2 when the footer is shown after the render.
     // ToDo: upadte useLayoutEffect to handle special situation when footer is shown after the render.
-    const groupedMessages = useMemo(() => getGroupedChatMessages(message), [getGroupedChatMessages, message]);
+    const groupedMessages = useMemo(
+        () => getGroupedChatMessages(message, isStreamingMessage),
+        [getGroupedChatMessages, message, isStreamingMessage]
+    );
 
     const canShowFooter = useMemo(
         () => isAgentMessage(message) && !isTyping && !shouldGroupWithPreviousMessageV2(nextMessage, message),

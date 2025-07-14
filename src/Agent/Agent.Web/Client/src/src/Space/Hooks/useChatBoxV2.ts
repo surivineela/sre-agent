@@ -163,8 +163,9 @@ export const useChatBoxV2 = (
     }, [isCancellingStreaming, currentThreadId, sendMessage]);
 
     const getGroupedChatMessages = useCallback(
-        (message: ChatMessage): ChatMessage[] => {
-            const currentMessageIndex = allMessages.findIndex(msg => msg.id === message.id);
+        (message: ChatMessage, isStreamingMessage?: boolean): ChatMessage[] => {
+            // Treat streaming messages as the latest message
+            const currentMessageIndex = isStreamingMessage ? allMessages.length : allMessages.findIndex(msg => msg.id === message.id);
 
             const groupedMessages: ChatMessage[] = [message];
             for (let i = currentMessageIndex - 1; i >= 0; i--) {

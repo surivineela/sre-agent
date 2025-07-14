@@ -79,7 +79,10 @@ export const ChatBoxV2 = ({ addThread, promoteThread, updateThreadLastReadTime, 
                                                     chatHistory?.[index - 1]?.[chatHistory?.[index - 1]?.length - 1]
                                                 }
                                                 nextMessageAfterTheLastMessage={
-                                                    chatHistory?.[index + 1]?.[0] || newMessages[0] || temporaryUserMessage
+                                                    chatHistory?.[index + 1]?.[0] ||
+                                                    newMessages[0] ||
+                                                    temporaryUserMessage ||
+                                                    streamingMessage
                                                 }
                                             />
                                         );
@@ -93,7 +96,7 @@ export const ChatBoxV2 = ({ addThread, promoteThread, updateThreadLastReadTime, 
                                         prevMessageBeforeTheFirstMessage={
                                             chatHistory?.[chatHistory.length - 1]?.[chatHistory?.[chatHistory.length - 1]?.length - 1]
                                         }
-                                        nextMessageAfterTheLastMessage={temporaryUserMessage || undefined}
+                                        nextMessageAfterTheLastMessage={temporaryUserMessage || streamingMessage || undefined}
                                     />
                                 )}
 
@@ -118,6 +121,11 @@ export const ChatBoxV2 = ({ addThread, promoteThread, updateThreadLastReadTime, 
                                         threadId={currentThreadId || ''}
                                         toolCallText={toolCallText}
                                         isWaitingForStreamingMessages={isWaitingForStreamingMessages}
+                                        previousMessage={
+                                            temporaryUserMessage ||
+                                            newMessages[newMessages.length - 1] ||
+                                            chatHistory?.[chatHistory.length - 1]?.[chatHistory?.[chatHistory.length - 1]?.length - 1]
+                                        }
                                     />
                                 )}
                             </CopilotChat>

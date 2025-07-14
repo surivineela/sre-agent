@@ -38,7 +38,7 @@ type StreamingContextProps = {
 };
 
 type ChatBoxContextProps = {
-    getGroupedChatMessages: (message: ChatMessage) => ChatMessage[];
+    getGroupedChatMessages: (message: ChatMessage, isStreamingMessage?: boolean) => ChatMessage[];
 };
 
 type ThreadAgentModeContextProps = {
@@ -93,7 +93,7 @@ export const StreamingContext = createContext<StreamingContextProps>({
 });
 
 export const ChatBoxContext = createContext<ChatBoxContextProps>({
-    getGroupedChatMessages: (_message: ChatMessage) => [],
+    getGroupedChatMessages: (_message: ChatMessage, _isStreamingMessage?: boolean) => [],
 });
 
 export const ThreadAgentModeContext = createContext<ThreadAgentModeContextProps>({
