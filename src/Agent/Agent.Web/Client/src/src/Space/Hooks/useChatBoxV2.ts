@@ -207,15 +207,11 @@ export const useChatBoxV2 = (
                 if (currentThreadId) {
                     // Issue a request to create a new message in the current thread
                     createMessage(currentThreadId, messageRequest);
-                    // Keep it for now for testing purpose. Will remove it once the streaming is not behind the feature flag
-                    console.log(`New message sent in thread: ${currentThreadId}. Message: ${message}.`);
                 } else {
                     // Issue a request to create a new thread
                     createThread(userDefinedThreadIdRef.current, {
                         startMessage: messageRequest,
                     });
-                    // Keep it for now for testing purpose. Will remove it once the streaming is not behind the feature flag
-                    console.log(`New thread is created. Message: ${message}.`);
                 }
             } catch (e) {
                 proxy.log({

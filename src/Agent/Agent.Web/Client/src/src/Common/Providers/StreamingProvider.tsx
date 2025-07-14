@@ -83,8 +83,6 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
 
         const onReceiveMessage = (methodName: MessageResponseType) => {
             connectionRef.current?.on(methodName, (message: StreamingMessage) => {
-                //Keep it for now for testing purpose. Will remove it once the streaming is not behind the feature flag
-                console.log(message);
                 const threadId = message?.additionalProperties?.threadId;
                 if (threadId) {
                     storeLatestMessage(threadId, message);
@@ -110,13 +108,48 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
 
         const connect = async () => {
             setIsConnecting(true);
-            const isReactLocalhost = window.location.hostname.toLowerCase() === 'localhost' && window.location.port === '5173';
+
+            const isLocalHost = window.location.hostname.toLowerCase() === 'localhost';
+            const isReactLocalhost = isLocalHost && window.location.port === '5173';
             const endpoint = isReactLocalhost ? 'https://localhost:7023' : sreAgentEndpoint;
 
             connectionRef.current = new signalR.HubConnectionBuilder()
                 // ToDo: Sanitize the endpoint
                 .withUrl(`${endpoint}/agentHub`, {
                     accessTokenFactory: () => AzPortalProxy.envInfo.sreAgentToken || '',
+                    skipNegotiation: true,
+                    transport: signalR.HttpTransportType.WebSockets,
+                    logMessageContent: isLocalHost,
+                })
+                .configureLogging({
+                    log: (logLevel, message) => {
+                        if (
+                            isSubscribed &&
+                            !isLocalHost &&
+                            (logLevel === signalR.LogLevel.Error || logLevel === signalR.LogLevel.Critical)
+                        ) {
+                            // If the log message has url starting from wss://, then redact the url.
+                            // If the log message has string(s) starting from /agentHub, then remove anything after /agentHub.
+                            // If the log message has string(s) starting from access_token, then remove it.
+                            // If the log message has string(s) that is sreAgentToken, then remove it.
+                            const messagesToLog = message
+                                .replace(/wss?:\/\/.*$/gi, '[REDACTED_URL]')
+                                .replace(/\/agentHub.*$/gi, '/agentHub')
+                                .replace(/access_token=.*$/gi, '')
+                                .replace(AzPortalProxy.envInfo.sreAgentToken || '', '');
+                            proxy.log({
+                                action: 'SignalREvent',
+                                actionModifier: 'failed',
+                                data: {
+                                    message: `Error in SignalR Hub connection from agent url: ${sreAgentEndpoint}. Message: ${messagesToLog}`,
+                                },
+                            });
+                        }
+
+                        if (isLocalHost) {
+                            console.log(message);
+                        }
+                    },
                 })
                 .withAutomaticReconnect()
                 .build();
@@ -129,24 +162,30 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
 
             connectionRef.current.onreconnecting(() => {
                 setIsReconnecting(true);
-                proxy.log({
-                    action: 'ReconnectToSignalR',
-                    actionModifier: 'started',
-                    data: {
-                        message: `Reconnecting to SignalR hub from agent url: ${sreAgentEndpoint}`,
-                    },
-                });
+
+                if (isSubscribed && !isLocalHost) {
+                    proxy.log({
+                        action: 'ReconnectToSignalR',
+                        actionModifier: 'started',
+                        data: {
+                            message: `Reconnecting to SignalR hub from agent url: ${sreAgentEndpoint}`,
+                        },
+                    });
+                }
             });
 
             connectionRef.current.onreconnected(() => {
                 setIsReconnecting(false);
-                proxy.log({
-                    action: 'ReconnectToSignalR',
-                    actionModifier: 'stopped',
-                    data: {
-                        message: `Reconnected to SignalR hub from agent url: ${sreAgentEndpoint}`,
-                    },
-                });
+
+                if (isSubscribed && !isLocalHost) {
+                    proxy.log({
+                        action: 'ReconnectToSignalR',
+                        actionModifier: 'stopped',
+                        data: {
+                            message: `Reconnected to SignalR hub from agent url: ${sreAgentEndpoint}`,
+                        },
+                    });
+                }
             });
 
             try {
@@ -164,7 +203,7 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
                         (e instanceof signalR.HttpError && (e.statusCode === 403 || e.statusCode === 401)) ||
                         (e instanceof Error && (e.message.includes('403') || e.message.includes('401')));
 
-                    if (isPermissionError) {
+                    if (isPermissionError && !isLocalHost) {
                         proxy.log({
                             action: 'ConnectToSignalR',
                             actionModifier: 'failed',
