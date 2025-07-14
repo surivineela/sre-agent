@@ -5,11 +5,10 @@
 using System.Collections.Concurrent;
 using System.Data;
 using System.Security.Cryptography.X509Certificates;
-using Agent.Logging;
 using Azure.Identity;
 using Kusto.Data.Common;
 using Microsoft.Extensions.Logging;
-using KustoData=Kusto.Data;
+using KustoData = Kusto.Data;
 
 namespace Agent.Plugins.Kusto;
 
@@ -49,7 +48,7 @@ public class KustoClient
         {
             _logger.LogInternalError($"An error occurred while executing PerformQueryAsync: {ex.Message}");
             throw;
-        } 
+        }
     }
 
     public async Task<IDataReader> PerformQueryWithParametersAsync(string clusterUri, string database, string query, Dictionary<string, object> parameters)
@@ -95,11 +94,13 @@ public class KustoClient
         {
             defaultAzureCredentialOptions.ManagedIdentityClientId = _kustoAuthSettings.ManagedIdentityClientId;
             _logger.LogInternalInformation($"Kusto using MI with ClientId: {_kustoAuthSettings.ManagedIdentityClientId}");
-        } else if(!string.IsNullOrEmpty(_kustoAuthSettings.ManagedIdentityResourceId))
+        }
+        else if (!string.IsNullOrEmpty(_kustoAuthSettings.ManagedIdentityResourceId))
         {
             _logger.LogInternalInformation($"Kusto using MI with ResourceId: {_kustoAuthSettings.ManagedIdentityResourceId}");
             defaultAzureCredentialOptions.ManagedIdentityResourceId = new Azure.Core.ResourceIdentifier(_kustoAuthSettings.ManagedIdentityResourceId);
-        } else
+        }
+        else
         {
             throw new InvalidOperationException("Either ManagedIdentityClientId or ManagedIdentityResourceId must be provided.");
         }

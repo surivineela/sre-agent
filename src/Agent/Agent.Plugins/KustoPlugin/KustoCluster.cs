@@ -16,4 +16,3 @@ namespace Agent.Plugins.Kusto
         public string Database { get; set; }
     }
 }
-

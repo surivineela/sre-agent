@@ -28,6 +28,10 @@ public class Agent<TContext>(string name) where TContext : class
 
     public List<string> StandardToolNames => Tools.Select(t => t.Name).ToList();
 
+    public List<AIFunction> CustomTools { get; set; } = [];
+
+    public List<string> CustomToolNames => CustomTools.Select(t => t.Name).ToList();
+
     public List<Handoff<TContext>> Handoffs { get; set; } = [];
 
     public List<AgentAsTool<TContext>> AgentsAsTools { get; set; } = [];

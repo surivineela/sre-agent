@@ -12,4 +12,3 @@ namespace Agent.Plugins.Kusto
         User, // for testing
     }
 }
-

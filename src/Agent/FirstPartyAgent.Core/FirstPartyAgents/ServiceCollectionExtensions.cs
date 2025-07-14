@@ -56,12 +56,11 @@ public static class ServiceCollectionExtensions
             .BindConfiguration("AppSettings:Core:External:ICMWorkflows")
             .ValidateDataAnnotations();
         builder.Services.AddOptionsWithValidateOnStart<AzureSearchSettings>()
-    .BindConfiguration("AppSettings:Core:External:AzureSearch")
-    .ValidateDataAnnotations();
-
-        builder.Services.AddOptionsWithValidateOnStart<KustoSettings>()
-                .BindConfiguration("AppSettings:Core:External:Kusto")
-                .ValidateDataAnnotations();
+            .BindConfiguration("AppSettings:Core:External:AzureSearch")
+            .ValidateDataAnnotations();
+        builder.Services.AddOptionsWithValidateOnStart<Agent.Plugins.Kusto.KustoSettings>()
+            .BindConfiguration("AppSettings:Core:External:Kusto")
+            .ValidateDataAnnotations();
 
         // keep multiple lines for better debugging
         builder.Services.AddSingleton(sp =>

@@ -1,10 +1,7 @@
-using Octokit;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Agent.Plugins.Models;
 using System.Net.Http.Headers;
 using Agent.Core.Configuration;
+using Agent.Framework;
+using Octokit;
 
 namespace Agent.Runtime.Services
 {
@@ -30,14 +27,21 @@ namespace Agent.Runtime.Services
         /// <returns>List of file names (with paths relative to the repo root)</returns>
         public async Task<IReadOnlyList<RepositoryContent>> ListFilesInRepoPath(string repoPath)
         {
-            var (owner, repo, branch, path) = ParseGitHubRepoPath(repoPath);
+            try
+            {
+                var (owner, repo, branch, path) = ParseGitHubRepoPath(repoPath);
 
-            // If no path is specified, list root
-            var contents = string.IsNullOrEmpty(path)
-                ? await _gitHubClient.Repository.Content.GetAllContents(owner, repo, branch)
-                : await _gitHubClient.Repository.Content.GetAllContentsByRef(owner, repo, path, branch);
+                var contents = string.IsNullOrEmpty(path)
+                    ? await _gitHubClient.Repository.Content.GetAllContentsByRef(owner, repo, branch)
+                    : await _gitHubClient.Repository.Content.GetAllContentsByRef(owner, repo, path, branch);
 
-            return contents;
+                return contents;
+            }
+            catch (Exception ex)
+            {
+                // Log or handle the exception as needed
+                throw new InvalidOperationException($"Failed to list files in repository path '{repoPath}': {ex.Message}", ex);
+            }
         }
 
         /// <summary>
@@ -46,33 +50,65 @@ namespace Agent.Runtime.Services
         /// <param name="repoPath">GitHub repo path (see ListFilesInRepoPath)</param>
         /// <param name="folderPath">Local folder to save files to</param>
         /// <returns>Dictionary of file path (relative to repo root) to local file path</returns>
-        public async Task<Dictionary<string, string>> DownloadYamlFilesInRepoPath(string repoPath, string folderPath)
+        public async Task<CustomAgentFiles> DownloadYamlFilesInRepoPath(string repoPath, string folderPath)
         {
-            var yamlFiles = new Dictionary<string, string>();
-            var files = await ListFilesInRepoPath(repoPath);
+            var agentFiles = new CustomAgentFiles(
+                yaml: new Dictionary<string, string>(),
+                kql: new Dictionary<string, string>(),
+                appsettings: new Dictionary<string, string>()
+            );
+
+            // Ensure clean folder state
+            if (Directory.Exists(folderPath))
+                Directory.Delete(folderPath, recursive: true);
 
             Directory.CreateDirectory(folderPath);
 
-            foreach (var file in files.Where(f =>
-                f.Type == ContentType.File &&
-                (f.Name.EndsWith(".yaml", StringComparison.OrdinalIgnoreCase) || f.Name.EndsWith(".yml", StringComparison.OrdinalIgnoreCase))))
+            await DownloadFilesRecursive(repoPath, folderPath, agentFiles);
+
+            return agentFiles;
+        }
+
+        private async Task DownloadFilesRecursive(string repoPath, string folderPath, CustomAgentFiles agentFiles)
+        {
+            var files = await ListFilesInRepoPath(repoPath);
+
+            foreach (var file in files)
             {
-                if (!string.IsNullOrEmpty(file.DownloadUrl))
+                if (file.Type == ContentType.Dir)
                 {
-                    var content = await _httpClient.GetStringAsync(file.DownloadUrl);
+                    // Parse the repo path to get owner, repo, branch, and current path
+                    var (owner, repo, branch, currentPath) = ParseGitHubRepoPath(repoPath);
+                    // Build the new path for the subdirectory
+                    var newPath = string.IsNullOrEmpty(currentPath) ? file.Name : $"{currentPath}/{file.Name}";
+                    // Reconstruct the repo path for the subdirectory
+                    var subRepoPath = $"https://github.com/{owner}/{repo}/tree/{branch}/{newPath}";
+                    await DownloadFilesRecursive(subRepoPath, folderPath, agentFiles);
+                }
+                else if (file.Type == ContentType.File && !string.IsNullOrEmpty(file.DownloadUrl))
+                {
+                    var ext = Path.GetExtension(file.Name).ToLowerInvariant();
+                    if (ext == ".yaml" || ext == ".yml" || ext == ".kql" || ext == ".json")
+                    {
+                        var content = await _httpClient.GetStringAsync(file.DownloadUrl);
 
-                    // Save to local file, preserving directory structure
-                    var localFilePath = Path.Combine(folderPath, file.Path.Replace('/', Path.DirectorySeparatorChar));
-                    var localDir = Path.GetDirectoryName(localFilePath);
-                    if (!string.IsNullOrEmpty(localDir))
-                        Directory.CreateDirectory(localDir);
+                        var localFilePath = Path.Combine(folderPath, file.Path.Replace('/', Path.DirectorySeparatorChar));
+                        var localDir = Path.GetDirectoryName(localFilePath);
+                        if (!string.IsNullOrEmpty(localDir))
+                            Directory.CreateDirectory(localDir);
 
-                    await File.WriteAllTextAsync(localFilePath, content);
-                    yamlFiles[file.Path] = localFilePath;
+                        await File.WriteAllTextAsync(localFilePath, content);
+
+                        // Update the appropriate dictionary
+                        if (ext == ".yaml" || ext == ".yml")
+                            agentFiles.yaml[file.Path] = localFilePath;
+                        else if (ext == ".kql")
+                            agentFiles.kql[file.Path] = localFilePath;
+                        else if (ext == ".json")
+                            agentFiles.appsettings[file.Path] = localFilePath;
+                    }
                 }
             }
-
-            return yamlFiles;
         }
 
         /// <summary>
@@ -104,6 +140,7 @@ namespace Agent.Runtime.Services
 
             return (owner, repo, branch, path);
         }
+
         private void InitializeHttpClient()
         {
             var gitHubAccessToken = _gitHubSettings.PatTokenOverride;
@@ -128,10 +165,14 @@ namespace Agent.Runtime.Services
             return Task.FromResult(emptyList);
         }
 
-        public Task<Dictionary<string, string>> DownloadYamlFilesInRepoPath(string repoPath, string folderPath)
+        public Task<CustomAgentFiles> DownloadYamlFilesInRepoPath(string repoPath, string folderPath)
         {
-            var emptyDict = new Dictionary<string, string>();
-            return Task.FromResult(emptyDict);
+            return Task.FromResult(
+                new CustomAgentFiles(
+                    new Dictionary<string, string>(),
+                    new Dictionary<string, string>(),
+                    new Dictionary<string, string>())
+                );
         }
     }
     public interface IGithubFileService
@@ -149,6 +190,6 @@ namespace Agent.Runtime.Services
         /// <param name="repoPath">GitHub repo path (see ListFilesInRepoPath)</param>
         /// <param name="folderPath">Local folder to save files to</param>
         /// <returns>Dictionary of file path (relative to repo root) to local file path</returns>
-        Task<Dictionary<string, string>> DownloadYamlFilesInRepoPath(string repoPath, string folderPath);
+        Task<CustomAgentFiles> DownloadYamlFilesInRepoPath(string repoPath, string folderPath);
     }
 }

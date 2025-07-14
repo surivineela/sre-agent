@@ -3,26 +3,30 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
-namespace Agent.Plugins.Kusto
+namespace Agent.Core.Configuration
 {
-    public class KustoSettings
+    public class KustoConfiguration
     {
         public bool Enabled { get; set; }
+
         public KustoAuthSettings Auth { get; set; } = new();
-        public IReadOnlyCollection<KustoRegionalGroupSettings> RegionalClusterGroups { get; set; } = [];
+
+        public IReadOnlyCollection<KustoRegionalGroupConfiguration> RegionalClusterGroups { get; set; } = [];
     }
 
-    public class KustoRegionalGroupSettings
+    public class KustoRegionalGroupConfiguration
     {
         public string Name { get; set; } = string.Empty;
-        public IReadOnlyCollection<KustoCluster> Regions { get; set; } = [];
+        public IReadOnlyCollection<KustoClusterRegionConfiguration> Regions { get; set; } = [];
     }
 
     public class KustoAuthSettings
     {
         [Required]
-        public KustoAuthenticationType AuthenticationType { get; set; }
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public KustoAuthType AuthenticationType { get; set; }
         public string Authority { get; set; } = string.Empty;
         public string AuthorityHost { get; set; } = string.Empty;
         public string ApplicationClientId { get; set; } = string.Empty;
@@ -30,4 +34,23 @@ namespace Agent.Plugins.Kusto
         public string ManagedIdentityClientId { get; set; } = string.Empty;
         public string ManagedIdentityResourceId { get; set; } = string.Empty;
     }
+
+    public class KustoClusterRegionConfiguration
+    {
+        [Required]
+        public string Region { get; set; }
+        [Required]
+        public string ClusterUri { get; set; }
+        [Required]
+        public string Database { get; set; }
+    }
+
+    public enum KustoAuthType
+    {
+        ManagedIdentity,
+        UAMI,
+        App,
+        User, // for testing
+    }
 }
+

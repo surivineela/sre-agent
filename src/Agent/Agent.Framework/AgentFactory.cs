@@ -19,7 +19,7 @@ public interface IAgentFactory<TContext>
 {
     public Agent<TContext> GetAgent(string name);
     public IReadOnlyDictionary<string, IPromptDescriptor> PromptDescriptors { get; }
-    public void LoadAgentsFromFolder(string folderPath);
+    public void LoadExtendedAgentsFromFolder(string folderPath, bool isCustomAgent);
 }
 
 public class AgentFactory<TContext> : IAgentFactory<TContext>
@@ -63,7 +63,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         InitializeAgents();
     }
 
-    private void ValidateAgentDescriptor(IAgentDescriptor? agentDescriptor)
+    private void ValidateAgentDescriptor(IAgentDescriptor? agentDescriptor, bool isCustomAgent)
     {
         if (agentDescriptor is null)
         {
@@ -85,18 +85,18 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
             throw new Exception($"Agent descriptor {agentDescriptor.Name} already exists.");
         }
 
-        if (agentDescriptor.Tools.Any(toolName => !_toolFactory.HasTool(toolName)))
+        if (!isCustomAgent && agentDescriptor.Tools.Any(toolName => !_toolFactory.HasTool(toolName)))
         {
             var missingTools = agentDescriptor.Tools.Where(toolName => !_toolFactory.HasTool(toolName)).ToList();
             throw new Exception($"Agent descriptor {agentDescriptor.Name} has tools that do not exist in the tool factory: {string.Join(", ", missingTools)}");
         }
     }
 
-    private Agent<TContext> AddAgentDescriptor(IAgentDescriptor agentDescriptor)
+    private Agent<TContext> AddAgentDescriptor(IAgentDescriptor agentDescriptor, bool isCustomAgent)
     {
         try
         {
-            ValidateAgentDescriptor(agentDescriptor);
+            ValidateAgentDescriptor(agentDescriptor, isCustomAgent);
         }
         catch (Exception ex)
         {
@@ -303,7 +303,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
                 continue;
             }
 
-            AddAgentDescriptor(agentDescriptor);
+            AddAgentDescriptor(agentDescriptor, false);
             _logger.LogInformation("Successfully loaded agent descriptor '{descriptorName}' from assembly '{assemblyName}'.", agentType.Name, agentType.Assembly.GetName().Name);
         }
     }
@@ -320,12 +320,12 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
 
         foreach (var yamlFile in yamlFiles)
         {
-            LoadAgentFromFile(yamlFile);
+            LoadAgentFromFile(yamlFile, false);
         }
     }
 
     // Load yaml agents from a local folder
-    public void LoadAgentsFromFolder(string folderPath)
+    public void LoadExtendedAgentsFromFolder(string folderPath, bool isCustomAgent)
     {
         if (string.IsNullOrEmpty(folderPath) || !Directory.Exists(folderPath))
         {
@@ -336,7 +336,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
             .Concat(Directory.GetFiles(folderPath, "*.yml", SearchOption.AllDirectories));
         foreach (var yamlFile in yamlFiles)
         {
-            var agentInfo = LoadAgentFromFile(yamlFile);
+            var agentInfo = LoadAgentFromFile(yamlFile, isCustomAgent);
             AddAgentToMetaAgentHandoffs(agentInfo.Name);
         }
     }
@@ -358,7 +358,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         }
     }
 
-    private Agent<TContext> LoadAgentFromFile(string filePath)
+    private Agent<TContext> LoadAgentFromFile(string filePath, bool isCustomAgent)
     {
         try
         {
@@ -368,7 +368,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
             string yamlContent = File.ReadAllText(filePath);
 
             var agentDescriptor = AgentFactory<TContext>.LoadAgentFromYaml(yamlContent);
-            var agent = AddAgentDescriptor(agentDescriptor);
+            var agent = AddAgentDescriptor(agentDescriptor, isCustomAgent);
             _logger.LogInformation("Successfully loaded agent descriptor {descriptorName} from file {filePath}.", agentDescriptor.Name, filePath);
             return agent;
         }

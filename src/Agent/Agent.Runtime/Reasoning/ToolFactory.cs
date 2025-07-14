@@ -3,8 +3,9 @@
 // ------------------------------------------------------------
 
 using System.Reflection;
+using System.Text.Json;
+using Agent.Core.Configuration;
 using Agent.Framework;
-using Agent.Logging;
 using Agent.Plugins;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
@@ -91,19 +92,158 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
     private readonly IHostEnvironment _hostEnvironment;
     private readonly IConfiguration _configuration;
     private readonly IEnumerable<Assembly> _assemblies;
+    private readonly CustomAgentFiles? _customAgentFiles;
 
     public ToolFactory(
         ILogger<ToolFactory<TContext>> logger,
         IServiceProvider serviceProvider,
-        IEnumerable<Assembly> assembliesToScan
+        IEnumerable<Assembly> assembliesToScan,
+        CustomAgentFiles? customAgentFiles = null
+
     )
     {
         _logger = logger;
         _serviceProvider = serviceProvider;
         _assemblies = assembliesToScan;
+        _customAgentFiles = customAgentFiles;
         _hostEnvironment = _serviceProvider.GetRequiredService<IHostEnvironment>();
         _configuration = _serviceProvider.GetRequiredService<IConfiguration>();
         FindAndRegisterAllTools(BehaviorOnNameConflict.ThrowException);
+        FindAndRegisterCustomTools(BehaviorOnNameConflict.ThrowException);
+    }
+
+    // Simplify this method to just register the queries, let the normal plugin discovery handle the rest(DynamicKqlToolsPlugin i.e.)
+    private void FindAndRegisterCustomTools(BehaviorOnNameConflict onNameConflict)
+    {
+        if (_customAgentFiles?.kql == null || !_customAgentFiles.kql.Any())
+        {
+            _logger.LogInternalInformation("No KQL files found to register as custom tools.");
+            return;
+        }
+
+        _logger.LogInternalInformation("Registering {count} KQL files as custom tools", _customAgentFiles.kql.Count);
+
+        // Just register the queries with the plugin, don't create individual tools
+        // The plugin will be discovered and registered by FindAndRegisterAllTools
+        var kqlToolsPlugin = _serviceProvider.GetRequiredService<DynamicKqlToolsPlugin>();
+        var kqlToolsPluginType = typeof(DynamicKqlToolsPlugin);
+
+        // Get the ExecuteDynamicQueryByName method from the TYPE, not the instance
+        var executeMethod = kqlToolsPluginType.GetMethod("ExecuteDynamicQueryByName", BindingFlags.Public | BindingFlags.Instance);
+
+        var customAgentDatabase = string.Empty;
+        var customAgentcluster = string.Empty;
+        var appSettings = _customAgentFiles.appsettings?.FirstOrDefault().Value;
+        if (appSettings != null)
+        {
+            try
+            {
+                using var doc = JsonDocument.Parse(File.ReadAllText(appSettings));
+                var customAppSettings = doc.RootElement.GetProperty("AppSettings").Deserialize<AppSettings>();
+
+                var kustoSettings = customAppSettings?.Core.External.Kusto;
+
+                foreach (var kqlFile in _customAgentFiles.kql)
+                {
+                    try
+                    {
+                        string queryName = Path.GetFileNameWithoutExtension(kqlFile.Key);
+                        string queryContent = File.ReadAllText(kqlFile.Value);
+
+                        // Parse cluster and database from the KQL file
+                        var (cluster, database, cleanedQuery, region, description) = ParseKqlFile(queryContent);
+
+                        if (string.IsNullOrEmpty(cluster) || string.IsNullOrEmpty(database) || string.IsNullOrEmpty(region))
+                        {
+                            customAgentDatabase = kustoSettings.RegionalClusterGroups
+                                .Select(db => db.Name.ToLower()).FirstOrDefault();
+                            customAgentcluster = string.IsNullOrEmpty(cluster)
+                                ? kustoSettings.RegionalClusterGroups.FirstOrDefault()?.Regions.FirstOrDefault(
+                                    r => r.Region.Equals("westeurope", StringComparison.InvariantCultureIgnoreCase))?.ClusterUri
+                                : kustoSettings.RegionalClusterGroups.FirstOrDefault()?.Regions.FirstOrDefault(
+                                    r => r.Region.Equals(region, StringComparison.InvariantCultureIgnoreCase))?.ClusterUri;
+                        }
+                        else
+                        {
+                            _logger.LogInternalWarning("Could not parse cluster and database from KQL file '{filePath}'. Using defaults.", kqlFile.Value);
+                            cluster = customAgentcluster;
+                            database = customAgentDatabase;
+                        }
+
+                        // Just register the query with the plugin - no individual tool registration needed
+                        kqlToolsPlugin.RegisterQuery(queryName, customAgentcluster, customAgentDatabase, cleanedQuery, description);
+
+                        // Also register each KQL file name as an individual tool
+                        if (executeMethod != null)
+                        {
+                            var tool = new DeferredToolFunction<TContext>(_serviceProvider, kqlToolsPluginType, executeMethod, queryName);
+                            RegisterTool(queryName, tool, BehaviorOnNameConflict.Ignore);
+                        }
+
+                        _logger.LogInternalInformation("Registered KQL query '{queryName}' with plugin from file '{filePath}' for cluster '{cluster}' and database '{database}'",
+                            queryName, kqlFile.Value, customAgentcluster, customAgentDatabase);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogInternalError(ex, "Failed to register KQL file '{filePath}' with plugin", kqlFile.Value);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Failed to parse appsettings file '{filePath}' for custom agent cluster and database.", appSettings);
+                // Fallback to empty strings if parsing fails
+            }
+        }
+    }
+
+    // Update the ParseKqlFile method to also extract description
+    private (string cluster, string database, string cleanedQuery, string region, string description) ParseKqlFile(string queryContent)
+    {
+        string cluster = string.Empty;
+        string database = string.Empty;
+        string description = string.Empty;
+        string region = string.Empty;
+        var lines = queryContent.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        var cleanedLines = new List<string>();
+
+        foreach (var line in lines)
+        {
+            var trimmedLine = line.Trim();
+
+            // Look for metadata in comments
+            if (trimmedLine.StartsWith("//"))
+            {
+                var commentContent = trimmedLine.Substring(2).Trim();
+
+                if (commentContent.StartsWith("cluster:", StringComparison.OrdinalIgnoreCase))
+                {
+                    cluster = commentContent.Substring(8).Trim();
+                    continue;
+                }
+                else if (commentContent.StartsWith("database:", StringComparison.OrdinalIgnoreCase))
+                {
+                    database = commentContent.Substring(9).Trim();
+                    continue;
+                }
+                else if (commentContent.StartsWith("region:", StringComparison.OrdinalIgnoreCase))
+                {
+                    region = commentContent.Substring(7).Trim();
+                    continue;
+                }
+                else if (commentContent.StartsWith("description:", StringComparison.OrdinalIgnoreCase))
+                {
+                    description = commentContent.Substring(12).Trim();
+                    continue;
+                }
+            }
+
+            // Add non-metadata lines to the cleaned query
+            cleanedLines.Add(line);
+        }
+
+        var cleanedQuery = string.Join('\n', cleanedLines);
+        return (cluster, database, cleanedQuery, region, description);
     }
 
     public List<ToolInfo> FetchAvailableToolInfo()

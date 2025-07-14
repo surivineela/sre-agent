@@ -23,7 +23,7 @@ public class KustoRegionalGroupClient
         _regionsToClusters = groupSettings.Regions.ToDictionary(c => c.Region, c => c);
     }
 
-    public  Task<IDataReader> PerformQueryAsync(string query, string region)
+    public Task<IDataReader> PerformQueryAsync(string query, string region)
     {
         KustoCluster kustoCluster = GetCluster(region);
 

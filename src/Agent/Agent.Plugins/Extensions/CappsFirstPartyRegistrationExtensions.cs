@@ -1,12 +1,9 @@
 using System.Text.Json;
-using Agent.Core.Configuration;
-using Agent.Plugins.Definitions;
 using Agent.Plugins.IcmPlugin;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Kusto;
 using Agent.Plugins.TeamsPlugin;
 using FirstPartyAgent.Common.Configuration;
-using FirstPartyAgent.Core.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
@@ -22,7 +19,6 @@ public static class CappsFirstPartyRegistrationExtensions
     {
         var secretResolvedEnvConfig = new { };
         builder.Configuration.AddJsonStream(new MemoryStream(JsonSerializer.SerializeToUtf8Bytes(secretResolvedEnvConfig)));
-
 
         builder.Services.AddSingleton<IACAKustoPlugin, ACAKustoPlugin>();
         builder.Services.AddSingleton<IKustoPluginChat, KustoPluginChat>();
@@ -74,6 +70,5 @@ public static class CappsFirstPartyRegistrationExtensions
         {
             builder.Configuration.AddJsonFile("appsettings-aca.development.json", optional: true, reloadOnChange: true);
         }
-
     }
 }

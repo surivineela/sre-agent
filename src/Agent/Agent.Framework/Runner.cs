@@ -305,11 +305,7 @@ public static class Runner
             // todo: log
             throw;
         }
-
-
     }
-
-
 
     private static async Task<bool> CriticAsync<TContext>(
         RunConfig config,

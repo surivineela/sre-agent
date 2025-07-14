@@ -2,9 +2,6 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-
-using FirstPartyAgent.Core.Configuration;
-
 namespace Agent.Core.Configuration
 {
     public class ExternalSettings
@@ -23,6 +20,8 @@ namespace Agent.Core.Configuration
         public AzureSearchSettings AzureSearch { get; set; } = new();
         public TsgCrawlerSettings TsgCrawler { get; set; } = new();
         public KeyVaultSettings KeyVault { get; set; } = new();
+
+        public KustoConfiguration Kusto { get; set; }
 
         public ObserverClientSettings ObserverClient { get; set; } = new();
     }

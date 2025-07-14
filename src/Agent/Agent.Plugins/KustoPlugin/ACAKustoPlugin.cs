@@ -8,7 +8,6 @@ using System.IO.Compression;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
-using Agent.Logging;
 using Agent.Plugins.Interface;
 using Agent.Plugins.KustoPlugin;
 using Agent.Plugins.TeamsPlugin;
@@ -129,7 +128,7 @@ namespace Agent.Plugins.Kusto
                 var reader = await _kustoClient.PerformQueryAsync($"https://{cluster}.kusto.windows.net", database, fullQuery);
                 var ret = new KustoQueryResult(reader, fullQuery);
                 stopwatch.Stop();
-                ret.Message = CreateChatMessage(fullQuery, cluster, ret.RowCount, (int)stopwatch.ElapsedMilliseconds, database:database);
+                ret.Message = CreateChatMessage(fullQuery, cluster, ret.RowCount, (int)stopwatch.ElapsedMilliseconds, database: database);
                 return ret;
             }
             catch (Exception ex)
@@ -244,7 +243,8 @@ namespace Agent.Plugins.Kusto
                 {
                     KustoRegionalGroupClient regionalKustoClient = _kustoRegionalGroupClientProvider.GetRegionalGroupKustoClient(groupName);
                     cluster = regionalKustoClient.GetCluster(region);
-                } catch (Exception ex)
+                }
+                catch (Exception ex)
                 {
                     _logger.LogInternalError($"An error occurred while getting Kusto cluster for region {region}: {ex.Message}");
                 }
@@ -275,7 +275,7 @@ namespace Agent.Plugins.Kusto
             if (!string.IsNullOrWhiteSpace(functionName))
             {
                 // For function execution
-                displayText = $"[Execute in ADX]({adxUri})\n\nExecuted function `{functionName}` against {regionOrClusterUri}{(!string.IsNullOrWhiteSpace(database)? $"/{database}" : string.Empty)}:\n<details><summary>View KQL Query</summary>\n<pre>\n{query}\n</pre>\n\n</details>\nRows: {count} Execution time: {executionTime}";
+                displayText = $"[Execute in ADX]({adxUri})\n\nExecuted function `{functionName}` against {regionOrClusterUri}{(!string.IsNullOrWhiteSpace(database) ? $"/{database}" : string.Empty)}:\n<details><summary>View KQL Query</summary>\n<pre>\n{query}\n</pre>\n\n</details>\nRows: {count} Execution time: {executionTime}";
             }
             else if (!string.IsNullOrWhiteSpace(database))
             {

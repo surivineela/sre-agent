@@ -122,11 +122,13 @@ public class Program
                     localFolderPath);
 
                     // Load agents from the downloaded folder
-                    agentFactory.LoadAgentsFromFolder(localFolderPath);
+                    agentFactory.LoadExtendedAgentsFromFolder(localFolderPath, true);
                 }
                 catch (Exception ex)
                 {
                     // Log the error but do not fail the application startup
+                    // Throw exception for now since failing silently makes harder debug
+                    throw ex;
                 }
             }
         }
@@ -495,6 +497,7 @@ public class Program
             .AddTransient<AzureAlertingPluginDefinition>()
             .AddTransient<WebAppPluginDefinition>()
             .AddTransient<KustoPlugin>()
+            .AddSingleton<DynamicKqlToolsPlugin>()
             .AddTransient<IAzureSearchClient, AzureSearchClient>()
             .AddTransient<AzureDocSearchPlugin>()
             .AddTransient<SearchPluginDefinition>()
@@ -653,12 +656,37 @@ public class Program
 
             .AddSingleton(sp =>
             {
+                // First, download the files if configured
+                CustomAgentFiles? customAgentFiles = null;
+                var githubSettings = sp.GetRequiredService<GitHubSettings>();
+
+                if (!string.IsNullOrEmpty(githubSettings.CustomAgentsRepoPath))
+                {
+                    var githubFileService = sp.GetRequiredService<IGithubFileService>();
+                    var localFolderPath = Path.Combine(Path.GetTempPath(), "customAgents", Guid.NewGuid().ToString());
+
+                    try
+                    {
+                        // This is synchronous for now, but you could make it async with GetAwaiter().GetResult()
+                        customAgentFiles = githubFileService.DownloadYamlFilesInRepoPath(
+                            githubSettings.CustomAgentsRepoPath,
+                            localFolderPath).GetAwaiter().GetResult();
+                    }
+                    catch (Exception ex)
+                    {
+                        var logger = sp.GetRequiredService<ILogger<ToolFactory<AgentContext>>>();
+                        //logger.LogError(ex, "Failed to download custom agent files from GitHub");
+                    }
+                }
+
+
                 return new ToolFactory<AgentContext>(
                     logger: sp.GetRequiredService<ILogger<ToolFactory<AgentContext>>>(),
                     serviceProvider: sp,
                     assembliesToScan: AppDomain.CurrentDomain.GetAssemblies()
                         .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
-                        .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true));
+                        .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true),
+                    customAgentFiles: customAgentFiles);
             })
             .AddSingleton<IToolFactory<AgentContext>, ToolFactory<AgentContext>>(sp =>
             {
@@ -752,9 +780,9 @@ public class Program
             {
                 var logger = sp.GetRequiredService<ILogger<KustoClient>>();
                 var actionSettings = sp.GetRequiredService<ActionSettings>();
-                var kustoAuthSetting = new KustoAuthSettings()
+                var kustoAuthSetting = new Plugins.Kusto.KustoAuthSettings()
                 {
-                    AuthenticationType = KustoAuthenticationType.UAMI,
+                    AuthenticationType = Plugins.Kusto.KustoAuthenticationType.UAMI,
                     ManagedIdentityResourceId = actionSettings.Identity
                 };
                 if (builder.Environment.IsDevelopment())
@@ -1005,7 +1033,7 @@ public class Program
 
     private static bool IsFirstParty(string[] args)
     {
-        if(Environment.GetEnvironmentVariable("AGENT_TYPE_NAME") == "IcmAgent")
+        if (Environment.GetEnvironmentVariable("AGENT_TYPE_NAME") == "IcmAgent")
         {
             return false; // IcmAgent is not a container app first-party agent
         }
