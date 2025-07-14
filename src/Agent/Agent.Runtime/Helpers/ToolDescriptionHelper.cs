@@ -2,6 +2,9 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Plugins.Definitions;
+using Azure.ResourceManager.AppService.Models;
+
 namespace Agent.Runtime.Helpers;
 
 public static class ToolDescriptionHelper
@@ -385,6 +388,17 @@ public static class ToolDescriptionHelper
             "GetGlobalApimPolicy" => "Retrieving global policy for API Management...",
             "APIMModifyNSGRule" => "Modifying network security group rule for API Management...",
             "APIMRemoveNSGRule" => "Removing network security group rule for API Management...",
+
+            // AzDo Tools
+            nameof(AzureDevOpsWorkItemPluginDefinition.ConnectRepositoryToResource) => "Connecting to Repository...",
+            nameof(AzureDevOpsWorkItemPluginDefinition.FindConnectedRepository) => "Finding Connected Repository...",
+            nameof(AzureDevOpsWorkItemPluginDefinition.CreateAzureDevOpsWorkItem) => "Creating Azure Dev Ops Work Item...",
+            nameof(AzureDevOpsWorkItemPluginDefinition.DisconnectRepositoryFromResource) => "Disconnecting Azure Dev Ops Repository...",
+
+            // Diagnostic Analysis Tools
+            nameof(DiagnosticsPluginDefinition.GetCPUAnalysis) => "Conducting CPU Analysis...",
+            nameof(DiagnosticsPluginDefinition.GetMemoryAnalysis) => "Conducting Memory Analysis...",
+            nameof(DiagnosticsPluginDefinition.GetLatencyAnalysis) => "Conducting Latency Analysis...",
 
             // Default case
             _ => DefaultSafeDescription

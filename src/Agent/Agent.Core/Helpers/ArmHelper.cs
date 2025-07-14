@@ -570,6 +570,7 @@ public class ArmHelper
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
             request.Content = content;
             using var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+            httpClient.Timeout = TimeSpan.FromMinutes(10);
             var response = await httpClient.SendAsync(request);
 
             if (!response.IsSuccessStatusCode)
@@ -2241,7 +2242,7 @@ public class ArmHelper
     {
         string url = $"https://{hostName}/api/processes";
         using HttpClient httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
-        httpClient.Timeout = TimeSpan.FromMinutes(5);
+        httpClient.Timeout = TimeSpan.FromMinutes(10);
 
         if (os == "Linux")
         {
@@ -2297,7 +2298,12 @@ public class ArmHelper
             if (processes is null)
                 throw new InvalidOperationException("No processes returned.");
 
-            foreach (var processElement in processes)
+            foreach (var processElement in processes.Where(p => 
+                p is JsonObject obj && 
+                obj.TryGetPropertyValue("name", out var nameNode) && 
+                nameNode is JsonValue nameValue && 
+                nameValue.TryGetValue<string>(out var name) && 
+                string.Equals(name, "w3wp", StringComparison.OrdinalIgnoreCase)))
             {
                 if (processElement is JsonObject processObj)
                 {
@@ -2314,7 +2320,7 @@ public class ArmHelper
                         var processInfo = JsonSerializer.Deserialize<JsonObject>(await processResponse.Content.ReadAsStringAsync());
                         if (processInfo is not null && processInfo.TryGetPropertyValue("name", out var node))
                         {
-                            if (node.GetValue<string>().Contains("w3wp") && !processInfo.TryGetPropertyValue("is_scm_site", out var _))
+                            if (!processInfo.TryGetPropertyValue("is_scm_site", out var _))
                             {
                                 return processId;
                             }
@@ -2341,6 +2347,7 @@ public class ArmHelper
         var cred = await _authService.GetArmOperationCredential();
         var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://management.azure.com/.default" }), default);
         using var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+        httpClient.Timeout = TimeSpan.FromMinutes(5); // Set a longer timeout for session completion check
 
         while (true)
         {
