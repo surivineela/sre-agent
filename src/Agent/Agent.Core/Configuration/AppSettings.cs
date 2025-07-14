@@ -19,6 +19,11 @@ public class AppSettings
 public class LoggingSettings
 {
     public bool LogGenAICalls { get; set; }
+    public bool EnableFileLogging { get; set; } = false;
+    public string LogFilePath { get; set; } = "logs/sreagent-.log";
+    public int RetainedFileCountLimit { get; set; } = 7;
+    public int FileSizeLimitMB { get; set; } = 10;
+    public string RollingInterval { get; set; } = "Day"; // Day, Hour, Minute, etc.
 }
 
 public class TestSettings

@@ -88,6 +88,8 @@ using Microsoft.DurableTask.Client;
 using Microsoft.DurableTask.Client.AzureManaged;
 using Microsoft.DurableTask.Worker;
 using Microsoft.DurableTask.Worker.AzureManaged;
+using Serilog;
+using Serilog.Events;
 using Microsoft.Extensions.AI;
 using Microsoft.SemanticKernel;
 using OpenTelemetry;
@@ -1070,6 +1072,31 @@ public class Program
         if (builder.Environment.IsDevelopment())
         {
             builder.Logging.AddConsole();
+            
+            // Add file logging if enabled in configuration
+            var loggingSettings = builder.Configuration.GetSection("Logging").Get<LoggingSettings>();
+            if (loggingSettings?.EnableFileLogging == true)
+            {
+                // Parse rolling interval from string
+                var rollingInterval = Enum.TryParse<RollingInterval>(loggingSettings.RollingInterval, true, out var interval) 
+                    ? interval 
+                    : RollingInterval.Day;
+                
+                // Create a separate Serilog logger for file output only
+                var fileLogger = new LoggerConfiguration()
+                    .WriteTo.File(
+                        path: loggingSettings.LogFilePath,
+                        rollingInterval: rollingInterval,
+                        retainedFileCountLimit: loggingSettings.RetainedFileCountLimit,
+                        fileSizeLimitBytes: loggingSettings.FileSizeLimitMB * 1024 * 1024,
+                        shared: true,
+                        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+                    .MinimumLevel.Information()
+                    .CreateLogger();
+                    
+                // Add Serilog as an additional provider, not replacing the existing ones
+                builder.Logging.AddSerilog(fileLogger, dispose: true);
+            }
         }
 
         ConfigureKustoLoggers(builder);
