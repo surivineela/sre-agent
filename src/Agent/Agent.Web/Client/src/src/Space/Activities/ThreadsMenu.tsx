@@ -1,8 +1,7 @@
 import { Button, InputOnChangeData, Radio, RadioGroup, SearchBox, SearchBoxChangeEvent, tokens } from '@fluentui/react-components';
 import { AddRegular, PanelLeftContractRegular, PanelLeftExpandRegular } from '@fluentui/react-icons';
-import { ForwardedRef, forwardRef, useCallback, useContext, useState } from 'react';
+import { ForwardedRef, forwardRef, useContext } from 'react';
 import { useIntl } from 'react-intl';
-import { ThreadSeverity } from '../../Common/Clients/ThreadClient';
 import { ThreadSource } from '../../Common/Contracts/Azure/SreAgent';
 import { ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import ThreadsList from '../Components/ThreadsList';
@@ -39,28 +38,7 @@ export const ThreadsMenu = forwardRef<ThreadListHandle, IThreadsMenuProps>(
 
         const intl = useIntl();
 
-        const [isCriticalClicked, setIsCriticalClicked] = useState<boolean>(false);
-        const [isWarningClicked, setIsWarningClicked] = useState<boolean>(false);
-
-        const handleCriticalClick = useCallback(() => {
-            setIsCriticalClicked(prev => {
-                const next = !prev;
-                setIsWarningClicked(false);
-                setThreadSeverity(next ? ThreadSeverity.Critical : undefined);
-                return next;
-            });
-        }, []);
-
-        const handleWarningClick = useCallback(() => {
-            setIsWarningClicked(prev => {
-                const next = !prev;
-                setIsCriticalClicked(false);
-                setThreadSeverity(next ? ThreadSeverity.Warning : undefined);
-                return next;
-            });
-        }, []);
-
-        const { actionSeverityMetrics, incidentMetrics, actionStatusMetrics } = useMetrics(oldestThreadModifiedTimestamp);
+        const { incidentMetrics } = useMetrics(oldestThreadModifiedTimestamp);
 
         return (
             <div style={{ display: 'contents' }}>
@@ -123,17 +101,7 @@ export const ThreadsMenu = forwardRef<ThreadListHandle, IThreadsMenuProps>(
                     </RadioGroup>
                 )}
                 {collapsed || !hasChatPermissions ? null : !threadSource ? (
-                    <ActivitiesStatusBar
-                        selectedTime={oldestThreadModifiedTimestamp}
-                        setSelectedTime={setOldestThreadModifiedTimestamp}
-                        setThreadSeverity={setThreadSeverity}
-                        actionSeverityMetrics={actionSeverityMetrics}
-                        actionStatusMetrics={actionStatusMetrics}
-                        isWarningClicked={isWarningClicked}
-                        onWarningClick={handleWarningClick}
-                        isCriticalClicked={isCriticalClicked}
-                        onCriticalClick={handleCriticalClick}
-                    />
+                    <ActivitiesStatusBar selectedTime={oldestThreadModifiedTimestamp} setSelectedTime={setOldestThreadModifiedTimestamp} />
                 ) : (
                     <IncidentStatusBar
                         selectedTime={oldestThreadModifiedTimestamp}
