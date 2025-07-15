@@ -71,7 +71,7 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
 
     const portalContext = useContext(AzPortalContext);
     const { agent } = useContext(SreAgentContext);
-    const { mode } = agent;
+    const { accessLevel } = agent;
     const intl = useIntl();
 
     useEffect(() => {
@@ -380,7 +380,7 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
             maxWidth={850}
         >
             <Pivot selectedKey={tabKey} onLinkClick={onTabLinkClick}>
-                <PivotItem itemKey={TabKeys.select} headerText={intl.formatMessage(ResourcePickerTabResources.selectTabTitle)}>
+                <PivotItem itemKey={TabKeys.select} headerText={intl.formatMessage(ResourcePickerTabResources.selectTabTitle)} alwaysRender>
                     <div className={styles.dialogContent}>
                         <div className={styles.pickerRow}>
                             <div className={styles.pickerItem}>
@@ -437,7 +437,7 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
                         </div>
                     </div>
                 </PivotItem>
-                <PivotItem itemKey={TabKeys.review} headerText={intl.formatMessage(ResourcePickerTabResources.reviewTabTitle)}>
+                <PivotItem itemKey={TabKeys.review} headerText={intl.formatMessage(ResourcePickerTabResources.reviewTabTitle)} alwaysRender>
                     <ReviewTab
                         selectedResourceGroups={selectedResourceGroups}
                         toggleItemSelection={toggleItemSelection}
@@ -448,8 +448,8 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
                         onRenderSubscription={onRenderSubscription}
                     />
                 </PivotItem>
-                <PivotItem itemKey={TabKeys.assign} headerText={intl.formatMessage(ResourcePickerTabResources.assignTabTitle)}>
-                    <PermissionsDetailsList mode={mode} />
+                <PivotItem itemKey={TabKeys.assign} headerText={intl.formatMessage(ResourcePickerTabResources.assignTabTitle)} alwaysRender>
+                    <PermissionsDetailsList accessLevel={accessLevel} managedResourceGroups={selectedResourceGroups} />
                 </PivotItem>
             </Pivot>
             <div className={styles.dialogFooter}>

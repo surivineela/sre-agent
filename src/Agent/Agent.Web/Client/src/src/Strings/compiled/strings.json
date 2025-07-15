@@ -1,4 +1,10 @@
 {
+  "+/nU/s": [
+    {
+      "type": 0,
+      "value": "Gives you read access to management and content operations, but does not allow making changes."
+    }
+  ],
   "+5BJJL": [
     {
       "type": 0,
@@ -35,6 +41,12 @@
       "value": "Contributor"
     }
   ],
+  "+l+XEu": [
+    {
+      "type": 0,
+      "value": "Can read workbooks."
+    }
+  ],
   "+uAdUZ": [
     {
       "type": 0,
@@ -65,6 +77,12 @@
       "value": "Skip"
     }
   ],
+  "/8MshI": [
+    {
+      "type": 0,
+      "value": "Manage SQL Managed Instances."
+    }
+  ],
   "/WrP/v": [
     {
       "type": 0,
@@ -77,6 +95,12 @@
       "value": "Your agent is in autonomous mode. The following permissions are required for the agent to build knowledge about your resources. The agent will use some of these permissions to perform write operations autonomously based on your requests."
     }
   ],
+  "/gCtdO": [
+    {
+      "type": 0,
+      "value": "Manage Custom Vision projects."
+    }
+  ],
   "/wdD42": [
     {
       "type": 0,
@@ -87,6 +111,12 @@
     {
       "type": 0,
       "value": "Resource groups"
+    }
+  ],
+  "01lT1B": [
+    {
+      "type": 0,
+      "value": "Lets you read, enable and disable logic app."
     }
   ],
   "066KEg": [
@@ -105,6 +135,12 @@
     {
       "type": 0,
       "value": "Microsoft IcM"
+    }
+  ],
+  "0Dhe75": [
+    {
+      "type": 0,
+      "value": "Manage SQL servers and their security policies."
     }
   ],
   "0G14fL": [
@@ -159,6 +195,12 @@
     {
       "type": 0,
       "value": "View Alert Details"
+    }
+  ],
+  "0te2Ra": [
+    {
+      "type": 0,
+      "value": "Manage Azure Data Factory instances."
     }
   ],
   "0w0iFy": [
@@ -247,10 +289,22 @@
       "value": "Change agent mode for this thread"
     }
   ],
+  "2LQx4N": [
+    {
+      "type": 0,
+      "value": "Manage App Configuration stores."
+    }
+  ],
   "2OQ6yB": [
     {
       "type": 0,
       "value": "The selected resource groups are being set up"
+    }
+  ],
+  "2PnnDB": [
+    {
+      "type": 0,
+      "value": "Manage IoT Hub device registry."
     }
   ],
   "2hB9SP": [
@@ -325,6 +379,18 @@
       "value": "Reader"
     }
   ],
+  "3t/IhV": [
+    {
+      "type": 0,
+      "value": "Can view cost data and configuration (e.g. budgets, exports)."
+    }
+  ],
+  "3zLsNR": [
+    {
+      "type": 0,
+      "value": "Manage websites, but not web plans. Does not allow you to assign roles."
+    }
+  ],
   "40YXE1": [
     {
       "type": 0,
@@ -355,10 +421,28 @@
       "value": "Denied by"
     }
   ],
+  "4MeTpL": [
+    {
+      "type": 0,
+      "value": "Workbook Contributor"
+    }
+  ],
   "4OUjTL": [
     {
       "type": 0,
       "value": "Can you audit best practices for my resource?"
+    }
+  ],
+  "4TnjxL": [
+    {
+      "type": 0,
+      "value": "API Management Service Reader Role"
+    }
+  ],
+  "4ii5zj": [
+    {
+      "type": 0,
+      "value": "Allows for read access to Azure Storage blob containers and data."
     }
   ],
   "4kCXiz": [
@@ -401,6 +485,18 @@
     {
       "type": 0,
       "value": "Start Time"
+    }
+  ],
+  "5Sc5rT": [
+    {
+      "type": 0,
+      "value": "IoT Hub Twin Contributor"
+    }
+  ],
+  "5UfRjw": [
+    {
+      "type": 0,
+      "value": "Device Provisioning Service Data Contributor"
     }
   ],
   "5V+Txp": [
@@ -459,6 +555,12 @@
       "value": "Incident handler name"
     }
   ],
+  "5wGcN7": [
+    {
+      "type": 0,
+      "value": "Cost Management Reader"
+    }
+  ],
   "5y2qWO": [
     {
       "type": 0,
@@ -481,6 +583,12 @@
     {
       "type": 0,
       "value": "What didn't you like about the agent's response? Your feedback helps us make the agent even better."
+    }
+  ],
+  "64zSh3": [
+    {
+      "type": 0,
+      "value": "Cognitive Services LUIS Writer"
     }
   ],
   "69FfbB": [
@@ -537,6 +645,12 @@
       "value": "Approved"
     }
   ],
+  "6YXj/s": [
+    {
+      "type": 0,
+      "value": "Contribute to Speech service resources."
+    }
+  ],
   "6aWd+W": [
     {
       "type": 0,
@@ -579,6 +693,12 @@
       "value": "Read all monitoring data and edit monitoring settings."
     }
   ],
+  "7+b0J0": [
+    {
+      "type": 0,
+      "value": "Cognitive Services Custom Vision Contributor"
+    }
+  ],
   "71/osV": [
     {
       "type": 0,
@@ -595,6 +715,12 @@
     {
       "type": 0,
       "value": "Review mode"
+    }
+  ],
+  "7N87nD": [
+    {
+      "type": 0,
+      "value": "Manage Device Provisioning Service data."
     }
   ],
   "7Nz2Ev": [
@@ -651,6 +777,18 @@
       "value": "PagerDuty connected. Your next step is to set up incident handlers."
     }
   ],
+  "87v+WY": [
+    {
+      "type": 0,
+      "value": "Full access to Azure Digital Twins data."
+    }
+  ],
+  "8NHZQV": [
+    {
+      "type": 0,
+      "value": "Cognitive Services Language Reader"
+    }
+  ],
   "8O9cAb": [
     {
       "type": 0,
@@ -667,6 +805,12 @@
     {
       "type": 0,
       "value": "Building knowledge graph"
+    }
+  ],
+  "8aHHLj": [
+    {
+      "type": 0,
+      "value": "Read-only access to service and APIs."
     }
   ],
   "8lCjAM": [
@@ -793,6 +937,12 @@
       "value": "Enter instructions"
     }
   ],
+  "AeWmvh": [
+    {
+      "type": 0,
+      "value": "Lets you manage virtual machines, but not access to them, and not the virtual network or storage account they are connected to."
+    }
+  ],
   "AfbqHj": [
     {
       "type": 0,
@@ -829,6 +979,12 @@
       "value": "AI-generated content might be incorrect, so review carefully before use. Do not include personal or confidential information in the chat."
     }
   ],
+  "BKSv0l": [
+    {
+      "type": 0,
+      "value": "Azure Center for SAP solutions reader"
+    }
+  ],
   "BV3Mir": [
     {
       "type": 0,
@@ -861,16 +1017,34 @@
       "value": "List cluster user credential action."
     }
   ],
+  "C3PGqj": [
+    {
+      "type": 0,
+      "value": "Logic App Contributor"
+    }
+  ],
   "C3qF2+": [
     {
       "type": 0,
       "value": "Create incident handler"
     }
   ],
+  "CFJ1OD": [
+    {
+      "type": 0,
+      "value": "Read-only role for Digital Twins data-plane properties."
+    }
+  ],
   "CJEYfo": [
     {
       "type": 0,
       "value": "Failed to fetch agent mode"
+    }
+  ],
+  "CMaDRa": [
+    {
+      "type": 0,
+      "value": "Write access to Language service resources."
     }
   ],
   "CZ6s9k": [
@@ -957,6 +1131,12 @@
       "value": "Selected incidents"
     }
   ],
+  "Dff3ms": [
+    {
+      "type": 0,
+      "value": "Cognitive Services Contributor"
+    }
+  ],
   "DlSXUR": [
     {
       "type": 0,
@@ -973,6 +1153,12 @@
     {
       "type": 0,
       "value": "Failed to delete logic app"
+    }
+  ],
+  "Dx3Xj3": [
+    {
+      "type": 0,
+      "value": "Let's you read and test a KB only."
     }
   ],
   "Dz+Iv9": [
@@ -1011,6 +1197,12 @@
       "value": "Failed to load subscriptions."
     }
   ],
+  "ENnkRe": [
+    {
+      "type": 0,
+      "value": "Grants permission for read operations for App Configuration resources."
+    }
+  ],
   "ERQMQ9": [
     {
       "type": 0,
@@ -1039,6 +1231,12 @@
     {
       "type": 0,
       "value": "Repository URL must be like: https://github.com/owner/repo-name.git or Repository URL must be like: https://github.com/owner/repo-name.git or https://dev.azure.com/organization/project/_git/repository-name or https://organization.visualstudio.com/project/_git/repository-name"
+    }
+  ],
+  "EdEthU": [
+    {
+      "type": 0,
+      "value": "API Management Workspace Contributor"
     }
   ],
   "EiiZbj": [
@@ -1137,6 +1335,12 @@
       "value": "Successfully enabled incident handler"
     }
   ],
+  "GoSIa4": [
+    {
+      "type": 0,
+      "value": "Minimal permission to view Cognitive Services usages."
+    }
+  ],
   "GroBmn": [
     {
       "type": 0,
@@ -1149,10 +1353,22 @@
       "value": "Go to handler"
     }
   ],
+  "H3ooTI": [
+    {
+      "type": 0,
+      "value": "Azure Service Bus Data Owner"
+    }
+  ],
   "HAlOn1": [
     {
       "type": 0,
       "value": "Name"
+    }
+  ],
+  "HQhDfV": [
+    {
+      "type": 0,
+      "value": "Cognitive Services OpenAI Contributor"
     }
   ],
   "HWMrXF": [
@@ -1185,10 +1401,22 @@
       "value": "Update annotation"
     }
   ],
+  "IEFW3Y": [
+    {
+      "type": 0,
+      "value": "App Configuration Contributor"
+    }
+  ],
   "IF3r+X": [
     {
       "type": 0,
       "value": "Azure Managed Grafana"
+    }
+  ],
+  "IQaKwH": [
+    {
+      "type": 0,
+      "value": "Lets you read Cognitive Services data."
     }
   ],
   "ITYqY7": [
@@ -1287,6 +1515,12 @@
     {
       "type": 0,
       "value": "Delete"
+    }
+  ],
+  "KAYpG9": [
+    {
+      "type": 0,
+      "value": "Allows for full read access to IoT Hub data-plane properties."
     }
   ],
   "KLYuRX": [
@@ -1391,6 +1625,12 @@
       "value": "No historical data available"
     }
   ],
+  "NAAdaF": [
+    {
+      "type": 0,
+      "value": "This role provides read access to all capabilities of Azure Center for SAP solutions."
+    }
+  ],
   "NAepnj": [
     {
       "type": 0,
@@ -1419,6 +1659,12 @@
     {
       "type": 0,
       "value": "Alert Rule"
+    }
+  ],
+  "NcxGiD": [
+    {
+      "type": 0,
+      "value": "HDInsight on AKS Cluster Admin"
     }
   ],
   "NkirQc": [
@@ -1567,6 +1813,12 @@
       "value": "IcM connection added successfully"
     }
   ],
+  "P3qxV2": [
+    {
+      "type": 0,
+      "value": "Search Service Contributor"
+    }
+  ],
   "P7MNl8": [
     {
       "type": 0,
@@ -1615,10 +1867,22 @@
       "value": "Resource analysis"
     }
   ],
+  "PXg8+x": [
+    {
+      "type": 0,
+      "value": "Virtual Machine Contributor"
+    }
+  ],
   "Pc+tM3": [
     {
       "type": 0,
       "value": "Generate"
+    }
+  ],
+  "Phji5P": [
+    {
+      "type": 0,
+      "value": "Edit Healthcare APIs agent configurations."
     }
   ],
   "PipPB3": [
@@ -1631,6 +1895,12 @@
     {
       "type": 0,
       "value": "Can read all monitoring data and update monitoring settings."
+    }
+  ],
+  "Pwen/L": [
+    {
+      "type": 0,
+      "value": "Cognitive Services LUIS Reader"
     }
   ],
   "PxLzzW": [
@@ -1649,6 +1919,12 @@
     {
       "type": 0,
       "value": "Decision Time"
+    }
+  ],
+  "Q3p3sz": [
+    {
+      "type": 0,
+      "value": "Storage Blob Data Reader"
     }
   ],
   "Q8Qw5B": [
@@ -1673,6 +1949,12 @@
     {
       "type": 0,
       "value": "Agent"
+    }
+  ],
+  "QIY3dQ": [
+    {
+      "type": 0,
+      "value": "Azure Digital Twins Data Owner"
     }
   ],
   "QQX4Pv": [
@@ -1721,6 +2003,12 @@
     {
       "type": 0,
       "value": "Subscription"
+    }
+  ],
+  "R1RX2a": [
+    {
+      "type": 0,
+      "value": "Full access to IoT Hub data."
     }
   ],
   "RH8rNM": [
@@ -1787,6 +2075,12 @@
       "value": "Go to Azure Managed Grafana"
     }
   ],
+  "SCjiXP": [
+    {
+      "type": 0,
+      "value": "Cognitive Services Data Reader"
+    }
+  ],
   "SDXmEJ": [
     {
       "type": 0,
@@ -1843,6 +2137,18 @@
     {
       "type": 0,
       "value": "Autonomous"
+    }
+  ],
+  "SuVToZ": [
+    {
+      "type": 0,
+      "value": "SQL Managed Instance Contributor"
+    }
+  ],
+  "T5+AEf": [
+    {
+      "type": 0,
+      "value": "Logic App Operator"
     }
   ],
   "T7WpWs": [
@@ -1965,6 +2271,12 @@
       "value": "Managed Identity"
     }
   ],
+  "UZS12+": [
+    {
+      "type": 0,
+      "value": "Has read-only access to entities in the workspace. This role should be assigned on the workspace scope."
+    }
+  ],
   "Udeffr": [
     {
       "type": 0,
@@ -2073,6 +2385,12 @@
       "value": "Last data capture time"
     }
   ],
+  "WLw9E7": [
+    {
+      "type": 0,
+      "value": "PostgreSQL Flexible Server Long Term Retention Backup Role"
+    }
+  ],
   "WTrOy3": [
     {
       "type": 0,
@@ -2083,6 +2401,12 @@
     {
       "type": 0,
       "value": "Grafana dashboard created successfully"
+    }
+  ],
+  "Wc5b/J": [
+    {
+      "type": 0,
+      "value": "AzureML Compute Operator"
     }
   ],
   "Wf6bDe": [
@@ -2103,10 +2427,22 @@
       "value": "PagerDuty connection added successfully"
     }
   ],
+  "Wtf3vL": [
+    {
+      "type": 0,
+      "value": "Data Factory Contributor"
+    }
+  ],
   "WuZcUT": [
     {
       "type": 0,
       "value": "The name must begin with a letter, end with a letter or number, and contain only letters, numbers, and hyphens. It must be 2 to 23 characters long."
+    }
+  ],
+  "WygVDv": [
+    {
+      "type": 0,
+      "value": "Administer HDInsight cluster pools."
     }
   ],
   "X192re": [
@@ -2133,6 +2469,12 @@
       "value": "Linking Grafana dashboard"
     }
   ],
+  "XJ+Lww": [
+    {
+      "type": 0,
+      "value": "Lets you read and modify HDInsight cluster configurations."
+    }
+  ],
   "XKhlZF": [
     {
       "type": 0,
@@ -2143,6 +2485,12 @@
     {
       "type": 0,
       "value": "The incident handler defines which incidents the agent should handle by applying your filter criteria, ensuring responses to the required set of incidents."
+    }
+  ],
+  "XYSJsS": [
+    {
+      "type": 0,
+      "value": "API Management Workspace Reader"
     }
   ],
   "XZ+Fx6": [
@@ -2161,6 +2509,12 @@
     {
       "type": 0,
       "value": "Updating incident handler"
+    }
+  ],
+  "XtnlO8": [
+    {
+      "type": 0,
+      "value": "Manage long-term retention backups for PostgreSQL Flexible Server."
     }
   ],
   "XvrDTb": [
@@ -2205,6 +2559,18 @@
       "value": "Date created"
     }
   ],
+  "Yk6Co7": [
+    {
+      "type": 0,
+      "value": "Cognitive Services QnA Maker Reader"
+    }
+  ],
+  "Yp7NCi": [
+    {
+      "type": 0,
+      "value": "Azure Center for SAP solutions administrator"
+    }
+  ],
   "Ys9AIu": [
     {
       "type": 0,
@@ -2221,6 +2587,18 @@
     {
       "type": 0,
       "value": "Add custom instructions"
+    }
+  ],
+  "Z7Aj91": [
+    {
+      "type": 0,
+      "value": "Manage Azure Monitor workbooks."
+    }
+  ],
+  "ZNMCbm": [
+    {
+      "type": 0,
+      "value": "Manage Logic Apps."
     }
   ],
   "ZUXvHE": [
@@ -2253,6 +2631,12 @@
       "value": "Triggered"
     }
   ],
+  "ZsLOg3": [
+    {
+      "type": 0,
+      "value": "Manage Azure OpenAI resources."
+    }
+  ],
   "ZukeYV": [
     {
       "type": 0,
@@ -2283,6 +2667,12 @@
     {
       "type": 0,
       "value": "Copy to clipboard"
+    }
+  ],
+  "aGL+Qo": [
+    {
+      "type": 0,
+      "value": "Has access to Read and Test functions under LUIS."
     }
   ],
   "aORQjS": [
@@ -2333,10 +2723,10 @@
       "value": "Failed to load resource groups."
     }
   ],
-  "apP/SY": [
+  "aqNZbD": [
     {
       "type": 0,
-      "value": "Lets you manage websites (not web plans), but not access to them."
+      "value": "Cognitive Services Language Writer"
     }
   ],
   "az0OgB": [
@@ -2349,6 +2739,12 @@
     {
       "type": 0,
       "value": "If you click 'Continue', this operation will be executed using agent identity credentials."
+    }
+  ],
+  "bN0x+w": [
+    {
+      "type": 0,
+      "value": "Device Provisioning Service Data Reader"
     }
   ],
   "bW7B87": [
@@ -2387,16 +2783,40 @@
       "value": "result"
     }
   ],
+  "c1EiBR": [
+    {
+      "type": 0,
+      "value": "Cognitive Services Usages Reader"
+    }
+  ],
   "c35gM5": [
     {
       "type": 0,
       "value": "Roles"
     }
   ],
+  "cRTR/A": [
+    {
+      "type": 0,
+      "value": "Write access to LUIS applications."
+    }
+  ],
   "cTY8WU": [
     {
       "type": 0,
       "value": "Disconnect PagerDuty?"
+    }
+  ],
+  "cTzjJg": [
+    {
+      "type": 0,
+      "value": "Storage Account Contributor"
+    }
+  ],
+  "ciB+oy": [
+    {
+      "type": 0,
+      "value": "Operate Azure Machine Learning compute resources."
     }
   ],
   "ciMXhP": [
@@ -2423,10 +2843,34 @@
       "value": "Back"
     }
   ],
+  "d2GmfJ": [
+    {
+      "type": 0,
+      "value": "Manage API Management workspaces."
+    }
+  ],
+  "d8dECB": [
+    {
+      "type": 0,
+      "value": "IoT Hub Data Reader"
+    }
+  ],
+  "dQ5/dh": [
+    {
+      "type": 0,
+      "value": "Allows for full read access to Device Provisioning Service data-plane properties."
+    }
+  ],
   "dQtJBl": [
     {
       "type": 0,
       "value": "Annotation"
+    }
+  ],
+  "dR8VUW": [
+    {
+      "type": 0,
+      "value": "Manage API Management services."
     }
   ],
   "dVx3yz": [
@@ -2453,6 +2897,18 @@
       "value": "Log Analytics Contributor"
     }
   ],
+  "e3itcX": [
+    {
+      "type": 0,
+      "value": "Device Update Administrator"
+    }
+  ],
+  "eBvTo6": [
+    {
+      "type": 0,
+      "value": "Read-only actions in the project. Readers can't create or update the project."
+    }
+  ],
   "eFKqV0": [
     {
       "type": 0,
@@ -2471,6 +2927,12 @@
       "value": "Read-only mode"
     }
   ],
+  "ecG+OD": [
+    {
+      "type": 0,
+      "value": "Manage Azure Search services."
+    }
+  ],
   "ezP+aQ": [
     {
       "type": 0,
@@ -2487,6 +2949,12 @@
     {
       "type": 0,
       "value": "Generate custom handler"
+    }
+  ],
+  "fFyuVF": [
+    {
+      "type": 0,
+      "value": "Cognitive Services Speech Contributor"
     }
   ],
   "fLkL3F": [
@@ -2559,6 +3027,12 @@
       "value": "Connects to"
     }
   ],
+  "gZ5fZs": [
+    {
+      "type": 0,
+      "value": "Manage IoT Hub device twins."
+    }
+  ],
   "gj6Qc6": [
     {
       "type": 0,
@@ -2607,6 +3081,12 @@
       "value": "Failed to disable incident handler"
     }
   ],
+  "hF5T80": [
+    {
+      "type": 0,
+      "value": "Administer Device Update accounts."
+    }
+  ],
   "hK4HcH": [
     {
       "type": 0,
@@ -2623,6 +3103,12 @@
     {
       "type": 0,
       "value": "Availability"
+    }
+  ],
+  "hPj49L": [
+    {
+      "type": 0,
+      "value": "Workbook Reader"
     }
   ],
   "hX5PAb": [
@@ -2667,6 +3153,12 @@
       "value": "Grafana resource"
     }
   ],
+  "hrdmcd": [
+    {
+      "type": 0,
+      "value": "Azure Digital Twins Data Reader"
+    }
+  ],
   "htvX+Z": [
     {
       "type": 0,
@@ -2683,6 +3175,12 @@
     {
       "type": 0,
       "value": "Container Apps Contributor"
+    }
+  ],
+  "i6cLLM": [
+    {
+      "type": 0,
+      "value": "Perform data science tasks in Azure Machine Learning."
     }
   ],
   "iDSWYk": [
@@ -2757,6 +3255,12 @@
       "value": "SRE Agent Space"
     }
   ],
+  "ixb1SP": [
+    {
+      "type": 0,
+      "value": "Administer HDInsight clusters on AKS."
+    }
+  ],
   "iyTlSa": [
     {
       "type": 0,
@@ -2767,6 +3271,12 @@
     {
       "type": 0,
       "value": "Healthy core application groups"
+    }
+  ],
+  "j5Yfyr": [
+    {
+      "type": 0,
+      "value": "Search Index Data Reader"
     }
   ],
   "jA2jt7": [
@@ -2829,6 +3339,12 @@
       "value": "State"
     }
   ],
+  "l5sNim": [
+    {
+      "type": 0,
+      "value": "AzureML Data Scientist"
+    }
+  ],
   "levHvg": [
     {
       "type": 0,
@@ -2853,6 +3369,12 @@
       "value": "This guidance helps generate the final prompt the agent uses when handling incidents. This might include additional incident context and resolution steps."
     }
   ],
+  "lvNWLS": [
+    {
+      "type": 0,
+      "value": "IoT Hub Registry Contributor"
+    }
+  ],
   "lyc2l+": [
     {
       "type": 0,
@@ -2869,6 +3391,12 @@
     {
       "type": 0,
       "value": "Choose incident type"
+    }
+  ],
+  "mAyw3x": [
+    {
+      "type": 0,
+      "value": "Edit QnA Maker knowledge bases."
     }
   ],
   "mgYBYo": [
@@ -2959,6 +3487,12 @@
       "value": "Turn on"
     }
   ],
+  "nrAnZy": [
+    {
+      "type": 0,
+      "value": "Full access to Azure Service Bus data."
+    }
+  ],
   "ns7TyW": [
     {
       "type": 0,
@@ -2981,6 +3515,12 @@
     {
       "type": 0,
       "value": "To help monitor and respond to activities and incidents in your Azure resources, the agent needs access to the specific subscriptions, resources groups, and services that you allow."
+    }
+  ],
+  "oQ/TUW": [
+    {
+      "type": 0,
+      "value": "Cost Management Contributor"
     }
   ],
   "oTNrPz": [
@@ -3059,10 +3599,28 @@
       "value": "Manage without access. Can't manage security policies or parent SQL servers."
     }
   ],
+  "pAFuFx": [
+    {
+      "type": 0,
+      "value": "HDInsight on AKS Cluster Pool Admin"
+    }
+  ],
   "pCPZnU": [
     {
       "type": 0,
       "value": "Managed resources"
+    }
+  ],
+  "pDUFq5": [
+    {
+      "type": 0,
+      "value": "App Configuration Reader"
+    }
+  ],
+  "pSfQh6": [
+    {
+      "type": 0,
+      "value": "Grants read access to Azure Cognitive Search index data."
     }
   ],
   "pT3qMe": [
@@ -3149,6 +3707,12 @@
       "value": "Active threads"
     }
   ],
+  "rZaqtB": [
+    {
+      "type": 0,
+      "value": "API Management Service Contributor"
+    }
+  ],
   "rbrahO": [
     {
       "type": 0,
@@ -3177,6 +3741,12 @@
     {
       "type": 0,
       "value": "Add incident filter"
+    }
+  ],
+  "rjgOC5": [
+    {
+      "type": 0,
+      "value": "Cognitive Services QnA Maker Editor"
     }
   ],
   "rk4tYE": [
@@ -3221,6 +3791,12 @@
       "value": "Log Analytics Reader"
     }
   ],
+  "sRb5P9": [
+    {
+      "type": 0,
+      "value": "Manage cost analysis and budgets."
+    }
+  ],
   "sVbKA0": [
     {
       "type": 0,
@@ -3255,10 +3831,28 @@
       "value": "Thread info"
     }
   ],
+  "ss/NWY": [
+    {
+      "type": 0,
+      "value": "SQL Server Contributor"
+    }
+  ],
   "swRudj": [
     {
       "type": 0,
       "value": "Hosts"
+    }
+  ],
+  "t3D4PH": [
+    {
+      "type": 0,
+      "value": "Device Update Reader"
+    }
+  ],
+  "t9I1dY": [
+    {
+      "type": 0,
+      "value": "Healthcare Agent Editor"
     }
   ],
   "tSKi9q": [
@@ -3283,6 +3877,12 @@
     {
       "type": 0,
       "value": "Status"
+    }
+  ],
+  "u0xiAh": [
+    {
+      "type": 0,
+      "value": "Cognitive Services Custom Vision Reader"
     }
   ],
   "u4hSyh": [
@@ -3363,6 +3963,12 @@
       "value": "Failed"
     }
   ],
+  "vbdOl/": [
+    {
+      "type": 0,
+      "value": "Has access to Read and Test functions under Language portal."
+    }
+  ],
   "vfndow": [
     {
       "type": 0,
@@ -3411,6 +4017,12 @@
       "value": "Failed to update the agent mode."
     }
   ],
+  "wbigtI": [
+    {
+      "type": 0,
+      "value": "Administer SAP workloads on Azure."
+    }
+  ],
   "we4Lby": [
     {
       "type": 0,
@@ -3429,10 +4041,22 @@
       "value": "Authorize repository access"
     }
   ],
+  "wxlJSs": [
+    {
+      "type": 0,
+      "value": "Manage Cognitive Services accounts."
+    }
+  ],
   "xDYr9m": [
     {
       "type": 0,
       "value": "incidents reported"
+    }
+  ],
+  "xGPsyJ": [
+    {
+      "type": 0,
+      "value": "HDInsight Cluster Operator"
     }
   ],
   "xUgb9H": [
@@ -3449,6 +4073,12 @@
     {
       "type": 0,
       "value": "Resource group name"
+    }
+  ],
+  "xXhn+h": [
+    {
+      "type": 0,
+      "value": "Lets you manage storage accounts, including accessing storage account keys which provide full access to storage account data."
     }
   ],
   "xbKhzp": [
@@ -3473,6 +4103,12 @@
       "value": "searchString"
     }
   ],
+  "xdMkcg": [
+    {
+      "type": 0,
+      "value": "Can read all monitoring data."
+    }
+  ],
   "xePyxp": [
     {
       "type": 0,
@@ -3483,6 +4119,18 @@
     {
       "type": 0,
       "value": "Search"
+    }
+  ],
+  "xmsrBu": [
+    {
+      "type": 0,
+      "value": "Operate API Management services."
+    }
+  ],
+  "xqwf/7": [
+    {
+      "type": 0,
+      "value": "IoT Hub Data Contributor"
     }
   ],
   "xrKHS6": [
@@ -3531,6 +4179,12 @@
     {
       "type": 0,
       "value": "Managed resource groups"
+    }
+  ],
+  "yo67XU": [
+    {
+      "type": 0,
+      "value": "API Management Service Operator Role"
     }
   ],
   "yoK+he": [

@@ -10,8 +10,7 @@ import {
     SreAgentParameterName as ParamName,
     ResourceTypes,
 } from '../ArmTemplateBuilder/ArmTemplateTypes';
-import { PermissionIdToNameMap, PermissionPrincipalType } from '../Contracts/Azure/Permission';
-
+import { PermissionPrincipalType, RBACRoleIdToNameMap } from '../Contracts/Azure/Permission';
 interface RbacFragment {
     roleDefinitionId: string;
     principalId: string;
@@ -21,22 +20,16 @@ interface RbacFragment {
 interface RoleAssignmentOptions {
     deploymentGuid: string;
     roleDefinitionIds: string[];
+    resourceGroupName: string;
+    subscriptionId: string;
 }
 
 export class RoleAssignmentTemplateResource extends ArmTemplateResource<object> {
     get type() {
-        return `${ArmServiceType.SiteRbac}`;
+        return `${ArmServiceType.SiteRbac}-${this._options.resourceGroupName}`;
     }
 
     parameters: Record<string, ArmTemplateParameter> = {
-        [ParamName.ResourceGroups]: {
-            type: 'array',
-            defaultValue: [],
-        },
-        [ParamName.Subscriptions]: {
-            type: 'array',
-            defaultValue: [],
-        },
         [ParamName.UserIdentityName]: {
             type: 'string',
             defaultValue: '',
@@ -58,10 +51,10 @@ export class RoleAssignmentTemplateResource extends ArmTemplateResource<object> 
         return {
             type: ResourceTypes.ResourceDeploymentType,
             apiVersion: ApiVersions.ArmApiVersion20210401,
-            name: `[concat(substring(parameters('${ParamName.ResourceGroups}')[copyIndex()], 0, min(34, length(parameters('${ParamName.ResourceGroups}')[copyIndex()]))), '-roleAssignments-', '${this._options.deploymentGuid}')]`,
+            name: `[concat(substring('${this._options.resourceGroupName}', 0, min(34, length('${this._options.resourceGroupName}'))), '-roleAssignments-', '${this._options.deploymentGuid}')]`,
             dependsOn: this.dependsOn,
-            subscriptionId: `[parameters('${ParamName.Subscriptions}')[copyIndex()]]`,
-            resourceGroup: `[parameters('${ParamName.ResourceGroups}')[copyIndex()]]`,
+            subscriptionId: this._options.subscriptionId,
+            resourceGroup: this._options.resourceGroupName,
             properties: {
                 mode: 'Incremental',
                 template: {
@@ -70,22 +63,18 @@ export class RoleAssignmentTemplateResource extends ArmTemplateResource<object> 
                     resources: this._getTemplate(),
                 },
             },
-            copy: {
-                name: 'roleAssignmentLoop',
-                count: `[length(parameters('${ParamName.ResourceGroups}'))]`,
-            },
         };
     }
 
     _getPermissionName(roleDefinitionId: string): string {
-        return PermissionIdToNameMap[roleDefinitionId] ?? '';
+        return RBACRoleIdToNameMap[roleDefinitionId] ?? '';
     }
 
     _getTemplate(): ArmTemplateResourceFragment<RbacFragment>[] {
         return this._options.roleDefinitionIds.map(roleDefinitionId => {
             return {
                 apiVersion: ApiVersions.RbacApiVersion,
-                name: `[guid('${this._getPermissionName(roleDefinitionId)}', parameters('${ParamName.ResourceGroups}')[copyIndex()], '${this._options.deploymentGuid}', '${roleDefinitionId}')]`,
+                name: `[guid('${this._getPermissionName(roleDefinitionId)}', '${this._options.resourceGroupName}', '${this._options.deploymentGuid}', '${roleDefinitionId}')]`,
                 type: ArmServiceType.SiteRbac,
                 location: `[parameters('${ArmTemplateParameterName.Location}')]`,
                 properties: {

@@ -1,8 +1,29 @@
 import { ApiVersions } from '../ApiVersions';
 import AzPortalProxy from '../AzPortalProxy/AzPortalProxy';
+import { ArmResourceDescriptor } from '../Helpers/ResourceDescriptors';
 import MakeArmCall, { ARGRequestContent, ARGResponse } from './ArmClient';
 
 export class ResourceGroupClient {
+    private static extractResourceGroupNamesAndSubscriptionIds(resourceGroupIds: string[]): {
+        resourceGroupNames: string[];
+        subscriptionIds: string[];
+    } {
+        const resourceGroupNames: string[] = [];
+        const subscriptionIds: string[] = [];
+
+        resourceGroupIds.forEach(resourceGroupId => {
+            const { subscription, resourceGroup } = new ArmResourceDescriptor(resourceGroupId);
+            if (subscription && resourceGroup) {
+                resourceGroupNames.push(resourceGroup);
+                if (!subscriptionIds.includes(subscription)) {
+                    subscriptionIds.push(subscription);
+                }
+            }
+        });
+
+        return { resourceGroupNames, subscriptionIds };
+    }
+
     public static getResourcesGroupsFromArg(
         subscriptions: string[],
         portalContext: AzPortalProxy,
@@ -43,6 +64,76 @@ export class ResourceGroupClient {
                 });
                 return [];
             }
+        });
+    }
+
+    public static listResourceKindsInResourceGroups(
+        resourceGroupIds: string[],
+        apiVersion = ApiVersions.argQueryApiVersion20200401Preview
+    ) {
+        const { resourceGroupNames, subscriptionIds } = this.extractResourceGroupNamesAndSubscriptionIds(resourceGroupIds);
+
+        const resourceGroupNamesLower = resourceGroupNames.map(name => `'${name.toLowerCase()}'`).join(', ');
+        const query = `
+            where type != ""
+            | where tolower(resourceGroup) in~ (${resourceGroupNamesLower})
+            | project type, resourceGroupId = strcat('/subscriptions/', subscriptionId, '/resourceGroups/', resourceGroup)
+            | summarize by resourceGroupId, type
+          `;
+
+        const content: ARGRequestContent = {
+            query,
+            subscriptions: subscriptionIds,
+        };
+
+        return MakeArmCall<ARGResponse, ARGRequestContent>({
+            method: 'POST',
+            url: `/providers/Microsoft.ResourceGraph/resources?api-version=${apiVersion}`,
+            body: content,
+            commandName: 'listResourceKindsInResourceGroups',
+        }).then(response => {
+            const results: Record<string, string[]> = {};
+            if (response?.data?.data?.rows[0]) {
+                response.data.data.rows.forEach(row => {
+                    const resourceGroupId = row[0];
+                    const type = row[1];
+
+                    if (!results[resourceGroupId]) {
+                        results[resourceGroupId] = [];
+                    }
+                    results[resourceGroupId].push(type);
+                });
+            }
+            return results;
+        });
+    }
+
+    public static listAllResourcesInResourceGroups(resourceGroupIds: string[], apiVersion = ApiVersions.argQueryApiVersion20200401Preview) {
+        const { resourceGroupNames, subscriptionIds } = this.extractResourceGroupNamesAndSubscriptionIds(resourceGroupIds);
+
+        const resourceGroupNamesLower = resourceGroupNames.map(name => `'${name.toLowerCase()}'`).join(', ');
+        const query = `
+            where tolower(resourceGroup) in~ (${resourceGroupNamesLower})
+            | summarize by type
+          `;
+        const content: ARGRequestContent = {
+            query,
+            subscriptions: subscriptionIds,
+        };
+
+        return MakeArmCall<ARGResponse, ARGRequestContent>({
+            method: 'POST',
+            url: `/providers/Microsoft.ResourceGraph/resources?api-version=${apiVersion}`,
+            body: content,
+            commandName: 'listAllResourcesInResourceGroups',
+        }).then(response => {
+            const resourceTypes: string[] = [];
+            if (response?.data?.data?.rows[0]) {
+                response.data.data.rows.forEach(row => {
+                    resourceTypes.push(row[0]);
+                });
+            }
+            return resourceTypes;
         });
     }
 }

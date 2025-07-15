@@ -9,7 +9,7 @@ import AzPortalProxy from '../Common/AzPortalProxy/AzPortalProxy';
 import { AzPortalContext } from '../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { AppInsightsClient } from '../Common/Clients/AppInsightsClient';
-import { IncidentManagementType } from '../Common/Contracts/Azure/SreAgent';
+import { AgentAccessLevel, IncidentManagementType } from '../Common/Contracts/Azure/SreAgent';
 import { ArmResourceDescriptor } from '../Common/Helpers/ResourceDescriptors';
 import { SreAgentTabResources } from '../Strings/SREAgentResources';
 import Activities from './Activities/Activities.ReactView';
@@ -47,7 +47,7 @@ const TabsListWrapper: FC = () => {
 
     const {
         incidentManagement: { isIncidentManagementConnected },
-        agent: { setMode },
+        agent: { setMode, setAccessLevel },
     } = sreAgentContext;
     const intl = useIntl();
     const location = useLocation();
@@ -135,8 +135,9 @@ const TabsListWrapper: FC = () => {
         if (agent && !inStandaloneMode) {
             fetchAppInsightsId();
             setMode(agent.properties.actionConfiguration?.mode ?? '');
+            setAccessLevel(agent.properties.actionConfiguration?.accessLevel ?? AgentAccessLevel.low);
         }
-    }, [agent, fetchAppInsightsId, setMode]);
+    }, [agent, fetchAppInsightsId, setAccessLevel, setMode]);
 
     useEffect(() => {
         if (inStandaloneMode) {
@@ -220,6 +221,7 @@ const SREAgentSpace: FC = () => {
     const [isIncidentManagementConnected, setIsIncidentManagementConnected] = useState(false);
     const [hasFilters, setHasFilters] = useState(false);
     const [agentMode, setAgentMode] = useState<string>('');
+    const [agentAccessLevel, setAgentAccessLevel] = useState<AgentAccessLevel>(AgentAccessLevel.low);
 
     useEffect(() => {
         const logSiteVersion = () => {
@@ -260,6 +262,8 @@ const SREAgentSpace: FC = () => {
                 agent: {
                     mode: agentMode,
                     setMode: setAgentMode,
+                    accessLevel: agentAccessLevel,
+                    setAccessLevel: setAgentAccessLevel,
                 },
             }}
         >

@@ -1,4 +1,5 @@
 import { createContext } from 'react';
+import { AgentAccessLevel } from '../../Common/Contracts/Azure/SreAgent';
 import { MessageRequestType, StreamingMessage } from '../../Common/Contracts/Azure/Streaming';
 import { AgentContextProps, ChatMessage } from './Activities';
 
@@ -20,6 +21,8 @@ type SreAgentContextProps = {
     agent: {
         mode: string;
         setMode: React.Dispatch<React.SetStateAction<string>>;
+        accessLevel: AgentAccessLevel;
+        setAccessLevel: React.Dispatch<React.SetStateAction<AgentAccessLevel>>;
     };
 };
 
@@ -68,6 +71,8 @@ export const SreAgentContext = createContext<SreAgentContextProps>({
     agent: {
         mode: '',
         setMode: () => {},
+        accessLevel: AgentAccessLevel.low,
+        setAccessLevel: () => {},
     },
 });
 

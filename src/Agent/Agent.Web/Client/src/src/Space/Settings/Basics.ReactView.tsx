@@ -68,7 +68,7 @@ const Basics: FC = () => {
             detailBladeInputs: { id: `/subscriptions/${subscriptionGuid}/resourcegroups/${resourceGroup}` },
             extension: 'HubsExtension',
         });
-    }, [az, subscriptionGuid]);
+    }, [az, resourceGroup, subscriptionGuid]);
 
     const openManagedIdentity = useCallback(() => {
         az.openBlade({

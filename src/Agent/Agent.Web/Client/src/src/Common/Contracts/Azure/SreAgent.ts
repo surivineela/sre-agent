@@ -28,6 +28,11 @@ export enum AgentMode {
 }
 
 export enum AgentAccessLevel {
+    low = 'Low',
+    high = 'High',
+}
+
+export enum LowercaseAgentAccessLevel {
     low = 'low',
     high = 'high',
 }

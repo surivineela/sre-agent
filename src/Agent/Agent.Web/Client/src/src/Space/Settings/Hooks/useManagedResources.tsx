@@ -12,11 +12,12 @@ import AzPortalProxy from '../../../Common/AzPortalProxy/AzPortalProxy';
 import { getErrorMessage } from '../../../Common/Clients/ArmClient';
 import { DeploymentClient } from '../../../Common/Clients/DeploymentClient';
 import { IdentityClient } from '../../../Common/Clients/IdentityClient';
+import { ResourceGroupClient } from '../../../Common/Clients/ResourceGroupClient';
 import SreAgentClient from '../../../Common/Clients/SreAgentClient';
 import { ProvisioningStates } from '../../../Common/Constants/Arm';
 import { ArmObj } from '../../../Common/Contracts/Azure/ArmObj';
-import { PermissionIds } from '../../../Common/Contracts/Azure/Permission';
-import { AgentMode } from '../../../Common/Contracts/Azure/SreAgent';
+import { CoreRBACRoleIds, getRoleIdsForResourceGroup } from '../../../Common/Contracts/Azure/Permission';
+import { AgentAccessLevel } from '../../../Common/Contracts/Azure/SreAgent';
 import { getUserFriendlyLocation } from '../../../Common/Helpers/LocationHelper';
 import { ArmResourceDescriptor } from '../../../Common/Helpers/ResourceDescriptors';
 import { ManagedResourcesStringResources } from '../../../Strings/SREAgentResources';
@@ -39,36 +40,10 @@ export interface Location {
     type?: 'EdgeZone' | 'Region';
 }
 
-const corePermissions = [
-    PermissionIds.azureMonitorMonitoringContributor,
-    PermissionIds.applicationInsightsComponentContributor,
-    PermissionIds.logAnalyticsContributor,
-    PermissionIds.websitesContributor,
-    PermissionIds.redisCacheContributor,
-    PermissionIds.sqlDbContributor,
-    PermissionIds.storageBlobDataContributor,
-    PermissionIds.documentDbAccountContributor,
-];
-
-const reviewOrAutonomousPermissions = [
-    PermissionIds.contributor,
-    PermissionIds.webPlanContributor,
-    PermissionIds.containerAppsContributor,
-    PermissionIds.azureKubernetesServiceClusterAdmin,
-    PermissionIds.azureKubernetesServiceRbacClusterAdmin,
-];
-
-const readOnlyPermissions = [
-    PermissionIds.reader,
-    PermissionIds.containerAppsOperator,
-    PermissionIds.azureKubernetesServiceRbacReader,
-    PermissionIds.azureKubernetesServiceClusterUser,
-];
-
 export function useManagedResources(resourceId: string, portalContext: AzPortalProxy) {
     const { agentLoaded, agent, refresh } = useSreAgent(resourceId);
     const { agent: agentContext } = useContext(SreAgentContext);
-    const { mode } = agentContext;
+    const { accessLevel } = agentContext;
     const styles = useManagedResourcesStyles();
     const intl = useIntl();
 
@@ -199,7 +174,7 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
     }, [resourceGroupsList]);
 
     const getParameters = useCallback(
-        (selectedResourceGroups: ResourceGroup[], identity: ArmObj<Identity> | undefined) => {
+        (identity: ArmObj<Identity> | undefined) => {
             const { subscription, resourceGroup } = new ArmResourceDescriptor(agent?.id ?? '');
 
             const parameters: Record<string, any> = {};
@@ -212,15 +187,6 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
             parameters[ArmTemplateParameterName.ResourceGroupName] = {
                 value: resourceGroup,
             };
-            parameters[SreAgentParameterName.ResourceGroups] = {
-                value: selectedResourceGroups.map((resourceGroup: ResourceGroup) => resourceGroup.name),
-            };
-            parameters[SreAgentParameterName.Subscriptions] = {
-                value: selectedResourceGroups.map((resourceGroup: ResourceGroup) => {
-                    const { subscription } = new ArmResourceDescriptor(resourceGroup.id);
-                    return subscription;
-                }),
-            };
             parameters[SreAgentParameterName.UserIdentityName] = {
                 value: identity?.name || '',
             };
@@ -229,26 +195,64 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
         [agent?.id, agent?.location]
     );
 
-    const getTemplate = useCallback(
-        (dateTime: string) => {
-            const permissions = [...corePermissions];
-            if (mode === AgentMode.autonomous || mode === AgentMode.review) {
-                permissions.push(...reviewOrAutonomousPermissions);
-            } else {
-                permissions.push(...readOnlyPermissions);
-            }
+    const getRoleIdsForManagedResourceGroups = useCallback(
+        async (resourceGroupIds: string[], accessLevel: AgentAccessLevel) => {
+            const resourceGroupIdToRoleIds: Record<string, string[]> = {};
 
+            try {
+                const resourceGroupIdToResourceTypes = await ResourceGroupClient.listResourceKindsInResourceGroups(resourceGroupIds);
+                for (const resourceGroupId of resourceGroupIds) {
+                    const resourceTypes = resourceGroupIdToResourceTypes[resourceGroupId] ?? [];
+                    const roleIds = getRoleIdsForResourceGroup(resourceTypes, accessLevel);
+                    resourceGroupIdToRoleIds[resourceGroupId] = roleIds;
+                }
+            } catch (error) {
+                portalContext.log({
+                    action: 'getRoleIdsForManagedResourceGroups',
+                    actionModifier: 'failed',
+                    resourceId,
+                    logLevel: 'error',
+                    data: {
+                        message: `Failed to get role IDs for managed resource groups: ${getErrorMessage(error)}`,
+                    },
+                });
+                for (const resourceGroupId of resourceGroupIds) {
+                    resourceGroupIdToRoleIds[resourceGroupId] = [...CoreRBACRoleIds];
+                }
+            }
+            return resourceGroupIdToRoleIds;
+        },
+        [portalContext, resourceId]
+    );
+
+    const getTemplate = useCallback(
+        async (selectedResourceGroups: ResourceGroup[], dateTime: string) => {
             const builder = new ArmTemplateBuilder();
-            const roleAssignmentTemplateResource = new RoleAssignmentTemplateResource(builder, {
-                roleDefinitionIds: permissions,
-                deploymentGuid: dateTime,
+            const resourceGroupIdToRoleIds = await getRoleIdsForManagedResourceGroups(
+                (selectedResourceGroups ?? []).map(rg => rg.id),
+                accessLevel
+            );
+
+            // Create one RoleAssignmentTemplateResource for each new resource group with its specific roles
+            Object.entries(resourceGroupIdToRoleIds).forEach(([resourceGroupId, roleIds]) => {
+                if (roleIds.length > 0) {
+                    const { subscription, resourceGroup } = new ArmResourceDescriptor(resourceGroupId);
+                    if (resourceGroup && subscription) {
+                        const roleAssignmentTemplateResource = new RoleAssignmentTemplateResource(builder, {
+                            roleDefinitionIds: roleIds,
+                            resourceGroupName: resourceGroup,
+                            subscriptionId: subscription,
+                            deploymentGuid: dateTime,
+                        });
+                        builder.addResource(roleAssignmentTemplateResource);
+                    }
+                }
             });
-            builder.addResource(roleAssignmentTemplateResource);
             const template = builder.getTemplate();
 
             return template;
         },
-        [mode]
+        [accessLevel, getRoleIdsForManagedResourceGroups]
     );
 
     const getDeploymentResourceId = useCallback(
@@ -296,8 +300,8 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
             const identity = await IdentityClient.getManagedUserIdentity(agent?.properties.knowledgeGraphConfiguration?.identity ?? '');
 
             const dateTime = `${new Date().getTime()}`;
-            const template = getTemplate(dateTime);
-            const parameters = getParameters(selectedResourceGroups, identity);
+            const template = await getTemplate(selectedResourceGroups, dateTime);
+            const parameters = getParameters(identity);
             const deploymentResourceId = getDeploymentResourceId(dateTime);
             setDeploymentId(deploymentResourceId);
             const roleAssignmentsPromise = DeploymentClient.createNewDeployment(deploymentResourceId, template, parameters, true);
