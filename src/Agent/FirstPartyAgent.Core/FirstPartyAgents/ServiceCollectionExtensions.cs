@@ -58,7 +58,7 @@ public static class ServiceCollectionExtensions
         builder.Services.AddOptionsWithValidateOnStart<AzureSearchSettings>()
             .BindConfiguration("AppSettings:Core:External:AzureSearch")
             .ValidateDataAnnotations();
-        builder.Services.AddOptionsWithValidateOnStart<Agent.Plugins.Kusto.KustoSettings>()
+        builder.Services.AddOptionsWithValidateOnStart<KustoSettings>()
             .BindConfiguration("AppSettings:Core:External:Kusto")
             .ValidateDataAnnotations();
 
