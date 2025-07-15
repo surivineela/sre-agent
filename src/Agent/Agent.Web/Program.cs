@@ -145,17 +145,19 @@ public class Program
             app.UseHsts();
         }
 
+        app.UseHttpsRedirection();
+        app.UseRouting();
+
         // Add CORS support for Azure Portal domains
         app.UseCors(x => x.WithOrigins(GetAzurePortalDomains(app.Configuration))
                           .AllowAnyHeader()
+                          .AllowAnyMethod()
                           .AllowCredentials()
                           .SetIsOriginAllowedToAllowWildcardSubdomains());
 
-        app.UseHttpsRedirection();
         // Serve static files from wwwroot
         app.UseDefaultFiles();
         app.UseStaticFiles();
-        app.UseRouting();
 
         app.MapControllers();
         app.MapBlazorHub();
@@ -1100,16 +1102,16 @@ public class Program
         if (builder.Environment.IsDevelopment())
         {
             builder.Logging.AddConsole();
-            
+
             // Add file logging if enabled in configuration
             var loggingSettings = builder.Configuration.GetSection("Logging").Get<LoggingSettings>();
             if (loggingSettings?.EnableFileLogging == true)
             {
                 // Parse rolling interval from string
-                var rollingInterval = Enum.TryParse<RollingInterval>(loggingSettings.RollingInterval, true, out var interval) 
-                    ? interval 
+                var rollingInterval = Enum.TryParse<RollingInterval>(loggingSettings.RollingInterval, true, out var interval)
+                    ? interval
                     : RollingInterval.Day;
-                
+
                 // Create a separate Serilog logger for file output only
                 var fileLogger = new LoggerConfiguration()
                     .WriteTo.File(
@@ -1121,7 +1123,7 @@ public class Program
                         outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
                     .MinimumLevel.Information()
                     .CreateLogger();
-                    
+
                 // Add Serilog as an additional provider, not replacing the existing ones
                 builder.Logging.AddSerilog(fileLogger, dispose: true);
             }
