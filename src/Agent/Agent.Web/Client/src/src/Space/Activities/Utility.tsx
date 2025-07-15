@@ -241,7 +241,7 @@ export const processChatMessageContents = (
                       : approval.status === 2
                         ? ApprovalDecision.Cancelled
                         : approval.status === 3
-                          ? ApprovalDecision.Pending
+                          ? ApprovalDecision.PendingAuthorization
                           : ApprovalDecision.Authorized,
         };
     }
