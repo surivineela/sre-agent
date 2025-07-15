@@ -30,7 +30,7 @@ public sealed class DefaultAgentOutput : IAgentOutput
         Current state of execution. Your internal evaluation of where you're at. The allowed values are:
         - Processing: Still doing my part. This should be followed by tool calls. They should NOT be handoffs ie transfer_to_* or HandOffBack.
         - UserInputRequired: User needs to select from few options or give approval.
-        - HandOff_Continue: I did my part of request processing. Continue with next relevant agent. This should be followed by transfer_to_* tool call.
+        - HandOff_Continue: I did my part of request processing and MY part is done but the overall user request still needs work. Continue with next relevant agent. This should **always** be followed by transfer_to_* tool call.
         - HandOff_OutOfScope: The request is out of my scope. Please find the right agent. This should be followed by HandOffBack tool call.
         - CompletedSuccessfully: User request completed successfully. This should be followed by a transfer_to_meta_agent to verify your work.
         - RequestFailed: Failed to process user request. This should be followed by a transfer_to_meta_agent with clear explanation of what failed and what guidance is needed.

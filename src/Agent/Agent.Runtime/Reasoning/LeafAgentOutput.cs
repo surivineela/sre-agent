@@ -28,7 +28,7 @@ public sealed class LeafAgentOutput : IAgentOutput
         Current state of execution. Your internal evaluation of where you're at. The allowed values are:
         - Processing: Still doing my part. This should be followed by tool calls. They should NOT be HandOffBack tool call.
         - UserInputRequired: User needs to select from few options or give approval.
-        - HandOff_Continue: I did my part of request processing. Continue with next relevant agent. This should be followed by HandOffBack tool call.
+        - HandOff_Continue: I did my part of request processing and MY part is done but the overall user request still needs work. Continue with next relevant agent. This should **always** be followed by HandOffBack tool call.
         - HandOff_OutOfScope: I do not have any role in processing the request. Please find the right agent. This should be followed by HandOffBack tool call.
         - CompletedSuccessfully: User request completed successfully. This should be followed by a HandOffBack tool call so further agents may verify your work.
         """)]

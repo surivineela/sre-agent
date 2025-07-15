@@ -28,7 +28,7 @@ public sealed class MetaAgentOutput : IAgentOutput
         """
         Current state of execution. Your internal evaluation of where you're at. The allowed values are:
         - UserInputRequired: User needs to select from few options or give approval.
-        - HandOff_Continue: Continue with next relevant agent. This should be followed by transfer_to_* tool call clearly specifying the subtask for the next agent.
+        - HandOff_Continue: Continue with next relevant agent when YOUR part is done but the overall user request still needs work. This should be **always** followed by transfer_to_* tool call clearly specifying the subtask for the next agent.
         - CompletedSuccessfully: User request completed successfully. Clearly state the summary of your actions and final result in notifyUserMessage.
         - RequestFailed: You failed to solve the user query, or only solved partially. Clearly state the summary of your actions, why you failed and what help / guidance you need from user in notifyUserMessage.
         """)]
