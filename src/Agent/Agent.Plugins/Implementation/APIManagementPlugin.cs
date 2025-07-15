@@ -1125,6 +1125,57 @@ namespace Agent.Plugins.Implementation
             metricsData.SpikeCount = metricsData.SpikePoints.Count;
         }
 
+        public async Task<string> ScaleAPIMInstanceAsync(string apimResourceId, int newUnitCount)
+        {
+            _logger.LogInternalInformation($"[ScaleApiManagementInstanceAsync] Invoked with resourceId: {apimResourceId}, newUnitCount: {newUnitCount}");
+
+            try
+            {
+                var armClient = await _armClientFactory.GetArmOperationClient();
+                var apimServiceResource = armClient.GetApiManagementServiceResource(new ResourceIdentifier(apimResourceId));
+
+                // Get the current configuration
+                var apim = await apimServiceResource.GetAsync();
+                var currentData = apim.Value.Data;
+                int oldUnitCount = currentData.Sku.Capacity;
+                string skuName = currentData.Sku.Name.ToString();
+
+                _logger.LogInternalInformation($"Current SKU: {skuName}, Current Unit Count: {oldUnitCount}, Requested Unit Count: {newUnitCount}");
+
+                if (oldUnitCount == newUnitCount)
+                {
+                    return $"No scaling needed. API Management instance is already at {oldUnitCount} units.";
+                }
+
+                // Prepare the patch object
+                var patch = new ApiManagementServicePatch
+                {
+                    Sku = new ApiManagementServiceSkuProperties(currentData.Sku.Name, newUnitCount)
+                };
+
+                // Update the APIM instance using PATCH
+                var updateOp = await apimServiceResource.UpdateAsync(WaitUntil.Completed, patch);
+                var updated = await apimServiceResource.GetAsync();
+                int afterUnitCount = updated.Value.Data.Sku.Capacity;
+
+                _logger.LogInternalInformation($"Scaling operation completed. Unit count after scaling: {afterUnitCount}");
+
+                if (afterUnitCount == newUnitCount)
+                {
+                    return $"Successfully scaled API Management instance from {oldUnitCount} to {afterUnitCount} units.";
+                }
+                else
+                {
+                    return $"Scaling operation completed, but unit count is {afterUnitCount} (expected {newUnitCount}).";
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, $"Error in ScaleApiManagementInstanceAsync for {apimResourceId} with newUnitCount {newUnitCount}");
+                return $"Failed to scale API Management instance: {ex.Message}";
+            }
+        }
+
         #endregion
 
         #region APIM Connected Resource Helpers

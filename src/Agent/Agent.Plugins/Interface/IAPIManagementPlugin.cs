@@ -46,5 +46,7 @@ namespace Agent.Plugins.Interface
         Task<ApiOperationPolicyResource> GetPoliciesByOperationAsync(string apiManagementResourceId, string apiName, string operationId);
 
         Task<ApiManagementPolicyResource> GetGlobalApimPolicyAsync(string apiManagementResourceId);
+
+        Task<string> ScaleAPIMInstanceAsync(string apimResourceId, int newUnitCount);
     }
 }

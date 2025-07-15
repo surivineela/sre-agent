@@ -302,5 +302,22 @@ namespace Agent.Plugins.Definitions
         }
 
         #endregion
+
+        #region CPU and Latency - Remediation
+
+        [RequiresApproval("Your approval is required before I scale your API Management Instance. Please confirm to proceed.")]
+        [Description(
+           "Scales the specified Azure API Management instance to a new unit count. " +
+           "Returns a string report summarizing the scaling operation, including the old and new unit counts, SKU, and any errors encountered. " +
+           "Use this to increase or decrease the capacity of an APIM instance. " +
+           "MANDATORY: Before using this method, you must tell the user their current capacity and ask them what they'd like to scale to.")]
+        public async Task<string> ScaleAPIMInstanceAsync(
+           [Description("Full Azure resource ID of the API Management instance (e.g. /subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.ApiManagement/service/{serviceName})")] string apimResourceId,
+           [Description("The new unit count to scale the APIM instance to. Must be a positive integer.")] int newUnitCount)
+        {
+            return await _apiManagementPlugin.ScaleAPIMInstanceAsync(apimResourceId, newUnitCount);
+        }
+
+        #endregion
     }
 }
