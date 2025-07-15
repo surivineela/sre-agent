@@ -3,6 +3,7 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Newtonsoft.Json;
 using System.ComponentModel;
+using System.Text;
 using Agent.Core.Services;
 using Agent.Core.Helpers;
 using Agent.Core.Models.ICM;
@@ -12,6 +13,7 @@ using Microsoft.Extensions.AI;
 using ChatMessageContent = Microsoft.SemanticKernel.ChatMessageContent;
 using TextContent = Microsoft.SemanticKernel.TextContent;
 using Agent.Plugins.Interface;
+using Microsoft.OData.UriParser;
 
 namespace Agent.Plugins.Implementation;
 public class ICMPlugin : IICMPlugin
@@ -110,6 +112,132 @@ public class ICMPlugin : IICMPlugin
         //kernel.Data["incidentDetails"] = incident;
         await SetupIncidentProcessing(incidentId, incident);
         return incident;
+    }
+
+    public async Task<string> GetParametersFromIncident(string incidentId, string instruction)
+    {
+        var logMessage = $"[{nameof(ICMPlugin)}_{nameof(GetParametersFromIncident)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
+        _logger.LogInternalInformation(logMessage);
+
+        try
+        {
+            // 1. Get incident information
+            var incident = await _icmApiClient.GetIncidentAsync(incidentId);
+            if (incident == null)
+            {
+                return JsonConvert.SerializeObject(new
+                {
+                    error = "Incident not found",
+                    incidentId = incidentId
+                }, Formatting.Indented);
+            }
+
+            // 2. Get discussion information
+            var discussionEntries = await _icmApiClient.GetIncidentDiscussionEntriesAsync(incidentId);
+
+            // 3. Process summary (including image processing)
+            var processedSummary = await ProcessComplexICMContent(incident.Summary, !ProcessImages);
+            
+            // 4. Convert summary to Markdown
+            var summaryMarkdown = IcmHelper.ConvertToMarkDown(processedSummary);
+
+            // 5. Process discussions and convert to Markdown
+            var discussionMarkdown = new StringBuilder();
+            if (discussionEntries != null && discussionEntries.Any())
+            {
+                foreach (var entry in discussionEntries)
+                {
+                    var entryText = entry.Text;
+                    
+                    // Process images if content is HTML
+                    if (entry.IsHtml)
+                    {
+                        entryText = await ProcessComplexICMContent(entryText, !ProcessImages);
+                    }
+                    
+                    // Convert to Markdown
+                    var entryMarkdown = IcmHelper.ConvertToMarkDown(entryText);
+                    
+                    discussionMarkdown.AppendLine($"## Discussion Entry - {entry.Date:yyyy-MM-dd HH:mm:ss} UTC");
+                    discussionMarkdown.AppendLine($"**Author:** {entry.ChangedBy}");
+                    discussionMarkdown.AppendLine();
+                    discussionMarkdown.AppendLine(entryMarkdown);
+                    discussionMarkdown.AppendLine();
+                    discussionMarkdown.AppendLine("---");
+                    discussionMarkdown.AppendLine();
+                }
+            }
+
+            // 6. Create prompt template
+            var prompt = $@"
+You are an expert at extracting parameters from ICM (Incident Communication Manager) incidents for RCA (Root Cause Analysis) investigations.
+
+**Instruction:** {instruction}
+
+**Incident Information:**
+- Incident ID: {incident.IncidentId}
+- Title: {incident.Title}
+- Create Date: {incident.CreatedDate:yyyy-MM-dd HH:mm:ss} UTC
+- Status: {incident.Status}
+- Severity: {incident.Severity}
+- Owning Team: {incident.OwningTeam}
+- Cloud Instance: {incident.CloudInstance}
+
+**Incident Summary:**
+{summaryMarkdown}
+
+**Discussion Entries:**
+{discussionMarkdown}
+
+**Task:**
+Based on the incident information provided above, extract the parameters requested in the instruction. 
+Return the results in a structured JSON format that can be easily parsed by the calling application.
+
+If any requested parameter cannot be found in the incident data, indicate this clearly in your response.
+Focus on extracting accurate timestamps, resource names, and other technical details that would be useful for RCA analysis.
+
+**Response Format:**
+Return a JSON object with the extracted parameters. Use clear, descriptive property names.
+
+Example structure:
+```json
+{{
+  ""incidentId"": ""{incident.IncidentId}"",
+  ""title"": ""{incident.Title}"",
+  ""startTime"": ""extracted start time if available"",
+  ""endTime"": ""extracted end time if available"",
+  ""siteName"": ""extracted site name if available"",
+  ""eventPrimaryStampName"": ""extracted stamp name if available"",
+  ""functionName"": ""extracted function name if available"",
+  ""additionalParameters"": {{
+    ""key"": ""value""
+  }}
+}}
+```
+";
+
+            // 7. Send request to LLM
+            var history = new ChatHistory();
+            history.AddUserMessage(prompt);
+            
+            var result = await _chatCompletionService.GetChatMessageContentAsync(
+                history,
+                executionSettings: new()
+                {
+                    FunctionChoiceBehavior = FunctionChoiceBehavior.None()
+                });
+
+            return result.Content ?? "Error: No response from LLM";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error extracting parameters from incident {IncidentId}", incidentId);
+            return JsonConvert.SerializeObject(new
+            {
+                error = $"Error: {ex.Message}",
+                incidentId = incidentId
+            }, Formatting.Indented);
+        }
     }
 
     [KernelFunction("get_icm_custom_fields")]

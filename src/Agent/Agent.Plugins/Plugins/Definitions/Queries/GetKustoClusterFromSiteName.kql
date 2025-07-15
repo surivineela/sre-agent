@@ -1,10 +1,34 @@
-let siteName = "##siteName##";
-let abbreviation = All("AntaresAnalyticsEvents")
-| where PreciseTimeStamp > ago(2h)
-| where RuntimeSiteName == siteName
-| parse EventPrimaryStampName with "waws-prod-" abbreviation "-" *
-| project abbreviation
+let _siteName = "##siteName##";
+let _eventPrimary01 = All("AntaresIISLogFrontEndTable")
+| where S_sitename == _siteName
+| project EventPrimaryStampName
 | take 1;
-GetRegions
-| where AntaresAbbreviation in (abbreviation)
-| project KustoCluster
+let _eventPrimary02 = All("ScaleControllerEvents")
+| where SiteName == _siteName
+| project EventPrimaryStampName
+| take 1;
+let rowId = All("AntaresReadOnlyViews")
+| where ColumnValue == _siteName
+| where SqlCommand == "SELECT * FROM  [runtime].[view_Sites]"
+| take 1
+| project RowId;
+let _eventPrimary03 = All("AntaresReadOnlyViews")
+| where RowId in (rowId)
+| where ColumnName == "HomeStamp"
+| project ColumnName, ColumnValue
+| take 1
+| project EventPrimaryStampName = ColumnValue;
+let _antaresStamp = union _eventPrimary01, _eventPrimary02, _eventPrimary03
+| take 1
+| project EventPrimaryStampName;
+let _parsed = _antaresStamp
+| parse EventPrimaryStampName with "waws-prod-" abbreviation "-" *
+| project abbreviation, EventPrimaryStampName;
+let _abbrebviation = _parsed
+| project abbreviation;
+let _region = GetRegions()
+| where AntaresAbbreviation in (_abbrebviation)
+| take 1;
+_parsed
+| join kind=inner (_region) on $left.abbreviation == $right.AntaresAbbreviation
+| project EventPrimaryStampName, KustoCluster

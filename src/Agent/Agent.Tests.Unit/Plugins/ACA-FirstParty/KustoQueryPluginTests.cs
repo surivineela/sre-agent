@@ -92,6 +92,7 @@ namespace Agent.Tests.Unit.Plugins
                     "GetColdStartStatusByStage.kql",
                     "GetRequestGeneralInfoQueryFromAnalytics.kql",
                     "GetRequestGeneralInfoQueryFromWaws.kql",
+                    "GetSyncTriggersFromSiteName.kql"
                 };
 
             var invalidColumnsSummary = new StringBuilder();

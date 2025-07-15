@@ -1,0 +1,17 @@
+let daysAgo = ##daysAgo##;
+let functionAppName = '##siteName##';
+let filteredColumn = dynamic(["TriggersLastModifiedTime", "Triggers"]);
+let rowId = AntaresReadOnlyViews
+| where PreciseTimeStamp > ago(daysAgo)
+| where ViewName == "runtime-view_Sites"
+| where ColumnName == "SiteName"
+| where ColumnValue == functionAppName
+| project PreciseTimeStamp, RowId
+| order by PreciseTimeStamp desc
+| project RowId
+| take 1;
+AntaresReadOnlyViews
+| where PreciseTimeStamp > ago(daysAgo)
+| where RowId in (rowId)
+| project ColumnName, ColumnValue
+| where ColumnName in (filteredColumn)

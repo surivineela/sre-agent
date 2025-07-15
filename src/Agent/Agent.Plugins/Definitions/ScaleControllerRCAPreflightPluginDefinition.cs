@@ -14,12 +14,14 @@ namespace Agent.Plugins.Definitions
     public class ScaleControllerRCAPreflightPluginDefinition
     {
         private readonly IKustoPluginChat _kustoPlugin;
+        private readonly IICMPlugin _icmPlugin;
         private const string DefaultClusterName = "wawscus";
         private const string DefaultDatabaseName = "wawsprod";
 
-        public ScaleControllerRCAPreflightPluginDefinition(IKustoPluginChat kustoPlugin)
+        public ScaleControllerRCAPreflightPluginDefinition(IKustoPluginChat kustoPlugin, IICMPlugin icmPlugin)
         {
             _kustoPlugin = kustoPlugin;
+            _icmPlugin = icmPlugin;
         }
 
         [Description(@"""
@@ -68,7 +70,8 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("EventPrimaryStampName (e.g., waws-prod-sy3-099).")] string eventPrimaryStampName,
-            [Description("SiteName/application to check for errors.")] string siteName)
+            [Description("SiteName/application to check for errors.")] string siteName,
+            [Description("Level (e.g. 4: warning, 3: error.")] int level)
         {
             return _kustoPlugin.ExecuteLocalFunctionOnClusterAsync("RCA.ScaleControllerPreflight.GetScaleControllerErrorsForApp", clusterName, databaseName,
                 new Dictionary<string, string>
@@ -76,7 +79,8 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
                     { "startTime", fromDate.ToString() },
                     { "endTime", toDate.ToString() },
                     { "eventPrimaryStampName", eventPrimaryStampName },
-                    { "siteName", siteName }
+                    { "siteName", siteName },
+                    { "level", (level == 0 || level > 4) ? "4" : level.ToString() }
                 });
         }
 
@@ -96,7 +100,7 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
             [Description("End time of the query.")] DateTime toDate,
             [Description("EventPrimaryStampName (e.g., waws-prod-sy3-099).")] string eventPrimaryStampName,
             [Description("SiteName/application.")] string siteName,
-            [Description("TriggerName to monitor (e.g., devicetwin-router).")] string triggerName)
+            [Description("FunctionName to monitor.")] string functionName)
         {
             return _kustoPlugin.ExecuteLocalFunctionOnClusterAsync("RCA.ScaleControllerPreflight.CheckIfScaleControllerMonitorsTrigger", clusterName, databaseName,
                 new Dictionary<string, string>
@@ -105,7 +109,7 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
                     { "endTime", toDate.ToString() },
                     { "eventPrimaryStampName", eventPrimaryStampName },
                     { "siteName", siteName },
-                    { "triggerName", triggerName }
+                    { "functionName", functionName }
                 });
         }
 
@@ -228,6 +232,31 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
                 });
         }
 
+
+
+        [Description(@"""
+Retrieves the SyncTriggers payload from SiteName.
+Use this tool to determine which Kusto cluster should be used for queries based on the site name.
+Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- Triggers: SyncTriggers payload containing information about triggers for the specified site.
+- TriggersLastModifiedTime: Last modified time of the triggers.
+"""
+)]
+        [AgentTool(ToolMode.Auto)]
+        public Task<string> GetSyncTriggersPayload(
+    [Description("Kusto cluster name.")] string clusterName,
+    [Description("Kusto database name.")] string databaseName,
+    [Description("Days ago for fetching the payload (default: 1d). Examples: 1d, 3d, 10d.")] string daysAgo,
+    [Description("SiteName/application to check for errors.")] string siteName)
+        {
+            return _kustoPlugin.ExecuteLocalFunctionOnClusterAsync("RCA.GetSyncTriggersFromSiteName", clusterName, databaseName,
+                new Dictionary<string, string>
+                {
+                    { "daysAgo", daysAgo },
+                    { "siteName", siteName }
+                });
+        }
+
         [Description(@"""
 Retrieves the Kusto cluster name based on the event primary stamp name.
 Use this tool to determine which Kusto cluster should be used for queries based on the stamp name.
@@ -249,6 +278,7 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
 Retrieves the Kusto cluster name based on the site name by looking up recent analytics events.
 Use this tool to determine which Kusto cluster should be used for queries based on the site name.
 Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+- EventPrimaryStampName: Event primary stamp name associated with the site.
 - KustoCluster: Name of the Kusto cluster associated with the site name.
 """
 )]
@@ -260,6 +290,21 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
                 {
                     { "siteName", siteName }
                 });
+        }
+
+        [Description(@"""
+Extracts RCA investigation parameters from an ICM incident.
+Use this tool to automatically extract key parameters like start time, end time, site name, stamp name, and function name from ICM incident details.
+This helps streamline the RCA investigation process by parsing incident information.
+Output: Returns JSON containing extracted parameters such as incidentId, title, startTime, endTime, siteName, eventPrimaryStampName, functionName, and additionalParameters.
+"""
+)]
+        [AgentTool(ToolMode.Auto)]
+        public Task<string> ExtractRCAParametersFromICMIncident(
+            [Description("ICM Incident ID to extract parameters from.")] string incidentId,
+            [Description("Specific instruction for parameter extraction. Example: 'Extract startTime, endTime, siteName, eventPrimaryStampName, and functionName.'")] string instruction)
+        {
+            return _icmPlugin.GetParametersFromIncident(incidentId, instruction);
         }
     }
 }

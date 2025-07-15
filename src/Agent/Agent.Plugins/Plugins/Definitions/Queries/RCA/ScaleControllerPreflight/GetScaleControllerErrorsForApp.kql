@@ -2,10 +2,11 @@ let start = datetime("##startTime##");
 let end = datetime("##endTime##");
 let stampName = "##eventPrimaryStampName##";
 let siteName = "##siteName##";
+let level = ##level##;
 ScaleControllerEvents
 | where PreciseTimeStamp between(start .. end)
 | where EventPrimaryStampName == stampName
 | where SiteName == siteName
-| where Level < 4
+| where Level < level
 | take 100
 | project PreciseTimeStamp, RoleInstance, Message, Exception, Version, Level

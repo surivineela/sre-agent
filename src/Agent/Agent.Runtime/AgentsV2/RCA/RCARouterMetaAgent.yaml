@@ -62,7 +62,6 @@ handoffs:
 
 tools:
   - GetIncidentInfo
-  - HandoffBack
 
 common_prompts:
   - format_guidelines

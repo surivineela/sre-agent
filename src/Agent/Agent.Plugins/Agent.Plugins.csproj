@@ -23,6 +23,7 @@
 	  <PackageReference Include="Azure.ResourceManager.Network" />
 	  <PackageReference Include="Azure.Search.Documents" />
 	  <PackageReference Include="Azure.Storage.Blobs" />
+    <PackageReference Include="HtmlAgilityPack" />
 	  <PackageReference Include="Microsoft.Azure.Management.Monitor.Fluent" />
 	  <PackageReference Include="Microsoft.Diagnostics.Runtime" />
 	  <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" />
@@ -35,6 +36,7 @@
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.AzureOpenAI" />
     <PackageReference Include="Octokit" />
     <PackageReference Include="KubernetesClient" />
+    <PackageReference Include="ReverseMarkdown"/>
   </ItemGroup>
 
   <ItemGroup>

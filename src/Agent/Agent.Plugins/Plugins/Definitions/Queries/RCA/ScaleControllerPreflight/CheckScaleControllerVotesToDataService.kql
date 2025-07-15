@@ -11,5 +11,5 @@ AntaresDataServiceApiTransactions
 | parse RequestUrl with * "sites/" AppName "/" * "count=" CountString "&" *
 | where AppName == siteName
 | extend Count = toint(CountString)
-| summarize MaxCount = max(Count) by bin(PreciseTimeStamp, 1m), SiteName=AppName
+| summarize MaxCount = max(Count) by bin(PreciseTimeStamp, summarizationTimeBucket), SiteName=AppName
 | project MaxCount, PreciseTimeStamp, SiteName
