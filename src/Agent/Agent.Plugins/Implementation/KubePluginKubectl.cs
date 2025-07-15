@@ -9,7 +9,6 @@ using Agent.Core.Models.Api.v1;
 using Agent.Graph.Crawler.ARM;
 using Agent.Plugins.Interface;
 using Microsoft.Extensions.Logging;
-using Agent.Logging;
 using KubectlCliExecution = Agent.Core.Services.KubectlExecution;
 
 namespace Agent.Plugins
@@ -216,7 +215,8 @@ namespace Agent.Plugins
 
                 if (result.ErrorOccurred)
                 {
-                    if (result.ErrorType == CliErrorType.AuthorizationError)
+                    // sometimes agent will see the resource as not found when it doesn't have permission
+                    if (result.ErrorType == CliErrorType.AuthorizationError || result.ErrorType == CliErrorType.NotFoundError)
                     {
                         await UpdateExecutionWithOboFlow(execution);
                         return $"Kubectl {cmdType} command has been prepared for approval. Please click 'Authorize' to execute or 'Cancel' to dismiss.";

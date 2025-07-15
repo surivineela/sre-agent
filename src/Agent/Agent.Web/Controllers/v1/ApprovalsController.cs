@@ -3,19 +3,9 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Interfaces;
-using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
-using Agent.Logging;
-using Agent.Data.Repositories;
-using Agent.Runtime;
 using Agent.Runtime.Services;
-using FirstPartyAgent.Models;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.DurableTask.Client;
-using Microsoft.Graph.Privacy.SubjectRightsRequests.Item.Approvers;
-using System.Text.Json;
-using System.Threading;
 
 namespace Agent.Web.Controllers.v1
 {
@@ -64,7 +54,7 @@ namespace Agent.Web.Controllers.v1
         {
             // TODO: Implement getting a specific approval
             _logger.LogInternalInformation("GET approval requested for thread {ThreadId} with ID: {Id}", threadId, id);
-            
+
             var approval = await _approvalService.GetApproval(Guid.Parse(threadId), id);
 
             return Ok(approval);
@@ -204,7 +194,7 @@ namespace Agent.Web.Controllers.v1
             public string Status { get; set; }
             public string User { get; set; }
             public string? Scope { get; set; }
-            }
+        }
     }
 }
 

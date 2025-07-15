@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.ComponentModel;
 using Agent.Framework;
 using Microsoft.Extensions.AI;
@@ -7,6 +11,7 @@ public enum CliErrorType
     None,
     AuthorizationError,
     ValidationError,
+    NotFoundError,
     Other
 }
 public class CliExecutionResult
@@ -24,6 +29,7 @@ public class CliErrorIndicator
     - None: No error detected
     - AuthorizationError: Indicates an authorization issue, such as insufficient permissions or invalid credentials.
     - ValidationError: Indicates a validation issue, such as incorrect command syntax or invalid parameters.
+    - NotFoundError: Indicates the resource was not found.
     - Other: Any other type of error that does not fit into the above categories.
     """)]
     public string ErrorType { get; set; } = string.Empty;

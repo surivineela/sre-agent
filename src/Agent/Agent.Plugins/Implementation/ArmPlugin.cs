@@ -6,13 +6,11 @@ using System.Collections.Immutable;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Agent.Core.Configuration;
-using Agent.Core.Exceptions;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
-using Agent.Logging;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
 using Microsoft.Extensions.Logging;
@@ -400,7 +398,8 @@ namespace Agent.Plugins.Implementation
 
                 if (result.ErrorOccurred)
                 {
-                    if (result.ErrorType == CliErrorType.AuthorizationError)
+                    // sometimes agent will see the resource as not found when it doesn't have permission
+                    if (result.ErrorType == CliErrorType.AuthorizationError || result.ErrorType == CliErrorType.NotFoundError)
                     {
                         await UpdateAzCliExecutionWithOboFlow(execution);
                         return $"Azure CLI {cmdType} command has been prepared for approval. Please click 'Run' to execute or 'Cancel' to dismiss.";
