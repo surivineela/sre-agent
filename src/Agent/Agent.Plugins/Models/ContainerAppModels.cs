@@ -12,6 +12,7 @@ namespace Agent.Plugins.Models
         string Location,
         string WorkloadProfile,
         string State,
+        string RunningState,
         string ResourceGroup,
         string EnvironmentId,
         Container[] Containers,

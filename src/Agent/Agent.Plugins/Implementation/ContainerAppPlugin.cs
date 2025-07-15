@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.ClientModel.Primitives;
 using System.ComponentModel;
 using System.Net;
 using System.Net.WebSockets;
@@ -10,12 +11,9 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using System.Web;
-using Agent.Core;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
-using Agent.Core.JsonConverters;
 using Agent.Core.Models;
-using Agent.Core.Services;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Logging;
 using Agent.Plugins.Interface;
@@ -46,19 +44,6 @@ namespace Agent.Plugins.Implementation
         private readonly IArmClientFactory _armClientFactory;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IDiagnosticsPlugin _diagnosticsPlugin;
-
-        // ContainerAppData from Azure SDK can't be serialized directly to JSON because it contains
-        // IPAddress and IPEndPoint properties, which throw ISocketException when serialized.
-        // So we need to create a custom serialization options with custom converters for these types.
-        private static readonly JsonSerializerOptions _containerAppSerializationOptions = new JsonSerializerOptions
-        {
-            WriteIndented = true,
-            Converters =
-            {
-                new IPEndPointConverter(),
-                new IPAddressConverter(),
-            }
-        };
 
         public ContainerAppPlugin(ArmHelper armHelper,
             IGraphDatabaseClient graphDbClient,
@@ -94,7 +79,8 @@ namespace Agent.Plugins.Implementation
                 var containerAppResource = armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
 
                 var containerApp = await containerAppResource.GetAsync();
-                return JsonSerializer.Serialize(containerApp.Value.Data, _containerAppSerializationOptions);
+                // ContainerAppData type implements IJsonModel, so we can use ModelReaderWriter to serialize it
+                return ModelReaderWriter.Write(containerApp.Value.Data).ToString();
             }
             catch (Exception ex)
             {
@@ -1745,6 +1731,7 @@ namespace Agent.Plugins.Implementation
                 Location: containerApp.Location,
                 WorkloadProfile: containerApp.WorkloadProfileName ?? string.Empty,
                 State: containerApp.ProvisioningState ?? string.Empty,
+                RunningState: containerApp.RunningStatus ?? string.Empty,
                 ResourceGroup: containerApp.ResourceGroupName,
                 EnvironmentId: containerApp.EnvironmentId ?? string.Empty,
                 Configurations: null,
