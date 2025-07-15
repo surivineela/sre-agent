@@ -4,7 +4,7 @@ let globalTo = datetime("##toDate##");
 let local_PodName = "##podName##";
 let local_ResourceNamespace = "##resourceNamespace##";
 
-AllRegions('SystemLogs')
+SystemLogs
 | where TIMESTAMP between(globalFrom .. globalTo)
 | where eventId in (301, 304, 305)
 | where PodName == local_PodName
