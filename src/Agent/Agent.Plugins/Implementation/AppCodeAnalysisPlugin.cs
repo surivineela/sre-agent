@@ -246,6 +246,11 @@ public class AppCodeAnalysisPlugin : IAppCodeAnalysisPlugin
 
         var (deployments, swaps) = await _armHelper.GetDeploymentActivity(subscriptionId, resourceGroupName, resourceId);
 
+        if (swaps.Count == 0)
+        {
+            return $"No swap operations found for the specified app: {resourceId}.";
+        }
+
         string sourceSlot = swaps[0].ResourceId.Split('/').Last();
         string targetSlot = "production";
         bool preserveVNet = true;
