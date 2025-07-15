@@ -89,15 +89,26 @@ public class KubectlExecution
             }
         }
 
-        var allArgs = new List<string>(commandArgs);
-        allArgs.Add($"--kubeconfig={_kubeConfigPath}");
-        allArgs.Add($"--cache-dir={_cacheDir}");
+        var allArgs = new List<string>(commandArgs)
+        {
+            $"--kubeconfig={_kubeConfigPath}",
+            $"--cache-dir={_cacheDir}"
+        };
 
         var pCmd = new ExternalProcessCommand(_logger,
-        "kubectl",
-        allArgs.ToArray(),
-        stdin: _stdin);
-        return await pCmd.ExecuteAsync(cancellationToken);
+            "kubectl",
+            allArgs.ToArray(),
+            stdin: _stdin);
+
+        try
+        {
+            return await pCmd.ExecuteAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError($"KubectlExecution failed for command '{_command}': {ex}");
+            return $"[Exception encountered]: Failed to execute command: {ex}";
+        }
     }
 
     private static string[] SplitCommandIntoArgs(string command)

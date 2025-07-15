@@ -120,7 +120,7 @@ namespace Agent.Plugins.Implementation
                 if (string.Equals(status.MinimumTlsVersion, minimumTlsVersion, StringComparison.InvariantCultureIgnoreCase))
                 {
                     var msg = $"Resource {appResourceId} already has minimum TLS version set to {status.MinimumTlsVersion}. No action needed.";
-                    _logger?.LogInternalInformation(msg);
+                    _logger.LogInternalInformation(msg);
                     return msg;
                 }
 
@@ -141,7 +141,7 @@ namespace Agent.Plugins.Implementation
             };
 
 
-            _logger?.LogInternalInformation(message);
+            _logger.LogInternalInformation(message);
             return message;
         }
         public async Task<List<TlsStatus>> GetTlsSettings(List<string> resourceIds)
@@ -257,7 +257,7 @@ namespace Agent.Plugins.Implementation
             }
             catch (Exception ex)
             {
-                _logger?.LogInternalError(ex, "Failed to create execution for command: {Command}", command);
+                _logger.LogInternalError(ex, "Failed to create execution for command: {Command}", command);
                 return $"Failed to prepare command execution: {ex.Message}";
             }
         }
@@ -297,12 +297,12 @@ namespace Agent.Plugins.Implementation
                 else
                 {
                     var execution = await CreateAndPersistAzCliExecution(executionId, command, requiresApproval: true);
-                    return "Azure CLI write command has been prepared for approval. Please click 'Run' to execute or 'Cancel' to dismiss.";
+                    return "Azure CLI write command has been prepared for approval. Please click 'Authorize' to execute or 'Cancel' to dismiss.";
                 }
             }
             catch (Exception ex)
             {
-                _logger?.LogInternalError(ex, "Failed to create execution for write command: {Command}", command);
+                _logger.LogInternalError(ex, "Failed to create execution for write command: {Command}", command);
                 return $"Failed to prepare command execution: {ex.Message}";
             }
         }
@@ -402,7 +402,7 @@ namespace Agent.Plugins.Implementation
                 {
                     if (result.ErrorType == CliErrorType.AuthorizationError)
                     {
-                        await UpdateAzCliExecutionWithApproval(execution);
+                        await UpdateAzCliExecutionWithOboFlow(execution);
                         return $"Azure CLI {cmdType} command has been prepared for approval. Please click 'Run' to execute or 'Cancel' to dismiss.";
                     }
                     else
@@ -421,7 +421,7 @@ namespace Agent.Plugins.Implementation
             }
             catch (Exception ex)
             {
-                _logger?.LogInternalError(ex, $"Failed to execute {cmdType} command: {command}");
+                _logger.LogInternalError(ex, $"Failed to execute {cmdType} command: {command}");
 
                 await UpdateAzCliExecutionWithFailure(execution, ex.Message);
                 throw;
@@ -456,12 +456,12 @@ namespace Agent.Plugins.Implementation
             await NotifyAzCliExecutionUpdated(updatedExecution);
         }
 
-        private async Task UpdateAzCliExecutionWithApproval(AzCliExecution execution)
+        private async Task UpdateAzCliExecutionWithOboFlow(AzCliExecution execution)
         {
             var updatedExecution = execution with
             {
-                Status = AzCliExecutionStatus.Pending,
-                Description = $"{execution.Description} (I will use your credential to run this command because I don't have permission.)",
+                Status = AzCliExecutionStatus.PendingAuthorization,
+                Description = $"{execution.Description}",
                 Output = null,
                 ExecutedBy = null,
                 Error = null,
@@ -544,7 +544,7 @@ namespace Agent.Plugins.Implementation
             }
             catch (Exception ex)
             {
-                _logger?.LogInternalError(ex, "Failed to get Azure CLI help for topic: {HelpTopic}", helpTopic);
+                _logger.LogInternalError(ex, "Failed to get Azure CLI help for topic: {HelpTopic}", helpTopic);
                 return $"Failed to retrieve help information for '{helpTopic}': {ex.Message}";
             }
         }
@@ -600,7 +600,7 @@ namespace Agent.Plugins.Implementation
             }
             catch (Exception ex)
             {
-                _logger?.LogInternalError(ex, "Error getting resource ID from storage service URI {Uri} in subscription {SubscriptionId}", storageServiceUri, subscriptionId);
+                _logger.LogInternalError(ex, "Error getting resource ID from storage service URI {Uri} in subscription {SubscriptionId}", storageServiceUri, subscriptionId);
                 return $"Error: Exception occurred while processing storage service URI: {ex.Message}";
             }
         }

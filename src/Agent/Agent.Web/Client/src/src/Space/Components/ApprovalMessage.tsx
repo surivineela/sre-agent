@@ -46,20 +46,26 @@ const ApprovalMessage = ({ approval, messageId, threadId }: { approval?: Approva
     const handleApprovalDecision = async (approved: boolean) => {
         try {
             if (approval) {
-                // Check if already approved/rejected
-                if (approval.status !== ApprovalDecision.Pending) {
+                // Check if already approved/rejected/canceled/authorized
+                if (approval.status !== ApprovalDecision.Pending && approval.status !== ApprovalDecision.PendingAuthorization) {
                     console.warn(`Approval ${approval.id} is already ${approval.status}`);
                     return; // Exit early if already decided
                 }
 
                 setIsApprovalLoading(true);
                 setLoadingButton(approved ? 'approve' : 'deny');
-                const approvalData = await sendApprovalDecision(
-                    threadId,
-                    approval.id,
-                    approved ? ApprovalDecision.Approved : ApprovalDecision.Rejected,
-                    approval.oboTokenScope
-                );
+
+                let decision: ApprovalDecision;
+                if (approval.status === ApprovalDecision.Pending) {
+                    decision = approved ? ApprovalDecision.Approved : ApprovalDecision.Cancelled;
+                } else if (approval.status === ApprovalDecision.PendingAuthorization) {
+                    decision = approved ? ApprovalDecision.Authorized : ApprovalDecision.Cancelled;
+                } else {
+                    // Should not reach here due to check above, but fallback
+                    decision = approved ? ApprovalDecision.Approved : ApprovalDecision.Cancelled;
+                }
+
+                const approvalData = await sendApprovalDecision(threadId, approval.id, decision, approval.oboTokenScope);
 
                 console.log(`Approval decision sent for message ID: ${messageId}, approved: ${approved}`);
 
@@ -80,7 +86,7 @@ const ApprovalMessage = ({ approval, messageId, threadId }: { approval?: Approva
 
             // Handle specific error cases
             if (error.response?.status === 409) {
-                // Conflict - already approved/rejected
+                // Conflict - already approved/rejected/canceled/authorized
                 const errorData = error.response?.data;
 
                 if (approval && errorData) {
@@ -111,7 +117,10 @@ const ApprovalMessage = ({ approval, messageId, threadId }: { approval?: Approva
         }
     };
 
-    if (status === ApprovalDecision.Pending) {
+    if (status === ApprovalDecision.Pending || status === ApprovalDecision.PendingAuthorization) {
+        // Get button text based on status
+        const primaryButtonText = status === ApprovalDecision.Pending ? SreAgentResources.continue : SreAgentResources.authorize;
+
         return (
             <div
                 style={{
@@ -163,7 +172,7 @@ const ApprovalMessage = ({ approval, messageId, threadId }: { approval?: Approva
                                 }}
                             />
                         )}
-                        <FormattedMessage {...SreAgentResources.approve} />
+                        <FormattedMessage {...primaryButtonText} />
                     </button>
                     <button
                         style={{
@@ -194,7 +203,7 @@ const ApprovalMessage = ({ approval, messageId, threadId }: { approval?: Approva
                                 }}
                             />
                         )}
-                        <FormattedMessage {...SreAgentResources.deny} />
+                        <FormattedMessage {...SreAgentResources.cancel} />
                     </button>
                 </div>
                 <style>
@@ -205,21 +214,73 @@ const ApprovalMessage = ({ approval, messageId, threadId }: { approval?: Approva
                             }
                         `}
                 </style>
-                <p
-                    style={{
-                        fontSize: '11px',
-                        color: '#666',
-                        marginTop: '16px',
-                        marginBottom: '0',
-                    }}
-                >
-                    <FormattedMessage {...SreAgentResources.approveUsingCreds} />
-                </p>
+                {status === ApprovalDecision.PendingAuthorization && (
+                    <p
+                        style={{
+                            fontSize: '11px',
+                            color: '#666',
+                            marginTop: '16px',
+                            marginBottom: '0',
+                        }}
+                    >
+                        <FormattedMessage {...SreAgentResources.authorizeUsingCreds} />
+                    </p>
+                )}
+                {status === ApprovalDecision.Pending && (
+                    <p
+                        style={{
+                            fontSize: '11px',
+                            color: '#666',
+                            marginTop: '16px',
+                            marginBottom: '0',
+                        }}
+                    >
+                        <FormattedMessage {...SreAgentResources.continueUsingCreds} />
+                    </p>
+                )}
             </div>
         );
     } else {
-        // For Approved or Denied status
-        const statusColor = status === ApprovalDecision.Approved ? '#107C10' : '#A4262C';
+        // For Approved, Canceled, Authorized, or Rejected status
+        const getStatusColor = (status: ApprovalDecision) => {
+            switch (status) {
+                case ApprovalDecision.Approved:
+                case ApprovalDecision.Authorized:
+                    return '#107C10';
+                case ApprovalDecision.Cancelled:
+                    return '#A4262C';
+                default:
+                    return '#666';
+            }
+        };
+
+        const getStatusText = (status: ApprovalDecision) => {
+            switch (status) {
+                case ApprovalDecision.Approved:
+                    return SreAgentResources.approved;
+                case ApprovalDecision.Authorized:
+                    return SreAgentResources.authorized;
+                case ApprovalDecision.Cancelled:
+                    return SreAgentResources.canceled;
+                default:
+                    return SreAgentResources.denied;
+            }
+        };
+
+        const getDecisionByText = (status: ApprovalDecision) => {
+            switch (status) {
+                case ApprovalDecision.Approved:
+                    return SreAgentResources.approvedBy;
+                case ApprovalDecision.Authorized:
+                    return SreAgentResources.authorizedBy;
+                case ApprovalDecision.Cancelled:
+                    return SreAgentResources.canceledBy;
+                default:
+                    return SreAgentResources.deniedBy;
+            }
+        };
+
+        const statusColor = getStatusColor(status);
 
         return (
             <div
@@ -253,11 +314,7 @@ const ApprovalMessage = ({ approval, messageId, threadId }: { approval?: Approva
                             display: 'inline-block',
                         }}
                     >
-                        {status === ApprovalDecision.Approved ? (
-                            <FormattedMessage {...SreAgentResources.approved} />
-                        ) : (
-                            <FormattedMessage {...SreAgentResources.denied} />
-                        )}
+                        <FormattedMessage {...getStatusText(status)} />
                     </span>
                 </div>
                 <p style={{ margin: '0 0 16px 0' }}>
@@ -271,12 +328,7 @@ const ApprovalMessage = ({ approval, messageId, threadId }: { approval?: Approva
                     <div style={{ fontSize: '14px', color: '#666' }}>
                         <p style={{ margin: '4px 0' }}>
                             <strong>
-                                {status === ApprovalDecision.Approved ? (
-                                    <FormattedMessage {...SreAgentResources.approvedBy} />
-                                ) : (
-                                    <FormattedMessage {...SreAgentResources.deniedBy} />
-                                )}
-                                :
+                                <FormattedMessage {...getDecisionByText(status)} />:
                             </strong>{' '}
                             {approval.decisionUser.displayName}
                         </p>
@@ -291,16 +343,21 @@ const ApprovalMessage = ({ approval, messageId, threadId }: { approval?: Approva
                     </div>
                 )}
 
-                {status === ApprovalDecision.Approved && (
+                {(status === ApprovalDecision.Approved || status === ApprovalDecision.Authorized) && (
                     <p
                         style={{
                             fontSize: '11px',
                             color: '#666',
                             marginTop: '16px',
                             marginBottom: '0',
+                            fontStyle: 'italic',
                         }}
                     >
-                        <FormattedMessage {...SreAgentResources.beingExecutedUsingCreds} />
+                        {status === ApprovalDecision.Approved ? (
+                            <FormattedMessage {...SreAgentResources.beingExecutedUsingCreds} />
+                        ) : (
+                            <FormattedMessage {...SreAgentResources.beingExecutedUsingApproverCreds} />
+                        )}
                     </p>
                 )}
             </div>

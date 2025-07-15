@@ -8,7 +8,9 @@ namespace Agent.Core.Models.Api.v1
     {
         Pending,
         Approved,
-        Rejected
+        Cancelled,
+        PendingAuthorization,
+        Authorized,
     }
 
     public record Approval(

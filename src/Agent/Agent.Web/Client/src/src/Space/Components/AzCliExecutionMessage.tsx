@@ -24,7 +24,9 @@ const AzCliExecutionMessage: FC<{
     const [copied, setCopied] = useState(false);
     const [outputCopied, setOutputCopied] = useState(false);
     const [isOutputCollapsed, setIsOutputCollapsed] = useState(false);
-    const [isExecutionCollapsed, setIsExecutionCollapsed] = useState(execution.status !== 'Pending');
+    const [isExecutionCollapsed, setIsExecutionCollapsed] = useState(
+        execution.status !== 'Pending' && execution.status !== 'PendingAuthorization'
+    );
 
     const { userIdAndDisplayName } = useAuthenticatedUserInfo();
 
@@ -80,6 +82,8 @@ const AzCliExecutionMessage: FC<{
                     />
                 );
             case 'Pending':
+                return <AiOutlineClockCircle size={16} color="#f59e0b" />;
+            case 'PendingAuthorization':
                 return <AiOutlineClockCircle size={16} color="#f59e0b" />;
             case 'Cancelled':
                 return <AiOutlineClose size={16} color="#6b7280" />;
@@ -206,7 +210,7 @@ const AzCliExecutionMessage: FC<{
     };
 
     // Render collapsed view for non-pending executions
-    if (isExecutionCollapsed && currentExecution.status !== 'Pending') {
+    if (isExecutionCollapsed && currentExecution.status !== 'Pending' && currentExecution.status !== 'PendingAuthorization') {
         return (
             <div
                 style={{
@@ -389,11 +393,13 @@ const AzCliExecutionMessage: FC<{
                         }}
                     >
                         {getStatusIcon()}
-                        <span style={{ fontSize: '13px', fontWeight: '500', color: '#333' }}>{currentExecution.status}</span>
+                        <span style={{ fontSize: '13px', fontWeight: '500', color: '#333' }}>
+                            {currentExecution.status === 'PendingAuthorization' ? 'Pending' : currentExecution.status}
+                        </span>
                     </div>
 
                     {/* Collapse button for non-pending executions */}
-                    {currentExecution.status !== 'Pending' && (
+                    {currentExecution.status !== 'Pending' && currentExecution.status !== 'PendingAuthorization' && (
                         <button
                             onClick={() => setIsExecutionCollapsed(true)}
                             style={{
@@ -456,8 +462,8 @@ const AzCliExecutionMessage: FC<{
                 </pre>
             </div>
 
-            {/* Action buttons for pending state */}
-            {currentExecution.status === 'Pending' && (
+            {/* Action buttons for pending states */}
+            {(currentExecution.status === 'Pending' || currentExecution.status === 'PendingAuthorization') && (
                 <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
                     <button
                         onClick={() => handleAction('run')}
@@ -492,7 +498,7 @@ const AzCliExecutionMessage: FC<{
                         ) : (
                             <AiOutlinePlayCircle size={14} />
                         )}
-                        Run
+                        {currentExecution.status === 'Pending' ? 'Continue' : 'Authorize'}
                     </button>
 
                     <button
@@ -534,151 +540,153 @@ const AzCliExecutionMessage: FC<{
             )}
 
             {/* Output section */}
-            {(currentExecution.output || currentExecution.error) && currentExecution.status !== 'Pending' && (
-                <div style={{ marginBottom: '12px' }}>
-                    {/* Output header with collapse toggle */}
-                    <div
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            padding: '8px 12px',
-                            backgroundColor: '#2d3748',
-                            borderRadius: isOutputCollapsed ? '6px' : '6px 6px 0 0',
-                            cursor: 'pointer',
-                            borderBottom: isOutputCollapsed ? 'none' : '1px solid #4a5568',
-                        }}
-                        onClick={() => setIsOutputCollapsed(!isOutputCollapsed)}
-                    >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ color: '#e2e8f0', fontSize: '13px', fontWeight: '500' }}>
-                                Output {currentExecution.status === 'Running' ? '(Running...)' : ''}
-                            </span>
-                            {isOutputCollapsed && (
-                                <span style={{ color: '#a0aec0', fontSize: '11px' }}>
-                                    {currentExecution.output && currentExecution.error
-                                        ? 'Output and error available'
-                                        : currentExecution.output
-                                          ? 'Output available'
-                                          : 'Error available'}
+            {(currentExecution.output || currentExecution.error) &&
+                currentExecution.status !== 'Pending' &&
+                currentExecution.status !== 'PendingAuthorization' && (
+                    <div style={{ marginBottom: '12px' }}>
+                        {/* Output header with collapse toggle */}
+                        <div
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                padding: '8px 12px',
+                                backgroundColor: '#2d3748',
+                                borderRadius: isOutputCollapsed ? '6px' : '6px 6px 0 0',
+                                cursor: 'pointer',
+                                borderBottom: isOutputCollapsed ? 'none' : '1px solid #4a5568',
+                            }}
+                            onClick={() => setIsOutputCollapsed(!isOutputCollapsed)}
+                        >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{ color: '#e2e8f0', fontSize: '13px', fontWeight: '500' }}>
+                                    Output {currentExecution.status === 'Running' ? '(Running...)' : ''}
                                 </span>
-                            )}
-                        </div>
-                        <div
-                            style={{
-                                transform: isOutputCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
-                                transition: 'transform 0.2s',
-                                color: '#a0aec0',
-                            }}
-                        >
-                            ▼
-                        </div>
-                    </div>
-
-                    {/* Collapsible output content */}
-                    {!isOutputCollapsed && (
-                        <div
-                            style={{
-                                position: 'relative',
-                                backgroundColor: '#1e1e1e',
-                                borderRadius: '0 0 6px 6px',
-                                padding: '12px',
-                                maxHeight: '300px',
-                                overflowY: 'auto',
-                                // Custom scrollbar styling
-                                scrollbarWidth: 'thin',
-                                scrollbarColor: '#4a5568 #2d3748',
-                            }}
-                            className="custom-scrollbar"
-                        >
-                            <button
-                                onClick={copyOutput}
-                                style={{
-                                    position: 'absolute',
-                                    top: '8px',
-                                    right: '8px',
-                                    padding: '6px',
-                                    backgroundColor: 'transparent',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    color: outputCopied ? '#16a34a' : '#6b7280',
-                                    transition: 'color 0.2s',
-                                    zIndex: 1,
-                                    opacity: 0.7,
-                                }}
-                                title="Copy output"
-                                onMouseEnter={e => {
-                                    e.currentTarget.style.color = '#ffffff';
-                                    e.currentTarget.style.opacity = '1';
-                                }}
-                                onMouseLeave={e => {
-                                    e.currentTarget.style.color = outputCopied ? '#16a34a' : '#6b7280';
-                                    e.currentTarget.style.opacity = '0.7';
-                                }}
-                            >
-                                {outputCopied ? <AiOutlineCheckCircle size={16} /> : <AiOutlineCopy size={16} />}
-                            </button>
-
-                            <div style={{ paddingRight: '40px' }}>
-                                {currentExecution.output && (
-                                    <pre
-                                        style={{
-                                            margin: 0,
-                                            whiteSpace: 'pre-wrap',
-                                            wordBreak: 'break-word',
-                                            color: '#4ade80',
-                                            fontSize: '12px',
-                                            fontFamily: 'Consolas, Monaco, monospace',
-                                        }}
-                                    >
-                                        {currentExecution.output}
-                                    </pre>
-                                )}
-                                {currentExecution.error && (
-                                    <pre
-                                        style={{
-                                            margin: currentExecution.output ? '8px 0 0 0' : 0,
-                                            color: '#f87171',
-                                            whiteSpace: 'pre-wrap',
-                                            wordBreak: 'break-word',
-                                            fontSize: '12px',
-                                            fontFamily: 'Consolas, Monaco, monospace',
-                                        }}
-                                    >
-                                        Error: {currentExecution.error}
-                                    </pre>
-                                )}
-
-                                {currentExecution.status === 'Running' && (
-                                    <div
-                                        style={{
-                                            marginTop: '8px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '8px',
-                                            color: '#60a5fa',
-                                            fontSize: '12px',
-                                        }}
-                                    >
-                                        <div
-                                            style={{
-                                                width: '12px',
-                                                height: '12px',
-                                                border: '2px solid #60a5fa',
-                                                borderTop: '2px solid transparent',
-                                                borderRadius: '50%',
-                                                animation: 'spin 1s linear infinite',
-                                            }}
-                                        />
-                                        <span>Executing...</span>
-                                    </div>
+                                {isOutputCollapsed && (
+                                    <span style={{ color: '#a0aec0', fontSize: '11px' }}>
+                                        {currentExecution.output && currentExecution.error
+                                            ? 'Output and error available'
+                                            : currentExecution.output
+                                              ? 'Output available'
+                                              : 'Error available'}
+                                    </span>
                                 )}
                             </div>
+                            <div
+                                style={{
+                                    transform: isOutputCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
+                                    transition: 'transform 0.2s',
+                                    color: '#a0aec0',
+                                }}
+                            >
+                                ▼
+                            </div>
                         </div>
-                    )}
-                </div>
-            )}
+
+                        {/* Collapsible output content */}
+                        {!isOutputCollapsed && (
+                            <div
+                                style={{
+                                    position: 'relative',
+                                    backgroundColor: '#1e1e1e',
+                                    borderRadius: '0 0 6px 6px',
+                                    padding: '12px',
+                                    maxHeight: '300px',
+                                    overflowY: 'auto',
+                                    // Custom scrollbar styling
+                                    scrollbarWidth: 'thin',
+                                    scrollbarColor: '#4a5568 #2d3748',
+                                }}
+                                className="custom-scrollbar"
+                            >
+                                <button
+                                    onClick={copyOutput}
+                                    style={{
+                                        position: 'absolute',
+                                        top: '8px',
+                                        right: '8px',
+                                        padding: '6px',
+                                        backgroundColor: 'transparent',
+                                        border: 'none',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer',
+                                        color: outputCopied ? '#16a34a' : '#6b7280',
+                                        transition: 'color 0.2s',
+                                        zIndex: 1,
+                                        opacity: 0.7,
+                                    }}
+                                    title="Copy output"
+                                    onMouseEnter={e => {
+                                        e.currentTarget.style.color = '#ffffff';
+                                        e.currentTarget.style.opacity = '1';
+                                    }}
+                                    onMouseLeave={e => {
+                                        e.currentTarget.style.color = outputCopied ? '#16a34a' : '#6b7280';
+                                        e.currentTarget.style.opacity = '0.7';
+                                    }}
+                                >
+                                    {outputCopied ? <AiOutlineCheckCircle size={16} /> : <AiOutlineCopy size={16} />}
+                                </button>
+
+                                <div style={{ paddingRight: '40px' }}>
+                                    {currentExecution.output && (
+                                        <pre
+                                            style={{
+                                                margin: 0,
+                                                whiteSpace: 'pre-wrap',
+                                                wordBreak: 'break-word',
+                                                color: '#4ade80',
+                                                fontSize: '12px',
+                                                fontFamily: 'Consolas, Monaco, monospace',
+                                            }}
+                                        >
+                                            {currentExecution.output}
+                                        </pre>
+                                    )}
+                                    {currentExecution.error && (
+                                        <pre
+                                            style={{
+                                                margin: currentExecution.output ? '8px 0 0 0' : 0,
+                                                color: '#f87171',
+                                                whiteSpace: 'pre-wrap',
+                                                wordBreak: 'break-word',
+                                                fontSize: '12px',
+                                                fontFamily: 'Consolas, Monaco, monospace',
+                                            }}
+                                        >
+                                            Error: {currentExecution.error}
+                                        </pre>
+                                    )}
+
+                                    {currentExecution.status === 'Running' && (
+                                        <div
+                                            style={{
+                                                marginTop: '8px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '8px',
+                                                color: '#60a5fa',
+                                                fontSize: '12px',
+                                            }}
+                                        >
+                                            <div
+                                                style={{
+                                                    width: '12px',
+                                                    height: '12px',
+                                                    border: '2px solid #60a5fa',
+                                                    borderTop: '2px solid transparent',
+                                                    borderRadius: '50%',
+                                                    animation: 'spin 1s linear infinite',
+                                                }}
+                                            />
+                                            <span>Executing...</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
 
             {/* Execution metadata */}
             {currentExecution.executedBy && (
@@ -716,6 +724,7 @@ const AzCliExecutionMessage: FC<{
                 )}
             </div>
 
+            {/* Credential messages for pending states */}
             {currentExecution.status === 'Pending' && (
                 <p
                     style={{
@@ -726,7 +735,21 @@ const AzCliExecutionMessage: FC<{
                         fontStyle: 'italic',
                     }}
                 >
-                    This operation will be executed using your Azure credentials
+                    If you click 'Continue', this operation will be executed using agent identity credentials.
+                </p>
+            )}
+
+            {currentExecution.status === 'PendingAuthorization' && (
+                <p
+                    style={{
+                        fontSize: '11px',
+                        color: '#888',
+                        marginTop: '12px',
+                        marginBottom: '0',
+                        fontStyle: 'italic',
+                    }}
+                >
+                    If you click 'Authorize', this operation will be executed on your behalf using your credentials.
                 </p>
             )}
 

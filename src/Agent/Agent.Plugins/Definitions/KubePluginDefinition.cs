@@ -22,7 +22,6 @@ namespace Agent.Plugins
             _kubePlugin = kubePlugin;
         }
 
-        [KernelFunction("GetAKSClusterResourceIdSetThreadContextProperties")]
         [Description(
         @"Get AKS cluster resource ID from subscription, resource group name and AKS cluster name.
         Used whenever user want to access AKS cluster but didn't specify the resource ID.
@@ -36,7 +35,7 @@ namespace Agent.Plugins
             return AksResourceId;
         }
 
-        [KernelFunction("get_kube_namespaces")]
+        [OboContext(scope: Constants.AksOboTokenScope)]
         [Description(
 @"Get all namespaces in the Kubernetes cluster.
 Used whenever user want to list namespaces or not specified namespace when asking for resources. eg: list all namespaces in my kubernetes cluster")]
@@ -46,7 +45,7 @@ Used whenever user want to list namespaces or not specified namespace when askin
             return await _kubePlugin.GetKubeNamespacesAsync(AKSClusterResourceId);
         }
 
-        [KernelFunction("get_kube_pods")]
+        [OboContext(scope: Constants.AksOboTokenScope)]
         [Description(
 @"Get all pods belong to the specific resource and namespace.
 Used whenever user wants to list pods in a specific deployment or statefulset. eg: list all pods in the 'nginx-deployment' in the 'default' namespace.
@@ -60,14 +59,14 @@ If user didn't specify namespace in the context, try to use 'default' namespace"
             return await _kubePlugin.GetKubePodsAsync(AKSClusterResourceId, _namespace, kind, name);
         }
 
-        [KernelFunction("rollout_restart_deployment")]
         [Description(
 @"Restart a deployment in the specified namespace.
 Used whenever user wants to restart or rollout restart a deployment, it can also be used by restart pod if the pod belongs to the deployment.
 eg: restart the 'nginx-deployment' in the 'default' namespace.
 If user didn't specify namespace in the context, try to use 'default' namespace")]
         [WriteAction]
-        [RequiresApproval("Requires approval to rollout restart a deployment.", scope: Constants.AksOboTokenScope)]
+        [OboContext(scope: Constants.AksOboTokenScope)]
+        [RequiresApproval("Requires approval to rollout restart a deployment.")]
         public async Task<string> RolloutRestartDeploymentAsync(
             [Description("The resource ID of the Azure Kubernetes Service. e.g. '/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ContainerService/managedClusters/{cluster-name}'")] string AKSClusterResourceId,
             [Description($"Kubernetes namespace, e.g. 'default', 'kube-system'")] string _namespace,
@@ -76,14 +75,14 @@ If user didn't specify namespace in the context, try to use 'default' namespace"
             return await _kubePlugin.RolloutRestartDeploymentAsync(AKSClusterResourceId, _namespace, deploymentName);
         }
 
-        [KernelFunction("scale_deployment")]
         [Description(
 @"Scale a deployment in the specified namespace.
 Used whenever user wants to scale a deployment, it can also be used by scale pod if the pod belongs to the deployment.
 eg: scale the 'nginx-deployment' in the 'default' namespace to 3 replicas.
 If user didn't specify namespace in the context, try to use 'default' namespace")]
-        [RequiresApproval("Requires approval to scale a deployment.", scope: Constants.AksOboTokenScope)]
+        [RequiresApproval("Requires approval to scale a deployment.")]
         [WriteAction]
+        [OboContext(scope: Constants.AksOboTokenScope)]
         public async Task<string> ScaleDeploymentAsync(
             [Description("The resource ID of the Azure Kubernetes Service. e.g. '/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ContainerService/managedClusters/{cluster-name}'")] string AKSClusterResourceId,
               [Description($"Kubernetes namespace, e.g. 'default', 'kube-system'")] string _namespace,
@@ -94,7 +93,7 @@ If user didn't specify namespace in the context, try to use 'default' namespace"
             return await _kubePlugin.ScaleDeploymentAsync(AKSClusterResourceId, _namespace, deploymentName, replicas, agentmode);
         }
 
-        [KernelFunction("get_kube_pod_logs")]
+        [OboContext(scope: Constants.AksOboTokenScope)]
         [Description(
 @"Get the logs of a pod in the specified namespace.
 Used whenever user wants to check the logs of a specific pod.
@@ -110,7 +109,7 @@ If user didn't specify namespace in the context, try to use 'default' namespace"
             return await _kubePlugin.GetKubePodLogsAsync(AKSClusterResourceId, _namespace, pod, container, lines);
         }
 
-        [KernelFunction("list_crds")]
+        [OboContext(scope: Constants.AksOboTokenScope)]
         [Description(
 @"List all Custom Resource Definitions (CRDs) in the cluster.
 Used whenever user wants to check what custom resources are available in the cluster.
@@ -122,7 +121,7 @@ eg: show me all CRDs in the cluster")]
             return await _kubePlugin.ListCRDsAsync(AKSClusterResourceId);
         }
 
-        [KernelFunction("list_custom_resources")]
+        [OboContext(scope: Constants.AksOboTokenScope)]
         [Description(
 @"List custom resource objects in a namespace with specific API group and kind.
 Used whenever user wants to list custom resource objects like Istio VirtualServices, ArgoCD Applications, etc.
@@ -136,7 +135,7 @@ eg: list all VirtualServices in the 'istio-system' namespace.")]
             return await _kubePlugin.ListCustomResourcesAsync(AKSClusterResourceId, _namespace, apiGroup, kind);
         }
 
-        [KernelFunction("GetKubeResourceEvents")]
+        [OboContext(scope: Constants.AksOboTokenScope)]
         [Description(
 @"Get the events of a Kubernetes resource (Deployment, StatefulSet, DaemonSet, Pod, Service, Node, PV, or Custom Resource Object) by name.
 Used whenever user wants to check the events or history of a specific resource object.
@@ -151,7 +150,7 @@ eg: show me the events of the pod 'nginx-pod-xyz' in the 'default' namespace.")]
             return await _kubePlugin.GetKubeResourceEventsAsync(AKSClusterResourceId, _namespace, apiGroup, kind, name);
         }
 
-        [KernelFunction("GetKubeResourceSpecStatus")]
+        [OboContext(scope: Constants.AksOboTokenScope)]
         [Description(
 @"Get the YAML spec and status of a Kubernetes resource (Deployment, StatefulSet, DaemonSet, Pod, Service, Node, PV, PVC, or Custom Resource Object) by name.
 e.g. show me the YAML spec and status of 'my-service' deployment in the 'default' namespace.
@@ -166,7 +165,7 @@ e.g. get spec for node aks-nodepool1-12345678-vmss000000.")]
             return await _kubePlugin.GetKubeResourceSpecStatusAsync(AKSClusterResourceId, _namespace, apiGroup, kind, name);
         }
 
-        [KernelFunction("get_recently_updated_workloads")]
+        [OboContext(scope: Constants.AksOboTokenScope)]
         [Description(
 @"Get a list of Kubernetes workloads (Deployments, StatefulSets) that were updated within a specified time frame.
 Used to monitor recent changes or identify workloads that might be related to recent issues.
@@ -179,7 +178,7 @@ eg: show me all workloads updated in the last 15 minutes.")]
             return await _kubePlugin.GetRecentlyUpdatedWorkloadsAsync(AKSClusterResourceId, _namespace, minutesAgo);
         }
 
-        [KernelFunction("ListKubeResources")]
+        [OboContext(scope: Constants.AksOboTokenScope)]
         [Description(
 @"Get all Kubernetes resources in the specified namespace with specified kind.
 Supported kinds include Deployment, Service, Statefulset, Pod, Job, Configmap, Secret, Ingress, ReplicaSet, Daemonset, and Node.
@@ -194,15 +193,14 @@ If user didn't specify namespace in the context, try to use 'default' namespace"
             return await _kubePlugin.ListKubeResourcesAsync(AKSClusterResourceId, _namespace, kind);
         }
 
-
-        [KernelFunction("ScaleStatefulSet")]
         [Description(
 @"Scale a StatefulSet in the specified namespace.
 Used whenever user wants to scale a StatefulSet, it can also be used to scale pods that belong to a StatefulSet.
 eg: scale the 'redis' StatefulSet in the 'default' namespace to 3 replicas.
 If user didn't specify namespace in the context, try to use 'default' namespace")]
         [WriteAction]
-        [RequiresApproval("Requires approval to scale a StatefulSet.", scope: Constants.AksOboTokenScope)]
+        [OboContext(scope: Constants.AksOboTokenScope)]
+        [RequiresApproval("Requires approval to scale a StatefulSet.")]
         public async Task<string> ScaleStatefulSetAsync(
             [Description("The resource ID of the Azure Kubernetes Service. e.g. '/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ContainerService/managedClusters/{cluster-name}'")] string AKSClusterResourceId,
               [Description($"Kubernetes namespace, e.g. 'default', 'kube-system'")] string _namespace,
@@ -212,7 +210,7 @@ If user didn't specify namespace in the context, try to use 'default' namespace"
             return await _kubePlugin.ScaleStatefulSetAsync(AKSClusterResourceId, _namespace, statefulSetName, replicas);
         }
 
-        [KernelFunction("GetAPIServerStatus")]
+        [OboContext(scope: Constants.AksOboTokenScope)]
         [Description(
 @"Get the status of the apiserver for the AKS cluster.
 Used whenever user wants to check the apiserver status of the AKS cluster. Apiserver is the main component of Kubernetes control plane.
@@ -224,7 +222,7 @@ eg: show me the status of apiserver")]
             return await _kubePlugin.GetAPIServerStatusAsync(AKSClusterResourceId, timeRange);
         }
 
-        [KernelFunction("GetEtcdStatus")]
+        [OboContext(scope: Constants.AksOboTokenScope)]
         [Description(
 @"Get the status of the etcd for the AKS cluster.
 Used whenever user wants to check the etcd status of the AKS cluster. Etcd is the key-value store used by Kubernetes to store all cluster data which is the main component of Kubernetes control plane.
@@ -236,7 +234,7 @@ eg: show me the status of etcd")]
             return await _kubePlugin.GetEtcdStatusAsync(AKSClusterResourceId, timeRange);
         }
 
-        [KernelFunction("DiagnoseAKSApp")]
+        [OboContext(scope: Constants.AksOboTokenScope)]
         [Description(
 @"Used to diagnose an AKS application (deployment or statefulset resource) in the specified AKS namespace to get all detailed information belong to the resource.
 It will first get all spec, status, and events of the resource, then get all pods belong to the resource.
@@ -253,7 +251,6 @@ e.g.: check what's wrong with my 'redis' statefulset in the 'databse-system' nam
             return await _kubePlugin.DiagnoseAKSAppAsync(AKSClusterResourceId, _namespace, kind, name);
         }
 
-        [KernelFunction("PatchKubernetesYaml")]
         [Description(
         @"Applies one Kubernetes YAML object to the specified AKS cluster using server-side apply.
         When patch for array values, make sure all existing values are included in the YAML object.
@@ -261,7 +258,8 @@ Used whenever user wants to create or update resources in a Kubernetes cluster u
 eg: please apply this YAML object to my AKS cluster to create a new deployment.
 eg: update my service with this YAML manifest.")]
         [WriteAction]
-        [RequiresApproval("Requires approval to apply Kubernetes YAML.", scope: Constants.AksOboTokenScope)]
+        [OboContext(scope: Constants.AksOboTokenScope)]
+        [RequiresApproval("Requires approval to apply Kubernetes YAML.")]
         public async Task<string> PatchKubernetesYamlAsync(
             [Description("The resource ID of the Azure Kubernetes Service. e.g. '/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ContainerService/managedClusters/{cluster-name}'")] string AKSClusterResourceId,
             [Description("The YAML manifest content to apply to the cluster")] string yamlContent)
@@ -270,7 +268,7 @@ eg: update my service with this YAML manifest.")]
         }
 
 
-        [KernelFunction("GetKubeResourceMetricsRangeAsync")]
+        [OboContext(scope: Constants.AksOboTokenScope)]
         [Description(
 @"Get the value of specific metric for Kubernetes Workload during a time range.
 The supported metrics include cpu, memory, availability percentage.
@@ -290,7 +288,7 @@ eg: please give me the availability rate for statefulset for last 2 hour.")]
             return await _kubePlugin.GetKubeResourceMetricsRangeAsync(AKSClusterResourceId, _namespace, kind, name, metricsType, startTime, endTime);
         }
 
-        [KernelFunction("listWorkloadRevisions")]
+        [OboContext(scope: Constants.AksOboTokenScope)]
         [Description(
 @"List all revisions for a specific Kubernetes workload (Deployment or StatefulSet) and sort by revision number.
 For deployments, it fetches ReplicaSets owned by the deployment.
@@ -306,7 +304,6 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
             return await _kubePlugin.ListWorkloadRevisions(AKSClusterResourceId, _namespace, kind, name);
         }
 
-        [KernelFunction("runKubectlReadCommand")]
         [Description("""
         Safely execute kubectl commands to retrieve Kubernetes resource information. Several subcommands are supported, including 'get', 'describe', 'logs', 'top', 'api-resources', and 'api-versions'.
         USAGE: Provide the complete kubectl command as a string.
@@ -327,7 +324,6 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
             return await _kubePlugin.RunKubectlReadCommandAsync(AKSClusterResourceId, command);
         }
 
-        [KernelFunction("runKubectlWriteCommand")]
         [Description("""
         Safely execute kubectl commands to update/create Kubernetes resources. Supports 'create', 'apply', 'patch', 'replace', 'scale', 'rollout', 'label', 'annotate'.
 
@@ -365,6 +361,7 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
         }
 
         /// <summary>Run 'kubectl get' on any resource.</summary>
+        [OboContext(scope: Constants.AksOboTokenScope)]
         [Description(
             "Retrieve Kubernetes resources with optional label filtering and custom columns.")]
         [AgentTool(ToolMode.Manual)]
@@ -414,6 +411,7 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
         /// <summary>
         /// Describe a single Kubernetes object (human‑readable detail + events).
         /// </summary>
+        [OboContext(scope: Constants.AksOboTokenScope)]
         [Description(
             "Run 'kubectl describe' on a single object. " +
             "Must specify kind, name, and namespace (or empty for cluster‑scoped kinds).")]
@@ -444,6 +442,7 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
         /// <summary>
         /// Explain fields of a resource schema (kubectl explain).
         /// </summary>
+        [OboContext(scope: Constants.AksOboTokenScope)]
         [Description(
             "Run 'kubectl explain' for API documentation. " +
             "Always specify full resourcePath (e.g. 'pod.spec.containers') and " +
@@ -473,6 +472,7 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
         /// <summary>
         /// List every API resource the cluster supports (kubectl api-resources).
         /// </summary>
+        [OboContext(scope: Constants.AksOboTokenScope)]
         [Description(
             "Run 'kubectl api-resources' with optional filters and explicit output columns.")]
         [AgentTool(ToolMode.Manual)]
@@ -500,34 +500,35 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
         }
 
         /// <summary>Get pod logs with advanced filtering and volume reduction.</summary>
+        [OboContext(scope: Constants.AksOboTokenScope)]
         [Description(
-            "Retrieve Kubernetes pod logs with grep filtering, truncation, and all built-in kubectl log options.")]
+                    "Retrieve Kubernetes pod logs with grep filtering, truncation, and all built-in kubectl log options.")]
         [AgentTool(ToolMode.Manual)]
         public async Task<string> GetPodLogsAsync(
-            [Description("The resource ID of the Azure Kubernetes Service. e.g. '/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ContainerService/managedClusters/{cluster-name}'")]
+                    [Description("The resource ID of the Azure Kubernetes Service. e.g. '/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ContainerService/managedClusters/{cluster-name}'")]
             string AKSClusterResourceId,
-            [Description("Pod name or resource/name (e.g. 'mypod' or 'deployment/myapp')")]
+                    [Description("Pod name or resource/name (e.g. 'mypod' or 'deployment/myapp')")]
             string podOrResource,
-            [Description("Namespace name. Leave empty for current namespace context.")]
+                    [Description("Namespace name. Leave empty for current namespace context.")]
             string? @namespace = null,
-            [Description("Container name. Leave empty for single-container pods or first container.")]
+                    [Description("Container name. Leave empty for single-container pods or first container.")]
             string? container = null,
-            [Description("Search terms for grep filtering. Space-separated for OR, comma-separated for AND. " +
+                    [Description("Search terms for grep filtering. Space-separated for OR, comma-separated for AND. " +
                  "Example: 'error warn' (OR) or 'error,database' (AND)")]
             string? grepTerms = null,
-            [Description("Case-sensitive grep search. Default: false (case-insensitive)")]
+                    [Description("Case-sensitive grep search. Default: false (case-insensitive)")]
             bool caseSensitive = false,
-            [Description("Number of tail lines to retrieve. Default: 100. Use -1 for all logs.")]
+                    [Description("Number of tail lines to retrieve. Default: 100. Use -1 for all logs.")]
             int tailLines = 100,
-            [Description("Time duration to look back (e.g. '1h', '30m', '24h'). Overrides tailLines if specified.")]
+                    [Description("Time duration to look back (e.g. '1h', '30m', '24h'). Overrides tailLines if specified.")]
             string? since = null,
-            [Description("Include timestamps in output. Default: true")]
+                    [Description("Include timestamps in output. Default: true")]
             bool timestamps = true,
-            [Description("Get logs from previous terminated container. Default: false")]
+                    [Description("Get logs from previous terminated container. Default: false")]
             bool previous = false,
-            [Description("Get logs from all containers in the pod. Default: false")]
+                    [Description("Get logs from all containers in the pod. Default: false")]
             bool allContainers = false,
-            [Description("Show prefix with pod/container name. Default: false")]
+                    [Description("Show prefix with pod/container name. Default: false")]
             bool showPrefix = false)
         {
             try
@@ -582,6 +583,7 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
         }
 
         /// <summary>Get Kubernetes events with filtering and volume reduction.</summary>
+        [OboContext(scope: Constants.AksOboTokenScope)]
         [Description(
             "Retrieve Kubernetes events with grep filtering, truncation, and built-in event filtering options.")]
         [AgentTool(ToolMode.Manual)]
@@ -730,14 +732,14 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
                 minValue);
         }
 
-        [KernelFunction("profile_dotnet_app_cpu_in_aks_container")]
         [Description(
         @"Performs CPU profiling for a .NET application running in a specific pod and container.
             The analysis ('topN' report) is also performed inside the container, and its result is returned.
             Failures during tool installation or profiling will be reported in the output.
             eg: 'Profile CPU of 'my-app-pod' in 'default' for 60s.'"
         )]
-        [RequiresApproval("Requires approval to execute CPU profiling tools within the specified pod and container.", scope: Constants.AksOboTokenScope)]
+        [OboContext(scope: Constants.AksOboTokenScope)]
+        [RequiresApproval("Requires approval to execute CPU profiling tools within the specified pod and container.")]
         public async Task<string> ProfileDotnetAppCpuInAKSContainerAsync(
         [Description("The resource ID of the Azure Kubernetes Service (AKS) cluster.")] string AKSClusterResourceId,
         [Description("Kubernetes namespace where the pod is located.")] string _namespace,
@@ -748,7 +750,6 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
             return await _kubePlugin.ProfileDotnetAppCpuInAKSContainerAsync(AKSClusterResourceId, _namespace, podName, targetContainerName, durationSeconds);
         }
 
-        [KernelFunction("analyze_dotnet_app_memory_in_aks_container")]
         [Description(
     @"Performs memory analysis for a .NET application running in a specific pod and container within an AKS cluster.
     This involves collecting a memory dump, running an analyzer tool inside the container, and returning the analysis results.
@@ -757,7 +758,8 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
     eg: 'Analyze the memory of the .NET app in pod 'cart-service-pod-abc789' in the 'e-commerce' namespace.'
     eg: 'My .NET app 'order-processor' in pod 'proc-pod-123' seems to be using too much memory, can you analyze it?'"
     )]
-        [RequiresApproval("Requires approval to execute memory dump collection and analysis tools within the specified pod and container. This involves running scripts and potentially installing diagnostic tools inside the container.", scope: Constants.AksOboTokenScope)]
+        [OboContext(scope: Constants.AksOboTokenScope)]
+        [RequiresApproval("Requires approval to execute memory dump collection and analysis tools within the specified pod and container. This involves running scripts and potentially installing diagnostic tools inside the container.")]
         public async Task<string> AnalyzeDotnetAppMemoryInAKSContainerAsync(
             [Description("The resource ID of the Azure Kubernetes Service (AKS) cluster.")] string AKSClusterResourceId,
             [Description("Kubernetes namespace where the pod is located.")] string _namespace,

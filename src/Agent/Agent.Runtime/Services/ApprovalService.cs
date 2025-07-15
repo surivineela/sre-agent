@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Reflection;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
@@ -67,11 +68,12 @@ namespace Agent.Runtime.Services
             {
                 throw new KeyNotFoundException("Approval not found");
             }
+
             if (scope != approval.OboTokenScope)
             {
                 throw new InvalidOperationException($"Requested scope mismatch: expected {approval.OboTokenScope}, received {scope}");
             }
-            if (approval.Status != ApprovalDecision.Pending)
+            if (approval.Status != ApprovalDecision.Pending && approval.Status != ApprovalDecision.PendingAuthorization)
             {
                 // Create detailed exception with information about the previous approval
                 var errorMessage = $"Cannot re-approve. This operation was already {approval.Status} by {approval.DecisionUser?.DisplayName ?? "unknown"} on {approval.DecisionTimestamp?.ToString("yyyy-MM-dd HH:mm:ss") ?? "unknown date"}";
@@ -80,76 +82,22 @@ namespace Agent.Runtime.Services
                 throw new InvalidOperationException(errorMessage);
             }
 
+            if ((approval.Status == ApprovalDecision.Pending && status != ApprovalDecision.Approved && status != ApprovalDecision.Cancelled)
+                || (approval.Status == ApprovalDecision.PendingAuthorization && status != ApprovalDecision.Authorized && status != ApprovalDecision.Cancelled))
+            {
+                throw new InvalidOperationException("Invalid approval decision for current approval status");
+            }
+
             AgentContext? agentContext = null;
-            string? orchestrationId = approval.OrchestrationId;
 
             if (approval.AgentContextId != null)
             {
                 agentContext = await _threadRepository.GetAgentContextAsync(approval.AgentContextId.Value, threadId);
             }
-            else
+
+            if (agentContext == null)
             {
-                orchestrationId = approval.OrchestrationId;
-            }
-
-            if (agentContext == null && orchestrationId == null)
-            {
-                throw new InvalidOperationException("Orchestration ID or Agent Context ID is required for approval message.");
-            }
-
-            if (status == ApprovalDecision.Approved)
-            {
-                // Approval Message
-                string approvalMessage = $"**✅ Operation Approved**\n\n" +
-                                         $"- **Operation ID:** {approvalId}\n" +
-                                         $"- **User:** {user}\n" +
-                                         $"- **Timestamp:** {DateTime.UtcNow}";
-
-                if (agentContext != null)
-                {
-                    await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(agentContext, new ChatMessage(ChatRole.Assistant, approvalMessage));
-                }
-                else if (orchestrationId != null)
-                {
-                    await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(threadId, orchestrationId, new ChatMessage(ChatRole.Assistant, approvalMessage));
-                }
-            }
-            else if (status == ApprovalDecision.Rejected)
-            {
-                string rejectionMessage = $"**❌ Operation Rejected**\n\n" +
-                       $"- **Operation ID:** {approvalId}\n" +
-                       $"- **User:** {user}\n" +
-                       $"- **Timestamp:** {DateTime.UtcNow}";
-
-                if (agentContext != null)
-                {
-                    await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(agentContext, new ChatMessage(ChatRole.Assistant, rejectionMessage));
-                }
-                else if (orchestrationId != null)
-                {
-                    await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(threadId, orchestrationId, new ChatMessage(ChatRole.Assistant, rejectionMessage));
-                }
-            }
-            else
-            {
-                throw new ArgumentException($"Invalid approval status: {status} for approvalId: {approvalId}");
-            }
-
-
-            if (!string.IsNullOrEmpty(orchestrationId))
-            {
-                //todo - reconcile this approval status type with the new one introduced in core/models/api
-                var approvalStatus = new ApprovalStatus(
-                    approvalId,
-                    StartTime: DateTime.UtcNow,
-                    Status: status,
-                    ApprovedTime: DateTime.UtcNow,
-                    DecisionMaker: user,
-                    ProcessedTime: null,
-                    OboToken: status == ApprovalDecision.Approved ? oboToken : null
-                    );
-
-                await _durableTaskClient.RaiseEventAsync(orchestrationId, "ApprovalEvent", approvalStatus);
+                throw new InvalidOperationException("Agent Context ID is required for approval message.");
             }
 
             var newApproval = approval with
@@ -157,8 +105,15 @@ namespace Agent.Runtime.Services
                 DecisionTimestamp = DateTime.UtcNow,
                 DecisionUser = new Author(Role.User, user, user),
                 Status = status,
-                OboToken = oboToken,
             };
+
+            if (status == ApprovalDecision.Authorized)
+            {
+                newApproval = newApproval with
+                {
+                    OboToken = oboToken,
+                };
+            }
 
             await _threadRepository.UpdateApprovalAsync(newApproval);
 

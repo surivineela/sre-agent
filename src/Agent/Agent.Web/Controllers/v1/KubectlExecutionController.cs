@@ -58,10 +58,8 @@ namespace Agent.Web.Controllers.v1
             if (execution == null)
             {
                 return NotFound(new { error = "Execution not found" });
-            }
-
-            // Validate current status
-            if (execution.Status != KubectlExecutionStatus.Pending)
+            }            // Validate current status
+            if (execution.Status != KubectlExecutionStatus.Pending && execution.Status != KubectlExecutionStatus.PendingAuthorization)
             {
                 return Conflict(new
                 {
@@ -125,17 +123,6 @@ namespace Agent.Web.Controllers.v1
                     AgentContext agentContext = await _threadRepository.GetAgentContextAsync(agentContextId: executionDoc.AgentContextId.Value, threadId: threadGuid);
 #pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
                     // Update execution with user info
-                    execution = execution with
-                    {
-                        Status = KubectlExecutionStatus.Running,
-                        StartedTimestamp = DateTime.UtcNow,
-                        ExecutedBy = new Author(
-                            DisplayName: $"{userName} <{userEmail}>",
-                            UserId: userId,
-                            Role: Role.User
-                        )
-                    };
-                    await _threadRepository.UpdateKubectlExecutionAsync(threadGuid, execution);
 
                     // Extract the resource ID from the command or use a placeholder
                     // This would need to be adapted to your actual command structure
@@ -145,15 +132,63 @@ namespace Agent.Web.Controllers.v1
                     {
                         try
                         {
-                            // Execute the Kubectl command with stdin support
-                            // TODO: Pass obo token to ExecuteKubectlCommandSafely to consume obo token in kubectl
-                            var output = await _kubePlugin.ExecuteKubectlCommandSafely(resourceId, execution.Command, execution.Stdin, token);
+                            CliExecutionResult result;
+                            if (execution.Status == KubectlExecutionStatus.Pending)
+                            {
+                                execution = execution with
+                                {
+                                    Status = KubectlExecutionStatus.Running,
+                                    StartedTimestamp = DateTime.UtcNow,
+                                    ExecutedBy = new Author(
+                                        DisplayName: "SRE Agent Client",
+                                        UserId: "sreagent-client",
+                                        Role: Role.SREAgent
+                                    )
+                                };
+                                await _threadRepository.UpdateKubectlExecutionAsync(threadGuid, execution);
 
-                            // Update execution with success
+                                _logger.LogInternalInformation($"[{threadGuid}]Executing {executionGuid} with agent identity");
+                                result = await _kubePlugin.ExecuteKubectlCommandSafely(resourceId, execution.Command, execution.Stdin);
+                                if (result.ErrorOccurred && result.ErrorType == CliErrorType.AuthorizationError)
+                                {
+                                    // trigger obo flow
+                                    execution = execution with
+                                    {
+                                        Status = KubectlExecutionStatus.PendingAuthorization,
+                                        Description = $"{execution.Description}",
+                                        Output = null,
+                                        ExecutedBy = null,
+                                        Error = null,
+                                        StartedTimestamp = null,
+                                        CompletedTimestamp = null,
+                                    };
+                                    await _threadRepository.UpdateKubectlExecutionAsync(threadGuid, execution);
+                                    return;
+                                }
+                            }
+                            else
+                            {
+                                execution = execution with
+                                {
+                                    Status = KubectlExecutionStatus.Running,
+                                    StartedTimestamp = DateTime.UtcNow,
+                                    ExecutedBy = new Author(
+                                        DisplayName: $"{userName} <{userEmail}>",
+                                        UserId: userId,
+                                        Role: Role.User
+                                    )
+                                };
+                                await _threadRepository.UpdateKubectlExecutionAsync(threadGuid, execution);
+
+                                _logger.LogInternalInformation($"[{threadGuid}]Executing {executionGuid} with obo token");
+                                result = await _kubePlugin.ExecuteKubectlCommandSafely(resourceId, execution.Command, execution.Stdin, token);
+                            }
+
+                            var output = result.Output;
                             execution = execution with
                             {
-                                Status = KubectlExecutionStatus.Completed,
-                                Output = output,
+                                Status = result.ErrorOccurred ? KubectlExecutionStatus.Failed : KubectlExecutionStatus.Completed,
+                                Output = result.Output,
                                 CompletedTimestamp = DateTime.UtcNow
                             };
 
@@ -189,15 +224,15 @@ namespace Agent.Web.Controllers.v1
                             {
                                 var functionCall = !string.IsNullOrEmpty(execution.OriginalFunctionCall) ? JsonSerializer.Deserialize<FunctionCallContent>(execution.OriginalFunctionCall) : null;
                                 await _reasoningLoopManager.AppendFunctionCallMessagesAsync(agentContext, new List<Microsoft.Extensions.AI.ChatMessage>
-                                {
-                                    new Microsoft.Extensions.AI.ChatMessage(Microsoft.Extensions.AI.ChatRole.Assistant,
-                                        new List<Microsoft.Extensions.AI.AIContent>{functionCall }),
-                                    new Microsoft.Extensions.AI.ChatMessage(Microsoft.Extensions.AI.ChatRole.Tool,
-                                    new List<Microsoft.Extensions.AI.AIContent>
                                     {
-                                        new Microsoft.Extensions.AI.FunctionResultContent(functionCall?.CallId, $"Execution Failed: {execution.Command}, Result: {ex.Message}")
-                                    })
-                                });
+                                        new Microsoft.Extensions.AI.ChatMessage(Microsoft.Extensions.AI.ChatRole.Assistant,
+                                            new List<Microsoft.Extensions.AI.AIContent>{functionCall }),
+                                        new Microsoft.Extensions.AI.ChatMessage(Microsoft.Extensions.AI.ChatRole.Tool,
+                                        new List<Microsoft.Extensions.AI.AIContent>
+                                        {
+                                            new Microsoft.Extensions.AI.FunctionResultContent(functionCall?.CallId, $"Execution Failed: {execution.Command}, Result: {ex.Message}")
+                                        })
+                                    });
                             }
 
                             await _threadRepository.UpdateKubectlExecutionAsync(threadGuid, execution);
@@ -300,7 +335,8 @@ namespace Agent.Web.Controllers.v1
                     status = execution.Status.ToString(),
                     error = execution.Error,
                     completed = execution.Status != KubectlExecutionStatus.Running &&
-                                execution.Status != KubectlExecutionStatus.Pending,
+                                execution.Status != KubectlExecutionStatus.Pending &&
+                                execution.Status != KubectlExecutionStatus.PendingAuthorization,
                     completedTimestamp = execution.CompletedTimestamp
                 });
             }
@@ -314,17 +350,15 @@ namespace Agent.Web.Controllers.v1
                 _logger.LogInternalError(ex, "Error getting kubectl execution output");
                 return StatusCode(500, new { error = "Internal server error" });
             }
-        }
-
-        /// <summary>
-        /// Model for execution action request
-        /// </summary>
+        }        /// <summary>
+                 /// Model for execution action request
+                 /// </summary>
         public class ExecutionActionRequest
         {
             [Required]
-            public string Action { get; set; } // "run" or "cancel"
+            public string Action { get; set; } = string.Empty; // "run" or "cancel"
 
-            public string User { get; set; }
+            public string? User { get; set; }
         }
     }
 }

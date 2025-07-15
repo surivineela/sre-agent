@@ -66,7 +66,6 @@ public static class ApprovalHelper
         }
 
         if (approval.Status == ApprovalDecision.Approved &&
-            attribute.UseOboToken &&
             (string.IsNullOrEmpty(approval.OboToken) || OboTokenExpired(approval.OboToken)))
         {
             return true;

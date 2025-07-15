@@ -63,9 +63,7 @@ namespace Agent.Web.Controllers.v1
             {
                 return NotFound(new { error = "Execution not found" });
             }
-
-            // Validate current status
-            if (execution.Status != AzCliExecutionStatus.Pending)
+            if (execution.Status != AzCliExecutionStatus.Pending && execution.Status != AzCliExecutionStatus.PendingAuthorization)
             {
                 return Conflict(new
                 {
@@ -128,27 +126,65 @@ namespace Agent.Web.Controllers.v1
 #pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
                     AgentContext agentContext = await _threadRepository.GetAgentContextAsync(agentContextId: executionDoc.AgentContextId.Value, threadId: threadGuid);
 #pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
-                    // Update execution with user info
-                    execution = execution with
-                    {
-                        Status = AzCliExecutionStatus.Running,
-                        StartedTimestamp = DateTime.UtcNow,
-                        ExecutedBy = new Author(
-                            DisplayName: $"{userName} <{userEmail}>",
-                            UserId: userId,
-                            Role: Role.User
-                        )
-                    };
-                    await _threadRepository.UpdateAzCliExecutionAsync(threadGuid, execution);
 
                     _ = Task.Run(async () =>
                     {
                         try
                         {
-                            // Execute the Azure CLI command
-                            var result = await _armHelper.RunAzCliCommandsAsync(execution.Command, token);
+                            CliExecutionResult result;
+                            if (execution.Status == AzCliExecutionStatus.Pending)
+                            {
+                                execution = execution with
+                                {
+                                    Status = AzCliExecutionStatus.Running,
+                                    StartedTimestamp = DateTime.UtcNow,
+                                    ExecutedBy = new Author(
+                                        DisplayName: "SRE Agent Client",
+                                        UserId: "sreagent-client",
+                                        Role: Role.SREAgent
+                                    )
+                                };
+                                await _threadRepository.UpdateAzCliExecutionAsync(threadGuid, execution);
 
-                            // Update execution with success
+                                _logger.LogInternalInformation($"[{threadGuid}]Executing {executionGuid} with agent identity");
+                                // this is an approval (not authorization) action, use agent identitiy
+                                result = await _armHelper.RunAzCliCommandsAsync(execution.Command);
+                                if (result.ErrorOccurred && result.ErrorType == CliErrorType.AuthorizationError)
+                                {
+                                    // trigger obo flow
+                                    var updatedExecution = execution with
+                                    {
+                                        Status = AzCliExecutionStatus.PendingAuthorization,
+                                        Description = $"{execution.Description}",
+                                        Output = null,
+                                        ExecutedBy = null,
+                                        Error = null,
+                                        StartedTimestamp = null,
+                                        CompletedTimestamp = null,
+                                    };
+                                    await _threadRepository.UpdateAzCliExecutionAsync(threadGuid, updatedExecution);
+                                    return;
+                                }
+                            }
+                            else
+                            {
+                                // this is an authorization action, use obo token
+                                execution = execution with
+                                {
+                                    Status = AzCliExecutionStatus.Running,
+                                    StartedTimestamp = DateTime.UtcNow,
+                                    ExecutedBy = new Author(
+                                        DisplayName: $"{userName} <{userEmail}>",
+                                        UserId: userId,
+                                        Role: Role.User
+        )
+                                };
+                                await _threadRepository.UpdateAzCliExecutionAsync(threadGuid, execution);
+
+                                _logger.LogInternalInformation($"[{threadGuid}]Executing {executionGuid} with obo token");
+                                result = await _armHelper.RunAzCliCommandsAsync(execution.Command, token);
+                            }
+
                             execution = execution with
                             {
                                 Status = result.ErrorOccurred ? AzCliExecutionStatus.Failed : AzCliExecutionStatus.Completed,

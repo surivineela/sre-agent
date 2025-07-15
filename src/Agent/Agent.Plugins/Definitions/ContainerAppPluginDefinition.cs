@@ -22,7 +22,6 @@ namespace Agent.Plugins.Definitions
             _containerAppPlugin = containerAppPlugin;
         }
 
-        [KernelFunction("get_container_app")]
         [Description(
             "PREFERRED METHOD FOR CONTAINER APP DETAILS: Gets detailed information about a specific Azure Container App by its resource ID. " +
             "Returns a ContainerAppDescriptor with resource ID, name, location, state, workload profile, FQDN, AppHealthInfo, and environment details. " +

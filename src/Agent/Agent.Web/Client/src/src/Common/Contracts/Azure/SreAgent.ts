@@ -173,7 +173,7 @@ export interface AzCliExecution {
     id: string;
     command: string;
     description: string;
-    status: 'Pending' | 'Running' | 'Completed' | 'Failed' | 'Cancelled';
+    status: 'Pending' | 'Running' | 'Completed' | 'Failed' | 'Cancelled' | 'PendingAuthorization';
     output?: string;
     error?: string;
     createdTimestamp: string;
@@ -191,7 +191,7 @@ export interface KubectlExecution {
     command: string;
     stdin?: string;
     description: string;
-    status: 'Pending' | 'Running' | 'Completed' | 'Failed' | 'Cancelled';
+    status: 'Pending' | 'Running' | 'Completed' | 'Failed' | 'Cancelled' | 'PendingAuthorization';
     output?: string;
     error?: string;
     createdTimestamp: string;
@@ -207,7 +207,9 @@ export interface KubectlExecution {
 export enum ApprovalDecision {
     Pending = 'Pending',
     Approved = 'Approved',
-    Rejected = 'Rejected',
+    Cancelled = 'Cancelled',
+    PendingAuthorization = 'PendingAuthorization',
+    Authorized = 'Authorized',
 }
 
 export interface Approval {

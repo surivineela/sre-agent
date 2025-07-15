@@ -2080,7 +2080,7 @@ public class CosmosDbThreadRepository : IThreadRepository
             var pendingExecutions = new List<AzCliExecution>();
 
             var query = _client.GetContainer<CliExecutionDocument>(_databaseName).GetItemLinqQueryable<CliExecutionDocument>()
-                .Where(m => m.DocumentType == "CliExecution" && m.ThreadId == threadIdStr && m.Status == AzCliExecutionStatus.Pending);
+                .Where(m => m.DocumentType == "CliExecution" && m.ThreadId == threadIdStr && (m.Status == AzCliExecutionStatus.Pending || m.Status == AzCliExecutionStatus.PendingAuthorization));
             using var iterator = query.ToFeedIterator();
 
             while (iterator.HasMoreResults)
@@ -2186,7 +2186,7 @@ public class CosmosDbThreadRepository : IThreadRepository
             var pendingExecutions = new List<KubectlExecution>();
 
             var query = _client.GetContainer<KubectlExecutionDocument>(_databaseName).GetItemLinqQueryable<KubectlExecutionDocument>()
-                .Where(m => m.DocumentType == "KubectlExecution" && m.ThreadId == threadIdStr && m.Status == KubectlExecutionStatus.Pending);
+                .Where(m => m.DocumentType == "KubectlExecution" && m.ThreadId == threadIdStr && (m.Status == KubectlExecutionStatus.Pending || m.Status == KubectlExecutionStatus.PendingAuthorization));
             using var iterator = query.ToFeedIterator();
 
             while (iterator.HasMoreResults)

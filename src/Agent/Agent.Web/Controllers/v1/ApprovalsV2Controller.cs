@@ -22,7 +22,7 @@ namespace Agent.Web.Controllers.v1
         private readonly IThreadRepository _threadRepository;
 
         public ApprovalsV2Controller(
-            IApprovalService approvalService, 
+            IApprovalService approvalService,
             ILogger<ApprovalsController> logger,
             IAgentOutboundCommunicationService agentOutboundCommunicationService,
             DurableTaskClient durableTaskClient,
@@ -59,10 +59,10 @@ namespace Agent.Web.Controllers.v1
         {
             // TODO: Implement getting a specific approval
             _logger.LogInternalInformation("GET approval requested with ID: {Id}, AgentContextId: {agentContextId}", id, agentContextId);
-            
+
             // Stub implementation - Return sample data
             var approval = await _threadRepository.GetApprovalV2Async(approvalIdV2: Guid.Parse(id), agentContextId: Guid.Parse(agentContextId));
-            
+
             return Ok(approval);
         }
 
@@ -75,7 +75,7 @@ namespace Agent.Web.Controllers.v1
         [HttpPost("{id}/decision")]
         public async Task<IActionResult> SubmitApprovalDecision(string id, [FromQuery] string agentContextId, [FromBody] ApprovalDecisionRequest request)
         {
-            _logger.LogInternalInformation("Submitting approval decision for ID: {Id}, Status: {Status}", 
+            _logger.LogInternalInformation("Submitting approval decision for ID: {Id}, Status: {Status}",
                 id, request.Status);
 
             var existingApprovalV2 = await _threadRepository.GetApprovalV2Async(approvalIdV2: Guid.Parse(id), agentContextId: Guid.Parse(agentContextId));
@@ -117,12 +117,12 @@ namespace Agent.Web.Controllers.v1
 
                 await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(existingApprovalV2.ThreadId, orchestrationInstanceId: null, new Microsoft.Extensions.AI.ChatMessage(ChatRole.Assistant, approvalMessage));
             }
-            else if (approvalStatus == ApprovalDecision.Rejected)
+            else if (approvalStatus == ApprovalDecision.Cancelled)
             {
                 //todo - reconcile this approval status type with the new one introduced in core/models/api
                 existingApprovalV2 = existingApprovalV2 with
                 {
-                    Status = ApprovalDecision.Rejected,
+                    Status = ApprovalDecision.Cancelled,
                     DecisionTimestamp = existingApprovalV2.DecisionTimestamp,
                     DecisionUserId = request.User
                 };

@@ -71,7 +71,9 @@ public record ApprovalDocument(
         {
             ApprovalDecision.Pending => ToolApprovalStatus.Pending,
             ApprovalDecision.Approved => ToolApprovalStatus.Approved,
-            ApprovalDecision.Rejected => ToolApprovalStatus.Rejected,
+            ApprovalDecision.Cancelled => ToolApprovalStatus.Cancelled,
+            ApprovalDecision.PendingAuthorization => ToolApprovalStatus.PendingAuthorization,
+            ApprovalDecision.Authorized => ToolApprovalStatus.Authorized,
             _ => throw new ArgumentOutOfRangeException(nameof(decision), decision, null)
         };
     }
@@ -82,8 +84,11 @@ public record ApprovalDocument(
         {
             ToolApprovalStatus.Pending => ApprovalDecision.Pending,
             ToolApprovalStatus.Approved => ApprovalDecision.Approved,
-            ToolApprovalStatus.Rejected => ApprovalDecision.Rejected,
+            ToolApprovalStatus.Cancelled => ApprovalDecision.Cancelled,
             ToolApprovalStatus.NotRequired => ApprovalDecision.Approved,
+            ToolApprovalStatus.AutoApproved => ApprovalDecision.Approved,
+            ToolApprovalStatus.PendingAuthorization => ApprovalDecision.PendingAuthorization,
+            ToolApprovalStatus.Authorized => ApprovalDecision.Authorized,
             _ => throw new ArgumentOutOfRangeException(nameof(status), status, null)
         };
     }

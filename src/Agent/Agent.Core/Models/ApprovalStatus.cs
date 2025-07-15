@@ -38,7 +38,10 @@ public enum ToolApprovalStatus
 {
     Pending,
     Approved,
-    Rejected,
+    Cancelled,
     NotRequired,
     AutoApproved,
+
+    PendingAuthorization,
+    Authorized,
 }

@@ -3,12 +3,14 @@
 // ------------------------------------------------------------
 
 using System.Reflection;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Channels;
 using Agent.Core.Attributes;
 using Agent.Core.Configuration;
+using Agent.Core.Exceptions;
 using Agent.Core.Extensions;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
@@ -24,6 +26,7 @@ using Agent.Runtime.SubAgents.Core;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
+using Constants = Agent.Core.Constants;
 
 namespace Agent.Runtime.Reasoning;
 
@@ -360,6 +363,12 @@ public class ReasoningLoop : IDisposable
                 {
                     case ReasoningLoopChatMessage chatMessage:
                         {
+                            bool shouldStop = await HandleUnprocessedToolCallsAsync(agentChatHistory, cancellationToken);
+                            if (shouldStop)
+                            {
+                                return;
+                            }
+
                             StringBuilder sb = new StringBuilder();
                             sb.AppendLine("Try your best to answer the user's questions. Keep in mind:");
                             sb.AppendLine(" - If you find a suitable agent to handoff to, call transfer_to_{agentName} tool directly");
@@ -398,11 +407,6 @@ public class ReasoningLoop : IDisposable
                                     string.Empty,
                                     new ChatMessage(ChatRole.Assistant, "You have pending approvals. Please resolve them before continuing."));
                                 break;
-                            }
-                            var shouldStop = await HandleUnprocessedToolCallsAsync(agentChatHistory, cancellationToken);
-                            if (shouldStop)
-                            {
-                                return;
                             }
 
                             await PersistReasoningMessageAsync(agentChatHistory, msg);
@@ -638,75 +642,67 @@ public class ReasoningLoop : IDisposable
                     else
                     {
                         var checkApprovalResult = await CheckApprovalAsync(toolCall);
-                        var checkAzCli = CheckAzCliToolCall(toolCall);
-                        var checkKubectlWrite = CheckKubectlWriteToolCall(toolCall);
+                        bool shouldStop = checkApprovalResult.ApprovalStatus == ToolApprovalStatus.Pending;
 
-                        if (checkAzCli)
+                        if (checkApprovalResult.ApprovalStatus == ToolApprovalStatus.NotRequired || checkApprovalResult.ApprovalStatus == ToolApprovalStatus.AutoApproved)
                         {
-                            var functionResult = await InvokeToolWithErrorHandlingAsync(toolCall, cancellationToken);
+                            try
+                            {
+                                var functionResult = await InvokeToolWithErrorHandlingAsync(toolCall, cancellationToken);
 
-                            var cliExecution = await _threadRepository.ListPendingAzCliExecutionAsync(_context.ThreadId);
-                            if (cliExecution == null)
-                            {
-                                // 2 cases:
-                                // 1. The tool call is read command and no authorization error occurred.
-                                // 2. There expects to be one pending execution, but something (e.g. validation failed) happened.
-                                // we need to return the error message to LLM.
-                                toolResults.Add(new ManualToolCallResult()
+                                var azCliExecution = await _threadRepository.ListPendingAzCliExecutionAsync(_context.ThreadId);
+                                var kubectlExecution = await _threadRepository.ListPendingKubectlExecutionAsync(_context.ThreadId);
+
+                                if (azCliExecution == null && kubectlExecution == null)
                                 {
-                                    FunctionCall = toolCall.FunctionCall,
-                                    Output = functionResult
-                                });
+                                    toolResults.Add(new ManualToolCallResult()
+                                    {
+                                        FunctionCall = toolCall.FunctionCall,
+                                        Output = functionResult
+                                    });
+                                }
+                                else if (azCliExecution != null)
+                                {
+                                    azCliExecution = azCliExecution with
+                                    {
+                                        AgentContextId = _context.Id,
+                                        OriginalFunctionCall = JsonSerializer.Serialize(toolCall.FunctionCall),
+                                    };
+                                    await _threadRepository.UpdateAzCliExecutionAsync(_context.ThreadId, azCliExecution);
+                                    break;
+                                }
+                                else if (kubectlExecution != null)
+                                {
+                                    kubectlExecution = kubectlExecution with
+                                    {
+                                        AgentContextId = _context.Id,
+                                        OriginalFunctionCall = JsonSerializer.Serialize(toolCall.FunctionCall),
+                                    };
+                                    await _threadRepository.UpdateKubectlExecutionAsync(_context.ThreadId, kubectlExecution);
+                                    break;
+                                }
                             }
-                            else
+                            catch (ToolExecutionUnauthorizedException ex)
                             {
-                                cliExecution = cliExecution with
+                                try
                                 {
-                                    AgentContextId = _context.Id,
-                                    OriginalFunctionCall = JsonSerializer.Serialize(toolCall.FunctionCall),
-                                };
-                                await _threadRepository.UpdateAzCliExecutionAsync(_context.ThreadId, cliExecution);
-                                break;
+                                    await HandleToolExecutionUnauthorized(ex, toolCall.Tool, toolCall.FunctionCall);
+                                    shouldStop = true;
+                                }
+                                catch (Exception ex2)
+                                {
+                                    toolResults.Add(new ManualToolCallResult()
+                                    {
+                                        FunctionCall = toolCall.FunctionCall,
+                                        Output = GetErrorMessage(toolCall.FunctionCall, ex2),
+                                    });
+                                }
                             }
                         }
-                        else if (checkKubectlWrite)
-                        {
-                            var functionResult = await InvokeToolWithErrorHandlingAsync(toolCall, cancellationToken);
 
-                            var kubectlExecution = await _threadRepository.ListPendingKubectlExecutionAsync(_context.ThreadId);
-                            if (kubectlExecution == null)
-                            {
-                                // if cliExecution is null, it means no pending execution, which means something (e.g. validation failed)
-                                // we need to return the error message to LLM.
-                                toolResults.Add(new ManualToolCallResult()
-                                {
-                                    FunctionCall = toolCall.FunctionCall,
-                                    Output = functionResult
-                                });
-                            }
-                            else
-                            {
-                                kubectlExecution = kubectlExecution with
-                                {
-                                    AgentContextId = _context.Id,
-                                    OriginalFunctionCall = JsonSerializer.Serialize(toolCall.FunctionCall),
-                                };
-                                await _threadRepository.UpdateKubectlExecutionAsync(_context.ThreadId, kubectlExecution);
-                                break;
-                            }
-                        }
-                        else if (checkApprovalResult.ApprovalStatus == ToolApprovalStatus.NotRequired || checkApprovalResult.ApprovalStatus == ToolApprovalStatus.AutoApproved)
+                        if (shouldStop)
                         {
-                            var functionResult = await InvokeToolWithErrorHandlingAsync(toolCall, cancellationToken);
-                            toolResults.Add(new ManualToolCallResult()
-                            {
-                                FunctionCall = toolCall.FunctionCall,
-                                Output = functionResult
-                            });
-                        }
-                        else
-                        {
-                            // if approval is required, stop the loop and wait for approval
+                            // Either it needs approval or authorization
                             await PersistReasoningMessageAsync(agentChatHistory, toolCall.OriginalMessage);
                             await ChangeAgentContextStateAsync(ContextStateEnum.PendingApproval);
 
@@ -1114,25 +1110,35 @@ public class ReasoningLoop : IDisposable
         FunctionCallContent functionCall,
         CancellationToken cancellationToken)
     {
+        // Set the cancellation token for plugins to use
+        Agent.Core.ToolStatic.AsyncLocalCancellationToken.Value = cancellationToken;
+        Guid toolCallMessageId = Guid.NewGuid();
+
+        await _outboundCommunicationService.AppendAgentToolCallMessage(_context.ThreadId, aiTool, toolCallMessageId, functionCall.CallId);
+        var functionResult = await aiTool.InvokeAsync(new AIFunctionArguments(functionCall.Arguments), cancellationToken);
+        var result = new FunctionResultContent(functionCall.CallId, functionResult);
+        var functionCallMessage = new ChatMessage(ChatRole.Tool, [result]);
+
+        await _outboundCommunicationService.AppendAgentToolCallResult(_context.ThreadId, result, toolCallMessageId);
+        await PersistReasoningMessageAsync(agentChatHistory, functionCallMessage);
+    }
+
+    private async Task<bool> ExecuteToolWithOboFlowFallbackAsync(
+        AgentChatHistory agentChatHistory,
+        AIFunction aiTool,
+        FunctionCallContent functionCall,
+        CancellationToken cancellationToken
+    )
+    {
         try
         {
-            // Set the cancellation token for plugins to use
-            Agent.Core.ToolStatic.AsyncLocalCancellationToken.Value = cancellationToken;
-            Guid toolCallMessageId = Guid.NewGuid();
-
-            await _outboundCommunicationService.AppendAgentToolCallMessage(_context.ThreadId, aiTool, toolCallMessageId, functionCall.CallId);
-            var functionResult = await aiTool.InvokeAsync(new AIFunctionArguments(functionCall.Arguments), cancellationToken);
-            var result = new FunctionResultContent(functionCall.CallId, functionResult);
-            var functionCallMessage = new ChatMessage(ChatRole.Tool, [result]);
-
-            await _outboundCommunicationService.AppendAgentToolCallResult(_context.ThreadId, result, toolCallMessageId);
-            await PersistReasoningMessageAsync(agentChatHistory, functionCallMessage);
+            await ExecuteToolAsync(agentChatHistory, aiTool, functionCall, cancellationToken);
+            return false;
         }
-        catch (Exception ex)
+        catch (ToolExecutionUnauthorizedException ex)
         {
-            _logger.LogInternalError(ex, "Error while invoking tool: {ToolName}", functionCall.Name);
-            var errorMessage = new ChatMessage(ChatRole.Tool, [new FunctionResultContent(functionCall.CallId, GetErrorMessage(functionCall, ex))]);
-            await PersistReasoningMessageAsync(agentChatHistory, errorMessage);
+            await HandleToolExecutionUnauthorized(ex, aiTool, functionCall);
+            return true;
         }
     }
 
@@ -1151,15 +1157,7 @@ public class ReasoningLoop : IDisposable
             {
                 var aiTool = ResolveTool(functionCall.Name) ?? throw new Exception($"Tool {functionCall.Name} not found");
 
-                if (aiTool.UnderlyingMethod?.GetCustomAttribute<RequiresApprovalAttribute>() != null)
-                {
-                    _logger.LogInternalInformation("Tool {ToolName} requires approval. Waiting for approval.", functionCall.Name);
-                    return true;
-                }
-
-                await ExecuteToolAsync(agentChatHistory, aiTool, functionCall, cancellationToken);
-
-                return false;
+                return await ExecuteToolWithOboFlowFallbackAsync(agentChatHistory, aiTool, functionCall, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -1193,7 +1191,7 @@ public class ReasoningLoop : IDisposable
         Approval approval,
         CancellationToken cancellationToken)
     {
-        var lastMessage = _chatHistory?.LastOrDefault()?.Contents?.First();
+        var lastMessage = _chatHistory?.LastOrDefault()?.Contents?.Last();
         // if lastMessage is a tool call, we need to invoke the tool first
         if (lastMessage != null && lastMessage is FunctionCallContent functionCall)
         {
@@ -1206,75 +1204,93 @@ public class ReasoningLoop : IDisposable
                 return true;
             }
 
-            if (approval.Status == ApprovalDecision.Approved)
+            switch (approval.Status)
             {
-                try
-                {
-                    var aiTool = ResolveTool(functionCall.Name) ?? throw new Exception($"Tool {functionCall.Name} not found");
-
-                    var approvalAttr = aiTool.UnderlyingMethod?.GetCustomAttribute<RequiresApprovalAttribute>();
-
-                    if (approvalAttr != null)
+                case ApprovalDecision.Pending:
+                case ApprovalDecision.PendingAuthorization:
+                    _logger.LogInternalInformation($"Approval {approval.Id} is {approval.Status}. Waiting for user to respond.");
+                    return true; // Wait for user to approve or reject
+                case ApprovalDecision.Approved:
                     {
-                        var approvalContext = new ApprovalContext(
-                            ThreadId: _context.ThreadId,
-                            ApprovalId: approval.Id,
-                            UseOboToken: approvalAttr.UseOboToken && string.Compare(_agentRuntimeModifier.GetThreadAgentMode(_context), ActionMode.Review.ToString(), StringComparison.OrdinalIgnoreCase) == 0
-                        );
-
-                        Agent.Core.ToolStatic.AsyncLocalApprovalContext.Value = approvalContext;
-                    }
-
-                    await ExecuteToolAsync(agentChatHistory, aiTool, functionCall, cancellationToken);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogInternalError(ex, "Error while invoking tool: {ToolName}", functionCall.Name);
-                    var errorMessage = new ChatMessage(ChatRole.Tool, [new FunctionResultContent(functionCall.CallId, GetErrorMessage(functionCall, ex))]);
-                    await PersistReasoningMessageAsync(agentChatHistory, errorMessage);
-                }
-                finally
-                {
-                    // remove pending approval
-                    var pendingApprovals = _context.ApprovalInformation?.PendingApprovals;
-                    if (pendingApprovals != null && pendingApprovals.Contains(approval.Id))
-                    {
-                        pendingApprovals.Remove(approval.Id);
-                        _context = _context with
+                        _logger.LogInternalInformation($"Approval {approval.Id} is approved. Executing tool: {functionCall.Name}");
+                        try
                         {
-                            ApprovalInformation = new ApprovalInformation(pendingApprovals),
-                        };
-                        await ChangeAgentContextStateAsync(ContextStateEnum.Processing);
-                    }
-                }
-            }
-            else if (approval.Status == ApprovalDecision.Rejected)
-            {
-                var result = new FunctionResultContent(functionCall.CallId, "Error: Function failed, user rejected the function call.");
-                var functionCallMessage = new ChatMessage(ChatRole.Tool, [result]);
-                await PersistReasoningMessageAsync(agentChatHistory, functionCallMessage);
+                            var aiTool = ResolveTool(functionCall.Name) ?? throw new Exception($"Tool {functionCall.Name} not found");
+                            return await ExecuteToolWithOboFlowFallbackAsync(agentChatHistory, aiTool, functionCall, cancellationToken);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogInternalError(ex, "Error while invoking tool: {ToolName}", functionCall.Name);
+                            var errorMessage = new ChatMessage(ChatRole.Tool, [new FunctionResultContent(functionCall.CallId, GetErrorMessage(functionCall, ex))]);
+                            await PersistReasoningMessageAsync(agentChatHistory, errorMessage);
+                        }
+                        finally
+                        {
+                            await RemovePendingApprovalAsync(approval.Id);
+                        }
 
-                // remove pending approval
-                var pendingApprovals = _context.ApprovalInformation?.PendingApprovals;
-                if (pendingApprovals != null && pendingApprovals.Contains(approval.Id))
-                {
-                    pendingApprovals.Remove(approval.Id);
-                    _context = _context with
+                        return false;
+                    }
+                case ApprovalDecision.Authorized:
                     {
-                        ApprovalInformation = new ApprovalInformation(pendingApprovals),
-                    };
-                    await ChangeAgentContextStateAsync(ContextStateEnum.Processing);
-                }
-            }
-            else  // Pending
-            {
-                // If there is any pending approvals, we should wait for them to be resolved before continuing
-                _logger.LogInternalInformation("There are pending approvals. Waiting for them to be resolved before continuing.");
-                return true;
+                        _logger.LogInternalInformation($"Approval {approval.Id} is authorized by user. Executing tool with obo token: {functionCall.Name}");
+                        try
+                        {
+                            var aiTool = ResolveTool(functionCall.Name) ?? throw new Exception($"Tool {functionCall.Name} not found");
+                            var approvalContext = new ApprovalContext(
+                                                    ThreadId: _context.ThreadId,
+                                                    ApprovalId: approval.Id,
+                                                    UseOboToken: true
+                                                );
+
+                            Core.ToolStatic.AsyncLocalApprovalContext.Value = approvalContext;
+                            await ExecuteToolAsync(agentChatHistory, aiTool, functionCall, cancellationToken);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogInternalError(ex, "Error while invoking tool: {ToolName}", functionCall.Name);
+                            var errorMessage = new ChatMessage(ChatRole.Tool, [new FunctionResultContent(functionCall.CallId, GetErrorMessage(functionCall, ex))]);
+                            await PersistReasoningMessageAsync(agentChatHistory, errorMessage);
+                        }
+                        finally
+                        {
+                            await RemovePendingApprovalAsync(approval.Id);
+                        }
+
+                        return false;
+                    }
+                case ApprovalDecision.Cancelled:
+                    {
+                        _logger.LogInternalInformation($"Approval {approval.Id} is cancelled by user.");
+                        var result = new FunctionResultContent(functionCall.CallId, "Error: Function failed, user cancelled the function call.");
+                        var functionCallMessage = new ChatMessage(ChatRole.Tool, [result]);
+                        await PersistReasoningMessageAsync(agentChatHistory, functionCallMessage);
+
+                        await RemovePendingApprovalAsync(approval.Id);
+                        return false;
+                    }
+                default:
+                    _logger.LogInternalWarning($"Approval {approval.Id}  Unknown approval status: {approval.Status}");
+                    return true; // Unknown status, block the loop
             }
         }
 
         return false;
+    }
+
+    // remove pending approval
+    private async Task RemovePendingApprovalAsync(Guid approvalId)
+    {
+        var pendingApprovals = _context.ApprovalInformation?.PendingApprovals;
+        if (pendingApprovals != null && pendingApprovals.Contains(approvalId))
+        {
+            pendingApprovals.Remove(approvalId);
+            _context = _context with
+            {
+                ApprovalInformation = new ApprovalInformation(pendingApprovals),
+            };
+            await ChangeAgentContextStateAsync(ContextStateEnum.Processing);
+        }
     }
 
     private async Task<CheckApprovalActivityOutput> CheckApprovalAsync(ManualToolCall toolCall)
@@ -1310,63 +1326,17 @@ public class ReasoningLoop : IDisposable
             }
 
             var approvalTitle = GetApprovalTitle(toolCall.FunctionCall);
+            var description = attribute.DisplayMessage ?? toolCall.Tool.Name;
+            // Always create a new approval
+            var newApproval = await CreateAndPersistApproval(
+                approvalTitle: approvalTitle,
+                description: description);
 
-            var approval = await _threadRepository.GetApprovalAsync(_context.ThreadId, approvalTitle);
-
-            if (approval == null ||
-                (approval.Status == ApprovalDecision.Approved && string.IsNullOrEmpty(approval.OboToken) && attribute != null && attribute.UseOboToken))
+            return new CheckApprovalActivityOutput()
             {
-                var description = attribute.DisplayMessage ?? toolCall.Tool.Name;
-
-                // Create a new approval document
-                var newApproval = new Approval(
-                    Id: Guid.NewGuid(),
-                    ThreadId: _context.ThreadId.ToString(),
-                    Title: approvalTitle,
-                    Description: description,
-                    Status: ApprovalDecision.Pending,
-                    CreatedTimestamp: DateTime.UtcNow,
-                    DecisionTimestamp: null,
-                    OrchestrationId: null,
-                    AgentContextId: _context.Id,
-                    DecisionUser: null,
-                    OboToken: null,
-                    OboTokenScope: attribute.Scope);
-
-                await _threadRepository.CreateApprovalAsync(newApproval);
-
-                var newPendingApprovals = _context.ApprovalInformation?.PendingApprovals ?? [];
-                newPendingApprovals.Add(newApproval.Id);
-
-                _context = _context with
-                {
-                    ApprovalInformation = new ApprovalInformation(newPendingApprovals),
-                    ContextState = ContextStateEnum.PendingApproval
-                };
-
-                _context = await _threadRepository.UpdateAgentContextAsync(_context);
-
-                await _outboundCommunicationService.AppendAgentApprovalMessage(
-                    _context.ThreadId,
-                    newApproval);
-
-                _logger.LogInternalInformation("Created new approval document: {ApprovalId}, threadId: {ThreadId}, title: {Title}, status ToolApprovalStatus.Pending", newApproval.Id, _context.ThreadId, newApproval.Title);
-
-                return new CheckApprovalActivityOutput()
-                {
-                    ApprovalId = newApproval.Id,
-                    ApprovalStatus = ToolApprovalStatus.Pending,
-                };
-            }
-            else
-            {
-                _logger.LogInternalInformation("Found existing approval document: {ApprovalId}, threadId: {ThreadId}, title: {Title}, status {Status}", approval.Id, _context.ThreadId, approval.Title, approval.Status);
-                return new CheckApprovalActivityOutput()
-                {
-                    ApprovalId = approval.Id,
-                    ApprovalStatus = ApprovalDocument.ToToolApprovalStatus(approval.Status),
-                };
-            }
+                ApprovalId = newApproval.Id,
+                ApprovalStatus = ToolApprovalStatus.Pending,
+            };
         }
         catch (Exception ex)
         {
@@ -1378,35 +1348,60 @@ public class ReasoningLoop : IDisposable
         }
     }
 
-    private static bool CheckAzCliToolCall(ManualToolCall toolCall)
+    private async Task HandleToolExecutionUnauthorized(ToolExecutionUnauthorizedException ex, AIFunction aiTool, FunctionCallContent functionCall)
     {
-        if (toolCall.Tool == null)
+        OboContextAttribute attr = aiTool.UnderlyingMethod?.GetCustomAttribute<OboContextAttribute>() ?? new OboContextAttribute();
+        if (attr.DisableObo)
         {
-            return false;
+            _logger.LogInternalInformation($"Tool {aiTool.Name} does not support obo flow. Throw original exception.");
+            throw ex.InnerException ?? ex;
         }
 
-        if (toolCall.Tool.UnderlyingMethod?.Name != "RunAzCliWriteCommandsAsync" &&
-            toolCall.Tool.UnderlyingMethod?.Name != "RunAzCliReadCommandsAsync")
-        {
-            return false;
-        }
-
-        return true;
+        _logger.LogInternalInformation($"Trigger obo flow for tool {aiTool.Name}.");
+        var title = GetApprovalTitle(functionCall);
+        await CreateAndPersistApproval(title, aiTool.Name, attr.Scope, ApprovalDecision.PendingAuthorization);
     }
 
-    private static bool CheckKubectlWriteToolCall(ManualToolCall toolCall)
+    private async Task<Approval> CreateAndPersistApproval(
+        string approvalTitle,
+        string description,
+        string? oboScope = null,
+        ApprovalDecision status = ApprovalDecision.Pending
+    )
     {
-        if (toolCall.Tool == null)
-        {
-            return false;
-        }
+        var approval = new Approval(
+            Id: Guid.NewGuid(),
+            ThreadId: _context.ThreadId.ToString(),
+            Title: approvalTitle,
+            Description: description,
+            Status: status,
+            CreatedTimestamp: DateTime.UtcNow,
+            DecisionTimestamp: null,
+            OrchestrationId: null,
+            AgentContextId: _context.Id,
+            DecisionUser: null,
+            OboToken: null,
+            OboTokenScope: oboScope);
 
-        if (toolCall.Tool.UnderlyingMethod?.Name != "RunKubectlWriteCommandAsync")
-        {
-            return false;
-        }
+        await _threadRepository.CreateApprovalAsync(approval);
 
-        return true;
+        var newPendingApprovals = _context.ApprovalInformation?.PendingApprovals ?? [];
+        newPendingApprovals.Add(approval.Id);
+
+        _context = _context with
+        {
+            ApprovalInformation = new ApprovalInformation(newPendingApprovals),
+            ContextState = ContextStateEnum.PendingApproval
+        };
+
+        _context = await _threadRepository.UpdateAgentContextAsync(_context);
+
+        await _outboundCommunicationService.AppendAgentApprovalMessage(
+            _context.ThreadId,
+            approval);
+
+        _logger.LogInternalInformation("Created new approval document: {ApprovalId}, threadId: {ThreadId}, title: {Title}, status ToolApprovalStatus.Pending", approval.Id, _context.ThreadId, approval.Title);
+        return approval;
     }
 
     private async Task PersistReasoningMessageAsync(AgentChatHistory agentChatHistory, ChatMessage chatMessage)
@@ -1449,6 +1444,11 @@ public class ReasoningLoop : IDisposable
             Agent.Core.ToolStatic.AsyncLocalThreadId.Value = _context.ThreadId;
             Agent.Core.ToolStatic.AsyncLocalCancellationToken.Value = cancellationToken;
             return await toolCall.Tool.InvokeAsync(new AIFunctionArguments(toolCall.FunctionCall.Arguments), cancellationToken);
+        }
+        catch (ToolExecutionUnauthorizedException)
+        {
+            // throw exception to trigger obo flow
+            throw;
         }
         catch (Exception ex)
         {

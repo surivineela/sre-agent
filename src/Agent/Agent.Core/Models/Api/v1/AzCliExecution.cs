@@ -23,5 +23,6 @@ public enum AzCliExecutionStatus
     Running,
     Completed,
     Failed,
-    Cancelled
+    Cancelled,
+    PendingAuthorization,
 }

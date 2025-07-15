@@ -131,7 +131,7 @@ public class CheckApprovalActivity : TaskActivity<CheckApprovalActivityInput, Ch
                     AgentContextId: null,
                     DecisionUser: null,
                     OboToken: null,
-                    OboTokenScope: attribute.Scope);
+                    OboTokenScope: null);
 
                 await _threadRepository.CreateApprovalAsync(newApproval);
                 await _outboundCommunicationService.AppendAgentApprovalMessage(

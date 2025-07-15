@@ -2,6 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Services;
+
 namespace Agent.Plugins.Interface
 {
     public interface IKubePlugin
@@ -36,6 +38,6 @@ namespace Agent.Plugins.Interface
         Task<string> ExecutePromQLAsync(string AKSClusterResourceId, string query, string duration, string step, string? labelFilters, string? aggregateFunction, string? aggregateBy, int? limit, double? minValue);
         Task<string> ProfileDotnetAppCpuInAKSContainerAsync(string aksResourceId, string _namespace, string podName, string? targetContainerName, int durationSeconds = 30);
         Task<string> AnalyzeDotnetAppMemoryInAKSContainerAsync(string aksResourceId, string _namespace, string podName, string? targetContainerName);
-        Task<string> ExecuteKubectlCommandSafely(string resourceId, string command, string stdin = "", string oboToken = "");
+        Task<CliExecutionResult> ExecuteKubectlCommandSafely(string resourceId, string command, string stdin = "", string oboToken = "");
     }
 }

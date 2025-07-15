@@ -44,7 +44,7 @@ namespace Agent.Runtime
                 else
                 {
                     var timeoutAt = context.CurrentUtcDateTime;
-                    var approvalEvent = new ApprovalStatus(context.InstanceId, startTime, ApprovalDecision.Rejected, ApprovedTime: null, DecisionMaker: null, ProcessedTime: timeoutAt);
+                    var approvalEvent = new ApprovalStatus(context.InstanceId, startTime, ApprovalDecision.Cancelled, ApprovedTime: null, DecisionMaker: null, ProcessedTime: timeoutAt);
 
                     await context.CallActivityAsync(new TaskName(nameof(HandleApprovalTimeoutActivity)), Tuple.Create(input, approvalEvent));
                     return approvalEvent;

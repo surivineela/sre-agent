@@ -47,7 +47,8 @@ namespace Agent.Plugins
         }
 
         [Description("Modifies an existing Grafana dashboard based on user-requested changes or creates a new one from a template. Dashboard can be specified by name or UID.")]
-        [RequiresApproval(useOboToken: false)]
+        [RequiresApproval]
+        [OboContext(disableObo: true)]
         public async Task<string> ModifyGrafanaDashboard(
             [Description("Description of changes the user wants")]
             string description,

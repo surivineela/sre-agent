@@ -526,7 +526,7 @@ class Program
             var approval = await approvalRepo.GetApprovalAsync(context.ThreadId, approvalTitle);
 
             if (approval == null ||
-                (approval.Status == ApprovalDecision.Approved && string.IsNullOrEmpty(approval.OboToken) && attribute != null && attribute.UseOboToken))
+                (approval.Status == ApprovalDecision.Approved && string.IsNullOrEmpty(approval.OboToken) && attribute != null))
             {
                 var description = attribute.DisplayMessage ?? string.Empty;
 

@@ -2660,9 +2660,15 @@ public class ArmHelper
 
         var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
         var response = await httpClient.SendAsync(request);
+
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogInternalWarning($"Failed to fetch TLS status for {resourceId}: {response.ReasonPhrase}");
+            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized ||
+                response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            {
+                throw new ToolExecutionUnauthorizedException($"Unauthorized access to resource {resourceId}");
+            }
             return null;
         }
 

@@ -25,5 +25,6 @@ public enum KubectlExecutionStatus
     Running,
     Completed,
     Failed,
-    Cancelled
+    Cancelled,
+    PendingAuthorization,
 }

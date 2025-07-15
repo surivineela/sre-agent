@@ -83,7 +83,7 @@ public class GenericExecuteActionActivity : TaskActivity<ExecuteActionInput, Exe
     {
         var attribute = toolFunction.ToolFunction.UnderlyingMethod?.GetCustomAttribute<RequiresApprovalAttribute>();
 
-        var useOboToken = (attribute?.UseOboToken ?? false) && (_actionSettings.Mode == ActionMode.Review);
+        var useOboToken = (_actionSettings.Mode == ActionMode.Review);
 
         return new ApprovalContext(
             ThreadId: input.ThreadId,

@@ -44,11 +44,43 @@ export const SreAgentResources = defineMessages({
         id: 'htvX+Z',
         defaultMessage: 'Deny',
     },
-    approveUsingCreds: {
-        id: 'A3Wps1',
-        defaultMessage: 'If you approve, this operation will be executed on your behalf using your credentials.',
+    continue: {
+        id: 'acrOoz',
+        defaultMessage: 'Continue',
+    },
+    authorize: {
+        id: 'QwnGVY',
+        defaultMessage: 'Authorize',
+    },
+    canceled: {
+        id: 'PFtMy9',
+        defaultMessage: 'Canceled',
+    },
+    authorized: {
+        id: 'NAepnj',
+        defaultMessage: 'Authorized',
+    },
+    authorizedBy: {
+        defaultMessage: 'Authorized by',
+        id: 'vDbj1h',
+    },
+    canceledBy: {
+        defaultMessage: 'Canceled by',
+        id: 'boVrya',
+    },
+    authorizeUsingCreds: {
+        id: 'KbCGsK',
+        defaultMessage: "If you click 'Authorize', this operation will be executed on your behalf using your credentials.",
+    },
+    continueUsingCreds: {
+        id: 'bKgVBL',
+        defaultMessage: "If you click 'Continue', this operation will be executed using agent identity credentials.",
     },
     beingExecutedUsingCreds: {
+        id: 'yVc78v',
+        defaultMessage: 'This operation is being executed using the agent identity credentials.',
+    },
+    beingExecutedUsingApproverCreds: {
         id: 'SRf69j',
         defaultMessage: "This operation is being executed using the approver's credentials.",
     },
