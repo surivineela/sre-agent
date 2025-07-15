@@ -2628,18 +2628,6 @@
           }
         }
       ]
-    },
-    {
-      "role": "user",
-      "contents": [
-        {
-          "type": "TextContent",
-          "value": {
-            "$type": "text",
-            "text": "Try your best to answer the user\u0027s questions. Keep in mind:\n - If you find a suitable agent to handoff to, call transfer_to_{agentName} tool directly\n - If there\u0027s no suitable agent to handoff to, call HandoffBack directly\n - Use transfer_to_{agentName} or HandoffBack if you are done solving an issue\nUser question goes below:\nOkay.. so we have completed the investigation and found the impacting NSG rule. Can you help to change it to allow instead?\n"
-          }
-        }
-      ]
     }
   ],
   "modelOutput": [

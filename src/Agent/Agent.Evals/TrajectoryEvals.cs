@@ -42,7 +42,7 @@ public class TrajectoryEvals
             .Where(m => m.Role != ChatRole.System);
 
         // 2. Extract the trajectory
-        (var extractedTrajectory, var _) = await TrajectoryExtractor.GenerateTrajectoryAsync(
+        (var extractedTrajectory, var _) = await TrajectoryExtractor.GenerateTrajectoryAsync_v2(
             TestHost.RunConfig.ChatClient,
             conversationMessages);
 
@@ -76,7 +76,7 @@ public class TrajectoryEvals
             .Where(m => m.Role != ChatRole.System);
 
         // 2. Extract the trajectory
-        (var extractedTrajectory, var _) = await TrajectoryExtractor.GenerateTrajectoryAsync(
+        (var extractedTrajectory, var _) = await TrajectoryExtractor.GenerateTrajectoryAsync_v2(
             TestHost.RunConfig.ChatClient,
             conversationMessages);
     }
