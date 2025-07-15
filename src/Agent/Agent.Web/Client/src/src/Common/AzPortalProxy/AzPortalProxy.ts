@@ -54,7 +54,6 @@ export default class AzPortalProxy {
 
         window.addEventListener(AgentSiteToAzPortalVerbs.message, this.messageReceived.bind(this) as any, false);
 
-        this.postMessage(AgentSiteToAzPortalVerbs.ready, null);
         this.postMessage(AgentSiteToAzPortalVerbs.readyForData, null);
     };
 

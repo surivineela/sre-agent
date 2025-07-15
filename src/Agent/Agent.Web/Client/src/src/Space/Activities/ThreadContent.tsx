@@ -3,8 +3,7 @@ import { PanelRightExpandRegular } from '@fluentui/react-icons';
 import { Text } from '@fluentui/react/lib/Text';
 import { memo, useCallback, useContext } from 'react';
 import { useIntl } from 'react-intl';
-import { showChatBoxV2 } from '../../Common/Constants/FeatureFlags';
-import { useFeatureFlag } from '../../Common/Hooks/useFeatureFlag';
+import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
 import { ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { IThreadContentProps } from '../Contracts/Activities';
 import { AgentContext } from '../Contracts/Context';
@@ -28,7 +27,7 @@ export const ThreadContent = memo(
         const { threadContentAndActionKey } = useContext(AgentContext);
         const intl = useIntl();
 
-        const chatBoxV2 = useFeatureFlag(showChatBoxV2);
+        const chatBoxV2 = useConfigSetting(SettingNames.Streaming);
 
         const handleThreadDelete = useCallback(() => {
             if (thread) {
