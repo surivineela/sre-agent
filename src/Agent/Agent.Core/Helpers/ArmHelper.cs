@@ -1919,9 +1919,15 @@ public class ArmHelper
         {
             var connectivityCheckResult = await res.Content.ReadAsStringAsync();
             return connectivityCheckResult;
-        }
+        } else
+        {
+            if (CheckForUnauthorizedAccess(res))
+            {
+                throw new ToolExecutionUnauthorizedException($"Unauthorized access to resource {resourceId}");
+            }
 
-        return "Connectivity check failed.";
+            throw new Exception($"Connectivity check failed: {res.Content}");
+        }
     }
 
     public async Task<string> CheckTcpConnectivityAsync(string resourceId, string host, int port)
@@ -1951,8 +1957,15 @@ public class ArmHelper
             var tcpConnectivityCheckResult = await res.Content.ReadAsStringAsync();
             return tcpConnectivityCheckResult;
         }
+        else
+        {
+            if (CheckForUnauthorizedAccess(res))
+            {
+                throw new ToolExecutionUnauthorizedException($"Unauthorized access to resource {resourceId}");
+            }
 
-        return "TCP ping check failed.";
+            throw new Exception($"TCP ping check failed: {res.Content}");
+        }
     }
 
     public async Task<IReadOnlyCollection<ArmWrapper<ArmRevisionReplica>>> GetRevisionReplicas(string revisionId)
@@ -2004,8 +2017,15 @@ public class ArmHelper
             var dnsResolutionCheckResult = await res.Content.ReadAsStringAsync();
             return dnsResolutionCheckResult;
         }
+        else
+        {
+            if (CheckForUnauthorizedAccess(res))
+            {
+                throw new ToolExecutionUnauthorizedException($"Unauthorized access to resource {resourceId}");
+            }
 
-        return "Dns Resolution check failed.";
+            throw new Exception($"Dns Resolution check failed: {res.Content}");
+        }
     }
 
     public async Task<IDictionary<string, string>> GetAppSetting(string resourceId, string appsettingKey)
@@ -2028,10 +2048,18 @@ public class ArmHelper
             {
                 appSettingKv[appsettingKey] = value.ToString();
             }
-        }
 
-        return appSettingKv;
+            return appSettingKv;
+        } else
+        {
+            if (CheckForUnauthorizedAccess(res))
+            {
+                throw new ToolExecutionUnauthorizedException($"Unauthorized access to resource {resourceId}");
+            }
+            throw new Exception($"Failed to retrieve app setting {appsettingKey} for resource {resourceId}: {res.Content}");
+        }
     }
+
     public async Task<bool> UpdateAppSettingsAsync(string resourceId, IDictionary<string, string> appSettings)
     {
         if (string.IsNullOrWhiteSpace(resourceId) || appSettings == null || appSettings.Count == 0)
