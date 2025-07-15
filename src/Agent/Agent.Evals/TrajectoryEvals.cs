@@ -10,12 +10,22 @@ public class TrajectoryEvals
 
     #region Test-Case Discovery
 
-    public static IEnumerable<object[]> PromptQualityTestCases => LoadTestCasesFromFiles()
+    public static IEnumerable<object[]> PromptTrajectoryQualityTestCases => LoadQualityTestCasesFromFiles()
         .Select(tc => new object[] { tc });
 
-    private static ModelGenerationContent[] LoadTestCasesFromFiles()
+    public static IEnumerable<object[]> PromptTrajectoryRelevanceTestCases => LoadRelevanceTestCasesFromFiles()
+        .Select(tc => new object[] { tc });
+
+    private static ModelGenerationContent[] LoadQualityTestCasesFromFiles()
     {
-        var dataFolderPath = Path.Combine(AppContext.BaseDirectory, "Data", "Trajectory");
+        var dataFolderPath = Path.Combine(AppContext.BaseDirectory, "Data", "Trajectory", "Quality");
+        var data = ModelGenerationDataLoader.LoadChatMessagesFromJsonFilesAsync(dataFolderPath);
+        return data.Values.ToArray();
+    }
+
+    private static ModelGenerationContent[] LoadRelevanceTestCasesFromFiles()
+    {
+        var dataFolderPath = Path.Combine(AppContext.BaseDirectory, "Data", "Trajectory", "Relevance");
         var data = ModelGenerationDataLoader.LoadChatMessagesFromJsonFilesAsync(dataFolderPath);
         return data.Values.ToArray();
     }
@@ -23,7 +33,7 @@ public class TrajectoryEvals
     #endregion
 
     [TestMethod]
-    [DynamicData(nameof(PromptQualityTestCases))]
+    [DynamicData(nameof(PromptTrajectoryQualityTestCases))]
     public async Task PromptQuality_EvaluateResponses(ModelGenerationContent content)
     {
         // 1. Build the conversation that the model originally saw
@@ -36,7 +46,7 @@ public class TrajectoryEvals
             TestHost.RunConfig.ChatClient,
             conversationMessages);
 
-        // 5. Provide evaluation context (place-holders for now)
+        // 5. Provide evaluation context (quality)
         //string groundedContext = "TODO: supply ground-truth context for this trajectory";
         //string exampleResponse = "TODO: supply an ideal reference answer";
         //var messagesForEval = conversationMessages.Append(new ChatMessage(ChatRole.Assistant, summaryResponse.Text));
@@ -54,5 +64,20 @@ public class TrajectoryEvals
         //Assert.IsTrue(evalResults.Equivalence.Value >= 4, $"Low equivalence score: {evalResults.Equivalence.Reason}");
         //Assert.IsTrue(evalResults.Coherence.Value >= 4, $"Low coherence score: {evalResults.Coherence.Reason}");
         //Assert.IsTrue(evalResults.Groundedness.Value >= 4, $"Low groundedness score: {evalResults.Groundedness.Reason}");
+    }
+
+    [TestMethod]
+    [DynamicData(nameof(PromptTrajectoryRelevanceTestCases))]
+    public async Task PromptRelevance_EvaluateResponses(ModelGenerationContent content)
+    {
+        // 1. Build the conversation that the model originally saw
+        var conversationMessages = content.ModelInput
+            .Concat(content.ModelOutput)
+            .Where(m => m.Role != ChatRole.System);
+
+        // 2. Extract the trajectory
+        (var extractedTrajectory, var _) = await TrajectoryExtractor.GenerateTrajectoryAsync(
+            TestHost.RunConfig.ChatClient,
+            conversationMessages);
     }
 }
