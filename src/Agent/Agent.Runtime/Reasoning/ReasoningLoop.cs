@@ -329,6 +329,7 @@ public class ReasoningLoop : IDisposable
 
             ReasoningLoopIterationResult? iterationResult = null;
             uint currentIterationCount = 0;
+            TelemetrySpan _fakeRootSpan;
 
             if (_rootSpan == null)
             {
@@ -337,6 +338,12 @@ public class ReasoningLoop : IDisposable
                 _rootSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
                 _rootSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.UserMessage);
             }
+            // _fakeRootSpan is an alternative root span that is used to track the current iteration of the reasoning loop
+            // in case when root span is not available during reasoning loop continuation or unexpected errors.
+            _fakeRootSpan = _tracer.StartActiveSpan(TraceOperationName.UserMessage, SpanKind.Internal, _rootSpan);
+            _fakeRootSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
+            _fakeRootSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.UserMessage);
+            _fakeRootSpan.SetAttribute(TraceAttribute.SpanPurpose, "fake.root");
 
             try
             {
@@ -380,6 +387,9 @@ public class ReasoningLoop : IDisposable
 
                             _logger.LogInternalInformation("[{threadId}]Processing chat message.", _context.ThreadId);
                             _rootSpan.SetAttribute(TraceAttribute.MessageContent, chatMessage.Message.Text);
+                            _fakeRootSpan.SetAttribute(TraceAttribute.MessageContent, chatMessage.Message.Text);
+                            // _fakeRootSpan will immediately end after processing the message, so we can use it to track the current iteration
+                            _fakeRootSpan.End();
                             if (_context.ApprovalInformation != null &&
                                 _context.ApprovalInformation.PendingApprovals.Count > 0)
                             {

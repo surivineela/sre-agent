@@ -227,7 +227,7 @@ public static class Runner
                     logger.LogInformation(
                         "FinalOutput received from {AgentName}, Critic: {criticCount}/{MaxReflectionCount}",
                         currentAgent.Name,
-                        trajectory.CriticCount,
+                        trajectory.GetCriticCount(currentAgent.Name),
                         currentAgent.MaxReflectionCount);
 
                     var criticApproval = await CriticAsync(
@@ -248,6 +248,9 @@ public static class Runner
                     }
 
                     await hooks.OnAgentEnd(contextWrapper, currentAgent, turnResult.NextStep.Output);
+
+                    // Reset critic counts when conversation completes successfully
+                    trajectory.ResetCriticCounts();
 
                     return new RunResult<TContext>(currentAgent)
                     {
@@ -321,13 +324,16 @@ public static class Runner
         Action? failureHook = null)
         where TContext : class
     {
-        if (currentAgent.MaxReflectionCount > 0 && trajectory.CriticCount < currentAgent.MaxReflectionCount)
+        if (currentAgent.MaxReflectionCount > 0 && trajectory.GetCriticCount(currentAgent.Name) < currentAgent.MaxReflectionCount)
         {
+            // Increment CriticCount at the start of actually running the critic
+            trajectory.IncrementCriticCount(currentAgent.Name);
+
             if (config.EnableDebugOutput)
             {
                 if (displayModelOutput is not null)
                 {
-                    await displayModelOutput($"{DateTimeOffset.UtcNow:O}\nGathering critique: Agent: {currentAgent.Name}. Turn #{trajectory.CriticCount}/{currentAgent.MaxReflectionCount}");
+                    await displayModelOutput($"{DateTimeOffset.UtcNow:O}\nGathering critique: Agent: {currentAgent.Name}. Turn #{trajectory.GetCriticCount(currentAgent.Name)}/{currentAgent.MaxReflectionCount}");
                 }
             }
 
@@ -403,6 +409,20 @@ public static class Runner
             {
                 logger.LogInformation("Critic approved response: {CriticResult}", criticResult);
             }
+        }
+        else
+        {
+            logger.LogInformation(
+                "Critic skipped for {AgentName}: MaxReflectionCount={MaxReflectionCount}, CriticCount={CriticCount}",
+                currentAgent.Name,
+                currentAgent.MaxReflectionCount,
+                trajectory.GetCriticCount(currentAgent.Name));
+
+            // Invoke the critic end hook for tracing when critic is skipped
+            var skipReason = currentAgent.MaxReflectionCount == 0
+                ? "MaxReflectionCount is 0"
+                : "CriticCount exceeds MaxReflectionCount";
+            await hooks.OnCriticEnd(contextWrapper, currentAgent, "", $"Critic skipped: {skipReason}", true);
         }
 
         return true;
@@ -587,7 +607,7 @@ public static class Runner
                         logger.LogInformation(
                             "HandOff received from {AgentName}, Critic: {criticCount}/{MaxReflectionCount}",
                             agent.Name,
-                            trajectory.CriticCount,
+                            trajectory.GetCriticCount(agent.Name),
                             agent.MaxReflectionCount);
 
                         var criticApproval = await CriticAsync(

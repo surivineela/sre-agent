@@ -139,7 +139,8 @@ public class CriticFeedbackTrajectoryItem : TrajectoryItem
 
 public sealed class Trajectory
 {
-    public int CriticCount { get; private set; } = 0;
+    // Track critic count per agent name instead of globally
+    private readonly Dictionary<string, int> _agentCriticCounts = new();
 
     private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web)
     {
@@ -149,6 +150,30 @@ public sealed class Trajectory
     private const int MaxResultWords = 200;
 
     private readonly List<TrajectoryItem> _trajectoryItems = new();
+
+    /// <summary>
+    /// Gets the critic count for a specific agent
+    /// </summary>
+    public int GetCriticCount(string agentName)
+    {
+        return _agentCriticCounts.GetValueOrDefault(agentName, 0);
+    }
+
+    /// <summary>
+    /// Increments the critic count for a specific agent when the critic actually runs
+    /// </summary>
+    public void IncrementCriticCount(string agentName)
+    {
+        _agentCriticCounts[agentName] = _agentCriticCounts.GetValueOrDefault(agentName, 0) + 1;
+    }
+
+    /// <summary>
+    /// Resets critic counts for all agents (called when conversation completes successfully)
+    /// </summary>
+    public void ResetCriticCounts()
+    {
+        _agentCriticCounts.Clear();
+    }
 
     public void Append(ChatResponse modelResponse)
     {
@@ -395,7 +420,7 @@ public sealed class Trajectory
         // Remove function result items from memory to reduce memory usage
         _trajectoryItems.RemoveAll(item => item is FunctionResultTrajectoryItem);
 
-        CriticCount++;
+        // NOTE: CriticCount should be incremented only when critic actually runs, not here
         return trajectory;
     }
 

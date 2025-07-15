@@ -18,6 +18,7 @@ public static class TraceAttribute
     public const string AgentName = "agent.name";
 
     public const string OperationName = "operation.name";
+    public const string SpanPurpose = "span.purpose";
 
     public const string HandeOffAgentName = "handoff.agent.name";
 

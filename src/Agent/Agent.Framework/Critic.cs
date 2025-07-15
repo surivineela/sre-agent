@@ -9,51 +9,51 @@ namespace Agent.Framework;
 
 public static class Critic
 {
-    private static readonly ConcurrentDictionary<string, string> _agentPromptTemplates = new();
+  private static readonly ConcurrentDictionary<string, string> _agentPromptTemplates = new();
 
-    public static async Task<string> CriticAsync<TContext>(
-        Agent<TContext> agent,
-        string userQuery,
-        string trajectory,
-        IReadOnlyList<AIFunction> agentTools,
-        IChatClient chatClient)
-        where TContext : class
+  public static async Task<string> CriticAsync<TContext>(
+      Agent<TContext> agent,
+      string userQuery,
+      string trajectory,
+      IReadOnlyList<AIFunction> agentTools,
+      IChatClient chatClient)
+      where TContext : class
+  {
+    var criticPromptTemplate = CriticPrompt;
+    if (!string.IsNullOrEmpty(agent.CriticPromptPath))
     {
-        var criticPromptTemplate = CriticPrompt;
-        if (!string.IsNullOrEmpty(agent.CriticPromptPath))
-        {
-            if (!_agentPromptTemplates.TryGetValue(agent.Name, out criticPromptTemplate))
-            {
-                criticPromptTemplate = await File.ReadAllTextAsync(agent.CriticPromptPath);
-                _agentPromptTemplates.TryAdd(agent.Name, criticPromptTemplate);
-            }
-        }
+      if (!_agentPromptTemplates.TryGetValue(agent.Name, out criticPromptTemplate))
+      {
+        criticPromptTemplate = await File.ReadAllTextAsync(agent.CriticPromptPath);
+        _agentPromptTemplates.TryAdd(agent.Name, criticPromptTemplate);
+      }
+    }
 
-        var allToolDescriptions = string.Join('\n', agentTools.Select(t => $"{t.Name}: {t.Description}"));
+    var allToolDescriptions = string.Join('\n', agentTools.Select(t => $"{t.Name}: {t.Description}"));
 
-        var criticPrompt = criticPromptTemplate
-            .Replace("{{customNote}}", agent.CustomReflectionNote)
-            .Replace("{{userQuery}}", userQuery)
-            .Replace("{{availableTools}}", allToolDescriptions);
+    var criticPrompt = criticPromptTemplate
+        .Replace("{{customNote}}", agent.CustomReflectionNote)
+        .Replace("{{userQuery}}", userQuery)
+        .Replace("{{availableTools}}", allToolDescriptions);
 
-        var criticChat = new List<ChatMessage>
+    var criticChat = new List<ChatMessage>
         {
             new(ChatRole.System, criticPrompt),
             new(ChatRole.User, trajectory),
         };
 
-        var criticChatOptions = new ChatOptions
-        {
-            ToolMode = ChatToolMode.None,
-            Temperature = 0.2f,
-            ResponseFormat = ChatResponseFormat.Text,
-        };
+    var criticChatOptions = new ChatOptions
+    {
+      ToolMode = ChatToolMode.None,
+      Temperature = 0.2f,
+      ResponseFormat = ChatResponseFormat.Text,
+    };
 
-        var criticReply = await chatClient.GetResponseAsync(criticChat, criticChatOptions);
-        return criticReply.Text;
-    }
+    var criticReply = await chatClient.GetResponseAsync(criticChat, criticChatOptions);
+    return criticReply.Text;
+  }
 
-    private const string CriticPrompt = """
+  private const string CriticPrompt = """
     You are a meticulous reviewer. Your task is to evaluate the actor's entire preceding turn, including its articulated reasoning and the resulting tool calls. Your evaluation must be in JSON format.
     Actor, Agent and Assistant are used interchangeably in the following instructions. They refer to the same entity trying to solve a user requirement.
 
@@ -117,7 +117,7 @@ public static class Critic
       "overall_assessment": "PASS" | "FAIL",
       "summary_advice": "Concise, actionable advice for the actor. Highlight the most critical area for improvement if any.",
       "additional_feedback": "Optional additional feedback, including what previous results could be reused if applicable and which tool calls can be made with specific filters now that more information has been gathered."
-      "actor_guidance": "INTERNAL NOTE: You are receiving feedback from an internal reviewer. The user is unaware of this process. Continue addressing the user's original query while incorporating the above suggestions. The results from previous tool calls or notifyUserMessage are already visible to the user - reuse those results when possible and avoid repeating the same information or making identical tool calls unnecessarily. Assume you're doing a self-reflection on your previous answer if you want to correct anything based on this review. Use **bold** markdown format to highlight the corrected answer."
+      "actor_guidance": "INTERNAL NOTE: You are receiving feedback from an internal reviewer. The user is unaware of this process. Continue addressing the user's original query while incorporating the above suggestions. The results from previous tool calls or notifyUserMessage are already visible to the user - reuse those results when possible and avoid repeating the same information or making identical tool calls unnecessarily. Assume you're doing a self-reflection on your previous answer if you want to correct anything based on this review. Use **bold** markdown format to highlight the corrected answer. Don't forget to keep the reflected message human readable and beautifully formatted."
     }
 
     **PASS CONDITIONS:**

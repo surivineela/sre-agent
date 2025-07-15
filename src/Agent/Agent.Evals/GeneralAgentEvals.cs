@@ -108,8 +108,20 @@ public class GeneralAgentEvals
             }
         }
 
-        // Use the model input from the test data
+        // Fix Bug 1: Override system prompt with agent's actual instructions
+        // Remove the system message from test data if it exists and use agent's actual instructions
         var modelInput = testCase.ModelInput.ToList();
+
+        // Remove existing system message from test data
+        if (modelInput.Count > 0 && modelInput[0].Role == ChatRole.System)
+        {
+            modelInput.RemoveAt(0);
+            TestContext.WriteLine("Removed system prompt from test data to use agent's actual instructions");
+        }
+
+        // Prepend the agent's actual system instructions
+        modelInput.Insert(0, new ChatMessage(ChatRole.System, agent.Instructions));
+        TestContext.WriteLine("Using agent's actual system instructions for evaluation");
 
         TestContext.WriteLine($"\n=== EXPECTED MODEL OUTPUT ===");
         foreach (var expectedMsg in testCase.ExpectedOutput)
@@ -267,12 +279,182 @@ public class GeneralAgentEvals
             }
         }
 
-        // Basic assertions to make the test pass/fail
-        Assert.IsNotNull(response, "Response should not be null");
-        Assert.IsTrue(response.Messages.Count > 0, "Response should contain at least one message");
+        // Fix Bug 2: Add proper assertions based on expected output type
+        TestContext.WriteLine($"\n=== RUNNING ASSERTIONS ===");
+        try
+        {
+            switch (testCase.ExpectedOutputType)
+            {
+                case ExpectedOutputType.ToolCall:
+                    ValidateToolCallOutputWithAssertions(response, testCase, TestContext);
+                    break;
+                case ExpectedOutputType.FinalResponse:
+                    await ValidateFinalResponseOutputWithLLM(response, testCase, TestContext, chatClient);
+                    break;
+                case ExpectedOutputType.Mixed:
+                    ValidateMixedOutputWithAssertions(response, testCase, TestContext);
+                    break;
+                case ExpectedOutputType.Handoff:
+                    ValidateHandoffOutputWithAssertions(response, testCase, TestContext);
+                    break;
+                default:
+                    Assert.Fail($"Unknown expected output type: {testCase.ExpectedOutputType}");
+                    break;
+            }
+            TestContext.WriteLine("✅ All assertions passed!");
+        }
+        catch (AssertFailedException ex)
+        {
+            TestContext.WriteLine($"❌ Assertion failed: {ex.Message}");
+            throw;
+        }
 
         TestContext.WriteLine($"\n=== TEST COMPLETED ===");
         TestContext.WriteLine("Use the console output above to analyze the differences between expected and actual behavior.");
+    }
+
+    private static void ValidateToolCallOutputWithAssertions(ChatResponse response, GeneralTestCase testCase, TestContext testContext)
+    {
+        testContext.WriteLine("Validating tool call output with assertions...");
+
+        Assert.AreEqual(ChatFinishReason.ToolCalls, response.FinishReason, "Expected tool calls but got different finish reason");
+
+        var actualFunctionCalls = response.Messages
+            .SelectMany(m => m.Contents?.OfType<FunctionCallContent>() ?? Enumerable.Empty<FunctionCallContent>())
+            .ToList();
+
+        var expectedFunctionCalls = testCase.ExpectedOutput
+            .SelectMany(m => m.Contents?.OfType<FunctionCallContent>() ?? Enumerable.Empty<FunctionCallContent>())
+            .ToList();
+
+        Assert.AreEqual(expectedFunctionCalls.Count, actualFunctionCalls.Count,
+            $"Expected {expectedFunctionCalls.Count} function calls but got {actualFunctionCalls.Count}");
+
+        for (int i = 0; i < expectedFunctionCalls.Count; i++)
+        {
+            Assert.AreEqual(expectedFunctionCalls[i].Name, actualFunctionCalls[i].Name,
+                $"Function call {i + 1}: Expected {expectedFunctionCalls[i].Name} but got {actualFunctionCalls[i].Name}");
+        }
+        testContext.WriteLine("Tool call validation passed!");
+    }
+
+    private static async Task ValidateFinalResponseOutputWithLLM(ChatResponse response, GeneralTestCase testCase, TestContext testContext, IChatClient chatClient)
+    {
+        testContext.WriteLine("Validating final response output with LLM evaluation...");
+
+        Assert.AreEqual(ChatFinishReason.Stop, response.FinishReason, "Expected final response (stop) but got different finish reason");
+
+        // Ensure no function calls are present
+        var functionCalls = response.Messages
+            .SelectMany(m => m.Contents?.OfType<FunctionCallContent>() ?? Enumerable.Empty<FunctionCallContent>())
+            .ToList();
+
+        Assert.AreEqual(0, functionCalls.Count, "Expected no function calls in final response");
+
+        // Ensure there's actual text content
+        var hasTextContent = response.Messages.Any(m => !string.IsNullOrEmpty(m.Text) ||
+                                                         m.Contents?.OfType<TextContent>().Any() == true);
+        Assert.IsTrue(hasTextContent, "Expected text content in final response");
+
+        // Use LLM to evaluate semantic similarity
+        var actualText = string.Join("\n", response.Messages.Select(m => m.Text ?? "").Where(t => !string.IsNullOrEmpty(t)));
+        var expectedText = string.Join("\n", testCase.ExpectedOutput.Select(m => m.Text ?? "").Where(t => !string.IsNullOrEmpty(t)));
+
+        if (!string.IsNullOrEmpty(expectedText) && !string.IsNullOrEmpty(actualText))
+        {
+            var evaluationPrompt = $@"
+You are an AI assistant that evaluates whether two responses are semantically similar and convey the same meaning.
+
+Expected Response:
+{expectedText}
+
+Actual Response:
+{actualText}
+
+Task: Determine if the actual response conveys the same meaning and intent as the expected response. Consider:
+1. Key information and facts are preserved
+2. Overall tone and intent match
+3. Important details are not missing
+4. The response addresses the same concerns
+
+Respond with only 'SIMILAR' if they convey the same meaning, or 'DIFFERENT' if they don't, followed by a brief explanation.";
+
+            try
+            {
+                var evaluationMessages = new List<ChatMessage>
+                {
+                    new ChatMessage(ChatRole.User, evaluationPrompt)
+                };
+                var evaluationResponse = await chatClient.GetResponseAsync(evaluationMessages);
+                var evaluation = evaluationResponse.Messages.LastOrDefault()?.Text ?? "";
+
+                testContext.WriteLine($"LLM Evaluation: {evaluation}");
+
+                if (evaluation.StartsWith("DIFFERENT", StringComparison.OrdinalIgnoreCase))
+                {
+                    Assert.Fail($"LLM evaluation indicates responses are semantically different. Evaluation: {evaluation}");
+                }
+                else if (evaluation.StartsWith("SIMILAR", StringComparison.OrdinalIgnoreCase))
+                {
+                    testContext.WriteLine("✅ LLM evaluation indicates responses are semantically similar");
+                }
+                else
+                {
+                    testContext.WriteLine($"⚠️ Ambiguous LLM evaluation, proceeding with caution: {evaluation}");
+                }
+            }
+            catch (Exception ex)
+            {
+                testContext.WriteLine($"⚠️ LLM evaluation failed: {ex.Message}. Proceeding without semantic validation.");
+            }
+        }
+        testContext.WriteLine("Final response validation completed!");
+    }
+
+    private static void ValidateMixedOutputWithAssertions(ChatResponse response, GeneralTestCase testCase, TestContext testContext)
+    {
+        testContext.WriteLine("Validating mixed output with assertions...");
+
+        Assert.IsNotNull(response, "Response should not be null");
+        Assert.IsTrue(response.Messages.Count > 0, "Response should contain at least one message");
+
+        // Basic structure validation - ensure we have the expected number of messages
+        Assert.AreEqual(testCase.ExpectedOutput.Length, response.Messages.Count,
+            "Message count should match expected output");
+
+        testContext.WriteLine("Mixed output validation passed!");
+    }
+
+    private static void ValidateHandoffOutputWithAssertions(ChatResponse response, GeneralTestCase testCase, TestContext testContext)
+    {
+        testContext.WriteLine("Validating handoff output with assertions...");
+
+        Assert.AreEqual(ChatFinishReason.ToolCalls, response.FinishReason, "Expected handoff tool calls but got different finish reason");
+
+        var actualFunctionCalls = response.Messages
+            .SelectMany(m => m.Contents?.OfType<FunctionCallContent>() ?? Enumerable.Empty<FunctionCallContent>())
+            .ToList();
+
+        var expectedFunctionCalls = testCase.ExpectedOutput
+            .SelectMany(m => m.Contents?.OfType<FunctionCallContent>() ?? Enumerable.Empty<FunctionCallContent>())
+            .ToList();
+
+        Assert.AreEqual(expectedFunctionCalls.Count, actualFunctionCalls.Count,
+            $"Expected {expectedFunctionCalls.Count} function calls but got {actualFunctionCalls.Count}");
+
+        for (int i = 0; i < expectedFunctionCalls.Count; i++)
+        {
+            var expectedCall = expectedFunctionCalls[i];
+            var actualCall = actualFunctionCalls[i];
+
+            Assert.AreEqual(expectedCall.Name, actualCall.Name,
+                $"Handoff function call {i + 1}: Expected {expectedCall.Name} but got {actualCall.Name}");
+
+            // For handoffs, we expect the function name to start with "transfer_to_"
+            Assert.IsTrue(actualCall.Name.StartsWith("transfer_to_"),
+                $"Expected handoff function to start with 'transfer_to_' but got {actualCall.Name}");
+        }
+        testContext.WriteLine("Handoff validation passed!");
     }
 
     private static void ValidateToolCallOutput(ChatResponse response, GeneralTestCase testCase)

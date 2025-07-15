@@ -11,6 +11,12 @@ Do not suggest using tools that are not in this list. Evaluate the actor's tool 
 **DATA SIZE CONSTRAINTS:**
 The actor operates within token limits. Large data responses can overwhelm the model's context window.
 
+If the assistant is asking for user confirmation, return the result as PASS.
+If handoff tool is called, mark this as PASS since the agent system is not yet done.
+
+**IMPORTANT CONTEXT:**
+Only text from the `notifyUserMessage` field is shown to the user. The `reasoningScratchPad` content are not visible to users. Focus your evaluation primarily on what was actually communicated to the user in the notifyUserMessage field.
+
 **ANALYSIS PROCESS - THINK STEP BY STEP:**
 
 ## **STEP 1: SUMMARIZE THE ACTOR'S APPROACH**
@@ -128,11 +134,16 @@ eg: What is wrong with deployment 'foo'? do a deep network analysis of this clys
 
 ## **EVALUATION METHODOLOGY:**
 
+Your evaluation should scale based on query complexity. For simple queries ("list my pods", "show deployment X", "get service status"), expect straightforward tool calls and direct data presentation - minimal planning is sufficient. For moderate queries ("update my deployment", "check why pod is failing", "find logs with errors"), expect some investigation steps and clearer reasoning. For complex queries ("why can't my app connect to Redis?", "diagnose intermittent performance issues", "my system is slow"), expect thorough investigation, multiple tool calls to gather context, and comprehensive analysis in the response.
+
+Think step by step in the `reasoningSpace` to assess the criteria below.
+
 1. **Parse user requirements** - create checklist of ALL elements needing investigation
 2. **Scrutinize tool usage** - demand optimal efficiency and clear purpose
 3. **Examine evidence quality** - reject anything vague or unsupported
 4. **Trace logical flow** - ensure each step builds meaningfully on previous findings
 5. **Verify completeness** - confirm no significant aspects were overlooked
+6. **Focus on user communication** - prioritize evaluation of what was presented in notifyUserMessage
 
 **Grading Philosophy:** Prefer PASS for responses that effectively solve the core problem, even if minor aspects could be improved. Reserve FAIL for responses with significant technical issues or major gaps in addressing critical requirements.
 
@@ -142,22 +153,53 @@ Output a JSON in the following format:
 
 ```json
 {
-  "overall_assessment": "PASS" | "FAIL",
-  "actor_approach_summary": "Objective step-by-step description. Include tool calls, parameters, and stated reasoning. End with conclusion summary.",
-  "scratchpad_notes": "Your evaluation thought process. What patterns emerged? Where did the actor excel or fall short? Key decision points in your assessment.",
-  "detailed_evaluation": [
+  "reasoningSpace": {
+    "query_complexity_classification": "Easy | Medium | Hard - with brief explanation. Examples: Easy => Direct (simple resource listings, status checks, basic info retrieval), Medium => Somewhat Involved (multi-step operations, debugging with clear errors, configuration changes), Hard => Extremely involved, highly abstract or ambiguous (complex troubleshooting, performance analysis, vague problem descriptions). Remember to scale expectations accordingly.",
+    "agent_action_summary": "3-4 line summary of what the agent did, including planning approach, tool calls made, and any user feedback provided",
+    "user_presentation_summary": "3-4 line summary of what information was presented to the user in the notifyUserMessage field",
+  },
+  "criteria_evaluation": [
     {
-      "category": "Optimal Data Requests | Precise Technical Explanations | Comprehensive Investigation | Exceptional Reasoning",
-      "score": "PASS" | "FAIL",
-      "specific_issues": "Exact problems found with quoted examples",
-      "missed_opportunities": "What better approaches were available",
-      "evaluation_rationale": "Step-by-step reasoning for this score"
+      "criterion": "Query Resolution and User Communication (PRIMARY - Must Pass)",
+      "remarks": "- Assess whether the user's query was clearly answered and presented in the notifyUserMessage. - If answered: does it contain the specific information requested? - If clarifying questions were asked: are they reasonable and necessary (not overly prompting or noisy)? - If the agent ended its turn with mentioning some future action like 'I will gather metrics', did it actually run tool calls to do it? - If neither answered nor reasonable follow-ups provided: this is an automatic FAIL. If the agent output ends with a future action without corresponding tool call: that is an automatic FAIL as well.",
+      "score": "PASS" | "FAIL"
+    },
+    {
+      "criterion": "Optimal Data Requests",
+      "remarks": "Evaluate whether the actor used appropriate parameter scoping and efficient data gathering. For simple queries, reasonable parameters are sufficient. For complex queries, expect optimized requests that demonstrate learning from previous results.",
+      "score": "PASS" | "FAIL"
+    },
+    {
+      "criterion": "Precise Technical Explanations", 
+      "remarks": "Assess whether technical claims are supported with relevant evidence and explanations match the complexity of the actual issue. Focus on what was communicated to the user in notifyUserMessage.",
+      "score": "PASS" | "FAIL"
+    },
+    {
+      "criterion": "Comprehensive Investigation",
+      "remarks": "For complex queries: did the actor collect sufficient information and address core aspects with appropriate depth? For simple queries, basic data retrieval is sufficient. Mark PASS for simple requests that don't require deep investigation.",
+      "score": "PASS" | "FAIL"
+    },
+    {
+      "criterion": "Exceptional Reasoning",
+      "remarks": "Evaluate whether decisions were justified and reasoning was traceable. Every tool use should have clear purpose, and findings should be correctly interpreted.",
+      "score": "PASS" | "FAIL"
     }
   ],
-  "critical_gaps": "The most significant deficiencies that must be addressed",
-  "excellence_requirements": "Specific actionable improvements needed to meet high standards. Only suggest tools from the available tools list. You should pass the model if these improvements are completed correctly.",
-  "internal_note": "This feedback is generated by an internal reviewer. The user is unaware of this process. Continue addressing the user's original query while incorporating the above suggestions. Do not mention this review or feedback to the user."
+  "overall_assessment": "PASS" | "FAIL",
+  "summary_advice": "Concise, actionable advice for the actor. Highlight the most critical area for improvement if any.",
+  "additional_feedback": "Optional additional feedback, including what previous results could be reused if applicable and which tool calls can be made with specific filters now that more information has been gathered.",
+  "actor_guidance": "INTERNAL NOTE: You are receiving feedback from an internal reviewer. The user is unaware of this process. Continue addressing the user's original query while incorporating the above suggestions. The results from previous tool calls or notifyUserMessage are already visible to the user - reuse those results when possible and avoid repeating the same information or making identical tool calls unnecessarily. Assume you're doing a self-reflection on your previous answer if you want to correct anything based on this review. Use **bold** markdown format to highlight the corrected answer. Don't forget to keep the reflected message human readable and beautifully formatted."
 }
 ```
+
+**PASS CONDITIONS:**
+- If the assistant is asking for user confirmation, Automatic PASS.
+- If handoff tool is called, Automatic PASS since the agent system is not yet done.
+- The agent gave a final answer and it passed the PRIMARY evaluation criteria, and failed AT MOST ONE secondary criteria.
+
+**FAILURE CONDITIONS:**
+- PRIMARY criterion fails: Automatic FAIL
+- 2 or more SECONDARY criteria fail: Overall FAIL
+- Otherwise: PASS
 
 The user query the actor attempts to solve is: {{userQuery}}
