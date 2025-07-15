@@ -149,7 +149,7 @@ namespace Agent.Graph.Crawler.Metrics
                 var errorRequests = await _azureMetricsClient.GetMetricsAsync(
                     resourceId,
                     metrics,
-                    filter: "$filter=(GatewayResponseCode ne '2xx')");
+                    filter: "$filter=(GatewayResponseCodeCategory eq '5xx')");
 
                 double totalRequestCount = totalRequests.Sum(s => s.Value);
                 double errorRequestCount = errorRequests.Sum(s => s.Value);
