@@ -1,4 +1,6 @@
-import { Checkbox, IDropdownOption, Pivot, PivotItem, ResponsiveMode, Text } from '@fluentui/react';
+import { Checkbox, IDropdownOption, Pivot, PivotItem, ResponsiveMode, Text, Toggle } from '@fluentui/react';
+import { Tooltip } from '@fluentui/react-components';
+import { CheckmarkStarburst16Filled } from '@fluentui/react-icons';
 import { DefaultButton, PrimaryButton } from '@fluentui/react/lib/Button';
 import { CheckboxVisibility, ConstrainMode, DetailsListLayoutMode, IColumn } from '@fluentui/react/lib/DetailsList';
 import { Dialog, DialogFooter, DialogType, IDialogStyles } from '@fluentui/react/lib/Dialog';
@@ -13,6 +15,7 @@ import { SearchFilterWithResultAnnouncement } from '../../Common/Components/Sear
 import { getUserFriendlyLocation } from '../../Common/Helpers/LocationHelper';
 import { ManagedResourcesStringResources, ResourcePickerTabResources } from '../../Strings/SREAgentResources';
 import { SreAgentContext } from '../Contracts/Context';
+import { useFilteredResourceGroups } from './Hooks/useFilteredResourceGroups';
 import { getSubscriptionId, ResourceGroup, useResourceGroups } from './Hooks/useResourceGroups';
 import { Subscription } from './Hooks/useSubscriptions';
 import PermissionsDetailsList from './PermissionsDetailsList';
@@ -33,6 +36,7 @@ enum ResourceGroupListColumnKey {
 
 export interface ResourceGroupWithSelection extends ResourceGroup {
     selected: boolean;
+    recommended: boolean;
 }
 
 export type ResourceGroupPickerProps = {
@@ -68,6 +72,7 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
     const [selectedLocationKeys, setSelectedLocationKeys] = useState<string[]>([]);
     const [selectedMap, setSelectedMap] = useState<Map<string, boolean>>(new Map<string, boolean>());
     const [tabKey, setTabKey] = useState<string>(TabKeys.select);
+    const [showRecommended, setShowRecommended] = useState<boolean>(false);
 
     const portalContext = useContext(AzPortalContext);
     const { agent } = useContext(SreAgentContext);
@@ -92,6 +97,7 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
     }, [selectedSubscriptionKeys]);
 
     const { resourceGroupsList, resourceGroupsLoading } = useResourceGroups(subscriptionIds, portalContext);
+    const { filteredResourceGroupSet } = useFilteredResourceGroups(portalContext, subscriptionIds);
 
     const subscriptionDropdownOptions = useMemo(() => {
         const selectAllOption = {
@@ -123,6 +129,7 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
                     ?.map(item => ({
                         ...item,
                         selected: selectedMap.get(item.id) === true,
+                        recommended: filteredResourceGroupSet?.has(item.name) ?? false,
                     }))
                     .sort((lhs, rhs) => lhs.name?.localeCompare(rhs.name));
                 if (!isEqual(currentResourceGroupsWithSelection, newResourceGroupsWithSelection)) {
@@ -131,7 +138,7 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
                 return currentResourceGroupsWithSelection;
             });
         }
-    }, [resourceGroupsList, selectedMap]);
+    }, [filteredResourceGroupSet, resourceGroupsList, selectedMap]);
 
     const modelProps = {
         isBlocking: false,
@@ -185,11 +192,23 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
             return (
                 <div className={styles.statusRow}>
                     <img src="./ResourceGroup.svg" alt="ResourceGroup" style={{ height: 16, width: 16 }} />
-                    <Link onClick={_e => onNameClick(item.id)}>{item.name}</Link>
+                    <Link style={{ overflow: 'hidden', textOverflow: 'ellipsis', flexShrink: 5 }} onClick={_e => onNameClick(item.id)}>
+                        {item.name}
+                    </Link>
+                    {item.recommended && (
+                        <Tooltip
+                            content={intl.formatMessage(ResourcePickerTabResources.recommendedResourceGroupTooltip)}
+                            relationship="description"
+                        >
+                            <div style={{ display: 'inline-block', flexShrink: 1 }}>
+                                <CheckmarkStarburst16Filled style={{ flexShrink: 1, color: '#0078D4' }} />
+                            </div>
+                        </Tooltip>
+                    )}
                 </div>
             );
         },
-        [styles.statusRow, onNameClick]
+        [styles.statusRow, intl, onNameClick]
     );
 
     const onRenderSubscription = useCallback(
@@ -218,8 +237,11 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
         if (selectedLocationKeys.length > 0) {
             groups = groups.filter(rg => selectedLocationKeys.includes(rg.location));
         }
+        if (showRecommended) {
+            groups = groups.filter(rg => rg.recommended);
+        }
         return groups;
-    }, [selectedLocationKeys, resourceGroupsWithSelection, filter, existingResourceGroupIds]);
+    }, [resourceGroupsWithSelection, existingResourceGroupIds, filter, selectedLocationKeys, showRecommended]);
 
     const toggleItemSelection = useCallback(
         (id: string) => {
@@ -382,6 +404,23 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
             <Pivot selectedKey={tabKey} onLinkClick={onTabLinkClick}>
                 <PivotItem itemKey={TabKeys.select} headerText={intl.formatMessage(ResourcePickerTabResources.selectTabTitle)} alwaysRender>
                     <div className={styles.dialogContent}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                            <div style={{ paddingTop: '10px' }}>
+                                {selectedResourceGroups.length === 1
+                                    ? intl.formatMessage(ResourcePickerTabResources.resourceGroupSelected, {
+                                          max: 20 - existingResourceGroupIds.length,
+                                          count: selectedResourceGroups.length,
+                                      })
+                                    : intl.formatMessage(ResourcePickerTabResources.resourceGroupsSelected, {
+                                          max: 20 - existingResourceGroupIds.length,
+                                          count: selectedResourceGroups.length,
+                                      })}
+                            </div>
+                            <div style={{ display: 'flex', gap: '6px' }}>
+                                <div>{intl.formatMessage(ResourcePickerTabResources.showRecommended)}</div>
+                                <Toggle checked={showRecommended} onChange={(_e, checked) => setShowRecommended(!!checked)} />
+                            </div>
+                        </div>
                         <div className={styles.pickerRow}>
                             <div className={styles.pickerItem}>
                                 <SearchFilterWithResultAnnouncement
@@ -423,7 +462,7 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
                                 />
                             </div>
                         </div>
-                        <div style={{ minHeight: '470px', maxHeight: '470px', overflowY: 'scroll' }} data-is-scrollable="true">
+                        <div style={{ minHeight: '405px', maxHeight: '405px', overflowY: 'scroll' }} data-is-scrollable="true">
                             <ShimmeredDetailsList
                                 columns={columns}
                                 constrainMode={ConstrainMode.horizontalConstrained}

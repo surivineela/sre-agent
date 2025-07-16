@@ -67,6 +67,36 @@ export class ResourceGroupClient {
         });
     }
 
+    public static getResourceGroupsInSubscriptionWithSreAgentKinds(
+        subscriptionIds: string[],
+        apiVersion = ApiVersions.argQueryApiVersion20200401Preview
+    ) {
+        const cleanedSubscriptionIds = subscriptionIds.filter(str => str !== '');
+        const query = `
+            where type in~ ('microsoft.web/sites', 'microsoft.app/containerapps', 'microsoft.compute/virtualmachines', 'microsoft.containerservice/managedclusters', 'microsoft.cache/redis', 'microsoft.dbforpostgresql/flexibleservers', 'microsoft.dbforpostgresql/servers', 'microsoft.documentdb/databaseaccounts', 'microsoft.sql/servers', 'microsoft.sql/servers/databases', 'microsoft.storage/storageaccounts')
+            | summarize by resourceGroup
+          `;
+        const content: ARGRequestContent = {
+            query,
+            subscriptions: cleanedSubscriptionIds,
+        };
+
+        return MakeArmCall<ARGResponse, ARGRequestContent>({
+            method: 'POST',
+            url: `/providers/Microsoft.ResourceGraph/resources?api-version=${apiVersion}`,
+            body: content,
+            commandName: 'listResourceKindsInResourceGroups',
+        }).then(response => {
+            const resourceGroupsWithApps = new Set<string>();
+            if (response?.data?.data?.rows[0]) {
+                response.data.data.rows.forEach(row => {
+                    resourceGroupsWithApps.add(row[0]);
+                });
+            }
+            return resourceGroupsWithApps;
+        });
+    }
+
     public static listResourceKindsInResourceGroups(
         resourceGroupIds: string[],
         apiVersion = ApiVersions.argQueryApiVersion20200401Preview

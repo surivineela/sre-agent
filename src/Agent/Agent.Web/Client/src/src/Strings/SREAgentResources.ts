@@ -266,6 +266,21 @@ export const ResourcePickerTabResources = defineMessages({
         id: 'E60v6W',
     },
     resourceGroupMaxError: { defaultMessage: 'You can choose a maximum of 20 resource groups that the agent will manage.', id: '6tlKgy' },
+    failedToLoadResourceGroups: { defaultMessage: 'Failed to load resource groups.', id: 'anSi7M' },
+    showRecommended: { defaultMessage: 'Show only recommended resource groups', id: 'ATYp8z' },
+    resourceGroupSelected: {
+        defaultMessage: 'Choose a maximum of {max} resource groups you have permissions on. {count} resource group selected.',
+        id: 'l0TtPi',
+    },
+    resourceGroupsSelected: {
+        defaultMessage: 'Choose a maximum of {max} resource groups you have permissions on. {count} resource groups selected.',
+        id: 'D473QI',
+    },
+    recommendedResourceGroupTooltip: {
+        defaultMessage:
+            'This resource group is recommended for optimal agent performance. It includes one or more of these Azure compute services: Azure Kubernetes Service, Functions, Container Apps, Web Apps, Redis, Postgres SQL, CosmosDB, Virtual machines, or Storage accounts.',
+        id: 'DasCIQ',
+    },
 });
 
 export const PromptResources = defineMessages({
