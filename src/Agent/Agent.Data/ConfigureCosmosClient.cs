@@ -138,35 +138,39 @@ public static class AgentDataConfiguration
         // Ensure database exists
         DatabaseResponse database = await cosmosClient.CreateDatabaseIfNotExistsAsync(cosmosDatabaseName);
 
+        // NOTE: The Cosmos Container creation behavior
+        // If the database is created with provsioned throughput, the containers created with throughput = null will not have their own provisioned throughput.
+        // If the database is created without provsioned throughput, the containers created with throughput = null will have throughput = 400.
+
         // Ensure container exists with appropriate partition key
         await database.Database.CreateContainerIfNotExistsAsync(
             id: ThreadContainerName,
             partitionKeyPath: "/partitionKey",
-            throughput: 1000 // Minimum throughput for now
+            throughput: null // Use the database level shared RU first.
         );
 
         await database.Database.CreateContainerIfNotExistsAsync(
             id: LeaseContainerName,
             partitionKeyPath: "/id", // change feed leases must be partitioned by ID
-            throughput: 400 // Minimum throughput for now'
+            throughput: null // Use the database level shared RU.
         );
 
         await database.Database.CreateContainerIfNotExistsAsync(
             id: InstanceManagementContainerName,
             partitionKeyPath: "/partitionKey",
-            throughput: 400 // Minimum throughput for now'
+            throughput: null // Use the database level shared RU first.
         );
 
         await database.Database.CreateContainerIfNotExistsAsync(
             id: InstanceAssignmentsContainerName,
             partitionKeyPath: "/partitionKey",
-            throughput: 400 // Minimum throughput for now'
+            throughput: null // Use the database level shared RU first.
         );
 
         await database.Database.CreateContainerIfNotExistsAsync(
             id: AgentContextContainerName,
             partitionKeyPath: "/partitionKey",
-            throughput: 400 // Minimum throughput for now'
+            throughput: null // Use the database level shared RU first.
         );
 
         // The encryption key should be created from control plane because agent MI does not have permission
