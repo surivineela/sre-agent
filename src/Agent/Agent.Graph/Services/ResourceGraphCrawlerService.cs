@@ -594,11 +594,11 @@ public class ResourceGraphCrawlerService : ICrawlerService
     private ArmResourceOperationType GetArmResourceOperationType(EventDataInfo eventData)
     {
         // Add null checks for each property that could be null
-        if (eventData == null ||
-            eventData.Category?.Value == null ||
-            eventData.ResourceId == null ||
-            eventData.HttpRequest == null ||
-            eventData.HttpRequest.Method == null ||
+        if (eventData == null || 
+            eventData.Category?.Value == null || 
+            eventData.ResourceId == null || 
+            eventData.HttpRequest == null || 
+            eventData.HttpRequest.Method == null || 
             string.IsNullOrEmpty(eventData.Status?.Value))
         {
             _logger.LogInternalWarning($"Incomplete event data received: {(eventData?.ResourceId ?? "unknown resource")}");
@@ -612,7 +612,7 @@ public class ResourceGraphCrawlerService : ICrawlerService
             && !string.IsNullOrEmpty(eventData.Status.Value)
             && (eventData.Status.Value == "Accepted" || eventData.Status.Value == "Succeeded"))
         {
-            if (eventData.HttpRequest.Method == "PUT" || eventData.HttpRequest.Method == "PATCH" || eventData.HttpRequest.Method == "POST")
+            if (eventData.HttpRequest.Method == "PUT" || eventData.HttpRequest.Method == "PATCH")
             {
                 return ArmResourceOperationType.Update;
             }

@@ -37,7 +37,6 @@ namespace Agent.Plugins.Mocks
                 Location: "centralus",
                 WorkloadProfile: "Consumption",
                 State: "Succeeded",
-                RunningState: "Running",
                 ResourceGroup: "mockResourceGroup",
                 EnvironmentId: "mockEnvironmentId",
                 Containers: [
