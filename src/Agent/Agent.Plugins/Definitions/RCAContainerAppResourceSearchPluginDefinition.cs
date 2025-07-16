@@ -30,6 +30,7 @@ namespace Agent.Plugins.Definitions
         - managedEnvironmentName
         - containerAppName
         - containerAppsJobName
+        - IsRunOnLegion: Indicates if the container app is running on Legion
         - sessionPoolName
         - provisioningState: Provisioning state of the container app
         - containerAppResourceGroup

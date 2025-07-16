@@ -584,6 +584,68 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
                 });
         }
 
+        [Description("""
+        Purpose:
+        Retrieves Legion VK (vertual kubelet) events for a specific pod within a revision.
+
+        Scenario:
+        Use this tool when investigating issues for container apps running on Legion. You can also use it to retrieve Legion Virtual Kubelet (VK) events, which can be correlated with revision failures such as provisioning errors, crashes, scheduling problems, and connectivity disruptions.
+
+        Output:
+        Returns tab-separated table data in CSV format. Column headers include:
+        - TIMESTAMP: The time when the event occurred
+        - Message: The message associated with the event, which may include details about the event
+        - Error: The error message if the event is an error
+        - Method: The name of the method that generated the event (e.g., "legion.DeletePod", "UpdateNodeStatus")
+        - Reason: The reason for the event (e.g., "Evicted By Legion", "NC Polling Pending on legion", "Pending pod creation on legion")
+        """)]
+        public async Task<string> GetLegionVKEventsForContainerAppPod(
+            [Description("The start date for the query")] string fromDate,
+            [Description("The end date for the query")] string toDate,
+            [Description("The region of the managed cluster")] string region,
+            [Description("The name of the managed cluster")] string managedClusterName,
+            [Description("Pod name within the revision.")] string podName)
+         {
+            return await _kustoPlugin.ExecuteLocalFunctionAsync("GetLegionVKEventsForContainerAppPod", region,
+                new Dictionary<string, string> {
+                { "fromDate", fromDate.ToString() },
+                { "toDate", toDate.ToString() },
+                { "podName", podName },
+                { "managedClusterName", managedClusterName }
+             });
+        }
+
+        [Description("""
+        Purpose:
+        Get the times for Legion Host Shutdowns related to a specific container app pod.
+
+        Scenario:
+        Use this tool when you observe issues in Legion VK (virtual kubelet) events. This helps determine whether the events reported in Legion VK or container app pod deletions/crashes were caused by Legion Host shutdowns.     
+
+        Output:
+        Returns tab-separated table data in CSV format. Column headers include:
+        - PreciseTimeStamp: The time when Legion Host is shutdown
+        - PodName: The name of the pod that was shutdown
+        - OperationName: The name of the operation that was performed. for example, "MarkPodEvicted"
+        - Message: The message associated with the shutdown operation, which may include details about the shutdown operation.
+        """)]
+        public async Task<string> GetLegionHostShutdownTimes(
+            [Description("The start date for the query")] string fromDate,
+            [Description("The end date for the query")] string toDate,
+            [Description("The region of the managed cluster")] string region,
+            [Description("The name of the managed cluster")] string managedClusterName,
+            [Description("Pod name within the revision.")] string podName)
+        {
+            return await _kustoPlugin.ExecuteLocalFunctionAsync("GetLegionHostShutdownTimes", region, new Dictionary<string, string> {
+                { "fromDate", fromDate.ToString() },
+                { "toDate", toDate.ToString() },
+                { "region", region },
+                { "podName", podName },
+                { "managedClusterName", managedClusterName },
+             }, groupName: "Legion");
+        }
+
+
         [Description(@"""
 Retrieves readiness, liveness, or startup probe failures for a container app revision.
 Use this tool to get health probe failure events for a revision.
@@ -735,8 +797,8 @@ Returns table data in CSV format with TAB separators. Column headers:
             [Description("Azure subscription ID.")] string subscriptionId)
         {
             // We use All("ContainerAppDBState") in the query, so if the region is not specified, we can default to an arbitrary region.
-            string kustoClientRegion = string.IsNullOrEmpty(region) 
-                ? "centralus" 
+            string kustoClientRegion = string.IsNullOrEmpty(region)
+                ? "centralus"
                 : region;
 
             string containerApps = await _kustoPlugin.ExecuteLocalFunctionAsync("GetContainerApp", kustoClientRegion,

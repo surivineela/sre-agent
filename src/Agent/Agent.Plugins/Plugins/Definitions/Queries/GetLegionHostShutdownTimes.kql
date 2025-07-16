@@ -1,0 +1,11 @@
+let queryFrom = datetime("2025-05-30T14:12:00Z");
+let queryTo = datetime("2025-05-30T15:30:00Z");
+let clusterName = "##managedClusterName##";
+let queryPodName = "##podName##";
+SystemLogs
+| where PreciseTimeStamp between (queryFrom .. queryTo)
+| where ResourceNamespace == clusterName
+| where PodName startswith queryPodName
+| where Operation == 'MarkPodEvicted' or Value contains 'HostShutdown'
+| extend OperationMessage = coalesce(Value, Message)
+| project PreciseTimeStamp,PodName,OperationName=Operation,Message=OperationMessage 

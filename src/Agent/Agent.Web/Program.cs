@@ -494,6 +494,7 @@ public class Program
             .AddTransient<RCAContainerAppResourceCheckPluginDefinition>()
             .AddTransient<RCAContainerAppResourceSearchPluginDefinition>()
             .AddTransient<RCAContainerAppsSwiftNetworkContainerPluginDefinition>()
+            .AddTransient<RCAContainerAppPlatformUpgradesPluginDefinition>()
             .AddTransient<GenevaActionsPluginDefinition>()
             .AddTransient<ICMPluginDefinition>()
             .AddTransient<AzureAlertingPluginDefinition>()

@@ -24,6 +24,7 @@ OperationName
 SubOperationName
 OperationStatus
 OperationType
+Method
 State
 HealthStatus
 Reason
@@ -81,6 +82,7 @@ ManagedEnvironmentResourceGroupName
 EnvironmentType
 HasCustomerVNet
 WorkloadProfileType
+IsRunOnLegion
 EnvironmentProvisioningState
 PowerState
 EnvironmentDeploymentErrors

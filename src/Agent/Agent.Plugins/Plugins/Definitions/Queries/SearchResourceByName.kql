@@ -14,7 +14,16 @@ let containerAppSearchResult = All("ContainerAppDBState")
   containerAppResourceGroup=resourceGroup,
   managedEnvironmentResourceGroup,
   managedEnvironmentName,
-  provisioningState) by containerAppName,containerAppsJobName,managedClusterName;
+  provisioningState,
+  workloadProfileType) by containerAppName,containerAppsJobName,managedClusterName
+| join kind=inner (All("ManagedEnvironmentDBState")
+| where TIMESTAMP between (fromTime-1d .. toTime)
+| summarize arg_max(TIMESTAMP,customHelmValues) by managedClusterName
+| extend jobsConsumptionV2OnLegion=parse_json(customHelmValues)["jobsConsumptionV2OnLegion"]
+| extend consumptionV2OnLegion=parse_json(customHelmValues)["consumptionV2OnLegion"]
+| project-away customHelmValues
+) on $left.managedClusterName==$right.managedClusterName
+| extend IsRunOnLegion = iif(workloadProfileType=="Consumption" and jobsConsumptionV2OnLegion!=false and consumptionV2OnLegion !=false,"True","False");
 let environmentSearchResult = All("ManagedEnvironmentDBState")
 | where TIMESTAMP between (fromTime-1d .. toTime)
 | where resourceName != ""
@@ -35,4 +44,5 @@ union containerAppSearchResult,environmentSearchResult,sessionPoolSearchResult
 | where ResourceType != ""
 | where isempty(searchRegin) or region =~ searchRegin
 | where isempty(searchSubscription) or subscription =~ searchSubscription
-| project ResourceType,region,SubscriptionID=subscription,managedClusterName,managedEnvironmentName,containerAppName,containerAppsJobName,provisioningState,sessionPoolName,ContainerAppResourceGroupName=containerAppResourceGroup,ManagedEnvironmentResourceGroupName=managedEnvironmentResourceGroup,environmentProvisioningState,sessionPoolResourceGroupName=sessionPoolResourceGroup
+| project ResourceType,region,SubscriptionID=subscription,managedClusterName,managedEnvironmentName,containerAppName,containerAppsJobName,IsRunOnLegion,provisioningState,sessionPoolName,ContainerAppResourceGroupName=containerAppResourceGroup,ManagedEnvironmentResourceGroupName=managedEnvironmentResourceGroup,environmentProvisioningState,sessionPoolResourceGroupName=sessionPoolResourceGroup
+

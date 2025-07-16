@@ -1,0 +1,11 @@
+let queryFrom = datetime("##fromDate##");
+let queryTo = datetime("##toDate##");
+let clusterName = "##managedClusterName##";
+let podName = "##podName##";
+LegionVKVirtualKubeletEvents
+| where TIMESTAMP between (queryFrom .. queryTo)
+| where EnvironmentName == clusterName
+| where name startswith podName or RequestUrl contains podName
+| where level != "info" or (method!="" and method !contains "GET")
+| where msg!="" or ErrorMessage != ""
+| project TIMESTAMP,Message=msg,Error=ErrorMessage,Method=method,Reason=PodMessage
