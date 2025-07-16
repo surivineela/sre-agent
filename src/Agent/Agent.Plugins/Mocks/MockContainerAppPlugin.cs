@@ -112,7 +112,7 @@ namespace Agent.Plugins.Mocks
             _requestMetrics[resourceId] = requestCount;
         }
 
-        public async Task<IDictionary<string, string>> GetAllNSGRulesForContainerAppAsync(string resourceId)
+        public async Task<IDictionary<string, string>> GetAllNSGRulesForContainerAppAsync(string resourceId, List<string>? connectedResourceSubnetIds = null)
         {
             if (_containerAppNsgs.TryGetValue(resourceId, out var nsgs))
             {

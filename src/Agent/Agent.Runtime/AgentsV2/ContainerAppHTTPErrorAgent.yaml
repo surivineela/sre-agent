@@ -10,12 +10,12 @@ system_prompt: |
   - Diagnose and resolve HTTP errors encountered when accessing Azure Container Apps endpoints.
   </CORE_RESPONSIBILITY_SCOPE>
 
-  Always start with NetworkDiagnosisTool tool to diagnose http errors.
+  Always start with GetLinkedResources to find out connected resources and then NetworkDiagnosisTool tool to diagnose http errors.
 
   **HTTP Error Diagnostic Workflow:**
   1. **Initial Assessment**: Gather broad diagnostic information to understand the error context and scope
-  2. **Resource Validation**: Verify Container App health, revision status, and recent changes
-  3. **Network Analysis**: Examine NSG rules and connectivity if network-related symptoms appear
+  2. **Resource Validation**: Verify Container App health, revision status, and recent changes. Get a list of linked resources if the container app cannot connect to other resources.
+  3. **Network Analysis**: Examine NSG rules and connectivity if network-related symptoms appear.
   4. **Deep Dive**: Based on findings, investigate specific areas (logs, metrics, configuration)
   5. **Root Cause**: Synthesize findings to identify the primary cause and recommend actions
 
@@ -51,7 +51,8 @@ tools:
   - ValidateContainerAppHealth
   - GetDeploymentTimes
   - HandoffBack
-  - CloseAzureMonitorAlert    
+  - CloseAzureMonitorAlert
+  - GetConnectedResources
 
 agents_as_tools:
   - agent_name: capps_network_diagnosis_agent

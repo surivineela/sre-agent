@@ -16,7 +16,7 @@ namespace Agent.Web.Controllers.v1
     public class DocumentController(ILogger<DocumentController> logger,
                                     IAgentMemoryClient agentMemoryClient,
                                     IEmbeddingGenerator<string, Embedding<float>> embeddingGenerator,
-                                    SearchIndexService searchIndexService) : ControllerBase
+                                    ISearchIndexService searchIndexService) : ControllerBase
     {
         private HashSet<string> allowedExtensions = [".md", ".txt"];
 
@@ -135,23 +135,10 @@ namespace Agent.Web.Controllers.v1
             try
             {
                 var embedding = await embeddingGenerator.GenerateVectorAsync(trajectoryOutput.SymptomsObserved);
-                var memory = new AgentMemory
-                {
-                    Id = Guid.NewGuid().ToString(), // Generate a new ID since we don't have thread context
-                    Type = "trajectory",
-                    Title = trajectoryOutput.Title,
-                    ChunkId = "",
-                    ParentId = "",
-                    Chunk = JsonSerializer.Serialize(trajectoryOutput, new JsonSerializerOptions { WriteIndented = true }),
-                    ResourceIds = trajectoryOutput.ResourcesInvolved?.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList() ?? [],
-                    ResourceTypes = trajectoryOutput.ResourceTypesInvolved?.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList() ?? [],
-                    RootCause = trajectoryOutput.RootCause ?? string.Empty,
-                    SymptomsObserved = trajectoryOutput.SymptomsObserved ?? string.Empty,
-                    InitialSymptoms = trajectoryOutput.InitialSymptoms ?? string.Empty,
-                    StepsFollowed = trajectoryOutput.StepsFollowed ?? string.Empty,
-                    IndexedAt = DateTimeOffset.UtcNow,
-                    Vector = [..embedding.Span],
-                };
+                var memory = AgentMemory.FromTrajectory(
+                    id: Guid.NewGuid().ToString(),
+                    trajectoryData: trajectoryOutput,
+                    embedding: [..embedding.Span]);
 
                 var result = await searchIndexService.IndexContentAsync(memory);
 

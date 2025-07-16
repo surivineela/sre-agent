@@ -2,6 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json;
+using Agent.Core.Models;
 using Azure.Search.Documents.Indexes;
 using Azure.Search.Documents.Indexes.Models;
 
@@ -43,6 +45,9 @@ public class AgentMemory
     public string RootCause { get; set; } = string.Empty;
 
     [SearchableField]
+    public string Pitfalls { get; set; } = string.Empty;
+
+    [SearchableField]
     public string InitialSymptoms { get; set; } = string.Empty;
 
     [SearchableField]
@@ -54,5 +59,30 @@ public class AgentMemory
     // Common metadata field for all indexable content
     [SimpleField(IsSortable = true)]
     public DateTimeOffset IndexedAt { get; set; } = DateTimeOffset.UtcNow;
+
+    public static AgentMemory FromTrajectory(
+        string id,
+        TrajectoryOutput trajectoryData,
+        List<float> embedding)
+    {
+        return new AgentMemory
+        {
+            Id = id,
+            Type = "trajectory",
+            Title = trajectoryData.Title,
+            ChunkId = string.Empty,
+            ParentId = id,
+            Chunk = JsonSerializer.Serialize(trajectoryData),
+            ResourceTypes = trajectoryData.ResourceTypesInvolved?.ToLowerInvariant().Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList() ?? [],
+            ResourceIds = trajectoryData.ResourcesInvolved?.ToLowerInvariant().Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList() ?? [],
+            RootCause = trajectoryData.RootCause ?? string.Empty,
+            InitialSymptoms = trajectoryData.InitialSymptoms ?? string.Empty,
+            StepsFollowed = trajectoryData.StepsFollowed ?? string.Empty,
+            SymptomsObserved = trajectoryData.SymptomsObserved ?? string.Empty,
+            IndexedAt = DateTimeOffset.UtcNow,
+            Pitfalls = trajectoryData.Pitfalls ?? string.Empty,
+            Vector = embedding
+        };
+    }
 }
 

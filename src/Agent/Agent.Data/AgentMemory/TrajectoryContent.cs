@@ -36,13 +36,9 @@ public class TrajectoryContent : BaseIndexableContent
         // Add trajectory-specific searchable fields
         if (!string.IsNullOrEmpty(trajectory.ResourceTypesInvolved))
             metadata["resource_types"] = trajectory.ResourceTypesInvolved;
-        // .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-        // .ToArray();
 
         if (!string.IsNullOrEmpty(trajectory.ResourcesInvolved))
             metadata["resource_ids"] = trajectory.ResourcesInvolved;
-        // .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-        // .ToArray();
 
         if (!string.IsNullOrEmpty(trajectory.RootCause))
             metadata["root_cause"] = trajectory.RootCause;
@@ -70,5 +66,8 @@ public class TrajectoryContent : BaseIndexableContent
 
         if (Metadata.TryGetValue("symptoms_observed", out var symptomsObserved))
             doc["symptoms_observed"] = symptomsObserved;
+
+        if (Metadata.TryGetValue("pitfalls", out var pitfalls))
+            doc["pitfalls"] = pitfalls;
     }
 }

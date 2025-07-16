@@ -22,6 +22,7 @@ using Agent.Runtime.Services;
 using Agent.Plugins.Interface;
 using Agent.Runtime.Reasoning;
 using Agent.Runtime.ThreadEvaluator;
+using Agent.Plugins.Services.Interfaces;
 
 namespace Agent.Web.Controllers.v1
 {
@@ -63,7 +64,7 @@ namespace Agent.Web.Controllers.v1
         [HttpGet]
         public async Task<ActionResult<PagedResponse<Thread>>> GetThreads(ODataQueryOptions<ThreadDocument> queryOptions,
         [FromQuery] ActionSeverity? severity = null)
-        {       
+        {
             var threads = await repository.GetThreadsAsync(queryOptions, severity, ThreadType.Prod);
 
             return Ok(new PagedResponse<Thread>(threads));

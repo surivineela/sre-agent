@@ -10,6 +10,7 @@ using Agent.Runtime.SubAgents;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Agent.Runtime.Reasoning;
+using Agent.Plugins.Services.Interfaces;
 
 namespace Agent.Runtime.MetaAgent;
 
@@ -279,6 +280,7 @@ $@"## Facts
     private readonly IRemediationPlugin _remediationPlugin;
 
     private readonly InstanceManagementSettings _instanceManagementSettings;
+    private readonly IGraphService _graphService;
 
     public ThirdPartyAgentsFactory(
         ILogger<ThirdPartyAgentsFactory> logger,
@@ -318,7 +320,8 @@ $@"## Facts
         IArmPlugin armPlugin,
         ISearchPlugin searchPlugin,
         IRemediationPlugin remediationPlugin,
-        IAzureDevOpsWorkItemPlugin azureDevOpsWorkItemPlugin
+        IAzureDevOpsWorkItemPlugin azureDevOpsWorkItemPlugin,
+        IGraphService graphService
         )
     {
         _mcpToolsRepository = mcpToolsRepository;
@@ -364,6 +367,7 @@ $@"## Facts
         _searchPlugin = searchPlugin;
 
         _remediationPlugin = remediationPlugin;
+        _graphService = graphService;
     }
 
     public List<AITool> GetSubAgentsAITools(Guid threadGuid, AgentContext context)
@@ -390,7 +394,7 @@ $@"## Facts
 
         var graphDbPluginDefinition = new GraphDBPluginDefinition(_graphDbPlugin);
 
-        var containerAppPluginDefinition = new ContainerAppPluginDefinition(_containerAppPlugin);
+        var containerAppPluginDefinition = new ContainerAppPluginDefinition(_containerAppPlugin, _graphService);
 
         var appServicePluginDefinition = new AppServicePluginDefinition(_appServicePlugin);
 

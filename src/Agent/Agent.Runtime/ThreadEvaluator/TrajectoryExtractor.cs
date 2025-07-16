@@ -39,6 +39,7 @@ public static class TrajectoryExtractor
             new(ChatRole.User, "<chat>\n" + chatTranscript + "\n</chat>")
         };
 
+        // todo: Should use chatClient.GetResponseAsync<TrajectoryOutput> directly as we know the output type at compile time.
         (var extractedTrajectory, var _) = await ChatClientExtensions.GetResponseAsync(
             client: chatClient,
             messages: modelInput,

@@ -2,6 +2,7 @@ using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Logging;
 using Agent.Plugins.Interface;
+using Agent.Plugins.Services.Interfaces;
 using Agent.Runtime.MetaAgent;
 using Agent.Runtime.MetaAgent.Interfaces;
 using Agent.Runtime.Services;
@@ -52,7 +53,8 @@ public static class MetaAgentMock
         IArmPlugin? armPlugin = null,
         ISearchPlugin? searchPlugin = null,
         IRemediationPlugin? remediationPlugin = null,
-        IAzureDevOpsWorkItemPlugin azureDevOpsWorkItemPlugin = null
+        IAzureDevOpsWorkItemPlugin azureDevOpsWorkItemPlugin = null,
+        IGraphService graphServicePlugin = null
         ) // Added parameter
     {
         return new ThirdPartyAgentsFactory(
@@ -94,7 +96,8 @@ public static class MetaAgentMock
             armPlugin ?? Mock.Of<IArmPlugin>(),// Added argument
             searchPlugin ?? Mock.Of<ISearchPlugin>(),
             remediationPlugin ?? Mock.Of<IRemediationPlugin>(),
-            azureDevOpsWorkItemPlugin ?? Mock.Of<IAzureDevOpsWorkItemPlugin>()
+            azureDevOpsWorkItemPlugin ?? Mock.Of<IAzureDevOpsWorkItemPlugin>(),
+            graphServicePlugin ?? Mock.Of<IGraphService>()
         );
     }
 

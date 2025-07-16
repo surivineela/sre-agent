@@ -5,7 +5,7 @@
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Schema;
 using Gremlin.Net.Driver;
-namespace Agent.Runtime.Services;
+namespace Agent.Plugins.Services.Interfaces;
 
 public class AppGroupItem
 {

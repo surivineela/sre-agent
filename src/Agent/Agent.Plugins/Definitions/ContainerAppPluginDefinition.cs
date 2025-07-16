@@ -9,6 +9,8 @@ using Agent.Core.Models;
 using Agent.Framework;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
+using Agent.Plugins.Services.Interfaces;
+using Gremlin.Net.Driver;
 using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins.Definitions
@@ -17,10 +19,21 @@ namespace Agent.Plugins.Definitions
     public class ContainerAppPluginDefinition
     {
         private readonly IContainerAppPlugin _containerAppPlugin;
+        private readonly IGraphService _graphService;
 
-        public ContainerAppPluginDefinition(IContainerAppPlugin containerAppPlugin)
+        public ContainerAppPluginDefinition(IContainerAppPlugin containerAppPlugin, IGraphService graphService)
         {
             _containerAppPlugin = containerAppPlugin;
+            _graphService = graphService;
+        }
+
+        [Description("Get all resources connected to a Container App instance. This includes all resources that are part of the app group, such redis, storage accounts, managed environment." +
+            "This is useful to understand the full context of the Container App and its dependencies, espectially when troubleshooting network connectivity issues.")]
+        public async Task<ResultSet<AppGroupItem>> GetConnectedResourcesAsync(
+            [Description("The resource ID of the Container App instance.")]
+            string resourceId)
+        {
+            return await _graphService.GetAppGroupResourcesAsync(resourceId.ToLower().Replace("/", "_"));
         }
 
         [Description(
@@ -140,14 +153,16 @@ namespace Agent.Plugins.Definitions
         [KernelFunction("get_containerapp_nsg_rules")]
         [AgentTool(ToolMode.Auto)]
         [Description(
-            "Retrieves all Network Security Groups (NSGs) associated with a Container App and their security rules. " +
+            "Retrieves all Network Security Groups (NSGs) associated with a Container App or resources connected to a container app and their security rules. " +
             "Returns a dictionary where keys are NSG resource IDs and values are lists of security rules. " +
             "Use this to identify network access issues or restrictive rules that might be blocking traffic to/from the Container App.")]
         public async Task<IDictionary<string, string>> GetAllNSGRulesForContainerAppAsync(
             [Description("The resource ID of the Container App instance.")]
-            string resourceId)
+            string resourceId,
+            [Description("Optional list of other subnet resource IDs to include in the NSG rules retrieval. This is useful if you want to check NSG rules for multiple subnets connected to the Container App.")]
+            List<string>? connectedResourceSubnetIds = null)
         {
-            return await _containerAppPlugin.GetAllNSGRulesForContainerAppAsync(resourceId);
+            return await _containerAppPlugin.GetAllNSGRulesForContainerAppAsync(resourceId, connectedResourceSubnetIds);
         }
 
         #endregion

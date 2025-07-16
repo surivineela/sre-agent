@@ -24,7 +24,7 @@ namespace Agent.Plugins.Interface
 
         Task<IReadOnlyList<CpuUsageTimeSeriesData>> GetContainerAppCpuMetrics(string resourceId);
 
-        Task<IDictionary<string, string>> GetAllNSGRulesForContainerAppAsync(string resourceId);
+        Task<IDictionary<string, string>> GetAllNSGRulesForContainerAppAsync(string resourceId, List<string>? connectedResourceSubnetIds = null);
 
         Task<bool> ScaleContainerApp(string resourceId, string desiredMemory, int minReplicas, int maxReplicas);
 

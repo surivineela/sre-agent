@@ -6,12 +6,18 @@ using System.Text.Json.Serialization;
 namespace Agent.Data.AgentMemory;
 
 public record SearchDocumentResult(
+    [property: JsonPropertyName("id")] string Id,
     [property: JsonPropertyName("title")] string Title,
     [property: JsonPropertyName("chunk")] string Chunk,
     [property: JsonPropertyName("chunk_id")] string ChunkId,
     [property: JsonPropertyName("parent_id")] string ParentId,
     [property: JsonPropertyName("root_cause")] string RootCause,
     [property: JsonPropertyName("symptoms_observed")] string SymptomsObserved,
+    [property: JsonPropertyName("initial_symptoms")] string InitialSymptoms,
+    [property: JsonPropertyName("steps_followed")] string StepsFollowed,
+    [property: JsonPropertyName("resource_types")] IList<string> ResourceTypes,
+    [property: JsonPropertyName("resource_ids")] IList<string> ResourceIds,
+    [property: JsonPropertyName("pitfalls")] string Pitfalls,
     // Note: @search.score is NOT similarity between the query and the document. For details please see https://learn.microsoft.com/en-us/azure/search/vector-search-ranking#scores-in-a-vector-search-results
     [property: JsonPropertyName("@search.score")] float SearchScore,
     [property: JsonPropertyName("@search.rerankerScore")] float RerankerScore

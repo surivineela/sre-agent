@@ -297,9 +297,9 @@ namespace Agent.Plugins.Implementation
                 .ToArray();
         }
 
-        public async Task<IDictionary<string, string>> GetAllNSGRulesForContainerAppAsync(string resourceId)
+        public async Task<IDictionary<string, string>> GetAllNSGRulesForContainerAppAsync(string resourceId, List<string>? connectedResourceSubnetIds = null)
         {
-            _logger.LogInternalInformation($"[get_containerapp_nsg_rules] Invoked with resourceId: {resourceId}");
+            _logger.LogInternalInformation($"[get_containerapp_nsg_rules] Invoked with resourceId: {resourceId} and connectedResourceSubnetIds: {string.Join(", ", connectedResourceSubnetIds ?? new List<string>())}");
             var result = new Dictionary<string, string>();
 
             try
@@ -328,25 +328,19 @@ namespace Agent.Plugins.Implementation
                 }
 
                 // Get the infrastructure subnet
-                string infrastructureSubnetId = environmentData.Value.Data.VnetConfiguration.InfrastructureSubnetId;
-                var subnet = armClient.GetSubnetResource(new ResourceIdentifier(infrastructureSubnetId));
-                var subnetData = await subnet.GetAsync();
+                var infrastructureSubnetId = environmentData.Value.Data.VnetConfiguration.InfrastructureSubnetId;
+                await GetNsgRules(armClient, infrastructureSubnetId, result);
 
-                // Check if subnet has NSG
-                if (subnetData.Value.Data.NetworkSecurityGroup != null)
+                if (connectedResourceSubnetIds != null && connectedResourceSubnetIds.Count != 0)
                 {
-                    string nsgId = subnetData.Value.Data.NetworkSecurityGroup.Id;
-                    var nsg = armClient.GetNetworkSecurityGroupResource(new ResourceIdentifier(nsgId));
-                    var nsgData = await nsg.GetAsync();
-
-                    // Add this NSG's rules to the result dictionary
-                    result[nsgId] = nsgData.GetRawResponse().Content.ToString();
-
-                    _logger.LogInternalInformation($"Found NSG {nsgId} with {nsgData.Value.Data.SecurityRules.Count} rules for infrastructure subnet");
-                }
-                else
-                {
-                    _logger.LogInternalInformation($"No NSG found for infrastructure subnet {infrastructureSubnetId}");
+                    // Get NSG rules for additional connected subnets
+                    foreach (var subnetId in connectedResourceSubnetIds)
+                    {
+                        if (!string.IsNullOrEmpty(subnetId))
+                        {
+                            await GetNsgRules(armClient, new ResourceIdentifier(subnetId), result);
+                        }
+                    }
                 }
 
                 return result;
@@ -355,6 +349,31 @@ namespace Agent.Plugins.Implementation
             {
                 _logger.LogInternalError(ex, $"Error in GetAllNSGRulesForContainerAppAsync with resourceId {resourceId}");
                 return result;
+            }
+        }
+
+        private async Task GetNsgRules(ArmClient armClient, ResourceIdentifier subnet, Dictionary<string, string> result)
+        {
+            try
+            {
+                var subnetResource = armClient.GetSubnetResource(subnet);
+                var subnetData = await subnetResource.GetAsync();
+
+                if (subnetData.Value.Data.NetworkSecurityGroup == null)
+                {
+                    _logger.LogInternalInformation($"No NSG found for subnet {subnet}");
+                    return;
+                }
+
+                var nsgResource = armClient.GetNetworkSecurityGroupResource(subnetData.Value.Data.NetworkSecurityGroup.Id);
+                var nsgData = await nsgResource.GetAsync();
+                _logger.LogInternalInformation($"Found NSG {subnetData.Value.Data.NetworkSecurityGroup.Id} with {nsgData.Value.Data.SecurityRules.Count} rules subnet {subnet}");
+
+                result[subnetData.Value.Data.NetworkSecurityGroup.Id.ToString()] = nsgData.GetRawResponse().Content.ToString();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, $"Error retrieving NSG rules for subnet {subnet}");
             }
         }
 

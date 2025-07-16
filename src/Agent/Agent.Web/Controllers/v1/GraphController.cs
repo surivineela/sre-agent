@@ -1,6 +1,7 @@
 // ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
+using Agent.Plugins.Services.Interfaces;
 using Agent.Runtime.Services;
 using Gremlin.Net.Driver;
 using Microsoft.AspNetCore.Mvc;
@@ -132,7 +133,7 @@ namespace Agent.Web.Controllers.v1
         [HttpDelete("resource/{resourceId}/remarks")]
         public async Task<ActionResult> DeleteResourceRemark(string resourceId)
         {
-            var properties = new Dictionary<string, string> { { "remarks", "" } }; // Just mark the remark as empty for deletion. 
+            var properties = new Dictionary<string, string> { { "remarks", "" } }; // Just mark the remark as empty for deletion.
 
             var result = await _graphService.UpdateGraphResourceProperties(resourceId, properties);
             return Ok(result);

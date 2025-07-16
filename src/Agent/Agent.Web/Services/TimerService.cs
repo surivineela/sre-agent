@@ -26,6 +26,7 @@ using Agent.Runtime.SubAgents.SourceCodeAgent;
 using Agent.Runtime.SubAgents.TlsBestPracticesAgent;
 using Agent.Runtime.SubAgents.WebAppDownAgent;
 using Agent.Runtime.ThreadEvaluator;
+using Gremlin.Net.Process.Traversal;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Web.Services;
@@ -72,6 +73,7 @@ public class TimerService : IHostedService, IDisposable
     private CrawlerSettings _settings;
     private TimerSettings _timerSettings;
     private IncidentManagementSettings _incidentManagementSettings;
+    private AgentMemorySettings _agentMemorySettings;
     private DashboardSettings _dashboardSettings;
     private TlsBestPracticesScanner _tlsBestPracticesScanner;
     private DailyReportScanner _dailyReportScanner;
@@ -158,6 +160,7 @@ public class TimerService : IHostedService, IDisposable
         TimerSettings timerSettings,
         DashboardSettings dashboardSettings,
         IncidentManagementSettings incidentManagementSettings,
+        AgentMemorySettings agentMemorySettings,
         IPostToTeamsPlugin teamsPlugin,
         TlsBestPracticesScanner tlsBestPracticesScanner,
         DailyReportScanner dailyReportScanner,
@@ -207,6 +210,7 @@ public class TimerService : IHostedService, IDisposable
         _customerAuditLogger = customerAuditLogger;
         _incidentScanner = incidentScanner;
         _localAuthScanner = localAuthScanner;
+        _agentMemorySettings = agentMemorySettings;
 
         // Register all the scanners that implement this base type
         var scannerSubClasses = TypeReflectionHelpers.GetClassesDerivedFromGeneric(typeof(MetaAgent).Assembly, typeof(SimpleResourceSubAgentScannerBase<,,,>));
@@ -268,8 +272,11 @@ public class TimerService : IHostedService, IDisposable
         _logger.LogInternalInformation("Starting Feedback RCA timer...");
         StartFeedbackRCATimer(cancellationToken);
 
-        _logger.LogInternalInformation("Starting Thread Evaluator timer...");
-        StartThreadEvaluatorTimer(cancellationToken);
+        if (_agentMemorySettings.Enabled)
+        {
+            _logger.LogInternalInformation("Starting Thread Evaluator timer...");
+            StartThreadEvaluatorTimer(cancellationToken);
+        }
 
         _logger.LogInternalInformation("Starting GitHub access token timer...");
         //StartGitHubAccessTokenTimer(cancellationToken);

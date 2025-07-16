@@ -24,6 +24,7 @@ using Microsoft.Extensions.Configuration;
 using Agent.Data.DataModels;
 using Microsoft.Extensions.Hosting;
 using Agent.Plugins.Interface;
+using Agent.Plugins.Services.Interfaces;
 
 namespace Agent.Runtime.SubAgents.DailyReportSummary
 {

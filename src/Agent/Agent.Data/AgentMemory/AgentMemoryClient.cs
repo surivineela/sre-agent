@@ -158,6 +158,21 @@ public class AgentMemoryClient(ILogger<AgentMemoryClient> logger,
                     DeploymentName = openAISettings.EmbeddingGeneratorDeploymentName,
                     ModelName = openAISettings.EmbeddingGeneratorModelName,
                     AuthenticationIdentity = new SearchIndexerDataUserAssignedIdentity(new ResourceIdentifier(agentMemorySettings.ManagedIdentityResourceId))
+                },
+                // https://learn.microsoft.com/en-us/azure/search/cognitive-search-skill-conditional
+                new ConditionalSkill(
+                    new List<InputFieldMappingEntry>
+                    {
+                        new InputFieldMappingEntry("condition") { Source = "= true" },
+                        new InputFieldMappingEntry("whenTrue") { Source = "= 'document'" },
+                        new InputFieldMappingEntry("whenFalse") { Source = "= null" } // should never happen because condition is always true
+                    },
+                    new List<OutputFieldMappingEntry>
+                    {
+                        new OutputFieldMappingEntry("output") { TargetName = "documentType" }
+                    })
+                {
+                    Context = "/document",
                 }
             })
             {
@@ -176,7 +191,11 @@ public class AgentMemoryClient(ILogger<AgentMemoryClient> logger,
                         new InputFieldMappingEntry("title")
                         {
                             Source = "/document/metadata_storage_name"
-                        }
+                        },
+                        new InputFieldMappingEntry("type")
+                        {
+                            Source = "/document/documentType"
+                        },
                     })
                 })
                 {
@@ -274,8 +293,9 @@ public class AgentMemoryClient(ILogger<AgentMemoryClient> logger,
         {
             Filter = "type eq 'trajectory' " + (string.IsNullOrEmpty(filter) ? "" : $"and ({filter})"),
             Size = (int)Math.Min(k, maxK),
-            Select = { "title", "chunk_id", "chunk", "symptoms_observed", "root_cause", "indexed_at", "steps_followed" },
+            Select = { "id", "title", "chunk", "initial_symptoms", "symptoms_observed", "root_cause", "indexed_at", "steps_followed", "pitfalls" },
             IncludeTotalCount = true,
+            SearchFields = { "symptoms_observed", "root_cause", "initial_symptoms" },
             VectorSearch = new VectorSearchOptions(),
         };
 

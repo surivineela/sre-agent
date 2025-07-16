@@ -35,6 +35,7 @@ public class ThreadEvaluator
     private readonly TimeSpan _coolDownPeriod;         // Minimum time since last modification before evaluation
     private readonly bool _agentMemoryEnabled;
     private readonly bool _saveOnlyUsefulTrajectories = false;
+    private readonly IEmbeddingGenerator<string, Embedding<float>> _embeddingGenerator;
 
     private readonly ISearchIndexService _searchIndexService;
 
@@ -46,6 +47,7 @@ public class ThreadEvaluator
         AgentActionLogger actionLogger,
         Tracer tracer,
         ISearchIndexService searchIndexService,
+        IEmbeddingGenerator<string, Embedding<float>> embeddingGenerator,
         TimeSpan? evaluationHistoryRange = null,
         TimeSpan? coolDownPeriod = null)
     {
@@ -58,6 +60,7 @@ public class ThreadEvaluator
 
         _agentMemoryEnabled = _memory is not DummyAgentMemoryClient;
         _searchIndexService = searchIndexService;
+        _embeddingGenerator = embeddingGenerator;
 
         // Allow overriding default time windows
         _evaluationHistoryRange = evaluationHistoryRange ?? TimeSpan.FromHours(24);
@@ -228,16 +231,14 @@ public class ThreadEvaluator
                     var trajectoryOutput = JsonSerializer.Deserialize<TrajectoryOutput>(trajectoryInfo.Trajectory);
                     if (trajectoryOutput != null)
                     {
-                        var trajectoryContent = new TrajectoryContent(
-                            conversationId: thread.Id.ToString(),
+                        var vector = await _embeddingGenerator.GenerateVectorAsync(trajectoryOutput.SymptomsObserved, null, cancellationToken);
+                        var memory = AgentMemory.FromTrajectory(
+                            id: thread.Id.ToString(),
                             trajectoryData: trajectoryOutput,
-                            additionalMetadata: new Dictionary<string, object>
-                            {
-                                ["indexed_at"] = DateTime.UtcNow,
-                                ["parent_id"] = thread.Id.ToString()
-                            });
+                            embedding: [..vector.Span]
+                        );
 
-                        await _searchIndexService.IndexContentAsync(trajectoryContent);
+                        await _searchIndexService.IndexContentAsync(memory);
                     }
                 }
                 catch (Exception ex)

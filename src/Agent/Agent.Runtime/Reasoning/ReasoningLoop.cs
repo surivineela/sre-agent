@@ -378,12 +378,6 @@ public class ReasoningLoop : IDisposable
                             //sb.AppendLine(" - **NEVER** mention anything related to handoff in your notifyUserMessage");
                             sb.AppendLine(" - Use transfer_to_{agentName} or HandoffBack if you are done solving an issue");
 
-                            if (_agentMemoryEnabled)
-                            {
-                                _logger.LogInternalInformation("[{threadId}]Retrieving and augmenting user message with agent memory.", _context.ThreadId);
-                                await RetrieveAndAugmentUserMessage(chatMessage.Message.Text, sb);
-                            }
-
                             var docMsg = await RetrieveDocumentsFromSearch(_chatHistory!, chatMessage.Message.Text);
                             if (!string.IsNullOrEmpty(docMsg))
                             {

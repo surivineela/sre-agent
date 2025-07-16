@@ -10,11 +10,12 @@ using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Interfaces;
 using Agent.Graph.Schema;
 using Agent.Plugins.Interface;
+using Agent.Plugins.Services.Interfaces;
 using Gremlin.Net.Driver;
 using Microsoft.Extensions.Logging;
 using ArmConstants = Agent.Graph.Crawler.ARM.Constants;
 
-namespace Agent.Runtime.Services;
+namespace Agent.Plugins.Services;
 
 public class GraphService : IGraphService
 {

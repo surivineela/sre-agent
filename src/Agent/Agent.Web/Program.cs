@@ -474,6 +474,7 @@ public class Program
             .AddTransient<UserInteractionPluginDefinition>()
             .AddTransient<AgentControlFlowPluginDefinition>()
             .AddTransient<APIManagementPluginDefinition>()
+            .AddTransient<AgentMemoryPluginDefinition>()
             .AddTransient<RCAContainerAppsMetaAgentPluginDefinition>()
             .AddTransient<RCAContainerAppsIngressPluginDefinition>()
             .AddTransient<RCAContainerAppAspirePluginDefinition>()
