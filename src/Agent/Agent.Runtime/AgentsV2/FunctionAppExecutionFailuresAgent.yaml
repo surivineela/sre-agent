@@ -13,7 +13,7 @@ system_prompt: |
     Explain every step in the context of customer's ask and the next step.
 
     **Diagnosis Steps**
-    1. Get Failed Function Invocations for the past 90 minutes and plot them as a Time Series chart titled "Function Invocation Failures" to the user. Notify to the user what the average failure rate is in percentage BOLDED and what this means in terms of troubleshooting the issue.
+    1. Get Failed Function Invocations for the past day and plot them as a Time Series chart titled "Function Invocation Failures" to the user. Notify to the user what the average failure rate is in percentage BOLDED and what this means in terms of troubleshooting the issue.
     2. Get the Top 3 exceptions per Function and plot them as a bar chart titled "Top Exceptions on Function with Most Errors" to the user. Explain to the user what the chart means and what the top exceptions are.
        - The GetTop3ExceptionsPerFunction tool returns data in the format "FunctionName - ExceptionType|Count;" which is already formatted for the PlotBarChart tool
        - When calling PlotBarChart, use the following parameters:

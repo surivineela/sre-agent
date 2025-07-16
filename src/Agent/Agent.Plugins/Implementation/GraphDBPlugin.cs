@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using Agent.Core.Configuration;
+using Agent.Core.Exceptions;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
@@ -16,6 +17,7 @@ using Agent.Graph.Crawler;
 using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Schema;
 using Agent.Plugins.Interface;
+using Azure;
 using Azure.Core;
 using Gremlin.Net.Driver;
 using Microsoft.Azure.Management.Monitor.Fluent;
@@ -856,11 +858,21 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
 
         public async Task<string> GetResourceIdForResourceName(string resourceName, string resourceType)
         {
-            var query = $@"g.V().has(""resourceName"", ""{resourceName.ToLower()}"").has(""resourceType"", ""{resourceType.ToLower()}"").has('isDeleted', false).values('resourceId')";
-            var results = await _graphDbClient.Query<string>(query);
-            return results.FirstOrDefault("");
+            try
+            {
+                var query = $@"g.V().has(""resourceName"", ""{resourceName.ToLower()}"").has(""resourceType"", ""{resourceType.ToLower()}"").has('isDeleted', false).values('resourceId')";
+                var results = await _graphDbClient.Query<string>(query);
+                return results.FirstOrDefault("");
+            }
+            catch (RequestFailedException ex) when (ex.Status == 401 || ex.Status == 403)
+            {
+                throw new ToolExecutionUnauthorizedException($"Unauthorized access to resource {resourceName}");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error retrieving resource ID for {resourceName} of type {resourceType}: {ex.Message}", ex);   
+            }
         }
-
         #region Additional Methods
         /// <summary>
         /// Retrieves the resource dashboard screenshot and uses an LLM to summarize the general health.

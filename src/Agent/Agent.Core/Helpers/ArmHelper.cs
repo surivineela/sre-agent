@@ -1403,42 +1403,55 @@ public class ArmHelper
             return $"{{\"error\":{{\"code\":\"InvalidResourceId\",\"message\":\"The provided resource ID '{resourceId}' is not in the correct format. Azure resource IDs should start with /subscriptions/ and follow the pattern /subscriptions/{{subscriptionId}}/resourceGroups/{{resourceGroupName}}/providers/{{resourceProviderNamespace}}/{{resourceType}}/{{resourceName}}\"}}}}";
         }
 
-        var armClient = await _armClientFactory.GetArmOperationClient();
-        var resource = armClient.GetGenericResource(new ResourceIdentifier(resourceId));
-        var resourceDataResponse = await resource.GetAsync();
-        var resourceData = resourceDataResponse.Value;
-        var properties = JsonSerializer.Deserialize<object>(resourceData.Data.Properties.ToString());
-
-        var identity = resourceData.Data.Identity;
-        var managedIdentities = new List<GenericArmResourceIdentityModel>();
-        if (identity != null)
+        try
         {
-            if (identity.PrincipalId != null)
+            var armClient = await _armClientFactory.GetArmOperationClient();
+            var resource = armClient.GetGenericResource(new ResourceIdentifier(resourceId));
+            var resourceDataResponse = await resource.GetAsync();
+
+            var resourceData = resourceDataResponse.Value;
+            var properties = JsonSerializer.Deserialize<object>(resourceData.Data.Properties.ToString());
+
+            var identity = resourceData.Data.Identity;
+            var managedIdentities = new List<GenericArmResourceIdentityModel>();
+            if (identity != null)
             {
-                managedIdentities.Add(new GenericArmResourceIdentityModel(IdentityType.SystemAssignedManagedIdentity.ToString(), identity.PrincipalId.Value));
+                if (identity.PrincipalId != null)
+                {
+                    managedIdentities.Add(new GenericArmResourceIdentityModel(IdentityType.SystemAssignedManagedIdentity.ToString(), identity.PrincipalId.Value));
+                }
+
+                if (identity.UserAssignedIdentities != null)
+                {
+                    managedIdentities.AddRange(identity.UserAssignedIdentities.Values
+                        .Where(userAssignedIdentity => userAssignedIdentity.PrincipalId != null)
+                        .Select(userAssignedIdentity => new GenericArmResourceIdentityModel(IdentityType.UserAssignedManagedIdentity.ToString(), userAssignedIdentity.PrincipalId.Value)));
+                }
             }
 
-            if (identity.UserAssignedIdentities != null)
-            {
-                managedIdentities.AddRange(identity.UserAssignedIdentities.Values
-                    .Where(userAssignedIdentity => userAssignedIdentity.PrincipalId != null)
-                    .Select(userAssignedIdentity => new GenericArmResourceIdentityModel(IdentityType.UserAssignedManagedIdentity.ToString(), userAssignedIdentity.PrincipalId.Value)));
-            }
+            GenericArmResourceModel armRes = new GenericArmResourceModel(
+                id: resourceData.Data.Id,
+                name: resourceData.Data.Name,
+                type: resourceData.Data.ResourceType,
+                kind: resourceData.Data.Kind ?? string.Empty,
+                location: resourceData.Data.Location,
+                properties: properties,
+                tags: resourceData.Data.Tags?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToString()) ?? new Dictionary<string, string>(),
+                IdentityModels: managedIdentities
+            );
+
+            // Return the formatted JSON
+            return JsonSerializer.Serialize(armRes, new JsonSerializerOptions { WriteIndented = true });
+        } catch (RequestFailedException ex) when (ex.Status == 401 || ex.Status == 403)
+        {
+            throw new ToolExecutionUnauthorizedException($"Unauthorized access to resource {resourceId}");
         }
+        catch (Exception ex)
+        {
+            // Handle other exceptions
+            return $"{{\"error\":{{\"code\":\"InternalError\",\"message\":\"An error occurred while retrieving the resource: {ex.Message}\"}}}}";
 
-        GenericArmResourceModel armRes = new GenericArmResourceModel(
-            id: resourceData.Data.Id,
-            name: resourceData.Data.Name,
-            type: resourceData.Data.ResourceType,
-            kind: resourceData.Data.Kind ?? string.Empty,
-            location: resourceData.Data.Location,
-            properties: properties,
-            tags: resourceData.Data.Tags?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToString()) ?? new Dictionary<string, string>(),
-            IdentityModels: managedIdentities
-        );
-
-        // Return the formatted JSON
-        return JsonSerializer.Serialize(armRes, new JsonSerializerOptions { WriteIndented = true });
+        }
     }
 
     public async Task<bool> PowerOnVirtualMachineAsync(string resourceId)
@@ -2106,7 +2119,16 @@ public class ArmHelper
         {
             // Trigger a re-crawl for WRITE operations
             _crawlerTriggerService.TriggerArmCrawl(resourceId);
+        } else
+        {
+            if (CheckForUnauthorizedAccess(response))
+            {
+                throw new ToolExecutionUnauthorizedException($"Unauthorized access to resource {resourceId}");
+            }
+
+            throw new Exception($"Updating app settings failed: {response.Content}");
         }
+
         return response.IsSuccessStatusCode;
     }
 

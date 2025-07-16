@@ -4,6 +4,7 @@
 
 using System.Text.Json;
 using Agent.Core;
+using Agent.Core.Exceptions;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
@@ -178,6 +179,11 @@ public class RoleAssignmentPlugin : IRoleAssignmentPlugin
 
             return $"Successfully assigned role '{roleName}' to principal {principalId} on resource {resourceId}.";
         }
+        catch (RequestFailedException ex) when (ex.Status == 401 || ex.Status == 403)
+        {
+            _logger.LogInternalError(ex, "Unauthorized access while adding role assignment for resource {ResourceId}, principal {PrincipalId}, and role {RoleName}", resourceId, principalId, roleName);
+            throw new ToolExecutionUnauthorizedException($"Unauthorized access to resource {resourceId}");
+        }
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "Error adding role assignment for resource {ResourceId}, principal {PrincipalId}, and role {RoleName}", resourceId, principalId, roleName);
@@ -303,6 +309,11 @@ public class RoleAssignmentPlugin : IRoleAssignmentPlugin
             return JsonSerializer.Serialize(new { HasRole = hasRole, RoleName = roleName, RoleDescription = existingRoleAssignment?.Description ?? string.Empty,  PrincipalId = principalId },
                 new JsonSerializerOptions { WriteIndented = true });
         }
+        catch (RequestFailedException ex) when (ex.Status == 401 || ex.Status == 403)
+        {
+            _logger.LogInternalError(ex, $"Unauthorized access while checking role assignment for resource {resourceId}, principal {principalId}, and role {roleName}");
+            throw new ToolExecutionUnauthorizedException($"Unauthorized access to resource {resourceId}");
+        }
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, $"Error checking role assignment for resource {resourceId}, principal {principalId}, and role {roleName}");
@@ -352,6 +363,11 @@ public class RoleAssignmentPlugin : IRoleAssignmentPlugin
                 }
             }
             return string.Empty;
+        }
+        catch (RequestFailedException ex) when (ex.Status == 401 || ex.Status == 403)
+        {
+            _logger.LogInternalError(ex, "Unauthorized access while getting role details for role name {RoleName} on resource {ResourceId}", roleName, resourceId);
+            throw new ToolExecutionUnauthorizedException($"Unauthorized access to resource {resourceId}");
         }
         catch (Exception ex)
         {
