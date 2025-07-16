@@ -5,6 +5,7 @@
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Threading.RateLimiting;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Services;
@@ -29,7 +30,14 @@ internal class CrawlProgressCounter(int crawledCount, int crawlingCount, int pen
     public int PendingCount = pendingCount;
 }
 
-public class ResourceGraphCrawlerService : ICrawlerService
+internal class QueuedCrawlRequest
+{
+    public GraphNode Node { get; set; }
+    public DateTime QueuedAt { get; set; }
+    public int RetryCount { get; set; }
+}
+
+public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
 {
     private readonly ILogger<ResourceGraphCrawlerService> _logger;
     private readonly ArmResourceCrawlerFactory _factory;
@@ -48,6 +56,9 @@ public class ResourceGraphCrawlerService : ICrawlerService
     private int _pendingCount = 0;
     private readonly ConcurrentDictionary<string, CrawlProgressCounter> _progressByResourceType = new();
     private static readonly TimeSpan SoftDeletedNodesStaleThreshold = TimeSpan.FromDays(3); // Threshold for soft-deleted nodes cleanup
+    private readonly ConcurrentDictionary<string, TokenBucketRateLimiter> _rateLimitersByResourceType = new(); // Token bucket rate limiters per resource type
+    private readonly ConcurrentDictionary<string, QueuedCrawlRequest> _queuedCrawlRequests = new(); // Queue for rate-limited crawl requests, keyed by resource ID
+    private readonly Timer _queueProcessingTimer; // Timer to periodically process the queue
 
     public ResourceGraphCrawlerService(ILogger<ResourceGraphCrawlerService> logger,
         CrawlerSettings crawlerSettings,
@@ -69,6 +80,9 @@ public class ResourceGraphCrawlerService : ICrawlerService
 
         // Start background task to process triggered crawls
         _ = Task.Run(ProcessTriggeredCrawls);
+
+        // Initialize and start the queue processing timer (every 30 seconds)
+        _queueProcessingTimer = new Timer(ProcessQueuedCrawlRequests, null, 30000, 30000);
     }
 
     public async Task CrawlAsync(IEnumerable<string> rootIds, IEnumerable<string>? typeFilters = null, bool cascade = true, CancellationToken? cancellationToken = null)
@@ -121,6 +135,30 @@ public class ResourceGraphCrawlerService : ICrawlerService
                 .Select(kvp => new KeyValuePair<string, CrawlProgress>(kvp.Key, new CrawlProgress(CrawledCount: kvp.Value.CrawledCount, TotalResources: kvp.Value.CrawledCount + kvp.Value.CrawlingCount + kvp.Value.PendingCount)))
                 .ToDictionary(),
         });
+    }
+
+    public int GetQueuedCrawlRequestsCount()
+    {
+        return _queuedCrawlRequests.Count;
+    }
+
+    public Dictionary<string, int> GetQueuedCrawlRequestsByResourceType()
+    {
+        var queuedByType = new Dictionary<string, int>();
+
+        foreach (var kvp in _queuedCrawlRequests)
+        {
+            var resourceType = GetResourceTypeForRateLimit(kvp.Value.Node);
+            queuedByType[resourceType] = queuedByType.GetValueOrDefault(resourceType, 0) + 1;
+        }
+
+        return queuedByType;
+    }
+
+    public async Task ProcessQueuedCrawlRequestsManually()
+    {
+        ProcessQueuedCrawlRequests(null);
+        await Task.Delay(100); // Give the background task a moment to start
     }
 
     public void StartActivityLogCrawler(IEnumerable<string> resourceIds, CancellationToken? cancellationToken = null)
@@ -398,20 +436,58 @@ public class ResourceGraphCrawlerService : ICrawlerService
     {
         try
         {
-            var startTS = DateTime.UtcNow.Ticks;
-            var crawler = _factory.CreateFromNode(node);
-            await foreach (var _ in crawler.Crawl(node)) { }
+            var nodeId = node.GetNodeId();
+            var resourceType = GetResourceTypeForRateLimit(node);
 
-            _logger.LogInternalInformation($"Cleaning up stale edges from {node.GetNodeId()} (older than {startTS})");
-            await CrawlerExtensions.RemoveStaleEdgeForNode(_graphDbClient, node, startTS);
+            // Get or create token bucket rate limiter for this resource type
+            var rateLimiter = _rateLimitersByResourceType.GetOrAdd(resourceType, CreateTokenBucketRateLimiter);
 
-            _logger.LogInternalInformation($"Completed triggered crawl for resource: {node.GetNodeId()}");
+            // Try to acquire a permit from the token bucket - consume token immediately
+            using var lease = await rateLimiter.AcquireAsync(permitCount: 1, cancellationToken: CancellationToken.None);
+
+            if (!lease.IsAcquired)
+            {
+                _logger.LogInternalInformation($"Rate limit reached for resource type {resourceType}, queuing crawl for {nodeId}");
+
+                // Add to queue, merging with existing request if same resource ID
+                _queuedCrawlRequests.AddOrUpdate(nodeId,
+                    new QueuedCrawlRequest
+                    {
+                        Node = node,
+                        QueuedAt = DateTime.UtcNow,
+                        RetryCount = 0
+                    },
+                    (key, existing) =>
+                    {
+                        // Merge by updating the node and reset queue time, but keep retry count
+                        existing.Node = node;
+                        existing.QueuedAt = DateTime.UtcNow;
+                        return existing;
+                    });
+
+                return;
+            }
+
+            // Token consumed, now proceed with the work
+            // The lease disposal happens immediately after this block, which is correct for Token Bucket
+            await ExecuteCrawl(node);
         }
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, $"Error during triggered crawl for resource: {node.GetNodeId()}");
         }
+    }
 
+    private async Task ExecuteCrawl(GraphNode node)
+    {
+        var startTS = DateTime.UtcNow.Ticks;
+        var crawler = _factory.CreateFromNode(node);
+        await foreach (var _ in crawler.Crawl(node)) { }
+
+        _logger.LogInternalInformation($"Cleaning up stale edges from {node.GetNodeId()} (older than {startTS})");
+        await CrawlerExtensions.RemoveStaleEdgeForNode(_graphDbClient, node, startTS);
+
+        _logger.LogInternalInformation($"Completed triggered crawl for resource: {node.GetNodeId()}");
     }
 
     // Need to rethink how to do the cleanup
@@ -594,18 +670,29 @@ public class ResourceGraphCrawlerService : ICrawlerService
     private ArmResourceOperationType GetArmResourceOperationType(EventDataInfo eventData)
     {
         // Add null checks for each property that could be null
-        if (eventData == null || 
-            eventData.Category?.Value == null || 
-            eventData.ResourceId == null || 
-            eventData.HttpRequest == null || 
-            eventData.HttpRequest.Method == null || 
+        if (eventData == null ||
+            eventData.Category?.Value == null ||
+            eventData.ResourceId == null ||
+            eventData.HttpRequest == null ||
+            eventData.HttpRequest.Method == null ||
             string.IsNullOrEmpty(eventData.Status?.Value))
         {
             _logger.LogInternalWarning($"Incomplete event data received: {(eventData?.ResourceId ?? "unknown resource")}");
             return ArmResourceOperationType.Other;
         }
 
-        // TODO: filter operation, e.g. Microsoft.App/containerApps/listSecrets/action
+        // Filter out read operations based on operation name patterns
+        // e.g. Microsoft.App/containerApps/listSecrets/action
+        if (eventData.OperationName?.Value != null)
+        {
+            var operationName = eventData.OperationName.Value;
+            if (operationName.Contains("/list", StringComparison.OrdinalIgnoreCase) ||
+                operationName.Contains("/get", StringComparison.OrdinalIgnoreCase))
+            {
+                return ArmResourceOperationType.Other;
+            }
+        }
+
         if (eventData.Category.Value == "Administrative"
             && eventData.ResourceId != null
             && eventData.HttpRequest != null
@@ -794,5 +881,168 @@ public class ResourceGraphCrawlerService : ICrawlerService
         {
             _logger.LogInternalError(ex, "Error during cleanup of stale nodes");
         }
+    }
+
+    private string GetResourceTypeForRateLimit(GraphNode node)
+    {
+        if (node is ArmResourceNode armNode)
+        {
+            return armNode.ResourceType ?? "unknown";
+        }
+        else if (node is KubernetesResourceNode k8sNode)
+        {
+            return $"k8s:{k8sNode.Kind}";
+        }
+        return "unknown";
+    }
+
+    private TokenBucketRateLimiter CreateTokenBucketRateLimiter(string resourceType)
+    {
+        var options = GetTokenBucketOptionsForResourceType(resourceType);
+        return new TokenBucketRateLimiter(options);
+    }
+
+    private TokenBucketRateLimiterOptions GetTokenBucketOptionsForResourceType(string resourceType)
+    {
+        return resourceType.ToLowerInvariant() switch
+        {
+            "microsoft.containerservice/managedclusters" => new TokenBucketRateLimiterOptions
+            {
+                TokenLimit = 10,         // Max 10 tokens in bucket
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 10,        // Max 10 queued requests
+                ReplenishmentPeriod = TimeSpan.FromMinutes(1), // Replenish every minute
+                TokensPerPeriod = 5,    // Add 5 tokens per minute (conservative for AKS)
+                AutoReplenishment = true
+            },
+            "microsoft.App/containerapps" => new TokenBucketRateLimiterOptions
+            {
+                TokenLimit = 10,         // Max 5 tokens in bucket
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 10,        // Max 10 queued requests
+                ReplenishmentPeriod = TimeSpan.FromSeconds(30), // Replenish 30 seconds
+                TokensPerPeriod = 10,    // Add 10 tokens per 30 seconds (20 tokens per minute)
+                AutoReplenishment = true
+            },
+            _ when resourceType.StartsWith("k8s:") => new TokenBucketRateLimiterOptions
+            {
+                TokenLimit = 15,
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 30,
+                ReplenishmentPeriod = TimeSpan.FromSeconds(10),
+                TokensPerPeriod = 20,
+                AutoReplenishment = true
+            },
+            _ => new TokenBucketRateLimiterOptions // Default for other resource types
+            {
+                TokenLimit = 10,
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 10,
+                ReplenishmentPeriod = TimeSpan.FromSeconds(30), // Replenish 30 seconds
+                TokensPerPeriod = 10,    // Add 10 tokens per 30 seconds (20 tokens per minute)
+                AutoReplenishment = true
+            }
+        };
+    }
+
+    private void ProcessQueuedCrawlRequests(object state)
+    {
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                if (_queuedCrawlRequests.IsEmpty)
+                {
+                    return;
+                }
+
+                _logger.LogInternalInformation($"Processing {_queuedCrawlRequests.Count} queued crawl requests");
+
+                var requestsToProcess = new List<KeyValuePair<string, QueuedCrawlRequest>>();
+
+                // Get all queued requests
+                foreach (var kvp in _queuedCrawlRequests)
+                {
+                    requestsToProcess.Add(kvp);
+                }
+
+                // Sort by queue time (oldest first) to ensure fair processing
+                requestsToProcess.Sort((x, y) => x.Value.QueuedAt.CompareTo(y.Value.QueuedAt));
+
+                var processedCount = 0;
+                var reprocessedCount = 0;
+
+                foreach (var kvp in requestsToProcess)
+                {
+                    var resourceId = kvp.Key;
+                    var request = kvp.Value;
+
+                    try
+                    {
+                        var resourceType = GetResourceTypeForRateLimit(request.Node);
+                        var rateLimiter = _rateLimitersByResourceType.GetOrAdd(resourceType, CreateTokenBucketRateLimiter);
+
+                        // Try to acquire a permit without waiting
+                        using var lease = await rateLimiter.AcquireAsync(permitCount: 1, cancellationToken: CancellationToken.None);
+
+                        if (lease.IsAcquired)
+                        {
+                            // Remove from queue and process
+                            if (_queuedCrawlRequests.TryRemove(resourceId, out _))
+                            {
+                                _logger.LogInternalInformation($"Processing queued crawl request for {resourceId} (queued at {request.QueuedAt})");
+                                await ExecuteCrawl(request.Node);
+                                processedCount++;
+                            }
+                        }
+                        else
+                        {
+                            // Still rate limited, increment retry count and check if we should give up
+                            request.RetryCount++;
+
+                            // If request is older than 30 minutes or has been retried more than 50 times, remove it
+                            // Because the new crawl will happen every 30 minutes in the timer service.
+                            if (DateTime.UtcNow - request.QueuedAt > TimeSpan.FromMinutes(30) || request.RetryCount > 50)
+                            {
+                                _logger.LogInternalWarning($"Dropping queued crawl request for {resourceId} - too old or too many retries (queued at {request.QueuedAt}, retry count: {request.RetryCount})");
+                                _queuedCrawlRequests.TryRemove(resourceId, out _);
+                            }
+                            else
+                            {
+                                reprocessedCount++;
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogInternalError(ex, $"Error processing queued crawl request for {resourceId}");
+
+                        // Remove failed request from queue to prevent infinite retries
+                        _queuedCrawlRequests.TryRemove(resourceId, out _);
+                    }
+                }
+
+                if (processedCount > 0 || reprocessedCount > 0)
+                {
+                    _logger.LogInternalInformation($"Queue processing completed: {processedCount} processed, {reprocessedCount} requeued, {_queuedCrawlRequests.Count} remaining in queue");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Error during queue processing");
+            }
+        });
+    }
+
+    public void Dispose()
+    {
+        _queueProcessingTimer?.Dispose();
+
+        // Dispose all rate limiters
+        foreach (var rateLimiter in _rateLimitersByResourceType.Values)
+        {
+            rateLimiter?.Dispose();
+        }
+        _rateLimitersByResourceType.Clear();
     }
 }
