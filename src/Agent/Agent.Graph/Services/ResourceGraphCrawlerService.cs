@@ -365,34 +365,13 @@ public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
                     {
                         try
                         {
-                            var crawler = _factory.CreateFromNode(node);
-                            await foreach (var n in crawler.Crawl(node))
-                            {
-                                if (cascade
-                                    && FilterResourceType(typeFilters, n)
-                                    && FilterResourceScope(scopeFilters, n))
-                                {
-                                    toCrawl.Enqueue(n);
-                                    Interlocked.Increment(ref _pendingCount);
-                                    var progressByType = _progressByResourceType.AddOrUpdate(n.GetNodeLabel(),
-                                        (resourceType) => new CrawlProgressCounter(0, 0, 1),
-                                        (resourceType, progress) =>
-                                        {
-                                            Interlocked.Increment(ref progress.PendingCount);
-                                            return progress;
-                                        });
-                                }
-                            }
-
-                            _logger.LogInternalInformation($"Cleaning up stale edges from {node.GetNodeId()} (older than {startTS})");
-                            await CrawlerExtensions.RemoveStaleEdgeForNode(_graphDbClient, node, startTS);
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogInternalError(ex, $"Error crawling {node.GetNodeId()}");
+                            await ExecuteWithRetry(node, async (n) =>
+                                await ExecuteCrawlForNode(n, toCrawl, typeFilters, scopeFilters, cascade, startTS),
+                                "bulk crawl");
                         }
                         finally
                         {
+                            // Update counters regardless of success/failure
                             Interlocked.Decrement(ref _crawlingCount);
                             Interlocked.Decrement(ref progressByResourceType.CrawlingCount);
                             Interlocked.Increment(ref _crawledCount);
@@ -478,16 +457,99 @@ public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
         }
     }
 
-    private async Task ExecuteCrawl(GraphNode node)
+    private async Task ExecuteCrawlForNode(GraphNode node, Queue toCrawl, HashSet<string> typeFilters, HashSet<string> scopeFilters, bool cascade, long startTS)
     {
-        var startTS = DateTime.UtcNow.Ticks;
         var crawler = _factory.CreateFromNode(node);
-        await foreach (var _ in crawler.Crawl(node)) { }
+        await foreach (var n in crawler.Crawl(node))
+        {
+            if (cascade
+                && FilterResourceType(typeFilters, n)
+                && FilterResourceScope(scopeFilters, n))
+            {
+                toCrawl.Enqueue(n);
+                Interlocked.Increment(ref _pendingCount);
+                var progressByType = _progressByResourceType.AddOrUpdate(n.GetNodeLabel(),
+                    (resourceType) => new CrawlProgressCounter(0, 0, 1),
+                    (resourceType, progress) =>
+                    {
+                        Interlocked.Increment(ref progress.PendingCount);
+                        return progress;
+                    });
+            }
+        }
 
         _logger.LogInternalInformation($"Cleaning up stale edges from {node.GetNodeId()} (older than {startTS})");
         await CrawlerExtensions.RemoveStaleEdgeForNode(_graphDbClient, node, startTS);
+    }
 
-        _logger.LogInternalInformation($"Completed triggered crawl for resource: {node.GetNodeId()}");
+    private async Task ExecuteWithRetry(GraphNode node, Func<GraphNode, Task> operation, string operationName = "operation")
+    {
+        const int maxRetries = 5;
+        const int baseDelayMs = 500; // 0.5 second
+
+        for (int attempt = 0; attempt <= maxRetries; attempt++)
+        {
+            try
+            {
+                await operation(node);
+                // Success - exit retry loop
+                break;
+            }
+            catch (Azure.RequestFailedException ex) when (ex.Status == 429 && attempt < maxRetries)
+            {
+                // Rate limit exception - wait and retry
+                var delay = Math.Min(baseDelayMs * (int)Math.Pow(2, attempt), 5000); // Exponential backoff, capped at 5s
+                _logger.LogInternalWarning($"Rate limit hit for {node.GetNodeId()} during {operationName}, attempt {attempt + 1}/{maxRetries + 1}, retrying in {delay}ms");
+                await Task.Delay(delay);
+            }
+            catch (Exception ex) when (IsRateLimitException(ex) && attempt < maxRetries)
+            {
+                // Other rate limit exceptions - wait and retry
+                var delay = Math.Min(baseDelayMs * (int)Math.Pow(2, attempt), 5000); // Exponential backoff, capped at 5s
+                _logger.LogInternalWarning($"Rate limit hit for {node.GetNodeId()} during {operationName}, attempt {attempt + 1}/{maxRetries + 1}, retrying in {delay}ms: {ex.Message}");
+                await Task.Delay(delay);
+            }
+            catch (Exception ex)
+            {
+                // Non-rate-limit exception or max retries exceeded
+                if (attempt == maxRetries && IsRateLimitException(ex))
+                {
+                    _logger.LogInternalError(ex, $"Rate limit exceeded max retries ({maxRetries}) for {node.GetNodeId()} during {operationName}");
+                }
+                else
+                {
+                    _logger.LogInternalError(ex, $"Error during {operationName} for {node.GetNodeId()}");
+                }
+                break;
+            }
+        }
+    }
+
+    private static bool IsRateLimitException(Exception ex)
+    {
+        return ex switch
+        {
+            Azure.RequestFailedException reqEx => reqEx.Status == 429,
+            HttpRequestException httpEx => httpEx.Message.Contains("429") || httpEx.Message.Contains("rate limit", StringComparison.OrdinalIgnoreCase),
+            _ => ex.Message.Contains("rate limit", StringComparison.OrdinalIgnoreCase) ||
+                 ex.Message.Contains("throttl", StringComparison.OrdinalIgnoreCase) ||
+                 ex.Message.Contains("too many requests", StringComparison.OrdinalIgnoreCase)
+        };
+    }
+
+    private async Task ExecuteCrawl(GraphNode node)
+    {
+        await ExecuteWithRetry(node, async (n) =>
+        {
+            var startTS = DateTime.UtcNow.Ticks;
+            var crawler = _factory.CreateFromNode(n);
+            await foreach (var _ in crawler.Crawl(n)) { }
+
+            _logger.LogInternalInformation($"Cleaning up stale edges from {n.GetNodeId()} (older than {startTS})");
+            await CrawlerExtensions.RemoveStaleEdgeForNode(_graphDbClient, n, startTS);
+
+            _logger.LogInternalInformation($"Completed triggered crawl for resource: {n.GetNodeId()}");
+        }, "triggered crawl");
     }
 
     // Need to rethink how to do the cleanup

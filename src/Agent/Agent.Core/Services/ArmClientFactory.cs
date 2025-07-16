@@ -6,6 +6,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Azure.Core;
 using Azure.ResourceManager;
+using System.Collections.Generic;
 using System.Threading.RateLimiting;
 
 namespace Agent.Core.Services;
@@ -96,7 +97,7 @@ public class ArmClientFactory : IArmClientFactory
         // - If Azure returns 429, retry policy handles it with exponential backoff
         // - Rate limiter queue provides first-level protection
         // - Retry policy provides second-level resilience
-        var rateLimiterOptions = new TokenBucketRateLimiterOptions
+        var defaultRateLimiterOptions = new TokenBucketRateLimiterOptions
         {
             TokenLimit = 10,          // Allow burst of 10 requests
             ReplenishmentPeriod = TimeSpan.FromSeconds(1),
@@ -106,7 +107,27 @@ public class ArmClientFactory : IArmClientFactory
             AutoReplenishment = true
         };
 
-        var rateLimitPolicy = new TokenBucketRateLimitPolicy(rateLimiterOptions);
+        // Configure higher limits for 'default' provider (non-provider specific operations)
+        var defaultProviderOptions = new TokenBucketRateLimiterOptions
+        {
+            TokenLimit = 20,          // Double the burst capacity
+            ReplenishmentPeriod = TimeSpan.FromSeconds(1),
+            TokensPerPeriod = 20,     // Double the sustained rate
+            QueueLimit = 20,
+            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+            AutoReplenishment = true
+        };
+
+        var rateLimitConfig = new ResourceProviderRateLimitConfig
+        {
+            DefaultOptions = defaultRateLimiterOptions,
+            ProviderSpecificOptions = new Dictionary<string, TokenBucketRateLimiterOptions>
+            {
+                ["default"] = defaultProviderOptions
+            }
+        };
+
+        var rateLimitPolicy = new TokenBucketRateLimitPolicy(rateLimitConfig);
         options.AddPolicy(rateLimitPolicy, HttpPipelinePosition.PerCall);
 
         return new ArmClient(cred, default, options);

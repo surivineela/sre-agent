@@ -30,9 +30,9 @@ public class TokenBucketRateLimitPolicy : HttpPipelinePolicy
         _config = config;
         _rateLimiters = new ConcurrentDictionary<string, TokenBucketRateLimiter>();
 
-        // Regex to extract resource provider from ARM URLs
-        // Pattern: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/...
-        // or: /subscriptions/{subscriptionId}/providers/{resourceProviderNamespace}/...
+        // Regex to extract resource provider from ARM URLs, patterns:
+        // resource group: /subscriptions/{subscriptionId}?api-version=2022-12-01 or /subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}
+        // network: /subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/microsoft.network/networksecuritygroups
         _resourceProviderRegex = new Regex(@"/providers/([^/]+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
     }
 
@@ -76,7 +76,7 @@ public class TokenBucketRateLimitPolicy : HttpPipelinePolicy
         else
         {
             // Rate limit exceeded, throw a request failed exception
-            throw new RequestFailedException(429, $"Rate limit exceeded for resource provider '{resourceProvider}'. Request was throttled by token bucket rate limiter.",
+            throw new RequestFailedException(429, $"Rate limit exceeded for resource provider '{resourceProvider}'. Request '{message.Request.Uri}' was throttled by token bucket rate limiter.",
                 "TokenBucketRateLimit", null);
         }
     }
@@ -98,7 +98,7 @@ public class TokenBucketRateLimitPolicy : HttpPipelinePolicy
         else
         {
             // Rate limit exceeded, throw a request failed exception
-            throw new RequestFailedException(429, $"Rate limit exceeded for resource provider '{resourceProvider}'. Request was throttled by token bucket rate limiter.",
+            throw new RequestFailedException(429, $"Rate limit exceeded for resource provider '{resourceProvider}'. Request '{message.Request.Uri}' was throttled by token bucket rate limiter.",
                 "TokenBucketRateLimit", null);
         }
     }
