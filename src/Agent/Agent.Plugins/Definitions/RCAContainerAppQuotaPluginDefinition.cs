@@ -152,7 +152,7 @@ Purpose:
 Retrieves the result of a set quota operation for a managed environment.
 
 Scenario:
-Use this tool to check the status and result of a quota update operation.
+Use this tool to check the status and result of a quota update operation for quota type ManagedEnvironmentConsumptionCores, ManagedEnvironmentGeneralPurposeCores, or ManagedEnvironmentMemoryOptimizedCores
 
 Output:
 Returns tab-separated table data in CSV format. Column headers:
@@ -209,6 +209,8 @@ Returns a JSON object with validation details:
             if (string.Equals(quotaType, "ManagedEnvironmentConsumptionCores", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(quotaType, "ManagedEnvironmentGeneralPurposeCores", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(quotaType, "ManagedEnvironmentMemoryOptimizedCores", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(quotaType, "ManagedEnvironmentConsumptionNCA100Gpus", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(quotaType, "ManagedEnvironmentConsumptionT4Gpus", StringComparison.OrdinalIgnoreCase)
                 )
             {
                 if (string.IsNullOrEmpty(environmentResourceURL))
@@ -256,8 +258,8 @@ Returns a JSON object with validation details:
                 return (ApprovalState.NotStarted, string.Format(MessageTemplates.InvalidQuotaType));
             }
             else if (!quotaType.Equals("SubscriptionNCA100Gpus", StringComparison.OrdinalIgnoreCase)
-                     && !quotaType.Equals("SubscriptionConsumptionNCA100Gpus", StringComparison.OrdinalIgnoreCase)
-                     && !quotaType.Equals("SubscriptionConsumptionT4Gpus", StringComparison.OrdinalIgnoreCase)
+                     && !quotaType.Equals("ManagedEnvironmentConsumptionNCA100Gpus", StringComparison.OrdinalIgnoreCase)
+                     && !quotaType.Equals("ManagedEnvironmentConsumptionT4Gpus", StringComparison.OrdinalIgnoreCase)
                      && !quotaType.Equals("ManagedEnvironmentCount", StringComparison.OrdinalIgnoreCase)
                      && !quotaType.Equals("ManagedEnvironmentConsumptionCores", StringComparison.OrdinalIgnoreCase)
                      && !quotaType.Equals("ManagedEnvironmentGeneralPurposeCores", StringComparison.OrdinalIgnoreCase)
@@ -309,60 +311,60 @@ Returns a JSON object with validation details:
                         return (ApprovalState.NotStarted, string.Format(MessageTemplates.RegionNotSupported, "SubscriptionNCA100Gpus", region, "westus3"));
                 }
             }
-            else if (quotaTypeEnum.Equals(QuotaType.SubscriptionConsumptionNCA100Gpus))
+            else if (quotaTypeEnum.Equals(QuotaType.ManagedEnvironmentConsumptionNCA100Gpus))
             {
                 if (region.Equals("westus3"))
                 {
-                    return (ApprovalState.Pending, string.Format(MessageTemplates.RequireManualApproveDueToShortage, "SubscriptionConsumptionNCA100Gpus", "westus3"));
+                    return (ApprovalState.Pending, string.Format(MessageTemplates.RequireManualApproveDueToShortage, "ManagedEnvironmentConsumptionNCA100Gpus", "westus3"));
                 }
                 else if (region.Equals("swedencentral") || region.Equals("australiaeast"))
                 {
                     if (isEA)
                     {
                         return limit <= 10
-                            ? (ApprovalState.Approved, string.Format(MessageTemplates.AutoApproved, "SubscriptionConsumptionNCA100Gpus", offerType, "10"))
-                            : (ApprovalState.Pending, string.Format(MessageTemplates.RequireManualApprove, "SubscriptionConsumptionNCA100Gpus", offerType, "10"));
+                            ? (ApprovalState.Approved, string.Format(MessageTemplates.AutoApproved, "ManagedEnvironmentConsumptionNCA100Gpus", offerType, "10"))
+                            : (ApprovalState.Pending, string.Format(MessageTemplates.RequireManualApprove, "ManagedEnvironmentConsumptionNCA100Gpus", offerType, "10"));
                     }
                     else if (isPayAsYouGo || isInternal)
                     {
                         return limit <= 5
-                            ? (ApprovalState.Approved, string.Format(MessageTemplates.AutoApproved, "SubscriptionConsumptionNCA100Gpus", offerType, "5"))
-                            : (ApprovalState.Pending, string.Format(MessageTemplates.RequireManualApprove, "SubscriptionConsumptionNCA100Gpus", offerType, "5"));
+                            ? (ApprovalState.Approved, string.Format(MessageTemplates.AutoApproved, "ManagedEnvironmentConsumptionNCA100Gpus", offerType, "5"))
+                            : (ApprovalState.Pending, string.Format(MessageTemplates.RequireManualApprove, "ManagedEnvironmentConsumptionNCA100Gpus", offerType, "5"));
                     }
                     else
                     {
-                        return (ApprovalState.Pending, string.Format(MessageTemplates.RequireManualApprove, "SubscriptionConsumptionNCA100Gpus", offerType, limit.ToString()));
+                        return (ApprovalState.Pending, string.Format(MessageTemplates.RequireManualApprove, "ManagedEnvironmentConsumptionNCA100Gpus", offerType, limit.ToString()));
                     }
                 }
                 else
                 {
-                    return (ApprovalState.NotStarted, string.Format(MessageTemplates.RegionNotSupported, "SubscriptionConsumptionNCA100Gpus", region, "westus3, australiaeast, or swedensentral"));
+                    return (ApprovalState.NotStarted, string.Format(MessageTemplates.RegionNotSupported, "ManagedEnvironmentConsumptionNCA100Gpus", region, "westus3, australiaeast, or swedensentral"));
                 }
             }
-            else if (quotaTypeEnum.Equals(QuotaType.SubscriptionConsumptionT4Gpus))
+            else if (quotaTypeEnum.Equals(QuotaType.ManagedEnvironmentConsumptionT4Gpus))
             {
                 if (region.Equals("westus3") || region.Equals("swedencentral") || region.Equals("australiaeast") || region.Equals("westeurope"))
                 {
                     if (isEA)
                     {
                         return limit <= 40
-                            ? (ApprovalState.Approved, string.Format(MessageTemplates.AutoApproved, "SubscriptionConsumptionT4Gpus", offerType, "40"))
-                            : (ApprovalState.Pending, string.Format(MessageTemplates.RequireManualApprove, "SubscriptionConsumptionT4Gpus", offerType, "40"));
+                            ? (ApprovalState.Approved, string.Format(MessageTemplates.AutoApproved, "ManagedEnvironmentConsumptionT4Gpus", offerType, "40"))
+                            : (ApprovalState.Pending, string.Format(MessageTemplates.RequireManualApprove, "ManagedEnvironmentConsumptionT4Gpus", offerType, "40"));
                     }
                     else if (isPayAsYouGo || isInternal)
                     {
                         return limit <= 20
-                            ? (ApprovalState.Approved, string.Format(MessageTemplates.AutoApproved, "SubscriptionConsumptionT4Gpus", offerType, "20"))
-                            : (ApprovalState.Pending, string.Format(MessageTemplates.RequireManualApprove, "SubscriptionConsumptionT4Gpus", offerType, "20"));
+                            ? (ApprovalState.Approved, string.Format(MessageTemplates.AutoApproved, "ManagedEnvironmentConsumptionT4Gpus", offerType, "20"))
+                            : (ApprovalState.Pending, string.Format(MessageTemplates.RequireManualApprove, "ManagedEnvironmentConsumptionT4Gpus", offerType, "20"));
                     }
                     else
                     {
-                        return (ApprovalState.Pending, string.Format(MessageTemplates.RequireManualApprove, "SubscriptionConsumptionT4Gpus", offerType, limit.ToString()));
+                        return (ApprovalState.Pending, string.Format(MessageTemplates.RequireManualApprove, "ManagedEnvironmentConsumptionT4Gpus", offerType, limit.ToString()));
                     }
                 }
                 else
                 {
-                    return (ApprovalState.NotStarted, string.Format(MessageTemplates.RegionNotSupported, "SubscriptionConsumptionT4Gpus", region, "westus3, australiaeast, swedensentral, or westeurope"));
+                    return (ApprovalState.NotStarted, string.Format(MessageTemplates.RegionNotSupported, "ManagedEnvironmentConsumptionT4Gpus", region, "westus3, australiaeast, swedensentral, or westeurope"));
                 }
             }
             else if (quotaTypeEnum.Equals(QuotaType.ManagedEnvironmentCount)
@@ -386,9 +388,9 @@ Returns a JSON object with validation details:
         {
             public const string RegionNotSupported = @"Quota type {0} is not supported in this region {1}. For QuotaType {0}, the valid region should be {2}. Ask the user to provide the correct region.";
 
-            public const string QuotaTypeNotSupported = @"Quota type {0} is not supported. The valid quota types are SubscriptionNCA100Gpus, SubscriptionConsumptionNCA100Gpus, SubscriptionConsumptionT4Gpus, ManagedEnvironmentCount, ManagedEnvironmentConsumptionCores, ManagedEnvironmentGeneralPurposeCores, ManagedEnvironmentMemoryOptimizedCores, ContainerAppAdditionalPorts, SessionPools. Ask the user to provide the correct quota type.";
+            public const string QuotaTypeNotSupported = @"Quota type {0} is not supported. The valid quota types are SubscriptionNCA100Gpus, ManagedEnvironmentConsumptionNCA100Gpus, ManagedEnvironmentConsumptionT4Gpus, ManagedEnvironmentCount, ManagedEnvironmentConsumptionCores, ManagedEnvironmentGeneralPurposeCores, ManagedEnvironmentMemoryOptimizedCores, ContainerAppAdditionalPorts, SessionPools. Ask the user to provide the correct quota type.";
 
-            public const string NorthEuropeNotSupported = "There is no SubscriptionNCA100Gpus quota available in NorthEurope. Please ask the user if the customer can use SubscriptionConsumptionNCA100Gpus/SubscriptionConsumptionT4Gpus in WestUS3/SwedenCentral/AustraliaEast or SubscriptionNCA100Gpus in WestUS3.";
+            public const string NorthEuropeNotSupported = "There is no SubscriptionNCA100Gpus quota available in NorthEurope. Please ask the user if the customer can use ManagedEnvironmentConsumptionNCA100Gpus/ManagedEnvironmentConsumptionT4Gpus in WestUS3/SwedenCentral/AustraliaEast or SubscriptionNCA100Gpus in WestUS3.";
 
             public const string AutoApproved = @"Auto approved {0} quota for {1} offer type with limit less than or equal to {2}.";
 
@@ -404,7 +406,7 @@ Returns a JSON object with validation details:
 
             public const string InvalidQuotaLimit = @"Invalid target limit number. Ask the user to provide a valid target limit.";
 
-            public const string InvalidQuotaType = @"Invalid quota type. Ask the customer to provide one of the following quota type: SubscriptionNCA100Gpus, SubscriptionConsumptionNCA100Gpus, SubscriptionConsumptionT4Gpus, ManagedEnvironmentCount, ManagedEnvironmentConsumptionCores, ManagedEnvironmentGeneralPurposeCores, ManagedEnvironmentMemoryOptimizedCores, ContainerAppAdditionalPorts, SessionPools";
+            public const string InvalidQuotaType = @"Invalid quota type. Ask the customer to provide one of the following quota type: SubscriptionNCA100Gpus, ManagedEnvironmentConsumptionNCA100Gpus, ManagedEnvironmentConsumptionT4Gpus, ManagedEnvironmentCount, ManagedEnvironmentConsumptionCores, ManagedEnvironmentGeneralPurposeCores, ManagedEnvironmentMemoryOptimizedCores, ContainerAppAdditionalPorts, SessionPools";
 
             public const string RequireManualApproveDueToShortage = @"Manual approval is required for {0} offer type in {1} region due to a capacity shortage.";
         }
@@ -429,20 +431,19 @@ Returns a JSON object with validation details:
         SubscriptionNCA100Gpus,
 
         /// <summary>
-        /// Quota for consumption GPUs for NCA100 VMs per subscription
-        /// </summary>
-        SubscriptionConsumptionNCA100Gpus,
-
-        /// <summary>
-        /// Quota for consumption GPUs for T4 VMs per subscription
-        /// </summary>
-        SubscriptionConsumptionT4Gpus,
-
-        /// <summary>
         /// Quota for additional ports per subscription
         /// </summary>
         ContainerAppAdditionalPorts,
 
+        /// <summary>
+        /// Quota for managed environment consumption NCA100 GPUs
+        /// </summary>
+        ManagedEnvironmentConsumptionNCA100Gpus,
+
+        /// <summary>
+        /// Quota for managed environment consumption T4 GPUs
+        /// </summary>
+        ManagedEnvironmentConsumptionT4Gpus,
         /// <summary>
         /// Quota for managed environment consumption cores
         /// </summary>
