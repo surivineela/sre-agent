@@ -185,7 +185,7 @@ public class ThreadManagementService(
                 UserId: request.UserId,
                 DisplayName: request.DisplayName,
                 Timestamp: DateTime.UtcNow
-            ));
+            ), defaultHandler: false);
         }
 
         var response = await agentInboundCommunicationService.ProcessUserMessageAsync(new ThreadMessage
