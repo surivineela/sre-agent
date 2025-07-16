@@ -10,118 +10,110 @@ public sealed class TrajectoryOutput_v2
 {
     [Description(
     """
-    Think through the chat like you're reviewing an incident post-mortem:
-    Start with the story arc:
-    "User came in with X symptom.. Agent initially thought Y.. Discovered Z through [tool]..."
-    Track the investigation flow:
-    "L23: Agent used kubectl → found pods crashing"
-    "L45: This triggered NSG investigation because..."
-    "L67: User corrected: 'No, we use port 6380 for SSL' ← Important pitfall!"
-    Systematically extract resources:
-    "Container app mentioned: L12 'dashboard'"
-    "Redis instance: L34 'rfpgunrsght2eiot'"
-    "NSG discovered: L56 during 'az network nsg list'"
-    Note user-provided system facts:
-    "L78: User states 'our Redis requires SSL connections only'"
-    "L89: User confirms 'yes, they're in different subnets'"
-    Identify reusable patterns:
-    "This follows the classic connectivity troubleshooting pattern: app → network path → target"
-    "Key learning: Always check NSGs on BOTH ends of connection"
-    Judge trajectory value:
-    "Complete investigation? ✓ Root cause found? ✓ Reusable pattern? ✓ → Worth saving"
+    Analyze the conversation objectively:
+    Review the user's initial request and determine if they reported a specific problem.
+    Track the interaction flow, tools used, and resources mentioned.
+    Evaluate whether this represents problem-solving investigation or routine operations.
+    Make the determination with specific reasoning based on the criteria provided.
     """)]
     public required string ReasoningScratchPad { get; set; }
 
     [Description(
-        """
-        Boolean indicating whether this trajectory represents an investigation thread worth saving.
-        Should be true for multi-step investigations, root cause analysis,
-        system insights, or reusable troubleshooting patterns.
-        """)]
+    """
+    Boolean indicating whether this trajectory represents an investigation thread worth saving.
+    Should be true only when user explicitly reports production issues and agent performs
+    multi-step troubleshooting with reusable patterns.
+    """)]
     public required bool IsInvestigationThread { get; set; }
 
     [Description(
-        """
-        Brief explanation of why this trajectory is or isn't classified as an investigation thread.
-        """)]
-    public required string InvestigationReason { get; set; }
+    """
+    Brief explanation of why this trajectory is or isn't classified as an investigation thread.
+    For investigations: must explicitly mention the production issue reported by the user.
+    For non-investigations: explain why it's routine/informational.
+    """)]
+    public required string ClassificationReason { get; set; }
 
     [Description(
-        """
-        Title for the trajectory
-        """)]
+    """
+    Descriptive title for the trajectory that captures the main activity or outcome.
+    Examples: "Function App Discovery", "Redis Connection Investigation", "Resource Health Check"
+    """)]
     public required string Title { get; set; }
 
     [Description(
-        """
-        User-reported symptoms at the very start of the chat.
-        Present a semicolon separated list with one short phrase per symptom.
-        Strip filler words. Keep it crisp.
-        Example: auth API returns 503; Latency > 2 s on login
-        """)]
-    public required string InitialSymptoms { get; set; }
+    """
+    All subscription IDs mentioned or accessed during the conversation.
+    Present as a semicolon-separated list.
+    Example: f1ee2647-e5d4-4c50-9e76-0a42f00dc90c; ea2aa16c-c257-4359-aaea-ff2b0f3b3d10
+    """)]
+    public required string SubscriptionsInvolved { get; set; }
 
     [Description(
-        """
-        New signals or anomalies discovered *during* the investigation.
-        Present a semicolon separated list with one short phrase per symptom.
-        Do NOT repeat anything already listed in InitialSymptoms.
-        Example: SQL deadlocks on OrdersDB; CPU 95 % on auth-service pod
-        """)]
-    public required string SymptomsObserved { get; set; }
+    """
+    ALL resources mentioned or inspected in standardized queryable format.
+    Format: ResourceType:ResourceName
+    Present as a semicolon-separated list.
+    Include container apps, databases, NSGs, subnets, VNets, storage accounts, etc.
+    Example: Microsoft.Web/sites:dw-ntf-svc-1-wus2; Microsoft.Cache/redis:myredis; Microsoft.Network/networkSecurityGroups:backend-nsg
+    """)]
+    public required string ResourcesInvolved { get; set; }
 
     [Description(
-        """
-        Numbered list of investigative steps performed by the agent.
-        """)]
-    public required string StepsFollowed { get; set; }
-
-    [Description("""
-        If a root cause was found, give a concise explanation here.
-        If no definitive RCA was reached, set to "Unknown"
-        """)]
-    public required string RootCause { get; set; }
-
-    [Description(
-        """
-        Any system-design explanations that were EXPLICITLY PROVIDED BY THE USER in the chat.
-        Only include information the user directly stated, not inferences.
-        Use bullet points.
-        Examples:
-        - "User stated: Redis is configured for SSL-only connections"
-        - "User confirmed: Container app and Redis are in separate subnets"
-        - "User mentioned: We use active-active deployment for the dashboard app"
-        If no user-provided knowledge mentioned, set to "None"
-        """)]
+    """
+    System architecture or configuration facts EXPLICITLY PROVIDED BY THE USER.
+    Only include information the user directly stated, not agent inferences.
+    Use bullet points. Set to 'N/A' if no user-provided system knowledge was shared.
+    Examples:
+    - "User stated: Redis requires SSL-only connections"
+    - "User confirmed: Apps are in separate subnets"
+    """)]
     public required string SystemDesignKnowledge { get; set; }
 
     [Description(
     """
-        All subscription IDs involved in the investigation.
-        Present as a semicolon-separated list.
-        Example: f1ee2647-e5d4-4c50-9e76-0a42f00dc90c; ea2aa16c-c257-4359-aaea-ff2b0f3b3d10
-        """)]
-    public required string SubscriptionsInvolved { get; set; }
+    User-reported symptoms or problems at the start of the conversation.
+    Present as semicolon-separated list with short phrases, no filler words.
+    Set to 'N/A' if user didn't report any specific problems.
+    Example: API returns 503 errors; Login latency over 2 seconds
+    """)]
+    public required string InitialSymptoms { get; set; }
 
     [Description(
-        """
-        ALL resources inspected in standardized queryable format.
-        Format: ResourceType:ResourceName
-        Present as a semicolon-separated list.
-        Must include EVERY resource mentioned: container apps, databases, NSGs, subnets, VNets, etc.
-        Example: Microsoft.App/containerApps:dashboard; Microsoft.Cache/redis:rfpgunrsght2eiot; Microsoft.Network/networkSecurityGroups:NRMS-rfpgunrsght2eiot-dashboard-vnet-redis-subnet; Microsoft.Network/virtualNetworks/subnets:iot-dashboard-vnet/redis-subnet
-        """)]
-    public required string ResourcesInvolved { get; set; }
+    """
+    New issues or anomalies discovered during the investigation process.
+    Present as semicolon-separated list, don't repeat InitialSymptoms.
+    Set to 'N/A' if not an investigation or no new issues found.
+    Example: SQL deadlocks detected; CPU at 95% on auth pod
+    """)]
+    public required string SymptomsObserved { get; set; }
 
     [Description(
-        """
-        Actionable corrections for missteps encountered.
-        Format each as: "Did: [what was done wrong]. Should: [correct approach instead]"
-        One bullet per pitfall.
-        Focus on user corrections to the model.
-        Example:
-        - Did: Checked NSG rules only on container app subnet. Should: Always check NSG rules on both source AND destination subnets.
-        - Did: Assumed port 6379 for Redis SSL. Should: Use port 6380 for Redis SSL connections, port 6379 for non-SSL.
-        """)]
+    """
+    Numbered list of diagnostic or investigative steps performed by the agent.
+    Set to 'N/A' if this wasn't an investigation.
+    Example:
+    1. Checked application logs for errors
+    2. Analyzed network connectivity between services
+    3. Verified security group configurations
+    """)]
+    public required string StepsFollowed { get; set; }
+
+    [Description(
+    """
+    Root cause explanation if definitively identified during investigation.
+    Set to 'N/A' if not an investigation, or 'Unknown' if investigation didn't reach definitive RCA.
+    Example: "NSG blocking Redis SSL port 6380 between subnets"
+    """)]
+    public required string RootCause { get; set; }
+
+    [Description(
+    """
+    Actionable corrections for troubleshooting missteps, especially user corrections to agent assumptions.
+    Format: "Did: [incorrect action]. Should: [correct approach]"
+    Set to 'N/A' if not an investigation or no significant missteps occurred.
+    Example:
+    - Did: Assumed standard Redis port 6379. Should: Check if SSL is enabled (port 6380).
+    """)]
     public required string Pitfalls { get; set; }
 }

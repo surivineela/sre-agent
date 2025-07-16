@@ -237,18 +237,19 @@ public static class TrajectoryExtractor
 
     Remember: You're creating a knowledge artifact that will help future agents solve similar problems faster.
 
-    A trajectory is **USEFUL** if it contains:
-    - **Problem-solving methodology**: Multi-step investigation with diagnostic tools
-    - **Root cause analysis**: Identified actual issues with reasoning
-    - **System design insights**: Architecture patterns, dependencies, configurations
-    - **Reusable investigation patterns**: Steps that could apply to similar problems
+    A trajectory is an **Investigation Thread** if it contains **investigation** of explicitly stated problems:
+    - **User reports specific issues**: Production errors, performance problems, service outages, or operational failures *(e.g., "My app is returning 503 errors", "Users can't login", "Database queries are timing out")*
+    - AND **Multi-step diagnostic methodology**: Systematic troubleshooting with diagnostic tools guided by the user *(e.g., checking logs → analyzing metrics → testing connections → reviewing configurations)*
+    - AND OPTIONALLY **Root cause analysis**: Identifying underlying causes with logical reasoning *(e.g., "503s caused by connection pool exhaustion due to recent traffic spike")*
 
-    A trajectory is **NOT USEFUL** if it's primarily:
-    - Simple status checks (single az/kubectl command with basic output)
-    - Basic informational queries (list resources, show configuration)
-    - Routine monitoring without issues detected
-    - Trivial lookups or confirmations
-    - Conversations with no actionable investigation steps
+    A trajectory is **NOT an Investigation** if it's primarily:
+    - Routine monitoring of healthy systems *(e.g., "What Function Apps do I have?", "Show me resource health")*
+    - Preventive checks without reported problems *(e.g., "Check for memory leaks", "Any exceptions in my app?")*
+    - Basic resource lookups or informational queries *(e.g., "List my storage accounts", "What's my app configuration?")*
+    - Any issues faced by the assistant itself *(e.g., "Assistant failed to retrieve web apps", "Agent doesn't have permissions to check deployments")*
+    - Exploratory requests without stated operational issues *(e.g., "Tell me about my infrastructure", "Analyze my setup")*
+
+    **Key distinction**: User must explicitly state they're experiencing an issue, not just ask diagnostic questions.
 
     ### How to Generate StepsFollowed - Decision Tree Format
 

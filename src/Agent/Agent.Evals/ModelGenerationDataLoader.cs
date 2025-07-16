@@ -6,7 +6,7 @@ namespace Agent.Evals;
 
 public static class ModelGenerationDataLoader
 {
-    private static JsonSerializerOptions _jsonOptions = new()
+    private static readonly JsonSerializerOptions _jsonOptions = new()
     {
         PropertyNameCaseInsensitive = true,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
