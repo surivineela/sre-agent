@@ -71,6 +71,7 @@ public class AzureDataExplorerLogger : ILogger
         var logData = new
         {
             PreciseTimeStamp = DateTime.UtcNow,
+            Region = _commonColumn.AgentLocation,
             LogLevel = logLevel.ToString(),
             Message = logMessage,
             Exception = exception?.ToString(),
