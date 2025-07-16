@@ -358,20 +358,18 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
 
         [Description(@"""
 Purpose:
-Retrieves the maximum and minimum ratios of the current to target metric values of different scaler in HPA  (Horizontal Pod Autoscaler)
-
-When to use:
-Use this tool to check whether HPA triggers the scale-up or scale-down when analysis scaling issue.
-Please mention if HPA triggers the scale-up or scale-down when use this tool
+Retrieves the maximum, minimum, and target metric values of different scalers in HPA (Horizontal Pod Autoscaler) without considering tolerance, and the scaling result when tolerance is considered.
+Scenario:
+Use this tool to check whether HPA triggers the scale-up or scale-down when analyzing scaling issue.
 
 Output:
 Returns tab-separated table data in CSV format. The first line contains these column headers:
-- metricName: Name of the metric.
-- MaxRatio: Maximum ratio of the current value to the target value of the metric.
-- MinRatio: Minimum ratio of the current value to the target value of the metric.
-- TriggeredScaleUp: scaling up event is triggered
-- TriggeredScaleDown: A scaling down event may be triggered. However, this should be verified against the replica count, because scaling down will not be triggered if the number of replicas is already low (at or near the minimum allowed).
-- TargetValue: the target value to trigger scaling
+- MetricName: Name of the metric.
+- MaxValue: Maximum value the metric without considering tolerance.
+- MinValue: Minimum value the metric without considering tolerance.
+- TargetValue: the target value to trigger scaling without considering tolerance.
+- Tolerance: The value of tolerance to work with targetvalue to providing threshold range.
+- ScalingResult: The scaling result may be triggered by HPA.
 """
 )]
         public Task<string> GetHpaHeartbeatMetrics(

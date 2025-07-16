@@ -17,8 +17,7 @@ ContainerAppControllerEvents
          target_raw  = todouble(replace("m", "", tostring(metric.targetValue)))
 | extend current = iif(metric.currentValue  endswith "m", curr_raw   / 1000.0, curr_raw),
          target  = iif(metric.targetValue   endswith "m", target_raw / 1000.0, target_raw)
-| extend ratio = current/target
-| summarize MaxValue = max(ratio), MinValue = min(ratio) by metricName, target
-| extend TriggeredScaleUp = iif(MaxValue > 1.1, "Yes", "No")
-| extend TriggeredScaleDown = iif(MinValue < 0.9, "Yes", "No")
-| project MetricName=metricName, MaxValue, MinValue, TriggeredScaleUp, TriggeredScaleDown, TargetValue=target
+| extend ScalingResult = iif(current > target * 1.1,  "Scaling out is triggered when the value exceeds the target value, considering tolerance.", iif(current < target * 0.9, "Scaling in may occur when the value exceeds the target value, considering the tolerance.", "No scaling occurs as the value does not exceed the target value, considering tolerance"))
+| extend Tolerance = 0.1
+| summarize MaxValue = max(current), MinValue = min(current) by metricName, target, ScalingResult
+| project MetricName=metricName, MaxValue, MinValue, TargetValue=target, Tolerance=0.1, ScalingResult

@@ -100,9 +100,9 @@ RevisionName
 ScaledObjectName
 IngressEnabled
 IsInternalApp
-TriggeredScaleUp
-TriggeredScaleDown
 TargetValue
+Tolerance
+ScalingResult
 
 # Container App Job
 ContainerAppsJobName
