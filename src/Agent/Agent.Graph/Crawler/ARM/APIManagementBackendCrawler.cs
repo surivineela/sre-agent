@@ -38,9 +38,6 @@ namespace Agent.Graph.Crawler.ARM
                 var origNodeId = await _graphDbClient.GetNodeId(armResourceId);
                 var apimToOrigBackendEdge = new ArmResourceEdge(apimBackendNode.GetNodeId(), origNodeId, Constants.Relationships.Linked);
                 await _graphDbClient.AddOrUpdateEdgeAsync(apimToOrigBackendEdge);
-
-                // Return the ARM resource node for further crawling 
-                yield return ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(armResourceId);
             }
         }
     }
