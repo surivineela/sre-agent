@@ -475,13 +475,7 @@ public class MockKubePlugin : IKubePlugin
 
     public Task<string> RolloutRestartDeploymentAsync(string resourceId, string _namespace, string name) // Parameter name matches interface
     {
-        Console.WriteLine($"WARN: MockKubePlugin: RolloutRestartDeploymentAsync NOT IMPLEMENTED");
-        throw new NotImplementedException();
-    }
-
-    public Task<string> ScaleDeploymentAsync(string resourceId, string _namespace, string name, int replicas, string agentMode) // Parameter name matches interface
-    {
-        Console.WriteLine($"WARN: MockKubePlugin: ScaleDeploymentAsync NOT IMPLEMENTED");
+        Console.WriteLine($"WARN: MockKubePlugin: RolloutRestartDeploymentAsync (restart by deleting pods) NOT IMPLEMENTED");
         throw new NotImplementedException();
     }
 

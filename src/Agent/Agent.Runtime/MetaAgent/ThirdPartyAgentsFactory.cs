@@ -558,7 +558,7 @@ $@"## Facts
     **Always write well formatted reports and use proper lists, section headings, and horizontal line separators between sections.**
 ";
         string modePrompt = AgentModePrompts.GetPrompt(agentMode);
-        if(!string.IsNullOrEmpty(modePrompt))
+        if (!string.IsNullOrEmpty(modePrompt))
         {
             prompt = $"{prompt}\n{modePrompt}";
         }
@@ -624,7 +624,7 @@ You are in Autonomous mode: execute all actions as needed without requiring user
     public static string GetPrompt(string agentMode)
     {
         var defaultPrompt = agentModePromptDict[AgentModes.ReadOnly];
-        if(string.IsNullOrEmpty(agentMode))
+        if (string.IsNullOrEmpty(agentMode))
         {
             return defaultPrompt;
         }
@@ -632,7 +632,8 @@ You are in Autonomous mode: execute all actions as needed without requiring user
         if (agentModePromptDict.TryGetValue(agentMode, out var prompt))
         {
             return prompt;
-        } else
+        }
+        else
         {
             return defaultPrompt;
         }

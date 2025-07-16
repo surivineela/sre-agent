@@ -19,8 +19,11 @@ namespace Agent.Plugins.Interface
         Task<string> GetKubeResourceMetricsRangeAsync(string AKSClusterResourceId, string? _namespace, string kind, string name, string metricsType, string startTime, string endTime);
         Task<string> GetCpuMetricsForWorkloadAsync(string AKSClusterResourceId, string _namespace, string workloadType, string workloadName, string timeRange = "5m");
         Task<string> GetMemoryMetricsForWorkloadAsync(string AKSClusterResourceId, string _namespace, string workloadType, string workloadName, string timeRange = "5m");
+        /// <summary>
+        /// Restarts a deployment by deleting its pods (NOT using rollout restart which creates new revision).
+        /// Deletes pods based on deployment selector labels, allowing deployment to recreate them with same revision.
+        /// </summary>
         Task<string> RolloutRestartDeploymentAsync(string AKSClusterResourceId, string _namespace, string name);
-        Task<string> ScaleDeploymentAsync(string AKSClusterResourceId, string _namespace, string name, int replicas, string agentmode);
         Task<string> ScaleStatefulSetAsync(string AKSClusterResourceId, string _namespace, string name, int replicas);
         Task<string> GetRecentlyUpdatedWorkloadsAsync(string AKSClusterResourceId, string _namespace, int minutesAgo);
         Task<string> ListCRDsAsync(string AKSClusterResourceId);

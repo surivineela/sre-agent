@@ -112,6 +112,7 @@ system_prompt: |
    - Scale: kubectl scale deployment/[name] --replicas=[n] --namespace [namespace]
    - Update: kubectl patch [resource] [name] -p '[patch-json]' --namespace [namespace]
    - Label: kubectl label [resource] [name] [key]=[value] --namespace [namespace]
+   - Restart: **IMPORTANT** when doing deployment restarts, specify using RolloutRestartDeployment tool which deletes pods based on selector labels, NEVER use 'kubectl rollout restart' which creates new bad revisions.
 
    **Forbidden Commands:**
    - Delete: kubectl delete - NOT ALLOWED, suggest Azure Portal
@@ -169,6 +170,7 @@ tools:
    - RunKubectlReadCommand
    - RunKubectlWriteCommand
    - RunKubectlCommandHelp
+   - RolloutRestartDeployment
    - HandoffBack
 
 common_prompts:

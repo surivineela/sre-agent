@@ -61,37 +61,20 @@ If user didn't specify namespace in the context, try to use 'default' namespace"
         }
 
         [Description(
-@"Restart a deployment in the specified namespace.
-Used whenever user wants to restart or rollout restart a deployment, it can also be used by restart pod if the pod belongs to the deployment.
-eg: restart the 'nginx-deployment' in the 'default' namespace.
+@"Restart a deployment by deleting its pods (NOT using rollout restart which creates new revision).
+This method deletes the pods belonging to the deployment based on the deployment's selector labels, allowing the deployment to recreate them with the same revision.
+Use this when you want to restart pods without creating a new ReplicaSet/revision.
+eg: restart the 'nginx-deployment' in the 'default' namespace by deleting its pods.
 If user didn't specify namespace in the context, try to use 'default' namespace")]
         [WriteAction]
         [OboContext(scope: Constants.AksOboTokenScope)]
-        [RequiresApproval("Requires approval to rollout restart a deployment.")]
+        [RequiresApproval("Requires approval to restart deployment by deleting its pods.")]
         public async Task<string> RolloutRestartDeploymentAsync(
             [Description("The resource ID of the Azure Kubernetes Service. e.g. '/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ContainerService/managedClusters/{cluster-name}'")] string AKSClusterResourceId,
             [Description($"Kubernetes namespace, e.g. 'default', 'kube-system'")] string _namespace,
             [Description($"Name of the Kubernetes deployment, e.g. 'nginx', 'backend'")] string deploymentName)
         {
             return await _kubePlugin.RolloutRestartDeploymentAsync(AKSClusterResourceId, _namespace, deploymentName);
-        }
-
-        [Description(
-@"Scale a deployment in the specified namespace.
-Used whenever user wants to scale a deployment, it can also be used by scale pod if the pod belongs to the deployment.
-eg: scale the 'nginx-deployment' in the 'default' namespace to 3 replicas.
-If user didn't specify namespace in the context, try to use 'default' namespace")]
-        [RequiresApproval("Requires approval to scale a deployment.")]
-        [WriteAction]
-        [OboContext(scope: Constants.AksOboTokenScope)]
-        public async Task<string> ScaleDeploymentAsync(
-            [Description("The resource ID of the Azure Kubernetes Service. e.g. '/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ContainerService/managedClusters/{cluster-name}'")] string AKSClusterResourceId,
-              [Description($"Kubernetes namespace, e.g. 'default', 'kube-system'")] string _namespace,
-             [Description($"Name of the Kubernetes deployment, e.g. 'nginx', 'backend'")] string deploymentName,
-             [Description($"Number of replicas to scale to, e.g. 3")] int replicas,
-             String agentmode)
-        {
-            return await _kubePlugin.ScaleDeploymentAsync(AKSClusterResourceId, _namespace, deploymentName, replicas, agentmode);
         }
 
         [OboContext(scope: Constants.AksOboTokenScope)]
@@ -336,9 +319,9 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
         - Apply: 'kubectl apply -f config.yaml -n default'
         - Scale: 'kubectl scale deployment my-app --replicas=3 -n production'
         - Patch: 'kubectl patch deployment my-app -p "{\"spec\":{\"replicas\":3}}" -n default'
-        - Rollout: 'kubectl rollout restart deployment my-deployment -n default'
 
         PROHIBITED: 'kubectl delete...' ❌ Manually execute kubectl or Use Azure Portal instead.
+        Note: For restarting deployments, use RolloutRestartDeploymentAsync tool instead of 'kubectl rollout restart' to avoid creating new revisions.
         """)]
         [WriteAction]
         public async Task<string> RunKubectlWriteCommandAsync(

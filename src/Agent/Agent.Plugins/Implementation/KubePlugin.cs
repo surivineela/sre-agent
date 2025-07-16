@@ -467,7 +467,7 @@ namespace Agent.Plugins
             return string.Join(", ", eventDescriptions);
         }
 
-        // rollout restart a deployment in a namespace
+        // restart a deployment by deleting its pods (not rollout restart which creates new revision)
         public async Task<string> RolloutRestartDeploymentAsync(string resourceId, string _namespace, string deployment)
         {
             var client = await GetOrCreateClientAsync(resourceId);
@@ -478,80 +478,74 @@ namespace Agent.Plugins
                 return "Deployment not found";
             }
 
-            // patch the deployment to trigger a rollout restart
-            var patch = new V1Patch("{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"sreAgent/restartedAt\":\"" + DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture) + "\"}}}}}", V1Patch.PatchType.MergePatch);
-            await client.AppsV1.PatchNamespacedDeploymentAsync(patch, deployment, _namespace);
-            return "Deployment restarted";
-        }
-
-        // Scale a deployment in a namespace to the specified replica count
-        public async Task<string> ScaleDeploymentAsync(string resourceId, string _namespace, string deployment, int replicaCount, string agentmode)
-        {
-            try
+            // get the deployment's selector labels to find matching pods
+            var selector = deploy.Spec.Selector.MatchLabels;
+            if (selector == null || !selector.Any())
             {
-                if (agentmode == ActionMode.Chat.ToString() || agentmode == ActionMode.ReadOnly.ToString())
-                {
-                    return $"kubectl -n <>{_namespace}> scale deployment {deployment} --replicas={replicaCount}";
-                }
-
-
-                if (replicaCount < 0)
-                {
-                    return "Replica count must be a non-negative integer";
-                }
-
-                var client = await GetOrCreateClientAsync(resourceId);
-
-                // Get deployment in namespace to verify it exists
-                var deploy = await client.AppsV1.ReadNamespacedDeploymentAsync(deployment, _namespace);
-                if (deploy == null)
-                {
-                    return "Deployment not found";
-                }
-
-                // Log the current replica count before scaling
-                _logger?.LogInternalInformation(
-                    "Scaling deployment {Deployment} in namespace {Namespace} from {CurrentReplicas} to {TargetReplicas} replicas",
-                    deployment,
-                    _namespace,
-                    deploy.Spec.Replicas,
-                    replicaCount);
-
-                // Create patch to update the replica count
-                var patch = new V1Patch(
-                    $"{{\"spec\":{{\"replicas\":{replicaCount}}}}}",
-                    V1Patch.PatchType.MergePatch);
-
-                // Apply the patch to the deployment
-                var patchResult = await client.AppsV1.PatchNamespacedDeploymentAsync(
-                    patch,
-                    deployment,
-                    _namespace);
-
-                if (patchResult != null)
-                {
-                    string scaleDescription = replicaCount > deploy.Spec.Replicas
-                        ? "scaled out"
-                        : (replicaCount < deploy.Spec.Replicas ? "scaled in" : "replica count unchanged");
-
-                    _crawlerTriggerService.TriggerKubernetesCrawl(
-                        resourceId,
-                        _namespace,
-                        deployment,
-                        CrawlerConstants.KubernetesCoreGroup,
-                        CrawlerConstants.KubernetesV1Version,
-                        CrawlerConstants.KubernetesDeploymentType
-                    );
-                    return $"Deployment {deployment} {scaleDescription} to {replicaCount} replicas";
-                }
-
-                return "Deployment scaling failed";
+                return "Deployment has no selector labels - cannot determine which pods to delete";
             }
-            catch (Exception ex)
+
+            // build label selector string
+            var labelSelector = string.Join(",", selector.Select(kv => $"{kv.Key}={kv.Value}"));
+
+            // get pods matching the deployment's selector
+            var pods = await client.CoreV1.ListNamespacedPodAsync(_namespace, labelSelector: labelSelector);
+            if (!pods.Items.Any())
             {
-                _logger?.LogInternalError(ex, "Error scaling deployment {Deployment} in namespace {Namespace}", deployment, _namespace);
-                return $"Error scaling deployment: {ex.Message}";
+                return "No pods found matching deployment selector";
             }
+
+            // delete the pods one by one and wait for new pods to be created
+            int deletedCount = 0;
+            int totalPods = pods.Items.Count;
+
+            foreach (var pod in pods.Items)
+            {
+                try
+                {
+                    // Delete the current pod
+                    await client.CoreV1.DeleteNamespacedPodAsync(pod.Metadata.Name, _namespace);
+                    deletedCount++;
+
+                    // Wait for the deployment to create a new pod and become ready
+                    // Timeout is 30 seconds per replica
+                    var timeout = TimeSpan.FromSeconds(30 * totalPods);
+                    var startTime = DateTime.UtcNow;
+                    bool newPodReady = false;
+
+                    while (DateTime.UtcNow - startTime < timeout && !newPodReady)
+                    {
+                        await Task.Delay(TimeSpan.FromSeconds(3)); // Wait 3 seconds before checking
+
+                        // Get current pods matching the deployment selector
+                        var currentPods = await client.CoreV1.ListNamespacedPodAsync(_namespace, labelSelector: labelSelector);
+
+                        // Count ready pods
+                        var readyPods = currentPods.Items.Where(p =>
+                            p.Status?.Phase == "Running" &&
+                            p.Status?.ContainerStatuses?.All(c => c.Ready == true) == true).Count();
+
+                        // Check if we have at least as many ready pods as we started with
+                        if (readyPods >= totalPods)
+                        {
+                            newPodReady = true;
+                        }
+                    }
+
+                    if (!newPodReady)
+                    {
+                        return $"Timeout waiting for new pod to become ready after deleting {pod.Metadata.Name}. Stopped rolling restart after {deletedCount} pods.";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Log error but continue with next pod
+                    Console.WriteLine($"Failed to delete pod {pod.Metadata.Name}: {ex.Message}");
+                    return $"Failed to delete pod {pod.Metadata.Name}: {ex.Message}. Stopped rolling restart after {deletedCount} pods.";
+                }
+            }
+
+            return $"Rolling restart completed successfully. Deleted and recreated {deletedCount} pods one by one. Deployment maintained same revision.";
         }
 
         // Scale a statefulset in a namespace to the specified replica count
