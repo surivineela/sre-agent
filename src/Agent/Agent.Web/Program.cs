@@ -145,19 +145,17 @@ public class Program
             app.UseHsts();
         }
 
-        app.UseHttpsRedirection();
-        app.UseRouting();
-
         // Add CORS support for Azure Portal domains
         app.UseCors(x => x.WithOrigins(GetAzurePortalDomains(app.Configuration))
                           .AllowAnyHeader()
-                          .AllowAnyMethod()
                           .AllowCredentials()
                           .SetIsOriginAllowedToAllowWildcardSubdomains());
 
+        app.UseHttpsRedirection();
         // Serve static files from wwwroot
         app.UseDefaultFiles();
         app.UseStaticFiles();
+        app.UseRouting();
 
         app.MapControllers();
         app.MapBlazorHub();
