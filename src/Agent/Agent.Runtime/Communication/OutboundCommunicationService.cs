@@ -80,7 +80,8 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         Guid messageId = Guid.NewGuid();
         try
         {
-            string jsonString = JsonSerializer.Serialize(approval, _serializerOptions);
+            Approval modifiedApproval = approval with { OboTokenScope = string.IsNullOrEmpty(approval.OboTokenScope) ? Constants.DefaultOboTokenScope : approval.OboTokenScope };
+            string jsonString = JsonSerializer.Serialize(modifiedApproval, _serializerOptions);
             // Use the streaming service abstraction to send the message
             await AppendAgentStreamMessage(threadId, jsonString, StreamMessageType.Approval, messageId);
         }
