@@ -3,13 +3,14 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
+using Agent.Core.Models;
 using Agent.Framework;
 using Agent.Plugins.Interface;
 using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins
 {
-    [AgentToolPlugin]
+    [AgentToolPlugin(Category = ToolCategories.Visualization)]
     public class ChartPluginDefinition
     {
         private readonly IChartPlugin _chartPlugin;

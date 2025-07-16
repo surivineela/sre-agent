@@ -3,12 +3,13 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
+using Agent.Core.Models;
 using Agent.Framework;
 using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Definitions;
 
-[AgentToolPlugin(IsFirstPartyOnly = true)]
+[AgentToolPlugin(IsFirstPartyOnly = true, Category = ToolCategories.System, ResourceType = ToolResourceTypes.AppService)]
 public class WebAppPluginDefinition
 {
     private readonly IWebAppPlugin _webAppPlugin;

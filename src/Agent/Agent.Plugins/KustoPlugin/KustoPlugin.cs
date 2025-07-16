@@ -1,11 +1,12 @@
 using System.ComponentModel;
+using Agent.Core.Models;
 using Agent.Logging;
 using Agent.Plugins.Interface;
 using Microsoft.Extensions.Logging;
 namespace Agent.Plugins.KustoPlugin;
 
 
-[AgentToolPlugin(IsFirstPartyOnly = true)]
+[AgentToolPlugin(IsFirstPartyOnly = true, Category = ToolCategories.LogQuery)]
 public class KustoPlugin
 {
     private readonly ILogger<KustoPlugin> _logger;

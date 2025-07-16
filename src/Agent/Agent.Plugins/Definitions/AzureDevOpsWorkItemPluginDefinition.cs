@@ -1,9 +1,10 @@
 using System.ComponentModel;
+using Agent.Core.Models;
 using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Definitions;
 
-[AgentToolPlugin]
+[AgentToolPlugin(Category = ToolCategories.DevOps)]
 public class AzureDevOpsWorkItemPluginDefinition
 {
     private readonly IAzureDevOpsWorkItemPlugin _azureDevOpsWorkItemPlugin;

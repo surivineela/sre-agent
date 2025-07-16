@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Text;
 using Agent.Core.Clients.Search;
+using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Models.Search;
 using Agent.Framework;
@@ -19,7 +20,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Agent.Plugins.Definitions
 {
-    [AgentToolPlugin]
+    [AgentToolPlugin(Category = ToolCategories.LogQuery)]
     public class LogsPluginDefinition : ContextToolTarget<AgentContext>
     {
         private const int MaxTables = 5;

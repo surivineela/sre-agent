@@ -1,11 +1,12 @@
 using System;
 using System.ComponentModel;
+using Agent.Core.Models;
 using Agent.Framework;
 using Agent.Plugins.Interface;
 
 namespace Agent.Plugins;
 
-[AgentToolPlugin(IsFirstPartyOnly = true)]
+[AgentToolPlugin(IsFirstPartyOnly = true, Category = ToolCategories.AzureOperation)]
 public class GenevaActionsPluginDefinition
 {
     private readonly IGenevaActionsPlugin _genevaActionsPlugin;

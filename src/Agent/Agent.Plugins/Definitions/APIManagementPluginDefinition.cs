@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using Agent.Core.Attributes;
+using Agent.Core.Models;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
 using Azure.ResourceManager.ApiManagement;
@@ -8,7 +9,7 @@ using static Agent.Plugins.Helpers.APIManagementHelper;
 
 namespace Agent.Plugins.Definitions
 {
-    [AgentToolPlugin]
+    [AgentToolPlugin(Category = ToolCategories.Diagnostics)]
     public class APIManagementPluginDefinition
     {
         private IAPIManagementPlugin _apiManagementPlugin;

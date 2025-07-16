@@ -6,13 +6,14 @@ using System.ComponentModel;
 using Agent.Framework;
 using Agent.Core.Attributes;
 using Agent.Plugins.Interface;
+using Agent.Core.Models;
 
 namespace Agent.Plugins.Definitions
 {
     /// <summary>
     /// Role Assignment Plugin Definition
     /// </summary>
-    [AgentToolPlugin]
+    [AgentToolPlugin(Category = ToolCategories.RoleAssignment)]
     public class RoleAssignmentPluginDefinition
     {
         private readonly IRoleAssignmentPlugin _roleAssignmentPlugin;

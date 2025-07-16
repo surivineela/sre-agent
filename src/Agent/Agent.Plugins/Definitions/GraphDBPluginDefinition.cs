@@ -4,6 +4,7 @@
 
 using System.ComponentModel;
 using System.Text.Json;
+using Agent.Core.Models;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Framework;
 using Agent.Graph.Schema;
@@ -13,7 +14,7 @@ using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins
 {
-    [AgentToolPlugin]
+    [AgentToolPlugin(Category = ToolCategories.KnowledgeBase)]
     public class GraphDBPluginDefinition
     {
         public IGraphDBPlugin _plugin { get; }

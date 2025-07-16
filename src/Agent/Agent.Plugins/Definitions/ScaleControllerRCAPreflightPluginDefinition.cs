@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
+using Agent.Core.Models;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Framework;
 using Agent.Plugins.Interface;
@@ -10,7 +11,7 @@ using Agent.Plugins.Interface;
 namespace Agent.Plugins.Definitions
 {
 
-    [AgentToolPlugin(IsFirstPartyOnly = true)]
+    [AgentToolPlugin(IsFirstPartyOnly = true, Category = ToolCategories.LogQuery, ResourceType = ToolResourceTypes.AppService)]
     public class ScaleControllerRCAPreflightPluginDefinition
     {
         private readonly IKustoPluginChat _kustoPlugin;

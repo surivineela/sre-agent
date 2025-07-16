@@ -4,13 +4,14 @@
 
 using System.ComponentModel;
 using Agent.Core.Attributes;
+using Agent.Core.Models;
 using Agent.Framework;
 using Agent.Plugins.Interface;
 using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins
 {
-    [AgentToolPlugin]
+    [AgentToolPlugin(Category = ToolCategories.Diagnostics)]
     public class CpuAnalysisPluginDefinition
     {
         private readonly ICpuAnalysisPlugin _cpuAnalysisPlugin;

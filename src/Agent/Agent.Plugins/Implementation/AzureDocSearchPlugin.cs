@@ -4,6 +4,7 @@
 
 using System.ComponentModel;
 using System.Text.Json.Serialization;
+using Agent.Core.Models;
 using Agent.Logging;
 using Agent.Plugins.Clients;
 using Agent.Plugins.Interface;
@@ -12,7 +13,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Agent.Plugins.Implementation
 {
-    [AgentToolPlugin(IsFirstPartyOnly = true)]
+    [AgentToolPlugin(IsFirstPartyOnly = true, Category = ToolCategories.KnowledgeBase, ResourceType = ToolResourceTypes.ContainerApps)]
     public class AzureDocSearchPlugin : IAzureDocSearchPlugin
     {
         private const string INDEX_NAME = "rag-1747704319758";

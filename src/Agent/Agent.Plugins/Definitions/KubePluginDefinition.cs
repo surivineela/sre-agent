@@ -5,6 +5,7 @@
 using System.ComponentModel;
 using Agent.Core;
 using Agent.Core.Attributes;
+using Agent.Core.Models;
 using Agent.Framework;
 using Agent.Plugins.Helpers;
 using Agent.Plugins.Interface;
@@ -12,7 +13,7 @@ using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins
 {
-    [AgentToolPlugin]
+    [AgentToolPlugin(Category = ToolCategories.AzureOperation)]
     public class KubePluginDefinition
     {
         private readonly IKubePlugin _kubePlugin;

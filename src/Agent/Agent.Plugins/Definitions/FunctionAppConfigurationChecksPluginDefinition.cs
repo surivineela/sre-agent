@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
+using Agent.Core.Models;
 using Agent.Framework;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
@@ -13,7 +14,7 @@ namespace Agent.Plugins.Definitions
     /// <summary>
     /// Definition for the Function App Configuration Checks Plugin
     /// </summary>
-    [AgentToolPlugin]
+    [AgentToolPlugin(Category = ToolCategories.Configuration)]
     public class FunctionAppConfigurationChecksPluginDefinition
     {
         private readonly IFunctionAppConfigurationChecksPlugin _configChecksPlugin;

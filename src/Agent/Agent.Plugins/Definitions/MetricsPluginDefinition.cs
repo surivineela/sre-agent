@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
+using Agent.Core.Models;
 using Agent.Framework;
 using Agent.Plugins.Attributes;
 using Agent.Plugins.Interface;
@@ -11,7 +12,7 @@ using Microsoft.SemanticKernel;
 namespace Agent.Plugins;
 
 // [Export]
-[AgentToolPlugin]
+[AgentToolPlugin(Category = ToolCategories.Monitoring)]
 public class MetricsPluginDefinition
 {
     private readonly IMetricsPlugin _metricsPlugin;

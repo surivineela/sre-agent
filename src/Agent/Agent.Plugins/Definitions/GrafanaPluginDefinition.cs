@@ -4,12 +4,13 @@
 
 using System.ComponentModel;
 using Agent.Core.Attributes;
+using Agent.Core.Models;
 using Agent.Framework;
 using Agent.Plugins.Interface;
 
 namespace Agent.Plugins
 {
-    [AgentToolPlugin]
+    [AgentToolPlugin(Category = ToolCategories.Visualization)]
     public class GrafanaPluginDefinition
     {
         private readonly IGrafanaPlugin _grafanaPlugin;

@@ -5,10 +5,11 @@
 using System.ComponentModel;
 using Agent.Framework;
 using Agent.Plugins.Interface;
+using Agent.Core.Models;
 
 namespace Agent.Plugins.Definitions
 {
-    [AgentToolPlugin(IsFirstPartyOnly = true)]
+    [AgentToolPlugin(IsFirstPartyOnly = true, Category = ToolCategories.System)]
     public class AgentInteractionPluginDefinition
     {
         private readonly IAgentInteractionPlugin _agentInteractionPlugin;

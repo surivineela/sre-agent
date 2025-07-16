@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using Agent.Core.Attributes;
+using Agent.Core.Models;
 using Agent.Framework;
 using Agent.Plugins.Interface;
 
@@ -9,7 +10,7 @@ namespace Agent.Plugins.Definitions
     /// <summary>
     /// Definition for the Function App Deployment Checks Plugin
     /// </summary>
-    [AgentToolPlugin]
+    [AgentToolPlugin(Category = ToolCategories.Deployment)]
     public class FunctionAppDeploymentChecksPluginDefinition
     {
         private readonly IFunctionAppDeploymentChecksPlugin _functionAppDeploymentChecksPlugin;

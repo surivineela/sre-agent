@@ -5,6 +5,7 @@
 using System.ComponentModel;
 using Agent.Core.Attributes;
 using Agent.Core.Helpers;
+using Agent.Core.Models;
 using Agent.Framework;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
@@ -13,7 +14,7 @@ using ArmConstants = Agent.Graph.Crawler.ARM.Constants;
 
 namespace Agent.Plugins.Definitions
 {
-    [AgentToolPlugin]
+    [AgentToolPlugin(Category = ToolCategories.Remediation)]
     public class RemediationPluginDefinition : IRemediationPlugin
     {
         private IRemediationPlugin _remediationPlugin;

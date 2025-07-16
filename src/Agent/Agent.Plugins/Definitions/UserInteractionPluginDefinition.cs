@@ -4,12 +4,13 @@
 
 using System.ComponentModel;
 using Agent.Core.Interfaces;
+using Agent.Core.Models;
 using Agent.Framework;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Plugins.Definitions
 {
-    [AgentToolPlugin]
+    [AgentToolPlugin(Category = ToolCategories.System)]
     public class UserInteractionPluginDefinition
     {
         public Guid? ThreadId { get; set; }
@@ -20,7 +21,7 @@ namespace Agent.Plugins.Definitions
             _outboundCommunicationService = outboundCommunicationService;
         }
 
-        [AgentTool(ToolMode.Auto)]
+        [AgentTool(ToolMode.Auto, Category = ToolCategories.Monitoring)]
         [Description("Sends the specified message to the user. Use this to send updates about your current task as you are working on it. Do not use this for asking questions to the user, only for status updates.")]
         public string NotifyUser(
             [Description("The message to send to the user.")]

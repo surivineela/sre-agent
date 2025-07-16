@@ -14,7 +14,7 @@ namespace Agent.Plugins.Definitions
     /// <summary>
     /// Definition for the ApplensDetector plugin
     /// </summary>
-    [AgentToolPlugin(IsFirstPartyOnly = true)]
+    [AgentToolPlugin(IsFirstPartyOnly = true, Category = ToolCategories.Diagnostics)]
     public class ApplensDetectorPluginDefinition
     {
         private readonly IApplensDetectorPlugin _plugin;

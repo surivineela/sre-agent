@@ -1,10 +1,11 @@
 using System.ComponentModel;
+using Agent.Core.Models;
 using Agent.Framework;
 using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Definitions;
 
-[AgentToolPlugin]
+[AgentToolPlugin(Category = ToolCategories.Configuration, ResourceType = ToolResourceTypes.ContainerApps)]
 public class RCAContainerAppAspirePluginDefinition
 {
     private readonly IKustoPluginChat _kustoPlugin;

@@ -46,6 +46,9 @@ public interface IToolFactory<TContext> where TContext : class
 public class ToolInfo
 {
     public string Name { get; set; } = string.Empty;
+    public string Category { get; set; } = string.Empty;
+    public string ResourceType { get; set; } = string.Empty;
+    public string PluginName { get; set; } = string.Empty;
     public string? Description { get; set; }
     public string[]? Parameters { get; set; } = [];
 }

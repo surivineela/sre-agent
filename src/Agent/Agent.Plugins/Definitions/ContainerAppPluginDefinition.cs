@@ -5,6 +5,7 @@
 using System.ComponentModel;
 using System.Text.Json;
 using Agent.Core.Attributes;
+using Agent.Core.Models;
 using Agent.Framework;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
@@ -12,7 +13,7 @@ using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins.Definitions
 {
-    [AgentToolPlugin]
+    [AgentToolPlugin(Category = ToolCategories.AzureOperation)]
     public class ContainerAppPluginDefinition
     {
         private readonly IContainerAppPlugin _containerAppPlugin;

@@ -4,6 +4,7 @@
 
 using System.ComponentModel;
 using Agent.Core.Attributes;
+using Agent.Core.Models;
 using Agent.Framework;
 using Agent.Plugins.Interface;
 using Azure.ResourceManager.Network;
@@ -11,7 +12,7 @@ using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins.Definitions;
 
-[AgentToolPlugin]
+[AgentToolPlugin(Category = ToolCategories.AzureOperation)]
 public class NSGRulePluginDefinition
 {
     private readonly INSGRulePlugin _nsgRulePlugin;

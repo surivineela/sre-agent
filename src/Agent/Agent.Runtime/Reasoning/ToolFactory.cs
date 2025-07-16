@@ -31,6 +31,31 @@ public sealed class DeferredToolFunction<TContext> where TContext : class
         _name = name;
     }
 
+    public string GetPluginCategory()
+    {
+        var attribute = _pluginType.GetCustomAttribute<AgentToolPluginAttribute>();
+        if (attribute != null && !string.IsNullOrWhiteSpace(attribute.Category))
+        {
+            return attribute.Category;
+        }
+        return string.Empty;
+    }
+
+    public string GetPluginResourceType()
+    {
+        var attribute = _pluginType.GetCustomAttribute<AgentToolPluginAttribute>();
+        if (attribute != null && !string.IsNullOrWhiteSpace(attribute.ResourceType))
+        {
+            return attribute.ResourceType;
+        }
+        return string.Empty;
+    }
+
+    public string GetPluginName()
+    {
+        return _pluginType.Name;
+    }
+
     public AIFunction GetToolFunction(Guid? threadId = null)
     {
         var instance = _sp.GetRequiredService(_pluginType);
@@ -256,7 +281,10 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
                 result.Add(new ToolInfo
                 {
                     Name = tool.Key,
+                    Category = tool.Value.GetToolFunction()?.GetToolCategory(tool.Value.GetPluginCategory()),
+                    ResourceType = tool.Value.GetToolFunction()?.GetToolResourceType(tool.Value.GetPluginResourceType()),
                     Description = tool.Value.GetToolFunction()?.Description,
+                    PluginName = tool.Value.GetPluginName(),
                     Parameters = tool.Value.GetToolFunction()?.UnderlyingMethod?.GetParameters()?.Select(x => x.Name)?.ToArray()
                 });
             }

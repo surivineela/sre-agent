@@ -3,11 +3,13 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
+using Agent.Core.Models;
 using Agent.Plugins.Interface;
 using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins
 {
+    [AgentToolPlugin(Category = ToolCategories.Utility)]
     public class TimePluginDefinition
     {
         private readonly ITimePlugin _timePlugin;

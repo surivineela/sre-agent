@@ -5,6 +5,7 @@
 using System.ComponentModel;
 using Agent.Core.Attributes;
 using Agent.Core.Helpers;
+using Agent.Core.Models;
 using Agent.Framework;
 using Agent.Plugins.Interface;
 using Azure.ResourceManager.ResourceGraph.Models;
@@ -12,7 +13,7 @@ using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins.Definitions
 {
-    [AgentToolPlugin]
+    [AgentToolPlugin(Category = ToolCategories.CodeAnalysis)]
     public class AppCodeAnalysisPluginDefinition
     {
 

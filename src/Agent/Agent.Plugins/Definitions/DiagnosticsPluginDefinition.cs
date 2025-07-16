@@ -1,10 +1,11 @@
 using System.ComponentModel;
+using Agent.Core.Models;
 using Agent.Framework;
 using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Definitions;
 
-[AgentToolPlugin]
+[AgentToolPlugin(Category = ToolCategories.Diagnostics)]
 public sealed class DiagnosticsPluginDefinition
 {
     private readonly IDiagnosticsPlugin _diagnosticsPlugin;

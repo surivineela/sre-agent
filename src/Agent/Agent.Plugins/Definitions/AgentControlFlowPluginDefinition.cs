@@ -1,9 +1,10 @@
 using System.ComponentModel;
+using Agent.Core.Models;
 using Agent.Framework;
 
 namespace Agent.Plugins.Definitions;
 
-[AgentToolPlugin]
+[AgentToolPlugin(Category = ToolCategories.System)]
 public class AgentControlFlowPluginDefinition
 {
     [Description(

@@ -5,14 +5,15 @@
 using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
+using Agent.Core.Models;
+using Agent.Core.Models.Charts;
 using Agent.Framework;
 using Agent.Plugins.Interface;
 using Microsoft.SemanticKernel;
-using Agent.Core.Models.Charts;
 
 namespace Agent.Plugins.Definitions
 {
-    [AgentToolPlugin]
+    [AgentToolPlugin(Category = ToolCategories.Diagnostics)]
     public class FunctionAppExecutionFailuresPluginDefinition(IFunctionAppExecutionFailuresPlugin functionAppExecutionFailuresPlugin)
     {
         private readonly IFunctionAppExecutionFailuresPlugin _functionAppExecutionFailuresPlugin = functionAppExecutionFailuresPlugin;

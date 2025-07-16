@@ -12,7 +12,7 @@ using Agent.Plugins.Interface;
 
 namespace Agent.Plugins;
 
-[AgentToolPlugin]
+[AgentToolPlugin(Category = ToolCategories.KnowledgeBase)]
 public class AzureSearchPluginDefinition
 {
     private readonly IAzureSearchPlugin _azureSearchPlugin;

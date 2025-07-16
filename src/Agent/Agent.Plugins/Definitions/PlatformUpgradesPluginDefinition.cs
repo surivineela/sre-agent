@@ -3,12 +3,13 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
+using Agent.Core.Models;
 using Agent.Framework;
 using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Definitions
 {
-    [AgentToolPlugin]
+    [AgentToolPlugin(Category = ToolCategories.Deployment, ResourceType = ToolResourceTypes.AKS)]
 
     public class PlatformUpgradesPluginDefinition
     {

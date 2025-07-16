@@ -6,10 +6,11 @@ using System.ComponentModel;
 using Agent.Plugins.Models;
 using Agent.Framework;
 using Agent.Plugins.Interface;
+using Agent.Core.Models;
 
 namespace Agent.Plugins.Definitions
 {
-    [AgentToolPlugin]
+    [AgentToolPlugin(Category = ToolCategories.AzureOperation)]
     public class FunctionAppsPluginDefinition
     {
         private readonly IFunctionAppsPlugin _functionAppPlugin;

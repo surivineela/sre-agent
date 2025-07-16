@@ -2,13 +2,14 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Plugins.Interface;
 using System.ComponentModel;
 
 namespace Agent.Plugins.Definitions
 {
-    [AgentToolPlugin]
+    [AgentToolPlugin(Category = ToolCategories.KnowledgeBase)]
     public class SearchPluginDefinition
     {
         private readonly ISearchPlugin _plugin;

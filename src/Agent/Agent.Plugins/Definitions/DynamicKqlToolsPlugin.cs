@@ -3,8 +3,9 @@ using Agent.Plugins;
 using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;
 using System.Text.Json;
+using Agent.Core.Models;
 
-[AgentToolPlugin]
+[AgentToolPlugin(Category = ToolCategories.LogQuery)]
 public class DynamicKqlToolsPlugin
 {
     private readonly IServiceProvider _serviceProvider;

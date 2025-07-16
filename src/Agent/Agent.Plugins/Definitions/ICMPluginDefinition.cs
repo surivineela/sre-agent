@@ -1,10 +1,11 @@
 using System.ComponentModel;
+using Agent.Core.Models;
 using Agent.Core.Models.ICM;
 using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Definitions;
 
-[AgentToolPlugin(IsFirstPartyOnly = true)]
+[AgentToolPlugin(IsFirstPartyOnly = true, Category = ToolCategories.IncidentManagement)]
 public class ICMPluginDefinition
 {
     private readonly IICMPlugin _icmPlugin;

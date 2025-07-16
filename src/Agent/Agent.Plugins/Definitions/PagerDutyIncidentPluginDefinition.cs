@@ -3,13 +3,14 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
+using Agent.Core.Models;
 using Agent.Data.DataModels;
 using Agent.Framework;
 using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Definitions
 {
-    [AgentToolPlugin]
+    [AgentToolPlugin(Category = ToolCategories.IncidentManagement)]
     public class PagerDutyIncidentPluginDefinition(IPagerDutyIncidentPlugin incidentPlugin)
     {
         [AgentTool(ToolMode.Auto)]

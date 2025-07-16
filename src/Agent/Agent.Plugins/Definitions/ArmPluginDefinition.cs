@@ -10,7 +10,7 @@ using Agent.Plugins.Models;
 
 namespace Agent.Plugins
 {
-    [AgentToolPlugin]
+    [AgentToolPlugin(Category = ToolCategories.AzureOperation)]
     public class ArmPluginDefinition
     {
         private readonly IArmPlugin _armPlugin;

@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
+using Agent.Core.Models;
 using Agent.Framework;
 using Agent.Plugins.Helpers;
 using Agent.Plugins.Interface;
@@ -11,7 +12,7 @@ using Octokit;
 
 namespace Agent.Plugins;
 
-[AgentToolPlugin]
+[AgentToolPlugin(Category = ToolCategories.DevOps)]
 [Description(@"Note that pull requests are considered issues.
 You can create/ update comments on a PR the same way you would on a regular issue.
 Note that if there is any auth issue when using any of these methods, call the GenerateLoginLink method and ask the user to follow this link to login")]
