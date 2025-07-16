@@ -113,7 +113,7 @@ system_prompt: |
           samplingType: "Max",
           Threshold: "90")
     - Example 2: "Container app is being OOMKilled"
-      1. GetContainerAppOOMKills(
+      1. GetContainerAppOrJobOOMKills(
           region: {region},
           fromDate: {fromDate},
           toDate: {toDate},
@@ -138,7 +138,7 @@ handoffs:
 tools:
   - GetContainerAppCpuExceedsThreshold
   - GetContainerAppMemoryExceedsThreshold
-  - GetContainerAppOOMKills
+  - GetContainerAppOrJobOOMKills
   - PlotTimeSeriesData
   - HandoffBack
 

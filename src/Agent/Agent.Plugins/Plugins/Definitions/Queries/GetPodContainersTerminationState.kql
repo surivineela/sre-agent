@@ -1,0 +1,25 @@
+let queryFrom = datetime("##fromDate##");
+let queryTo = datetime("##toDate##");
+let managedClusterName = "##managedClusterName##";
+let podNamePrefix = "##podNamePrefix##";
+let podNamespace = "##podNamespace##";
+ContainerAppControllerEvents
+| where PreciseTimeStamp between (queryFrom .. queryTo)
+| where EnvironmentName == managedClusterName
+| where msg == 'Pod Heartbeat'
+| where PodNamespace == podNamespace
+| where PodName startswith podNamePrefix
+| extend podContainer = parse_json(PodContainerStatus)
+| mv-expand podContainer
+| extend ContainerName = tostring(podContainer.name)
+| extend ContainerReady = tostring(podContainer.ready)
+| extend ContainerImage = tostring(podContainer.image)
+| extend ContainerTerminationExitCode = tostring(podContainer.state.terminated.exitCode)
+| extend ContainerTerminationReason = tostring(podContainer.starte.terminated.reason)
+| extend ContainerTerminationReason = tostring(podContainer.state.terminated.reason)
+| summarize StartTime = min(PreciseTimeStamp),EndTime=max(PreciseTimeStamp) by PodName, ContainerName, ContainerReady,ContainerImage,ContainerTerminationExitCode,ContainerTerminationReason, NodeName
+| where isnotempty( ContainerName)
+| extend ContainerState = iff(ContainerReady=="true","Ready","Not Ready")
+| where ContainerReady == "false"
+| where ContainerTerminationReason != "Completed"
+| project StartTime,EndTime,NodeName, PodName,ContainerName,ContainerState,ContainerTerminationExitCode,ContainerTerminationReason

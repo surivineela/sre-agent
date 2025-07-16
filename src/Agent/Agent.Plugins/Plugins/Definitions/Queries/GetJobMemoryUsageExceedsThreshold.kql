@@ -1,0 +1,43 @@
+
+let fromDate = datetime("##fromDate##");
+let toDate = datetime("##toDate##");
+let managedClusterName = "##managedClusterName##";
+let jobName = "##jobName##";
+let threshold = toint("##threshold##");
+// Limit Table
+let LimitTable = ContainerAppControllerEvents
+| where PreciseTimeStamp between (fromDate .. toDate)
+| where EnvironmentName == managedClusterName
+| where msg == "Container Apps Job Heartbeat"
+| where ContainerAppJobName == jobName
+| extend json = JobJson
+| where isnotempty(json)
+| summarize StartTime = min(PreciseTimeStamp), EndTime = max(PreciseTimeStamp) by json
+| extend d=parse_json(json) 
+| extend Template=d.spec.template
+| extend MemoryLimit = Template.containers[0].resources.memory
+| project StartTime, EndTime, MemoryLimit, JobName = jobName;
+// Usage Table
+let UsageTable = ContainerAppControllerEvents
+| where PreciseTimeStamp between (fromDate .. toDate)// (datetime(2025-06-18 21:40:43) .. datetime(2025-06-18 21:40:43)+1d)
+| where EnvironmentName == managedClusterName
+| where msg == "Pod Heartbeat"
+| where PodName contains jobName
+| where PodResourceConsumption != ""
+| extend PodResourceConsumptionJson = parse_json(PodResourceConsumption)
+| extend MemoryUsage = tostring(PodResourceConsumptionJson.memory)
+| project PreciseTimeStamp, PodName, NodeName, MemoryUsage, JobName=jobName;
+// Join Usage with Limits based on timestamp range
+UsageTable
+| join kind=inner (
+    LimitTable
+) on JobName
+| where PreciseTimeStamp >= StartTime and PreciseTimeStamp <= EndTime
+| extend
+    MemoryUsageMiB = iif(MemoryUsage endswith "Gi", toreal(replace_string(tostring(MemoryUsage), "Gi", "")) * 1024.0, toreal(replace_string(tostring(MemoryUsage), "MiB", ""))),
+    MemoryLimitMiB = iif(MemoryLimit endswith "Gi", toreal(replace_string(tostring(MemoryLimit), "Gi", "")) * 1024.0, toreal(replace_string(tostring(MemoryLimit), "MiB", "")))
+| extend
+    MemoryUsagePercentage = MemoryUsageMiB / MemoryLimitMiB * 100.0
+| where MemoryUsagePercentage > threshold
+| summarize rowCount = count()
+| project HasData = rowCount > 0

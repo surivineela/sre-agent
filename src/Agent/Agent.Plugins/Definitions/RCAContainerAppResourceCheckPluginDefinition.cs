@@ -86,12 +86,12 @@ namespace Agent.Plugins.Definitions
                 });
         }
 
-        [Description(@"""
+            [Description(@"""
         Purpose:
         Retrieves OOM (Out Of Memory) kill events for a container app or job in a managed cluster during a given time window.
 
         Scenario:
-        Use this tool to check for OOM kill events for a container app or job.
+        Use this tool when container app or job pods are crashing unexpectedly to identify if pods are being killed due to memory issue.
 
         Output:
         Returns tab-separated table data in CSV format. Column headers:
@@ -104,7 +104,7 @@ namespace Agent.Plugins.Definitions
         - resourceId: Resource ID of the container app or job
         """
         )]
-        public Task<string> GetContainerAppOOMKills(
+        public Task<string> GetContainerAppOrJobOOMKills(
             [Description("Azure region in lower case. Example: 'westeurope'.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,

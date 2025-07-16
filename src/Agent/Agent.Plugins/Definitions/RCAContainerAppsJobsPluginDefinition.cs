@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using Agent.Framework;
 using Agent.Plugins.Interface;
+using Agent.Plugins.KustoPlugin;
 
 namespace Agent.Plugins.Definitions
 {
@@ -312,5 +313,106 @@ namespace Agent.Plugins.Definitions
 
             return Task.FromResult($"ASI Page for container app job {asiUri}");
         }
+
+        [Description(@"""
+        Purpose:
+        Checks if any pods in a specified job within a managed cluster have CPU usage exceeding a given threshold during a time window.
+
+        Scenario:
+        Use this tool when jobs are experiencing performance degradation to determine if CPU usage is elevated during the specified time range, which may contribute to these issues.
+
+        Output:
+        Returns tab-separated table data in CSV format. Column headers:
+        - hasData: true if any pod's CPU usage exceeded the threshold, false otherwise
+        """
+        )]
+        public Task<string> GetJobCPUUsageExceedsThreshold(
+            [Description("Azure region in lower case. Example: 'westeurope'.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed cluster.")] string managedClusterName,
+            [Description("Name of the job.")] string jobName,
+            [Description("Threshold as a percentage to check if usage equals or exceeds. Example: '90'.")] string threshold)
+        {
+            return _kustoPluginChat.ExecuteLocalFunctionAsync("GetJobCPUUsageExceedsThreshold", region,
+                new Dictionary<string, string>
+                {
+                    { "fromDate", fromDate.ToString() },
+                    { "toDate", toDate.ToString() },
+                    { "managedClusterName", managedClusterName },
+                    { "jobName", jobName },
+                    { "threshold", threshold }
+                });
+        }
+
+        [Description(@"""
+        Purpose:
+        Checks if any pods in a specified job within a managed cluster have memory usage exceeding a given threshold during a time window.
+
+        Scenario:
+        Use this tool when jobs are crashing or experiencing performance degradation to determine if pod memory usage is elevated during the specified time range, which may contribute to these issues.
+
+        Output:
+        Returns tab-separated table data in CSV format. Column headers:
+        - hasData: true if any pod's memory usage exceeded the threshold, false otherwise
+        """
+        )]
+        public Task<string> GetJobMemoryUsageExceedsThreshold(
+            [Description("Azure region in lower case. Example: 'westeurope'.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed cluster.")] string managedClusterName,
+            [Description("Name of the job.")] string jobName,
+            [Description("Threshold as a percentage to check if usage equals or exceeds. Example: '90'.")] string threshold)
+        {
+            return _kustoPluginChat.ExecuteLocalFunctionAsync("GetJobMemoryUsageExceedsThreshold", region,
+                new Dictionary<string, string>
+                {
+                    { "fromDate", fromDate.ToString() },
+                    { "toDate", toDate.ToString() },
+                    { "managedClusterName", managedClusterName },
+                    { "jobName", jobName },
+                    { "threshold", threshold }
+                });
+        }
+
+
+        [Description("""
+        Purpose:
+        Retrieves pod containers termination states for the specified job in the given time range.
+
+        Scenario:
+        Use this tool when job pods are crashing or terminating unexpectedly, to analyze termination states of pod containers.
+
+        Output:
+        Returns table data in CSV format with TAB separators. Column headers:
+        - StartTime: Start time of the Container App pod status
+        - EndTime: End time of the Container App pod status
+        - NodeName: Name of the node where the job pod is running
+        - PodName: Name of the job pod
+        - ContainerName: Pod container name
+        - ContainerState: State of the pod container (Ready or NotReady)
+        - ContainerTerminationExitCode: Exit code of the container termination
+        - ContainerTerminationReason: Reason for the container termination
+        """
+        )]
+        public Task<string> GetJobPodContainersTerminationState(
+            [Description("Azure region in lower case. Example: 'westeurope'.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed cluster.")] string managedClusterName,
+            [Description("Name of the job.")] string jobName)
+            {
+            return _kustoPluginChat.ExecuteLocalFunctionAsync("GetPodContainersTerminationState", region,
+            new Dictionary<string, string>
+            {
+                { "fromDate", fromDate.ToString() },
+                { "toDate", toDate.ToString() },
+                { "managedClusterName", managedClusterName },
+                { "podNamePrefix", jobName },
+                { "podNamespace", "k8se-apps" }
+            });
+        }
+
     }
 }

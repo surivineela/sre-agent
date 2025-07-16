@@ -145,6 +145,9 @@ CurrentSpec
 PreviousSpec
 ContainerName
 ContainerImage
+ContainerState
+ContainerTerminationExitCode
+ContainerTerminationReason
 KubernetsEventType
 Configuration
 Template

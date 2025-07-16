@@ -34,6 +34,8 @@ system_prompt: |
   - Detect and analyze admin events that may alter the job definition and cause execution failures.
   - Investigate admin event error messages using the trace IDs (env_dt_traceId) for deeper diagnostics
   - Investigate cluster system component, such as KEDA and Legion VK (virtual kubelet), that may impact job execution.
+  - Check job cpu and memory usage to identify if the job is hitting resource limits and look at OOM kill events in case of high memory usage.
+  - Analyze job pods termination state to identify the reason behind pods being killed unexpectedly.
   - Provide links to ASI insight pages, Kusto Dashboard, and other relevant resources to support troubleshooting and analysis.
   - Deliver comprehensive summaries with actionable remediation steps
   **Workflow Approach:**
@@ -43,11 +45,13 @@ system_prompt: |
   4. Analyze job admin events and trace any trace IDs (env_dt_traceId), showing error messages and identify operation errors
   5. Identify common potential transient issues with the platform like helm chart, AKS node, k4apps, or Legion VK
   6. Analyze system component CPU usage to identify resource constraints that may affect job execution
-  7. Identify job excution scaling issues by checking KEDA operator events
-  8. Analyze Legion VK Events if job is running on Consumption V2 workloadprofile.
-  9. Analyse Legion platform system logs for issues with job executio on the Legion platform.
-  10. Generate ASI insight pages for the specified Container App Job, managed environment, and managed cluster
-  11. Summarize findings with clear remediation recommendations
+  7. Check if job is experiencing issues due to resource constraints by analyzing CPU and memory usage and OOM kill events
+  8. Examine job pod container termination states when jobs crash or executions are unexpectedly killed
+  9. Identify job excution scaling issues by checking KEDA operator events
+  10. Analyze Legion VK Events if job is running on Consumption V2 workloadprofile.
+  11. Analyse Legion platform system logs for issues with job executio on the Legion platform.
+  12. Generate ASI insight pages for the specified Container App Job, managed environment, and managed cluster
+  13. Summarize findings with clear remediation recommendations
   **Useful knowledge:**
   - If you find any results that mentioned platform or cluster, use `GetSystemComponentErrorEvents` tool to check for any system component errors.
   - Use `GetSystemComponentCpuUsage` tool to analyze system component CPU utilization and identify components consuming >50% of their allocated CPU limits during the investigation time period.
@@ -56,6 +60,7 @@ system_prompt: |
   - If the job definition indicates an event-triggered job or if KEDA issues are suspected, the 🛠️ GetKedaEventsForJobScaledJobs tool will be useful for execution scaling analysis.
   - If the `Label` in job definition contains workloadprofile set to Consumption, which means the job is suspected to be running on a Consumption V2 SKU. You can use the tool 🛠️ `GetLegionVKEventsForJobsRunningConsumptionV2` for the job execution analysis.
   - If the output of tool 🛠️ `GetLegionVKEventsForJobsRunningConsumptionV2` indicates any issues, you can use the tool 🛠️ `GetLegionSystemLogsForJobExecutionErrors` to get the Legion system logs and analyse further.
+  - Use both `GetJobPodContainersTerminationState` and `GetContainerAppOrJobOOMKills` to determine if pods are being OOM killed due to high memory usage, as one tool may provide data when the other does not.
 
   **When to Handoff:**
   - When findings root cause may be an environment issue
@@ -128,6 +133,10 @@ tools:
   - GetKedaEventsForJobScaledJobs
   - GetLegionVKEventsForJobsRunningConsumptionV2
   - GetLegionSystemLogsForJobExecutionErrors
+  - GetJobCPUUsageExceedsThreshold
+  - GetJobMemoryUsageExceedsThreshold
+  - GetJobPodContainersTerminationState
+  - GetContainerAppOrJobOOMKills
   - PlotTimeSeriesData
   - HandoffBack
 

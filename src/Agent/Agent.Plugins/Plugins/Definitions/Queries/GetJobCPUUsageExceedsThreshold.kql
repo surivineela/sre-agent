@@ -1,0 +1,42 @@
+
+let fromDate = datetime("##fromDate##");
+let toDate = datetime("##toDate##");
+let managedClusterName = "##managedClusterName##";
+let jobName = "##jobName##";
+let threshold = toint("##threshold##");
+// Limit Table
+let LimitTable = ContainerAppControllerEvents
+| where PreciseTimeStamp between (fromDate .. toDate)
+| where EnvironmentName == managedClusterName
+| where msg == "Container Apps Job Heartbeat"
+| where ContainerAppJobName == jobName
+| extend json = JobJson
+| where isnotempty(json)
+| summarize StartTime = min(PreciseTimeStamp), EndTime = max(PreciseTimeStamp) by json
+| extend d=parse_json(json) 
+| extend Template=d.spec.template
+| extend CPULimit = Template.containers[0].resources.cpu
+| project StartTime, EndTime, CPULimit, JobName = jobName;
+// Usage Table
+let UsageTable = ContainerAppControllerEvents
+| where PreciseTimeStamp between (fromDate .. toDate)// (datetime(2025-06-18 21:40:43) .. datetime(2025-06-18 21:40:43)+1d)
+| where EnvironmentName =~ managedClusterName
+| where msg == "Pod Heartbeat"
+| where PodName contains jobName
+| where PodResourceConsumption != ""
+| extend PodResourceConsumptionJson = parse_json(PodResourceConsumption)
+| extend CPUUsage = tostring(PodResourceConsumptionJson.cpu)
+| project PreciseTimeStamp, PodName, NodeName, CPUUsage, JobName=jobName;
+// Join Usage with Limits based on timestamp range
+UsageTable
+| join kind=inner (
+    LimitTable
+) on JobName
+| where PreciseTimeStamp >= StartTime and PreciseTimeStamp <= EndTime
+| extend 
+    CPUUsageMillicores = toreal(replace_string(tostring(CPUUsage), "m", "")),
+    CPULimitMillicores = toreal(tostring(CPULimit)) * 1000.0  
+| extend  CPUUsagePercentage = CPUUsageMillicores / CPULimitMillicores * 100.0
+| where CPUUsagePercentage > threshold
+| summarize rowCount = count()
+| project HasData = rowCount > 0
