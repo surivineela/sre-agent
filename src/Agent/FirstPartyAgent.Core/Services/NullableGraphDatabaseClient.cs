@@ -5,7 +5,7 @@ namespace FirstPartyAgent.Core.Services
 {
     public class NullableGraphDatabaseClient : IGraphDatabaseClient
     {
-        public Task<bool> AddOrUpdateNodeAsync(string nodeLabel, string nodeId, string resourceType, IDictionary<string, object> properties)
+        public Task<bool> AddOrUpdateNodeAsync(string nodeLabel, string nodeId, string resourceType, IDictionary<string, object> properties, string? resourceKind)
         {
             return Task.FromResult(false);
         }

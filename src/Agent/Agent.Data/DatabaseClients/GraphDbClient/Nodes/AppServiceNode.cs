@@ -45,9 +45,6 @@ public class AppServiceNode : ArmResourceNode
 
     // Additional properties
 
-    [GraphProperty("kind")]
-    public string? Kind { get; set; }
-
     [GraphProperty("stackVersion")]
     public string? StackVersion { get; set; }
 
@@ -113,8 +110,12 @@ public class AppServiceNode : ArmResourceNode
         string subscriptionId,
         string resourceGroupName,
         string resourceName,
+        string resourceKind,
         string location = null)
-        : base(resourceType, resourceId, subscriptionId, resourceGroupName, resourceName, location) { }
+        : base(resourceType, resourceId, subscriptionId, resourceGroupName, resourceName, resourceKind, null, location)
+    {
+        ResourceKind = resourceKind;
+    }
 
     public override IDictionary<string, object> GetNodeProperties()
     {

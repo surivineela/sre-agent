@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using Agent.Core.Helpers;
 using Agent.Data.DatabaseClients.Attributes;
 
 namespace Agent.Data.DatabaseClients.GraphDbClient
@@ -15,6 +16,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         public string GetNodeLabel();
         public string GetNodeId();
         public string GetResourceType();
+        public string? GetResourceKind();
         public IDictionary<string, object> GetNodeProperties();
     }
 
@@ -181,6 +183,10 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
 
         public abstract string GetResourceType();
 
+        public abstract string? GetResourceKind();
+
+        public abstract void SetResourceKind(string? NewResourceKind);
+
         public abstract string GetHashString();
 
         public abstract string GetSubscriptionId();
@@ -253,6 +259,8 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
     {
         public string ResourceType { get; set; }
 
+        public string? ResourceKind { get; set; }
+
         [GraphProperty("resourceId")]
         public string ResourceId { get; set; }
 
@@ -290,11 +298,13 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             string subscriptionId,
             string resourceGroupName,
             string resourceName,
+            string? resourceKind = null,
             string? remarks = null,
             string location = null,
             AppHealthInfo appHealthInfo = null)
         {
             UpdateTs = DateTime.UtcNow.Ticks;
+            ResourceKind = ResourceKindHelper.getResourceKind(resourceType, resourceKind);
             ResourceType = resourceType?.ToLowerInvariant();
             ResourceId = resourceId?.ToLowerInvariant();
             SubscriptionId = subscriptionId?.ToLowerInvariant();
@@ -322,6 +332,16 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         public override string GetResourceType()
         {
             return ResourceType;
+        }
+
+        public override string? GetResourceKind()
+        {
+            return ResourceKind;
+        }
+
+        public override void SetResourceKind(string? NewResourceKind)
+        {
+            ResourceKind = NewResourceKind;
         }
 
         // Mainly for system MI

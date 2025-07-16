@@ -19,6 +19,7 @@ export type ResourceExtended = {
     properties: {
         dashboardUrl: string[];
         resourceType: string[];
+        resourceKind: string[];
         resourceName: string[];
         /** Kubernetes deployments and similar won't have this */
         resourceId?: string[];
@@ -35,6 +36,7 @@ export type ResourceExtended = {
 export type Resource = {
     name: string;
     type: string;
+    kind: string;
     dashboardUrl: string;
     resourceId: string; // the string has underscore
     appHealthInfo?: string[]; // Convert the json string to ScoreCardObject

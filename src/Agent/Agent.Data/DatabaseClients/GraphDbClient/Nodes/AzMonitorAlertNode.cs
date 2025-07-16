@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Data.DatabaseClients.Attributes;
+using Agent.Core.Helpers;
 
 namespace Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 public class AzMonitorAlertNode : GraphNode
@@ -27,6 +28,16 @@ public class AzMonitorAlertNode : GraphNode
     public override string GetResourceType()
     {
         return GetNodeLabel();
+    }
+
+    public override string GetResourceKind()
+    {
+        return ResourceKindHelper.getResourceKind(GetResourceType(), null);
+    }
+
+    public override void SetResourceKind(string? NewResourceKind)
+    {
+        return;
     }
 
     public override string GetSubscriptionId()

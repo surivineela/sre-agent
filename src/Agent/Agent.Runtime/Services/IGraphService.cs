@@ -10,6 +10,7 @@ namespace Agent.Runtime.Services;
 public class AppGroupItem
 {
     public required string Name { get; set; }
+    public required string Kind { get; set; }
     public required string Type { get; set; }
     public required string ResourceId { get; set; }
     public AppHealthInfo? AppHealthInfo { get; set; } // this is a JSON string of the properties

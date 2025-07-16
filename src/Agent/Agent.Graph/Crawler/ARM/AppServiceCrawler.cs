@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Text.Json;
+using Agent.Core.Helpers;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Azure;
 using Azure.Core;
@@ -52,7 +53,7 @@ public class AppServiceCrawler : GenericArmResourceCrawler
         }
 
         // Store the kind property
-        appServiceNode.Kind = webApp.Data.Kind;
+        appServiceNode.ResourceKind = ResourceKindHelper.getResourceKind(node.GetResourceType(), webApp.Data.Kind);
 
         // Get website configuration
         var webConfigResp = await webApp.GetWebSiteConfig().GetAsync();
@@ -143,12 +144,12 @@ public class AppServiceCrawler : GenericArmResourceCrawler
         var appSettings = appSettingsResponse.Value.Properties;
 
         // Check for Functions host version and runtime
-        if (appServiceNode.Kind?.Contains("functionapp", StringComparison.OrdinalIgnoreCase) == true)
+        if (webApp.Data.Kind?.Contains("functionapp", StringComparison.OrdinalIgnoreCase) == true)
         {
             try
             {
                 // Special handling for container app based function apps
-                if (appServiceNode.Kind?.Contains("azurecontainerapps", StringComparison.OrdinalIgnoreCase) == true)
+                if (webApp.Data.Kind?.Contains("azurecontainerapps", StringComparison.OrdinalIgnoreCase) == true)
                 {
                     _logger.LogDebug($"Processing container app based function app: {appServiceNode.ResourceId}");
                     // Container app function apps have different available properties
@@ -315,6 +316,7 @@ public class AppServiceCrawler : GenericArmResourceCrawler
                 var subnetId = new ResourceIdentifier(webApp.Data.VirtualNetworkSubnetId);
                 subnetNode = new ArmResourceNode(
                     resourceType: subnetId.ResourceType,
+                    resourceKind: ResourceKindHelper.getResourceKind(subnetId.ResourceType, null),
                     resourceId: webApp.Data.VirtualNetworkSubnetId,
                     subscriptionId: subnetId.SubscriptionId,
                     resourceGroupName: subnetId.ResourceGroupName,

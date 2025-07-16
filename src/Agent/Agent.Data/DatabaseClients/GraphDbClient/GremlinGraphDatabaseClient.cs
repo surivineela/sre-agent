@@ -107,7 +107,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             );
         }
 
-        public async Task<bool> AddOrUpdateNodeAsync(string nodelabel, string nodeId, string resourceType, IDictionary<string, object> properties)
+        public async Task<bool> AddOrUpdateNodeAsync(string nodelabel, string nodeId, string resourceType, IDictionary<string, object> properties, string? resourceKind)
         {
             var sanitizedNodeId = GetSanitizedCosmosDBId(nodeId);
 
@@ -133,7 +133,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             {
                 query += $".property('{property.Key}', {getValue(property.Value)})";
             }
-            query += $", addV('{nodelabel}').property(id, '{sanitizedNodeId}').property('resourceType', '{resourceType}')";
+            query += $", addV('{nodelabel}').property(id, '{sanitizedNodeId}').property('resourceType', '{resourceType}').property('resourceKind', '{resourceKind}')";
             foreach (var property in properties)
             {
                 query += $".property('{property.Key}', {getValue(property.Value)})";
@@ -297,7 +297,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
 
         public Task<bool> AddOrUpdateNodeAsync(GraphNode node)
         {
-            return AddOrUpdateNodeAsync(node.GetNodeLabel(), node.GetNodeId(), node.GetResourceType(), node.GetNodeProperties());
+            return AddOrUpdateNodeAsync(node.GetNodeLabel(), node.GetNodeId(), node.GetResourceType(), node.GetNodeProperties(), node.GetResourceKind());
         }
 
         public Task<bool> AddOrUpdateEdgeAsync(GraphEdge edge)

@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Data.DatabaseClients.Attributes;
+using Agent.Core.Helpers;
 
 namespace Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 
@@ -29,6 +30,16 @@ public class PagerDutyIncidentNode : GraphNode
     public override string GetResourceType()
     {
         return GetNodeLabel();
+    }
+
+    public override string GetResourceKind()
+    {
+        return ResourceKindHelper.getResourceKind(GetNodeLabel(), null);
+    }
+
+    public override void SetResourceKind(string? NewResourceKind)
+    {
+        return;
     }
 
     public override string GetSubscriptionId()

@@ -106,7 +106,7 @@ namespace Agent.Graph.Crawler.Legacy
             return Task.FromResult(edgeAdded);
         }
 
-        public Task<bool> AddOrUpdateNodeAsync(string nodeLabel, string nodeId, string resourceType, IDictionary<string, object> properties)
+        public Task<bool> AddOrUpdateNodeAsync(string nodeLabel, string nodeId, string resourceType, IDictionary<string, object> properties, string? resourceKind)
         {
             _logger.LogInternalInformation($"Adding or updating node with ID '{nodeId}'.");
             var node = new Node(nodeId, nodeLabel, resourceType, properties);
@@ -127,7 +127,7 @@ namespace Agent.Graph.Crawler.Legacy
 
         public Task<bool> AddOrUpdateNodeAsync(GraphNode node)
         {
-            return AddOrUpdateNodeAsync(node.GetNodeLabel(), node.GetNodeId(), node.GetResourceType(), node.GetNodeProperties());
+            return AddOrUpdateNodeAsync(node.GetNodeLabel(), node.GetNodeId(), node.GetResourceType(), node.GetNodeProperties(), node.GetResourceKind());
         }
 
         public Task<bool> AddOrUpdateEdgeAsync(GraphEdge edge)

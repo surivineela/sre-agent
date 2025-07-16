@@ -4,6 +4,7 @@
 
 using Agent.Data.DatabaseClients.Attributes;
 using Azure.Core;
+using Agent.Core.Helpers;
 using k8s;
 
 namespace Agent.Data.DatabaseClients.GraphDbClient;
@@ -94,6 +95,17 @@ public class KubernetesResourceNode : GraphNode
     {
         // Return the Kubernetes resource type in a standardized format
         return $"k8s/{Group}/{ApiVersion}/{Kind}";
+    }
+
+    public override string GetResourceKind()
+    {
+        // Return the Kubernetes resource kind in a standardized format
+        return ResourceKindHelper.getResourceKind(GetResourceType(), Kind);
+    }
+
+    public override void SetResourceKind(string? newResourceKind)
+    {
+        return;
     }
 
     public override IDictionary<string, object> GetNodeProperties()

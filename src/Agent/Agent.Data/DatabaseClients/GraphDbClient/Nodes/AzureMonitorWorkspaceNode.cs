@@ -16,8 +16,9 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             string subscriptionId,
             string resourceGroupName,
             string resourceName,
+            string? resourceKind,
             string prometheusQueryEndpoint = null,
-            string location = null) : base(resourceType, resourceId, subscriptionId, resourceGroupName, resourceName, location: location)
+            string location = null) : base(resourceType, resourceId, subscriptionId, resourceGroupName, resourceName, resourceKind, location: location)
         {
             PrometheusQueryEndpoint = prometheusQueryEndpoint;
         }

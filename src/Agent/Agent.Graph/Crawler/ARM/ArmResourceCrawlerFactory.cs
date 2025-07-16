@@ -192,7 +192,7 @@ public class ArmResourceCrawlerFactory
 
         if (Constants.AppServiceType.Equals(id.ResourceType, StringComparison.OrdinalIgnoreCase))
         {
-            return new AppServiceNode(id.ResourceType, id.ToString(), id.SubscriptionId, id.ResourceGroupName, id.Name);
+            return new AppServiceNode(id.ResourceType, id.ToString(), id.SubscriptionId, id.ResourceGroupName, id.Name, "");
         }
 
         if (Constants.AppServicePlanType.Equals(id.ResourceType, StringComparison.OrdinalIgnoreCase))

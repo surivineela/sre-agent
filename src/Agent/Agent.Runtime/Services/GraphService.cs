@@ -295,6 +295,7 @@ public class GraphService : IGraphService
             var appGroupItem = new AppGroupItem
             {
                 Name = item["name"]?.ToString() ?? string.Empty,
+                Kind = properties != null && properties.ContainsKey("resourceKind") ? properties["resourceKind"] as string : string.Empty,
                 Type = item["type"]?.ToString() ?? string.Empty,
                 ResourceId = item["id"],
                 AppHealthInfo = properties != null && properties.ContainsKey("appHealthInfo") ? properties["appHealthInfo"] as AppHealthInfo : null,
@@ -383,6 +384,7 @@ public class GraphService : IGraphService
             var item = new AppGroupItem
             {
                 Name = node["name"],
+                Kind = (properties["resourceKind"] as IEnumerable<object>).FirstOrDefault()?.ToString() ?? string.Empty,
                 Type = node["type"],
                 ResourceId = relatedResourceId,
                 AppHealthInfo = properties != null && properties.ContainsKey("appHealthInfo") ? properties["appHealthInfo"] as AppHealthInfo : null,

@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Text.Json;
+using Agent.Core.Helpers;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Interfaces;
 using Azure.ResourceManager;
@@ -41,7 +42,8 @@ public class ResourceGroupCrawler : IResourceCrawler
 
         // add or update subscription node for rg subscription
         var subNode = new SubscriptionNode(rgNode.SubscriptionId);
-        var subscription = _armClient.GetSubscriptions().Get(subNode.SubscriptionId);
+        var subscriptions = _armClient.GetSubscriptions();
+        var subscription = subscriptions.Get(subNode.SubscriptionId);
         var subName = subscription?.Value?.Data?.DisplayName;
         var nodeProperties = subNode.GetNodeProperties();
         nodeProperties["subscriptionName"] = subName;
@@ -55,7 +57,7 @@ public class ResourceGroupCrawler : IResourceCrawler
         // get all resources under resource group
         var resources = await _graphClient.Query(
             new[] { rgNode.SubscriptionId },
-            $"resources | where resourceGroup =~ '{rgNode.ResourceGroupName}' | project id, type, subscriptionId, resourceGroup, name, location");
+            $"resources | where resourceGroup =~ '{rgNode.ResourceGroupName}' | project id, type, subscriptionId, resourceGroup, name, location, kind");
         _logger.LogInternalInformation($"Found {resources.Count} resources under {rgNode.ResourceGroupName}");
 
         var resourcesJson = JsonSerializer.Deserialize<JsonElement>(resources.Data);
@@ -96,6 +98,8 @@ public class ResourceGroupCrawler : IResourceCrawler
                 var webAppNode = CreateNodeFromJson(resource);
                 if (webAppNode != null)
                 {
+                    var kindProperty = resource.GetProperty("kind").GetString();
+                    webAppNode.SetResourceKind(ResourceKindHelper.getResourceKind(webAppNode.ResourceType, kindProperty));
                     webAppNode.Location = resource.GetProperty("location").GetString();
                     await _graphDbClient.AddOrUpdateNodeAsync(webAppNode);
 

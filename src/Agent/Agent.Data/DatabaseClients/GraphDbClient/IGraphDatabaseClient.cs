@@ -14,12 +14,14 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         /// <param name="nodeId">The unique identifier of the node.</param>
         /// <param name="resourceType">The type of the resource.</param>
         /// <param name="properties">A dictionary of properties to associate with the node.</param>
+        /// <param name="resourceKind">The kind of the resource.</param>
         /// <returns>A boolean indicating whether the node was added (true) or updated (false).</returns>
         Task<bool> AddOrUpdateNodeAsync(
             string nodeLabel,
             string nodeId,
             string resourceType,
-            IDictionary<string, object> properties);
+            IDictionary<string, object> properties,
+            string? resourceKind = null);
 
         /// <summary>
         /// Adds or updates a node in the graph from a GraphNode

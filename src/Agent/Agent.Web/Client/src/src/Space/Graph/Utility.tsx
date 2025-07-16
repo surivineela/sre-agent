@@ -46,6 +46,7 @@ export const createAppGroupNode = (appGroup: ResourceExtended): Node<GraphNode> 
     const resource: Resource = {
         name,
         type,
+        kind: properties.resourceKind?.[0] || '',
         dashboardUrl: dashboardUrl || properties?.dashboardUrl?.[0] || '',
         resourceId: id,
         appHealthInfo: appHealthInfo || properties?.appHealthInfo || [],

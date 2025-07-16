@@ -28,7 +28,7 @@ export const GraphCard = (props: NodeProps<Node<GraphNode>>) => {
     );
 
     const type = useMemo(() => {
-        const resourceType = data?.properties?.type;
+        const resourceType = data?.properties?.kind || data?.properties?.type;
         if (resourceType) {
             return getResourceTypeFriendlyName(resourceType);
         } else {
@@ -66,7 +66,7 @@ export const GraphCard = (props: NodeProps<Node<GraphNode>>) => {
                         <img
                             width={32}
                             height={32}
-                            src={resolveResourceIcon(data?.properties?.type)}
+                            src={resolveResourceIcon(data?.properties?.kind)}
                             alt={data?.properties?.type ?? 'resource type icon'}
                         />
                     }

@@ -11,6 +11,8 @@ using Agent.Logging;
 using Agent.Runtime.SubAgents.ContainerAppsRemediation;
 using Agent.Runtime.SubAgents.FunctionAppConnectivityAgent;
 using Microsoft.Extensions.Logging;
+using Agent.Runtime.Helpers;
+using Agent.Core.Helpers;
 
 namespace Agent.Runtime.SubAgents.WebAppDownAgent;
 public class AppServiceScanner
@@ -131,6 +133,7 @@ public class AppServiceScanner
             string id = result["id"]?.ToString();
             string name = result["name"]?.ToString();
             string type = result["type"]?.ToString();
+            string kind = result["kind"]?.ToString();
 
             var properties = result["properties"] as Dictionary<string, object>;
             if (properties == null)
@@ -149,6 +152,7 @@ public class AppServiceScanner
             // Create the ArmResourceNode
             var armResourceNode = new ArmResourceNode(
                 resourceType: type,
+                resourceKind: ResourceKindHelper.getResourceKind(type, kind),
                 resourceId: resourceId,
                 subscriptionId: subscriptionId,
                 resourceGroupName: resourceGroupName,
