@@ -15,7 +15,9 @@ const ICON_LOOKUP: Record<string, string> = {
     // Web & Functions
     webapp: 'WebApp.svg',
     functionapp: 'FunctionApp.svg',
+    function: 'Function.svg',
     logicapp: 'LogicApp.svg',
+    workflow: 'Workflow.svg',
     site: 'WebApp.svg',
     serverfarms: 'AppServicePlan.svg',
 
@@ -53,7 +55,9 @@ const FRIENDLY_NAMES: Record<string, string> = {
     // Web & Functions
     webapp: 'Web App',
     functionapp: 'Function App',
+    function: 'Function',
     logicapp: 'Logic App',
+    workflow: 'Workflow',
     site: 'Web App',
     serverfarms: 'App Service Plan',
 

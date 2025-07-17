@@ -78,31 +78,11 @@ public class AppServiceNode : ArmResourceNode
     [GraphProperty("zoneRedundant")]
     public bool? ZoneRedundant { get; set; }
 
-    public List<Function> Functions { get; set; } = new List<Function>();
-
     public class SlotSwapStatus
     {
         public DateTime TimestampUtc { get; set; }
         public string SourceSlotName { get; set; }
         public string DestinationSlotName { get; set; }
-    }
-
-    public class Function
-    {
-        public string Name { get; set; }
-        public string TriggerType { get; set; }
-
-        public string? QueueName { get; set; }
-
-        public string? EventHubName { get; set; }
-        public string? ServiceBusQueueName { get; set; }
-        public string? ServiceBusTopicName { get; set; }
-        public Dictionary<string, object> BindingDetails { get; set; }
-        public Dictionary<string, object>? ScalingDetails { get; set; }
-        public Dictionary<string, string>? RuntimeInfo { get; set; }
-        public Dictionary<string, object>? PerformanceCharacteristics { get; set; }
-        public Dictionary<string, object>? OperationalMetadata { get; set; }
-        public Dictionary<string, object>? MonitoringSettings { get; set; }
     }
 
     public AppServiceNode(string resourceType,
@@ -138,17 +118,6 @@ public class AppServiceNode : ArmResourceNode
             if (hasCustomDomains)
             {
                 props.Add("hasCustomDomains", true);
-            }
-        }
-
-        // Add functions
-        if (Functions != null && Functions.Count > 0)
-        {
-            for (int i= 0; i < Functions.Count; i++)
-            {
-                var function = Functions[i];
-                props.Add($"function_{i}_name", function.Name);
-                props.Add($"function_{i}_triggerType", function.TriggerType);
             }
         }
 

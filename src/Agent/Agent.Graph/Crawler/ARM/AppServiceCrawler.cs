@@ -153,7 +153,13 @@ public class AppServiceCrawler : GenericArmResourceCrawler
                 {
                     _logger.LogDebug($"Processing container app based function app: {appServiceNode.ResourceId}");
                     // Container app function apps have different available properties
-                    appServiceNode.Functions = appServiceNode.Functions ?? new List<AppServiceNode.Function>();
+                    //appServiceNode.Functions = appServiceNode.Functions ?? new List<AppServiceNode.Function>();
+                    var containerAppEnvironmentResourceIdentifier = new ResourceIdentifier(webApp.Data.ManagedEnvironmentId);
+                    var containerAppEnvironmentNode = new ContainerAppEnvironmentNode(containerAppEnvironmentResourceIdentifier.ResourceType, webApp.Data.ManagedEnvironmentId, containerAppEnvironmentResourceIdentifier.SubscriptionId, containerAppEnvironmentResourceIdentifier.ResourceGroupName, containerAppEnvironmentResourceIdentifier.Name, containerAppEnvironmentResourceIdentifier.Location);
+                    await _graphDbClient.AddOrUpdateNodeAsync(containerAppEnvironmentNode);
+
+                    var edge = new ArmResourceEdge(containerAppEnvironmentNode.GetNodeId(), appServiceNode.GetNodeId(), Constants.Relationships.HostedOn);
+                    await _graphDbClient.AddOrUpdateEdgeAsync(edge);
                 }
 
                 if (appSettings.TryGetValue("FUNCTIONS_EXTENSION_VERSION", out var functionsVersion))
@@ -179,11 +185,31 @@ public class AppServiceCrawler : GenericArmResourceCrawler
 
                 try
                 {
-                    await foreach (var func in webApp.GetSiteFunctions().GetAllAsync())
+                    if (webApp.Data.Kind?.Contains("workflowapp", StringComparison.OrdinalIgnoreCase) == false)
                     {
-                        if (func.HasData)
+                        await foreach (var func in webApp.GetSiteFunctions().GetAllAsync())
                         {
-                            appServiceNode.Functions.Add(ParseFunctionConfig(func.Data));
+                            if (func.HasData)
+                            {
+                                var functionNode = new FunctionNode(ParseFunctionConfig(func.Data));
+                                await _graphDbClient.AddOrUpdateNodeAsync(functionNode);
+
+                                var edge = new ArmResourceEdge(appServiceNode.GetNodeId(), functionNode.GetNodeId(), Constants.Relationships.Contains);
+                                await _graphDbClient.AddOrUpdateEdgeAsync(edge);
+                            }
+                        }
+                    } else
+                    {
+                        await foreach (var workflow in webApp.GetSiteWorkflows().GetAllAsync())
+                        {
+                            if (workflow.HasData)
+                            {
+                                var workflowNode = new WorkflowNode(ParseWorkflowConfig(workflow.Data));
+                                await _graphDbClient.AddOrUpdateNodeAsync(workflowNode);
+
+                                var edge = new ArmResourceEdge(appServiceNode.GetNodeId(), workflowNode.GetNodeId(), Constants.Relationships.Contains);
+                                await _graphDbClient.AddOrUpdateEdgeAsync(edge);
+                            }
                         }
                     }
                 }
@@ -535,11 +561,11 @@ public class AppServiceCrawler : GenericArmResourceCrawler
                 value.Contains("password=", StringComparison.OrdinalIgnoreCase));
     }
 
-    private AppServiceNode.Function ParseFunctionConfig(FunctionEnvelopeData data)
+    private FunctionNode.Function ParseFunctionConfig(FunctionEnvelopeData data)
     {
         if (data == null)
         {
-            return new AppServiceNode.Function
+            return new FunctionNode.Function
             {
                 Name = "unknown",
                 TriggerType = "Unknown",
@@ -560,7 +586,7 @@ public class AppServiceCrawler : GenericArmResourceCrawler
 
             if (string.IsNullOrEmpty(configString))
             {
-                return new AppServiceNode.Function
+                return new FunctionNode.Function
                 {
                     Name = data.Name ?? "unknown",
                     TriggerType = "Unknown",
@@ -573,10 +599,21 @@ public class AppServiceCrawler : GenericArmResourceCrawler
             }
 
             var configJson = JsonDocument.Parse(configString);
-            var function = new AppServiceNode.Function
+            var resourceIdentifier = new ResourceIdentifier(data.Id);
+            var nameSplit = data.Name.Split('/');
+            var functionName = data.Name;
+            if (nameSplit.Length > 1)
             {
-                Name = data.Name,
-                TriggerType = "Unknown",
+                functionName = nameSplit.Last();
+            }
+            var function = new FunctionNode.Function
+            {
+                Id = data.Id,
+                SubscriptionId = resourceIdentifier.SubscriptionId,
+                ResourceGroupName = resourceIdentifier.ResourceGroupName,
+                Location = resourceIdentifier.Location,
+                Name = functionName,
+                TriggerType = "Unknown", // TODO: bring over code from AAPT-Antares-Antux
                 BindingDetails = new Dictionary<string, object>(),
                 RuntimeInfo = new Dictionary<string, string>(),
                 PerformanceCharacteristics = new Dictionary<string, object>(),
@@ -589,7 +626,7 @@ public class AppServiceCrawler : GenericArmResourceCrawler
         catch (Exception ex)
         {
             _logger.LogInternalWarning($"Failed to parse function config for {data.Name}: {ex.Message}");
-            return new AppServiceNode.Function
+            return new FunctionNode.Function
             {
                 Name = data.Name ?? "unknown",
                 TriggerType = "Unknown",
@@ -598,6 +635,54 @@ public class AppServiceCrawler : GenericArmResourceCrawler
                 PerformanceCharacteristics = new Dictionary<string, object>(),
                 OperationalMetadata = new Dictionary<string, object>(),
                 MonitoringSettings = new Dictionary<string, object>()
+            };
+        }
+    }
+
+    private WorkflowNode.Workflow ParseWorkflowConfig(WorkflowEnvelopeData data)
+    {
+        if (data == null)
+        {
+            return new WorkflowNode.Workflow
+            {
+                Id = "unknown",
+                Name = "unknown",
+                SubscriptionId = "unknown",
+                ResourceGroupName = "unknown",
+                Location = "unknown",
+            };
+        }
+
+        try
+        {
+            var resourceIdentifier = new ResourceIdentifier(data.Id);
+            var nameSplit = data.Name.Split('/');
+            var workflowName = data.Name;
+            if (nameSplit.Length > 1)
+            {
+                workflowName = nameSplit.Last();
+            }
+            var workflow = new WorkflowNode.Workflow
+            {
+                Id = data.Id,
+                SubscriptionId = resourceIdentifier.SubscriptionId,
+                ResourceGroupName = resourceIdentifier.ResourceGroupName,
+                Location = resourceIdentifier.Location,
+                Name = workflowName,
+            };
+
+            return workflow;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning($"Failed to parse function config for {data.Name}: {ex.Message}");
+            return new WorkflowNode.Workflow
+            {
+                Id = "unknown",
+                Name = data.Name ?? "unknown",
+                SubscriptionId = "unknown",
+                ResourceGroupName = "unknown",
+                Location = "unknown",
             };
         }
     }

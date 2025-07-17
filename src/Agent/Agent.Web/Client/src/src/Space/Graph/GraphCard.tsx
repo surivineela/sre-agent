@@ -66,7 +66,7 @@ export const GraphCard = (props: NodeProps<Node<GraphNode>>) => {
                         <img
                             width={32}
                             height={32}
-                            src={resolveResourceIcon(data?.properties?.kind)}
+                            src={resolveResourceIcon(data?.properties?.kind || data?.properties?.type)}
                             alt={data?.properties?.type ?? 'resource type icon'}
                         />
                     }
