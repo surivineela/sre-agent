@@ -17,7 +17,6 @@ namespace Agent.Web.Controllers.v1
     public class GrafanaAlertWebhookController(
         IAgentInboundCommunicationService inboundCommunicationService,
         IThreadRepository repository,
-        IChatClient chatClient,
         ILogger<GrafanaAlertWebhookController> logger
     ) : ControllerBase
     {
@@ -59,7 +58,7 @@ namespace Agent.Web.Controllers.v1
                 for (int i = 0; i < request.Alerts.Count; i++)
                 {
                     var alert = request.Alerts[i];
-                    string alertName;
+                    string? alertName;
                     alert.Labels.TryGetValue("alertname", out alertName);
                     if (string.IsNullOrEmpty(alertName))
                     {

@@ -187,6 +187,7 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
 
         bool isFirstPartyAgent = IsFirstParty(args);
+
         var agentType = Environment.GetEnvironmentVariable("AGENT_TYPE_NAME") ?? string.Empty;
 
         builder.LoadAppSettings(builder.Environment.IsDevelopment());
@@ -218,29 +219,9 @@ public class Program
         // Add AzureSearchSettings registration
         builder.Services.AddSingleton<Agent.Core.Configuration.AzureSearchSettings>(sp =>
         {
-            var configuration = sp.GetRequiredService<IConfiguration>();
-            // Try to get from configuration first
-            var settings = configuration.GetSection("AppSettings:Core:Azure:AzureSearch").Get<Agent.Core.Configuration.AzureSearchSettings>();
+            var searchSettings = GetAzureSearchSettings(builder.Configuration);
 
-            if (settings == null)
-            {
-                // Fallback to FirstPartyAgent settings
-                var firstPartySettings = configuration
-                    .GetSection("AppSettings:Core:External:AzureSearch")
-                    .Get<Agent.Core.Configuration.AzureSearchSettings>();
-
-                if (firstPartySettings != null)
-                {
-                    settings = firstPartySettings;
-                }
-                else
-                {
-                    // Provide default settings to prevent null reference exceptions
-                    settings = new Agent.Core.Configuration.AzureSearchSettings();
-                }
-            }
-
-            return settings;
+            return searchSettings;
         });
 
         // Add TsgCrawlerSettings registration right after the AzureSearchSettings registration
@@ -266,32 +247,9 @@ public class Program
         // Add ApplensSettings registration
         builder.Services.AddSingleton<Agent.Core.Configuration.ApplensSettings>(sp =>
         {
-            var configuration = sp.GetRequiredService<IConfiguration>();
-            // Try to get from configuration first
-            var settings = configuration.GetSection("AppSettings:Core:Azure:Applens").Get<Agent.Core.Configuration.ApplensSettings>();
+            var appLensSettings = GetAppLensSettings(builder.Configuration);
 
-            if (settings == null)
-            {
-                // Fallback to FirstPartyAgent settings
-                var firstPartySettings = configuration
-                    .GetSection("AppSettings:Core:External:Applens")
-                    .Get<Agent.Core.Configuration.ApplensSettings>();
-
-                if (firstPartySettings != null)
-                {
-                    settings = firstPartySettings;
-                }
-                else
-                {
-                    // Provide default settings to prevent null reference exceptions
-                    settings = new Agent.Core.Configuration.ApplensSettings
-                    {
-                        Enabled = false
-                    };
-                }
-            }
-
-            return settings;
+            return appLensSettings;
         });
 
         // Register DiagnosticsHelper before ApplensService
@@ -480,33 +438,6 @@ public class Program
             .AddTransient<ScaleControllerRCAPreflightPluginDefinition>()
             .AddTransient<ColdStartPluginDefinition>()
             .AddTransient<LogsPluginDefinition>()
-            // Conditionally register AzureSearchPluginDefinition based on settings.Enabled
-            .AddTransient<AzureSearchPluginDefinition>(sp =>
-            {
-                var searchSettings = sp.GetRequiredService<Agent.Core.Configuration.AzureSearchSettings>();
-                if (searchSettings.Enabled)
-                {
-                    return new AzureSearchPluginDefinition(sp.GetRequiredService<IAzureSearchPlugin>());
-                }
-                else
-                {
-                    return null;
-                }
-            })
-
-            .AddTransient<ApplensDetectorPluginDefinition>(sp =>
-            {
-                var applensSettings = sp.GetRequiredService<Agent.Core.Configuration.ApplensSettings>();
-                if (applensSettings.Enabled)
-                {
-                    return new ApplensDetectorPluginDefinition(sp.GetRequiredService<IApplensDetectorPlugin>());
-                }
-                else
-                {
-                    return null;
-                }
-            })
-
             .AddTransient<IMetaAgentContainerAppsRemediationPlugin, ContainerAppsRemediationPlugin>()
             .AddTransient<IMetaAgentManagedIdentityMigrationPlugin, ManagedIdentityMigrationPlugin>()
             .AddTransient<IMetaAgentTlsBestPracticesPlugin, TlsBestPracticesPlugin>()
@@ -532,38 +463,6 @@ public class Program
             .AddTransient<IAzureAlertingPlugin, AzureAlertingPlugin>()
             .AddTransient<IWebAppPlugin, WebAppPlugin>()
             .AddSingleton<IKustoPluginClient, KustoPluginClient>()
-            // Replace the existing IAzureSearchPlugin registration with this updated version
-            // which properly passes ExternalSettings to the AzureSearchPlugin constructor
-            .AddTransient<IAzureSearchPlugin>(sp =>
-            {
-                var searchSettings = sp.GetRequiredService<Agent.Core.Configuration.AzureSearchSettings>();
-                if (searchSettings.Enabled)
-                {
-                    return new AzureSearchPlugin(
-                        sp.GetRequiredService<ILogger<AzureSearchPlugin>>(),
-                        sp.GetRequiredService<Agent.Core.Configuration.ExternalSettings>());
-                }
-                else
-                {
-                    return null;
-                }
-            })
-
-            .AddTransient<IApplensDetectorPlugin>(sp =>
-            {
-                var applensSettings = sp.GetRequiredService<Agent.Core.Configuration.ApplensSettings>();
-                if (applensSettings.Enabled)
-                {
-                    return new ApplensDetectorPlugin(
-                        sp.GetRequiredService<IApplensService>(),
-                        sp.GetRequiredService<ILogger<ApplensDetectorPlugin>>());
-                }
-                else
-                {
-                    return null;
-                }
-            })
-
             //.AddSingleton<AppServiceRemediationAgentFactory>()
             .AddSingleton<KubernetesAgentFactory>()
             .AddSingleton<AksQaAgentFactory>()
@@ -739,7 +638,7 @@ public class Program
                 var kustoAuthSetting = new Plugins.Kusto.KustoAuthSettings()
                 {
                     AuthenticationType = Plugins.Kusto.KustoAuthenticationType.UAMI,
-                    ManagedIdentityResourceId = actionSettings.Identity
+                    ManagedIdentityResourceId = actionSettings.Identity ?? string.Empty,
                 };
                 if (builder.Environment.IsDevelopment())
                 {
@@ -813,6 +712,37 @@ public class Program
                        .ConfigureIChatClient()
                        .ConfigureIEmbeddingGenerator();
 
+
+        var searchSettings = GetAzureSearchSettings(builder.Configuration);
+        if (searchSettings.Enabled)
+        {
+            builder.Services.AddTransient<AzureSearchPluginDefinition>(sp =>
+            {
+                 return new AzureSearchPluginDefinition(sp.GetRequiredService<IAzureSearchPlugin>());
+            });
+            builder.Services.AddTransient<IAzureSearchPlugin>(sp =>
+            {
+                return new AzureSearchPlugin(
+                    sp.GetRequiredService<ILogger<AzureSearchPlugin>>(),
+                    sp.GetRequiredService<Agent.Core.Configuration.ExternalSettings>());
+
+            });
+        }
+
+        var appLensSettings = GetAppLensSettings(builder.Configuration);
+        if (appLensSettings.Enabled)
+        {
+            builder.Services.AddTransient<ApplensDetectorPluginDefinition>(sp =>
+            {
+                return new ApplensDetectorPluginDefinition(sp.GetRequiredService<IApplensDetectorPlugin>());
+            });
+            builder.Services.AddTransient<IApplensDetectorPlugin>(sp =>
+            {
+                return new ApplensDetectorPlugin(
+                    sp.GetRequiredService<IApplensService>(),
+                    sp.GetRequiredService<ILogger<ApplensDetectorPlugin>>());
+            });
+        }
 
         // Register all SubAgent types
         foreach (var subAgentType in SubAgentDiscovery.DiscoverSubAgentTypes())
@@ -1075,38 +1005,47 @@ public class Program
         builder.Services.AddAgentMemory(enableAgentMemory);
     }
 
-    private static TracerProvider GetTracerProvider(ResourceBuilder resourceBuilder, AzureSettings azureSettings, LoggingSettings? loggingSettings)
+    private static Agent.Core.Configuration.AzureSearchSettings GetAzureSearchSettings(IConfiguration configuration)
     {
-        TracerProviderBuilder builder = Sdk.CreateTracerProviderBuilder()
-            .SetResourceBuilder(resourceBuilder)
-            .AddSource("Microsoft.SemanticKernel*");
-
-        if (loggingSettings?.LogGenAICalls == true)
+        var settings = configuration.GetSection("AppSettings:Core:Azure:AzureSearch").Get<Agent.Core.Configuration.AzureSearchSettings>();
+        if (settings == null)
         {
-            builder = builder.AddConsoleExporter();
+            var firstPartySettings = configuration
+                .GetSection("AppSettings:Core:External:AzureSearch")
+                .Get<Agent.Core.Configuration.AzureSearchSettings>();
+            if (firstPartySettings != null)
+            {
+                settings = firstPartySettings;
+            }
+            else
+            {
+                settings = new Agent.Core.Configuration.AzureSearchSettings();
+            }
         }
-
-        if (!string.IsNullOrEmpty(azureSettings.AppInsights.ConnectionString))
-        {
-            builder = builder.AddAzureMonitorTraceExporter(options => options.ConnectionString = azureSettings.AppInsights.ConnectionString);
-        }
-
-
-        return builder.Build();
+        return settings;
     }
 
-    private static MeterProvider GetMeterProvider(ResourceBuilder resourceBuilder, AzureSettings azureSettings)
+    private static Agent.Core.Configuration.ApplensSettings GetAppLensSettings(IConfiguration configuration)
     {
-        MeterProviderBuilder builder = Sdk.CreateMeterProviderBuilder()
-            .SetResourceBuilder(resourceBuilder)
-            .AddMeter("Microsoft.SemanticKernel*");
-
-        if (!string.IsNullOrEmpty(azureSettings.AppInsights.ConnectionString))
+        var settings = configuration.GetSection("AppSettings:Core:Azure:Applens").Get<Agent.Core.Configuration.ApplensSettings>();
+        if (settings == null)
         {
-            builder = builder.AddAzureMonitorMetricExporter(options => options.ConnectionString = azureSettings.AppInsights.ConnectionString);
+            var firstPartySettings = configuration
+                .GetSection("AppSettings:Core:External:Applens")
+                .Get<Agent.Core.Configuration.ApplensSettings>();
+            if (firstPartySettings != null)
+            {
+                settings = firstPartySettings;
+            }
+            else
+            {
+                settings = new Agent.Core.Configuration.ApplensSettings()
+                {
+                    Enabled = false
+                };
+            }
         }
-
-        return builder.Build();
+        return settings;
     }
 
     private static void ConfigureLogger(WebApplicationBuilder builder)
@@ -1287,7 +1226,8 @@ public class Program
             // Get Azure Settings for App Insights configuration
             var azureSettings = builder.Configuration.GetSection("AppSettings:Core:Azure").Get<AzureSettings>();
             var loggingSettings = builder.Configuration.GetSection("Logging").Get<LoggingSettings>();
-            return azureSettings?.AppInsights?.ConnectionString;
+            var connString = azureSettings?.AppInsights?.ConnectionString;
+            return connString ?? string.Empty;
         }
 
         return Environment.GetEnvironmentVariable("AppSettings__Core__Azure__ApplicationInsights__ConnectionString") ?? string.Empty;

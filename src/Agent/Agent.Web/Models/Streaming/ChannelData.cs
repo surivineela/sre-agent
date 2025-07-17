@@ -11,13 +11,13 @@ namespace Agent.Web.Models.Streaming
     public class ChannelData
     {
         [JsonProperty(PropertyName = "streamId")]
-        public string StreamId { get; set; }
+        public required string StreamId { get; set; }
 
         [JsonConverter(typeof(StringEnumConverter), typeof(CamelCaseNamingStrategy))]
         [JsonProperty(PropertyName = "streamType")]
-        public StreamType StreamType { get; set; }
+        public required StreamType StreamType { get; set; }
 
         [JsonProperty(PropertyName = "streamSequence")]
-        public int StreamSequence { get; set; }
+        public required int StreamSequence { get; set; }
     }
 }

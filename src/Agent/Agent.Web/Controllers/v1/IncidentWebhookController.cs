@@ -45,9 +45,15 @@ public class IncidentWebhookController : ControllerBase
     [HttpPost("pagerduty")]
     public async Task<IActionResult> PagerDutyWebhook([FromBody] PagerDutyRequest request)
     {
+        if (request == null)
+        {
+            _logger.LogInternalError("PagerDutyWebhook: PagerDutyRequest is null");
+            return StatusCode(500, "PagerDutyRequest is null");
+        }
+
         _logger.LogInternalInformation(
             "PagerDutyWebhook: Invoked with IncidentId: {IncidentId}, Title: {Title}, Source: {Source}",
-            request?.IncidentId, request?.Title, request?.Source);
+            request.IncidentId, request.Title, request.Source);
 
         try
         {
@@ -66,14 +72,20 @@ public class IncidentWebhookController : ControllerBase
 
     private async Task<IActionResult> PagerDutyProcessIncident(PagerDutyRequest request)
     {
+        if (request == null)
+        {
+            _logger.LogInternalError("PagerDutyProcessIncident: PagerDutyRequest is null");
+            return StatusCode(500, "PagerDutyRequest is null");
+        }
+
         _logger.LogInternalInformation(
             "PagerDutyProcessIncident: Handling incident with IncidentId: {IncidentId}, Title: {Title}, Source: {Source}",
-            request?.IncidentId, request?.Title, request?.Source);
+            request.IncidentId, request.Title, request.Source);
 
         var response = await _incidentHandlingService.HandleIncidentAsync(
             new IncidentHandlingRequestModel()
             {
-                IncidentId = request.IncidentId,
+                IncidentId = request.IncidentId ?? string.Empty,
                 Title = request.Title,
                 Description = request.Description,
                 Severity = request.Severity,
@@ -106,9 +118,15 @@ public class IncidentWebhookController : ControllerBase
     [HttpPost("icm")]
     public async Task<IActionResult> IcmIncidentWebhook([FromBody] IncidentRequest request)
     {
+        if (request == null)
+        {
+            _logger.LogInternalError("IcmWebhook: IncidentRequest is null");
+            return StatusCode(500, "IncidentRequest is null");
+        }
+
         _logger.LogInternalInformation(
             "IcmWebhook: Invoked with IncidentId: {IncidentId}, Title: {Title}, Source: {Source}, IsTest: {IsTest}",
-            request?.IncidentId, request?.Title, request?.Source, request?.IsTest);
+            request.IncidentId, request.Title, request.Source, request.IsTest);
 
         try
         {
@@ -127,16 +145,22 @@ public class IncidentWebhookController : ControllerBase
 
     private async Task<IActionResult> IcmProcessIncident(IncidentRequest request)
     {
+        if (request == null)
+        {
+            _logger.LogInternalError("IcmProcessIncident: IncidentRequest is null");
+            return StatusCode(500, "IncidentRequest is null");
+        }
+
         _logger.LogInternalInformation(
             "IcmProcessIncident: Handling incident with IncidentId: {IncidentId}, Title: {Title}, Source: {Source}, IsTest: {IsTest}",
-            request?.IncidentId, request?.Title, request?.Source, request?.IsTest);
+            request.IncidentId, request.Title, request.Source, request.IsTest);
 
         var response = await _incidentHandlingService.HandleIncidentAsync(
             new IncidentHandlingRequestModel()
             {
-                IncidentId = request.IncidentId,
-                Title = request.Title,
-                Description = request.Description,
+                IncidentId = request.IncidentId ?? string.Empty,
+                Title = request.Title ?? string.Empty,
+                Description = request.Description ?? string.Empty,
                 Severity = request.Severity,
                 Source = request.Source,
                 AdditionalProperties = request.AdditionalProperties,
@@ -166,9 +190,15 @@ public class IncidentWebhookController : ControllerBase
     [HttpPost("azmonitor")]
     public async Task AzMonitorAlertsWebhook([FromBody] AlertItem alertItem)
     {
+        if (alertItem == null)
+        {
+            _logger.LogInternalError("AzMonitorAlertsWebhook: AlertItem is null");
+            throw new ArgumentNullException(nameof(alertItem), "AlertItem cannot be null");
+        }
+
         _logger.LogInternalInformation(
             "AzMonitorAlertsWebhook: Invoked with AlertId: {AlertId}, Name: {Name}, Type: {Type}",
-            alertItem?.Id, alertItem?.Name, alertItem?.Type);
+            alertItem.Id, alertItem.Name, alertItem.Type);
 
         try
         {
@@ -221,7 +251,7 @@ public interface IIncidentAdapter
 public class AzMonitorAlertRequest
 {
     [JsonProperty("data")]
-    public AlertData Data { get; set; }
+    public required AlertData Data { get; set; }
 }
 
 public class AzMonitorAlertRequestAdapter : IIncidentAdapter
@@ -270,47 +300,47 @@ public class AzMonitorAlertRequestAdapter : IIncidentAdapter
 public class AlertData
 {
     [JsonProperty("essentials")]
-    public Essentials Essentials { get; set; }
+    public required Essentials Essentials { get; set; }
 }
 
 public class Essentials
 {
     [JsonProperty("alertId")]
-    public string AlertId { get; set; }
+    public required string AlertId { get; set; }
 
     [JsonProperty("alertRule")]
-    public string AlertRule { get; set; }
+    public required string AlertRule { get; set; }
 
     [JsonProperty("severity")]
-    public string Severity { get; set; }
+    public required string Severity { get; set; }
 
     [JsonProperty("signalType")]
-    public string SignalType { get; set; }
+    public required string SignalType { get; set; }
 
     [JsonProperty("monitorCondition")]
-    public string MonitorCondition { get; set; }
+    public required string MonitorCondition { get; set; }
 
     [JsonProperty("monitoringService")]
-    public string MonitoringService { get; set; }
+    public required string MonitoringService { get; set; }
 
     [JsonProperty("alertTargetIDs")]
-    public List<string> AlertTargetIDs { get; set; }
+    public required List<string> AlertTargetIDs { get; set; }
 
     [JsonProperty("firedDateTime")]
-    public string FiredDateTime { get; set; }
+    public required string FiredDateTime { get; set; }
 
     [JsonProperty("description")]
-    public string Description { get; set; }
+    public required string Description { get; set; }
 
 }
 
 public class PagerDutyRequest
 {
     [Required]
-    public string Title { get; set; }
+    public required string Title { get; set; }
 
     [Required]
-    public string Description { get; set; }
+    public required string Description { get; set; }
 
     public string? IncidentId { set; get; }
 

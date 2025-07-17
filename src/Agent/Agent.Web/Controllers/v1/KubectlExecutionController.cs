@@ -119,6 +119,10 @@ namespace Agent.Web.Controllers.v1
             {
                 case "run":
                     var executionDoc = await _threadRepository.GetKubectlExecutionAsync(threadGuid, executionGuid);
+                    if (executionDoc.AgentContextId == null)
+                    {
+                        return NotFound(new { error = "AgentContextId not set in the executionDoc" });
+                    }
 #pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
                     AgentContext agentContext = await _threadRepository.GetAgentContextAsync(agentContextId: executionDoc.AgentContextId.Value, threadId: threadGuid);
 #pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
@@ -181,7 +185,7 @@ namespace Agent.Web.Controllers.v1
                                 await _threadRepository.UpdateKubectlExecutionAsync(threadGuid, execution);
 
                                 _logger.LogInternalInformation($"[{threadGuid}]Executing {executionGuid} with obo token");
-                                result = await _kubePlugin.ExecuteKubectlCommandSafely(resourceId, execution.Command, execution.Stdin, token);
+                                result = await _kubePlugin.ExecuteKubectlCommandSafely(resourceId, execution.Command, execution.Stdin, token ?? string.Empty);
                             }
 
                             var output = result.Output;
@@ -196,16 +200,19 @@ namespace Agent.Web.Controllers.v1
                             if (_coreSettings.UseAgentFramework && agentContext != null)
                             {
                                 var functionCall = !string.IsNullOrEmpty(execution.OriginalFunctionCall) ? JsonSerializer.Deserialize<FunctionCallContent>(execution.OriginalFunctionCall) : null;
-                                await _reasoningLoopManager.AppendFunctionCallMessagesAsync(agentContext, new List<Microsoft.Extensions.AI.ChatMessage>
+                                if (functionCall != null)
                                 {
-                                    new Microsoft.Extensions.AI.ChatMessage(Microsoft.Extensions.AI.ChatRole.Assistant,
-                                        new List<Microsoft.Extensions.AI.AIContent>{functionCall }),
-                                    new Microsoft.Extensions.AI.ChatMessage(Microsoft.Extensions.AI.ChatRole.Tool,
-                                    new List<Microsoft.Extensions.AI.AIContent>
+                                    await _reasoningLoopManager.AppendFunctionCallMessagesAsync(agentContext, new List<Microsoft.Extensions.AI.ChatMessage>
                                     {
-                                        new Microsoft.Extensions.AI.FunctionResultContent(functionCall?.CallId, output)
-                                    })
-                                });
+                                        new Microsoft.Extensions.AI.ChatMessage(Microsoft.Extensions.AI.ChatRole.Assistant,
+                                            new List<Microsoft.Extensions.AI.AIContent>{functionCall }),
+                                        new Microsoft.Extensions.AI.ChatMessage(Microsoft.Extensions.AI.ChatRole.Tool,
+                                        new List<Microsoft.Extensions.AI.AIContent>
+                                        {
+                                            new Microsoft.Extensions.AI.FunctionResultContent(functionCall.CallId, output)
+                                        })
+                                    });
+                                }
                             }
                         }
                         catch (Exception ex)
@@ -223,16 +230,19 @@ namespace Agent.Web.Controllers.v1
                             if (_coreSettings.UseAgentFramework && agentContext != null)
                             {
                                 var functionCall = !string.IsNullOrEmpty(execution.OriginalFunctionCall) ? JsonSerializer.Deserialize<FunctionCallContent>(execution.OriginalFunctionCall) : null;
-                                await _reasoningLoopManager.AppendFunctionCallMessagesAsync(agentContext, new List<Microsoft.Extensions.AI.ChatMessage>
+                                if (functionCall != null)
+                                {
+                                    await _reasoningLoopManager.AppendFunctionCallMessagesAsync(agentContext, new List<Microsoft.Extensions.AI.ChatMessage>
                                     {
                                         new Microsoft.Extensions.AI.ChatMessage(Microsoft.Extensions.AI.ChatRole.Assistant,
                                             new List<Microsoft.Extensions.AI.AIContent>{functionCall }),
                                         new Microsoft.Extensions.AI.ChatMessage(Microsoft.Extensions.AI.ChatRole.Tool,
                                         new List<Microsoft.Extensions.AI.AIContent>
                                         {
-                                            new Microsoft.Extensions.AI.FunctionResultContent(functionCall?.CallId, $"Execution Failed: {execution.Command}, Result: {ex.Message}")
+                                            new Microsoft.Extensions.AI.FunctionResultContent(functionCall.CallId, $"Execution Failed: {execution.Command}, Result: {ex.Message}")
                                         })
                                     });
+                                }
                             }
 
                             await _threadRepository.UpdateKubectlExecutionAsync(threadGuid, execution);

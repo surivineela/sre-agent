@@ -115,7 +115,7 @@ namespace Agent.Web.Controllers.v1
                                          $"- **User:** {request.User}\n" +
                 $"- **Timestamp:** {DateTime.UtcNow}";
 
-                await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(existingApprovalV2.ThreadId, orchestrationInstanceId: null, new Microsoft.Extensions.AI.ChatMessage(ChatRole.Assistant, approvalMessage));
+                await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(existingApprovalV2.ThreadId, orchestrationInstanceId: string.Empty, new Microsoft.Extensions.AI.ChatMessage(ChatRole.Assistant, approvalMessage));
             }
             else if (approvalStatus == ApprovalDecision.Cancelled)
             {
@@ -142,7 +142,7 @@ namespace Agent.Web.Controllers.v1
                        $"- **User:** {request.User}\n" +
                 $"- **Timestamp:** {DateTime.UtcNow}";
 
-                await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(existingApprovalV2.ThreadId, orchestrationInstanceId: null, new Microsoft.Extensions.AI.ChatMessage(ChatRole.Assistant, rejectionMessage));
+                await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(existingApprovalV2.ThreadId, orchestrationInstanceId: string.Empty, new Microsoft.Extensions.AI.ChatMessage(ChatRole.Assistant, rejectionMessage));
             }
             else
             {
@@ -157,8 +157,8 @@ namespace Agent.Web.Controllers.v1
         /// </summary>
         public class ApprovalDecisionRequest
         {
-            public string Status { get; set; }
-            public string User { get; set; }
+            public required string Status { get; set; }
+            public required string User { get; set; }
         }
     }
 }

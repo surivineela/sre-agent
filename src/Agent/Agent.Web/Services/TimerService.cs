@@ -495,8 +495,15 @@ public class TimerService : IHostedService, IDisposable
                 {
                     _logger.LogInternalInformation($"Starting scanner '{scanner.Name}'");
                     scanner.IsRunning = true;
-                    var task = (Task)scanner.ScanMethod.Invoke(scanner.ScanTarget, [cancellationToken]);
-                    await task!;
+                    var result = scanner.ScanMethod.Invoke(scanner.ScanTarget, new object[] { cancellationToken });
+                    if (result is Task task)
+                    {
+                        await task;
+                    }
+                    else
+                    {
+                        _logger.LogInternalWarning($"ScanMethod for '{scanner.Name}' did not return a Task.");
+                    }
                 }
                 catch (Exception ex)
                 {

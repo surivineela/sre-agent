@@ -442,16 +442,16 @@ public class IncidentPlaygroundController : ControllerBase
     [HttpPost("generateInstructions")]
     public async Task<IActionResult> GenerateInstructions([FromBody] InstructionGenerationRequest instructionGenerationRequest)
     {
-        _logger.LogInternalInformation("GenerateInstructions: Invoked for AgentName: {AgentName}", instructionGenerationRequest?.AgentName);
+        _logger.LogInternalInformation("GenerateInstructions: Invoked for AgentName: {AgentName}", instructionGenerationRequest.AgentName);
         try
         {
             var response = await _instructionGenerationService.GenerateInstructionsFromIncidents(instructionGenerationRequest);
-            _logger.LogInternalInformation("GenerateInstructions: Successfully generated instructions for AgentName: {AgentName}", instructionGenerationRequest?.AgentName);
+            _logger.LogInternalInformation("GenerateInstructions: Successfully generated instructions for AgentName: {AgentName}", instructionGenerationRequest.AgentName);
             return Ok(response);
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, "GenerateInstructions: Error processing incident request for AgentName: {AgentName}", instructionGenerationRequest?.AgentName);
+            _logger.LogInternalError(ex, "GenerateInstructions: Error processing incident request for AgentName: {AgentName}", instructionGenerationRequest.AgentName);
             return StatusCode(500, "Failed to process incident request");
         }
     }

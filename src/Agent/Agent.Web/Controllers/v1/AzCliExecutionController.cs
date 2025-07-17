@@ -10,6 +10,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Logging;
 using Agent.Runtime.Reasoning;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.AI;
 
@@ -122,7 +123,13 @@ namespace Agent.Web.Controllers.v1
             switch (request.Action.ToLower())
             {
                 case "run":
-                    var executionDoc = await _threadRepository.GetAzCliExecutionAsync(threadGuid, executionGuid);
+                    AzCliExecution executionDoc = await _threadRepository.GetAzCliExecutionAsync(threadGuid, executionGuid);
+
+                    if (executionDoc.AgentContextId == null)
+                    {
+                        return NotFound(new { error = "AgentContextId not set in the executionDoc" });
+                    }
+
 #pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
                     AgentContext agentContext = await _threadRepository.GetAgentContextAsync(agentContextId: executionDoc.AgentContextId.Value, threadId: threadGuid);
 #pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
@@ -182,7 +189,7 @@ namespace Agent.Web.Controllers.v1
                                 await _threadRepository.UpdateAzCliExecutionAsync(threadGuid, execution);
 
                                 _logger.LogInternalInformation($"[{threadGuid}]Executing {executionGuid} with obo token");
-                                result = await _armHelper.RunAzCliCommandsAsync(execution.Command, token);
+                                result = await _armHelper.RunAzCliCommandsAsync(execution.Command, token ?? string.Empty);
                             }
 
                             execution = execution with
@@ -196,16 +203,19 @@ namespace Agent.Web.Controllers.v1
                             if (_coreSettings.UseAgentFramework && agentContext != null)
                             {
                                 var functionCall = !string.IsNullOrEmpty(execution.OriginalFunctionCall) ? JsonSerializer.Deserialize<FunctionCallContent>(execution.OriginalFunctionCall) : null;
-                                await _reasoningLoopManager.AppendFunctionCallMessagesAsync(agentContext, new List<ChatMessage>
+                                if (functionCall != null)
                                 {
-                                    new(ChatRole.Assistant,
-                                        new List<AIContent>{ functionCall}),
-                                    new(ChatRole.Tool,
-                                    new List<AIContent>
+                                    await _reasoningLoopManager.AppendFunctionCallMessagesAsync(agentContext, new List<ChatMessage>
                                     {
-                                        new FunctionResultContent(functionCall?.CallId, result.Output)
-                                    })
-                                });
+                                        new(ChatRole.Assistant,
+                                            new List<AIContent>{ functionCall}),
+                                        new(ChatRole.Tool,
+                                        new List<AIContent>
+                                        {
+                                            new FunctionResultContent(functionCall.CallId, result.Output)
+                                        })
+                                    });
+                                }
                             }
                         }
                         catch (Exception ex)
@@ -223,16 +233,19 @@ namespace Agent.Web.Controllers.v1
                             if (_coreSettings.UseAgentFramework && agentContext != null)
                             {
                                 var functionCall = !string.IsNullOrEmpty(execution.OriginalFunctionCall) ? JsonSerializer.Deserialize<FunctionCallContent>(execution.OriginalFunctionCall) : null;
-                                await _reasoningLoopManager.AppendFunctionCallMessagesAsync(agentContext, new List<ChatMessage>
+                                if (functionCall != null)
                                 {
-                                    new(ChatRole.Assistant,
-                                        new List<AIContent>{ functionCall}),
-                                    new(ChatRole.Tool,
-                                    new List<AIContent>
+                                    await _reasoningLoopManager.AppendFunctionCallMessagesAsync(agentContext, new List<ChatMessage>
                                     {
-                                        new FunctionResultContent(functionCall?.CallId, $"Execution Failed: {execution.Command}, Result: {ex.Message}. I would now continue to Notify the user about the results of the command")
-                                    })
-                                });
+                                        new(ChatRole.Assistant,
+                                            new List<AIContent>{ functionCall}),
+                                        new(ChatRole.Tool,
+                                        new List<AIContent>
+                                        {
+                                            new FunctionResultContent(functionCall.CallId, $"Execution Failed: {execution.Command}, Result: {ex.Message}. I would now continue to Notify the user about the results of the command")
+                                        })
+                                    });
+                                }                             
                             }
 
                             await _threadRepository.UpdateAzCliExecutionAsync(threadGuid, execution);
@@ -344,9 +357,9 @@ namespace Agent.Web.Controllers.v1
         public class ExecutionActionRequest
         {
             [Required]
-            public string Action { get; set; } // "run" or "cancel"
+            public required string Action { get; set; } // "run" or "cancel"
 
-            public string User { get; set; }
+            public required string User { get; set; }
         }
     }
 }

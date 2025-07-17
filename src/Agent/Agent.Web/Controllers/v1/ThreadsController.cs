@@ -216,7 +216,7 @@ namespace Agent.Web.Controllers.v1
                 ThreadId: threadId,
                 MessageFeedbackId: messageFeedbackId,
                 IsPositive: request.IsPositive,
-                FeedbackText: request.FeedbackText
+                FeedbackText: request.FeedbackText ?? string.Empty
             ));
 
             return CreatedAtAction(

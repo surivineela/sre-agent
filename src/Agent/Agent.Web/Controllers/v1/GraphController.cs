@@ -60,7 +60,7 @@ namespace Agent.Web.Controllers.v1
         /// <param name="resourceType">Optional resource type to filter app groups</param>
         /// <returns>List of app groups</returns>
         [HttpGet("{subId}/appGroups")]
-        public async Task<ActionResult<ResultSet<dynamic>>> GetAppGroupsBySubscription(string subId, [FromQuery] string resourceType = null)
+        public async Task<ActionResult<ResultSet<dynamic>>> GetAppGroupsBySubscription(string subId, [FromQuery] string? resourceType = null)
         {
             var result = await _graphService.GetAppGroupsBySubscriptionAsync(subId, resourceType);
             return Ok(result);

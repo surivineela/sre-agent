@@ -33,7 +33,7 @@ namespace Agent.Web.Controllers.v1
         /// <param name="filter">ODATA filter query</param>
         /// <returns>List of approvals</returns>
         [HttpGet("{threadId}")]
-        public async Task<IActionResult> GetApprovals(string threadId, [FromQuery] string filter = null)
+        public async Task<IActionResult> GetApprovals(string threadId, [FromQuery] string? filter = null)
         {
             // TODO: Implement pagination and filtering logic
             _logger.LogInternalInformation("GET approval requested for thread {ThreadId} with filter: {Filter}", threadId, filter);
@@ -191,9 +191,9 @@ namespace Agent.Web.Controllers.v1
         /// </summary>
         public class ApprovalDecisionRequest
         {
-            public string Status { get; set; }
-            public string User { get; set; }
-            public string? Scope { get; set; }
+            public required string Status { get; set; }
+            public required string User { get; set; }
+            public required string? Scope { get; set; }
         }
     }
 }
