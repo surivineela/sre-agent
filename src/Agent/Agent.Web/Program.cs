@@ -774,6 +774,7 @@ public class Program
                 break;
             case IncidentManagementType.Icm:
                 builder.Services.AddSingleton<IPagerDutyService, NullablePagerDutyService>();
+                builder.Services.AddSingleton<LoggingHttpMessageHandler>();
                 builder.Services.AddSingleton<IICMAPIClient, ICMAPIClient>();
                 builder.Services.AddSingleton<IIncidentScanner, IcmScanner>();
 

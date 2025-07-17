@@ -576,13 +576,13 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         //If is Test thread, change mode to read-only
         if (thread.Type == ThreadType.Prod && !string.IsNullOrEmpty(overrideAgentMode))
         {
-            _logger.LogInternalInformation($"[InboundCommunicationService]UpdateAgentModeIfNeed.ThreadId:{thread.Id}, ThreadType:{thread.Type},RequestedAgentMode:{overrideAgentMode}");
+            _logger.LogInternalInformation($"[InboundCommunicationService]UpdateAgentModeIfNeed.ThreadId:{thread.Id}, ThreadType:{thread.Type}, RequestedAgentMode:{overrideAgentMode}");
             //In PROD, it can override thread by incidentFilter with any types
             return await ValidateAndUpdateAgentMode(thread, agentContext, overrideAgentMode, false);
         }
         else if (thread.Type == ThreadType.Test)
         {
-            _logger.LogInternalInformation($"[InboundCommunicationService]UpdateAgentModeIfNeed.ThreadId:{thread.Id}, ThreadType:{thread.Type},RequestedAgentMode:{AgentModes.ReadOnly}");
+            _logger.LogInternalInformation($"[InboundCommunicationService]UpdateAgentModeIfNeed.ThreadId:{thread.Id}, ThreadType:{thread.Type}, RequestedAgentMode:{AgentModes.ReadOnly}");
             return await ValidateAndUpdateAgentMode(thread, agentContext, AgentModes.ReadOnly, true);
         }
         else

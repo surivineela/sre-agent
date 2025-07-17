@@ -107,8 +107,8 @@ public class IncidentWebhookController : ControllerBase
     public async Task<IActionResult> IcmIncidentWebhook([FromBody] IncidentRequest request)
     {
         _logger.LogInternalInformation(
-            "IcmWebhook: Invoked with IncidentId: {IncidentId}, Title: {Title}, Source: {Source}",
-            request?.IncidentId, request?.Title, request?.Source);
+            "IcmWebhook: Invoked with IncidentId: {IncidentId}, Title: {Title}, Source: {Source}, IsTest: {IsTest}",
+            request?.IncidentId, request?.Title, request?.Source, request?.IsTest);
 
         try
         {
@@ -128,8 +128,8 @@ public class IncidentWebhookController : ControllerBase
     private async Task<IActionResult> IcmProcessIncident(IncidentRequest request)
     {
         _logger.LogInternalInformation(
-            "IcmProcessIncident: Handling incident with IncidentId: {IncidentId}, Title: {Title}, Source: {Source}",
-            request?.IncidentId, request?.Title, request?.Source);
+            "IcmProcessIncident: Handling incident with IncidentId: {IncidentId}, Title: {Title}, Source: {Source}, IsTest: {IsTest}",
+            request?.IncidentId, request?.Title, request?.Source, request?.IsTest);
 
         var response = await _incidentHandlingService.HandleIncidentAsync(
             new IncidentHandlingRequestModel()

@@ -50,10 +50,12 @@ namespace Agent.Core.Services
         private readonly AuthType _authType;
         private readonly ILogger<ICMAPIClient> _logger;
         private readonly string _identity = string.Empty;
+        private readonly LoggingHttpMessageHandler _loggingHandler;
 
-        public ICMAPIClient(IHostEnvironment environment, IncidentManagementSettings incidentManagementSettings, ILogger<ICMAPIClient> logger, ActionSettings actionSettings)
+        public ICMAPIClient(IHostEnvironment environment, IncidentManagementSettings incidentManagementSettings, ILogger<ICMAPIClient> logger, ActionSettings actionSettings, LoggingHttpMessageHandler loggingHandler)
         {
             _logger = logger;
+            _loggingHandler = loggingHandler;
             _icmApiSettings = incidentManagementSettings.ICMAPI;
             IsDevelopment = environment.IsDevelopment();
             _identity = actionSettings.Identity ?? string.Empty;
@@ -99,7 +101,8 @@ namespace Agent.Core.Services
         {
             if (_authType == AuthType.UserToken)
             {
-                _httpClient = new HttpClient()
+                _loggingHandler.InnerHandler = new HttpClientHandler();
+                _httpClient = new HttpClient(_loggingHandler)
                 {
                     Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
                 };
@@ -125,14 +128,16 @@ namespace Agent.Core.Services
                     handler.ClientCertificates.Add(certificates[0]);
                 }
 
-                _httpClient = new HttpClient(handler)
+                _loggingHandler.InnerHandler = handler;
+                _httpClient = new HttpClient(_loggingHandler)
                 {
                     Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
                 };
             }
             else if (_authType == AuthType.ManagedIdentity)
             {
-                _httpClient = new HttpClient()
+                _loggingHandler.InnerHandler = new HttpClientHandler();
+                _httpClient = new HttpClient(_loggingHandler)
                 {
                     Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
                 };

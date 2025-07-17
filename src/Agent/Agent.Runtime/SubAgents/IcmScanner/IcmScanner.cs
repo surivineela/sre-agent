@@ -43,30 +43,32 @@ public class IcmScanner(ILogger<IcmScanner> logger,
             var filters = await incidentFilterManagementService.ListIncidentFilters();
             if (filters is null || filters.Count == 0)
             {
-                logger.LogInternalInformation("No incident filters found, skipping IcM scanner.");
+                logger.LogInternalInformation("[IcmScanner] No incident filters found, skipping IcM scanner.");
             } else
             {
-                logger.LogInternalInformation("Found {filterCount} incident filters, starting IcM scanner.", filters.Count);
-                await ScannAllIncidentsAsync(cancellationToken,filters);
+                logger.LogInternalInformation("[IcmScanner] Found {filterCount} incident filters, starting IcM scanner.", filters.Count);
+                await ScanAllIncidentsAsync(cancellationToken,filters);
                 if(isScanSucceeded)
                 {
-                    lastScanTime = await UpdateLastScanTimeDocAsync(DateTime.UtcNow);
+                    //Once scan scceeded, update the last scan time to now - 20sec to give overlap between scans
+                    var dateTime = DateTime.UtcNow.AddSeconds(-20);
+                    lastScanTime = await UpdateLastScanTimeDocAsync(dateTime);
                 } else
                 {
-                    logger.LogInternalWarning("IcM scanner failed to scan incidents, last scan time will not be updated.");
+                    logger.LogInternalWarning("[IcmScanner] IcM scanner failed to scan incidents, last scan time will not be updated.");
                 }
             }
             await Task.Delay(ScanInterval, cancellationToken);
         }
     }
-    private async Task ScannAllIncidentsAsync(CancellationToken cancellationToken, List<IncidentFilterDocument> filters)
+    private async Task ScanAllIncidentsAsync(CancellationToken cancellationToken, List<IncidentFilterDocument> filters)
     {
 
         foreach (var filter in filters)
         {
             if (cancellationToken.IsCancellationRequested)
             {
-                logger.LogInternalInformation("Cancellation requested, stopping the IcM scanner.");
+                logger.LogInternalInformation("[IcmScanner] Cancellation requested, stopping the IcM scanner.");
                 return;
             }
             if (filter is IncidentFilterDocument filterDocument && filterDocument.DocumentType == "IncidentFilterIcm")
@@ -77,7 +79,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                 }
                 catch (Exception ex)
                 {
-                    logger.LogInternalError(ex, "Error scanning incidents for filter {filterId}", filterDocument.Id);
+                    logger.LogInternalError(ex, "[IcmScanner] Error scanning incidents for filter: {filterId}", filterDocument.Id);
                 }
             }
         }
@@ -85,7 +87,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
 
     private async Task ScanIncidentsForFilter(IncidentFilterDocument filterDocument, CancellationToken cancellationToken)
     {
-        logger.LogInternalInformation("Scanning incidents for filter {filterId}", filterDocument.Id);
+        logger.LogInternalInformation("[IcmScanner] Scanning incidents for filter: {filterId}", filterDocument.Id);
         uint page = 0;
         isScanSucceeded = true;
         while (true)
@@ -93,25 +95,25 @@ public class IcmScanner(ILogger<IcmScanner> logger,
             if (cancellationToken.IsCancellationRequested)
             {
                 isScanSucceeded = false;
-                logger.LogInternalInformation("Cancellation requested, stopping the IcM scanner.");
+                logger.LogInternalInformation("[IcmScanner] Cancellation requested, stopping the IcM scanner.");
                 return;
             }
             uint offset = page * PageSize;
 
             if (offset > maxOffset)
             {
-                logger.LogInternalInformation("Stop scanning ICMs over {offset}", offset);
+                logger.LogInternalInformation("[IcmScanner] Stop scanning ICMs over {offset}", offset);
                 return;
             }
 
             try
             {
-                logger.LogInternalInformation("Scanning IcM incidents, page {page}, lastScanTime {lastScanTime}", page, lastScanTime);
+                logger.LogInternalInformation("[IcmScanner] Scanning IcM incidents, page {page}, lastScanTime {lastScanTime}, filter: {filterId}", page, lastScanTime, filterDocument.Id);
                 var incidents = await icmApiClient.GetIncidentsAsync(PageSize, offset, lastScanTime, null, filterDocument.TitleContains);
                 
                 if (incidents is null || incidents.Count == 0)
                 {
-                    logger.LogInternalInformation("No incidents found for filter {filterId}", filterDocument.Id);
+                    logger.LogInternalInformation("[IcmScanner] No incidents found for filter: {filterId}", filterDocument.Id);
                     return;
                 }
                 foreach (var incident in incidents)
@@ -125,7 +127,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
             }
             catch (Exception ex)
             {
-                logger.LogInternalError(ex, "Error scanning IcM incidents");
+                logger.LogInternalError(ex, "[IcmScanner] Error scanning IcM incidents");
                 isScanSucceeded = false;
             }
             page++;
@@ -154,12 +156,12 @@ public class IcmScanner(ILogger<IcmScanner> logger,
         {
             if (incidentDocument is null && incident is not null)
             {
-                logger.LogInternalInformation("Creating new incident document for IcM by id {incidentId}", incident.IncidentId);
+                logger.LogInternalInformation("[IcmScanner] Creating new incident document for IcM by id {incidentId}", incident.IncidentId);
 
                 incidentDocument = new IcmIncidentDocument(incident);
                 incidentDocument = await container.CreateItemAsync(incidentDocument, new PartitionKey(incidentDocument.PartitionKey), cancellationToken: cancellationToken);
 
-                logger.LogInternalInformation("Created new incident document for IcM incident {incidentId}", incident.IncidentId);
+                logger.LogInternalInformation("[IcmScanner] Created new incident document for IcM incident {incidentId}", incident.IncidentId);
             }
             else if (incident is not null && incidentDocument is not null && incidentDocument.Id == incident.IncidentId)
             {
@@ -198,7 +200,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                 {
                     UpdatedAt = DateTime.UtcNow
                 };
-                logger.LogInternalInformation("Upserting existing incident document for IcM incident {incidentId}", incident.IncidentId);
+                logger.LogInternalInformation("[IcmScanner] Upserting existing incident document for IcM incident {incidentId}", incident.IncidentId);
                 incidentDocument = await container.UpsertItemAsync(updatedDoc, new PartitionKey(updatedDoc.PartitionKey), cancellationToken: cancellationToken);
             }
 
@@ -207,7 +209,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
         }
         catch (Exception ex)
         {
-            logger.LogInternalError(ex, "Error upserting incident document for IcM incident {incidentId}", incident.IncidentId);
+            logger.LogInternalError(ex, "[IcmScanner] Error upserting incident document for IcM incident {incidentId}", incident.IncidentId);
         }
         return incidentDocument;
     }
@@ -238,7 +240,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
         }
         catch (Exception ex)
         {
-            logger.LogInternalError(ex, "Error updating LastScanTime for IcmScanner");
+            logger.LogInternalError(ex, "[IcmScanner] Error updating LastScanTime for IcmScanner");
             return DateTime.UtcNow;
         }
     }
@@ -249,20 +251,20 @@ public class IcmScanner(ILogger<IcmScanner> logger,
         {
             if (incidentDocument is null)
             {
-                logger.LogInternalWarning("Incident document is null, skipping notification.");
+                logger.LogInternalWarning("[IcmScanner] Incident document is null, skipping notification.");
                 return;
             }
 
             if (incidentDocument.Status.Equals("resolved", StringComparison.OrdinalIgnoreCase) || incidentDocument.Status.Equals("mitigated", StringComparison.OrdinalIgnoreCase))
             {
-                logger.LogInternalInformation("Incident {incidentId} is mitigated/resolved, skipping notification.", incidentDocument.Id);
+                logger.LogInternalInformation("[IcmScanner] Incident {incidentId} is mitigated/resolved, skipping notification.", incidentDocument.Id);
                 return;
             }
 
             var threadDocument = await GetIncidentThread(incidentDocument.Id);
             if (threadDocument is null)
             {
-                logger.LogInternalInformation("Thread doesn't exist for incident {incidentId}, skipping notification", incidentDocument.Id);
+                logger.LogInternalInformation("[IcmScanner] Thread doesn't exist for incident {incidentId}, skipping notification", incidentDocument.Id);
                 var response = await incidentHandlingService.HandleIncidentAsync(new IncidentHandlingRequestModel()
                 {
                     IncidentId = incidentDocument.Id,
@@ -273,7 +275,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
             }
             else
             {
-                logger.LogInternalInformation("Thread already exists for incident {incidentId}, checking whether it needs to be updated", incidentDocument.Id);
+                logger.LogInternalInformation("[IcmScanner] Thread already exists for incident {incidentId}, checking whether it needs to be updated", incidentDocument.Id);
                 var existingIncidentDocument = await incidentManagementService.GetIncidentDetails(incidentDocument.Id);
                 var existingDiscussionEntries = existingIncidentDocument != null ? existingIncidentDocument.DiscussionEntries : new List<DiscussionEntry>();
                 var latestDiscussionEntries = await icmApiClient.GetIncidentDiscussionEntriesAsync(incidentDocument.Id);
@@ -285,13 +287,13 @@ public class IcmScanner(ILogger<IcmScanner> logger,
 
                 if (newNotes.Count > 0)
                 {
-                    logger.LogInternalInformation("Found {newNotesCount} new notes for incident {incidentId}", newNotes.Count, incidentDocument.Id);
+                    logger.LogInternalInformation("[IcmScanner] Found {newNotesCount} new notes for incident {incidentId}", newNotes.Count, incidentDocument.Id);
                     await agentInboundCommunicationService.AddNewDiscussionsToIncidentThread(Guid.Parse(threadDocument.Id), newNotes);
-                    logger.LogInternalInformation("Added {newNotesCount} new notes to incident thread {threadId}", newNotes.Count, threadDocument.Id);
+                    logger.LogInternalInformation("[IcmScanner] Added {newNotesCount} new notes to incident thread {threadId}", newNotes.Count, threadDocument.Id);
                 }
                 else
                 {
-                    logger.LogInternalInformation("No new notes found for incident {incidentId}", incidentDocument.Id);
+                    logger.LogInternalInformation("[IcmScanner] No new notes found for incident {incidentId}", incidentDocument.Id);
                 }
 
             }
@@ -299,7 +301,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
         }
         catch (Exception ex)
         {
-            logger.LogInternalError(ex, "Error notifying user about incident {incidentId}", incidentDocument.Id);
+            logger.LogInternalError(ex, "[IcmScanner] Error notifying user about incident {incidentId}", incidentDocument.Id);
         }
     }
 
@@ -320,7 +322,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
             }
             else if (response.Count > 1)
             {
-                logger.LogInternalWarning("Multiple threads({threadIds}) found for incident {incidentId}, returning the first one.", string.Join(',', response.Select(t => t.Id)), incidentId);
+                logger.LogInternalWarning("[IcmScanner] Multiple threads({threadIds}) found for incident {incidentId}, returning the first one.", string.Join(',', response.Select(t => t.Id)), incidentId);
                 return response.FirstOrDefault();
             }
         }
