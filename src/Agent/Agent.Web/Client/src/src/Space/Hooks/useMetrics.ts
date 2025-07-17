@@ -1,45 +1,19 @@
 import axios from 'axios';
 import { useCallback, useContext, useEffect, useState } from 'react';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
+import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
-import { SelectedTimes } from '../Activities/TimeDropdown';
+
 export interface IncidentMetrics {
     activeCount: number;
     mitigatedCount: number;
     resolvedCount: number;
 }
 
-export function getTimeRange(selectedTime: SelectedTimes): { start: string; end: string } {
-    const now = new Date();
-    const end = new Date(now);
-    let start: Date;
-
-    switch (selectedTime) {
-        case SelectedTimes.OneDay:
-            start = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-            break;
-        case SelectedTimes.SevenDays:
-            start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-            break;
-        case SelectedTimes.ThirtyDays:
-            start = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-            break;
-        default:
-            throw new Error(`Invalid time range: ${selectedTime}`);
-    }
-
-    return {
-        start: start.toISOString(),
-        end: end.toISOString(),
-    };
-}
-
-export const useMetrics = (selectedTime: SelectedTimes) => {
+export const useMetrics = (oldestThreadModifiedTimestamp?: string) => {
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
 
     const [incidentMetrics, setIncidentMetrics] = useState<IncidentMetrics>();
-    const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [isInitialized, setIsInitialized] = useState<boolean>(false);
 
     const getIncidentSeverityMetrics = useCallback(
         async (startTime: string, endTime: string): Promise<IncidentMetrics> => {
@@ -56,48 +30,31 @@ export const useMetrics = (selectedTime: SelectedTimes) => {
 
     useEffect(() => {
         let isSubscribed = true;
+        let timer: NodeJS.Timeout | undefined = undefined;
 
         const pollMetrics = async () => {
-            if (selectedTime && isInitialized) {
-                const { start, end } = getTimeRange(selectedTime);
+            if (oldestThreadModifiedTimestamp) {
+                const start = getSafeDateTime(oldestThreadModifiedTimestamp).toISOString();
+                const end = new Date().toISOString();
+
                 const metrics = await getIncidentSeverityMetrics(start, end);
 
                 if (isSubscribed) {
                     setIncidentMetrics(metrics);
+
+                    timer = setTimeout(pollMetrics, 10000);
                 }
             }
         };
 
-        const timer = setInterval(pollMetrics, 20000);
+        // Delay the first call in case the oldestThreadModifiedTimestamp is change more frequently than the polling interval
+        timer = setTimeout(pollMetrics, 10000);
 
         return () => {
-            clearInterval(timer);
+            clearTimeout(timer);
             isSubscribed = false;
         };
-    }, [selectedTime, isInitialized, getIncidentSeverityMetrics]);
+    }, [oldestThreadModifiedTimestamp, getIncidentSeverityMetrics]);
 
-    useEffect(() => {
-        let isSubscribed = true;
-
-        const getInitialMetrics = async () => {
-            if (selectedTime) {
-                setIsLoading(true);
-                const { start, end } = getTimeRange(selectedTime);
-                const metrics = await getIncidentSeverityMetrics(start, end);
-                if (isSubscribed) {
-                    setIncidentMetrics(metrics);
-                    setIsLoading(false);
-                    setIsInitialized(true);
-                }
-            }
-        };
-
-        getInitialMetrics();
-
-        return () => {
-            isSubscribed = false;
-        };
-    }, [getIncidentSeverityMetrics, selectedTime]);
-
-    return { incidentMetrics, isLoading };
+    return { incidentMetrics };
 };

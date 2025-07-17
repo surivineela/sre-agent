@@ -18,7 +18,6 @@ import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
 import { ChatMessage, ChatMessageContent, ThreadLoadingCounts } from '../Contracts/Activities';
 import { DefaultUserIdAndDisplayName } from '../Hooks/useAuthenticatedUserInfo';
 import { ThreadItemHeightInPx, ThreadItemPaddingTopBottomInPx } from '../Styles/Activities.styles';
-import { SelectedTimes } from './TimeDropdown';
 
 /**
  * Add additional threads to the existing threads list and update existing threads if they have been modified.
@@ -199,10 +198,10 @@ export const getMessageMetaDataFromChatMessage = (
 
     const author: MessageAuthor = isUserStreamingMessage(streamingMessage)
         ? {
-              role: 'User',
-              userId,
-              displayName: displayName,
-          }
+            role: 'User',
+            userId,
+            displayName: displayName,
+        }
         : getDefaultSREAgentAuthor();
 
     return {
@@ -237,12 +236,12 @@ export const processChatMessageContents = (
                 approval.status === 0
                     ? ApprovalDecision.Pending
                     : approval.status === 1
-                      ? ApprovalDecision.Approved
-                      : approval.status === 2
-                        ? ApprovalDecision.Cancelled
-                        : approval.status === 3
-                          ? ApprovalDecision.PendingAuthorization
-                          : ApprovalDecision.Authorized,
+                        ? ApprovalDecision.Approved
+                        : approval.status === 2
+                            ? ApprovalDecision.Cancelled
+                            : approval.status === 3
+                                ? ApprovalDecision.PendingAuthorization
+                                : ApprovalDecision.Authorized,
         };
     }
 
@@ -435,26 +434,18 @@ export const getGroupedMessages = (messages: Message[], currentMessageIndex: num
     return groupedMessages;
 };
 
-export const getUTCTimestampBasedOnSelectedThreadCutoffTime = (selectedCutOffModifiedTime: SelectedTimes): string => {
-    const days = selectedCutOffModifiedTime === SelectedTimes.OneDay ? 1 : selectedCutOffModifiedTime === SelectedTimes.SevenDays ? 7 : 30;
-    const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
-
-    return cutoff.toISOString();
-};
-
 export const getFilteredThreads = (
     threads: Thread[],
     filterOptions: {
-        selectedCutoffTime: string;
         threadSeverity?: ThreadSeverity;
         searchText?: string;
         source?: ThreadSource;
     }
 ): Thread[] => {
-    const { selectedCutoffTime, threadSeverity, searchText, source } = filterOptions;
+    const { threadSeverity, searchText, source } = filterOptions;
 
     return threads.filter(thread => {
-        let match = getSafeDateTime(thread.modifiedTimestamp).getTime() >= getSafeDateTime(selectedCutoffTime).getTime();
+        let match = true;
         if (searchText) {
             match = thread.title.toLowerCase().includes(searchText.toLocaleLowerCase());
         }

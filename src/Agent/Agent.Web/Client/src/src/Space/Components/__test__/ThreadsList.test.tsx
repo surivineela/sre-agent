@@ -4,6 +4,7 @@ import { RefObject } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Thread } from '../../../Common/Contracts/Azure/SreAgent';
 import { Guid } from '../../../Common/Helpers/Guid';
+import { ThreadListHandle } from '../../Contracts/Activities';
 import ThreadsList from '../ThreadsList';
 
 const getThread = (modifiedTimestamp: string, id: string, title: string): Thread => {
@@ -101,7 +102,7 @@ describe('ThreadsList.tsx', () => {
 
     it('ThreadsList shimmering status', () => {
         const threads = [getThread('2023-10-06T00:00:00Z', '01', 'Thread 1'), getThread('2023-10-05T00:00:00Z', '02', 'Thread 2')];
-        const ref: RefObject<HTMLDivElement> | null = null;
+        const ref: RefObject<ThreadListHandle> | null = null;
         const { container: containerWithSkeleton } = render(
             <ThreadsList
                 threads={threads}

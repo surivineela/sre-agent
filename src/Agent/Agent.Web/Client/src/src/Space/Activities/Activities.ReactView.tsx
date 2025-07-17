@@ -19,7 +19,7 @@ const Activities: FC = () => {
         threadContentAndActionKey,
         activeThreadId,
         threadPollingTriggerId,
-        threadListHandleRef,
+        threadMenuHandleRef,
     } = useActivities();
 
     const [menuCollapsed, setMenuCollapsed] = useState<boolean>(false);
@@ -44,7 +44,7 @@ const Activities: FC = () => {
                             selectThread={selectThread}
                             deleteThread={deleteThread}
                             threadPollingTriggerId={threadPollingTriggerId}
-                            ref={threadListHandleRef}
+                            ref={threadMenuHandleRef}
                             {...resizableChildProps}
                         />
                     )}

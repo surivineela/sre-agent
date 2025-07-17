@@ -2,29 +2,16 @@ import { makeStyles, tokens } from '@fluentui/react-components';
 
 export const useActionsStatusBarStyles = makeStyles({
     container: {
-        display: 'flex',
-        alignItems: 'center',
-        padding: '8px 12px',
-        paddingLeft: 0,
-        paddingTop: 0,
-        gap: '10px',
+        margin: '0px 10px',
+        padding: '8px 0px',
         borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
-        flexWrap: 'wrap',
-    },
-    containerNoBorder: {
-        display: 'flex',
-        alignItems: 'center',
-        paddingTop: '8px',
-        padding: '0px',
-        gap: '10px',
-        marginTop: '-5px',
-        flexWrap: 'wrap',
     },
     innerContainerNoBorder: {
         display: 'flex',
         alignItems: 'center',
         gap: '10px',
         flexWrap: 'wrap',
+        padding: '0px 10px',
     },
     statusGroup: {
         display: 'flex',
@@ -40,21 +27,6 @@ export const useActionsStatusBarStyles = makeStyles({
         boxShadow: 'none',
         maxWidth: 'fit-content',
         minWidth: '30px',
-    },
-    completedActionGroup: {
-        marginTop: '-2px',
-        paddingLeft: '10px',
-        paddingBottom: '2px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '6px',
-    },
-    completedActionIcon: {
-        color: tokens.colorNeutralForeground2,
-    },
-    completedActionText: {
-        fontSize: '12px',
-        color: tokens.colorNeutralForeground2,
     },
     threadTitleWithAction: {
         display: 'flex',
@@ -82,7 +54,7 @@ export const useActionsStatusBarStyles = makeStyles({
         padding: '0 6px',
         fontWeight: 600,
     },
-    subtitle: {
+    title: {
         overflow: 'hidden',
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',

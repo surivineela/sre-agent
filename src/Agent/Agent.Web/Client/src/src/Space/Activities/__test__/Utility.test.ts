@@ -3,12 +3,10 @@ import { ThreadSeverity } from '../../../Common/Clients/ThreadClient';
 import { Message, Thread, ThreadSource } from '../../../Common/Contracts/Azure/SreAgent';
 import { getSafeDateTime } from '../../../Common/Helpers/Date';
 import { Guid } from '../../../Common/Helpers/Guid';
-import { SelectedTimes } from '../TimeDropdown';
 import {
     getFilteredThreads,
     getGroupedMessages,
     getUpdatedUnreadThreadIds,
-    getUTCTimestampBasedOnSelectedThreadCutoffTime,
     isThreadUnread,
     noGapBetweenNewMessagesAndExistingMessages,
     processNewMessages,
@@ -434,104 +432,51 @@ describe('processThreads', () => {
     });
 });
 
-describe('getUTCTimestampBasedOnSelectedThreadCutoffTime', () => {
-    it('30 days cutoff', () => {
-        const thirtyDaysAgo = getUTCTimestampBasedOnSelectedThreadCutoffTime(SelectedTimes.ThirtyDays);
-        const diff = Date.now() - getSafeDateTime(thirtyDaysAgo).getTime();
-        expect(diff).toBeGreaterThan(29 * 24 * 60 * 60 * 1000);
-        expect(diff).toBeLessThan(31 * 24 * 60 * 60 * 1000);
-    });
-
-    it('7 days cutoff', () => {
-        const thirtyDaysAgo = getUTCTimestampBasedOnSelectedThreadCutoffTime(SelectedTimes.SevenDays);
-        const diff = Date.now() - getSafeDateTime(thirtyDaysAgo).getTime();
-        expect(diff).toBeGreaterThan(6 * 24 * 60 * 60 * 1000);
-        expect(diff).toBeLessThan(8 * 24 * 60 * 60 * 1000);
-    });
-
-    it('1 day cutoff', () => {
-        const thirtyDaysAgo = getUTCTimestampBasedOnSelectedThreadCutoffTime(SelectedTimes.OneDay);
-        const diff = Date.now() - getSafeDateTime(thirtyDaysAgo).getTime();
-        expect(diff).toBeGreaterThan(23 * 60 * 60 * 1000);
-        expect(diff).toBeLessThan(25 * 60 * 60 * 1000);
-    });
-});
-
 describe('getFilteredThreads', () => {
-    it('Filter threads based on timestamp', () => {
-        const cutoffTime = getUTCTimestampBasedOnSelectedThreadCutoffTime(SelectedTimes.OneDay);
-
-        let threads: Thread[] = [getDefaultThread(new Date(getSafeDateTime(cutoffTime).getTime() - 1).toISOString(), '01')];
-        let result = getFilteredThreads(threads, { selectedCutoffTime: cutoffTime });
-        expect(result.length).toBe(0);
-
-        threads = [getDefaultThread(new Date(getSafeDateTime(cutoffTime).getTime() + 1).toISOString(), '01')];
-        result = getFilteredThreads(threads, { selectedCutoffTime: cutoffTime });
-        expect(result.length).toBe(1);
-    });
-
     it('Filter threads based on severity', () => {
-        const cutoffTime = getUTCTimestampBasedOnSelectedThreadCutoffTime(SelectedTimes.OneDay);
-
-        let threads: Thread[] = [
-            getDefaultThread(new Date(getSafeDateTime(cutoffTime).getTime() + 1).toISOString(), '01', ThreadSeverity.Critical),
-        ];
-        let result = getFilteredThreads(threads, { selectedCutoffTime: cutoffTime, threadSeverity: ThreadSeverity.Critical });
+        let threads: Thread[] = [getDefaultThread(undefined, '01', ThreadSeverity.Critical)];
+        let result = getFilteredThreads(threads, { threadSeverity: ThreadSeverity.Critical });
         expect(result.length).toBe(1);
-        result = getFilteredThreads(threads, { selectedCutoffTime: cutoffTime, threadSeverity: ThreadSeverity.Warning });
+        result = getFilteredThreads(threads, { threadSeverity: ThreadSeverity.Warning });
         expect(result.length).toBe(0);
 
-        threads = [getDefaultThread(new Date(getSafeDateTime(cutoffTime).getTime() + 1).toISOString(), '01', ThreadSeverity.Warning)];
-        result = getFilteredThreads(threads, { selectedCutoffTime: cutoffTime, threadSeverity: ThreadSeverity.Critical });
+        threads = [getDefaultThread(undefined, '01', ThreadSeverity.Warning)];
+        result = getFilteredThreads(threads, { threadSeverity: ThreadSeverity.Critical });
         expect(result.length).toBe(0);
-        result = getFilteredThreads(threads, { selectedCutoffTime: cutoffTime, threadSeverity: ThreadSeverity.Warning });
+        result = getFilteredThreads(threads, { threadSeverity: ThreadSeverity.Warning });
         expect(result.length).toBe(1);
 
-        threads = [getDefaultThread(new Date(getSafeDateTime(cutoffTime).getTime() + 1).toISOString(), '01')];
-        result = getFilteredThreads(threads, { selectedCutoffTime: cutoffTime, threadSeverity: ThreadSeverity.Critical });
+        threads = [getDefaultThread(undefined, '01')];
+        result = getFilteredThreads(threads, { threadSeverity: ThreadSeverity.Critical });
         expect(result.length).toBe(0);
-        result = getFilteredThreads(threads, { selectedCutoffTime: cutoffTime, threadSeverity: ThreadSeverity.Warning });
+        result = getFilteredThreads(threads, { threadSeverity: ThreadSeverity.Warning });
         expect(result.length).toBe(0);
-        result = getFilteredThreads(threads, { selectedCutoffTime: cutoffTime });
+        result = getFilteredThreads(threads, {});
         expect(result.length).toBe(1);
     });
 
     it('Filter threads based on search text', () => {
-        const cutoffTime = getUTCTimestampBasedOnSelectedThreadCutoffTime(SelectedTimes.OneDay);
-
-        const threads: Thread[] = [
-            getDefaultThread(new Date(getSafeDateTime(cutoffTime).getTime() + 1).toISOString(), '01', undefined, 'Thread 01'),
-        ];
-        let result = getFilteredThreads(threads, { selectedCutoffTime: cutoffTime, searchText: '' });
+        const threads: Thread[] = [getDefaultThread(undefined, '01', undefined, 'Thread 01')];
+        let result = getFilteredThreads(threads, { searchText: '' });
         expect(result.length).toBe(1);
-        result = getFilteredThreads(threads, { selectedCutoffTime: cutoffTime, searchText: 'Thread 02' });
+        result = getFilteredThreads(threads, { searchText: 'Thread 02' });
         expect(result.length).toBe(0);
-        result = getFilteredThreads(threads, { selectedCutoffTime: cutoffTime, searchText: 'Thread 011' });
+        result = getFilteredThreads(threads, { searchText: 'Thread 011' });
         expect(result.length).toBe(0);
-        result = getFilteredThreads(threads, { selectedCutoffTime: cutoffTime, searchText: 'Thread 01' });
+        result = getFilteredThreads(threads, { searchText: 'Thread 01' });
         expect(result.length).toBe(1);
     });
 
     it('Filter threads based on source', () => {
-        const cutoffTime = getUTCTimestampBasedOnSelectedThreadCutoffTime(SelectedTimes.OneDay);
+        let threads: Thread[] = [getDefaultThread(undefined, '01', undefined, undefined, ThreadSource.incident)];
 
-        let threads: Thread[] = [
-            getDefaultThread(
-                new Date(getSafeDateTime(cutoffTime).getTime() + 1).toISOString(),
-                '01',
-                undefined,
-                undefined,
-                ThreadSource.incident
-            ),
-        ];
-
-        let result = getFilteredThreads(threads, { selectedCutoffTime: cutoffTime, source: undefined });
+        let result = getFilteredThreads(threads, { source: undefined });
         expect(result.length).toBe(1);
-        result = getFilteredThreads(threads, { selectedCutoffTime: cutoffTime, source: ThreadSource.incident });
+        result = getFilteredThreads(threads, { source: ThreadSource.incident });
         expect(result.length).toBe(1);
 
-        threads = [getDefaultThread(new Date(getSafeDateTime(cutoffTime).getTime() + 1).toISOString(), '01', undefined, undefined)];
-        result = getFilteredThreads(threads, { selectedCutoffTime: cutoffTime, source: ThreadSource.incident });
+        threads = [getDefaultThread(undefined, '01', undefined, undefined)];
+        result = getFilteredThreads(threads, { source: ThreadSource.incident });
         expect(result.length).toBe(0);
     });
 });

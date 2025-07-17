@@ -7,9 +7,8 @@ import { ThreadClient } from '../../Common/Clients/ThreadClient';
 import { Thread, ThreadSource } from '../../Common/Contracts/Azure/SreAgent';
 import { Guid } from '../../Common/Helpers/Guid';
 import { ActivitiesThreadHeaderResources } from '../../Strings/SREAgentResources';
-import { SelectedTimes } from '../Activities/TimeDropdown';
-import { getUTCTimestampBasedOnSelectedThreadCutoffTime, isThreadUnread } from '../Activities/Utility';
-import { ThreadListHandle } from '../Contracts/Activities';
+import { isThreadUnread } from '../Activities/Utility';
+import { ThreadMenuHandle } from '../Contracts/Activities';
 
 export const useActivities = () => {
     const intl = useIntl();
@@ -23,7 +22,7 @@ export const useActivities = () => {
     const [threadPollingTriggerId, setThreadPollingTriggerId] = useState<number>(0);
 
     const untouched = useRef<boolean>(true);
-    const threadListHandleRef = useRef<ThreadListHandle>(null);
+    const threadMenuHandleRef = useRef<ThreadMenuHandle>(null);
 
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const proxy = useContext(AzPortalContext);
@@ -34,7 +33,7 @@ export const useActivities = () => {
 
     const promoteThread = useCallback((threadId: string) => {
         // poll thread immediately to make the recently updated the thread on top.
-        threadListHandleRef.current?.promoteThread(threadId, pollNewThreadsImmediately);
+        threadMenuHandleRef.current?.promoteThread(threadId, pollNewThreadsImmediately);
     }, []);
 
     const selectThread = useCallback(
@@ -76,7 +75,7 @@ export const useActivities = () => {
 
             try {
                 await threadClient.deleteThread(thread.id);
-                threadListHandleRef.current?.removeThreadFromList(thread);
+                threadMenuHandleRef.current?.removeThreadFromList(thread);
                 selectThread(null);
 
                 proxy.log({
@@ -111,7 +110,7 @@ export const useActivities = () => {
     );
 
     const updateThreadLastReadTime = useCallback((threadId: string) => {
-        threadListHandleRef.current?.updateThreadLastReadTime(threadId);
+        threadMenuHandleRef.current?.updateThreadLastReadTime(threadId);
     }, []);
 
     useEffect(() => {
@@ -134,7 +133,8 @@ export const useActivities = () => {
         } else if (!initialThreadId && !activeThreadId && untouched.current) {
             // Check for welcome thread if no specific thread ID is provided
             const checkForWelcomeThread = async () => {
-                const timestampCutoff = getUTCTimestampBasedOnSelectedThreadCutoffTime(SelectedTimes.OneDay);
+                // Get the welcome thread for the last 24 hours if it exists
+                const timestampCutoff = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString();
 
                 const threadsResponse = await threadClient.getThreads({
                     skip: 0,
@@ -178,6 +178,6 @@ export const useActivities = () => {
         threadContentAndActionKey,
         activeThreadId,
         threadPollingTriggerId,
-        threadListHandleRef,
+        threadMenuHandleRef,
     };
 };

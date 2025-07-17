@@ -118,7 +118,6 @@ export const SreAgentResources = defineMessages({
     },
     update: { defaultMessage: 'Update', id: 'BWpuKl' },
     actions: { defaultMessage: 'Actions', id: 'wL7VAE' },
-    actionsCompleted: { defaultMessage: '{numOfActions} actions completed', id: 'RI4Umu' },
     active: { defaultMessage: 'Active', id: '3a5wL8' },
     acknowledged: { defaultMessage: 'Acknowledged', id: 'FnKIAW' },
     triggered: { defaultMessage: 'Triggered', id: 'Zqa4dQ' },

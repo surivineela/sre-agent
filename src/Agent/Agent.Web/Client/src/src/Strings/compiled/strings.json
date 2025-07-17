@@ -2051,16 +2051,6 @@
       "value": "Only alphanumeric characters and dashes are allowed, and the value must be 3-44 characters long."
     }
   ],
-  "RI4Umu": [
-    {
-      "type": 1,
-      "value": "numOfActions"
-    },
-    {
-      "type": 0,
-      "value": " actions completed"
-    }
-  ],
   "RSDnlS": [
     {
       "type": 0,

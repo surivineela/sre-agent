@@ -85,13 +85,13 @@ const ThreadItem = ({
             {isActive && <div className={ThreadMenuStyles.borderIndicator} />}
             <div className={ThreadMenuStyles.content}>
                 <div className={styles.threadTitleWithAction}>
-                    <Text size={300} wrap={false} block weight={makeTextBold ? 'bold' : 'regular'}>
+                    <Text className={styles.title} size={300} wrap={false} block weight={makeTextBold ? 'bold' : 'regular'}>
                         {thread.title}
                     </Text>
                     <Menu>
                         <MenuTrigger disableButtonEnhancement>
                             <MenuButton
-                                appearance="subtle"
+                                appearance="transparent"
                                 size="small"
                                 icon={<MoreHorizontal20Regular />}
                                 onClick={e => {
@@ -132,12 +132,12 @@ const ThreadItem = ({
                 {thread.source === ThreadSource.incident ? (
                     <div className={styles.subtitleContainer}>
                         <span className={styles.statusPill}>{getIncidentStatus(thread)}</span>
-                        <Text className={styles.subtitle} size={200} wrap={false} block weight={makeTextBold ? 'bold' : 'regular'}>
+                        <Text className={styles.title} size={200} wrap={false} block weight={makeTextBold ? 'bold' : 'regular'}>
                             {thread.lastMessage?.text}
                         </Text>
                     </div>
                 ) : (
-                    <Text size={200} wrap={false} block weight={makeTextBold ? 'bold' : 'regular'}>
+                    <Text className={styles.title} size={200} wrap={false} block weight={makeTextBold ? 'bold' : 'regular'}>
                         {thread.lastMessage?.text}
                     </Text>
                 )}

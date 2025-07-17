@@ -1,10 +1,11 @@
 import { mergeClasses } from '@fluentui/react-components';
 import { Skeleton, SkeletonItem } from '@fluentui/react-skeleton';
-import { forwardRef, memo, useEffect, useRef, useState } from 'react';
-import InfiniteScroll from 'react-infinite-scroll-component';
+import debounce from 'lodash/debounce';
+import { forwardRef, memo, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { Thread } from '../../Common/Contracts/Azure/SreAgent';
 import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
 import { getIntervalBetweenLoading } from '../Activities/Utility';
+import { ThreadListHandle } from '../Contracts/Activities';
 import { skeletonStyle, useThreadMenuStyle } from '../Styles/Activities.styles';
 import ThreadItem from './ThreadItem';
 
@@ -22,7 +23,7 @@ interface IThreadsListProps {
 // A thread list component that displays a list of the threads filtered by search text, source, timestamp and severity.
 // The threads are loaded dynamically when scrolling down the list, backed by an infinite scroll component.
 // An intersection observer is also used to load more threads when the requirement of making infinite scroll component work is not satisfied.
-const ThreadsList = forwardRef<HTMLDivElement, IThreadsListProps>((props, ref) => {
+const ThreadsList = forwardRef<ThreadListHandle, IThreadsListProps>((props, ref) => {
     const {
         threads,
         isLoadingInitialThreads,
@@ -36,9 +37,30 @@ const ThreadsList = forwardRef<HTMLDivElement, IThreadsListProps>((props, ref) =
 
     const [isIntersecting, setIsIntersecting] = useState<boolean>(false);
     const intersectionObserverRef = useRef<HTMLDivElement | null>(null);
+    const threadListDivRef = useRef<HTMLDivElement | null>(null);
+    const currentScrollTop = useRef<number>(0);
 
     const { scrollable } = useScrollableComponentStyles();
     const ThreadMenuStyles = useThreadMenuStyle();
+
+    useImperativeHandle(ref, () => ({
+        getThreadListHeight: () => {
+            return threadListDivRef.current?.clientHeight || 0;
+        },
+    }));
+
+    const handleScroll = debounce(() => {
+        loadMoreOldThreads(false);
+    }, 300);
+
+    const onScroll = () => {
+        const previousScrollTop = currentScrollTop.current;
+        currentScrollTop.current = threadListDivRef.current?.scrollTop || 0;
+
+        if (currentScrollTop.current > previousScrollTop && hasMoreOldThreads) {
+            handleScroll();
+        }
+    };
 
     // Use an intersection observer to load more threads to overflow the threads list div if the current number of threads
     // does not overflow the threads list div anymore due to events such as zoom out, which makes InifiniteScroll not able to work.
@@ -58,7 +80,8 @@ const ThreadsList = forwardRef<HTMLDivElement, IThreadsListProps>((props, ref) =
     }, [isLoadingInitialThreads]);
 
     useEffect(() => {
-        let timeoutId: NodeJS.Timeout | null = null;
+        let isSubscribed = true;
+        let timeoutId: NodeJS.Timeout | undefined = undefined;
 
         if (isIntersecting && hasMoreOldThreads) {
             let exponentialBackoffDepth = -1;
@@ -69,48 +92,43 @@ const ThreadsList = forwardRef<HTMLDivElement, IThreadsListProps>((props, ref) =
                 exponentialBackoffDepth = isSuccessful === false ? exponentialBackoffDepth + 1 : -1;
                 const interval = getIntervalBetweenLoading(exponentialBackoffDepth);
 
-                timeoutId = setTimeout(loadOldThreads, interval);
+                if (isSubscribed) {
+                    timeoutId = setTimeout(loadOldThreads, interval);
+                }
             };
             loadOldThreads();
         }
 
         return () => {
-            if (timeoutId !== null) {
-                clearTimeout(timeoutId);
-            }
+            isSubscribed = false;
+            clearTimeout(timeoutId);
         };
     }, [loadMoreOldThreads, isIntersecting, hasMoreOldThreads]);
 
     return (
-        <div className={ThreadMenuStyles.threadListContainer}>
-            <div className={mergeClasses(scrollable, ThreadMenuStyles.threadList)} role="tree" ref={ref} id={'threads-list-scrollable'}>
-                <InfiniteScroll
-                    dataLength={threads.length}
-                    next={() => loadMoreOldThreads(false)}
-                    hasMore={hasMoreOldThreads}
-                    loader={null}
-                    scrollThreshold={0.1} // Trigger loading more threads when scrolled to 10% of the scrollable area
-                    scrollableTarget={'threads-list-scrollable'}
-                >
-                    {threads.map(thread => {
-                        return (
-                            <ThreadItem
-                                key={thread.id}
-                                thread={thread}
-                                selectThread={selectThread}
-                                deleteThread={deleteThread}
-                                isActive={activeThreadId === thread.id}
-                                isThreadUnread={unreadThreadIds.has(thread.id)}
-                            />
-                        );
-                    })}
-                    {hasMoreOldThreads && (
-                        <Skeleton style={skeletonStyle} ref={intersectionObserverRef}>
-                            <SkeletonItem />
-                        </Skeleton>
-                    )}
-                </InfiniteScroll>
-            </div>
+        <div
+            className={mergeClasses(scrollable, ThreadMenuStyles.threadListContainer)}
+            role="tree"
+            ref={threadListDivRef}
+            onScroll={onScroll}
+        >
+            {threads.map(thread => {
+                return (
+                    <ThreadItem
+                        key={thread.id}
+                        thread={thread}
+                        selectThread={selectThread}
+                        deleteThread={deleteThread}
+                        isActive={activeThreadId === thread.id}
+                        isThreadUnread={unreadThreadIds.has(thread.id)}
+                    />
+                );
+            })}
+            {hasMoreOldThreads && (
+                <Skeleton style={skeletonStyle} ref={intersectionObserverRef}>
+                    <SkeletonItem />
+                </Skeleton>
+            )}
         </div>
     );
 });

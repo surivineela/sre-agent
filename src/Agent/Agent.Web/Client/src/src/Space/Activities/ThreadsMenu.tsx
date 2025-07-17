@@ -5,17 +5,16 @@ import { useIntl } from 'react-intl';
 import { ThreadSource } from '../../Common/Contracts/Azure/SreAgent';
 import { ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import ThreadsList from '../Components/ThreadsList';
-import { IThreadsMenuProps, ThreadListHandle } from '../Contracts/Activities';
+import { IThreadsMenuProps, ThreadMenuHandle } from '../Contracts/Activities';
 import { AgentContext } from '../Contracts/Context';
 import { useMetrics } from '../Hooks/useMetrics';
 import { useThreadsMenu } from '../Hooks/useThreadsMenu';
-import { getExpandCollapseButtonStyles, searchBoxStyle } from '../Styles/Activities.styles';
-import ActivitiesStatusBar from './ActionsStatusBar';
+import { getExpandCollapseButtonStyles, searchBoxStyle, useThreadMenuStyle } from '../Styles/Activities.styles';
 import IncidentStatusBar from './IncidentStatusBar';
 const expandCollapseButtonStyles = getExpandCollapseButtonStyles('left');
 
-export const ThreadsMenu = forwardRef<ThreadListHandle, IThreadsMenuProps>(
-    (props: IThreadsMenuProps, ref: ForwardedRef<ThreadListHandle>) => {
+export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
+    (props: IThreadsMenuProps, ref: ForwardedRef<ThreadMenuHandle>) => {
         const { selectThread, deleteThread, threadPollingTriggerId, collapsed, setCollapsed } = props;
 
         const {
@@ -24,15 +23,16 @@ export const ThreadsMenu = forwardRef<ThreadListHandle, IThreadsMenuProps>(
             isLoadingInitialThreads,
             loadMoreOldThreads,
             hasMoreOldThreads,
-            threadsListDivRef,
+            threadListHandleRef,
             onThreadSearchTextChange,
             threadSource,
             setThreadSource,
-            oldestThreadModifiedTimestamp,
-            setOldestThreadModifiedTimestamp,
             setThreadSeverity,
             unreadThreadIds,
+            oldestThreadModifiedTimestamp,
         } = useThreadsMenu(threadPollingTriggerId, ref);
+
+        const threadMenuStyles = useThreadMenuStyle();
 
         const { activeThreadId } = useContext(AgentContext);
 
@@ -41,7 +41,7 @@ export const ThreadsMenu = forwardRef<ThreadListHandle, IThreadsMenuProps>(
         const { incidentMetrics } = useMetrics(oldestThreadModifiedTimestamp);
 
         return (
-            <div style={{ display: 'contents' }}>
+            <div className={threadMenuStyles.root}>
                 <div style={expandCollapseButtonStyles.container}>
                     <Button
                         style={expandCollapseButtonStyles.button}
@@ -59,16 +59,13 @@ export const ThreadsMenu = forwardRef<ThreadListHandle, IThreadsMenuProps>(
                         appearance="transparent"
                     />
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div className={threadMenuStyles.newItemButtonAndSearchBox}>
                     <Button
                         style={{
                             height: 'auto',
                             borderRadius: tokens.borderRadiusLarge,
                             borderColor: tokens.colorNeutralBackground3Selected,
                             maxWidth: 'fit-content',
-                            marginLeft: '10px',
-                            marginTop: '-10px',
-                            marginRight: '10px',
                             minWidth: 'unset',
                         }}
                         icon={<AddRegular />}
@@ -94,24 +91,16 @@ export const ThreadsMenu = forwardRef<ThreadListHandle, IThreadsMenuProps>(
                             setThreadSource(data.value as ThreadSource);
                         }}
                         layout="horizontal"
-                        style={{ flexWrap: 'wrap' }}
+                        style={{ flexWrap: 'wrap', padding: '10px' }}
                     >
                         <Radio value={''} label={intl.formatMessage(SreAgentResources.allThreads)} />
                         <Radio value={ThreadSource.incident} label={intl.formatMessage(SreAgentResources.incidents)} />
                     </RadioGroup>
                 )}
-                {collapsed || !hasChatPermissions ? null : !threadSource ? (
-                    <ActivitiesStatusBar selectedTime={oldestThreadModifiedTimestamp} setSelectedTime={setOldestThreadModifiedTimestamp} />
-                ) : (
-                    <IncidentStatusBar
-                        selectedTime={oldestThreadModifiedTimestamp}
-                        setSelectedTime={setOldestThreadModifiedTimestamp}
-                        incidentMetrics={incidentMetrics}
-                    />
-                )}
+                {!collapsed && hasChatPermissions && threadSource && <IncidentStatusBar incidentMetrics={incidentMetrics} />}
                 {!collapsed && hasChatPermissions && (
                     <ThreadsList
-                        ref={threadsListDivRef}
+                        ref={threadListHandleRef}
                         threads={threads}
                         isLoadingInitialThreads={isLoadingInitialThreads}
                         selectThread={selectThread}

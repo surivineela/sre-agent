@@ -43,10 +43,14 @@ export interface IThreadActivitiesProps {
     thread?: Thread | null;
 }
 
-export type ThreadListHandle = {
+export type ThreadMenuHandle = {
     removeThreadFromList: (thread: Thread) => void;
     promoteThread: (threadId: string, promote: () => void) => void;
     updateThreadLastReadTime: (threadId: string) => void;
+};
+
+export type ThreadListHandle = {
+    getThreadListHeight: () => number;
 };
 
 export interface IChatBoxProps {

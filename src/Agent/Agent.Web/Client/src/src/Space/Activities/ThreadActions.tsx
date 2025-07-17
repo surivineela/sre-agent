@@ -10,7 +10,7 @@ import { ActionsResources, ActivitiesResources, SreAgentResources } from '../../
 import { IThreadActivitiesProps } from '../Contracts/Activities';
 import { AgentContext } from '../Contracts/Context';
 import { useActions } from '../Hooks/useActions';
-import { getExpandCollapseButtonStyles, searchBoxStyle, shimmerStyle, useThreadActionsStyles } from '../Styles/Activities.styles';
+import { actionSearchBoxStyle, getExpandCollapseButtonStyles, shimmerStyle, useThreadActionsStyles } from '../Styles/Activities.styles';
 
 export const ThreadActions: FC<IThreadActivitiesProps> = (props: IThreadActivitiesProps) => {
     const { threadContentAndActionKey } = useContext(AgentContext);
@@ -58,7 +58,7 @@ const ThreadActionsContent: FC<IThreadActivitiesProps> = (props: IThreadActiviti
                 {intl.formatMessage(ActionsResources.actions)}
             </Text>
             <SearchBox
-                style={searchBoxStyle}
+                style={actionSearchBoxStyle}
                 placeholder={intl.formatMessage(SreAgentResources.search)}
                 onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) => setSearchString(data.value ?? ''))}
             />

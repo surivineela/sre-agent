@@ -318,28 +318,20 @@ export const sendButtonStyles = {
     padding: '6px',
 };
 
-export const useThreadMenuStyle = (collapsed?: boolean) => {
+export const useThreadMenuStyle = () => {
     const root: IStyle = {
-        flex: collapsed ? '0 0 0%' : '0 0 20%',
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'flex-start',
-        alignItems: 'stretch',
-        gap: '10px',
-        backgroundColor: tokens.colorNeutralBackground3,
-        paddingLeft: '10px',
+        height: '100%',
+        maxWidth: '100%',
+        position: 'absolute',
+        left: '0',
+        right: '0',
     };
 
     const threadListContainer: IStyle = {
-        maxWidth: '100%',
         padding: '0px 10px',
-    };
-
-    const threadList: IStyle = {
-        position: 'absolute',
-        height: 'calc(100vh - 278px)',
-        left: '0px',
-        right: '0px',
+        flex: 1,
     };
 
     const threadItem: IStyle = {
@@ -347,6 +339,7 @@ export const useThreadMenuStyle = (collapsed?: boolean) => {
         paddingLeft: '10px',
         cursor: 'pointer',
         height: `${ThreadItemHeightInPx}px`,
+        width: '100%',
     };
 
     const activeThreadItem: IStyle = {
@@ -356,6 +349,13 @@ export const useThreadMenuStyle = (collapsed?: boolean) => {
         alignItems: 'center',
         gap: '6px',
         borderRadius: '3px',
+    };
+
+    const newItemButtonAndSearchBox: IStyle = {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px',
+        padding: '0px 10px',
     };
 
     const hoveredThreadItem: IStyle = {
@@ -375,20 +375,22 @@ export const useThreadMenuStyle = (collapsed?: boolean) => {
         borderRadius: '6px',
         flexShrink: 0,
     };
+
     const content = {
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
+        width: '100%',
     };
 
     return mergeStyleSets({
         root,
         threadListContainer,
-        threadList,
         threadItem,
         activeThreadItem,
         hoveredThreadItem,
         borderIndicator,
+        newItemButtonAndSearchBox,
         content,
     });
 };
@@ -472,6 +474,11 @@ export const useThreadActionsStyles = makeStyles({
 });
 
 export const searchBoxStyle: CSSProperties = {
+    borderRadius: tokens.borderRadiusLarge,
+    maxWidth: '100%',
+};
+
+export const actionSearchBoxStyle: CSSProperties = {
     margin: '0px 10px',
     borderRadius: tokens.borderRadiusLarge,
     maxWidth: '100%',

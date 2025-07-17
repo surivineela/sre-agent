@@ -1,21 +1,25 @@
 import debounce from 'lodash/debounce';
-import { Ref, useCallback, useContext, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import { Ref, useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { ThreadClient, ThreadSeverity } from '../../Common/Clients/ThreadClient';
 import { Thread, ThreadSource } from '../../Common/Contracts/Azure/SreAgent';
 import { KnowledgeGraphBuildStatusContext } from '../../Common/Providers/KnowledgeGraphBuildStatusProvider';
-import { SelectedTimes } from '../Activities/TimeDropdown';
 import {
     getFilteredThreads,
     getNumberOfThreadsToOverflowThreadsListDiv,
     getUpdatedUnreadThreadIds,
-    getUTCTimestampBasedOnSelectedThreadCutoffTime,
     processThreads,
     removeThreadIdsFromUnreadThreads,
 } from '../Activities/Utility';
-import { ThreadListHandle, ThreadLoadingCounts, ThreadPollingCounts, ThreadPollingInterval } from '../Contracts/Activities';
+import {
+    ThreadListHandle,
+    ThreadLoadingCounts,
+    ThreadMenuHandle,
+    ThreadPollingCounts,
+    ThreadPollingInterval,
+} from '../Contracts/Activities';
 
-export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadListHandle>) => {
+export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadMenuHandle>) => {
     const [threads, setThreads] = useState<Thread[]>([]);
     const [isLoadingInitialThreads, setIsLoadingInitialThreads] = useState<boolean>(true);
 
@@ -25,18 +29,15 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadLi
 
     const [threadSearchText, setThreadSearchText] = useState<string>();
     const [threadSource, setThreadSource] = useState<ThreadSource>();
-    const [oldestThreadModifiedTimestamp, setOldestThreadModifiedTimestamp] = useState<SelectedTimes>(SelectedTimes.OneDay);
     const [threadSeverity, setThreadSeverity] = useState<ThreadSeverity>();
     const [hasMoreOldThreads, setHasMoreOldThreads] = useState<boolean>(true);
     const [threadsFilterOptions, setThreadsFilterOptions] = useState<{
         threadSearchText?: string;
         threadSource?: ThreadSource;
-        oldestThreadModifiedTimestamp: SelectedTimes;
         threadSeverity?: ThreadSeverity;
     }>({
         threadSearchText: undefined,
         threadSource: undefined,
-        oldestThreadModifiedTimestamp: SelectedTimes.OneDay,
         threadSeverity: undefined,
     });
     const [unreadThreadIds, setUnreadThreadIds] = useState<Set<string>>(new Set<string>());
@@ -44,7 +45,7 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadLi
     const latestThread = useRef<Thread>();
     const oldestThread = useRef<Thread>();
     const threadsLength = useRef<number>(0);
-    const threadsListDivRef = useRef<HTMLDivElement | null>(null);
+    const threadListHandleRef = useRef<ThreadListHandle>(null);
     const isLoadingOldThreads = useRef<boolean>(false);
     const loadOldThreadCallId = useRef<number>(0);
 
@@ -59,13 +60,10 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadLi
     const getOldThreadsRequest = async (
         threadSearchText: string | undefined,
         threadSource: ThreadSource | undefined,
-        oldestThreadModifiedTimestamp: SelectedTimes,
         threadSeverity: ThreadSeverity | undefined,
         numberOfThreadsToLoad: number,
         oldestThread: Thread | undefined
     ) => {
-        const timestampCutoff = getUTCTimestampBasedOnSelectedThreadCutoffTime(oldestThreadModifiedTimestamp);
-
         return await threadClient.getThreads({
             skip: 0,
             top: numberOfThreadsToLoad,
@@ -73,10 +71,6 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadLi
             filters: {
                 searchText: threadSearchText,
                 timestamps: {
-                    min: {
-                        timestamp: timestampCutoff,
-                        inclusive: true,
-                    },
                     max: oldestThread
                         ? {
                               timestamp: oldestThread.modifiedTimestamp,
@@ -92,7 +86,7 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadLi
 
     /**
      * Poll latest threads by sorting the threads by modifiedTimestamp in ascending order, filter based on other options, and getting top 5 threads
-     * that are greater than the latest thread's modifiedTimestamp. If latest thread does not exist, get the threads that are greater or equal than the selected time cutoff
+     * that are greater than the latest thread's modifiedTimestamp.
      * @param threadSearchText
      * @param threadSource
      * @param oldestThreadModifiedTimestamp
@@ -103,12 +97,9 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadLi
     const pollNewThreadsRequest = async (
         threadSearchText: string | undefined,
         threadSource: ThreadSource | undefined,
-        oldestThreadModifiedTimestamp: SelectedTimes,
         threadSeverity: ThreadSeverity | undefined,
         latestThread: Thread | undefined
     ) => {
-        const timestampCutoff = getUTCTimestampBasedOnSelectedThreadCutoffTime(oldestThreadModifiedTimestamp);
-
         const newThreadsInAscendingOrderResponse = await threadClient.getThreads({
             skip: 0,
             top: ThreadPollingCounts.default,
@@ -116,10 +107,12 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadLi
             filters: {
                 searchText: threadSearchText,
                 timestamps: {
-                    min: {
-                        timestamp: latestThread ? latestThread.modifiedTimestamp : timestampCutoff,
-                        inclusive: !latestThread,
-                    },
+                    min: latestThread
+                        ? {
+                              timestamp: latestThread.modifiedTimestamp,
+                              inclusive: false,
+                          }
+                        : undefined,
                 },
                 source: threadSource,
             },
@@ -151,20 +144,19 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadLi
 
     const loadMoreOldThreads = useCallback(
         async (overflowDiv: boolean): Promise<boolean | undefined> => {
-            const { threadSearchText, threadSource, oldestThreadModifiedTimestamp, threadSeverity } = threadsFilterOptions;
+            const { threadSearchText, threadSource, threadSeverity } = threadsFilterOptions;
 
             if (!isLoadingInitialThreads && !isLoadingOldThreads.current) {
                 const callId = loadOldThreadCallId.current;
                 isLoadingOldThreads.current = true;
 
                 const numberOfThreadsToLoad = overflowDiv
-                    ? getNumberOfThreadsToOverflowThreadsListDiv(threadsListDivRef.current?.clientHeight, threadsLength.current)
+                    ? getNumberOfThreadsToOverflowThreadsListDiv(threadListHandleRef.current?.getThreadListHeight(), threadsLength.current)
                     : ThreadLoadingCounts.scroll;
 
                 const oldThreadsResponse = await getOldThreadsRequest(
                     threadSearchText,
                     threadSource,
-                    oldestThreadModifiedTimestamp,
                     threadSeverity,
                     numberOfThreadsToLoad,
                     oldestThread.current
@@ -201,10 +193,9 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadLi
         setThreadsFilterOptions({
             threadSearchText,
             threadSource,
-            oldestThreadModifiedTimestamp,
             threadSeverity,
         });
-    }, [threadSearchText, threadSource, oldestThreadModifiedTimestamp, threadSeverity]);
+    }, [threadSearchText, threadSource, threadSeverity]);
 
     useEffect(() => {
         // Increment loadOldThreadCallId when threadsFilterOptions or isLoadingInitialThreads changes, to ensure that the result from calling loadMoreOldThreads with outdated filter options and isLoadingInitialThreads state value is disregarded
@@ -219,6 +210,8 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadLi
         threadsLength.current = threads.length;
     }, [threads]);
 
+    const oldestThreadModifiedTimestamp = useMemo(() => threads[threads.length - 1]?.modifiedTimestamp, [threads]);
+
     // Load initial threads when the component mounts or when threadsFilterOptions changes
     useEffect(() => {
         if (!hasChatPermissions) {
@@ -229,14 +222,13 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadLi
 
         let isSubscribed = true;
 
-        const { threadSearchText, threadSource, oldestThreadModifiedTimestamp, threadSeverity } = threadsFilterOptions;
+        const { threadSearchText, threadSource, threadSeverity } = threadsFilterOptions;
 
         const setInitialThreads = async () => {
             // For a better user experience, we show the existing threads in the memory based on the filter options, before making a request to get the filtered threads from service side.
             setThreads(prev =>
                 getFilteredThreads(prev, {
                     searchText: threadSearchText,
-                    selectedCutoffTime: getUTCTimestampBasedOnSelectedThreadCutoffTime(oldestThreadModifiedTimestamp),
                     threadSeverity,
                     source: threadSource,
                 })
@@ -245,12 +237,11 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadLi
             // Send a request to load initial threads based on the filter options to overflow the threads list div if possible
             isLoadingOldThreads.current = true;
 
-            const numberOfThreadsToLoad = getNumberOfThreadsToOverflowThreadsListDiv(threadsListDivRef.current?.clientHeight, 0);
+            const numberOfThreadsToLoad = getNumberOfThreadsToOverflowThreadsListDiv(threadListHandleRef.current?.getThreadListHeight(), 0);
 
             const initialThreadsResponse = await getOldThreadsRequest(
                 threadSearchText,
                 threadSource,
-                oldestThreadModifiedTimestamp,
                 threadSeverity,
                 numberOfThreadsToLoad,
                 undefined
@@ -291,21 +282,20 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadLi
 
         if (!isLoadingInitialThreads) {
             const pollNewThreads = async () => {
-                const { threadSearchText, threadSource, oldestThreadModifiedTimestamp, threadSeverity } = threadsFilterOptions;
+                const { threadSearchText, threadSource, threadSeverity } = threadsFilterOptions;
 
                 const newThreadsInAscendingOrderResponse = await pollNewThreadsRequest(
                     threadSearchText,
                     threadSource,
-                    oldestThreadModifiedTimestamp,
                     threadSeverity,
                     latestThread.current
                 );
 
-                const newThreadsInAsecindgOrder = newThreadsInAscendingOrderResponse.content ?? [];
+                const newThreadsInAscendingOrder = newThreadsInAscendingOrderResponse.content ?? [];
 
                 if (isSubscribed) {
                     setThreads(prevThreads => {
-                        const { threads: totalThreads, addedThreads } = processThreads(prevThreads, newThreadsInAsecindgOrder, true);
+                        const { threads: totalThreads, addedThreads } = processThreads(prevThreads, newThreadsInAscendingOrder, true);
                         setUnreadThreadIds(prev => getUpdatedUnreadThreadIds(prev, addedThreads));
                         return totalThreads;
                     });
@@ -328,12 +318,11 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadLi
         isLoadingInitialThreads,
         loadMoreOldThreads,
         hasMoreOldThreads,
-        threadsListDivRef,
+        threadListHandleRef,
         onThreadSearchTextChange,
         threadSource,
         setThreadSource,
         oldestThreadModifiedTimestamp,
-        setOldestThreadModifiedTimestamp,
         setThreadSeverity,
         unreadThreadIds,
         updateThreadLastReadTime,
