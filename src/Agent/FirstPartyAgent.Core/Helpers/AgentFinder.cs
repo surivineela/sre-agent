@@ -11,9 +11,36 @@ using FirstPartyAgent.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace FirstPartyAgent.Core.Helpers
 {
+    // Simple class to read YAML agent configuration
+    public class YamlAgentConfig
+    {
+        [YamlMember(Alias = "name")]
+        public string Name { get; set; } = string.Empty;
+
+        [YamlMember(Alias = "system_prompt")]
+        public string SystemPrompt { get; set; } = string.Empty;
+
+        [YamlMember(Alias = "handoff_description")]
+        public string? HandoffDescription { get; set; }
+
+        [YamlMember(Alias = "tools")]
+        public List<string>? Tools { get; set; }
+
+        [YamlMember(Alias = "handoffs")]
+        public List<string>? Handoffs { get; set; }
+
+        [YamlMember(Alias = "common_prompts")]
+        public List<string>? CommonPrompts { get; set; }
+
+        [YamlMember(Alias = "max_reflection_count")]
+        public int? MaxReflectionCount { get; set; }
+    }
+
     public static class AgentFinder
     {
         private static Dictionary<string, List<string>> AgentPluginsConfig = new Dictionary<string, List<string>>()
@@ -68,7 +95,15 @@ namespace FirstPartyAgent.Core.Helpers
         {
             var results = new List<AgentPromptModel>();
 
-            // Get all static classes in the specified namespace.
+            // First try to load from YAML file
+            var yamlResult = TryLoadAgentFromYaml(mode);
+            if (yamlResult != null)
+            {
+                results.Add(yamlResult);
+                return results;
+            }
+
+            // Fallback to reflection-based approach for C# classes
             var types = Assembly.GetExecutingAssembly().GetTypes()
                         .Where(t => t.Namespace == "FirstPartyAgent.AgentPrompts"
                                     && t.IsClass
@@ -92,6 +127,81 @@ namespace FirstPartyAgent.Core.Helpers
             }
 
             return results;
+        }
+
+        private static AgentPromptModel? TryLoadAgentFromYaml(AgentMode mode)
+        {
+            try
+            {
+                var agentName = $"{mode}Agent";
+                var yamlFileName = $"{agentName}.yaml";
+
+                // Try multiple possible paths for the YAML file
+                var possiblePaths = new[]
+                {
+                    Path.Combine(AppContext.BaseDirectory, "AgentsV2", "ACA-FirstParty", yamlFileName),
+                    Path.Combine(AppContext.BaseDirectory, "..", "Agent.Runtime", "AgentsV2", "ACA-FirstParty", yamlFileName),
+                    Path.Combine(Directory.GetCurrentDirectory(), "AgentsV2", "ACA-FirstParty", yamlFileName)
+                };
+
+                string yamlPath = null;
+                foreach (var path in possiblePaths)
+                {
+                    if (File.Exists(path))
+                    {
+                        yamlPath = path;
+                        break;
+                    }
+                }
+
+                if (yamlPath != null)
+                {
+                    var yamlContent = File.ReadAllText(yamlPath);
+                    var deserializer = new DeserializerBuilder()
+                        .WithNamingConvention(UnderscoredNamingConvention.Instance)
+                        .Build();
+
+                    var yamlAgent = deserializer.Deserialize<YamlAgentConfig>(yamlContent);
+
+                    // Use the agent name from YAML if available, otherwise construct from mode
+                    var displayName = !string.IsNullOrEmpty(yamlAgent.Name) ? yamlAgent.Name : agentName;
+
+                    // Provide a default handoff description if not specified
+                    var handoffDescription = yamlAgent.HandoffDescription ?? GetDefaultHandoffDescription(mode);
+
+                    return new AgentPromptModel(
+                        displayName,
+                        handoffDescription,
+                        yamlAgent.SystemPrompt
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log error and continue with fallback approach
+                Console.WriteLine($"Error reading YAML file for {mode} agent: {ex.Message}");
+            }
+
+            return null;
+        }
+
+        private static string GetDefaultHandoffDescription(AgentMode mode)
+        {
+            return mode switch
+            {
+                AgentMode.ColdStart => "This is the SRE Agent that helps with Functions Consumption Cold Start regressions and troubleshooting.",
+                AgentMode.DevOpsAgent => "This agent helps with Azure DevOps operations and troubleshooting.",
+                AgentMode.ControlPlane => "This agent helps with control plane operations and incident management.",
+                AgentMode.ICMAgent => "This agent helps with ICM incident management and troubleshooting.",
+                AgentMode.Sev2 => "This agent helps with Sev2 incident management and resolution.",
+                AgentMode.ICMSummarizer => "This agent helps with summarizing ICM incidents.",
+                AgentMode.ICMCorrelationAgent => "This agent helps with correlating ICM incidents.",
+                AgentMode.ICMTriagerAgent => "This agent helps with triaging ICM incidents.",
+                AgentMode.EmergingIssue => "This agent helps with emerging issue detection and management.",
+                AgentMode.EmergingIssueManager => "This agent helps with managing emerging issues.",
+                AgentMode.ACIToLegionMigration => "This agent helps with ACI to Legion migration tasks.",
+                _ => $"This is the {mode} agent that provides specialized assistance."
+            };
         }
     }
 

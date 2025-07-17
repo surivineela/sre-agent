@@ -66,4 +66,8 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Plugins\Definitions\Queries\ColdStart\" />
+  </ItemGroup>
+
 </Project>

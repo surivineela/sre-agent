@@ -26,8 +26,9 @@
 		<PackageReference Include="Microsoft.SemanticKernel" />
 		<PackageReference Include="Markdig" />
 		<PackageReference Include="Microsoft.SemanticKernel.Connectors.AzureOpenAI" />
-    <PackageReference Include="ReverseMarkdown" />
+		<PackageReference Include="ReverseMarkdown" />
 		<PackageReference Include="System.Linq" />
+		<PackageReference Include="YamlDotNet" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -181,5 +182,11 @@
   <!-- Add system prompt files -->
 
   <!-- Add sub-agents plan files -->
+
+  <ItemGroup>
+    <None Include="..\Agent.Runtime\AgentsV2\ACA-FirstParty\ColdStartAgent.yaml" Link="AgentsV2\ACA-FirstParty\ColdStartAgent.yaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 
 </Project>

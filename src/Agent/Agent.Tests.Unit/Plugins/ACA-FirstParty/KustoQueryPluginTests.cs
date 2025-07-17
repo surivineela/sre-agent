@@ -83,15 +83,15 @@ namespace Agent.Tests.Unit.Plugins
                     "CheckScaleControllerVotesToDataService.kql",
                     "GetColdStartProfileData.kql",
                     "GetColdStartProfileDataDetails.kql",
-                    "GetColdStartQueryForSlaSites.kql",
+                    "GetColdStartDetailsForSlaSites.kql",
                     "GetColdStartRequestDetailsForFlexConsumption.kql",
-                    "GetColdStartRequestDetailsForFlexConsumptionFromLegion.kql",
                     "GetColdStartRequestDetailsForLinuxConsumption.kql",
                     "GetColdStartRequestDetailsForWindowsConsumption.kql",
-                    "GetColdStartStatusByRegion.kql",
-                    "GetColdStartStatusByStage.kql",
-                    "GetRequestGeneralInfoQueryFromAnalytics.kql",
-                    "GetRequestGeneralInfoQueryFromWaws.kql",
+                    "GetColdStartRequestDetailsFromLegion.kql",
+                    "FindRequestGeneralInfoFromAnalytics.kql",
+                    "FindRequestGeneralInfoFromWaws.kql",
+                    "RunColdStartRegressionAnalysis.kql",
+                    "RunColdStartRegressionAnalysisPerRegion.kql",
                     "GetSyncTriggersFromSiteName.kql"
                 };
 
@@ -117,7 +117,7 @@ namespace Agent.Tests.Unit.Plugins
 
                 var lastLine = lines.First(); // This is the last non-empty line in the original file
 
-              
+
                 var trimmedLastLine = lastLine.Trim();
                 if (trimmedLastLine.StartsWith("|"))
                 {

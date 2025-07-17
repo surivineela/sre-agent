@@ -32,7 +32,7 @@ namespace FirstPartyAgent.Plugins
             public string KustoResult { get; set; }
         }
 
-        [KernelFunction("find_request_general_info")]
+        [KernelFunction("FindRequestGeneralInfo")]
         [Description("find general info about the http request.")]
         public async Task<List<KustoQueryResponse>> FindRequestGeneralInfo(
             string siteName,
@@ -65,7 +65,7 @@ namespace FirstPartyAgent.Plugins
                         ["activityId"] = activityId,
                         ["utcDateTime"] = utcDateTime
                     };
-                    kustoQuery = ReadAndFormatKqlQuery("GetRequestGeneralInfoQueryFromAnalytics", parameters);
+                    kustoQuery = ReadAndFormatKqlQuery("ColdStart.FindRequestGeneralInfoFromAnalytics", parameters);
                 }
                 else
                 {
@@ -76,7 +76,7 @@ namespace FirstPartyAgent.Plugins
                         ["activityId"] = activityId,
                         ["utcDateTime"] = utcDateTime
                     };
-                    kustoQuery = ReadAndFormatKqlQuery("GetRequestGeneralInfoQueryFromWaws", parameters);
+                    kustoQuery = ReadAndFormatKqlQuery("ColdStart.FindRequestGeneralInfoFromWaws", parameters);
                 }
 
                 var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, nowOverride);
@@ -92,7 +92,7 @@ namespace FirstPartyAgent.Plugins
             return responses;
         }
 
-        [KernelFunction("find_coldtart_request_breakdown")]
+        [KernelFunction("GetColdStartRequestDetails")]
         [Description("find breakdown of the http cold start request.")]
         public async Task<KustoQueryResponse> GetColdStartRequestDetails(
             string clusterName,
@@ -114,7 +114,7 @@ namespace FirstPartyAgent.Plugins
                         ["activityId"] = activityId,
                         ["utcDateTime"] = utcDateTime
                     };
-                    kustoQuery = ReadAndFormatKqlQuery("GetColdStartRequestDetailsForWindowsConsumption", parameters);
+                    kustoQuery = ReadAndFormatKqlQuery("ColdStart.GetColdStartRequestDetailsForWindowsConsumption", parameters);
                 }
                 else if (consumptionType.Contains("Flex Consumption", StringComparison.OrdinalIgnoreCase))
                 {
@@ -123,7 +123,7 @@ namespace FirstPartyAgent.Plugins
                         ["activityId"] = activityId,
                         ["utcDateTime"] = utcDateTime
                     };
-                    kustoQuery = ReadAndFormatKqlQuery("GetColdStartRequestDetailsForFlexConsumption", parameters);
+                    kustoQuery = ReadAndFormatKqlQuery("ColdStart.GetColdStartRequestDetailsForFlexConsumption", parameters);
                 }
                 else if (consumptionType.Contains("Linux Consumption", StringComparison.OrdinalIgnoreCase))
                 {
@@ -132,7 +132,7 @@ namespace FirstPartyAgent.Plugins
                         ["activityId"] = activityId,
                         ["utcDateTime"] = utcDateTime
                     };
-                    kustoQuery = ReadAndFormatKqlQuery("GetColdStartRequestDetailsForLinuxConsumption", parameters);
+                    kustoQuery = ReadAndFormatKqlQuery("ColdStart.GetColdStartRequestDetailsForLinuxConsumption", parameters);
                 }
                 else
                 {
@@ -149,7 +149,7 @@ namespace FirstPartyAgent.Plugins
             }
         }
 
-        [KernelFunction("find_coldtart_request_breakdown_legion")]
+        [KernelFunction("GetColdStartRequestDetailsFromLegion")]
         [Description("find breakdown of the http cold start request from legion.")]
         public async Task<KustoQueryResponse> GetColdStartRequestDetailsFromLegion(
         string legionClusterName,
@@ -167,7 +167,7 @@ namespace FirstPartyAgent.Plugins
                     ["podName"] = podName,
                     ["utcDateTime"] = utcDateTime
                 };
-                var kustoQuery = ReadAndFormatKqlQuery("GetColdStartRequestDetailsForFlexConsumptionFromLegion", parameters);
+                var kustoQuery = ReadAndFormatKqlQuery("ColdStart.GetColdStartRequestDetailsFromLegion", parameters);
 
                 var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(legionClusterName, databaseName, kustoQuery, nowOverride);
                 return new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result };
@@ -179,7 +179,7 @@ namespace FirstPartyAgent.Plugins
             }
         }
 
-        [KernelFunction("coldtart_for_sla_sites")]
+        [KernelFunction("GetColdStartDetailsForSlaSites")]
         [Description("Show cold start trends for SLA sites.")]
         public async Task<KustoQueryResponse> GetColdStartDetailsForSlaSites(
         int days = 120,
@@ -199,7 +199,7 @@ namespace FirstPartyAgent.Plugins
                     ["platform"] = platform,
                     ["stack"] = stack
                 };
-                var kustoQuery = ReadAndFormatKqlQuery("GetColdStartQueryForSlaSites", parameters);
+                var kustoQuery = ReadAndFormatKqlQuery("ColdStart.GetColdStartDetailsForSlaSites", parameters);
 
                 var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, nowOverride);
                 return new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result };
@@ -211,7 +211,7 @@ namespace FirstPartyAgent.Plugins
             }
         }
 
-        [KernelFunction("coldstart_profile_data")]
+        [KernelFunction("GetColdStartProfileData")]
         [Description("Show Profile data for prod cold start SLA sites.")]
         public async Task<KustoQueryResponse> GetColdStartProfileData()
         {
@@ -223,7 +223,7 @@ namespace FirstPartyAgent.Plugins
                 DateTime? nowOverride = null;
 
                 var parameters = new Dictionary<string, string>();
-                var kustoQuery = ReadAndFormatKqlQuery("GetColdStartProfileData", parameters);
+                var kustoQuery = ReadAndFormatKqlQuery("ColdStart.GetColdStartProfileData", parameters);
 
                 var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, nowOverride);
                 return new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result };
@@ -235,7 +235,7 @@ namespace FirstPartyAgent.Plugins
             }
         }
 
-        [KernelFunction("coldstart_profile_data_details")]
+        [KernelFunction("GetColdStartProfileDataDetails")]
         [Description("Show detailed Profile data for prod cold start SLA sites.")]
         public async Task<KustoQueryResponse> GetColdStartProfileDataDetails()
         {
@@ -247,7 +247,7 @@ namespace FirstPartyAgent.Plugins
                 DateTime? nowOverride = null;
 
                 var parameters = new Dictionary<string, string>();
-                var kustoQuery = ReadAndFormatKqlQuery("GetColdStartProfileDataDetails", parameters);
+                var kustoQuery = ReadAndFormatKqlQuery("ColdStart.GetColdStartProfileDataDetails", parameters);
 
                 var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, nowOverride);
                 return new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result };
@@ -304,7 +304,7 @@ namespace FirstPartyAgent.Plugins
             return responses;
         }
 
-        [KernelFunction("run_coldstart_regression_analysis")]
+        [KernelFunction("RunColdStartRegressionAnalysis")]
         [Description("Runs the cold start regression analysis.")]
         public async Task<KustoQueryResponse> RunColdStartRegressionAnalysis()
         {
@@ -316,7 +316,7 @@ namespace FirstPartyAgent.Plugins
                 DateTime? nowOverride = null;
 
                 var parameters = new Dictionary<string, string>();
-                var kustoQuery = ReadAndFormatKqlQuery("GetColdStartStatusByStage", parameters);
+                var kustoQuery = ReadAndFormatKqlQuery("ColdStart.RunColdStartRegressionAnalysis", parameters);
 
                 var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, nowOverride);
                 return new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result };
@@ -328,7 +328,7 @@ namespace FirstPartyAgent.Plugins
             }
         }
 
-        [KernelFunction("run_coldstart_regression_analysis_per_region")]
+        [KernelFunction("RunColdStartRegressionAnalysisPerRegion")]
         [Description("Runs the cold start regression analysis per region.")]
         public async Task<KustoQueryResponse> RunColdStartRegressionAnalysisPerRegion()
         {
@@ -340,7 +340,7 @@ namespace FirstPartyAgent.Plugins
                 DateTime? nowOverride = null;
 
                 var parameters = new Dictionary<string, string>();
-                var kustoQuery = ReadAndFormatKqlQuery("GetColdStartStatusByRegion", parameters);
+                var kustoQuery = ReadAndFormatKqlQuery("ColdStart.RunColdStartRegressionAnalysisPerRegion", parameters);
 
                 var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, nowOverride);
                 return new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result };
@@ -348,49 +348,6 @@ namespace FirstPartyAgent.Plugins
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"An error occurred while initializing ColdStartRegressionAnalysisPerRegion.");
-                return new KustoQueryResponse { KustoQuery = string.Empty, KustoResult = $"An error occurred: {ex.Message}" };
-            }
-        }
-
-        [KernelFunction("run_coldstart_alert_kusto_query")]
-        [Description("Runs the kusto query for the cold start alert and returns the result.")]
-        public async Task<KustoQueryResponse> RunAlertKustoQuery(string alertId)
-        {
-            try
-            {
-                var alertDetails = await _alertHandlerService.GetAzureAlertingDetailsById(alertId);
-
-                if (alertDetails == null)
-                {
-                    _logger.LogError($"Alert details not found for AlertId: {alertId}.");
-                    return new KustoQueryResponse { KustoQuery = string.Empty, KustoResult = "Alert details not found." };
-                }
-
-                if (alertDetails.KustoClusters == null)
-                {
-                    _logger.LogWarning($"No Kusto clusters found for AlertId: {alertId}.");
-                    alertDetails.KustoClusters = new List<KustoCluster>();
-                    alertDetails.KustoClusters.Add(new KustoCluster
-                    {
-                        Cloud = "wawscus",
-                        ServiceName = "wawsprod",
-                        Cluster = "wawscus",
-                        Database = "wawsprod"
-                    });
-                }
-
-                var primaryCluster = alertDetails.KustoClusters.FirstOrDefault();
-                var kustoQuery = alertDetails.PrimaryKustoQuery.KustoQuery;
-                var clusterName = primaryCluster.Cluster;
-                var databaseName = primaryCluster.Database;
-                DateTime? nowOverride = null;
-
-                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, NowOverride: nowOverride);
-                return new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"An error occurred while running the alert kusto query for AlertId: {alertId}.");
                 return new KustoQueryResponse { KustoQuery = string.Empty, KustoResult = $"An error occurred: {ex.Message}" };
             }
         }
@@ -417,12 +374,18 @@ namespace FirstPartyAgent.Plugins
         /// <summary>
         /// Gets the full path to a KQL file in the ColdStart queries directory.
         /// </summary>
-        /// <param name="fileName">The name of the KQL file (without extension)</param>
+        /// <param name="fileName">The name of the KQL file (with or without ColdStart prefix)</param>
         /// <returns>Full path to the KQL file</returns>
         private static string GetKqlFilePath(string fileName)
         {
             var baseDirectory = AppContext.BaseDirectory;
-            return Path.Combine(baseDirectory, "Plugins", "Definitions", "Queries", "ColdStart", $"{fileName}.kql");
+
+            // Remove "ColdStart." prefix if present to get the actual file name
+            var actualFileName = fileName.StartsWith("ColdStart.")
+                ? fileName.Substring("ColdStart.".Length)
+                : fileName;
+
+            return Path.Combine(baseDirectory, "Plugins", "Definitions", "Queries", "ColdStart", $"{actualFileName}.kql");
         }
 
         /// <summary>

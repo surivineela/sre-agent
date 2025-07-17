@@ -105,6 +105,10 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         {
             defaultStartingAgentName = "rca_router_meta_agent";
         }
+        else if (agentType == "ColdStartAgent")
+        {
+            defaultStartingAgentName = "cold_start_agent";
+        }
 
 
         // retrieve the current starting agent if present in context
