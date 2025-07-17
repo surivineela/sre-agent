@@ -8,6 +8,7 @@ using Azure.Search.Documents;
 using Azure.Search.Documents.Indexes;
 using Azure.Search.Documents.Indexes.Models;
 using Azure.Search.Documents.Models;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -24,13 +25,15 @@ public class SearchIndexService : ISearchIndexService
     private readonly Uri _openAiEndpoint;
     private readonly string _embeddingDeploymentName;
     private readonly string _embeddingModelName;
+    private readonly IEmbeddingGenerator<string, Embedding<float>> _embeddingGenerator;
 
     public SearchIndexService(
         [FromKeyedServices(AgentMemoryConfiguration.AgentMemoryAISearchClient)] SearchClient searchClient,
         [FromKeyedServices(AgentMemoryConfiguration.AgentMemoryIndexClient)] SearchIndexClient indexClient,
         ILogger<SearchIndexService> logger,
         AgentMemorySettings agentMemorySettings,
-        OpenAISettings openAISettings)
+        OpenAISettings openAISettings,
+        IEmbeddingGenerator<string, Embedding<float>> embeddingGenerator)
     {
         _searchClient = searchClient;
         _indexClient = indexClient;
@@ -41,6 +44,7 @@ public class SearchIndexService : ISearchIndexService
         _openAiEndpoint = new Uri(openAISettings.Endpoint);
         _embeddingDeploymentName = openAISettings.EmbeddingGeneratorDeploymentName;
         _embeddingModelName = openAISettings.EmbeddingGeneratorModelName;
+        _embeddingGenerator = embeddingGenerator;
     }
 
     /// <summary>

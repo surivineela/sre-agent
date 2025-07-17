@@ -330,6 +330,48 @@ public class AgentMemoryClient(ILogger<AgentMemoryClient> logger,
         }
 
         return results;
+    }
 
+    public async Task<IList<SearchDocumentResult>> SearchUserMemoriesAsync(string query, uint k = 5, float? vectorSimilarityThreshold = null, bool exhaustiveKnn = false, string? filter = null, bool enableHybridSearch = false, CancellationToken cancellationToken = default)
+    {
+        var searchOptions = new SearchOptions
+        {
+            Filter = "type eq 'usermemory' " + (string.IsNullOrEmpty(filter) ? "" : $"and ({filter})"),
+            Size = (int)Math.Min(k, maxK),
+            Select = { "id", "title", "chunk", "indexed_at" },
+            IncludeTotalCount = true,
+            SearchFields = { "chunk", "title" },
+            VectorSearch = new VectorSearchOptions(),
+        };
+
+        searchOptions.VectorSearch.Queries.Add(new VectorizableTextQuery(query)
+        {
+            KNearestNeighborsCount = (int)Math.Min(k, maxK),
+            Exhaustive = exhaustiveKnn,
+            Fields = { "vector" },
+            Threshold = vectorSimilarityThreshold.HasValue && vectorSimilarityThreshold.Value >= -1 && vectorSimilarityThreshold.Value <= 1
+                ? new VectorSimilarityThreshold(vectorSimilarityThreshold.Value)
+                : null,
+        });
+
+        searchOptions.QueryType = SearchQueryType.Semantic;
+        searchOptions.SemanticSearch = new SemanticSearchOptions
+        {
+            SemanticConfigurationName = Constants.SemanticSearchConfig,
+        };
+
+
+        var response = await searchClient.SearchAsync<SearchDocumentResult>(
+                searchText: enableHybridSearch ? query : "*",
+                options: searchOptions,
+                cancellationToken: cancellationToken);
+        var results = new List<SearchDocumentResult>();
+        await foreach (var result in response.Value.GetResultsAsync())
+        {
+            logger.LogInternalInformation($"Found user memory: {result.Document.Title} with chunk: {result.Document.Chunk}, score: {result.Document.SearchScore}, reranker score: {result.Document.RerankerScore}");
+            results.Add(result.Document);
+        }
+
+        return results;
     }
 }

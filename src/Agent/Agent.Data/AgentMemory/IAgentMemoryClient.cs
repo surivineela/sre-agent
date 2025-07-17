@@ -18,6 +18,7 @@ public record SearchDocumentResult(
     [property: JsonPropertyName("resource_types")] IList<string> ResourceTypes,
     [property: JsonPropertyName("resource_ids")] IList<string> ResourceIds,
     [property: JsonPropertyName("pitfalls")] string Pitfalls,
+    [property: JsonPropertyName("indexed_at")] DateTime IndexedAt,
     // Note: @search.score is NOT similarity between the query and the document. For details please see https://learn.microsoft.com/en-us/azure/search/vector-search-ranking#scores-in-a-vector-search-results
     [property: JsonPropertyName("@search.score")] float SearchScore,
     [property: JsonPropertyName("@search.rerankerScore")] float RerankerScore
@@ -70,6 +71,15 @@ public interface IAgentMemoryClient
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     Task<IList<SearchDocumentResult>> SearchTrajectoriesAsync(
+        string query,
+        uint k = 5,
+        float? vectorSimilarityThreshold = null,
+        bool exhaustiveKnn = false,
+        string? filter = null,
+        bool enableHybridSearch = false,
+        CancellationToken cancellationToken = default);
+
+    Task<IList<SearchDocumentResult>> SearchUserMemoriesAsync(
         string query,
         uint k = 5,
         float? vectorSimilarityThreshold = null,

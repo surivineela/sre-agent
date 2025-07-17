@@ -84,5 +84,36 @@ public class AgentMemory
             Vector = embedding
         };
     }
+
+    public static AgentMemory FromUserMemory(
+        string id,
+        string memoryContent,
+        List<float> embedding)
+    {
+        // Generate simple title based on content length or first sentence
+        var title = memoryContent.Length <= 50 ? memoryContent : memoryContent.Substring(0, 47) + "...";
+        var firstSentence = memoryContent.Split('.', '!', '?')[0].Trim();
+        if (firstSentence.Length <= 50 && firstSentence.Length > 0)
+            title = firstSentence;
+
+        return new AgentMemory
+        {
+            Id = id,
+            Type = "usermemory",
+            Title = title,
+            ChunkId = string.Empty,
+            ParentId = id,
+            Chunk = memoryContent, // Store the user's memory content
+            ResourceTypes = [],
+            ResourceIds = [],
+            RootCause = string.Empty,
+            InitialSymptoms = string.Empty,
+            StepsFollowed = string.Empty,
+            SymptomsObserved = string.Empty,
+            Pitfalls = string.Empty,
+            Vector = embedding,
+            IndexedAt = DateTimeOffset.UtcNow
+        };
+    }
 }
 

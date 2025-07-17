@@ -74,6 +74,7 @@ public class ReasoningLoop : IDisposable
     // Maximum number of iterations to run the reasoning loop
     private const int MaxIterations = 10;
     private readonly IAgentMemoryClient _agentMemoryClient;
+    private readonly ISearchIndexService _searchIndexService;
     private static readonly TimeSpan[] RetryDelays = { TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(500), TimeSpan.FromSeconds(1) };
 
     private static readonly JsonSerializerOptions _toolArgumentsJsonOptions = new()
@@ -109,6 +110,7 @@ public class ReasoningLoop : IDisposable
         bool enableDocumentRetrieval,
         bool enableVectorSearch,
         IAgentMemoryClient agentMemoryClient,
+        ISearchIndexService searchIndexService,
         bool agentMemoryEnabled,
         bool autoHandoffEnabled,
         IAgentRuntimeModifier<AgentContext> agentRuntimeModifier)
@@ -140,6 +142,7 @@ public class ReasoningLoop : IDisposable
         _enableDocumentRetrieval = enableDocumentRetrieval;
         _enableVectorSearch = enableVectorSearch;
         _agentMemoryClient = agentMemoryClient;
+        _searchIndexService = searchIndexService;
         _agentMemoryEnabled = agentMemoryEnabled;
         _autoHandOffEnabled = autoHandoffEnabled;
         _agentRuntimeModifier = agentRuntimeModifier;
@@ -366,6 +369,21 @@ public class ReasoningLoop : IDisposable
                             bool shouldStop = await HandleUnprocessedToolCallsAsync(agentChatHistory, cancellationToken);
                             if (shouldStop)
                             {
+                                return;
+                            }
+
+                            // process #remember command
+                            if (chatMessage.Message.Text.Contains("#remember", StringComparison.OrdinalIgnoreCase) && _agentMemoryEnabled)
+                            {
+                                await HandleRememberCommandAsync(agentChatHistory, chatMessage.Message.Text, cancellationToken);
+                                return;
+                            }
+
+                            // process #retrieve command
+                            if (chatMessage.Message.Text.Contains("#retrieve", StringComparison.OrdinalIgnoreCase) && _agentMemoryEnabled)
+                            {
+
+                                await HandleRetrieveCommandAsync(agentChatHistory, chatMessage.Message.Text, cancellationToken);
                                 return;
                             }
 
@@ -1429,6 +1447,149 @@ public class ReasoningLoop : IDisposable
         await ExecuteWithRetryAsync(
             () => _threadRepository.AddReasoningMessagesToChatHistoryAsync(agentChatHistory, reasoningMessages),
             $"AddReasoningMessagesToChatHistory for {reasoningMessages.Count} messages");
+    }
+
+    private async Task HandleRememberCommandAsync(AgentChatHistory agentChatHistory, string userMessage, CancellationToken cancellationToken)
+    {
+        try
+        {
+            _logger.LogInternalInformation("[{threadId}]Processing #remember command.", _context.ThreadId);
+
+            await PersistReasoningMessageAsync(agentChatHistory, new ChatMessage(ChatRole.User, userMessage));
+
+            // Extract the user message/content after '#remember'
+            const string rememberPrefix = "#remember";
+            var rememberIndex = userMessage.IndexOf(rememberPrefix, StringComparison.OrdinalIgnoreCase);
+            var memoryContent = userMessage.Substring(rememberIndex + rememberPrefix.Length).Trim();
+
+            if (string.IsNullOrWhiteSpace(memoryContent))
+            {
+                var errorMessage = new ChatMessage(ChatRole.Assistant, "Please provide some content after #remember. For example: 'my container app is not working #remember looks like there is an issue with the NSG rules.'");
+
+                await PersistReasoningMessageAsync(agentChatHistory, errorMessage);
+                await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context, errorMessage);
+                return;
+            }
+
+            var memoryId = $"memory_{_context.ThreadId}_{DateTime.UtcNow.Ticks}";
+
+            var vector = await _embeddingGenerator.GenerateVectorAsync(memoryContent, null, cancellationToken);
+
+            var memory = AgentMemory.FromUserMemory(
+                id: memoryId,
+                memoryContent: memoryContent,
+                embedding: [.. vector.Span]
+            );
+
+            var success = await _searchIndexService.IndexContentAsync(memory);
+
+            ChatMessage responseMessage;
+            if (success)
+            {
+                responseMessage = new ChatMessage(ChatRole.Assistant, "✅ Agent Memory saved.");
+                _logger.LogInternalInformation("[{threadId}]Successfully stored user memory: {MemoryContent}", _context.ThreadId, memoryContent);
+            }
+            else
+            {
+                responseMessage = new ChatMessage(ChatRole.Assistant, "Failed to save memory. Please try again.");
+                _logger.LogInternalError("[{threadId}]Failed to store user memory: {MemoryContent}", _context.ThreadId, memoryContent);
+            }
+
+            await PersistReasoningMessageAsync(agentChatHistory, responseMessage);
+
+            // Send response to user
+            await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context, responseMessage);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "[{threadId}]Error processing #remember command", _context.ThreadId);
+
+            var errorMessage = new ChatMessage(ChatRole.Assistant, "Error saving memory. Please try again.");
+
+            await PersistReasoningMessageAsync(agentChatHistory, errorMessage);
+            await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context, errorMessage);
+        }
+    }
+
+    private async Task HandleRetrieveCommandAsync(AgentChatHistory agentChatHistory, string userMessage, CancellationToken cancellationToken)
+    {
+        try
+        {
+            _logger.LogInternalInformation("[{threadId}]Processing #retrieve command.", _context.ThreadId);
+
+            await PersistReasoningMessageAsync(agentChatHistory, new ChatMessage(ChatRole.User, userMessage));
+
+            const string retrievePrefix = "#retrieve";
+            var retrieveIndex = userMessage.IndexOf(retrievePrefix, StringComparison.OrdinalIgnoreCase);
+            var query = userMessage.Substring(retrieveIndex + retrievePrefix.Length).Trim();
+
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                var errorMessage = new ChatMessage(ChatRole.Assistant, "Please provide a query after #retrieve. For example: '#retrieve my preferences about coffee'");
+
+                await PersistReasoningMessageAsync(agentChatHistory, errorMessage);
+                await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context, errorMessage);
+                return;
+            }
+
+            var memories = await _agentMemoryClient.SearchUserMemoriesAsync(
+                query: query,
+                k: 5,
+                enableHybridSearch: true,
+                cancellationToken: cancellationToken);
+
+            if (memories.Count == 0)
+            {
+                var noResultsMessage = new ChatMessage(ChatRole.Assistant, "No memories found for your query.");
+
+                await PersistReasoningMessageAsync(agentChatHistory, noResultsMessage);
+                await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context, noResultsMessage);
+                return;
+            }
+
+            var memoryContext = new StringBuilder();
+            memoryContext.AppendLine("Retrieved memories:");
+            foreach (var memory in memories.Take(5))
+            {
+                memoryContext.AppendLine($"- {memory.Chunk}");
+            }
+
+            var prompt = $"Based on the following retrieved memories, please answer the user's query: '{query}'\n\n{memoryContext}";
+
+            var chatMessages = new List<ChatMessage>
+            {
+                new(ChatRole.System, "You are an AI assistant. Use the provided memories to answer the user's query in the context of the recent conversation. If the memories don't contain relevant information, say so.")
+            };
+
+            // recent chat history for context (last 5 user/assistant messages, excluding assistant messages with tool calls)
+            var recentMessages = _chatHistory?
+                .Where(m => m.Role == ChatRole.User ||
+                           (m.Role == ChatRole.Assistant && !m.Contents.OfType<FunctionCallContent>().Any()))
+                .TakeLast(5)
+                .ToList() ?? new List<ChatMessage>();
+            chatMessages.AddRange(recentMessages);
+
+            chatMessages.Add(new(ChatRole.User, prompt));
+
+            var response = await _chatClient.GetResponseAsync(chatMessages, cancellationToken: cancellationToken);
+            var responseText = response.GetMessage().Text ?? "I couldn't generate a response from your memories.";
+
+            var responseMessage = new ChatMessage(ChatRole.Assistant, responseText);
+
+            await PersistReasoningMessageAsync(agentChatHistory, responseMessage);
+            await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context, responseMessage);
+
+            _logger.LogInternalInformation("[{threadId}]Successfully processed #retrieve command with {count} memories", _context.ThreadId, memories.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "[{threadId}]Error processing #retrieve command", _context.ThreadId);
+
+            var errorMessage = new ChatMessage(ChatRole.Assistant, "Error retrieving memories. Please try again.");
+
+            await PersistReasoningMessageAsync(agentChatHistory, errorMessage);
+            await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context, errorMessage);
+        }
     }
 
     private async Task<object?> InvokeToolWithErrorHandlingAsync(ManualToolCall toolCall, CancellationToken cancellationToken)

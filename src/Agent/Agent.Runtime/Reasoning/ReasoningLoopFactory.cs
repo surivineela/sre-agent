@@ -42,6 +42,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
     private readonly bool _enableDocumentRetrieval;
     private readonly bool _enableVectorSearch;
     private readonly IAgentMemoryClient _agentMemoryClient;
+    private readonly ISearchIndexService _searchIndexService;
     private readonly bool _agentMemoryEnabled;
 
     private readonly bool _enableAutoHandOff;
@@ -66,6 +67,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         ISearchEndpointService searchEndpointService,
         SearchHelper searchHelper,
         IAgentMemoryClient agentMemoryClient,
+        ISearchIndexService searchIndexService,
         AgentMemorySettings agentMemorySettings,
         IMeterFactory meterFactory)
     {
@@ -87,6 +89,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         _enableDocumentRetrieval = azureSettings.SearchEndpoint.EnableDocumentRetrieval;
         _enableVectorSearch = azureSettings.SearchEndpoint.EnableVectorSearch;
         _agentMemoryClient = agentMemoryClient;
+        _searchIndexService = searchIndexService;
         _agentMemoryEnabled = agentMemorySettings.Enabled;
         _enableAutoHandOff = coreSettings.Experimental is not null
             && coreSettings.Experimental.AutoHandoffToMeta;
@@ -153,6 +156,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
             enableDocumentRetrieval: _enableDocumentRetrieval,
             enableVectorSearch: _enableVectorSearch,
             agentMemoryClient: _agentMemoryClient,
+            searchIndexService: _searchIndexService,
             agentMemoryEnabled: _agentMemoryEnabled,
             autoHandoffEnabled: _enableAutoHandOff,
             agentRuntimeModifier: _agentRuntimeModifier);

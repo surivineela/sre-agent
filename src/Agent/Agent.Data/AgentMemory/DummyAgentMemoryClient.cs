@@ -41,4 +41,9 @@ public class DummyAgentMemoryClient() : IAgentMemoryClient
     {
         return Task.FromResult<IList<SearchDocumentResult>>([]);
     }
+
+    public Task<IList<SearchDocumentResult>> SearchUserMemoriesAsync(string query, uint k = 5, float? vectorSimilarityThreshold = null, bool exhaustiveKnn = false, string? filter = null, bool enableHybridSearch = false, CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult<IList<SearchDocumentResult>>([]);
+    }
 }
