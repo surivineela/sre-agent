@@ -9,6 +9,5 @@ All("EventProcessorEvents")
 | where PreciseTimeStamp between (queryFrom .. queryTo)
 | where RevisionName == capp_revision
 | where EnvironmentName == managedClusterName
-| where ReplicaName == ""
 | order by PreciseTimeStamp desc
 | project PreciseTimeStamp, RevisionName, Reason, Message=msg

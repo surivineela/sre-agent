@@ -26,10 +26,10 @@ namespace Agent.Core.Plugins.Definitions
 
                 [Description("""
 Purpose:
-Retrieves active revisions with configuration, workload profile, scaling settings, and app status.
+Retrieves all revisions with configuration, workload profile, scaling settings, and app status.
 
 Scenario:
-Use this tool to list all active revisions and their configuration details for a container app.
+Use this tool to list all revisions and their configuration details for a container app.
 
 Output:
 Returns tab-separated table data in CSV format. Column headers:
