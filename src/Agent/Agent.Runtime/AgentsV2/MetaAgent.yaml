@@ -111,6 +111,7 @@ handoffs:
   - tls_minimum_version_upgrade_agent
   - azure_cli_command_executor_agent
   - web_app_down_agent
+  - web_app_restart_agent 
   - aks_general_agent
   - metrics_and_chart_visualization_agent
   - local_auth_agent

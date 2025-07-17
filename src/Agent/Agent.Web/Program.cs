@@ -373,6 +373,8 @@ public class Program
             .AddSingleton<Agent.Plugins.Models.GitHubClient>()
             .AddSingleton<IAzureDevOpsWorkItemPlugin, AzureDevOpsWorkItemPlugin>()
             .AddTransient<IGithubIssuePlugin, GitHubIssuePlugin>()
+            .AddTransient<IWebAppRestartPlugin, WebAppRestartPlugin>()
+            .AddTransient<WebAppRestartPluginDefinition>()
             .AddSingleton<IGithubFileService, GithubFileService>()
             .AddSingleton<IRemediationPlugin, RemediationPlugin>()
             .AddSingleton<AzureResourceGraphClient>()
