@@ -149,7 +149,7 @@ namespace Agent.Web.Controllers.v1
                                 _logger.LogInternalInformation($"[{threadGuid}]Executing {executionGuid} with agent identity");
                                 // this is an approval (not authorization) action, use agent identitiy
                                 result = await _armHelper.RunAzCliCommandsAsync(execution.Command);
-                                if (result.ErrorOccurred && result.ErrorType == CliErrorType.AuthorizationError)
+                                if (result.ErrorOccurred && (result.ErrorType == CliErrorType.AuthorizationError || result.ErrorType == CliErrorType.NotFoundError))
                                 {
                                     // trigger obo flow
                                     var updatedExecution = execution with

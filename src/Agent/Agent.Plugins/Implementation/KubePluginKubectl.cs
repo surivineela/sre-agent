@@ -5,6 +5,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Graph.Crawler.ARM;
 using Agent.Plugins.Interface;
@@ -104,6 +105,7 @@ namespace Agent.Plugins
                 }
                 else
                 {
+                    await CreateAndPersistKubectlExecution(executionId, resourceId, command, stdin, requiresApproval: true);
                     return "Kubectl write command has been prepared for approval. Please click 'Authorize' to execute or 'Cancel' to dismiss.";
 
                 }
@@ -215,8 +217,7 @@ namespace Agent.Plugins
 
                 if (result.ErrorOccurred)
                 {
-                    // sometimes agent will see the resource as not found when it doesn't have permission
-                    if (result.ErrorType == CliErrorType.AuthorizationError || result.ErrorType == CliErrorType.NotFoundError)
+                    if (result.ErrorType == CliErrorType.AuthorizationError)
                     {
                         await UpdateExecutionWithOboFlow(execution);
                         return $"Kubectl {cmdType} command has been prepared for approval. Please click 'Authorize' to execute or 'Cancel' to dismiss.";
@@ -490,7 +491,20 @@ namespace Agent.Plugins
         {
             // get the cluster kubeconfig
             // todo: change to create a `view` clusterrolebinding with a service account, and use that guy's config
-            var kubeConfig = await _kubernetesClientFactory.GetOrAddCachedK8sConfiguration(resourceId);
+            CachedK8sConfiguration? kubeConfig;
+            try
+            {
+                kubeConfig = await _kubernetesClientFactory.GetOrAddCachedK8sConfiguration(resourceId);
+            }
+            catch (Azure.RequestFailedException ex) when (ex.Status == 403)
+            {
+                return new CliExecutionResult
+                {
+                    ErrorType = CliErrorType.AuthorizationError,
+                    Output = ex.Message,
+                };
+            }
+
             if (kubeConfig is null)
             {
                 return new CliExecutionResult
