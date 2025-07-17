@@ -98,14 +98,7 @@ namespace Agent.Plugins.Kusto
             catch (Exception ex)
             {
                 _logger.LogInternalError($"An error occurred while executing Kusto Query: {ex.Message}");
-                return new KustoQueryResult()
-                {
-                    Success = false,
-                    Query = query,
-                    Result = $"An error occurred while executing Kusto Query: {ex.Message}",
-                    Message = new ChatMessage(ChatRole.Tool, $"An error occurred while executing Kusto Query: {ex.Message}"),
-                    RowCount = 0,
-                };
+                return CreateErrorResult(query, ex.Message);
             }
         }
 
@@ -134,14 +127,7 @@ namespace Agent.Plugins.Kusto
             catch (Exception ex)
             {
                 _logger.LogInternalError($"An error occurred while executing Kusto Query: {ex.Message}");
-                return new KustoQueryResult()
-                {
-                    Success = false,
-                    Query = fullQuery,
-                    Result = $"An error occurred while executing Kusto Query: {ex.Message}",
-                    Message = new ChatMessage(ChatRole.Tool, $"An error occurred while executing Kusto Query: {ex.Message}"),
-                    RowCount = 0,
-                };
+                return CreateErrorResult(fullQuery, ex.Message);
             }
         }
 
@@ -201,14 +187,7 @@ namespace Agent.Plugins.Kusto
             catch (Exception ex)
             {
                 _logger.LogInternalError($"An error occurred while executing Kusto Function {functionName}: {ex.Message}");
-                return new KustoQueryResult()
-                {
-                    Success = false,
-                    Query = query,
-                    Result = $"An error occurred while executing Kusto Function {functionName}: {ex.Message}",
-                    Message = new ChatMessage(ChatRole.Tool, $"An error occurred while executing Kusto Query: {ex.Message}"),
-                    RowCount = 0,
-                };
+                return CreateErrorResult(query, ex.Message, functionName);
             }
         }
 
@@ -309,6 +288,22 @@ namespace Agent.Plugins.Kusto
                 string urlEncoded = HttpUtility.UrlEncode(base64);
                 return urlEncoded;
             }
+        }
+
+        private KustoQueryResult CreateErrorResult(string query, string errorMessage, string? functionName = null)
+        {
+            var fullErrorMessage = functionName != null
+                ? $"An error occurred while executing Kusto Function {functionName}: {errorMessage}"
+                : $"An error occurred while executing Kusto Query: {errorMessage}";
+
+            return new KustoQueryResult()
+            {
+                Success = false,
+                Query = query,
+                Result = fullErrorMessage,
+                Message = new ChatMessage(ChatRole.Tool, $"<details><summary>View KQL Query</summary>\n<pre>\n{query}\n</pre>\n\n</details>\n\n<strong>{fullErrorMessage}</strong>"),
+                RowCount = 0,
+            };
         }
     }
 }
