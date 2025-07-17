@@ -222,8 +222,14 @@ public class ArmHelper
             {
                 return await response.Content.ReadAsStringAsync();
             }
-
-            return null;
+            else
+            {
+                if (CheckForUnauthorizedAccess(response))
+                {
+                    throw new ToolExecutionUnauthorizedException($"Unauthorized access to resource {resourceId}");
+                }
+                throw new Exception("Failed to create auto-scale setting: " + await response.Content.ReadAsStringAsync());
+            }
         }
         catch (Exception ex)
         {
@@ -422,6 +428,10 @@ public class ArmHelper
 
         if (!response.IsSuccessStatusCode)
         {
+            if (CheckForUnauthorizedAccess(response))
+            {
+                throw new ToolExecutionUnauthorizedException($"Unauthorized access to App Service {appServiceResourceId}");
+            }
             throw new Exception($"Failed to fetch App service details. Status Code : {response.StatusCode}, Error Response : {jsonResponse}");
         }
 
@@ -447,6 +457,10 @@ public class ArmHelper
 
         if (!response.IsSuccessStatusCode)
         {
+            if (CheckForUnauthorizedAccess(response))
+            {
+                throw new ToolExecutionUnauthorizedException($"Unauthorized access to App Service Plan {appServicePlanResourceId}");
+            }
             string responseBody = await response.Content.ReadAsStringAsync();
             throw new Exception($"Failed to retrieve App Service Plan details. Status Code: {response.StatusCode}, Response: {responseBody}");
         }
@@ -536,6 +550,11 @@ public class ArmHelper
         var responseContent = await response.Content.ReadAsStringAsync();
         if (!response.IsSuccessStatusCode)
         {
+            if (CheckForUnauthorizedAccess(response))
+            {
+                throw new ToolExecutionUnauthorizedException($"Unauthorized access to App Service Plan {appServicePlanResourceId}");
+            }
+
             string errorMessage = $"Failed to scale up App Service Plan. Status Code: {response.StatusCode}, Response: {responseContent}";
             _logger.LogInternalError(errorMessage);
             throw new Exception(errorMessage);
@@ -1516,7 +1535,7 @@ public class ArmHelper
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
 
         HttpResponseMessage responseMessage = await httpClient.SendAsync(request);
-
+        
         if (!responseMessage.IsSuccessStatusCode)
         {
             _logger.LogInternalWarning($"Failed to fetch app settings for {resourceId}: {responseMessage.ReasonPhrase}");
@@ -1744,6 +1763,10 @@ public class ArmHelper
             }
             else
             {
+                if (CheckForUnauthorizedAccess(response))
+                {
+                    throw new ToolExecutionUnauthorizedException($"Unauthorized access to resource {resourceId}");
+                }
                 string responseBody = await response.Content.ReadAsStringAsync();
                 return false; // Swap failed
             }
@@ -1781,6 +1804,7 @@ public class ArmHelper
             {
                 if (CheckForUnauthorizedAccess(response))
                 {
+
                     throw new ToolExecutionUnauthorizedException($"Unauthorized access to subscription {subId}");
                 }
 
