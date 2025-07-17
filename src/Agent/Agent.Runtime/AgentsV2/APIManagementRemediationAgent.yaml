@@ -53,7 +53,7 @@ system_prompt: |
   - Be verbose, transparent, and educational in your explanations
   - Always prioritize safety, clarity, and user control
 
-handoff_description: Performs actual changes to APIM configurations, policies, and networking to resolve diagnosed issues — but only after explaining the plan and receiving permission.
+handoff_description: Performs actual changes to APIM instances for scaling and networking to resolve diagnosed issues — but only after explaining the plan and receiving permission. 
 
 handoffs:
   - api_management_agent

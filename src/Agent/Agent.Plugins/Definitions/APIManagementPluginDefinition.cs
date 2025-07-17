@@ -196,7 +196,8 @@ namespace Agent.Plugins.Definitions
             "Gets the global policies for an Azure API Management instance. " +
             "These are tenant-level policies that apply to all APIs and operations within the service. " +
             "Returns the policy resource containing the XML policy configuration. " +
-            "Note: This only retrieves global/tenant-level policies, not API-specific or operation-level policies.")]
+            "Note: This only retrieves global/tenant-level policies, not API-specific or operation-level policies." +
+            "Note: If this policy does not include <backend> <forward-request /> </backend>, then the user will not get the response body from their backend")]
         public async Task<ApiManagementPolicyResource> GetGlobalApimPolicyAsync(
             [Description("Full Azure resource ID of the API Management instance (e.g. /subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.ApiManagement/service/{serviceName})")] string apiManagementResourceId)
         {
