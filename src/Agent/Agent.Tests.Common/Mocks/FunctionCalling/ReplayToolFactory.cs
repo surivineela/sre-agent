@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
 using Agent.Framework;
@@ -93,8 +91,8 @@ public class ReplayToolFactory<TContext> : IToolFactory<TContext> where TContext
         function = null;
         return false;
     }    /// <summary>
-    /// Checks if a tool with the given name exists, either in replay data or in the inner factory.
-    /// </summary>
+         /// Checks if a tool with the given name exists, either in replay data or in the inner factory.
+         /// </summary>
     public bool HasTool(string name)
     {
         if (string.IsNullOrEmpty(name))
@@ -140,5 +138,10 @@ public class ReplayToolFactory<TContext> : IToolFactory<TContext> where TContext
     public List<ToolInfo> FetchAvailableToolInfo()
     {
         return _innerFactory.FetchAvailableToolInfo();
+    }
+
+    public void FindAndRegisterCustomTools(CustomAgentFiles customAgentFiles)
+    {
+        _innerFactory.FindAndRegisterCustomTools(customAgentFiles);
     }
 }

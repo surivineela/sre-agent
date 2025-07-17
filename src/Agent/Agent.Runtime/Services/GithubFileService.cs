@@ -154,6 +154,7 @@ namespace Agent.Runtime.Services
             }
         }
     }
+
     /// <summary>
     /// A null-object implementation of IGithubFileService that returns empty results.
     /// </summary>

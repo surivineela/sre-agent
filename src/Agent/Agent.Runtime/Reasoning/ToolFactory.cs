@@ -117,36 +117,35 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
     private readonly IHostEnvironment _hostEnvironment;
     private readonly IConfiguration _configuration;
     private readonly IEnumerable<Assembly> _assemblies;
-    private readonly CustomAgentFiles? _customAgentFiles;
 
     public ToolFactory(
         ILogger<ToolFactory<TContext>> logger,
         IServiceProvider serviceProvider,
-        IEnumerable<Assembly> assembliesToScan,
-        CustomAgentFiles? customAgentFiles = null
+        IEnumerable<Assembly> assembliesToScan
 
     )
     {
         _logger = logger;
         _serviceProvider = serviceProvider;
         _assemblies = assembliesToScan;
-        _customAgentFiles = customAgentFiles;
         _hostEnvironment = _serviceProvider.GetRequiredService<IHostEnvironment>();
         _configuration = _serviceProvider.GetRequiredService<IConfiguration>();
         FindAndRegisterAllTools(BehaviorOnNameConflict.ThrowException);
-        FindAndRegisterCustomTools(BehaviorOnNameConflict.ThrowException);
     }
 
-    // Simplify this method to just register the queries, let the normal plugin discovery handle the rest(DynamicKqlToolsPlugin i.e.)
-    private void FindAndRegisterCustomTools(BehaviorOnNameConflict onNameConflict)
+    /// <summary>
+    /// This is called to load custom tools defined in extensible agents repo
+    /// </summary>
+    /// <param name="customAgentFiles"></param>
+    public void FindAndRegisterCustomTools(CustomAgentFiles customAgentFiles)
     {
-        if (_customAgentFiles?.kql == null || !_customAgentFiles.kql.Any())
+        if (customAgentFiles?.kql == null || !customAgentFiles.kql.Any())
         {
             _logger.LogInternalInformation("No KQL files found to register as custom tools.");
             return;
         }
 
-        _logger.LogInternalInformation("Registering {count} KQL files as custom tools", _customAgentFiles.kql.Count);
+        _logger.LogInternalInformation("Registering {count} KQL files as custom tools", customAgentFiles.kql.Count);
 
         // Just register the queries with the plugin, don't create individual tools
         // The plugin will be discovered and registered by FindAndRegisterAllTools
@@ -158,7 +157,7 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
 
         var customAgentDatabase = string.Empty;
         var customAgentcluster = string.Empty;
-        var appSettings = _customAgentFiles.appsettings?.FirstOrDefault().Value;
+        var appSettings = customAgentFiles.appsettings?.FirstOrDefault().Value;
         if (appSettings != null)
         {
             try
@@ -168,7 +167,7 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
 
                 var kustoSettings = customAppSettings?.Core.External.Kusto;
 
-                foreach (var kqlFile in _customAgentFiles.kql)
+                foreach (var kqlFile in customAgentFiles.kql)
                 {
                     try
                     {

@@ -124,6 +124,8 @@ namespace Agent.Core
             Content placed inside **ReasoningScratchPad** is hidden from the user and you must use it to do your reasoning work. You can mention other agents in this field.
             Everything you write in **notifyUserMessage** field is visible to the user. You must NOT mention other agents or the flow of control or handoffs in this field.
             """;
+
+        public const string ExtendedAgentsRepoPath = "customAgents";
     }
 }
 

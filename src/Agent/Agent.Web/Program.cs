@@ -88,8 +88,6 @@ using Microsoft.DurableTask.Client;
 using Microsoft.DurableTask.Client.AzureManaged;
 using Microsoft.DurableTask.Worker;
 using Microsoft.DurableTask.Worker.AzureManaged;
-using Serilog;
-using Serilog.Events;
 using Microsoft.Extensions.AI;
 using Microsoft.SemanticKernel;
 using OpenTelemetry;
@@ -97,6 +95,7 @@ using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using Serilog;
 
 namespace Agent.Web;
 
@@ -106,35 +105,8 @@ public class Program
     {
         WebApplication app = CreateWebApplicationBuilder(args).Build();
 
-        using (var scope = app.Services.CreateScope())
-        {
-            var localFolderPath = "customAgents";
-            var githubSettings = app.Configuration.GetSection("AppSettings:Core:External:Github").Get<GitHubSettings>();
-            var githubFileService = scope.ServiceProvider.GetRequiredService<IGithubFileService>();
-            var agentFactory = scope.ServiceProvider.GetRequiredService<IAgentFactory<AgentContext>>();
-
-            if (!string.IsNullOrEmpty(githubSettings.CustomAgentsRepoPath))
-            {
-                try
-                {
-                    await githubFileService.DownloadYamlFilesInRepoPath(
-                    githubSettings.CustomAgentsRepoPath,
-                    localFolderPath);
-
-                    // Load agents from the downloaded folder
-                    agentFactory.LoadExtendedAgentsFromFolder(localFolderPath, true);
-                }
-                catch (Exception ex)
-                {
-                    // Log the error but do not fail the application startup
-                    // Throw exception for now since failing silently makes harder debug
-                    throw ex;
-                }
-            }
-        }
-
-
         var metricsService = app.Services.GetRequiredService<IGremlinMetricsService>();
+
         // Kick off metrics collection after the app has fully started
         app.Lifetime.ApplicationStarted.Register(() => metricsService.StartMetricsCollection());
 
@@ -659,37 +631,12 @@ public class Program
 
             .AddSingleton(sp =>
             {
-                // First, download the files if configured
-                CustomAgentFiles? customAgentFiles = null;
-                var githubSettings = sp.GetRequiredService<GitHubSettings>();
-
-                if (!string.IsNullOrEmpty(githubSettings.CustomAgentsRepoPath))
-                {
-                    var githubFileService = sp.GetRequiredService<IGithubFileService>();
-                    var localFolderPath = Path.Combine(Path.GetTempPath(), "customAgents", Guid.NewGuid().ToString());
-
-                    try
-                    {
-                        // This is synchronous for now, but you could make it async with GetAwaiter().GetResult()
-                        customAgentFiles = githubFileService.DownloadYamlFilesInRepoPath(
-                            githubSettings.CustomAgentsRepoPath,
-                            localFolderPath).GetAwaiter().GetResult();
-                    }
-                    catch (Exception ex)
-                    {
-                        var logger = sp.GetRequiredService<ILogger<ToolFactory<AgentContext>>>();
-                        //logger.LogError(ex, "Failed to download custom agent files from GitHub");
-                    }
-                }
-
-
                 return new ToolFactory<AgentContext>(
                     logger: sp.GetRequiredService<ILogger<ToolFactory<AgentContext>>>(),
                     serviceProvider: sp,
                     assembliesToScan: AppDomain.CurrentDomain.GetAssemblies()
                         .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
-                        .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true),
-                    customAgentFiles: customAgentFiles);
+                        .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true));
             })
             .AddSingleton<IToolFactory<AgentContext>, ToolFactory<AgentContext>>(sp =>
             {
@@ -775,6 +722,10 @@ public class Program
         }
         builder.ValidateAndRegisterFirstPartyTypes();
         builder.RegisterFunctionsFirstPartyTypes();
+        builder.Services.AddSingleton<CustomAgentFileService>();
+        builder.Services.AddSingleton<ICustomAgentFileService>(
+            sp => sp.GetRequiredService<CustomAgentFileService>());
+        builder.Services.AddHostedService<CustomAgentFilesBackgroundService>();
 
         //Overwrite KustoClient from ValidateAndRegisterFirstPartyTypes if is not Container FirstParty Agent
         if (!isFirstPartyAgent)

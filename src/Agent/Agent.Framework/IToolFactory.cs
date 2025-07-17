@@ -40,6 +40,8 @@ public interface IToolFactory<TContext> where TContext : class
 
     public bool HasTool(string name);
 
+    public void FindAndRegisterCustomTools(CustomAgentFiles customAgentFiles);
+
     public List<ToolInfo> FetchAvailableToolInfo();
 }
 
