@@ -37,6 +37,9 @@ const ICON_LOOKUP: Record<string, string> = {
     subnet: 'Vnet.svg',
     nsg: 'NSG.svg',
     networksecuritygroup: 'NSG.svg',
+
+    // API Management
+    service: 'APIManagement.svg',
 };
 
 // Friendly names for resource types
@@ -77,6 +80,10 @@ const FRIENDLY_NAMES: Record<string, string> = {
     subnet: 'Subnet',
     nsg: 'Network Security Group',
     networksecuritygroup: 'Network Security Group',
+
+    // API Management
+    service: 'API Management',
+    backends: 'API Management Backend',
 };
 
 const DEFAULT_ICON = 'azureResource.svg';
