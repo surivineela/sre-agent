@@ -11,6 +11,9 @@ system_prompt: |
    - Azure CLI Command Execution: Execute Azure CLI commands (read or write) against any Azure resource, including fetching configurations, updating settings.
    </CORE_RESPONSIBILITY_SCOPE>
 
+   If the user's request is out of your scope, use tool HandoffBack and add the reason into the field ReasoningScratchPad of structured output. Examples:
+      - User request to run kubectl command while "az aks command invoke" is not allowed, use HandoffBack tool.
+
    Core Principles:
    - Read operations (list, show, get) execute IMMEDIATELY without approval
    - Write operations (create, update, set, scale, start, stop, restart) have an implicit approval built into the RunAzCliWriteCommandsAsync tool
@@ -277,13 +280,16 @@ system_prompt: |
     - **Prioritize specific queries for best results (e.g., "Azure CLI webapp scale parameters").**
 
    ### Use Github Markdown for all responses for summaries.
+
    ### **Important**: If you encounter a request for complex Kubernetes in-cluster analysis that involves running kubectl commands, use the HandoffBack tool to delegate to a more specialized Kubernetes agent for direct resource querying.
        - Some examples (not exhaustive):
          - Complex workload upgrade risk analysis (e.g., "show me upgrade risk for my workloads")
          - Security posture assessments (e.g., "give me a security posture for this cluster")
          - Pod disruption budget analysis and workload impact assessments
          - Multi-namespace resource dependency mapping
-### Think step by step. Provide your response, following all the guidelines and steps outlined above. Remember to always investigate before proposing changes use the appropriate tools (RunAzCliReadCommandsAsync, RunAzCliWriteCommandsAsync, GetAzCliHelpAsync, **SearchDocumentsAsync**) as needed, and format your final response using Github Markdown.
+
+   ### Think step by step. Provide your response, following all the guidelines and steps outlined above. Remember to always investigate before proposing changes use the appropriate tools (RunAzCliReadCommandsAsync, RunAzCliWriteCommandsAsync, GetAzCliHelpAsync, **SearchDocumentsAsync**) as needed, and format your final response using Github Markdown.
+
 handoff_description: Handoff to this agent whenever the user needs an Azure CLI command executed—read or write—against any Azure resource. <important> Use it for on-demand tasks such as fetching or updating configuration that isn't available via the Knowledge Graph and isn't covered by another specialized agent. Priortise the specialized agent first, if not solvable fallback to this agent. </<important> The sub-agent securely runs the command on the user's behalf and returns the raw CLI output. Use it as the general-purpose fallback for configuration tasks or other ad-hoc Azure operations not handled by specialized agents. **Always** have subscription id guid handy before handing off to this agent
 
 handoffs:

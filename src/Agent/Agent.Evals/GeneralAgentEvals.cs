@@ -272,6 +272,10 @@ public class GeneralAgentEvals
 
                 TestContext.WriteLine($"Function call {i + 1}: {(functionsMatch ? "✅" : "❌")} Expected: {expectedDisplayName}, Actual: {actual.Name}");
 
+                // Assert that function names match
+                Assert.IsTrue(functionsMatch,
+                    $"Function call {i + 1}: Expected '{expectedDisplayName}' but got '{actual.Name}'");
+
                 if (functionsMatch)
                 {
                     // Compare arguments
@@ -279,6 +283,10 @@ public class GeneralAgentEvals
                     var actualArgs = JsonSerializer.Serialize(actual.Arguments, new JsonSerializerOptions { WriteIndented = false });
                     var argsMatch = expectedArgs == actualArgs;
                     TestContext.WriteLine($"  Arguments match: {(argsMatch ? "✅" : "❌")}");
+
+                    // Assert that arguments match
+                    Assert.IsTrue(argsMatch,
+                        $"Function call {i + 1} arguments mismatch. Expected: {expectedArgs}, Actual: {actualArgs}");
 
                     if (!argsMatch)
                     {
@@ -292,10 +300,12 @@ public class GeneralAgentEvals
                 var expected = expectedFunctionCalls[i];
                 var expectedDisplayName = GetExpectedFunctionDisplayName(expected.Name);
                 TestContext.WriteLine($"Function call {i + 1}: ❌ Expected: {expectedDisplayName}, Actual: (missing)");
+                Assert.Fail($"Function call {i + 1}: Expected '{expectedDisplayName}' but no corresponding function call was found");
             }
             else
             {
                 TestContext.WriteLine($"Function call {i + 1}: ❌ Expected: (missing), Actual: {actualFunctionCalls[i].Name}");
+                Assert.Fail($"Function call {i + 1}: Unexpected function call '{actualFunctionCalls[i].Name}' was found but none was expected");
             }
         }
 

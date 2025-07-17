@@ -1,6 +1,5 @@
 using System.ClientModel;
 using System.Text.Json;
-using Agent.Data.AgentMemory;
 using Agent.Core.Configuration;
 using Agent.Core.Extensions;
 using Agent.Core.Helpers;
@@ -35,8 +34,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
 using OpenTelemetry.Trace;
-using Agent.Core.Services;
 using Agent.Graph.Crawler.Metrics;
+using Agent.Plugins.Implementation;
 
 namespace Agent.Evals;
 
@@ -135,7 +134,8 @@ public static class TestHelpers
         builder.Services.AddSingleton(sp => new Mock<IPostToTeamsPlugin>().Object);
 
         return builder;
-    }    public static HostApplicationBuilder RegisterServicesForAgentFrameworkEval(this HostApplicationBuilder builder, JsonSerializerOptions? toolReplaySerializerOptions = null)
+    }
+    public static HostApplicationBuilder RegisterServicesForAgentFrameworkEval(this HostApplicationBuilder builder, JsonSerializerOptions? toolReplaySerializerOptions = null)
     {
         // Add HTTP client factory - required by various services
         builder.Services.AddHttpClient();
@@ -164,6 +164,28 @@ public static class TestHelpers
 
         // Add mock Crawler Trigger Service
         builder.Services.AddSingleton(Mock.Of<ICrawlerTriggerService>());
+
+        // Add ArmHelper for ArmPlugin
+        builder.Services.AddSingleton<ArmHelper>();
+
+        // Add ActionSettings configuration
+        builder.Services.AddSingleton<ActionSettings>(sp =>
+        {
+            return new ActionSettings
+            {
+                Mode = ActionMode.Review,
+                Identity = "system"
+            };
+        });
+
+        // Add AzureSettings configuration
+        builder.Services.AddSingleton<AzureSettings>(sp =>
+        {
+            return new AzureSettings(); // Default empty settings for tests
+        });
+
+        // Add mock IHostEnvironment
+        builder.Services.AddSingleton(Mock.Of<IHostEnvironment>());
 
         builder.Services.AddSingleton<IIncidentHandlerAgent, IncidentHandlerAgent>();
         builder.Services.AddSingleton<ThreadManagementService>();
@@ -265,6 +287,10 @@ public static class TestHelpers
         builder.Services.AddSingleton<SearchHelper>();
         builder.Services.AddTransient<KubePluginDefinition>();
         builder.Services.AddTransient<IKubePlugin, KubePlugin>();
+        builder.Services.AddTransient<SearchPluginDefinition>();
+        builder.Services.AddSingleton(Mock.Of<ISearchPlugin>());
+        builder.Services.AddTransient<ArmPluginDefinition>();
+        builder.Services.AddTransient<IArmPlugin, ArmPlugin>();
 
         // should be removed later - currently required because ThreadManagementService has code for handling UseAgentFramework=false
         // required because InboundCommunicationService has code for handling durable
@@ -278,7 +304,7 @@ public static class TestHelpers
         builder.Services.AddSingleton<IAgentActionLogExporter>(sp =>
         {
             var logger = sp.GetRequiredService<ILogger<AgentActionLogConsoleExporter>>();
-           return new AgentActionLogConsoleExporter(logger);
+            return new AgentActionLogConsoleExporter(logger);
         });
 
         // Search endpoint & helper (document-retrieval support)
