@@ -366,7 +366,7 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
                 }
 
                 // special handle for webapp / function app
-                var webAppCount = await ExecuteGroupCountQuery("g.V().has('resourceType', 'microsoft.web/sites').has('isDeleted', false).groupCount().by('kind')");
+                var webAppCount = await ExecuteGroupCountQuery("g.V().has('resourceType', 'microsoft.web/sites').has('isDeleted', false).groupCount().by('resourceKind')");
                 foreach (var type in webAppCount)
                 {
                     _resourceTypeCountGauge.WithLabels($"microsoft.web/sites/{type.Key}").Set(type.Value);
