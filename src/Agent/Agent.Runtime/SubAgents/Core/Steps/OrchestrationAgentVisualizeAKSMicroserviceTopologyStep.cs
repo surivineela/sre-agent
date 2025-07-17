@@ -20,7 +20,6 @@ public class OrchestrationAgentVisualizeAKSMicroserviceTopologyStep : Orchestrat
         string resourceId = string.Empty;
         string _namespace = string.Empty;
         string deployment = string.Empty;
-        int hops = 3; // Default value
 
         if (FunctionCall.Arguments.TryGetValue("AKSClusterResourceId", out var resourceIdObj) && resourceIdObj != null)
         {
@@ -38,7 +37,7 @@ public class OrchestrationAgentVisualizeAKSMicroserviceTopologyStep : Orchestrat
 
 
         // Create a new args dictionary with the threadId as a Guid
-        var argsWithThreadId = new Dictionary<string, object>(FunctionCall.Arguments)
+        var argsWithThreadId = new Dictionary<string, object?>(FunctionCall.Arguments)
         {
             ["threadId"] = threadId
         };

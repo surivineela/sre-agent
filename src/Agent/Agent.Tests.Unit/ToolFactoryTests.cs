@@ -137,7 +137,7 @@ namespace Agent.Tests.Unit
             mockHostEnvironment.Setup(e => e.ApplicationName).Returns("TestApp");
             mockHostEnvironment.Setup(e => e.ContentRootPath).Returns("/test/root");
 
-            var inMemorySettings = new Dictionary<string, string>
+            var inMemorySettings = new Dictionary<string, string?>
             {
                 {"AppSettings:Core:Azure:Crawler:TenantId", "72f988bf-86f1-41af-91ab-2d7cd011db47"}
             };

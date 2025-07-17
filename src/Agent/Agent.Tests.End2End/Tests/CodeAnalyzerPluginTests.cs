@@ -61,7 +61,9 @@ https://github.com/sanchitmehta/sample-app",
         public void Dispose()
         {
             _Dispose().GetAwaiter().GetResult();
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
             Helper.DisposeAndRunGenericAssertions(_fixture, _output);
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
         }
     }
 }

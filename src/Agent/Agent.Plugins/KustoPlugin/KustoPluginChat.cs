@@ -130,7 +130,8 @@ namespace Agent.Plugins.Kusto
             return directPath;
         }
 
-        Task<KustoQueryResult> IACAKustoPlugin.ExecuteKustoQuery(string region, string query, string groupName = "ContainerApps")
+        // Remove the default value for 'groupName' in explicit interface implementation
+        Task<KustoQueryResult> IACAKustoPlugin.ExecuteKustoQuery(string region, string query, string groupName)
         {
             region = region.NormalizeLocation();
             return _kustoPlugin.ExecuteKustoQuery(region, query, groupName);
@@ -141,7 +142,7 @@ namespace Agent.Plugins.Kusto
             return _kustoPlugin.ExecuteClusterKustoQuery(cluster, database, fullQuery, NowOverride);
         }
 
-        Task<KustoQueryResult> IACAKustoPlugin.ExecuteFunctionAsync(string functionName, string region, Dictionary<string, string>? args, string groupName = "ContainerApps")
+        Task<KustoQueryResult> IACAKustoPlugin.ExecuteFunctionAsync(string functionName, string region, Dictionary<string, string>? args, string groupName)
         {
             region = region.NormalizeLocation();
             return _kustoPlugin.ExecuteFunctionAsync(functionName, region, args, groupName);

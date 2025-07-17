@@ -58,7 +58,6 @@ namespace FirstPartyAgent.Core.Services
     {
         private readonly ILogger<CosmosDBService> _logger;
         private readonly CosmosClient _cosmosClient;
-        private string _accountUrl;
         private FederationSettings _federationSettings;
         private string _managedIdentityClient;
         public string _icmAgentDatabaseName;

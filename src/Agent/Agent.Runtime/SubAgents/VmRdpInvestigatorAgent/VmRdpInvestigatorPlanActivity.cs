@@ -24,7 +24,7 @@ public class VmRdpInvestigatorPlanActivity: TaskActivity<VmRdpInvestigatorAgentI
         {
             systemPrompt = await File.ReadAllTextAsync(path);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // Handle exception, e.g., log the error or set a default value for systemPrompt
             systemPrompt = "Default system prompt message.";

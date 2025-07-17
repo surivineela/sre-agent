@@ -56,7 +56,7 @@ public class AlertProcessingService : IAlertProcessingService
         return Enum.TryParse<AgentMode>(agentMode, out var mode);
     }
 
-    private async Task<ChatMessage> ApplyGuardrails(Incident incidentDetails)
+    private ChatMessage ApplyGuardrails(Incident incidentDetails)
     {
         if (incidentDetails.Severity == "0" || incidentDetails.Severity == "1")
         {
@@ -129,7 +129,7 @@ public class AlertProcessingService : IAlertProcessingService
             var incidentDetails = await _icmPlugin.GetIncidentInfo(alertRequest.IncidentId, kernel);
 
             if (!test) {
-                var guardrailMessage = await ApplyGuardrails(incidentDetails);
+                var guardrailMessage = ApplyGuardrails(incidentDetails);
                 if (guardrailMessage != null)
                 {
                     await _sessionMessageService.GetPublisher(sessionId).Invoke(guardrailMessage.Message);

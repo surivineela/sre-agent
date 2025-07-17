@@ -122,7 +122,7 @@ namespace Agent.Runtime.SubAgents.FunctionAppDiagnosticsAgent
                             resultParsed = true;
                         }
                     }
-                    catch (Exception jsonEx)
+                    catch (Exception)
                     {
                         // If JSON deserialization fails, use LLM to analyze the chat history
                         try

@@ -198,10 +198,10 @@ export const getMessageMetaDataFromChatMessage = (
 
     const author: MessageAuthor = isUserStreamingMessage(streamingMessage)
         ? {
-            role: 'User',
-            userId,
-            displayName: displayName,
-        }
+              role: 'User',
+              userId,
+              displayName: displayName,
+          }
         : getDefaultSREAgentAuthor();
 
     return {
@@ -236,12 +236,12 @@ export const processChatMessageContents = (
                 approval.status === 0
                     ? ApprovalDecision.Pending
                     : approval.status === 1
-                        ? ApprovalDecision.Approved
-                        : approval.status === 2
-                            ? ApprovalDecision.Cancelled
-                            : approval.status === 3
-                                ? ApprovalDecision.PendingAuthorization
-                                : ApprovalDecision.Authorized,
+                      ? ApprovalDecision.Approved
+                      : approval.status === 2
+                        ? ApprovalDecision.Cancelled
+                        : approval.status === 3
+                          ? ApprovalDecision.PendingAuthorization
+                          : ApprovalDecision.Authorized,
         };
     }
 

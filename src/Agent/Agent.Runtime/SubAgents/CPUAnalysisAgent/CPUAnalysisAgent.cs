@@ -37,7 +37,7 @@ namespace Agent.Runtime.SubAgents.CPUAnalysisAgent
 
                 return "success";
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 throw;
             }

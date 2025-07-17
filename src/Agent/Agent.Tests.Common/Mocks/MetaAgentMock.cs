@@ -58,7 +58,6 @@ public static class MetaAgentMock
         ) // Added parameter
     {
         return new ThirdPartyAgentsFactory(
-            logger ?? Mock.Of<ILogger<ThirdPartyAgentsFactory>>(),
             mcpToolsRepository ?? Mock.Of<McpToolsRepository>(),
             serviceProvider ?? new ServiceCollection().BuildServiceProvider(),
 
@@ -81,11 +80,8 @@ public static class MetaAgentMock
             vmRdpInvestigatorPlugin ?? Mock.Of<IMetaAgentVmRdpInvestigatorPlugin>(),
             functionAppConnectivityPlugin ?? Mock.Of<IMetaAgentFunctionAppConnectivityPlugin>(),
             sqlDbQueryPerfPlugin ?? Mock.Of<IMetaAgentSqlDbQueryPerfPlugin>(),
-            Mock.Of<IConnectedIntegrationsPlugin>(),
-            appCodeAnalysisPlugin ?? Mock.Of<IMetaAgentAppCodeAnalysisPlugin>(),
-            cpuAnalysisPlugin ?? Mock.Of<IMetaAgentCPUAnalysisPlugin>(),
+            Mock.Of<IConnectedIntegrationsPlugin>(),            
             appCodePlugin ?? Mock.Of<IAppCodeAnalysisPlugin>(),
-            cpuPlugin ?? Mock.Of<ICpuAnalysisPlugin>(),
             diagnosticsPlugin ?? Mock.Of<IDiagnosticsPlugin>(),
             metricsPlugin ?? Mock.Of<IMetricsPlugin>(),
             instanceManagementSettings ?? Mock.Of<InstanceManagementSettings>(),

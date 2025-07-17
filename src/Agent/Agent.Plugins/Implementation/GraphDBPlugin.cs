@@ -1725,7 +1725,7 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
             }
             catch (FormatException ex)
             {
-                _logger.LogInternalWarning($"Invalid resource id : {resourceId}");
+                _logger.LogInternalWarning($"Invalid resource id : {resourceId}, exception : {ex}");
                 return $"Invalid resource id : {resourceId}";
             }
             catch (Exception ex)

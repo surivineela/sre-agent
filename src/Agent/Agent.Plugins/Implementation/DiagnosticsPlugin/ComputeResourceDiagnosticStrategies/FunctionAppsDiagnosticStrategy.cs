@@ -8,14 +8,12 @@ namespace Agent.Plugins.Implementation.DiagnosticsPlugin.ComputeResourceDiagnost
 
 internal class FunctionAppsDiagnosticStrategy : ComputeResourceDiagnosticStrategyBase
 {
-    private readonly ArmHelper _armHelper;
-    private readonly ILogger<DiagnosticsPlugin> _logger;
-    private AppServiceDiagnosticStrategy _appServiceDiagnosticStrategy; 
+    private readonly ArmHelper _armHelper;    
+    private readonly AppServiceDiagnosticStrategy _appServiceDiagnosticStrategy; 
 
     public FunctionAppsDiagnosticStrategy(ILogger<DiagnosticsPlugin> logger, ArmHelper armHelper)
         : base(logger)
     {
-        _logger = logger;
         _armHelper = armHelper;
         _appServiceDiagnosticStrategy = new AppServiceDiagnosticStrategy(logger, armHelper);
         _analysisHandlers = new Dictionary<AnalysisType, Func<string, ComputeResourceInfo, AnalysisType, string, Task<string>>>

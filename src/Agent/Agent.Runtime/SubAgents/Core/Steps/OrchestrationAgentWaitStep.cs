@@ -16,6 +16,7 @@ public class OrchestrationAgentWaitStep : OrchestrationAgentStep
 
     public override async Task ExecuteAsync(TaskOrchestrationContext context, OrchestrationAgent agent)
     {
+        await Task.Yield();
         var log = context.CreateReplaySafeLogger<OrchestrationAgentWaitStep>();
         Guid threadId = agent.ThreadId;
 

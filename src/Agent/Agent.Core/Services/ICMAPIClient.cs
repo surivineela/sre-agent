@@ -252,7 +252,7 @@ namespace Agent.Core.Services
             owningServiceId = owningServiceId ?? _icmApiSettings.OwningServiceId;
             var serviceIdFilter = !string.IsNullOrWhiteSpace(owningServiceId) ? $" and OwningServiceId eq {owningServiceId}" : string.Empty;
             var titleFilter = !string.IsNullOrWhiteSpace(titleContains) ? $" and contains(Title, '{titleContains}')" : string.Empty;
-            var queryParams = new Dictionary<string, string>()
+            var queryParams = new Dictionary<string, string?>()
             {
                 ["$top"] = limit.ToString(),
                 ["$skip"] = offset.ToString(),
@@ -263,7 +263,7 @@ namespace Agent.Core.Services
             return await GetIncidentsAsyncInternal(queryParams);
         }
 
-        private async Task<List<Incident>> GetIncidentsAsyncInternal(Dictionary<string, string> queryParams)
+        private async Task<List<Incident>> GetIncidentsAsyncInternal(Dictionary<string, string?> queryParams)
         {
             var apiPath = QueryHelpers.AddQueryString($"{IcmAPIPathPrefix}/incidents", queryParams);
             var response = await SendICMGetRequestAsync(apiPath);

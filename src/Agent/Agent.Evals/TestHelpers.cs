@@ -11,9 +11,11 @@ using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.Repositories;
 using Agent.Framework;
 using Agent.Graph.Crawler.Legacy;
+using Agent.Graph.Crawler.Metrics;
 using Agent.Logging;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
+using Agent.Plugins.Implementation;
 using Agent.Plugins.Interface;
 using Agent.Prometheus.Services;
 using Agent.Runtime;
@@ -34,8 +36,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
 using OpenTelemetry.Trace;
-using Agent.Graph.Crawler.Metrics;
-using Agent.Plugins.Implementation;
 
 namespace Agent.Evals;
 

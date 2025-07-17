@@ -117,7 +117,7 @@ public class ToolsRepository : IToolsRepository
         return _connectionToToolSignatures.Keys.Select(c => new ChatMessage(ChatRole.User, c.ServerInstructions));
     }
 
-    public void RegisterPlugin<T>()
+    public void RegisterPlugin<T>() where T : notnull
     {
         var pluginType = typeof(T);
         var flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly;
@@ -151,7 +151,7 @@ public class ToolsRepository : IToolsRepository
 
     public string Register202<T>(
         Expression<Func<T, Delegate>> submitFunctionSelector,
-        Expression<Func<T, Delegate>> executeFunctionSelector)
+        Expression<Func<T, Delegate>> executeFunctionSelector) where T: notnull
     {
         var submitMethodInfo = ToolHelper.GetMethodFromExpression(submitFunctionSelector);
         var executeMethodInfo = ToolHelper.GetMethodFromExpression(executeFunctionSelector);
@@ -159,20 +159,20 @@ public class ToolsRepository : IToolsRepository
         return Register202<T>(submitMethodInfo, executeMethodInfo);
     }
 
-    public string Register202<T>(MethodInfo submitMethodInfo, MethodInfo executeMethodInfo)
+    public string Register202<T>(MethodInfo submitMethodInfo, MethodInfo executeMethodInfo) where T: notnull
     {
         var sig = GetSignature(submitMethodInfo);
         _aiFunctions.Add(sig, new DeferredToolFunction202<T>(_serviceProvider, submitMethodInfo, executeMethodInfo));
         return sig;
     }
 
-    public string Register200<T>(Expression<Func<T, Delegate>> executeFunctionSelector)
+    public string Register200<T>(Expression<Func<T, Delegate>> executeFunctionSelector) where T: notnull
     {
         var methodInfo = ToolHelper.GetMethodFromExpression(executeFunctionSelector);
         return Register200<T>(methodInfo);
     }
 
-    public string Register200<T>(MethodInfo methodInfo)
+    public string Register200<T>(MethodInfo methodInfo) where T: notnull
     {
         var sig = GetSignature(methodInfo);
         _aiFunctions.Add(sig, new DeferredToolFunction200<T>(_serviceProvider, methodInfo));

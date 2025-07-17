@@ -6,8 +6,8 @@ public interface IICMPlugin
     Task<Incident> GetIncidentInfo(string incidentId);
     Task<List<CustomField>> GetCustomFields(string incidentId);
     Task<string> SearchIncidents(string searchString, int lookbackPeriodInDays, int resultCountLimit);
-    Task<string> GetCurrentUtcDateTime();
-    Task<string> GetIcmCorrelationAndLinkingRules();
+    string GetCurrentUtcDateTime();
+    string GetIcmCorrelationAndLinkingRules();
     Task<DiscussionEntry> GetAlertingDiscussionEntry(string incidentId);
     Task<List<DiscussionEntry>> GetDiscussionEntries(string incidentId);
     Task<string> TransferIncident(string incidentId, string discussionEntry, string tenantName, string owningTeam);

@@ -34,7 +34,7 @@ public class OrchestrationAgentVisualizeAppComponentsStep : OrchestrationAgentSt
         }
 
         // Create a new args dictionary with the threadId as a Guid
-        var argsWithThreadId = new Dictionary<string, object>(FunctionCall.Arguments)
+        var argsWithThreadId = new Dictionary<string, object?>(FunctionCall.Arguments)
         {
             ["threadId"] = threadId
         };

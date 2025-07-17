@@ -102,7 +102,7 @@ namespace FirstPartyAgent.Core.Services
                     }
                     catch (HttpRequestException ex)
                     {
-                        if (ex is TimeoutException || ex.InnerException is TimeoutException)
+                        if (ex.InnerException is TimeoutException)
                         {
                             // If the exception is a TimeoutException, wait and retry  
                             await Task.Delay(delay);

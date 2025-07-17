@@ -24,7 +24,7 @@ public class OrchestrationAgentGenericExecuteStep : OrchestrationAgentStep
 
         // For any other function call, check if there're arguments match with key in threadContext.Properties
         // if so, use the value from threadContext.Properties to set the arguments to avoid LLM hallucinations
-        var args = new Dictionary<string, object>(FunctionCall.Arguments);
+        var args = new Dictionary<string, object?>(FunctionCall.Arguments);
 
         // Create a new function call with the updated arguments
         var updatedFunctionCall = new FunctionCallContent(

@@ -43,6 +43,7 @@ public abstract class ApplicationInsightsLogger
     {
         if (_isConfigured)
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             _telemetryClient.TrackRequest(new RequestTelemetry
             {
                 HttpMethod = method,
@@ -52,6 +53,7 @@ public abstract class ApplicationInsightsLogger
                 Duration = duration,
                 ResponseCode = statusCode
             });
+#pragma warning restore CS0618 // Type or member is obsolete
         }
     }
 

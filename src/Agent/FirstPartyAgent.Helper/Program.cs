@@ -1,30 +1,10 @@
 
 using System.Text.Json;
 using Agent.Core.Configuration;
-using Agent.Core.Interfaces;
-using Agent.Core.Interfaces;
-using Agent.Data;
-using Agent.Data.Repositories;
-using Agent.Data.Repositories;
 using Agent.Runtime;
-using Agent.Runtime.Communication;
-using Agent.Runtime.Communication;
 using FirstPartyAgent.Core.Configuration;
-using FirstPartyAgent.Core.Extensions;
-using FirstPartyAgent.Core.Extensions;
-using FirstPartyAgent.Core.Helpers;
-using FirstPartyAgent.Core.Helpers;
-using FirstPartyAgent.Core.Services;
 using FirstPartyAgent.Core.Services;
 using FirstPartyAgent.Helper.Services;
-using FirstPartyAgent.Plugins;
-using FirstPartyAgent.Plugins;
-using Microsoft.ApplicationInsights.AspNetCore.Extensions;
-using Microsoft.ApplicationInsights.Extensibility;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 
 namespace FirstPartyAgent.Helper;

@@ -70,7 +70,9 @@ namespace Agent.Plugins.Definitions
         [Description("Managed cluster name.")] string managedClusterName)
         {
             var basePath = "/services/ACA Azure Container Apps/pages/Managed Cluster";
+            #pragma warning disable SYSLIB0013 
             var cleanPath = Uri.EscapeUriString(basePath); // DO NOT CHANGE TO EscapeDataString
+            #pragma warning restore SYSLIB0013
 
             var query = $"managedClusterName={Uri.EscapeDataString(managedClusterName.Trim())}" +
                         $"&globalFrom={Uri.EscapeDataString(fromDate.ToString("M/d/yyyy hh:mm:ss tt"))}" +

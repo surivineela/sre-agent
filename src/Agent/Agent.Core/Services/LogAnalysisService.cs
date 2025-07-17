@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -197,7 +197,6 @@ public class LogAnalysisService : ILogAnalysisService
         if (logs?.Any() != true)
         {
             return result with { ErrorMessage = "No logs available for analysis" };
-            return result;
         }
 
         // Parse timestamp if available
@@ -240,7 +239,6 @@ public class LogAnalysisService : ILogAnalysisService
                 ErrorMessage: "Detected environment configuration issues",
                 DetailedDiagnosis: "Container environment variables or configuration may be incorrect",
                 SuggestedFix: "Review environment variables and app settings");
-            return result;
         }
 
         return result;

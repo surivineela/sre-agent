@@ -299,7 +299,9 @@ namespace Agent.Plugins.Definitions
            [Description("Subscription ID of the Container App Job.")] string subscriptionId)
         {
             var basePath = "/services/ACA Azure Container Apps/pages/Container App";
+            #pragma warning disable SYSLIB0013
             var cleanPath = Uri.EscapeUriString(basePath); // DO NOT CHANGE TO EscapeDataString
+            #pragma warning restore SYSLIB0013
 
             var query =
                 $"cappName={Uri.EscapeDataString(containerAppName.Trim())}" +

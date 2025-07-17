@@ -24,7 +24,6 @@ namespace Agent.Plugins.IcmPlugin
         private readonly ICMWorkflowSettings _icmWorkflowSettings;
         private readonly IKeyVaultService _keyVaultService;
         private const string ActionPath = "triggers/manual/execute";
-        private readonly int TimeoutInSeconds = 600;
         private bool _processImages = true;
         public bool ProcessImages => _processImages;
 

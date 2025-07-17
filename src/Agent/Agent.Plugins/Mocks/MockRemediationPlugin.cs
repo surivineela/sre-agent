@@ -20,28 +20,28 @@ namespace Agent.Plugins.Mocks
             _armPlugin = (MockArmPlugin)armPlugin;
         }
 
-        public async Task<RemediationResult> ScaleAppServicePlanVertically(string resourceId)
+        public Task<RemediationResult> ScaleAppServicePlanVertically(string resourceId)
         {
-            return new RemediationResult(
+            return Task.FromResult(new RemediationResult(
                 Success: true,
                 Action: "ScaleAppServicePlan",
                 Details: $"Successfully initiated scaling of App Service Plan for {resourceId}.",
                 OperationId: Guid.NewGuid().ToString(),
-                FinishedTime: _timeProvider.GetUtcNow().DateTime);
+                FinishedTime: _timeProvider.GetUtcNow().DateTime));
         }
 
-        public async Task<RemediationResult> CollectMemoryDump(string resourceId)
+        public Task<RemediationResult> CollectMemoryDump(string resourceId)
         {
-            return new RemediationResult(
+            return Task.FromResult(new RemediationResult(
                 Success: true,
                 Action: "CollectMemoryDump",
                 Details: $"Memory dump collection initiated for {resourceId}. Memory dump will be available in the storage account.",
                 OperationId: Guid.NewGuid().ToString(),
-                FinishedTime: _timeProvider.GetUtcNow().DateTime);
+                FinishedTime: _timeProvider.GetUtcNow().DateTime));
         }
 
         public async Task<RemediationResult> RestartWebApplication(string resourceId)
-        {
+        {           
             bool success = await _armPlugin.RestartWebApp(resourceId);
 
             return new RemediationResult(
@@ -52,12 +52,12 @@ namespace Agent.Plugins.Mocks
                 FinishedTime: _timeProvider.GetUtcNow().DateTime);
         }
 
-        public async Task<RemediationResult> SuggestNextSku(string resourceId, string direction, string currentSku)
+        public Task<RemediationResult> SuggestNextSku(string resourceId, string direction, string currentSku)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<RemediationResult> CalculateScalingCost(string resourceId, string direction, string currentSku, string targetSku)
+        public Task<RemediationResult> CalculateScalingCost(string resourceId, string direction, string currentSku, string targetSku)
         {
             throw new NotImplementedException();
         }

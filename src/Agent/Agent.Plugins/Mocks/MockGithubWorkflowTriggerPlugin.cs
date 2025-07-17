@@ -67,13 +67,13 @@ namespace Agent.Plugins.Mocks
         {
             System.Diagnostics.Debug.WriteLine($"Tracking workflow run {runId}");
             System.Diagnostics.Debug.WriteLine($"Available workflow runs: {string.Join(", ", _workflowRuns.Select(r => r.RunId))}");
-            
-            var run = _workflowRuns.Find(r => r.RunId == runId);
-            if (run == null)
+            var runIndex = _workflowRuns.FindIndex(r => r.RunId == runId);
+            if (runIndex == -1)
             {
                 System.Diagnostics.Debug.WriteLine($"Workflow run {runId} not found in _workflowRuns list");
                 throw new ArgumentException($"Workflow run {runId} not found");
             }
+            var run = _workflowRuns[runIndex];            
 
             // Complete the workflow immediately
             run.Status = "completed";

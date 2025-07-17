@@ -40,7 +40,6 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
         private readonly IGraphDBPlugin _graphDBPlugin;
         private readonly HttpClient _httpClient;
         private readonly IChatClient _chatClient;
-        private static bool didItOnce = false;
         private readonly string _dashboardsDirectory;
         private readonly string _mainDashboardFilePath;
         private readonly string _grafanaUrl;

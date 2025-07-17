@@ -1,10 +1,7 @@
 using System.ComponentModel;
 using Agent.Core.Interfaces;
-using Agent.Framework;
-using Agent.Plugins.Kusto;
-using Agent.Core.Interfaces;
-using Microsoft.SemanticKernel;
 using Agent.Plugins.Interface;
+using Agent.Plugins.Kusto;
 
 namespace Agent.Plugins.Definitions
 {

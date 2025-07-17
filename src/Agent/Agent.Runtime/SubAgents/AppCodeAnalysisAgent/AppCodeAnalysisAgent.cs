@@ -43,7 +43,7 @@ namespace Agent.Runtime.SubAgents.AppCodeAnalysisAgent
 
                 return "success";
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 throw;
             }

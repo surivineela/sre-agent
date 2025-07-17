@@ -156,8 +156,9 @@ namespace Agent.Tests.Integration
         }
 
         [Fact]
-        public async Task Cleanup()
+        public Task Cleanup()
         {
+            return Task.CompletedTask;
             // Need to chat with DTS folks about the best way to do this. 
         }
 

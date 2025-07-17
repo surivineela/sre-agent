@@ -1,37 +1,19 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Text;
-using System.Threading.Tasks;
-using FirstPartyAgent.Core.Configuration;
-using FirstPartyAgent.Core.Models;
-using FirstPartyAgent.Core.Services;
-using Microsoft.Azure.Functions.Worker.Http;
-using Microsoft.Azure.Functions.Worker;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using Agent.Data.DataModels;
-using Azure.Identity;
-using Microsoft.Bot.Configuration;
-using Agent.Core.Models;
 using Agent.Core.Configuration;
+using Agent.Core.Models;
+using Azure.Identity;
+using FirstPartyAgent.Core.Services;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.Extensions.Logging;
 
 namespace FirstPartyAgent.FunctionApp;
 public class AgentHelperController
 {
     private readonly ILogger<AgentHelperController> _logger;
     private readonly OneBranchApprovalServiceSettings _approvalServiceSettings;
-    private readonly IChatService _chatService;
-    private readonly IAlertProcessingService _alertProcessingService;
-    private readonly ISessionMessageService _sessionMessageService;
-    private readonly IStorageService _storageService;
     private readonly ICosmosDBService _cosmosDBService;
-    private readonly IICMWorkflowClient _icmWorkflowClient;
-    private readonly ITeamsClient _teamsClient;
-    private readonly TeamsClientSettings _teamsClientSettings;
-    private const string hotsiteAgentAlertDetailsCosmosDbContainer = "IcmAlertDetails";
-    private readonly AlertHandlerService _alertHandlerService;
     private HttpClient _httpClient;
 
     public AgentHelperController(

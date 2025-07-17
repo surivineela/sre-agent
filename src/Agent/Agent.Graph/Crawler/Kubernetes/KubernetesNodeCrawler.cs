@@ -19,7 +19,6 @@ public class KubernetesNodeCrawler : IResourceCrawler
     private readonly ILogger<KubernetesNodeCrawler> _logger;
     private readonly IGraphDatabaseClient _graphDbClient;
     private readonly IKubernetesService _k8sService;
-    private readonly ArmClient _armClient;
 
     public KubernetesNodeCrawler(
         ILogger<KubernetesNodeCrawler> logger,

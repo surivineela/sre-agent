@@ -18,7 +18,6 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
 {
     private readonly ILogger<AzureKubernetesServiceCrawler> _logger;
     private readonly IGraphDatabaseClient _graphDbClient;
-    private readonly ArmClient _armClient;
     private readonly IKubernetesService _k8sService;
     private readonly AzureResourceGraphClient _graphClient;
 
@@ -27,7 +26,6 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
     {
         _logger = logger;
         _graphDbClient = graphDbClient;
-        _armClient = armClient;
         _k8sService = k8sService;
         _graphClient = graphClient;
     }

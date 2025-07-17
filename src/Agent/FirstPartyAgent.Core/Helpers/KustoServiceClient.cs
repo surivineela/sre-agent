@@ -61,7 +61,7 @@ public class KustoServiceClient
         }
         else if (config.AuthType == KustoAuthenticationType.App)
         {
-            var clientCertificate = new X509Certificate2(Convert.FromBase64String(config.ApplicationCertificate), string.Empty, X509KeyStorageFlags.EphemeralKeySet);
+            var clientCertificate = X509CertificateLoader.LoadCertificate(Convert.FromBase64String(config.ApplicationCertificate));
             var credential = new ClientCertificateCredential(
                         config.Authority,
                         config.ApplicationClientId,

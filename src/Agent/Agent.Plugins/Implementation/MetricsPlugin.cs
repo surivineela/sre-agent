@@ -133,7 +133,7 @@ namespace Agent.Plugins
                     resourceId.ToString(),
                     metrics);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 metrics[0].Name = "AverageMemoryWorkingSet";
 
@@ -152,31 +152,23 @@ namespace Agent.Plugins
         public async Task<IReadOnlyList<ThreadTimeSeriesData>> GetThreadMetrics(
             string resourceId)
         {
-            try
+            Console.WriteLine($"[get_webapp_thread_metrics] Invoked with resourceId: {resourceId}");
+            
+            var metrics = new List<Metric>
             {
-                Console.WriteLine($"[get_webapp_thread_metrics] Invoked with resourceId: {resourceId}");
-
-                var metrics = new List<Metric>
-                {
-                    new Metric { Name = "Threads", Unit = "count", Aggregation = "Average" }
-                };
-
-                var metricsData = await _armHelper.FetchMetricsAsync(
-                    resourceId,
-                    metrics);
-
-                return metricsData
-                    .Select(m => new ThreadTimeSeriesData(
-                        TimeStamp: m.Timestamp,
-                        // m.Value is thread count
-                        ThreadCount: m.Value))
-                    .ToArray();
-            }
-            catch (Exception ex)
-            {
-                throw;
-            }
-
+                new Metric { Name = "Threads", Unit = "count", Aggregation = "Average" }
+            };
+            
+            var metricsData = await _armHelper.FetchMetricsAsync(
+                resourceId,
+                metrics);
+            
+            return metricsData
+                .Select(m => new ThreadTimeSeriesData(
+                    TimeStamp: m.Timestamp,
+                    // m.Value is thread count
+                    ThreadCount: m.Value))
+                .ToArray();
         }
     }
 }

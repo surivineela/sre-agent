@@ -80,7 +80,7 @@ public class HandoffToAgentPlugin
         await LogInformation("handoff_to_another_icm_agent", $"Handoff initiated for message: {handoffMessage} by {senderAgentName}", kernel);
 
         // Fire and forget handoff to another agent
-        _handoffToAgentClient.HandoffToAnotherICMAgentAsync(targetAgentName, incidentId, senderAgentName, handoffMessage, agentMode);
+        _ = _handoffToAgentClient.HandoffToAnotherICMAgentAsync(targetAgentName, incidentId, senderAgentName, handoffMessage, agentMode);
 
         return "Handoff initiated for message: " + handoffMessage;
     }

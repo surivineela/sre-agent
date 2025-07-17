@@ -83,7 +83,7 @@ public class GraphService : IGraphService
         return await _graphDatabaseClient.Query(query);
     }
 
-    public async Task<ResultSet<dynamic>> GetResourceTypesAsync()
+    public Task<ResultSet<dynamic>> GetResourceTypesAsync()
     {
         var resourceTypes = new List<dynamic>
         {
@@ -94,7 +94,7 @@ public class GraphService : IGraphService
             ArmConstants.AzureKubernetesServiceStatefulSetType.ToLower()
         };
 
-        return new ResultSet<dynamic>(resourceTypes, new Dictionary<string, object>());
+        return Task.FromResult(new ResultSet<dynamic>(resourceTypes, new Dictionary<string, object>()));
     }
 
     public async Task<List<IGraphService.AppGroupWithRepo>> GetAppGroupsWithRepo()

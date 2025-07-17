@@ -76,20 +76,21 @@ namespace Agent.Core.Helpers
                     // Read the file content from the path
                     var content = File.ReadAllText(certFilePath);
                     var certBytes = Convert.FromBase64String(content);
-                    var cert = new X509Certificate2(certBytes, certPassword);
+                    var cert = X509CertificateLoader.LoadPkcs12(certBytes, certPassword);
+
                     log?.LogInternalInformation("Successfully loaded Cert from base64 string");
                     return cert;
                 }
                 else
                 {
-                    var cert = new X509Certificate2(certFilePath, certPassword);
-                    log?.LogInternalInformation("Successfully loaded Cert from file {}", certFilePath);
+                    var cert = X509CertificateLoader.LoadPkcs12(File.ReadAllBytes(certFilePath), certPassword);
+                    log?.LogInternalInformation($"Successfully loaded Cert from file {certFilePath}");
                     return cert;
                 }
             }
             catch (Exception ex)
             {
-                log?.LogInternalError(ex, "Error: {} occurred while trying to load cert from file {}", ex.Message, certFilePath);
+                log?.LogInternalError(ex, $"Error: {ex.Message} occurred while trying to load cert from file {certFilePath}");
                 throw;
             }
         }
@@ -121,7 +122,7 @@ namespace Agent.Core.Helpers
                 byte[] privateKeyBytes = Convert.FromBase64String(secret.Value);
 
                 // Create an X509Certificate2 object from the byte array
-                X509Certificate2 certificate = new X509Certificate2(privateKeyBytes, certPassword);
+                X509Certificate2 certificate = X509CertificateLoader.LoadPkcs12(privateKeyBytes, certPassword);
 
                 log?.LogInternalInformation($"Successfully loaded Cert from Key Vault, Certificate Subject: {certificate.Subject}");
                 return certificate;

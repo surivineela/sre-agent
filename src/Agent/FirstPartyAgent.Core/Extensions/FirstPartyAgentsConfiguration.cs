@@ -3,8 +3,8 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Configuration;
+using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
-using Agent.Core.Services;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.Repositories;
 using Agent.Plugins;
@@ -16,12 +16,9 @@ using FirstPartyAgent.Core.Clients;
 using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Core.Helpers;
 using FirstPartyAgent.Core.Plugins;
-using FirstPartyAgent.Core.Plugins.Definitions;
-using FirstPartyAgent.Core.Plugins.Interfaces;
 using FirstPartyAgent.Core.Services;
 using FirstPartyAgent.Core.Services.TokenService;
 using FirstPartyAgent.Plugins;
-using FirstPartyAgent.Plugins.Definitions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -29,12 +26,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
-using IKustoPluginClient = FirstPartyAgent.Core.Plugins.Interfaces.IKustoPluginClient;
-using ICMWorkflowSettings = FirstPartyAgent.Core.Configuration.ICMWorkflowSettings;
-using Agent.Core.Services;
 // Add alias for FirstPartyAgent's AzureSearchPlugin
 using FirstPartyAzureSearchPlugin = FirstPartyAgent.Core.Plugins.AzureSearchPlugin;
-using Agent.Core.Helpers;
+using ICMWorkflowSettings = FirstPartyAgent.Core.Configuration.ICMWorkflowSettings;
+using IKustoPluginClient = FirstPartyAgent.Core.Plugins.Interfaces.IKustoPluginClient;
 using ObserverClientService = FirstPartyAgent.Core.Services.ObserverClientService;
 using WebAppPlugin = FirstPartyAgent.Core.Plugins.WebAppPlugin;
 

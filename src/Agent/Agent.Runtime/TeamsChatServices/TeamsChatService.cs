@@ -694,18 +694,6 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
     }
 }
 
-// Helper extension method for ConcurrentDictionary
-public static class ConcurrentDictionaryExtensions
-{
-    public static TValue GetOrAddValue<TKey, TValue>(
-        this ConcurrentDictionary<TKey, TValue> dictionary,
-        TKey key,
-        Func<TValue> valueFactory)
-    {
-        return dictionary.GetOrAdd(key, _ => valueFactory());
-    }
-}
-
 public class AdapterWithErrorHandler : CloudAdapter
 {
     public AdapterWithErrorHandler(BotFrameworkAuthentication auth, ILogger<IBotFrameworkHttpAdapter> logger)

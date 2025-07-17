@@ -20,7 +20,6 @@ public class IcmScanner(ILogger<IcmScanner> logger,
     CosmosClient cosmosClient,
     CosmosDBSettings cosmosDbSettings,
     IIncidentHandlingService incidentHandlingService,
-    IIncidentHandlerManagementService incidentHandlerManagementService,
     IIncidentManagementService<IcmIncidentDocument> incidentManagementService,
     IIncidentFilterManagementService incidentFilterManagementService,
     IAgentInboundCommunicationService agentInboundCommunicationService) : IIncidentScanner

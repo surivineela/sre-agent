@@ -102,7 +102,7 @@ public sealed class ObserverClientService
                 }
                 catch (HttpRequestException ex)
                 {
-                    if (ex is TimeoutException || ex.InnerException is TimeoutException)
+                    if (ex.InnerException is TimeoutException)
                     {
                         // If the exception is a TimeoutException, wait and retry  
                         _logger.LogInternalWarning(ex, "Request to {RequestUri} timed out. Retrying in {Delay}ms... (Attempt {Retries}/{MaxRetries})", newRequest.RequestUri, delay, retries + 1, maxRetries);

@@ -36,7 +36,7 @@ namespace Agent.Runtime.SubAgents.WebAppDownAgent
 
                 return "success";
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 throw;
             }

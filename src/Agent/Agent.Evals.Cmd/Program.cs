@@ -23,7 +23,6 @@ public class Program
 
     public static async Task Main()
     {
-        string testResultFile;
         try
         {
             var testResultsLocation = Environment.GetEnvironmentVariable("SRE_AGENT_TESTING_TEST_RESULTS_LOCATION");

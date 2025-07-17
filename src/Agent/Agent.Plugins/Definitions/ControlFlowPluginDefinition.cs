@@ -10,7 +10,7 @@ namespace Agent.Plugins
     public class ControlFlowPluginDefinition
     {
         [Description("Waits for a specified amount of time. Other system events or user messages can interrupt a wait. In this case, you might need to resume the wait by calling the wait tool again, with a different duration")]
-        public async Task<string> Wait(
+        public Task<string> Wait(
             [Description("The amount of time to wait in seconds")] 
             int seconds)
         {

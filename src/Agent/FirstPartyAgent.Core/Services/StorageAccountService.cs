@@ -8,6 +8,7 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using FirstPartyAgent.Core.Configuration;
 using Agent.Core.Configuration;
+using Microsoft.TeamFoundation.DistributedTask.Common.Contracts;
 
 namespace FirstPartyAgent.Core.Services
 {
@@ -23,22 +24,22 @@ namespace FirstPartyAgent.Core.Services
     public class StorageServiceDisabled : IStorageService
     {
         public bool IsEnabled => false;
-        public async Task<string> ReadFileFromStorage(string containerName, string blobName)
+        public Task<string> ReadFileFromStorage(string containerName, string blobName)
         {
-            return string.Empty;
+            return Task.FromResult(string.Empty);
         }
-        public async Task WriteContentToStorage(string containerName, string blobName, string content)
+        public Task WriteContentToStorage(string containerName, string blobName, string content)
         {
-            return;
+            return Task.CompletedTask;
         }
-        public async Task<List<string>> ListFilesInContainer(string containerName)
+        public Task<List<string>> ListFilesInContainer(string containerName)
         {
-            return new List<string>();
+            return Task.FromResult(new List<string>());
         }
 
         public Task<Stream> ReadFileStreamFromStorage(string containerName, string blobName)
         {
-            return Task.FromResult<Stream>(null);
+            return Task.FromResult<Stream>(new MemoryStream());
         }
     }
     public class StorageService : IStorageService

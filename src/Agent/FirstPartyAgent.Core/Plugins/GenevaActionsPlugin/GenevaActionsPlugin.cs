@@ -28,7 +28,6 @@ namespace FirstPartyAgent.Core.Plugins
         private ISessionMessageService _sessionMessageService;
         private string storageGenevaActionsContainerName = "genevaactionsconfig";
         private readonly string cosmosGenevaActionsContainerName = "GenevaActionsConfigs";
-        private readonly string genevaActionsConfigName = "GenevaActions";
 
         private Lazy<Task<List<GenevaActionConfig>>> _lazyGenevaActions;
 

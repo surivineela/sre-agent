@@ -51,7 +51,7 @@ public class GenerateApprovalLinkActivity : TaskActivity<(string ApprovalId, str
         }
         catch (Exception ex)
         {
-            return Task.FromResult("Error generating an approval link");
+            return Task.FromResult($"Error generating an approval link: {ex}");
         }
     }
 }

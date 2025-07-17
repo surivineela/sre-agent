@@ -83,10 +83,14 @@ namespace Agent.Plugins.Implementation
                 // This initial activity will appear as the first message in the new thread.
                 Activity = MessageFactory.Text(message),
             };
-            ThreadTeamsMapping mapping = null;
+            ThreadTeamsMapping? mapping = null;
             try
             {
-                var cloudAdapter = _adapter as CloudAdapter;
+                if (_adapter is not CloudAdapter cloudAdapter)
+                {
+                    throw new InvalidOperationException("_adapter must be of type CloudAdapter.");
+                }
+
                 await cloudAdapter.CreateConversationAsync(
                     botAppId: _appId,
                     serviceUrl: serviceUrl,
@@ -95,6 +99,7 @@ namespace Agent.Plugins.Implementation
                     conversationParameters: conversationParameters,
                     callback: async (turnContext, cancellationToken) =>
                     {
+                        await Task.Yield();
                         mapping = new ThreadTeamsMapping(
                             $"teams_{threadId}",
                             threadId,
@@ -120,11 +125,15 @@ namespace Agent.Plugins.Implementation
 
         public async Task<bool> PostTeamsMessage(string threadId, Activity message, string messageId = "")
         {
-
             var mapping = await _threadTeamsMappingRepository.GetMappingByThreadIdAsync(threadId);
             if (mapping == null)
             {
                 (mapping, string returnMessage) = await PostInitialMessageAsync(message.Text, threadId);
+                if (mapping == null)
+                {
+                    _logger.LogInternalError("Failed to create Teams thread mapping.");
+                    return false;
+                }
                 await _threadTeamsMappingRepository.AddMappingAsync(mapping);
                 if (returnMessage != "Message posted successfully.")
                 {

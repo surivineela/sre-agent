@@ -214,6 +214,7 @@ namespace Agent.Plugins.Implementation
             }
             catch(Exception ex)
             {
+                _logger.LogInternalError(ex, $"GetReliabilityStatusForSubscriptions failed: {ex.ToString()}");
                 throw;
             }
         }
@@ -253,6 +254,7 @@ namespace Agent.Plugins.Implementation
             }
             catch (Exception ex)
             {
+                _logger.LogInternalError(ex, $"GetAppsToMonitor failed: {ex.ToString()}");
                 throw;
             }
         }

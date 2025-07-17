@@ -37,7 +37,7 @@ public sealed class ToolFunction200 : IToolFunction
     }
 }
 
-public sealed class DeferredToolFunction200<T> : IToolFunction
+public sealed class DeferredToolFunction200<T> : IToolFunction where T : notnull
 {
     private readonly IServiceProvider _sp;
     private readonly MethodInfo _methodInfo;
@@ -76,7 +76,7 @@ public sealed class ToolFunction202 : IToolFunction, IToolFunction202
     }
 }
 
-public sealed class DeferredToolFunction202<T> : IToolFunction, IToolFunction202
+public sealed class DeferredToolFunction202<T> : IToolFunction, IToolFunction202 where T : notnull
 {
     private readonly IServiceProvider _sp;
     private readonly MethodInfo _submitMethodInfo;
@@ -102,7 +102,6 @@ public sealed class DeferredToolFunction202<T> : IToolFunction, IToolFunction202
     {
         get
         {
-            // this is dangerous, I'm making an assumption that the submit and the execute dont need to be on the same instance
             var instance = _sp.GetRequiredService<T>();
             return AIFunctionFactory.Create(_executeMethodInfo, instance);
         }

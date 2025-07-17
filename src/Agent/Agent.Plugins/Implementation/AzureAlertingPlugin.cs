@@ -26,7 +26,6 @@ namespace Agent.Plugins.Implementation
         private readonly CosmosClient _cosmosDBService;
         private readonly CosmosDBSettings _cosmosDBSettings;
         private readonly Dictionary<string, ICMAlertConfig> _icmAlertConfigs = new(StringComparer.OrdinalIgnoreCase);
-        private readonly string _icmAgentConfigCosmosDbContainer = "IcmAlertConfigs";
         private const string _icmAgentAlertDetailsCosmosDbContainer = "IcmAlertDetails";
 
         public AzureAlertingPlugin(

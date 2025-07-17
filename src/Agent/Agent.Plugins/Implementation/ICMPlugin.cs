@@ -289,7 +289,7 @@ Example structure:
     //    return incidents;
     //}
 
-    public async Task<string> GetCurrentUtcDateTime()
+    public string GetCurrentUtcDateTime()
     {
         var returnValue = $"Current timestamp: {DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")} UTC";
         var logMessage = $"[{nameof(ICMPlugin)}_{nameof(GetCurrentUtcDateTime)}][{DateTime.UtcNow}] Invoked. Returned {returnValue}";
@@ -297,7 +297,7 @@ Example structure:
         return returnValue;
     }
 
-    public async Task<string> GetIcmCorrelationAndLinkingRules()
+    public string GetIcmCorrelationAndLinkingRules()
     {
         _logger.LogInternalInformation($"[get_icm_correlation_and_linking_guidelines][{DateTime.UtcNow}] invoked.");
         const string guidelines = "Follow the below workflow carefully, this guide is to be used for identifying potential matches only and does not apply to incidents already linked as related/parent/child, as those are considered high-confidence correlations.\n" +
@@ -604,6 +604,7 @@ Example structure:
         //var errorDiscussionEntry = IcmPostTemplates.DiscussionEntryTemplate.Replace("POST_CONTENT_HERE", discussionEntryMessage);
         //var postResult = await PostDiscussionEntry(incidentId, errorDiscussionEntry, kernel);
         //return errorMessage;
+        await Task.Yield();
         throw new NotImplementedException();
     }
 

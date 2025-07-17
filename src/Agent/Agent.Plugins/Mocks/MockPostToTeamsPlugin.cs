@@ -18,22 +18,22 @@ namespace Agent.Plugins.Mocks
             _logger = logger;
         }
 
-        public async Task<string> PostAsync(string message)
+        public Task<string> PostAsync(string message)
         {
             _logger.LogInternalInformation("MockPostToTeamsPlugin: Posting message to Teams: {Message}", message);
-            return "Message posted successfully";
+            return Task.FromResult("Message posted successfully");
         }
 
-        public async Task<bool> PostTeamsMessage(string threadId, Activity message, string messageId = "")
+        public Task<bool> PostTeamsMessage(string threadId, Activity message, string messageId = "")
         {
             _logger.LogInternalInformation("MockPostToTeamsPlugin: Posting Teams message with threadId {ThreadId}: {Message}", threadId, message);
-            return true;
+            return Task.FromResult(true);
         }
 
-        public async Task<bool> CreateTeamsThread(string threadId, string initialMessage, string messageId)
+        public Task<bool> CreateTeamsThread(string threadId, string initialMessage, string messageId)
         {
             _logger.LogInternalInformation("MockPostToTeamsPlugin: Posting message to Teams with retry: {Message}", initialMessage);
-            return true;
+            return Task.FromResult(true);
         }
     }
 }

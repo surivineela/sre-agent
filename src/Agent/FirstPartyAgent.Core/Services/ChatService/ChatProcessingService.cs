@@ -432,6 +432,7 @@ public class ChatProcessingService : IChatService
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, $"Error processing message: {ex.Message}. sessionId: {sessionInfo.SessionId}");
                 sessionInfo.AgentLoopRunning = false;
                 throw;
             }

@@ -73,7 +73,7 @@ var host = new HostBuilder()
     })
     .ConfigureFunctionsWebApplication()
     .ConfigureFunctionsWorkerDefaults()
-    .ConfigureServices(async (context, services) =>
+    .ConfigureServices((context, services) =>
     {
         var configuration = context.Configuration;
 

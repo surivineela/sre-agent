@@ -16,13 +16,11 @@ public interface IRevisionService
 // [OPTIONAL] Implement this service only if doing heaving lifting like Network calls, DB calls, etc. and/or optionally using the RevisionSettings to control the behaviour of the service.
 public class RevisionService: IRevisionService
 {
-    private readonly ILogger<RevisionService> _logger;
     private readonly RevisionSettings settings;
 
     // Note: The RevisionSettings is auto injected by the DI container via our top-level sub-agent loader code.
-    public RevisionService(ILogger<RevisionService> logger, RevisionSettings settings)
+    public RevisionService(RevisionSettings settings)
     {
-        _logger = logger;
         this.settings = settings;
     }
 

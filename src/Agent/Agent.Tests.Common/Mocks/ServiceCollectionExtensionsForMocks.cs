@@ -83,7 +83,9 @@ public static class ServiceCollectionExtensionsForMocks
         try
         {
             var server = new GremlinServer("localhost", 8182);
+#pragma warning disable CS0618 // Type or member is obsolete
             var internalClient = new GremlinClient(server, new CustomGraphSON2Reader(), new GraphSON2Writer(), "application/vnd.gremlin-v2.0+json");
+#pragma warning restore CS0618 // Type or member is obsolete
             services.AddSingleton<IGraphDatabaseClient>(sp =>
             {
                 var gremlinLogger = sp.GetRequiredService<ILoggerFactory>()

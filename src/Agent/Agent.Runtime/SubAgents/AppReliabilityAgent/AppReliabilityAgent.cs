@@ -48,7 +48,7 @@ namespace Agent.Runtime.SubAgents.AppReliabilityAgent
 
                 return "success";
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 throw;
             }

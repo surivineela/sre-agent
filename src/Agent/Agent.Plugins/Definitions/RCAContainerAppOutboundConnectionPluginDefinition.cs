@@ -141,6 +141,7 @@ namespace Agent.Plugins.Definitions
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate)
         {
+            #pragma warning disable SYSLIB0013
             var basePath = "/services/Legion/pages/Pod";
             var cleanPath = Uri.EscapeUriString(basePath); // DO NOT CHANGE TO EscapeDataString
 
@@ -152,6 +153,7 @@ namespace Agent.Plugins.Definitions
             var asiUri = $"https://asi.azure.ms{cleanPath}?{query}";
 
             return Task.FromResult($"ASI Page for Legion Pod {asiUri}");
+            #pragma warning restore SYSLIB0013
         }
 
         [Description(@"""

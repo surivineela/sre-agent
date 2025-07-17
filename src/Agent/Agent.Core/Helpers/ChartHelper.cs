@@ -139,7 +139,7 @@ public static class ChartHelper
 
             return $"data:image/png;base64,{base64String}";
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // TODO : need to log exception
             return string.Empty;
@@ -288,7 +288,7 @@ public static class ChartHelper
                     }
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 // Consider logging this server-side.
             }

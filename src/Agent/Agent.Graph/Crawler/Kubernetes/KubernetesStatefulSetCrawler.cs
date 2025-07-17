@@ -1,17 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Interfaces;
-using Agent.Logging;
 using Azure.ResourceManager;
 using k8s.Models;
 using Microsoft.Extensions.Logging;
-using Octokit;
 
 namespace Agent.Graph.Crawler.Kubernetes;
 

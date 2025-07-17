@@ -12,6 +12,7 @@ public class KubernetesDummyCrawler : IResourceCrawler
 {
     public async IAsyncEnumerable<GraphNode> Crawl(GraphNode node)
     {
+        await Task.Yield();
         yield break;
     }
 }

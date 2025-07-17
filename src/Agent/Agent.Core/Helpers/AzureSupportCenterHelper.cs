@@ -23,18 +23,19 @@ public class AzureSupportCenterHelper
     {
         var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nameof(Helpers), "SupportProductMetadata", SUPPORT_PRODUCTS_FILE_NAME);
 
-        var supportProductFromArmResponse = File.ReadAllText(path);
+        var supportProductFromArmResponse = await File.ReadAllTextAsync(path);
         var matchingSupportProducts = new List<SupportProductFromArmModel>();
         try
         {
             var json = JObject.Parse(supportProductFromArmResponse);
 
-            var SupportProductFromArm = json["value"]?.Select(suppSvc => new SupportProductFromArmModel(
-                    suppSvc["id"]?.ToString(),
-                    suppSvc["name"]?.ToString(),
-                    suppSvc["type"]?.ToString(),
+            // In GetSupportProductsFromArm, ensure non-null values for SupportProductFromArmModel constructor parameters
+            var supportProductFromArm = json["value"]?.Select(suppSvc => new SupportProductFromArmModel(
+                    suppSvc["id"]?.ToString() ?? string.Empty,
+                    suppSvc["name"]?.ToString() ?? string.Empty,
+                    suppSvc["type"]?.ToString() ?? string.Empty,
                     new SupportProductFromArmPropertiesModel(
-                        suppSvc["properties"]?["displayName"]?.ToString(),
+                        suppSvc["properties"]?["displayName"]?.ToString() ?? string.Empty,
                         suppSvc["properties"]?["resourceTypes"]?.ToObject<List<string>>() ?? new List<string>(),
                         new SupportProductFromArmPropertiesMetadataModel(
                             suppSvc["properties"]?["metadata"]?["state"]?.ToString() ?? string.Empty,
@@ -47,7 +48,7 @@ public class AzureSupportCenterHelper
 
             ResourceIdentifier resourceIdentifier = new ResourceIdentifier(resourceId);
 
-            matchingSupportProducts = SupportProductFromArm
+            matchingSupportProducts = supportProductFromArm
                 ?.Where(supportProduct => supportProduct.properties.resourceTypes
                     .Any(resourceType => resourceIdentifier.ToString().IndexOf(resourceType, StringComparison.OrdinalIgnoreCase) > -1))
                 ?.ToList() ?? new List<SupportProductFromArmModel>();
@@ -68,19 +69,19 @@ public class AzureSupportCenterHelper
             throw new FileNotFoundException($"Support problem classification for {productId} missing. Please update.");
         }
 
-        var supportClassificationResponse = File.ReadAllText(path);
+        var supportClassificationResponse = await File.ReadAllTextAsync(path);
         var supportProblemClassification = new List<SupportProblemClassificationModel>();
         try
         {
             var json = JObject.Parse(supportClassificationResponse);
 
             supportProblemClassification = json["value"]?.Select(problemClassification => new SupportProblemClassificationModel(
-                    problemClassification["id"]?.ToString(),
-                    problemClassification["name"]?.ToString(),
+                    problemClassification["id"]?.ToString() ?? string.Empty,
+                    problemClassification["name"]?.ToString() ?? string.Empty,
                     new SupportProblemClassificationPropertiesModel(
-                        problemClassification["properties"]?["displayName"]?.ToString(),
+                        problemClassification["properties"]?["displayName"]?.ToString() ?? string.Empty,
                         problemClassification["properties"]?["secondaryConsentEnabled"]?.Select(c => new SupportProblemSecondaryConsentModel(
-                            c["description"].ToString(),
+                            c["description"]?.ToString() ?? string.Empty,
                             c["type"]?.ToString() ?? string.Empty)
                         )?.ToList() ?? new List<SupportProblemSecondaryConsentModel>(),
                         new SupportProblemClassificationMetadataModel(
@@ -138,7 +139,7 @@ public class AzureSupportCenterHelper
 
         bool isDiagnosticRunning = false;
         int pollingAttempts = 0;
-        AzureSupportCenterApolloResponsePayload apolloDiagnosticResult = null;
+        AzureSupportCenterApolloResponsePayload? apolloDiagnosticResult = null;
 
         do
         {

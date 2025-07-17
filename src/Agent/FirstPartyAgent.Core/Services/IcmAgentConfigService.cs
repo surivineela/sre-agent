@@ -302,7 +302,7 @@ public class IcmAgentConfigService : IIcmAgentConfigService
 
             return queryableResult.First();
         }
-        catch (KeyNotFoundException ex)
+        catch (KeyNotFoundException)
         {
             throw;
         }
@@ -335,7 +335,7 @@ public class IcmAgentConfigService : IIcmAgentConfigService
         {
         }
 
-        CreateTeamConfigIfNotExists(new TeamConfig
+        await CreateTeamConfigIfNotExists(new TeamConfig
         {
             TeamId = alertConfig.TeamId,
             TeamName = alertConfig.DefaultHumanInterventionLoop
@@ -523,11 +523,6 @@ Incidents
     {
         await IsReady();
 
-        if (genevaActionsConfig.TeamId == null)
-        {
-            throw new ArgumentException("TeamId cannot be empty", nameof(genevaActionsConfig));
-        }
-
         try
         {
             var existingConfig = await GetGenevaActionConfig(genevaActionsConfig.TeamId);
@@ -537,7 +532,7 @@ Incidents
             var result = await _cosmosDbService.UpsertItemAsync<GenevaActionsConfigCosmos>(_cosmosDbService.IcmAgentDatabaseName, _genevaActionsContainerName, existingConfig);
             return result;
         }
-        catch (KeyNotFoundException ex)
+        catch (KeyNotFoundException)
         {
             var result = await _cosmosDbService.UpsertItemAsync<GenevaActionsConfigCosmos>(_cosmosDbService.IcmAgentDatabaseName, _genevaActionsContainerName, genevaActionsConfig);
             return result;
@@ -738,11 +733,11 @@ Incidents
             throw new InvalidOperationException("Icm service disabled");
         }
 
-        var queryableResult = _cosmosDbService.GetQueryableContainer<TeamConfig>(_cosmosDbService.IcmAgentDatabaseName, _teamContainerName)
+        var queryableResult = await _cosmosDbService.GetQueryableContainer<TeamConfig>(_cosmosDbService.IcmAgentDatabaseName, _teamContainerName)
             .Where(teamConfig => teamConfig.TeamId == loopId)
-            .ToList();
+            .ToListAsync();
 
-        if (!queryableResult.Any())
+        if (queryableResult.Count == 0)
         {
             throw new KeyNotFoundException($"Team configuration with ID {loopId} not found.");
         }
@@ -761,7 +756,7 @@ Incidents
                 return icmServices.Content;
             }
         }
-        catch (KeyNotFoundException ex)
+        catch (KeyNotFoundException)
         {
             
         }
@@ -786,7 +781,7 @@ Incidents
             .ToList();
 
         // write to cosmos db
-        Task.Run(() =>  UpsertAgentFactoryConfig(new AgentFactoryConfigCosmos<List<IcmService>>
+        _ = Task.Run(() =>  UpsertAgentFactoryConfig(new AgentFactoryConfigCosmos<List<IcmService>>
         {
             Id = AgentFactoryConfigIds.IcmServices,
             Content = services
@@ -826,7 +821,7 @@ Incidents
                 Teams = teams
             };
 
-            Task.Run(async () =>
+            _ = Task.Run(async () =>
             {
                 try
                 {

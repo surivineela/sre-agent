@@ -468,7 +468,7 @@ public class IncidentPlaygroundController : ControllerBase
             await _container.UpsertItemAsync(doc);
             return Ok("Reset to last 30 days");
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(500, "Failed to reset LastScanTimeIcm");
         }

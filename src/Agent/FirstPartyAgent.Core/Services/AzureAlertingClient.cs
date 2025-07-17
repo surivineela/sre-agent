@@ -102,7 +102,7 @@ namespace FirstPartyAgent.Core.Services
                     }
                     catch (HttpRequestException ex)
                     {
-                        if (ex is TimeoutException || ex.InnerException is TimeoutException)
+                        if (ex.InnerException is TimeoutException)
                         {
                             _logger.LogInformation($"Request timed out. Retrying. Numretries: {retries}, MaxRetries: {maxRetries}");
                             // If the exception is a TimeoutException, wait and retry  

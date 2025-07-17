@@ -160,7 +160,6 @@ namespace Agent.Core.Models
             // Add the user's question to chat history
             ChatHistory.Add(new(ChatRole.User, message));
             StringBuilder fullResponseBuilder = new StringBuilder();
-            int chunkCounter = 0;
 
             Console.WriteLine("Under subagent Starting streaming response for message: {0}", message);
 

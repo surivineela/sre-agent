@@ -26,7 +26,7 @@ internal sealed class KubernetesDiagnosticStrategy : ComputeResourceDiagnosticSt
         };
     }
 
-    protected static KubernetesAnalysisContext ExtractKubernetesContext(string? additionalProperties)
+    private static KubernetesAnalysisContext ExtractKubernetesContext(string? additionalProperties)
     {
         if (string.IsNullOrWhiteSpace(additionalProperties))
         {

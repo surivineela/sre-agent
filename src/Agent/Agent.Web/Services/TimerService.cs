@@ -223,7 +223,12 @@ public class TimerService : IHostedService, IDisposable
                 ?? throw new Exception($"Could not find scanning method on type {type.Name}");
             var scanIntervalProp = type.GetProperty("RunInterval", BindingFlags.Public | BindingFlags.Instance)
                 ?? throw new Exception($"Could not find RunInterval property on type {type.Name}");
-            var scanInterval = (TimeSpan)scanIntervalProp.GetValue(instance);
+            // With this safer version:
+            var scanIntervalObj = scanIntervalProp.GetValue(instance);
+            if (scanIntervalObj is not TimeSpan scanInterval)
+            {
+                throw new Exception($"RunInterval property on type {type.Name} is null or not a TimeSpan.");
+            }
             GenericSubAgentScannerTimers.Add(new ScannerTimerInformation(type.Name, scanMethod, instance) { Interval = scanInterval });
         }
 
@@ -749,10 +754,9 @@ public class TimerService : IHostedService, IDisposable
 
             Console.WriteLine("Flushing logs...");
 
-            Task.WhenAll(AzureDataExplorerLoggerFlushAsync(cancellationToken),
+            await Task.WhenAll(AzureDataExplorerLoggerFlushAsync(cancellationToken),
                          CustomerLoggerFlushAsync(cancellationToken),
-                         CustomerAuditLoggerFlushAsync(cancellationToken))
-                .Wait();
+                         CustomerAuditLoggerFlushAsync(cancellationToken));
 
             _logFlushTimerIsRunning = false;
 

@@ -15,30 +15,20 @@ public class IcmController : Controller
     private readonly ILogger<ApiController> _logger;
     private readonly IConfiguration _configuration;
     private readonly IIcmAgentConfigService _icmConfigService;
-    private readonly IHttpClientFactory _httpClientFactory;
     private readonly IICMWorkflowClient _icmWorkflowClient;
-    private readonly IAlertProcessingService _alertProcessingService;
-    private readonly ISessionMessageService _sessionMessageService;
     private readonly ICMAgentInstructionGenerationService _instructionGenerationService;
-    private readonly TsgFetcherService _tsgFetcherService;
     public IcmController(
         ILogger<ApiController> logger,
         IConfiguration configuration,
         IIcmAgentConfigService icmConfigService,
-        IHttpClientFactory httpClientFactory,
         IICMWorkflowClient icmWorkflowClient,
-        IAlertProcessingService alertProcessingService,
-        ISessionMessageService sessionMessageService,
         ICMAgentInstructionGenerationService instructionGenerationService
         )
     {
         _logger = logger;
         _configuration = configuration;
         _icmConfigService = icmConfigService;
-        _httpClientFactory = httpClientFactory;
         _icmWorkflowClient = icmWorkflowClient;
-        _alertProcessingService = alertProcessingService;
-        _sessionMessageService = sessionMessageService;
         _instructionGenerationService = instructionGenerationService;
     }
 

@@ -208,7 +208,6 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                 _logger.LogInternalInformation("No existing orchestration for thread: {ThreadId}", threadMessage.ThreadId);
 
                 var agentResponse = string.Empty;
-                var isComplete = false;
 
                 if (agentContext != null && AgentTypeHelper.IsScannerAgent(agentContext.AgentType))
                 {
@@ -350,7 +349,6 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                 _logger.LogInternalInformation("ProcessIncidentMessageAsync: No existing orchestration for thread: {ThreadId}", threadMessage.ThreadId);
 
                 var agentResponse = string.Empty;
-                var isComplete = false;
 
                 if (agentContext != null && agentContext.AgentType == AgentTypeEnum.Incident)
                 {

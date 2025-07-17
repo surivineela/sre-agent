@@ -127,7 +127,7 @@ public sealed class DiagnosticsPlugin : IDiagnosticsPlugin
                 //}
 
                 // Detect language stack by examining the container
-                var languageStack = await DetectLanguageStackAsync(resourceId);
+                var languageStack = DetectLanguageStackAsync(resourceId);
 
                 return new ComputeResourceInfo(
                     ResourceType: ComputeResourceType.ContainerApp,
@@ -251,7 +251,7 @@ public sealed class DiagnosticsPlugin : IDiagnosticsPlugin
         );
     }
 
-    private async Task<LanguageStack> DetectLanguageStackAsync(string resourceId)
+    private LanguageStack DetectLanguageStackAsync(string resourceId)
     {
         // TODO: Add more.
         return LanguageStack.Dotnet; // For now, assume only .NET is used. Change this accordingly later.

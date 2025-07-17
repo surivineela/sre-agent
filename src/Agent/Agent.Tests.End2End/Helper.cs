@@ -185,8 +185,9 @@ The text doesn't have to match exactly, but it needs to be close enough that a h
             return result;
         }
 
-        public static async Task SendDisableBasicAuthApprovalEvent(CombinedFixture _fixture)
+        public static Task SendDisableBasicAuthApprovalEvent(CombinedFixture _fixture)
         {
+            return Task.CompletedTask;
             //ApprovalEventPayload payload = new()
             //{
             //    ApprovalAction = true,

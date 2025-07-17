@@ -15,7 +15,6 @@ namespace E2ETests.Tests
     {
         private readonly CombinedFixture _fixture;
         private readonly ITestOutputHelper _output;
-        private readonly IConfiguration _config;
         private readonly TestSettings _testSettings;
 
         public BasicScenarios(CombinedFixture fixture, ITestOutputHelper testOutputHelper)
@@ -68,7 +67,9 @@ namespace E2ETests.Tests
 
         public void Dispose()
         {
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
             Helper.DisposeAndRunGenericAssertions(_fixture, _output);
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
         }
     }
 }

@@ -1,4 +1,4 @@
-@page "/"
+﻿@page "/"
 @using Agent.Core.Models
 @using FirstPartyAgent.Models
 @using FirstPartyAgent.Core.Helpers
@@ -86,7 +86,6 @@
     private string currentMessage = "";
     private List<ChatMessage> messages = new();
     private bool isTyping = false;
-    private string CustomConfig = "";
     private List<string> AvailableAgents = AgentFinder.ListAgentModes();
     private string SelectedAgent = string.Empty;
 

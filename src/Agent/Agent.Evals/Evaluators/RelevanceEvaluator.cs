@@ -40,7 +40,7 @@ public class RelevanceEvaluator : IEvaluator
 
             metric.Reason = $"The detected relevance score was '{metric.Value}'.";
         }
-        catch (ClientResultException e)
+        catch (ClientResultException)
         {
             Thread.Sleep(Random.Shared.Next(500, 1000));
             ChatResponse evaluationResponse =

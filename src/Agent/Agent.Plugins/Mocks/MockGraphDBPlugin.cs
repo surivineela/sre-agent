@@ -53,6 +53,8 @@ namespace Agent.Plugins.Mocks
 
         public async Task<dynamic> GetManagedResourcesInfoAsync()
         {
+            await Task.Yield(); // Simulate async operation
+
             // This is a mock implementation that returns dummy data
             try
             {

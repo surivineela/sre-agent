@@ -39,17 +39,13 @@ namespace Agent.Web.Controllers.v1
     [Route("api/v1/[controller]")]
     public class ThreadsController(
         IAgentInboundCommunicationService agentInboundCommunicationService,
-        IAgentsFactory agentsFactory,
         IThreadRepository repository,
-        IChatClient chatClient,
-        DurableTaskClient durableTaskClient,
         ILogger<ThreadsController> logger,
         IGraphService graphService,
         IConnectedIntegrationsPlugin connectedIntegrationsPlugin,
         IGithubIssuePlugin githubIssuePlugin,
         IReasoningLoopManager reasoningLoopManager,
         ThreadManagementService threadManagementService,
-        ThreadEvaluator threadEvaluator,
         ActionSettings actionSettings,
         IAgentRuntimeModifier<AgentContext> agentRuntimeModifier) : ControllerBase
     {

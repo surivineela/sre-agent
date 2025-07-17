@@ -2177,7 +2177,7 @@ namespace Agent.Plugins.Implementation
 
                 return result == "true";
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return false;
             }

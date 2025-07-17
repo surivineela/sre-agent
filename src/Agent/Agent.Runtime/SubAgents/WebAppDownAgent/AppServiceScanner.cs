@@ -21,15 +21,11 @@ public class AppServiceScanner
     private readonly ScoreCardService _scoreCardService;
     private readonly IGraphDatabaseClient _graphDBClient;
     private readonly WebAppDownAgentFactory _webAppDownAgentFactory;
-    private readonly ContainerAppsRemediationAgentFactory _containerAppsRemediationAgentFactory;
-    private readonly FunctionAppConnectivityAgentFactory _functionAppConnectivityAgentFactory;
     private readonly List<object> _webAppsToMitigate;
 
     public AppServiceScanner(
         ScoreCardService scoreCardService,
         WebAppDownAgentFactory webAppDownAgentFactory,
-        ContainerAppsRemediationAgentFactory containerAppsRemediationAgentFactory,
-        FunctionAppConnectivityAgentFactory functionAppConnectivityAgentFactory,
         IGraphDatabaseClient graphDBClient,
         ILogger<AppServiceScanner> logger)
     {
@@ -63,13 +59,7 @@ public class AppServiceScanner
                     _logger.LogInternalWarning($"Could not create ArmResourceNode from result");
                     continue;
                 }
-
-                // evaluates if score to see if node is high priority
-                bool isHighPriority = await EvaluateScore(node);
-                if (isHighPriority)
-                {
-                    _webAppsToMitigate.Add(node);
-                }
+                _webAppsToMitigate.Add(node);
             }
             catch (Exception ex)
             {
@@ -79,11 +69,6 @@ public class AppServiceScanner
 
         // var agentInput = new WebAppDownAgentInput()
         //_ = _webAppDownAgentFactory.StartOrchestration();
-    }
-
-    private async Task<bool> EvaluateScore(ArmResourceNode node)
-    {
-        return true;
     }
 
     private string GetResourceNodesToUpdateQuery()

@@ -239,14 +239,11 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
 $@"## Facts
 - Current DateTime is {DateTime.UtcNow:yyyy-MM-dd HH:mm}";
 
-
-    private readonly ILogger<ThirdPartyAgentsFactory> _log;
     private readonly McpToolsRepository _mcpToolsRepository;
     private readonly IServiceProvider _serviceProvider;
 
     private readonly IMetaAgentManagedIdentityMigrationPlugin _managedIdentityMigrationPlugin;
     private readonly IMetaAgentTlsBestPracticesPlugin _tlsBestPracticesPlugin;
-    //private readonly IMetaAgentAppServiceRemediationPlugin _appServiceRemediationPlugin;
     private readonly IAppServicePlugin _appServicePlugin;
     private readonly IMetaAgentContainerAppsRemediationPlugin _containerAppsRemediationPlugin;
     private readonly IMetaAgentKubernetesAgentPlugin _kubernetesAgentPlugin;
@@ -256,18 +253,13 @@ $@"## Facts
     private readonly IChartPlugin _chartPlugin;
     private readonly IGraphDBPlugin _graphDbPlugin;
     private readonly IGithubIssuePlugin _githubIssuePlugin;
-    private readonly IMetaAgentAppReliabilityPlugin _appReliabilityPlugin;
     private readonly IMetaAgentVmRdpInvestigatorPlugin _vmRdpInvestigatorPlugin;
     private readonly IMetaAgentWebAppDownPlugin _webAppDownPlugin;
     private readonly IMetaAgentFunctionAppConnectivityPlugin _functionAppConnectivityPlugin;
     private readonly IFunctionAppsPlugin _functionAppsPlugin;
     private readonly IMetaAgentSqlDbQueryPerfPlugin _sqlDbQueryPerfPlugin;
     private readonly IConnectedIntegrationsPlugin _connectedIntegrationsPlugin;
-    private readonly IThreadRepository _threadRepository;
-    private readonly IMetaAgentAppCodeAnalysisPlugin _appCodeAgentPlugin;
-    private readonly IMetaAgentCPUAnalysisPlugin _cpuAnalysisAgentPlugin;
     private readonly IAppCodeAnalysisPlugin _appCodeAnalysisPlugin;
-    private readonly ICpuAnalysisPlugin _cpuAnalysisPlugin;
     private readonly IMetricsPlugin _metricsPlugin;
     private readonly IPagerDutyIncidentPlugin _incidentPlugin;
     private readonly IMetaAgentFunctionAppExecutionFailuresAgentPlugin _functionAppExecutionFailuresAgentPlugin;
@@ -283,7 +275,6 @@ $@"## Facts
     private readonly IGraphService _graphService;
 
     public ThirdPartyAgentsFactory(
-        ILogger<ThirdPartyAgentsFactory> logger,
         McpToolsRepository mcpToolsRepository,
         IServiceProvider serviceProvider,
 
@@ -306,10 +297,7 @@ $@"## Facts
         IMetaAgentFunctionAppConnectivityPlugin functionAppConnectivityPlugin,
         IMetaAgentSqlDbQueryPerfPlugin? sqlDbQueryPerfPlugin,
         IConnectedIntegrationsPlugin connectedIntegrationsPlugin,
-        IMetaAgentAppCodeAnalysisPlugin appCodeAgentPlugin,
-        IMetaAgentCPUAnalysisPlugin cpuAnalysisAgentPlugin,
         IAppCodeAnalysisPlugin appCodeAnalysisPlugin,
-        ICpuAnalysisPlugin cpuAnalysisPlugin,
         IDiagnosticsPlugin diagnosticsPlugin,
         IMetricsPlugin metricsPlugin,
         InstanceManagementSettings instanceManagementSettings,
@@ -325,7 +313,6 @@ $@"## Facts
         )
     {
         _mcpToolsRepository = mcpToolsRepository;
-        _log = logger;
         _serviceProvider = serviceProvider;
 
         _tlsBestPracticesPlugin = tlsBestPracticesPlugin;
@@ -345,10 +332,7 @@ $@"## Facts
         _graphDbPlugin = graphDBPlugin;
         //_appReliabilityPlugin = appReliabilityPlugin;
         _webAppDownPlugin = webAppDownPlugin;
-        _cpuAnalysisAgentPlugin = cpuAnalysisAgentPlugin;
-        _appCodeAgentPlugin = appCodeAgentPlugin;
         _appCodeAnalysisPlugin = appCodeAnalysisPlugin;
-        _cpuAnalysisPlugin = cpuAnalysisPlugin;
         _vmRdpInvestigatorPlugin = vmRdpInvestigatorPlugin;
         _functionAppConnectivityPlugin = functionAppConnectivityPlugin;
         _functionAppsPlugin = functionAppsPlugin;

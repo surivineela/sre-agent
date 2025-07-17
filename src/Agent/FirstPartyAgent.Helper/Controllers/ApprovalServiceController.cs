@@ -168,7 +168,7 @@ public class ApprovalServiceController : ControllerBase
     }
 
     [HttpGet("ok")]
-    public async Task<IActionResult> OkFunction()
+    public IActionResult OkFunction()
     {
         return Ok();
     }

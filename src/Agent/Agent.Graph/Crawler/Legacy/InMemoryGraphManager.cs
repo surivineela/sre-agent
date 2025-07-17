@@ -4,7 +4,6 @@
 
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Schema;
-using Agent.Logging;
 using Gremlin.Net.Driver;
 using Microsoft.Extensions.Logging;
 

@@ -112,7 +112,7 @@ IMPORTANT INSTRUCTIONS:
                 : await _icmWorkflowClient.GetIncidentDiscussionEntriesAsync(incidentId);
 
             // Combine incident information and conversation history for analysis
-            string combinedContent = await CombineIncidentContent(incident, discussionEntries);
+            string combinedContent = CombineIncidentContent(incident, discussionEntries);
             
             // Process the combined content with LLM to extract emergency issue information
             string analysisResult = await AnalyzeEmergingIssue(combinedContent);
@@ -195,7 +195,7 @@ IMPORTANT INSTRUCTIONS:
                 : await _icmWorkflowClient.GetIncidentDiscussionEntriesAsync(incidentId);
 
             // Combine incident information and conversation history for analysis
-            string combinedContent = await CombineIncidentContent(incident, discussionEntries);
+            string combinedContent = CombineIncidentContent(incident, discussionEntries);
             
             // Process the combined content with LLM to extract emergency issue information
             string analysisResult = await AnalyzeEmergingIssue(combinedContent);
@@ -587,7 +587,7 @@ IMPORTANT INSTRUCTIONS:
     /// <summary>
     /// Combines the incident information and conversation history for analysis
     /// </summary>
-    private async Task<string> CombineIncidentContent(Incident incident, List<DiscussionEntry> discussionEntries)
+    private string CombineIncidentContent(Incident incident, List<DiscussionEntry> discussionEntries)
     {
         var combinedBuilder = new StringBuilder();
         
@@ -645,7 +645,9 @@ IMPORTANT INSTRUCTIONS:
         }
         
         return combinedBuilder.ToString();
-    }    /// <summary>
+    }
+
+    /// <summary>
     /// Analyzes the combined content to extract emergency issue information and formats it as Markdown
     /// </summary>
     private async Task<string> AnalyzeEmergingIssue(string combinedContent)

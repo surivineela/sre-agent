@@ -114,7 +114,7 @@ public class CpuAnalysisPlugin : ICpuAnalysisPlugin
         return res;
     }
 
-    private async Task<bool> ShouldTriggerDiagnosticScenario(List<double> values, double spikeThreshold = 0.2, double endWindowFraction = 0.3, double sustainedDropLength = 3)
+    private bool ShouldTriggerDiagnosticScenario(List<double> values, double spikeThreshold = 0.2, double endWindowFraction = 0.3, double sustainedDropLength = 3)
     {
         bool HasRecentSpike(List<double> values)
         {
@@ -189,7 +189,7 @@ public class CpuAnalysisPlugin : ICpuAnalysisPlugin
         if (memorySeries == null || memorySeries.Count < 5)
             return false;
 
-        return await ShouldTriggerDiagnosticScenario(memorySeries.Select(m => m.AverageMemoryInBytes).ToList(), spikeThreshold, endWindowFraction, sustainedDropLength);
+        return ShouldTriggerDiagnosticScenario(memorySeries.Select(m => m.AverageMemoryInBytes).ToList(), spikeThreshold, endWindowFraction, sustainedDropLength);
     }
 
     public async Task<bool> ShouldTriggerHighCPUScenario(string resourceId, double spikeThreshold = 0.2, double endWindowFraction = 0.1, double sustainedDropLength = 3)
@@ -199,7 +199,7 @@ public class CpuAnalysisPlugin : ICpuAnalysisPlugin
         if (cpuSeries == null || cpuSeries.Count < 5)
             return false;
 
-        return averageCpuMetric > 50 && await ShouldTriggerDiagnosticScenario(cpuSeries.Select(m => m.AverageCpuUtilizationPercentage).ToList(), spikeThreshold, endWindowFraction, sustainedDropLength);
+        return averageCpuMetric > 50 && ShouldTriggerDiagnosticScenario(cpuSeries.Select(m => m.AverageCpuUtilizationPercentage).ToList(), spikeThreshold, endWindowFraction, sustainedDropLength);
     }
 }
 

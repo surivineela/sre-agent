@@ -677,7 +677,7 @@ Remember: Quality findings with specific values are better than quantity. Exclud
         }
     }
 
-    private async Task<string> GetAlertInfoAsPrompt(AlertItem alert)
+    private string GetAlertInfoAsPrompt(AlertItem alert)
     {
         if (alert == null)
         {

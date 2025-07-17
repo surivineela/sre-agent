@@ -42,7 +42,7 @@ namespace Agent.Runtime.Services
             _logger = logger;
         }
 
-        public async Task<List<ToolInfo>> FilterTools(string? searchString)
+        public Task<List<ToolInfo>> FilterTools(string? searchString)
         {
             _logger.LogInternalInformation("FilterTools: Invoked with searchString: {SearchString}", searchString);
 
@@ -52,7 +52,7 @@ namespace Agent.Runtime.Services
             if (string.IsNullOrWhiteSpace(searchString))
             {
                 _logger.LogInternalInformation("FilterTools: No search string provided. Returning all available tools.");
-                return availableTools;
+                return Task.FromResult(availableTools);
             }
 
             var filteredTools = availableTools
@@ -62,7 +62,7 @@ namespace Agent.Runtime.Services
 
             _logger.LogInternalInformation("FilterTools: Filtered tools count: {FilteredCount} for searchString: {SearchString}", filteredTools.Count, searchString);
 
-            return filteredTools;
+            return Task.FromResult(filteredTools);
         }
 
         public async Task<InstructionGenerationResponse> GenerateInstructionsFromIncidents(InstructionGenerationRequest request)

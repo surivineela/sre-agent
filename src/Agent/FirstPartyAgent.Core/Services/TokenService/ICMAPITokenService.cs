@@ -20,6 +20,6 @@ public class ICMAPITokenService: ManagedIdentityTokenServiceBase
         Resource = icmApiSettings.IcmMSIResource;
         ClientId = icmApiSettings.ManagedIdentityClientId;
         TokenServiceName = "ICMAPITokenService";
-        StartTokenRefresh(logger);
+        _ = StartTokenRefresh(logger);
     }
 }

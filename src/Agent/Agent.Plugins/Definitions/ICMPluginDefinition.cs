@@ -39,15 +39,15 @@ public class ICMPluginDefinition
     }
 
     [Description("Get current UTC date and time")]
-    public async Task<string> GetCurrentUtcDateTime()
+    public string GetCurrentUtcDateTime()
     {
-        return await _icmPlugin.GetCurrentUtcDateTime();
+        return _icmPlugin.GetCurrentUtcDateTime();
     }
 
     [Description("This tool identifies potential relationships between incidents. Invoke this tool whenever the user requests assistance with finding related, parent, or child incidents; especially when conditions such as time windows, title matching, or shared patterns are specified. The rules are applied internally to guide the agent's actions without being returned to the user.")]
-    public async Task<string> GetIcmCorrelationAndLinkingRules()
+    public string GetIcmCorrelationAndLinkingRules()
     {
-        return await _icmPlugin.GetIcmCorrelationAndLinkingRules();
+        return _icmPlugin.GetIcmCorrelationAndLinkingRules();
     }
 
     [Description("Get Azure Alerting discussion entry")]
