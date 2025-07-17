@@ -6,64 +6,27 @@ namespace Agent.Runtime.Services;
 public class CustomAgentFileService : ICustomAgentFileService
 {
     private readonly ILogger<CustomAgentFileService> _logger;
-    private CustomAgentFiles? _cachedFiles;
-    private readonly object _lock = new();
-    private bool _isReady = false;
+    private readonly TaskCompletionSource<CustomAgentFiles?> _tcs = new();
 
-    public CustomAgentFileService(ILogger<CustomAgentFileService> logger)
+    public async Task<CustomAgentFiles?> GetFilesAsync()
     {
-        _logger = logger;
+        return await _tcs.Task;
     }
 
     public CustomAgentFiles? GetDownloadedFiles()
     {
-        lock (_lock)
-        {
-            return _cachedFiles;
-        }
+        return _tcs.Task.IsCompleted ? _tcs.Task.Result : null;
     }
 
-    public bool IsReady
+    public bool IsReady => _tcs.Task.IsCompleted;
+
+    internal void SetFiles(CustomAgentFiles? files)
     {
-        get
-        {
-            lock (_lock)
-            {
-                return _isReady;
-            }
-        }
+        _tcs.TrySetResult(files);
     }
 
-    public async Task<CustomAgentFiles?> GetFilesAsync()
+    internal void SetError(Exception ex)
     {
-        lock (_lock)
-        {
-            if (_isReady)
-                return _cachedFiles;
-        }
-
-        // If not ready, wait a bit and try again (or implement proper async waiting)
-        await Task.Delay(100);
-        return GetDownloadedFiles();
-    }
-
-    public void SetFiles(CustomAgentFiles? files)
-    {
-        lock (_lock)
-        {
-            _cachedFiles = files;
-            _isReady = true;
-        }
-        _logger.LogInternalInformation("Custom agent files loaded");
-    }
-
-    public void SetError(Exception ex)
-    {
-        lock (_lock)
-        {
-            _cachedFiles = null;
-            _isReady = true; // Mark as ready even on error
-        }
-        _logger.LogInternalError(ex, "Failed to load custom agent files");
+        _tcs.TrySetResult(null);
     }
 }
