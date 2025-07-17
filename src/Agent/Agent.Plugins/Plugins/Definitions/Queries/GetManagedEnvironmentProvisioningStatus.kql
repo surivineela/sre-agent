@@ -11,9 +11,8 @@ ManagedEnvironmentDBState
 | project PreciseTimeStamp, environmentProvisioningState, powerState,environmentDeploymentErrors, managedClusterProvisioningError,managedClusterName
 | order by PreciseTimeStamp asc
 | serialize rn = row_number()
-| extend isStateChange = iff(prev(environmentProvisioningState, 1) == environmentProvisioningState, 0, 1)
-| extend isStateChange2 = iff(next(environmentProvisioningState, 1) == environmentProvisioningState, 0, 1)
-| where isStateChange != isStateChange2
-| where isStateChange2 == 1 or rn == 1
+| extend isProvisioningStateChange = iff(prev(environmentProvisioningState, 1) == environmentProvisioningState, 0, 1)
+| extend isPowerStateChange = iff(next(powerState, 1) == powerState, 0, 1)
+| where isProvisioningStateChange==1 or isPowerStateChange==1 or rn == 1
 | extend StartTime = iff(managedClusterName == prev(managedClusterName, 1), max_of(prev(PreciseTimeStamp, 1), datetime(1970-01-01T00:00:00Z)), PreciseTimeStamp)
 | project StartTime, EndTime=PreciseTimeStamp, EnvironmentProvisioningState=environmentProvisioningState, PowerState=powerState, ManagedClusterName=managedClusterName, EnvironmentDeploymentErrors=environmentDeploymentErrors, ManagedClusterProvisioningError=managedClusterProvisioningError
