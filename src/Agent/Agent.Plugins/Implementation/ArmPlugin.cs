@@ -241,6 +241,11 @@ namespace Agent.Plugins.Implementation
         {
             try
             {
+                if (IsAksCommandInvokeCommand(command))
+                {
+                    return "Error: AKS command invoke operations should be handled by kubectl_command_executor_agent only.";
+                }
+
                 if (!IsReadOnlyCommand(command))
                 {
                     return $"Error: This method only supports read operations ({_allowedReadVerbString}). Use RunAzCliWriteCommandsAsync for write operations.";
@@ -307,6 +312,11 @@ namespace Agent.Plugins.Implementation
 
         private string? ValidateWriteCommandRequest(string command)
         {
+            if (IsAksCommandInvokeCommand(command))
+            {
+                return "Error: AKS command invoke operations should be handled by kubectl_command_executor_agent only.";
+            }
+
             // Validate it's a write command and not a delete
             if (!IsWriteCommand(command))
             {
@@ -512,7 +522,7 @@ namespace Agent.Plugins.Implementation
             return options;
         }
 
-        public async Task<string> GetAzCliHelpAsync(string helpTopic, string grepPattern = null)
+        public async Task<string> GetAzCliHelpAsync(string helpTopic, string? grepPattern = null)
         {
             try
             {
@@ -627,6 +637,14 @@ namespace Agent.Plugins.Implementation
 
             // Check if command contains delete verbs as primary action
             return _blockedDeleteVerbs.Any(verb => commandLower.Contains($" {verb} ") || commandLower.Contains($" {verb}"));
+        }
+
+        private bool IsAksCommandInvokeCommand(string command)
+        {
+            var commandLower = command.ToLower().Trim();
+
+            // Check if command contains "aks command invoke"
+            return commandLower.Contains("aks command invoke");
         }
 
         private string GetCommandDescription(string command)

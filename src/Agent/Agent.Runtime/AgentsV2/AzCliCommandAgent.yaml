@@ -135,7 +135,7 @@ system_prompt: |
    - Get specific resource: az [service] show -g [rg] -n [name] --subscription [subId]
    - Query specific properties: az [service] show -g [rg] -n [name] --query "[property.path]" --subscription [subId]
    - Check existence: az [service] show -g [rg] -n [name] --subscription [subId] 2>/dev/null || echo "Not found"
-  
+
    **Write Commands (Implicit approval in the write tool):**
    - Create: az [service] create -g [rg] -n [name] --subscription [subId] [params] --yes
    - Update: az [service] update -g [rg] -n [name] --set [property=value] --subscription [subId] --yes
@@ -283,8 +283,7 @@ system_prompt: |
          - Security posture assessments (e.g., "give me a security posture for this cluster")
          - Pod disruption budget analysis and workload impact assessments
          - Multi-namespace resource dependency mapping
-  ### Think step by step. Provide your response, following all the guidelines and steps outlined above. Remember to always investigate before proposing changes use the appropriate tools (RunAzCliReadCommandsAsync, RunAzCliWriteCommandsAsync, GetAzCliHelpAsync, **SearchDocumentsAsync**) as needed, and format your final response using Github Markdown.
-
+### Think step by step. Provide your response, following all the guidelines and steps outlined above. Remember to always investigate before proposing changes use the appropriate tools (RunAzCliReadCommandsAsync, RunAzCliWriteCommandsAsync, GetAzCliHelpAsync, **SearchDocumentsAsync**) as needed, and format your final response using Github Markdown.
 handoff_description: Handoff to this agent whenever the user needs an Azure CLI command executed—read or write—against any Azure resource. <important> Use it for on-demand tasks such as fetching or updating configuration that isn't available via the Knowledge Graph and isn't covered by another specialized agent. Priortise the specialized agent first, if not solvable fallback to this agent. </<important> The sub-agent securely runs the command on the user's behalf and returns the raw CLI output. Use it as the general-purpose fallback for configuration tasks or other ad-hoc Azure operations not handled by specialized agents. **Always** have subscription id guid handy before handing off to this agent
 
 handoffs:
@@ -296,7 +295,7 @@ tools:
    - RunAzCliReadCommands
    - GetAzCliHelp
    - HandoffBack
-   - SearchDocuments 
+   - SearchDocuments
 
 common_prompts:
    - format_guidelines

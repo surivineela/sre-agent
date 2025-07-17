@@ -251,8 +251,26 @@ public class GeneralAgentEvals
                 var expected = expectedFunctionCalls[i];
                 var actual = actualFunctionCalls[i];
 
-                var functionsMatch = expected.Name == actual.Name;
-                TestContext.WriteLine($"Function call {i + 1}: {(functionsMatch ? "✅" : "❌")} Expected: {expected.Name}, Actual: {actual.Name}");
+                bool functionsMatch;
+                string expectedDisplayName;
+
+                // Check if the expected function name contains multiple acceptable options (pipe-separated)
+                if (expected.Name.Contains('|'))
+                {
+                    var acceptableFunctionNames = expected.Name.Split('|', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(name => name.Trim())
+                        .ToList();
+
+                    functionsMatch = acceptableFunctionNames.Contains(actual.Name);
+                    expectedDisplayName = GetExpectedFunctionDisplayName(expected.Name);
+                }
+                else
+                {
+                    functionsMatch = expected.Name == actual.Name;
+                    expectedDisplayName = expected.Name;
+                }
+
+                TestContext.WriteLine($"Function call {i + 1}: {(functionsMatch ? "✅" : "❌")} Expected: {expectedDisplayName}, Actual: {actual.Name}");
 
                 if (functionsMatch)
                 {
@@ -271,7 +289,9 @@ public class GeneralAgentEvals
             }
             else if (i < expectedFunctionCalls.Count)
             {
-                TestContext.WriteLine($"Function call {i + 1}: ❌ Expected: {expectedFunctionCalls[i].Name}, Actual: (missing)");
+                var expected = expectedFunctionCalls[i];
+                var expectedDisplayName = GetExpectedFunctionDisplayName(expected.Name);
+                TestContext.WriteLine($"Function call {i + 1}: ❌ Expected: {expectedDisplayName}, Actual: (missing)");
             }
             else
             {
@@ -332,8 +352,10 @@ public class GeneralAgentEvals
 
         for (int i = 0; i < expectedFunctionCalls.Count; i++)
         {
-            Assert.AreEqual(expectedFunctionCalls[i].Name, actualFunctionCalls[i].Name,
-                $"Function call {i + 1}: Expected {expectedFunctionCalls[i].Name} but got {actualFunctionCalls[i].Name}");
+            var expectedCall = expectedFunctionCalls[i];
+            var actualCall = actualFunctionCalls[i];
+
+            ValidateFunctionCallName(expectedCall.Name, actualCall.Name, i, testContext, isHandoff: false);
         }
         testContext.WriteLine("Tool call validation passed!");
     }
@@ -447,12 +469,7 @@ Respond with only 'SIMILAR' if they convey the same meaning, or 'DIFFERENT' if t
             var expectedCall = expectedFunctionCalls[i];
             var actualCall = actualFunctionCalls[i];
 
-            Assert.AreEqual(expectedCall.Name, actualCall.Name,
-                $"Handoff function call {i + 1}: Expected {expectedCall.Name} but got {actualCall.Name}");
-
-            // For handoffs, we expect the function name to start with "transfer_to_"
-            Assert.IsTrue(actualCall.Name.StartsWith("transfer_to_"),
-                $"Expected handoff function to start with 'transfer_to_' but got {actualCall.Name}");
+            ValidateFunctionCallName(expectedCall.Name, actualCall.Name, i, testContext, isHandoff: true);
         }
         testContext.WriteLine("Handoff validation passed!");
     }
@@ -474,8 +491,10 @@ Respond with only 'SIMILAR' if they convey the same meaning, or 'DIFFERENT' if t
 
         for (int i = 0; i < expectedFunctionCalls.Count; i++)
         {
-            Assert.AreEqual(expectedFunctionCalls[i].Name, actualFunctionCalls[i].Name,
-                $"Function call {i + 1}: Expected {expectedFunctionCalls[i].Name} but got {actualFunctionCalls[i].Name}");
+            var expectedCall = expectedFunctionCalls[i];
+            var actualCall = actualFunctionCalls[i];
+
+            ValidateFunctionCallName(expectedCall.Name, actualCall.Name, i, isHandoff: false);
         }
     }
 
@@ -528,13 +547,64 @@ Respond with only 'SIMILAR' if they convey the same meaning, or 'DIFFERENT' if t
             var expectedCall = expectedFunctionCalls[i];
             var actualCall = actualFunctionCalls[i];
 
-            Assert.AreEqual(expectedCall.Name, actualCall.Name,
-                $"Handoff function call {i + 1}: Expected {expectedCall.Name} but got {actualCall.Name}");
-
-            // For handoffs, we expect the function name to start with "transfer_to_"
-            Assert.IsTrue(actualCall.Name.StartsWith("transfer_to_"),
-                $"Expected handoff function to start with 'transfer_to_' but got {actualCall.Name}");
+            ValidateFunctionCallName(expectedCall.Name, actualCall.Name, i, isHandoff: true);
         }
+    }
+
+    /// <summary>
+    /// Validates that a function call matches one of the expected function names (supports pipe-separated multiple options)
+    /// </summary>
+    /// <param name="expectedFunctionName">Expected function name, can be pipe-separated for multiple options</param>
+    /// <param name="actualFunctionName">Actual function name from the response</param>
+    /// <param name="callIndex">Index of the function call for error messages</param>
+    /// <param name="testContext">Test context for logging (optional)</param>
+    /// <param name="isHandoff">Whether this is a handoff function call (adds transfer_to_ validation)</param>
+    private static void ValidateFunctionCallName(string expectedFunctionName, string actualFunctionName, int callIndex, TestContext? testContext = null, bool isHandoff = false)
+    {
+        if (expectedFunctionName.Contains('|'))
+        {
+            var acceptableFunctionNames = expectedFunctionName.Split('|', StringSplitOptions.RemoveEmptyEntries)
+                .Select(name => name.Trim())
+                .ToList();
+
+            var isValidCall = acceptableFunctionNames.Contains(actualFunctionName);
+            var callType = isHandoff ? "Handoff function call" : "Function call";
+
+            Assert.IsTrue(isValidCall,
+                $"{callType} {callIndex + 1}: Expected one of [{string.Join(", ", acceptableFunctionNames)}] but got {actualFunctionName}");
+
+            if (isHandoff)
+            {
+                // For handoffs, we expect the function name to start with "transfer_to_"
+                Assert.IsTrue(actualFunctionName.StartsWith("transfer_to_"),
+                    $"Expected handoff function to start with 'transfer_to_' but got {actualFunctionName}");
+            }
+
+            testContext?.WriteLine($"✅ {callType} {callIndex + 1}: {actualFunctionName} matches one of the acceptable options: [{string.Join(", ", acceptableFunctionNames)}]");
+        }
+        else
+        {
+            var callType = isHandoff ? "Handoff function call" : "Function call";
+            Assert.AreEqual(expectedFunctionName, actualFunctionName,
+                $"{callType} {callIndex + 1}: Expected {expectedFunctionName} but got {actualFunctionName}");
+
+            if (isHandoff)
+            {
+                // For handoffs, we expect the function name to start with "transfer_to_"
+                Assert.IsTrue(actualFunctionName.StartsWith("transfer_to_"),
+                    $"Expected handoff function to start with 'transfer_to_' but got {actualFunctionName}");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets a display-friendly name for expected function calls (handles pipe-separated options)
+    /// </summary>
+    private static string GetExpectedFunctionDisplayName(string expectedFunctionName)
+    {
+        return expectedFunctionName.Contains('|')
+            ? $"[{string.Join(" | ", expectedFunctionName.Split('|', StringSplitOptions.RemoveEmptyEntries).Select(name => name.Trim()))}]"
+            : expectedFunctionName;
     }
 
     #region Test Case Classes
