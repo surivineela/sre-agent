@@ -29,6 +29,24 @@ public class AgentNameHelper
         return name;
     }
 
+    public static string GetAgentRegion(bool isProd)
+    {
+        // AGENT_NAME is set here
+        // https://github.com/serverless-paas-balam/sreagent-infra/blob/6c0ebfc229330a9992043dd9a7f2641a02d7806a/pkg/controllers/agent_controller.go#L132
+        var region = Environment.GetEnvironmentVariable("AGENT_LOCATION");
+        if (string.IsNullOrEmpty(region))
+        {
+            if (isProd)
+            {
+                throw new InvalidOperationException("AGENT_LOCATION environment variable is not set.");
+            }
+
+            return "local"; // Default value for non-production environments
+        }
+
+        return region;
+    }
+
     /// <summary>
     /// Generates a unique identifier for the main dashboard based on the agent name.
     /// The returned uid is guaranteed to be 40 characters or less, because Grafana has a limit of 40 characters for dashboard UIDs.

@@ -1026,6 +1026,67 @@ public class Program
                     logger,
                     exporters);
             });
+
+            // Add OutboundRequestTraceProcessor for ARM API request tracing
+            tracingBuilder.AddProcessor(sp =>
+            {
+                var logger = sp.GetRequiredService<ILogger<OutboundRequestTraceProcessor>>();
+                var outboundExporters = new List<BaseExporter<Activity>>();
+
+                // Set up populate columns delegate for outbound request traces
+                PopulateColumnsDelegate populateOutboundRequestColumns = (activity, trace) =>
+                {
+                    // Add outbound request specific fields from activity tags
+                    trace["HostName"] = activity.TagObjects.FirstOrDefault(t => t.Key == "server.address").Value ?? string.Empty;
+                    trace["RequestUri"] = activity.TagObjects.FirstOrDefault(t => t.Key == "url.full").Value
+                                     ?? activity.TagObjects.FirstOrDefault(t => t.Key == "http.url").Value ?? string.Empty;
+                    trace["HttpMethod"] = activity.TagObjects.FirstOrDefault(t => t.Key == "http.request.method").Value
+                                                ?? activity.TagObjects.FirstOrDefault(t => t.Key == "http.method").Value ?? string.Empty;
+                    trace["HttpStatusCode"] = activity.TagObjects.FirstOrDefault(t => t.Key == "http.response.status_code").Value
+                                                    ?? activity.TagObjects.FirstOrDefault(t => t.Key == "http.status_code").Value ?? string.Empty;
+                    trace["DurationInMilliseconds"] = activity.Duration.TotalMilliseconds.ToString();
+                    trace["AgentName"] = AgentNameHelper.GetAgentName(builder.Environment.IsProduction());
+                    trace["Region"] = AgentNameHelper.GetAgentRegion(builder.Environment.IsProduction());
+                    trace["RequestStartTime"] = activity.StartTimeUtc;
+                    trace["PreciseTimeStamp"] = DateTime.UtcNow;
+                };
+
+                var ClusterUri = GetInternalKustoClusterConfiguration("ClusterUri");
+                var DatabaseName = GetInternalKustoClusterConfiguration("DatabaseName");
+                var CertificatePath = GetInternalKustoClusterConfiguration("CertificatePath");
+                var FirstPartyAppClientId = GetInternalKustoClusterConfiguration("FirstPartyAppClientId");
+                var FirstPartyAppTenantId = GetInternalKustoClusterConfiguration("FirstPartyAppTenantId");
+
+                // Add Azure Data Explorer exporter if configured for production environment
+                if (!string.IsNullOrEmpty(ClusterUri))
+                {
+                    try
+                    {
+
+                        // Create and add ADX exporter for outbound request traces
+                        outboundExporters.Add(new AzureDataExplorerExporter(new AzureDataExplorerExporterOptions(
+                            ClusterUri,
+                            DatabaseName,
+                            "AgentHttpOutgoingRequests",
+                            populateOutboundRequestColumns,
+                            CertificatePath,
+                            FirstPartyAppClientId,
+                            FirstPartyAppTenantId)));
+
+                        logger.LogInternalInformation("Successfully configured Azure Data Explorer exporter for outbound request traces");
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogInternalError(ex, "Failed to create Azure Data Explorer exporter for outbound request traces, using console only");
+                    }
+                }
+
+                return new OutboundRequestTraceProcessor(
+                    logger,
+                    outboundExporters);
+            });
+
+
         });
         builder.Services.AddSingleton(TracerProvider.Default.GetTracer("SREAgent"));
 
