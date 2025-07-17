@@ -686,6 +686,11 @@ public static class Runner
                 // handle regular tool call
                 AIFunction? tool = tools.FirstOrDefault(t => t.Name == functionCall.Name);
 
+                if (tool is ContextAIFunction<TContext> contextTool)
+                {
+                    contextTool.SetContext(contextWrapper.Context);
+                }
+
                 if (tool is not null)
                 {
                     // check runtime type AgentAsTool
@@ -695,7 +700,7 @@ public static class Runner
                         agentAsTool.RunConfig = runConfig;
                         agentAsTool.RunHooks = hooks;
 
-                        // Store CallId for streaming 
+                        // Store CallId for streaming
                         ToolStatic.AsyncLocalFunctionCallId.Value = functionCall.CallId;
 
                         await hooks.OnToolStart(contextWrapper, agent, agentAsTool, functionCall.Arguments);
@@ -738,7 +743,16 @@ public static class Runner
                         // run auto tool
                         await hooks.OnToolStart(contextWrapper, agent, tool, functionCall.Arguments);
 
-                        var toolResult = await tool.InvokeAsync(new AIFunctionArguments(functionCall.Arguments));
+                        object? toolResult = null;
+
+                        try
+                        {
+                            toolResult = await tool.InvokeAsync(new AIFunctionArguments(functionCall.Arguments));
+                        }
+                        catch (Exception e)
+                        {
+                            toolResult = GetToolErrorMessage(functionCall, e);
+                        }
 
                         await hooks.OnToolEnd(contextWrapper, agent, tool, toolResult);
 
@@ -867,6 +881,18 @@ public static class Runner
                 }
             };
         }
+    }
+
+    private static string GetToolErrorMessage(FunctionCallContent functionCall, Exception ex)
+    {
+        var message = $"Error: Function {functionCall.Name} failed, {ex.Message}";
+
+        if (ex.InnerException != null)
+        {
+            message += $" | Inner exception: {ex.InnerException.Message}";
+        }
+
+        return message;
     }
 
     private static bool IsAllowedHandOff<TContext>(

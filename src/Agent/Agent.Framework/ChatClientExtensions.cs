@@ -2,10 +2,13 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Buffers;
 using System.ComponentModel;
 using System.Reflection;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization.Metadata;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.AI;
 
@@ -13,7 +16,7 @@ namespace Agent.Framework;
 
 // based on https://github.com/dotnet/extensions/blob/34cdd3a2ddeea9e329356448719ea0d9b896c19c/src/Libraries/Microsoft.Extensions.AI/ChatCompletion/ChatClientStructuredOutputExtensions.cs#L150
 // adapted to take a Type parameter instead of using generics because our output types are not known at compile time
-public static class ChatClientExtensions
+public static partial class ChatClientExtensions
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = AIJsonUtilities.DefaultOptions;
 
@@ -28,7 +31,10 @@ public static class ChatClientExtensions
         },
     };
 
-    private static readonly Regex _invalidNameCharsRegex = new("[^0-9A-Za-z_]", RegexOptions.Compiled);
+    [GeneratedRegex("[^0-9A-Za-z_]", RegexOptions.Compiled)]
+    private static partial Regex InvalidNameCharsRegex();
+
+    private static readonly Regex _invalidNameCharsRegex = InvalidNameCharsRegex();
 
     public static async Task<(ChatResponse response, object? result)> GetResponseAsync(
         this IChatClient client,
@@ -74,45 +80,63 @@ public static class ChatClientExtensions
             schemaName: SanitizeMemberName(outputType.Name),
             schemaDescription: outputType.GetCustomAttribute<DescriptionAttribute>()?.Description);
 
-        var chatResponse = await client.GetResponseAsync(messages, options, cancellationToken);
+        // retry once in case the model returns something invalid (wrong schema, etc.)
+        const int retryCount = 1;
+        Exception? exception = null;
 
-        // if tool calls are being made, don't try to parse the response
-        if (chatResponse.FinishReason == ChatFinishReason.ToolCalls)
+        for (var i = 0; i < retryCount; i++)
         {
-            return (chatResponse, null);
-        }
+            var chatResponse = await client.GetResponseAsync(messages, options, cancellationToken);
 
-        var json = chatResponse.Text;
+            var firstTextContent = chatResponse.Messages.FirstOrDefault()?.Contents.OfType<TextContent>().FirstOrDefault();
 
-        if (string.IsNullOrEmpty(json))
-        {
-            throw new InvalidOperationException("The response did not contain any JSON output");
-        }
-
-        if (isWrappedInObject)
-        {
-            if (JsonDocument.Parse(json).RootElement.TryGetProperty("data", out var data))
+            if (firstTextContent is null)
             {
-                json = data.GetRawText();
+                return (chatResponse, null);
             }
-            else
+
+            var json = firstTextContent.Text;
+
+            if (string.IsNullOrEmpty(json))
             {
-                throw new InvalidOperationException("The response did not contain a valid JSON object with a 'data' property");
+                exception = new InvalidOperationException("The response did not contain any JSON output");
+                continue;
             }
+
+            if (isWrappedInObject)
+            {
+                if (JsonDocument.Parse(json).RootElement.TryGetProperty("data", out var data))
+                {
+                    json = data.GetRawText();
+                }
+                else
+                {
+                    exception = new InvalidOperationException("The response did not contain a valid JSON object with a 'data' property");
+                    continue;
+                }
+            }
+
+            object? deserializedResult;
+            try
+            {
+                deserializedResult = DeserializeFirstTopLevelObject(json, _jsonSerializerOptions.GetTypeInfo(outputType));
+
+                if (deserializedResult is null)
+                {
+                    exception = new InvalidOperationException("The deserialized result is null");
+                    continue;
+                }
+            }
+            catch (Exception ex)
+            {
+                exception = new InvalidOperationException("Failed to deserialize the response", ex);
+                continue;
+            }
+
+            return (chatResponse, deserializedResult);
         }
 
-        object? deserializedResult = default;
-
-        try
-        {
-            deserializedResult = JsonSerializer.Deserialize(json, outputType, _jsonSerializerOptions);
-        }
-        catch (Exception ex)
-        {
-            throw new InvalidOperationException("Failed to deserialize the response", ex);
-        }
-
-        return (chatResponse, deserializedResult);
+        throw exception!;
     }
 
     private static bool SchemaRepresentsObject(JsonElement schemaElement)
@@ -153,4 +177,32 @@ public static class ChatClientExtensions
     /// </returns>
     private static string SanitizeMemberName(string memberName) =>
         _invalidNameCharsRegex.Replace(memberName, "_");
+
+    private static readonly JsonReaderOptions _allowMultipleValuesJsonReaderOptions = new()
+    {
+#if NET9_0_OR_GREATER
+        AllowMultipleValues = true
+#endif
+    };
+
+    // based on https://github.com/dotnet/extensions/blob/ed4aeac58f4646a2816987991d6abb9719f59de0/src/Libraries/Microsoft.Extensions.AI/ChatCompletion/ChatResponse%7BT%7D.cs#L94-L113
+    private static object? DeserializeFirstTopLevelObject(string json, JsonTypeInfo typeInfo)
+    {
+        // We need to deserialize only the first top-level object as a workaround for a common LLM backend
+        // issue. GPT 3.5 Turbo commonly returns multiple top-level objects after doing a function call.
+        // See https://community.openai.com/t/2-json-objects-returned-when-using-function-calling-and-json-mode/574348
+        var utf8ByteLength = Encoding.UTF8.GetByteCount(json);
+        var buffer = ArrayPool<byte>.Shared.Rent(utf8ByteLength);
+        try
+        {
+            var utf8SpanLength = Encoding.UTF8.GetBytes(json, 0, json.Length, buffer, 0);
+            var utf8Span = new ReadOnlySpan<byte>(buffer, 0, utf8SpanLength);
+            var reader = new Utf8JsonReader(utf8Span, _allowMultipleValuesJsonReaderOptions);
+            return JsonSerializer.Deserialize(ref reader, typeInfo);
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
+        }
+    }
 }
