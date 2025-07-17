@@ -30,8 +30,7 @@ namespace FirstPartyAgent.FunctionApp
         public async Task<HttpResponseData> TriageGitHubIssue(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "TriageGithubIssue")] HttpRequestData req)
         {
-            string gitHubIssueBody = await req.ReadAsStringAsync();
-
+            var gitHubIssueBody = await req.ReadAsStringAsync();
             if (string.IsNullOrEmpty(gitHubIssueBody))
             {
                 var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
@@ -40,8 +39,7 @@ namespace FirstPartyAgent.FunctionApp
             }
 
             var gitHubEvent = JsonConvert.DeserializeObject<GitHubIssueEvent>(gitHubIssueBody);
-
-            if (gitHubEvent.Action.Contains("label", StringComparison.OrdinalIgnoreCase))
+            if (gitHubEvent != null && gitHubEvent.Action != null && gitHubEvent.Action.Contains("label", StringComparison.OrdinalIgnoreCase))
             {
                 // Todo: Auto index the issue to reflect latest state before returning.
                 var responseForIgnoringLabelEvents = req.CreateResponse(HttpStatusCode.OK);
@@ -64,7 +62,7 @@ namespace FirstPartyAgent.FunctionApp
                 AgentMode = "GithubIssueTagger",
                 Message = $"Process the following.\n\nAction taken: {gitHubEvent?.Action}\nIssue URL: {gitHubEvent?.Issue?.Url}",
                 Title = gitHubEvent?.Issue?.Number is not null
-                    ? $"{gitHubEvent.Repository.Name} - Issue #{gitHubEvent.Issue.Number}"
+                    ? $"{gitHubEvent?.Repository?.Name} - Issue #{gitHubEvent?.Issue.Number}"
                     : string.Empty,
                 Sender = "TriageGithubIssueFunction",
                 SessionId = Guid.NewGuid().ToString(),

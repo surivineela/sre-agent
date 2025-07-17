@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -35,13 +35,13 @@ namespace FirstPartyAgent.Tests.End2End.Helpers
 
     internal class Subscription
     {
-        public string SubscriptionId { get; set; }
-        public string OfferType { get; set; }
-        public string QuotaId { get; set; }
+        public required string SubscriptionId { get; set; }
+        public required string OfferType { get; set; }
+        public required string QuotaId { get; set; }
     }
 
     internal class SubscriptionData
     {
-        public List<Subscription> Subscriptions { get; set; }
+        public required List<Subscription> Subscriptions { get; set; }
     }
 }

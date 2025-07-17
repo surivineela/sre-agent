@@ -14,8 +14,6 @@ namespace E2ETests
 {
     public static class Helper
     {
-        private static string? _key;
-
         public static async Task<HttpResponseMessage> SendMessageAndWait(CombinedFixture _fixture, ITestOutputHelper _output, string message, int delayInSeconds = 5)
         {
             _output.WriteLine($"Sending message: {message}");
@@ -24,15 +22,6 @@ namespace E2ETests
             HttpResponseMessage rsp = await _fixture.AzureFunctionsFixture.Client.PostAsync("api/Entrypoint", content);
 
             await Task.Delay(TimeSpan.FromSeconds(delayInSeconds));
-
-            // Set approval key after first message sent
-            if (_key == null)
-            {
-                //string responseBody = await rsp.Content.ReadAsStringAsync();
-                //using JsonDocument doc = JsonDocument.Parse(responseBody);
-                //string code = doc.RootElement.GetProperty("StatusQueryGetUri").GetString().Split("code=")[1];
-                //_key = code;
-            }
 
             return rsp;
         }
@@ -43,15 +32,6 @@ namespace E2ETests
 
             StringContent content = new StringContent(message);
             HttpResponseMessage rsp = await _fixture.AzureFunctionsFixture.Client.PostAsync("api/Entrypoint", content);
-
-            // Set approval key after first message sent
-            if (_key == null)
-            {
-                //string responseBody = await rsp.Content.ReadAsStringAsync();
-                //using JsonDocument doc = JsonDocument.Parse(responseBody);
-                //string code = doc.RootElement.GetProperty("StatusQueryGetUri").GetString().Split("code=")[1];
-                //_key = code;
-            }
 
             return rsp;
         }

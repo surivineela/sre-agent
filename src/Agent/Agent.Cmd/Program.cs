@@ -54,7 +54,12 @@ namespace Agent.Cmd
             builder.Services.AddCrawlerHttpClient();
             builder.Services.AddHttpClient();
 
-            string llmDeploymentName = builder.Configuration["AppSettings:Core:Azure:OpenAI:LLMDeploymentName"];
+            string? llmDeploymentName = builder.Configuration["AppSettings:Core:Azure:OpenAI:LLMDeploymentName"];
+            if (string.IsNullOrEmpty(llmDeploymentName))
+            {
+                throw new InvalidOperationException("LLM Deployment Name is not configured. Please set 'AppSettings:Core:Azure:OpenAI:LLMDeploymentName' in your configuration.");
+            }
+
             builder.Services.ConfigureAzureOpenAIClient();
             builder.Services.AddKeyedChatClient("function-invocation-enabled", serviceProvider => serviceProvider.GetRequiredService<AzureOpenAIClient>().GetChatClient(llmDeploymentName).AsIChatClient(), ServiceLifetime.Singleton)
                 .UseFunctionInvocation();

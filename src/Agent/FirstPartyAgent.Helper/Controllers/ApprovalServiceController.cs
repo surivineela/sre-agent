@@ -94,6 +94,11 @@ public class ApprovalServiceController : ControllerBase
             }
 
             var approvalResponse = JsonConvert.DeserializeObject<OneBranchApprovalResponse>(content);
+            if (approvalResponse == null)
+            {
+                throw new Exception("Failed to deserialize approval response.");
+            }
+
             var auditEvent = new ApprovalCreationRequestAuditEvent
             {
                 AuditTime = DateTime.UtcNow,

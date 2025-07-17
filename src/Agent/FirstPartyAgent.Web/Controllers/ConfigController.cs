@@ -159,7 +159,7 @@ namespace Agent.Web.Controllers
                     return BadRequest(new { error = "File content is empty" });
                 }
 
-                List<WawsAlertDetails> wawsAlertDetailsList;
+                List<WawsAlertDetails>? wawsAlertDetailsList;
                 try
                 {
                     wawsAlertDetailsList = JsonConvert.DeserializeObject<List<WawsAlertDetails>>(fileContent);
@@ -187,6 +187,12 @@ namespace Agent.Web.Controllers
                     return StatusCode((int)HttpStatusCode.InternalServerError, new { error = "Configuration file IcmTeams.json not found." });
                 }
                 var icmTeams = JsonConvert.DeserializeObject<List<IcmTeam>>(await System.IO.File.ReadAllTextAsync(teamsJsonPath));
+                if (icmTeams == null)
+                {
+                    _logger.LogError("Failed to deserialize IcmTeams.json");
+                    return StatusCode((int)HttpStatusCode.InternalServerError, new { error = "Failed to deserialize IcmTeams.json" });
+                }
+
                 var teamNameMap = icmTeams.ToDictionary(t => t.IcmTeamName.ToLowerInvariant(), t => t.IcmTeamId);
 
                 var alertDetails = wawsAlertDetailsList

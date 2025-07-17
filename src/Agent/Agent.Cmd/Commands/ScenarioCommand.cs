@@ -38,6 +38,7 @@ namespace Agent.Cmd
             _logger = logger;
             _httpClient = httpClient;
             _chatClient = chatClient;
+            _exportDir = string.Empty;
         }
 
         public void RunScenario(CommandLineApplication command)
@@ -196,9 +197,8 @@ namespace Agent.Cmd
                     // Save the thread file on every update
                     await SaveThreadResultAsync(threadId, responseJson);
                     
-                    var messages = JsonSerializer.Deserialize<List<ChatMessage>>(responseJson, _serializerOptions);
+                    var messages = JsonSerializer.Deserialize<List<ChatMessage>>(responseJson, _serializerOptions) ?? [];
                     var reply = await autoReplyHelper.AssessAndGetReply(messages);
-
                     if(reply != null)
                     {
                         var requestBody = new

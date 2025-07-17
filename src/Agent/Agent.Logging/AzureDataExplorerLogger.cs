@@ -51,11 +51,14 @@ public class AzureDataExplorerLogger : ILogger
         _logBuffer = new LogBuffer();
     }
 
-    public IDisposable BeginScope<TState>(TState state) => null;
+    public IDisposable? BeginScope<TState>(TState state) where TState : notnull
+    {
+        return null;
+    }
 
     public bool IsEnabled(LogLevel logLevel) => logLevel >= LogLevel.Information;
 
-    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
     {
         if (!IsEnabled(logLevel)) return;
 

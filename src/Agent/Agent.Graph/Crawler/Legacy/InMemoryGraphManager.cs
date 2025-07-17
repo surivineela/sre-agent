@@ -11,7 +11,7 @@ namespace Agent.Graph.Crawler.Legacy
 {
     public class InMemoryGraphManager : IGraphDatabaseClient
     {
-        private readonly ILogger<InMemoryGraphManager> _logger;
+        private readonly ILogger<InMemoryGraphManager> _logger = null;
 
         private readonly Dictionary<string, Node> _nodes = new();
         private readonly Dictionary<string, Edge> _edges = new();

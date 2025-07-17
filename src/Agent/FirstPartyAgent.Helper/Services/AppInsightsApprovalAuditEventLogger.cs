@@ -22,11 +22,10 @@ namespace FirstPartyAgent.Helper.Services
 
         public AppInsightsApprovalAuditEventLogger(ILogger<AppInsightsApprovalAuditEventLogger> logger, IConfiguration configuration)
         {
-            string connectionString = configuration["AppInsights:ConnectionString"];
+            string? connectionString = configuration["AppInsights:ConnectionString"];
             if (string.IsNullOrEmpty(connectionString))
             {
                 connectionString = Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING");
-
                 if (string.IsNullOrEmpty(connectionString))
                 {
                     throw new ArgumentException("Application Insights connection string must be set in configuration or environment variable 'APPLICATIONINSIGHTS_CONNECTION_STRING'.");

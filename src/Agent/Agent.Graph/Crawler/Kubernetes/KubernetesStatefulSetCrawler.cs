@@ -25,6 +25,7 @@ public class KubernetesStatefulSetCrawler : IResourceCrawler
         _logger = logger;
         _graphDbClient = graphDbClient;
         _k8sService = k8sService;
+        _armClient = null;
         _sqlHelper = new SqlConnectionStringHelper(logger, _armClient, _graphDbClient);
         _postgresHelper = new PostgreSqlConnectionStringHelper(logger, _armClient, _graphDbClient);
     }

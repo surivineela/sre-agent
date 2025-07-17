@@ -87,7 +87,19 @@ namespace FirstPartyAgent.FunctionApp
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "SetConfig")] HttpRequestData req)
         {
             var customConfig = await req.ReadAsStringAsync();
+            if (string.IsNullOrWhiteSpace(customConfig))
+            {
+                var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+                await badResponse.WriteAsJsonAsync(new { error = "Request body is empty" });
+                return badResponse;
+            }
             var configObject = JsonConvert.DeserializeObject<ICMAlertConfig>(customConfig);
+            if (configObject == null)
+            {
+                var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+                await badResponse.WriteAsJsonAsync(new { error = "Invalid config object" });
+                return badResponse;
+            }
             await _alertHandlerService.SaveICMAlertConfig(configObject.AlertingId, customConfig);
             var response = req.CreateResponse(HttpStatusCode.OK);
             await response.WriteAsJsonAsync(customConfig);
@@ -143,6 +155,12 @@ namespace FirstPartyAgent.FunctionApp
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "SaveAlertDetails")] HttpRequestData req)
         {
             var requestContent = await req.ReadAsStringAsync();
+            if (string.IsNullOrWhiteSpace(requestContent))
+            {
+                var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+                await badResponse.WriteAsJsonAsync(new { error = "Request body is empty" });
+                return badResponse;
+            }
             var alertDetails = JsonConvert.DeserializeObject<AlertDetailsBase>(requestContent);
             if (alertDetails == null)
             {
@@ -286,11 +304,10 @@ namespace FirstPartyAgent.FunctionApp
             {
                 var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
                 await badResponse.WriteAsJsonAsync(new { error = "Invalid request body" });
-                return badResponse;
+                return badResponse;                
             }
 
-
-            if (!string.IsNullOrWhiteSpace(alertRequest.CustomAlertConfig.AlertingId))
+            if (alertRequest.CustomAlertConfig != null && !string.IsNullOrWhiteSpace(alertRequest.CustomAlertConfig.AlertingId))
             {
                 var incidentDetails = await _icmWorkflowClient.GetIncidentAsync(alertRequest.IncidentId);
                 if (alertRequest.CustomAlertConfig.AlertingId != incidentDetails.MonitoringSlice)
@@ -337,7 +354,7 @@ namespace FirstPartyAgent.FunctionApp
                 }
 
                 // Parse the file content into a list of AlertDetails
-                List<WawsAlertDetails> wawsAlertDetailsList;
+                List<WawsAlertDetails>? wawsAlertDetailsList;
                 try
                 {
                     wawsAlertDetailsList = JsonConvert.DeserializeObject<List<WawsAlertDetails>>(fileContent);
@@ -361,18 +378,26 @@ namespace FirstPartyAgent.FunctionApp
 
                 var teamsJsonPath = Path.Combine(AppContext.BaseDirectory, "IcmTeams.json");
                 var icmTeams = JsonConvert.DeserializeObject<List<IcmTeam>>(File.ReadAllText(teamsJsonPath));
+                if (icmTeams == null)
+                {
+                    var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+                    await badResponse.WriteAsJsonAsync(new { error = "IcmTeams list is null" });
+                    return badResponse;
+                }
                 var teamNameMap = icmTeams.ToDictionary(t => t.IcmTeamName.ToLower(), t => t.IcmTeamId);
-
                 var alertDetails = wawsAlertDetailsList
-                    .Where(a => a.Actions.Any(act => !string.IsNullOrWhiteSpace(act.TeamAssignedTo)))
+                    .Where(a => a.Actions != null && a.Actions.Any(act => !string.IsNullOrWhiteSpace(act.TeamAssignedTo)))
                     .Select(a =>
                     {
                         var alertDetail = new AlertDetails(a);
-                        var action = a.Actions.FirstOrDefault(act => !string.IsNullOrWhiteSpace(act.TeamAssignedTo));
-                        alertDetail.TeamAssignedTo = action.TeamAssignedTo;
-                        alertDetail.TeamId = teamNameMap.ContainsKey(action.TeamAssignedTo.ToLower()) ? teamNameMap[action.TeamAssignedTo.ToLower()] : null;
-                        alertDetail.RoutingID = action.RoutingID;
-                        alertDetail.Severity = action.Severity;
+                        var action = a.Actions?.FirstOrDefault(act => !string.IsNullOrWhiteSpace(act.TeamAssignedTo));
+                        if (action != null)
+                        {
+                            alertDetail.TeamAssignedTo = action.TeamAssignedTo;
+                            alertDetail.TeamId = teamNameMap.ContainsKey(action.TeamAssignedTo.ToLower()) ? teamNameMap[action.TeamAssignedTo.ToLower()] : null;
+                            alertDetail.RoutingID = action.RoutingID;
+                            alertDetail.Severity = action.Severity;
+                        }
                         return alertDetail;
                     });
 
@@ -425,6 +450,12 @@ namespace FirstPartyAgent.FunctionApp
                 await db.CreateContainerIfNotExistsAsync(containerProperties);
 
                 var config = await req.ReadFromJsonAsync<GenevaActionsConfigCosmos>();
+                if (config == null)
+                {
+                    var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+                    await badResponse.WriteAsJsonAsync(new { error = "Invalid GenevaActionsConfigCosmos object" });
+                    return badResponse;
+                }
 
                 await _cosmosDBService.BulkWriteAsync(_cosmosDBService.IcmAgentDatabaseName,
                     "GenevaActionsConfigs",
@@ -458,6 +489,12 @@ namespace FirstPartyAgent.FunctionApp
                 await db.CreateContainerIfNotExistsAsync(containerProperties);
 
                 var data = await req.ReadFromJsonAsync<AgentDeployment>();
+                if (data == null)
+                {
+                    var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+                    await badResponse.WriteAsJsonAsync(new { error = "Invalid AgentDeployment object" });
+                    return badResponse;
+                }
                 await _cosmosDBService.BulkWriteAsync(_cosmosDBService.IcmAgentDatabaseName,
                     "AgentDeployments",
                     new List<AgentDeployment> { data },

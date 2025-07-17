@@ -180,7 +180,7 @@ namespace Agent.Tests.Unit.Plugins
 
             if (invalidColumnsSummary.Length > 0)
             {
-                Assert.False(true, $"Invalid columns found in KQL files:\n{invalidColumnsSummary}");
+                Assert.Fail($"Invalid columns found in KQL files:\n{invalidColumnsSummary}");
             }
         }
     }

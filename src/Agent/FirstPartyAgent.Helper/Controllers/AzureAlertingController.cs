@@ -85,7 +85,11 @@ public class AzureAlertingController : ControllerBase
 
         string icmTeamsJson = await _storeageService.ReadFileFromStorage(_storageAccountSettings.SreAgentHelperContainerName, _icmTeamsFileName);
         var serviceTeamMaps = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, int>>>(icmTeamsJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
+        if (serviceTeamMaps == null || !serviceTeamMaps.Any())
+        {
+            _logger.LogError("IcmTeamsMap file not found or empty in storage.");
+            return NotFound("IcmTeamsMap file not found or empty.");
+        }
 
         var alertDetails = wawsAlertDetailsList
             .Where(a => a.Actions?.Any(act => !string.IsNullOrWhiteSpace(act.TeamAssignedTo)) == true)
@@ -95,10 +99,13 @@ public class AzureAlertingController : ControllerBase
                 var teamNameMap = serviceTeamMaps[a.ServiceId];
                 var alertDetail = new AlertDetails(a);
                 var action = a.Actions.FirstOrDefault(act => !string.IsNullOrWhiteSpace(act.TeamAssignedTo));
-                alertDetail.TeamAssignedTo = action.TeamAssignedTo;
-                alertDetail.TeamId = teamNameMap.TryGetValue(action.TeamAssignedTo.ToLower(), out var teamId) ? teamId : null;
-                alertDetail.RoutingID = action.RoutingID;
-                alertDetail.Severity = action.Severity;
+                if (action != null)
+                {
+                    alertDetail.TeamAssignedTo = action.TeamAssignedTo;
+                    alertDetail.TeamId = teamNameMap.TryGetValue(action.TeamAssignedTo.ToLower(), out var teamId) ? teamId : null;
+                    alertDetail.RoutingID = action.RoutingID;
+                    alertDetail.Severity = action.Severity;
+                }
                 return alertDetail;
             }).ToList();
 

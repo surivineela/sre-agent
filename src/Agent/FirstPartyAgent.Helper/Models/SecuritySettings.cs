@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 namespace FirstPartyAgent.Helper.Models;
 public class SecuritySettings
 {
-    public List<string> AllowedAppIds { get; set; }
-    public string ClientId { get; set; }
-    public string Authority { get; set; }
-    public string TenantId { get; set; }
+    public required List<string> AllowedAppIds { get; set; }
+    public required string ClientId { get; set; }
+    public required string Authority { get; set; }
+    public required string TenantId { get; set; }
 }

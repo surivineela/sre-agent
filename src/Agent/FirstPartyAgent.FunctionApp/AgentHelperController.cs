@@ -40,7 +40,7 @@ public class AgentHelperController
     public async Task<HttpResponseData> CreateApprovalDocument(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "CreateApprovalDocument")] HttpRequestData req)
     {
-        HttpResponseData response = null;
+        HttpResponseData? response = null;
 
         if (!_approvalServiceSettings.Enabled)
         {
@@ -101,7 +101,7 @@ public class AgentHelperController
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = "GetApprovalRequest/{approvalId}")] HttpRequestData req,
             string approvalId)
     {
-        HttpResponseData response = null;
+        HttpResponseData? response = null;
         if (!_approvalServiceSettings.Enabled)
         {
             response = req.CreateResponse(HttpStatusCode.BadRequest);
