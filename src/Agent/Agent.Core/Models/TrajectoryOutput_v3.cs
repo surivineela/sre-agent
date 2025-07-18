@@ -99,7 +99,6 @@ public sealed class TrajectoryOutput_v3
     """)]
     public required string SymptomsObserved { get; set; }
 
-
     [Description(
     """
     Actionable corrections for troubleshooting missteps, especially user corrections to agent assumptions.

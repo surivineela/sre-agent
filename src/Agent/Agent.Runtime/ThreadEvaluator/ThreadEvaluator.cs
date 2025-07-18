@@ -220,22 +220,23 @@ public class ThreadEvaluator
             // Trajectories
             if (_agentMemoryEnabled)
             {
-                var chatMessages = await GetChatMessages(agentContexts.First());
-                var trajectoryInfo = await TrajectoryExtractor.GenerateTrajectoryAsync(_chatClient, chatMessages, cancellationToken);
-
-                await SaveTrajectoryAsync(thread.Id, trajectoryInfo.Trajectory, trajectoryInfo.PromptHash, cancellationToken);
-
                 // Index the trajectory right away
                 try
                 {
-                    var trajectoryOutput = JsonSerializer.Deserialize<TrajectoryOutput>(trajectoryInfo.Trajectory);
-                    if (trajectoryOutput != null)
+                    var chatMessages = await GetChatMessages(agentContexts.First());
+                    var trajectoryInfo = await TrajectoryExtractor.GenerateTrajectoryAsync_v3(_chatClient, chatMessages, cancellationToken);
+
+                    var trajectory = trajectoryInfo.Trajectory;
+                    if (trajectory != null)
                     {
-                        var vector = await _embeddingGenerator.GenerateVectorAsync(trajectoryOutput.SymptomsObserved, null, cancellationToken);
+                        var trajectoryString = JsonSerializer.Serialize(trajectory);
+                        await SaveTrajectoryAsync(thread.Id, trajectoryString, trajectoryInfo.PromptHash, cancellationToken);
+
+                        var vector = await _embeddingGenerator.GenerateVectorAsync(trajectory.SymptomsObserved, null, cancellationToken);
                         var memory = AgentMemory.FromTrajectory(
                             id: thread.Id.ToString(),
-                            trajectoryData: trajectoryOutput,
-                            embedding: [..vector.Span]
+                            trajectoryData: trajectory,
+                            embedding: [.. vector.Span]
                         );
 
                         await _searchIndexService.IndexContentAsync(memory);

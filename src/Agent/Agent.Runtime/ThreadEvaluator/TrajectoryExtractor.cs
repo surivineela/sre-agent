@@ -4,6 +4,7 @@
 
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using Agent.Core.Models;
 using Agent.Framework;
 using Microsoft.Extensions.AI;
@@ -88,7 +89,7 @@ public static class TrajectoryExtractor
         return (extractedTrajectory.Text, TrajectoryPromptHash_v2);
     }
 
-    public static async Task<(string Trajectory, string PromptHash)> GenerateTrajectoryAsync_v3(
+    public static async Task<(ProcessedTrajectoryOutput_v3 Trajectory, string PromptHash)> GenerateTrajectoryAsync_v3(
         IChatClient chatClient,
         IEnumerable<ChatMessage> chatMessages,
         CancellationToken cancellationToken = default)
@@ -119,7 +120,13 @@ public static class TrajectoryExtractor
             },
             cancellationToken: cancellationToken);
 
-        return (extractedTrajectory.Text, TrajectoryPromptHash_v3);
+        // deserialize the raw trajectory
+        var rawTraj = JsonSerializer.Deserialize<TrajectoryOutput_v3>(extractedTrajectory.Text);
+
+        // process as needed
+        var finalTrajectory = ProcessedTrajectoryOutput_v3.FromTrajectoryOutput(rawTraj);
+
+        return (finalTrajectory, TrajectoryPromptHash_v3);
     }
 
     private const string TrajectoryExtractionPrompt =

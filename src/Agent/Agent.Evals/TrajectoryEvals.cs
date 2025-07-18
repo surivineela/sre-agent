@@ -1,5 +1,4 @@
 using System.Text.Json;
-using Agent.Core.Models;
 using Agent.Framework;
 using Agent.Runtime.ThreadEvaluator;
 using Microsoft.Extensions.AI;
@@ -77,14 +76,12 @@ public class TrajectoryEvals
             TestHost.RunConfig.ChatClient,
             conversationMessages);
 
-        var traj = JsonSerializer.Deserialize<TrajectoryOutput_v3>(extractedTrajectory, _jsonOptions);
-
         // should be marked as investigation.
-        Assert.IsTrue(traj.IsInvestigationThread);
+        Assert.IsTrue(extractedTrajectory.IsInvestigationThread);
 
         await File.WriteAllTextAsync(
             Path.Join(AppContext.BaseDirectory, "../../..", "Data", "Trajectory", "Quality", $"traj_{inputFile}.txt"),
-            JsonSerializer.Serialize(traj, _jsonOptions));
+            JsonSerializer.Serialize(extractedTrajectory, _jsonOptions));
 
         // 5. Provide evaluation context (quality)
         //string groundedContext = "TODO: supply ground-truth context for this trajectory";
@@ -134,13 +131,11 @@ public class TrajectoryEvals
             TestHost.RunConfig.ChatClient,
             conversationMessages);
 
-        var traj = JsonSerializer.Deserialize<TrajectoryOutput_v3>(extractedTrajectory, _jsonOptions);
-
         // should not be marked as investigation.
-        Assert.IsFalse(traj.IsInvestigationThread);
+        Assert.IsFalse(extractedTrajectory.IsInvestigationThread);
 
         await File.WriteAllTextAsync(
             Path.Join(AppContext.BaseDirectory, "../../..", "Data", "Trajectory", "Relevance", $"traj_{inputFile}.txt"),
-            JsonSerializer.Serialize(traj, _jsonOptions));
+            JsonSerializer.Serialize(extractedTrajectory, _jsonOptions));
     }
 }

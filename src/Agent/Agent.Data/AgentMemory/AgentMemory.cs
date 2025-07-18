@@ -85,6 +85,31 @@ public class AgentMemory
         };
     }
 
+    public static AgentMemory FromTrajectory(
+        string id,
+        ProcessedTrajectoryOutput_v3 trajectoryData,
+        List<float> embedding)
+    {
+        return new AgentMemory
+        {
+            Id = id,
+            Type = "trajectory",
+            Title = trajectoryData.Title,
+            ChunkId = string.Empty,
+            ParentId = id,
+            Chunk = JsonSerializer.Serialize(trajectoryData),
+            ResourceTypes = trajectoryData.ResourceTypesInvolved?.ToLowerInvariant().Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList() ?? [],
+            ResourceIds = trajectoryData.ResourcesInvolved?.ToLowerInvariant().Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList() ?? [],
+            RootCause = trajectoryData.RootCause ?? string.Empty,
+            InitialSymptoms = trajectoryData.InitialSymptoms ?? string.Empty,
+            StepsFollowed = trajectoryData.StepsFollowed ?? string.Empty,
+            SymptomsObserved = trajectoryData.SymptomsObserved ?? string.Empty,
+            IndexedAt = DateTimeOffset.UtcNow,
+            Pitfalls = trajectoryData.Pitfalls ?? string.Empty,
+            Vector = embedding
+        };
+    }
+
     public static AgentMemory FromUserMemory(
         string id,
         string memoryContent,
