@@ -133,11 +133,11 @@ namespace Agent.Plugins.Kusto
 
         [KernelFunction("list_kusto_functions")]
         [Description("Lists all available user-defined functions from the Kusto cluster for a given region, including metadata like name, folder, and description.")]
-        public async Task<List<KustoFunction>> ListFunctionsAsync(
+        public async Task<List<KustoFunctionInfo>> ListFunctionsAsync(
             [Description("The region of the Kusto cluster to query.")] string region)
         {
             var query = ".show functions | project Name, Folder, DocString, Parameters";
-            var result = new List<KustoFunction>();
+            var result = new List<KustoFunctionInfo>();
 
             // TODO: update this plugin with a parameter to allow querying regional clusters for other products
             KustoRegionalGroupClient regionalKustoClient = _kustoRegionalGroupClientProvider.GetRegionalGroupKustoClient("ContainerApps");
@@ -145,7 +145,7 @@ namespace Agent.Plugins.Kusto
             using var reader = await regionalKustoClient.PerformQueryAsync(query, region);
             while (reader.Read())
             {
-                result.Add(new KustoFunction
+                result.Add(new KustoFunctionInfo
                 {
                     Name = reader["Name"]?.ToString() ?? string.Empty,
                     Folder = reader["Folder"]?.ToString() ?? string.Empty,

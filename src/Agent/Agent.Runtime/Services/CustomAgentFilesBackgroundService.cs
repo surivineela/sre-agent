@@ -51,7 +51,7 @@ public class CustomAgentFilesBackgroundService : BackgroundService
                     var agentFactory = scope.ServiceProvider.GetRequiredService<IAgentFactory<AgentContext>>();
                     agentFactory.LoadExtendedAgentsFromFolder(localFolderPath, true);
 
-                    _toolFactory.FindAndRegisterCustomTools(customAgentFiles);
+                    _toolFactory.FindAndRegisterAllTools(BehaviorOnNameConflict.Overwrite);
 
                     _logger.LogInternalInformation("Successfully downloaded custom agent files");
                 }

@@ -107,39 +107,7 @@ namespace Agent.Plugins.Definitions
             });
         }
 
-        [Description("""
-        Purpose:
-        Retrieves Container Apps Envoy Controller Logs to troubleshoot ingress and network routing issues.
-
-        Scenario:
-        Use this tool when investigating Envoy controller events, such as envoy resources reconciler errors.
-
-        Output:
-        Returns table data in CSV format with TAB separators. Column headers:
-        - PreciseTimeStamp: Envoy controller log timestamp
-        - LogMessage: Envoy controller events log message
-        - error: Envoy controller events error message
-        - NodeName: Name of the node running the Envoy pod
-        - PodId: Id of the Envoy pod
-        - PodName: Name of the Envoy pod
-        - ContainerName: Pod container name
-        - ContainerImage: The docker image used by the pod container
-        - caller: The source component or service that initiated the controller event or operation
-        """
-        )]
-        public Task<string> GetEnvoyControllerLogs(
-            [Description("Azure region.")] string region,
-            [Description("Start time of the query.")] DateTime fromDate,
-            [Description("End time of the query.")] DateTime toDate,
-            [Description("Managed Cluster Name of the container app.")] string managedClusterName)
-        {
-            return _kustoPlugin.ExecuteLocalFunctionAsync("GetEnvoyControllerLogs", region,
-            new Dictionary<string, string> {
-                { "fromDate", fromDate.ToString() },
-                { "toDate", toDate.ToString() },
-                { "managedClusterName", managedClusterName }
-            });
-        }
+        
 
         [Description("""
         Purpose:

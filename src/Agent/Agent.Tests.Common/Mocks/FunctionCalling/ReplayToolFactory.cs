@@ -91,6 +91,7 @@ public class ReplayToolFactory<TContext> : IToolFactory<TContext> where TContext
         function = null;
         return false;
     }    /// <summary>
+
          /// Checks if a tool with the given name exists, either in replay data or in the inner factory.
          /// </summary>
     public bool HasTool(string name)
@@ -140,8 +141,8 @@ public class ReplayToolFactory<TContext> : IToolFactory<TContext> where TContext
         return _innerFactory.FetchAvailableToolInfo();
     }
 
-    public void FindAndRegisterCustomTools(CustomAgentFiles customAgentFiles)
+    public void FindAndRegisterAllTools(BehaviorOnNameConflict onNameConflict)
     {
-        _innerFactory.FindAndRegisterCustomTools(customAgentFiles);
+        _innerFactory.FindAndRegisterAllTools(onNameConflict);
     }
 }

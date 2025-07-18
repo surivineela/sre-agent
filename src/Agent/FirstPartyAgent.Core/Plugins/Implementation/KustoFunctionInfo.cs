@@ -1,5 +1,5 @@
 // File: KustoFunction.cs
-public class KustoFunction
+public class KustoFunctionInfo
 {
     public string Name { get; set; }
     public string Folder { get; set; }

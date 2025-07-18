@@ -7,13 +7,11 @@ using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Plugins.Interface;
 using Agent.Plugins.KustoPlugin;
-using IdentityModel.Client;
-using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 using Microsoft.Extensions.AI;
-using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins.Kusto
 {
+    
     public class KustoPluginChat : IKustoPluginChat
     {
         private readonly IACAKustoPlugin _kustoPlugin;
@@ -25,6 +23,7 @@ namespace Agent.Plugins.Kusto
             _kustoPlugin = kustoPlugin;
             _agentOutboundCommunicationService = agentOutboundCommunicationService;
         }
+
         public async Task<string> ExecuteLocalFunctionOnClusterAsync(string functionName, string clusterName, string databaseName, Dictionary<string, string> args)
         {
             var fileName = GetKqlFilePath(functionName);
@@ -43,7 +42,7 @@ namespace Agent.Plugins.Kusto
             {
                 return "Query result row count is over thersholds a user should use sampling";
             }
-            var msg = new ChatMessage(ChatRole.Tool, $"`{functionName}`{Environment.NewLine+Environment.NewLine}{queryResult.Message?.Text}");
+            var msg = new ChatMessage(ChatRole.Tool, $"`{functionName}`{Environment.NewLine + Environment.NewLine}{queryResult.Message?.Text}");
             await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(ToolStatic.AsyncLocalThreadId.Value, string.Empty, msg);
 
             return queryResult.Result;
@@ -70,17 +69,17 @@ namespace Agent.Plugins.Kusto
                 return "Query result row count is over thersholds a user should use sampling";
             }
 
-            var msg = new ChatMessage(ChatRole.Tool, $"`{functionName}`{Environment.NewLine+Environment.NewLine}{queryResult.Message?.Text}");
+            var msg = new ChatMessage(ChatRole.Tool, $"`{functionName}`{Environment.NewLine + Environment.NewLine}{queryResult.Message?.Text}");
             await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(ToolStatic.AsyncLocalThreadId.Value, string.Empty, msg);
 
             return queryResult.Result;
         }
 
+       
         private static string FormatQuery(Dictionary<string, string> args, string fileName)
         {
-            
             var formatted = File.ReadAllText(fileName);
-            if(args==null)
+            if (args == null)
             {
                 return formatted;
             }
@@ -104,21 +103,21 @@ namespace Agent.Plugins.Kusto
         internal static string GetKqlFilePath(string functionName, string baseDirectory)
         {
             var baseDir = Path.Combine(baseDirectory, "Plugins", "Definitions", "Queries");
-            
+
             // Maintain existing behavior: direct file name search (backward compatibility)
             var directPath = Path.Combine(baseDir, $"{functionName}.kql");
             if (File.Exists(directPath))
             {
                 return directPath;
             }
-            
+
             // New feature: namespace format only
             if (functionName.Contains('.'))
             {
                 var parts = functionName.Split('.');
                 var kqlFileName = parts.Last() + ".kql";
                 var subDirs = parts.Take(parts.Length - 1).ToArray();
-                
+
                 var namespacedFile = Path.Combine(new[] { baseDir }.Concat(subDirs).Concat(new[] { kqlFileName }).ToArray());
                 if (File.Exists(namespacedFile))
                 {
@@ -148,7 +147,7 @@ namespace Agent.Plugins.Kusto
             return _kustoPlugin.ExecuteFunctionAsync(functionName, region, args, groupName);
         }
 
-        Task<List<KustoFunction>> IACAKustoPlugin.ListFunctionsAsync(string region)
+        Task<List<KustoFunctionInfo>> IACAKustoPlugin.ListFunctionsAsync(string region)
         {
             region = region.NormalizeLocation();
             return _kustoPlugin.ListFunctionsAsync(region);

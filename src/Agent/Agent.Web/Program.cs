@@ -32,6 +32,7 @@ using Agent.Plugins.Implementation;
 using Agent.Plugins.Implementation.DiagnosticsPlugin;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Kusto;
+using Agent.Plugins.Kusto.Tools;
 using Agent.Plugins.KustoPlugin;
 using Agent.Plugins.Services;
 using Agent.Plugins.Services.Interfaces;
@@ -432,6 +433,7 @@ public class Program
             .AddTransient<WebAppPluginDefinition>()
             .AddTransient<KustoPlugin>()
             .AddSingleton<DynamicKqlToolsPlugin>()
+            .AddTransient<KustoFunction>()
             .AddTransient<IAzureSearchClient, AzureSearchClient>()
             .AddTransient<AzureDocSearchPlugin>()
             .AddTransient<SearchPluginDefinition>()
@@ -543,7 +545,7 @@ public class Program
             {
                 return sp.GetRequiredService<ToolFactory<AgentContext>>();
             })
-
+           
             .AddSingleton<IAgentFactory<AgentContext>, AgentFactory<AgentContext>>(sp =>
             {
                 var configuration = sp.GetRequiredService<IConfiguration>();
