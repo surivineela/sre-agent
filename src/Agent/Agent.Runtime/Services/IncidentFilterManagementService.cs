@@ -105,7 +105,7 @@ namespace Agent.Runtime.Services
                 case IncidentManagementType.Icm:
                     return ListIcmIncidentFilterFieldOptions();
                 case IncidentManagementType.ServiceNow:
-                    return await ListServiceNowIncidentFilterFieldOptions();
+                    return ListServiceNowIncidentFilterFieldOptions();
                 case IncidentManagementType.AzMonitor:
                 default:
                     _logger.LogInternalWarning("ListIncidentFilterFieldOptions: Not implemented for IncidentManagementType: {IncidentManagementType}", _incidentManagementSettings.Type);
@@ -249,7 +249,7 @@ namespace Agent.Runtime.Services
             return result;
         }
 
-        public async Task<List<IncidentFilterFieldOption>> ListServiceNowIncidentFilterFieldOptions()
+        public List<IncidentFilterFieldOption> ListServiceNowIncidentFilterFieldOptions()
         {
             _logger.LogInternalInformation("ListServiceNowIncidentFilterFieldOptions: Invoked.");
 

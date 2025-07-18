@@ -15,14 +15,13 @@ public class AgentHelperService
 {
     public bool IsEnabled => _agentHelperSettings.Enabled;
 
-    private AgentHelperSettings _agentHelperSettings;
-    private IAuthenticationService _authenticationService;
-    private HttpClient _httpClient;
+    private readonly AgentHelperSettings _agentHelperSettings;
+    private readonly IAuthenticationService _authenticationService;
+    private readonly HttpClient? _httpClient;
 
     const string createApprovalDocApi = "api/ApprovalService/CreateApprovalDocument";
     const string getApprovalRequestApi = "api/ApprovalService/GetApprovalRequest";
     const string getAzureAlertingDetailsApi = "api/AzureAlerting/GetByTeamId";
-
 
     public AgentHelperService(AgentHelperSettings agentHelperSettings, IAuthenticationService authenticationService)
     {
@@ -34,11 +33,15 @@ public class AgentHelperService
             _httpClient = new HttpClient(new TokenCredentialHttpClientHandler(_authenticationService.GetAgentHelperCredential(), _agentHelperSettings.Resource));
             _httpClient.BaseAddress = new Uri(_agentHelperSettings.Endpoint);
         }
+        else
+        {
+            _httpClient = null;
+        }
     }
 
     public async Task<HttpResponseMessage> GetApprovalRequestAsync(string id)
     {
-        if (!IsEnabled)
+        if (!IsEnabled || _httpClient == null)
         {
             throw new InvalidOperationException("AgentHelperService is not enabled.");
         }
@@ -49,7 +52,7 @@ public class AgentHelperService
 
     public async Task<HttpResponseMessage> CreateApprovalDocumentAsync(OneBranchApprovalRequest request)
     {
-        if (!IsEnabled)
+        if (!IsEnabled || _httpClient == null)
         {
             throw new InvalidOperationException("AgentHelperService is not enabled.");
         }
@@ -62,13 +65,11 @@ public class AgentHelperService
 
     public async Task<HttpResponseMessage> GetAzureAlertingDetailsAsync(int teamId)
     {
-        if (!IsEnabled)
+        if (!IsEnabled || _httpClient == null)
         {
             throw new InvalidOperationException("AgentHelperService is not enabled.");
         }
         var response = await _httpClient.GetAsync($"{getAzureAlertingDetailsApi}/{teamId}");
         return response;
     }
-
-
 }

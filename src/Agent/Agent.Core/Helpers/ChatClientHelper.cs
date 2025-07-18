@@ -23,7 +23,7 @@ public static class ChatClientHelper
     /// <returns>The result of the chat operation</returns>
     public static async Task<T> ExecuteWithRetryAsync<T>(
         Func<Task<T>> chatOperation,
-        ILogger logger = null,
+        ILogger? logger = null,
         int maxRetries = 3,
         double initialDelaySeconds = 1)
     {

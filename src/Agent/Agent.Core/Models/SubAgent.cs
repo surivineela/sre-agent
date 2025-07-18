@@ -18,7 +18,6 @@ namespace Agent.Core.Models
         protected IChatClient _chatClient { get; }
         public IList<Microsoft.Extensions.AI.ChatMessage> ChatHistory { get; private set; }
         public string Name { get; }
-        public Kernel Kernel => null; // TODO: SubAgents need Kernel as well to support full conversation and debugging.
 
         protected ChatOptions ChatOptionsWithTools => new ChatOptions
         {
@@ -35,13 +34,12 @@ namespace Agent.Core.Models
 
             if (!isSkippingInitChatHistory)
             {
-                InitChatHistory();
+                ChatHistory = [new(ChatRole.System, SystemPrompt)];
             }
-        }
-
-        private void InitChatHistory()
-        {
-            ChatHistory = [new(ChatRole.System, SystemPrompt)];
+            else
+            {
+               ChatHistory = [];
+            }
         }
 
         public abstract IList<AITool> Tools();

@@ -8,7 +8,7 @@ namespace Agent.Core.Models.Charts
     {
         public double Position { get; set; }
         public double Value { get; set; }
-        public string FillColorHex { get; set; }
+        public required string FillColorHex { get; set; }
         public double? Error { get; set; }
     }
 }

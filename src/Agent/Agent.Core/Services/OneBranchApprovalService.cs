@@ -60,7 +60,7 @@ public class OneBranchApprovalService
     }
 
 
-    public async Task<OneBranchApprovalResponse> CreateApprovalDocumentAsync(OneBranchApprovalRequest request, string actionName = null, Dictionary<string, string> inputParameters = null)
+    public async Task<OneBranchApprovalResponse> CreateApprovalDocumentAsync(OneBranchApprovalRequest request, string? actionName = null, Dictionary<string, string>? inputParameters = null)
     {
         if (request == null)
         {
@@ -91,7 +91,7 @@ public class OneBranchApprovalService
         return resp;
     }
 
-    public async Task<OneBranchApprovalStatus> GetApprovalRequestAsync(string id)
+    public async Task<OneBranchApprovalStatus?> GetApprovalRequestAsync(string id)
     {
         if (string.IsNullOrEmpty(id))
         {
@@ -137,7 +137,7 @@ public class OneBranchApprovalService
 
                 if (approvalStatus != null)
                 {
-                    string action = approvalStatus?.Data?.ApprovalDocumentCompleteDetails?.Action;
+                    string action = approvalStatus.Data?.ApprovalDocumentCompleteDetails?.Action ?? "None";
                     logMessage = $"[poll_for_approval][{DateTime.UtcNow}] Approval process completed. Status: {action}";
                     _logger.LogInternalInformation(logMessage);
 

@@ -35,7 +35,7 @@ public static class ChartHelper
         return Path.Combine(tempPath, fileName);
     }
 
-    public static string GenerateChartBase64String(ChartImageInput chartImageInput, Tuple<int, int, double> sizeParameters = null)
+    public static string GenerateChartBase64String(ChartImageInput chartImageInput, Tuple<int, int, double>? sizeParameters = null)
     {
         if (sizeParameters == null)
         {

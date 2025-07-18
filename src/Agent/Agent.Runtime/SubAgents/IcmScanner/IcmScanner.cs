@@ -250,7 +250,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                 return;
             }
 
-            if (incidentDocument.Status.Equals("resolved", StringComparison.OrdinalIgnoreCase) || incidentDocument.Status.Equals("mitigated", StringComparison.OrdinalIgnoreCase))
+            if (incidentDocument.Status.ToString().Equals("resolved", StringComparison.OrdinalIgnoreCase) || incidentDocument.Status.ToString().Equals("mitigated", StringComparison.OrdinalIgnoreCase))
             {
                 logger.LogInternalInformation("[IcmScanner] Incident {incidentId} is mitigated/resolved, skipping notification.", incidentDocument.Id);
                 return;

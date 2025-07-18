@@ -37,7 +37,7 @@ public class KeyVaultService : IKeyVaultService
 {
     public bool IsEnabled { get; set; } = false;
     public string KeyVaultUri { get; set; } = string.Empty;
-    private readonly SecretClient _secretClient;
+    private readonly SecretClient? _secretClient;
     private ILogger<KeyVaultService> _logger;
 
     public KeyVaultService(
@@ -45,14 +45,16 @@ public class KeyVaultService : IKeyVaultService
         ILogger<KeyVaultService> logger,
         IHostEnvironment hostEnvironment)
     {
+        _logger = logger;
+
         if (string.IsNullOrEmpty(keyVaultSettings.VaultUri))
         {
+            _secretClient = null;
             return;
         }
 
         IsEnabled = true;
         KeyVaultUri = keyVaultSettings.VaultUri;
-        _logger = logger;
 
         if (hostEnvironment.IsDevelopment())
         {
@@ -75,6 +77,12 @@ public class KeyVaultService : IKeyVaultService
 
     public async Task<string> ReadSecretAsync(string secretName)
     {
+        if (_secretClient == null)
+        {
+            _logger.LogInternalError("KeyVaultService is not initialized. Cannot read secret.");
+            throw new InvalidOperationException("KeyVaultService is not initialized. Cannot read secret.");
+        }
+
         try
         {
             KeyVaultSecret secret = await _secretClient.GetSecretAsync(secretName);

@@ -7,12 +7,12 @@ namespace Agent.Core.Models;
 public class AzureSupportCenterApolloRequestPayloadWrapper
 {
     [JsonPropertyName("properties")]
-    public AzureSupportCenterApolloRequestPayload Properties { get; set; }
+    public required AzureSupportCenterApolloRequestPayload Properties { get; set; }
 
     public static AzureSupportCenterApolloRequestPayloadWrapper CreateForSapIdTrigger(string resourceId, string productId, string legacyProductId, string sapId, string legacyTopicId, string serviceIdentifierName, string question)
     {
         ResourceIdentifier resourceIdentifier = new ResourceIdentifier(resourceId);
-        string subscriptionId = resourceId.Split('/')[2];
+        string subscriptionId = resourceIdentifier.SubscriptionId ?? throw new ArgumentException("Resource ID must contain a valid subscription ID", nameof(resourceId));
         return new AzureSupportCenterApolloRequestPayloadWrapper
         {
             Properties = new AzureSupportCenterApolloRequestPayload()
@@ -26,7 +26,7 @@ public class AzureSupportCenterApolloRequestPayloadWrapper
                 },
                 Parameters = new ApolloRequestParameters() {
                     ResourceUri = resourceId,
-                    SubscriptionId = resourceIdentifier.SubscriptionId,
+                    SubscriptionId = subscriptionId,
                     SapId = sapId,
                     SearchText = question,
                     ProductId = productId,
@@ -44,51 +44,51 @@ public class AzureSupportCenterApolloRequestPayloadWrapper
 public class AzureSupportCenterApolloRequestPayload
 {
     [JsonPropertyName("triggerCriteria")]
-    public List<TriggerCriteria> TriggerCriteria { get; set; }
+    public required List<TriggerCriteria> TriggerCriteria { get; set; }
 
     [JsonPropertyName("parameters")]
-    public ApolloRequestParameters Parameters { get; set; }
+    public required ApolloRequestParameters Parameters { get; set; }
 }
 
 public class TriggerCriteria
 {
     [JsonPropertyName("name")]
-    public string Name { get; set; }
+    public required string Name { get; set; }
 
     [JsonPropertyName("value")]
-    public string Value { get; set; }
+    public required string Value { get; set; }
 }
 
 public class ApolloRequestParameters
 {
     [JsonPropertyName("ResourceUri")]
-    public string ResourceUri { get; set; }
+    public required string ResourceUri { get; set; }
 
     [JsonPropertyName("SubscriptionId")]
-    public string SubscriptionId { get; set; }
+    public required string SubscriptionId { get; set; }
 
     [JsonPropertyName("SapId")]
-    public string SapId { get; set; }
+    public required string SapId { get; set; }
 
     [JsonPropertyName("SearchText")]
-    public string SearchText { get; set; }
+    public required string SearchText { get; set; }
 
     [JsonPropertyName("ProductId")]
-    public string ProductId { get; set; }
+    public required string ProductId { get; set; }
 
     [JsonPropertyName("LegacyProductId")]
-    public string LegacyProductId { get; set; }
+    public required string LegacyProductId { get; set; }
 
     [JsonPropertyName("LegacyTopicId")]
-    public string LegacyTopicId { get; set; }
+    public required string LegacyTopicId { get; set; }
 
     [JsonPropertyName("Preview")]
-    public string Preview { get; set; } = "false";
+    public required string Preview { get; set; } = "false";
 
     [JsonPropertyName("ResourceTag")]
-    public string ResourceTag { get; set; }
+    public required string ResourceTag { get; set; }
 
     [JsonPropertyName("UseInsightPickerV2")]
-    public string UseInsightPickerV2 { get; set; } = "true";
+    public required string UseInsightPickerV2 { get; set; } = "true";
 }
 

@@ -21,7 +21,7 @@ namespace Agent.Core.Configuration
         public TsgCrawlerSettings TsgCrawler { get; set; } = new();
         public KeyVaultSettings KeyVault { get; set; } = new();
 
-        public KustoConfiguration Kusto { get; set; }
+        public KustoConfiguration Kusto { get; set; } = new();
 
         public ObserverClientSettings ObserverClient { get; set; } = new();
     }

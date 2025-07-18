@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Agent.Core.Models.ICM;
 
 namespace Agent.Data.DataModels;
@@ -9,6 +10,7 @@ public class IcmIncidentDocument : Incident, IIncidentDocument
         // Default constructor for serialization
     }
 
+    [SetsRequiredMembers]
     public IcmIncidentDocument(Incident incident)
     {
         //coping all properties from Incident to base class
@@ -36,15 +38,14 @@ public class IcmIncidentDocument : Incident, IIncidentDocument
         MonitoringSlice = incident.MonitoringSlice;
         SubscriptionId = incident.SubscriptionId;
         Tags = incident.Tags;
-
+        Status = incident.Status;
+        IncidentType = incident.IncidentType;
 
         //Overwrite with few properties that added for IIncidentDocument
         Id = incident.IncidentId;
         CreatedAt = incident.CreatedDate;
         Description = incident.Summary;
-        Priority = incident.Severity;
-        IncidentType = incident.IncidentType.ToString();
-        Status = incident.Status.ToString();
+        Priority = incident.Severity;        
     }
 
     public static string ContainerName => AgentDataConfiguration.ThreadContainerName; // Cosmos DB container name
@@ -55,8 +56,19 @@ public class IcmIncidentDocument : Incident, IIncidentDocument
     public string PartitionKey => Id; // Use incident id as partition key
 
     public string Description { get; set; } = string.Empty;
-    public new string Status { get; set; } = string.Empty;
-    public new string IncidentType { get; set; } = string.Empty; // e.g. incident, problem, maintenance
+
+    string IIncidentDocument.Status
+    {
+        get => Status.ToString();
+        set => Status = Enum.TryParse(value, true, out IncidentStatus status) ? status : IncidentStatus.Active;
+    }
+
+    string IIncidentDocument.IncidentType
+    {
+        get => IncidentType.ToString();
+        set => IncidentType = Enum.TryParse(value, true, out IncidentType incidentType) ? incidentType : IncidentType.LiveSite;
+    }
+
     public string Priority { get; set; } = string.Empty;
     public string ImpactedServiceId { get; set; } = string.Empty;
 

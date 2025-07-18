@@ -150,15 +150,15 @@ public class AzureSupportCenterHelper
             var pollContent = await pollResponse.Content.ReadAsStringAsync();
             apolloDiagnosticResult = JsonSerializer.Deserialize<AzureSupportCenterApolloResponsePayload>(pollContent);
 
-            // If any of the insight status is Running, then the diagnostic is still not complete.
-            bool isSectionsDiagnosticRunning = apolloDiagnosticResult?.Properties?.Sections
-                .SelectMany(section => section.ReplacementMaps.Diagnostics)?
-                .Any(diagnostic => diagnostic.Status.Equals("Running", StringComparison.OrdinalIgnoreCase)) == true;
+            bool isSectionsDiagnosticRunning = apolloDiagnosticResult?.Properties?.Sections != null &&
+                apolloDiagnosticResult.Properties.Sections
+                    .SelectMany(section => section?.ReplacementMaps?.Diagnostics ?? Enumerable.Empty<ApolloDiagnostic>())
+                    .Any(diagnostic => diagnostic.Status != null && diagnostic.Status.Equals("Running", StringComparison.OrdinalIgnoreCase));
 
-            bool isDirectMappedDiasgnosticRunning = apolloDiagnosticResult?.Properties?.ReplacementMaps?.Diagnostics?
-                .Any(diagnostic => diagnostic.Status.Equals("Running", StringComparison.OrdinalIgnoreCase)) == true;
+            bool isDirectMappedDiagnosticRunning = apolloDiagnosticResult?.Properties?.ReplacementMaps?.Diagnostics?
+                .Any(diagnostic => diagnostic.Status != null && diagnostic.Status.Equals("Running", StringComparison.OrdinalIgnoreCase)) == true;
 
-            isDiagnosticRunning = isSectionsDiagnosticRunning || isDirectMappedDiasgnosticRunning;
+            isDiagnosticRunning = isSectionsDiagnosticRunning || isDirectMappedDiagnosticRunning;
 
         } while (isDiagnosticRunning && pollingAttempts < MAX_POLLING_ATTEMPTS);
 

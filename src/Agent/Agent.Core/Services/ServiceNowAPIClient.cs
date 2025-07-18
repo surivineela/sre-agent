@@ -19,8 +19,8 @@ namespace Agent.Core.Services
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger<ServiceNowAPIClient> _logger;
-        private readonly ServiceNowAPISettings _settings;
-        private readonly string _apiBaseUrl;
+        private readonly ServiceNowAPISettings? _settings;
+        private readonly string? _apiBaseUrl;
         private readonly bool isEnabled;
 
         public ServiceNowAPIClient(
@@ -38,13 +38,20 @@ namespace Agent.Core.Services
             }
             try
             {
+                if (string.IsNullOrEmpty(settings.ConnectionKey))
+                {
+                    throw new InvalidOperationException("ServiceNow connection key is not configured.");
+                }
+
                 _settings = JsonSerializer.Deserialize<ServiceNowAPISettings>(settings.ConnectionKey, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
                             ?? throw new InvalidOperationException("ServiceNow settings are not properly configured.");
                 _settings.Endpoint = settings.ConnectionUrl ?? throw new InvalidOperationException("ServiceNow connection URL is not configured.");
                 _apiBaseUrl = $"{_settings.Endpoint}/api/now/v1";
 
-                // Initialize auth header for ServiceNow
-                InitializeHttpClient();
+                var authToken = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_settings.Username}:{_settings.Password}"));
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authToken);
+                _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
                 isEnabled = true;
             }
             catch (Exception ex)
@@ -60,13 +67,6 @@ namespace Agent.Core.Services
             {
                 throw new InvalidOperationException("ServiceNowAPIClient is not enabled. Check the configuration or use NullableServiceNowAPIClient instead.");
             }
-        }
-
-        private void InitializeHttpClient()
-        {
-            var authToken = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_settings.Username}:{_settings.Password}"));
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authToken);
-            _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
         public async Task<ServiceNowIncident> GetIncidentAsync(string incidentSystemId)
@@ -233,6 +233,11 @@ namespace Agent.Core.Services
             CheckEnabled();
             try
             {
+                if (_settings == null)
+                {
+                    throw new InvalidOperationException("ServiceNow settings are not configured.");
+                }
+
                 // Always use the username from settings
                 string contactAlias = _settings.Username;
                 

@@ -9,11 +9,11 @@ public class ICMAPITokenService: ManagedIdentityTokenServiceBase
 
     public static ICMAPITokenService Instance => instance.Value;
     protected override bool ManagedIdentityEnabled { get; set; }
-    protected override string Resource { get; set; }
-    protected override string ClientId { get; set; }
-    protected override string ResourceId { get; set; }
-    protected override string TokenServiceName { get; set; }
-    protected override TokenCredential TokenCredential { get; set; }
+    protected override string Resource { get; set; } = string.Empty;
+    protected override string ClientId { get; set; } = string.Empty;
+    protected override string? ResourceId { get; set; }
+    protected override string TokenServiceName { get; set; } = string.Empty;
+    protected override TokenCredential? TokenCredential { get; set; }
     protected override TokenRequestContext TokenRequestContext { get; set; }
 
     public void Initialize(ActionSettings actionSettings, ICMAPISettings icmApiSettings, ILogger<ICMAPITokenService> logger)

@@ -9,11 +9,10 @@ namespace Agent.Core.Configuration
     /// </summary>
     public class StorageAccountSettings
     {
-        public string AccountUrl { get; set; }
-        public string IcmAlertConfigsContainerName { get; set; }
-        public string GenevaActionsContainerName { get; set; }
-        public string SreAgentHelperContainerName { get; set; }
-        public string ManagedIdentityClientId { get; set; }
-
+        public string AccountUrl { get; set; } = string.Empty;
+        public string IcmAlertConfigsContainerName { get; set; } = string.Empty;
+        public string GenevaActionsContainerName { get; set; } = string.Empty;
+        public string SreAgentHelperContainerName { get; set; } = string.Empty;
+        public string ManagedIdentityClientId { get; set; } = string.Empty;
     }
 }

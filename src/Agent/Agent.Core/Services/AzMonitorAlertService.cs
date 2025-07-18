@@ -164,79 +164,79 @@ public class AzMonitorAlertService : IAzMonitorAlertService
 public class AlertsResponse
 {
     [JsonPropertyName("value")]
-    public List<AlertItem> Value { get; set; }
+    public required List<AlertItem> Value { get; set; }
 }
 
 public class AlertItem
 {
     [JsonPropertyName("id")]
-    public string Id { get; set; }
+    public string Id { get; set; } = string.Empty;
 
     [JsonPropertyName("name")]
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     [JsonPropertyName("type")]
-    public string Type { get; set; }
+    public string Type { get; set; } = string.Empty;
 
     [JsonPropertyName("properties")]
-    public AlertProperties Properties { get; set; }
+    public AlertProperties Properties { get; set; } = new AlertProperties();
 }
 
 public class AlertProperties
 {
     [JsonPropertyName("essentials")]
-    public AlertEssentials Essentials { get; set; }
+    public AlertEssentials Essentials { get; set; } = new AlertEssentials();
 }
 
 public class AlertEssentials
 {
     [JsonPropertyName("actionStatus")]
-    public ActionStatus ActionStatus { get; set; }
+    public ActionStatus ActionStatus { get; set; } = new ActionStatus();
 
     [JsonPropertyName("alertRule")]
-    public string AlertRule { get; set; }
+    public string AlertRule { get; set; } = string.Empty;
 
     [JsonPropertyName("alertState")]
-    public string AlertState { get; set; }
+    public string AlertState { get; set; } = string.Empty;
 
     [JsonPropertyName("description")]
-    public string Description { get; set; }
+    public string Description { get; set; } = string.Empty;
 
     [JsonPropertyName("lastModifiedDateTime")]
-    public string LastModifiedDateTime { get; set; }
+    public string LastModifiedDateTime { get; set; } = string.Empty;
 
     [JsonPropertyName("lastModifiedUserName")]
-    public string LastModifiedUserName { get; set; }
+    public string LastModifiedUserName { get; set; } = string.Empty;
 
     [JsonPropertyName("monitorCondition")]
-    public string MonitorCondition { get; set; }
+    public string MonitorCondition { get; set; } = string.Empty;
 
     [JsonPropertyName("monitorService")]
-    public string MonitorService { get; set; }
+    public string MonitorService { get; set; } = string.Empty;
 
     [JsonPropertyName("severity")]
-    public string Severity { get; set; }
+    public string Severity { get; set; } = string.Empty;
 
     [JsonPropertyName("signalType")]
-    public string SignalType { get; set; }
+    public string SignalType { get; set; } = string.Empty;
 
     [JsonPropertyName("sourceCreatedId")]
-    public string SourceCreatedId { get; set; }
+    public string SourceCreatedId { get; set; } = string.Empty;
 
     [JsonPropertyName("startDateTime")]
-    public string StartDateTime { get; set; }
+    public string StartDateTime { get; set; } = string.Empty;
 
     [JsonPropertyName("targetResource")]
-    public string TargetResource { get; set; }
+    public string TargetResource { get; set; } = string.Empty;
 
     [JsonPropertyName("targetResourceGroup")]
-    public string TargetResourceGroup { get; set; }
+    public string TargetResourceGroup { get; set; } = string.Empty;
 
     [JsonPropertyName("targetResourceName")]
-    public string TargetResourceName { get; set; }
+    public string TargetResourceName { get; set; } = string.Empty;
 
     [JsonPropertyName("targetResourceType")]
-    public string TargetResourceType { get; set; }
+    public string TargetResourceType { get; set; } = string.Empty;
 }
 
 public class ActionStatus

@@ -162,7 +162,7 @@ public class LogQueryService : ILogQueryService
                         _logger.LogInternalWarning("Deserialized response successfully but Value property is null or empty");
                     }
 
-                    string nextLink = queryPacksResponse?.NextLink;
+                    string? nextLink = queryPacksResponse?.NextLink;
                     while (!string.IsNullOrEmpty(nextLink))
                     {
                         request = new HttpRequestMessage(HttpMethod.Get, nextLink);
@@ -238,7 +238,7 @@ public class LogQueryService : ILogQueryService
                         _logger.LogInternalWarning("Deserialized queries response successfully but Value property is null or empty");
                     }
 
-                    string nextLink = queriesResponse?.NextLink;
+                    string? nextLink = queriesResponse?.NextLink;
                     while (!string.IsNullOrEmpty(nextLink))
                     {
                         request = new HttpRequestMessage(HttpMethod.Get, nextLink);
@@ -407,76 +407,76 @@ public class LogQueryService : ILogQueryService
 
 public class QueryPacksResponse
 {
-    public List<QueryPackInfo> Value { get; set; }
+    public required List<QueryPackInfo> Value { get; set; }
 
     [JsonPropertyName("nextLink")]
-    public string NextLink { get; set; }
+    public required string NextLink { get; set; }
 }
 
 public class QueryPackInfo
 {
-    public string Id { get; set; }
-    public string Name { get; set; }
-    public string Type { get; set; }
-    public Properties Properties { get; set; }
+    public required string Id { get; set; }
+    public required string Name { get; set; }
+    public required string Type { get; set; }
+    public required Properties Properties { get; set; }
 }
 
 public class Properties
 {
-    public string QueryPackId { get; set; }
-    public string ProvisioningState { get; set; }
+    public required string QueryPackId { get; set; }
+    public required string ProvisioningState { get; set; }
 }
 
 public class QueriesResponse
 {
-    public List<QueryInfo> Value { get; set; }
+    public required List<QueryInfo> Value { get; set; }
 
     [JsonPropertyName("nextLink")]
-    public string NextLink { get; set; }
+    public required string NextLink { get; set; }
 }
 
 public class QueryInfo
 {
-    public string Id { get; set; }
-    public string Name { get; set; }
-    public string Type { get; set; }
-    public QueryProperties Properties { get; set; }
+    public required string Id { get; set; }
+    public required string Name { get; set; }
+    public required string Type { get; set; }
+    public required QueryProperties Properties { get; set; }
 }
 
 public class QueryProperties
 {
-    public string Id { get; set; }
-    public string DisplayName { get; set; }
-    public string Description { get; set; }
-    public string Body { get; set; }
-    public Tags Tags { get; set; }
+    public required string Id { get; set; }
+    public required string DisplayName { get; set; }
+    public required string Description { get; set; }
+    public required string Body { get; set; }
+    public required Tags Tags { get; set; }
 }
 
 public class Tags
 {
-    public List<string> Labels { get; set; } = new List<string>();
+    public required List<string> Labels { get; set; } = new List<string>();
 }
 
 public class WorkspacesResponse
 {
-    public List<WorkspaceInfo> Value { get; set; }
+    public required List<WorkspaceInfo> Value { get; set; }
 
     [JsonPropertyName("nextLink")]
-    public string NextLink { get; set; }
+    public required string NextLink { get; set; }
 }
 
 public class WorkspaceInfo
 {
-    public string Id { get; set; }
-    public string Name { get; set; }
-    public string Type { get; set; }
-    public WorkspaceProperties Properties { get; set; }
+    public required string Id { get; set; }
+    public required string Name { get; set; }
+    public required string Type { get; set; }
+    public required WorkspaceProperties Properties { get; set; }
 }
 
 public class WorkspaceProperties
 {
-    public string CustomerId { get; set; }
-    public string ProvisioningState { get; set; }
+    public required string CustomerId { get; set; }
+    public required string ProvisioningState { get; set; }
 }
 
 #endregion

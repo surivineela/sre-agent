@@ -38,11 +38,11 @@ namespace Agent.Core.Configuration
     public class KustoClusterRegionConfiguration
     {
         [Required]
-        public string Region { get; set; }
+        public string Region { get; set; } = string.Empty;
         [Required]
-        public string ClusterUri { get; set; }
+        public string ClusterUri { get; set; } = string.Empty;
         [Required]
-        public string Database { get; set; }
+        public string Database { get; set; } = string.Empty;
     }
 
     public enum KustoAuthType

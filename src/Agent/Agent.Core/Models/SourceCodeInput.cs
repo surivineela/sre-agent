@@ -9,6 +9,6 @@ namespace Agent.Core.Models;
 public class SourceCodeInput
 {
     [Description("Apps without source nodes")]
-    public List<SourceCodeStatus> AppsWithoutSourceCodeNodes { get; set; }
+    public required List<SourceCodeStatus> AppsWithoutSourceCodeNodes { get; set; }
 }
 

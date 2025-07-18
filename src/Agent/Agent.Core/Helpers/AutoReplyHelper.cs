@@ -37,7 +37,7 @@ public class AutoReplyHelper
 
     public async Task<string?> AssessAndGetReply(List<ChatMessage> messages)
     {
-        var lastMessage = messages?.LastOrDefault(x => x.Role == ChatRole.Assistant);
+        var lastMessage = messages.LastOrDefault(x => x.Role == ChatRole.Assistant);
 
         // Need to wait until we have a message from the assistant.
         if (lastMessage == null)

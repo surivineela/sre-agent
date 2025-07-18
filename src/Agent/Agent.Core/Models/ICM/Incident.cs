@@ -9,101 +9,101 @@ namespace Agent.Core.Models.ICM
 {
     public class Incident
     {
-        public string IncidentId { get; set; }
-        public IncidentType IncidentType { get; set; }
-        public string CloudInstance { get; set; }
-        public string Slice { get; set; }
-        public int HitCount { get; set; }
-        public string ParentIncidentId { get; set; } = string.Empty;
-        public string Environment { get; set; } = string.Empty;
-        public string CreatedBy { get; set; }
-        public DateTime ImpactStartDate { get; set; }
-        public DateTime CreatedDate { get; set; }
+        public required string IncidentId { get; set; }
+        public required IncidentType IncidentType { get; set; }
+        public required string CloudInstance { get; set; }
+        public required string Slice { get; set; }
+        public required int HitCount { get; set; }
+        public required string ParentIncidentId { get; set; } = string.Empty;
+        public required string Environment { get; set; } = string.Empty;
+        public required string CreatedBy { get; set; }
+        public required DateTime ImpactStartDate { get; set; }
+        public required DateTime CreatedDate { get; set; }
         public DateTime? MitigatedDate { get; set; }
         public MitigationData? MitigateData { get; set; }
-        public DateTime LastModifiedDate { get; set; }
-        public IncidentStatus Status { get; set; }
-        public string OwningService { get; set; }
-        public string OwningServiceId { get; set; }
-        public string OwningTeam { get; set; }
-        public string OwningTeamName { get; set; }
-        public string Owner { get; set; }
-        public string Severity { get; set; }
-        public string Title { get; set; }
-        public string Keywords { get; set; }
-        public string Summary { get; set; }
-        public string DiscussionEntry { get; set; }
-        public string MonitoringRole { get; set; }
+        public required DateTime LastModifiedDate { get; set; }
+        public required IncidentStatus Status { get; set; }
+        public required string OwningService { get; set; }
+        public required string OwningServiceId { get; set; }
+        public required string OwningTeam { get; set; }
+        public required string OwningTeamName { get; set; }
+        public required string Owner { get; set; }
+        public required string Severity { get; set; }
+        public required string Title { get; set; }
+        public required string Keywords { get; set; }
+        public required string Summary { get; set; }
+        public required string DiscussionEntry { get; set; }
+        public required string MonitoringRole { get; set; }
         public string? MonitorId { get; set; }
-        public string MonitoringSlice { get; set; }
-        public string SubscriptionId { get; set; }
-        public string[] Tags { get; set; } = Array.Empty<string>();
+        public required string MonitoringSlice { get; set; }
+        public required string SubscriptionId { get; set; }
+        public required string[] Tags { get; set; } = Array.Empty<string>();
     }
 
     public class MitigationData
     {
-        public string MitigationSteps { get; set; }
-        public string MitigatedBy { get; set; }
+        public required string MitigationSteps { get; set; }
+        public required string MitigatedBy { get; set; }
         public DateTime? MitigateTime { get; set; }
     }
 
     public class DiscussionEntry
     {
-        public string IncidentId { get; set; }
-        public DateTime Date { get; set; }
-        public string ChangedBy { get; set; }
-        public string Text { get; set; }
-        public bool IsHtml { get; set; }
+        public required string IncidentId { get; set; }
+        public required DateTime Date { get; set; }
+        public required string ChangedBy { get; set; }
+        public required string Text { get; set; }
+        public required bool IsHtml { get; set; }
         public string? Cause { get; set; }
     }
 
     public class CustomField
     {
-        public string CustomFieldName { get; set; }
-        public string CustomFieldValue { get; set; }
+        public required string CustomFieldName { get; set; }
+        public required string CustomFieldValue { get; set; }
     }
 
     public class SearchItem
     {
-        public string Id { get; set; }
-        public string Title { get; set; }
-        public string ResponsibleServiceName { get; set; }
-        public DateTime CreatedDate { get; set; }
+        public required string Id { get; set; }
+        public required string Title { get; set; }
+        public required string ResponsibleServiceName { get; set; }
+        public required DateTime CreatedDate { get; set; }
         public DateTime? MitigatedDate { get; set; }
         public DateTime? ResolvedDate { get; set; }
-        public string HowFixed { get; set; }
-        public string State { get; set; }
+        public required string HowFixed { get; set; }
+        public required string State { get; set; }
     }
 
     public class IncidentAdvancedSearchResultItem : SearchItem
     {
-        public string CorrelationId { get; set; }
-        public string OccurringEnvironment { get; set; }
-        public string OccurringDatacenter { get; set; }
-        public string OccurringDeviceGroup { get; set; }
-        public string OccurringDeviceName { get; set; }
-        public string OccurringServiceInstanceId { get; set; }
-        public string IncidentType { get; set; }
-        public string Keywords { get; set; }
-        public DateTime ModifiedDate { get; set; }
-        public string OwningTeamId { get; set; }
-        public string OwningTenantId { get; set; }
-        public string OwningContactAlias { get; set; }
-        public string ParentIncidentId { get; set; }
-        public string RoutingId { get; set; }
-        public string Severity { get; set; }
-        public Guid SourceIncidentId { get; set; }
-        public string SourceId { get; set; }
+        public required string CorrelationId { get; set; }
+        public required string OccurringEnvironment { get; set; }
+        public required string OccurringDatacenter { get; set; }
+        public required string OccurringDeviceGroup { get; set; }
+        public required string OccurringDeviceName { get; set; }
+        public required string OccurringServiceInstanceId { get; set; }
+        public required string IncidentType { get; set; }
+        public required string Keywords { get; set; }
+        public required DateTime ModifiedDate { get; set; }
+        public required string OwningTeamId { get; set; }
+        public required string OwningTenantId { get; set; }
+        public required string OwningContactAlias { get; set; }
+        public required string ParentIncidentId { get; set; }
+        public required string RoutingId { get; set; }
+        public required string Severity { get; set; }
+        public required Guid SourceIncidentId { get; set; }
+        public required string SourceId { get; set; }
     }
 
 
     public class ODataResponse<T>
     {
         [JsonProperty("odata.metadata")]
-        public string OdataMetadata { get; set; }
+        public required string OdataMetadata { get; set; }
 
         [JsonProperty("value")]
-        public List<T> Value { get; set; }
+        public required List<T> Value { get; set; }
     }
 
     public class IncidentRepairItem
@@ -140,20 +140,20 @@ namespace Agent.Core.Models.ICM
             get => $"https://msazure.visualstudio.com/One/_workitems/edit/{RepairItemId}";
         }
 
-        public RepairItemEntityReference ExternalLinkEntityRef { get; set; }
-        public RepairItemEntityReference IcmEntityRef { get; set; }
-        public string Title { get; set; }
-        public string Owner { get; set; }
-        public string Status { get; set; }
-        public DateTime ChangedDate { get; set; }
-        public string AdditionalData { get; set; }
-        public int ExternalLinkConfigId { get; set; }
-        public object KeepRemoteEntityUntouched { get; set; }
+        public required RepairItemEntityReference ExternalLinkEntityRef { get; set; }
+        public required RepairItemEntityReference IcmEntityRef { get; set; }
+        public required string Title { get; set; }
+        public required string Owner { get; set; }
+        public required string Status { get; set; }
+        public required DateTime ChangedDate { get; set; }
+        public required string AdditionalData { get; set; }
+        public required int ExternalLinkConfigId { get; set; }
+        public required object KeepRemoteEntityUntouched { get; set; }
         public DateTime? CreatedDate { get; set; }
-        public int ExternalLinkTypeId { get; set; }
-        public string CustomTags { get; set; }
+        public required int ExternalLinkTypeId { get; set; }
+        public required string CustomTags { get; set; }
 
-        private RepairItemAdditionalData _parsedAdditionalData;
+        private RepairItemAdditionalData? _parsedAdditionalData =  null;
 
         public RepairItemAdditionalData? ParsedAdditionalData =>
             _parsedAdditionalData ??=
@@ -164,27 +164,27 @@ namespace Agent.Core.Models.ICM
 
     public class RepairItemEntityReference
     {
-        public string IdType { get; set; }
-        public string Id { get; set; }
-        public string DisplayName { get; set; }
-        public string EntityTypeId { get; set; }
-        public string EntityTypeName { get; set; }
+        public required string IdType { get; set; }
+        public required string Id { get; set; }
+        public required string DisplayName { get; set; }
+        public required string EntityTypeId { get; set; }
+        public required string EntityTypeName { get; set; }
     }
 
     public class RepairItemAdditionalData
     {
-        public RepairItemType RepairItemType { get; set; }
-        public int RepairItemDeliveryType { get; set; } // Using int because values in data don't match enum (101, 102, 103)
-        public string WorkItemType { get; set; }
-        public string Source { get; set; }
-        public int Revision { get; set; }
-        public string Areapath { get; set; }
-        public string ProjectName { get; set; }
-        public string Tags { get; set; }
-        public DateTime VSTSCreatedDate { get; set; }
+        public required RepairItemType RepairItemType { get; set; }
+        public required int RepairItemDeliveryType { get; set; } // Using int because values in data don't match enum (101, 102, 103)
+        public required string WorkItemType { get; set; }
+        public required string Source { get; set; }
+        public required int Revision { get; set; }
+        public required string Areapath { get; set; }
+        public required string ProjectName { get; set; }
+        public required string Tags { get; set; }
+        public required DateTime VSTSCreatedDate { get; set; }
         public DateTime? VSTSClosedDate { get; set; }
-        public string RepairItemOwningServiceId { get; set; }
-        public string RepairItemOwningTeamId { get; set; }
+        public required string RepairItemOwningServiceId { get; set; }
+        public required string RepairItemOwningTeamId { get; set; }
         public int IncidentSeverity { get; set; }
 
         public RepairItemDeliveryTypeEnum DeliveryType => RepairItemDeliveryType switch

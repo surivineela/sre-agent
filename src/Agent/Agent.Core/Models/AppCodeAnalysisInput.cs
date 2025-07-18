@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Agent.Core.Models;
 public class AppCodeAnalysisInput
 {
-    public List<AppCodeDown> Apps { get; set; }
+    public required List<AppCodeDown> Apps { get; set; }
 
 }
 

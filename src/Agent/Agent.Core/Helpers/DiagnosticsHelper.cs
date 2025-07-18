@@ -28,20 +28,15 @@ namespace Agent.Core.Helpers
             _logger = logger;
             _applensSettings = applensSettings;
             _hostEnvironment = hostEnvironment;
-            InitializeTokenCredential();
-        }
-
-        private void InitializeTokenCredential()
-        {
             var options = new DefaultAzureCredentialOptions();
-            
+
             // Use MsiClientId when running in an environment that supports Managed Identity
-            if (!string.IsNullOrEmpty(_applensSettings.MsiClientId) && 
+            if (!string.IsNullOrEmpty(_applensSettings.MsiClientId) &&
                 Environment.GetEnvironmentVariable("MSI_ENDPOINT") != null)
             {
                 options.ManagedIdentityClientId = _applensSettings.MsiClientId;
             }
-            
+
             _tokenCredential = new DefaultAzureCredential(options);
         }
 
@@ -184,7 +179,7 @@ namespace Agent.Core.Helpers
                                     // Extract each detector ID and make a call to GetDetectorResponseWithTime
                                     foreach (JsonElement detectorIdElement in detectorIdsElement.EnumerateArray())
                                     {
-                                        string subDetectorId = detectorIdElement.GetString();
+                                        string? subDetectorId = detectorIdElement.GetString();
                                         if (!string.IsNullOrEmpty(subDetectorId))
                                         {
                                             try

@@ -15,7 +15,7 @@ namespace Agent.Core.Services.TokenService
         /// <summary>
         /// Gets AAD issued auth token.
         /// </summary>
-        public string AuthorizationToken { get; private set; }
+        public string? AuthorizationToken { get; set; }
 
         /// <summary>
         /// Gets or sets AAD Resource.
@@ -30,14 +30,14 @@ namespace Agent.Core.Services.TokenService
         /// <summary>
         /// user-assigned managed identity resource ID
         /// </summary>
-        protected abstract string ResourceId { get; set; }
+        protected abstract string? ResourceId { get; set; }
 
         /// <summary>
         /// Gets or sets token service name used for logging to Kusto.
         /// </summary>
         protected abstract string TokenServiceName { get; set; }
 
-        protected abstract TokenCredential TokenCredential { get; set; }
+        protected abstract TokenCredential? TokenCredential { get; set; }
         protected abstract TokenRequestContext TokenRequestContext { get; set; }
 
         public static class TokenServiceConstants
@@ -64,12 +64,14 @@ namespace Agent.Core.Services.TokenService
 
                 try
                 {
-
-                    acquireTokenTask = TokenCredential.GetTokenAsync(TokenRequestContext, new System.Threading.CancellationToken());
-                    AccessToken token = await acquireTokenTask;
-                    AuthorizationToken = GetAuthTokenFromValueTask(token);
-                    tokenAcquiredAtleastOnce = true;
-                    message = $"Token Acquisition Status Client id {ClientId} Resource id {Resource} : Success";
+                    if (TokenCredential != null)
+                    {
+                        acquireTokenTask = TokenCredential.GetTokenAsync(TokenRequestContext, new System.Threading.CancellationToken());
+                        AccessToken token = await acquireTokenTask;
+                        AuthorizationToken = GetAuthTokenFromValueTask(token);
+                        tokenAcquiredAtleastOnce = true;
+                        message = $"Token Acquisition Status Client id {ClientId} Resource id {Resource} : Success";
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -119,7 +121,7 @@ namespace Agent.Core.Services.TokenService
         /// <summary>
         /// Gets AAD issued auth token.
         /// </summary>
-        public virtual async Task<string> GetAuthorizationTokenAsync()
+        public virtual async Task<string?> GetAuthorizationTokenAsync()
         {
             if (!ManagedIdentityEnabled)
             {

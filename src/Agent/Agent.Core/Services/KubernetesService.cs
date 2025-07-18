@@ -12,7 +12,7 @@ namespace Agent.Core.Services;
 
 public abstract class KubernetesService : IKubernetesService
 {
-    public abstract Task<IKubernetes?> GetKubernetesClient(string resourceId);
+    public abstract Task<IKubernetes> GetKubernetesClient(string resourceId);
 
     public async Task<V1ConfigMap?> GetConfigMapAsync(string resourceId, string ns, string name)
     {
@@ -152,7 +152,7 @@ public abstract class KubernetesService : IKubernetesService
         return persistentVolumes;
     }
 
-    public async Task<V1PersistentVolume> GetPersistentVolumeAsync(string resourceId, string name)
+    public async Task<V1PersistentVolume?> GetPersistentVolumeAsync(string resourceId, string name)
     {
         var client = await GetKubernetesClient(resourceId);
 
@@ -175,7 +175,7 @@ public abstract class KubernetesService : IKubernetesService
         return persistentVolumeClaims;
     }
 
-    public async Task<V1PersistentVolumeClaim> GetPersistentVolumeClaimAsync(string resourceId, string ns, string name)
+    public async Task<V1PersistentVolumeClaim?> GetPersistentVolumeClaimAsync(string resourceId, string ns, string name)
     {
         var client = await GetKubernetesClient(resourceId);
 

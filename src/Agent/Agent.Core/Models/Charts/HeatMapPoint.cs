@@ -7,7 +7,7 @@ namespace Agent.Core.Models.Charts;
 
 public class HeatmapPoint
 {
-    public string X { get; set; }
-    public string Y { get; set; }
-    public double Value { get; set; }
+    public required string X { get; set; }
+    public required string Y { get; set; }
+    public required double Value { get; set; }
 }

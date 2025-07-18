@@ -5,10 +5,9 @@
 namespace Agent.Core.Models.Charts;
 
 public class TimeSeriesData
-
 {
-    public string Name { get; set; }
-    public DateTime Timestamp { get; set; }
-    public double Value { get; set; }
-    public string Unit { get; set; }
+    public required string Name { get; set; }
+    public required DateTime Timestamp { get; set; }
+    public required double Value { get; set; }
+    public required string Unit { get; set; }
 }

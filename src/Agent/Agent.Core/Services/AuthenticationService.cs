@@ -257,23 +257,18 @@ public class AuthenticationService : IAuthenticationService
 
     private ManagedIdentityCredential GetManagedIdentityCredential(string? identity)
     {
-        if (identity == null) throw new ArgumentNullException();
+        if (identity == null) throw new ArgumentNullException(nameof(identity));
 
         var mi = ManagedIdentityId.SystemAssigned;
         if (!Constants.SystemManagedIdentityName.Equals(identity, StringComparison.OrdinalIgnoreCase))
         {
             var id = new ResourceIdentifier(identity);
-            if (id == null)
-            {
-                throw new ArgumentException($"Invalid resource identifier for user assigned managed identity: {identity}");
-            }
             mi = ManagedIdentityId.FromUserAssignedResourceId(id);
         }
-
         var credOptions = new ManagedIdentityCredentialOptions(mi);
-
         return new ManagedIdentityCredential(credOptions);
     }
+
 
     private WorkloadIdentityCredential GetWorkloadIdentityCredential(string clientId, string tenantId, string authorityHost)
     {

@@ -18,7 +18,7 @@ namespace Agent.Core.Helpers
         private static ConcurrentDictionary<string, SecretClient> kvSecretClientCache = new ConcurrentDictionary<string, SecretClient>(StringComparer.OrdinalIgnoreCase);
         private static ConcurrentDictionary<string, CertificateClient> kvCertClientCache = new ConcurrentDictionary<string, CertificateClient>(StringComparer.OrdinalIgnoreCase);
 
-        public static X509Certificate2 LoadCertFromAppService(string SubjectName, string Thumbprint = null, ILogger log = null)
+        public static X509Certificate2 LoadCertFromAppService(string SubjectName, string Thumbprint, ILogger? log = null)
         {
             //StoreLocation location = Utilities.IsLocalDevelopment()? StoreLocation.LocalMachine: StoreLocation.CurrentUser;
             StoreLocation location = StoreLocation.CurrentUser;
@@ -102,7 +102,7 @@ namespace Agent.Core.Helpers
                 var credOptions = new DefaultAzureCredentialOptions();
                 if (!string.IsNullOrEmpty(managedIdentityId))
                 {
-                    if (Azure.Core.ResourceIdentifier.TryParse(managedIdentityId, out ResourceIdentifier certMsiResourceUri))
+                    if (Azure.Core.ResourceIdentifier.TryParse(managedIdentityId, out ResourceIdentifier? certMsiResourceUri))
                     {
                         // This is true when the MSI is being specified as a resource ID via ARM settings
                         credOptions.ManagedIdentityResourceId = certMsiResourceUri;

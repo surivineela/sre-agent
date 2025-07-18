@@ -46,7 +46,7 @@ public class AzureMonitorMetricsHelper
         DateTimeOffset startTime,
         DateTimeOffset endTime,
         TimeSpan granularity,
-        string dimensionFilter = null)
+        string? dimensionFilter = null)
     {
         var client = new MetricsQueryClient(await _authService.GetArmOperationCredential());
 

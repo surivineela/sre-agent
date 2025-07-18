@@ -5,7 +5,6 @@ namespace Agent.Runtime.Services;
 
 public class CustomAgentFileService : ICustomAgentFileService
 {
-    private readonly ILogger<CustomAgentFileService> _logger;
     private readonly TaskCompletionSource<CustomAgentFiles?> _tcs = new();
 
     public async Task<CustomAgentFiles?> GetFilesAsync()

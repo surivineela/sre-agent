@@ -202,7 +202,8 @@ namespace Agent.Tests.Integration
 
             var input = new ManagedIdentityMigrationInput
             {
-                AppsToMigrate = _testApps
+                AppsToMigrate = _testApps,
+                message = string.Empty
             };
             string? instanceID = "";
 

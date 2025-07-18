@@ -2,10 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Newtonsoft.Json;
 
 namespace Agent.Core.Models.ServiceNow
 {
@@ -15,7 +13,7 @@ namespace Agent.Core.Models.ServiceNow
     public class ServiceNowWebhookPayload
     {
         [JsonProperty("incident")]
-        public ServiceNowWebhookIncident Incident { get; set; }
+        public ServiceNowWebhookIncident Incident { get; set; } = new ServiceNowWebhookIncident();
         
         [JsonProperty("action")]
         public string? Action { get; set; }
@@ -31,8 +29,8 @@ namespace Agent.Core.Models.ServiceNow
     {
         [JsonProperty("sys_id")]
         [Required]
-        public string IncidentId { get; set; }
-        
+        public string IncidentId { get; set; } = string.Empty;
+
         [JsonProperty("number")]
         public string? Number { get; set; }
         

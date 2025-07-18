@@ -164,7 +164,7 @@ public class ArmHelper
         var armClient = await _armClientFactory.GetArmOperationClient();
         await foreach (SubscriptionResource subscription in armClient.GetSubscriptions().GetAllAsync())
         {
-            allSubs.Add(new AzureSubscription(subscription.Data.SubscriptionId, subscription.Data.DisplayName, null));
+            allSubs.Add(new AzureSubscription(subscription.Data.SubscriptionId, subscription.Data.DisplayName, []));
         }
 
         return allSubs;
@@ -172,7 +172,7 @@ public class ArmHelper
 
     public async Task<List<string>> GetAllResourceUriAsync(string subscriptionId)
     {
-        List<string> resourceUrls = new List<string>();
+        List<string> resourceUrls = [];
         if (string.IsNullOrWhiteSpace(subscriptionId))
             return resourceUrls;
 
@@ -187,20 +187,26 @@ public class ArmHelper
 
             string responseBody = await response.Content.ReadAsStringAsync();
             JObject jsonObj = JObject.Parse(responseBody);
-            JArray values = (JArray)jsonObj["value"];
 
-            List<string> ids = new List<string>();
+            JArray? values = jsonObj["value"] as JArray;
+            if (values == null)
+            {
+                return resourceUrls;
+            }
+
             foreach (JObject value in values)
             {
-                string id = value["id"].ToString();
-                resourceUrls.Add(id);
+                string? id = value["id"]?.ToString();
+                if (!string.IsNullOrEmpty(id))
+                {
+                    resourceUrls.Add(id);
+                }
             }
 
             return resourceUrls;
         }
         else
         {
-            //throw new Exception($"Failed to retrieve resources. Status code: {response.StatusCode}");
             return resourceUrls;
         }
     }
@@ -429,16 +435,16 @@ public class ArmHelper
 
         string metricNamesString = string.Join(",", metrics.Select(m => m.Name));
         string aggregationsString = string.Join(",", metrics.Select(m => m.Aggregation));
-
         string filterParam = string.IsNullOrEmpty(filter) ? string.Empty : $"&{filter}";
 
         var requestUri = new Uri(new Uri("https://management.azure.com"), $"{resourceId}/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames={metricNamesString}&aggregation={aggregationsString}&timespan=PT30M{filterParam}");
 
-        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUri);
-
+        using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUri);
         var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+
         // Send the GET request
-        HttpResponseMessage response = await httpClient.SendAsync(request);
+        using HttpResponseMessage response = await httpClient.SendAsync(request, cancellationToken);
+
         // Read the response content
         string content = await response.Content.ReadAsStringAsync();
 
@@ -448,25 +454,53 @@ public class ArmHelper
             {
                 throw new ToolExecutionUnauthorizedException($"Unauthorized access to resource {resourceId}");
             }
-
             throw new Exception($"Failed to fetch metrics: {content}");
         }
 
         JObject metricsJson = JObject.Parse(content);
 
-        // Extract time series data
-        foreach (var metric in metricsJson["value"])
+        // Extract time series data with proper null checking
+        var valueToken = metricsJson["value"];
+        if (valueToken == null) return timeSeriesData;
+
+        foreach (var metric in valueToken)
         {
-            string metricName = metric["name"]["value"].ToString();
+            if (metric == null) continue;
+
+            // Safe navigation for nested properties
+            var nameToken = metric["name"]?["value"];
+            if (nameToken == null) continue;
+
+            string metricName = nameToken.ToString();
             var timeSeries = metric["timeseries"];
-            var metricDefinition = metrics.First(m => m.Name == metricName);
 
-            if (timeSeries == null || timeSeries.Count() == 0) continue;
+            // Find matching metric definition
+            var metricDefinition = metrics.FirstOrDefault(m => m.Name == metricName);
+            if (metricDefinition == null) continue;
 
-            foreach (var dataPoint in timeSeries[0]["data"])
+            if (timeSeries == null || !timeSeries.Any()) continue;
+
+            // Check if first timeseries element exists and has data
+            var firstTimeSeries = timeSeries[0];
+            if (firstTimeSeries == null) continue;
+
+            var dataToken = firstTimeSeries["data"];
+            if (dataToken == null) continue;
+
+            foreach (var dataPoint in dataToken)
             {
-                var timestamp = DateTime.Parse(dataPoint["timeStamp"].ToString());
-                var value = dataPoint[metricDefinition.Aggregation.ToLower()]?.Value<double>();
+                if (dataPoint == null) continue;
+
+                var timestampToken = dataPoint["timeStamp"];
+                if (timestampToken == null) continue;
+
+                if (!DateTime.TryParse(timestampToken.ToString(), out DateTime timestamp))
+                    continue;
+
+                var aggregationKey = metricDefinition.Aggregation?.ToLower();
+                if (string.IsNullOrEmpty(aggregationKey)) continue;
+
+                var value = dataPoint[aggregationKey]?.Value<double>();
 
                 timeSeriesData.Add(new TimeSeriesData
                 {
@@ -505,8 +539,11 @@ public class ArmHelper
         // Deserialize the response to extract the App Service Plan name
         using JsonDocument jsonDocument = JsonDocument.Parse(jsonResponse);
         JsonElement properties = jsonDocument.RootElement.GetProperty("properties");
-        string appServicePlanId = properties.GetProperty("serverFarmId").GetString();
-
+        string? appServicePlanId = properties.GetProperty("serverFarmId").GetString();
+        if (string.IsNullOrEmpty(appServicePlanId))
+        {
+            throw new Exception("App Service Plan ID (serverFarmId) is missing in the response.");
+        }
         return appServicePlanId;
     }
 
@@ -553,8 +590,6 @@ public class ArmHelper
 
     public static AppPlanSku GetNextSku(AppPlanSku currentSku)
     {
-        if (currentSku == null) return null;
-
         // Define the SKU progression
         var skuProgression = new[] { "F1", "D1", "B1", "B2", "B3", "S1", "S2", "S3", "P1", "P1v2", "P2v2", "P3v2", "P0v3", "P1v3", "P2v3", "P3v3" };
 
@@ -670,7 +705,7 @@ public class ArmHelper
 
             // Step 3: Wait for the DaaS session to complete and retrieve the report data path.
             var result = await WaitForDaaSSessionCompletionWithRetriesAsync(appServiceResource, sessionId);
-            string partialPath = (string)result["ActiveInstances"]?[0]?["Logs"]?[0]?["Reports"]?[0]?["PartialPath"] ?? "";
+            string partialPath = result["ActiveInstances"]?[0]?["Logs"]?[0]?["Reports"]?[0]?["PartialPath"]?.ToString() ?? string.Empty;
             string instance = result["ActiveInstances"]?[0]?["Name"]?.ToString() ?? "";
 
             if (string.IsNullOrEmpty(partialPath) || string.IsNullOrEmpty(instance))
@@ -682,8 +717,8 @@ public class ArmHelper
 
             // Step 4: Get the path to the raw data.
             partialPath = Path.Combine("C:\\home\\", partialPath);
-            string parentFolder = Path.GetDirectoryName(partialPath);
-            string reportDataPath = Path.Combine(parentFolder, instance, "reportdata");
+            string? parentFolder = Path.GetDirectoryName(partialPath);
+            string reportDataPath = Path.Combine(parentFolder ?? string.Empty, instance, "reportdata");
             reportDataPath = reportDataPath.Replace("\\", "/");
 
             string hostName = await GetKuduHostNameAsync(appServiceResource);
@@ -704,8 +739,14 @@ public class ArmHelper
             // Step 5: Get the CPU stack file from the report data.
             string reportContent = await reportResponse.Content.ReadAsStringAsync();
             JArray reportFiles = JArray.Parse(reportContent);
-            var cpuStackFile = reportFiles.FirstOrDefault(file => file["name"] != null && file["name"].ToString().Contains("cpuStacks", StringComparison.OrdinalIgnoreCase)
-                    && !file["name"].ToString().Contains("Jmc"));
+            var cpuStackFile = reportFiles.FirstOrDefault(file =>
+            {
+                var nameToken = file?["name"];
+                var name = nameToken?.ToString();
+                return !string.IsNullOrEmpty(name)
+                    && name.Contains("cpuStacks", StringComparison.OrdinalIgnoreCase)
+                    && !name.Contains("Jmc", StringComparison.OrdinalIgnoreCase);
+            });
 
             if (cpuStackFile == null)
             {
@@ -713,9 +754,8 @@ public class ArmHelper
                 _logger.LogInternalError(errorMessage);
                 throw new Exception(errorMessage);
             }
-
             // Step 6: Get the contents of the CPU Stack file.
-            string urlOfCpuStack = cpuStackFile["href"].ToString();
+            string urlOfCpuStack = cpuStackFile["href"]?.ToString() ?? throw new InvalidOperationException("CPU stack file 'href' property is missing.");
             HttpRequestMessage cpuStackRequest = new HttpRequestMessage(HttpMethod.Get, urlOfCpuStack);
             cred = await _authService.GetArmOperationCredential();
             token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://api.applicationinsights.io/.default" }), CancellationToken.None);
@@ -1102,7 +1142,7 @@ public class ArmHelper
                                 // Extract each detector ID and make a call to GetDetectorResponseWithTime
                                 foreach (JsonElement detectorIdElement in detectorIdsElement.EnumerateArray())
                                 {
-                                    string subDetectorId = detectorIdElement.GetString();
+                                    string? subDetectorId = detectorIdElement.GetString();
                                     if (!string.IsNullOrEmpty(subDetectorId))
                                     {
                                         try
@@ -1499,7 +1539,7 @@ public class ArmHelper
             var properties = JsonSerializer.Deserialize<object>(resourceData.Data.Properties.ToString());
 
             var identity = resourceData.Data.Identity;
-            var managedIdentities = new List<GenericArmResourceIdentityModel>();
+            List<GenericArmResourceIdentityModel> managedIdentities = [];
             if (identity != null)
             {
                 if (identity.PrincipalId != null)
@@ -1511,17 +1551,17 @@ public class ArmHelper
                 {
                     managedIdentities.AddRange(identity.UserAssignedIdentities.Values
                         .Where(userAssignedIdentity => userAssignedIdentity.PrincipalId != null)
-                        .Select(userAssignedIdentity => new GenericArmResourceIdentityModel(IdentityType.UserAssignedManagedIdentity.ToString(), userAssignedIdentity.PrincipalId.Value)));
+                        .Select(userAssignedIdentity => new GenericArmResourceIdentityModel(IdentityType.UserAssignedManagedIdentity.ToString(), userAssignedIdentity.PrincipalId ?? Guid.Empty)));
                 }
             }
 
             GenericArmResourceModel armRes = new GenericArmResourceModel(
-                id: resourceData.Data.Id,
+                id: resourceId,
                 name: resourceData.Data.Name,
                 type: resourceData.Data.ResourceType,
                 kind: resourceData.Data.Kind ?? string.Empty,
                 location: resourceData.Data.Location,
-                properties: properties,
+                properties: properties ?? new object(),
                 tags: resourceData.Data.Tags?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToString()) ?? new Dictionary<string, string>(),
                 IdentityModels: managedIdentities
             );
@@ -1845,7 +1885,7 @@ public class ArmHelper
         }
     }
 
-    public async Task<(List<OperationDetail> Deployments, List<OperationDetail> Swaps)> GetDeploymentActivity(string subId, string rg, string resourceId, string st = null, string et = null)
+    public async Task<(List<OperationDetail> Deployments, List<OperationDetail> Swaps)> GetDeploymentActivity(string subId, string rg, string resourceId, string? st = null, string? et = null)
     {
         try
         {
@@ -1883,7 +1923,7 @@ public class ArmHelper
 
             // Parse the response
             JObject jsonResponse = JObject.Parse(content);
-            var events = jsonResponse["value"]?.Children<JObject>();
+            var events = jsonResponse["value"]?.Children<JObject>() ?? throw new Exception("No events found in the response.");
 
             // Extract deployment and swap details
             var deployments = ExtractOperationDetails(events, "deploy");
@@ -1927,7 +1967,7 @@ public class ArmHelper
         return operationDetails;
     }
 
-    public async Task<List<OperationDetail>> GetCriticalErrorActivityLogs(string subId, string rg, string resourceId, string st = null, string et = null)
+    public async Task<List<OperationDetail>> GetCriticalErrorActivityLogs(string subId, string rg, string resourceId, string? st = null, string? et = null)
     {
         try
         {
@@ -1965,27 +2005,30 @@ public class ArmHelper
             // Extract error details
             var errorDetails = new List<OperationDetail>();
 
-            foreach (var evt in events)
+            if (events != null)
             {
-                var operationName = evt["operationName"]?["value"]?.ToString();
-                var status = evt["properties"]?["statusCode"]?.ToString() ?? string.Empty;
-                var message = evt["properties"]?["message"]?.ToString() ?? string.Empty;
-                var statusMessage = evt["properties"]?["statusMessage"]?.ToString();
-                var isSuccessful = status.Contains("Succeeded", StringComparison.OrdinalIgnoreCase);
-
-                var detail = new OperationDetail
+                foreach (var evt in events)
                 {
-                    OperationName = operationName ?? string.Empty,
-                    Status = status,
-                    Timestamp = DateTime.TryParse(evt["eventTimestamp"]?.ToString(), out var timestamp) ? (DateTime?)timestamp : null,
-                    ResourceId = evt["resourceId"]?.ToString() ?? string.Empty,
-                    Caller = evt["caller"]?.ToString() ?? string.Empty,
-                    ErrorMessage = message,
-                    StatusMessage = statusMessage,
-                    IsSuccessful = isSuccessful
-                };
+                    var operationName = evt["operationName"]?["value"]?.ToString();
+                    var status = evt["properties"]?["statusCode"]?.ToString() ?? string.Empty;
+                    var message = evt["properties"]?["message"]?.ToString() ?? string.Empty;
+                    var statusMessage = evt["properties"]?["statusMessage"]?.ToString();
+                    var isSuccessful = status.Contains("Succeeded", StringComparison.OrdinalIgnoreCase);
 
-                errorDetails.Add(detail);
+                    var detail = new OperationDetail
+                    {
+                        OperationName = operationName ?? string.Empty,
+                        Status = status,
+                        Timestamp = DateTime.TryParse(evt["eventTimestamp"]?.ToString(), out var timestamp) ? (DateTime?)timestamp : null,
+                        ResourceId = evt["resourceId"]?.ToString() ?? string.Empty,
+                        Caller = evt["caller"]?.ToString() ?? string.Empty,
+                        ErrorMessage = message,
+                        StatusMessage = statusMessage,
+                        IsSuccessful = isSuccessful
+                    };
+
+                    errorDetails.Add(detail);
+                }
             }
 
             return errorDetails;
@@ -2137,22 +2180,27 @@ public class ArmHelper
     public async Task<IDictionary<string, string>> GetAppSetting(string resourceId, string appsettingKey)
     {
         var appSettingKv = new Dictionary<string, string>();
-
         var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
-
         httpClient.BaseAddress = new Uri("https://management.azure.com");
 
-        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, resourceId + "/config/appsettings/list?api-version=2024-04-01");
+        using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, resourceId + "/config/appsettings/list?api-version=2024-04-01");
+        using var res = await httpClient.SendAsync(request);
 
-        var res = await httpClient.SendAsync(request);
         if (res.IsSuccessStatusCode)
         {
             string responseJson = await res.Content.ReadAsStringAsync();
-            var appSettingsJobject = JObject.Parse(responseJson)["properties"];
-            var value = appSettingsJobject[appsettingKey];
-            if (value != null)
+
+            // Parse JSON with null checking
+            var jsonObject = JObject.Parse(responseJson);
+            var propertiesToken = jsonObject["properties"];
+
+            if (propertiesToken != null)
             {
-                appSettingKv[appsettingKey] = value.ToString();
+                var value = propertiesToken[appsettingKey];
+                if (value != null)
+                {
+                    appSettingKv[appsettingKey] = value.ToString();
+                }
             }
 
             return appSettingKv;
@@ -2163,7 +2211,19 @@ public class ArmHelper
             {
                 throw new ToolExecutionUnauthorizedException($"Unauthorized access to resource {resourceId}");
             }
-            throw new Exception($"Failed to retrieve app setting {appsettingKey} for resource {resourceId}: {res.Content}");
+
+            // Read the error content safely
+            string errorContent = string.Empty;
+            try
+            {
+                errorContent = await res.Content.ReadAsStringAsync();
+            }
+            catch
+            {
+                errorContent = "Unable to read error response content";
+            }
+
+            throw new Exception($"Failed to retrieve app setting {appsettingKey} for resource {resourceId}: {errorContent}");
         }
     }
 
@@ -2181,7 +2241,7 @@ public class ArmHelper
             throw new Exception($"Failed to fetch existing app settings. Status Code: {existingAppSettingsResponse.StatusCode}");
 
         var existingAppSettingsJson = await existingAppSettingsResponse.Content.ReadAsStringAsync();
-        var existingAppSettings = JsonSerializer.Deserialize<Dictionary<string, string>>(JObject.Parse(existingAppSettingsJson)["properties"]?.ToString() ?? "{}");
+        var existingAppSettings = JsonSerializer.Deserialize<Dictionary<string, string>>(JObject.Parse(existingAppSettingsJson)["properties"]?.ToString() ?? "{}") ?? [];
 
         // Merge new app settings with existing ones
         foreach (var kvp in appSettings)
@@ -2231,39 +2291,63 @@ public class ArmHelper
     {
         if (string.IsNullOrWhiteSpace(storageResourceId))
             throw new ArgumentException("Storage Resource ID is required");
-
         if (string.IsNullOrWhiteSpace(appServiceResourceId))
             throw new ArgumentException("App Service Resource ID is required");
-
         if (string.IsNullOrWhiteSpace(appSettingKey))
             throw new ArgumentException("App Setting Key is required");
 
         var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
         string requestUrl = $"https://management.azure.com{storageResourceId}/listKeys?api-version=2023-05-01";
 
-        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
-
-        HttpResponseMessage response = await httpClient.SendAsync(request);
+        using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
+        using HttpResponseMessage response = await httpClient.SendAsync(request);
 
         if (!response.IsSuccessStatusCode)
         {
-            string errorContent = await response.Content.ReadAsStringAsync();
+            string errorContent = string.Empty;
+            try
+            {
+                errorContent = await response.Content.ReadAsStringAsync();
+            }
+            catch
+            {
+                errorContent = "Unable to read error response content";
+            }
+
             throw new Exception($"Failed to retrieve keys. Status Code: {response.StatusCode}, Response: {errorContent}");
         }
 
         string responseContent = await response.Content.ReadAsStringAsync();
-        var jsonResponse = JsonDocument.Parse(responseContent);
+        using var jsonResponse = JsonDocument.Parse(responseContent);
 
         // Get the storage account name from the resource ID
-        string storageAccountName = storageResourceId.Split('/').Last();
+        var resourceIdParts = storageResourceId.Split('/');
+        if (resourceIdParts.Length == 0)
+        {
+            throw new Exception("Invalid storage resource ID format");
+        }
+        string storageAccountName = resourceIdParts.Last();
 
-        // Get the first key
-        string key = jsonResponse.RootElement.GetProperty("keys")
-            .EnumerateArray()
-            .FirstOrDefault()
-            .GetProperty("value")
-            .GetString();
+        // Get the first key with proper null checking
+        if (!jsonResponse.RootElement.TryGetProperty("keys", out JsonElement keysElement))
+        {
+            throw new Exception("No 'keys' property found in response");
+        }
 
+        var keysArray = keysElement.EnumerateArray();
+        var firstKey = keysArray.FirstOrDefault();
+
+        if (firstKey.ValueKind == JsonValueKind.Undefined)
+        {
+            throw new Exception("No storage keys found in response");
+        }
+
+        if (!firstKey.TryGetProperty("value", out JsonElement valueElement))
+        {
+            throw new Exception("No 'value' property found in first key");
+        }
+
+        string? key = valueElement.GetString();
         if (string.IsNullOrEmpty(key))
         {
             throw new Exception("No valid storage key found");
@@ -2360,7 +2444,7 @@ public class ArmHelper
             // Retrieve Web App using the provided resourceId
             var site = await GetWebSiteResourceAsync(resourceId);
             // Kudu host URL (this will be used for profiling purposes)
-            return site.Data.EnabledHostNames.FirstOrDefault(h => h.Contains(".scm."));
+            return site.Data.EnabledHostNames.First(h => h.Contains(".scm."));
         }
 
         catch (Exception ex)
@@ -2698,39 +2782,6 @@ public class ArmHelper
         }
     }
 
-    /// <summary>
-    /// Helper method to get a storage account by name and resource group
-    /// </summary>
-    /// <param name="subscriptionId">The subscription ID</param>
-    /// <param name="resourceGroupName">The resource group name</param>
-    /// <param name="storageAccountName">The storage account name</param>
-    /// <returns>The resource ID of the storage account if it exists, otherwise null</returns>
-    public async Task<string> GetStorageAccountResourceIdAsync(string subscriptionId, string resourceGroupName, string storageAccountName)
-    {
-        if (string.IsNullOrWhiteSpace(subscriptionId) ||
-            string.IsNullOrWhiteSpace(resourceGroupName) ||
-            string.IsNullOrWhiteSpace(storageAccountName))
-        {
-            return null;
-        }
-
-        try
-        {
-            // Construct the resource ID for the storage account
-            string resourceId = $"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{storageAccountName}";
-
-            // Check if the resource exists
-            bool exists = await CheckIfResourceExistsAsync(resourceId);
-
-            return exists ? resourceId : null;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalError($"Error getting storage account resource ID: {ex.Message}");
-            return null;
-        }
-    }
-
     #region Private Methods
 
     private async Task<List<T>> GetResourceSettings<T>(
@@ -2776,7 +2827,8 @@ public class ArmHelper
             {
                 throw new ToolExecutionUnauthorizedException($"Unauthorized access to resource {resourceId}");
             }
-            return null;
+
+            throw new ToolExecutionException($"Failed to fetch TLS status for {resourceId}: {response.ReasonPhrase}");
         }
 
         string responseJson = await response.Content.ReadAsStringAsync();
@@ -2787,10 +2839,13 @@ public class ArmHelper
             ? properties["minTlsVersion"]?.ToString()
             : null;
 
+        // Ensure location is never null (use empty string as fallback)
+        var location = jsonObject["location"]?.ToString() ?? string.Empty;
+
         var tlsStatus = new TlsStatus(
             ResourceId: resourceId,
             Name: resourceId.Split('/').Last(),
-            Location: jsonObject["location"]?.ToString(),
+            Location: location,
             MinimumTlsVersion: minimumTlsVersion);
 
         return tlsStatus;
@@ -2865,8 +2920,12 @@ public class ArmHelper
         var content = await response.Content.ReadAsStringAsync();
         var json = JObject.Parse(content);
         var machineNames = json["value"]?.Select(instance => instance["properties"]?["machineName"]?.ToString()).ToArray();
+        if (machineNames == null)
+        {
+            throw new InvalidDataException("No machine names found in the response.");
+        }
 
-        return machineNames;
+        return [.. machineNames.Where(m => !string.IsNullOrEmpty(m)).Select(m => m!)];
     }
 
     private async Task<string> WaitForDaaSSessionCompletionAsync(string appServiceResource, string sessionId)
@@ -2893,7 +2952,7 @@ public class ArmHelper
             if (status == "Complete")
             {
                 var relativePath = json["ActiveInstances"]?[0]?["Logs"]?[0]?["RelativePath"]?.ToString();
-                return relativePath;
+                return relativePath ?? string.Empty;
             }
 
             // Delay for 10 seconds before checking again

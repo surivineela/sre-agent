@@ -19,7 +19,7 @@ public class ObserverResponse
 {
     public HttpStatusCode StatusCode;
 
-    public dynamic Content;
+    public dynamic? Content;
 }
 
 public sealed class ObserverClientService
@@ -27,7 +27,7 @@ public sealed class ObserverClientService
     private readonly ObserverClientSettings _observerClientSettings;
     private readonly IAuthenticationService _authenticationService;
     private readonly ILogger<ObserverClientService> _logger;
-    private static HttpClient _httpClient;
+    private readonly HttpClient? _httpClient;
 
     public bool IsEnabled => _observerClientSettings.Enabled;
 
@@ -42,24 +42,33 @@ public sealed class ObserverClientService
         
         if (_observerClientSettings.Enabled)
         {
-            InitializeHttpClient();
+            _httpClient = GetHttpClient();
         }
     }
 
-    private void InitializeHttpClient()
+    private HttpClient GetHttpClient()
     {
+        HttpClient result;
+
         _logger.LogInternalInformation("Initializing HttpClient for ObserverClientService.");
         var handler = new TokenCredentialHttpClientHandler(_authenticationService.GetObserverCredential(), _observerClientSettings.Resource); ;
 
-        _httpClient =  new HttpClient(handler);
-        _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        _httpClient.DefaultRequestHeaders.Add("User-Agent", "sreagent1p");
-        _httpClient.Timeout = TimeSpan.FromSeconds(30);
+        result = new HttpClient(handler);
+        result.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        result.DefaultRequestHeaders.Add("User-Agent", "sreagent1p");
+        result.Timeout = TimeSpan.FromSeconds(30);
+
+        return result;
     }
 
     private async Task<HttpResponseMessage> SendRequestWithRetryAsync(HttpRequestMessage request, int maxRetries = 1, int initialDelayInMilliseconds = 500)
     {
-        HttpResponseMessage response = null;
+        if (_httpClient == null)
+        {
+            throw new Exception("ObserverClientService is not enabled or HttpClient is not initialized.");
+        }
+
+        HttpResponseMessage? response = null;
         int retries = 0;
         int delay = initialDelayInMilliseconds;
 
@@ -72,7 +81,6 @@ public sealed class ObserverClientService
                 {
                     newRequest.Headers.TryAddWithoutValidation(header.Key, header.Value);
                 }
-
                 // Copy the request content for POST and PUT requests  
                 if (request.Content != null && (request.Method == HttpMethod.Post || request.Method == HttpMethod.Put))
                 {
@@ -82,12 +90,10 @@ public sealed class ObserverClientService
                         newRequest.Content.Headers.TryAddWithoutValidation(header.Key, header.Value);
                     }
                 }
-
                 try
                 {
                     _logger.LogInternalInformation("Sending request to {RequestUri}", newRequest.RequestUri);
                     response = await _httpClient.SendAsync(newRequest);
-
                     if (response.IsSuccessStatusCode)
                     {
                         break;
@@ -95,6 +101,13 @@ public sealed class ObserverClientService
                     else
                     {
                         _logger.LogInternalWarning("Request to {RequestUri} failed with status code {StatusCode}. Retrying in {Delay}ms... (Attempt {Retries}/{MaxRetries})", newRequest.RequestUri, response.StatusCode, delay, retries + 1, maxRetries);
+
+                        // If this was the last retry attempt, don't wait - just exit the loop
+                        if (retries + 1 >= maxRetries)
+                        {
+                            break;
+                        }
+
                         await Task.Delay(delay);
                         retries++;
                         delay *= 2;
@@ -106,6 +119,13 @@ public sealed class ObserverClientService
                     {
                         // If the exception is a TimeoutException, wait and retry  
                         _logger.LogInternalWarning(ex, "Request to {RequestUri} timed out. Retrying in {Delay}ms... (Attempt {Retries}/{MaxRetries})", newRequest.RequestUri, delay, retries + 1, maxRetries);
+
+                        // If this was the last retry attempt, don't wait - just exit the loop
+                        if (retries + 1 >= maxRetries)
+                        {
+                            break;
+                        }
+
                         await Task.Delay(delay);
                         retries++;
                         delay *= 2;
@@ -118,6 +138,12 @@ public sealed class ObserverClientService
                     }
                 }
             }
+        }
+
+        // If we get here and response is still null, it means all retries failed due to timeouts
+        if (response == null)
+        {
+            throw new TimeoutException($"All {maxRetries} retry attempts to {request.RequestUri} failed due to timeouts.");
         }
 
         return response;

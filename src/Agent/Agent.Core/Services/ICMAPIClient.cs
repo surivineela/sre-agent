@@ -44,7 +44,7 @@ namespace Agent.Core.Services
     {
         private readonly bool IsDevelopment;
         private readonly ICMAPISettings _icmApiSettings;
-        private static HttpClient _httpClient;
+        private readonly HttpClient _httpClient;
         private readonly int TimeoutInSeconds = 60;
         private readonly string IcmAPIPathPrefix;
         private readonly AuthType _authType;
@@ -89,24 +89,21 @@ namespace Agent.Core.Services
                 throw new Exception("At least one of the environment variables 'ICMAPI:UserToken' or 'ICMAPI:CertificateSubjectName' must be set.");
             }
 
-            InitializeHttpClient();
+            _httpClient = GetHttpClient();
         }
 
-        //public bool IsEnabled()
-        //{
-        //    return _icmApiSettings.Enabled;
-        //}
-
-        private void InitializeHttpClient()
+        private HttpClient GetHttpClient()
         {
+            HttpClient result;
+
             if (_authType == AuthType.UserToken)
             {
                 _loggingHandler.InnerHandler = new HttpClientHandler();
-                _httpClient = new HttpClient(_loggingHandler)
+                result = new HttpClient(_loggingHandler)
                 {
                     Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
                 };
-                _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_icmApiSettings.UserToken}");
+                result.DefaultRequestHeaders.Add("Authorization", $"Bearer {_icmApiSettings.UserToken}");
             }
             else if (_authType == AuthType.Certificate)
             {
@@ -129,7 +126,7 @@ namespace Agent.Core.Services
                 }
 
                 _loggingHandler.InnerHandler = handler;
-                _httpClient = new HttpClient(_loggingHandler)
+                result = new HttpClient(_loggingHandler)
                 {
                     Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
                 };
@@ -137,7 +134,7 @@ namespace Agent.Core.Services
             else if (_authType == AuthType.ManagedIdentity)
             {
                 _loggingHandler.InnerHandler = new HttpClientHandler();
-                _httpClient = new HttpClient(_loggingHandler)
+                result= new HttpClient(_loggingHandler)
                 {
                     Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
                 };
@@ -146,6 +143,8 @@ namespace Agent.Core.Services
             {
                 throw new Exception("Could not initialize http client for ICM APIs as no auth was set.");
             }
+
+            return result;
         }
 
         private async Task<HttpResponseMessage> SendICMGetRequestAsync(string apiPath)
@@ -159,8 +158,11 @@ namespace Agent.Core.Services
             var requestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
             if (_authType == AuthType.ManagedIdentity)
             {
-                string authToken = await ICMAPITokenService.Instance.GetAuthorizationTokenAsync();
-                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authToken);
+                string? authToken = await ICMAPITokenService.Instance.GetAuthorizationTokenAsync();
+                if (!string.IsNullOrEmpty(authToken))
+                {
+                    requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authToken);
+                }
             }
             var response = await _httpClient.SendAsync(requestMessage);
             return response;
@@ -181,8 +183,11 @@ namespace Agent.Core.Services
             requestMessage.Content = new StringContent(JsonConvert.SerializeObject(content), Encoding.UTF8, "application/json");
             if (_authType == AuthType.ManagedIdentity)
             {
-                string authToken = await ICMAPITokenService.Instance.GetAuthorizationTokenAsync();
-                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authToken);
+                string? authToken = await ICMAPITokenService.Instance.GetAuthorizationTokenAsync();
+                if (!string.IsNullOrEmpty(authToken))
+                {
+                    requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authToken);
+                }                    
             }
             var response = await _httpClient.SendAsync(requestMessage);
             return response;
@@ -204,8 +209,11 @@ namespace Agent.Core.Services
                 requestMessage.Content = new StringContent(JsonConvert.SerializeObject(content), Encoding.UTF8, "application/json");
                 if (_authType == AuthType.ManagedIdentity)
                 {
-                    string authToken = await ICMAPITokenService.Instance.GetAuthorizationTokenAsync();
-                    requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authToken);
+                    string? authToken = await ICMAPITokenService.Instance.GetAuthorizationTokenAsync();
+                    if (!string.IsNullOrEmpty(authToken))
+                    {
+                        requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authToken);
+                    }
                 }
                 var response = await _httpClient.SendAsync(requestMessage);
                 return response;
@@ -221,8 +229,11 @@ namespace Agent.Core.Services
             var requestMessage = new HttpRequestMessage(HttpMethod.Delete, requestUri);
             if (_authType == AuthType.ManagedIdentity)
             {
-                string authToken = await ICMAPITokenService.Instance.GetAuthorizationTokenAsync();
-                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authToken);
+                string? authToken = await ICMAPITokenService.Instance.GetAuthorizationTokenAsync();
+                if (!string.IsNullOrEmpty(authToken))
+                {
+                    requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authToken);
+                }
             }
             var response = await _httpClient.SendAsync(requestMessage);
             return response;
@@ -234,9 +245,9 @@ namespace Agent.Core.Services
             if (response.IsSuccessStatusCode)
             {
                 var responseString = await response.Content.ReadAsStringAsync();
-                var obj = JsonConvert.DeserializeObject<JObject>(responseString);
+                var obj = JsonConvert.DeserializeObject<JObject>(responseString) ?? throw new Exception("Failed to deserialize Incident response.");
                 obj = TextProcessingHelpers.FillICMAPIIncidentJObject(obj);
-                var incident = JsonConvert.DeserializeObject<Incident>(JsonConvert.SerializeObject(obj));
+                var incident = JsonConvert.DeserializeObject<Incident>(JsonConvert.SerializeObject(obj)) ?? throw new Exception("Failed to deserialize Incident object.");
                 return incident;
             }
             else
@@ -275,13 +286,12 @@ namespace Agent.Core.Services
             if (response.IsSuccessStatusCode)
             {
                 var responseString = await response.Content.ReadAsStringAsync();
-                var oDataResponse = JsonConvert.DeserializeObject<ODataResponse<JObject>>(responseString);
-
+                var oDataResponse = JsonConvert.DeserializeObject<ODataResponse<JObject>>(responseString) ?? throw new Exception("Failed to deserialize OData response.");
                 var incidents = oDataResponse.Value.Select(o =>
                 {
                     var incidentJObj = TextProcessingHelpers.FillICMAPIIncidentJObject(o);
                     return JsonConvert.DeserializeObject<Incident>(JsonConvert.SerializeObject(incidentJObj));
-                }).ToList();
+                }).Select(i => i!).ToList();
                 return incidents;
             }
             else
@@ -319,7 +329,7 @@ namespace Agent.Core.Services
             if (response.IsSuccessStatusCode)
             {
                 var responseString = await response.Content.ReadAsStringAsync();
-                var oDataModel = JsonConvert.DeserializeObject<ODataResponse<DiscussionEntry>>(responseString);
+                var oDataModel = JsonConvert.DeserializeObject<ODataResponse<DiscussionEntry>>(responseString) ?? throw new Exception("Could not deserialize oDataModel");
                 return oDataModel.Value;
             }
             else
@@ -797,7 +807,7 @@ namespace Agent.Core.Services
             if (response.IsSuccessStatusCode)
             {
                 var responseString = await response.Content.ReadAsStringAsync();
-                var repairItems = JsonConvert.DeserializeObject<List<IncidentRepairItem>>(responseString);
+                var repairItems = JsonConvert.DeserializeObject<List<IncidentRepairItem>>(responseString) ?? throw new Exception("Failed to deserialize Incident repair response");
                 return repairItems;
             }
             else
