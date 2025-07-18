@@ -3,7 +3,6 @@
 // ------------------------------------------------------------
 
 using System.Reflection;
-using System.Reflection.Metadata;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -17,7 +16,6 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.AgentMemory;
-using Agent.Data.DataModels;
 using Agent.Framework;
 using Agent.Logging;
 using Agent.Plugins.Definitions;
@@ -26,7 +24,6 @@ using Agent.Runtime.SubAgents.Core;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
-using Constants = Agent.Core.Constants;
 
 namespace Agent.Runtime.Reasoning;
 
@@ -89,6 +86,9 @@ public class ReasoningLoop : IDisposable
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
+
+    private const string RetrieveMarker = "#retrieve";
+    private const string RememberMarker = "#remember";
 
     public ReasoningLoop(
         ILoggerFactory loggerFactory,
@@ -373,14 +373,14 @@ public class ReasoningLoop : IDisposable
                             }
 
                             // process #remember command
-                            if (chatMessage.Message.Text.Contains("#remember", StringComparison.OrdinalIgnoreCase) && _agentMemoryEnabled)
+                            if (chatMessage.Message.Text.Contains(RememberMarker, StringComparison.OrdinalIgnoreCase) && _agentMemoryEnabled)
                             {
                                 await HandleRememberCommandAsync(agentChatHistory, chatMessage.Message.Text, cancellationToken);
                                 return;
                             }
 
                             // process #retrieve command
-                            if (chatMessage.Message.Text.Contains("#retrieve", StringComparison.OrdinalIgnoreCase) && _agentMemoryEnabled)
+                            if (chatMessage.Message.Text.Contains(RetrieveMarker, StringComparison.OrdinalIgnoreCase) && _agentMemoryEnabled)
                             {
 
                                 await HandleRetrieveCommandAsync(agentChatHistory, chatMessage.Message.Text, cancellationToken);
@@ -1458,13 +1458,12 @@ public class ReasoningLoop : IDisposable
             await PersistReasoningMessageAsync(agentChatHistory, new ChatMessage(ChatRole.User, userMessage));
 
             // Extract the user message/content after '#remember'
-            const string rememberPrefix = "#remember";
-            var rememberIndex = userMessage.IndexOf(rememberPrefix, StringComparison.OrdinalIgnoreCase);
-            var memoryContent = userMessage.Substring(rememberIndex + rememberPrefix.Length).Trim();
+            var rememberIndex = userMessage.IndexOf(RememberMarker, StringComparison.OrdinalIgnoreCase);
+            var memoryContent = userMessage.Substring(rememberIndex + RememberMarker.Length).Trim();
 
             if (string.IsNullOrWhiteSpace(memoryContent))
             {
-                var errorMessage = new ChatMessage(ChatRole.Assistant, "Please provide some content after #remember. For example: 'my container app is not working #remember looks like there is an issue with the NSG rules.'");
+                var errorMessage = new ChatMessage(ChatRole.Assistant, $"Please provide some content after {RememberMarker}. For example: '{RememberMarker} my container app is not working looks like there is an issue with the NSG rules.'");
 
                 await PersistReasoningMessageAsync(agentChatHistory, errorMessage);
                 await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context, errorMessage);
@@ -1517,15 +1516,31 @@ public class ReasoningLoop : IDisposable
         {
             _logger.LogInternalInformation("[{threadId}]Processing #retrieve command.", _context.ThreadId);
 
+            var chatMessages = new List<ChatMessage>
+            {
+                new(ChatRole.System, "You are an AI assistant. Use the provided memories to answer the user's query in the context of the recent conversation. If the memories don't contain relevant information, say so.")
+            };
+
+            // extract messages before the user message is persisted
+            // recent chat history for context (last 5 user/assistant text messages)
+            // todo: pass in a summary of the complete chat instead.
+            var recentMessages = _chatHistory?
+                .Where(m => m.Role == ChatRole.User || m.Role == ChatRole.Assistant)
+                .Select(ExtractUsefulText)
+                .Where(m => m is not null)
+                .Select(m => m!)
+                .TakeLast(5)
+                .ToList() ?? [];
+            chatMessages.AddRange(recentMessages);
+
             await PersistReasoningMessageAsync(agentChatHistory, new ChatMessage(ChatRole.User, userMessage));
 
-            const string retrievePrefix = "#retrieve";
-            var retrieveIndex = userMessage.IndexOf(retrievePrefix, StringComparison.OrdinalIgnoreCase);
-            var query = userMessage.Substring(retrieveIndex + retrievePrefix.Length).Trim();
+            var retrieveIndex = userMessage.IndexOf(RetrieveMarker, StringComparison.OrdinalIgnoreCase);
+            var query = userMessage.Substring(retrieveIndex + RetrieveMarker.Length).Trim();
 
             if (string.IsNullOrWhiteSpace(query))
             {
-                var errorMessage = new ChatMessage(ChatRole.Assistant, "Please provide a query after #retrieve. For example: '#retrieve my preferences about coffee'");
+                var errorMessage = new ChatMessage(ChatRole.Assistant, $"Please provide a query after {RetrieveMarker}. For example: '{RetrieveMarker} my preferences about coffee'");
 
                 await PersistReasoningMessageAsync(agentChatHistory, errorMessage);
                 await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context, errorMessage);
@@ -1556,18 +1571,7 @@ public class ReasoningLoop : IDisposable
 
             var prompt = $"Based on the following retrieved memories, please answer the user's query: '{query}'\n\n{memoryContext}";
 
-            var chatMessages = new List<ChatMessage>
-            {
-                new(ChatRole.System, "You are an AI assistant. Use the provided memories to answer the user's query in the context of the recent conversation. If the memories don't contain relevant information, say so.")
-            };
 
-            // recent chat history for context (last 5 user/assistant messages, excluding assistant messages with tool calls)
-            var recentMessages = _chatHistory?
-                .Where(m => m.Role == ChatRole.User ||
-                           (m.Role == ChatRole.Assistant && !m.Contents.OfType<FunctionCallContent>().Any()))
-                .TakeLast(5)
-                .ToList() ?? new List<ChatMessage>();
-            chatMessages.AddRange(recentMessages);
 
             chatMessages.Add(new(ChatRole.User, prompt));
 
@@ -1589,6 +1593,27 @@ public class ReasoningLoop : IDisposable
 
             await PersistReasoningMessageAsync(agentChatHistory, errorMessage);
             await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context, errorMessage);
+        }
+    }
+
+    private static ChatMessage? ExtractUsefulText(ChatMessage m)
+    {
+        if (m.Role == ChatRole.Assistant)
+        {
+            var textContents = m.Contents.Where(c => c is TextContent).ToList();
+            if (textContents.Count == 0)
+            {
+                return null;
+            }
+            return new ChatMessage(m.Role, textContents);
+        }
+        else if (m.Role == ChatRole.User)
+        {
+            return new ChatMessage(m.Role, Summarizer.ExtractUserQuestion(m.Text));
+        }
+        else
+        {
+            return m;
         }
     }
 

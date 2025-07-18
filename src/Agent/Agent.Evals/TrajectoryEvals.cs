@@ -55,27 +55,34 @@ public class TrajectoryEvals
             .Where(m => m.Role != ChatRole.System);
 
         // 2. Save processed chat
-        var chatTrajectory = new Trajectory();
+        var autoHandOff = inputFile.Equals("output-iotdash", StringComparison.OrdinalIgnoreCase);
+        var startAgent = inputFile.Equals("output-icm-redacted", StringComparison.OrdinalIgnoreCase)
+            ? "rca_meta_agent"
+            : "meta_agent";
+        var chatTrajectory = new AgentTrajectory(startAgent, autoHandOff);
         foreach (var msg in conversationMessages)
         {
             chatTrajectory.Append(msg);
         }
-        var chatTranscript = chatTrajectory.GetFullTrajectory();
-        File.WriteAllText(
+        var chatTranscript = chatTrajectory.GetFullTrajectory()
+            .Replace("\r\n", "\n");
+        await File.WriteAllTextAsync(
             Path.Join(AppContext.BaseDirectory, "../../..", "Data", "Trajectory", "Quality", $"chat_{inputFile}.txt"),
             chatTranscript);
 
+        //return;
+
         // 3. Extract the trajectory
-        (var extractedTrajectory, var _) = await TrajectoryExtractor.GenerateTrajectoryAsync_v2(
+        (var extractedTrajectory, var _) = await TrajectoryExtractor.GenerateTrajectoryAsync_v3(
             TestHost.RunConfig.ChatClient,
             conversationMessages);
 
-        var traj = JsonSerializer.Deserialize<TrajectoryOutput_v2>(extractedTrajectory, _jsonOptions);
+        var traj = JsonSerializer.Deserialize<TrajectoryOutput_v3>(extractedTrajectory, _jsonOptions);
 
         // should be marked as investigation.
         Assert.IsTrue(traj.IsInvestigationThread);
 
-        File.WriteAllText(
+        await File.WriteAllTextAsync(
             Path.Join(AppContext.BaseDirectory, "../../..", "Data", "Trajectory", "Quality", $"traj_{inputFile}.txt"),
             JsonSerializer.Serialize(traj, _jsonOptions));
 
@@ -109,27 +116,30 @@ public class TrajectoryEvals
             .Where(m => m.Role != ChatRole.System);
 
         // 2. Save processed chat
-        var chatTrajectory = new Trajectory();
+        var chatTrajectory = new AgentTrajectory("meta_agent", false);
         foreach (var msg in conversationMessages)
         {
             chatTrajectory.Append(msg);
         }
-        var chatTranscript = chatTrajectory.GetFullTrajectory();
-        File.WriteAllText(
+        var chatTranscript = chatTrajectory.GetFullTrajectory()
+            .Replace("\r\n", "\n");
+        await File.WriteAllTextAsync(
             Path.Join(AppContext.BaseDirectory, "../../..", "Data", "Trajectory", "Relevance", $"chat_{inputFile}.txt"),
             chatTranscript);
 
+        //return;
+
         // 3. Extract the trajectory
-        (var extractedTrajectory, var _) = await TrajectoryExtractor.GenerateTrajectoryAsync_v2(
+        (var extractedTrajectory, var _) = await TrajectoryExtractor.GenerateTrajectoryAsync_v3(
             TestHost.RunConfig.ChatClient,
             conversationMessages);
 
-        var traj = JsonSerializer.Deserialize<TrajectoryOutput_v2>(extractedTrajectory, _jsonOptions);
+        var traj = JsonSerializer.Deserialize<TrajectoryOutput_v3>(extractedTrajectory, _jsonOptions);
 
         // should not be marked as investigation.
         Assert.IsFalse(traj.IsInvestigationThread);
 
-        File.WriteAllText(
+        await File.WriteAllTextAsync(
             Path.Join(AppContext.BaseDirectory, "../../..", "Data", "Trajectory", "Relevance", $"traj_{inputFile}.txt"),
             JsonSerializer.Serialize(traj, _jsonOptions));
     }
