@@ -532,8 +532,7 @@ namespace Agent.Plugins
         public async Task<CliExecutionResult> ExecuteKubectlCommandSafely(
             string resourceId,
             string command,
-            string stdin = "",
-            string oboToken = "")
+            string stdin = "")
         {
             // get the cluster kubeconfig
             // todo: change to create a `view` clusterrolebinding with a service account, and use that guy's config
@@ -546,8 +545,9 @@ namespace Agent.Plugins
             {
                 return new CliExecutionResult
                 {
-                    ErrorType = CliErrorType.AuthorizationError,
-                    Output = ex.Message,
+                    // do not trigger obo flow because the obo token audience is AKS, cannot work with ARM to get kubeconfig
+                    ErrorType = CliErrorType.Other,
+                    Output = await GetPermissionErrorMessageAsync(resourceId),
                 };
             }
 
@@ -558,28 +558,6 @@ namespace Agent.Plugins
                     ErrorType = CliErrorType.Other,
                     Output = "[Unexpected Error]: Unable to retrieve kubeconfig for cluster."
                 };
-            }
-
-            if (!string.IsNullOrEmpty(oboToken))
-            {
-                var user = kubeConfig.Configuration.Users.FirstOrDefault();
-                if (user != null)
-                {
-                    if (user.UserCredentials != null &&
-                        user.UserCredentials.Extensions != null)
-                    {
-                        bool useAAD = false;
-                        foreach (var ext in user.UserCredentials.Extensions)
-                        {
-                            if (ext.Name.Equals("UseAADAuth", StringComparison.OrdinalIgnoreCase) && bool.TryParse(ext.Extension.ToString(), out useAAD) && useAAD)
-                            {
-                                _logger?.LogInternalInformation("Using OBO token for kubectl command execution.");
-                                user.UserCredentials.Token = oboToken;
-                                break;
-                            }
-                        }
-                    }
-                }
             }
 
             var serializedKubeConfig = _configJsonSerializer.Serialize(kubeConfig.Configuration);
@@ -594,7 +572,7 @@ namespace Agent.Plugins
                 var output = await cliExecution.ExecuteAsync();
 
                 var executionResult = await CliExecutionHelper.ParseCliExecutionResult(_chatClient, output);
-                if (!executionResult.ErrorOccurred && !string.IsNullOrEmpty(oboToken))
+                if (!executionResult.ErrorOccurred && MaybeWriteCommand(command))
                 {
                     // trigger recrawl for modified resources
                     TriggerRecrawl(resourceId, command, output);
@@ -743,6 +721,42 @@ namespace Agent.Plugins
                 default:
                     return $"Execute kubectl {subcommand} command";
             }
+        }
+
+        private bool MaybeWriteCommand(string command)
+        {
+            if (string.IsNullOrWhiteSpace(command))
+            {
+                return false;
+            }
+
+            var subcommand = ParseKubectlSubcommand(command);
+            if (string.IsNullOrEmpty(subcommand))
+            {
+                return false;
+            }
+
+            // Define write operations that modify cluster state
+            var writeCommands = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "apply",
+                "create",
+                "delete",
+                "patch",
+                "replace",
+                "scale",
+                "label",
+                "annotate",
+                "set",
+                "rollout",
+                "edit",
+                "drain",
+                "cordon",
+                "uncordon",
+                "taint"
+            };
+
+            return writeCommands.Contains(subcommand);
         }
 
         private void TriggerRecrawl(string clusterResourceId, string command, string output)

@@ -142,12 +142,6 @@ public class KubernetesClientFactory : IKubernetesClientFactory
                 user.UserCredentials.Token = token.Token;
                 user.UserCredentials.AuthProvider = null; // remove AuthProvider for existing cluster since kubectl depreciate Azure provider
                 user.UserCredentials.ExternalExecution = null; //remove exec since we do not need depend on exec during execution
-                user.UserCredentials.Extensions = [
-                    new NamedExtension{
-                    Name = "UseAADAuth",
-                    Extension = true,
-                }
-                ]; // for kubectl cli execution to know whether to use the obo token
             }
 
             return (kubeConfig, token.ExpiresOn);
@@ -225,7 +219,7 @@ public class KubernetesClientFactory : IKubernetesClientFactory
                 if (cached.ExpiresOn != null)
                 {
                     // always the refresh token as the cred might change according to different context
-                    var token = await cred.GetTokenAsync(new TokenRequestContext(["6dae42f8-4368-4678-94ff-3960e28e3630/.default"]), CancellationToken.None);
+                    var token = await cred.GetTokenAsync(new TokenRequestContext([Constants.AksOboTokenScope]), CancellationToken.None);
                     cached.Configuration.Users.First().UserCredentials.Token = token.Token;
                     _configurationCache[key] = cached;
                 }

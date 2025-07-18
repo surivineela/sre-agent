@@ -1,10 +1,13 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
+using Agent.Core;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
+using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Logging;
 using Agent.Plugins.Interface;
+using Agent.Runtime.Helpers;
 using Agent.Runtime.Reasoning;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.AI;
@@ -184,8 +187,41 @@ namespace Agent.Web.Controllers.v1
                                 };
                                 await _threadRepository.UpdateKubectlExecutionAsync(threadGuid, execution);
 
+                                FunctionCallContent? functionCall = null;
+                                if (!string.IsNullOrEmpty(execution.OriginalFunctionCall))
+                                {
+                                    functionCall = JsonSerializer.Deserialize<FunctionCallContent>(execution.OriginalFunctionCall);
+                                }
+                                var title = ApprovalHelper.GenerateUniqueApprovalTitle(
+                                                threadId,
+                                                agentContext?.Id.ToString() ?? string.Empty,
+                                                functionCall?.Name ?? string.Empty,
+                                                functionCall?.Arguments ?? new Dictionary<string, object?>());
+                                var approval = new Approval(
+                                                    Id: Guid.NewGuid(),
+                                                    ThreadId: threadId,
+                                                    Title: title,
+                                                    Description: $"Execute kubectl command {execution.Command}",
+                                                    Status: ApprovalDecision.Authorized,
+                                                    CreatedTimestamp: execution.CreatedTimestamp,
+                                                    DecisionTimestamp: DateTime.UtcNow,
+                                                    OrchestrationId: null,
+                                                    AgentContextId: agentContext?.Id,
+                                                    DecisionUser: execution.ExecutedBy,
+                                                    OboToken: token,
+                                                    OboTokenScope: Constants.AksOboTokenScope);
+
+                                await _threadRepository.CreateApprovalAsync(approval);
+
+                                var approvalContext = new ApprovalContext(
+                                    ThreadId: threadGuid,
+                                    ApprovalId: approval.Id,
+                                    UseOboToken: true
+                                );
+                                ToolStatic.AsyncLocalApprovalContext.Value = approvalContext;
+
                                 _logger.LogInternalInformation($"[{threadGuid}]Executing {executionGuid} with obo token");
-                                result = await _kubePlugin.ExecuteKubectlCommandSafely(resourceId, execution.Command, execution.Stdin, token ?? string.Empty);
+                                result = await _kubePlugin.ExecuteKubectlCommandSafely(resourceId, execution.Command, execution.Stdin);
                             }
 
                             var output = result.Output;

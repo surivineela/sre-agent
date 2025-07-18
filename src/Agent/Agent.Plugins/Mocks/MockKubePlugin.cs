@@ -750,7 +750,7 @@ public class MockKubePlugin : IKubePlugin
     {
         throw new NotImplementedException();
     }
-    public Task<CliExecutionResult> ExecuteKubectlCommandSafely(string resourceId, string command, string stdin = "", string oboToken = "")
+    public Task<CliExecutionResult> ExecuteKubectlCommandSafely(string resourceId, string command, string stdin = "")
     {
         throw new NotImplementedException();
     }

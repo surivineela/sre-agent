@@ -28,72 +28,6 @@ namespace Agent.Plugins.Implementation
 
         public Guid? ThreadId { get; set; }
 
-        private static readonly ImmutableArray<string> _allowedReadVerbs = [
-            "get",
-            "list",
-            "show",
-        ];
-
-        private static readonly string _allowedReadVerbString = string.Join(", ", _allowedReadVerbs);
-
-        private static readonly ImmutableArray<string> _allowedWriteVerbs = [
-            "add",
-            "create",
-            "register", // for RPs and Features
-            "unregister",
-            "scale",
-            "set",
-            "stop",
-            "update",
-            "upgrade",
-            "deploy",        // `az deployment group create` etc.
-            "redeploy",      // VM redeployment
-            "attach",        // attach/detach disks, policies, etc.
-            "detach",
-            "enable",        // enable/disable features, add-ons
-            "disable",
-            "import",        // storage, key-vault, etc.
-            "export",
-            "backup",        // key-vault, AKS cluster snapshots, …
-            "restore",
-            "move",          // resource moves across RGs/subs
-            "rename",        // supported on a few resources
-            "install",       // extension install/upgrade flows
-            "uninstall",
-            "purge",         // key-vault, app-config, log-analytics
-            "invoke",        // run-command, function invoke
-            "commit",        // ACR tasks, app-service slots
-            "reimage",
-            "failover-group",
-            // Configuration / updates
-            "update", "set", "patch", "apply-patches", "assess-patches",
-            "upgrade", "deploy", "redeploy", "reapply", "commit",
-            // Scale & size
-            "scale", "resize",
-
-            // Start/stop style actions
-            "start", "stop", "restart", "deallocate",
-            // Access & identity
-            "assign", "grant", "revoke",
-            // Networking & recovery
-            "failover", "reset", "repair", "flush",
-            // Promotion / traffic-shift
-            "swap", "promote",
-            // Misc utility
-            "sync",
-            "query",  // some RPs treat query as a POST that writes logs
-            "restart", // left here for clarity even though in “start/stop” bucket
-        ];
-
-        private static readonly string _allowedWriteVerbString = string.Join(", ", _allowedWriteVerbs);
-
-        private static readonly ImmutableArray<string> _blockedDeleteVerbs = [
-            "delete",
-            "remove",
-        ];
-
-        private static readonly ImmutableArray<string> _writeVerbs = [.. _allowedWriteVerbs, .. _blockedDeleteVerbs];
-
         public ArmPlugin(ILogger<ArmPlugin> logger, ArmHelper armHelper, IThreadRepository threadRepository, IAgentOutboundCommunicationService outboundCommunicationService, ActionSettings actionSettings, IAgentRuntimeModifier<AgentContext> agentRuntimeModifier)
         {
             _logger = logger;
@@ -241,14 +175,14 @@ namespace Agent.Plugins.Implementation
         {
             try
             {
-                if (IsAksCommandInvokeCommand(command))
+                if (ArmHelper.IsAksCommandInvokeCommand(command))
                 {
                     return "Error: AKS command invoke operations should be handled by kubectl_command_executor_agent only.";
                 }
 
-                if (!IsReadOnlyCommand(command))
+                if (!ArmHelper.IsReadOnlyCommand(command))
                 {
-                    return $"Error: This method only supports read operations ({_allowedReadVerbString}). Use RunAzCliWriteCommandsAsync for write operations.";
+                    return $"Error: This method only supports read operations ({ArmHelper.AllowedReadVerbString}). Use RunAzCliWriteCommandsAsync for write operations.";
                 }
 
                 if (ThreadId == null)
@@ -312,18 +246,18 @@ namespace Agent.Plugins.Implementation
 
         private string? ValidateWriteCommandRequest(string command)
         {
-            if (IsAksCommandInvokeCommand(command))
+            if (ArmHelper.IsAksCommandInvokeCommand(command))
             {
                 return "Error: AKS command invoke operations should be handled by kubectl_command_executor_agent only.";
             }
 
             // Validate it's a write command and not a delete
-            if (!IsWriteCommand(command))
+            if (!ArmHelper.IsWriteCommand(command))
             {
-                return $"Error: This method only supports write operations ({_allowedWriteVerbString}).";
+                return $"Error: This method only supports write operations ({ArmHelper.AllowedWriteVerbString}).";
             }
 
-            if (IsDeleteCommand(command))
+            if (ArmHelper.IsDeleteCommand(command))
             {
                 return "Error: Delete operations are not allowed for safety reasons. Please use the Azure Portal for deletions.";
             }
@@ -361,7 +295,7 @@ namespace Agent.Plugins.Implementation
             return new AzCliExecution(
                 Id: executionId,
                 Command: command,
-                Description: GetCommandDescription(command),
+                Description: ArmHelper.GetCommandDescription(command),
                 Status: !requiresApproval ? AzCliExecutionStatus.Running : AzCliExecutionStatus.Pending,
                 OriginalFunctionCall: null,
                 Output: null,
@@ -614,66 +548,7 @@ namespace Agent.Plugins.Implementation
             }
         }
 
-        private bool IsReadOnlyCommand(string command)
-        {
-            var commandLower = command.ToLower();
 
-            // Check if command contains read-only verbs
-            return _allowedReadVerbs.Any(verb => commandLower.Contains($" {verb} ") || commandLower.Contains($" {verb}"));
-        }
-
-        private bool IsWriteCommand(string command)
-        {
-            var commandLower = command.ToLower();
-
-            // Check if command contains write verbs
-            return _writeVerbs.Any(verb => commandLower.Contains($" {verb} ") || commandLower.Contains($" {verb}"));
-        }
-
-        private bool IsDeleteCommand(string command)
-        {
-            var deleteVerbs = new[] { "delete", "remove" };
-            var commandLower = command.ToLower();
-
-            // Check if command contains delete verbs as primary action
-            return _blockedDeleteVerbs.Any(verb => commandLower.Contains($" {verb} ") || commandLower.Contains($" {verb}"));
-        }
-
-        private bool IsAksCommandInvokeCommand(string command)
-        {
-            var commandLower = command.ToLower().Trim();
-
-            // Check if command contains "aks command invoke"
-            return commandLower.Contains("aks command invoke");
-        }
-
-        private string GetCommandDescription(string command)
-        {
-            // Extract a user-friendly description from the command
-            if (command.Contains("create"))
-                return "Creating new Azure resource";
-            if (command.Contains("update"))
-                return "Updating Azure resource";
-            if (command.Contains("set"))
-                return "Setting resource configuration";
-            if (command.Contains("scale"))
-                return "Scaling Azure resource";
-            if (command.Contains("start"))
-                return "Starting Azure resource";
-            if (command.Contains("stop"))
-                return "Stopping Azure resource";
-            if (command.Contains("restart"))
-                return "Restarting Azure resource";
-
-            // Extract the main verb and resource type if possible
-            var parts = command.Split(' ');
-            if (parts.Length >= 3)
-            {
-                return $"Executing {parts[1]} {parts[2]}";
-            }
-
-            return "Executing Azure CLI write command";
-        }
     }
 }
 

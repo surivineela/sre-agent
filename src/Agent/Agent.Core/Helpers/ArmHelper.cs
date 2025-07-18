@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System;
+using System.Collections.Immutable;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
@@ -68,6 +69,72 @@ public class ArmHelper
     private readonly IChatClient _chatClient;
 
     private readonly ICrawlerTriggerService _crawlerTriggerService;
+
+    public static readonly ImmutableArray<string> AllowedReadVerbs = [
+        "get",
+            "list",
+            "show",
+        ];
+
+    public static readonly string AllowedReadVerbString = string.Join(", ", AllowedReadVerbs);
+
+    public static readonly ImmutableArray<string> AllowedWriteVerbs = [
+        "add",
+            "create",
+            "register", // for RPs and Features
+            "unregister",
+            "scale",
+            "set",
+            "stop",
+            "update",
+            "upgrade",
+            "deploy",        // `az deployment group create` etc.
+            "redeploy",      // VM redeployment
+            "attach",        // attach/detach disks, policies, etc.
+            "detach",
+            "enable",        // enable/disable features, add-ons
+            "disable",
+            "import",        // storage, key-vault, etc.
+            "export",
+            "backup",        // key-vault, AKS cluster snapshots, …
+            "restore",
+            "move",          // resource moves across RGs/subs
+            "rename",        // supported on a few resources
+            "install",       // extension install/upgrade flows
+            "uninstall",
+            "purge",         // key-vault, app-config, log-analytics
+            "invoke",        // run-command, function invoke
+            "commit",        // ACR tasks, app-service slots
+            "reimage",
+            "failover-group",
+            // Configuration / updates
+            "update", "set", "patch", "apply-patches", "assess-patches",
+            "upgrade", "deploy", "redeploy", "reapply", "commit",
+            // Scale & size
+            "scale", "resize",
+
+            // Start/stop style actions
+            "start", "stop", "restart", "deallocate",
+            // Access & identity
+            "assign", "grant", "revoke",
+            // Networking & recovery
+            "failover", "reset", "repair", "flush",
+            // Promotion / traffic-shift
+            "swap", "promote",
+            // Misc utility
+            "sync",
+            "query",  // some RPs treat query as a POST that writes logs
+            "restart", // left here for clarity even though in “start/stop” bucket
+        ];
+
+    public static readonly string AllowedWriteVerbString = string.Join(", ", AllowedWriteVerbs);
+
+    public static readonly ImmutableArray<string> BlockedDeleteVerbs = [
+        "delete",
+            "remove",
+        ];
+
+    public static readonly ImmutableArray<string> WriteVerbs = [.. AllowedWriteVerbs, .. BlockedDeleteVerbs];
 
     // Crawler MI is used for production environment as current solution
     public ArmHelper(
@@ -1461,7 +1528,8 @@ public class ArmHelper
 
             // Return the formatted JSON
             return JsonSerializer.Serialize(armRes, new JsonSerializerOptions { WriteIndented = true });
-        } catch (RequestFailedException ex) when (ex.Status == 401 || ex.Status == 403)
+        }
+        catch (RequestFailedException ex) when (ex.Status == 401 || ex.Status == 403)
         {
             throw new ToolExecutionUnauthorizedException($"Unauthorized access to resource {resourceId}");
         }
@@ -1698,7 +1766,7 @@ public class ArmHelper
                 {
                     throw new ToolExecutionUnauthorizedException($"Unauthorized access to App Insights resource {url}");
                 }
-                
+
                 var message = await response.Content.ReadAsStringAsync();
                 throw new InvalidOperationException($"FAILED! Querying {url} Failed: Status {response.StatusCode}, Message: {message}");
             }
@@ -1956,7 +2024,8 @@ public class ArmHelper
         {
             var connectivityCheckResult = await res.Content.ReadAsStringAsync();
             return connectivityCheckResult;
-        } else
+        }
+        else
         {
             if (CheckForUnauthorizedAccess(res))
             {
@@ -2087,7 +2156,8 @@ public class ArmHelper
             }
 
             return appSettingKv;
-        } else
+        }
+        else
         {
             if (CheckForUnauthorizedAccess(res))
             {
@@ -2143,7 +2213,8 @@ public class ArmHelper
         {
             // Trigger a re-crawl for WRITE operations
             _crawlerTriggerService.TriggerArmCrawl(resourceId);
-        } else
+        }
+        else
         {
             if (CheckForUnauthorizedAccess(response))
             {
@@ -2372,11 +2443,11 @@ public class ArmHelper
             if (processes is null)
                 throw new InvalidOperationException("No processes returned.");
 
-            foreach (var processElement in processes.Where(p => 
-                p is JsonObject obj && 
-                obj.TryGetPropertyValue("name", out var nameNode) && 
-                nameNode is JsonValue nameValue && 
-                nameValue.TryGetValue<string>(out var name) && 
+            foreach (var processElement in processes.Where(p =>
+                p is JsonObject obj &&
+                obj.TryGetPropertyValue("name", out var nameNode) &&
+                nameNode is JsonValue nameValue &&
+                nameValue.TryGetValue<string>(out var name) &&
                 string.Equals(name, "w3wp", StringComparison.OrdinalIgnoreCase)))
             {
                 if (processElement is JsonObject processObj)
@@ -2531,7 +2602,7 @@ public class ArmHelper
         }
     }
 
-    public async Task<CliExecutionResult> RunAzCliCommandsAsync(string command, string oboToken = "")
+    public async Task<CliExecutionResult> RunAzCliCommandsAsync(string command)
     {
         _logger.LogInternalInformation($"[RunAzCliCommandsAsync] command: {command}");
         // Trim any leading/trailing whitespace
@@ -2552,24 +2623,14 @@ public class ArmHelper
         // Execute the command
         try
         {
-            var identity = string.Empty;
-            if (!string.IsNullOrEmpty(_azureSettings.Action.Identity))
-            {
-                identity = _azureSettings.Action.Identity;
-            }
-            else if (!string.IsNullOrEmpty(_azureSettings.Crawler.Identity))
-            {
-                identity = _azureSettings.Crawler.Identity;
-            }
-
-            var cliExecution = new AzCliExecution(_logger, command, oboToken, identity, _hostEnvironment.IsDevelopment());
+            var cred = await _authService.GetArmOperationCredential();
+            var token = await cred.GetTokenAsync(new TokenRequestContext([Constants.DefaultOboTokenScope]), default);
+            var cliExecution = new AzCliExecution(_logger, command, accessToken: token.Token, isDevelopment: _hostEnvironment.IsDevelopment());
             var result = await cliExecution.ExecuteAsync();
 
             var executionResult = await CliExecutionHelper.ParseCliExecutionResult(_chatClient, result);
-            if (!executionResult.ErrorOccurred && !string.IsNullOrEmpty(oboToken))
+            if (!executionResult.ErrorOccurred && IsWriteCommand(command))
             {
-                // If the command is executed successfully and an OBO token is provided, trigger a re-crawl
-                // because the OBO token is only required for WRITE operations, and the command is expected to modify resources.
                 _crawlerTriggerService.TriggerArmCrawl(result);
             }
 
@@ -2891,6 +2952,67 @@ public class ArmHelper
     {
         return (response.StatusCode == System.Net.HttpStatusCode.Unauthorized ||
                 response.StatusCode == System.Net.HttpStatusCode.Forbidden);
+    }
+
+    public static bool IsReadOnlyCommand(string command)
+    {
+        var commandLower = command.ToLower();
+
+        // Check if command contains read-only verbs
+        return AllowedReadVerbs.Any(verb => commandLower.Contains($" {verb} ") || commandLower.Contains($" {verb}"));
+    }
+
+    public static bool IsWriteCommand(string command)
+    {
+        var commandLower = command.ToLower();
+
+        // Check if command contains write verbs
+        return WriteVerbs.Any(verb => commandLower.Contains($" {verb} ") || commandLower.Contains($" {verb}"));
+    }
+
+    public static bool IsDeleteCommand(string command)
+    {
+        var deleteVerbs = new[] { "delete", "remove" };
+        var commandLower = command.ToLower();
+
+        // Check if command contains delete verbs as primary action
+        return BlockedDeleteVerbs.Any(verb => commandLower.Contains($" {verb} ") || commandLower.Contains($" {verb}"));
+    }
+
+    public static bool IsAksCommandInvokeCommand(string command)
+    {
+        var commandLower = command.ToLower().Trim();
+
+        // Check if command contains "aks command invoke"
+        return commandLower.Contains("aks command invoke");
+    }
+
+    public static string GetCommandDescription(string command)
+    {
+        // Extract a user-friendly description from the command
+        if (command.Contains("create"))
+            return "Creating new Azure resource";
+        if (command.Contains("update"))
+            return "Updating Azure resource";
+        if (command.Contains("set"))
+            return "Setting resource configuration";
+        if (command.Contains("scale"))
+            return "Scaling Azure resource";
+        if (command.Contains("start"))
+            return "Starting Azure resource";
+        if (command.Contains("stop"))
+            return "Stopping Azure resource";
+        if (command.Contains("restart"))
+            return "Restarting Azure resource";
+
+        // Extract the main verb and resource type if possible
+        var parts = command.Split(' ');
+        if (parts.Length >= 3)
+        {
+            return $"Executing {parts[1]} {parts[2]}";
+        }
+
+        return "Executing Azure CLI write command";
     }
 
     #endregion
