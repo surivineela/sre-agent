@@ -9,6 +9,7 @@ using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Plugins.Interface;
+using Agent.Plugins.Services;
 using Azure.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi;
@@ -496,7 +497,7 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
 
     public async Task<string> ConnectRepository(string resourceId, string repositoryUrl)
     {
-        var azdoRepoRegex = new Regex(@"^https:\/\/(?:dev\.azure\.com\/|[\w-]+\.visualstudio\.com\/)[\w-]+\/[\w-]+\/_git\/[\w.-]+$", RegexOptions.Compiled);
+        var azdoRepoRegex = new Regex(GraphService.AzDoRepoRegexPattern, RegexOptions.Compiled);
         bool AzdoRegexMatch(string url) => !string.IsNullOrEmpty(url) && azdoRepoRegex.IsMatch(url);
 
         if (!AzdoRegexMatch(repositoryUrl))
@@ -542,9 +543,7 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
     public async Task<bool> CanCreateWorkItemsAsync(string repositoryUrl, string token)
     {
         // Regex to extract organization and project from AzDO URL
-        var match = Regex.Match(repositoryUrl,
-            @"^https:\/\/(?:(?<org1>dev\.azure\.com)\/(?<organization>[^\/]+)\/(?<project>[^\/]+)\/|(?<organization>[^\/]+)\.visualstudio\.com\/(?<project>[^\/]+)\/)",
-            RegexOptions.IgnoreCase);
+        var match = Regex.Match(repositoryUrl, GraphService.AzDoRepoRegexPattern, RegexOptions.IgnoreCase);
 
         if (!match.Success)
             throw new ArgumentException("Invalid Azure DevOps repository URL format.", nameof(repositoryUrl));

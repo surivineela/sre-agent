@@ -13,6 +13,7 @@ using Agent.Plugins.Interface;
 using Agent.Plugins.Services.Interfaces;
 using Gremlin.Net.Driver;
 using Microsoft.Extensions.Logging;
+using Microsoft.Graph.Models;
 using ArmConstants = Agent.Graph.Crawler.ARM.Constants;
 
 namespace Agent.Plugins.Services;
@@ -42,6 +43,9 @@ public class GraphService : IGraphService
 
     // Define the allowed Kubernetes resource types
     private readonly string[] allowedTypes = { "namespaces", "deployments", "statefulsets" };
+
+    public const string GithubRepoRegexPattern = @"^https:\/\/github\.com\/[\w.-]+\/[\w.-]+(?:\.git)?$";
+    public const string AzDoRepoRegexPattern = @"^https:\/\/(?:(?<org1>dev\.azure\.com)\/(?<organization>[\w-]+)\/(?<project>[\w-]+)|(?<organization>[\w-]+)\.visualstudio\.com\/(?<project>[\w-]+))\/_git\/(?<repo>[\w.-]+)$";
 
     public GraphService(IGraphDatabaseClient graphDatabaseClient, DashboardSettings dashboardSettings, ILogger<GraphService> logger, IHttpClientFactory httpClientFactory, IAuthenticationService authenticationService, ICrawlerService crawlerService, IThreadRepository threadRepository, IGithubIssuePlugin githubIssuePlugin, IAzureDevOpsWorkItemPlugin azureDevOpsWorkItemPlugin)
     {
@@ -507,14 +511,12 @@ public class GraphService : IGraphService
                     !string.IsNullOrEmpty(azdoAccessToken.AccessToken) &&
                     (azdoAccessToken.ExpiresOn is null || azdoAccessToken.ExpiresOn > DateTime.UtcNow);
 
-                var githubRepoRegex = new Regex(@"^https:\/\/github\.com\/[\w-]+\/[\w-]+\.git$", RegexOptions.Compiled);
-                var azDoMatch = Regex.Match(repoUrl,
-    @"^https:\/\/(?:(?<org1>dev\.azure\.com)\/(?<organization>[^\/]+)\/(?<project>[^\/]+)\/|(?<organization>[^\/]+)\.visualstudio\.com\/(?<project>[^\/]+)\/)",
-    RegexOptions.IgnoreCase);
+                var githubRepoRegex = new Regex(GithubRepoRegexPattern, RegexOptions.Compiled);
+                var azDoMatch = Regex.Match(repoUrl, AzDoRepoRegexPattern, RegexOptions.IgnoreCase);
                 bool isAzDoRepo = azDoMatch.Success;
 
                 bool GithubRegexMatch(string url) => !string.IsNullOrEmpty(url) && githubRepoRegex.IsMatch(url);
-                bool AzdoRegexMatch(string url) => !string.IsNullOrEmpty(url) && isAzDoRepo; 
+                bool AzdoRegexMatch(string url) => !string.IsNullOrEmpty(url) && isAzDoRepo;
 
                 if (!string.IsNullOrEmpty(repoUrl) && AzdoRegexMatch(repoUrl))
                 {

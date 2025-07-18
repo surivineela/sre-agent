@@ -5,6 +5,7 @@ using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Graph.Crawler.ARM;
 using Agent.Logging;
+using Agent.Plugins.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Agent.Web.Controllers.v1;
@@ -109,7 +110,7 @@ public class GithubController(
         public required string ResourceId { get; set; }
 
         // This regex pattern should be same as the one used in the GitHubHelper.ParseGitHubUrl
-        [RegularExpression(@"https://github\.com[/:](?<owner>[\w.-]+)/(?<repo>[\w.-]+)\.(?:git)?", ErrorMessage = "Repository URL must be of the form https://github.com/owner/repo-name.git")]
+        [RegularExpression(GraphService.GithubRepoRegexPattern, ErrorMessage = "Repository URL must be of the form https://github.com/owner/repo-name.git")]
         public required string RepoUrl { get; set; }
 
         public string? Namespace { get; set; } // Optional, can be null

@@ -5,6 +5,7 @@ using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Graph.Crawler.ARM;
 using Agent.Plugins.Interface;
+using Agent.Plugins.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Agent.Web.Controllers.v1;
@@ -135,7 +136,7 @@ public class AzureDevOpsController(
         public required string ResourceId { get; set; }
 
         // This regex pattern should be same as the one used in the GitHubHelper.ParseGitHubUrl
-        [RegularExpression(@"^https:\/\/(?:dev\.azure\.com\/|[\w-]+\.visualstudio\.com\/)[\w-]+\/_git\/[\w.-]+$",
+        [RegularExpression(GraphService.AzDoRepoRegexPattern,
             ErrorMessage = "Repository URL must be a valid Azure DevOps HTTPS Git URL.")]
         public required string RepoUrl { get; set; }
         public string? Namespace { get; set; } // Optional, can be null

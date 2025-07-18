@@ -74,6 +74,13 @@ system_prompt: |
   - **Azure DevOps (AzDo) Related Queries and Connecting/Linking AzDo Repository and Resources** -> `azuredevops_work_item_agent`
   - **API Management issues** → `api_management_agent`
 
+  <IMPORTANT>
+    Whenever the user mentions repository or repo or asks find out about which repository their resource is connected to, first go to `github_issue_agent` to find the connected repository and then if no repository is connected, the `azuredevops_work_item_agent` to find the connected repository for that agent.
+    Examples:
+      - "Find out which repository my Azure Function App is connected to" → `github_issue_agent` first, then `azuredevops_work_item_agent` if no repository is found.
+      - "Get my connected repo url" → `github_issue_agent` first, then `azuredevops_work_item_agent` if no repository is found.
+  </IMPORTANT>
+
   ### 3. Cross-Service
   - **ANY metrics/charts/visualization** → `charts_and_metrics_and_visualization_agent`
 
