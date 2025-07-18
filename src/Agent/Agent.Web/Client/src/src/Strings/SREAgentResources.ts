@@ -735,6 +735,7 @@ export const IncidentManagementPlatformResources = defineMessages({
     pagerDuty: { defaultMessage: 'PagerDuty', id: '6UyZlH' },
     azMonitor: { defaultMessage: 'Azure Monitor', id: '7Nz2Ev' },
     icm: { defaultMessage: 'Microsoft IcM', id: '0D+7fr' },
+    serviceNow: { defaultMessage: 'ServiceNow', id: 'zg0rpo' },
 });
 
 export const IncidentManagementNotificationResources = defineMessages({
@@ -1349,5 +1350,40 @@ export const AgentModeResources = defineMessages({
     agentModeTooltip: {
         defaultMessage: 'Change agent mode for this thread',
         id: '29xePt',
+    },
+});
+
+export const ServiceNowResources = defineMessages({
+    serviceNowEndpoint: { defaultMessage: 'ServiceNow endpoint', id: 'OxtrmO' },
+    serviceNowUsername: { defaultMessage: 'Username', id: 'JCIgkj' },
+    serviceNowPassword: { defaultMessage: 'Password', id: '5sg7KC' },
+    serviceNowInstanceName: { defaultMessage: 'Instance name', id: 'fblXmJ' },
+    changeKey: { defaultMessage: 'Change credentials', id: '0q6E9l' },
+    description: {
+        defaultMessage:
+            'Connect to ServiceNow with your instance endpoint and credentials. This allows the agent to manage incidents and tickets in your ServiceNow environment.',
+        id: 'Nfo3YG',
+    },
+    disconnectConfirmationTitle: { defaultMessage: 'Disconnect ServiceNow?', id: 'Jm+zxF' },
+    disconnectConfirmationMessage: {
+        defaultMessage:
+            'This will permanently delete the connection to ServiceNow. The agent will no longer be able to manage tickets. Are you sure you want to disconnect?',
+        id: 'n0JssX',
+    },
+    changePlatformConfirmationTitle: { defaultMessage: 'Disconnect ServiceNow?', id: 'Jm+zxF' },
+    changePlatformConfirmationMessage: {
+        defaultMessage:
+            'To change the incident platform, you need to disconnect from ServiceNow. The agent will no longer manage tickets. Are you sure you want to disconnect?',
+        id: 'h+YOYh',
+    },
+    connectedMessage: { defaultMessage: 'ServiceNow is connected.', id: 'Ep74wA' },
+    connectedMessageWithoutHandlers: {
+        defaultMessage: 'ServiceNow connected. Your next step is to set up incident handlers.',
+        id: 'htXZ8o',
+    },
+    addedMessage: { defaultMessage: 'ServiceNow connection added successfully', id: 'D2I5kb' },
+    quickstartHandlerDescription: {
+        defaultMessage: 'Add a default incident handler for the agent to use for High priority incidents.',
+        id: 'x65I0c',
     },
 });

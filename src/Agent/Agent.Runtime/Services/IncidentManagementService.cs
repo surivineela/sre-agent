@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Agent.Core.Configuration;
+using Agent.Core.Interfaces;
+using Agent.Core.Models.ServiceNow;
 using Agent.Data;
 using Agent.Data.DataModels;
 using Microsoft.Azure.Cosmos;
@@ -27,12 +29,14 @@ namespace Agent.Runtime.Services
         protected readonly string DocumentType;
         private readonly ILogger<IncidentManagementService<T>> _logger;
         private readonly IIncidentFilterManagementService _incidentFilterManagementService;
+        private readonly IServiceNowAPIClient _serviceNowAPIClient;
 
         public IncidentManagementService(CosmosClient cosmosClient,
             CosmosDBSettings cosmosDbSettings,
             IncidentManagementSettings incidentManagementSettings,
             IIncidentFilterManagementService incidentFilterManagementService,
-            ILogger<IncidentManagementService<T>> logger)
+            ILogger<IncidentManagementService<T>> logger,
+            IServiceNowAPIClient? serviceNowAPIClient = null)
         {
             _container = cosmosClient.GetContainer(
                 cosmosDbSettings.Docs.Database,
@@ -40,6 +44,7 @@ namespace Agent.Runtime.Services
             );
             _incidentManagementSettings = incidentManagementSettings;
             _incidentFilterManagementService = incidentFilterManagementService;
+            _serviceNowAPIClient = serviceNowAPIClient;
 
             switch (_incidentManagementSettings.Type)
             {
@@ -51,6 +56,10 @@ namespace Agent.Runtime.Services
                     break;
                 case IncidentManagementType.AzMonitor:
                     DocumentType = "AzMonitorAlert";
+                    break;
+
+                case IncidentManagementType.ServiceNow:
+                    DocumentType = "ServiceNowIncident";
                     break;
                 default:
                     throw new NotImplementedException($"Incident management type '{_incidentManagementSettings.Type}' is not implemented.");
@@ -71,6 +80,7 @@ namespace Agent.Runtime.Services
                 switch (_incidentManagementSettings.Type)
                 {
                     case IncidentManagementType.PagerDuty:
+                    case IncidentManagementType.ServiceNow:
                     case IncidentManagementType.Icm:
                         var result = await QueryIncidentsInternal(request);
                         _logger.LogInternalInformation(
@@ -111,6 +121,7 @@ namespace Agent.Runtime.Services
                 switch (_incidentManagementSettings.Type)
                 {
                     case IncidentManagementType.PagerDuty:
+                    //case IncidentManagementType.ServiceNow:
                     case IncidentManagementType.Icm:
                         var result = await GetIncidentDetailsInternal(incidentId);
                         if (result == null)
@@ -128,6 +139,41 @@ namespace Agent.Runtime.Services
                             );
                         }
                         return result;
+                    case IncidentManagementType.ServiceNow:
+                        // For ServiceNow, incidentId is the incident number
+                        // We need to get the sys_id first
+                        var sysId = await GetServiceNowSysId(incidentId);
+                        if (string.IsNullOrEmpty(sysId))
+                        {
+                            _logger.LogInternalWarning(
+                                "GetIncidentDetails: Could not find sys_id for ServiceNow incident number: {IncidentNumber}",
+                                incidentId
+                            );
+                            return default;
+                        }
+
+                        _logger.LogInternalInformation(
+                            "GetIncidentDetails: Found sys_id {SysId} for ServiceNow incident number: {IncidentNumber}",
+                            sysId, incidentId
+                        );
+
+                        // Now get the incident details using the sys_id
+                        var serviceNowResult = await GetIncidentDetailsInternal(incidentId);
+                        if (serviceNowResult == null)
+                        {
+                            _logger.LogInternalWarning(
+                                "GetIncidentDetails: No incident found for ServiceNow incident number: {IncidentNumber}",
+                                incidentId
+                            );
+                        }
+                        else
+                        {
+                            _logger.LogInternalInformation(
+                                "GetIncidentDetails: Successfully retrieved incident for ServiceNow incident number: {IncidentNumber}",
+                                incidentId
+                            );
+                        }
+                        return serviceNowResult;
                     default:
                         _logger.LogInternalWarning(
                             "GetIncidentDetails: Not implemented for IncidentManagementType: {Type}",
@@ -144,6 +190,116 @@ namespace Agent.Runtime.Services
                     incidentId
                 );
                 throw;
+            }
+        }
+
+        private async Task<string> GetServiceNowSysId(string incidentNumber)
+        {
+            _logger.LogInternalInformation(
+                "GetServiceNowSysId: Retrieving sys_id for incident number: {IncidentNumber}",
+                incidentNumber
+            );
+
+            try
+            {
+                if (_serviceNowAPIClient == null)
+                {
+                    _logger.LogInternalError(
+                        "GetServiceNowSysId: ServiceNowAPIClient is not initialized"
+                    );
+                    return string.Empty;
+                }
+
+                if (string.IsNullOrEmpty(incidentNumber))
+                {
+                    _logger.LogInternalError(
+                        "GetServiceNowSysId: Incident number is null or empty"
+                    );
+                    return string.Empty;
+                }
+
+                // Add debug logging to see what's being queried and returned
+                _logger.LogInternalInformation(
+                    "GetServiceNowSysId: Querying for documents with DocumentType={DocumentType} and Number={Number}",
+                    "ServiceNowIncident", incidentNumber
+                );
+
+                // First, try to get the document from the database as it already contains the sys_id
+                var query = _container.GetItemLinqQueryable<ServiceNowIncidentDocument>(allowSynchronousQueryExecution: false)
+                    .Where(c => c.DocumentType == "ServiceNowIncident" && c.Number == incidentNumber)
+                    .Take(1);
+
+                _logger.LogInternalInformation(
+                    "GetServiceNowSysId: Query expression: {Query}", 
+                    query.Expression.ToString()
+                );
+
+                var iterator = query.ToFeedIterator();
+
+                if (iterator.HasMoreResults)
+                {
+                    var response = await iterator.ReadNextAsync();
+                    var document = response.FirstOrDefault();
+                    
+                    if (document != null)
+                    {
+                        _logger.LogInternalInformation(
+                            "GetServiceNowSysId: Found document: Id={Id}, Number={Number}, IncidentSystemId={IncidentSystemId}",
+                            document.Id, document.Number, document.IncidentSystemId
+                        );
+                        
+                        if (!string.IsNullOrEmpty(document.IncidentSystemId))
+                        {
+                            _logger.LogInternalInformation(
+                                "GetServiceNowSysId: Found sys_id in document: {SysId} for incident number: {IncidentNumber}",
+                                document.IncidentSystemId, incidentNumber
+                            );
+                            return document.IncidentSystemId;
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogInternalWarning(
+                            "GetServiceNowSysId: No document found with Number={Number}",
+                            incidentNumber
+                        );
+                    }
+                }
+                else
+                {
+                    _logger.LogInternalWarning(
+                        "GetServiceNowSysId: No results from query for Number={Number}",
+                        incidentNumber
+                    );
+                }
+
+                // If we couldn't find the document in the database, query ServiceNow API
+                var incidents = await _serviceNowAPIClient.GetIncidentsAsync(1, 0, null, null, null);
+                var incident = incidents.FirstOrDefault(i => i.Number == incidentNumber);
+
+                if (incident != null)
+                {
+                    _logger.LogInternalInformation(
+                        "GetServiceNowSysId: Found sys_id via API: {SysId} for incident number: {IncidentNumber}",
+                        incident.IncidentId, incidentNumber
+                    );
+                    return incident.IncidentId;
+                }
+
+                _logger.LogInternalWarning(
+                    "GetServiceNowSysId: Could not find sys_id for incident number: {IncidentNumber}",
+                    incidentNumber
+                );
+                return string.Empty;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(
+                    ex,
+                    "GetServiceNowSysId: Exception occurred for incident number: {IncidentNumber}",
+                    incidentNumber
+                );
+                return string.Empty;
             }
         }
 

@@ -21,6 +21,7 @@ public class IncidentPlaygroundController : ControllerBase
     private readonly IIncidentFilterManagementService _incidentFilterManagementService;
     private readonly IIncidentManagementService<PagerDutyIncidentDocument> _pagerDutyincidentManagementService;
     private readonly IIncidentManagementService<IcmIncidentDocument> _icmIncidentManagementService;
+    private readonly IIncidentManagementService<ServiceNowIncidentDocument> _serviceNowIncidentManagementService;
     private readonly ILogger<IncidentPlaygroundController> _logger;
     private readonly IncidentManagementSettings _incidentManagementSettings;
     private readonly Container _container;
@@ -29,6 +30,7 @@ public class IncidentPlaygroundController : ControllerBase
         IInstructionGenerationService instructionGenerationService,
         IIncidentManagementService<PagerDutyIncidentDocument> pagerDutyIncidentManagementService,
         IIncidentManagementService<IcmIncidentDocument> icmIncidentManagementService,
+        IIncidentManagementService<ServiceNowIncidentDocument> serviceNowIncidentManagementService,
         IIncidentHandlerManagementService incidentHandlerManagementService,
         IIncidentFilterManagementService incidentFilterManagementService,
         IncidentManagementSettings incidentManagementSettings,
@@ -38,6 +40,7 @@ public class IncidentPlaygroundController : ControllerBase
     {
         _pagerDutyincidentManagementService = pagerDutyIncidentManagementService;
         _icmIncidentManagementService = icmIncidentManagementService;
+        _serviceNowIncidentManagementService = serviceNowIncidentManagementService;
         _instructionGenerationService = instructionGenerationService;
         _incidentHandlerManagementService = incidentHandlerManagementService;
         _incidentFilterManagementService = incidentFilterManagementService;
@@ -406,6 +409,13 @@ public class IncidentPlaygroundController : ControllerBase
                 _logger.LogInternalInformation("QueryIncidents: Retrieved {Count} ICM incidents", incidents?.Items.Count ?? 0);
                 return Ok(incidents);
             }
+            else if (_incidentManagementSettings.Type == IncidentManagementType.ServiceNow)
+            {
+                _logger.LogInternalInformation("QueryIncidents: Querying ServiceNow incidents");
+                var incidents = await _serviceNowIncidentManagementService.QueryIncidents(request);
+                _logger.LogInternalInformation("QueryIncidents: Retrieved {Count} ServiceNow incidents", incidents?.Items.Count ?? 0);
+                return Ok(incidents);
+            }
             else
             {
                 _logger.LogInternalWarning("QueryIncidents: Incident management type '{Type}' is not implemented", _incidentManagementSettings.Type);
@@ -520,6 +530,25 @@ public class IncidentPlaygroundController : ControllerBase
             catch (Exception ex)
             {
                 _logger.LogInternalError(ex, "GetIncident: Error retrieving ICM incident for IncidentId: {IncidentId}", incidentId);
+                return StatusCode(500, "Failed to get incident");
+            }
+        }
+        else if (_incidentManagementSettings.Type == IncidentManagementType.ServiceNow)
+        {
+            _logger.LogInternalInformation("GetIncident: Fetching ServiceNow incident");
+            try {
+                var incident = await _serviceNowIncidentManagementService.GetIncidentDetails(incidentId);
+                if (incident == null)
+                {
+                    _logger.LogInternalWarning("GetIncident: ServiceNow incident not found for IncidentId: {IncidentId}", incidentId);
+                    return NotFound();
+                }
+                _logger.LogInternalInformation("GetIncident: ServiceNow incident found for IncidentId: {IncidentId}", incidentId);
+                return Ok(incident);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "GetIncident: Error retrieving ServiceNow incident for IncidentId: {IncidentId}", incidentId);
                 return StatusCode(500, "Failed to get incident");
             }
         }

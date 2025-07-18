@@ -52,6 +52,8 @@ namespace Agent.Runtime.Services
         private readonly IIncidentHandlerManagementService _incidentHandlerManagementService;
         private readonly IIncidentManagementService<PagerDutyIncidentDocument> _pagerDutyincidentManagementService;
         private readonly IIncidentManagementService<IcmIncidentDocument> _icmIncidentManagementService;
+        private readonly IIncidentManagementService<ServiceNowIncidentDocument> _serviceNowIncidentManagementService;
+        private readonly IServiceNowAPIClient _serviceNowAPIClient;
         private readonly IncidentManagementSettings _incidentManagementSettings;
 
         public IncidentHandlingService(
@@ -64,7 +66,9 @@ namespace Agent.Runtime.Services
             IIncidentHandlerManagementService incidentHandlerManagementService,
             IIncidentManagementService<PagerDutyIncidentDocument> pagerDutyincidentManagementService,
             IIncidentManagementService<IcmIncidentDocument> icmIncidentManagementService,
-        IncidentManagementSettings incidentManagementSettings)
+            IIncidentManagementService<ServiceNowIncidentDocument> serviceNowIncidentManagementService,
+            IServiceNowAPIClient serviceNowAPIClient,
+            IncidentManagementSettings incidentManagementSettings)
         {
             _pagerDutyService = pagerDutyService;
             _icmApiClient = icmApiClient;
@@ -75,6 +79,8 @@ namespace Agent.Runtime.Services
             _incidentHandlerManagementService = incidentHandlerManagementService;
             _pagerDutyincidentManagementService = pagerDutyincidentManagementService;
             _icmIncidentManagementService = icmIncidentManagementService;
+            _serviceNowIncidentManagementService = serviceNowIncidentManagementService;
+            _serviceNowAPIClient = serviceNowAPIClient;
             _incidentManagementSettings = incidentManagementSettings;
         }
 
@@ -134,6 +140,27 @@ namespace Agent.Runtime.Services
             }
         }
 
+        private async Task<ServiceNowIncidentDocument> GetServiceNowIncidentLatest(string incidentId)
+        {
+            _logger.LogInternalInformation("GetServiceNowIncidentLatest: Invoked for IncidentId: {IncidentId}", incidentId);
+            try
+            {
+                _logger.LogInternalInformation("GetServiceNowIncidentLatest: Fetching incident for IncidentId: {IncidentId}", incidentId);
+                var incidentData = await _serviceNowAPIClient.GetIncidentAsync(incidentId);
+                _logger.LogInternalInformation("GetServiceNowIncidentLatest: Received incident data for IncidentId: {IncidentId}", incidentId);
+
+                var incident = new ServiceNowIncidentDocument(incidentData);
+                
+                _logger.LogInternalInformation("GetServiceNowIncidentLatest: Successfully created ServiceNowIncidentDocument for IncidentId: {IncidentId}", incidentId);
+                return incident;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "GetServiceNowIncidentLatest: Error occurred for IncidentId: {IncidentId}", incidentId);
+                throw;
+            }
+        }
+
         private async Task<dynamic> GetIncidentAsync(string incidentId)
         {
             _logger.LogInternalInformation("GetIncidentAsync: Invoked for IncidentId: {IncidentId}", incidentId);
@@ -161,6 +188,16 @@ namespace Agent.Runtime.Services
                         }
                         _logger.LogInternalInformation("GetIncidentAsync: Returning incident data for IncidentId: {IncidentId}", incidentId);
                         return icmIncidentData;
+                    case IncidentManagementType.ServiceNow:
+                        _logger.LogInternalInformation("GetIncidentAsync: Using ServiceNow for IncidentId: {IncidentId}", incidentId);
+                        var serviceNowIncidentData = await _serviceNowIncidentManagementService.GetIncidentDetails(incidentId);
+                        if (serviceNowIncidentData == null)
+                        {
+                            _logger.LogInternalWarning("GetIncidentAsync: No incident data found for IncidentId: {IncidentId}, fetching latest", incidentId);
+                            serviceNowIncidentData = await GetServiceNowIncidentLatest(incidentId);
+                        }
+                        _logger.LogInternalInformation("GetIncidentAsync: Returning incident data for IncidentId: {IncidentId}", incidentId);
+                        return serviceNowIncidentData;
                     case IncidentManagementType.AzMonitor:
                         _logger.LogInternalWarning("GetIncidentAsync: Not implemented for IncidentManagementType: {Type}", _incidentManagementSettings.Type);
                         throw new NotImplementedException("ICM and Azure Monitor incident handling is not implemented yet.");
@@ -271,6 +308,15 @@ namespace Agent.Runtime.Services
                     $"**Incident ID:** {incidentDetails.Id}\n\n" +
                     $"**Severity:** {incidentDetails.Priority ?? "Unknown"}\n\n" +
                     $"**Source:** {incidentDetails.DocumentType}\n\n";
+
+                // Append the ServiceNow System ID to the alert message if the incident type is ServiceNow
+                if (incidentDetails.DocumentType == "ServiceNowIncident" && incidentDetails is ServiceNowIncidentDocument serviceNowIncident)
+                {
+                    if (!string.IsNullOrEmpty(serviceNowIncident.IncidentSystemId))
+                    {
+                        alertMessage += $"**Sys_ID:** {serviceNowIncident.IncidentSystemId}\n\n";
+                    }
+                }
 
                 var customInstructionsForAlert = incidentHandler.IncidentProcessingGuide != null && incidentHandler.IncidentProcessingGuide.Count > 0 ?
                     string.Join("\n", incidentHandler.IncidentProcessingGuide.Select(x => $"* {x}")) :

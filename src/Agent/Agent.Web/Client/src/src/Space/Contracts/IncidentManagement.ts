@@ -5,12 +5,18 @@ export enum IncidentManagementPlatform {
     PagerDuty = 'PagerDuty',
     AzMonitor = 'AzMonitor',
     Icm = 'Icm',
+    ServiceNow = 'ServiceNow',
 }
 
 export interface IncidentManagementFormValues {
     platform?: IncidentManagementPlatform;
     connectionKey?: string;
     createDefaultHandler?: boolean;
+    // ServiceNow specific fields
+    endpoint?: string;
+    username?: string;
+    password?: string;
+    instanceName?: string;
 }
 
 export interface IncidentManagementFormProps {

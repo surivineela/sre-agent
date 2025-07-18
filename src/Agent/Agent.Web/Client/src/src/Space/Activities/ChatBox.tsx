@@ -10,13 +10,13 @@ import ChatBoxFooter from '../Components/ChatBoxFooter';
 import ChatLoading from '../Components/ChatLoading';
 import ChatMessage from '../Components/ChatMessage';
 import { IChatBoxProps } from '../Contracts/Activities';
+import { ThreadAgentModeContext } from '../Contracts/Context';
 import { useChatBox } from '../Hooks/useChatBox';
+import { useThreadAgentMode } from '../Hooks/useThreadAgentMode';
 import { ChatBoxStyles } from '../Styles/Activities.styles';
 import AzureSREWelcome from './AzureSREWelcome';
 import { ChatSuggestions } from './ChatSuggestions';
 import { getGroupedMessages } from './Utility';
-import { useThreadAgentMode } from '../Hooks/useThreadAgentMode';
-import { ThreadAgentModeContext } from '../Contracts/Context';
 
 export const ChatBox = ({ addThread, promoteThread, updateThreadLastReadTime, threadId, threadSource }: IChatBoxProps) => {
     const { hasChatPermissions } = useContext(KnowledgeGraphBuildStatusContext);

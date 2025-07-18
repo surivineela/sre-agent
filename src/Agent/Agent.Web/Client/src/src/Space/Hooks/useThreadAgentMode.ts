@@ -1,6 +1,6 @@
-import { useMemo } from "react";
-import { AgentMode, ThreadSource } from "../../Common/Contracts/Azure/SreAgent";
-import { useThreadDataCache } from "./useThreadDataCache";
+import { useMemo } from 'react';
+import { AgentMode, ThreadSource } from '../../Common/Contracts/Azure/SreAgent';
+import { useThreadDataCache } from './useThreadDataCache';
 
 export const useThreadAgentMode = (threadId: string | null | undefined, threadSource: string | null | undefined) => {
     const { thread, isLoadingThread, isFetchingThread, fetchThreadError, invalidateThreadDataCache } = useThreadDataCache(threadId);

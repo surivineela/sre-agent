@@ -194,7 +194,7 @@ namespace Agent.Web.SignalR
                     }
 
                     var agentContexts = await _repository.GetAgentContextsForThreadAsync(threadId);
-                    var agentContext = agentContexts.FirstOrDefault(c => c.AgentType == AgentTypeEnum.Meta && c.HandoffFromAgentContextId == null);
+                    var agentContext = agentContexts.FirstOrDefault(c => (c.AgentType == AgentTypeEnum.Meta || c.AgentType == AgentTypeEnum.Incident) && c.HandoffFromAgentContextId == null);
 
                     if (agentContext == null)
                     {

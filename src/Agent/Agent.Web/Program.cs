@@ -70,6 +70,7 @@ using Agent.Runtime.SubAgents.KubernetesAgent;
 using Agent.Runtime.SubAgents.LocalAuthAgent;
 using Agent.Runtime.SubAgents.ManagedIdentityMigration;
 using Agent.Runtime.SubAgents.PagerDutyAgent;
+using Agent.Runtime.SubAgents.ServiceNowScanner;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
 using Agent.Runtime.SubAgents.SqlDbQueryPerfAgent;
 using Agent.Runtime.SubAgents.TlsBestPractices;
@@ -431,6 +432,8 @@ public class Program
             .AddTransient<ICMPluginDefinition>()
             .AddTransient<AzureAlertingPluginDefinition>()
             .AddTransient<WebAppPluginDefinition>()
+            .AddTransient<IServiceNowPlugin, ServiceNowPlugin>()
+            .AddTransient<ServiceNowPluginDefinition>()
             .AddTransient<KustoPlugin>()
             .AddSingleton<DynamicKqlToolsPlugin>()
             .AddTransient<KustoFunction>()
@@ -671,21 +674,30 @@ public class Program
             case IncidentManagementType.PagerDuty:
                 builder.Services.AddSingleton<IPagerDutyService, PagerDutyService>();
                 builder.Services.AddSingleton<IICMAPIClient, NullableICMAPIClient>();
+                builder.Services.AddSingleton<IServiceNowAPIClient, NullableServiceNowAPIClient>();
                 builder.Services.AddSingleton<IIncidentScanner, PagerDutyScanner>();
                 break;
             case IncidentManagementType.Icm:
                 builder.Services.AddSingleton<IPagerDutyService, NullablePagerDutyService>();
                 builder.Services.AddSingleton<LoggingHttpMessageHandler>();
                 builder.Services.AddSingleton<IICMAPIClient, ICMAPIClient>();
+                builder.Services.AddSingleton<IServiceNowAPIClient, NullableServiceNowAPIClient>();
                 builder.Services.AddSingleton<IIncidentScanner, IcmScanner>();
 
                 var logger = serviceProvider.GetRequiredService<ILogger<ICMAPITokenService>>();
                 var actionSettings = serviceProvider.GetRequiredService<ActionSettings>();
                 ICMAPITokenService.Instance.Initialize(actionSettings, incidentManagementSettings.ICMAPI, logger);
                 break;
+            case IncidentManagementType.ServiceNow:
+                builder.Services.AddSingleton<IPagerDutyService, NullablePagerDutyService>();
+                builder.Services.AddSingleton<IICMAPIClient, NullableICMAPIClient>();
+                builder.Services.AddSingleton<IServiceNowAPIClient, ServiceNowAPIClient>();
+                builder.Services.AddSingleton<IIncidentScanner, ServiceNowScanner>();
+                break;
             default:
                 builder.Services.AddSingleton<IPagerDutyService, NullablePagerDutyService>();
                 builder.Services.AddSingleton<IICMAPIClient, NullableICMAPIClient>();
+                builder.Services.AddSingleton<IServiceNowAPIClient, NullableServiceNowAPIClient>();
                 builder.Services.AddSingleton<IIncidentScanner, NullableIncidentScanner>();
                 break;
         }
@@ -693,6 +705,7 @@ public class Program
         //Todo, add generic interface/class for PagerDutyIncidentDocument/IcmDocument and dynamically register
         builder.Services.AddSingleton<IIncidentManagementService<PagerDutyIncidentDocument>, IncidentManagementService<PagerDutyIncidentDocument>>();
         builder.Services.AddSingleton<IIncidentManagementService<IcmIncidentDocument>, IncidentManagementService<IcmIncidentDocument>>();
+        builder.Services.AddSingleton<IIncidentManagementService<ServiceNowIncidentDocument>, IncidentManagementService<ServiceNowIncidentDocument>>();
         builder.Services.AddSingleton<IIncidentHandlerManagementService, IncidentHandlerManagementService>();
         builder.Services.AddSingleton<IIncidentFilterManagementService, IncidentFilterManagementService>();
         builder.Services.AddSingleton<IInstructionGenerationService, InstructionGenerationService>();

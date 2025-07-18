@@ -29,16 +29,25 @@ const getIncidentManagementPlatform = (agent?: ArmObj<Agent>): IncidentManagemen
             return IncidentManagementPlatform.AzMonitor;
         case IncidentManagementType.Icm:
             return IncidentManagementPlatform.Icm;
+        case IncidentManagementType.ServiceNow:
+            return IncidentManagementPlatform.ServiceNow;
         default:
             return IncidentManagementPlatform.Disconnected;
     }
 };
 
 const getInitialValues = (agent?: ArmObj<Agent>): IncidentManagementFormValues => {
+    const config = agent?.properties?.incidentManagementConfiguration;
+
     return {
         platform: getIncidentManagementPlatform(agent),
-        connectionKey: agent?.properties?.incidentManagementConfiguration?.connectionKey,
-        createDefaultHandler: !agent?.properties?.incidentManagementConfiguration?.type,
+        connectionKey: config?.connectionKey,
+        createDefaultHandler: !config?.type,
+        // ServiceNow specific fields - always empty for security
+        endpoint: config?.connectionUrl,
+        username: undefined,
+        password: undefined,
+        instanceName: undefined,
     };
 };
 
@@ -61,6 +70,17 @@ const generateIncidentManagementConfiguration = (formValues: IncidentManagementF
             return {
                 type: IncidentManagementType.Icm,
                 connectionName: 'icm',
+            };
+        case IncidentManagementPlatform.ServiceNow:
+            return {
+                type: IncidentManagementType.ServiceNow,
+                connectionName: 'servicenow',
+                connectionUrl: formValues.endpoint,
+                connectionKey: JSON.stringify({
+                    username: formValues.username,
+                    password: formValues.password,
+                    instanceName: formValues.instanceName,
+                }),
             };
         default:
             throw new Error(`Unknown incident management platform: ${formValues.platform}`);
@@ -226,7 +246,8 @@ export function useIncidentManagement(resourceId: string) {
                     } else {
                         if (
                             (formValues.platform === IncidentManagementPlatform.PagerDuty ||
-                                formValues.platform === IncidentManagementPlatform.Icm) &&
+                                formValues.platform === IncidentManagementPlatform.Icm ||
+                                formValues.platform === IncidentManagementPlatform.ServiceNow) &&
                             formValues.createDefaultHandler
                         ) {
                             pollForConnectivity(environmentContext.sreAgentEndpoint, azPortalContext.log.bind(azPortalContext)).then(
@@ -264,6 +285,11 @@ export function useIncidentManagement(resourceId: string) {
                                         if (formValues.platform === IncidentManagementPlatform.Icm) {
                                             defaultIncidentFilter.IncidentType = 'LiveSite';
                                             defaultIncidentFilter.Priority = '3';
+                                        }
+
+                                        if (formValues.platform === IncidentManagementPlatform.ServiceNow) {
+                                            defaultIncidentFilter.IncidentType = 'incident';
+                                            defaultIncidentFilter.Priority = '1';
                                         }
                                         incidentHandlerClient.createIncidentFilter(defaultIncidentFilter).then(filterResult => {
                                             setIsIncidentManagementConnected(true);

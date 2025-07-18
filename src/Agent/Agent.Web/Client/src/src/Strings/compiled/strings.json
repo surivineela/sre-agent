@@ -191,6 +191,12 @@
       "value": "To get optimal agent performance for diagnostics, metrics, knowledge, and more during preview, use resource groups that include one or more of these Azure compute services: Azure Kubernetes Service, Functions, Container Apps, or Web Apps."
     }
   ],
+  "0q6E9l": [
+    {
+      "type": 0,
+      "value": "Change credentials"
+    }
+  ],
   "0sIUhe": [
     {
       "type": 0,
@@ -553,6 +559,12 @@
     {
       "type": 0,
       "value": "Incident handler name"
+    }
+  ],
+  "5sg7KC": [
+    {
+      "type": 0,
+      "value": "Password"
     }
   ],
   "5wGcN7": [
@@ -1089,6 +1101,12 @@
       "value": "Add an incident platform so that the agent can help respond to incidents in real time. To change to a different platform, you'll need to delete the connection to the current one."
     }
   ],
+  "D2I5kb": [
+    {
+      "type": 0,
+      "value": "ServiceNow connection added successfully"
+    }
+  ],
   "D3idYv": [
     {
       "type": 0,
@@ -1283,6 +1301,12 @@
     {
       "type": 0,
       "value": "Search for resource groups"
+    }
+  ],
+  "Ep74wA": [
+    {
+      "type": 0,
+      "value": "ServiceNow is connected."
     }
   ],
   "Erci0g": [
@@ -1487,6 +1511,12 @@
       "value": "Azure Managed Grafana resource name"
     }
   ],
+  "JCIgkj": [
+    {
+      "type": 0,
+      "value": "Username"
+    }
+  ],
   "JCjxSH": [
     {
       "type": 0,
@@ -1531,6 +1561,12 @@
     {
       "type": 0,
       "value": "Remove managed resource group"
+    }
+  ],
+  "Jm+zxF": [
+    {
+      "type": 0,
+      "value": "Disconnect ServiceNow?"
     }
   ],
   "JwHSD6": [
@@ -1701,6 +1737,12 @@
       "value": "HDInsight on AKS Cluster Admin"
     }
   ],
+  "Nfo3YG": [
+    {
+      "type": 0,
+      "value": "Connect to ServiceNow with your instance endpoint and credentials. This allows the agent to manage incidents and tickets in your ServiceNow environment."
+    }
+  ],
   "NkirQc": [
     {
       "type": 0,
@@ -1833,6 +1875,12 @@
     {
       "type": 0,
       "value": "Off"
+    }
+  ],
+  "OxtrmO": [
+    {
+      "type": 0,
+      "value": "ServiceNow endpoint"
     }
   ],
   "P/1qUI": [
@@ -2993,6 +3041,12 @@
       "value": "Go to Access control"
     }
   ],
+  "fblXmJ": [
+    {
+      "type": 0,
+      "value": "Instance name"
+    }
+  ],
   "fdCjVS": [
     {
       "type": 0,
@@ -3085,6 +3139,12 @@
     {
       "type": 0,
       "value": "PostgreSQL Contributor"
+    }
+  ],
+  "h+YOYh": [
+    {
+      "type": 0,
+      "value": "To change the incident platform, you need to disconnect from ServiceNow. The agent will no longer manage tickets. Are you sure you want to disconnect?"
     }
   ],
   "h07fER": [
@@ -3181,6 +3241,12 @@
     {
       "type": 0,
       "value": "Azure Digital Twins Data Reader"
+    }
+  ],
+  "htXZ8o": [
+    {
+      "type": 0,
+      "value": "ServiceNow connected. Your next step is to set up incident handlers."
     }
   ],
   "htvX+Z": [
@@ -3485,6 +3551,12 @@
     {
       "type": 0,
       "value": "Grafana logo"
+    }
+  ],
+  "n0JssX": [
+    {
+      "type": 0,
+      "value": "This will permanently delete the connection to ServiceNow. The agent will no longer be able to manage tickets. Are you sure you want to disconnect?"
     }
   ],
   "nBPow3": [
@@ -4093,6 +4165,12 @@
       "value": "Manage Cognitive Services accounts."
     }
   ],
+  "x65I0c": [
+    {
+      "type": 0,
+      "value": "Add a default incident handler for the agent to use for High priority incidents."
+    }
+  ],
   "xDYr9m": [
     {
       "type": 0,
@@ -4267,6 +4345,12 @@
     {
       "type": 0,
       "value": "Choose resource groups"
+    }
+  ],
+  "zg0rpo": [
+    {
+      "type": 0,
+      "value": "ServiceNow"
     }
   ],
   "zpkKsD": [

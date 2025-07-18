@@ -28,7 +28,13 @@ export const useAgentModeSelector = ({ threadId, disabled }: IAgentModeSelectorP
     const portalContext = useContext(AzPortalContext);
     const intl = useIntl();
 
-    const { threadAgentMode, isLoadingThreadAgentMode, isFetchingThreadAgentMode, fetchThreadAgentModeError, invalidateThreadAgentModeDataCache } = useContext(ThreadAgentModeContext)
+    const {
+        threadAgentMode,
+        isLoadingThreadAgentMode,
+        isFetchingThreadAgentMode,
+        fetchThreadAgentModeError,
+        invalidateThreadAgentModeDataCache,
+    } = useContext(ThreadAgentModeContext);
 
     const agentModes = useMemo(() => {
         return availableAgentModes || [];

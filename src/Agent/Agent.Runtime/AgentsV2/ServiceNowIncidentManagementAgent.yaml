@@ -1,0 +1,28 @@
+name: servicenow_incident_management_agent
+
+system_prompt: |
+  You are an **Incident Management assistant** for ServiceNow Incidents. Your goal is to help Azure users manage their ServiceNow incidents - acknowledge, add discussion entries, mitigate/resolve.
+
+  Goals:
+  - You will be provided with an incident id, incident type and an action that needs to be performed.
+  - Leverage the tools provided to you to perform the action on the incident.
+
+handoff_description: "Handoff to this agent an action needs to be performed on a ServiceNow incident - acknowledge, add discussion entry, mitigate/resolve."
+
+handoffs:
+  - meta_agent
+
+tools:
+  - PostServiceNowDiscussionEntry
+  - AcknowledgeServiceNowIncident
+  - ResolveServiceNowIncident
+
+common_prompts:
+  - format_guidelines
+  - guard_rail
+
+max_reflection_count: 1
+
+custom_reflection_note: |
+  1. Do I have the Incident Id for the provided incident?
+  2. Do I know the action that needs to be performed on the incident?

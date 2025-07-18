@@ -9,6 +9,7 @@ using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
 using Agent.Core.Services;
 using Agent.Runtime.Reasoning;
+using Agent.Core.Interfaces;
 
 namespace Agent.Runtime.Services
 {
@@ -37,6 +38,7 @@ namespace Agent.Runtime.Services
         private readonly IncidentManagementSettings _incidentManagementSettings;
         private readonly IPagerDutyService _pagerDutyService;
         private readonly IICMAPIClient _icmApiClient;
+        private readonly IServiceNowAPIClient _serviceNowAPIClient;
         private readonly ILogger<IncidentFilterManagementService> _logger;
 
         public IncidentFilterManagementService(
@@ -45,7 +47,8 @@ namespace Agent.Runtime.Services
             IncidentManagementSettings incidentManagementSettings,
             IPagerDutyService pagerDutyService,
             ILogger<IncidentFilterManagementService> logger,
-            IICMAPIClient icmApiClient)
+            IICMAPIClient icmApiClient,
+            IServiceNowAPIClient serviceNowAPIClient)
         {
             _incidentManagementSettings = incidentManagementSettings;
             DocumentType = $"IncidentFilter{incidentManagementSettings.Type.ToString()}";
@@ -56,6 +59,7 @@ namespace Agent.Runtime.Services
             _pagerDutyService = pagerDutyService;
             _logger = logger;
             _icmApiClient = icmApiClient;
+            _serviceNowAPIClient = serviceNowAPIClient;
         }
 
         public async Task<bool> CheckConnectivity()
@@ -73,6 +77,10 @@ namespace Agent.Runtime.Services
                     case IncidentManagementType.Icm:
                         _logger.LogInternalInformation($"CheckConnectivity: Checking {_incidentManagementSettings.Type} service connectivity.");
                         await _icmApiClient.GetIncidentsAsync(1, 0, null, null, null);
+                        return true;
+                    case IncidentManagementType.ServiceNow:
+                        _logger.LogInternalInformation($"CheckConnectivity: Checking {_incidentManagementSettings.Type} service connectivity.");
+                        await _serviceNowAPIClient.GetIncidentsAsync(1, 0, null, null, null);
                         return true;
                     default:
                         _logger.LogInternalWarning("CheckConnectivity: Connectivity check not implemented for IncidentManagementType: {IncidentManagementType}", _incidentManagementSettings.Type);
@@ -96,6 +104,8 @@ namespace Agent.Runtime.Services
                     return await ListPagerDutyIncidentFilterFieldOptions();
                 case IncidentManagementType.Icm:
                     return ListIcmIncidentFilterFieldOptions();
+                case IncidentManagementType.ServiceNow:
+                    return await ListServiceNowIncidentFilterFieldOptions();
                 case IncidentManagementType.AzMonitor:
                 default:
                     _logger.LogInternalWarning("ListIncidentFilterFieldOptions: Not implemented for IncidentManagementType: {IncidentManagementType}", _incidentManagementSettings.Type);
@@ -236,6 +246,53 @@ namespace Agent.Runtime.Services
             });
 
             _logger.LogInternalInformation("ListIcmIncidentFilterFieldOptions: Returning {OptionCount} field options.", result.Count);
+            return result;
+        }
+
+        public async Task<List<IncidentFilterFieldOption>> ListServiceNowIncidentFilterFieldOptions()
+        {
+            _logger.LogInternalInformation("ListServiceNowIncidentFilterFieldOptions: Invoked.");
+
+            var result = new List<IncidentFilterFieldOption>();
+
+            // In a real implementation, you would fetch these from ServiceNow API
+            // For now, we'll use hardcoded values similar to the ICM implementation
+
+            var incidentTypeOptions = new List<KeyValuePair<string, string>>();
+            incidentTypeOptions.Add(new KeyValuePair<string, string>("ServiceNow", "ServiceNow"));
+
+            result.Add(new IncidentFilterFieldOption
+            {
+                FieldName = "IncidentType",
+                DisplayName = "Incident Type",
+                Options = incidentTypeOptions
+            });
+
+            var priorityOptions = new List<KeyValuePair<string, string>>
+            {
+                new KeyValuePair<string, string>("1", "Critical"),
+                new KeyValuePair<string, string>("2", "High"),
+                new KeyValuePair<string, string>("3", "Moderate"),
+                new KeyValuePair<string, string>("4", "Low"),
+                new KeyValuePair<string, string>("5", "Planning")
+            };
+
+            result.Add(new IncidentFilterFieldOption
+            {
+                FieldName = "Priority",
+                DisplayName = "Priority",
+                Options = priorityOptions
+            });
+
+            // In a real implementation, you would fetch service list from ServiceNow
+            result.Add(new IncidentFilterFieldOption
+            {
+                FieldName = "ImpactedService",
+                DisplayName = "Impacted Service",
+                Options = new List<KeyValuePair<string, string>>()
+            });
+
+            _logger.LogInternalInformation("ListServiceNowIncidentFilterFieldOptions: Returning {OptionCount} field options.", result.Count);
             return result;
         }
 

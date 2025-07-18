@@ -123,6 +123,7 @@ handoffs:
   - github_issue_agent
   - azuredevops_work_item_agent
   - pagerduty_incident_management_agent
+  - servicenow_incident_management_agent
 
 common_prompts:
   - format_guidelines

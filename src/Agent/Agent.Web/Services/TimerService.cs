@@ -301,6 +301,7 @@ public class TimerService : IHostedService, IDisposable
                     StartAzMonitorIncidentClosureTimer(cancellationToken);
                     break;
                 case IncidentManagementType.Icm:
+                case IncidentManagementType.ServiceNow:
                 case IncidentManagementType.PagerDuty:
                     _logger.LogInternalInformation($"Starting {_incidentManagementSettings.Type} Scanner timer ...");
                     StartIncidentScannerTimer(cancellationToken);

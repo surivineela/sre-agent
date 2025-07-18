@@ -13,7 +13,8 @@ namespace Agent.Core.Configuration
     {
         PagerDuty,
         Icm,
-        AzMonitor
+        AzMonitor,
+        ServiceNow
     }
 
     public class IncidentManagementSettings
@@ -44,5 +45,14 @@ namespace Agent.Core.Configuration
         public string UserToken { get; set; } = string.Empty;
         public string OwningServiceId { get; set; } = string.Empty;
         public bool ReadOnly { get; set; } = false;
+    }
+
+    public class ServiceNowAPISettings
+    {
+        public string Endpoint { get; set; } = string.Empty;
+        public string Username { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+        public string InstanceName { get; set; } = string.Empty;
+        public bool ReadOnly { get; set; } = true;
     }
 }

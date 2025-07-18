@@ -101,11 +101,16 @@ const dropdownStyles = {
     ...controlStyles,
 };
 
-const textFieldStyles = {
+const secureTextFieldStyles = {
     ...controlStyles,
     fontFamily: 'monospace',
     WebkitTextSecurity: 'disc', // Safari-specific obfuscation
     textSecurity: 'disc', // Obfuscates text in supported browsers
+};
+
+const plainTextFieldStyles = {
+    ...controlStyles,
+    fontFamily: 'monospace',
 };
 
 export const useSettingsStyles = () => {
@@ -138,7 +143,8 @@ export const useSettingsStyles = () => {
         deleteButtonStyle,
         controlStyles,
         dropdownStyles,
-        textFieldStyles,
+        secureTextFieldStyles,
+        plainTextFieldStyles,
     };
 };
 

@@ -21,7 +21,8 @@ namespace Agent.Core.Models.Api.v1
     {
         PagerDuty,
         Icm,
-        AzMonitor
+        AzMonitor,
+        ServiceNow
     }
 
     public enum ThreadType

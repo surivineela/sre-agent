@@ -92,6 +92,7 @@ export enum IncidentManagementType {
     PagerDuty = 'PagerDuty',
     AzMonitor = 'AzMonitor',
     Icm = 'Icm',
+    ServiceNow = 'ServiceNow',
 }
 
 export enum IncidentStatus {

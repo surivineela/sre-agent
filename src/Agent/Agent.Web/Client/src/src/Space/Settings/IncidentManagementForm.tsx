@@ -30,6 +30,7 @@ import {
     IncidentManagementPlatformResources,
     IncidentManagementResources,
     PagerDutyResources,
+    ServiceNowResources,
     SettingsTabResources,
     SreAgentResources,
 } from '../../Strings/SREAgentResources';
@@ -56,7 +57,10 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
     const isSetupScenario = useMemo(() => initialValues.platform === IncidentManagementPlatform.Disconnected, [initialValues.platform]);
     const isApiKeyEditable = useMemo(() => isSetupScenario || editingApiKey, [isSetupScenario, editingApiKey]);
     const shouldPoll = useMemo(
-        () => initialValues.platform === IncidentManagementPlatform.PagerDuty || initialValues.platform === IncidentManagementPlatform.Icm,
+        () =>
+            initialValues.platform === IncidentManagementPlatform.PagerDuty ||
+            initialValues.platform === IncidentManagementPlatform.Icm ||
+            initialValues.platform === IncidentManagementPlatform.ServiceNow,
         [initialValues.platform]
     );
 
@@ -70,6 +74,7 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
         const options = [
             { key: IncidentManagementPlatform.PagerDuty, text: intl.formatMessage(IncidentManagementPlatformResources.pagerDuty) },
             { key: IncidentManagementPlatform.AzMonitor, text: intl.formatMessage(IncidentManagementPlatformResources.azMonitor) },
+            { key: IncidentManagementPlatform.ServiceNow, text: intl.formatMessage(IncidentManagementPlatformResources.serviceNow) },
         ];
         const agentTenantId = tenantId ?? '';
         if (FirstPartyHelper.shouldEnableForIcm(agentTenantId)) {
@@ -84,7 +89,11 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
     }, [incidentPlatformDropdownOptions, values.platform]);
 
     const isDirty = useMemo(() => {
-        if (values.platform !== IncidentManagementPlatform.PagerDuty && initialValues.platform === values.platform) {
+        if (
+            values.platform !== IncidentManagementPlatform.PagerDuty &&
+            values.platform !== IncidentManagementPlatform.ServiceNow &&
+            initialValues.platform === values.platform
+        ) {
             return false;
         }
         return dirty;
@@ -120,6 +129,15 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                 disconnectConfirmationMessage: intl.formatMessage(IcMResources.disconnectConfirmationMessage),
                 changePlatformConfirmationTitle: intl.formatMessage(IcMResources.changePlatformConfirmationTitle),
                 changePlatformConfirmationMessage: intl.formatMessage(IcMResources.changePlatformConfirmationMessage),
+            };
+        }
+
+        if (initialValues.platform === IncidentManagementPlatform.ServiceNow) {
+            return {
+                disconnectConfirmationTitle: intl.formatMessage(ServiceNowResources.disconnectConfirmationTitle),
+                disconnectConfirmationMessage: intl.formatMessage(ServiceNowResources.disconnectConfirmationMessage),
+                changePlatformConfirmationTitle: intl.formatMessage(ServiceNowResources.changePlatformConfirmationTitle),
+                changePlatformConfirmationMessage: intl.formatMessage(ServiceNowResources.changePlatformConfirmationMessage),
             };
         }
 
@@ -159,7 +177,9 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
     return (
         <>
             {!loading &&
-                (values.platform === IncidentManagementPlatform.PagerDuty || values.platform === IncidentManagementPlatform.Icm) &&
+                (values.platform === IncidentManagementPlatform.PagerDuty ||
+                    values.platform === IncidentManagementPlatform.Icm ||
+                    values.platform === IncidentManagementPlatform.ServiceNow) &&
                 !isSetupScenario &&
                 isIncidentManagementConnected && (
                     <MessageBar style={{ maxWidth: '80%', marginBottom: 16 }}>
@@ -209,9 +229,19 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                                     } else {
                                         setFieldTouched('platform', true, false);
                                         setFieldValue('platform', data?.optionValue);
-                                        if (data?.optionValue !== IncidentManagementPlatform.PagerDuty) {
+                                        if (
+                                            data?.optionValue !== IncidentManagementPlatform.PagerDuty &&
+                                            data?.optionValue !== IncidentManagementPlatform.ServiceNow
+                                        ) {
                                             setFieldValue('connectionKey', undefined, false);
                                             setFieldTouched('connectionKey', false, false);
+                                        }
+                                        // Clear ServiceNow fields when switching away from ServiceNow
+                                        if (data?.optionValue !== IncidentManagementPlatform.ServiceNow) {
+                                            setFieldValue('endpoint', undefined, false);
+                                            setFieldValue('username', undefined, false);
+                                            setFieldValue('password', undefined, false);
+                                            setFieldValue('instanceName', undefined, false);
                                         }
                                     }
                                 }}
@@ -259,10 +289,10 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                                     style={{ maxWidth: '80%' }}
                                 >
                                     <Input
-                                        style={styles.textFieldStyles}
+                                        style={styles.secureTextFieldStyles}
                                         id="connectionKey"
                                         value={isApiKeyEditable ? values.connectionKey : undefined}
-                                        placeholder={isApiKeyEditable ? undefined : '********************'}
+                                        placeholder={isApiKeyEditable ? undefined : ''}
                                         onChange={(_event, newValue) => {
                                             setFieldTouched('connectionKey', true, false);
                                             setFieldValue('connectionKey', newValue?.value);
@@ -337,7 +367,128 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                             </>
                         )}
 
-                        {(values.platform === IncidentManagementPlatform.PagerDuty || values.platform === IncidentManagementPlatform.Icm) &&
+                        {values.platform === IncidentManagementPlatform.ServiceNow && (
+                            <>
+                                <div style={styles.pagerDutyWrapperStyle}>
+                                    <img src="./ServiceNow.svg" alt="ServiceNow" style={styles.pagerDutyLogoStyle} />
+                                </div>
+                                <div style={styles.incidentManagementDescriptionStyle}>
+                                    {intl.formatMessage(ServiceNowResources.description)}
+                                </div>
+                                {!isSetupScenario && (
+                                    <div className={pagerDutyStyles.iconContainer}>
+                                        <CheckmarkCircle16Filled
+                                            className={pagerDutyStyles.greenCheckIcon}
+                                            aria-label={intl.formatMessage(IncidentManagementResources.setUpComplete)}
+                                        />
+                                        <div>
+                                            {!isIncidentManagementConnected
+                                                ? intl.formatMessage(ServiceNowResources.addedMessage)
+                                                : hasFilters
+                                                  ? intl.formatMessage(ServiceNowResources.connectedMessage)
+                                                  : intl.formatMessage(ServiceNowResources.connectedMessageWithoutHandlers)}
+                                        </div>
+                                    </div>
+                                )}
+
+                                <Field
+                                    id="endpointField"
+                                    label={intl.formatMessage(ServiceNowResources.serviceNowEndpoint)}
+                                    orientation="horizontal"
+                                    required={true}
+                                    validationMessage={
+                                        formikProps.touched.endpoint && !isValidating ? formikProps.errors.endpoint : undefined
+                                    }
+                                    style={{ maxWidth: '80%' }}
+                                >
+                                    <Input
+                                        style={styles.plainTextFieldStyles}
+                                        id="endpoint"
+                                        value={isApiKeyEditable ? values.endpoint : undefined}
+                                        placeholder={values.endpoint ?? 'https://your-instance.service-now.com'}
+                                        onChange={(_event, newValue) => {
+                                            setFieldTouched('endpoint', true, false);
+                                            setFieldValue('endpoint', newValue?.value);
+                                        }}
+                                        disabled={saving || !isApiKeyEditable}
+                                    />
+                                </Field>
+
+                                <Field
+                                    id="usernameField"
+                                    label={intl.formatMessage(ServiceNowResources.serviceNowUsername)}
+                                    orientation="horizontal"
+                                    required={true}
+                                    validationMessage={
+                                        formikProps.touched.username && !isValidating ? formikProps.errors.username : undefined
+                                    }
+                                    style={{ maxWidth: '80%', marginTop: 16 }}
+                                >
+                                    <Input
+                                        style={styles.plainTextFieldStyles}
+                                        id="username"
+                                        value={isApiKeyEditable ? values.username : undefined}
+                                        placeholder={isApiKeyEditable ? undefined : ''}
+                                        onChange={(_event, newValue) => {
+                                            setFieldTouched('username', true, false);
+                                            setFieldValue('username', newValue?.value);
+                                        }}
+                                        disabled={saving || !isApiKeyEditable}
+                                    />
+                                </Field>
+
+                                <Field
+                                    id="passwordField"
+                                    label={intl.formatMessage(ServiceNowResources.serviceNowPassword)}
+                                    orientation="horizontal"
+                                    required={true}
+                                    validationMessage={
+                                        formikProps.touched.password && !isValidating ? formikProps.errors.password : undefined
+                                    }
+                                    style={{ maxWidth: '80%', marginTop: 16 }}
+                                >
+                                    <Input
+                                        style={styles.secureTextFieldStyles}
+                                        id="password"
+                                        type="password"
+                                        value={isApiKeyEditable ? values.password : undefined}
+                                        placeholder={isApiKeyEditable ? undefined : ''}
+                                        onChange={(_event, newValue) => {
+                                            setFieldTouched('password', true, false);
+                                            setFieldValue('password', newValue?.value);
+                                        }}
+                                        disabled={saving || !isApiKeyEditable}
+                                    />
+                                </Field>
+
+                                <Field
+                                    id="instanceNameField"
+                                    label={intl.formatMessage(ServiceNowResources.serviceNowInstanceName)}
+                                    orientation="horizontal"
+                                    required={true}
+                                    validationMessage={
+                                        formikProps.touched.instanceName && !isValidating ? formikProps.errors.instanceName : undefined
+                                    }
+                                    style={{ maxWidth: '80%', marginTop: 16 }}
+                                >
+                                    <Input
+                                        style={styles.plainTextFieldStyles}
+                                        id="instanceName"
+                                        value={isApiKeyEditable ? values.instanceName : undefined}
+                                        placeholder={isApiKeyEditable ? undefined : ''}
+                                        onChange={(_event, newValue) => {
+                                            setFieldTouched('instanceName', true, false);
+                                            setFieldValue('instanceName', newValue?.value);
+                                        }}
+                                        disabled={saving || !isApiKeyEditable}
+                                    />
+                                </Field>
+                            </>
+                        )}
+
+                        {(values.platform === IncidentManagementPlatform.PagerDuty ||
+                            values.platform === IncidentManagementPlatform.Icm ||
+                            values.platform === IncidentManagementPlatform.ServiceNow) &&
                             isSetupScenario && (
                                 <>
                                     <Field
@@ -357,7 +508,9 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                                             label={
                                                 values.platform === IncidentManagementPlatform.PagerDuty
                                                     ? intl.formatMessage(PagerDutyResources.quickstartHandlerDescription)
-                                                    : intl.formatMessage(IcMResources.quickstartHandlerDescription)
+                                                    : values.platform === IncidentManagementPlatform.ServiceNow
+                                                      ? intl.formatMessage(ServiceNowResources.quickstartHandlerDescription)
+                                                      : intl.formatMessage(IcMResources.quickstartHandlerDescription)
                                             }
                                             labelPosition="after"
                                         />
@@ -371,17 +524,21 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                             )}
 
                         <div style={styles.buttonsWrapperStyle}>
-                            {initialValues.platform === IncidentManagementPlatform.PagerDuty && !editingApiKey && (
-                                <Button
-                                    appearance="secondary"
-                                    style={{ borderRadius: 5, marginRight: 10 }}
-                                    onClick={() => {
-                                        setEditingApiKey(true);
-                                    }}
-                                >
-                                    {intl.formatMessage(PagerDutyResources.changeKey)}
-                                </Button>
-                            )}
+                            {(initialValues.platform === IncidentManagementPlatform.PagerDuty ||
+                                initialValues.platform === IncidentManagementPlatform.ServiceNow) &&
+                                !editingApiKey && (
+                                    <Button
+                                        appearance="secondary"
+                                        style={{ borderRadius: 5, marginRight: 10 }}
+                                        onClick={() => {
+                                            setEditingApiKey(true);
+                                        }}
+                                    >
+                                        {initialValues.platform === IncidentManagementPlatform.PagerDuty
+                                            ? intl.formatMessage(PagerDutyResources.changeKey)
+                                            : intl.formatMessage(ServiceNowResources.changeKey)}
+                                    </Button>
+                                )}
 
                             {(isSetupScenario || editingApiKey) && (
                                 <Button
@@ -396,7 +553,9 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                                         saving ||
                                         isValidating ||
                                         !isValid ||
-                                        (values.platform === IncidentManagementPlatform.PagerDuty && !values.connectionKey)
+                                        (values.platform === IncidentManagementPlatform.PagerDuty && !values.connectionKey) ||
+                                        (values.platform === IncidentManagementPlatform.ServiceNow &&
+                                            (!values.endpoint || !values.username || !values.password || !values.instanceName))
                                     }
                                 >
                                     {intl.formatMessage(SreAgentResources.save)}

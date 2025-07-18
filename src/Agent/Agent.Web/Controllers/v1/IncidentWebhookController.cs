@@ -220,6 +220,77 @@ public class IncidentWebhookController : ControllerBase
     }
 #endif
 
+    /// <summary>
+    /// Handles ServiceNow incident webhook notifications
+    /// </summary>
+    [HttpPost("servicenow")]
+    public async Task<IActionResult> ServiceNowWebhook([FromBody] ServiceNowRequest request)
+    {
+        _logger.LogInternalInformation(
+            "ServiceNowWebhook: Invoked with IncidentId: {IncidentId}, Title: {Title}, Source: {Source}",
+            request?.IncidentId, request?.Title, request?.Source ?? "ServiceNow");
+
+        if(request == null)
+        {
+            _logger.LogInternalError("ServiceNowWebhook: ServiceNowRequest is null");
+            throw new ArgumentNullException(nameof(request), "ServiceNowRequest cannot be null");
+        }
+
+        try
+        {
+            return await ServiceNowProcessIncident(request);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(
+                ex,
+                "ServiceNowWebhook: Error processing ServiceNow webhook for IncidentId: {IncidentId}, Title: {Title}, Source: {Source}",
+                request?.IncidentId, request?.Title, request?.Source ?? "ServiceNow");
+
+            return StatusCode(500, "Failed to process ServiceNow webhook");
+        }
+    }
+
+    private async Task<IActionResult> ServiceNowProcessIncident(ServiceNowRequest request)
+    {
+        _logger.LogInternalInformation(
+            "ServiceNowProcessIncident: Handling incident with IncidentId: {IncidentId}, Title: {Title}, Source: {Source}",
+            request?.IncidentId, request?.Title, request?.Source ?? "ServiceNow");
+
+        if (request == null)
+        {
+            throw new ArgumentNullException(nameof(request), "ServiceNowRequest cannot be null");
+        }
+
+        var response = await _incidentHandlingService.HandleIncidentAsync(
+            new IncidentHandlingRequestModel()
+            {
+                IncidentId = request.IncidentId ?? string.Empty,
+                Title = request.Title ?? string.Empty,
+                Description = request.Description ?? string.Empty,
+                Severity = request.Severity,
+                Source = "ServiceNow",
+                AdditionalProperties = request.AdditionalProperties,
+            }
+        );
+
+        if (response == null)
+        {
+            _logger.LogInternalError(
+                "ServiceNowProcessIncident: Failed to handle ServiceNow incident for IncidentId: {IncidentId}, Title: {Title}, Source: {Source}",
+                request?.IncidentId, request?.Title, request?.Source ?? "ServiceNow");
+
+            return StatusCode(500, "Failed to handle ServiceNow incident");
+        }
+        else
+        {
+            _logger.LogInternalInformation(
+                "ServiceNowProcessIncident: Successfully handled ServiceNow incident for IncidentId: {IncidentId}, StatusCode: {StatusCode}",
+                request?.IncidentId, response.StatusCode);
+
+            return StatusCode(response.StatusCode, response.Response);
+        }
+    }
 }
 
 #region Request Models
@@ -371,6 +442,45 @@ public class PagerDutyRequestAdapter : IIncidentAdapter
             IncidentId = _request.IncidentId,
             Severity = _request.Severity,
             Source = "PagerDuty",
+            AdditionalProperties = _request.AdditionalProperties
+        };
+    }
+}
+
+public class ServiceNowRequest
+{
+    public string? Title { get; set; }
+
+    public string? Description { get; set; }
+
+    [Required]
+    public string? IncidentId { set; get; }
+
+    public string? Severity { get; set; }
+
+    public string? Source { get; set; } = "ServiceNow";
+
+    public Dictionary<string, string>? AdditionalProperties { get; set; }
+}
+
+public class ServiceNowRequestAdapter : IIncidentAdapter
+{
+    private readonly ServiceNowRequest _request;
+
+    public ServiceNowRequestAdapter(ServiceNowRequest request)
+    {
+        _request = request;
+    }
+    
+    public IncidentRequest ToStandardFormat()
+    {
+        return new IncidentRequest
+        {
+            Title = _request.Title ?? "ServiceNow Alert",
+            Description = _request.Description ?? "Alert notification from ServiceNow",
+            IncidentId = _request.IncidentId,
+            Severity = _request.Severity,
+            Source = "ServiceNow",
             AdditionalProperties = _request.AdditionalProperties
         };
     }
