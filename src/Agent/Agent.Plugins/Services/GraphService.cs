@@ -508,10 +508,13 @@ public class GraphService : IGraphService
                     (azdoAccessToken.ExpiresOn is null || azdoAccessToken.ExpiresOn > DateTime.UtcNow);
 
                 var githubRepoRegex = new Regex(@"^https:\/\/github\.com\/[\w-]+\/[\w-]+\.git$", RegexOptions.Compiled);
-                var azdoRepoRegex = new Regex(@"^https:\/\/(?:dev\.azure\.com\/|[\w-]+\.visualstudio\.com\/)[\w-]+\/[\w-]+\/_git\/[\w.-]+$", RegexOptions.Compiled);
+                var azDoMatch = Regex.Match(repoUrl,
+    @"^https:\/\/(?:(?<org1>dev\.azure\.com)\/(?<organization>[^\/]+)\/(?<project>[^\/]+)\/|(?<organization>[^\/]+)\.visualstudio\.com\/(?<project>[^\/]+)\/)",
+    RegexOptions.IgnoreCase);
+                bool isAzDoRepo = azDoMatch.Success;
 
                 bool GithubRegexMatch(string url) => !string.IsNullOrEmpty(url) && githubRepoRegex.IsMatch(url);
-                bool AzdoRegexMatch(string url) => !string.IsNullOrEmpty(url) && azdoRepoRegex.IsMatch(url);
+                bool AzdoRegexMatch(string url) => !string.IsNullOrEmpty(url) && isAzDoRepo; 
 
                 if (!string.IsNullOrEmpty(repoUrl) && AzdoRegexMatch(repoUrl))
                 {

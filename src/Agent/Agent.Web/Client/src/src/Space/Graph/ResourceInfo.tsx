@@ -38,7 +38,8 @@ import HealthStatus from './HealthStatus';
 import { getAppHealthInfo } from './Utility';
 
 const githubRepoRegex = /^https:\/\/github\.com\/[\w-]+\/[\w-]+\.git$/;
-const azdoRepoRegex = /^https:\/\/(?:dev\.azure\.com\/|[\w-]+\.visualstudio\.com\/)[\w-]+\/[\w-]+\/_git\/[\w.-]+$/;
+//const azdoRepoRegex = /^https:\/\/(?:dev\.azure\.com\/|[\w-]+\.visualstudio\.com\/)[\w-]+\/[\w-]+\/_git\/[\w.-]+$/;
+const azdoRepoRegex = /^https:\/\/(?:dev\.azure\.com\/|[\w-]+\.visualstudio\.com\/)[\w-]+\/_git\/[\w.-]+$/;
 
 const isNullOrUndefined = (input?: unknown): boolean => {
     return input === undefined || input === null;

@@ -138,11 +138,10 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
             [".tf.json"] = "Terraform",
         };
 
-        Dictionary<string, string> detectedTools = new();
+        Dictionary<string, List<string>> detectedTools = new();
 
         // Get the files from the repo
         Dictionary<string, string> filesContent = await GetFilesFromRepo(token, repoUrl, branch, fileMatches);
-        List<string> files = filesContent.Keys.ToList();
 
         foreach (var f in filesContent)
         {
@@ -154,16 +153,26 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
             if (fileName.Equals("Chart.yaml", StringComparison.OrdinalIgnoreCase) ||
                 fileContent.Contains($"{Path.DirectorySeparatorChar}templates{Path.DirectorySeparatorChar}"))
             {
-                detectedTools.Add("Helm", fileContent);
+                if (!detectedTools.ContainsKey("Helm"))
+                    detectedTools["Helm"] = new List<string>();
+                detectedTools["Helm"].Add(fileName);
             }
 
             // Static file map (Terraform, Bicep)
             if (StaticFileMap.TryGetValue(ext, out var tool))
             {
                 if (tool == "Terraform" && fileContent.Contains("provider \"azurerm\""))
-                    detectedTools.Add("Terraform (Azure)", fileContent);
+                {
+                    if (!detectedTools.ContainsKey("Terraform (Azure)"))
+                        detectedTools["Terraform (Azure)"] = new List<string>();
+                    detectedTools["Terraform (Azure)"].Add(fileName);
+                }
                 else if (tool == "Bicep")
-                    detectedTools.Add("Bicep", fileContent);
+                {
+                    if (!detectedTools.ContainsKey("Bicep"))
+                        detectedTools["Bicep"] = new List<string>();
+                    detectedTools["Bicep"].Add(fileName);
+                }
             }
 
             // ARM Templates
@@ -171,7 +180,9 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
             {
                 if (fileContent.Contains("\"$schema\"") && fileContent.Contains("management.azure.com"))
                 {
-                    detectedTools.Add("ARM Template", fileContent);
+                    if (!detectedTools.ContainsKey("ARM Template"))
+                        detectedTools["ARM Template"] = new List<string>();
+                    detectedTools["ARM Template"].Add(fileName);
                 }
             }
 
@@ -180,7 +191,9 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
             {
                 if (Regex.IsMatch(fileContent, @"azure_rm_|community\.azure"))
                 {
-                    detectedTools.Add("Ansible (Azure)", fileContent);
+                    if (!detectedTools.ContainsKey("Ansible (Azure)"))
+                        detectedTools["Ansible (Azure)"] = new List<string>();
+                    detectedTools["Ansible (Azure)"].Add(fileName);
                 }
             }
 
@@ -189,7 +202,9 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
             {
                 if (fileContent.Contains("Pulumi") && fileContent.Contains("Azure"))
                 {
-                    detectedTools.Add("Pulumi (C#)", fileContent);
+                    if (!detectedTools.ContainsKey("Pulumi (C#)"))
+                        detectedTools["Pulumi (C#)"] = new List<string>();
+                    detectedTools["Pulumi (C#)"].Add(fileName);
                 }
             }
 
@@ -198,7 +213,9 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
             {
                 if (Regex.IsMatch(fileContent, @"@pulumi/azure", RegexOptions.IgnoreCase))
                 {
-                    detectedTools.Add("Pulumi (TypeScript/JavaScript)", fileContent);
+                    if (!detectedTools.ContainsKey("Pulumi (TypeScript/JavaScript)"))
+                        detectedTools["Pulumi (TypeScript/JavaScript)"] = new List<string>();
+                    detectedTools["Pulumi (TypeScript/JavaScript)"].Add(fileName);
                 }
             }
 
@@ -207,14 +224,18 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
             {
                 if (Regex.IsMatch(fileContent, @"import pulumi_azure", RegexOptions.IgnoreCase))
                 {
-                    detectedTools.Add("Pulumi (Python)", fileContent);
+                    if (!detectedTools.ContainsKey("Pulumi (Python)"))
+                        detectedTools["Pulumi (Python)"] = new List<string>();
+                    detectedTools["Pulumi (Python)"].Add(fileName);
                 }
             }
         }
 
         if (detectedTools.Count > 0)
         {
-            return string.Join(" \n\n", detectedTools.Select(kvp => $"{kvp.Key}: {kvp.Value}"));
+            var results = detectedTools.Select(kvp => 
+                $"{kvp.Key}: {string.Join(", ", kvp.Value.Take(5))}{(kvp.Value.Count > 5 ? $" (and {kvp.Value.Count - 5} more)" : "")}");
+            return string.Join("\n", results);
         }
 
         else

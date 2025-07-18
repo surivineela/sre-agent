@@ -135,7 +135,8 @@ public class AzureDevOpsController(
         public required string ResourceId { get; set; }
 
         // This regex pattern should be same as the one used in the GitHubHelper.ParseGitHubUrl
-        [RegularExpression(@"^https:\/\/(?:dev\.azure\.com\/|[\w-]+\.visualstudio\.com\/)[\w-]+\/[\w-]+\/_git\/[\w.-]+$", ErrorMessage = "Repository URL must be a valid Azure DevOps HTTPS Git URL.")]
+        [RegularExpression(@"^https:\/\/(?:dev\.azure\.com\/|[\w-]+\.visualstudio\.com\/)[\w-]+\/_git\/[\w.-]+$",
+            ErrorMessage = "Repository URL must be a valid Azure DevOps HTTPS Git URL.")]
         public required string RepoUrl { get; set; }
         public string? Namespace { get; set; } // Optional, can be null
         public string? ResourceName { get; set; } // Optional, can be null
