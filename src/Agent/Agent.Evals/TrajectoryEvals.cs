@@ -10,10 +10,7 @@ public class TrajectoryEvals
 {
     private static TestHost TestHost { get; } = TestHelpers.InitializeTestHost();
 
-    private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web)
-    {
-        WriteIndented = true,
-    };
+    private static readonly JsonSerializerOptions _jsonOptions = AIJsonUtilities.DefaultOptions;
 
     #region Test-Case Discovery
 
@@ -74,7 +71,9 @@ public class TrajectoryEvals
         // 3. Extract the trajectory
         (var extractedTrajectory, var _) = await TrajectoryExtractor.GenerateTrajectoryAsync_v3(
             TestHost.RunConfig.ChatClient,
-            conversationMessages);
+            conversationMessages,
+            startAgent,
+            autoHandOff);
 
         // should be marked as investigation.
         Assert.IsTrue(extractedTrajectory.IsInvestigationThread);

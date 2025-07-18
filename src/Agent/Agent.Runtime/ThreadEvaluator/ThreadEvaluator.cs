@@ -39,6 +39,8 @@ public class ThreadEvaluator
 
     private readonly ISearchIndexService _searchIndexService;
 
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = AIJsonUtilities.DefaultOptions;
+
     public ThreadEvaluator(
         ILogger<ThreadEvaluator> logger,
         IThreadRepository threadRepository,
@@ -224,12 +226,17 @@ public class ThreadEvaluator
                 try
                 {
                     var chatMessages = await GetChatMessages(agentContexts.First());
-                    var trajectoryInfo = await TrajectoryExtractor.GenerateTrajectoryAsync_v3(_chatClient, chatMessages, cancellationToken);
+
+                    // todo: pass in start agent and autohandoff from the thread info
+                    var trajectoryInfo = await TrajectoryExtractor.GenerateTrajectoryAsync_v3(
+                        _chatClient,
+                        chatMessages,
+                        cancellationToken: cancellationToken);
 
                     var trajectory = trajectoryInfo.Trajectory;
                     if (trajectory != null)
                     {
-                        var trajectoryString = JsonSerializer.Serialize(trajectory);
+                        var trajectoryString = JsonSerializer.Serialize(trajectory, _jsonSerializerOptions);
                         await SaveTrajectoryAsync(thread.Id, trajectoryString, trajectoryInfo.PromptHash, cancellationToken);
 
                         var vector = await _embeddingGenerator.GenerateVectorAsync(trajectory.SymptomsObserved, null, cancellationToken);

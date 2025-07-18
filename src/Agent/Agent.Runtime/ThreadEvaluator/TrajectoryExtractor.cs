@@ -20,6 +20,8 @@ namespace Agent.Runtime.ThreadEvaluator;
 /// </summary>
 public static class TrajectoryExtractor
 {
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = AIJsonUtilities.DefaultOptions;
+
     public static async Task<(string Trajectory, string PromptHash)> GenerateTrajectoryAsync(
         IChatClient chatClient,
         IEnumerable<ChatMessage> chatMessages,
@@ -92,15 +94,15 @@ public static class TrajectoryExtractor
     public static async Task<(ProcessedTrajectoryOutput_v3 Trajectory, string PromptHash)> GenerateTrajectoryAsync_v3(
         IChatClient chatClient,
         IEnumerable<ChatMessage> chatMessages,
+        string startAgent = "meta_agent",
+        bool autoHandOffToStartEnabled = false,
         CancellationToken cancellationToken = default)
     {
-        var chatTrajectory = new Trajectory();
-
+        var chatTrajectory = new AgentTrajectory(startAgent, autoHandOffToStartEnabled);
         foreach (var msg in chatMessages)
         {
             chatTrajectory.Append(msg);
         }
-
         var chatTranscript = chatTrajectory.GetFullTrajectory();
 
         var modelInput = new List<ChatMessage>
@@ -121,7 +123,7 @@ public static class TrajectoryExtractor
             cancellationToken: cancellationToken);
 
         // deserialize the raw trajectory
-        var rawTraj = JsonSerializer.Deserialize<TrajectoryOutput_v3>(extractedTrajectory.Text);
+        var rawTraj = JsonSerializer.Deserialize<TrajectoryOutput_v3>(extractedTrajectory.Text, _jsonSerializerOptions);
 
         // process as needed
         var finalTrajectory = ProcessedTrajectoryOutput_v3.FromTrajectoryOutput(rawTraj);

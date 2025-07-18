@@ -43,7 +43,8 @@ public sealed class ProcessedTrajectoryOutput_v3
         var resourceTypes = trajectoryOutput.ResourcesInvolved
             .Split(';', StringSplitOptions.RemoveEmptyEntries)
             .Select(GetResourceType)
-            .Where(p => p is not null);
+            .Where(p => p is not null)
+            .ToHashSet(); // de-duplicate types
 
         return new ProcessedTrajectoryOutput_v3
         {

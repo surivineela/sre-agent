@@ -1,14 +1,17 @@
 {
-  "reasoningScratchPad": "The user asked a series of resource discovery and health monitoring questions, starting with listing all Function Apps, searching for resources by name, and requesting health and exception data for specific apps. At no point did the user report a production issue, error, or operational failure. All agent actions were routine lookups (resource enumeration, health snapshot, exception queries) and not part of a troubleshooting or investigation flow. When asked about exceptions or memory leaks, the agent simply reported the current state or lack of data, without any multi-step diagnostic process or root cause analysis. There were no branching investigations, no user corrections, and no systematic troubleshooting methodology demonstrated. All system architecture knowledge was inferred by the agent, not explicitly stated by the user.",
+  "reasoningScratchPad": "Initial Assessment:\n- User request: \"What all Function Apps I have\"\n- Type of interaction: routine query for resource inventory\n- Classification: Is this an investigation thread? No\n- Reasoning: The user is asking for a list of Function Apps, not reporting any operational issues or symptoms. The subsequent queries (resource name search, health, exceptions, memory leaks) are all informational or preventive checks, not driven by a reported problem.\n\n- The conversation consists of resource discovery (listing Function Apps, searching by name), configuration/health lookups, and preventive checks (memory leaks, exceptions) without any explicit user-reported issue or incident.\n- No troubleshooting or multi-step investigation of a production problem occurred.\n- All agent actions were routine lookups or monitoring queries, not investigation of a failure or outage.",
   "isInvestigationThread": false,
-  "classificationReason": "This is not an investigation thread because the user never reported a specific problem or operational issue. All queries were routine resource discovery or health checks, not systematic troubleshooting of a reported failure.",
-  "title": "Routine Azure Resource Discovery and Health Checks",
-  "subscriptionsInvolved": "987e6029-fd7c-482b-81ad-7714e25061fe",
-  "resourcesInvolved": "Microsoft.Web/sites:dip-coldstore-1-westus2; Microsoft.Web/sites:dip-coldstore-0-westus2; Microsoft.Web/sites:dip-core-akv-funcapp-1; Microsoft.Web/sites:dw-ntf-svc-1-wus2; Microsoft.Web/sites:dip-processor-1-westus2",
+  "classificationReason": "User only requested resource listings, health, and preventive checks without reporting any specific problems or symptoms. No investigation of an operational issue occurred.",
+  "title": "Function App and Resource Discovery with Preventive Checks",
+  "incidentTitle": "N/A",
+  "incidentID": "N/A",
+  "incidentTime": "N/A",
   "systemDesignKnowledge": "N/A",
   "initialSymptoms": "N/A",
-  "symptomsObserved": "N/A",
   "stepsFollowed": "N/A",
+  "symptomsObserved": "N/A",
+  "pitfalls": "N/A",
   "rootCause": "N/A",
-  "pitfalls": "N/A"
+  "resourcesInvolved": "/subscriptions/987e6029-fd7c-482b-81ad-7714e25061fe/resourceGroups/dip-coldstore-1-westus2/providers/Microsoft.Web/sites/dip-coldstore-1-westus2;/subscriptions/987e6029-fd7c-482b-81ad-7714e25061fe/resourceGroups/dip-coldstore-0-westus2/providers/Microsoft.Web/sites/dip-coldstore-0-westus2;/subscriptions/987e6029-fd7c-482b-81ad-7714e25061fe/resourceGroups/dip-core-prod/providers/Microsoft.Web/sites/dip-core-akv-funcapp-1;/subscriptions/987e6029-fd7c-482b-81ad-7714e25061fe/resourceGroups/dw-ntf-svc-1-westus2/providers/Microsoft.Web/sites/dw-ntf-svc-1-wus2;/subscriptions/987e6029-fd7c-482b-81ad-7714e25061fe/resourceGroups/dip-ppl-sync-50-westus2/providers/Microsoft.Web/sites/dip-ppl-sync-50-westus2;/subscriptions/987e6029-fd7c-482b-81ad-7714e25061fe/resourceGroups/dip-ppl-sync-1-westus2/providers/Microsoft.Web/sites/dip-ppl-sync-1-westus2;/subscriptions/987e6029-fd7c-482b-81ad-7714e25061fe/resourceGroups/dip-ppl-sync-51-westus2/providers/Microsoft.Web/sites/dip-ppl-sync-51-westus2;/subscriptions/987e6029-fd7c-482b-81ad-7714e25061fe/resourceGroups/dw-ntf-svc-0-westus2/providers/Microsoft.Web/sites/dw-ntf-svc-0-wus2;/subscriptions/987e6029-fd7c-482b-81ad-7714e25061fe/resourceGroups/dip-ppl-sync-0-westus2/providers/Microsoft.Web/sites/dip-ppl-sync-0-westus2;/subscriptions/987e6029-fd7c-482b-81ad-7714e25061fe/resourceGroups/dip-processor-1-westus2/providers/Microsoft.Web/sites/dip-processor-1-westus2",
+  "resourceTypesInvolved": "Microsoft.Web/sites"
 }
