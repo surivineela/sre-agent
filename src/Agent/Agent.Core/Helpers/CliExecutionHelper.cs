@@ -47,9 +47,46 @@ public static class CliExecutionHelper
 {
     public async static Task<CliExecutionResult> ParseCliExecutionResult(IChatClient chatClient, string output)
     {
-        var msg = new ChatMessage(ChatRole.System, $"You are a helpful assistant that analyzes Azure CLI and kubectl command outputs. " +
-            "Your task is to determine if the output indicates an error." +
-            $"Here is the command output:\n{output}");
+        var msg = new ChatMessage(ChatRole.System, $"""
+            You are a helpful assistant that analyzes Azure CLI and kubectl command outputs to determine if the COMMAND EXECUTION itself failed.
+            
+            IMPORTANT: You must distinguish between:
+            1. Command execution errors (the command itself failed to run properly)
+            2. Resource status information (the command ran successfully but shows unhealthy resource states)
+            
+            Command execution errors include:
+            - Authentication/authorization failures
+            - Invalid command syntax or parameters
+            - Network connectivity issues
+            - Resource not found errors
+            - Permission denied errors
+            - Command timeouts or connection failures
+            
+            Resource status information (NOT command errors):
+            - Pods in CrashLoopBackOff, Failed, or Pending states
+            - Services showing unhealthy endpoints
+            - Nodes showing NotReady status
+            - Deployments with failed replicas
+            - Events showing resource problems
+            - Any other status information about Kubernetes resources being unhealthy
+            
+            Examples of successful command execution (even if resources are unhealthy):
+            - "kubectl get pods" returning pods in CrashLoopBackOff state
+            - "kubectl describe pod" showing crash events
+            - "az vm show" returning a stopped VM
+            - "kubectl get events" showing error events
+            
+            Examples of command execution errors:
+            - "Error: You must be logged in to the server"
+            - "command not found"
+            - "Invalid resource name"
+            - "Forbidden: insufficient permissions"
+            - "Connection refused"
+            - "The resource 'xyz' was not found"
+            
+            Analyze this command output and determine if the COMMAND EXECUTION failed:
+            {output}
+            """);
 
         var chatOptions = new ChatOptions
         {
