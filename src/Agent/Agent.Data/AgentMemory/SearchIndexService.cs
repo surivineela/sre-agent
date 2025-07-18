@@ -66,6 +66,41 @@ public class SearchIndexService : ISearchIndexService
         }
     }
 
+    public async Task<bool> DeleteContentsAsync(List<AgentMemory> memories)
+    {
+        try
+        {
+            if (memories == null || !memories.Any())
+            {
+                _logger.LogInternalInformation("No memories provided for deletion");
+                return true;
+            }
+
+            var deleteActions = memories.Select(memory =>
+                new IndexDocumentsAction<AgentMemory>(IndexActionType.Delete, memory)).ToList();
+
+            var batch = IndexDocumentsBatch.Create(deleteActions.ToArray());
+            var response = await _searchClient.IndexDocumentsAsync(batch);
+
+            var allSucceeded = response.Value.Results.All(r => r.Succeeded);
+            var successCount = response.Value.Results.Count(r => r.Succeeded);
+
+            if (allSucceeded)
+            {
+                _logger.LogInternalInformation($"Successfully deleted {successCount} memories from search index");
+                return true;
+            }
+
+            _logger.LogInternalError($"Partially failed to delete memories. {successCount}/{memories.Count} succeeded");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, $"Error deleting {memories?.Count ?? 0} memories from search index");
+            return false;
+        }
+    }
+
     /// <summary>
     /// Indexes a single piece of content
     /// </summary>

@@ -387,6 +387,13 @@ public class ReasoningLoop : IDisposable
                                 return;
                             }
 
+                            // process #forget command
+                            if (chatMessage.Message.Text.Contains("#forget", StringComparison.OrdinalIgnoreCase) && _agentMemoryEnabled)
+                            {
+                                await HandleForgetCommandAsync(agentChatHistory, chatMessage.Message.Text, cancellationToken);
+                                return;
+                            }
+
                             StringBuilder sb = new StringBuilder();
                             sb.AppendLine("Try your best to answer the user's questions. Keep in mind:");
                             sb.AppendLine(" - If you find a suitable agent to handoff to, call transfer_to_{agentName} tool directly");
@@ -1508,6 +1515,65 @@ public class ReasoningLoop : IDisposable
             await PersistReasoningMessageAsync(agentChatHistory, errorMessage);
             await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context, errorMessage);
         }
+    }
+
+    private async Task HandleForgetCommandAsync(AgentChatHistory agentChatHistory, string userMessage, CancellationToken cancellationToken)
+    {
+        try
+        {
+            _logger.LogInternalInformation("[{threadId}]Processing #forget command.", _context.ThreadId);
+
+            await PersistReasoningMessageAsync(agentChatHistory, new ChatMessage(ChatRole.User, userMessage));
+
+            const string retrievePrefix = "#forget";
+            var retrieveIndex = userMessage.IndexOf(retrievePrefix, StringComparison.OrdinalIgnoreCase);
+            var query = userMessage.Substring(retrieveIndex + retrievePrefix.Length).Trim();
+
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                var errorMessage = new ChatMessage(ChatRole.Assistant, "Please provide what to forget after #forget. For example: '#forget my preferences about coffee'");
+
+                await PersistReasoningMessageAsync(agentChatHistory, errorMessage);
+                await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context, errorMessage);
+                return;
+            }
+
+            var memories = await _agentMemoryClient.SearchUserMemoriesAsync(
+                query: query,
+                k: 1,
+                enableHybridSearch: true,
+                cancellationToken: cancellationToken);
+
+            if (memories.Count == 0)
+            {
+                var noResultsMessage = new ChatMessage(ChatRole.Assistant, "No memories found for your query.");
+
+                await PersistReasoningMessageAsync(agentChatHistory, noResultsMessage);
+                await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context, noResultsMessage);
+                return;
+            }
+
+            var deleted = await _searchIndexService.DeleteContentsAsync(memories.Select(m => new AgentMemory() { Id = m.Id }).ToList());
+
+            var responseText = deleted ? "✅ Agent Memory forgotten: " + memories.First().Chunk : "Failed to forget memory. Please try again.";
+
+            var responseMessage = new ChatMessage(ChatRole.Assistant, responseText);
+
+            await PersistReasoningMessageAsync(agentChatHistory, responseMessage);
+            await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context, responseMessage);
+
+            _logger.LogInternalInformation("[{threadId}]Successfully processed #retrieve command with {count} memories", _context.ThreadId, memories.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "[{threadId}]Error processing #retrieve command", _context.ThreadId);
+
+            var errorMessage = new ChatMessage(ChatRole.Assistant, "Error retrieving memories. Please try again.");
+
+            await PersistReasoningMessageAsync(agentChatHistory, errorMessage);
+            await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context, errorMessage);
+        }
+
     }
 
     private async Task HandleRetrieveCommandAsync(AgentChatHistory agentChatHistory, string userMessage, CancellationToken cancellationToken)

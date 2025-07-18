@@ -20,4 +20,9 @@ public interface ISearchIndexService
     /// Indexes a single piece of content
     /// </summary>
     Task<bool> IndexContentAsync(AgentMemory content);
+
+    /// <summary>
+    /// Deletes memories
+    /// </summary>
+    Task<bool> DeleteContentsAsync(List<AgentMemory> memories);
 }
