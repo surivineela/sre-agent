@@ -39,7 +39,7 @@ const ICON_LOOKUP: Record<string, string> = {
     networksecuritygroup: 'NSG.svg',
 
     // API Management
-    service: 'APIManagement.svg',
+    service: 'ApiManagement.svg',
 };
 
 // Friendly names for resource types
