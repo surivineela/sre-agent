@@ -1,5 +1,4 @@
 using System.Net;
-using System.Threading;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
@@ -7,7 +6,6 @@ using Agent.Core.Models.ICM;
 using Agent.Core.Services;
 using Agent.Data;
 using Agent.Data.DataModels;
-using Agent.Logging;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Services;
 using Microsoft.Azure.Cosmos;
@@ -26,9 +24,8 @@ public class IcmScanner(ILogger<IcmScanner> logger,
 {
 
     private readonly Container container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
-    private const uint PageSize = 10;
+    private const uint PageSize = 50;
     private readonly static TimeSpan ScanInterval = TimeSpan.FromMinutes(1);
-    private readonly static TimeSpan PageInterval = TimeSpan.FromSeconds(10);
     private bool isScanSucceeded = true;
     private DateTime lastScanTime;
     //After offset > 5000, ICM endpoint will returning 400 bad request
@@ -41,6 +38,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
         while (!cancellationToken.IsCancellationRequested)
         {
             var filters = await incidentFilterManagementService.ListIncidentFilters();
+            var scanStartTime = DateTime.UtcNow;
             if (filters is null || filters.Count == 0)
             {
                 logger.LogInternalInformation("[IcmScanner] No incident filters found, skipping IcM scanner.");
@@ -50,9 +48,8 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                 await ScanAllIncidentsAsync(cancellationToken,filters);
                 if(isScanSucceeded)
                 {
-                    //Once scan scceeded, update the last scan time to now - 20sec to give overlap between scans
-                    var dateTime = DateTime.UtcNow.AddSeconds(-20);
-                    lastScanTime = await UpdateLastScanTimeDocAsync(dateTime);
+                    //Once scan scceeded, update the last scan time to startTime - 20sec to give overlap between scans
+                    lastScanTime = await UpdateLastScanTimeDocAsync(scanStartTime.AddSeconds(-20));
                 } else
                 {
                     logger.LogInternalWarning("[IcmScanner] IcM scanner failed to scan incidents, last scan time will not be updated.");
@@ -122,8 +119,6 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                     incidentDocument = await UpsertIncidentDocumentIfNeededAsync(incidentDocument, incident);
                     await NotifyUserAsync(incidentDocument, new List<string>());
                 }
-                //Between each page, wait for 10 seconds
-                await Task.Delay(PageInterval);
             }
             catch (Exception ex)
             {
