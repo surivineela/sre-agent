@@ -1,0 +1,10 @@
+let siteName = "##siteName##";
+let eventPrimaryStampName = "##eventPrimaryStampName##";
+let startTime = datetime("##startTime##");
+let endTime = datetime("##endTime##");
+ScaleControllerEvents
+| where PreciseTimeStamp between (startTime .. endTime)
+| where SiteName =~ siteName
+| where EventPrimaryStampName == eventPrimaryStampName
+| take 50
+| project PreciseTimeStamp, Message, Source

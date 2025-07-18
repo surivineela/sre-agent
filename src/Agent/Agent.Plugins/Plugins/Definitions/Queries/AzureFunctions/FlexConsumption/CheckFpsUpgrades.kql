@@ -1,0 +1,11 @@
+let antaresStamp = "##antaresStamp##";
+let binInterval = "##binInterval##";
+let endTime = datetime("##endTime##");
+let startTime = datetime("##startTime##");
+FunctionsPodServiceLauncherEvents
+| where PreciseTimeStamp between (startTime .. endTime)
+| where EventPrimaryStampName == antaresStamp
+| parse msg with "Running version: " FpsVersion "," *
+| where isnotempty(FpsVersion)
+| summarize count() by FpsVersion
+| project FpsVersion, count_

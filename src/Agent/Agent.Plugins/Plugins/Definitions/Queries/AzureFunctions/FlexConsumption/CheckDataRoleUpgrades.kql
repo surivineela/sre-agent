@@ -1,0 +1,11 @@
+let antaresStamp = "##antaresStamp##";
+let binInterval = "##binInterval##";
+let endTime = datetime("##endTime##");
+let startTime = datetime("##startTime##");
+RoleInstanceHeartbeat
+| where PreciseTimeStamp between (startTime .. endTime)
+| where EventPrimaryStampName == antaresStamp
+| where Role == "DataRole"
+| project PreciseTimeStamp, Role, BuildVersion
+| summarize count() by BuildVersion
+| project BuildVersion, count_

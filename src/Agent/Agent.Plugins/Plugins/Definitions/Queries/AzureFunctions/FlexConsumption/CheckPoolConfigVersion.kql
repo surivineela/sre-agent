@@ -1,0 +1,16 @@
+let antaresStamp = "##antaresStamp##";
+let binInterval = "##binInterval##";
+let endTime = datetime("##endTime##");
+let startTime = datetime("##startTime##");
+let RegionalPoolLeasee = (AntaresConfigurationTracking
+| where ConfigurationName == "HostingConfig-FlexConsumptionIsRegionalPoolLeaseOwner"
+| extend region = extract("waws-prod(-[^-]+-)\\d+", 1, antaresStamp)
+| where EventPrimaryStampName contains region
+| distinct EventPrimaryStampName);
+FunctionsPlatformLogs
+| where PreciseTimeStamp between (startTime .. endTime)
+| where EventPrimaryStampName in (RegionalPoolLeasee)
+| where Message startswith "Using Version: "
+| extend PoolGroupArtifactVersion = extract("Using Version: ([\\d\\.]+)", 1, Message)
+| summarize count() by PoolGroupArtifactVersion
+| project PoolGroupArtifactVersion, count_

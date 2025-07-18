@@ -1,0 +1,13 @@
+let antaresStamps = dynamic(['##antaresStamps##']);
+let appName = "##appName##";
+let endTime = datetime("##endTime##");
+let startTime = datetime("##startTime##");
+let failedStatusCode = ##failedStatusCode##;
+FunctionsPlatformLogs
+| where PreciseTimeStamp > ago(5d)
+| where EventPrimaryStampName in (antaresStamps)
+| where SiteName in ("##siteNames##")
+| where StatusCode == failedStatusCode
+| where Address endswith "/allocate"
+| take 1
+| project ActivityId

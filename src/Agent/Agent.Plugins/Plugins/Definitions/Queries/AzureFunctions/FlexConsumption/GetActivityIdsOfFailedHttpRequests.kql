@@ -1,0 +1,13 @@
+let eventPrimaryStamp = "##eventPrimaryStamp##";
+let endTime = datetime("##endTime##");
+let startTime = datetime("##startTime##");
+let siteNames = "##siteNames##";
+let statusCodeImpacted = ##statusCodeImpacted##;
+AntaresIISLogFrontEndTable
+| where PreciseTimeStamp between (startTime .. endTime)
+| where EventPrimaryStampName == eventPrimaryStamp
+| where S_sitename in (siteNames)
+| where Cs_uri_stem !="/HealthProbe.aspx"
+| where Cs_uri_stem !="/healthprobe.aspx"
+| where Sc_status == statusCodeImpacted
+| project ActivityId

@@ -67,6 +67,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Plugins\Definitions\Queries\AzureFunctions\FlexConsumption\" />
+ </ItemGroup>
+   
+ <ItemGroup>
     <Folder Include="Plugins\Definitions\Queries\ColdStart\" />
   </ItemGroup>
 

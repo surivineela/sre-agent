@@ -1,0 +1,11 @@
+let antaresStamps = dynamic(['##antaresStamps##']);
+let appName = "##appName##";
+let endTime = datetime("##endTime##");
+let startTime = datetime("##startTime##");
+let activityId = "##activityId##";
+FunctionsPlatformLogs
+| where PreciseTimeStamp between(startTime .. endTime)
+| where EventPrimaryStampName in (antaresStamps)
+| where SiteName in ("##siteNames##")
+| where ActivityId == activityId
+| project PreciseTimeStamp, ActivityId, SiteName, Address, StatusCode, Message, Source

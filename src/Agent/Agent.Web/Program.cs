@@ -407,6 +407,7 @@ public class Program
             .AddTransient<FunctionAppExecutionFailuresPluginDefinition>()
             .AddTransient<FunctionAppConfigurationChecksPluginDefinition>()
             .AddTransient<FunctionAppDeploymentChecksPluginDefinition>()
+            .AddTransient<FunctionsFlexConsumptionCRIPluginDefinition>()
             .AddTransient<UserInteractionPluginDefinition>()
             .AddTransient<AgentControlFlowPluginDefinition>()
             .AddTransient<APIManagementPluginDefinition>()

@@ -1,0 +1,10 @@
+let appName = "##appName##";
+let eventPrimaryStampName = "##eventPrimaryStampName##";
+let startTime = datetime("##startTime##");
+let endTime = datetime("##endTime##");
+FunctionsLogs
+| where PreciseTimeStamp between (startTime .. endTime)
+| where AppName =~ appName
+| where EventPrimaryStampName == eventPrimaryStampName
+| take 50
+| project-reorder PreciseTimeStamp, Message, Source

@@ -60,6 +60,9 @@
     <None Update="AgentsV2\AzureDevOpsWorkItemAgent.yaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="AgentsV2\AzureFunctionsFlexConsumptionCRI\FunctionsFlexConsumptionCRIAgent.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="AgentsV2\ChangePropagationAgent.yaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

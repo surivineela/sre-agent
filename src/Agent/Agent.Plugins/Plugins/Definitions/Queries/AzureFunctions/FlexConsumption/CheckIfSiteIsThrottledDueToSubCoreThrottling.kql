@@ -1,0 +1,12 @@
+let antaresStamps = dynamic(['##antaresStamps##']);
+let appName = "##appName##";
+let endTime = datetime("##endTime##");
+let numRows = int(##numRows##);
+let privateStampName = "##privateStampName##";
+let startTime = datetime("##startTime##");
+FunctionsPlatformLogs
+| where PreciseTimeStamp between(startTime .. endTime)
+| where EventPrimaryStampName in (antaresStamps)
+| where SiteName in ("##siteNames##")
+| where Message contains "Regional subscription core limit" and Message contains "No workers will be allocated."
+| project PreciseTimeStamp, Message, ActivityId, SiteName, Source

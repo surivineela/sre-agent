@@ -1,0 +1,15 @@
+let eventPrimaryStamp = "##eventPrimaryStamp##";
+let endTime = datetime("##endTime##");
+let startTime = datetime("##startTime##");
+let siteNames = "##siteNames##";
+let statusCodeImpacted = ##statusCodeImpacted##;
+AntaresIISLogFrontEndTable
+| where PreciseTimeStamp between (startTime .. endTime)
+| where EventPrimaryStampName == eventPrimaryStamp
+| where S_sitename in (siteNames)
+| where Cs_uri_stem !="/HealthProbe.aspx"
+| where Cs_uri_stem !="/healthprobe.aspx"
+| where Sc_status == 503 and Sc_substatus == 65
+| extend StatusCode = strcat(Sc_status,".",Sc_substatus)
+| summarize count() by S_sitename, StatusCode, Cs_uri_stem
+| project S_sitename, StatusCode, Cs_uri_stem, count_

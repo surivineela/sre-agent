@@ -1,0 +1,14 @@
+let antaresStamps = dynamic(['##antaresStamps##']);
+let appName = "##appName##";
+let endTime = datetime("##endTime##");
+let numRows = int(##numRows##);
+let privateStampName = "##privateStampName##";
+let startTime = datetime("##startTime##");
+FunctionsPlatformLogs
+| where PreciseTimeStamp between(startTime .. endTime)
+| where EventPrimaryStampName in (antaresStamps)
+| where SiteName in ("##siteNames##")
+| where StatusCode > 299
+| where Address endswith "/allocate"
+| summarize count() by StatusCode
+| project StatusCode, count_
