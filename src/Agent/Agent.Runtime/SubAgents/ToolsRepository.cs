@@ -103,6 +103,7 @@ public class ToolsRepository : IToolsRepository
         Register200<GitHubIssuePluginDefinition>(x => x.CreateGithubIssueComment);
         Register200<GitHubIssuePluginDefinition>(x => x.FetchGithubIssue);
         Register200<GitHubIssuePluginDefinition>(x => x.FindConnectedRepo);
+        RegisterPlugin<SourceCodeErrorAnalysisAgentPluginDefinition>();
 
         RegisterPlugin<AzureSupportCenterPluginDefinition>();
 

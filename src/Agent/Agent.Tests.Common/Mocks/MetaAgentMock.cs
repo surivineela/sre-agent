@@ -54,6 +54,7 @@ public static class MetaAgentMock
         ISearchPlugin? searchPlugin = null,
         IRemediationPlugin? remediationPlugin = null,
         IAzureDevOpsWorkItemPlugin azureDevOpsWorkItemPlugin = null,
+        ISourceCodeAnalysisPlugin? sourceCodeAnalysisPlugin = null, // Added parameter
         IGraphService graphServicePlugin = null
         ) // Added parameter
     {
@@ -93,6 +94,7 @@ public static class MetaAgentMock
             searchPlugin ?? Mock.Of<ISearchPlugin>(),
             remediationPlugin ?? Mock.Of<IRemediationPlugin>(),
             azureDevOpsWorkItemPlugin ?? Mock.Of<IAzureDevOpsWorkItemPlugin>(),
+            sourceCodeAnalysisPlugin ?? Mock.Of<ISourceCodeAnalysisPlugin>(), // Added argument
             graphServicePlugin ?? Mock.Of<IGraphService>()
         );
     }

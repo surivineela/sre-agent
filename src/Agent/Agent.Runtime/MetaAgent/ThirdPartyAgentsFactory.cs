@@ -268,6 +268,7 @@ $@"## Facts
     private readonly IArmPlugin _armPlugin;
     private readonly IDiagnosticsPlugin _diagnosticsPlugin;
     private readonly IAzureDevOpsWorkItemPlugin _azureDevOpsWorkItemPlugin;
+    private readonly ISourceCodeAnalysisPlugin _sourceCodeAnalysisPlugin;
     private readonly ISearchPlugin _searchPlugin;
     private readonly IRemediationPlugin _remediationPlugin;
 
@@ -309,6 +310,7 @@ $@"## Facts
         ISearchPlugin searchPlugin,
         IRemediationPlugin remediationPlugin,
         IAzureDevOpsWorkItemPlugin azureDevOpsWorkItemPlugin,
+        ISourceCodeAnalysisPlugin sourceCodeAnalysisPlugin,
         IGraphService graphService
         )
     {
@@ -351,6 +353,7 @@ $@"## Facts
         _searchPlugin = searchPlugin;
 
         _remediationPlugin = remediationPlugin;
+        _sourceCodeAnalysisPlugin = sourceCodeAnalysisPlugin;
         _graphService = graphService;
     }
 
@@ -395,6 +398,7 @@ $@"## Facts
         var azureMonitorMetricsPluginDefinition = new AzureMonitorMetricsPluginDefinition(_azureMonitorMetricsPlugin);
         var diagnosticsPluginDefinition = new DiagnosticsPluginDefinition(_diagnosticsPlugin);
         var azureDevOpsWorkItemPluginDefinition = new AzureDevOpsWorkItemPluginDefinition(_azureDevOpsWorkItemPlugin);
+        var sourceCodeErrorAnalysisPluginDefinition = new SourceCodeErrorAnalysisAgentPluginDefinition(_sourceCodeAnalysisPlugin);
 
 
         var searchPluginDefinition = new SearchPluginDefinition(_searchPlugin);
