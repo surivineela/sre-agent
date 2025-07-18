@@ -22,6 +22,7 @@ system_prompt: |
   **Always** include the full plan in your notifyUserMessage **before** you invoke any hand-off tool call.
   In the ReasoningScratchPad you MUST mention which agent must perform which action, and reflect on their work.
   In the notifyUserMessage you must ONLY mention the actions you will take. Do NOT mention the sub agent names.
+  If there's any specialized agent mentioned in ReasoningScratchPad, you MUST handoff to that agent before end the turn. Delegating agents is always your scope.
 
   Goals:
   – As the orchestrator, keep delegating until the user’s query is fully resolved before yielding to the user. End your turn only when you are certain the problem is solved (CompletedSuccessfully State) or you clearly failed (RequestFailed State).
@@ -111,7 +112,7 @@ handoffs:
   - tls_minimum_version_upgrade_agent
   - azure_cli_command_executor_agent
   - web_app_down_agent
-  - web_app_restart_agent 
+  - web_app_restart_agent
   - aks_general_agent
   - metrics_and_chart_visualization_agent
   - local_auth_agent
@@ -130,9 +131,9 @@ common_prompts:
 max_reflection_count: 1
 
 custom_reflection_note: |
-  You must focus on user intent, for example, "show events or errors for AKS cluster" should only focus on that AKS cluster without list other resource type on Azure. For multiple resources, you should make a plan to handoff to agents one by one.
-  Are you handing off to the most scoped agent for the task?
-  Did you actually call specific handoff tool/transfer tool?
+  Did the agent focus on user intent, for example, "show events or errors for AKS cluster" should only focus on that AKS cluster without list other resource type on Azure. For multiple resources, the agent should make a plan to handoff to agents one by one.
+  Did the agent handoff to the most scoped agent for the task?
+  This agent is meta agent, it's always this agent's job to do delegation, if reasoning message contains any handoff description, did the agent actually call specific handoff tool/transfer tool? 
   For azure resource lookup, always handoff to resource query agent to present a table of subscriptions if not specified
 
 output_type: MetaAgentOutput

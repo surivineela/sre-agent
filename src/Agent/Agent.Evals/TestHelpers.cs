@@ -314,6 +314,7 @@ public static class TestHelpers
 
         // Agent-memory (disabled ➜ dummy implementation)
         builder.Services.AddSingleton<IAgentMemoryClient, DummyAgentMemoryClient>();
+        builder.Services.AddSingleton(Mock.Of<ISearchIndexService>());
 
         return builder;
     }

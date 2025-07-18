@@ -346,7 +346,7 @@ namespace Agent.Plugins
                 "<",        // Input redirection
                 "`",        // Command substitution
                 "$(",       // Command substitution
-                "\\",       // Escape character
+                "\\",       // Escape character (except in valid paths)
                 "\n",       // Newline
                 "\r"        // Carriage return
             };
@@ -375,22 +375,26 @@ namespace Agent.Plugins
             switch (subcommand)
             {
                 case "get":
-                    var oMatches = Regex.Matches(command, @"(^|\s)-o\s+[^\s]+", RegexOptions.IgnoreCase);
+                    // Check for both -o and --output flags
+                    var oMatches = Regex.Matches(command, @"(^|\s)(-o|--output)\s+[^\s]+", RegexOptions.IgnoreCase);
                     if (oMatches.Count == 0)
-                        return "[Validation Failed]: Command must include the '-o' output option";
+                        return "[Validation Failed]: Command must include the '-o' or '--output' option";
                     if (oMatches.Count > 1)
-                        return "[Validation Failed]: Command must contain only one '-o' option";
+                        return "[Validation Failed]: Command must contain only one output option";
 
-                    var fmt = Regex.Match(command, @"(^|\s)-o\s+(?<fmt>[^\s]+)", RegexOptions.IgnoreCase)
+                    var fmt = Regex.Match(command, @"(^|\s)(-o|--output)\s+(?<fmt>[^\s]+)", RegexOptions.IgnoreCase)
                         .Groups["fmt"].Value;
 
                     bool allowed =
                         fmt.Equals("name", StringComparison.OrdinalIgnoreCase) ||
                         fmt.Equals("wide", StringComparison.OrdinalIgnoreCase) ||
-                        fmt.StartsWith("custom-columns", StringComparison.OrdinalIgnoreCase);
+                        fmt.Equals("yaml", StringComparison.OrdinalIgnoreCase) ||
+                        fmt.Equals("json", StringComparison.OrdinalIgnoreCase) ||
+                        fmt.StartsWith("custom-columns", StringComparison.OrdinalIgnoreCase) ||
+                        fmt.StartsWith("jsonpath", StringComparison.OrdinalIgnoreCase);
 
                     if (!allowed)
-                        return $"[Validation Failed]: Unsupported '-o' value '{fmt}'. Allowed: name, wide, custom-columns[=...]";
+                        return $"[Validation Failed]: Unsupported output value '{fmt}'. Allowed: name, wide, yaml, json, jsonpath, custom-columns[=...]";
                     break;
                 case "describe":
                 case "logs":
@@ -398,10 +402,40 @@ namespace Agent.Plugins
                 case "top":
                 case "api-resources":
                 case "api-versions":
+                case "explain":
+                case "version":
+                case "cluster-info":
                     // These are valid subcommands for read operations
                     break;
+                case "config":
+                    // Handle read-only config operations
+                    var configArgs = command.ToLowerInvariant();
+                    if (configArgs.Contains("view") || configArgs.Contains("get-contexts") || configArgs.Contains("get-clusters") || configArgs.Contains("current-context"))
+                    {
+                        // These are read-only config operations
+                        break;
+                    }
+                    else
+                    {
+                        return "[Validation Failed]: 'config' subcommand only supports read operations: view, get-contexts, get-clusters, current-context. Use RunKubectlWriteCommandAsync for write operations.";
+                    }
+                case "rollout":
+                    // Handle read-only rollout operations
+                    var rolloutAction = ParseRolloutAction(command);
+                    var readOnlyRolloutActions = new[] { "status", "history" };
+
+                    if (rolloutAction == null)
+                    {
+                        return "[Validation Failed]: Rollout command missing action. Supported read actions: status, history";
+                    }
+
+                    if (!readOnlyRolloutActions.Contains(rolloutAction))
+                    {
+                        return $"[Validation Failed]: '{rolloutAction}' is a write operation. Use RunKubectlWriteCommandAsync instead. Supported read actions: {string.Join(", ", readOnlyRolloutActions)}";
+                    }
+                    break;
                 default:
-                    return $"[Validation Failed]: Unsupported subcommand '{subcommand}'. Supported: get, describe, logs, exec, top, api-resources, api-versions";
+                    return $"[Validation Failed]: Unsupported subcommand '{subcommand}'. Supported: get, describe, logs, exec, top, api-resources, api-versions, explain, version, cluster-info, config, rollout";
             }
 
             return null; // No validation errors
@@ -428,7 +462,6 @@ namespace Agent.Plugins
                 case "label":
                 case "annotate":
                 case "set":
-                case "rollout":
                     // These are valid subcommands for write operations
                     break;
                 case "get":
@@ -439,8 +472,21 @@ namespace Agent.Plugins
                 case "api-resources":
                 case "api-versions":
                     return $"[Validation Failed]: '{subcommand}' is a read-only command. Use RunKubectlReadCommandAsync instead.";
+                case "config":
+                    // All config operations should go through write validation to ensure proper handling
+                    return "[Validation Failed]: 'config' operations should use RunKubectlReadCommandAsync for read operations or RunKubectlWriteCommandAsync for write operations.";
+                case "rollout":
+                    // Handle rollout operations - check if it's a read-only action
+                    var rolloutAction = ParseRolloutAction(command);
+                    var readOnlyRolloutActions = new[] { "status", "history" };
+
+                    if (rolloutAction != null && readOnlyRolloutActions.Contains(rolloutAction))
+                    {
+                        return $"[Validation Failed]: 'rollout {rolloutAction}' is a read-only command. Use RunKubectlReadCommandAsync instead.";
+                    }
+                    break;
                 default:
-                    return $"[Validation Failed]: Unsupported subcommand '{subcommand}'. Supported write commands: apply, create, delete, patch, replace, scale, label, annotate, set, rollout";
+                    return $"[Validation Failed]: Unsupported subcommand '{subcommand}'. Supported write commands: apply, create, delete, patch, replace, scale, label, annotate, set, rollout, config";
             }
 
             // Check for delete commands and return error with the command for manual execution
@@ -462,15 +508,15 @@ namespace Agent.Plugins
                 }
             }
 
-            // Ensure rollout commands are restrictive
+            // Ensure rollout commands are restrictive - only allow write operations
             if (subcommand == "rollout")
             {
-                var validRolloutCommands = new[] { "restart", "undo", "pause", "resume", "status", "history" };
+                var validWriteRolloutCommands = new[] { "restart", "undo", "pause", "resume" };
                 var rolloutAction = ParseRolloutAction(command);
 
-                if (rolloutAction == null || !validRolloutCommands.Contains(rolloutAction))
+                if (rolloutAction == null || !validWriteRolloutCommands.Contains(rolloutAction))
                 {
-                    return $"[Validation Failed]: Unsupported rollout action. Supported: {string.Join(", ", validRolloutCommands)}";
+                    return $"[Validation Failed]: Unsupported write rollout action. Supported write actions: {string.Join(", ", validWriteRolloutCommands)}";
                 }
             }
 
@@ -587,22 +633,32 @@ namespace Agent.Plugins
             if (parts.Length < 2)
             {
                 return null;
-            }            // Find the subcommand, skipping flags and their values
+            }
+
+            // Find the subcommand, skipping flags and their values
             for (int i = 1; i < parts.Length; i++)
             {
                 // Skip flags that start with -
                 if (parts[i].StartsWith("-"))
                 {
-                    // Check if this is a flag with a separate value (not using equals sign)
-                    // For flags like -n test or --namespace test
-                    // Format: -flag value or --flag value
-                    bool isShortFlag = parts[i].StartsWith("-") && !parts[i].StartsWith("--") && parts[i].Length == 2;
-                    bool isLongFlag = parts[i].StartsWith("--") && !parts[i].Contains('=');
-
-                    // Skip the next part if it's a value for this flag
-                    if ((isShortFlag || isLongFlag) && i + 1 < parts.Length && !parts[i + 1].StartsWith("-"))
+                    // Handle different flag formats:
+                    // -f file, --flag value, --flag=value, -n=namespace
+                    if (parts[i].Contains('='))
                     {
-                        i++; // Skip the value of the flag
+                        // Flag with embedded value (--flag=value or -f=file)
+                        continue;
+                    }
+                    else
+                    {
+                        // Check if this is a flag with a separate value
+                        bool isShortFlag = parts[i].StartsWith("-") && !parts[i].StartsWith("--") && parts[i].Length == 2;
+                        bool isLongFlag = parts[i].StartsWith("--") && !parts[i].Contains('=');
+
+                        // Skip the next part if it's a value for this flag and doesn't start with -
+                        if ((isShortFlag || isLongFlag) && i + 1 < parts.Length && !parts[i + 1].StartsWith("-"))
+                        {
+                            i++; // Skip the value of the flag
+                        }
                     }
                     continue;
                 }

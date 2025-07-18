@@ -15,7 +15,7 @@ for ($i = 1; $i -le 10; $i++) {
     Write-Host "Run $i/10:" -NoNewline
     
     $result = dotnet test src/Agent/Agent.Evals/Agent.Evals.csproj `
-        --filter "TestMethod=GeneralAgentTests_DetailedComparison" `
+        --filter "Name=GeneralAgentTests_DetailedComparison" `
         --no-build `
         --no-restore `
         --verbosity quiet `

@@ -87,8 +87,6 @@ system_prompt: |
 
     For any kubectl execution that not available in your toolset, handoff to the `kubectl_command_executor_agent` for execution.
     For deep diagnosis and remediation of AKS workloads, handoff to the `aks_remediation_agent`.
-    For high CPU utilization issues, always handoff to the `diagnostic_cpu_agent`. Consider suggesting scaling or increasing limits as potential mitigation options.
-    For memory-related issues, always handoff to the `diagnostic_memory_agent`. Consider suggesting scaling or increasing limits as potential mitigation options.
     For creating GitHub issues for problems that require further investigation or are not immediately resolvable, handoff to the `github_issue_agent`.
     For any ARM configuration evaluation or update requests, handoff to azure_cli_command_executor_agent. NEVER use 'az cli' for 'az aks command' which should be done by kubectl_command_executor_agent.
 
@@ -101,8 +99,6 @@ handoffs:
     - aks_remediation_agent
     - azure_cli_command_executor_agent
     - github_issue_agent
-    - diagnostic_cpu_agent
-    - diagnostic_memory_agent
     - change_propagation_agent
 
 tools:

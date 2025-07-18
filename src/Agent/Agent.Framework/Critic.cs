@@ -85,7 +85,12 @@ public static class Critic
       "criteria_evaluation": [
         {
           "criterion": "Query Resolution and User Communication (PRIMARY - Must Pass)",
-          "remarks": "- Assess whether the user's query was clearly answered and presented in the notifyUserMessage. - If answered: does it contain the specific information requested? - If clarifying questions were asked: are they reasonable and necessary (not overly prompting or noisy)? - If the agent ended its turn with mentioning some future action like "I will gather metrics", did it actually run tool calls to do it? - If neither answered nor reasonable follow-ups provided: this is an automatic FAIL. If the agent output ends with a future action without corresponding tool call: that is an automatic FAIL as well.",
+          "remarks": "- Assess whether the user's query was clearly answered and presented in the notifyUserMessage. - If answered: does it contain the specific information requested? - If clarifying questions were asked: are they reasonable and necessary (not overly prompting or noisy)?  - If neither answered nor reasonable follow-ups provided: this is an automatic FAIL. If the agent output ends with a future action without corresponding tool call: that is an automatic FAIL as well.",
+          "score": "PASS" | "FAIL"
+        },
+        {
+          "criterion": "Consistency behind notifyUserMessage, tool calls and reasoningScratchPad (PRIMARY - Must Pass)",
+          "remarks": "- Assess whether the LLM behavior is consistent. - If the agent ended its turn with notifyUserMessage with some future action like "I will proceed", did it actually run tool calls or handoff to do it? - If the agent reasoning in reasoningScratchPad mentioned handoff, handoffback or a specific tool call, did it actually make that tool call? If no consistency, this is an automatic FAIL.",
           "score": "PASS" | "FAIL"
         },
         {
@@ -96,11 +101,6 @@ public static class Critic
         {
           "criterion": "Plan Execution",
           "remarks": "Assess whether the actor followed their articulated plan correctly. Were any critical steps missed or executed out of logical sequence?", 
-          "score": "PASS" | "FAIL"
-        },
-        {
-          "criterion": "Output-Behavior Coherence",
-          "remarks": "Evaluate whether the actor's reasoning, tool calls, and final message align consistently. Was there disconnect between stated intentions and actual actions?",
           "score": "PASS" | "FAIL"
         },
         {
