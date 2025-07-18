@@ -91,6 +91,7 @@ public class IncidentWebhookController : ControllerBase
                 Severity = request.Severity,
                 Source = request.Source,
                 AdditionalProperties = request.AdditionalProperties,
+                IsTest = request.IsTest
             }
         );
 
@@ -349,6 +350,8 @@ public class PagerDutyRequest
     public string? Source { get; set; }
 
     public Dictionary<string, string>? AdditionalProperties { get; set; }
+
+    public bool IsTest { get; set; } = false;
 }
 
 public class PagerDutyRequestAdapter : IIncidentAdapter
