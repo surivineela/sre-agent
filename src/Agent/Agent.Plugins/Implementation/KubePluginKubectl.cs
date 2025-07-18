@@ -571,22 +571,24 @@ namespace Agent.Plugins
                     stdin);
                 var output = await cliExecution.ExecuteAsync();
 
-                var executionResult = await CliExecutionHelper.ParseCliExecutionResult(_chatClient, output);
-                if (!executionResult.ErrorOccurred && MaybeWriteCommand(command))
+                if (MaybeWriteCommand(command))
                 {
                     // trigger recrawl for modified resources
                     TriggerRecrawl(resourceId, command, output);
                 }
 
-                return executionResult;
+                // assumes cli exit code would be non-zero if unauthorized
+                // we do not parse the output when success because the the normal cli output may also contain error info which will be a false positive
+                return new CliExecutionResult
+                {
+                    Output = output,
+                    ErrorType = CliErrorType.None
+                };
             }
             catch (Exception ex)
             {
-                return new CliExecutionResult
-                {
-                    ErrorType = CliErrorType.Other,
-                    Output = $"[Exception encountered]: Failed to execute command: {ex.Message}"
-                };
+                var executionResult = await CliExecutionHelper.ParseCliExecutionResult(_chatClient, ex.Message);
+                return executionResult;
             }
         }
 

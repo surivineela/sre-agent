@@ -1603,7 +1603,7 @@ public class ArmHelper
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
 
         HttpResponseMessage responseMessage = await httpClient.SendAsync(request);
-        
+
         if (!responseMessage.IsSuccessStatusCode)
         {
             _logger.LogInternalWarning($"Failed to fetch app settings for {resourceId}: {responseMessage.ReasonPhrase}");
@@ -2628,21 +2628,21 @@ public class ArmHelper
             var cliExecution = new AzCliExecution(_logger, command, accessToken: token.Token, isDevelopment: _hostEnvironment.IsDevelopment());
             var result = await cliExecution.ExecuteAsync();
 
-            var executionResult = await CliExecutionHelper.ParseCliExecutionResult(_chatClient, result);
-            if (!executionResult.ErrorOccurred && IsWriteCommand(command))
+            if (IsWriteCommand(command))
             {
                 _crawlerTriggerService.TriggerArmCrawl(result);
             }
 
-            return executionResult;
+            return new CliExecutionResult
+            {
+                ErrorType = CliErrorType.None,
+                Output = result,
+            };
         }
         catch (Exception ex)
         {
-            return new CliExecutionResult
-            {
-                ErrorType = CliErrorType.Other,
-                Output = $"[Exception encountered]: Failed to execute command: {ex}",
-            };
+            var executionResult = await CliExecutionHelper.ParseCliExecutionResult(_chatClient, ex.Message);
+            return executionResult;
         }
     }
 

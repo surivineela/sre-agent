@@ -107,7 +107,7 @@ public class KubectlExecution
         catch (Exception ex)
         {
             _logger.LogInternalError($"KubectlExecution failed for command '{_command}': {ex}");
-            return $"[Exception encountered]: Failed to execute command: {ex}";
+            throw;
         }
     }
 
