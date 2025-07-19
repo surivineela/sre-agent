@@ -64,6 +64,8 @@ namespace Agent.Tests.Unit.Plugins
                     "GetPrivateEndpointConnectionDetails.kql",
                     "GetRevisionPodNames.kql",
                     "GetRevisionReplicaAndTraffic.kql",
+                    "GetHealthProbeFailures.kql",
+                    "GetRevisionTrafficStatus.kql",
                     "GetRevisionsStatus.kql",
                     "GetSessionPoolCreateOrUpdateLogs.kql",
                     "GetSessionPoolInfo.kql",

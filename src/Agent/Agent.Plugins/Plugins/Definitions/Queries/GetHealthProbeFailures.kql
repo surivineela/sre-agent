@@ -9,6 +9,7 @@ EventProcessorEvents
 | where RevisionName == local_revisionName
 | where Reason == "ProbeFailed"
 | where Internal = true
-| order by PreciseTimeStamp desc
-| summarize arg_max(PreciseTimeStamp, Count) by msg, ReplicaName
-| project PreciseTimeStamp, Message=msg, ReplicaName, Count
+| summarize FailureCount = count() by TimeSlot = bin(PreciseTimeStamp, 30m), msg
+| project TimeSlot, msg, FailureCount
+| order by TimeSlot asc, FailureCount desc
+| limit 500

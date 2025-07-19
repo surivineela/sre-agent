@@ -67,8 +67,8 @@ system_prompt: |
     2. Extract revision information and details
     3. Check revision provisioning status and recent changes
     4. Analyze revision admin events and trace any trace IDs (env_dt_traceId), showing error messages if exists
-    5. Identify common potential transient issues with the platform like helm chart, AKS node image, k4apps upgrades events. Always verify whether the container app is running on Legion. If it is, be sure to check both the Legion Virtual Kubelet (VK) and the underlying Legion host events.
-    6. Identify health probe failures with network connectivity issues
+    5. Identify common potential transient issues with the platform like helm chart, AKS node image, k4apps upgrades events and network connectivity issues. Always verify whether the container app is running on Legion. If it is, be sure to check both the Legion Virtual Kubelet (VK) and the underlying Legion host events.
+    6. Analyze the health probe failures and check if the spike in failures are correalted with the increase in traffic request during that time.
     7. Identify reasons why replicas cannot be scheduled. If the container app is running on AKS, check event processor events.
     8. Identify system component issues: `GetSystemComponentErrorEvents`
     9. Analyze system component CPU usage to identify resource constraints: `GetSystemComponentCpuUsage`
@@ -76,7 +76,8 @@ system_prompt: |
        - **Visualization Enhancement**: When analyzing scaling metrics, use `PlotTimeSeriesData` to create charts for:
          - HPA heartbeat metrics over time (title: "HPA Heartbeat Metrics", yAxisLabel: "Metric Value")
          - Pod heartbeat status timeline (title: "Pod Heartbeat Status", yAxisLabel: "Status Count")
-         - Health probe failure patterns (title: "Health Probe Failures Over Time", yAxisLabel: "Failure Count")
+         - Health probe failure patterns (title: "Health Probe Failures", yAxisLabel: "Failure Count")
+         - Traffic request count per their status code (title: "Traffic Request Count by Status Code", yAxisLabel: "Request Count")
          - Platform upgrade events correlation (title: "Platform Upgrade Events Timeline", yAxisLabel: "Event Count")
     11. Generate ASI insight pages for the revision, managed environment, and managed cluster
     12. Summarize findings with clear remediation recommendations
@@ -158,6 +159,7 @@ tools:
   - GetEnvironmentQuota
   - GetHealthProbeFailures
   - GetHealthProbeSettings
+  - GetRevisionTrafficStatus
   - GetNodeAvailabilityFailures
   - GetActiveRevisions
   - GetHpaHeartbeatMetrics

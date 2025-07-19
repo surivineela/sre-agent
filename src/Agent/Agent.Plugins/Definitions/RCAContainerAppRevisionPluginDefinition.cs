@@ -646,22 +646,52 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
         }
 
 
-        [Description(@"""
-Retrieves readiness, liveness, or startup probe failures for a container app revision.
-Use this tool to get health probe failure events for a revision.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- msg: Log message of the probe failure.
-- ReplicaName: Name of the replica where the failure occurred.
-- Count: Number of times the probe failed with the same message consecutively.
-"""
-)]
+        [Description(
+        """
+        Retrieve HTTP request counts by response status codes for a revision over time every 30min which gives traffic pattern to align it any failures.
+        Use this tool to analyze traffic patterns and HTTP response status codes for a revision.
+        Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+        - Timestamp: Timestamp of start of 30min timeslot.
+        - Status: HTTP response status (e.g., 2xx, 5xx).
+        - Requests: Number of HTTP requests for that status.
+        """
+        )]
+        public Task<string> GetRevisionTrafficStatus(
+            [Description("Azure region.")] string region,
+            [Description("Start time.")] DateTime fromDate,
+            [Description("End time.")] DateTime toDate,
+            [Description("Revision name.")] string revisionName,
+            [Description("App name.")] string containerAppName,
+            [Description("Resource group.")] string resourceGroupName,
+            [Description("Subscription ID.")] string subscriptionId)
+        {
+            return _kustoPlugin.ExecuteLocalFunctionAsync("GetRevisionTrafficStatus", region,
+                new Dictionary<string, string> {
+                    { "fromDate", fromDate.ToString() },
+                    { "toDate", toDate.ToString() },
+                    { "revisionName", revisionName },
+                    { "containerAppName", containerAppName },
+                    { "resourceGroupName", resourceGroupName },
+                    { "subscriptionId", subscriptionId }
+                });
+        }
+
+        [Description(
+            """
+            Retrieve number of readiness/liveness/startup probe failures happened at every 30mins timeslots for a specific Azure container app revision.
+            Use this tool to get the health probe failures for a revision.
+            Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+            - TimeSlot: 30min slots of time.
+            - msg: Log message of the probe failure.
+            - FailureCount: Number of times the probe failure happened with the same message within the timeslot.
+            """
+        )]
         public Task<string> GetHealthProbeFailures(
             [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the container app.")] string containerAppName,
-            [Description("Name of the revision.")] string revisionName,
-            [Description("Sampling options for the query.")] SamplingOptions sampling)
+            [Description("Name of the revision.")] string revisionName)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetHealthProbeFailures", region,
                 new Dictionary<string, string> {

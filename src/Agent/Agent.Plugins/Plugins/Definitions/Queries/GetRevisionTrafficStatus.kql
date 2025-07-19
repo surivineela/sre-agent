@@ -1,0 +1,15 @@
+let fromDate = datetime("##fromDate##");
+let toDate = datetime("##toDate##");
+let containerAppName = "##containerAppName##";
+let revisionName = "##revisionName##";
+
+AllCapps("EnvoyFrontEndLogsTable")
+| where PreciseTimeStamp between (fromDate .. toDate)
+| where ContainerAppName == containerAppName
+| where RevisionName == revisionName
+| extend StatusGroup = strcat(substring(Status_string, 0, 1), "xx")
+| make-series RequestsCount=count() default = 0 on PreciseTimeStamp in range (fromDate, toDate, 30m) by StatusGroup
+| mv-expand RequestsCount, PreciseTimeStamp
+| project todatetime(PreciseTimeStamp), requests=toint(RequestsCount), status_code=StatusGroup
+| order by PreciseTimeStamp asc, status_code asc
+| limit 500
