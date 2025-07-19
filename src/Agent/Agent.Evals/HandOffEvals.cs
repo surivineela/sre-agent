@@ -14,7 +14,7 @@ public class HandOffEvals
     private static HandOffTestCase[] LoadTestCasesFromFiles()
     {
         var dataFolderPath = Path.Combine(AppContext.BaseDirectory, "Data", "HandOff");
-        var data = ModelGenerationDataLoader.LoadChatMessagesFromJsonFilesAsync(dataFolderPath);
+        var data = ModelGenerationDataLoader.LoadChatMessagesFromJsonFiles(dataFolderPath);
         var result = data.Values.Select(HandOffTestCase.FromModelGenerationContent).ToArray();
         return result;
     }

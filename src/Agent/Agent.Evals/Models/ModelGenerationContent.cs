@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Evals;
@@ -16,7 +11,7 @@ public class ModelGenerationContent
     public required ChatMessage[] ModelOutput { get; set; }
 }
 
-class ModelGenerationContentRaw
+internal class ModelGenerationContentRaw
 {
     public required string AgentName { get; set; }
 
@@ -28,6 +23,15 @@ class ModelGenerationContentRaw
     {
         public required string Role { get; set; }
         public required Content[] Contents { get; set; }
+
+        public ChatMessage ToChatMessage()
+        {
+            return new ChatMessage
+            {
+                Role = new ChatRole(Role),
+                Contents = Contents.Select(c => c.Value).ToList()
+            };
+        }
     }
 
     internal class Content

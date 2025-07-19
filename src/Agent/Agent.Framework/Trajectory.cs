@@ -64,6 +64,8 @@ public class FunctionCallTrajectoryItem : TrajectoryItem
 
 public class FunctionResultTrajectoryItem : TrajectoryItem
 {
+    private static JsonSerializerOptions _jsonOptions = AIJsonUtilities.DefaultOptions;
+
     public string CallId { get; }
     public object? Result { get; }
 
@@ -92,7 +94,7 @@ public class FunctionResultTrajectoryItem : TrajectoryItem
         return sb.ToString();
     }
 
-    private static string ResultToString(FunctionResultContent functionResult)
+    public static string ResultToString(FunctionResultContent functionResult)
     {
         if (functionResult.Result is null)
         {
@@ -102,12 +104,9 @@ public class FunctionResultTrajectoryItem : TrajectoryItem
         {
             var resultObj = functionResult.Result;
 
-            var jsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web)
-            {
-                WriteIndented = true,
-            };
-
-            var resultString = (resultObj is string str) ? str : JsonSerializer.Serialize(resultObj, jsonOptions);
+            var resultString = resultObj is string str
+                ? str
+                : JsonSerializer.Serialize(resultObj, _jsonOptions);
 
             return TextVolumeHelpers.ApplyWordTruncation(
                 input: resultString,
@@ -141,13 +140,6 @@ public sealed class Trajectory
 {
     // Track critic count per agent name instead of globally
     private readonly Dictionary<string, int> _agentCriticCounts = new();
-
-    private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web)
-    {
-        WriteIndented = true,
-    };
-
-    private const int MaxResultWords = 200;
 
     private readonly List<TrajectoryItem> _trajectoryItems = new();
 
@@ -220,25 +212,6 @@ public sealed class Trajectory
     public void Append(FunctionResultContent functionResult)
     {
         _trajectoryItems.Add(new FunctionResultTrajectoryItem(functionResult.CallId, functionResult.Result));
-    }
-
-    public static string ResultToString(FunctionResultContent functionResult)
-    {
-        if (functionResult.Result is null)
-        {
-            return "null";
-        }
-        else
-        {
-            var resultObj = functionResult.Result;
-
-            var resultString = (resultObj is string str) ? str : JsonSerializer.Serialize(resultObj, _jsonOptions);
-
-            return TextVolumeHelpers.ApplyWordTruncation(
-                input: resultString,
-                maxWords: MaxResultWords,
-                addTruncationMessage: false);
-        }
     }
 
     public void AppendCriticFeedback(string feedback)

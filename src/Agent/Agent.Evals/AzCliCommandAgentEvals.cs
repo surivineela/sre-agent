@@ -21,7 +21,7 @@ public class AzCliCommandAgentEvals
     private static (string,ModelGenerationContent)[] LoadTestCasesFromFiles()
     {
         var dataFolderPath = Path.Combine(AppContext.BaseDirectory, "Data", "AzCliCommandAgent");
-        var data = ModelGenerationDataLoader.LoadChatMessagesFromJsonFilesAsync(dataFolderPath);
+        var data = ModelGenerationDataLoader.LoadChatMessagesFromJsonFiles(dataFolderPath);
         return data.Select(kv => (kv.Key, kv.Value)).ToArray();
     }
 

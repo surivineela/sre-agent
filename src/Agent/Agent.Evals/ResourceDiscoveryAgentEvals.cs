@@ -21,7 +21,7 @@ public class ResourceDiscoveryAgentEvals
     private static ModelGenerationContent[] LoadTestCasesFromFiles()
     {
         var dataFolderPath = Path.Combine(AppContext.BaseDirectory, "Data", "ResourceDiscoveryAgent");
-        var data = ModelGenerationDataLoader.LoadChatMessagesFromJsonFilesAsync(dataFolderPath);
+        var data = ModelGenerationDataLoader.LoadChatMessagesFromJsonFiles(dataFolderPath);
         return data.Values.ToArray();
     }
 

@@ -718,7 +718,7 @@ public static class Runner
                         {
                             if (displayModelOutput is not null)
                             {
-                                var resultString = Trajectory.ResultToString(result);
+                                var resultString = FunctionResultTrajectoryItem.ResultToString(result);
                                 await displayModelOutput($"{DateTimeOffset.UtcNow:O}\nCompleted Agent Invocation as Tool: {tool.Name}\n\n{resultString}");
                             }
                         }
@@ -765,7 +765,7 @@ public static class Runner
                         {
                             if (displayModelOutput is not null)
                             {
-                                var resultString = Trajectory.ResultToString(result);
+                                var resultString = FunctionResultTrajectoryItem.ResultToString(result);
                                 await displayModelOutput($"{DateTimeOffset.UtcNow:O}\nCompleted Auto Invoked Tool: {tool.Name}\n\n{resultString}");
                             }
                         }

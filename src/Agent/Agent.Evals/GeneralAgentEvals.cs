@@ -18,7 +18,7 @@ public class GeneralAgentEvals
     private static GeneralTestCase[] LoadTestCasesFromFiles()
     {
         var dataFolderPath = Path.Combine(AppContext.BaseDirectory, "Data", "HandOff");
-        var data = ModelGenerationDataLoader.LoadChatMessagesFromJsonFilesAsync(dataFolderPath);
+        var data = ModelGenerationDataLoader.LoadChatMessagesFromJsonFiles(dataFolderPath);
         var result = data.Select(kvp => GeneralTestCase.FromModelGenerationContent(kvp.Value, kvp.Key))
             .ToArray();
         return result;

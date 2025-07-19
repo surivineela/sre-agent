@@ -487,7 +487,6 @@ public static class TrajectoryExtractor
 
     Set to "N/A" if no formal incident is mentioned.
 
-
     Here's the updated version with Pitfalls first, then Steps showing only the correct trajectory:
 
     ### Section 4: Extracting Pitfalls

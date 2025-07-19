@@ -20,21 +20,37 @@ public class TrajectoryEvals
     public static IEnumerable<object[]> PromptTrajectoryRelevanceTestCases => LoadRelevanceTestCasesFromFiles()
         .Select(kvp => new object[] { kvp.FileName, kvp.Content });
 
+    public static IEnumerable<object[]> DebugTraceQualityTestCases => LoadDebuggerTestCasesFromFiles()
+        .Select(kvp => new object[] { kvp.FileName, kvp.Content });
+
     private static IEnumerable<(string FileName, ModelGenerationContent Content)> LoadQualityTestCasesFromFiles()
     {
         var dataFolderPath = Path.Combine(AppContext.BaseDirectory, "Data", "Trajectory", "Quality");
-        return LoadTestCasesFromFiles(dataFolderPath);
+        return LoadTestCasesFromJsonFiles(dataFolderPath);
     }
 
     private static IEnumerable<(string FileName, ModelGenerationContent Content)> LoadRelevanceTestCasesFromFiles()
     {
         var dataFolderPath = Path.Combine(AppContext.BaseDirectory, "Data", "Trajectory", "Relevance");
-        return LoadTestCasesFromFiles(dataFolderPath);
+        return LoadTestCasesFromJsonFiles(dataFolderPath);
     }
 
-    private static IEnumerable<(string FileName, ModelGenerationContent Content)> LoadTestCasesFromFiles(string dataFolderPath)
+    private static IEnumerable<(string FileName, ModelGenerationContent Content)> LoadDebuggerTestCasesFromFiles()
     {
-        var data = ModelGenerationDataLoader.LoadChatMessagesFromJsonFilesAsync(dataFolderPath);
+        var dataFolderPath = Path.Combine(AppContext.BaseDirectory, "Data", "Trajectory", "DebugTraces");
+        return LoadTestCasesFromDebuggerTraces(dataFolderPath);
+    }
+
+    private static IEnumerable<(string FileName, ModelGenerationContent Content)> LoadTestCasesFromJsonFiles(string dataFolderPath)
+    {
+        var data = ModelGenerationDataLoader.LoadChatMessagesFromJsonFiles(dataFolderPath);
+        return data.AsEnumerable()
+            .Select(kvp => (Path.GetFileNameWithoutExtension(kvp.Key), kvp.Value));
+    }
+
+    private static IEnumerable<(string FileName, ModelGenerationContent Content)> LoadTestCasesFromDebuggerTraces(string dataFolderPath)
+    {
+        var data = ModelGenerationDataLoader.LoadChatMessagesFromDebuggerTraces(dataFolderPath);
         return data.AsEnumerable()
             .Select(kvp => (Path.GetFileNameWithoutExtension(kvp.Key), kvp.Value));
     }
@@ -82,24 +98,7 @@ public class TrajectoryEvals
             Path.Join(AppContext.BaseDirectory, "../../..", "Data", "Trajectory", "Quality", $"traj_{inputFile}.txt"),
             JsonSerializer.Serialize(extractedTrajectory, _jsonOptions));
 
-        // 5. Provide evaluation context (quality)
-        //string groundedContext = "TODO: supply ground-truth context for this trajectory";
-        //string exampleResponse = "TODO: supply an ideal reference answer";
-        //var messagesForEval = conversationMessages.Append(new ChatMessage(ChatRole.Assistant, summaryResponse.Text));
-
-        //// 5. Run evaluators against the generated summary
-        //var evalResults = await summaryResponse.EvaluateAsync(
-        //    TestContext,
-        //    chatConfiguration: null,
-        //    messages: messagesForEval,
-        //    groundedContext: groundedContext,
-        //    exampleResponse: exampleResponse,
-        //    llmDeploymentName: null);
-
-        //// 6. Assert quality thresholds
-        //Assert.IsTrue(evalResults.Equivalence.Value >= 4, $"Low equivalence score: {evalResults.Equivalence.Reason}");
-        //Assert.IsTrue(evalResults.Coherence.Value >= 4, $"Low coherence score: {evalResults.Coherence.Reason}");
-        //Assert.IsTrue(evalResults.Groundedness.Value >= 4, $"Low groundedness score: {evalResults.Groundedness.Reason}");
+        // todo: add quality evaluation using LLM
     }
 
     [TestMethod]
@@ -136,5 +135,41 @@ public class TrajectoryEvals
         await File.WriteAllTextAsync(
             Path.Join(AppContext.BaseDirectory, "../../..", "Data", "Trajectory", "Relevance", $"traj_{inputFile}.txt"),
             JsonSerializer.Serialize(extractedTrajectory, _jsonOptions));
+    }
+
+    [TestMethod]
+    [DynamicData(nameof(DebugTraceQualityTestCases))]
+    public async Task DebugTraceQuality_EvaluateResponses(string inputFile, ModelGenerationContent content)
+    {
+        // 1. Build the conversation that the model originally saw
+        var conversationMessages = content.ModelInput
+            .Concat(content.ModelOutput)
+            .Where(m => m.Role != ChatRole.System);
+
+        // 2. Save processed chat
+        var chatTrajectory = new AgentTrajectory("meta_agent", false);
+        foreach (var msg in conversationMessages)
+        {
+            chatTrajectory.Append(msg);
+        }
+        var chatTranscript = chatTrajectory.GetFullTrajectory()
+            .Replace("\r\n", "\n");
+        await File.WriteAllTextAsync(
+            Path.Join(AppContext.BaseDirectory, "../../..", "Data", "Trajectory", "DebugTraces", $"chat_{inputFile}.txt"),
+            chatTranscript);
+
+        // 3. Extract the trajectory
+        (var extractedTrajectory, var _) = await TrajectoryExtractor.GenerateTrajectoryAsync_v3(
+            TestHost.RunConfig.ChatClient,
+            conversationMessages);
+
+        // should be marked as investigation.
+        Assert.IsTrue(extractedTrajectory.IsInvestigationThread);
+
+        await File.WriteAllTextAsync(
+            Path.Join(AppContext.BaseDirectory, "../../..", "Data", "Trajectory", "DebugTraces", $"traj_{inputFile}.txt"),
+            JsonSerializer.Serialize(extractedTrajectory, _jsonOptions));
+
+        // todo: add quality evaluation using LLM
     }
 }
