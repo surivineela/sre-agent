@@ -18,7 +18,7 @@ public sealed class ProcessedTrajectoryOutput_v3
 
     public required string IncidentTitle { get; set; }
 
-    public required string IncidentID { get; set; }
+    public required string IncidentId { get; set; }
 
     public required string IncidentTime { get; set; }
 
@@ -52,7 +52,7 @@ public sealed class ProcessedTrajectoryOutput_v3
             IsInvestigationThread = trajectoryOutput.IsInvestigationThread,
             ClassificationReason = trajectoryOutput.ClassificationReason,
             Title = trajectoryOutput.Title,
-            IncidentID = trajectoryOutput.IncidentID,
+            IncidentId = trajectoryOutput.IncidentId,
             IncidentTitle = trajectoryOutput.IncidentTitle,
             IncidentTime = trajectoryOutput.IncidentTime,
             SystemDesignKnowledge = trajectoryOutput.SystemDesignKnowledge,

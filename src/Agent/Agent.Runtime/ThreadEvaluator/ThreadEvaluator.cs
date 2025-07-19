@@ -194,10 +194,6 @@ public class ThreadEvaluator
     {
         try
         {
-            // var span = _tracer.StartRootSpan("evaluate.thread");
-            // span.SetAttribute("thread.id", thread.Id.ToString());
-            // span.SetAttribute("operation.name", "evaluate.thread");
-
             _logger.LogInternalInformation($"Evaluating thread {thread.Id} from source {thread.Source}: {thread.Title}");
 
             // Calculate basic metrics
@@ -219,7 +215,6 @@ public class ThreadEvaluator
             var llmEvaluation = await EvaluateThreadWithLLM(thread, chatHistory, reasoningHistory, toolCallMetrics, cancellationToken);// Calculate SAT Score from the individual criteria scores
             var satScore = llmEvaluation.Resolved + llmEvaluation.Satisfied + llmEvaluation.Automatic + llmEvaluation.Smooth + llmEvaluation.Concise;
 
-            // Trajectories
             if (_agentMemoryEnabled)
             {
                 // Index the trajectory right away

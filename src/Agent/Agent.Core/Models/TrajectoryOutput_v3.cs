@@ -52,7 +52,7 @@ public sealed class TrajectoryOutput_v3
     If the user explicitly provides an incident identifier, record it verbatim.
     Use "N/A" if not provided.
     """)]
-    public required string IncidentID { get; set; }
+    public required string IncidentId { get; set; }
 
     [Description(
     """

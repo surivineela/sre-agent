@@ -48,6 +48,15 @@ public class AgentMemory
     public string Pitfalls { get; set; } = string.Empty;
 
     [SearchableField]
+    public string IncidentId { get; set; } = string.Empty;
+
+    [SearchableField]
+    public string IncidentTitle { get; set; } = string.Empty;
+
+    [SimpleField(IsSortable = true)]
+    public DateTimeOffset? IncidentTime { get; set; }
+
+    [SearchableField]
     public string InitialSymptoms { get; set; } = string.Empty;
 
     [SearchableField]
@@ -102,6 +111,9 @@ public class AgentMemory
             ResourceIds = trajectoryData.ResourcesInvolved?.ToLowerInvariant().Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList() ?? [],
             RootCause = trajectoryData.RootCause ?? string.Empty,
             InitialSymptoms = trajectoryData.InitialSymptoms ?? string.Empty,
+            IncidentId = trajectoryData.IncidentId ?? string.Empty,
+            IncidentTitle = trajectoryData.IncidentTitle ?? string.Empty,
+            IncidentTime = ParseIncidentTime(trajectoryData.IncidentTime),
             StepsFollowed = trajectoryData.StepsFollowed ?? string.Empty,
             SymptomsObserved = trajectoryData.SymptomsObserved ?? string.Empty,
             IndexedAt = DateTimeOffset.UtcNow,
@@ -139,6 +151,12 @@ public class AgentMemory
             Vector = embedding,
             IndexedAt = DateTimeOffset.UtcNow
         };
+    }
+
+    private static DateTimeOffset? ParseIncidentTime(string? incidentTimeString)
+    {
+        return !string.IsNullOrEmpty(incidentTimeString) && !incidentTimeString.Equals("N/A", StringComparison.OrdinalIgnoreCase) 
+            && DateTimeOffset.TryParse(incidentTimeString, out var parsedTime) ? parsedTime : null;
     }
 }
 

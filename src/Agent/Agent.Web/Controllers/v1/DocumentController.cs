@@ -128,7 +128,7 @@ namespace Agent.Web.Controllers.v1
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> IndexTrajectory([FromBody] TrajectoryOutput trajectoryOutput)
+        public async Task<IActionResult> IndexTrajectory([FromBody] ProcessedTrajectoryOutput_v3 trajectoryOutput)
         {
             logger.LogInternalInformation($"Received trajectory for indexing");
 
