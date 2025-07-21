@@ -28,9 +28,11 @@ public record ThreadEvaluateResult(
     int Automatic,
     int Smooth,
     int Concise,
+    int Adherence,
     string Priority,
     string PriorityReason,
-    DateTime EvaluatedTimestamp
+    DateTime EvaluatedTimestamp,
+    AgentTypeEnum AgentType
 )
 {
 

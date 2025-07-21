@@ -572,6 +572,216 @@ namespace Agent.Web.Controllers.v1
                 return StatusCode(500, $"Error retrieving available agent modes: {ex.Message}");
             }
         }
+
+        #region ThreadEvaluateResult API Endpoints
+
+        /// <summary>
+        /// Gets all thread evaluation results with optional OData query support (only returns incident handler evaluations, excludes SATScore)
+        /// </summary>
+        /// <param name="queryOptions">OData query options for pagination, filtering, and sorting</param>
+        /// <returns>Paged response of thread evaluation results</returns>
+        [HttpGet("evaluations")]
+        public async Task<ActionResult<PagedResponse<ThreadEvaluateResultResponse>>> GetThreadEvaluations(ODataQueryOptions<ThreadEvaluateResultDocument> queryOptions)
+        {
+            try
+            {
+                var evaluations = await repository.GetThreadEvaluateResultsAsync(queryOptions);
+
+                // Filter to only include incident handler evaluations
+                var incidentEvaluations = evaluations.Where(e => e.AgentType == AgentTypeEnum.Incident);
+
+                // Convert to response DTOs (excludes SATScore)
+                var responseEvaluations = incidentEvaluations.ToResponse();
+
+                return Ok(new PagedResponse<ThreadEvaluateResultResponse>(responseEvaluations));
+            }
+            catch (Exception ex)
+            {
+                logger.LogInternalError(ex, "Error getting thread evaluations");
+                return StatusCode(500, "Internal server error while retrieving thread evaluations");
+            }
+        }
+
+        /// <summary>
+        /// Gets a specific thread evaluation result by evaluation ID (only returns incident handler evaluations, excludes SATScore)
+        /// </summary>
+        /// <param name="evaluationId">The evaluation ID</param>
+        /// <returns>Thread evaluation result</returns>
+        [HttpGet("evaluations/{evaluationId}")]
+        public async Task<ActionResult<ThreadEvaluateResultResponse>> GetThreadEvaluation(Guid evaluationId)
+        {
+            try
+            {
+                var evaluation = await repository.GetThreadEvaluateResultAsync(evaluationId);
+
+                if (evaluation == null)
+                {
+                    return NotFound($"Thread evaluation with ID {evaluationId} not found");
+                }
+
+                // Only return evaluations for incident handler threads
+                if (evaluation.AgentType != AgentTypeEnum.Incident)
+                {
+                    return NotFound($"Thread evaluation with ID {evaluationId} not found");
+                }
+
+                // Convert to response DTO (excludes SATScore)
+                return Ok(evaluation.ToResponse());
+            }
+            catch (Exception ex)
+            {
+                logger.LogInternalError(ex, "Error getting thread evaluation {EvaluationId}", evaluationId);
+                return StatusCode(500, "Internal server error while retrieving thread evaluation");
+            }
+        }
+
+        /// <summary>
+        /// Gets the thread evaluation result for a specific thread (only returns incident handler evaluations, excludes SATScore)
+        /// </summary>
+        /// <param name="threadId">The thread ID</param>
+        /// <returns>Thread evaluation result for the specified thread</returns>
+        [HttpGet("{threadId}/evaluation")]
+        public async Task<ActionResult<ThreadEvaluateResultResponse>> GetThreadEvaluationByThreadId(Guid threadId)
+        {
+            try
+            {
+                // First check if the thread exists
+                var thread = await repository.GetThreadAsync(threadId);
+                if (thread == null)
+                {
+                    return NotFound($"Thread with ID {threadId} not found");
+                }
+
+                var evaluation = await repository.GetThreadEvaluateResultByThreadIdAsync(threadId);
+
+                if (evaluation == null)
+                {
+                    return NotFound($"No evaluation found for thread {threadId}");
+                }
+
+                // Only return evaluations for incident handler threads
+                if (evaluation.AgentType != AgentTypeEnum.Incident)
+                {
+                    return NotFound($"No evaluation found for thread {threadId}");
+                }
+
+                // Convert to response DTO (excludes SATScore)
+                return Ok(evaluation.ToResponse());
+            }
+            catch (Exception ex)
+            {
+                logger.LogInternalError(ex, "Error getting thread evaluation for thread {ThreadId}", threadId);
+                return StatusCode(500, "Internal server error while retrieving thread evaluation");
+            }
+        }
+
+        /// <summary>
+        /// Creates a new thread evaluation result
+        /// </summary>
+        /// <param name="evaluateResult">The thread evaluation result to create</param>
+        /// <returns>Created thread evaluation result</returns>
+        [HttpPost("evaluations")]
+        public async Task<ActionResult<ThreadEvaluateResult>> CreateThreadEvaluation([FromBody] ThreadEvaluateResult evaluateResult)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                // Validate that the thread exists
+                var thread = await repository.GetThreadAsync(evaluateResult.ThreadId);
+                if (thread == null)
+                {
+                    return NotFound($"Thread with ID {evaluateResult.ThreadId} not found");
+                }
+
+                var createdEvaluation = await repository.CreateThreadEvaluateResultAsync(evaluateResult);
+
+                return CreatedAtAction(
+                    nameof(GetThreadEvaluation),
+                    new { evaluationId = createdEvaluation.Id },
+                    createdEvaluation);
+            }
+            catch (Exception ex)
+            {
+                logger.LogInternalError(ex, "Error creating thread evaluation");
+                return StatusCode(500, "Internal server error while creating thread evaluation");
+            }
+        }
+
+        /// <summary>
+        /// Updates an existing thread evaluation result
+        /// </summary>
+        /// <param name="evaluationId">The evaluation ID</param>
+        /// <param name="evaluateResult">The updated thread evaluation result</param>
+        /// <returns>Updated thread evaluation result</returns>
+        [HttpPut("evaluations/{evaluationId}")]
+        public async Task<ActionResult<ThreadEvaluateResult>> UpdateThreadEvaluation(Guid evaluationId, [FromBody] ThreadEvaluateResult evaluateResult)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                if (evaluationId != evaluateResult.Id)
+                {
+                    return BadRequest("Evaluation ID in URL does not match the ID in the request body");
+                }
+
+                // Check if the evaluation exists
+                var existingEvaluation = await repository.GetThreadEvaluateResultAsync(evaluationId);
+                if (existingEvaluation == null)
+                {
+                    return NotFound($"Thread evaluation with ID {evaluationId} not found");
+                }
+
+                var updatedEvaluation = await repository.UpdateThreadEvaluateResultAsync(evaluateResult);
+
+                if (updatedEvaluation == null)
+                {
+                    return NotFound($"Thread evaluation with ID {evaluationId} not found");
+                }
+
+                return Ok(updatedEvaluation);
+            }
+            catch (Exception ex)
+            {
+                logger.LogInternalError(ex, "Error updating thread evaluation {EvaluationId}", evaluationId);
+                return StatusCode(500, "Internal server error while updating thread evaluation");
+            }
+        }
+
+        /// <summary>
+        /// Deletes a thread evaluation result
+        /// </summary>
+        /// <param name="evaluationId">The evaluation ID to delete</param>
+        /// <returns>Success status</returns>
+        [HttpDelete("evaluations/{evaluationId}")]
+        public async Task<IActionResult> DeleteThreadEvaluation(Guid evaluationId)
+        {
+            try
+            {
+                var deleted = await repository.DeleteThreadEvaluateResultAsync(evaluationId);
+
+                if (!deleted)
+                {
+                    return NotFound($"Thread evaluation with ID {evaluationId} not found");
+                }
+
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                logger.LogInternalError(ex, "Error deleting thread evaluation {EvaluationId}", evaluationId);
+                return StatusCode(500, "Internal server error while deleting thread evaluation");
+            }
+        }
+
+        #endregion
     }
 }
 

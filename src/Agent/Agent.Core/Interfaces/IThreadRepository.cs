@@ -96,4 +96,12 @@ public interface IThreadRepository
     Task<KubectlExecution> CreateKubectlExecutionAsync(Guid threadId, KubectlExecution execution);
     Task<KubectlExecution> UpdateKubectlExecutionAsync(Guid threadId, KubectlExecution execution);
     Task<KubectlExecution> UpdateKubectlExecutionOutputAsync(Guid threadId, Guid executionId, string output, string? error = null);
+
+    // ThreadEvaluateResult operations
+    Task<ThreadEvaluateResult> GetThreadEvaluateResultAsync(Guid evaluationId);
+    Task<ThreadEvaluateResult> GetThreadEvaluateResultByThreadIdAsync(Guid threadId);
+    Task<IEnumerable<ThreadEvaluateResult>> GetThreadEvaluateResultsAsync(ODataQueryOptions? queryOptions = null);
+    Task<ThreadEvaluateResult> CreateThreadEvaluateResultAsync(ThreadEvaluateResult evaluateResult);
+    Task<ThreadEvaluateResult> UpdateThreadEvaluateResultAsync(ThreadEvaluateResult evaluateResult);
+    Task<bool> DeleteThreadEvaluateResultAsync(Guid evaluationId);
 }

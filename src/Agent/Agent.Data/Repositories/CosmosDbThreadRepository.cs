@@ -2206,4 +2206,165 @@ public class CosmosDbThreadRepository : IThreadRepository
     }
 
     #endregion
+
+    #region ThreadEvaluateResult Operations
+
+    public async Task<ThreadEvaluateResult> GetThreadEvaluateResultAsync(Guid evaluationId)
+    {
+        _logger.LogInternalInformation("Trying to get thread evaluation: {Id}", evaluationId);
+        try
+        {
+            string evaluationIdStr = evaluationId.ToString();
+
+            // Since we don't know the thread ID (partition key) from just the evaluation ID,
+            // we need to query across all partitions using a cross-partition query
+            var query = _client.GetContainer<ThreadEvaluateResultDocument>(_databaseName)
+                .GetItemLinqQueryable<ThreadEvaluateResultDocument>(allowSynchronousQueryExecution: true)
+                .Where(e => e.DocumentType == "ThreadEvaluationResult" && e.Id == evaluationIdStr);
+
+            using var iterator = query.ToFeedIterator();
+            var response = await iterator.ReadNextAsync();
+
+            return response.FirstOrDefault()?.ToDomainModel();
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+    }
+
+    public async Task<ThreadEvaluateResult> GetThreadEvaluateResultByThreadIdAsync(Guid threadId)
+    {
+        _logger.LogInternalInformation("Trying to get thread evaluation by thread ID: {ThreadId}", threadId);
+        try
+        {
+            string threadIdStr = threadId.ToString();
+
+            // Query for evaluation by thread ID
+            var query = _client.GetContainer<ThreadEvaluateResultDocument>(_databaseName)
+                .GetItemLinqQueryable<ThreadEvaluateResultDocument>()
+                .Where(e => e.DocumentType == "ThreadEvaluationResult" && e.ThreadId == threadIdStr)
+                .OrderByDescending(e => e.EvaluatedTimestamp)
+                .Take(1);
+
+            using var iterator = query.ToFeedIterator();
+            var response = await iterator.ReadNextAsync();
+
+            return response.FirstOrDefault()?.ToDomainModel();
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+    }
+
+    public async Task<IEnumerable<ThreadEvaluateResult>> GetThreadEvaluateResultsAsync(ODataQueryOptions? queryOptions = null)
+    {
+        _logger.LogInternalInformation("Getting all thread evaluations");
+
+        var results = new List<ThreadEvaluateResult>();
+
+        // Query for thread evaluation documents
+        var query = _client.GetContainer<ThreadEvaluateResultDocument>(_databaseName)
+            .GetItemLinqQueryable<ThreadEvaluateResultDocument>()
+            .Where(e => e.DocumentType == "ThreadEvaluationResult")
+            .OrderBy(e => e.EvaluatedTimestamp);
+
+        var finalQuery = queryOptions?.ApplyTo(query, oDataQuerySettings) as IOrderedQueryable<ThreadEvaluateResultDocument> ?? query;
+
+        using var iterator = finalQuery.ToFeedIterator();
+        while (iterator.HasMoreResults)
+        {
+            foreach (var evaluationDoc in await iterator.ReadNextAsync())
+            {
+                results.Add(evaluationDoc.ToDomainModel());
+            }
+        }
+
+        return results;
+    }
+
+    public async Task<ThreadEvaluateResult> CreateThreadEvaluateResultAsync(ThreadEvaluateResult evaluateResult)
+    {
+        _logger.LogInternalInformation("Creating thread evaluation: {Id}", evaluateResult.Id);
+
+        // Ensure ID is set
+        var resultToStore = evaluateResult;
+        if (evaluateResult.Id == Guid.Empty)
+        {
+            resultToStore = evaluateResult with { Id = Guid.NewGuid() };
+        }
+
+        var document = ThreadEvaluateResultDocument.FromDomainModel(resultToStore);
+
+        await _client.GetContainer<ThreadEvaluateResultDocument>(_databaseName).UpsertItemAsync(document, new PartitionKey(document.PartitionKey));
+
+        return resultToStore;
+    }
+
+    public async Task<ThreadEvaluateResult> UpdateThreadEvaluateResultAsync(ThreadEvaluateResult evaluateResult)
+    {
+        _logger.LogInternalInformation("Updating thread evaluation: {Id}", evaluateResult.Id);
+
+        try
+        {
+            // Check if the document exists first
+            string evaluationIdStr = evaluateResult.Id.ToString();
+            var existingDoc = await GetDocumentAsync<ThreadEvaluateResultDocument>(evaluationIdStr, evaluateResult.ThreadId.ToString());
+
+            if (existingDoc == null)
+            {
+                _logger.LogInternalWarning("Cannot update thread evaluation: {Id} not found", evaluateResult.Id);
+                return null;
+            }
+
+            var document = ThreadEvaluateResultDocument.FromDomainModel(evaluateResult);
+            await _client.GetContainer<ThreadEvaluateResultDocument>(_databaseName).UpsertItemAsync(document, new PartitionKey(document.PartitionKey));
+
+            return evaluateResult;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            _logger.LogInternalWarning("Cannot update thread evaluation: {Id} not found", evaluateResult.Id);
+            return null;
+        }
+    }
+
+    public async Task<bool> DeleteThreadEvaluateResultAsync(Guid evaluationId)
+    {
+        _logger.LogInternalInformation("Deleting thread evaluation: {Id}", evaluationId);
+
+        try
+        {
+            string evaluationIdStr = evaluationId.ToString();
+
+            // First, find the document using cross-partition query to get the correct partition key (ThreadId)
+            var query = _client.GetContainer<ThreadEvaluateResultDocument>(_databaseName)
+                .GetItemLinqQueryable<ThreadEvaluateResultDocument>(allowSynchronousQueryExecution: true)
+                .Where(e => e.DocumentType == "ThreadEvaluationResult" && e.Id == evaluationIdStr);
+
+            using var iterator = query.ToFeedIterator();
+            var response = await iterator.ReadNextAsync();
+            var evaluationDoc = response.FirstOrDefault();
+
+            if (evaluationDoc == null)
+            {
+                _logger.LogInternalWarning("Thread evaluation not found: {Id}", evaluationId);
+                return false;
+            }
+
+            // Now delete using the correct partition key
+            await _client.GetContainer<ThreadEvaluateResultDocument>(_databaseName)
+                .DeleteItemAsync<ThreadEvaluateResultDocument>(evaluationIdStr, new PartitionKey(evaluationDoc.ThreadId));
+
+            return true;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            _logger.LogInternalWarning("Thread evaluation not found: {Id}", evaluationId);
+            return false;
+        }
+    }
+
+    #endregion
 }

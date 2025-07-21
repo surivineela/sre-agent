@@ -33,6 +33,7 @@ namespace Agent.Data.Repositories
         private readonly Dictionary<string, object> _threadTeamsMappings = new();
         private readonly Dictionary<Guid, PagerDutyIncident> _pagerDutyIncidents = new();
         private readonly Dictionary<Guid, AzMonitorAlert> _azMonitorAlerts = new();
+        private readonly Dictionary<Guid, ThreadEvaluateResult> _threadEvaluateResults = new();
         private readonly ILogger<InMemoryThreadRepository> _logger;
 
         public InMemoryThreadRepository(ILogger<InMemoryThreadRepository> logger)
@@ -875,6 +876,81 @@ namespace Agent.Data.Repositories
         public Task<bool> DeleteAzureDevOpsAccessTokenAsync(string resourceId)
         {
             throw new NotImplementedException();
+        }
+
+        #endregion
+
+        #region ThreadEvaluateResult Operations
+
+        public Task<ThreadEvaluateResult> GetThreadEvaluateResultAsync(Guid evaluationId)
+        {
+            _logger.LogInternalInformation("Trying to get thread evaluation: {Id}", evaluationId);
+            _threadEvaluateResults.TryGetValue(evaluationId, out var result);
+            return Task.FromResult(result);
+        }
+
+        public Task<ThreadEvaluateResult> GetThreadEvaluateResultByThreadIdAsync(Guid threadId)
+        {
+            _logger.LogInternalInformation("Trying to get thread evaluation by thread ID: {ThreadId}", threadId);
+            var result = _threadEvaluateResults.Values.FirstOrDefault(r => r.ThreadId == threadId);
+            return Task.FromResult(result);
+        }
+
+        public Task<IEnumerable<ThreadEvaluateResult>> GetThreadEvaluateResultsAsync(ODataQueryOptions? queryOptions = null)
+        {
+            _logger.LogInternalInformation("Getting all thread evaluations");
+
+            IQueryable<ThreadEvaluateResult> results = _threadEvaluateResults.Values.AsQueryable().OrderBy(r => r.EvaluatedTimestamp);
+
+            if (queryOptions is not null)
+            {
+                results = queryOptions.ApplyTo(results) as IQueryable<ThreadEvaluateResult>;
+            }
+
+            return Task.FromResult(results.AsEnumerable());
+        }
+
+        public Task<ThreadEvaluateResult> CreateThreadEvaluateResultAsync(ThreadEvaluateResult evaluateResult)
+        {
+            _logger.LogInternalInformation("Creating thread evaluation: {Id}", evaluateResult.Id);
+
+            // Ensure ID is set
+            var resultToStore = evaluateResult;
+            if (evaluateResult.Id == Guid.Empty)
+            {
+                resultToStore = evaluateResult with { Id = Guid.NewGuid() };
+            }
+
+            _threadEvaluateResults[resultToStore.Id] = resultToStore;
+            return Task.FromResult(resultToStore);
+        }
+
+        public Task<ThreadEvaluateResult> UpdateThreadEvaluateResultAsync(ThreadEvaluateResult evaluateResult)
+        {
+            _logger.LogInternalInformation("Updating thread evaluation: {Id}", evaluateResult.Id);
+
+            if (!_threadEvaluateResults.ContainsKey(evaluateResult.Id))
+            {
+                _logger.LogInternalWarning("Cannot update thread evaluation: {Id} not found", evaluateResult.Id);
+                return Task.FromResult<ThreadEvaluateResult>(null);
+            }
+
+            _threadEvaluateResults[evaluateResult.Id] = evaluateResult;
+            return Task.FromResult(evaluateResult);
+        }
+
+        public Task<bool> DeleteThreadEvaluateResultAsync(Guid evaluationId)
+        {
+            _logger.LogInternalInformation("Deleting thread evaluation: {Id}", evaluationId);
+
+            if (!_threadEvaluateResults.ContainsKey(evaluationId))
+            {
+                _logger.LogInternalWarning("Thread evaluation not found: {Id}", evaluationId);
+                return Task.FromResult(false);
+            }
+
+            _threadEvaluateResults.Remove(evaluationId);
+            return Task.FromResult(true);
         }
 
         #endregion
