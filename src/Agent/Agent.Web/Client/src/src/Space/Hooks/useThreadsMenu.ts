@@ -245,7 +245,7 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadMe
                 }
             };
 
-            // pollNewThreads();
+            pollNewThreads();
         }
 
         return () => {
