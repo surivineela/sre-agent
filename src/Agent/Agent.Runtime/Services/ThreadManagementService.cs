@@ -177,17 +177,22 @@ public class ThreadManagementService(
             ), defaultHandler: false);
         }
 
-        var response = await agentInboundCommunicationService.ProcessUserMessageAsync(new ThreadMessage
-        (
-            ThreadId: threadId,
-            AgentContextId: agentContext.Id,
-            MessageId: Guid.NewGuid(),
-            Message: request.Text,
-            UserId: request.UserId,
-            DisplayName: request.DisplayName,
-            Timestamp: DateTime.UtcNow
-        ));
+        if (agentContext != null)
+        {
+            var response = await agentInboundCommunicationService.ProcessUserMessageAsync(new ThreadMessage
+            (
+                ThreadId: threadId,
+                AgentContextId: agentContext.Id,
+                MessageId: Guid.NewGuid(),
+                Message: request.Text,
+                UserId: request.UserId,
+                DisplayName: request.DisplayName,
+                Timestamp: DateTime.UtcNow
+            ));
 
-        return response;
+            return response;
+        }
+
+        throw new Exception($"No agent context found for thread {threadId}. This should not happen.");
     }
 }

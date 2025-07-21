@@ -29,7 +29,7 @@ public sealed class DeferredToolFunction<TContext> : IDeferredToolFunction where
     private readonly IServiceProvider _sp;
 
     private MethodInfo? _methodInfo;
-    private Type? _pluginType;
+    private Type _pluginType;
     private string? _reflectionBasedName;
 
     /// <summary>
@@ -235,11 +235,11 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
                 result.Add(new ToolInfo
                 {
                     Name = tool.Key,
-                    Category = tool.Value.GetToolFunction()?.GetToolCategory(tool.Value.GetPluginCategory()),
-                    ResourceType = tool.Value.GetToolFunction()?.GetToolResourceType(tool.Value.GetPluginResourceType()),
+                    Category = tool.Value.GetToolFunction()?.GetToolCategory(tool.Value.GetPluginCategory()) ?? string.Empty,
+                    ResourceType = tool.Value.GetToolFunction()?.GetToolResourceType(tool.Value.GetPluginResourceType()) ?? string.Empty,
                     Description = tool.Value.GetToolFunction()?.Description,
                     PluginName = tool.Value.GetPluginName(),
-                    Parameters = tool.Value.GetToolFunction()?.UnderlyingMethod?.GetParameters()?.Select(x => x.Name)?.ToArray()
+                    Parameters = tool.Value.GetToolFunction()?.UnderlyingMethod?.GetParameters()?.Select(x => x.Name ?? string.Empty)?.Where(s => !string.IsNullOrEmpty(s)).ToArray()
                 });
             }
             catch (Exception ex)

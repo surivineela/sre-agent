@@ -26,11 +26,14 @@ public class McpToolsRepository : IMcpConnectable
     {
         List<string> toolSignatures = [];
 
-        foreach (AIFunction tool in connection.Tools)
+        if (connection.Tools != null)
         {
-            string sig = GetAIFunctionSignature(connection, tool);
-            toolSignatures.Add(sig);
-            _aiFunctions.TryAdd(sig, tool);
+            foreach (AIFunction tool in connection.Tools)
+            {
+                string sig = GetAIFunctionSignature(connection, tool);
+                toolSignatures.Add(sig);
+                _aiFunctions.TryAdd(sig, tool);
+            }
         }
 
         _connectionToToolSignatures.TryAdd(connection, toolSignatures.AsReadOnly());

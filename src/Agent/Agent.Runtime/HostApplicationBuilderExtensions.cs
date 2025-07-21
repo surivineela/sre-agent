@@ -53,8 +53,8 @@ namespace Agent.Runtime
 
         private static void AddFromAppConfig(IHostApplicationBuilder builder)
         {
-            string envPrefix = builder.Configuration.GetValue<string>("AppSettings:EnvPrefix");
-            string ManagedIdentityClientId = builder.Configuration.GetValue<string>("AppSettings:ManagedIdentityClientId");
+            string? envPrefix = builder.Configuration.GetValue<string>("AppSettings:EnvPrefix");
+            string? ManagedIdentityClientId = builder.Configuration.GetValue<string>("AppSettings:ManagedIdentityClientId");
 
             if (string.IsNullOrEmpty(envPrefix))
             {

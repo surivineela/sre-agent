@@ -44,9 +44,12 @@ public class TlsBestPracticesPlugin : IMetaAgentTlsBestPracticesPlugin
                 FetchInputsAndOutputs: true)))
         {
             var agentInput = instance.ReadInputAs<TlsBestPracticesAgentInput>();
-            list.Add(new WorkflowMetadata<TlsBestPracticesInput>(
-                WorkflowInstanceId: instance.InstanceId,
-                Input: agentInput.Input));
+            if (agentInput != null)
+            {
+                list.Add(new WorkflowMetadata<TlsBestPracticesInput>(
+                    WorkflowInstanceId: instance.InstanceId,
+                    Input: agentInput.Input));
+            }
         }
 
         return list;

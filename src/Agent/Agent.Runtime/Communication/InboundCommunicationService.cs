@@ -124,17 +124,17 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
 
     private async Task<InboundServiceResponse> ProcessMessageWithAgentFrameworkAsync(ThreadMessage threadMessage)
     {
-        AgentContext agentContext = await _repository.GetAgentContextAsync(agentContextId: threadMessage.AgentContextId, threadId: threadMessage.ThreadId);
+        AgentContext? agentContext = await _repository.GetAgentContextAsync(agentContextId: threadMessage.AgentContextId, threadId: threadMessage.ThreadId);
 
         // we don't need to sink user message if the message is the start message
         var thread = await _repository.GetThreadAsync(threadMessage.ThreadId);
-        if (threadMessage?.MessageId != thread?.StartMessage?.Id)
+        if (threadMessage.MessageId != thread?.StartMessage?.Id)
         {
             await _sinkService.SinkUserMessageAsync(threadMessage);
         }
 
         var chatRole = ChatRole.User;
-        if (string.Equals(threadMessage?.UserId, "agent-default", StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(threadMessage.UserId, "agent-default", StringComparison.OrdinalIgnoreCase))
         {
             // If the message is from the SRE agent, we treat it as a system message
             chatRole = ChatRole.System;
@@ -168,7 +168,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             Guid responseMessageId = Guid.Empty;
 
             // Check if an orchestration already exists for this thread
-            AgentContext agentContext = await _repository.GetAgentContextAsync(agentContextId: threadMessage.AgentContextId, threadId: threadMessage.ThreadId);
+            AgentContext? agentContext = await _repository.GetAgentContextAsync(agentContextId: threadMessage.AgentContextId, threadId: threadMessage.ThreadId);
             AgentChatHistory agentChatHistory = await _repository.GetAgentChatHistoryAsync(threadMessage.AgentContextId);
 
             orchestrationInstanceId = agentContext != null ? await _threadService.GetOrchestrationInstanceId(agentContext.ThreadId) : orchestrationInstanceId;
@@ -176,7 +176,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             // we don't need to sink user message if the message is the start message
             var thread = await _repository.GetThreadAsync(threadMessage.ThreadId);
             ReasoningMessage? reasoningMessage = null;
-            if (threadMessage?.MessageId != thread?.StartMessage?.Id)
+            if (threadMessage.MessageId != thread.StartMessage?.Id)
             {
                 await _sinkService.SinkUserMessageAsync(threadMessage);
                 reasoningMessage = new ReasoningMessage(
@@ -193,16 +193,20 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             {
                 var existingOrchestration = await _durableTaskClient.GetInstanceAsync(orchestrationInstanceId,
                     getInputsAndOutputs: true, CancellationToken.None);
-                // Check for failed orchestrations and clean them if needed
-                var cleaned = await _threadService.CleanOrchestration(
-                    thread.Id,
-                    orchestrationInstanceId,
-                    existingOrchestration);
 
-                // If the orchestration was cleaned, get the updated orchestration ID (might be empty now)
-                if (cleaned)
+                if (existingOrchestration != null)
                 {
-                    orchestrationInstanceId = await _threadService.GetOrchestrationInstanceId(agentContext.ThreadId);
+                    // Check for failed orchestrations and clean them if needed
+                    var cleaned = await _threadService.CleanOrchestration(
+                        thread.Id,
+                        orchestrationInstanceId,
+                        existingOrchestration);
+
+                    // If the orchestration was cleaned, get the updated orchestration ID (might be empty now)
+                    if (cleaned && agentContext != null)
+                    {
+                        orchestrationInstanceId = await _threadService.GetOrchestrationInstanceId(agentContext.ThreadId);
+                    }
                 }
             }
 
@@ -215,7 +219,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
 
                 if (agentContext != null && AgentTypeHelper.IsScannerAgent(agentContext.AgentType))
                 {
-                    ScannerSubAgent scannerSubAgent = null;
+                    ScannerSubAgent scannerSubAgent;
                     switch (agentContext.AgentType)
                     {
                         case AgentTypeEnum.CVE:
@@ -257,11 +261,17 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                 {
                     agentResponse = await _incidentHandlerAgent.ProcessIncidentAsync(agentContext: agentContext, agentChatHistory: agentChatHistory);
                 }
-                else
+                else if (agentContext != null)
                 {
                     // Process the message with MetaAgent
                     agentResponse = await _metaAgent.ProcessUserMessageAsync(agentContext: agentContext, agentChatHistory: agentChatHistory);
                 }
+                else
+                {
+                    // No agent context,
+                    throw new InvalidOperationException("Agent context is null for thread: " + threadMessage.ThreadId);
+                }
+
 
                 responseMessageId = await _sinkService.SinkAgentMessageAsync(agentContext.ThreadId, agentResponse);
             }
@@ -309,7 +319,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             Guid responseMessageId = Guid.Empty;
 
             // Check if an orchestration already exists for this thread
-            AgentContext agentContext = await _repository.GetAgentContextAsync(agentContextId: threadMessage.AgentContextId, threadId: threadMessage.ThreadId);
+            AgentContext? agentContext = await _repository.GetAgentContextAsync(agentContextId: threadMessage.AgentContextId, threadId: threadMessage.ThreadId);
             AgentChatHistory agentChatHistory = await _repository.GetAgentChatHistoryAsync(threadMessage.AgentContextId);
 
             orchestrationInstanceId = agentContext != null ? await _threadService.GetOrchestrationInstanceId(agentContext.ThreadId) : orchestrationInstanceId;
@@ -317,7 +327,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             // we don't need to sink user message if the message is the start message
             var thread = await _repository.GetThreadAsync(threadMessage.ThreadId);
             ReasoningMessage? reasoningMessage = null;
-            if (threadMessage?.MessageId != thread?.StartMessage?.Id)
+            if (threadMessage.MessageId != thread.StartMessage.Id)
             {
                 await _sinkService.SinkUserMessageAsync(threadMessage);
                 reasoningMessage = new ReasoningMessage(
@@ -334,16 +344,19 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             {
                 var existingOrchestration = await _durableTaskClient.GetInstanceAsync(orchestrationInstanceId,
                     getInputsAndOutputs: true, CancellationToken.None);
-                // Check for failed orchestrations and clean them if needed
-                var cleaned = await _threadService.CleanOrchestration(
-                    thread.Id,
-                    orchestrationInstanceId,
-                    existingOrchestration);
-
-                // If the orchestration was cleaned, get the updated orchestration ID (might be empty now)
-                if (cleaned)
+                if (existingOrchestration != null)
                 {
-                    orchestrationInstanceId = await _threadService.GetOrchestrationInstanceId(agentContext.ThreadId);
+                    // Check for failed orchestrations and clean them if needed
+                    var cleaned = await _threadService.CleanOrchestration(
+                        thread.Id,
+                        orchestrationInstanceId,
+                        existingOrchestration);
+
+                    // If the orchestration was cleaned, get the updated orchestration ID (might be empty now)
+                    if (cleaned && agentContext != null)
+                    {
+                        orchestrationInstanceId = await _threadService.GetOrchestrationInstanceId(agentContext.ThreadId);
+                    }
                 }
             }
 
@@ -358,10 +371,14 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                 {
                     agentResponse = await _incidentHandlerAgent.ProcessIncidentAsync(agentContext: agentContext, agentChatHistory: agentChatHistory);
                 }
-                else
+                else if (agentContext != null)
                 {
                     // Process the message with MetaAgent
                     agentResponse = await _metaAgent.ProcessUserMessageAsync(agentContext: agentContext, agentChatHistory: agentChatHistory);
+                }
+                else
+                {
+                    throw new InvalidOperationException("Agent context is null for thread: " + threadMessage.ThreadId);
                 }
 
                 responseMessageId = await _sinkService.SinkAgentMessageAsync(agentContext.ThreadId, agentResponse);
@@ -613,7 +630,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         string errorMessage = "";
         if (isUpdateUponGlobalDefaultMode)
         {
-            string globalDefaultMode = _actionSettings.Mode?.ToString() ?? AgentModes.Review;
+            string globalDefaultMode = _actionSettings.Mode.ToString() ?? AgentModes.Review;
             isValidChange = AgentModes.IsValidModeChange(globalDefaultMode, requestedMode);
 
             string validationError = AgentModes.GetValidationErrorMessage(globalDefaultMode);
@@ -636,6 +653,13 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         if (updatedThread == null)
         {
             errorMessage = $"[InboundCommunicationService]Failed to update thread {thread.Id} to {requestedMode} mode.";
+            _logger.LogInternalError(errorMessage);
+            throw new InvalidOperationException(errorMessage);
+        }
+
+        if (updatedAgentContext == null)
+        {
+            errorMessage = $"[InboundCommunicationService]Failed to get agent context.";
             _logger.LogInternalError(errorMessage);
             throw new InvalidOperationException(errorMessage);
         }

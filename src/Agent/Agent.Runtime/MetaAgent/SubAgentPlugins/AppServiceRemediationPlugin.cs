@@ -43,10 +43,12 @@ public class AppServiceRemediationPlugin : IMetaAgentAppServiceRemediationPlugin
                 FetchInputsAndOutputs: true)))
         {
             var agentInput = instance.ReadInputAs<AppServiceRemediationAgentInput>();
-
-            list.Add(new WorkflowMetadata<AppServiceRemediationInput>(
-                WorkflowInstanceId: instance.InstanceId,
-                Input: agentInput.Input));
+            if (agentInput != null)
+            {
+                list.Add(new WorkflowMetadata<AppServiceRemediationInput>(
+                    WorkflowInstanceId: instance.InstanceId,
+                    Input: agentInput.Input));
+            }
         }
 
         return list;

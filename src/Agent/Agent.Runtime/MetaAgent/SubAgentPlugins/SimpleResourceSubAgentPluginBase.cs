@@ -54,11 +54,16 @@ public abstract class SimpleResourceSubAgentPluginBase<TAgentFactory, TAgentType
         {
             // workaround because above fetch inputs and outputs is not working
             var instanceWithInput = await _durableTaskClient.GetInstanceAsync(instance.InstanceId, getInputsAndOutputs: true);
-            var agentInput = instanceWithInput.ReadInputAs<TAgentInput>();
-
-            list.Add(new WorkflowMetadata<TActivityInput>(
-                WorkflowInstanceId: instance.InstanceId,
-                Input: agentInput.ActivityInput));
+            if (instanceWithInput != null)
+            {
+                var agentInput = instanceWithInput.ReadInputAs<TAgentInput>();
+                if (agentInput != null)
+                {
+                    list.Add(new WorkflowMetadata<TActivityInput>(
+                        WorkflowInstanceId: instance.InstanceId,
+                        Input: agentInput.ActivityInput));
+                }
+            }
         }
 
         return list;

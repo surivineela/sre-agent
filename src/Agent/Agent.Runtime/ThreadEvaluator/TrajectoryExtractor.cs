@@ -124,6 +124,10 @@ public static class TrajectoryExtractor
 
         // deserialize the raw trajectory
         var rawTraj = JsonSerializer.Deserialize<TrajectoryOutput_v3>(extractedTrajectory.Text, _jsonSerializerOptions);
+        if (rawTraj == null)
+        {
+            throw new Exception("Failed to deserialize the trajectory output.");
+        }
 
         // process as needed
         var finalTrajectory = ProcessedTrajectoryOutput_v3.FromTrajectoryOutput(rawTraj);

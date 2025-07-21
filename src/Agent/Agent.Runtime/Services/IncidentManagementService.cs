@@ -36,7 +36,7 @@ namespace Agent.Runtime.Services
             IncidentManagementSettings incidentManagementSettings,
             IIncidentFilterManagementService incidentFilterManagementService,
             ILogger<IncidentManagementService<T>> logger,
-            IServiceNowAPIClient? serviceNowAPIClient = null)
+            IServiceNowAPIClient serviceNowAPIClient)
         {
             _container = cosmosClient.GetContainer(
                 cosmosDbSettings.Docs.Database,
@@ -445,7 +445,7 @@ namespace Agent.Runtime.Services
                         queryable = queryable.Where(c => request.Statuses.Contains(c.Status.ToLower()));
                     }
 
-                    IncidentFilterDocumentPayload filter = null;
+                    IncidentFilterDocumentPayload? filter = null;
 
                     if (!string.IsNullOrEmpty(request.Filter.Id))
                     {
@@ -606,7 +606,7 @@ namespace Agent.Runtime.Services
 
 public class IncidentQueryRequest
 {
-    public IncidentFilterDocumentPayload Filter { get; set; } = null;
+    public IncidentFilterDocumentPayload? Filter { get; set; }
 
     // Should only use Keywords in special scenarios where Filter isn't viable
     public string[] Keywords { get; set; } = [];

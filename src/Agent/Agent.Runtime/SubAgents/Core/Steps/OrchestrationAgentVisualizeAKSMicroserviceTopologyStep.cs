@@ -7,10 +7,15 @@ namespace Agent.Runtime.SubAgents.Core.Steps;
 
 public class OrchestrationAgentVisualizeAKSMicroserviceTopologyStep : OrchestrationAgentStep
 {
-    public FunctionCallContent FunctionCall { get; set; }
+    public FunctionCallContent? FunctionCall { get; set; }
 
     public override async Task ExecuteAsync(TaskOrchestrationContext context, OrchestrationAgent agent)
     {
+        if (FunctionCall == null)
+        {
+            throw new ArgumentNullException(nameof(FunctionCall), "FunctionCall cannot be null.");
+        }
+
         var log = context.CreateReplaySafeLogger<OrchestrationAgentVisualizeAKSMicroserviceTopologyStep>();
         Guid threadId = agent.ThreadId;
 
@@ -21,23 +26,26 @@ public class OrchestrationAgentVisualizeAKSMicroserviceTopologyStep : Orchestrat
         string _namespace = string.Empty;
         string deployment = string.Empty;
 
-        if (FunctionCall.Arguments.TryGetValue("AKSClusterResourceId", out var resourceIdObj) && resourceIdObj != null)
+        if (FunctionCall.Arguments != null)
         {
-            resourceId = resourceIdObj.ToString() ?? string.Empty;
-        }
-        if (FunctionCall.Arguments.TryGetValue("_namespace", out var namespaceObj) && namespaceObj != null)
-        {
-            _namespace = namespaceObj.ToString() ?? string.Empty;
-        }
-        if (FunctionCall.Arguments.TryGetValue("deploymentName", out var deploymentObj) && deploymentObj != null)
-        {
-            deployment = deploymentObj.ToString() ?? string.Empty;
+            if (FunctionCall.Arguments.TryGetValue("AKSClusterResourceId", out var resourceIdObj) && resourceIdObj != null)
+            {
+                resourceId = resourceIdObj.ToString() ?? string.Empty;
+            }
+            if (FunctionCall.Arguments.TryGetValue("_namespace", out var namespaceObj) && namespaceObj != null)
+            {
+                _namespace = namespaceObj.ToString() ?? string.Empty;
+            }
+            if (FunctionCall.Arguments.TryGetValue("deploymentName", out var deploymentObj) && deploymentObj != null)
+            {
+                deployment = deploymentObj.ToString() ?? string.Empty;
+            }
         }
         log.LogInternalInformation("[{ThreadId}] Generating Visualization with AKS {resourceIdObj}, namespace {_namespace}, name: {deployment}", threadId, resourceId, _namespace, deployment);
 
 
         // Create a new args dictionary with the threadId as a Guid
-        var argsWithThreadId = new Dictionary<string, object?>(FunctionCall.Arguments)
+        var argsWithThreadId = new Dictionary<string, object?>(FunctionCall.Arguments ?? new Dictionary<string, object?>())
         {
             ["threadId"] = threadId
         };

@@ -9,13 +9,18 @@ namespace Agent.Runtime.SubAgents.Core.Steps;
 
 public class OrchestrationAgentWaitStep : OrchestrationAgentStep
 {
-    public FunctionCallContent FunctionCall { get; set; }
+    public FunctionCallContent? FunctionCall { get; set; }
 
     //use this once function calling is enabled
     //public TimeSpan WaitTime { get; set; }
 
     public override async Task ExecuteAsync(TaskOrchestrationContext context, OrchestrationAgent agent)
     {
+        if (FunctionCall == null)
+        {
+            throw new ArgumentNullException(nameof(FunctionCall), "FunctionCall cannot be null.");
+        }
+
         await Task.Yield();
         var log = context.CreateReplaySafeLogger<OrchestrationAgentWaitStep>();
         Guid threadId = agent.ThreadId;

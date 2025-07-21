@@ -49,14 +49,14 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
     {
         if (!string.IsNullOrEmpty(orchestrationInstanceId))
         {
-            await _mappingManager.AddMappingAsync(threadId.ToString(), orchestrationInstanceId);
+            await _mappingManager.AddMappingAsync(threadId?.ToString() ?? Guid.Empty.ToString(), orchestrationInstanceId);
         }
         _logger.LogExternalInformation("orchestrationInstanceId {orchestrationInstanceId} message to thread {ThreadId}: {Message}",
             orchestrationInstanceId, threadId, message.Text);
         Guid agentMessageId = messageId ?? Guid.NewGuid();
         DateTime recordedDateTime = DateTime.UtcNow;
         await AppendAgentStreamMessage(threadId ?? Guid.Empty, message.Text ?? string.Empty, null, agentMessageId, recordedDateTime);
-        await _sinkService.SinkAgentMessageAsync(threadId.Value, message.Text ?? string.Empty, agentResponseMessageId: agentMessageId, recordedDateTime: recordedDateTime);
+        await _sinkService.SinkAgentMessageAsync(threadId ?? Guid.Empty, message.Text ?? string.Empty, agentResponseMessageId: agentMessageId, recordedDateTime: recordedDateTime);
     }
 
     public async Task<Guid> AppendAgentImageMessage(Guid threadId, string message, Guid messageId = default)

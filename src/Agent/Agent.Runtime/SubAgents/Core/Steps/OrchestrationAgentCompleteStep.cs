@@ -8,20 +8,25 @@ namespace Agent.Runtime.SubAgents.Core.Steps;
 
 public class OrchestrationAgentCompleteStep : OrchestrationAgentStep
 {
-    public FunctionCallContent FunctionCall { get; set; } 
+    public FunctionCallContent? FunctionCall { get; set; } 
 
     //use this once function calling is enabled
     //public string Message { get; set; }
 
     public override async Task ExecuteAsync(TaskOrchestrationContext context, OrchestrationAgent agent)
     {
+        if (FunctionCall == null)
+        {
+            throw new ArgumentNullException(nameof(FunctionCall), "FunctionCall cannot be null.");
+        }
+
         var log = context.CreateReplaySafeLogger<OrchestrationAgentCompleteStep>();
         Guid threadId = agent.ThreadId;
 
         agent.Done = true;
 
         var message = string.Empty;
-        if (FunctionCall.Arguments.TryGetValue("message", out var messageObj) && messageObj != null)
+        if (FunctionCall.Arguments != null && FunctionCall.Arguments.TryGetValue("message", out var messageObj) && messageObj != null)
         {
             message = messageObj.ToString() ?? string.Empty;
         }

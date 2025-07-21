@@ -10,7 +10,7 @@ namespace Agent.Runtime.Services
 {
     public class GenerateInstructionsResult
     {
-        public string ExecutionPlan { get; set; }
+        public required string ExecutionPlan { get; set; }
         public List<string> ToolsUsed { get; set; } = new List<string>();
     }
 
@@ -74,26 +74,28 @@ namespace Agent.Runtime.Services
                 !string.IsNullOrEmpty(request.CustomInstructions),
                 !string.IsNullOrEmpty(request.ExistingInstructions));
 
-            if (request.Incidents == null || !request.Incidents.Any())
-            {
-                _logger.LogInternalInformation("GenerateInstructionsFromIncidents: No incidents provided for instruction generation. Will leverage custom instructions.");
-            }
-
             var incidentSummariesList = new List<string>();
-            try
+            if (request.Incidents != null && request.Incidents.Count > 0)
             {
-                foreach (var incident in request.Incidents)
+                try
                 {
-                    _logger.LogInternalInformation("GenerateInstructionsFromIncidents: Extracting knowledge from incident: {IncidentId}", incident);
-                    var summary = await ExtractKnowledgeFromIncident(incident);
-                    incidentSummariesList.Add(summary);
-                    _logger.LogInternalInformation("GenerateInstructionsFromIncidents: Extracted summary for incident {IncidentId}: {Summary}", incident, summary);
+                    foreach (var incident in request.Incidents)
+                    {
+                        _logger.LogInternalInformation("GenerateInstructionsFromIncidents: Extracting knowledge from incident: {IncidentId}", incident);
+                        var summary = await ExtractKnowledgeFromIncident(incident);
+                        incidentSummariesList.Add(summary);
+                        _logger.LogInternalInformation("GenerateInstructionsFromIncidents: Extracted summary for incident {IncidentId}: {Summary}", incident, summary);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalError(ex, "GenerateInstructionsFromIncidents: Error extracting knowledge from incidents. AgentName: {AgentName}, Incidents: {Incidents}", request.AgentName, JsonConvert.SerializeObject(request.Incidents));
+                    throw;
                 }
             }
-            catch (Exception ex)
+            else
             {
-                _logger.LogInternalError(ex, "GenerateInstructionsFromIncidents: Error extracting knowledge from incidents. AgentName: {AgentName}, Incidents: {Incidents}", request.AgentName, JsonConvert.SerializeObject(request.Incidents));
-                throw;
+                _logger.LogInternalWarning("GenerateInstructionsFromIncidents: No incidents provided for instruction generation. AgentName: {AgentName}", request.AgentName);
             }
 
             var customInstructions = string.IsNullOrEmpty(request.CustomInstructions)
@@ -120,10 +122,10 @@ namespace Agent.Runtime.Services
                     }
                 );
 
-                var generatedInstructions = instructionGenerationResponse.Messages.LastOrDefault()?.Text;
+                var generatedInstructions = instructionGenerationResponse.Messages.LastOrDefault()?.Text ?? string.Empty;
                 _logger.LogInternalInformation("GenerateInstructionsFromIncidents: Received generated instructions from chat client. AgentName: {AgentName}, Instructions: {Instructions}", request.AgentName, generatedInstructions);
 
-                GenerateInstructionsResult generateInstructionsResult = null;
+                GenerateInstructionsResult? generateInstructionsResult = null;
                 try
                 {
                     generateInstructionsResult = JsonConvert.DeserializeObject<GenerateInstructionsResult>(generatedInstructions);
@@ -135,17 +137,21 @@ namespace Agent.Runtime.Services
                     throw new InvalidOperationException("Failed to deserialize generated instructions.", jsonEx);
                 }
 
-                var response = new InstructionGenerationResponse
+                if (generateInstructionsResult != null)
                 {
-                    AgentName = request.AgentName,
-                    GeneratedInstructions = generateInstructionsResult.ExecutionPlan,
-                    Incidents = request.Incidents,
-                    Tools = generateInstructionsResult.ToolsUsed != null && generateInstructionsResult.ToolsUsed.Count > 0 ? generateInstructionsResult.ToolsUsed : request.Tools
-                };
+                    var response = new InstructionGenerationResponse
+                    {
+                        AgentName = request.AgentName,
+                        GeneratedInstructions = generateInstructionsResult.ExecutionPlan,
+                        Incidents = request.Incidents ?? [],
+                        Tools = generateInstructionsResult?.ToolsUsed != null && generateInstructionsResult.ToolsUsed.Count > 0 ? generateInstructionsResult.ToolsUsed : request.Tools
+                    };
 
-                _logger.LogInternalInformation("GenerateInstructionsFromIncidents: Instruction generation completed successfully. AgentName: {AgentName}, ToolsUsed: {ToolsUsed}", request.AgentName, JsonConvert.SerializeObject(response.Tools));
+                    _logger.LogInternalInformation("GenerateInstructionsFromIncidents: Instruction generation completed successfully. AgentName: {AgentName}, ToolsUsed: {ToolsUsed}", request.AgentName, JsonConvert.SerializeObject(response.Tools));
 
-                return response;
+                    return response;
+                }
+                throw new InvalidOperationException("Generated instructions are null or empty.");
             }
             catch (Exception ex)
             {
@@ -158,7 +164,7 @@ namespace Agent.Runtime.Services
         {
             _logger.LogInternalInformation("ExtractKnowledgeFromIncident: Invoked for IncidentId: {IncidentId}", incident);
 
-            PagerDutyIncidentDocument incidentDetails = null;
+            PagerDutyIncidentDocument? incidentDetails = null;
             try
             {
                 incidentDetails = await _incidentManagementService.GetIncidentDetails(incident);
@@ -225,7 +231,7 @@ namespace Agent.Runtime.Services
                     _logger.LogInternalWarning("ExtractKnowledgeFromIncident: No summary generated for IncidentId: {IncidentId}", incident);
                 }
 
-                return summary;
+                return summary ?? "No summary generated.";
             }
             catch (Exception ex)
             {
@@ -249,7 +255,7 @@ namespace Agent.Runtime.Services
             return availableToolsPrompt;
         }
 
-        private string GetInstructionGenerationPrompt(string incidentSummariesPrompt, string customInstructionsPrompt, string availableToolsPrompt, string existingInstructions = null)
+        private string GetInstructionGenerationPrompt(string incidentSummariesPrompt, string customInstructionsPrompt, string availableToolsPrompt, string? existingInstructions = null)
         {
             _logger.LogInternalInformation($"GetInstructionGenerationPrompt: Invoked. incidentSummariesPrompt: {incidentSummariesPrompt}, customInstructionsPrompt: {customInstructionsPrompt}, availableToolsPrompt: {availableToolsPrompt}, existingInstructions: {existingInstructions}");
 
@@ -348,41 +354,41 @@ namespace Agent.Runtime.Services
 
 public class InstructionGenerationRequest
 {
-    public string AgentName { get; set; }
+    public required string AgentName { get; set; }
     /// <summary>
     /// Custom Instructions provided by the user
     /// </summary>
-    public string CustomInstructions { get; set; }
+    public required string CustomInstructions { get; set; }
 
     /// <summary>
     /// List of incidents to generate learnings from
     /// </summary>
-    public List<string> Incidents { get; set; }
+    public List<string>? Incidents { get; set; }
 
     /// <summary>
     /// List of tools that the agent should be limited to use
     /// </summary>
-    public List<string> Tools { get; set; }
+    public List<string>? Tools { get; set; }
 
     /// <summary>
     /// Existing instructions to improve upon, if any
     /// </summary>
-    public string ExistingInstructions { get; set; } = string.Empty;
+    public required string ExistingInstructions { get; set; } = string.Empty;
 }
 
 
 public class InstructionGenerationResponse
 {
-    public string AgentName { get; set; }
+    public required string AgentName { get; set; }
     /// <summary>
     /// Generated instructions based on the incidents
     /// </summary>
-    public string GeneratedInstructions { get; set; }
+    public required string GeneratedInstructions { get; set; }
     /// <summary>
     /// List of incidents used for generating the instructions
     /// </summary>
-    public List<string> Incidents { get; set; }
+    public required List<string> Incidents { get; set; }
 
-    public List<string> Tools { get; set; }
+    public List<string>? Tools { get; set; }
 }
 

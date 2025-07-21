@@ -77,7 +77,8 @@ public class InvestigationOrchestrator : IInvestigationOrchestrator
             return new InvestigationSummary
             {
                 Summary = "Error: No agent context found for thread.",
-                OverallConfidence = 0
+                OverallConfidence = 0,
+                RecommendedAction = "Please ensure the agent context is properly initialized.",
             };
         }
 
@@ -205,12 +206,13 @@ public class InvestigationOrchestrator : IInvestigationOrchestrator
                 Summary = $"Error during investigation: {ex.Message}",
                 OverallConfidence = 0,
                 InvestigationSteps = context.CompletedSteps,
-                FinalHypotheses = context.CurrentHypotheses
+                FinalHypotheses = context.CurrentHypotheses,
+                RecommendedAction = "Please check the logs for more details."
             };
         }
     }
 
-    private IReasoningStep SelectNextStep(InvestigationContext context)
+    private IReasoningStep? SelectNextStep(InvestigationContext context)
     {
         // Priority 1: Execute all reasoning steps at least once
         // Get steps that haven't been executed yet, ordered by default priority
@@ -308,7 +310,8 @@ public class InvestigationOrchestrator : IInvestigationOrchestrator
                 Summary = $"Error generating investigation summary: {ex.Message}",
                 FinalHypotheses = context.CurrentHypotheses,
                 OverallConfidence = context.LastReflexion?.OverallConfidence ?? 0.0f,
-                InvestigationSteps = context.CompletedSteps
+                InvestigationSteps = context.CompletedSteps,
+                RecommendedAction = "Please check the logs for more details."
             };
         }
     }

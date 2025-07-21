@@ -14,8 +14,6 @@ namespace Agent.Runtime.SubAgents
         public required string ClientName { get; init; }
         public override string SystemPrompt { get; protected set; } = $@"Your tools are loaded from an MCP server. Choose the best tool available.";
 
-        protected GraphDBQueryAgent _queryAgent { get; }
-
         private McpConnection _mcpConnection;
         private IList<AITool> _tools;
 
@@ -23,7 +21,7 @@ namespace Agent.Runtime.SubAgents
             : base("MCPAgent", chatClient)
         {
             _mcpConnection = mcpConnection;
-            _tools = _mcpConnection.Tools;
+            _tools = _mcpConnection.Tools ?? new List<AITool>();
         }
 
         public override IList<AITool> Tools()

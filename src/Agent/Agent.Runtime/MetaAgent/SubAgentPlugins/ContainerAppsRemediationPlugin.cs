@@ -41,10 +41,12 @@ public class ContainerAppsRemediationPlugin : IMetaAgentContainerAppsRemediation
                 FetchInputsAndOutputs: true)))
         {
             var agentInput = instance.ReadInputAs<ContainerAppsRemediationAgentInput>();
-
-            list.Add(new WorkflowMetadata<string>(
-                WorkflowInstanceId: instance.InstanceId,
-                Input: agentInput.Input));
+            if (agentInput != null)
+            {
+                list.Add(new WorkflowMetadata<string>(
+                    WorkflowInstanceId: instance.InstanceId,
+                    Input: agentInput.Input));
+            }
         }
 
         return list;

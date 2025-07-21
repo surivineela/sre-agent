@@ -76,7 +76,7 @@ namespace Agent.Runtime.SubAgents.TlsBestPracticesAgent
             resources.RemoveAll(x => x.StartsWith("/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourceGroups/", StringComparison.InvariantCultureIgnoreCase) && !x.Contains("-demo", StringComparison.InvariantCultureIgnoreCase));
 
             var tlsSettings = await _armHelper.GetTlsSettings(resources);
-            var appsInViolation = tlsSettings.Where(x => new Version(x.MinimumTlsVersion) < new Version("1.2"))
+            var appsInViolation = tlsSettings.Where(x => x.MinimumTlsVersion != null && new Version(x.MinimumTlsVersion) < new Version("1.2"))
                 .ToList();
 
             _logger.LogInternalInformation("Found {Count} apps in violation of TLS best practices.", appsInViolation.Count);

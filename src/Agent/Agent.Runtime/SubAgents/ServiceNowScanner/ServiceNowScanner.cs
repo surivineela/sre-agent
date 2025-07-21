@@ -23,7 +23,6 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
     CosmosClient cosmosClient,
     CosmosDBSettings cosmosDbSettings,
     IIncidentHandlingService incidentHandlingService,
-    IIncidentHandlerManagementService incidentHandlerManagementService,
     IIncidentManagementService<ServiceNowIncidentDocument> incidentManagementService,
     IIncidentFilterManagementService incidentFilterManagementService,
     IAgentInboundCommunicationService agentInboundCommunicationService) : IIncidentScanner
@@ -131,8 +130,15 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
                 {
                     // Use Number as document ID instead of IncidentId (sys_id)
                     var incidentDocument = await GetDocumentAsync<ServiceNowIncidentDocument>(incident.Number, incident.Number);
-                    incidentDocument = await UpsertIncidentDocumentIfNeededAsync(incidentDocument, incident);
-                    await NotifyUserAsync(incidentDocument, new List<string>());
+                    if (incidentDocument != null)
+                    {
+                        incidentDocument = await UpsertIncidentDocumentIfNeededAsync(incidentDocument, incident);
+                        if (incidentDocument == null)
+                        {
+                            throw new Exception($"Failed to upsert incident document for incident {incident.IncidentId} with number {incident.Number}");
+                        }
+                        await NotifyUserAsync(incidentDocument, new List<string>());
+                    }
                 }
                 
                 //Between each page, wait for 1 minute
@@ -147,7 +153,7 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
         }
     }
 
-    private async Task<T> GetDocumentAsync<T>(string id, string partitionKey) where T : ICosmosDocument
+    private async Task<T?> GetDocumentAsync<T>(string id, string partitionKey) where T : ICosmosDocument
     {
         try
         {
@@ -163,7 +169,7 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
         }
     }
 
-    private async Task<ServiceNowIncidentDocument> UpsertIncidentDocumentIfNeededAsync(ServiceNowIncidentDocument incidentDocument, ServiceNowIncident incident, CancellationToken cancellationToken = default)
+    private async Task<ServiceNowIncidentDocument?> UpsertIncidentDocumentIfNeededAsync(ServiceNowIncidentDocument incidentDocument, ServiceNowIncident incident, CancellationToken cancellationToken = default)
     {
         try
         {

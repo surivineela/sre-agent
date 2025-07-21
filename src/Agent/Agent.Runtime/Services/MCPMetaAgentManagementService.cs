@@ -23,12 +23,11 @@ public class MCPMetaAgentManagementService : IHostedService, IDisposable
     private readonly MCPMetaAgent _mcpMetaAgent;
     private readonly MCPSettings _mcpSettings;
     private readonly ILogger<MCPMetaAgentManagementService> _logger;
-    private  Timer _connectionVerificationTimer;
+    private Timer? _connectionVerificationTimer;
     private readonly SemaphoreSlim _connectionVerificationTimerLock = new(1, 1);
-    private Timer _reconnectTimer;
+    private Timer? _reconnectTimer;
     private readonly SemaphoreSlim _reconnectTimerLock = new(1, 1);
-    private ILoggerFactory _loggerFactory;
-    private readonly IToolsRepository _toolsRepository;
+    private readonly ILoggerFactory _loggerFactory;
     private readonly McpToolsRepository _mcpToolsRepository;
 
     /// <summary>
@@ -39,14 +38,12 @@ public class MCPMetaAgentManagementService : IHostedService, IDisposable
     public MCPMetaAgentManagementService(
         MCPMetaAgent mcpMetaAgent,
         MCPSettings mcpSettings,
-        IToolsRepository toolsRepository,
         McpToolsRepository mcpToolsRepository,
         ILogger<MCPMetaAgentManagementService> logger,
         ILoggerFactory loggerFactory)
     {
         _mcpMetaAgent = mcpMetaAgent;
         _mcpSettings = mcpSettings;
-        _toolsRepository = toolsRepository;
         _logger = logger;
         _loggerFactory = loggerFactory;
         _mcpToolsRepository = mcpToolsRepository;
@@ -100,7 +97,11 @@ public class MCPMetaAgentManagementService : IHostedService, IDisposable
     {
         try
         {
-            IMcpClient client = connection.Client;
+            IMcpClient? client = connection.Client;
+            if (client == null)
+            {
+                throw new Exception($"MCP client is null for connection '{connection.Url}'. This should not happen.");
+            }
 
             bool completed = false;
             var pingTask = client.PingAsync().ContinueWith(t => completed = !t.IsFaulted);

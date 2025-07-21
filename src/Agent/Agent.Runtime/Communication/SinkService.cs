@@ -19,7 +19,7 @@ public class SinkService
         _logger = logger;
     }
 
-    public async Task<Guid> SinkAgentMessageAsync(Guid threadId, string messageText, bool isImageContent = false, Approval approval = null, Guid agentResponseMessageId = default, DateTime? recordedDateTime = null)
+    public async Task<Guid> SinkAgentMessageAsync(Guid threadId, string messageText, bool isImageContent = false, Approval? approval = null, Guid agentResponseMessageId = default, DateTime? recordedDateTime = null)
     {
         var messageId = agentResponseMessageId == default ? Guid.NewGuid() : agentResponseMessageId;
         var agentMessage = new Message(

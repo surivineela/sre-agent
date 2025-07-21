@@ -1,22 +1,21 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Agent.Core.Models.Api.v1;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using Agent.Logging;
-using Agent.Core.Models.Api.v1;
 
 namespace Agent.Runtime.SubAgents.Core.Steps;
 public class OrchestrationAgentGenericExecuteStep : OrchestrationAgentStep
 {
-    public FunctionCallContent FunctionCall { get; set; }
+    public FunctionCallContent? FunctionCall { get; set; }
     public Guid? ApprovalId { get; set; }
 
     public override async Task ExecuteAsync(TaskOrchestrationContext context, OrchestrationAgent agent)
     {
+        if (FunctionCall == null)
+        {
+            throw new ArgumentNullException(nameof(FunctionCall), "FunctionCall cannot be null.");
+        }
+
         var log = context.CreateReplaySafeLogger<OrchestrationAgentGenericExecuteStep>();
         Guid threadId = agent.ThreadId;
 
@@ -24,7 +23,7 @@ public class OrchestrationAgentGenericExecuteStep : OrchestrationAgentStep
 
         // For any other function call, check if there're arguments match with key in threadContext.Properties
         // if so, use the value from threadContext.Properties to set the arguments to avoid LLM hallucinations
-        var args = new Dictionary<string, object?>(FunctionCall.Arguments);
+        var args = new Dictionary<string, object?>(FunctionCall.Arguments ?? new Dictionary<string, object?>());
 
         // Create a new function call with the updated arguments
         var updatedFunctionCall = new FunctionCallContent(

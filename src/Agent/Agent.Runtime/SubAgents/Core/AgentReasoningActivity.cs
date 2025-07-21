@@ -56,5 +56,4 @@ public class AgentReasoningActivity : TaskActivity<GetNextActionInput, AgentReas
 public class AgentReasoningResult
 {
     public List<ChatMessage> ChatMessages { get; set; } = new List<ChatMessage>();
-    public OrchestrationAgentStep Next { get; set; }
 }

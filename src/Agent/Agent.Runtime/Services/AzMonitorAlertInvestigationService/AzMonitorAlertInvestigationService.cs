@@ -1132,30 +1132,30 @@ Keep the entire response under 150-200 words.
 public class RelevantQuery
 {
     [JsonPropertyName("id")]
-    public string Id { get; set; }
+    public required string Id { get; set; }
 }
 
 public class QueryExecutionResult
 {
-    public string QueryId { get; set; }
-    public string QueryName { get; set; }
-    public string QueryBody { get; set; }
-    public string Result { get; set; }
+    public required string QueryId { get; set; }
+    public required string QueryName { get; set; }
+    public required string QueryBody { get; set; }
+    public required string Result { get; set; }
 }
 
 public class GenericQuery
 {
-    public string Name { get; set; }
-    public string Description { get; set; }
-    public string Query { get; set; }
+    public required string Name { get; set; }
+    public required string Description { get; set; }
+    public required string Query { get; set; }
 }
 
 public class GenericQueryExecutionResult
 {
-    public string QueryName { get; set; }
-    public string QueryBody { get; set; }
-    public string QueryDescription { get; set; }
-    public string Result { get; set; }
+    public required string QueryName { get; set; }
+    public required string QueryBody { get; set; }
+    public required string QueryDescription { get; set; }
+    public required string Result { get; set; }
 }
 
 #endregion

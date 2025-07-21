@@ -22,9 +22,9 @@ public class McpConnection
     public required IMcpConnectable Backend { get; init; }
 
     public string Id { get; private set; }
-    public IList<AITool> Tools { get; private set; }
+    public IList<AITool>? Tools { get; private set; }
     public string? ServerInstructions { get; private set; }
-    public IMcpClient Client { get; private set; }
+    public IMcpClient? Client { get; private set; }
     public string Url { get; private set; }
 
     private static Regex _unsafeToolNameChars = new Regex("[^a-zA-Z0-9_\\.\\-]", RegexOptions.Compiled);

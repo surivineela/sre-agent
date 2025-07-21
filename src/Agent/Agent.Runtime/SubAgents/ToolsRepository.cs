@@ -143,8 +143,16 @@ public class ToolsRepository : IToolsRepository
 
         foreach (var submitMethodInfo in methods202)
         {
-            var executeMethodName = submitMethodInfo.GetCustomAttribute<Plugins.Attributes.Submit202Attribute>().ExecuteMethodName;
+            var executeMethodName = submitMethodInfo.GetCustomAttribute<Plugins.Attributes.Submit202Attribute>()?.ExecuteMethodName;
+            if (executeMethodName == null)
+            {
+                continue;
+            }
             var executeMethodInfo = pluginType.GetMethod(executeMethodName, flags);
+            if (executeMethodInfo == null)
+            {
+                continue;
+            }
             Register202<T>(submitMethodInfo, executeMethodInfo);
         }
 
@@ -228,11 +236,14 @@ public class ToolsRepository : IToolsRepository
     {
         List<string> toolSignatures = [];
 
-        foreach (AIFunction tool in connection.Tools)
+        if (connection.Tools != null)
         {
-            string sig = GetAIFunctionSignature(connection, tool);
-            toolSignatures.Add(sig);
-            _aiFunctions.TryAdd(sig, new ToolFunction200(tool));
+            foreach (AIFunction tool in connection.Tools)
+            {
+                string sig = GetAIFunctionSignature(connection, tool);
+                toolSignatures.Add(sig);
+                _aiFunctions.TryAdd(sig, new ToolFunction200(tool));
+            }
         }
 
         _connectionToToolSignatures.TryAdd(connection, toolSignatures.AsReadOnly());

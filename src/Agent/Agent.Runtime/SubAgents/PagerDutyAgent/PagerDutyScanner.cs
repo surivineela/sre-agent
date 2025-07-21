@@ -83,12 +83,14 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                 foreach (var incident in response.Incidents)
                 {
                     var incidentDocument = await GetDocumentAsync<PagerDutyIncidentDocument>(incident.IncidentId, incident.IncidentId);
+                    if (incidentDocument != null)
+                    {
+                        incidentDocument = await UpsertIncidentDocumentIfNeededAsync(incidentDocument, incident, cancellationToken);
 
-                    incidentDocument = await UpsertIncidentDocumentIfNeededAsync(incidentDocument, incident, cancellationToken);
+                        var realtedResourceIds = await UpdateResourceGraph(incidentDocument, incident);
 
-                    var realtedResourceIds = await UpdateResourceGraph(incidentDocument, incident);
-
-                    await NotifyUserAsync(incidentDocument, realtedResourceIds);
+                        await NotifyUserAsync(incidentDocument, realtedResourceIds);
+                    }
                 }
             }
             catch (Exception ex)
@@ -239,7 +241,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                     HtmlUrl: incident.HtmlUrl,
                     CreatedAt: incident.CreatedAt,
                     Status: incident.Status,
-                    IncidentType: incident.IncidentType?.Name,
+                    IncidentType: incident.IncidentType?.Name ?? string.Empty,
                     ImpactedServiceId: incident.ImpactedService?.Id ?? "Not set",
                     ImpactedServiceName: incident.ImpactedService?.Summary ?? "Not set",
                     Priority: incident.Priority?.Summary ?? "Not set",
@@ -298,22 +300,22 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                         incidentDocument.Status = incident.Status;
                         needsUpsert = true;
                     }
-                    if (incidentDocument.Priority != incident.Priority.Summary)
+                    if (incident.Priority != null && incidentDocument.Priority != incident.Priority.Summary)
                     {
                         incidentDocument.Priority = incident.Priority.Summary;
                         needsUpsert = true;
                     }
-                    if (incidentDocument.ImpactedServiceId != incident.ImpactedService.Id)
+                    if (incident.ImpactedService != null && incidentDocument.ImpactedServiceId != incident.ImpactedService.Id)
                     {
-                        incidentDocument.ImpactedServiceId = incident.ImpactedService.Id;
+                        incidentDocument.ImpactedServiceId = incident.ImpactedService.Id ;
                         needsUpsert = true;
                     }
-                    if (incidentDocument.ImpactedServiceName != incident.ImpactedService.Summary)
+                    if (incident.ImpactedService != null && incidentDocument.ImpactedServiceName != incident.ImpactedService.Summary)
                     {
                         incidentDocument.ImpactedServiceName = incident.ImpactedService.Summary;
                         needsUpsert = true;
                     }
-                    if (incidentDocument.IncidentType != incident.IncidentType.Name)
+                    if (incident.IncidentType != null && incidentDocument.IncidentType != incident.IncidentType.Name)
                     {
                         incidentDocument.IncidentType = incident.IncidentType.Name;
                         needsUpsert = true;
@@ -429,7 +431,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
         }
     }
 
-    private async Task<T> GetDocumentAsync<T>(string id, string partitionKey) where T : ICosmosDocument
+    private async Task<T?> GetDocumentAsync<T>(string id, string partitionKey) where T : ICosmosDocument
     {
         try
         {

@@ -17,6 +17,6 @@ public sealed record CPUAnalysisAgentInput(
 
 public class CPUAnalysisInput
 {
-    public List<DownApp> Apps { get; set; }
+    public List<DownApp> Apps { get; set; } = [];
 }
 

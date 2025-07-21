@@ -17,18 +17,12 @@ namespace Agent.Runtime.SubAgents
         public override string SystemPrompt { get; protected set; } = $@"You must delegate to another MCP server.
 MCP stands for Model Context Protocol and represents a server which exposes prompts, tools, and resources to an LLM.";
         
-        protected IMcpClient _mcpClient { get; set; }
-
-        private ILoggerFactory _loggerFactory { get; }
-        private ILogger _logger { get; }
         private ConcurrentDictionary<McpConnection, MCPAgent> _agents = new ConcurrentDictionary<McpConnection, MCPAgent>();
         private ConcurrentDictionary<McpConnection, AITool> _tools = new ConcurrentDictionary<McpConnection, AITool>();
 
         public MCPMetaAgent(IChatClient chatClient, ILoggerFactory loggerFactory)
             : base("MCPMetaAgent", chatClient)
         {
-            _loggerFactory = loggerFactory;
-            _logger = loggerFactory.CreateLogger(typeof(MCPMetaAgent).FullName!);
         }
 
         public override IList<AITool> Tools()

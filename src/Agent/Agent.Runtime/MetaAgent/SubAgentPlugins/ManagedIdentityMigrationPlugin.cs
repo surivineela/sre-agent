@@ -45,9 +45,12 @@ public class ManagedIdentityMigrationPlugin : IMetaAgentManagedIdentityMigration
                 FetchInputsAndOutputs: true)))
         {
             var agentInput = instance.ReadInputAs<ManagedIdentityMigrationAgentInput>();
-            list.Add(new WorkflowMetadata<ManagedIdentityMigrationInput>(
-                WorkflowInstanceId: instance.InstanceId,
-                Input: agentInput.Input));
+            if (agentInput != null)
+            {
+                list.Add(new WorkflowMetadata<ManagedIdentityMigrationInput>(
+                    WorkflowInstanceId: instance.InstanceId,
+                    Input: agentInput.Input));
+            }
         }
 
         return list;

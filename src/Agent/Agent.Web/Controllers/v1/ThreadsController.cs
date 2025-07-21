@@ -482,7 +482,7 @@ namespace Agent.Web.Controllers.v1
             }
 
             // Get the effective current mode (thread-specific or global default)
-            var defaultMode = actionSettings.Mode?.ToString() ?? AgentModes.Review;
+            var defaultMode = actionSettings.Mode.ToString() ?? AgentModes.Review;
             var currentEffectiveMode = string.IsNullOrEmpty(thread.AgentMode) ? defaultMode : thread.AgentMode;
 
             // If request.AgentMode is null/empty, it means reset to default
@@ -496,7 +496,7 @@ namespace Agent.Web.Controllers.v1
             }
 
             // Get the global default agent mode from configuration
-            var globalDefaultMode = actionSettings.Mode?.ToString() ?? AgentModes.Review;
+            var globalDefaultMode = actionSettings.Mode.ToString() ?? AgentModes.Review;
 
             // Validate the requested agent mode against the global restrictions
             var validationResult = ValidateAgentModeChange(globalDefaultMode, request.AgentMode);
@@ -562,7 +562,7 @@ namespace Agent.Web.Controllers.v1
         {
             try
             {
-                var globalDefaultMode = actionSettings.Mode?.ToString() ?? AgentModes.Review;
+                var globalDefaultMode = actionSettings.Mode.ToString() ?? AgentModes.Review;
                 var availableModes = AgentModes.GetAvailableModesFor(globalDefaultMode);
 
                 return Ok(availableModes);

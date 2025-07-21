@@ -7,10 +7,15 @@ namespace Agent.Runtime.SubAgents.Core.Steps;
 
 public class OrchestrationAgentVisualizeAppComponentsStep : OrchestrationAgentStep
 {
-    public FunctionCallContent FunctionCall { get; set; }
+    public FunctionCallContent? FunctionCall { get; set; }
 
     public override async Task ExecuteAsync(TaskOrchestrationContext context, OrchestrationAgent agent)
     {
+        if (FunctionCall == null)
+        {
+            throw new ArgumentNullException(nameof(FunctionCall), "FunctionCall cannot be null.");
+        }
+
         var log = context.CreateReplaySafeLogger<OrchestrationAgentVisualizeAppComponentsStep>();
         Guid threadId = agent.ThreadId;
 
@@ -20,21 +25,24 @@ public class OrchestrationAgentVisualizeAppComponentsStep : OrchestrationAgentSt
         string resourceId = string.Empty;
         int hops = 3; // Default value
 
-        if (FunctionCall.Arguments.TryGetValue("resourceId", out var resourceIdObj) && resourceIdObj != null)
+        if (FunctionCall.Arguments != null)
         {
-            resourceId = resourceIdObj.ToString() ?? string.Empty;
-        }
-
-        if (FunctionCall.Arguments.TryGetValue("hops", out var hopsObj) && hopsObj != null)
-        {
-            if (int.TryParse(hopsObj.ToString(), out var parsedHops))
+            if (FunctionCall.Arguments.TryGetValue("resourceId", out var resourceIdObj) && resourceIdObj != null)
             {
-                hops = parsedHops;
+                resourceId = resourceIdObj.ToString() ?? string.Empty;
+            }
+
+            if (FunctionCall.Arguments.TryGetValue("hops", out var hopsObj) && hopsObj != null)
+            {
+                if (int.TryParse(hopsObj.ToString(), out var parsedHops))
+                {
+                    hops = parsedHops;
+                }
             }
         }
 
         // Create a new args dictionary with the threadId as a Guid
-        var argsWithThreadId = new Dictionary<string, object?>(FunctionCall.Arguments)
+        var argsWithThreadId = new Dictionary<string, object?>(FunctionCall.Arguments ?? new Dictionary<string, object?>())
         {
             ["threadId"] = threadId
         };

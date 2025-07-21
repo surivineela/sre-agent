@@ -296,7 +296,7 @@ $@"## Facts
         IMetaAgentWebAppDownPlugin webAppDownPlugin,
         IMetaAgentVmRdpInvestigatorPlugin vmRdpInvestigatorPlugin,
         IMetaAgentFunctionAppConnectivityPlugin functionAppConnectivityPlugin,
-        IMetaAgentSqlDbQueryPerfPlugin? sqlDbQueryPerfPlugin,
+        IMetaAgentSqlDbQueryPerfPlugin sqlDbQueryPerfPlugin,
         IConnectedIntegrationsPlugin connectedIntegrationsPlugin,
         IAppCodeAnalysisPlugin appCodeAnalysisPlugin,
         IDiagnosticsPlugin diagnosticsPlugin,
@@ -613,7 +613,7 @@ You are in Autonomous mode: execute all actions as needed without requiring user
 - Update resource tags for compliance"
         }
     };
-    public static string GetPrompt(string agentMode)
+    public static string GetPrompt(string? agentMode)
     {
         var defaultPrompt = agentModePromptDict[AgentModes.ReadOnly];
         if (string.IsNullOrEmpty(agentMode))

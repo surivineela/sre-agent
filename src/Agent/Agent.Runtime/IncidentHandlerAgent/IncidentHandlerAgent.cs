@@ -279,7 +279,7 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
     /// </summary>
     /// <param name="context">AgentContext</param>
     /// <returns></returns>
-    private string GetModeForSystemPrompt(AgentContext context)
+    private string? GetModeForSystemPrompt(AgentContext context)
     {
         if (!string.IsNullOrWhiteSpace(context.AgentMode))
         {

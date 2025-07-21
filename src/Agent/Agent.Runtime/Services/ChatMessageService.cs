@@ -141,19 +141,19 @@ public static class ChatMessageService
 public class InvestigationSummaries
 {
     [JsonPropertyName("containerTitle")]
-    public string ContainerTitle { get; set; }
+    public string ContainerTitle { get; set; } = string.Empty;
 
     [JsonPropertyName("summaries")]
-    public List<SummaryItem> Summaries { get; set; }
+    public List<SummaryItem> Summaries { get; set; } = new List<SummaryItem>();
 }
 
 public class SummaryItem
 {
     [JsonPropertyName("title")]
-    public string Title { get; set; }
+    public string Title { get; set; } = string.Empty;
 
     [JsonPropertyName("summary")]
-    public string Summary { get; set; }
+    public string Summary { get; set; } = string.Empty;
 
     [JsonPropertyName("isCollapsed")]
     public bool IsCollapsed { get; set; }

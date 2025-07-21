@@ -80,8 +80,8 @@ namespace Agent.Core.Helpers
                 prop.SetValue(instance, threadGuid);
 
                 // Get a handle to its methods, and register them in the tools
-                var listWorkflowsAsync = type.GetMethod("ListWorkflowsAsync", BindingFlags.Public | BindingFlags.Instance);
-                var startAgentAsync = type.GetMethod("StartAgentAsync", BindingFlags.Public | BindingFlags.Instance);
+                var listWorkflowsAsync = type.GetMethod("ListWorkflowsAsync", BindingFlags.Public | BindingFlags.Instance) ?? throw new Exception("Method ListWorkflowsAsync not found");
+                var startAgentAsync = type.GetMethod("StartAgentAsync", BindingFlags.Public | BindingFlags.Instance) ?? throw new Exception("Method StartAgentAsync not found");
                 subAgentAItools.Add(AIFunctionFactory.Create(listWorkflowsAsync, instance));
                 subAgentAItools.Add(AIFunctionFactory.Create(startAgentAsync, instance));
             }

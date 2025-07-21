@@ -410,7 +410,7 @@ Remember: Quality findings with specific values are better than quantity. Exclud
 
             var resourceIdentifier = new ResourceIdentifier(targetResource);
 
-            string subscriptionId = resourceIdentifier.SubscriptionId;
+            string subscriptionId = resourceIdentifier.SubscriptionId ?? Guid.Empty.ToString();
             string status = ServiceAlertState.Acknowledged.ToString(); // at this point, the alert should be acknowledged
             DateTimeOffset createdAt = ParseDateTimeOffset(essentials.StartDateTime);
 
@@ -574,7 +574,7 @@ Remember: Quality findings with specific values are better than quantity. Exclud
         var alertDataBlock = $"```incident-alert\n{serializedAlertData}\n```\n";
 
         (var thread, var agentContext) = await _inboundCommunicationService.CreateAgentThread(
-            title: $"Incident Alert - [{severity}] [{targetResourceId.Name}] {alertRuleName.Name}",
+            title: $"Incident Alert - [{severity}] [{targetResourceId?.Name ?? string.Empty}] {alertRuleName.Name}",
             message: alertDataBlock,
             agentTypeEnum: AgentTypeEnum.Meta,
             source: ThreadSource.Incident,
@@ -603,7 +603,7 @@ Remember: Quality findings with specific values are better than quantity. Exclud
         return (thread, agentContext);
     }
 
-    private async Task<T> GetDocumentAsync<T>(string id, string partitionKey) where T : ICosmosDocument
+    private async Task<T?> GetDocumentAsync<T>(string id, string partitionKey) where T : ICosmosDocument
     {
         try
         {
@@ -764,6 +764,10 @@ Remember: Quality findings with specific values are better than quantity. Exclud
                 {
                     // Deserialize the existing JSON
                     var investigationSummaries = JsonSerializer.Deserialize<InvestigationSummaries>(existingJson);
+                    if (investigationSummaries == null)
+                    {
+                        throw new Exception("Deserialized investigation summaries is null");
+                    }
 
                     // Create the new summary item
                     var newSummary = new SummaryItem
@@ -879,7 +883,11 @@ Remember: Quality findings with specific values are better than quantity. Exclud
             {
                 try
                 {
-                    var incidentId = thread.Status.IncidentStatus.IncidentId;
+                    var incidentId = thread?.Status?.IncidentStatus?.IncidentId;
+                    if (thread == null || string.IsNullOrEmpty(incidentId))
+                    {
+                        continue;
+                    }
 
                     var alertDocument = await GetDocumentAsync<AzMonitorAlertDocument>(incidentId, incidentId);
 
@@ -930,7 +938,7 @@ Remember: Quality findings with specific values are better than quantity. Exclud
     {
         try
         {
-            var alertRule = alert.Properties?.Essentials?.AlertRule;
+            var alertRule = alert.Properties.Essentials.AlertRule;
             var targetResource = alert.Properties?.Essentials?.TargetResource;
             var alertRuleName = new ResourceIdentifier(alertRule).Name;
 
@@ -949,7 +957,11 @@ Remember: Quality findings with specific values are better than quantity. Exclud
                 try
                 {
                     // Get the alert document ID (GUID) from thread status
-                    string alertDocumentId = thread.Status?.IncidentStatus?.IncidentId;
+                    string? alertDocumentId = thread?.Status?.IncidentStatus?.IncidentId;
+                    if (thread is null || alertDocumentId == null)
+                    {
+                        continue;
+                    }
 
                     if (string.IsNullOrEmpty(alertDocumentId))
                     {
@@ -1006,16 +1018,16 @@ Remember: Quality findings with specific values are better than quantity. Exclud
 
     private class InvestigationSummaries
     {
-        public string containerTitle { get; set; }
-        public SummaryItem[] summaries { get; set; }
+        public required string containerTitle { get; set; }
+        public required SummaryItem[] summaries { get; set; }
     }
 
     private class SummaryItem
     {
-        public string title { get; set; }
-        public string summary { get; set; }
+        public required string title { get; set; }
+        public required string summary { get; set; }
         public bool isCollapsed { get; set; }
-        public string status { get; set; }
+        public required string status { get; set; }
         public bool isFinal { get; set; }
     }
 }

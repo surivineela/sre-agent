@@ -462,8 +462,8 @@ public class ReasoningLoop : IDisposable
                             _logger.LogInternalInformation("[{threadId}]Processing function call messages.", _context.ThreadId);
 
                             // Parse function call and result from the messages
-                            FunctionCallContent functionCallContent = null;
-                            FunctionResultContent functionResultContent = null;
+                            FunctionCallContent? functionCallContent = null;
+                            FunctionResultContent? functionResultContent = null;
                             foreach (var message in functionCall.Messages)
                             {
                                 if (message.Role == ChatRole.Assistant)
@@ -2018,6 +2018,10 @@ public class ReasoningLoop : IDisposable
         sb.AppendLine("<Documents>");
         foreach (var doc in rerankedDocuments)
         {
+            if (doc == null)
+            {
+                continue;
+            }
             sb.AppendLine($"Title: {doc.Title}");
             sb.AppendLine($"Content: {doc.Content}");
             if (!string.IsNullOrEmpty(doc.Url))

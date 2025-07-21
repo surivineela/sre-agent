@@ -9,22 +9,20 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using Agent.Core.Configuration;
-using Agent.Core.Interfaces;
 using Agent.Core.Helpers;
+using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
-using Agent.Data.Repositories;
-using Agent.Logging;
-using Agent.Runtime.Services;
-using Microsoft.DurableTask.Client;
-using Microsoft.Extensions.AI;
-using Microsoft.Extensions.Logging;
-using Thread = Agent.Core.Models.Api.v1.Thread;
-using Microsoft.Extensions.Configuration;
 using Agent.Data.DataModels;
-using Microsoft.Extensions.Hosting;
+using Agent.Data.Repositories;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Services.Interfaces;
+using Microsoft.DurableTask.Client;
+using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Thread = Agent.Core.Models.Api.v1.Thread;
 
 namespace Agent.Runtime.SubAgents.DailyReportSummary
 {
@@ -50,7 +48,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
         private readonly DashboardSettings _dashboardSettings;
         private readonly IGraphService _graphDbService;
         private readonly bool _persistScreenshotsInFolder;
-        private List<ArmResourceNode> _armResourceNodes;
+        private readonly List<ArmResourceNode> _armResourceNodes = [];
         private readonly IAuthenticationService _authenticationService;
         private readonly IIncidentRepository _incidentRepository;
         private readonly IGithubIssuePlugin _githubIssuePlugin;
@@ -187,7 +185,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             var appGroupsHealthSummary = await GetAppGroupsHealthSummaryAsync();
             var dashboardSummary = string.Empty;
 
-            string mainDashboardUrl = string.Empty;
+            string? mainDashboardUrl = string.Empty;
 
             // only try to generate dashboard summary if grafana is enabled
             if (!string.IsNullOrWhiteSpace(_dashboardSettings.GrafanaUrl))
@@ -298,7 +296,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
         }
 
         // Returns main dashboard url
-        public async Task<string> TryToImportDashboards()
+        public async Task<string?> TryToImportDashboards()
         {
             try
             {
@@ -327,7 +325,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
         /// <summary>
         /// Captures screenshots of all dashboards and uses LLM to summarize them
         /// </summary>
-        private async Task<string> CaptureAndSummarizeDashboardsAsync(string dashboardUrl)
+        private async Task<string> CaptureAndSummarizeDashboardsAsync(string? dashboardUrl)
         {
             try
             {
@@ -356,8 +354,8 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                         dashboard.TryGetProperty("type", out var itemType) &&
                         string.Equals(itemType.GetString(), "dash-db", StringComparison.OrdinalIgnoreCase))
                     {
-                        string url = urlElement.GetString();
-                        string title = titleElement.GetString();
+                        string url = urlElement.GetString() ?? string.Empty;
+                        string title = titleElement.GetString() ?? string.Empty;
 
                         try
                         {
@@ -371,6 +369,8 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
 
                             // Capture screenshot for each arm resource node
                             var screenshotResponses = new List<ScreenshotResponse>();
+                            // TODO: This line will always result in a null reference exception because _armResourceNodes was not initialized.
+                            // This is likely a dead code.
                             var armResourceNodes = _armResourceNodes.Where(a => a.ResourceType.Equals(resourceType, StringComparison.OrdinalIgnoreCase));
 
                             foreach (var armResourceNode in armResourceNodes)
@@ -481,8 +481,12 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                     var duration = stopwatch.Elapsed; // Get the elapsed time
 
                     var screenshotResponse = JsonSerializer.Deserialize<ScreenshotResponse>(responseJson);
+                    if (screenshotResponse == null)
+                    {
+                        throw new Exception("Failed to deserialize screenshot response");
+                    }
 
-                    _logger.LogInternalInformation($"Succesfully captured screenshot (Length: {screenshotResponse?.Screenshot?.Length}) for {armResourceNode?.ResourceName} from dashboard: {dashboardUrlWithParameters}. Duration: {duration.TotalSeconds} seconds");
+                    _logger.LogInternalInformation($"Successfully captured screenshot (Length: {screenshotResponse.Screenshot?.Length}) for {armResourceNode?.ResourceName} from dashboard: {dashboardUrlWithParameters}. Duration: {duration.TotalSeconds} seconds");
                     return screenshotResponse;
                 }
             }
@@ -541,9 +545,9 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 {
                     { "var-name", armResourceNode.ResourceName.ToLowerInvariant() }
                 },
-                _ => null
+                _ => []
             };
-            return additionalVariables?.Concat(baseVariables).ToDictionary(kv => kv.Key, kv => kv.Value);
+            return additionalVariables.Concat(baseVariables).ToDictionary(kv => kv.Key, kv => kv.Value);
         }
 
         private Dictionary<string, string> GetHardcodedQueryVariablesForTesting(string dashboardType)
@@ -579,10 +583,10 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                     { "var-rg", "capps-gpu-sessions-001-rg" },
                     { "var-name", "cappsredis-e1d30" }
                 },
-                _ => null
+                _ => []
             };
 
-            return additionalVariables?.Concat(baseVariables).ToDictionary(kv => kv.Key, kv => kv.Value);
+            return additionalVariables.Concat(baseVariables).ToDictionary(kv => kv.Key, kv => kv.Value);
         }
 
         private string AddQueryParameters(string url, Dictionary<string, string> parameters)
@@ -634,7 +638,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                     // Extract UID from existing data source
                     if (existingDs.Value.TryGetProperty("uid", out var uidElement))
                     {
-                        return uidElement.GetString();
+                        return uidElement.GetString() ?? string.Empty;
                     }
                     // Fallback if uid property doesn't exist directly
                     return dataSourceName;
@@ -680,7 +684,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
 
                 var responseContent = await response.Content.ReadAsStringAsync();
                 var result = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                string dataSourceUid = result.GetProperty("datasource").GetProperty("uid").GetString();
+                string dataSourceUid = result.GetProperty("datasource").GetProperty("uid").GetString() ?? string.Empty;
 
                 _logger?.LogInternalInformation($"Data source '{dataSourceName}' created successfully with UID: {dataSourceUid}");
                 return dataSourceUid;
@@ -722,7 +726,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
         /// <summary>
         /// Uses the LLM to summarize the dashboard screenshots
         /// </summary>
-        private async Task<string> SummarizeDashboardScreenshotsAsync(Dictionary<string, string> screenshots, string dashboardUrl)
+        private async Task<string> SummarizeDashboardScreenshotsAsync(Dictionary<string, string> screenshots, string? dashboardUrl)
         {
             try
             {
@@ -827,7 +831,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
 
         private async Task<RecommendedActionsAndObservations> GenerateSuggestedActionsAndOverallObservations(
             string dashboardSummary,
-            string dashboardUrl,
+            string? dashboardUrl,
             CVESummary cveSummary,
             List<AppGroupResourceSummary> appHealthSummary,
             IncidentSummary incidentsSummary)
@@ -905,10 +909,14 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             string jsonResponseCleaned = jsonResponse.Replace("```json", "").Replace("```", "").Trim();
             try
             {
-                return JsonSerializer.Deserialize<RecommendedActionsAndObservations>(
+                var result = JsonSerializer.Deserialize<RecommendedActionsAndObservations>(
                     jsonResponseCleaned,
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
-                );
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                if (result == null)
+                {
+                    throw new Exception("Deserialized result is null");
+                }
+                return result;
             }
             catch (Exception ex)
             {
@@ -917,7 +925,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             }
         }
 
-        private async Task<(string, string)> CreateAndPublishDashboard(string dataSourceUid)
+        private async Task<(string?, string?)> CreateAndPublishDashboard(string dataSourceUid)
         {
             try
             {
@@ -999,7 +1007,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
 
             if (responseObject.TryGetProperty("uid", out var uidElement))
             {
-                return uidElement.GetString();
+                return uidElement.GetString() ?? string.Empty;
             }
 
             throw new Exception("Failed to get dashboard UID from response");
@@ -1032,8 +1040,8 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                         dashboard.TryGetProperty("path", out var pathElement) &&
                         dashboard.TryGetProperty("imported", out var importedElement))
                     {
-                        string title = titleElement.GetString();
-                        string path = pathElement.GetString();
+                        string title = titleElement.GetString() ?? string.Empty;
+                        string path = pathElement.GetString() ?? string.Empty;
                         bool imported = importedElement.GetBoolean();
 
                         // Store only dashboards that aren't already imported
@@ -1225,7 +1233,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                     foreach (var appGroup in appGroups)
                     {
                         var properties = appGroup["properties"] as IDictionary<string, object>;
-                        string appId = appGroup["id"]?.ToString();
+                        string appId = appGroup["id"]?.ToString() ?? string.Empty;
 
                         if (properties != null && appId != null && properties.TryGetValue("appHealthInfo", out var appHealthInfoObj) && appHealthInfoObj != null)
                         {
@@ -1304,7 +1312,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             return result;
         }
 
-        private AppHealthInfo AggregateHealthInfoFromHistory(AppHealthHistoryDocument historyDocument)
+        private AppHealthInfo? AggregateHealthInfoFromHistory(AppHealthHistoryDocument historyDocument)
         {
             if (historyDocument == null || historyDocument.HistoryData == null || !historyDocument.HistoryData.Any())
             {
@@ -1664,7 +1672,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
         public class ScreenshotResponse
         {
             [JsonPropertyName("screenshot")]
-            public string Screenshot { get; set; }
+            public string Screenshot { get; set; } = string.Empty;
         }
 
         public class DashboardInput

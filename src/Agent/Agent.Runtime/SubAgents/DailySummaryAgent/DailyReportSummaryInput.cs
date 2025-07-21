@@ -16,10 +16,10 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
         //public List<string> ResourceTypesToInclude { get; set; } = new List<string>();
         public string Timespan { get; set; } = "1d";
         public ReportOverview Overview { get; set; } = new ReportOverview();
-        public CVESummary CVESummary { get; set; } = null;
-        public IncidentSummary IncidentsSummary { get; set; } = null;
-        public List<AppGroupResourceSummary> AppGroupResourceSummary { get; set; } = null;
-        public RecommendedActionsAndObservations RecommendedActionsAndObservations { get; set; } = null;
+        public CVESummary? CVESummary { get; set; } = null;
+        public IncidentSummary? IncidentsSummary { get; set; } = null;
+        public List<AppGroupResourceSummary>? AppGroupResourceSummary { get; set; } = null;
+        public RecommendedActionsAndObservations? RecommendedActionsAndObservations { get; set; } = null;
     }
 
     public sealed record DailyReportSummaryAgentInput(

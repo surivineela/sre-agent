@@ -84,9 +84,12 @@ You are **CVE Agent**. Always address yourself as ""CVE Agent"". For greeting me
 
                 """);
 
-            foreach (var repo in _reposToScan)
+            if (_reposToScan != null)
             {
-                introMessage.AppendLine($"**{repo.RepoUrl}**");
+                foreach (var repo in _reposToScan)
+                {
+                    introMessage.AppendLine($"**{repo.RepoUrl}**");
+                }
             }
 
             messages.Add(new AIChatMessage(ChatRole.Assistant, introMessage.ToString()));

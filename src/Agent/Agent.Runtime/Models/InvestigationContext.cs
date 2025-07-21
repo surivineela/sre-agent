@@ -19,7 +19,7 @@ public class InvestigationContext
     public Dictionary<string, StepResult> CollectedEvidence { get; set; } = new();
     public int IterationCount { get; set; } = 0;
     public List<string> CompletedSteps { get; set; } = new();
-    public ReflexionResult LastReflexion { get; set; }
+    public ReflexionResult? LastReflexion { get; set; }
 
     /// <summary>
     /// The root investigation span for OpenTelemetry tracing
@@ -42,10 +42,10 @@ public class InvestigationContext
 /// </summary>
 public class Hypothesis
 {
-    public string Description { get; set; }
+    public required string Description { get; set; }
     public float Confidence { get; set; }
-    public List<string> SupportingEvidence { get; set; }
-    public List<string> ConflictingEvidence { get; set; }
+    public List<string> SupportingEvidence { get; set; } = new();
+    public List<string> ConflictingEvidence { get; set; } = new();
 }
 
 /// <summary>
@@ -58,8 +58,6 @@ public class StepResult
     public Dictionary<string, object> ExtractedData { get; set; } = new();
     public bool Success { get; set; }
     public DateTime Timestamp { get; set; }
-    // For serialization
-    public StepResult() { }
     public StepResult(string stepName, string rawOutput, bool success)
     {
         StepName = stepName;
@@ -86,11 +84,11 @@ public class ReflexionResult
 /// </summary>
 public class InvestigationSummary
 {
-    public string Summary { get; set; }
+    public required string Summary { get; set; }
     public List<Hypothesis> FinalHypotheses { get; set; } = new();
     public float OverallConfidence { get; set; }
     public List<string> InvestigationSteps { get; set; } = new();
-    public string RecommendedAction { get; set; }
+    public required string RecommendedAction { get; set; }
 }
 
 #region Helper Models for API Responses
@@ -119,7 +117,7 @@ public class HypothesisResponse
     public class HypothesisItem
     {
         [JsonPropertyName("description")]
-        public string Description { get; set; }
+        public string Description { get; set; } = string.Empty;
         [JsonPropertyName("confidence")]
         public float Confidence { get; set; }
         [JsonPropertyName("supportingEvidence")]

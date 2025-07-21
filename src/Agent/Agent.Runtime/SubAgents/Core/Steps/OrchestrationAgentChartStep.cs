@@ -1,18 +1,22 @@
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
-using Microsoft.Extensions.Logging;
 
 
 namespace Agent.Runtime.SubAgents.Core.Steps;
 public class OrchestrationAgentChartStep : OrchestrationAgentStep
 {
-    public FunctionCallContent FunctionCall { get; set; }
+    public FunctionCallContent? FunctionCall { get; set; }
 
     public override async Task ExecuteAsync(TaskOrchestrationContext context, OrchestrationAgent agent)
     {
+        if (FunctionCall == null)
+        {
+            throw new ArgumentNullException(nameof(FunctionCall), "FunctionCall cannot be null.");
+        }
+
         var log = context.CreateReplaySafeLogger<OrchestrationAgentChartStep>();
         Guid threadId = agent.ThreadId;
-        
+
         var execInput = new ChartToolCallInput(
             FunctionCallContent: FunctionCall,
             threadId

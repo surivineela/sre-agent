@@ -38,14 +38,13 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
     private readonly IThreadTeamsMappingRepository _conversationThreadMapping;
     private readonly IAgentInboundCommunicationService _agentInboundCommunicationService;
     private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
-    private readonly IAgentsFactory _agentsFactory;
     private readonly IThreadRepository _threadRepository;
     private readonly IBotFrameworkHttpAdapter _teamsAdapter;
     private readonly ITitleGenerationService _titleGenerationService;
 
     private readonly CancellationTokenSource _pollingCancellationSource = new();
     private bool _isPollingStarted = false;
-    private readonly string _appId;
+    private readonly string? _appId;
     // TODO(jianbosun): we should use activity to send out messages immediately instead of polling, set the interval to 5 for now
     private readonly TimeSpan _pollInterval = TimeSpan.FromSeconds(5);
     // Rate limiting for messages posted per poll cycle
@@ -80,7 +79,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
         _conversationThreadMapping = threadTeamsMappingRepository;
         _teamsAdapter = teamsAdapter;
         _agentInboundCommunicationService = agentInboundCommunicationService;
-        _agentsFactory = agentsFactory;
+        _agentOutboundCommunicationService = agentOutboundCommunicationService;
         _threadRepository = threadRepository;
         _titleGenerationService = titleGenerationService;
 
@@ -93,7 +92,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
 
     protected override async Task OnMessageActivityAsync(ITurnContext<IMessageActivity> turnContext, CancellationToken cancellationToken)
     {
-        string messageText = turnContext.Activity.RemoveRecipientMention()?.Trim();
+        string? messageText = turnContext.Activity.RemoveRecipientMention()?.Trim();
         if (string.IsNullOrEmpty(messageText))
         {
             _logger.LogInternalInformation("Received empty message from user");
@@ -120,7 +119,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
         string threadId = await GetOrCreateThread(startMessageId, turnContext.Activity.Conversation.Id, serviceUrl, teamsChannelId, messageText, conversationReference, turnContext.Activity.From);
         Guid chatIdGuid = Guid.Parse(threadId);
         var agentContexts = await _threadRepository.GetAgentContextsForThreadAsync(chatIdGuid);
-        var agentContext = agentContexts.FirstOrDefault();
+        var agentContext = agentContexts.First();
 
         string conversationId = turnContext.Activity.Conversation.Id;
         string senderName = turnContext.Activity.From?.Name ?? "Unknown User";
@@ -149,7 +148,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
             List<Task> tasks = new List<Task>();
 
             // Task 1: Generate quick response for Teams channel
-            Task quickResponseTask = null;
+            Task quickResponseTask;
             var channelDataObj = turnContext.Activity.ChannelData as JObject;
             if (channelDataObj != null && channelDataObj["team"] != null)
             {
@@ -273,7 +272,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
     /// <summary>
     /// Get or create a thread ID for this conversation with improved performance
     /// </summary>
-    private async Task<string> GetOrCreateThread(Guid startMessageId, string conversationId, string serviceUrl, string channelId, string messageText, ConversationReference reference = null, ChannelAccount sender = null)
+    private async Task<string> GetOrCreateThread(Guid startMessageId, string conversationId, string serviceUrl, string channelId, string messageText, ConversationReference? reference = null, ChannelAccount? sender = null)
     {
         _logger.LogInternalInformation($"Get or create thread ID for conversation {conversationId}, service URL: {serviceUrl}, channel ID: {channelId}, reference: {reference}");
         var mapping = await _conversationThreadMapping.GetMappingByConversationIdAsync(conversationId);
@@ -583,7 +582,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
         }
     }
 
-    private async Task PostMessagesToTeams(string conversationId, List<Message> messages, string threadId, ConversationReference conversationReference)
+    private async Task PostMessagesToTeams(string conversationId, List<Message> messages, string threadId, ConversationReference? conversationReference)
     {
         try
         {
@@ -627,8 +626,8 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
                         activity.Text = null; // Clear text if it's an image, we suspect user will not send image
                         // Extract base64 image content from markdown format like below
                         // $"![DailyReport Dashboard](data:image/png;base64,{screenshot})\r\n"
-                        string base64Content = null;
-                        string contentType = null;
+                        string base64Content;
+                        string contentType;
 
                         // Extract base64 content from markdown image format: ![alt](data:image/type;base64,content)
                         var match = System.Text.RegularExpressions.Regex.Match(

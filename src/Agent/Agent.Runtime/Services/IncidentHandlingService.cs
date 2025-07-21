@@ -14,12 +14,12 @@ namespace Agent.Runtime.Services
 {
     public class IncidentHandlingRequestModel
     {
-        public string Title { get; set; }
+        public string? Title { get; set; }
 
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         [Required]
-        public string IncidentId { set; get; }
+        public required string IncidentId { set; get; }
 
         public string? Severity { get; set; }
 
@@ -33,7 +33,7 @@ namespace Agent.Runtime.Services
     public class IncidentHandlingResponseModel
     {
         public int StatusCode { get; set; }
-        public object Response { get; set; }
+        public object? Response { get; set; }
     }
 
     public interface IIncidentHandlingService
@@ -107,7 +107,7 @@ namespace Agent.Runtime.Services
                     ImpactedServiceName: incidentData.ImpactedService?.Summary ?? string.Empty,
                     CreatedAt: incidentData.CreatedAt);
                 incident.Title = incidentData.Title;
-                incident.Description = incidentData.Body.Details;
+                incident.Description = incidentData.Body?.Details ?? string.Empty;
 
                 _logger.LogInternalInformation("GetPagerDutyIncidentLatest: Successfully created PagerDutyIncidentDocument for IncidentId: {IncidentId}", incidentId);
                 return incident;
@@ -224,7 +224,7 @@ namespace Agent.Runtime.Services
 
                 _logger.LogInternalInformation("HandleIncidentAsync: Fetching incident filters for IncidentId: {IncidentId}", incidentId);
                 var filters = await _incidentFilterManagementService.ListIncidentFilters();
-                _logger.LogInternalInformation("HandleIncidentAsync: Retrieved {FilterCount} filters for IncidentId: {IncidentId}", filters?.Count ?? 0, incidentId);
+                _logger.LogInternalInformation("HandleIncidentAsync: Retrieved {FilterCount} filters for IncidentId: {IncidentId}", filters.Count , incidentId);
 
                 var matchingFilters = filters
                     .Where(filter =>
@@ -248,11 +248,11 @@ namespace Agent.Runtime.Services
                     return response;
                 }
 
-                var matchingFilter = matchingFilters.FirstOrDefault();
+                var matchingFilter = matchingFilters.First();
 
                 _logger.LogInternalInformation("HandleIncidentAsync: Fetching incident handlers for FilterId: {FilterId}", matchingFilter.Id);
                 var incidentHandlers = await _incidentHandlerManagementService.ListIncidentHandlers();
-                _logger.LogInternalInformation("HandleIncidentAsync: Retrieved {HandlerCount} handlers for FilterId: {FilterId}", incidentHandlers?.Count ?? 0, matchingFilter.Id);
+                _logger.LogInternalInformation("HandleIncidentAsync: Retrieved {HandlerCount} handlers for FilterId: {FilterId}", incidentHandlers.Count, matchingFilter.Id);
 
                 var matchingHandler = incidentHandlers.Where(x => x.IncidentFilterId == matchingFilter.Id).FirstOrDefault();
 

@@ -102,6 +102,10 @@ namespace Agent.Web.Controllers.v1
                 await _threadRepository.UpdateApprovalV2Async(existingApprovalV2);
 
                 var existingAgentContext = await _threadRepository.GetAgentContextAsync(agentContextId: existingApprovalV2.AgentContextId, threadId: existingApprovalV2.ThreadId);
+                if (existingAgentContext == null)
+                {
+                    throw new Exception($"Agent context not found for AgentContextId: {existingApprovalV2.AgentContextId} and ThreadId: {existingApprovalV2.ThreadId}");
+                }
                 existingAgentContext = existingAgentContext with
                 {
                     ContextState = ContextStateEnum.Idle
@@ -130,6 +134,10 @@ namespace Agent.Web.Controllers.v1
                 await _threadRepository.UpdateApprovalV2Async(existingApprovalV2);
 
                 var existingAgentContext = await _threadRepository.GetAgentContextAsync(agentContextId: existingApprovalV2.AgentContextId, threadId: existingApprovalV2.ThreadId);
+                if (existingAgentContext == null)
+                {
+                    throw new Exception($"Agent context not found for AgentContextId: {existingApprovalV2.AgentContextId} and ThreadId: {existingApprovalV2.ThreadId}");
+                }
                 existingAgentContext = existingAgentContext with
                 {
                     ContextState = ContextStateEnum.Failed

@@ -116,8 +116,11 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                 foreach (var incident in incidents)
                 {
                     var incidentDocument = await GetDocumentAsync<IcmIncidentDocument>(incident.IncidentId, incident.IncidentId);
-                    incidentDocument = await UpsertIncidentDocumentIfNeededAsync(incidentDocument, incident);
-                    await NotifyUserAsync(incidentDocument, new List<string>());
+                    if (incidentDocument != null)
+                    {
+                        incidentDocument = await UpsertIncidentDocumentIfNeededAsync(incidentDocument, incident);
+                        await NotifyUserAsync(incidentDocument, new List<string>());
+                    }
                 }
             }
             catch (Exception ex)
@@ -129,7 +132,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
         }
     }
 
-    private async Task<T> GetDocumentAsync<T>(string id, string partitionKey) where T : ICosmosDocument
+    private async Task<T?> GetDocumentAsync<T>(string id, string partitionKey) where T : ICosmosDocument
     {
         try
         {
@@ -197,6 +200,11 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                 };
                 logger.LogInternalInformation("[IcmScanner] Upserting existing incident document for IcM incident {incidentId}", incident.IncidentId);
                 incidentDocument = await container.UpsertItemAsync(updatedDoc, new PartitionKey(updatedDoc.PartitionKey), cancellationToken: cancellationToken);
+            }
+
+            if (incidentDocument == null)
+            {
+                throw new Exception($"Failed to create or update incident document for IcM incident {incident?.IncidentId}. The incident document is null.");
             }
 
             return incidentDocument;

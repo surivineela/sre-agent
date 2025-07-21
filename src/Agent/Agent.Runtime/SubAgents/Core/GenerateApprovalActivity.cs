@@ -23,7 +23,7 @@ public class GenerateApprovalLinkActivity : TaskActivity<(string ApprovalId, str
         try
         {
             // Get the approval,callback endpoint from configuration
-            string approvalEndpoint = _configuration["AppSettings:ApprovalsEndpoint"];
+            string? approvalEndpoint = _configuration["AppSettings:ApprovalsEndpoint"];
             string callbackUrl = System.Environment.GetEnvironmentVariable("AGENT_ENDPOINT") ?? "";
 
             if (string.IsNullOrEmpty(approvalEndpoint))

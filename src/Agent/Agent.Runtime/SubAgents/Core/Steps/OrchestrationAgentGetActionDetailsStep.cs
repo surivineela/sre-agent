@@ -1,21 +1,25 @@
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using Agent.Logging;
 
 namespace Agent.Runtime.SubAgents.Core.Steps;
 
 public class OrchestrationAgentGetActionDetailsStep : OrchestrationAgentStep
 {
-    public FunctionCallContent FunctionCall { get; set; }
+    public FunctionCallContent? FunctionCall { get; set; }
 
     public override async Task ExecuteAsync(TaskOrchestrationContext context, OrchestrationAgent agent)
     {
+        if (FunctionCall == null)
+        {
+            throw new ArgumentNullException(nameof(FunctionCall), "FunctionCall cannot be null.");
+        }
+
         var log = context.CreateReplaySafeLogger<OrchestrationAgentGetActionDetailsStep>();
         Guid threadId = agent.ThreadId;
         Guid actionId = Guid.Empty;
 
-        if (FunctionCall.Arguments.TryGetValue("actionId", out var actionIdObj) && actionIdObj != null)
+        if (FunctionCall.Arguments != null && FunctionCall.Arguments.TryGetValue("actionId", out var actionIdObj) && actionIdObj != null)
         {
             if (Guid.TryParse(actionIdObj.ToString(), out var parsedActionId))
             {

@@ -90,7 +90,7 @@ public class AppServiceScanner
     }
 
     // Helper method to extract the first value from a property that might be an array
-    private string GetFirstPropertyValue(Dictionary<string, object> properties, string key)
+    private string? GetFirstPropertyValue(Dictionary<string, object> properties, string key)
     {
         if (properties == null || !properties.ContainsKey(key) || properties[key] == null)
             return null;
@@ -110,15 +110,15 @@ public class AppServiceScanner
         return value.ToString();
     }
 
-    private ArmResourceNode CreateArmResourceNodeFromDictionary(Dictionary<string, object> result)
+    private ArmResourceNode? CreateArmResourceNodeFromDictionary(Dictionary<string, object> result)
     {
         try
         {
             // Get primary fields
-            string id = result["id"]?.ToString();
-            string name = result["name"]?.ToString();
-            string type = result["type"]?.ToString();
-            string kind = result["kind"]?.ToString();
+            string id = result["id"]?.ToString() ?? string.Empty;
+            string name = result["name"]?.ToString() ?? string.Empty;
+            string type = result["type"]?.ToString() ?? string.Empty;
+            string kind = result["kind"]?.ToString() ?? string.Empty;
 
             var properties = result["properties"] as Dictionary<string, object>;
             if (properties == null)
@@ -128,11 +128,11 @@ public class AppServiceScanner
             }
 
             // Extract values, handling arrays in property values
-            string resourceId = GetFirstPropertyValue(properties, "resourceId") ?? id;
-            string subscriptionId = GetFirstPropertyValue(properties, "subscriptionId");
-            string resourceGroupName = GetFirstPropertyValue(properties, "resourceGroupName");
+            string resourceId = GetFirstPropertyValue(properties, "resourceId") ?? throw new Exception("Failed to get property resourceId");
+            string subscriptionId = GetFirstPropertyValue(properties, "subscriptionId") ?? throw new Exception("Failed to get property subscriptionId");
+            string resourceGroupName = GetFirstPropertyValue(properties, "resourceGroupName") ?? throw new Exception("Failed to get property resourceGroupName");
             string resourceName = GetFirstPropertyValue(properties, "resourceName") ?? name;
-            string location = GetFirstPropertyValue(properties, "location");
+            string location = GetFirstPropertyValue(properties, "location") ?? throw new Exception("Failed to get property location");
 
             // Create the ArmResourceNode
             var armResourceNode = new ArmResourceNode(
@@ -150,7 +150,7 @@ public class AppServiceScanner
             {
                 if (!armResourceNode.GetNodeProperties().ContainsKey(prop.Key))
                 {
-                    string value = GetFirstPropertyValue(properties, prop.Key);
+                    string? value = GetFirstPropertyValue(properties, prop.Key);
                     if (!string.IsNullOrEmpty(value))
                     {
                         armResourceNode.GetNodeProperties()[prop.Key] = value;
