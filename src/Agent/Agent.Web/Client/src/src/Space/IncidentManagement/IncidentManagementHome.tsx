@@ -1,15 +1,11 @@
-import { FC, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { FC, useCallback, useEffect, useState } from 'react';
 
 import { useIntl } from 'react-intl';
-import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { IncidentFilter } from '../../Common/Contracts/Azure/IncidentHandler';
-import { AgentAccessLevel } from '../../Common/Contracts/Azure/SreAgent';
-import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
 import { IncidentManagementResources } from '../../Strings/SREAgentResources';
 import { useIncidentFilterFields } from '../Hooks/useIncidentFilterFields';
 import { useIncidentFilters } from '../Hooks/useIncidentFilters';
 import { useIncidentHandlers } from '../Hooks/useIncidentHandlers';
-import { useSreAgent } from '../Settings/Hooks/useSreAgent';
 import { useIncidentManagementStyles } from '../Styles/IncidentManagement.styles';
 import { CreateOrUpdateIncidentFilterDialog, IncidentFilterFormProps } from './CreateIncidentFilterDialog';
 import { HandlerCreateOrEditInfo, OperationStatus } from './CreateIncidentHandler/Contracts';
@@ -25,9 +21,6 @@ interface IncidentManagementHomeProps {
 const IncidentManagementHome: FC<IncidentManagementHomeProps> = ({ openHandlerCreate, handlerOperationStatus, useConsolidatedCreate }) => {
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
-    const { resourceId } = useContext(EnvironmentContext);
-
-    const { agent, agentLoaded, refresh: refreshAgent } = useSreAgent(resourceId);
 
     const [isCreateIncidentFilterDialogOpen, setIsCreateIncidentFilterDialogOpen] = useState<boolean>(false);
     const [selectedIncidentFilter, setSelectedIncidentFilter] = useState<IncidentFilter | undefined>();
@@ -49,16 +42,10 @@ const IncidentManagementHome: FC<IncidentManagementHomeProps> = ({ openHandlerCr
 
     const [isRefreshNeeded, setIsRefreshNeeded] = useState<boolean>(false);
 
-    const isAgentHighAccessLevel = useMemo<boolean>(
-        () => equals(AgentAccessLevel.high, agent?.properties.actionConfiguration?.accessLevel ?? '', AntUxStringComparison.IgnoreCase),
-        [agent]
-    );
-
     const refresh = useCallback(() => {
         refreshIncidentFilters();
         refreshIncidentHandlers();
-        refreshAgent();
-    }, [refreshIncidentFilters, refreshIncidentHandlers, refreshAgent]);
+    }, [refreshIncidentFilters, refreshIncidentHandlers]);
 
     useEffect(() => {
         if (handlerOperationStatus === 'succeeded') {
@@ -102,7 +89,6 @@ const IncidentManagementHome: FC<IncidentManagementHomeProps> = ({ openHandlerCr
                     }}
                     isFilterSelected={!!selectedIncidentFilter}
                     isFilterEnabled={!selectedIncidentFilter || selectedIncidentFilter?.isEnabled}
-                    isNewIncidentFilterDisabled={!agentLoaded} // Could reset initialValues and re-init form w/o this safeguard
                 />
                 <IncidentsFiltersGrid
                     handlerOperationStatus={handlerOperationStatus}
@@ -115,8 +101,6 @@ const IncidentManagementHome: FC<IncidentManagementHomeProps> = ({ openHandlerCr
                     setIsEditFilterMode={setIsEditFilterMode}
                     setInitialValues={setInitialValues}
                     useConsolidatedCreate={useConsolidatedCreate}
-                    isAgentHighAccessLevel={isAgentHighAccessLevel}
-                    isNewIncidentFilterDisabled={!agentLoaded}
                 />
                 <CreateOrUpdateIncidentFilterDialog
                     isDialogOpen={isCreateIncidentFilterDialogOpen}
@@ -128,7 +112,6 @@ const IncidentManagementHome: FC<IncidentManagementHomeProps> = ({ openHandlerCr
                     impactedServiceOptions={impactedServiceOptions}
                     isEditMode={isEditFilterMode}
                     initialValues={initialValues}
-                    isAgentHighAccessLevel={isAgentHighAccessLevel}
                 />
             </div>
         </div>

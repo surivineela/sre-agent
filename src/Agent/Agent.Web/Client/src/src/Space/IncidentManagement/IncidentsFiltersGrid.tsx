@@ -46,8 +46,6 @@ export type IncidentsFiltersGridProps = {
     openHandlerCreate: (handlerCreateOrEditInfo: HandlerCreateOrEditInfo) => void;
     handlerOperationStatus: OperationStatus | undefined;
     useConsolidatedCreate: boolean;
-    isAgentHighAccessLevel: boolean;
-    isNewIncidentFilterDisabled: boolean;
 };
 
 const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFiltersGridProps) => {
@@ -62,8 +60,6 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
         setSelectedFilter,
         setIsEditFilterMode,
         setInitialValues,
-        isAgentHighAccessLevel,
-        isNewIncidentFilterDisabled,
     } = props;
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
@@ -442,10 +438,7 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
                 onRender: onRenderStatus,
                 styles: { root: { width: `${columnWidth}%` } },
             },
-        ];
-
-        if (isAgentHighAccessLevel) {
-            columns.push({
+            {
                 key: IncidentsListColumnKey.agentMode,
                 name: intl.formatMessage(IncidentManagementResources.autonomyLevel),
                 fieldName: IncidentsListColumnKey.agentMode,
@@ -458,8 +451,8 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
                     sortColumnKey === (IncidentsListColumnKey.agentMode as keyof IncidentFilter) ? isSortedDescending : undefined,
                 onColumnClick: (_, col) => handleColumnClick(col),
                 styles: { root: { width: `${columnWidth}%` } },
-            });
-        }
+            },
+        ];
 
         return columns;
     }, [
@@ -475,7 +468,6 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
         onRenderIncidentHandler,
         onRenderStatus,
         handleColumnClick,
-        isAgentHighAccessLevel,
     ]);
 
     return (
@@ -565,7 +557,6 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
                                 setIsCreateIncidentFilterDialogOpen(true);
                             }}
                             className={styles.newIncidentFilterButton}
-                            disabled={isNewIncidentFilterDisabled}
                         >
                             {intl.formatMessage(IncidentManagementResources.newIncidentHandler)}
                         </Button>

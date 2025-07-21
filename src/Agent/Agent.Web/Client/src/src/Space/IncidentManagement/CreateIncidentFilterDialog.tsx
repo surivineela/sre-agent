@@ -33,7 +33,6 @@ interface CreateIncidentFilterProps {
     incidentTypeOptions: string[];
     initialValues?: IncidentFilterFormProps;
     isEditMode: boolean;
-    isAgentHighAccessLevel: boolean;
 }
 
 interface CreateOrUpdateIncidentFilterFormProps {
@@ -43,7 +42,6 @@ interface CreateOrUpdateIncidentFilterFormProps {
     impactedServiceOptions: string[];
     incidentTypeOptions: string[];
     isEditMode: boolean;
-    isAgentHighAccessLevel: boolean;
 }
 
 export interface IncidentFilterFormProps {
@@ -65,7 +63,6 @@ export const CreateOrUpdateIncidentFilterDialog: FC<CreateIncidentFilterProps> =
     incidentTypeOptions,
     initialValues,
     isEditMode = false,
-    isAgentHighAccessLevel,
 }) => {
     const initialFormValues = useMemo((): IncidentFilterFormProps => {
         if (isEditMode && initialValues) {
@@ -75,7 +72,6 @@ export const CreateOrUpdateIncidentFilterDialog: FC<CreateIncidentFilterProps> =
                 priority: initialValues.priority || '',
                 incidentType: initialValues.incidentType || '',
                 titleContains: initialValues.titleContains || '',
-                // NOTE: May need to set this back to undefined if user switches from high to low access level
                 agentMode: initialValues.agentMode,
             };
         }
@@ -86,9 +82,9 @@ export const CreateOrUpdateIncidentFilterDialog: FC<CreateIncidentFilterProps> =
             impactedService: '',
             priority: '',
             incidentType: '',
-            agentMode: isAgentHighAccessLevel ? AgentMode.review : undefined,
+            agentMode: AgentMode.review,
         };
-    }, [isEditMode, initialValues, isAgentHighAccessLevel]);
+    }, [isEditMode, initialValues]);
 
     const handleSubmit = useCallback(
         async (values: IncidentFilterFormProps, formikHelpers: FormikHelpers<IncidentFilterFormProps>) => {
@@ -122,7 +118,6 @@ export const CreateOrUpdateIncidentFilterDialog: FC<CreateIncidentFilterProps> =
                 incidentTypeOptions={incidentTypeOptions}
                 impactedServiceOptions={impactedServiceOptions}
                 priorityOptions={priorityOptions}
-                isAgentHighAccessLevel={isAgentHighAccessLevel}
             />
         </Formik>
     );
@@ -135,7 +130,6 @@ const CreateOrUpdateFilterForm = ({
     incidentTypeOptions,
     impactedServiceOptions,
     priorityOptions,
-    isAgentHighAccessLevel,
 }: CreateOrUpdateIncidentFilterFormProps) => {
     const intl = useIntl();
 
@@ -296,40 +290,38 @@ const CreateOrUpdateFilterForm = ({
                                 />
                             </Field>
 
-                            {isAgentHighAccessLevel && (
-                                <Field label={intl.formatMessage(IncidentManagementResources.agentAutonomyLevel)}>
-                                    <RadioGroup
-                                        name="agentMode"
-                                        value={values.agentMode}
-                                        onChange={(_, data) => setFieldValue('agentMode', data.value)}
-                                    >
-                                        <Radio
-                                            value={AgentMode.review}
-                                            label={
-                                                <>
-                                                    {intl.formatMessage(IncidentManagementResources.reviewDefault)}
-                                                    <br />
-                                                    <Text size={200}>
-                                                        {intl.formatMessage(IncidentManagementResources.autonomyLevelReviewDescription)}
-                                                    </Text>
-                                                </>
-                                            }
-                                        />
-                                        <Radio
-                                            value={AgentMode.autonomous}
-                                            label={
-                                                <>
-                                                    {intl.formatMessage(IncidentManagementResources.autonomousWord)}
-                                                    <br />
-                                                    <Text size={200}>
-                                                        {intl.formatMessage(IncidentManagementResources.autonomyLevelAutonomousDescription)}
-                                                    </Text>
-                                                </>
-                                            }
-                                        />
-                                    </RadioGroup>
-                                </Field>
-                            )}
+                            <Field label={intl.formatMessage(IncidentManagementResources.agentAutonomyLevel)}>
+                                <RadioGroup
+                                    name="agentMode"
+                                    value={values.agentMode}
+                                    onChange={(_, data) => setFieldValue('agentMode', data.value)}
+                                >
+                                    <Radio
+                                        value={AgentMode.review}
+                                        label={
+                                            <>
+                                                {intl.formatMessage(IncidentManagementResources.reviewDefault)}
+                                                <br />
+                                                <Text size={200}>
+                                                    {intl.formatMessage(IncidentManagementResources.autonomyLevelReviewDescription)}
+                                                </Text>
+                                            </>
+                                        }
+                                    />
+                                    <Radio
+                                        value={AgentMode.autonomous}
+                                        label={
+                                            <>
+                                                {intl.formatMessage(IncidentManagementResources.autonomousWord)}
+                                                <br />
+                                                <Text size={200}>
+                                                    {intl.formatMessage(IncidentManagementResources.autonomyLevelAutonomousDescription)}
+                                                </Text>
+                                            </>
+                                        }
+                                    />
+                                </RadioGroup>
+                            </Field>
                         </form>
                     </DialogContent>
                     <DialogActions>
