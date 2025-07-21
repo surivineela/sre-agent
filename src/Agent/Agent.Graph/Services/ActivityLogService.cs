@@ -1,15 +1,15 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.ClientModel.Primitives;
 using System.Collections.Concurrent;
 using System.Text.Json;
 using System.Threading.Channels;
-using Agent.Core.Helpers;
-using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Interfaces;
-using Agent.Logging;
 using Azure.Core;
 using Azure.ResourceManager.Monitor.Models;
 using Microsoft.Extensions.Logging;
-using OpenTelemetry.Resources;
 
 namespace Agent.Graph.Services;
 

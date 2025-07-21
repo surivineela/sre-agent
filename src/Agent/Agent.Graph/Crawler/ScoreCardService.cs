@@ -7,10 +7,10 @@ using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.Repositories;
 using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Crawler.Metrics;
-using Agent.Logging;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler;
+
 public class ScoreCardService
 {
     private readonly ILogger<ScoreCardService> _logger;

@@ -7,11 +7,11 @@ using Agent.Core.Helpers;
 using Agent.Core.Models;
 using Agent.Core.Models.Charts;
 using Azure.Core;
-using Agent.Logging;
 using Microsoft.Extensions.Logging;
 using Agent.Core;
 
 namespace Agent.Graph.Crawler.Metrics;
+
 public class AzureMetricsClient : IAzureMetricsClient
 {
     private readonly ILogger<AzureMetricsClient> _logger;
@@ -27,7 +27,7 @@ public class AzureMetricsClient : IAzureMetricsClient
 
     /// <summary>
     /// Get cost associated with a resource.
-    /// Currently, only gets weekly cost. 
+    /// Currently, only gets weekly cost.
     /// </summary>
     /// <param name="resourceId">Azure resource ID</param>
     /// <param name="endTime">End date for cost calculation</param>
@@ -41,7 +41,7 @@ public class AzureMetricsClient : IAzureMetricsClient
             var resourceIdentifier = new ResourceIdentifier(resourceId);
             string subscriptionId = resourceIdentifier.SubscriptionId;
 
-            // Time range (last 7 days) 
+            // Time range (last 7 days)
             DateTime startTime = endTime.AddDays(-7);
 
             var url = new Uri(new Uri("https://management.azure.com"),

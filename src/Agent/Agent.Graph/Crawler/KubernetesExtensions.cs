@@ -1,11 +1,12 @@
-using System;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Xml;
 using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.ARM;
-using Azure.ResourceManager.AppContainers.Models;
 using k8s.Models;
 using Microsoft.Extensions.Logging;
 

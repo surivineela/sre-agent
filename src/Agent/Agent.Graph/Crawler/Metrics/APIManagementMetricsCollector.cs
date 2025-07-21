@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Models;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.ARM;
@@ -38,7 +42,6 @@ namespace Agent.Graph.Crawler.Metrics
                 var totalRequests = await GetTotalRequestCountAsync(resourceId);
                 var avgCpuUsage = await GetAvgCpuUsagePercentAsync(resourceId);
                 var avgMemUsage = await GetAvgMemoryUsageAsync(resourceId);
-                var cost = await _azureMetricsClient.GetCostAsync(resourceId, DateTime.UtcNow);
                 var availability = await GetAvailabilityAsync(resourceId);
 
                 var appHealthInfo = new AppHealthInfo
@@ -46,7 +49,6 @@ namespace Agent.Graph.Crawler.Metrics
                     Transactions = (int)Math.Round(totalRequests),
                     AvgMemoryUsage = Math.Round(avgMemUsage, Constants.AppHealthDecimalPlaces),
                     AvgCpuUsage = Math.Round(avgCpuUsage, Constants.AppHealthDecimalPlaces),
-                    Costs = Math.Round(cost, Constants.AppHealthDecimalPlaces),
                     Availability = Math.Round(availability, Constants.AppHealthDecimalPlaces),
                     Health = availability >= Constants.AppHealthHealthyThreshold ? ScorecardHealthState.Healthy :
                              availability >= Constants.AppHealthDegradedThreshold ? ScorecardHealthState.Degraded :

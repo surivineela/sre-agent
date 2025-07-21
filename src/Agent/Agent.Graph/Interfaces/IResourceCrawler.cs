@@ -2,11 +2,6 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-
-// ------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation.  All rights reserved.
-// ------------------------------------------------------------
-
 using Agent.Data.DatabaseClients.GraphDbClient;
 
 namespace Agent.Graph.Interfaces;

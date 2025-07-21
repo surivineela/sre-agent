@@ -1,14 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
-using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Interfaces;
-using Azure.ResourceManager;
-using Gremlin.Net.Process.Traversal;
 using k8s.Models;
 using Microsoft.Extensions.Logging;
 

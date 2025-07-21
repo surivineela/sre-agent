@@ -3,12 +3,8 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Models.Api.v1;
-using Agent.Logging;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.OData.Query;
-using Action = Agent.Core.Models.Api.v1.Action;
 using Agent.Core.Interfaces;
-using Agent.Core.Helpers;
 using Agent.Data.Repositories;
 using System.Text.Json.Serialization;
 
@@ -37,7 +33,7 @@ namespace Agent.Web.Controllers.v1
         public async Task<ActionResult<actionSeverityMetrics>> GetActionSeverityMetrics([FromQuery] DateTime? startTime, [FromQuery] DateTime? endTime)
         {
             _logger.LogInternalInformation("Getting action severity metrics from {StartTime} to {EndTime}", startTime, endTime);
-            
+
             // Get all actions across all threads to calculate metrics
             var actions = await _repository.GetAllActionsAsync();
 
@@ -192,4 +188,4 @@ namespace Agent.Web.Controllers.v1
             Closed
         }
     }
-} 
+}

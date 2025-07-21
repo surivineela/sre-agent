@@ -13,7 +13,6 @@ using Agent.Plugins.Interface;
 using Agent.Plugins.Services.Interfaces;
 using Gremlin.Net.Driver;
 using Microsoft.Extensions.Logging;
-using Microsoft.Graph.Models;
 using ArmConstants = Agent.Graph.Crawler.ARM.Constants;
 
 namespace Agent.Plugins.Services;

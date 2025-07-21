@@ -1,11 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace Agent.Graph.Helpers;
+
 public partial class KeyVaultHelper
 {
     [GeneratedRegex("^https://([a-zA-Z0-9\\-]+)\\.vault\\.azure\\.net/*")]

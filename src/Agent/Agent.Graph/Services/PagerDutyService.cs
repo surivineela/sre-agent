@@ -5,7 +5,6 @@
 using Agent.Core.Configuration;
 using Agent.Data.DataModels;
 using Agent.Graph.Interfaces;
-using Agent.Logging;
 using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;

@@ -3,8 +3,6 @@
 // ------------------------------------------------------------
 
 using Agent.Data.DatabaseClients.GraphDbClient;
-using Agent.Graph.Schema;
-using Agent.Logging;
 using Azure.Core;
 using Azure.ResourceManager;
 using Microsoft.Data.SqlClient;

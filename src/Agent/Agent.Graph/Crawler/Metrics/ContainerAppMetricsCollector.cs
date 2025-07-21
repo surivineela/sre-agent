@@ -4,10 +4,10 @@
 
 using Agent.Core.Models;
 using Agent.Data.DatabaseClients.GraphDbClient;
-using Agent.Logging;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler.Metrics;
+
 public class ContainerAppMetricsCollector : IResourceMetricsCollector
 {
     private readonly ILogger<ContainerAppMetricsCollector> _logger;
@@ -44,7 +44,6 @@ public class ContainerAppMetricsCollector : IResourceMetricsCollector
             var avgRequests = await GetAvgRequestCountAsync(resourceId);
             var avgCpuUsage = await GetAvgCpuUsagePercentAsync(resourceId);
             var avgMemUsage = await GetAvgMemoryUsageAsync(resourceId);
-            var cost = await _azureMetricsClient.GetCostAsync(resourceId, now);
             var availability = await GetAvailabilityAsync(resourceId);
 
             var appHealthInfo = new AppHealthInfo
@@ -52,7 +51,6 @@ public class ContainerAppMetricsCollector : IResourceMetricsCollector
                 Transactions = (int)Math.Round(avgRequests),
                 AvgMemoryUsage = Math.Round(avgMemUsage, 2),
                 AvgCpuUsage = Math.Round(avgCpuUsage, 2),
-                Costs = Math.Round(cost, 2),
                 Availability = Math.Round(availability, 2),
                 Health = availability >= 99.0 ? ScorecardHealthState.Healthy :
                          availability >= 95.0 ? ScorecardHealthState.Degraded :

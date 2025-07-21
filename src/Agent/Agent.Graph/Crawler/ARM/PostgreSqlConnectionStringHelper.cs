@@ -6,8 +6,6 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Web;
 using Agent.Data.DatabaseClients.GraphDbClient;
-using Agent.Graph.Schema;
-using Agent.Logging;
 using Azure.Core;
 using Azure.ResourceManager;
 using Microsoft.Extensions.Logging;

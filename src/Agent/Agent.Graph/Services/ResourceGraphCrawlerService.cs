@@ -7,17 +7,14 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading.RateLimiting;
 using Agent.Core.Configuration;
-using Agent.Core.Interfaces;
 using Agent.Core.Services;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler;
 using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Interfaces;
 using Agent.Graph.Schema;
-using Agent.Logging;
 using Azure.Core;
 using Azure.ResourceManager.Monitor.Models;
-using k8s.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 

@@ -1,9 +1,10 @@
-using System;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Threading.Channels;
-using Agent.Core;
 using Agent.Core.Interfaces;
 using Agent.Graph.Interfaces;
-using Agent.Logging;
 using k8s;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;

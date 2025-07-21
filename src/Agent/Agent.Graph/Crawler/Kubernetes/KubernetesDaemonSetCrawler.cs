@@ -1,16 +1,15 @@
-using System;
-using System.Linq;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Interfaces;
-using Agent.Logging;
-using Azure.Core;
 using Azure.ResourceManager;
 using k8s;
 using k8s.Models;
 using Microsoft.Extensions.Logging;
-using Octokit;
 
 namespace Agent.Graph.Crawler.Kubernetes;
 

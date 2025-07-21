@@ -4,10 +4,10 @@
 
 using Agent.Core.Models;
 using Agent.Data.DatabaseClients.GraphDbClient;
-using Agent.Logging;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler.Metrics;
+
 public class RedisMetricsCollector : IResourceMetricsCollector
 {
     private readonly ILogger<RedisMetricsCollector> _logger;
@@ -44,7 +44,6 @@ public class RedisMetricsCollector : IResourceMetricsCollector
             var cpuUsage = await GetCpuUsageAsync(resourceId);
             var memoryUsage = await GetMemoryUsageAsync(resourceId);
             var serverLoad = await GetServerLoadAsync(resourceId);
-            var cost = await _azureMetricsClient.GetCostAsync(resourceId, now);
 
             // Determine health based on CPU and memory metrics
             var health = DetermineHealthState(cpuUsage, memoryUsage);
@@ -59,7 +58,6 @@ public class RedisMetricsCollector : IResourceMetricsCollector
                 {
                     { "ServerLoad", Math.Round(serverLoad, 2) }
                 },
-                Costs = Math.Round(cost, 2),
                 Health = health
             };
 

@@ -472,14 +472,6 @@ const AppHealthInfo = memo(({ resource }: { resource?: ResourceExtended }) => {
         appHealthInfo && (
             <div>
                 <SummaryField
-                    label={intl.formatMessage(ResourceInfoResources.appHealthInfoCost)}
-                    value={
-                        isNullOrUndefined(appHealthInfo.Costs) || appHealthInfo.Costs === 0
-                            ? intl.formatMessage(ResourceInfoResources.appHealthInfoCostCalculationPending)
-                            : `${appHealthInfo.Costs} USD`
-                    }
-                />
-                <SummaryField
                     label={intl.formatMessage(ResourceInfoResources.appHealthInfoAvailability)}
                     value={!isNullOrUndefined(appHealthInfo.Availability) ? `${appHealthInfo.Availability ?? '0'}%` : undefined}
                 />

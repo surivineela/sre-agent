@@ -60,16 +60,12 @@ public class AKSMetricsCollector : IResourceMetricsCollector
             var avgCpuUsage = await GetAvgCpuUsageAsync(node);
             var avgMemUsage = await GetAvgMemoryUsageAsync(node);
             var availability = await GetAvailabilityAsync(node);
-            // For AKS resource (except nodes), we don't have cost information from Azure Metrics API. Plus cost API is usually throttled. So we set it to 0.0f here until we have a better solution.
-            // TODO(jianbosun): add cost information for AKS node
-            var cost = 0.0f;
             var appHealthInfo = new AppHealthInfo
             {
                 AvgMemoryUsage = Math.Round(avgMemUsage, 2),
                 AvgCpuUsage = Math.Round(avgCpuUsage, 2),
                 Availability = Math.Round(availability, 2),
                 Transactions = 0, // TODO(jianbosun): add requests count to support it
-                Costs = Math.Round(cost, 2),
                 Health = availability >= 99.0 ? ScorecardHealthState.Healthy :
                         availability >= 95.0 ? ScorecardHealthState.Degraded :
                         ScorecardHealthState.Unhealthy,
@@ -277,12 +273,12 @@ public class AKSMetricsCollector : IResourceMetricsCollector
                                 min by (pod) (
                                     (
                                         kube_node_status_allocatable{{resource=""memory""}} * on (node) group_right kube_pod_info{{{filter},namespace=""{_namespace}""}}
-                                    )   
+                                    )
                                     or
                                     (
                                         kube_pod_container_resource_limits{{{filter},namespace=""{_namespace}"", resource=""memory""}}
                                     )
-                                ) 
+                                )
                             )
                         ";
             case "cpu":
@@ -295,12 +291,12 @@ public class AKSMetricsCollector : IResourceMetricsCollector
                                 min by (pod) (
                                     (
                                         kube_node_status_allocatable{{resource=""cpu""}} * on (node) group_right kube_pod_info{{{filter},namespace=""{_namespace}""}}
-                                    )   
+                                    )
                                     or
                                     (
                                         kube_pod_container_resource_limits{{{filter},namespace=""{_namespace}"", resource=""cpu""}}
                                     )
-                                ) 
+                                )
                             )
                         ";
 

@@ -6,11 +6,8 @@ using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using k8s.Models;
 using Microsoft.Extensions.Logging;
-using Agent.Graph.Crawler;
 using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Interfaces;
-using Gremlin.Net.Process.Traversal;
-using Agent.Logging;
 
 namespace Agent.Graph.Crawler.Kubernetes;
 

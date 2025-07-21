@@ -1,15 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Text.Json;
-using System.Threading.Tasks;
 using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Interfaces;
 using Azure.Core;
-using Azure.ResourceManager;
 using k8s.Models;
 using Microsoft.Extensions.Logging;
 

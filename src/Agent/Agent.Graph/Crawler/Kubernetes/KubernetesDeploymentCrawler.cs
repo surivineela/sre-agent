@@ -1,12 +1,12 @@
-using System;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
-using Agent.Logging;
-using Azure.Core;
 using Azure.ResourceManager;
 using k8s.Models;
 using Microsoft.Extensions.Logging;
-using Agent.Graph.Crawler;
 using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Interfaces;
 
