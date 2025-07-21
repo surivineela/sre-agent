@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Channels;
+using System.Linq;
 using Agent.Core.Attributes;
 using Agent.Core.Configuration;
 using Agent.Core.Exceptions;
@@ -335,21 +336,17 @@ public class ReasoningLoop : IDisposable
 
             ReasoningLoopIterationResult? iterationResult = null;
             uint currentIterationCount = 0;
-            TelemetrySpan _fakeRootSpan;
+            TelemetrySpan _msgSpan;
 
             if (_rootSpan == null)
             {
                 // don't reset the root span if one exists (loop continuation)
-                _rootSpan = _tracer.StartRootSpan(TraceOperationName.UserMessage);
+                _rootSpan = _tracer.StartRootSpan(TraceOperationName.ReasoningLoop);
                 _rootSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
-                _rootSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.UserMessage);
+                _rootSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.ReasoningLoop);
             }
-            // _fakeRootSpan is an alternative root span that is used to track the current iteration of the reasoning loop
-            // in case when root span is not available during reasoning loop continuation or unexpected errors.
-            _fakeRootSpan = _tracer.StartActiveSpan(TraceOperationName.UserMessage, SpanKind.Internal, _rootSpan);
-            _fakeRootSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
-            _fakeRootSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.UserMessage);
-            _fakeRootSpan.SetAttribute(TraceAttribute.SpanPurpose, "fake.root");
+
+
 
             try
             {
@@ -371,6 +368,7 @@ public class ReasoningLoop : IDisposable
                             {
                                 return;
                             }
+
 
                             // process #remember command
                             if (chatMessage.Message.Text.Contains(RememberMarker, StringComparison.OrdinalIgnoreCase) && _agentMemoryEnabled)
@@ -414,10 +412,14 @@ public class ReasoningLoop : IDisposable
                             var msg = new ChatMessage(chatMessage.Message.Role, sb.ToString());
 
                             _logger.LogInternalInformation("[{threadId}]Processing chat message.", _context.ThreadId);
-                            _rootSpan.SetAttribute(TraceAttribute.MessageContent, chatMessage.Message.Text);
-                            _fakeRootSpan.SetAttribute(TraceAttribute.MessageContent, chatMessage.Message.Text);
-                            // _fakeRootSpan will immediately end after processing the message, so we can use it to track the current iteration
-                            _fakeRootSpan.End();
+                            _rootSpan.SetAttribute(TraceAttribute.TriggeredBy, TraceOperationName.UserMessage);
+                            _rootSpan.SetAttribute(TraceAttribute.TriggeredMessage, chatMessage.Message.Text);
+
+                            _msgSpan = _tracer.StartActiveSpan(TraceOperationName.UserMessage, SpanKind.Internal, _rootSpan);
+                            _msgSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
+                            _msgSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.UserMessage);
+                            _msgSpan.SetAttribute(TraceAttribute.MessageContent, chatMessage.Message.Text);
+                            _msgSpan.End();
                             if (_context.ApprovalInformation != null &&
                                 _context.ApprovalInformation.PendingApprovals.Count > 0)
                             {
@@ -440,7 +442,15 @@ public class ReasoningLoop : IDisposable
                                 _logger.LogInternalWarning("[{threadId}]Received approval message while not in PendingApproval state, but in state: {State}", _context.ThreadId, _context.ContextState);
                             }
 
-                            _rootSpan.SetAttribute(TraceAttribute.MessageContent, approvalMessage.Approval.Title);
+                            _rootSpan.SetAttribute(TraceAttribute.TriggeredBy, TraceOperationName.UserApproval);
+                            _rootSpan.SetAttribute(TraceAttribute.TriggeredMessage, approvalMessage.Approval.Description.ToString());
+                            _msgSpan = _tracer.StartActiveSpan(TraceOperationName.UserApproval, SpanKind.Internal, _rootSpan);
+                            _msgSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
+                            _msgSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.UserApproval);
+                            _msgSpan.SetAttribute(TraceAttribute.ApprovalDescription, approvalMessage.Approval.Description.ToString());
+                            _msgSpan.SetAttribute(TraceAttribute.ApprovalStatus, approvalMessage.Approval.Status.ToString());
+                            _msgSpan.End();
+
                             var approval = approvalMessage.Approval;
                             var shouldStop = await ProcessNewApprovalAsync(agentChatHistory, approval, cancellationToken);
                             if (shouldStop)
@@ -453,6 +463,42 @@ public class ReasoningLoop : IDisposable
                     case ReasoningLoopFunctionCall functionCall:
                         {
                             _logger.LogInternalInformation("[{threadId}]Processing function call messages.", _context.ThreadId);
+
+                            // Parse function call and result from the messages
+                            FunctionCallContent functionCallContent = null;
+                            FunctionResultContent functionResultContent = null;
+                            foreach (var message in functionCall.Messages)
+                            {
+                                if (message.Role == ChatRole.Assistant)
+                                {
+                                    functionCallContent = message.Contents.OfType<FunctionCallContent>().FirstOrDefault();
+                                }
+                                else if (message.Role == ChatRole.Tool)
+                                {
+                                    // Extract function result information
+                                    functionResultContent = message.Contents.OfType<FunctionResultContent>().FirstOrDefault();
+                                }
+                            }
+
+                            _rootSpan.SetAttribute(TraceAttribute.TriggeredBy, TraceOperationName.UserContinueTool);
+                            _msgSpan = _tracer.StartActiveSpan(TraceOperationName.UserContinueTool, SpanKind.Internal, _rootSpan);
+                            _msgSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
+                            _msgSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.UserContinueTool);
+
+                            if (functionCallContent != null)
+                            {
+                                _rootSpan.SetAttribute(TraceAttribute.TriggeredMessage, functionCallContent.Name);
+                                _msgSpan.SetAttribute(TraceAttribute.ToolName, functionCallContent.Name);
+                                _msgSpan.SetAttribute(TraceAttribute.ToolInput, System.Text.Json.JsonSerializer.Serialize(functionCallContent.Arguments, _toolArgumentsJsonOptions));
+                            }
+
+                            if (functionResultContent != null)
+                            {
+                                var resultString = functionResultContent.Result?.ToString() ?? "null";
+                                _msgSpan.SetAttribute(TraceAttribute.ToolOutput, resultString.Substring(0, Math.Min(500, resultString.Length)));
+                            }
+
+                            _msgSpan.End();
                             await PersistReasoningMessagesAsync(agentChatHistory, functionCall.Messages);
                             break;
                         }
@@ -688,6 +734,8 @@ public class ReasoningLoop : IDisposable
                                         OriginalFunctionCall = JsonSerializer.Serialize(toolCall.FunctionCall),
                                     };
                                     await _threadRepository.UpdateAzCliExecutionAsync(_context.ThreadId, azCliExecution);
+                                    var contextWrapper = new RunContextWrapper<AgentContext>(_context);
+                                    await runHooks.OnToolEnd(contextWrapper, _currentAgent, toolCall.Tool, functionResult);
                                     break;
                                 }
                                 else if (kubectlExecution != null)
@@ -698,6 +746,8 @@ public class ReasoningLoop : IDisposable
                                         OriginalFunctionCall = JsonSerializer.Serialize(toolCall.FunctionCall),
                                     };
                                     await _threadRepository.UpdateKubectlExecutionAsync(_context.ThreadId, kubectlExecution);
+                                    var contextWrapper = new RunContextWrapper<AgentContext>(_context);
+                                    await runHooks.OnToolEnd(contextWrapper, _currentAgent, toolCall.Tool, functionResult);
                                     break;
                                 }
                             }
@@ -724,7 +774,9 @@ public class ReasoningLoop : IDisposable
                             // Either it needs approval or authorization
                             await PersistReasoningMessageAsync(agentChatHistory, toolCall.OriginalMessage);
                             await ChangeAgentContextStateAsync(ContextStateEnum.PendingApproval);
-
+                            var contextWrapper = new RunContextWrapper<AgentContext>(_context);
+                            var pendingApprovalMessage = "Tool execution is waiting for approval";
+                            await runHooks.OnToolEnd(contextWrapper, _currentAgent, toolCall.Tool, pendingApprovalMessage);
                             break;
                         }
                     }
@@ -1133,13 +1185,32 @@ public class ReasoningLoop : IDisposable
         Agent.Core.ToolStatic.AsyncLocalCancellationToken.Value = cancellationToken;
         Guid toolCallMessageId = Guid.NewGuid();
 
-        await _outboundCommunicationService.AppendAgentToolCallMessage(_context.ThreadId, aiTool, toolCallMessageId, functionCall.CallId);
-        var functionResult = await aiTool.InvokeAsync(new AIFunctionArguments(functionCall.Arguments), cancellationToken);
-        var result = new FunctionResultContent(functionCall.CallId, functionResult);
-        var functionCallMessage = new ChatMessage(ChatRole.Tool, [result]);
+        // Create a span for this tool execution
+        var toolSpan = _tracer.StartActiveSpan($"tool.{aiTool.Name}", SpanKind.Internal, _currentAgentSpan);
+        toolSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
+        toolSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.Tool);
+        toolSpan.SetAttribute(TraceAttribute.AgentName, _currentAgent.Name);
+        toolSpan.SetAttribute(TraceAttribute.ToolName, aiTool.Name);
+        toolSpan.SetAttribute(TraceAttribute.ToolInput, FormatToolArguments(functionCall.Arguments));
+        toolSpan.SetAttribute(TraceAttribute.ToolDescription, aiTool.Description);
 
-        await _outboundCommunicationService.AppendAgentToolCallResult(_context.ThreadId, result, toolCallMessageId);
-        await PersistReasoningMessageAsync(agentChatHistory, functionCallMessage);
+        try
+        {
+            await _outboundCommunicationService.AppendAgentToolCallMessage(_context.ThreadId, aiTool, toolCallMessageId, functionCall.CallId);
+            var functionResult = await aiTool.InvokeAsync(new AIFunctionArguments(functionCall.Arguments), cancellationToken);
+            var result = new FunctionResultContent(functionCall.CallId, functionResult);
+            var functionCallMessage = new ChatMessage(ChatRole.Tool, [result]);
+
+            // Set the tool output in the span
+            toolSpan.SetAttribute(TraceAttribute.ToolOutput, functionResult?.ToString() ?? string.Empty);
+
+            await _outboundCommunicationService.AppendAgentToolCallResult(_context.ThreadId, result, toolCallMessageId);
+            await PersistReasoningMessageAsync(agentChatHistory, functionCallMessage);
+        }
+        finally
+        {
+            toolSpan.End();
+        }
     }
 
     private async Task<bool> ExecuteToolWithOboFlowFallbackAsync(

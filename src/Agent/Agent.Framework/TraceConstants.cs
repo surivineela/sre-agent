@@ -11,6 +11,7 @@ namespace Agent.Framework;
 
 public static class TraceAttribute
 {
+    // common
     public const string ThreadId = "thread.id";
 
     public const string MessageContent = "message.content";
@@ -36,19 +37,30 @@ public static class TraceAttribute
     public const string ModelOutputTokensCount = "model.output.tokens.count";
     public const string ModelTotalTokensCount = "model.total.tokens.count";
     public const string ModelTemperature = "model.temperature";
+
+    // reasoning.loop
+    public const string TriggeredBy = "triggered.by";
+    public const string TriggeredMessage = "triggered.message";
+
+    // user approval
+    public const string ApprovalDescription = "approval.description";
+    public const string ApprovalStatus = "approval.status";
 }
 
 public static class TraceOperationName
 {
+    // reasoning loop
+    public const string ReasoningLoop = "reasoning.loop";
     public const string UserMessage = "user.message";
+    public const string UserApproval = "user.approval";
+    public const string UserContinueTool = "user.continue.tool";
 
+    // agent framework
     public const string InvokeAgent = "invoke.agent";
 
     public const string Tool = "tool";
 
     public const string Handoff = "handoff";
-
-    public const string ChatMessage = "chat.message";
 
     public const string ModelGeneration = "model.generation";
 
