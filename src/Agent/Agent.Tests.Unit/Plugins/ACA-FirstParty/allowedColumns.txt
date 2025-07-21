@@ -44,6 +44,8 @@ severityText
 Exception
 SuccessRate
 FailureRate
+HasMdmData
+ExceededThreshold
 
 # HTTP Request
 RequestID
