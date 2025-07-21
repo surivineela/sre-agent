@@ -353,7 +353,7 @@ export const useThreadMenuStyle = () => {
 
     const newItemButtonAndSearchBox: IStyle = {
         display: 'flex',
-        flexDirection: 'column',
+        flexDirection: 'row',
         gap: '10px',
         padding: '0px 10px',
     };
@@ -472,11 +472,6 @@ export const useThreadActionsStyles = makeStyles({
         gap: '4px',
     },
 });
-
-export const searchBoxStyle: CSSProperties = {
-    borderRadius: tokens.borderRadiusLarge,
-    maxWidth: '100%',
-};
 
 export const actionSearchBoxStyle: CSSProperties = {
     margin: '0px 10px',

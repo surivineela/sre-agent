@@ -1,4 +1,3 @@
-import { ThreadSeverity } from '../../Common/Clients/ThreadClient';
 import {
     Approval,
     ApprovalDecision,
@@ -434,30 +433,18 @@ export const getGroupedMessages = (messages: Message[], currentMessageIndex: num
     return groupedMessages;
 };
 
-export const getFilteredThreads = (
-    threads: Thread[],
-    filterOptions: {
-        threadSeverity?: ThreadSeverity;
-        searchText?: string;
-        source?: ThreadSource;
-    }
-): Thread[] => {
-    const { threadSeverity, searchText, source } = filterOptions;
-
+export const getFilteredThreads = (threads: Thread[], threadSource?: ThreadSource, searchText?: string): Thread[] => {
     return threads.filter(thread => {
         let match = true;
+
         if (searchText) {
             match = thread.title.toLowerCase().includes(searchText.toLocaleLowerCase());
         }
-        if (threadSeverity) {
-            match =
-                threadSeverity === ThreadSeverity.Critical
-                    ? !!thread.status?.actionsStatus?.hasCriticalActions
-                    : !!thread.status?.actionsStatus?.hasWarningActions;
-        }
-        if (source === ThreadSource.incident) {
+
+        if (threadSource === ThreadSource.incident) {
             match = thread.source === ThreadSource.incident;
         }
+
         return match;
     });
 };

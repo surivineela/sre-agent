@@ -1,16 +1,21 @@
-import { Button, InputOnChangeData, Radio, RadioGroup, SearchBox, SearchBoxChangeEvent, tokens } from '@fluentui/react-components';
-import { AddRegular, PanelLeftContractRegular, PanelLeftExpandRegular } from '@fluentui/react-icons';
+import { Button } from '@fluentui/react-button';
+import { Dialog, DialogTrigger } from '@fluentui/react-dialog';
+import { AddRegular, PanelLeftContractRegular, PanelLeftExpandRegular, SearchRegular } from '@fluentui/react-icons';
+import { Radio, RadioGroup } from '@fluentui/react-radio';
+import { tokens } from '@fluentui/react-theme';
 import { ForwardedRef, forwardRef, useContext } from 'react';
 import { useIntl } from 'react-intl';
 import { ThreadSource } from '../../Common/Contracts/Azure/SreAgent';
 import { ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import ThreadSearchDialog from '../Components/ThreadSearchDialog';
 import ThreadsList from '../Components/ThreadsList';
 import { IThreadsMenuProps, ThreadMenuHandle } from '../Contracts/Activities';
 import { AgentContext } from '../Contracts/Context';
 import { useMetrics } from '../Hooks/useMetrics';
 import { useThreadsMenu } from '../Hooks/useThreadsMenu';
-import { getExpandCollapseButtonStyles, searchBoxStyle, useThreadMenuStyle } from '../Styles/Activities.styles';
+import { getExpandCollapseButtonStyles, useThreadMenuStyle } from '../Styles/Activities.styles';
 import IncidentStatusBar from './IncidentStatusBar';
+
 const expandCollapseButtonStyles = getExpandCollapseButtonStyles('left');
 
 export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
@@ -24,10 +29,8 @@ export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
             loadMoreOldThreads,
             hasMoreOldThreads,
             threadListHandleRef,
-            onThreadSearchTextChange,
             threadSource,
-            setThreadSource,
-            setThreadSeverity,
+            updateThreadSource,
             unreadThreadIds,
             oldestThreadModifiedTimestamp,
         } = useThreadsMenu(threadPollingTriggerId, ref);
@@ -76,19 +79,26 @@ export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
                         {collapsed ? null : intl.formatMessage(ActivitiesResources.createThreadButtonText)}
                     </Button>
                     {!collapsed && hasChatPermissions && (
-                        <SearchBox
-                            style={searchBoxStyle}
-                            placeholder={intl.formatMessage(SreAgentResources.search)}
-                            onChange={(_event: SearchBoxChangeEvent, data: InputOnChangeData) => onThreadSearchTextChange(data.value ?? '')}
-                        />
+                        <Dialog>
+                            <DialogTrigger>
+                                <Button
+                                    aria-label={intl.formatMessage(SreAgentResources.search)}
+                                    icon={<SearchRegular />}
+                                    style={{
+                                        borderRadius: tokens.borderRadiusLarge,
+                                        borderColor: tokens.colorNeutralBackground3Selected,
+                                    }}
+                                />
+                            </DialogTrigger>
+                            <ThreadSearchDialog threads={threads} selectThread={selectThread} activeThreadId={activeThreadId} />
+                        </Dialog>
                     )}
                 </div>
                 {!collapsed && hasChatPermissions && (
                     <RadioGroup
                         value={threadSource || ''}
                         onChange={(_e, data) => {
-                            setThreadSeverity(undefined);
-                            setThreadSource(data.value as ThreadSource);
+                            updateThreadSource(data.value as ThreadSource);
                         }}
                         layout="horizontal"
                         style={{ flexWrap: 'wrap', padding: '10px' }}

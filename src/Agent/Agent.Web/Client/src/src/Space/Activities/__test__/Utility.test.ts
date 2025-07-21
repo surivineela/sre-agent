@@ -433,50 +433,28 @@ describe('processThreads', () => {
 });
 
 describe('getFilteredThreads', () => {
-    it('Filter threads based on severity', () => {
-        let threads: Thread[] = [getDefaultThread(undefined, '01', ThreadSeverity.Critical)];
-        let result = getFilteredThreads(threads, { threadSeverity: ThreadSeverity.Critical });
-        expect(result.length).toBe(1);
-        result = getFilteredThreads(threads, { threadSeverity: ThreadSeverity.Warning });
-        expect(result.length).toBe(0);
-
-        threads = [getDefaultThread(undefined, '01', ThreadSeverity.Warning)];
-        result = getFilteredThreads(threads, { threadSeverity: ThreadSeverity.Critical });
-        expect(result.length).toBe(0);
-        result = getFilteredThreads(threads, { threadSeverity: ThreadSeverity.Warning });
-        expect(result.length).toBe(1);
-
-        threads = [getDefaultThread(undefined, '01')];
-        result = getFilteredThreads(threads, { threadSeverity: ThreadSeverity.Critical });
-        expect(result.length).toBe(0);
-        result = getFilteredThreads(threads, { threadSeverity: ThreadSeverity.Warning });
-        expect(result.length).toBe(0);
-        result = getFilteredThreads(threads, {});
-        expect(result.length).toBe(1);
-    });
-
     it('Filter threads based on search text', () => {
         const threads: Thread[] = [getDefaultThread(undefined, '01', undefined, 'Thread 01')];
-        let result = getFilteredThreads(threads, { searchText: '' });
+        let result = getFilteredThreads(threads, undefined, '');
         expect(result.length).toBe(1);
-        result = getFilteredThreads(threads, { searchText: 'Thread 02' });
+        result = getFilteredThreads(threads, undefined, 'Thread 02');
         expect(result.length).toBe(0);
-        result = getFilteredThreads(threads, { searchText: 'Thread 011' });
+        result = getFilteredThreads(threads, undefined, 'Thread 011');
         expect(result.length).toBe(0);
-        result = getFilteredThreads(threads, { searchText: 'Thread 01' });
+        result = getFilteredThreads(threads, undefined, 'Thread 01');
         expect(result.length).toBe(1);
     });
 
     it('Filter threads based on source', () => {
         let threads: Thread[] = [getDefaultThread(undefined, '01', undefined, undefined, ThreadSource.incident)];
 
-        let result = getFilteredThreads(threads, { source: undefined });
+        let result = getFilteredThreads(threads);
         expect(result.length).toBe(1);
-        result = getFilteredThreads(threads, { source: ThreadSource.incident });
+        result = getFilteredThreads(threads, ThreadSource.incident);
         expect(result.length).toBe(1);
 
         threads = [getDefaultThread(undefined, '01', undefined, undefined)];
-        result = getFilteredThreads(threads, { source: ThreadSource.incident });
+        result = getFilteredThreads(threads, ThreadSource.incident);
         expect(result.length).toBe(0);
     });
 });
