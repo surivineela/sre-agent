@@ -214,7 +214,7 @@ public class ArmResourceCrawlerFactory
         }
         if (Constants.ApiManagementBackendType.Equals(id.ResourceType, StringComparison.OrdinalIgnoreCase))
         {
-            return new APIManagementAzureBackendNode(id.ResourceType, id.ToString(), id.SubscriptionId, id.ResourceGroupName, id.Name);
+            return new APIManagementBackendNode(id.ResourceType, id.ToString(), id.SubscriptionId, id.ResourceGroupName, id.Name);
         }
 
         return new ArmResourceNode(id.ResourceType, id.ToString(), id.SubscriptionId, id.ResourceGroupName, id.Name);

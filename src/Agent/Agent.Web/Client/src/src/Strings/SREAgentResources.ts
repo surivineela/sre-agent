@@ -1086,6 +1086,8 @@ export const ResourceInfoResources = defineMessages({
     repositoryConnection: { defaultMessage: 'Repository connection', id: 'FLm/x4' },
     authorizeRepositoryAccess: { defaultMessage: 'Authorize repository access', id: 'wru3Di' },
     connectedApis: { defaultMessage: 'Connected APIs', id: 'VKbBsK' },
+    apimBackendEndpoint: { defaultMessage: 'Backend Endpoint', id: 'qqolQu' },
+    armResourceId: { defaultMessage: 'Azure Resource Id', id: 'zfMgIf' },
     connectRepository: { defaultMessage: 'Connect repository', id: '1fNFGt' },
     linkRepositoryToResource: { defaultMessage: 'Link repository to resource', id: 'BV3Mir' },
     repositoryUrl: { defaultMessage: 'Repository URL', id: 'AA/tRJ' },

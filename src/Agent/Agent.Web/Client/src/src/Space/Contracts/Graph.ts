@@ -30,6 +30,8 @@ export type ResourceExtended = {
         remarks: string[];
         appHealthInfo?: string[]; // Convert the json string to ScoreCardObject
         connectedApis?: string[];
+        apimBackendEndpoint?: string[];
+        armResourceId?: string[];
     };
 };
 

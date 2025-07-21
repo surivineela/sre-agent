@@ -32,6 +32,7 @@ public static class ResourceKindHelper
     public const string KeyVaultType = "Microsoft.KeyVault/vaults";
     public const string ManagedDiskType = "Microsoft.Compute/disks";
     public const string ApiManagementType = "Microsoft.ApiManagement/service";
+    public const string ApiManagementBackendType = "Microsoft.ApiManagement/service/backends";
 
     // New constants for App Service Web/Function Apps and App Service Plans.
     public const string AppServiceType = "Microsoft.Web/sites";

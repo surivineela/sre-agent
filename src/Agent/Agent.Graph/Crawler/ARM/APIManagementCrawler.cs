@@ -122,7 +122,7 @@ namespace Agent.Graph.Crawler.ARM
                         continue;
 
                     var resourceIdObj = new ResourceIdentifier(backendInfo.BackendResourceId);
-                    var apimBackendNode = new APIManagementAzureBackendNode(
+                    var apimBackendNode = new APIManagementBackendNode(
                         resourceIdObj.ResourceType,
                         backendInfo.BackendResourceId,
                         resourceIdObj.SubscriptionId,
@@ -136,7 +136,7 @@ namespace Agent.Graph.Crawler.ARM
 
                     // Connect APIM -> Backend
                     var apimToBackendEdge = new ArmResourceEdge(apiManagementNode.GetNodeId(), apimBackendNode.GetNodeId(), Constants.Relationships.Connected);
-                    apimToBackendEdge.AddOrUpdateEdgeProperty(Constants.ConnectionType, "AzureBackend");
+                    apimToBackendEdge.AddOrUpdateEdgeProperty(Constants.ConnectionType, Constants.APIManagementBackend);
                     await _graphDbClient.AddOrUpdateEdgeAsync(apimToBackendEdge);
                     _logger.LogDebug($"Connected API Management {apiManagementNode.ResourceName} to Backend {apimBackendNode.ResourceName}");
                     yield return apimBackendNode;

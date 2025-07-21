@@ -314,22 +314,33 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             
             foreach (var backend in apimResource.GetApiManagementBackends().GetAll())
             {
-                var resourceUri = backend.Data.ResourceUri?.ToString() ?? string.Empty;
+                var resourceUri = backend.Data.Uri?.ToString() ?? string.Empty;
+                var armResourceUri = backend.Data.ResourceUri?.ToString() ?? string.Empty;
+
                 var backendId = backend.Data.Id?.ToString() ?? string.Empty;
-                var backendType = backend.Data.ResourceType.ToString();
                 var backendName = backend.Data.Name?.ToString() ?? string.Empty;
+
                 const string managementUriPrefix = "https://management.azure.com";
-                var isAzureType = !string.IsNullOrEmpty(resourceUri) && resourceUri.StartsWith(managementUriPrefix, StringComparison.OrdinalIgnoreCase);
+                string? armResourceId = null;
+                
+                if (!string.IsNullOrEmpty(armResourceUri) && armResourceUri.StartsWith(managementUriPrefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    armResourceId = armResourceUri.Substring(managementUriPrefix.Length);
+                }
 
                 // Only add to backendResourceMap if used in connectionMap
-                if (connectionMap.ContainsKey(backendName))
+                if (connectionMap.ContainsKey(backendName) || connectionMap.ContainsKey(resourceUri.TrimEnd('/')))
                 {
+                    string keyToUse = connectionMap.ContainsKey(backendName)
+                    ? backendName
+                    : resourceUri.TrimEnd('/');
+
                     backendResourceMap[backendName] = new BackendResourceInfo
                     {
                         BackendResourceId = backendId,
                         ResourceUri = resourceUri,
-                        ArmResourceId = isAzureType ? resourceUri.Substring(managementUriPrefix.Length) : null,
-                        Connections = connectionMap[backendName]
+                        ArmResourceId = armResourceId,
+                        Connections = connectionMap[keyToUse]
                     };
                 }
             }

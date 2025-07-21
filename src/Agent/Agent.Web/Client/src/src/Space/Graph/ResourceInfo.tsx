@@ -267,6 +267,14 @@ const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode; onGit
                         {resource?.type?.toLowerCase() === 'microsoft.apimanagement/service/backends' && (
                             <>
                                 <SummaryField
+                                    label={intl.formatMessage(ResourceInfoResources.apimBackendEndpoint)}
+                                    value={getPropertyValue(properties?.apimBackendEndpoint)}
+                                />
+                                <SummaryField
+                                    label={intl.formatMessage(ResourceInfoResources.armResourceId)}
+                                    value={getPropertyValue(properties?.armResourceId)}
+                                />
+                                <SummaryField
                                     label={intl.formatMessage(ResourceInfoResources.connectedApis)}
                                     value={getPropertyValue(properties?.connectedApis)}
                                 />

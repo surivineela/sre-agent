@@ -3795,6 +3795,12 @@
       "value": "ID"
     }
   ],
+  "qqolQu": [
+    {
+      "type": 0,
+      "value": "Backend Endpoint"
+    }
+  ],
   "r2x5ZI": [
     {
       "type": 0,
@@ -4345,6 +4351,12 @@
     {
       "type": 0,
       "value": "Choose resource groups"
+    }
+  ],
+  "zfMgIf": [
+    {
+      "type": 0,
+      "value": "Azure Resource Id"
     }
   ],
   "zg0rpo": [

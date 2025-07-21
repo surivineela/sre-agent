@@ -48,6 +48,7 @@ public class Constants
 
     // api management
     public const string AzureBackend = "AzureBackend";
+    public const string APIManagementBackend = "APIManagementBackend";
     public const string ResourceName = "resourceName";
     public const string ResourceUri = "requestUri";
     public const string ArmResourceId = "armResourceId";

@@ -611,6 +611,7 @@
   "qeUtXk": "Costs for last 7 days",
   "qj1uhz": "Disconnect",
   "qlcuNQ": "ID",
+  "qqolQu": "Backend Endpoint",
   "r2x5ZI": "This will permanently delete the connection to PagerDuty. The agent will no longer be able to manage tickets. Are you sure you want to disconnect?",
   "r6+QFy": "Add a default incident handler for the agent to use for P1 base incidents.",
   "rBPlLc": "resources available in this period",
@@ -699,6 +700,7 @@
   "zORAuY": "Optimize how the agent responds to incidents",
   "zQvVDJ": "All",
   "zcyAwy": "Choose resource groups",
+  "zfMgIf": "Azure Resource Id",
   "zg0rpo": "ServiceNow",
   "zpkKsD": "Incidents summary",
   "zvLfRe": "Prompt library"
