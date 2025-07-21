@@ -37,6 +37,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
     private readonly IChatClient _chatClient;
     private readonly IThreadTeamsMappingRepository _conversationThreadMapping;
     private readonly IAgentInboundCommunicationService _agentInboundCommunicationService;
+    private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
     private readonly IAgentsFactory _agentsFactory;
     private readonly IThreadRepository _threadRepository;
     private readonly IBotFrameworkHttpAdapter _teamsAdapter;
@@ -66,6 +67,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
         ILogger<TeamsBot> logger,
         IBotFrameworkHttpAdapter teamsAdapter,
         IAgentInboundCommunicationService agentInboundCommunicationService,
+        IAgentOutboundCommunicationService agentOutboundCommunicationService,
         IAgentsFactory agentsFactory,
         IThreadRepository threadRepository,
         IThreadTeamsMappingRepository threadTeamsMappingRepository,
@@ -132,7 +134,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
                         DisplayName: senderName,
                         Posted: new Posted(true), // user post from teams, so no need to send to teams again
                         Timestamp: DateTime.UtcNow);
-                        
+
         _logger.LogInternalInformation($"[Teams Conversation: {conversationId}][Thread: {threadId}]\nSending message to agent: {messageText}");
 
         if (messageText.ToLowerInvariant() == "hello")
@@ -303,6 +305,8 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
             ModifiedTimestamp: DateTime.UtcNow
             ));
         message = await _threadRepository.AddMessageAsync(thread.Id, message);
+        await _agentOutboundCommunicationService.NotifyThreadEvent(thread.Id, thread);
+        await _agentOutboundCommunicationService.NotifyGenericAgentMessage(thread.Id, thread.StartMessage, null);
 
         var agentContext = await _threadRepository.CreateAgentContextAsync(new AgentContext(
             Id: Guid.NewGuid(),
@@ -546,7 +550,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
                     continue;
                 }
 
-                // Get messages from the thread repository 
+                // Get messages from the thread repository
                 var messages = await _threadRepository.GetMessagesAsync(threadGuid);
 
                 // Filter to get only new messages that haven't been posted yet

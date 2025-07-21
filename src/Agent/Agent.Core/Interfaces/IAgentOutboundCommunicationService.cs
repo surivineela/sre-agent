@@ -39,6 +39,11 @@ public interface IAgentOutboundCommunicationService
     /// </summary>
     Task NotifyGenericAgentMessage(Guid threadId, Message message, StreamMessageType? type);
 
+    /// <summary>
+    /// Notifies about an update to a thread, such as creation or modification
+    /// </summary>
+    Task NotifyThreadEvent(Guid threadId, Core.Models.Api.v1.Thread thread);
+
     Task PostActivity(string threadId, Microsoft.Bot.Schema.Activity activity, string messageId = "");
 
     Task<Guid> AppendAgentImageMessage(Guid threadId, string message, Guid messageId = default);

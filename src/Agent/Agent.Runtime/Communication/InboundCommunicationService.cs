@@ -41,6 +41,8 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
 
     private readonly AgentActionLogger _actionLogger;
 
+    private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
+
     public InboundCommunicationService(
         IAgent metaAgent,
         IIncidentHandlerAgent incidentHandlerAgent,
@@ -55,7 +57,8 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         IReasoningLoopManager reasoningLoopManager,
         CoreSettings coreSettings,
         AgentActionLogger actionLogger,
-        ActionSettings actionSettings)
+        ActionSettings actionSettings,
+        IAgentOutboundCommunicationService agentOutboundCommunicationService)
     {
         _metaAgent = metaAgent;
         _incidentHandlerAgent = incidentHandlerAgent;
@@ -71,6 +74,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         _useAgentFramework = coreSettings.UseAgentFramework;
         _actionLogger = actionLogger;
         _actionSettings = actionSettings;
+        _agentOutboundCommunicationService = agentOutboundCommunicationService;
     }
 
     public async Task<(Core.Models.Api.v1.Thread, AgentContext)> CreateAgentThread(
@@ -501,6 +505,8 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
 
         await _repository.CreateThreadAsync(thread);
         await _repository.AddMessageAsync(thread.Id, thread.StartMessage);
+        await _agentOutboundCommunicationService.NotifyThreadEvent(thread.Id, thread);
+        await _agentOutboundCommunicationService.NotifyGenericAgentMessage(thread.Id, thread.StartMessage, null);
         await _repository.CreateAgentContextAsync(agentContext);
         (thread, agentContext) = await UpdateAgentModeIfNeed(thread, agentContext, overrideAgentMode);
 

@@ -99,6 +99,12 @@ namespace Agent.Tests.Common.Mocks
             return Task.CompletedTask;
         }
 
+        public Task NotifyThreadEvent(Guid threadId, Core.Models.Api.v1.Thread thread)
+        {
+            _logger?.LogInternalInformation($"ThreadId: {threadId}");
+            return Task.CompletedTask;
+        }
+
         public Task PostActivity(string threadId, Activity activity, string messageId = "")
         {
             _logger?.LogInternalInformation($"ThreadId: {threadId}, Activity: {activity.Text}");

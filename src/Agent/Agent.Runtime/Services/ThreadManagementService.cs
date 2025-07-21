@@ -87,6 +87,7 @@ public class ThreadManagementService(
         message = await repository.AddMessageAsync(thread.Id, message);
         agentContext = await repository.CreateAgentContextAsync(agentContext);
 
+        await outboundCommunicationService.NotifyThreadEvent(thread.Id, thread);
         await outboundCommunicationService.AppendUserStreamMessage(
             thread.Id,
             request.StartMessage.DisplayName,
