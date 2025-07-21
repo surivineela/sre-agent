@@ -117,7 +117,7 @@ namespace Agent.Web.SignalR
                         }
                         };
 
-                        await caller.ThreadUpdate(cancelMessage);
+                        await caller.MessageUpdate(cancelMessage);
                     }
                     catch (Exception ex)
                     {

@@ -37,4 +37,4 @@ namespace Agent.Web.SignalR
         /// </summary>
         Task Pong(DateTime timestamp);
     }
-} 
+}

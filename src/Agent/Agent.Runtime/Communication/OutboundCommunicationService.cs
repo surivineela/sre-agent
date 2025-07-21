@@ -104,7 +104,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         try
         {
             string jsonString = JsonSerializer.Serialize(thread, _serializerOptions);
-            await AppendAgentStreamMessage(threadId, jsonString, StreamMessageType.ThreadEvent);
+            await _streamingService.StreamThreadUpdateAsync(threadId, jsonString, StreamMessageType.ThreadEvent);
         }
         catch (Exception ex)
         {

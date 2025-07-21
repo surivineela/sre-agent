@@ -27,6 +27,48 @@ namespace Agent.Web.Services
             _logger = logger;
         }
 
+        public async Task StreamThreadUpdateAsync(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                // Check for cancellation before processing
+                cancellationToken.ThrowIfCancellationRequested();
+
+                _logger.LogInternalInformation("Streaming message for thread {ThreadId} with type {Type}", threadId, type);
+
+                // Create a ChatResponseUpdate with the message and type metadata
+                var streamMessage = new ChatResponseUpdate
+                {
+                    AuthorName = "Azure SRE Agent",
+                    Role = ChatRole.Assistant,
+                    CreatedAt = recordedDateTime ?? DateTime.UtcNow,
+                    Contents = [new TextContent(message)],
+                    AdditionalProperties = new AdditionalPropertiesDictionary
+                    {
+                        { "streamMessageType", type?.ToString() },
+                        { "threadId", threadId.ToString() },
+                        { "messageId", messageId?.ToString() ?? Guid.NewGuid().ToString() },
+                    }
+                };
+
+                await _hubContext.Clients.All.ThreadUpdate(streamMessage);
+
+                _logger.LogInternalInformation("Successfully streamed message for thread {ThreadId} with type {Type}",
+                    threadId, type);
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInternalInformation("Streaming cancelled for thread {ThreadId}", threadId);
+                // Don't rethrow cancellation - it's expected
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Failed to stream message for thread {ThreadId} with type {Type}",
+                    threadId, type);
+                // Don't rethrow - streaming failures should not break the tool call
+            }
+        }
+
 
         public async Task StreamMessageAsync(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
         {

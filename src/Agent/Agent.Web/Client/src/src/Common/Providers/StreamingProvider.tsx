@@ -1,5 +1,6 @@
 import * as signalR from '@microsoft/signalr';
 import { ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { isUserStreamingMessage } from '../../Space/Activities/Utility';
 import { StreamingContext } from '../../Space/Contracts/Context';
 import AzPortalProxy from '../AzPortalProxy/AzPortalProxy';
 import { AzPortalContext } from '../AzPortalProxy/Providers/AzPortalProxyContext';
@@ -84,7 +85,10 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
         const onReceiveMessage = (methodName: MessageResponseType) => {
             connectionRef.current?.on(methodName, (message: StreamingMessage) => {
                 const threadId = message?.additionalProperties?.threadId;
-                if (threadId) {
+                const isAgentInitializedThreadUpdateEvent =
+                    methodName === MessageResponseType.ThreadUpdate && !isUserStreamingMessage(message);
+
+                if (threadId && !isAgentInitializedThreadUpdateEvent) {
                     storeLatestMessage(threadId, message);
                     handlersRef.current.get(methodName)?.get(threadId)?.(message);
                 }

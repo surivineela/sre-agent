@@ -393,4 +393,11 @@ class MockStreamingService : IStreamingService
             threadId, type, message);
         return Task.CompletedTask;
     }
+
+    public Task StreamThreadUpdateAsync(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInternalInformation("Mock: Thread update for thread {ThreadId} with type {Type}: {Message}",
+            threadId, type, message);
+        return Task.CompletedTask;
+    }
 }
