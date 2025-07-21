@@ -42,8 +42,10 @@ This document contains info about our hosting/infra in production.
       - Add action -> Route configuration override -> Enable caching + "Ignore query string" + Disabled compression + Override always + 1Hours
       - -> Front Door manager -> `default-route` -> Apply `cacheruleset` rules/rule set
 - Endpoints:
-  - Storage account static website: TODO
-  - AFD endpoint: https://sreagent-assets-c7e0h4enanawfphk.b02.azurefd.net
+  - Storage account static website: [https://sreagentassetstorage.z13.web.core.windows.net](https://sreagentassetstorage.z13.web.core.windows.net)
+    - Icon example: [https://sreagentassetstorage.z13.web.core.windows.net/icons/Error.svg](https://sreagentassetstorage.z13.web.core.windows.net/icons/Error.svg)
+  - AFD endpoint: [https://sreagent-assets-c7e0h4enanawfphk.b02.azurefd.net](https://sreagent-assets-c7e0h4enanawfphk.b02.azurefd.net)
+    - Icon example: [https://sreagent-assets-c7e0h4enanawfphk.b02.azurefd.net/icons/Success.svg](https://sreagent-assets-c7e0h4enanawfphk.b02.azurefd.net/icons/Success.svg)
 
 ### Configuration
 
