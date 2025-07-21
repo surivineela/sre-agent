@@ -167,6 +167,8 @@ public class DeclarativeEvalRunner
 
         try
         {
+            int evalFrameworkMightBeStuckCount = 0;
+
             while (true)
             {
                 await Task.Delay(TimeSpan.FromSeconds(5));
@@ -201,7 +203,13 @@ public class DeclarativeEvalRunner
                     break;
                 }
 
-                Assert.Inconclusive($"⚠️ Eval framework had trouble determining the next step. This code probably needs an update. The agent context state is {agentContext.ContextState}, the autoreply assessed state is: {autoReplyHelper.AssessedState}. ");
+                evalFrameworkMightBeStuckCount++;
+
+                if(evalFrameworkMightBeStuckCount >= 3)
+                {
+                    Assert.Inconclusive($"⚠️ Eval framework had trouble determining the next step. This code probably needs an update. The agent context state is {agentContext.ContextState}, the autoreply assessed state is: {autoReplyHelper.AssessedState}. ");
+                }
+                
             }
 
             var combinedAgentResponse = fullConversation.CombineAgentResponses();
@@ -364,6 +372,7 @@ public class DeclarativeEvalRunner
             {
                 services.AddSingleton<GraphDBPluginDefinition>();
                 services.AddSingleton<IGraphDBPlugin, GraphDBPlugin>();
+                services.AddSingleton<GraphDBPlugin, GraphDBPlugin>();
                 continue;
             }
 

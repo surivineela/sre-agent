@@ -19,12 +19,10 @@ namespace Agent.Plugins.Definitions
     public class ContainerAppPluginDefinition
     {
         private readonly IContainerAppPlugin _containerAppPlugin;
-        private readonly IGraphService _graphService;
 
-        public ContainerAppPluginDefinition(IContainerAppPlugin containerAppPlugin, IGraphService graphService)
+        public ContainerAppPluginDefinition(IContainerAppPlugin containerAppPlugin)
         {
             _containerAppPlugin = containerAppPlugin;
-            _graphService = graphService;
         }
 
         [Description("Get all resources connected to a Container App instance. This includes all resources that are part of the app group, such redis, storage accounts, managed environment." +
@@ -33,7 +31,7 @@ namespace Agent.Plugins.Definitions
             [Description("The resource ID of the Container App instance.")]
             string resourceId)
         {
-            return await _graphService.GetAppGroupResourcesAsync(resourceId.ToLower().Replace("/", "_"));
+            return await _containerAppPlugin.GetAppGroupResourcesAsync(resourceId.ToLower().Replace("/", "_"));
         }
 
         [Description(

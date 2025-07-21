@@ -1,11 +1,11 @@
 using System;
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Agent.Plugins.Definitions;
 using Agent.Runtime.Models;
@@ -14,6 +14,62 @@ using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Tests.Common.Mocks.FunctionCalling;
+
+// OTEL format data models
+public class OtelTrace
+{
+    public string TraceId { get; set; } = string.Empty;
+    public long TotalDuration { get; set; }
+    public int SpanCount { get; set; }
+    public OtelMetadata Metadata { get; set; } = new();
+    public OtelSpan[] Spans { get; set; } = Array.Empty<OtelSpan>();
+}
+
+public class OtelMetadata
+{
+    public string Environment { get; set; } = string.Empty;
+    public string Version { get; set; } = string.Empty;
+    public string Region { get; set; } = string.Empty;
+}
+
+public class OtelSpan
+{
+    public string SpanId { get; set; } = string.Empty;
+    public string ParentSpanId { get; set; } = string.Empty;
+    public string OperationName { get; set; } = string.Empty;
+    public long StartTime { get; set; }
+    public long Duration { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public OtelAttributes Attributes { get; set; } = new();
+    public object[] Events { get; set; } = Array.Empty<object>();
+}
+
+public class OtelAttributes
+{
+    [JsonPropertyName("thread.id")]
+    public string ThreadId { get; set; } = string.Empty;
+    
+    [JsonPropertyName("operation.name")]
+    public string OperationName { get; set; } = string.Empty;
+    
+    [JsonPropertyName("agent.name")]
+    public string AgentName { get; set; } = string.Empty;
+    
+    [JsonPropertyName("tool.name")]
+    public string ToolName { get; set; } = string.Empty;
+    
+    [JsonPropertyName("tool.input")]
+    public string ToolInput { get; set; } = string.Empty;
+    
+    [JsonPropertyName("tool.output")]
+    public string ToolOutput { get; set; } = string.Empty;
+    
+    [JsonPropertyName("model.input")]
+    public string ModelInput { get; set; } = string.Empty;
+    
+    [JsonPropertyName("model.output")]
+    public string ModelOutput { get; set; } = string.Empty;
+}
 
 public class ReplayEntry
 {
@@ -167,11 +223,29 @@ public class ReplayToolCore
 
     private void ProcessLogContent(string logContent)
     {
-        var chatMessages = DeserializeChatMessages(logContent);
-        if (chatMessages == null) return;
+        // Detect format by checking for OTEL-specific properties
+        if (IsOtelFormat(logContent))
+        {
+            var currentLogData = ExtractOtelLogData(logContent);
+            MergeLogDataIntoRepository(currentLogData);
+        }
+        else
+        {
+            var chatMessages = DeserializeChatMessages(logContent);
+            if (chatMessages == null) return;
 
-        var currentLogData = ExtractLogData(chatMessages);
-        MergeLogDataIntoRepository(currentLogData);
+            var currentLogData = ExtractLogData(chatMessages);
+            MergeLogDataIntoRepository(currentLogData);
+        }
+    }
+
+    private bool IsOtelFormat(string logContent)
+    {
+        // Check for OTEL-specific properties to determine format
+        return logContent.Contains("operationName", StringComparison.InvariantCulture) &&
+               logContent.Contains("spanId", StringComparison.InvariantCulture) &&
+               (logContent.Contains("\"tool.input\"", StringComparison.InvariantCulture) ||
+                logContent.Contains("\"tool.output\"", StringComparison.InvariantCulture));
     }
 
     private ChatMessage[]? DeserializeChatMessages(string logContent)
@@ -411,5 +485,91 @@ public class ReplayToolCore
         {
             return false;
         }
+    }
+
+    private (List<ReplayEntry> entries, HashSet<string> incompleteCallIds) ExtractOtelLogData(string logContent)
+    {
+        try
+        {
+            // Try parsing as array of traces first
+            var traces = JsonSerializer.Deserialize<OtelTrace[]>(logContent, _serializerOptions);
+            if (traces != null && traces.Length > 0)
+            {
+                return ProcessOtelTraces(traces);
+            }
+        }
+        catch (JsonException)
+        {
+            // If array parsing fails, try single trace
+            try
+            {
+                var singleTrace = JsonSerializer.Deserialize<OtelTrace>(logContent, _serializerOptions);
+                if (singleTrace != null)
+                {
+                    return ProcessOtelTraces(new[] { singleTrace });
+                }
+            }
+            catch (JsonException)
+            {
+                // If single trace parsing also fails, return empty result
+                return (new List<ReplayEntry>(), new HashSet<string>());
+            }
+        }
+
+        return (new List<ReplayEntry>(), new HashSet<string>());
+    }
+
+    private (List<ReplayEntry> entries, HashSet<string> incompleteCallIds) ProcessOtelTraces(OtelTrace[] traces)
+    {
+        var currentLogReplayEntries = new List<ReplayEntry>();
+        var currentLogLoggedCallIdsWithNoResult = new HashSet<string>();
+
+        // Process all spans from all traces to extract tool calls
+        foreach (var trace in traces)
+        {
+            if (trace.Spans == null) continue;
+
+            foreach (var span in trace.Spans)
+            {
+                if (IsToolSpan(span))
+                {
+                    var replayEntry = CreateReplayEntryFromOtelSpan(span);
+                    if (replayEntry != null)
+                    {
+                        currentLogReplayEntries.Add(replayEntry);
+                    }
+                }
+            }
+        }
+
+        return (currentLogReplayEntries, currentLogLoggedCallIdsWithNoResult);
+    }
+
+    private bool IsToolSpan(OtelSpan span)
+    {
+        return span.OperationName.StartsWith("tool.", StringComparison.InvariantCulture) &&
+               !string.IsNullOrEmpty(span.Attributes.ToolName) &&
+               !string.IsNullOrEmpty(span.Attributes.ToolInput) &&
+               !string.IsNullOrEmpty(span.Attributes.ToolOutput);
+    }
+
+    private ReplayEntry? CreateReplayEntryFromOtelSpan(OtelSpan span)
+    {
+        var functionName = span.Attributes.ToolName;
+        var toolInput = span.Attributes.ToolInput;
+        var toolOutput = span.Attributes.ToolOutput;
+
+        if (string.IsNullOrEmpty(functionName) || string.IsNullOrEmpty(toolInput) || string.IsNullOrEmpty(toolOutput))
+        {
+            return null;
+        }
+
+        return new ReplayEntry
+        {
+            CallId = span.SpanId,
+            FunctionName = functionName,
+            FunctionArgumentsJson = toolInput,
+            FunctionResultJson = toolOutput
+        };
     }
 }

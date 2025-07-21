@@ -20,6 +20,15 @@ namespace Agent.Cmd
     /// </summary>
     public class GenerateEvalCommand
     {
+        private const string JsonFilePattern = "*.json";
+        private const string UserQuestionMarker = "User question goes below:";
+        private const string TemplateFileName = "ContainerAppsCpuMemory.yaml";
+        private const string AgentDirectoryName = "Agent";
+        private const string ToolReplayLogsPath = "Agent.Evals/ToolReplayLogs";
+        private const string DeclarativePath = "Agent.Evals/Declarative";
+        private const int MinimumTextLength = 50;
+        private const int MinimumUserQuestionLength = 10;
+
         private readonly ILogger<GenerateEvalCommand> _logger;
         private readonly IChatClient _chatClient;
         private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions
@@ -110,7 +119,7 @@ namespace Agent.Cmd
                 throw new DirectoryNotFoundException($"Directory not found: {targetDirectory}");
             }
 
-            return Directory.GetFiles(targetDirectory, "*.json").ToList();
+            return Directory.GetFiles(targetDirectory, JsonFilePattern).ToList();
         }
 
         private async Task<DeclarativeEvalConfiguration> GenerateEvalConfigFromLogsAsync(string testSuiteName, string description, string logDirectory, List<string> logFiles)
@@ -118,34 +127,57 @@ namespace Agent.Cmd
             var logAnalysis = new StringBuilder();
 
             // Analyze all log files for comprehensive understanding
-            var samplesToAnalyze = logFiles.Take(Math.Min(5, logFiles.Count));
-
-            foreach (var logFile in samplesToAnalyze)
+            foreach (var logFile in logFiles)
             {
-                var logContent = await File.ReadAllTextAsync(logFile);
-                var fileName = Path.GetFileName(logFile);
-
-                // Parse and extract key information from the log
-                var logSummary = ExtractLogSummary(logContent);
-                logAnalysis.AppendLine($"=== Log File: {fileName} ===");
-                logAnalysis.AppendLine(logSummary);
-                logAnalysis.AppendLine();
-
-                // Extract final agent responses for context
-                var finalResponses = ExtractFinalResponses(logContent);
-                if (!string.IsNullOrEmpty(finalResponses))
-                {
-                    logAnalysis.AppendLine("=== Final Agent Responses ===");
-                    logAnalysis.AppendLine(finalResponses);
-                    logAnalysis.AppendLine();
-                }
+                await ProcessLogFileAsync(logFile, logAnalysis);
             }
 
-            var startMessages = ExtractStartMessages(logFiles);
             var templateYaml = await GetTemplateYamlAsync();
 
-            var configPrompt = BuildSingleStepConfigGenerationPrompt(templateYaml, startMessages);
-            var analysisPrompt = $"""
+            var configPrompt = BuildSingleStepConfigGenerationPrompt(templateYaml);
+            var analysisPrompt = BuildAnalysisPrompt(testSuiteName, description, logDirectory, logAnalysis.ToString());
+
+            Console.WriteLine(analysisPrompt);
+
+            return await GenerateConfigurationAsync(configPrompt, analysisPrompt);
+        }
+
+        private async Task ProcessLogFileAsync(string logFile, StringBuilder logAnalysis)
+        {
+            var fileName = Path.GetFileName(logFile);
+            try
+            {
+                var logContent = await File.ReadAllTextAsync(logFile);
+
+                logAnalysis.AppendLine($"=== Log File: {fileName} ===");
+
+                // Check if this is an OTEL format file
+                if (IsOtelFormat(logContent))
+                {
+                    Console.WriteLine($"Detected OTEL format in {fileName}");
+
+                    // For OTEL format, extract summary differently
+                    var otelSummary = ExtractOtelLogSummary(logContent);
+                    logAnalysis.AppendLine(otelSummary);
+                }
+                else
+                {
+                    // Parse and extract key information from the log (original chat format)
+                    var logSummary = ExtractLogSummary(logContent);
+                    logAnalysis.AppendLine(logSummary);
+                }
+
+                logAnalysis.AppendLine();
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Failed to process log file '{fileName}': {ex.Message}", ex);
+            }
+        }
+
+        private static string BuildAnalysisPrompt(string testSuiteName, string description, string logDirectory, string logAnalysis)
+        {
+            return $"""
                 Generate a complete declarative evaluation configuration for:
                 - Test Suite Name: {testSuiteName}
                 - Description: {description}
@@ -154,9 +186,6 @@ namespace Agent.Cmd
                 ## Log Analysis:
                 {logAnalysis}
 
-                ## Extracted Start Messages:
-                {string.Join("\n", startMessages.Select((msg, i) => $"{i + 1}. \"{msg}\""))}
-
                 Based on this analysis, create a comprehensive YAML configuration that:
                 1. Analyzes the logs holistically to identify distinct test scenarios
                 2. Groups similar queries as start message variations within test cases
@@ -164,7 +193,10 @@ namespace Agent.Cmd
                 4. Generates appropriate ground truth and example responses for each scenario
                 5. Uses the provided log directory for tool replay
                 """;
+        }
 
+        private async Task<DeclarativeEvalConfiguration> GenerateConfigurationAsync(string configPrompt, string analysisPrompt)
+        {
             var tools = new List<AITool> { AIFunctionFactory.Create(CreateDeclarativeEval) };
             var options = new ChatOptions { ToolMode = ChatToolMode.RequireAny, Tools = tools };
 
@@ -184,135 +216,112 @@ namespace Agent.Cmd
             return _generatedConfig;
         }
 
-        private string ExtractFinalResponses(string logContent)
+        private string ExtractLogSummary(string logContent)
         {
-            try
+            var messages = JsonSerializer.Deserialize<JsonElement[]>(logContent, _serializerOptions);
+            if (messages == null)
             {
-                var messages = JsonSerializer.Deserialize<JsonElement[]>(logContent, _serializerOptions);
-                if (messages == null) return "";
+                return "Error: Could not deserialize log content";
+            }
 
-                var finalResponses = new StringBuilder();
+            var summary = new StringBuilder();
+            ExtractUserRequests(messages, summary);
+            ExtractAgentResponses(messages, summary);
+            return summary.ToString();
+        }
 
-                // Find assistant messages that contain final results (look for completion indicators)
-                var assistantMessages = messages.Where(m =>
-                    m.TryGetProperty("role", out var role) && role.GetString() == "assistant")
-                    .Where(m => m.TryGetProperty("contents", out var contents))
-                    .Where(m =>
-                    {
-                        // Look for messages with completion indicators or final results
-                        if (m.TryGetProperty("contents", out var contentsArray) && contentsArray.ValueKind == JsonValueKind.Array)
-                        {
-                            foreach (var content in contentsArray.EnumerateArray())
-                            {
-                                if (content.TryGetProperty("text", out var text))
-                                {
-                                    var textContent = text.GetString();
-                                    if (!string.IsNullOrEmpty(textContent) &&
-                                        (textContent.Contains("CompletedSuccessfully") ||
-                                         textContent.Contains("summary") ||
-                                         textContent.Contains("Here is") ||
-                                         textContent.Contains("| Key Vault") ||
-                                         textContent.Contains("Last Updated") ||
-                                         textContent.Length > 500)) // Long responses are often final results
-                                    {
-                                        return true;
-                                    }
-                                }
-                            }
-                        }
-                        return false;
-                    })
-                    .TakeLast(2); // Get the last couple of final responses
+        private void ExtractUserRequests(JsonElement[] messages, StringBuilder summary)
+        {
+            var userMessages = messages.Where(m =>
+                m.TryGetProperty("role", out var role) && role.GetString() == "user");
 
-                foreach (var msg in assistantMessages)
+            foreach (var userMsg in userMessages)
+            {
+                if (userMsg.TryGetProperty("contents", out var contents) && contents.ValueKind == JsonValueKind.Array)
                 {
-                    if (msg.TryGetProperty("contents", out var contents) && contents.ValueKind == JsonValueKind.Array)
+                    foreach (var content in contents.EnumerateArray())
                     {
-                        foreach (var content in contents.EnumerateArray())
+                        if (content.TryGetProperty("text", out var text))
                         {
-                            if (content.TryGetProperty("text", out var text))
+                            var fullText = text.GetString();
+                            if (!string.IsNullOrEmpty(fullText))
                             {
-                                finalResponses.AppendLine($"Final Response: {text.GetString()}");
-                                finalResponses.AppendLine();
+                                var userRequest = ExtractUserQuestionFromText(fullText);
+                                summary.AppendLine($"User Request: {userRequest}");
                             }
                         }
                     }
                 }
-
-                return finalResponses.ToString();
-            }
-            catch (Exception ex)
-            {
-                return $"Error extracting final responses: {ex.Message}";
             }
         }
 
-        private string ExtractLogSummary(string logContent)
+        private string ExtractUserQuestionFromText(string fullText)
+        {
+            var userQuestionStart = fullText.IndexOf(UserQuestionMarker);
+            if (userQuestionStart >= 0)
+            {
+                var userQuestion = fullText.Substring(userQuestionStart + UserQuestionMarker.Length).Trim();
+                if (!string.IsNullOrEmpty(userQuestion) && userQuestion.Length > MinimumUserQuestionLength)
+                {
+                    return userQuestion;
+                }
+            }
+
+            // Fallback: use the full text if no specific pattern found
+            return fullText;
+        }
+
+        private void ExtractAgentResponses(JsonElement[] messages, StringBuilder summary)
+        {
+            var assistantMessages = messages.Where(m =>
+                m.TryGetProperty("role", out var role) && role.GetString() == "assistant");
+
+            foreach (var assistantMsg in assistantMessages)
+            {
+                if (assistantMsg.TryGetProperty("contents", out var contents) && contents.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var content in contents.EnumerateArray())
+                    {
+                        if (content.TryGetProperty("$type", out var type) && type.GetString() == "text" &&
+                            content.TryGetProperty("text", out var text))
+                        {
+                            var textContent = text.GetString();
+                            if (!string.IsNullOrEmpty(textContent) && textContent.Length > MinimumTextLength)
+                            {
+                                var agentResponse = ExtractAgentResponseFromText(textContent);
+                                if (!string.IsNullOrEmpty(agentResponse))
+                                {
+                                    summary.AppendLine($"Agent Response: {agentResponse}");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private string ExtractAgentResponseFromText(string textContent)
         {
             try
             {
-                var messages = JsonSerializer.Deserialize<JsonElement[]>(logContent, _serializerOptions);
-                if (messages == null)
+                var responseJson = JsonSerializer.Deserialize<JsonElement>(textContent);
+                if (responseJson.TryGetProperty("notifyUserMessage", out var notifyUserMessage))
                 {
-                    return "Error: Could not deserialize log content";
+                    return notifyUserMessage.GetString() ?? "";
                 }
 
-                var summary = new StringBuilder();
-
-                // Extract user's initial request
-                var userMessages = messages.Where(m =>
-                    m.TryGetProperty("role", out var role) && role.GetString() == "user")
-                    .Take(2);
-
-                foreach (var userMsg in userMessages)
+                // If no notifyUserMessage but has state, it might be an intermediate response
+                if (responseJson.TryGetProperty("state", out var state))
                 {
-                    if (userMsg.TryGetProperty("contents", out var contents) && contents.ValueKind == JsonValueKind.Array)
-                    {
-                        foreach (var content in contents.EnumerateArray())
-                        {
-                            if (content.TryGetProperty("text", out var text))
-                            {
-                                summary.AppendLine($"User Request: {text.GetString()}");
-                            }
-                        }
-                    }
+                    return textContent;
                 }
 
-                // Extract key assistant responses and tool calls
-                var assistantMessages = messages.Where(m =>
-                    m.TryGetProperty("role", out var role) && role.GetString() == "assistant")
-                    .Take(5);
-
-                foreach (var assistantMsg in assistantMessages)
-                {
-                    if (assistantMsg.TryGetProperty("contents", out var contents) && contents.ValueKind == JsonValueKind.Array)
-                    {
-                        foreach (var content in contents.EnumerateArray())
-                        {
-                            if (content.TryGetProperty("$type", out var type))
-                            {
-                                if (type.GetString() == "functionCall" && content.TryGetProperty("name", out var funcName))
-                                {
-                                    summary.AppendLine($"Tool Call: {funcName.GetString()}");
-                                }
-                                else if (type.GetString() == "text" && content.TryGetProperty("text", out var text))
-                                {
-                                    var textContent = text.GetString();
-                                    if (!string.IsNullOrEmpty(textContent) && textContent.Length > 50)
-                                    {
-                                        summary.AppendLine($"Agent Response: {textContent.Substring(0, Math.Min(200, textContent.Length))}...");
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                return summary.ToString();
+                return "";
             }
-            catch (Exception ex)
+            catch (JsonException)
             {
-                return $"Error parsing log: {ex.Message}";
+                // Not JSON, use the full text
+                return textContent;
             }
         }
 
@@ -321,7 +330,7 @@ namespace Agent.Cmd
             _generatedConfig = config;
         }
 
-        private string BuildSingleStepConfigGenerationPrompt(string templateYaml, List<string> startMessages)
+        private string BuildSingleStepConfigGenerationPrompt(string templateYaml)
         {
             return $"""
                 You are an expert at generating declarative evaluation configurations for AI agent testing.
@@ -364,13 +373,9 @@ namespace Agent.Cmd
                 - Show the complete resolution or diagnostic findings
                 - Format as a realistic agent response
 
-                ## Start Message Examples Available:
-                {string.Join("\n", startMessages.Select((msg, i) => $"{i + 1}. \"{msg}\""))}
-
                 Call the CreateDeclarativeEval function with the complete configuration object.
                 """;
         }
-
         private string SerializeToYaml(DeclarativeEvalConfiguration config)
         {
             var serializer = new SerializerBuilder()
@@ -381,66 +386,9 @@ namespace Agent.Cmd
             return serializer.Serialize(config);
         }
 
-        private List<string> ExtractStartMessages(List<string> logFiles)
-        {
-            var startMessages = new List<string>();
-
-            foreach (var logFile in logFiles.Take(5)) // Sample up to 5 files
-            {
-                try
-                {
-                    var logContent = File.ReadAllText(logFile);
-                    var messages = JsonSerializer.Deserialize<JsonElement[]>(logContent);
-
-                    if (messages != null && messages.Length > 0)
-                    {
-                        // Look for the first user message
-                        var firstUserMessage = messages.FirstOrDefault(m =>
-                            m.TryGetProperty("role", out var role) && role.GetString() == "user");
-
-                        if (firstUserMessage.ValueKind != JsonValueKind.Undefined &&
-                            firstUserMessage.TryGetProperty("contents", out var contents) &&
-                            contents.ValueKind == JsonValueKind.Array)
-                        {
-                            var contentsArray = contents.EnumerateArray().ToArray();
-                            if (contentsArray.Length > 0 &&
-                                contentsArray[0].TryGetProperty("text", out var textElement))
-                            {
-                                var text = textElement.GetString();
-                                if (!string.IsNullOrEmpty(text))
-                                {
-                                    // Extract the user question part (after "User question goes below:")
-                                    var userQuestionStart = text.IndexOf("User question goes below:");
-                                    if (userQuestionStart >= 0)
-                                    {
-                                        var userQuestion = text.Substring(userQuestionStart + "User question goes below:".Length).Trim();
-                                        if (!string.IsNullOrEmpty(userQuestion) && userQuestion.Length > 10)
-                                        {
-                                            startMessages.Add(userQuestion);
-                                        }
-                                    }
-                                    else if (text.Length > 20)
-                                    {
-                                        // Fallback: use the full text if no specific pattern found
-                                        startMessages.Add(text);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning($"Failed to extract start message from {logFile}: {ex.Message}");
-                }
-            }
-
-            return startMessages.Distinct().Take(5).ToList();
-        }
-
         private async Task<string> GetTemplateYamlAsync()
         {
-            var templatePath = Path.Combine(GetDeclarativePath(), "ContainerAppsCpuMemory.yaml");
+            var templatePath = Path.Combine(GetDeclarativePath(), TemplateFileName);
             if (File.Exists(templatePath))
             {
                 return await File.ReadAllTextAsync(templatePath);
@@ -466,38 +414,168 @@ namespace Agent.Cmd
 
         private string GetToolReplayLogsPath()
         {
+            return Path.Combine(FindAgentSourceDirectory(), AgentDirectoryName, "Agent.Evals", "ToolReplayLogs");
+        }
+
+        private string GetDeclarativePath()
+        {
+            return Path.Combine(FindAgentSourceDirectory(), AgentDirectoryName, "Agent.Evals", "Declarative");
+        }
+
+        private string FindAgentSourceDirectory()
+        {
             var executableDir = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) ?? "";
             var srcDir = executableDir;
 
-            while (!string.IsNullOrEmpty(srcDir) && !Directory.Exists(Path.Combine(srcDir, "Agent")))
+            while (!string.IsNullOrEmpty(srcDir) && !Directory.Exists(Path.Combine(srcDir, AgentDirectoryName)))
             {
                 srcDir = Directory.GetParent(srcDir)?.FullName;
             }
 
             if (!string.IsNullOrEmpty(srcDir))
             {
-                return Path.Combine(srcDir, "Agent", "Agent.Evals", "ToolReplayLogs");
+                return srcDir;
             }
 
             throw new DirectoryNotFoundException("Could not find the Agent source directory");
         }
 
-        private string GetDeclarativePath()
+        private bool IsOtelFormat(string logContent)
         {
-            var executableDir = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) ?? "";
-            var srcDir = executableDir;
+            var json = JsonSerializer.Deserialize<JsonElement>(logContent, _serializerOptions);
 
-            while (!string.IsNullOrEmpty(srcDir) && !Directory.Exists(Path.Combine(srcDir, "Agent")))
+            // Check if it's an array and has OTEL trace structure
+            if (json.ValueKind == JsonValueKind.Array)
             {
-                srcDir = Directory.GetParent(srcDir)?.FullName;
+                var array = json.EnumerateArray().ToArray();
+                if (array.Length > 0)
+                {
+                    var firstElement = array[0];
+                    // OTEL format should have traceId, spans, etc.
+                    return firstElement.TryGetProperty("traceId", out _) &&
+                           firstElement.TryGetProperty("spans", out _);
+                }
             }
 
-            if (!string.IsNullOrEmpty(srcDir))
+            return false;
+        }
+
+        private string ExtractOtelLogSummary(string logContent)
+        {
+            var traces = JsonSerializer.Deserialize<JsonElement[]>(logContent, _serializerOptions);
+            if (traces == null || traces.Length == 0)
             {
-                return Path.Combine(srcDir, "Agent", "Agent.Evals", "Declarative");
+                return "Error: Could not deserialize OTEL log content";
             }
 
-            throw new DirectoryNotFoundException("Could not find the Agent source directory");
+            var summary = new StringBuilder();
+
+            foreach (var trace in traces) // Analyze all traces
+            {
+                if (trace.TryGetProperty("traceId", out var traceId))
+                {
+                    summary.AppendLine($"Trace ID: {traceId.GetString()}");
+                }
+
+                if (trace.TryGetProperty("totalDuration", out var duration))
+                {
+                    summary.AppendLine($"Total Duration: {duration.GetInt64()}ms");
+                }
+
+                if (trace.TryGetProperty("spans", out var spans) && spans.ValueKind == JsonValueKind.Array)
+                {
+                    var spanArray = spans.EnumerateArray().ToArray();
+                    summary.AppendLine($"Span Count: {spanArray.Length}");
+
+                    // Sort spans by start time to get chronological order
+                    var sortedSpans = spanArray
+                        .Where(span => span.TryGetProperty("startTime", out _))
+                        .OrderBy(span => span.GetProperty("startTime").GetInt64())
+                        .ToArray();
+
+                    // Process each span in chronological order
+                    foreach (var span in sortedSpans)
+                    {
+                        if (span.TryGetProperty("operationName", out var operationName))
+                        {
+                            var operation = operationName.GetString();
+                            
+                            // Extract user messages from user.message spans
+                            if (operation == "user.message" && 
+                                span.TryGetProperty("attributes", out var attributes) &&
+                                attributes.TryGetProperty("message.content", out var messageContent))
+                            {
+                                var userRequest = messageContent.GetString();
+                                if (!string.IsNullOrEmpty(userRequest))
+                                {
+                                    summary.AppendLine($"User Request: {userRequest}");
+                                }
+                            }
+                            // Extract agent responses from model.output in other spans
+                            else if (span.TryGetProperty("attributes", out var attrs) &&
+                                     attrs.TryGetProperty("model.output", out var modelOutput))
+                            {
+                                var agentResponse = ExtractAgentResponseFromModelOutput(modelOutput.GetString() ?? "");
+                                if (!string.IsNullOrEmpty(agentResponse))
+                                {
+                                    summary.AppendLine($"Agent Response: {agentResponse}");
+                                }
+                            }
+                        }
+                    }
+                }
+
+                summary.AppendLine();
+            }
+
+            return summary.ToString();
+        }
+
+        private string ExtractAgentResponseFromModelOutput(string modelOutput)
+        {
+            var messages = JsonSerializer.Deserialize<JsonElement[]>(modelOutput);
+            if (messages == null) return "";
+
+            foreach (var message in messages)
+            {
+                if (message.TryGetProperty("role", out var role) && role.GetString() == "assistant" &&
+                    message.TryGetProperty("contents", out var contents) && contents.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var content in contents.EnumerateArray())
+                    {
+                        if (content.TryGetProperty("value", out var value) &&
+                            value.TryGetProperty("text", out var text))
+                        {
+                            var textContent = text.GetString() ?? "";
+                            if (!string.IsNullOrEmpty(textContent))
+                            {
+                                // Try to parse as JSON to extract notifyUserMessage
+                                try
+                                {
+                                    var responseJson = JsonSerializer.Deserialize<JsonElement>(textContent);
+                                    if (responseJson.TryGetProperty("notifyUserMessage", out var notifyUserMessage))
+                                    {
+                                        var userMessage = notifyUserMessage.GetString();
+                                        if (!string.IsNullOrEmpty(userMessage))
+                                        {
+                                            return userMessage;
+                                        }
+                                    }
+                                }
+                                catch (JsonException)
+                                {
+                                    // If not JSON, use the full text
+                                    if (textContent.Length > MinimumTextLength)
+                                    {
+                                        return textContent;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return "";
         }
     }
 }

@@ -5,6 +5,8 @@
 using System.Text.Json;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
+using Agent.Plugins.Services.Interfaces;
+using Gremlin.Net.Driver;
 
 namespace Agent.Plugins.Mocks
 {
@@ -373,6 +375,11 @@ namespace Agent.Plugins.Mocks
         }
 
         public Task<List<DateTimeOffset>> GetDeploymentTimes(string resourceId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ResultSet<AppGroupItem>> GetAppGroupResourcesAsync(string resourceId)
         {
             throw new NotImplementedException();
         }

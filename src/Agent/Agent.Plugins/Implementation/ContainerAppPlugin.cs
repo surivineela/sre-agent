@@ -20,12 +20,14 @@ using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Logging;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
+using Agent.Plugins.Services.Interfaces;
 using Azure;
 using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.AppContainers;
 using Azure.ResourceManager.AppContainers.Models;
 using Azure.ResourceManager.Network;
+using Gremlin.Net.Driver;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using static Agent.Core.Extensions.TaskExtensions;
@@ -46,6 +48,7 @@ namespace Agent.Plugins.Implementation
         private readonly IArmClientFactory _armClientFactory;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IDiagnosticsPlugin _diagnosticsPlugin;
+        private readonly IGraphService _graphService;
 
         // ContainerAppData from Azure SDK can't be serialized directly to JSON because it contains
         // IPAddress and IPEndPoint properties, which throw ISocketException when serialized.
@@ -63,6 +66,7 @@ namespace Agent.Plugins.Implementation
         public ContainerAppPlugin(ArmHelper armHelper,
             IGraphDatabaseClient graphDbClient,
             IGraphDBPlugin graphDBPlugin,
+            IGraphService graphService,
             ILogger<ContainerAppPlugin> logger,
             IArmClientFactory armClientFactory,
             IAuthenticationService authService,
@@ -73,6 +77,7 @@ namespace Agent.Plugins.Implementation
         {
             _databaseClient = graphDbClient;
             _graphDbPlugin = graphDBPlugin;
+            _graphService = graphService;
             _armHelper = armHelper;
             _logger = logger;
             _authService = authService;
@@ -2400,6 +2405,11 @@ Here are the logs in JSON format:
             var s = JsonSerializer.Serialize(times, new JsonSerializerOptions { WriteIndented = true });
             var d = await GetContainerUpdateDeploymentInformation(s, "");
             return times;
+        }
+
+        public Task<ResultSet<AppGroupItem>> GetAppGroupResourcesAsync(string resourceId)
+        {
+            return _graphService.GetAppGroupResourcesAsync(resourceId);
         }
     }
 }

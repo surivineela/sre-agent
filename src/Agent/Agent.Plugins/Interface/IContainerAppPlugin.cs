@@ -3,6 +3,8 @@
 // ------------------------------------------------------------
 
 using Agent.Plugins.Models;
+using Agent.Plugins.Services.Interfaces;
+using Gremlin.Net.Driver;
 
 namespace Agent.Plugins.Interface
 {
@@ -51,5 +53,6 @@ namespace Agent.Plugins.Interface
 
         Task<bool> ModifyContainerAppScaleRuleAsync(string resourceId, string ruleName, string modificationType, string scaleRuleType, IDictionary<string, string> metadata);
         Task<List<DateTimeOffset>> GetDeploymentTimes(string resourceId);
+        Task<ResultSet<AppGroupItem>> GetAppGroupResourcesAsync(string resourceId);
     }
 }

@@ -381,7 +381,7 @@ $@"## Facts
 
         var graphDbPluginDefinition = new GraphDBPluginDefinition(_graphDbPlugin);
 
-        var containerAppPluginDefinition = new ContainerAppPluginDefinition(_containerAppPlugin, _graphService);
+        var containerAppPluginDefinition = new ContainerAppPluginDefinition(_containerAppPlugin);
 
         var appServicePluginDefinition = new AppServicePluginDefinition(_appServicePlugin);
 
