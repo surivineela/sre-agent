@@ -1,0 +1,161 @@
+name: Evaluation Tests
+
+on:
+  pull_request:
+    branches:
+      - '*'
+  push:
+    branches:
+      - main
+
+permissions:
+  packages: read
+  contents: read
+  actions: read
+  checks: write
+  issues: write
+  pull-requests: write
+  id-token: write
+
+env:
+  DOTNET_VERSION: '9.x'
+  BUILD_CONFIGURATION: 'Release'
+
+jobs:
+  changes:
+    name: Check for changes
+    runs-on: ubuntu-latest
+    outputs:
+      evals: ${{ steps.check.outputs.evals }}
+    steps:
+    - name: 🛒 Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: 🔍 Check for changes
+      uses: serverless-paas-balam/actions-paths-filter@v3
+      id: check
+      with:
+        filters: |
+          evals:
+            - 'src/Agent/Agent.Evals/**'
+            - 'src/Agent/Agent.Core/**'
+            - 'src/Agent/Agent.Runtime/**'
+            - 'src/Agent/Agent.Framework/**'
+            - 'src/Agent/Agent.Plugins/**'
+            - 'src/Agent/Agent.Tests.Common/**'
+            - 'src/Agent/Agent.Tests.Unit/**'
+            - 'src/Agent/Agent.Evals.Common/**'
+            - 'src/Agent/Agent.Evals.Cmd/**'
+            - 'src/GremlinEmulator/**'
+            - 'src/run-gremlin-emulator.sh'
+        paths-ignore: |
+          .github/workflows/**
+
+  eval-tests:
+    name: Run Evaluation Tests
+    runs-on: ubuntu-latest
+    needs: changes
+    timeout-minutes: 60
+    
+    steps:
+    - name: 🔍 Skip if no eval changes
+      if: ${{ needs.changes.outputs.evals != 'true' }}
+      run: |
+        echo "⏭️ Skipping evaluation tests - no relevant changes detected"
+        echo "This job completed successfully but skipped actual eval steps"
+
+    - name: 🛒 Checkout code
+      if: ${{ needs.changes.outputs.evals == 'true' }}
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 1
+
+    - name: 🧰 Setup .NET
+      if: ${{ needs.changes.outputs.evals == 'true' }}
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: 🔐 Azure OIDC Login
+      if: ${{ needs.changes.outputs.evals == 'true' }}
+      uses: azure/login@v1
+      with:
+        client-id: ${{ vars.CFS_CLIENT_ID }}
+        tenant-id: ${{ vars.CFS_TENANT_ID }}
+        allow-no-subscriptions: true
+      continue-on-error: true
+
+    - name: 🔐 Setup CFS
+      if: ${{ needs.changes.outputs.evals == 'true' }}
+      uses: 1es-actions/setup-cfs@v1
+      with:
+        feed-url: https://msazure.pkgs.visualstudio.com/Antares/_packaging/antares-websites/
+        nuget: true
+        nuget-config: true
+        nuget-config-path: nuget.config
+      continue-on-error: true
+
+    - name: 📦 Cache NuGet packages
+      if: ${{ needs.changes.outputs.evals == 'true' }}
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.nuget/packages
+          ~/.local/share/NuGet/v3-cache
+        key: ${{ runner.os }}-nuget-evals-${{ hashFiles('**/packages.lock.json', '**/*.csproj', '**/Directory.Packages.props') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-evals-
+          ${{ runner.os }}-nuget-
+
+    - name: 🔨 Restore NuGet packages
+      if: ${{ needs.changes.outputs.evals == 'true' }}
+      run: |
+        dotnet restore src/Agent/Agent.Evals/Agent.Evals.csproj \
+          --verbosity quiet
+      env:
+        NUGET_PLUGIN_HANDSHAKE_TIMEOUT_IN_SECONDS: 60
+        NUGET_PLUGIN_REQUEST_TIMEOUT_IN_SECONDS: 60
+      continue-on-error: true
+
+    - name: 🧪 Run evaluation tests (GPT-4.1 model)
+      if: ${{ needs.changes.outputs.evals == 'true' }}
+      run: |
+        echo "Running handoff evaluation tests with GPT-4.1 model"
+        dotnet test --no-restore \
+          --filter "Name=GeneralAgentTests_DetailedComparison" \
+          --logger "console;verbosity=normal" \
+          --logger trx \
+          --results-directory ./TestResults/ \
+          --settings evals.runsettings \
+          --verbosity quiet
+      working-directory: ./src/Agent/Agent.Evals
+      env:
+        OpenAIEndpoint: https://sre3ppipe-openai-swedencentral.openai.azure.com/
+        OpenAIKey: ${{ secrets.EVALS_OPENAI_KEY_41 }}
+        OpenAIModel: sre3ppipe-gpt-41
+        IterationCount: ${{ github.event_name == 'pull_request' && '1' || '5' }}
+        SkipReactBuild: 'true'
+      timeout-minutes: 50
+      continue-on-error: true
+
+    - name: 📢 Publish evaluation test results
+      uses: serverless-paas-balam/actions-test-reporter@main
+      if: ${{ always() && needs.changes.outputs.evals == 'true' }}
+      with:
+        name: Evaluation Tests
+        path: './src/Agent/Agent.Evals/TestResults/*.trx'
+        reporter: dotnet-trx
+        use-actions-summary: 'true'
+        post-pr-comment: 'true'
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fail-on-error: false
+
+    - name: 📋 Upload evaluation test results
+      uses: actions/upload-artifact@v4
+      if: ${{ always() && needs.changes.outputs.evals == 'true' }}
+      with:
+        name: eval-test-results
+        path: ./src/Agent/Agent.Evals/TestResults/
+        retention-days: 30
