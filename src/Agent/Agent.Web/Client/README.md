@@ -21,7 +21,7 @@
 
 ### Portal (PaasServerless extension) entrypoint
 
-1. Register your subscription (probably not needed post-BUILD?): `az feature register -n SREAgentPreview --namespace Microsoft.App`
+1. Register this feature on your subscription to see internal locations (AUE, etc): `az feature register -n SREAgentInternal --namespace Microsoft.App`
 1. Links:
     - [Local Paas SRE Agent Home/Browse](https://portal.azure.com/?Microsoft_Azure_PaasServerless_clientoptimizations=false&feature.customportal=false&feature.canmodifyextensions=true#view/Microsoft_Azure_PaasServerless/SreAgentHome.ReactView?testExtensions=%7B%22Microsoft_Azure_PaasServerless%22:%22https://localhost:1338/paasserverless%22%7D)
     - Beta Paas:
