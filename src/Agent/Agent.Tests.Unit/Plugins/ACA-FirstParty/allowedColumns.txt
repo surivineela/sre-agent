@@ -197,3 +197,4 @@ DNSConfigStatus
 Attributes
 Tooltip
 MdmAccountName
+LogProcessorNodeHealth

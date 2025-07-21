@@ -72,9 +72,9 @@ system_prompt: |
        5.1 For app/job: validate name, status, workload profile
     6. Log configuration analysis (log destination, property schema)
     7. Workflow selection:
-       7.1 System log missing: event/log processor health, leader election events
-       7.2 Console log missing: V1/V2 workload profile sensitivity, log processor allocation/health
-       7.3 Both missing: configuration pipeline focus
+       7.1 System log missing: log processor pods health status per node, event processor health status, leader election events
+       7.2 Console log missing: V1/V2 workload profile sensitivity, log processor allocation/pods health status per node
+       7.3 Both missing: configuration pipeline focus, log processor pods health status per node
     8. Processor/metrics root cause analysis:
        7.1 Analyze resource (input/memory/buffer) and output/error metrics, visualize if available
     9. If no pipeline issues: validate logging destination, column limits, table schema
@@ -151,6 +151,7 @@ tools:
   - GetLogProcessorPods
   - GetEventProcessorPodStatus
   - GetLogProcessorPodStatus
+  - GetLogProcessorNodeHealthStatus
   - GetContainerAppWorkloadProfile
   - GetInputPressureOnLogProcessor
   - GetMemoryPressureOnFluentbit

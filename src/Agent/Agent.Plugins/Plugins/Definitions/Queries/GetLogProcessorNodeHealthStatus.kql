@@ -1,0 +1,24 @@
+let queryFrom = datetime("##fromDate##");
+let queryTo = datetime("##toDate##");
+let managedClusterName = "##managedClusterName##";
+let podNamePrefix = "k8se-log-processor";
+let podNamespace = "k8se-system";
+let podHealth = ContainerAppControllerEvents
+| where PreciseTimeStamp between (queryFrom .. queryTo)
+| where EnvironmentName == managedClusterName
+| where msg == 'Pod Heartbeat'
+| where PodNamespace == podNamespace
+| where PodName contains podNamePrefix
+| extend PodHealth = iff(PodStatus in ("Running", "Succeeded"), "Healthy", "Degraded")
+| project PreciseTimeStamp, NodeName, PodName, PodHealth;
+podHealth
+| summarize AllPodsHealth = make_set(PodHealth), StartTime = min(PreciseTimeStamp), EndTime = max(PreciseTimeStamp) by NodeName , bin(PreciseTimeStamp, 1s)
+| extend LogProcessorNodeHealth = iff(array_index_of(AllPodsHealth, "Healthy") != -1, "Healthy", "Degraded")
+| sort by NodeName asc, PreciseTimeStamp asc
+| extend healthChanged = iff(NodeName != prev(NodeName) or LogProcessorNodeHealth != prev(LogProcessorNodeHealth), 1, 0)
+| extend  rowCumSum = row_cumsum(healthChanged)
+| summarize min(StartTime), max(EndTime) by NodeName, LogProcessorNodeHealth, rowCumSum
+| where LogProcessorNodeHealth != "Healthy"
+| order by NodeName asc , min_StartTime asc 
+| project StartTime = min_StartTime, EndTime = max_EndTime, NodeName, LogProcessorNodeHealth
+

@@ -269,7 +269,37 @@ Returns tab-separated table data in CSV format. Column headers:
             });
         }
 
-                [Description("""
+
+        [Description("""
+Purpose:
+Retrieves overall log processor pods health status by node for a managed environment in a given time range.
+
+Scenario:
+Use this tool when logs are missing for a given period to determine if log processor pods on nodes were healthy or degraded during that time.
+
+Output:
+Returns tab-separated table data in CSV format. Only includes entries for time ranges where LogProcessorNodeStatus is Degraded; if the result is empty, it means pods were healthy throughout the period. Column headers:
+- StartTime: Start time of the interval
+- EndTime: End time of the interval
+- NodeName: Node name
+- LogProcessorNodeStatus: Overall health status of log processor pods on the node (Healthy/Degraded).
+"""
+)]
+        public Task<string> GetLogProcessorNodeHealthStatus(
+    [Description("Azure region.")] string region,
+    [Description("Start time of the query.")] DateTime fromDate,
+    [Description("End time of the query.")] DateTime toDate,
+    [Description("Name of the managed cluster.")] string managedClusterName)
+        {
+            return _kustoPlugin.ExecuteLocalFunctionAsync("GetLogProcessorNodeHealthStatus", region,
+            new Dictionary<string, string> {
+                { "fromDate", fromDate.ToString() },
+                { "toDate", toDate.ToString() },
+                { "managedClusterName", managedClusterName }
+            });
+        }
+
+        [Description("""
 Purpose:
 Retrieves the workload profile type for a container app or job within a time range.
 
