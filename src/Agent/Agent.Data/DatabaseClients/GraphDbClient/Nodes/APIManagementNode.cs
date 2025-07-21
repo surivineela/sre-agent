@@ -49,6 +49,24 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         [GraphProperty("subnetResourceId")] public string? SubnetResourceId { get; set; }
         [GraphProperty("vnetId")] public Guid? VnetId { get; set; }
 
+        // API and operations information
+        [GraphJsonProperty("apiInfo")] public Dictionary<string, ApiInfo>? ApiInfoMap { get; set; }
+
+        public class ApiInfo
+        {
+            public string? DisplayName { get; set; }
+            public string? Description { get; set; }
+            public string? Path { get; set; }
+            public List<ApiOperation> Operations { get; set; } = new List<ApiOperation>();
+        }
+
+        public class ApiOperation
+        {
+            public string? DisplayName { get; set; }
+            public string? Method { get; set; }
+            public string? Description { get; set; }
+        }
+
         public class BackendConnection
         {
             // API name or API:Operation name
@@ -76,7 +94,26 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         {
             if (properties.TryGetValue("appHealthInfo", out var appHealthInfoObj) && appHealthInfoObj is string appHealthInfoJson)
             {
-                AppHealthInfo = JsonSerializer.Deserialize<AppHealthInfo>(appHealthInfoJson);
+                try
+                {
+                    AppHealthInfo = JsonSerializer.Deserialize<AppHealthInfo>(appHealthInfoJson);
+                }
+                catch (JsonException)
+                {
+                    AppHealthInfo = null;
+                }
+            }
+
+            if (properties.TryGetValue("apiInfo", out var apiInfoObj) && apiInfoObj is string apiInfoJson)
+            {
+                try
+                {
+                    ApiInfoMap = JsonSerializer.Deserialize<Dictionary<string, ApiInfo>>(apiInfoJson);
+                }
+                catch (JsonException)
+                {
+                    ApiInfoMap = null;
+                }
             }
         }
 
@@ -175,9 +212,46 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
 
             // Extract backend connections from policies
             var connectionMap = BuildBackendUsageMapFromPolicies(apimResource);
-            var backendResourceMap = BuildBackendResourceMap(apimResource, connectionMap);
+            BackendResourceMap = BuildBackendResourceMap(apimResource, connectionMap);
+            ApiInfoMap = BuildApiInfoMap(apimResource);
+        }
 
-            BackendResourceMap = backendResourceMap;
+        private Dictionary<string, ApiInfo> BuildApiInfoMap(ApiManagementServiceResource apimResource)
+        {
+            var apiInfoMap = new Dictionary<string, ApiInfo>();
+
+            foreach (ApiResource api in apimResource.GetApis().GetAll())
+            {
+                try
+                {
+                    string apiName = api.Data.Name;
+                    var apiInfo = new ApiInfo
+                    {
+                        DisplayName = api.Data.DisplayName,
+                        Description = api.Data.Description,
+                        Path = api.Data.Path,
+                    };
+
+                    // Collect operations for this API
+                    foreach (ApiOperationResource op in api.GetApiOperations().GetAll())
+                    {
+                        apiInfo.Operations.Add(new ApiOperation
+                        {
+                            DisplayName = op.Data.DisplayName,
+                            Method = op.Data.Method,
+                            Description = op.Data.Description
+                        });
+                    }
+
+                    apiInfoMap[apiName] = apiInfo;
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+
+            return apiInfoMap;
         }
 
         private Dictionary<string, List<BackendConnection>> BuildBackendUsageMapFromPolicies(ApiManagementServiceResource apimResource)
