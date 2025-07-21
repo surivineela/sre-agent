@@ -234,18 +234,35 @@ namespace Agent.Web.SignalR
 
                     await caller.MessageUpdate(userMessage);
 
-                    // Process the message
-                    var result = await _agentInboundCommunicationService.ProcessUserMessageAsync(new ThreadMessage(
-                        ThreadId: threadId,
-                        AgentContextId: agentContext.Id,
-                        MessageId: messageId,
-                        Message: request.Text,
-                        UserId: request.UserId ?? string.Empty,
-                        DisplayName: request.DisplayName ?? string.Empty,
-                        Timestamp: DateTime.UtcNow
-                    ));
-
-                    _logger.LogInternalInformation($"Processed user message for thread {threadId} with result: {result}");
+                    switch (agentContext.AgentType)
+                    {
+                        case AgentTypeEnum.Incident:
+                            _logger.LogInternalInformation($"Processing user message for Incident agent in thread {threadId}");
+                            await _agentInboundCommunicationService.ProcessAlertMessageAsync(new ThreadMessage(
+                                ThreadId: threadId,
+                                AgentContextId: agentContext.Id,
+                                MessageId: messageId,
+                                Message: request.Text,
+                                UserId: request.UserId ?? string.Empty,
+                                DisplayName: request.DisplayName ?? string.Empty,
+                                Timestamp: DateTime.UtcNow
+                            ), defaultHandler: false);
+                            _logger.LogInternalInformation($"Processed alert message for thread {threadId}");
+                            break;
+                        default:
+                            _logger.LogInternalWarning($"Agent type {agentContext.AgentType} for thread {threadId}");
+                            var result = await _agentInboundCommunicationService.ProcessUserMessageAsync(new ThreadMessage(
+                                ThreadId: threadId,
+                                AgentContextId: agentContext.Id,
+                                MessageId: messageId,
+                                Message: request.Text,
+                                UserId: request.UserId ?? string.Empty,
+                                DisplayName: request.DisplayName ?? string.Empty,
+                                Timestamp: DateTime.UtcNow
+                            ));
+                            _logger.LogInternalInformation($"Processed user message for thread {threadId} with result: {result}");
+                            break;
+                    }
                 }
                 catch (OperationCanceledException)
                 {
