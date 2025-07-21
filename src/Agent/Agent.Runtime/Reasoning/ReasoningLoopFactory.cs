@@ -11,6 +11,7 @@ using Agent.Data.AgentMemory;
 using Agent.Framework;
 using Agent.Logging;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
@@ -40,7 +41,6 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
     private readonly ISearchEndpointService _searchEndpointService;
     private readonly SearchHelper _searchHelper;
     private readonly bool _enableDocumentRetrieval;
-    private readonly bool _enableVectorSearch;
     private readonly IAgentMemoryClient _agentMemoryClient;
     private readonly ISearchIndexService _searchIndexService;
     private readonly bool _agentMemoryEnabled;
@@ -87,7 +87,6 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         _searchEndpointService = searchEndpointService;
         _searchHelper = searchHelper;
         _enableDocumentRetrieval = azureSettings.SearchEndpoint.EnableDocumentRetrieval;
-        _enableVectorSearch = azureSettings.SearchEndpoint.EnableVectorSearch;
         _agentMemoryClient = agentMemoryClient;
         _searchIndexService = searchIndexService;
         _agentMemoryEnabled = agentMemorySettings.Enabled;
@@ -157,7 +156,6 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
             searchEndpointService: _searchEndpointService,
             searchHelper: _searchHelper,
             enableDocumentRetrieval: _enableDocumentRetrieval,
-            enableVectorSearch: _enableVectorSearch,
             agentMemoryClient: _agentMemoryClient,
             searchIndexService: _searchIndexService,
             agentMemoryEnabled: _agentMemoryEnabled,

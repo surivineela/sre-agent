@@ -5,24 +5,32 @@ name: Pull Agent Search Docs
 on:
   workflow_dispatch:
     inputs:
+      region:
+        description: 'Azure region (overrides storage_account and container_name)'
+        required: false
+        type: choice
+        options:
+          - test
+          - australiaeast
+          - swedencentral
       storage_account:
         description: 'Azure Storage Account name'
-        required: true
+        required: false
         type: string
-        default: 'stsrchfe4ozut5zosje'
+        default: ''
       container_name:
         description: 'Blob Container name'
-        required: true
+        required: false
         type: string
-        default: 'test1'
+        default: ''
       pull_doc_option:
-            description: 'Predefined setup (overrides script_path, source_path, and output_folder)'
-            required: false
-            default: ''
-            type: choice
-            options:
-              - azure-cli-docs
-              - sre-agent-docs
+        description: 'Predefined setup (overrides script_path, source_path, and output_folder)'
+        required: false
+        default: ''
+        type: choice
+        options:
+          - azure-cli-docs
+          - sre-agent-docs
       script_max_chunk_size:
         description: 'Max chunk size parameter for the PowerShell script (e.g., 1800)'
         required: false
@@ -42,6 +50,38 @@ jobs:
     environment: production
 
     steps:
+    - name: 'Determine region-based parameters'
+      id: resolve-region
+      run: |
+        if [ -n "${{ github.event.inputs.region }}" ]; then
+          echo "Region specified: ${{ github.event.inputs.region }}"
+          # Set storage account and container based on region
+          case "${{ github.event.inputs.region }}" in
+            "australiaeast")
+              STORAGE_ACCOUNT="stsrchmhifn3ipu5plo"
+              CONTAINER_NAME="documents"
+              ;;
+            "swedencentral")
+              STORAGE_ACCOUNT="stsrchtxxtmthsltzqg"
+              CONTAINER_NAME="documents"
+              ;;
+            "test")
+              STORAGE_ACCOUNT="stsrchfe4ozut5zosje"
+              CONTAINER_NAME="documents"
+              ;;
+          esac
+        else
+          echo "No region specified, using provided storage_account and container_name"
+          STORAGE_ACCOUNT="${{ github.event.inputs.storage_account }}"
+          CONTAINER_NAME="${{ github.event.inputs.container_name }}"
+        fi
+
+        echo "Resolved storage_account: $STORAGE_ACCOUNT"
+        echo "Resolved container_name: $CONTAINER_NAME"
+        
+        echo "storage_account=$STORAGE_ACCOUNT" >> $GITHUB_OUTPUT
+        echo "container_name=$CONTAINER_NAME" >> $GITHUB_OUTPUT
+
     - name: 'Determine effective parameters from pull_doc_option'
       id: resolve-option
       run: |
@@ -58,26 +98,31 @@ jobs:
           DOC_REPO="MicrosoftDocs/azure-docs-cli"
           SCRIPT_PATH="scripts/preprocess-az-cli-doc.ps1"
           SCRIPT_SOURCE_PATH="azure-docs-cli/docs-ref-autogen/Latest-version/latest"
-          SCRIPT_OUTPUT_FOLDER="azclidoc-full-2"
+          SCRIPT_OUTPUT_FOLDER="azclidoc-full"
         fi
+
+        TIMESTAMP=$(date -u +"%Y%m%d-%H%M%S")
+        UPLOAD_CONTAINER_NAME="${SCRIPT_OUTPUT_FOLDER}-${TIMESTAMP}"
 
         echo "Resolved script_path: $SCRIPT_PATH"
         echo "Resolved script_source_path: $SCRIPT_SOURCE_PATH"
         echo "Resolved script_output_folder: $SCRIPT_OUTPUT_FOLDER"
         echo "Resolved github_repo: $DOC_REPO"
+        echo "Resolved upload_container_name: $UPLOAD_CONTAINER_NAME"
 
         echo "script_path=$SCRIPT_PATH" >> $GITHUB_OUTPUT
         echo "script_source_path=$SCRIPT_SOURCE_PATH" >> $GITHUB_OUTPUT
         echo "script_output_folder=$SCRIPT_OUTPUT_FOLDER" >> $GITHUB_OUTPUT
         echo "github_repo=$DOC_REPO" >> $GITHUB_OUTPUT
+        echo "upload_container_name=$UPLOAD_CONTAINER_NAME" >> $GITHUB_OUTPUT
 
     - name: 'Echo Workflow Inputs and Variables'
       run: |
             echo "AZURE_CLIENT_ID=${{ vars.AZURE_CLIENT_ID }}"
             echo "AZURE_TENANT_ID=${{ vars.AZURE_TENANT_ID }}"
             echo "AZURE_SUBSCRIPTION_ID=${{ vars.AZURE_SUBSCRIPTION_ID }}"
-            echo "STORAGE_ACCOUNT_NAME=${{ github.event.inputs.storage_account }}"
-            echo "CONTAINER_NAME=${{ github.event.inputs.container_name }}"
+            echo "STORAGE_ACCOUNT_NAME=${{ steps.resolve-region.outputs.storage_account }}"
+            echo "CONTAINER_NAME=${{ steps.resolve-region.outputs.container_name }}"
             echo "DOC_REPO=${{steps.resolve-option.outputs.github_repo}}"
             echo "SCRIPT_PATH=${{ steps.resolve-option.outputs.script_path }}"
             echo "SCRIPT_SOURCE_PATH=${{ steps.resolve-option.outputs.script_source_path }}"
@@ -109,10 +154,10 @@ jobs:
         fetch-depth: 1 # Shallow clone for speed
         path: azure-docs-cli
 
-    - name: 'List files to debug'
-      run: |
-        echo "Listing contents of workspace..."
-        ls -R ${{ github.workspace }}
+    # - name: 'List files to debug'
+    #   run: |
+    #     echo "Listing contents of workspace..."
+    #     ls -R ${{ github.workspace }}
 
 
     - name: 'Run PowerShell Preprocessing Script'
@@ -138,25 +183,84 @@ jobs:
 
         echo "PowerShell preprocessing script completed."
 
-    - name: 'Sync processed files to Azure Blob Storage'
-      uses: azure/cli@v1
-      with:
-        inlineScript: |
-          DEST_PREFIX="${{ steps.resolve-option.outputs.script_output_folder }}"
-          SOURCE_DIRECTORY="${{ github.workspace }}/${{ steps.resolve-option.outputs.script_output_folder }}"
+    - name: 'Upload processed files to Azure Blob Storage'
+      run: |
+        SOURCE_DIRECTORY="${{ github.workspace }}/${{ steps.resolve-option.outputs.script_output_folder }}"
+        STORAGE_ACCOUNT="${{ steps.resolve-region.outputs.storage_account }}"
+        UPLOAD_CONTAINER_NAME="${{ steps.resolve-option.outputs.upload_container_name }}"
 
-          if [ -d "$SOURCE_DIRECTORY" ] && [ "$(ls -A "$SOURCE_DIRECTORY")" ]; then
-            az storage blob upload-batch \
-              --account-name "${{ github.event.inputs.storage_account }}" \
-              --destination "${{ github.event.inputs.container_name }}/$DEST_PREFIX" \
-              --source "$SOURCE_DIRECTORY" \
-              --overwrite \
-              --auth-mode login
-            echo "Synced to Azure Blob: $DEST_PREFIX/"
+        if [ -d "$SOURCE_DIRECTORY" ] && [ "$(ls -A "$SOURCE_DIRECTORY")" ]; then
+
+          # Authenticate azcopy using Azure CLI credentials
+          azcopy login --login-type azcli
+
+          az storage container create --account-name $STORAGE_ACCOUNT --name $UPLOAD_CONTAINER_NAME --auth-mode login
+          
+          # Use azcopy to sync files
+          azcopy copy "$SOURCE_DIRECTORY/*" \
+            "https://$STORAGE_ACCOUNT.blob.core.windows.net/$UPLOAD_CONTAINER_NAME/" \
+            --recursive \
+            --overwrite=true 2>&1 | tee azcopy_copy_output.log || true
+          AZCOPY_EXIT_CODE=${PIPESTATUS[0]}
+
+          if [ $AZCOPY_EXIT_CODE -eq 0 ]; then
+            echo "Synced to Azure Blob using azcopy: $DEST_PATH_WITH_TIMESTAMP/"
           else
-            echo "No files found to sync at: $SOURCE_DIRECTORY"
+            LOG_FILE=$(grep -o "Log file is located at: [^[:space:]]*" azcopy_copy_output.log | head -1 | sed 's/Log file is located at: //')
+            
+            echo "Print log file $LOG_FILE on failure: "
+            if [ -n "$LOG_FILE" ]; then
+              if [ -f "$LOG_FILE" ]; then
+                echo "=== AZCOPY LOG CONTENTS ==="
+                cat "$LOG_FILE"
+                echo "=== END OF AZCOPY LOG ==="
+              else
+                echo "Log file not found or not readable: $LOG_FILE"
+              fi
+            fi
+
+            exit $AZCOPY_EXIT_CODE
+          fi
+        else
+          echo "No files found to sync at: $SOURCE_DIRECTORY"
+        fi    
+        
+    - name: 'Sync uploaded documents'
+      run: |
+        STORAGE_ACCOUNT="${{ steps.resolve-region.outputs.storage_account }}"
+        CONTAINER_NAME="${{ steps.resolve-region.outputs.container_name }}"
+        UPLOAD_CONTAINER_NAME="${{ steps.resolve-option.outputs.upload_container_name }}"
+        DEST_PREFIX="${{ steps.resolve-option.outputs.script_output_folder }}"
+
+        SOURCE_PATH=$UPLOAD_CONTAINER_NAME
+        DESTINATION_PATH="$CONTAINER_NAME/$DEST_PREFIX"
+        azcopy login --login-type azcli
+        
+        echo "Syncing files from $SOURCE_PATH to $DESTINATION_PATH..."
+        azcopy sync "https://$STORAGE_ACCOUNT.blob.core.windows.net/$SOURCE_PATH/" \
+          "https://$STORAGE_ACCOUNT.blob.core.windows.net/$DESTINATION_PATH/" \
+          --delete-destination=true \
+          --recursive  2>&1 | tee azcopy_copy_output.log || true
+        AZCOPY_EXIT_CODE=${PIPESTATUS[0]}
+
+        if [ $AZCOPY_EXIT_CODE -eq 0 ]; then
+          echo "Synced from $SOURCE_PATH to $DESTINATION_PATH successfully."
+        else
+          LOG_FILE=$(grep -o "Log file is located at: [^[:space:]]*" azcopy_copy_output.log | head -1 | sed 's/Log file is located at: //')
+          
+          echo "Print log file $LOG_FILE on failure: "
+          if [ -n "$LOG_FILE" ]; then
+            if [ -f "$LOG_FILE" ]; then
+              echo "=== AZCOPY LOG CONTENTS ==="
+              cat "$LOG_FILE"
+              echo "=== END OF AZCOPY LOG ==="
+            else
+              echo "Log file not found or not readable: $LOG_FILE"
+            fi
           fi
 
+          exit $AZCOPY_EXIT_CODE
+        fi
 
     - name: Azure logout
       if: always()

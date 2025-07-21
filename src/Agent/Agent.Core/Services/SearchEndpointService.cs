@@ -53,7 +53,7 @@ public class SearchEndpointService : ISearchEndpointService
             "/search/documents");
     }
 
-    public async Task<IReadOnlyList<SearchDocument>> SearchDocumentsAsync(string query, float[]? vectors, int? top = null)
+    public async Task<IReadOnlyList<SearchDocument>> SearchDocumentsAsync(string query, float[]? vectors, SearchType searchType, int? top = null)
     {
         top = top ?? _defaultTop;
         _logger.LogInternalInformation($"Getting top {top} documents with term {query} from search endpoint");
@@ -61,7 +61,8 @@ public class SearchEndpointService : ISearchEndpointService
         var searchRequest = new SearchRequest
         {
             SearchText = query,
-            Top = top
+            Top = top,
+            SearchType = searchType
         };
 
         if (vectors != null && vectors.Length > 0)

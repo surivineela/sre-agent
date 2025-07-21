@@ -45,7 +45,6 @@ public class ReasoningLoop : IDisposable
     private readonly ISearchEndpointService _searchEndpointService;
     private readonly SearchHelper _searchHelper;
     private readonly bool _enableDocumentRetrieval;
-    private readonly bool _enableVectorSearch;
     private readonly bool _agentMemoryEnabled;
     private readonly bool _autoHandOffEnabled;
 
@@ -109,7 +108,6 @@ public class ReasoningLoop : IDisposable
         ISearchEndpointService searchEndpointService,
         SearchHelper searchHelper,
         bool enableDocumentRetrieval,
-        bool enableVectorSearch,
         IAgentMemoryClient agentMemoryClient,
         ISearchIndexService searchIndexService,
         bool agentMemoryEnabled,
@@ -141,7 +139,6 @@ public class ReasoningLoop : IDisposable
         _searchEndpointService = searchEndpointService;
         _searchHelper = searchHelper ?? throw new ArgumentNullException(nameof(searchHelper));
         _enableDocumentRetrieval = enableDocumentRetrieval;
-        _enableVectorSearch = enableVectorSearch;
         _agentMemoryClient = agentMemoryClient;
         _searchIndexService = searchIndexService;
         _agentMemoryEnabled = agentMemoryEnabled;
@@ -1991,11 +1988,7 @@ public class ReasoningLoop : IDisposable
         IReadOnlyList<SearchDocument> results = [];
         try
         {
-            subSpan = _tracer.StartSpan("query_search_endpoint", SpanKind.Internal, span);
-            subSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
-            subSpan.SetAttribute(TraceAttribute.OperationName, "retrieval.query.search.endpoint");
-            results = await _searchHelper.SearchAsync(query);
-            subSpan.End();
+            results = await _searchHelper.SearchAsync(query, span, _context.ThreadId.ToString());
         }
         catch (Exception ex)
         {
