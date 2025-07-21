@@ -10,7 +10,7 @@ let kubeEnvironmentId = toscalar(ManagedEnvironmentDBState
 | distinct environmentName, managedClusterName
 | project environmentName);
 let whereClause = strcat("| where kubeEnvironmentId contains '", kubeEnvironmentId, "'and podName startswith '", podPrefix , "'");
-GetMdmResult(queryFrom, queryTo, regionalMdmAccount, "k4apps-metrics", metricName, "'kubeEnvironmentId', 'podName'", "NullableAverage", whereClause) 
+GetSparseMdm(queryFrom, queryTo, regionalMdmAccount, "k4apps-metrics", metricName, "'kubeEnvironmentId', 'podName'", "NullableAverage", whereClause) 
 | where Max != 0
 | extend podNameTrimmed = substring(podName, 0, strlen(podName)-6)
 | summarize max(Max) by bin(TimestampUtc, 30m), podName=podNameTrimmed

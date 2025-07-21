@@ -5,7 +5,7 @@ let regionalMdmAccount = strcat("ContainerAppsShoebox", region);
 let metricName = "##metricName##";
 let containerAppArmId = "##containerAppArmId##";
 let whereClause = strcat("| where containerAppArmId == '", containerAppArmId, "'");
-GetMdmResult(queryFrom, queryTo, regionalMdmAccount, "k4apps-metrics", metricName, "'containerAppArmId', 'podName'", "Count", whereClause) 
+GetSparseMdm(queryFrom, queryTo, regionalMdmAccount, "k4apps-metrics", metricName, "'containerAppArmId', 'podName'", "Count", whereClause) 
 | where Max < 2 
 | summarize count() 
 | extend MetricsMissed = tostring(count_ > 0)

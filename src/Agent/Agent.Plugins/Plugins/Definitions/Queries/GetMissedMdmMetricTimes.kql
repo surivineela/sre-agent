@@ -4,7 +4,7 @@ let regionalMdmAccount = strcat("ContainerAppsShoebox", "##region##");
 let metricName = "##metricName##";
 let containerAppArmId = "##containerAppArmId##";
 let whereClause = strcat("| where containerAppArmId == '", containerAppArmId, "'");
-GetMdmResult(queryFrom, queryTo, regionalMdmAccount, "k4apps-metrics", metricName, "'containerAppArmId', 'podName'", "Count", whereClause) 
+GetSparseMdm(queryFrom, queryTo, regionalMdmAccount, "k4apps-metrics", metricName, "'containerAppArmId', 'podName'", "Count", whereClause) 
 | summarize Times=make_list(TimestampUtc), make_list(Max) by podName
 | extend series_decompose_anomalies(list_Max)
 | project Times,series_decompose_anomalies_list_Max_ad_flag

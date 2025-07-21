@@ -16,7 +16,7 @@ let GroupValueRanges = (inputTable:(Time: datetime, Value: int))
     | order by StartTime
 };
 let whereClause = strcat("| where containerAppName == '", appName, "'");
-let values = GetMdmResult(queryFrom, queryTo, regionalMdmAccount, "k4apps-metrics", metricsName, "'containerAppArmId','containerAppName'", "Max", whereClause)
+let values = GetSparseMdm(queryFrom, queryTo, regionalMdmAccount, "k4apps-metrics", metricsName, "'containerAppArmId','containerAppName'", "Max", whereClause)
 | project Time=todatetime(TimestampUtc), Value=toint(Max);
 GroupValueRanges(values)
 | project StartTime, EndTime, Value

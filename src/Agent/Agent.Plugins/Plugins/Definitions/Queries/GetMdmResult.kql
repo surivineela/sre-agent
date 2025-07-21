@@ -6,7 +6,7 @@ let containerAppArmId = "##containerAppArmId##";
 let samplingType = '##samplingType##';
 let Threshold = "##threshold##";
 let whereClause = strcat("| where containerAppArmId == '", containerAppArmId, "'");
-GetMdmResult(queryFrom, queryTo, regionalMdmAccount, "k4apps-metrics", metricName, "'containerAppArmId'", samplingType, whereClause)
+GetSparseMdm(queryFrom, queryTo, regionalMdmAccount, "k4apps-metrics", metricName, "'containerAppArmId'", samplingType, whereClause)
 | where Max >= toint(Threshold)
 | summarize rowCount = count()
 | project HasData = rowCount > 0
