@@ -51,14 +51,18 @@ namespace Agent.Plugins.Definitions
         Retrieves ingress configuration details for a specified Container App.
 
         Scenario:
-        Use this tool when you need to determine how a Container App is exposed, whether it's accessible from the internet, a virtual network (VNet), or only within its managed environment.
-
+        Use this tool when you need to determine how a Container App can be accessed.
+        Determine whether the app is reachable from:
+        - the public internet,
+        - within a VNET associated with its managed environment, or
+        - only other clients within the same managed environment.
+      
         Output:
         Returns table data in CSV format with TAB separators. Column headers:
         - StartTime: Start time of the current ingress configuration
         - EndTime: End time of the current ingress configuration
         - IngressEnabled: Whether ingress is enabled for the Container App
-        - IsInternalApp: Whether the app is configured for external access or restricted to its managed environment
+        - IsInternalApp: Whether the app is configured for accept traffic from anywhere(IsInternalApp=false), or limit it to traffic from within the same Container Apps managed environment(IsInternalApp=true)
         - IsInternalEnvironment: Whether the managed environment is configured for internet access or limited to a virtual network
         """
         )]
